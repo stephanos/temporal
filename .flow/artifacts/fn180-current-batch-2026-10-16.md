@@ -187,11 +187,11 @@ detached `7db358ddc54fa5d33ba350edd3019ece2a2dd41c83293b859bdd45eff6cb378c`.
 
 Full `make -C tools/gomad test-wasm` passed with exit 0 at 04:22:24 UTC;
 raw output is `test-wasm.log` under the final qualification root above. The
-final R6 all-three demonstration is still running. Independent batch review,
+final R6 all-three demonstration failed on the one-box watchdog. Independent batch review,
 final task/R-ID mapping, Flow completion and commits remain pending.
 The R6 log/root are `/tmp/fn180-temporal-compact-final3.log`
 and `/tmp/fn180-temporal-compact-final3`. Both lock-held cells passed; no
-one-box workflow success is claimed yet. fn-182 preparation is refreshed in
+one-box workflow success is claimed. fn-182 preparation is refreshed in
 its existing handover; measured cells have not started.
 
 Independent review must cover the full previously unqualified implementation,
@@ -207,7 +207,7 @@ remain preserved, not be undone.
 ## Integrated task and requirement mapping
 
 The following mapping describes evidence, not Flow completion. Independent
-review remains pending; fn-180 task .5 additionally requires the active real
+review remains pending; fn-180 task .5 additionally requires a passing real
 one-box demonstration. Opt-in qualification skips in the broad suite are not
 substitute passes. All current results bind the candidate above.
 
@@ -217,7 +217,7 @@ substitute passes. All current results bind the candidate above.
 | fn-180.2 / R1,R4 | All 35 real decision stops; allocating dumps/GC, readable pprof, witness-only perturbation, cancellation/reaping; 800 recordings and 32 exact replays. |
 | fn-180.3 / R2,R3,R4 | Registered dumps, panic/truncation, allocation-free probes, allocating-probe divergence with diagnostics off, fuel pressure and nonyielding timeout; ordinary/native-no-op source tests. Historical compiler/assembly receipts remain historical source-shape evidence, not a new overhead measurement. |
 | fn-180.4 / R5 | Scan/nonmonotonic recovery, conditional bisect/reversal, budgets, cleanup and preflight; actual fresh standalone/restarted-incarnation evaluations including panic and timeout. |
-| fn-180.5 / R6 | Shard and mutable-state lock-held demonstrations passed. Real one-box remains active, so this requirement is open. |
+| fn-180.5 / R6 | Shard and mutable-state lock-held demonstrations passed. Real one-box hit its original watchdog, so this requirement is open. |
 | fn-181.1–.2 / R1,R2 | Full-suite preparation/admission/classification controls and installed Rust matrix; clone, standalone refusal and watchdog/cancellation/protocol precedence regressions. |
 | fn-181.3 / R3 | Final source-free durable success/canary/network replay and 18 missing/tampered-payload controls. |
 | fn-181.4 / R4 | Final SIGKILL after two committed outcomes, resumability/refusal controls and resume equality with 24-outcome baseline. |
@@ -257,3 +257,45 @@ No source acceptance, Flow completion or final verdict is inferred from this
 first round. The integration draw surfaced the distinct missed-boundary
 case; the correctness draw surfaced the summarizer defect; duplicate findings
 from all three draws were collapsed in the merge plan, not silently discarded.
+
+## One-box watchdog and review fixes
+
+The tested integrated source and script repair were checkpointed locally as
+`86f25ef560`; no push or Flow completion occurred. The source manifest stayed
+unchanged through the R6 gate's terminal result.
+
+R6 exited 1 after 2191.505 s: shard passed in 146.44 s, mutable-state passed in
+157.18 s, one-box failed in 1887.87 s. Its execution ran from
+04:16:22.880583212Z to 04:46:23.027853320Z (1800.147270108 s), ending as
+`watchdog_timeout` / `execution_timeout` under the original 30-minute bound.
+Cold engine compilation finished at 04:17:39Z; the remaining roughly
+28 minutes 44 seconds were execution, not source compilation. Both output
+streams were empty and no execution/inspection metadata was captured. This
+is not a valid R6 demonstration or a measured performance pass.
+
+The timeout artifact is
+`/tmp/fn180-temporal-compact-final3/onebox/artifacts/v1/campaign-20261016T041457.361326630Z-352a9b0aa719b342a3b1a2482ac2dae3/failures/sha256-c9917c1b3f64d2a65949d52e06bbec63`,
+record `sha256:55638e6a82f27a65faf65f73dcce47dae2af7c0962ced9167087b31c4a51178e`.
+All staging was cleaned and processes reaped; no retry or bound change was
+made. Both successful lock-held cells' heap profiles opened with pprof.
+Repeated full-state snapshot work is a source-level hypothesis; isolated
+host-side timing/count diagnosis is required before choosing a repair.
+
+The summarizer repair's three regression tests pass, including rejection of
+a genuinely unsealed cell directory. The separate selected-marker capacity
+defect was reproduced RED in an isolated worktree with actual helper crash
+and stop cases, then fixed without scanning unrelated terminals or masking
+prior protocol/replay errors. It is now integrated; focused tests pass in
+`/tmp/gomad-fn181-marker-integrated.log`. Only `cluster/provider.go` and two
+new test files changed. Its already-embedded cluster implementation identity
+rotates; the helper, runtime and WASI model do not. The prior manifest is
+historical for this new Go candidate, and affected evidence/review will be
+refreshed rather than relabeled.
+
+Integrated marker regressions passed (cluster 0.009 s, backend 10.890 s).
+Canonical `make lint-code-fast GOLANGCI_LINT_BASE_REV=HEAD
+GOLANGCI_LINT=/tmp/gomad-host-tools/golangci-lint
+ERRORTYPE=/tmp/gomad-host-tools/errortype GOLANGCI_LINT_FIX=false` exited 0,
+with no issues; log `/tmp/gomad-fn181-marker-lint-fast-linux.log`. An initial
+attempt using environment-only overrides selected the repository's Mach-O
+binary in recursive Make and failed before lint; it supplies no lint result.

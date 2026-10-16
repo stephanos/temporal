@@ -738,6 +738,16 @@ func terminal(n *node) (gomadsim.WASMTerminal, error) {
 	return gomadsim.WASMTerminal{Failed: failed, Reason: reason, Termination: n.result.Termination}, nil
 }
 
+func markerBoundaryError(n *node, message string) error {
+	if n.err != nil {
+		return n.err
+	}
+	if n.result.Reaped && n.result.Termination == "capacity" {
+		return &wasi.BoundaryError{Kind: "capacity", Dimension: n.result.Message}
+	}
+	return errors.New(message)
+}
+
 // Shutdown is host cleanup, not a modeled lifecycle action. It must reap every
 // helper even if a marker can no longer be reached or the scenario was canceled.
 func (e *execution) Shutdown(ctx context.Context) error {
@@ -858,7 +868,7 @@ func (e *execution) Stop(ctx context.Context, handle gomadsim.NodeHandle) (gomad
 		select {
 		case <-n.done:
 			if n.result.Termination != "stop" || !n.result.Reaped {
-				return gomadsim.WASMTerminal{}, errors.New("WASM output stop boundary was not reached and reaped")
+				return gomadsim.WASMTerminal{}, markerBoundaryError(n, "WASM output stop boundary was not reached and reaped")
 			}
 			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
@@ -922,7 +932,7 @@ func (e *execution) Crash(ctx context.Context, handle gomadsim.NodeHandle) (goma
 		select {
 		case <-n.done:
 			if n.result.Termination != "crash" || !n.result.Reaped {
-				return gomadsim.WASMTerminal{}, errors.New("WASM output crash boundary was not reached and reaped")
+				return gomadsim.WASMTerminal{}, markerBoundaryError(n, "WASM output crash boundary was not reached and reaped")
 			}
 			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
@@ -936,7 +946,7 @@ func (e *execution) Crash(ctx context.Context, handle gomadsim.NodeHandle) (goma
 		select {
 		case <-n.done:
 			if n.result.Termination != "storage_crash" || !n.result.RuntimeInterrupted || !n.result.Reaped || n.result.StorageImage == nil {
-				return gomadsim.WASMTerminal{}, errors.New("WASM storage crash boundary was not reached with durable recovery evidence")
+				return gomadsim.WASMTerminal{}, markerBoundaryError(n, "WASM storage crash boundary was not reached with durable recovery evidence")
 			}
 			return gomadsim.WASMTerminal{}, n.err
 		case <-ctx.Done():
