@@ -62,6 +62,7 @@ type ClusterSchedulerMetrics struct {
 
 type ClusterResult struct {
 	Cancelled, WatchdogTimeout, GroupGone bool
+	Termination                           string
 	InspectionMetadata                    []byte
 	World                                 []byte
 	Network                               netmodel.Record
@@ -104,6 +105,7 @@ type clusterBoot struct {
 }
 
 type clusterState struct {
+	inspection             bool
 	sink                   *frameSink
 	network                []byte
 	progress               hash.Hash
@@ -127,6 +129,7 @@ type ClusterSession struct {
 	sequence              uint64
 	counts                ClusterFrameCounts
 	input                 *helperInput
+	parentCtx             context.Context
 	ctx                   context.Context
 	cancel                context.CancelFunc
 	ready                 chan struct{}
@@ -236,8 +239,9 @@ func OpenCluster(ctx context.Context, request ClusterRequest) (*ClusterSession, 
 	if err := verifyFile(first.HelperPath, first.HelperSHA256); err != nil {
 		return nil, err
 	}
+	parentCtx := ctx
 	ctx, cancel := context.WithTimeout(ctx, first.Timeout)
-	session := &ClusterSession{config: request, boots: map[string]*clusterBoot{}, states: map[BrokerNode]*clusterState{}, current: map[string]uint64{}, pending: map[uint64]chan error{}, ctx: ctx, cancel: cancel, ready: make(chan struct{}), done: make(chan struct{})}
+	session := &ClusterSession{config: request, boots: map[string]*clusterBoot{}, states: map[BrokerNode]*clusterState{}, current: map[string]uint64{}, pending: map[uint64]chan error{}, parentCtx: parentCtx, ctx: ctx, cancel: cancel, ready: make(chan struct{}), done: make(chan struct{})}
 	session.began = began
 	var configs, boots []clusterInstanceFrame
 	networks, cooperative := map[string]*NetworkModelV2{}, map[string]bool{}
@@ -360,7 +364,11 @@ func (session *ClusterSession) run(request Request) {
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	session.result.HelperResourceUsage = host.ResourceUsage
-	session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone = host.Cancelled, host.WatchdogTimeout, host.GroupGone
+	if session.err == nil && (host.Cancelled || host.WatchdogTimeout || errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded)) {
+		session.result.Cancelled = session.parentCtx.Err() != nil
+		session.result.WatchdogTimeout = !session.result.Cancelled && (host.WatchdogTimeout || errors.Is(session.ctx.Err(), context.DeadlineExceeded))
+	}
+	session.result.GroupGone = host.GroupGone
 	session.result.Frames = session.counts
 	if session.err == nil {
 		if runErr != nil || closeErr != nil || !host.GroupGone || host.Termination != hostexec.TerminationExit || host.ExitCode != 0 {
@@ -371,8 +379,8 @@ func (session *ClusterSession) run(request Request) {
 			session.err = err
 		}
 	}
-	if host.Cancelled || host.WatchdogTimeout {
-		session.err = &ClusterHostError{Cancelled: host.Cancelled, WatchdogTimeout: host.WatchdogTimeout, GroupGone: host.GroupGone, Cause: session.err}
+	if session.result.Cancelled || session.result.WatchdogTimeout {
+		session.err = &ClusterHostError{Cancelled: session.result.Cancelled, WatchdogTimeout: session.result.WatchdogTimeout, GroupGone: host.GroupGone, Cause: session.err}
 	}
 	for _, state := range session.states {
 		select {
@@ -516,7 +524,7 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 	e.helperOwned, e.namespaceOwned = true, true
 	e.mirror = nil
 	sink := &frameSink{request: request, environment: e, started: boot.started, authorizedAt: time.Now()}
-	state := &clusterState{sink: sink, done: make(chan struct{})}
+	state := &clusterState{sink: sink, done: make(chan struct{}), inspection: len(runtime.Inspection) != 0}
 	handle := BrokerNode{ID: node, Incarnation: incarnation}
 	session.states[handle], session.current[node] = state, incarnation
 	session.mu.Unlock()
@@ -548,9 +556,10 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 	}
 	model := helperConfig(e, request.DigestTranscript)
 	err = session.command(ctx, map[string]any{"type": kind, "node": node, "incarnation": incarnation, "boot": bootID, "runtime": struct {
-		Mode       choice.Mode `json:"mode"`
-		TapeChunks uint64      `json:"tape_chunks"`
-	}{model.Mode, model.TapeChunks}}, tagged, state)
+		Mode       choice.Mode     `json:"mode"`
+		TapeChunks uint64          `json:"tape_chunks"`
+		Inspection json.RawMessage `json:"inspection,omitempty"`
+	}{model.Mode, model.TapeChunks, model.Inspection}}, tagged, state)
 	if refused := (clusterControlRefused{}); errors.As(err, &refused) {
 		return rollback(err)
 	}
@@ -649,7 +658,11 @@ func (session *ClusterSession) Link(ctx context.Context, action, from, to string
 
 func (session *ClusterSession) Finish(ctx context.Context) (ClusterResult, error) {
 	session.mu.Lock()
-	if session.finishing {
+	inspected := session.result.Termination == "inspected_prefix"
+	for _, state := range session.states {
+		inspected = inspected || state.inspection && inspectionTermination(state.result.Termination)
+	}
+	if session.finishing || session.terminal {
 		session.mu.Unlock()
 		select {
 		case <-session.done:
@@ -658,12 +671,14 @@ func (session *ClusterSession) Finish(ctx context.Context) (ClusterResult, error
 			return ClusterResult{}, ctx.Err()
 		}
 	}
-	for _, state := range session.states {
-		select {
-		case <-state.done:
-		default:
-			session.mu.Unlock()
-			return ClusterResult{}, invalid("cluster finish has a live incarnation")
+	if !inspected {
+		for _, state := range session.states {
+			select {
+			case <-state.done:
+			default:
+				session.mu.Unlock()
+				return ClusterResult{}, invalid("cluster finish has a live incarnation")
+			}
 		}
 	}
 	session.finishing = true
@@ -847,7 +862,11 @@ func (stream *clusterStream) frame(data []byte) error {
 		if kind != "result" {
 			return invalid("unexpected instance frame")
 		}
-		if err := state.collect(frame, s.config.Broker); err != nil {
+		inspecting := false
+		for _, candidate := range s.states {
+			inspecting = inspecting || candidate.inspection
+		}
+		if err := state.collect(frame, s.config.Broker, inspecting); err != nil {
 			return err
 		}
 		state.sink = nil
@@ -996,7 +1015,7 @@ func validateClusterStarted(started Started, request Request) error {
 	return nil
 }
 
-func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) error {
+func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, inspecting bool) error {
 	var terminal resultFrame
 	keys := []string{"type", "termination", "message", "fuel_remaining", "peak_memory_bytes", "output_bytes"}
 	for _, key := range []string{"exit_code", "local_model", "divergence", "metrics"} {
@@ -1009,6 +1028,10 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) e
 	}
 	request := state.sink.request
 	switch terminal.Termination {
+	case "inspection_aborted":
+		if !inspecting || terminal.ExitCode != nil {
+			return invalid("unsolicited cluster inspection abort")
+		}
 	case "exit":
 		if terminal.ExitCode == nil {
 			return invalid("cluster exit code")
@@ -1026,6 +1049,13 @@ func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig) e
 	state.sink.terminal = &terminal
 	result := Result{Termination: terminal.Termination, ExitCode: terminal.ExitCode, Message: terminal.Message, FuelRemaining: terminal.FuelRemaining, PeakMemoryBytes: terminal.PeakMemoryBytes, OfferedOutputBytes: terminal.OutputBytes, EnvironmentIdentity: state.sink.environment.Identity(), Started: state.sink.started, Reaped: true, Telemetry: terminal.Metrics, AuthorizationToTerminalNanos: uint64(time.Since(state.sink.authorizedAt))}
 	result.Stdout, result.Stderr = state.sink.guestOutput()
+	if terminal.Termination == "inspection_aborted" {
+		result.PartialHelperChoice = bytes.Clone(state.sink.helperEvidence.choice)
+		result.PartialHelperTranscript = bytes.Clone(state.sink.helperEvidence.transcript)
+		state.result = result
+		state.executionClassifiedAt = time.Now()
+		return nil
+	}
 	if state.sink.request.StdoutMirror != nil {
 		digest := sha256.Sum256(result.Stdout)
 		if state.progressBytes != uint64(len(result.Stdout)) || state.progress != nil && !bytes.Equal(state.progress.Sum(nil), digest[:]) {
@@ -1099,18 +1129,20 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 	if err := frame.decode(&terminal, keys...); err != nil {
 		return err
 	}
-	if terminal.Termination != "exit" {
+	inspected := terminal.Termination == "inspected_prefix"
+	if terminal.Termination != "exit" && !inspected {
 		switch terminal.Termination {
-		case "invalid", "infrastructure", "capacity", "unsupported":
+		case "invalid", "infrastructure", "capacity", "unsupported", "instrumentation_divergence", "debug_error", "probe_fuel_limit":
 			return &BoundaryError{Kind: terminal.Termination, Dimension: "cluster run: " + terminal.Message}
 		default:
 			return invalid("cluster run termination")
 		}
 	}
-	if !session.finishing || len(terminal.Instances) != len(session.states) {
+	if !session.finishing && !inspected || len(terminal.Instances) != len(session.states) {
 		return invalid("cluster terminal incarnation count")
 	}
 	seen := map[BrokerNode]bool{}
+	selected := 0
 	for _, instance := range terminal.Instances {
 		incarnation := instance.Incarnation
 		if incarnation == 0 {
@@ -1130,8 +1162,17 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 		if instance.Termination != state.result.Termination {
 			return invalid("cluster terminal incarnation classification")
 		}
+		if state.result.Termination == "inspected_prefix" {
+			if !state.inspection {
+				return invalid("unsolicited cluster inspection")
+			}
+			selected++
+		}
 	}
-	session.result = ClusterResult{VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
+	if inspected && (selected != 1 || len(session.inspectionWire) == 0) {
+		return invalid("missing sealed cluster inspection")
+	}
+	session.result = ClusterResult{Termination: terminal.Termination, VirtualElapsedNanos: terminal.VirtualElapsedNanos, Metrics: terminal.Metrics, Scheduler: terminal.Scheduler}
 	session.terminal = true
 	session.result.AuthorizationToTerminalNanos = uint64(time.Since(session.authorizedAt))
 	return nil
@@ -1142,6 +1183,10 @@ func (session *ClusterSession) collect(frame *validatedFrame) error {
 // sink must drain promptly, and restoring a large World can take longer than
 // the host executor's bounded post-exit pipe cleanup.
 func (session *ClusterSession) finalizeEvidence() error {
+	session.result.InspectionMetadata = bytes.Clone(session.inspectionWire)
+	if session.result.Termination == "inspected_prefix" {
+		return nil
+	}
 	snapshot, err := world.DecodeExpandedSnapshot(session.worldWire, world.Config{Seed: world.Seed(session.config.Broker.Seed), Limits: session.config.Broker.Limits})
 	if err != nil {
 		return invalid("cluster World: " + err.Error())

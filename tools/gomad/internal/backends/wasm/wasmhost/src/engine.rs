@@ -71,6 +71,7 @@ pub struct State {
     pub argument_sizes: Option<(u32, u32)>,
     pub environment_sizes: Option<(u32, u32)>,
     pub model: Option<crate::model::Model>,
+    pub dormant_debug: Option<crate::model::inspection::Transport>,
     pub namespace: Option<crate::namespace::Namespace>,
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
@@ -84,10 +85,15 @@ impl State {
         let Some(model) = self.model.as_mut() else {
             return;
         };
-        if model.inspection.sealed || !model.inspection.started || model.inspection.lock().exhausted
+        let recorder = model.inspection.lock();
+        if model.inspection.sealed
+            || !model.inspection.started
+            || !recorder.observed
+            || recorder.exhausted
         {
             return;
         }
+        drop(recorder);
         let mut cut = model.inspection_cut();
         let mut storage = Vec::new();
         if let Some(namespace) = &self.namespace {
@@ -129,14 +135,25 @@ impl State {
         model.inspection.lock().snapshot(cut, &network, &storage);
     }
     pub fn debug_exchange(&mut self, bytes: &mut [u8]) -> Result<()> {
-        self.inspection_snapshot();
-        let Some(model) = self.model.as_mut() else {
-            return Err(self.fail("debug_error", "debug import requires cooperative runtime"));
+        let operation = match crate::model::inspection::validate_frame(bytes) {
+            Ok(operation) => operation,
+            Err(error) => return Err(self.fail("debug_error", error.to_string())),
         };
-        let operation = if bytes.len() >= 8 {
-            crate::model::inspection::le32(bytes, 4)
-        } else {
-            0
+        if let Some(model) = &self.model {
+            model.inspection.lock().observe(&model.inspection.handle);
+        }
+        if operation == 1 {
+            self.inspection_snapshot();
+        }
+        let Some(model) = self.model.as_mut() else {
+            return match self
+                .dormant_debug
+                .get_or_insert_with(Default::default)
+                .dormant_exchange(bytes)
+            {
+                Ok(()) => Ok(()),
+                Err(error) => Err(self.fail("debug_error", error.to_string())),
+            };
         };
         match model.debug_exchange(bytes) {
             Ok(()) => {
@@ -149,11 +166,16 @@ impl State {
                 Ok(())
             }
             Err(error) => {
-                let kind = if error.to_string().starts_with("instrumentation divergence:") {
+                let kind = if model.divergence.is_some() {
+                    "divergence"
+                } else if error.to_string().starts_with("instrumentation divergence:") {
                     "instrumentation_divergence"
                 } else {
                     "debug_error"
                 };
+                if let Some(member) = &self.broker {
+                    member.broker.abort(kind, error.to_string());
+                }
                 Err(self.fail(kind, error.to_string()))
             }
         }
@@ -793,6 +815,7 @@ pub(crate) fn new_state(
         argument_sizes: None,
         environment_sizes: None,
         model,
+        dormant_debug: None,
         namespace,
         request_scratch: Vec::new(),
         write_scratch: protocol::WriteBuffers::default(),
@@ -849,6 +872,22 @@ pub(crate) fn terminal_outcome(
     #[cfg(not(feature = "diagnostic-fuel-off"))]
     {
         outcome.fuel_remaining = store.get_fuel()?;
+        if outcome.termination == "capacity"
+            && outcome.fuel_remaining == 0
+            && store
+                .data()
+                .model
+                .as_ref()
+                .is_some_and(|model| model.inspection.request.is_some())
+        {
+            outcome.termination = "probe_fuel_limit";
+            outcome.message = "instrumented replay exhausted its fuel limit".into();
+            if let Some(member) = &store.data().broker {
+                member
+                    .broker
+                    .abort("probe_fuel_limit", outcome.message.clone());
+            }
+        }
     }
     #[cfg(feature = "diagnostic-fuel-off")]
     {
@@ -881,6 +920,11 @@ pub(crate) fn finish_storage(
 
 /// Flushes the cooperative model's evidence and adds its result metadata.
 pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<()> {
+    if let Some(model) = &mut state.model
+        && !model.inspection.sealed
+    {
+        model.close_clock_run();
+    }
     state.inspection_snapshot();
     let standalone = state.broker.is_none();
     if let Some(model) = &mut state.model {
@@ -892,7 +936,7 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
                     outcome.termination != "exit" || outcome.exit_code != Some(0),
                 );
             }
-            if standalone {
+            if standalone && recorder.observed {
                 Some(recorder.bytes(!model.inspection.sealed)?)
             } else {
                 None
@@ -2168,11 +2212,49 @@ mod tests {
             argument_sizes: None,
             environment_sizes: None,
             model: Some(crate::model::Model::new(config)),
+            dormant_debug: None,
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),
             broker: None,
         }
+    }
+    #[test]
+    fn ordinary_model_does_not_capture_state_without_debug_hooks() {
+        let mut state = clock_state(100, 65536, 1);
+        state.model.as_mut().unwrap().inspection.started = true;
+        state.inspection_snapshot();
+        let recorder = state.model.as_ref().unwrap().inspection.lock();
+        assert!(recorder.evidence.incarnations.is_empty());
+        assert!(!recorder.observed);
+    }
+    #[test]
+    fn go_owned_debug_refuses_active_inspection_and_malformed_frames() {
+        for op in [4u32, 5, 6, 8, 9, 11] {
+            let mut state = clock_state(100, 65536, 1);
+            state.model = None;
+            let mut frame = [0u8; 16];
+            frame[..4].copy_from_slice(&1u32.to_le_bytes());
+            frame[4..8].copy_from_slice(&op.to_le_bytes());
+            assert!(
+                state
+                    .debug_exchange(&mut frame)
+                    .unwrap_err()
+                    .to_string()
+                    .contains("unsupported without helper-owned runtime")
+            );
+            assert_eq!(state.calls, 0);
+            assert_eq!(state.terminal.unwrap().termination, "debug_error");
+        }
+        let mut state = clock_state(100, 65536, 1);
+        state.model = None;
+        assert!(
+            state
+                .debug_exchange(&mut [0u8; 16])
+                .unwrap_err()
+                .to_string()
+                .contains("invalid debug exchange frame")
+        );
     }
     #[test]
     fn typed_clock_state_preserves_global_ids_and_remote_clock_updates() {
@@ -2366,6 +2448,7 @@ mod tests {
             argument_sizes: None,
             environment_sizes: None,
             model: None,
+            dormant_debug: None,
             namespace: None,
             request_scratch: Vec::new(),
             write_scratch: protocol::WriteBuffers::default(),

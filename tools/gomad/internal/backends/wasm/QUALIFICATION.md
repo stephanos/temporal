@@ -12,6 +12,54 @@ result retains its manifest, raw observations and recomputable measured costs.
 
 ## Frozen cells
 
+The fn-180 Temporal inspection gate is
+`TestTemporalInspectionRetainedFailure` in `backend`. Its shard and workflow
+cells stage the actual production packages with their active lock-held snapshot
+tests. `GOMAD_DEBUG_CANARY=1` deliberately exits after a completed snapshot while
+the application lock remains held and the live value has changed. The one-box
+cell stages `testdata/prototype_temporal`: an additional canary calls the existing
+workflow fixture, then fails after timers and activity retries complete. It
+runs in a one-node typed scenario under the Rust cluster broker, explicitly
+selects `history` incarnation 1, and requests both registered Temporal summaries
+and snapshot probes. Retained stdout must contain both completed retry results
+and the deliberate canary marker. This cell does not cover the standalone
+Go-owned network reference path. That path retains ordinary recording/replay
+support but supplies no inspection metadata; inspection is explicitly unsupported
+and direct low-level inspection refuses ownership before launching a helper.
+The one-box cell reuses the workflow prototype's established 4GiB memory,
+`1<<50` fuel, `1<<28` call and 30-minute execution bounds; these are enforced
+capacities, not measured consumption or a performance claim.
+Typed scenarios use the same whole-program maximum of 1GiB for each incarnation's
+choice trace; an explicit lower limit remains enforced. Recording may use the
+authenticated engine cache at `engine-cache`; retained cluster replay and
+inspection use their existing private caches. Their cold compilation is part of
+the observed correctness gate, not an uncached performance guarantee.
+
+Each cell retains its dormant binary, removes the staged source pathname, makes
+the compiler/runtime-source paths unavailable, and inspects the same artifact's
+failure boundary with stacks and a heap profile. Assertions require authenticated
+prefix/witness agreement, useful snapshot bytes, probe output and unchanged
+retained evidence. Set `GOMAD_WASM_TEMPORAL_INSPECTION_ROOT` to enable this dedicated
+gate and preserve its campaigns and diagnostic files. Without this explicit
+destination the test skips; ordinary `test-wasm` does not duplicate the three
+heavy Temporal cells. The dedicated gate remains required:
+
+```sh
+cd tools/gomad
+GOMAD_STOCK_GO=/absolute/stock-go/bin/go \
+GOMAD_WASM_TEST_HELPER=/absolute/private-copy/gomad-wasmhost \
+GOMAD_WASM_TEMPORAL_INSPECTION_ROOT=/absolute/retained-inspection \
+  /absolute/stock-go/bin/go test -v -tags test_dep -count=1 -timeout=100m \
+  -run '^TestTemporalInspectionRetainedFailure$' ./internal/backends/wasm/backend
+```
+
+This is a gate definition, not a passing qualification receipt. The current batch
+record must retain its actual exits, artifact/helper/runtime/module identities and
+any unexecuted cells. Lock-held type fixtures alone do not establish the one-box
+workload cell, and inspection does not establish full-tape replay. Runtime,
+helper, protocol, architecture and full `test-wasm` gates remain separate required
+integrated checks; none of these observations qualifies native execution.
+
 `Freeze` obtains workload/runtime inventories from backend preparation. Existing
 declared identities, host, profile and limits cannot be silently replaced.
 `IntegratedSourceSHA256` is supplied by the conductor's full current-candidate

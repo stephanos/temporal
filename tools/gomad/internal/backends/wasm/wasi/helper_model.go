@@ -321,6 +321,15 @@ func (sink *frameSink) collectSplit(result *Result) error {
 	return nil
 }
 
+func inspectionTermination(termination string) bool {
+	switch termination {
+	case "inspected_prefix", "instrumentation_divergence", "debug_error", "probe_fuel_limit":
+		return true
+	default:
+		return false
+	}
+}
+
 func (sink *frameSink) collectHelper(result *Result) error {
 	result.InspectionMetadata = append([]byte(nil), sink.helperEvidence.inspection...)
 	result.DebugOutput = append([]byte(nil), sink.helperEvidence.debug...)
@@ -332,8 +341,8 @@ func (sink *frameSink) collectHelper(result *Result) error {
 		return nil
 	}
 	e := sink.environment
-	if result.Termination == "inspected_prefix" {
-		if len(sink.request.Runtime.Inspection) == 0 || !model.InspectionSealed || model.Finished {
+	if inspectionTermination(result.Termination) {
+		if sink.request.Runtime == nil || len(sink.request.Runtime.Inspection) == 0 || model.Finished || result.Termination == "inspected_prefix" && !model.InspectionSealed {
 			return invalid("unsolicited or unsealed inspected-prefix terminal")
 		}
 		result.PartialHelperChoice = append([]byte(nil), sink.helperEvidence.choice...)

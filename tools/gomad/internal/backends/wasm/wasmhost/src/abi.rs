@@ -391,9 +391,10 @@ pub fn invoke(
         .as_ref()
         .is_some_and(|model| model.inspection.sealed)
     {
-        return Err(caller
-            .data_mut()
-            .fail("debug_error", "modeled import after inspection seal"));
+        return Err(caller.data_mut().fail(
+            "debug_error",
+            format!("modeled import after inspection seal: {op:?}"),
+        ));
     }
     #[cfg(feature = "diagnostic-profile")]
     let _abi =

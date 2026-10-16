@@ -145,6 +145,13 @@ A standalone bundle can place this manifest beside `bin/gomad`'s parent:
 Relative manifest roots are resolved from the manifest directory. Malformed
 or unknown manifests fail closed instead of falling back to another location.
 
+Cooperative WASM recordings can retain dormant inspection metadata for
+stop-and-inspect replay with stacks, sampled heap profiles, registered Temporal
+summaries and allocation-free probes. The [operator guide](internal/backends/wasm/CLI.md#inspect-a-retained-cooperative-failure)
+defines selectors, verified prefix termination, evidence refusals and bounded
+invariant search. This requires the recorded instrumentation-enabled binary;
+rebuilding an older artifact cannot supply inspection metadata.
+
 Explore `go run`, `go test`, or a prepared executable target, then replay a
 retained failure exactly or verify its immutable inputs without executing it:
 

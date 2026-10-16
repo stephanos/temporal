@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"embed"
 	"fmt"
+	"io/fs"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/model/clock"
@@ -11,13 +12,17 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
-//go:embed implementation.go inspection.go operator.go oracles.go provider.go replay.go replay_inspection_search.go retained.go soft_assertion.go
+//go:embed implementation.go inspection.go inspection_control.go inspection_network.go operator.go oracles.go provider.go replay.go replay_inspection.go replay_inspection_search.go retained.go soft_assertion.go
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
+	return implementationSHA256(implementationSources)
+}
+
+func implementationSHA256(sources fs.ReadFileFS) string {
 	data := []byte("gomad-wasm-simulation-implementation/v1\n")
-	for _, name := range []string{"implementation.go", "inspection.go", "operator.go", "oracles.go", "provider.go", "replay.go", "replay_inspection_search.go", "retained.go", "soft_assertion.go"} {
-		source, err := implementationSources.ReadFile(name)
+	for _, name := range []string{"implementation.go", "inspection.go", "inspection_control.go", "inspection_network.go", "operator.go", "oracles.go", "provider.go", "replay.go", "replay_inspection.go", "replay_inspection_search.go", "retained.go", "soft_assertion.go"} {
+		source, err := sources.ReadFile(name)
 		if err != nil {
 			return ""
 		}

@@ -4,6 +4,8 @@ package workflow
 
 import (
 	"context"
+	"os"
+	"runtime"
 	"testing"
 
 	persistencespb "go.temporal.io/server/api/persistence/v1"
@@ -26,8 +28,20 @@ func TestGomadMutableStateDumpUsesSnapshotWithWorkflowLockHeld(t *testing.T) {
 	ms.nextEventIDInDB = 19
 	var w gomaddebug.DumpWriter
 	dumpGomadMutableStates(&w)
-	workflow.Unlock()
 	if gomadMutableStateViews[slot].nextEventIDInDB != 11 {
 		t.Fatal("dump did not retain last completed snapshot")
 	}
+	if os.Getenv("GOMAD_DEBUG_CANARY") == "1" {
+		t.Log("Temporal mutable-state canary: workflow lock remains held; live persisted_next_event=19, completed snapshot persisted_next_event=11")
+		go func() {
+			for range 8 {
+				runtime.Gosched()
+			}
+		}()
+		for range 3 {
+			runtime.Gosched()
+		}
+		os.Exit(1)
+	}
+	workflow.Unlock()
 }

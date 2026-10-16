@@ -3,6 +3,7 @@ package cluster
 import (
 	"bytes"
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -15,7 +16,10 @@ import (
 )
 
 const (
-	WASMInspectionSchema               = "gomad.wasm-inspection/v1"
+	WASMInspectionSchema               = "gomad.wasm-inspection/v3"
+	WASMInspectionWorldEncoding        = "gomad.inspection-world-sha256/v1"
+	WASMInspectionStateEncoding        = "gomad.inspection-state-sha256/v1"
+	WASMInspectionWorldHeader          = "gomad.inspection-world-commitments/v1\x00"
 	MaximumWASMInspectionBytes         = 64 << 20
 	MaximumWASMInspectionBoundaries    = 65536
 	MaximumWASMInspectionRegistrations = 256
@@ -25,12 +29,13 @@ const (
 var ErrWASMInspectionUnsupported = errors.New("unsupported or incomplete WASM inspection evidence")
 
 type WASMInspectionEvidence struct {
-	Schema       string                      `json:"schema"`
-	Complete     bool                        `json:"complete"`
-	World        []byte                      `json:"world"`
-	Lifecycle    []byte                      `json:"lifecycle"`
-	Incarnations []WASMInspectionIncarnation `json:"incarnations"`
-	Boundaries   []WASMInspectionBoundary    `json:"boundaries"`
+	Schema        string                      `json:"schema"`
+	WorldEncoding string                      `json:"world_encoding"`
+	Complete      bool                        `json:"complete"`
+	World         []byte                      `json:"world"`
+	Lifecycle     []byte                      `json:"lifecycle"`
+	Incarnations  []WASMInspectionIncarnation `json:"incarnations"`
+	Boundaries    []WASMInspectionBoundary    `json:"-"`
 }
 
 type WASMInspectionIncarnation struct {
@@ -57,12 +62,13 @@ type WASMInspectionRegistration struct {
 }
 
 type WASMInspectionStreams struct {
-	Choice  []byte `json:"choice"`
-	WASI    []byte `json:"wasi"`
-	Network []byte `json:"network"`
-	Storage []byte `json:"storage"`
-	Stdout  []byte `json:"stdout"`
-	Stderr  []byte `json:"stderr"`
+	NetworkEncoding string `json:"network_encoding,omitempty"`
+	Choice          []byte `json:"choice"`
+	WASI            []byte `json:"wasi"`
+	Network         []byte `json:"network"`
+	Storage         []byte `json:"storage"`
+	Stdout          []byte `json:"stdout"`
+	Stderr          []byte `json:"stderr"`
 }
 
 type WASMInspectionBoundary struct {
@@ -77,6 +83,7 @@ type WASMInspectionBoundary struct {
 }
 
 type WASMInspectionCut struct {
+	StateEncoding string              `json:"state_encoding"`
 	Handle        NodeHandle          `json:"handle"`
 	ChoiceRecords uint64              `json:"choice_records"`
 	ChoiceBytes   uint64              `json:"choice_bytes"`
@@ -154,7 +161,7 @@ func CloneWASMInspection(source *WASMInspectionEvidence) *WASMInspectionEvidence
 			n.FailureOrder = &order
 		}
 		n.Registry.Entries = slices.Clone(n.Registry.Entries)
-		n.Streams = WASMInspectionStreams{Choice: bytes.Clone(n.Streams.Choice), WASI: bytes.Clone(n.Streams.WASI), Network: bytes.Clone(n.Streams.Network), Storage: bytes.Clone(n.Streams.Storage), Stdout: bytes.Clone(n.Streams.Stdout), Stderr: bytes.Clone(n.Streams.Stderr)}
+		n.Streams = WASMInspectionStreams{NetworkEncoding: n.Streams.NetworkEncoding, Choice: bytes.Clone(n.Streams.Choice), WASI: bytes.Clone(n.Streams.WASI), Network: bytes.Clone(n.Streams.Network), Storage: bytes.Clone(n.Streams.Storage), Stdout: bytes.Clone(n.Streams.Stdout), Stderr: bytes.Clone(n.Streams.Stderr)}
 	}
 	cloned.Boundaries = slices.Clone(source.Boundaries)
 	for i := range cloned.Boundaries {
@@ -182,16 +189,41 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 	if evidence == nil || evidence.Schema != WASMInspectionSchema || len(evidence.Incarnations) == 0 || len(evidence.Incarnations) > MaximumWASMInspectionBoundaries || len(evidence.Boundaries) > MaximumWASMInspectionBoundaries {
 		return ErrWASMInspectionUnsupported
 	}
+	if evidence.WorldEncoding != WASMInspectionWorldEncoding {
+		return inspectionInvalid("World commitment encoding")
+	}
+	var lifecycleCuts map[uint64]inspectionLifecycleCut
+	if evidence.Complete || len(evidence.Boundaries) != 0 || len(evidence.Lifecycle) != 0 {
+		var err error
+		lifecycleCuts, err = inspectionLifecycleCuts(evidence.Lifecycle)
+		if err != nil {
+			return err
+		}
+	}
+	if len(evidence.Boundaries) != 0 || evidence.Complete || len(evidence.World) != 0 {
+		if err := validateInspectionWorldCommitments(evidence); err != nil {
+			return err
+		}
+	}
 	if evidence.Complete && (len(evidence.World) == 0 || len(evidence.Lifecycle) == 0) {
 		return inspectionInvalid("missing shared prefix material")
 	}
 	encoded, err := json.Marshal(evidence)
-	if err != nil || len(encoded) > MaximumWASMInspectionBytes {
+	if err != nil {
+		return fmt.Errorf("%w: compact metadata encoding: %v", ErrWASMInspectionUnsupported, err)
+	}
+	if len(encoded) > MaximumWASMInspectionBytes {
 		return fmt.Errorf("%w: metadata capacity", ErrWASMInspectionUnsupported)
 	}
 	incarnations := make(map[NodeHandle]*WASMInspectionIncarnation, len(evidence.Incarnations))
 	for i := range evidence.Incarnations {
 		n := &evidence.Incarnations[i]
+		if n.Streams.NetworkEncoding != "" && n.Streams.NetworkEncoding != "gomad.cluster-network-binary/v1" {
+			return inspectionInvalid("network stream encoding")
+		}
+		if n.Streams.NetworkEncoding == "gomad.cluster-network-binary/v1" && !bytes.HasPrefix(n.Streams.Network, []byte("GMNETEV1")) {
+			return inspectionInvalid("network binary stream header")
+		}
 		if n.Handle.Node == "" || n.Handle.Incarnation == 0 || incarnations[n.Handle] != nil || (evidence.Complete || n.TerminalOrder != 0) && n.TerminalOrder < n.StartedOrder || n.FailureOrder != nil && *n.FailureOrder > n.TerminalOrder {
 			return inspectionInvalid("incarnation coordinates")
 		}
@@ -203,6 +235,10 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 	lastDecision := make(map[NodeHandle]uint64)
 	previousCuts := make(map[NodeHandle]WASMInspectionCut)
 	for i, boundary := range evidence.Boundaries {
+		event, exists := lifecycleCuts[boundary.LifecycleBytes]
+		if !exists || event.order != boundary.Order || event.action != 2 || event.handle != boundary.Handle {
+			return inspectionInvalid("binary lifecycle boundary cut")
+		}
 		n := incarnations[boundary.Handle]
 		if n == nil || boundary.Order < n.StartedOrder || (evidence.Complete || n.TerminalOrder != 0) && boundary.Order > n.TerminalOrder || boundary.Decision != lastDecision[boundary.Handle] {
 			return inspectionInvalid("decision coordinates")
@@ -219,6 +255,9 @@ func ValidateWASMInspection(evidence *WASMInspectionEvidence, execution *WASMExe
 		}
 		seen := make(map[NodeHandle]bool, len(boundary.Cuts))
 		for _, cut := range boundary.Cuts {
+			if cut.StateEncoding != WASMInspectionStateEncoding || len(cut.NetworkState) != sha256.Size || len(cut.StorageState) != sha256.Size || len(cut.RecoveryState) != sha256.Size {
+				return inspectionInvalid("incarnation state commitments")
+			}
 			owner := incarnations[cut.Handle]
 			if owner == nil || seen[cut.Handle] || owner.StartedOrder > boundary.Order || cut.Witness == nil || cut.Witness.Goroutines == 0 || len(cut.Witness.RuntimeState) != 128 {
 				return inspectionInvalid("missing incarnation cut or runtime witness")
@@ -299,10 +338,15 @@ func validateInspectionExecution(execution *WASMExecutionEvidence, incarnations 
 		for _, stream := range []struct {
 			bytes  []byte
 			digest string
-		}{{n.Streams.WASI, retained.WASISHA256}, {n.Streams.Network, retained.NetworkSHA256}, {n.Streams.Storage, retained.StorageSHA256}} {
+		}{{n.Streams.WASI, retained.WASISHA256}, {n.Streams.Storage, retained.StorageSHA256}} {
 			if fmt.Sprintf("sha256:%x", sha256.Sum256(stream.bytes)) != stream.digest {
 				return inspectionInvalid("canonical retained stream identity")
 			}
+		}
+		// Encoded cluster network streams are decoded and bound by the backend
+		// owner with its authenticated network limits before admission.
+		if n.Streams.NetworkEncoding == "" && fmt.Sprintf("sha256:%x", sha256.Sum256(n.Streams.Network)) != retained.NetworkSHA256 {
+			return inspectionInvalid("canonical retained network identity")
 		}
 	}
 	return nil
@@ -460,7 +504,47 @@ func inspectionCutsEqual(a, b WASMInspectionCut) bool {
 		return false
 	}
 	aw.RuntimeState, bw.RuntimeState = nil, nil
-	return a.Handle == b.Handle && a.ChoiceRecords == b.ChoiceRecords && a.ChoiceBytes == b.ChoiceBytes && a.WASIBytes == b.WASIBytes && a.NetworkBytes == b.NetworkBytes && a.StorageBytes == b.StorageBytes && a.StdoutBytes == b.StdoutBytes && a.StderrBytes == b.StderrBytes && bytes.Equal(a.ClockRun, b.ClockRun) && bytes.Equal(a.NetworkState, b.NetworkState) && bytes.Equal(a.StorageState, b.StorageState) && bytes.Equal(a.RecoveryState, b.RecoveryState) && runtimeWitnessEqual(aw, bw)
+	return a.StateEncoding == b.StateEncoding && a.Handle == b.Handle && a.ChoiceRecords == b.ChoiceRecords && a.ChoiceBytes == b.ChoiceBytes && a.WASIBytes == b.WASIBytes && a.NetworkBytes == b.NetworkBytes && a.StorageBytes == b.StorageBytes && a.StdoutBytes == b.StdoutBytes && a.StderrBytes == b.StderrBytes && bytes.Equal(a.ClockRun, b.ClockRun) && bytes.Equal(a.NetworkState, b.NetworkState) && bytes.Equal(a.StorageState, b.StorageState) && bytes.Equal(a.RecoveryState, b.RecoveryState) && runtimeWitnessEqual(aw, bw)
+}
+
+func validateInspectionWorldCommitments(evidence *WASMInspectionEvidence) error {
+	if !bytes.HasPrefix(evidence.World, []byte(WASMInspectionWorldHeader)) {
+		return inspectionInvalid("World commitment header")
+	}
+	offset := len(WASMInspectionWorldHeader)
+	for _, boundary := range evidence.Boundaries {
+		if len(evidence.World)-offset < 8+sha256.Size || binary.LittleEndian.Uint64(evidence.World[offset:]) != sha256.Size {
+			return inspectionInvalid("World commitment frame")
+		}
+		offset += 8 + sha256.Size
+		if boundary.WorldBytes != uint64(offset) {
+			return inspectionInvalid("World commitment boundary cut")
+		}
+	}
+	if offset != len(evidence.World) {
+		return inspectionInvalid("World commitment trailing material")
+	}
+	return nil
+}
+
+// WASMInspectionStateCommitment binds canonical owner bytes at a recorded cut.
+// Callers must obtain material from its state owner, never from replay claims.
+func WASMInspectionStateCommitment(kind string, material []byte) ([sha256.Size]byte, error) {
+	if kind != "storage" && kind != "recovery" && kind != "network" {
+		return [sha256.Size]byte{}, errors.New("unknown inspection state commitment kind")
+	}
+	domain := WASMInspectionStateEncoding + "/" + kind + "\x00"
+	hash := sha256.New()
+	var length [8]byte
+	binary.LittleEndian.PutUint64(length[:], uint64(len(material)))
+	for _, part := range [][]byte{[]byte(domain), length[:], material} {
+		if _, err := hash.Write(part); err != nil {
+			return [sha256.Size]byte{}, err
+		}
+	}
+	var digest [sha256.Size]byte
+	copy(digest[:], hash.Sum(nil))
+	return digest, nil
 }
 
 func runtimeWitnessEqual(a, b WASMRuntimeWitness) bool {
@@ -478,6 +562,9 @@ func VerifyWASMInspectionPrefix(retained, observed *WASMInspectionEvidence, boun
 	}
 	if err := ValidateWASMInspection(observed, nil); err != nil {
 		return fmt.Errorf("%w: %v", ErrWASMInstrumentationDivergence, err)
+	}
+	if retained.WorldEncoding != observed.WorldEncoding {
+		return fmt.Errorf("%w: World commitment encoding", ErrWASMInstrumentationDivergence)
 	}
 	diverged := func(reason string) error { return fmt.Errorf("%w: %s", ErrWASMInstrumentationDivergence, reason) }
 	var expected, actual *WASMInspectionBoundary
@@ -527,7 +614,7 @@ func VerifyWASMInspectionPrefix(retained, observed *WASMInspectionEvidence, boun
 			return diverged("runtime witness or incarnation cut")
 		}
 		a, b := lookup(retained, cut.Handle), lookup(observed, cut.Handle)
-		if a == nil || b == nil || a.StartedOrder != b.StartedOrder {
+		if a == nil || b == nil || a.StartedOrder != b.StartedOrder || a.Streams.NetworkEncoding != b.Streams.NetworkEncoding {
 			return diverged("incarnation start")
 		}
 		if !bytes.Equal(a.Streams.Choice[:cut.ChoiceBytes], b.Streams.Choice[:cut.ChoiceBytes]) {

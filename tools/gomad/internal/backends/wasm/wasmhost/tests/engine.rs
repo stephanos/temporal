@@ -5,6 +5,9 @@ use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[path = "common/inspection.rs"]
+mod inspection;
+
 fn run(wat: &str, change: Value, reply: impl FnMut(&Value) -> Value) -> Vec<Value> {
     run_authorized(wat, change, reply, AuthorizationMismatch::None)
 }
@@ -121,6 +124,117 @@ fn deny(call: &Value) -> Value {
 }
 fn input_model() -> Value {
     json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
+}
+
+#[test]
+fn go_owned_guest_keeps_debug_registration_and_probe_enablement_dormant() {
+    let guest = r#"(module
+      (import "gomad_debug_v1" "exchange" (func $debug (param i32 i32) (result i32)))
+      (memory (export "memory") 1)
+      (data (i32.const 0) "\01\00\00\00\02\00\00\00\00\00\00\00\14\00\00\00\05\00\00\00\00\00\00\00\00\00\00\00\04\00\00\00test")
+      (data (i32.const 64) "\01\00\00\00\03\00\00\00\00\00\00\00\04\00\00\00\01\00\00\00")
+      (data (i32.const 96) "\01\00\00\00\07\00\00\00\00\00\00\00\20\00\00\00")
+      (func (export "_start")
+        (drop (call $debug (i32.const 0) (i32.const 36)))
+        (drop (call $debug (i32.const 64) (i32.const 20)))
+        (drop (call $debug (i32.const 96) (i32.const 48)))
+        (if (i64.ne (i64.load (i32.const 112)) (i64.const 0)) (then unreachable))
+        (if (i64.ne (i64.load (i32.const 120)) (i64.const 0)) (then unreachable))
+        (if (i64.ne (i64.load (i32.const 128)) (i64.const 0)) (then unreachable))
+        (if (i64.ne (i64.load (i32.const 136)) (i64.const 0)) (then unreachable))))"#;
+    let frames = run(guest, json!({}), |call| {
+        panic!("debug hook entered ordinary callback: {call}")
+    });
+    assert_eq!(termination(&frames), "exit", "{frames:?}");
+    assert!(frames.last().unwrap()["local_model"].is_null());
+    assert!(
+        !frames
+            .iter()
+            .any(|f| f["stream"] == "inspection" || f["stream"] == "debug")
+    );
+}
+
+#[test]
+fn dedicated_debug_import_seals_open_clock_prefix_without_finishing_runtime_tape() {
+    let mut pending = vec![0u8; 16 + 96 + 128];
+    pending[..4].copy_from_slice(&1u32.to_le_bytes());
+    pending[4..8].copy_from_slice(&1u32.to_le_bytes());
+    pending[12..16].copy_from_slice(&224u32.to_le_bytes());
+    pending[16..20].copy_from_slice(&1u32.to_be_bytes());
+    pending[20..24].copy_from_slice(&1u32.to_be_bytes());
+    pending[24..32].copy_from_slice(&42u64.to_be_bytes());
+    pending[36..40].copy_from_slice(&2u32.to_be_bytes());
+    pending[40..44].copy_from_slice(&1u32.to_be_bytes());
+    pending[48..80].fill(2);
+    pending[80..112].fill(1);
+    pending[224..232].copy_from_slice(&1u64.to_be_bytes());
+    let data: String = pending.iter().map(|b| format!("\\{b:02x}")).collect();
+    let guest = format!(
+        r#"(module
+      (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+      (import "gomad_debug_v1" "exchange" (func $debug (param i32 i32) (result i32)))
+      (memory (export "memory") 1)
+      (data (i32.const 256) "{data}")
+      (data (i32.const 1024) "\01\00\00\00\06\00\00\00\00\00\00\00\00\00\00\00")
+      (func (export "_start")
+        (drop (call $clock (i32.const 1) (i64.const 0) (i32.const 0)))
+        (drop (call $debug (i32.const 256) (i32.const 240)))
+        (if (i32.load (i32.const 264))
+          (then (drop (call $debug (i32.const 1024) (i32.const 16))) unreachable))))"#
+    );
+    let recorded = run(&guest, json!({"local_model":input_model()}), deny);
+    let metadata: Vec<u8> = recorded
+        .iter()
+        .filter(|f| f["stream"] == "inspection")
+        .flat_map(|f| STANDARD.decode(f["data_base64"].as_str().unwrap()).unwrap())
+        .collect();
+    let evidence: Value = serde_json::from_slice(&metadata).unwrap();
+    assert_eq!(evidence["complete"], true);
+    let boundaries = inspection::boundaries(&evidence);
+    let boundary = &boundaries[0];
+    let cut = &boundary["cuts"][0];
+    let decode = |v: &Value| STANDARD.decode(v.as_str().unwrap()).unwrap();
+    let hash = |v: &[u8]| format!("{:x}", Sha256::digest(v));
+    let mut streams = serde_json::Map::new();
+    for (name, size) in [
+        ("choice", "choice_bytes"),
+        ("wasi", "wasi_bytes"),
+        ("network", "network_bytes"),
+        ("storage", "storage_bytes"),
+        ("stdout", "stdout_bytes"),
+        ("stderr", "stderr_bytes"),
+    ] {
+        let bytes = decode(&evidence["incarnations"][0]["streams"][name]);
+        streams.insert(
+            name.into(),
+            json!(hash(&bytes[..cut[size].as_u64().unwrap() as usize])),
+        );
+    }
+    let world = decode(&evidence["world"]);
+    let lifecycle = decode(&evidence["lifecycle"]);
+    let control = json!({"target":{"node":"guest","incarnation":1},"decision":0,"expected":boundary,
+      "world_sha256":hash(&world[..boundary["world_bytes"].as_u64().unwrap() as usize]),
+      "lifecycle_sha256":hash(&lifecycle[..boundary["lifecycle_bytes"].as_u64().unwrap() as usize]),
+      "stream_sha256":[streams],"probes":[],"commands":[],"registries":[evidence["incarnations"][0]["registry"]]});
+    let mut alternative_hash = Sha256::new();
+    alternative_hash.update(b"gomad-choice-alternative-set/v1\0");
+    alternative_hash.update(2u64.to_be_bytes());
+    alternative_hash.update([1u8; 32]);
+    alternative_hash.update([2u8; 32]);
+    let digest: [u8; 32] = alternative_hash.finalize().into();
+    let decision = json!({"Ordinal":0,"Kind":1,"SiteOffset":42,"SiteMissing":false,"RankOverride":false,
+      "Alternatives":2,"Selected":0,"Data":0,"SelectedIdentity":vec![1u8;32],"AlternativeSetDigest":digest.to_vec()});
+    let mut model = input_model();
+    model["mode"] = json!(2);
+    model["tape"] = json!([decision.clone(), decision]);
+    model["inspection"] = control;
+    let inspected = run(&guest, json!({"local_model":model}), deny);
+    let terminal = inspected.last().unwrap();
+    assert_eq!(terminal["termination"], "inspected_prefix", "{terminal}");
+    assert_eq!(terminal["local_model"]["records"], 0);
+    assert_eq!(terminal["local_model"]["cursor"], 0);
+    assert_eq!(terminal["local_model"]["finished"], false);
+    assert_eq!(terminal["local_model"]["calls"], 1);
 }
 
 fn captured_namespace_image(file_path: &[u8]) -> Vec<u8> {
@@ -439,14 +553,15 @@ fn local_random_and_strings_never_request_remote_callbacks() {
         i32.const 40 i32.load i32.const 0x3d445750 i32.ne if unreachable end
         i32.const 64 i32.const 30 call $r drop
         i32.const 64 i32.const 6 call $r drop
-        i32.const 64 i32.load i32.const 0x646a4748 i32.ne if unreachable end
-        i32.const 68 i32.load16_u i32.const 0x20d7 i32.ne if unreachable end
+        i32.const 64 i32.load i32.const 0x35fbc066 i32.ne if unreachable end
+        i32.const 68 i32.load16_u i32.const 0xf413 i32.ne if unreachable end
         i32.const 65536 i32.const 0 call $r drop))"#,
         json!({"local_model":config,"fixture_model_inputs":[{"type":"model_input","stream":"arguments","sequence":0,"data_base64":"YWIAYwA="},{"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"},{"type":"model_inputs_end"}]}),
         |call| panic!("local import escaped to Go: {call}"),
     );
     assert_eq!(termination(&frames), "exit");
     assert_eq!(frames.last().unwrap()["local_model"]["calls"], 7);
+    assert!(!frames.iter().any(|frame| frame["stream"] == "inspection"));
     let mut bytes = Vec::new();
     for frame in &frames {
         if frame["stream"] == "transcript" {

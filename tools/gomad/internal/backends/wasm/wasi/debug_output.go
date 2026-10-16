@@ -293,13 +293,14 @@ func (output *DebugOutput) decodeLibrary(b []byte, coordinates DebugCoordinates)
 					return invalid("debug numeric probe field")
 				}
 				bits := binary.LittleEndian.Uint64(value)
-				if tag == 1 {
+				switch tag {
+				case 1:
 					field.Type = "int64"
 					field.Int64 = int64(bits)
-				} else if tag == 2 {
+				case 2:
 					field.Type = "uint64"
 					field.Uint64 = bits
-				} else {
+				case 4:
 					field.Type = "float64"
 					field.Float64Bits = bits
 				}

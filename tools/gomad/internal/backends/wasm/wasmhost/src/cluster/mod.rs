@@ -459,6 +459,15 @@ pub fn execute(
             .spawn(move || {
                 let (coordinator, failure) = (own_coordinator, own_failure);
                 if !coordinator.acquire(index) {
+                    if coordinator.inspection_stopped() {
+                        let id = instance.id.clone();
+                        if let Ok(report) = refuse_instance(
+                            Outcome::new("inspection_aborted", "cluster inspection stopped"),
+                            output,
+                        ) {
+                            lock(&reports).push((id, report));
+                        }
+                    }
                     return;
                 }
                 let id = instance.id.clone();
@@ -566,7 +575,7 @@ pub fn execute(
 
 fn inspection_evidence(broker: &crate::broker::Broker, output: &SharedOutput) -> Result<()> {
     let mut recorder = lock(&broker.inspection);
-    if recorder.evidence.incarnations.is_empty() {
+    if !recorder.observed || recorder.evidence.incarnations.is_empty() {
         return Ok(());
     }
     let complete = !recorder.sealed;
@@ -674,13 +683,28 @@ fn run_instance(
     if let Some(message) = broken.get() {
         return Err(("invalid", message));
     }
+    if matches!(
+        outcome.termination,
+        "inspected_prefix" | "instrumentation_divergence" | "debug_error" | "probe_fuel_limit"
+    ) {
+        coordinator.abort(outcome.termination, outcome.message.clone());
+    }
+    if outcome.termination == "infrastructure" && coordinator.inspection_stopped() {
+        outcome.termination = "inspection_aborted";
+        outcome.message = "cluster inspection stopped".into();
+        if let Some(model) = &mut store.data_mut().model {
+            model.inspection.sealed = true;
+        }
+    }
     if outcome.termination == "infrastructure" {
         return Err(("infrastructure", outcome.message));
     }
     let state = store.data_mut();
     let mut image = None;
-    if let (Some(descriptor), Some(namespace), Some(model)) =
-        (&storage, &mut state.namespace, &mut state.model)
+    if outcome.termination != "inspection_aborted"
+        && outcome.termination != "inspected_prefix"
+        && let (Some(descriptor), Some(namespace), Some(model)) =
+            (&storage, &mut state.namespace, &mut state.model)
     {
         let mut evidence = crate::storage_transport::recovery_evidence(namespace, descriptor);
         image = evidence.image.take();
@@ -694,21 +718,24 @@ fn run_instance(
         }
         model.storage_evidence(evidence);
     }
-    if let Err(error) = crate::engine::finish_model(state, &mut outcome) {
-        return Err(("infrastructure", format!("result transport: {error:#}")));
-    }
-    if let Some(endpoint) = state
-        .broker
-        .as_ref()
-        .and_then(|member| member.network.as_ref())
+    if outcome.termination != "inspection_aborted"
+        && outcome.termination != "inspected_prefix"
+        && let Some(endpoint) = state
+            .broker
+            .as_ref()
+            .and_then(|member| member.network.as_ref())
     {
-        if let (Ok(bytes), Some(model)) = (endpoint.evidence(), &state.model) {
-            model
-                .inspection
-                .lock()
-                .terminal_network(&model.inspection.handle, bytes);
+        if let Some(model) = &state.model {
+            let mut recorder = model.inspection.lock();
+            match endpoint.evidence() {
+                Ok(bytes) => recorder.terminal_network(&model.inspection.handle, bytes),
+                Err(_) => recorder.exhausted = true,
+            }
         }
         network_evidence(endpoint, &mut state.output, &mut outcome)?;
+    }
+    if let Err(error) = crate::engine::finish_model(state, &mut outcome) {
+        return Err(("infrastructure", format!("result transport: {error:#}")));
     }
     let termination = outcome.termination;
     let host_nanos = state.host_nanos.unwrap_or(0);
@@ -801,6 +828,13 @@ impl Coordinator {
         match self {
             Self::Baton(baton) => baton.acquire(me),
             Self::Broker(broker) => broker.acquire(me),
+        }
+    }
+
+    fn inspection_stopped(&self) -> bool {
+        match self {
+            Self::Baton(_) => false,
+            Self::Broker(broker) => broker.inspection_stopped(),
         }
     }
 

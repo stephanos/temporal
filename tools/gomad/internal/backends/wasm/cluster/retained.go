@@ -256,6 +256,9 @@ func verifyRetained(payload target.BackendPayload) (retainedExecution, *Provider
 		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
 	}
 	config := admitted.(*execution).provider.Broker
+	if err := validateInspectionNetworks(observed.WASM, &admitted.(*execution).provider, bundle.Spec); err != nil {
+		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, err
+	}
 	if err := verifyWorldEvidence(observed.WASM, config.WorldProfile, world.Config{Seed: world.Seed(config.Seed), Limits: config.Limits}); err != nil {
 		return retainedExecution{}, nil, gomadsim.ClusterRecord{}, fmt.Errorf("retained WASM World owner evidence: %w", err)
 	}

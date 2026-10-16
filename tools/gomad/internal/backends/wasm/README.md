@@ -55,6 +55,11 @@ establish no startup or memory improvement.
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
 retained replay and recovery. Feature availability is not a qualification claim;
 the corresponding retained gates must pass for the installed candidate.
+The [inspection guide](CLI.md#inspect-a-retained-cooperative-failure) describes
+authenticated stop boundaries, separate tape/trace coordinates, stacks/heap,
+Temporal snapshots and probes, and bounded invariant search. Inspection terminates
+at `inspected_prefix`; it does not assert full failure reproduction. Old artifacts
+without complete authenticated metadata cannot be inspected by rebuilding them.
 The cooperative installation supports bounded `explore --scenario FILE` seed
 campaigns with typed nodes, modeled network/storage and declared lifecycle
 boundaries. The shared campaign store retains prepared inputs for detached

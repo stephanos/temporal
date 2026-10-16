@@ -11,6 +11,8 @@ rows = collections.defaultdict(lambda: collections.defaultdict(list))
 identities = collections.defaultdict(list)
 failures = []
 for cell in sorted(glob.glob(os.path.join(root, "*-rep*"))):
+    if not os.path.isdir(cell):
+        continue
     side, rest = os.path.basename(cell).split("-", 1)
     workload = rest.rsplit("-rep", 1)[0]
     results = [path for path in glob.glob(os.path.join(cell, "workloads/wasm-qualifications/v1/*.json"))

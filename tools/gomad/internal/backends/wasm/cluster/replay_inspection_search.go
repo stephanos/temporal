@@ -42,7 +42,7 @@ type WASMInspectionSearchResult struct {
 	ConditionalOnMonotonicity bool                        `json:"conditional_on_monotonicity"`
 }
 
-// Each call must create a fresh exact replay of the same artifact and destroy
+// WASMInspectionEvaluator must create a fresh exact replay of the same artifact and destroy
 // its stores before returning. The context bounds startup through cleanup.
 type WASMInspectionEvaluator func(context.Context, cluster.WASMInspectionResolution, string) (WASMInspectionEvaluation, error)
 

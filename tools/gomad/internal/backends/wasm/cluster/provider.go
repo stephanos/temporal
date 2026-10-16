@@ -33,6 +33,8 @@ type Provider struct {
 	goBrokerReference bool
 	mu                sync.Mutex
 	latest            *execution
+	inspectionTarget  gomadsim.NodeHandle
+	inspectionControl []byte
 }
 
 // IncarnationBoot selects a sealed fresh boot configuration for a restart.
@@ -151,6 +153,7 @@ func (p *Provider) CompletedResults() []IncarnationResult {
 		result.NetworkTranscript = bytes.Clone(result.NetworkTranscript)
 		result.StorageTranscript = bytes.Clone(result.StorageTranscript)
 		result.InspectionMetadata = bytes.Clone(result.InspectionMetadata)
+		result.DebugOutput = bytes.Clone(result.DebugOutput)
 		result.InterruptedChoiceBytes = bytes.Clone(result.InterruptedChoiceBytes)
 		result.InterruptedDiagnosticBytes = bytes.Clone(result.InterruptedDiagnosticBytes)
 		result.ChoiceTrace.Bytes = bytes.Clone(result.ChoiceTrace.Bytes)
@@ -313,6 +316,7 @@ type execution struct {
 	replay                *gomadsim.WASMExecutionEvidence
 	configurationIdentity string
 	limits                gomadsim.Limits
+	spec                  gomadsim.Spec
 }
 
 func (p *Provider) Open(ctx context.Context, spec gomadsim.Spec) (gomadsim.WASMExecution, error) {
@@ -522,6 +526,8 @@ func (p *Provider) Open(ctx context.Context, spec gomadsim.Spec) (gomadsim.WASME
 		replay = spec.Replay.WASM
 	}
 	e := &execution{ctx: ctx, provider: Provider{Boots: boots, IncarnationBoots: bindings, Broker: config, OutputCrashes: p.OutputCrashes, OutputCrashGroups: p.OutputCrashGroups, OutputStops: p.OutputStops, Oracles: oraclePlan}, broker: b, nodes: map[gomadsim.NodeID]*node{}, results: map[gomadsim.NodeHandle]wasi.Result{}, requests: map[gomadsim.NodeHandle]wasi.Request{}, elapsed: map[gomadsim.NodeHandle]uint64{}, replay: replay, limits: spec.Limits, configurationIdentity: configurationIdentity}
+	e.spec = spec
+	e.provider.inspectionTarget, e.provider.inspectionControl = p.inspectionTarget, bytes.Clone(p.inspectionControl)
 	if !p.goBrokerReference {
 		cluster := wasi.ClusterRequest{Broker: config, Boots: map[string]wasi.Request{}}
 		e.clusterBoots = map[gomadsim.BootID]string{}
@@ -594,7 +600,7 @@ func (e *execution) Start(spec gomadsim.NodeSpec, handle gomadsim.NodeHandle) er
 		tape := choice.ReplayPlan{Bytes: bytes.Clone(retained.ChoiceTape), SHA256: sha256.Sum256(retained.ChoiceTape)}
 		var err error
 		validate := choice.ValidateReplayPlan
-		if retained.Interrupted {
+		if retained.Interrupted && len(e.provider.inspectionControl) == 0 {
 			validate = choice.ValidatePrefixReplayPlan
 		}
 		tape, err = validate(tape, request.Runtime.Choice.ExecutionIdentity)
@@ -604,10 +610,13 @@ func (e *execution) Start(spec gomadsim.NodeSpec, handle gomadsim.NodeHandle) er
 		control := *request.Runtime
 		choiceRequest := *control.Choice
 		choiceRequest.Mode, choiceRequest.Tape = choice.ModeReplay, &tape
-		if retained.Interrupted {
+		if retained.Interrupted && len(e.provider.inspectionControl) == 0 {
 			choiceRequest.Mode = choice.ModePrefix
 		}
 		control.Choice = &choiceRequest
+		if handle == e.provider.inspectionTarget {
+			control.Inspection = bytes.Clone(e.provider.inspectionControl)
+		}
 		request.Runtime = &control
 	}
 	if e.cluster != nil {
@@ -1108,6 +1117,9 @@ func (e *execution) Finish() (gomadsim.WASMEvidence, error) {
 			return evidence, err
 		}
 		evidence.Execution.Inspection = metadata
+		if err := validateInspectionNetworks(evidence.Execution, &e.provider, e.spec); err != nil {
+			return evidence, err
+		}
 		if err := ValidateInspectionChoices(evidence.Execution); err != nil {
 			return evidence, err
 		}

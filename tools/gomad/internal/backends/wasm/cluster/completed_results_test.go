@@ -45,6 +45,7 @@ func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 	p := &Provider{latest: &execution{results: map[gomadsim.NodeHandle]wasi.Result{handle: {
 		ExitCode: &code, Started: &wasi.Started{Imports: []wasi.Import{{Name: "original"}}, Exports: []wasi.Export{{Name: "original"}}},
 		HelperResourceUsage: &hostexec.ResourceUsage{UserNanos: 1}, Telemetry: &wasi.Telemetry{PrepareNanos: 1},
+		DebugOutput: []byte{1}, InspectionMetadata: []byte{1},
 		DiagnosticTrace:         choice.DiagnosticTrace{Bytes: []byte{1}, Records: []choice.DiagnosticRecord{{Ordinal: 1}}},
 		ChoiceDivergence:        &choice.Divergence{Expected: &choice.Decision{Ordinal: 1}, Observed: &choice.Decision{Ordinal: 1}},
 		StorageSnapshots:        []volume.VolumeSnapshot{{Persisted: []volume.SnapshotEntry{{Path: "original"}}, Volatile: []volume.SnapshotEntry{{Path: "original"}}}},
@@ -53,6 +54,7 @@ func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 		StorageCrashEnumeration: map[string]volume.CrashEnumeration{"volume": {States: []volume.CrashState{{SelectedOperations: []uint64{1}, Entries: []volume.CrashEntry{{Data: []byte{1}}}}}, ChoiceExploration: &volume.CrashExploration{Cursor: []byte{1}, Seen: []string{"original"}}}},
 	}}}}
 	actual := p.CompletedResults()[0].Result
+	actual.DebugOutput[0], actual.InspectionMetadata[0] = 9, 9
 	*actual.ExitCode = 9
 	actual.Started.Imports[0].Name, actual.Started.Exports[0].Name = "changed", "changed"
 	actual.HelperResourceUsage.UserNanos, actual.Telemetry.PrepareNanos = 9, 9
@@ -66,6 +68,9 @@ func TestCompletedResultsDetachMutableObservationAndCostSurfaces(t *testing.T) {
 	enumeration.ChoiceExploration.Cursor[0], enumeration.ChoiceExploration.Seen[0] = 9, "changed"
 	delete(actual.StorageCrashEnumeration, "volume")
 	again := p.CompletedResults()[0].Result
+	if again.DebugOutput[0] != 1 || again.InspectionMetadata[0] != 1 {
+		t.Fatal("caller mutated retained inspection observations")
+	}
 	if again.StorageCrashContext["volume"].Operations[0].Dependencies[0] != 1 {
 		t.Fatal("caller mutated retained pending context")
 	}

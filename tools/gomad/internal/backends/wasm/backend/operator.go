@@ -67,7 +67,7 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 		return backends.ExecutionResult{}, errors.New("invalid WASM scenario module identity")
 	}
 	copy(identity.TargetSHA256[:], module)
-	limit := uint64(1000000)
+	limit := uint64(choice.MaximumTraceBytes)
 	if converted.Choice != nil {
 		limit = converted.Choice.Limit
 	}
@@ -88,13 +88,16 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 	provider.Oracles = scenarioSoftAssertions(s, request.Target.SoftAssertionReportOnly)
 	var scenarioErr error
 	observed, err := model.RunWASM(ctx, spec, func(ctx context.Context, c model.Cluster) error { scenarioErr = s.Run(ctx, c); return scenarioErr }, provider)
+	interrupted := func(cancelled, watchdog, reaped bool) (backends.ExecutionResult, error) {
+		return backends.ProjectObservedResult(converted, backends.Result{Cancelled: cancelled, WatchdogTimeout: watchdog, Reaped: reaped}, request.StdoutHead, request.StderrHead)
+	}
 	var hostError *wasi.ClusterHostError
-	if errors.As(err, &hostError) && (hostError.Cancelled || hostError.WatchdogTimeout) {
-		return backends.ExecutionResult{Captured: hostError.GroupGone, Cancelled: hostError.Cancelled, WatchdogTimeout: hostError.WatchdogTimeout, GroupGone: hostError.GroupGone}, nil
+	if (errors.As(scenarioErr, &hostError) || scenarioErr == nil && errors.As(err, &hostError)) && (hostError.Cancelled || hostError.WatchdogTimeout) {
+		return interrupted(hostError.Cancelled, hostError.WatchdogTimeout, hostError.GroupGone)
 	}
 	if host := provider.CompletedClusterResult(); host != nil {
 		if host.Cancelled || host.WatchdogTimeout {
-			return backends.ExecutionResult{Captured: host.GroupGone, Cancelled: host.Cancelled, WatchdogTimeout: host.WatchdogTimeout, GroupGone: host.GroupGone}, nil
+			return interrupted(host.Cancelled, host.WatchdogTimeout, host.GroupGone)
 		}
 		if !host.GroupGone {
 			return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Infrastructure, Message: "WASM cluster helper was not reaped"}
@@ -107,7 +110,15 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 			for _, r := range results {
 				reaped = reaped && r.Reaped
 			}
-			return backends.ExecutionResult{Cancelled: true, GroupGone: reaped}, nil
+			return interrupted(true, false, reaped)
+		}
+		var divergence *model.ReplayDivergenceError
+		if scenarioErr == nil && hostError == nil && !errors.As(err, &divergence) && errors.Is(err, choice.ErrInvalidReplayPlan) {
+			for _, incarnation := range provider.CompletedResults() {
+				if r := incarnation.Result; r.Termination == string(backends.Capacity) {
+					return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Capacity, Message: r.Message}
+				}
+			}
 		}
 		return backends.ExecutionResult{}, scenarioFailure(err)
 	}
@@ -120,16 +131,17 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 	for _, incarnation := range provider.CompletedResults() {
 		r := incarnation.Result
 		if r.Cancelled {
-			return backends.ExecutionResult{Cancelled: true, GroupGone: r.Reaped}, nil
+			return interrupted(true, false, r.Reaped)
 		}
 		if r.WatchdogTimeout {
-			return backends.ExecutionResult{WatchdogTimeout: true, GroupGone: r.Reaped}, nil
+			return interrupted(false, true, r.Reaped)
 		}
 		switch backends.Termination(r.Termination) {
 		case "invalid":
 			return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Infrastructure, Message: r.Message}
 		case backends.Capacity, backends.Unsupported, backends.Infrastructure, backends.Divergence:
 			return backends.ExecutionResult{}, &backends.FailureError{Termination: backends.Termination(r.Termination), Message: r.Message}
+		case backends.Exit, backends.Trap:
 		}
 	}
 	payload, err := provider.RetentionPayload(spec, observed.Record)

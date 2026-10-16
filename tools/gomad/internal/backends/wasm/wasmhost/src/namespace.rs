@@ -1475,8 +1475,8 @@ impl Namespace {
         ] {
             put_u64(&mut bytes, number);
         }
-        put_bytes(&mut bytes, self.stdout());
-        put_bytes(&mut bytes, self.stderr());
+        put_bytes(&mut bytes, &self.stdout);
+        put_bytes(&mut bytes, &self.stderr);
         bytes
     }
     #[cfg(not(feature = "conformance"))]
@@ -1544,11 +1544,11 @@ impl Namespace {
         put_bytes(bytes, &n.data);
         put_u64(bytes, n.modified);
     }
-    #[cfg(any(test, feature = "conformance"))]
+    #[cfg(test)]
     pub fn stdout(&self) -> &[u8] {
         &self.stdout
     }
-    #[cfg(any(test, feature = "conformance"))]
+    #[cfg(test)]
     pub fn stderr(&self) -> &[u8] {
         &self.stderr
     }

@@ -12,6 +12,83 @@ available operations; qualification requires retained evidence for the installed
 candidate, profile, host and workload. A successful fixture run does not qualify
 an arbitrary Temporal workload or a different engine/host.
 
+## Inspect a retained cooperative failure
+
+Instrumentation must already be dormant in the recorded binary. Replay reads the
+retained module and authenticated metadata; it does not rebuild the application.
+Debug output is diagnostic, written beside the artifact, and never changes its
+identity. A normal `replay ARTIFACT` still requires the complete recorded tape and
+reproduced outcome. Inspection instead ends with `inspected_prefix`: the pending
+decision has been validated but not applied, the prefix and compulsory runtime
+witness match, and application execution will not resume.
+
+```sh
+gomad --installation installation.json replay --instance=history --incarnation=1 --stop=failure \
+  --dump=stacks --dump=heap --dump=temporal.shards \
+  --dump=temporal.mutable_states --probe='temporal.*.snapshot' ARTIFACT
+gomad --installation installation.json replay --instance=history --incarnation=2 \
+  --stop=choice=120 --dump=stacks --debug-output=inspection-120 ARTIFACT
+gomad --installation installation.json replay --stop=time=2s --dump=heap ARTIFACT
+```
+
+`choice=N` is a zero-based tape decision in the selected incarnation, before
+decision N. Trace positions also include observations, so a trace index is not a
+tape ordinal. A single-guest artifact infers its target; cluster inspection
+requires both the recorded instance ID and positive incarnation number. Restarted
+incarnations have separate tapes. `time=T` accepts shared virtual nanoseconds or a
+duration and resolves to the first inspectable boundary at or after T. Equal-time
+ties follow retained execution order. `failure` resolves to the selected
+incarnation's last reachable boundary at or before its recorded failure, never a
+post-trap heap. The report gives requested and resolved coordinates; neither
+selector implies execution at an otherwise unobservable timestamp.
+
+Standalone Go-owned network recordings keep ordinary recording/replay support,
+but have no authenticated inspection metadata. Inspection refuses them as
+unsupported; direct low-level inspection also requires helper-owned execution.
+Use the Rust cluster scenario path for the Temporal one-box inspection cell.
+
+`stacks` includes file/line frames; `heap.pprof` is a sampled heap profile, readable
+with `go tool pprof -top ARTIFACT.inspection/heap.pprof`. Registered dump and probe names
+are scoped to the selected incarnation. Unknown names, unavailable registration
+prefixes, missing targets, out-of-range boundaries and old/incomplete metadata are
+refused before execution. Changed evidence or runtime witnesses produce
+instrumentation divergence, including an allocating probe that leaves stdout
+unchanged. Optional `--diagnostics` cannot substitute for the witness.
+
+The Temporal dumps read bounded completed mutation snapshots without acquiring
+application locks: 32 shard write-unlock snapshots and 64 mutable-state snapshots.
+Their headers identify stale-view semantics; each row has a snapshot sequence and
+mutable-state rows identify the mutation seam. A sequence is not a choice index.
+Live values may have changed while an application lock remains held. Identity
+truncation is marked explicitly. These summaries are diagnostic copies, not a
+complete cache inventory or transactionally current server state.
+
+Use repeated `--dump`/`--probe` options to select output, and positive
+`--debug-bytes`/`--dump-bytes` bounds to cap it. Per-dump panic/truncation is reported
+separately; other callbacks can still complete. A callback timeout aborts and
+reaps that inspection. Callbacks must never wait for a frozen application lock or
+message. Fuel pressure, replay divergence and timeout are errors, not successful
+inspection or predicate results.
+
+```sh
+gomad --installation installation.json replay --check=workflow.valid \
+  --choice-range=10:200 --search-mode=scan --search-attempts=191 \
+  --search-timeout=2m ARTIFACT
+gomad --installation installation.json replay --check=workflow.once_invalid \
+  --choice-range=10:200 --search-mode=bisect --search-attempts=16 \
+  --search-timeout=2m ARTIFACT
+```
+
+Search evaluates a registered invariant after a fresh exact replay for every
+candidate. The inclusive range is local to the selected incarnation. Ascending
+scan establishes the first failure only in the range it actually examines.
+Attempt and whole-search wall bounds include startup and cleanup; exhaustion
+reports incomplete with checked positions and the remaining interval. Bisect
+requires a retained monotonic declaration: once false, the check stays false in
+the range. Its result is explicitly conditional on that declaration; observed
+reversals invalidate it, and unobserved reversals cannot be excluded. Panic,
+timeout and replay mismatch are inconclusive evaluations, never true/false.
+
 ## Build and pin an installation
 
 Use an existing stock Go 1.27.1 distribution and the repository's locked Rust

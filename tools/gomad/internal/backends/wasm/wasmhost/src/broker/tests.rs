@@ -31,6 +31,30 @@ fn broker_config() -> Config {
 }
 
 #[test]
+fn inspection_abort_keeps_its_terminal_and_releases_dormant_and_held_members() {
+    let broker = Broker::new(
+        &broker_config(),
+        &["a".into(), "b".into(), "c".into()],
+        None,
+        None,
+    )
+    .unwrap();
+    broker.defer_starts();
+    broker.activate(0).unwrap();
+    broker.activate(1).unwrap();
+    broker.run(0, 1).unwrap();
+    broker.abort("inspected_prefix", "verified cut".into());
+    assert!(!broker.acquire(1));
+    assert!(!broker.acquire(2));
+    assert!(!broker.wait());
+    broker.abort("infrastructure", "neighbor aborted".into());
+    assert_eq!(
+        broker.failure(),
+        Some(("inspected_prefix", "verified cut".into()))
+    );
+}
+
+#[test]
 fn manual_driver_owns_turn_until_target_finishes_and_reaps_revoked_peer() {
     let broker = Broker::new(&broker_config(), &["a".into(), "b".into()], None, None).unwrap();
     broker.defer_starts();

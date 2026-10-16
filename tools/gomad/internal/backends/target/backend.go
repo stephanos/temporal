@@ -38,6 +38,7 @@ func (spec Spec) Clone() Spec {
 	spec.Args = slices.Clone(spec.Args)
 	spec.BuildTags = slices.Clone(spec.BuildTags)
 	spec.AdapterReplacements = slices.Clone(spec.AdapterReplacements)
+	spec.Scenario = slices.Clone(spec.Scenario)
 	return spec
 }
 

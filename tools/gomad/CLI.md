@@ -7,6 +7,12 @@ Gomad has two command-line products:
 
 This guide follows one target through both workflows. The [product specification](SPEC.md) defines the requirements and owns the [canonical vocabulary](SPEC.md#productvocabulary-ubiquitous-language).
 
+Cooperative WASM retained failures also support stop-and-inspect replay, registered
+dumps, dormant probes and bounded invariant search. See the [inspection operator
+guide](internal/backends/wasm/CLI.md#inspect-a-retained-cooperative-failure) for exact
+target/choice/time selectors, `inspected_prefix`, evidence refusals and scan versus
+conditional bisect. Native execution qualification remains deferred.
+
 ```text
 maintain toolchain
        |

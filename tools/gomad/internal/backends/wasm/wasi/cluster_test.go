@@ -6,7 +6,6 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
-	"fmt"
 	"os"
 	"path/filepath"
 	"strings"
@@ -18,8 +17,8 @@ import (
 )
 
 func TestClusterHostTerminationStatus(t *testing.T) {
-	for _, watchdog := range []bool{true, false} {
-		t.Run(fmt.Sprint(watchdog), func(t *testing.T) {
+	for _, name := range []string{"watchdog", "cancelled", "parent deadline"} {
+		t.Run(name, func(t *testing.T) {
 			helper := filepath.Join(t.TempDir(), "helper")
 			if err := os.WriteFile(helper, []byte("#!/bin/sh\nexec /bin/sleep 30\n"), 0700); err != nil {
 				t.Fatal(err)
@@ -31,13 +30,19 @@ func TestClusterHostTerminationStatus(t *testing.T) {
 			input.start(nil)
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
+			watchdog := name == "watchdog"
 			timeout := 20 * time.Millisecond
 			if !watchdog {
-				timer := time.AfterFunc(20*time.Millisecond, cancel)
-				defer timer.Stop()
+				if name == "parent deadline" {
+					ctx, cancel = context.WithTimeout(ctx, 20*time.Millisecond)
+					defer cancel()
+				} else {
+					timer := time.AfterFunc(20*time.Millisecond, cancel)
+					defer timer.Stop()
+				}
 				timeout = time.Second
 			}
-			session := &ClusterSession{ctx: ctx, cancel: cancel, input: input, states: map[BrokerNode]*clusterState{}, done: make(chan struct{}), began: time.Now()}
+			session := &ClusterSession{parentCtx: ctx, ctx: ctx, cancel: cancel, input: input, states: map[BrokerNode]*clusterState{}, done: make(chan struct{}), began: time.Now()}
 			session.run(Request{HelperPath: helper, Timeout: timeout})
 			result := session.CompletedResult()
 			if result == nil || !result.GroupGone || result.WatchdogTimeout != watchdog || result.Cancelled == watchdog {
@@ -48,6 +53,58 @@ func TestClusterHostTerminationStatus(t *testing.T) {
 				t.Fatalf("startup error lost host status: %v", session.err)
 			}
 		})
+	}
+}
+
+func TestClusterInternalDeadlineIsWatchdog(t *testing.T) {
+	helper := filepath.Join(t.TempDir(), "helper")
+	if err := os.WriteFile(helper, []byte("#!/bin/sh\nexec /bin/sleep 30\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.start(nil)
+	ctx, cancel := context.WithTimeout(t.Context(), 20*time.Millisecond)
+	defer cancel()
+	session := &ClusterSession{parentCtx: t.Context(), ctx: ctx, cancel: cancel, input: input, states: map[BrokerNode]*clusterState{}, done: make(chan struct{}), began: time.Now()}
+	session.run(Request{HelperPath: helper, Timeout: time.Second})
+	result := session.CompletedResult()
+	var hostError *ClusterHostError
+	if result == nil || !result.GroupGone || result.Cancelled || !result.WatchdogTimeout || !errors.As(session.err, &hostError) || hostError.Cancelled || !hostError.WatchdogTimeout || !hostError.GroupGone {
+		t.Fatalf("internal deadline lost watchdog classification: result=%+v err=%v", result, session.err)
+	}
+}
+
+func TestClusterProtocolFailureIsNotCancellation(t *testing.T) {
+	helper := filepath.Join(t.TempDir(), "helper")
+	if err := os.WriteFile(helper, []byte("#!/bin/sh\nprintf 'invalid-frame\\n'\nexec /bin/sleep 30\n"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.start(nil)
+	ctx, cancel := context.WithCancel(t.Context())
+	defer cancel()
+	state := &clusterState{done: make(chan struct{})}
+	session := &ClusterSession{parentCtx: t.Context(), ctx: ctx, cancel: cancel, input: input, states: map[BrokerNode]*clusterState{{ID: "a", Incarnation: 1}: state}, done: make(chan struct{}), began: time.Now()}
+	session.run(Request{HelperPath: helper, Timeout: time.Second})
+	result := session.CompletedResult()
+	var hostError *ClusterHostError
+	var boundary *BoundaryError
+	if result == nil || !result.GroupGone || result.Cancelled || result.WatchdogTimeout || errors.As(session.err, &hostError) || !errors.As(session.err, &boundary) || boundary.Kind != "invalid" {
+		t.Fatalf("protocol failure changed classification: result=%+v err=%v", result, session.err)
+	}
+	select {
+	case <-state.done:
+		if state.err != session.err || !state.result.Reaped {
+			t.Fatalf("incarnation lost protocol error or reaping: %+v %v", state.result, state.err)
+		}
+	default:
+		t.Fatal("incarnation was not released after protocol failure")
 	}
 }
 
@@ -324,7 +381,7 @@ func TestClusterRejectsResultWithoutModelEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if err := state.collect(frame, BrokerConfig{}); err == nil {
+	if err := state.collect(frame, BrokerConfig{}, false); err == nil {
 		t.Fatal("accepted an incarnation result with truncated model evidence")
 	}
 }

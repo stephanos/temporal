@@ -235,7 +235,7 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
+	helper, err := qualificationHelperPath()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -266,7 +266,11 @@ func TestActualTemporalClusterQualification(t *testing.T) {
 		t.Fatal(err)
 	}
 	manifestPath := os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST")
-	frozen, err := Freeze(t.Context(), Spec{OperatorStart: start, Manifest: Manifest{Cell: os.Getenv("GOMAD_WASM_QUALIFICATION_CELL"), Provisional: manifestPath == "", IntegratedSourceManifestPath: manifestPath, IntegratedSourceSHA256: integrated, ID: "independent-temporal-replication-durable-restart", Workload: "multi-instance", Seed: 7, Repeat: 2, Unsupported: []string{"controlled Temporal profile not qualified", "checkpoint", "uncontrolled host WASI", "native without current retained proof"}}, Options: options, Campaign: runner.CampaignSpec{Target: target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: staged, WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: backend.TemporalGuestBuildTags()}, RunnerBuild: "fn156-qualification"}, ArtifactRoot: root, Command: []string{"wasm-qualify", "multi-instance", os.Getenv("GOMAD_WASM_QUALIFICATION_CELL")}})
+	buildTags, err := qualificationGuestBuildTags(os.Getenv("GOMAD_WASM_QUALIFICATION_GUEST_PROFILE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	frozen, err := Freeze(t.Context(), Spec{OperatorStart: start, Manifest: Manifest{Cell: os.Getenv("GOMAD_WASM_QUALIFICATION_CELL"), Provisional: manifestPath == "", IntegratedSourceManifestPath: manifestPath, IntegratedSourceSHA256: integrated, ID: "independent-temporal-replication-durable-restart", Workload: "multi-instance", Seed: 7, Repeat: 2, Unsupported: []string{"controlled Temporal profile not qualified", "checkpoint", "uncontrolled host WASI", "native without current retained proof"}}, Options: options, Campaign: runner.CampaignSpec{Target: target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: staged, WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: buildTags}, RunnerBuild: "fn156-qualification"}, ArtifactRoot: root, Command: []string{"wasm-qualify", "multi-instance", os.Getenv("GOMAD_WASM_QUALIFICATION_CELL")}})
 	if err != nil {
 		t.Fatal(err)
 	}

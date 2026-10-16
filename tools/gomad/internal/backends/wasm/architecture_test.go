@@ -23,7 +23,7 @@ func wasmArchitectureConfig() archcheck.Config {
 				path != "wasi/cluster.go"
 		},
 		PureImports: []string{
-			"bytes", "crypto/sha256", "embed", "encoding/binary", "encoding/hex", "encoding/json",
+			"bytes", "compress/gzip", "crypto/sha256", "embed", "encoding/binary", "encoding/hex", "encoding/json",
 			"errors", "fmt", "hash", "io", "io/fs", "math", "path", "slices", "sort", "strconv",
 			"strings", "sync", "syscall", "unicode/utf8",
 			wasmModule + "/internal/evidence/artifact/capture", wasmModule + "/internal/model/choice", wasmModule + "/internal/runner",
@@ -55,7 +55,7 @@ func TestWASMArchitecture(t *testing.T) {
 }
 
 func TestWASMArchitectureRejectsHostImports(t *testing.T) {
-	for _, filename := range []string{"clock.go", "process.go", "cluster.go", "moved_process.go"} {
+	for _, filename := range []string{"clock.go", "debug_output.go", "process.go", "cluster.go", "moved_process.go"} {
 		t.Run(filename, func(t *testing.T) {
 			root := t.TempDir()
 			for name, source := range map[string]string{

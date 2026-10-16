@@ -183,6 +183,7 @@ impl Config {
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
             || !(160..=1 << 30).contains(&self.limit)
             || self.mode == 1 && (self.tape.is_some() || self.tape_chunks != 0)
+            || self.inspection.is_some() && self.mode != 2
             || self.tape_chunks > (self.limit - 64) / 96
             || self.epoch_nanos > MAX_TIME
             || self.now > MAX_TIME - self.epoch_nanos
@@ -555,7 +556,7 @@ impl Model {
         }
         Ok(())
     }
-    fn close_clock_run(&mut self) {
+    pub(crate) fn close_clock_run(&mut self) {
         if let Some(bytes) = self.transcript_encoder.close() {
             self.transcript_bytes -= crate::transcript::CLOCK_RUN_BYTES;
             self.transcript(&bytes);
@@ -962,16 +963,9 @@ impl Model {
     }
     pub fn debug_exchange(&mut self, frame: &mut [u8]) -> Result<()> {
         use inspection::{Witness, le32};
-        if frame.len() < 16
-            || frame.len() > inspection::MAX_FRAME
-            || le32(frame, 0) != 1
-            || le32(frame, 8) != 0
-            || le32(frame, 12) as usize != frame.len() - 16
-        {
-            return Err(Error::msg("invalid debug exchange frame"));
-        }
-        let op = le32(frame, 4);
+        let op = inspection::validate_frame(frame)?;
         let payload = &mut frame[16..];
+        self.inspection.lock().observe(&self.inspection.handle);
         self.inspection.time = self.now;
         match op {
             1 => {
@@ -1081,14 +1075,14 @@ impl Model {
                 if payload.len() != 32 || payload.iter().any(|b| *b != 0) {
                     return Err(Error::msg("invalid debug enablement mask"));
                 }
-                if let Some(request) = &self.inspection.request {
-                    if request.target == self.inspection.handle {
-                        for &id in &request.probes {
-                            if id >= 256 {
-                                return Err(Error::msg("invalid enabled probe id"));
-                            }
-                            payload[id as usize / 8] |= 1 << (id % 8);
+                if let Some(request) = &self.inspection.request
+                    && request.target == self.inspection.handle
+                {
+                    for &id in &request.probes {
+                        if id >= 256 {
+                            return Err(Error::msg("invalid enabled probe id"));
                         }
+                        payload[id as usize / 8] |= 1 << (id % 8);
                     }
                 }
             }
@@ -1115,25 +1109,16 @@ impl Model {
         Ok(())
     }
     fn validate_debug_decision(&self, data: &[u8]) -> Result<u32> {
+        let ordered = inspection::validate_pending(data)?;
         let count = get32(data, 20) as usize;
         let seeded = get32(data, 24) as usize;
-        if get32(data, 0) != 1
-            || !matches!(get32(data, 4), 1 | 2)
-            || get32(data, 16) & !4 != 0
-            || seeded >= count
-            || data.len() != 32 + count * 32
-        {
-            return Err(Error::msg("invalid debug pending decision"));
+        if self.inspection.request.is_none() {
+            return Ok(seeded as u32);
         }
         let alternatives: Vec<[u8; 32]> = data[32..]
             .chunks_exact(32)
             .map(|bytes| bytes.try_into().unwrap())
             .collect();
-        let mut ordered = alternatives.clone();
-        ordered.sort();
-        if ordered.contains(&[0; 32]) || ordered.windows(2).any(|pair| pair[0] == pair[1]) {
-            return Err(Error::msg("invalid debug pending alternative identities"));
-        }
         let mut hash = Sha256::new();
         hash.update(b"gomad-choice-alternative-set/v1\0");
         hash.update((count as u64).to_be_bytes());
@@ -1688,7 +1673,7 @@ mod tests {
         m.entropy_offset = 30;
         assert_eq!(
             m.random(1, 6).unwrap(),
-            [0x48, 0x47, 0x6a, 0x64, 0xd7, 0x20]
+            [0x66, 0xc0, 0xfb, 0x35, 0x13, 0xf4]
         );
         assert_eq!(
             m.pending["transcript"],
@@ -1854,6 +1839,111 @@ mod tests {
         reference.clock_read(1, 1, 0).unwrap();
         reference.clock_read(2, 1, 0).unwrap();
         assert_eq!(model.metadata(2), reference.metadata(2));
+    }
+    fn debug_predecision() -> Vec<u8> {
+        let pending = decision();
+        let mut frame = vec![0; 16 + pending.len() + 128];
+        frame[..4].copy_from_slice(&1u32.to_le_bytes());
+        frame[4..8].copy_from_slice(&1u32.to_le_bytes());
+        frame[12..16].copy_from_slice(&((pending.len() + 128) as u32).to_le_bytes());
+        frame[16..16 + pending.len()].copy_from_slice(&pending);
+        set64(&mut frame, 16 + pending.len() + 112, 1);
+        frame
+    }
+    #[test]
+    fn dormant_predecision_leaves_tape_mismatch_to_ordinary_runtime() {
+        let mut replay = model();
+        replay.config.mode = 2;
+        replay.config.tape = Some(vec![]);
+        bootstrap(&mut replay);
+        replay.debug_exchange(&mut debug_predecision()).unwrap();
+        assert!(replay.divergence.is_none());
+        assert!(replay.runtime("runtime_decision", decision()).is_err());
+        assert!(replay.divergence.is_some());
+    }
+    #[test]
+    fn debug_seals_validated_pending_decision_without_consuming_tape_suffix() {
+        let mut recorded = model();
+        bootstrap(&mut recorded);
+        recorded
+            .inspection
+            .lock()
+            .snapshot(recorded.inspection_cut(), &[], &[]);
+        recorded.debug_exchange(&mut debug_predecision()).unwrap();
+        let boundary = recorded.inspection.lock().evidence.boundaries[0].clone();
+        let request = {
+            let recorder = recorded.inspection.lock();
+            inspection::Request {
+                target: recorded.inspection.handle.clone(),
+                decision: 0,
+                expected: boundary,
+                world_sha256: inspection::digest(&recorder.evidence.world),
+                lifecycle_sha256: inspection::digest(&recorder.evidence.lifecycle),
+                stream_sha256: vec![
+                    ["choice", "wasi", "network", "storage", "stdout", "stderr"]
+                        .into_iter()
+                        .map(|name| (name.into(), inspection::digest(&[])))
+                        .collect(),
+                ],
+                probes: vec![],
+                commands: vec![],
+                registries: vec![inspection::Registry::default()],
+            }
+        };
+        recorded.runtime("runtime_decision", decision()).unwrap();
+        let bytes = &recorded.pending["choice"];
+        let expected = Decision {
+            ordinal: 0,
+            kind: 1,
+            site_offset: 42,
+            site_missing: false,
+            rank_override: false,
+            alternatives: 2,
+            selected: 0,
+            data: 0,
+            selected_identity: [1; 32],
+            alternative_set_digest: bytes[64..].try_into().unwrap(),
+        };
+        let mut replay = model();
+        let mut invalid = replay.config.clone();
+        invalid.inspection = Some(request.clone());
+        assert!(invalid.validate().is_err());
+        replay.config.mode = 2;
+        replay.config.tape = Some(vec![expected.clone(), expected]);
+        replay.inspection.request = Some(request.clone());
+        bootstrap(&mut replay);
+        replay
+            .inspection
+            .lock()
+            .snapshot(replay.inspection_cut(), &[], &[]);
+        let mut frame = debug_predecision();
+        replay.debug_exchange(&mut frame).unwrap();
+        assert_eq!(u32::from_le_bytes(frame[8..12].try_into().unwrap()), 1);
+        assert!(replay.inspection.sealed);
+        assert_eq!(replay.cursor, 0);
+        assert_eq!(replay.records, 0);
+        assert!(!replay.finished);
+
+        let mut changed = model();
+        bootstrap(&mut changed);
+        changed
+            .inspection
+            .lock()
+            .snapshot(changed.inspection_cut(), &[], &[]);
+        changed.inspection.request = Some(request);
+        changed.inspection.lock().stream(
+            &changed.inspection.handle,
+            "stdout",
+            b"changed neighbor output",
+        );
+        assert!(
+            changed
+                .debug_exchange(&mut debug_predecision())
+                .unwrap_err()
+                .to_string()
+                .contains("instrumentation divergence")
+        );
+        assert!(!changed.inspection.sealed);
     }
     #[cfg(feature = "diagnostic-profile")]
     #[test]
@@ -2267,6 +2357,7 @@ mod tests {
                     argument_sizes: None,
                     environment_sizes: None,
                     model: Some(configured(diagnostics)),
+                    dormant_debug: None,
                     namespace: None,
                     request_scratch: Vec::new(),
                     write_scratch: protocol::WriteBuffers::default(),

@@ -181,6 +181,8 @@ impl Boot {
 struct Runtime {
     mode: u8,
     tape_chunks: u64,
+    #[serde(default)]
+    inspection: Option<crate::model::inspection::Request>,
 }
 
 #[derive(Deserialize)]
@@ -418,10 +420,12 @@ pub(super) fn execute(
             )
         };
         if control.kind == "finish" {
-            if nodes
-                .iter()
-                .enumerate()
-                .any(|(index, node)| node.incarnation != 0 && !broker.finished(index))
+            let inspected = broker.inspection_stopped();
+            if !inspected
+                && nodes
+                    .iter()
+                    .enumerate()
+                    .any(|(index, node)| node.incarnation != 0 && !broker.finished(index))
             {
                 ack(Some((
                     "invalid",
@@ -493,6 +497,7 @@ pub(super) fn execute(
                 model.mode = runtime.mode;
                 model.tape_chunks = runtime.tape_chunks;
                 model.tape = None;
+                model.inspection = runtime.inspection;
                 if let Err(error) = model.validate() {
                     ack(Some(("invalid", error.to_string())))?;
                     continue;
@@ -584,6 +589,12 @@ pub(super) fn execute(
                 .stack_size(STORE_THREAD_STACK)
                 .spawn(move || {
                     if !coordinator.acquire(index) {
+                        if coordinator.inspection_stopped() {
+                            return refuse_instance(
+                                Outcome::new("inspection_aborted", "cluster inspection stopped"),
+                                tagged_output,
+                            );
+                        }
                         return Err(("infrastructure", "cluster aborted".into()));
                     }
                     let ran = catch_unwind(AssertUnwindSafe(|| {
@@ -661,7 +672,8 @@ pub(super) fn execute(
             &mut summaries,
             &mut metrics,
             &mut execution_metrics,
-        ) {
+        ) && !broker.inspection_stopped()
+        {
             result = ClusterResult::new(failure.0, failure.1);
         }
     }

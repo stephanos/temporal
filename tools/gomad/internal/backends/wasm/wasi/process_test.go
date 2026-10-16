@@ -23,6 +23,20 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
+func TestGoOwnedInspectionRefusedBeforeExecution(t *testing.T) {
+	for _, request := range []Request{
+		{Config: Config{Profile: CooperativeProfile, NetworkV2: &NetworkModelV2{}}},
+		{Config: Config{Profile: CooperativeProfile}, remoteModel: true},
+	} {
+		request.Runtime = &RuntimeControl{Inspection: json.RawMessage(`{}`)}
+		_, err := Run(t.Context(), request)
+		var boundary *BoundaryError
+		if !errors.As(err, &boundary) || boundary.Kind != "unsupported" || boundary.Dimension != "inspection requires helper-owned cooperative model" {
+			t.Fatalf("Go-owned inspection was not refused before execution: %v", err)
+		}
+	}
+}
+
 func TestDiagnosticTransportRequiresPrivateRevisionOptIn(t *testing.T) {
 	pinned := PinnedEngine()
 	for _, suffix := range []string{"-guest-profile", "-fuel-off", "-guest-profile-fuel-off"} {

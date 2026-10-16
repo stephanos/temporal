@@ -15,7 +15,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
-//go:embed cluster.go cluster_network.go environment.go namespace.go namespace_image.go clock.go protocol.go process.go runtime.go helper_model.go identity.go storage_evidence.go storage_image.go storage_selection.go volume.go network_v2.go broker.go broker_network.go broker_process.go transcript.go
+//go:embed cluster.go cluster_network.go debug_output.go environment.go namespace.go namespace_image.go clock.go protocol.go process.go runtime.go helper_model.go identity.go storage_evidence.go storage_image.go storage_selection.go volume.go network_v2.go broker.go broker_network.go broker_process.go transcript.go
 var implementationSources embed.FS
 
 func ImplementationSHA256() string {
@@ -31,7 +31,7 @@ func implementationSHA256WithStrictJSON(sources fs.ReadFileFS, strictJSON string
 		return ""
 	}
 	var inventory []byte
-	for _, name := range []string{"broker.go", "broker_network.go", "broker_process.go", "clock.go", "cluster.go", "cluster_network.go", "environment.go", "helper_model.go", "identity.go", "namespace.go", "namespace_image.go", "network_v2.go", "process.go", "protocol.go", "runtime.go", "storage_evidence.go", "storage_image.go", "storage_selection.go", "transcript.go", "volume.go"} {
+	for _, name := range []string{"broker.go", "broker_network.go", "broker_process.go", "clock.go", "cluster.go", "cluster_network.go", "debug_output.go", "environment.go", "helper_model.go", "identity.go", "namespace.go", "namespace_image.go", "network_v2.go", "process.go", "protocol.go", "runtime.go", "storage_evidence.go", "storage_image.go", "storage_selection.go", "transcript.go", "volume.go"} {
 		data, err := sources.ReadFile(name)
 		if err != nil {
 			return ""

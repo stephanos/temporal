@@ -120,8 +120,8 @@ func TestHelperModelCapturedInputBoundaryParity(t *testing.T) {
  i32.const 36 i32.load i32.const 100 i32.le_u if i32.const 128 i32.const 256 call $argsget drop end
  i32.const 44 i32.load i32.const 100 i32.le_u if i32.const 512 i32.const 640 call $envget drop end
  i32.const 2048 i32.const 30 call $random drop i32.const 2048 i32.const 6 call $random drop
- i32.const 2048 i32.load i32.const 0x646a4748 i32.ne if unreachable end
- i32.const 2052 i32.load16_u i32.const 0x20d7 i32.ne if unreachable end
+ i32.const 2048 i32.load i32.const 0x35fbc066 i32.ne if unreachable end
+ i32.const 2052 i32.load16_u i32.const 0xf413 i32.ne if unreachable end
  i32.const 16 i32.const 16 call $finish drop))`, imports)
 	request.Config.Profile = CooperativeProfile
 	request.Config.Clock.ReadStepNanos = 0

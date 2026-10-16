@@ -1,0 +1,259 @@
+# fn-180 integrated WASM inspection batch
+
+Work in progress; this is not task completion or final-candidate acceptance.
+Native execution remains deferred. No push, pull request or CI dispatch occurred.
+
+## Runtime qualification checkpoint
+
+The first integrated runtime candidate passed mandatory qualification with a
+frozen maintained-source manifest. The root checked the same manifest after
+the terminal result (`sha256sum -c ... --quiet`, exit 0).
+
+- Command (repository root):
+  `GOMAD_WASM_TEST_HELPER=/tmp/gomad-fn180-release-helper-final GOMAD_WASM_QUALIFICATION_ROOT=/tmp/gomad-fn180-qualification-weqhi9/runtime GOMAD_WASM_QUALIFICATION_MANIFEST=/tmp/gomad-fn180-qualification-weqhi9/source.sha256 CARGO_TARGET_DIR=/tmp/gomad-wasm-current-target make -C tools/gomad/internal/backends/wasm qualify-runtime GOMAD_WASM_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/878c9b2935e2c9e6/go/bin/go`
+- Exit 0: 32 seeds, 25 fresh recordings per seed (800 total), 32 exact replays,
+  aggregate pass, 8,150 recorded trace records.
+- Diversity: 30 distinct choice hashes, 32 output hashes; map 32, run queue 18,
+  timer callbacks 2, canary 2; exit outcomes 0 and 17.
+- Linux/arm64, Go 1.27.1, `nogreenteagc`, Wasmtime 47.0.3,
+  `cranelift-fuel-nan-canonical-nounwind-v2`.
+- Source manifest: `41488fedbb8d732c8d49fe2312747ee083c24c36d6584b6972aa24fcef1660b4`.
+- Helper: `86335660d8a7f7225d41c4cbbcccb66935d1b0a682a15000add076f34b732eb5`.
+- Guest: `97a745597433330e23ebca2090925df9c4fc20355a6bfc6f24288c37a74f75a2`.
+- Runtime overlay: `7c220e2c89e83713598a0549b82d731b01e560d711dea865c5d62c301d14bc12`.
+- Runtime implementation: `sha256:6940d4218be85ff27527c83573d5f00474382960964b1b37f56f06b0ececb079`.
+- Model: `sha256:34d8ab4cccbe85fd848c716e5671efd3cd2f06edc7118c38bf1f418a4f92c5b9`.
+- Compiler: `1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`.
+
+Raw evidence: `/tmp/gomad-fn180-qualification-weqhi9/runtime/seed-00` through
+`seed-31`; command log `runtime-qualification.log` and machine receipt
+`runtime-acceptance.json` in the parent directory. These results belong only to
+the identities above; subsequent fixes are not silently covered by this run.
+
+## Integrated diagnostic run and remaining work
+
+The first full `make -C tools/gomad test-wasm` ended with exit 2; raw output is
+`/tmp/gomad-fn180-test-wasm.log`. It exposed architecture gzip admission,
+in-flight qualification test declarations, the initially ungated Temporal
+integration test's reserved `TZ` environment, stale captured-entropy WAT bytes,
+ordinary replay divergence misclassification, Go-owned debug initialization
+refusal, and a storage-history watchdog under concurrent qualification load.
+Record focused repairs and final reruns below; this diagnostic run is not green.
+
+Final-helper retained shard and mutable-state lock-held inspection cells passed
+in `/tmp/fn180-temporal-final.log`. The one-box cell failed before recording
+because its standalone network route uses Go ownership and debug initialization
+required a helper-local model. A one-node typed scenario demonstration and a
+separate ordinary Go-owner compatibility regression are in progress. The two
+lock-held cells alone are not being substituted for the complete R6 workflow
+demonstration.
+
+The storage-history failure reproduced in the focused test (exit 1, 38.051 s;
+`/tmp/fn180-storage-history-focused.log`), so it is not dismissed as concurrent
+load. The noninstrumented WAT fixture invokes 100,000 writes; the helper's new
+unconditional inspection snapshot path serializes growing storage state after
+each call. The helper repair must remove inspection work for guests without
+the debug ABI rather than increase this test's watchdog.
+
+`make -C tools/gomad validate` subsequently passed with exit 0; raw output is
+`/tmp/fn180-validate-current.log`. This is generated/source validation, not a
+native runtime qualification pass. Low-level Go-owned inspection now refuses
+before launching a helper; its regression test and implementation identity
+checks passed (exit 0). This intentionally rotates the compiled Go model digest
+to `sha256:d3aacafd7ee76fd70cbe6f6623d06238950f6ac4355c8d0fa2d0f76c211bd078`.
+
+Final integrated tests, source-bound helper rebuild qualification, independent
+review, complete task/R-ID mapping and local commits remain pending.
+
+## Compatibility repair checkpoint
+
+Private production helper
+`/tmp/gomad-fn180-release-helper-regressions` has SHA-256
+`2b5e1095308be07201c3b0cf548ad5797afa7a4e41d3b944dbf2576b3a023f7b`.
+It repairs Go-owned dormant debug hooks, ordinary replay divergence ownership
+and unnecessary per-filesystem-call inspection snapshots. Active inspection on
+Go-owned paths remains explicitly unsupported, not silently enabled.
+
+- Full Rust suite: exit 0, 373 passed / 2 ignored;
+  `/tmp/gomad-fn180-rust-regression-suite-final.log`.
+- Default and conformance clippy, all targets, warnings denied: exit 0;
+  `/tmp/gomad-fn180-rust-regression-clippy-final.log` and
+  `/tmp/gomad-fn180-rust-conformance-clippy-regressions.log`.
+- Conformance rebuild: exit 0, unchanged digest
+  `26bbdfa2b72a23a497aa9687179d633d009a90bcaa882f3b7cba545463df5091`;
+  `/tmp/gomad-fn180-rust-conformance-release-regressions.log`.
+- Actual forced exact replay, five tape tamper controls, captured-input parity
+  and inspection refusal guards: exit 0, 5.643 s;
+  `/tmp/gomad-fn180-forced-replay-regressions.log`.
+- Actual source-free retained standalone and restarted-cluster inspection:
+  exit 0, 44.248 s; `/tmp/gomad-fn180-retained-inspection-ticker.log`.
+- Go-owner evidence, filesystem parity, interrupted-prefix recovery and large
+  storage history: exit 0, 13.587 s;
+  `/tmp/fn180-ownership-regressions-configured.log`. The storage test itself
+  completed in 6.26 s without changing its watchdog or expected evidence.
+  An earlier attempt omitted required `GOMAD_STOCK_GO`; its non-green output
+  remains `/tmp/fn180-ownership-regressions.log`.
+- Architecture/source-set check: exit 0, 33.163 s;
+  `/tmp/fn180-archcheck-current.log`.
+- Full affected backend lint: exit 0 / no issues;
+  `/tmp/gomad-fn180-bridge-targeted-lint.log`.
+
+The subsequent real Temporal scenario recording exposed a separate operator
+choice-trace cap (`capacity`, `WASI capacity: runtime-choice-bytes`, helper
+reaped, no cancellation/watchdog). Its raw diagnostic is
+`/tmp/fn180-temporal-scenario-final2.log`, exit 1 / 170.456 s. It reached
+workflow startup, not workflow completion or the canary. The scenario default
+was 1,000,000 bytes although the reused whole-workflow qualification uses
+`choice.MaximumTraceBytes`; the bounded default and error precedence are being
+repaired under the existing operator owner.
+
+R6 also exposed a predictable inspection footprint problem: each boundary
+repeats the 51,730-byte captured schema, growing namespace/recovery/network
+state and full World snapshots. The bounded metadata repair keeps the existing
+64 MiB cap and all boundaries/raw prefix streams; it replaces repeated opaque
+state snapshots with explicitly versioned, domain-separated commitments made
+from recording state and independently recomputed during replay. Final helper
+rebuild, tamper tests and qualification must cover that representation before
+acceptance. Earlier helper results above are not relabeled as final-v2 proof.
+
+## Frozen compact-v3 candidate
+
+Metadata v3 keeps every boundary, lifecycle action, prefix offset and raw
+128-byte witness. Versioned binary boundary/lifecycle frames remove repeated
+JSON fields; recording-authenticated state commitments are recomputed from
+actual owner state during replay. All six raw prefix streams remain retained.
+The hard limits remain 64 MiB for inspection metadata and 512 MiB for the
+outer retained bundle; the controller's separate scenario-evidence bound is
+not the retained-bundle bound. Old metadata v1/v2 is explicitly unsupported.
+
+The realistic sizing regression retains 51,000 boundaries and 376,000 model
+effects, with 4,896,000 choice bytes and 6,016,008 synthetic WASI bytes. Go's
+actual encoders produce 54,360,725 metadata bytes, 67,418,763 ClusterRecord
+bytes and 89,892,781 retainedExecution bytes. The WASI stress stream is
+synthetic, not a recovered historical raw workload. Actual R6 remains required.
+
+- Maintained-source manifest: 1,994 files,
+  `/tmp/gomad-fn180-qualification-compact-v8lRoB/source.sha256`, SHA-256
+  `3c990db2097f9490edc5b9df3977d6a8512c89b287237b14247a3f88bf3aa5f1`.
+  Root precheck and post-runtime-qualification check both exited 0.
+- Private single-link production helper:
+  `/tmp/gomad-fn180-release-helper-compact`, SHA-256
+  `a8dfd7fe41013d41e7206a6029759087b25fc39920d98688d44c8f5e20bdba97`.
+- Private single-link conformance helper:
+  `/tmp/gomad-fn180-conformance-helper-compact`, unchanged SHA-256
+  `26bbdfa2b72a23a497aa9687179d633d009a90bcaa882f3b7cba545463df5091`.
+- Rust suite: exit 0, 377 passed / 2 existing ignored;
+  `/tmp/gomad-fn180-compact-full.log`. Default/conformance clippy with warnings
+  denied, pinned release builds and formatting also passed.
+- Strict Go codec/compatibility/tamper/source-inventory and realistic-size
+  tests: exit 0, `/tmp/gomad-fn180-compact-focused.log`.
+- Actual retained standalone/restarted-cluster inspection: exit 0, 36.593 s,
+  `/tmp/gomad-fn180-retained-inspection-compact.log`. Empty folded-clock
+  frames remain canonical nonnil empty bytes, preserving the helper's base64
+  request ABI through cloning; its regression is included.
+- Full affected targeted lint: exit 0 / no issues,
+  `/tmp/gomad-fn180-compact-targeted-lint.log`.
+
+The remaining logs in this section live under
+`/tmp/gomad-fn180-qualification-compact-v8lRoB`:
+
+- Focused live inspection at all 35 decisions: exit 0, 13.032 s,
+  `live-inspection.log`.
+- Mandatory documented `qualify-runtime`: exit 0, 800 recordings (32 seeds
+  times 25 fresh instances), 32 exact replays, aggregate pass, 8,150 trace
+  records; `runtime-qualification.log`, `runtime-acceptance.json` and raw
+  `runtime/seed-00` through `seed-31`. Diversity remains 30 choice hashes,
+  32 outputs, map 32 / run queue 18 / timers 2 / canary 2, outcomes 0 and 17.
+  All reports bind the manifest/helper above, Go model `d3aacafd…`, guest
+  `97a74559…` and runtime overlay `7c220e2c…` under Go 1.27.1 Linux/arm64.
+- `make -C tools/gomad validate`: exit 0, `validate.log` (portable generated
+  source validation, not native runtime qualification).
+- Full `internal/archcheck`: exit 0, 57.420 s, `archcheck.log`.
+- Full `internal/model/cluster`: exit 0, 0.067 s, `model-cluster.log`.
+- Canonical `make lint-code-gomad` with Linux pinned linter/vettool overrides:
+  exit 0 / no issues, `lint-gomad.log`.
+- Public debug library ordinary and native-Gomad no-op source tests: exit 0
+  each (`go test -tags test_dep ./common/gomaddebug -count=1` and the same
+  command with `-tags 'gomad test_dep'`); no native execution pass is implied.
+
+Final installed fn-181 matrix: exit 0, 66.122 s,
+`/tmp/fn181-compact-operator-20261016-RsPr9s/matrix.log`; manifest checks in
+`source-before.log` and `source-after.log` exited 0. SIGKILL after two committed
+outcomes preserved resumability and resumed to the 24-outcome baseline.
+Detached durable success/canary/network replay and all 18 tamper controls
+passed. Installed helper/model match this candidate. Installation hashes:
+kill/resume `21e0dc4cadfdbee538aee7fd662584a788e176051ad107f7b378aab6ebcb329c`,
+detached `7db358ddc54fa5d33ba350edd3019ece2a2dd41c83293b859bdd45eff6cb378c`.
+
+Full `make -C tools/gomad test-wasm` passed with exit 0 at 04:22:24 UTC;
+raw output is `test-wasm.log` under the final qualification root above. The
+final R6 all-three demonstration is still running. Independent batch review,
+final task/R-ID mapping, Flow completion and commits remain pending.
+The R6 log/root are `/tmp/fn180-temporal-compact-final3.log`
+and `/tmp/fn180-temporal-compact-final3`. Both lock-held cells passed; no
+one-box workflow success is claimed yet. fn-182 preparation is refreshed in
+its existing handover; measured cells have not started.
+
+Independent review must cover the full previously unqualified implementation,
+not just this session's repairs. The correct integrated source base is the
+completed fn-178 checkpoint `d087db1e48723d1164c19f559f78d75fc5731eb9`:
+fn-181 originated at its child `fe3fa4debe`, and fn-180's initial commits
+precede the later `6a73d6dfb2` stop checkpoint. The review scope is fn-180
+R1–R6, fn-181 and fn-183, including new codec/source inventories; fn-182
+profile-preparation code can be reviewed without claiming its pending measured
+R4/R5 acceptance. The intervening naming migration is already closed and must
+remain preserved, not be undone.
+
+## Integrated task and requirement mapping
+
+The following mapping describes evidence, not Flow completion. Independent
+review remains pending; fn-180 task .5 additionally requires the active real
+one-box demonstration. Opt-in qualification skips in the broad suite are not
+substitute passes. All current results bind the candidate above.
+
+| Task / requirements | Evidence |
+| --- | --- |
+| fn-180.1 / R1,R4 | Strict preflight, authenticated cuts/registry, v3 codec/tamper/capacity/source inventories; actual source-free standalone and restarted-cluster retained inspection. |
+| fn-180.2 / R1,R4 | All 35 real decision stops; allocating dumps/GC, readable pprof, witness-only perturbation, cancellation/reaping; 800 recordings and 32 exact replays. |
+| fn-180.3 / R2,R3,R4 | Registered dumps, panic/truncation, allocation-free probes, allocating-probe divergence with diagnostics off, fuel pressure and nonyielding timeout; ordinary/native-no-op source tests. Historical compiler/assembly receipts remain historical source-shape evidence, not a new overhead measurement. |
+| fn-180.4 / R5 | Scan/nonmonotonic recovery, conditional bisect/reversal, budgets, cleanup and preflight; actual fresh standalone/restarted-incarnation evaluations including panic and timeout. |
+| fn-180.5 / R6 | Shard and mutable-state lock-held demonstrations passed. Real one-box remains active, so this requirement is open. |
+| fn-181.1–.2 / R1,R2 | Full-suite preparation/admission/classification controls and installed Rust matrix; clone, standalone refusal and watchdog/cancellation/protocol precedence regressions. |
+| fn-181.3 / R3 | Final source-free durable success/canary/network replay and 18 missing/tampered-payload controls. |
+| fn-181.4 / R4 | Final SIGKILL after two committed outcomes, resumability/refusal controls and resume equality with 24-outcome baseline. |
+| fn-181.5 / R5,R6 | Final installed matrix (66.122 s), runnable command-shape tests and full WASM/lint/validate; named fixtures only, not arbitrary Temporal support. |
+| fn-183.1 / R1,R3 | Preserved caller audit: production routing already isolated, no unsupported adapter deletion. Current installation/reference-selection refusal and lifecycle/reference tests pass. |
+| fn-183.2 / R2 | Preserved discarded-reconstruction removal; current Rust/conformance coverage for malformed images, counters, independent bounds and rename recovery. |
+| fn-183.3 / R4,R5 | Current namespace/volume conformance, lifecycle replay, callback refusal and all three named storage-evidence regressions; validate/architecture/lint and ownership documentation. |
+| fn-182.1 / R1,R4 (preparation only) | Historical closure/init analysis and disposable reductions preserved; current closure test passes. Required matched baseline measurements remain open. |
+| fn-182.2 / R2,R3 (preparation only) | Guest-only seams, current closure/cache/language-version/replay-preflight tests and refreshed driver/config/helper/dry run. No current module-size/performance/workload-adoption acceptance is claimed. |
+
+fn-182 measured R4/R5 cells have not started. Native execution remains with
+fn-128/fn-149. Historical implementation commits and earlier handovers are
+preserved; final local task commits will reference this one integrated record.
+
+## Independent review, round 1
+
+Fresh read-only Codex `gpt-6.1-sol:high` correctness/contracts/integration
+draws all returned NEEDS_WORK, with no failed draws. This is the same model
+family as the writer. Sidecars and merge plan are under
+`.flow/review-fanout/cfaf90a3ecc5240c3e6c22232e2b41ee/`; merged receipt is
+`/tmp/impl-review-receipt-657da2bc4466-branch-8af828021da1.json`.
+
+The wrapper pinned committed `3b3d9b9ccd9f83d3ccc27f423e34967fa160f59d`,
+excluding the staged repairs described above. The review is therefore not a
+final-candidate SHIP: its twelve merged findings are retained honestly.
+Provider wiring, cluster metadata transfer, dormant Go-owner compatibility,
+compact metadata, cancellation provenance/capture, scenario clone, ordinary
+divergence, choice-capacity projection and scenario default-limit findings
+correspond to the already-tested staged repairs. The distinct missed-crash-
+marker terminal-precedence case is being checked against the current code.
+The measurement summarizer's host-sidecar glob defect is verified and being
+fixed with a regression outside the frozen runtime manifest.
+
+After checkpointing the actual tested source and the narrow script repair,
+the required single-dispatch re-review will use the same receipt and base.
+No source acceptance, Flow completion or final verdict is inferred from this
+first round. The integration draw surfaced the distinct missed-boundary
+case; the correctness draw surfaced the summarizer defect; duplicate findings
+from all three draws were collapsed in the merge plan, not silently discarded.

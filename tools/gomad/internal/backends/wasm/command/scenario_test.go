@@ -357,7 +357,7 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 							t.Fatal(err)
 						}
 					}
-					invokeOperator(t, f.binary, 3, "--installation", f.manifest, "replay", corrupt)
+					invokeOperator(t, f.binary, 2, "--installation", f.manifest, "replay", corrupt)
 				})
 			}
 		}

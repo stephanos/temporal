@@ -282,6 +282,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			return Result{}, invalid("guest profile configuration")
 		}
 	}
+	if request.Runtime != nil && len(request.Runtime.Inspection) != 0 && ownership(request) != helperOwnership {
+		return Result{}, &BoundaryError{Kind: "unsupported", Dimension: "inspection requires helper-owned cooperative model"}
+	}
 	if err := ValidateStorageCrashSelection(request); err != nil {
 		return Result{}, err
 	}
@@ -597,7 +600,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 			return result, nil
 		}
 	}
-	if environment.namespaceOwned && request.Config.Storage != nil {
+	if environment.namespaceOwned && request.Config.Storage != nil && !inspectionTermination(result.Termination) {
 		if err := stream.collectHelperStorage(&result); err != nil {
 			result.Termination, result.Message = "invalid", err.Error()
 			return result, nil

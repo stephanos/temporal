@@ -2,13 +2,13 @@ package simulation
 
 import (
 	"encoding/json"
-	"go.temporal.io/server/tools/gomad/internal/backends"
-	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
-	"go.temporal.io/server/tools/gomad/internal/model/volume"
 	"reflect"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
+	"go.temporal.io/server/tools/gomad/internal/model/volume"
 )
 
 func TestOperatorArgumentsSurviveNormalization(t *testing.T) {

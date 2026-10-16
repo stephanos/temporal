@@ -2,6 +2,7 @@ package cluster
 
 import (
 	"crypto/sha256"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"strings"
@@ -79,6 +80,78 @@ func TestWASMInspectionRegistryAvailabilityAndNames(t *testing.T) {
 
 func uint64Pointer(n uint64) *uint64 { return &n }
 
+func commitInspectionFixture(t *testing.T, metadata *WASMInspectionEvidence) {
+	t.Helper()
+	metadata.WorldEncoding = WASMInspectionWorldEncoding
+	metadata.World = []byte(WASMInspectionWorldHeader)
+	for i := range metadata.Boundaries {
+		metadata.World = binary.LittleEndian.AppendUint64(metadata.World, sha256.Size)
+		digest := sha256.Sum256([]byte(fmt.Sprintf("World boundary %d", i)))
+		metadata.World = append(metadata.World, digest[:]...)
+		metadata.Boundaries[i].WorldBytes = uint64(len(metadata.World))
+		for j := range metadata.Boundaries[i].Cuts {
+			cut := &metadata.Boundaries[i].Cuts[j]
+			if cut.Witness != nil {
+				packInspectionFixtureWitness(cut.Witness)
+			}
+			if cut.StateEncoding != "" {
+				continue
+			}
+			cut.StateEncoding = WASMInspectionStateEncoding
+			for _, state := range []struct {
+				kind  string
+				bytes *[]byte
+			}{{"storage", &cut.StorageState}, {"recovery", &cut.RecoveryState}, {"network", &cut.NetworkState}} {
+				digest, err := WASMInspectionStateCommitment(state.kind, *state.bytes)
+				require.NoError(t, err)
+				*state.bytes = append([]byte{}, digest[:]...)
+			}
+		}
+	}
+	metadata.Lifecycle = []byte(WASMInspectionLifecycleHeader)
+	var last uint64
+	for _, n := range metadata.Incarnations {
+		last = max(last, n.TerminalOrder)
+	}
+	for _, b := range metadata.Boundaries {
+		last = max(last, b.Order)
+	}
+	for order := uint64(1); order <= last; order++ {
+		handle, action := metadata.Incarnations[0].Handle, byte(6)
+		for _, b := range metadata.Boundaries {
+			if b.Order == order {
+				handle, action = b.Handle, 2
+			}
+		}
+		metadata.Lifecycle = append(metadata.Lifecycle, action)
+		metadata.Lifecycle = binary.LittleEndian.AppendUint32(metadata.Lifecycle, uint32(len(handle.Node)))
+		metadata.Lifecycle = append(metadata.Lifecycle, string(handle.Node)...)
+		metadata.Lifecycle = binary.LittleEndian.AppendUint64(metadata.Lifecycle, handle.Incarnation)
+		for i := range metadata.Boundaries {
+			if metadata.Boundaries[i].Order == order {
+				metadata.Boundaries[i].LifecycleBytes = uint64(len(metadata.Lifecycle))
+			}
+		}
+	}
+}
+
+func packInspectionFixtureWitness(w *WASMRuntimeWitness) {
+	w.RuntimeState = make([]byte, 128)
+	put := func(at int, value uint64) { binary.BigEndian.PutUint64(w.RuntimeState[at:], value) }
+	put(0, w.Choices+w.Observations)
+	put(16, w.Allocations)
+	binary.BigEndian.PutUint32(w.RuntimeState[24:], uint32(w.GCCycles))
+	w.RuntimeState[28] = byte(w.GCPhase)
+	binary.BigEndian.PutUint32(w.RuntimeState[32:], uint32(w.RunQueue))
+	for i, value := range w.SeededDrawCounters {
+		put(40+i*8, value)
+	}
+	put(96, w.AllocatedBytes)
+	put(104, w.Choices)
+	put(112, w.Goroutines)
+	put(120, w.GlobalRunQueue)
+}
+
 func inspectionFixture(t *testing.T) (*WASMInspectionEvidence, *WASMExecutionEvidence) {
 	t.Helper()
 	handle := NodeHandle{Node: "a", Incarnation: 1}
@@ -103,6 +176,7 @@ func inspectionFixture(t *testing.T) (*WASMInspectionEvidence, *WASMExecutionEvi
 	}
 	digest := func(data []byte) string { return fmt.Sprintf("sha256:%x", sha256.Sum256(data)) }
 	execution := &WASMExecutionEvidence{Inspection: metadata, Incarnations: []WASMIncarnationEvidence{{Handle: handle, ChoiceTrace: trace.Bytes, WASISHA256: digest(streams.WASI), NetworkSHA256: digest(streams.Network), StorageSHA256: digest(streams.Storage)}}}
+	commitInspectionFixture(t, metadata)
 	return metadata, execution
 }
 
@@ -178,6 +252,7 @@ func TestWASMInspectionIncludesExecutedNeighborsAndExcludesFutureGuests(t *testi
 	future := NodeHandle{Node: "c", Incarnation: 1}
 	metadata.Incarnations = append(metadata.Incarnations, WASMInspectionIncarnation{Handle: neighbor, StartedOrder: 4, TerminalOrder: 9, Streams: WASMInspectionStreams{Stdout: []byte("neighbor")}}, WASMInspectionIncarnation{Handle: future, StartedOrder: 8, TerminalOrder: 10})
 	metadata.Boundaries[1].Cuts = append(metadata.Boundaries[1].Cuts, WASMInspectionCut{Handle: neighbor, StdoutBytes: 8, Witness: &WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}})
+	commitInspectionFixture(t, metadata)
 	require.NoError(t, ValidateWASMInspection(metadata, nil))
 	for _, test := range []struct {
 		name   string
@@ -205,6 +280,7 @@ func TestWASMInspectionRetainsCompleteTerminalCuts(t *testing.T) {
 	for i := range metadata.Boundaries {
 		metadata.Boundaries[i].Cuts = append(metadata.Boundaries[i].Cuts, WASMInspectionCut{Handle: prior, StdoutBytes: 8, Witness: &WASMRuntimeWitness{Goroutines: 1, RuntimeState: make([]byte, 128)}})
 	}
+	commitInspectionFixture(t, metadata)
 	require.NoError(t, ValidateWASMInspection(metadata, nil))
 	metadata.Boundaries[0].Cuts[1].StdoutBytes = 7
 	metadata.Boundaries[1].Cuts[1].StdoutBytes = 7
@@ -236,15 +312,14 @@ func TestWASMInspectionStrictWitnessDecodeAndClone(t *testing.T) {
 	metadata, _ := inspectionFixture(t)
 	encoded, err := json.Marshal(metadata)
 	require.NoError(t, err)
-	for _, replacement := range []string{`"seeded_draw_counters":[0,0,0,0,0,0]`, `"seeded_draw_counters":[0,0,0,0,0,0,0,0]`, `"unknown":1,"seeded_draw_counters":[0,0,0,0,0,0,0]`} {
-		_, err := DecodeWASMInspection([]byte(strings.Replace(string(encoded), `"seeded_draw_counters":[0,0,0,0,0,0,0]`, replacement, 1)))
-		require.Error(t, err)
-	}
+	_, err = DecodeWASMInspection([]byte(strings.Replace(string(encoded), `"boundary_frames":`, `"unknown":1,"boundary_frames":`, 1)))
+	require.Error(t, err)
 	detached := CloneWASMInspection(metadata)
+	expectedStorage := append([]byte{}, metadata.Boundaries[0].Cuts[0].StorageState...)
 	detached.Boundaries[0].Cuts[0].Witness.RuntimeState[0] = 99
 	detached.Boundaries[0].Cuts[0].StorageState[0] = 'X'
 	require.Equal(t, byte(0), metadata.Boundaries[0].Cuts[0].Witness.RuntimeState[0])
-	require.Equal(t, byte('s'), metadata.Boundaries[0].Cuts[0].StorageState[0])
+	require.Equal(t, expectedStorage, metadata.Boundaries[0].Cuts[0].StorageState)
 }
 
 func TestWASMInspectionOutputMaterialMatchesRetainedOutput(t *testing.T) {

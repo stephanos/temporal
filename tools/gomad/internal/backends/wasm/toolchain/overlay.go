@@ -284,10 +284,14 @@ func stockRewrites() map[string][]rewrite {
 			{"\n\tt.unlock()\n\n\tif raceenabled {\n\t\t// Temporarily use the current P's racectx for g0.", "\n\tcallback := gomadChoiceTimerFire(t)\n\tt.unlock()\n\n\tif raceenabled {\n\t\t// Temporarily use the current P's racectx for g0.", 1},
 		},
 		"os_wasip1.go": {
+			{"func usleep(usec uint32) {", "func usleep(usec uint32) {\n\tif gomadDebugInspecting { return }", 1},
 			{"func nanotime1() int64 {", "func nanotime1() int64 {\n\tif gomadDebugInspecting { return gomadWasmLastTime }", 1},
 			{"func walltime1() (sec int64, nsec int32) {", "func walltime1() (sec int64, nsec int32) {\n\tif gomadDebugInspecting { return gomadWasmLastTime / 1000000000, int32(gomadWasmLastTime % 1000000000) }", 1},
 			{"func exit(code int32)", "func gomadWasmExit(code int32)", 1},
 			{"\treturn int64(time)\n", "\tgomadWasmLastTime = int64(time)\n\treturn int64(time)\n", 1},
+		},
+		"netpoll_wasip1.go": {
+			{"func netpoll(delay int64) (gList, int32) {", "func netpoll(delay int64) (gList, int32) {\n\tif gomadDebugInspecting { return gList{}, 0 }", 1},
 		},
 		"net/net_fake.go": {
 			{"type fakeNetFD struct {\n", "type fakeNetFD struct {\n\tgomadStreamHandle uint64\n\tgomadStreamReadMu sync.Mutex\n\tgomadStreamWriteMu sync.Mutex\n", 1},

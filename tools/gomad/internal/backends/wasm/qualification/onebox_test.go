@@ -36,7 +36,7 @@ func TestActualOneboxQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	helper, err := filepath.Abs("../wasmhost/target/release/gomad-wasmhost")
+	helper, err := qualificationHelperPath()
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -68,7 +68,11 @@ func TestActualOneboxQualification(t *testing.T) {
 	if canary {
 		args[3] = "-test.run=["
 	}
-	source := target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: "./tests", WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: backend.TemporalGuestBuildTags(), Args: args}
+	buildTags, err := qualificationGuestBuildTags(os.Getenv("GOMAD_WASM_QUALIFICATION_GUEST_PROFILE"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	source := target.Spec{Backend: backend.Name, Kind: target.KindGoTest, Source: "./tests", WorkingDir: checkout, PreparationRoot: preparationRoot, BuildTags: buildTags, Args: args}
 	manifestPath := os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST")
 	integrated, err := record.ParseSHA256(os.Getenv("GOMAD_WASM_INTEGRATED_SOURCE_SHA256"))
 	if err != nil {

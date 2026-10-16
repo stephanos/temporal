@@ -463,9 +463,6 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 	if manifest.Target.Backend == nil || manifest.Target.Backend.Name != Name || manifest.Target.Backend.Evidence == nil || manifest.SimulationProfile != nil || manifest.IOProfile.Transcript != nil || manifest.IOProfile.ReadOnlyMounts != nil {
 		return target.Prepared{}, errors.New("unsupported or incomplete WASM artifact")
 	}
-	if p.options.Config.Profile == wasi.StockProfile && (manifest.ReplayMode != record.ReplayObserved || manifest.ChoiceProfile != nil) || p.options.Config.Profile == wasi.CooperativeProfile && (manifest.ReplayMode != record.ReplayExact || manifest.ChoiceProfile == nil) {
-		return target.Prepared{}, errors.New("WASM artifact replay profile mismatch")
-	}
 	reference := manifest.Target.Backend.Provenance
 	data, err := opened.ReadPayload(reference.File, maximumProvenanceBytes)
 	if err != nil {
@@ -474,6 +471,9 @@ func (p *Provider) ValidateReplay(_ context.Context, opened *artifact.Opened) (t
 	pr, err := decodeProvenance(data)
 	if err != nil {
 		return target.Prepared{}, err
+	}
+	if p.options.Config.Profile == wasi.StockProfile && (manifest.ReplayMode != record.ReplayObserved || manifest.ChoiceProfile != nil) || p.options.Config.Profile == wasi.CooperativeProfile && (manifest.ReplayMode != record.ReplayExact || len(pr.Scenario) == 0 && manifest.ChoiceProfile == nil || len(pr.Scenario) != 0 && manifest.ChoiceProfile != nil) {
+		return target.Prepared{}, errors.New("WASM artifact replay profile mismatch")
 	}
 	prepared := preparedFrom(pr, data)
 	if prepared.SoftAssertionReportOnly != manifest.Target.SoftAssertionReportOnly {
@@ -555,6 +555,9 @@ func (p *Provider) Run(ctx context.Context, request runnerbackend.Request) (runn
 	pr, err := decodeProvenance(request.Target.BackendPayloads[0].Data)
 	if err != nil {
 		return runnerbackend.Result{}, err
+	}
+	if len(pr.Scenario) != 0 {
+		return runnerbackend.Result{}, errors.New("typed WASM scenarios require Execute")
 	}
 	if err := p.validateProvenance(pr, request.Target); err != nil {
 		return runnerbackend.Result{}, err

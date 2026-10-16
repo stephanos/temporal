@@ -3,6 +3,7 @@ package simulation
 import (
 	"context"
 	"crypto/sha256"
+	"encoding/binary"
 	"fmt"
 	"testing"
 	"time"
@@ -24,11 +25,20 @@ func inspectionSearchFixture(t *testing.T) *cluster.WASMExecutionEvidence {
 	}
 	trace, err := choice.BuildTrace(records, choice.TerminalComplete)
 	require.NoError(t, err)
-	metadata := &cluster.WASMInspectionEvidence{Schema: cluster.WASMInspectionSchema, Complete: true, World: []byte("world"), Lifecycle: []byte("lifecycle"), Incarnations: []cluster.WASMInspectionIncarnation{{Handle: handle, TerminalOrder: 10, Registry: cluster.WASMInspectionRegistry{Closed: true, Entries: []cluster.WASMInspectionRegistration{{Kind: "check", Name: "healthy", Monotonic: true}}}, Streams: cluster.WASMInspectionStreams{Choice: trace.Bytes}}}}
+	metadata := &cluster.WASMInspectionEvidence{Schema: cluster.WASMInspectionSchema, WorldEncoding: cluster.WASMInspectionWorldEncoding, Complete: true, World: []byte(cluster.WASMInspectionWorldHeader), Lifecycle: []byte(cluster.WASMInspectionLifecycleHeader), Incarnations: []cluster.WASMInspectionIncarnation{{Handle: handle, TerminalOrder: 10, Registry: cluster.WASMInspectionRegistry{Closed: true, Entries: []cluster.WASMInspectionRegistration{{Kind: "check", Name: "healthy", Monotonic: true}}}, Streams: cluster.WASMInspectionStreams{Choice: trace.Bytes}}}}
 	for i := uint64(0); i < 5; i++ {
 		choiceBytes, err := choice.TracePayloadBytes(i)
 		require.NoError(t, err)
-		metadata.Boundaries = append(metadata.Boundaries, cluster.WASMInspectionBoundary{Handle: handle, Decision: i, Trace: i, Order: i + 1, WorldBytes: 5, LifecycleBytes: 9, Cuts: []cluster.WASMInspectionCut{{Handle: handle, ChoiceRecords: i, Witness: &cluster.WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}}}})
+		metadata.World = binary.LittleEndian.AppendUint64(metadata.World, sha256.Size)
+		world := sha256.Sum256([]byte(fmt.Sprintf("World boundary %d", i)))
+		metadata.World = append(metadata.World, world[:]...)
+		metadata.Lifecycle = append(metadata.Lifecycle, 2)
+		metadata.Lifecycle = binary.LittleEndian.AppendUint32(metadata.Lifecycle, uint32(len(handle.Node)))
+		metadata.Lifecycle = append(metadata.Lifecycle, string(handle.Node)...)
+		metadata.Lifecycle = binary.LittleEndian.AppendUint64(metadata.Lifecycle, handle.Incarnation)
+		witness := &cluster.WASMRuntimeWitness{Goroutines: 2, RuntimeState: make([]byte, 128)}
+		binary.BigEndian.PutUint64(witness.RuntimeState[112:], 2)
+		metadata.Boundaries = append(metadata.Boundaries, cluster.WASMInspectionBoundary{Handle: handle, Decision: i, Trace: i, Order: i + 1, WorldBytes: uint64(len(metadata.World)), LifecycleBytes: uint64(len(metadata.Lifecycle)), Cuts: []cluster.WASMInspectionCut{{StateEncoding: cluster.WASMInspectionStateEncoding, StorageState: make([]byte, 32), RecoveryState: make([]byte, 32), NetworkState: make([]byte, 32), Handle: handle, ChoiceRecords: i, Witness: witness}}})
 		metadata.Boundaries[i].Cuts[0].ChoiceBytes = choiceBytes
 	}
 	empty := fmt.Sprintf("sha256:%x", sha256.Sum256(nil))
@@ -196,5 +206,6 @@ func TestInspectionInterruptedSelectPrefixKeepsDecisionMapping(t *testing.T) {
 	execution.Incarnations[0].ChoiceTrace = trace.Bytes
 	execution.Inspection.Incarnations[0].Streams.Choice = trace.Bytes
 	execution.Inspection.Boundaries = execution.Inspection.Boundaries[:1]
+	execution.Inspection.World = execution.Inspection.World[:execution.Inspection.Boundaries[0].WorldBytes]
 	require.NoError(t, ValidateInspectionChoices(execution))
 }

@@ -10,6 +10,9 @@ use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
+#[path = "common/inspection.rs"]
+mod inspection;
+
 /// One module for every instance; behavior differs by configuration and by the
 /// test's replies: write "hello\n" (remote fd_write), read the local clock,
 /// trap on a nonzero write errno, grow memory to three pages, then spin.
@@ -28,6 +31,174 @@ const GUEST: &str = r#"(module
     (loop $spin
       (local.set $n (i32.sub (local.get $n) (i32.const 1)))
       (br_if $spin (local.get $n)))))"#;
+
+#[test]
+#[cfg(not(feature = "diagnostic-profile"))]
+fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
+    let mut pending = vec![0u8; 240];
+    for (offset, value) in [(0, 1u32), (4, 1), (12, 224)] {
+        pending[offset..offset + 4].copy_from_slice(&value.to_le_bytes());
+    }
+    for (offset, value) in [(16, 1u32), (20, 1), (36, 2), (40, 1)] {
+        pending[offset..offset + 4].copy_from_slice(&value.to_be_bytes());
+    }
+    pending[24..32].copy_from_slice(&42u64.to_be_bytes());
+    pending[48..80].fill(2);
+    pending[80..112].fill(1);
+    pending[224..232].copy_from_slice(&1u64.to_be_bytes());
+    let data: String = pending.iter().map(|b| format!("\\{b:02x}")).collect();
+    let guest = format!(
+        r#"(module
+      (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
+      (import "gomad_debug_v1" "exchange" (func $debug (param i32 i32) (result i32)))
+      (memory (export "memory") 1)
+      (data (i32.const 256) "{data}")
+      (data (i32.const 1024) "\01\00\00\00\06\00\00\00\00\00\00\00\00\00\00\00")
+      (func (export "_start")
+        (drop (call $clock (i32.const 1) (i64.const 0) (i32.const 0)))
+        (drop (call $debug (i32.const 256) (i32.const 240)))
+        (if (i32.load (i32.const 264))
+          (then (drop (call $debug (i32.const 1024) (i32.const 16))) unreachable))))"#
+    );
+    let (path, _) = module();
+    std::fs::write(&path, &guest).unwrap();
+    let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
+      "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
+      "manual_start":true,"broker":broker_config(),"instances":[
+        {"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+        {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
+        {"id":"c","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+    let execute = |control: Option<Value>| {
+        let inspecting = control.is_some();
+        let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
+            .stdin(Stdio::piped())
+            .stdout(Stdio::piped())
+            .spawn()
+            .unwrap();
+        let mut input = child.stdin.take().unwrap();
+        let mut output = BufReader::new(child.stdout.take().unwrap());
+        let mut frames = Vec::new();
+        let read = |output: &mut BufReader<std::process::ChildStdout>, frames: &mut Vec<Value>| {
+            let mut line = String::new();
+            assert_ne!(output.read_line(&mut line).unwrap(), 0);
+            let value: Value = serde_json::from_str(&line).unwrap();
+            frames.push(value.clone());
+            value
+        };
+        writeln!(input, "{request}").unwrap();
+        for line in model_inputs(&request) {
+            writeln!(input, "{line}").unwrap();
+        }
+        let mut started = read(&mut output, &mut frames);
+        while started["type"] == "boot_started" {
+            started = read(&mut output, &mut frames);
+        }
+        assert_eq!(started["type"], "started", "{started}");
+        writeln!(input, "{}", json!({"type":"authorize","module_sha256":started["module_sha256"],"configuration":started["engine"]["configuration"]})).unwrap();
+        let mut id = 0;
+        for node in ["a", "b"] {
+            id += 1;
+            let mut start = json!({"type":"start","id":id,"node":node,"incarnation":1,"boot":node});
+            if node == "a"
+                && let Some(control) = &control
+            {
+                let mut hash = Sha256::new();
+                hash.update(b"gomad-choice-alternative-set/v1\0");
+                hash.update(2u64.to_be_bytes());
+                hash.update([1u8; 32]);
+                hash.update([2u8; 32]);
+                let digest: [u8; 32] = hash.finalize().into();
+                let decision = json!({"Ordinal":0,"Kind":1,"SiteOffset":42,"SiteMissing":false,"RankOverride":false,"Alternatives":2,"Selected":0,"Data":0,"SelectedIdentity":vec![1u8;32],"AlternativeSetDigest":digest.to_vec()});
+                start["runtime"] = json!({"mode":2,"tape_chunks":1,"inspection":control});
+                writeln!(input, "{start}").unwrap();
+                writeln!(
+                    input,
+                    "{{\"instance\":\"a\",\"type\":\"tape\",\"decisions\":[{decision},{decision}]}}"
+                )
+                .unwrap();
+            } else {
+                writeln!(input, "{start}").unwrap();
+            }
+            let ack = read(&mut output, &mut frames);
+            assert_eq!(ack["termination"], "", "{ack}");
+        }
+        for node in if inspecting {
+            vec!["a"]
+        } else {
+            vec!["a", "b"]
+        } {
+            id += 1;
+            writeln!(
+                input,
+                "{}",
+                json!({"type":"run","id":id,"node":node,"incarnation":1})
+            )
+            .unwrap();
+            let mut terminal = read(&mut output, &mut frames);
+            assert_eq!(terminal["type"], "control_result", "{terminal}");
+            loop {
+                terminal = read(&mut output, &mut frames);
+                if terminal["type"] == "result" && terminal["instance"] == node {
+                    break;
+                }
+            }
+        }
+        id += 1;
+        writeln!(input, "{}", json!({"type":"finish","id":id})).unwrap();
+        while frames.last().unwrap()["type"] != "cluster_result" {
+            read(&mut output, &mut frames);
+        }
+        assert!(child.wait().unwrap().success());
+        frames
+    };
+    let recorded = execute(None);
+    assert_eq!(recorded.last().unwrap()["termination"], "exit");
+    let raw: Vec<u8> = recorded
+        .iter()
+        .filter(|f| f["stream"] == "inspection")
+        .flat_map(|f| STANDARD.decode(f["data_base64"].as_str().unwrap()).unwrap())
+        .collect();
+    let evidence: Value = serde_json::from_slice(&raw).unwrap();
+    let boundaries = inspection::boundaries(&evidence);
+    let boundary = &boundaries[0];
+    let cut = &boundary["cuts"][0];
+    let hash = |v: &[u8]| format!("{:x}", Sha256::digest(v));
+    let decode = |v: &Value| STANDARD.decode(v.as_str().unwrap()).unwrap();
+    let mut hashes = serde_json::Map::new();
+    for (name, size) in [
+        ("choice", "choice_bytes"),
+        ("wasi", "wasi_bytes"),
+        ("network", "network_bytes"),
+        ("storage", "storage_bytes"),
+        ("stdout", "stdout_bytes"),
+        ("stderr", "stderr_bytes"),
+    ] {
+        let bytes = decode(&evidence["incarnations"][0]["streams"][name]);
+        hashes.insert(
+            name.into(),
+            json!(hash(&bytes[..cut[size].as_u64().unwrap() as usize])),
+        );
+    }
+    let world = decode(&evidence["world"]);
+    let lifecycle = decode(&evidence["lifecycle"]);
+    let control = json!({"target":{"node":"a","incarnation":1},"decision":0,"expected":boundary,
+      "world_sha256":hash(&world[..boundary["world_bytes"].as_u64().unwrap() as usize]),
+      "lifecycle_sha256":hash(&lifecycle[..boundary["lifecycle_bytes"].as_u64().unwrap() as usize]),
+      "stream_sha256":[hashes],"probes":[],"commands":[],"registries":[evidence["incarnations"][0]["registry"]]});
+    let inspected = execute(Some(control));
+    let result = inspected.last().unwrap();
+    assert_eq!(result["termination"], "inspected_prefix", "{inspected:?}");
+    assert!(inspected.iter().any(|f| f["type"] == "result"
+        && f["instance"] == "b"
+        && f["termination"] == "inspection_aborted"));
+    assert!(
+        !inspected
+            .iter()
+            .any(|f| f["type"] == "result" && f["instance"] == "c")
+    );
+    assert!(!inspected.iter().any(|f| f["stream"] == "world"));
+    std::fs::remove_file(path).unwrap();
+}
 
 #[test]
 #[cfg(not(feature = "diagnostic-profile"))]
@@ -785,7 +956,10 @@ fn cluster_with(module: &str, instances: Value, tapes: &[String]) -> Vec<Value> 
         if frame["type"] == "started" {
             writeln!(input, "{}", json!({"type":"authorize","module_sha256":frame["module_sha256"],"configuration":frame["engine"]["configuration"]})).unwrap();
             for tape in tapes {
-                writeln!(input, "{tape}").unwrap();
+                if let Err(error) = writeln!(input, "{tape}") {
+                    assert_eq!(error.kind(), std::io::ErrorKind::BrokenPipe);
+                    break;
+                }
             }
         }
         frames.push(frame);

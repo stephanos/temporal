@@ -8,6 +8,13 @@ use wasmtime::{Error, Result};
 pub const MAX_METADATA: usize = 64 << 20;
 pub const MAX_OUTPUT: usize = 8 << 20;
 pub const MAX_FRAME: usize = 32 + 64 * 1024;
+pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v1";
+pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v1";
+const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v1\0";
+pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
+pub const LIFECYCLE_ENCODING: &str = "gomad.inspection-lifecycle-binary/v1";
+const BOUNDARY_HEADER: &[u8] = b"GMWIB\x01\0\0";
+const LIFECYCLE_HEADER: &[u8] = b"GMWIL\x01\0\0";
 
 mod binary {
     use super::*;
@@ -94,6 +101,8 @@ pub struct Streams {
     pub wasi: Vec<u8>,
     #[serde(with = "binary")]
     pub network: Vec<u8>,
+    #[serde(default, skip_serializing_if = "String::is_empty")]
+    pub network_encoding: String,
     #[serde(with = "binary")]
     pub storage: Vec<u8>,
     #[serde(with = "binary")]
@@ -132,6 +141,7 @@ pub struct Incarnation {
 #[serde(deny_unknown_fields)]
 pub struct Cut {
     pub handle: Handle,
+    pub state_encoding: String,
     pub choice_records: u64,
     pub choice_bytes: u64,
     pub wasi_bytes: u64,
@@ -165,12 +175,19 @@ pub struct Boundary {
 #[serde(deny_unknown_fields)]
 pub struct Evidence {
     pub schema: String,
+    pub boundary_encoding: String,
+    pub lifecycle_encoding: String,
+    pub state_encoding: String,
+    pub world_encoding: String,
     pub complete: bool,
     #[serde(with = "binary")]
     pub world: Vec<u8>,
     #[serde(with = "binary")]
     pub lifecycle: Vec<u8>,
     pub incarnations: Vec<Incarnation>,
+    #[serde(with = "binary")]
+    pub boundary_frames: Vec<u8>,
+    #[serde(skip)]
     pub boundaries: Vec<Boundary>,
 }
 pub struct Recorder {
@@ -179,30 +196,41 @@ pub struct Recorder {
     bytes: usize,
     pub exhausted: bool,
     pub sealed: bool,
+    pub observed: bool,
     cuts: BTreeMap<Handle, Cut>,
 }
 impl Default for Recorder {
     fn default() -> Self {
         Self {
             evidence: Evidence {
-                schema: "gomad.wasm-inspection/v1".into(),
+                schema: "gomad.wasm-inspection/v3".into(),
+                boundary_encoding: BOUNDARY_ENCODING.into(),
+                lifecycle_encoding: LIFECYCLE_ENCODING.into(),
+                state_encoding: STATE_ENCODING.into(),
+                world_encoding: WORLD_ENCODING.into(),
                 complete: false,
-                world: b"gomad.inspection-world/v1\0".to_vec(),
-                lifecycle: b"gomad.inspection-lifecycle/v1\0".to_vec(),
+                world: WORLD_HEADER.to_vec(),
+                lifecycle: LIFECYCLE_HEADER.to_vec(),
                 incarnations: Vec::new(),
+                boundary_frames: [BOUNDARY_HEADER, &[0; 4]].concat(),
                 boundaries: Vec::new(),
             },
             order: 0,
-            bytes: 128,
+            bytes: 4096,
             exhausted: false,
             sealed: false,
+            observed: false,
             cuts: BTreeMap::new(),
         }
     }
 }
 impl Recorder {
+    pub fn observe(&mut self, handle: &Handle) {
+        self.observed = true;
+        self.owner(handle);
+    }
     fn reserve(&mut self, bytes: usize) -> bool {
-        if self.exhausted || bytes > MAX_METADATA / 2 - self.bytes.min(MAX_METADATA / 2) {
+        if self.exhausted || bytes > MAX_METADATA - self.bytes.min(MAX_METADATA) {
             self.exhausted = true;
             return false;
         }
@@ -214,11 +242,28 @@ impl Recorder {
             return self.order;
         }
         self.order += 1;
-        let value = serde_json::to_vec(&(self.order, action, handle)).unwrap();
-        if self.reserve(value.len() + 8) {
-            self.evidence
-                .lifecycle
-                .extend_from_slice(&(value.len() as u64).to_le_bytes());
+        let tag = match action {
+            "start" => 1,
+            "decision" => 2,
+            "terminal" => 3,
+            "register" => 4,
+            "registry_closed" => 5,
+            "model_effect" => 6,
+            "controller_effect" => 7,
+            "crash" => 8,
+            "stop" => 9,
+            "restart" => 10,
+            _ => {
+                self.exhausted = true;
+                return self.order;
+            }
+        };
+        let mut value = vec![tag];
+        if put_handle(&mut value, handle, action == "controller_effect").is_err() {
+            self.exhausted = true;
+            return self.order;
+        }
+        if self.reserve(encoded_growth(self.evidence.lifecycle.len(), value.len())) {
             self.evidence.lifecycle.extend(value);
         }
         self.order
@@ -233,6 +278,7 @@ impl Recorder {
             return &mut self.evidence.incarnations[index];
         }
         let started_order = self.event("start", handle);
+        self.reserve(4096);
         self.evidence.incarnations.push(Incarnation {
             handle: handle.clone(),
             started_order,
@@ -241,7 +287,19 @@ impl Recorder {
         self.evidence.incarnations.last_mut().unwrap()
     }
     pub fn stream(&mut self, handle: &Handle, name: &str, bytes: &[u8]) {
-        if self.sealed || bytes.is_empty() || !self.reserve(bytes.len()) {
+        if self.sealed || self.exhausted || bytes.is_empty() {
+            return;
+        }
+        let streams = &self.owner(handle).streams;
+        let prior = match name {
+            "choice" => streams.choice.len(),
+            "transcript" => streams.wasi.len(),
+            "storage" => streams.storage.len(),
+            "stdout" => streams.stdout.len(),
+            "stderr" => streams.stderr.len(),
+            _ => return,
+        };
+        if !self.reserve(encoded_growth(prior, bytes.len())) {
             return;
         }
         let streams = &mut self.owner(handle).streams;
@@ -260,12 +318,15 @@ impl Recorder {
         }
         let handle = cut.handle.clone();
         let prior = self.owner(&handle).streams.storage.len();
-        if !self.reserve(storage.len().saturating_sub(prior)) {
+        if !self.reserve(base64_len(storage.len()).saturating_sub(base64_len(prior))) {
             return;
         }
         let owner = self.owner(&handle);
         owner.streams.storage = storage.to_vec();
-        cut.network_state = network.to_vec();
+        cut.state_encoding = STATE_ENCODING.into();
+        cut.storage_state = commitment("storage", &cut.storage_state);
+        cut.recovery_state = commitment("recovery", &cut.recovery_state);
+        cut.network_state = commitment("network", network);
         let streams = &owner.streams;
         cut.choice_records = streams.choice.len() as u64 / 96;
         cut.choice_bytes = streams.choice.len() as u64;
@@ -290,43 +351,48 @@ impl Recorder {
         let order = self.event("decision", handle);
         let cut = self.cuts.entry(handle.clone()).or_insert_with(|| Cut {
             handle: handle.clone(),
+            state_encoding: STATE_ENCODING.into(),
+            storage_state: commitment("storage", &[]),
+            recovery_state: commitment("recovery", &[]),
+            network_state: commitment("network", &[]),
             ..Default::default()
         });
         cut.witness = witness.clone();
         cut.clock_run = clock;
-        let count = self.cuts.len();
-        let state_bytes = self
-            .cuts
-            .values()
-            .try_fold(0usize, |total, cut| {
-                total
-                    .checked_add(cut.storage_state.len())?
-                    .checked_add(cut.recovery_state.len())?
-                    .checked_add(cut.network_state.len())?
-                    .checked_add(cut.clock_run.len())
-            })
-            .unwrap_or(MAX_METADATA);
         if self.evidence.boundaries.len() >= 65536 {
             self.exhausted = true;
             return Err(Error::msg("inspection boundary capacity"));
         }
-        if !self.reserve(512 * count + state_bytes + world.len() + 8) {
-            return Err(Error::msg("inspection metadata capacity"));
-        }
-        self.evidence
-            .world
-            .extend_from_slice(&(world.len() as u64).to_le_bytes());
-        self.evidence.world.extend_from_slice(world);
+        let world = commitment("world", world);
         let boundary = Boundary {
             handle: handle.clone(),
             decision: witness.choices,
             trace: witness.choices + witness.observations,
             order,
             time_nanos: time,
-            world_bytes: self.evidence.world.len() as u64,
+            world_bytes: (self.evidence.world.len() + 8 + world.len()) as u64,
             lifecycle_bytes: self.evidence.lifecycle.len() as u64,
             cuts: self.cuts.values().cloned().collect(),
         };
+        let frame = match boundary_frame(&boundary) {
+            Ok(frame) => frame,
+            Err(error) => {
+                self.exhausted = true;
+                return Err(error);
+            }
+        };
+        let charge = encoded_growth(self.evidence.world.len(), world.len() + 8)
+            + encoded_growth(self.evidence.boundary_frames.len(), frame.len());
+        if !self.reserve(charge) {
+            return Err(Error::msg("inspection metadata capacity"));
+        }
+        self.evidence
+            .world
+            .extend_from_slice(&(world.len() as u64).to_le_bytes());
+        self.evidence.world.extend_from_slice(&world);
+        self.evidence.boundary_frames.extend_from_slice(&frame);
+        self.evidence.boundary_frames[8..12]
+            .copy_from_slice(&((self.evidence.boundaries.len() + 1) as u32).to_le_bytes());
         self.evidence.boundaries.push(boundary.clone());
         Ok(boundary)
     }
@@ -340,13 +406,29 @@ impl Recorder {
         owner.failure_order = failed.then_some(order);
     }
     pub fn terminal_network(&mut self, handle: &Handle, bytes: Vec<u8>) {
-        if self.sealed || !self.reserve(bytes.len()) {
+        if self.sealed || self.exhausted {
+            return;
+        }
+        let prior = self.owner(handle).streams.network.len();
+        if !self.reserve(base64_len(bytes.len()).saturating_sub(base64_len(prior))) {
             return;
         }
         let length = bytes.len() as u64;
-        self.owner(handle).streams.network = bytes;
+        let state = commitment("network", &bytes);
+        let streams = &mut self.owner(handle).streams;
+        streams.network = bytes;
+        streams.network_encoding = "gomad.cluster-network-binary/v1".into();
         if let Some(cut) = self.cuts.get_mut(handle) {
             cut.network_bytes = length;
+            cut.network_state = state;
+        }
+    }
+    pub fn network_snapshot(&mut self, handle: &Handle, bytes: Vec<u8>) {
+        if self.sealed || self.exhausted {
+            return;
+        }
+        if let Some(cut) = self.cuts.get_mut(handle) {
+            cut.network_state = commitment("network", &bytes);
         }
     }
     pub fn bytes(&mut self, complete: bool) -> Result<Vec<u8>> {
@@ -359,8 +441,9 @@ impl Recorder {
         }
         if self.exhausted {
             self.evidence.boundaries.clear();
-            self.evidence.world = b"gomad.inspection-world/v1\0".to_vec();
-            self.evidence.lifecycle = b"gomad.inspection-lifecycle/v1\0".to_vec();
+            self.evidence.boundary_frames = [BOUNDARY_HEADER, &[0; 4]].concat();
+            self.evidence.world = WORLD_HEADER.to_vec();
+            self.evidence.lifecycle = LIFECYCLE_HEADER.to_vec();
             for owner in &mut self.evidence.incarnations {
                 owner.streams = Streams::default();
             }
@@ -369,6 +452,7 @@ impl Recorder {
         let bytes = serde_json::to_vec(&self.evidence).map_err(Error::new)?;
         if bytes.len() > MAX_METADATA {
             self.exhausted = true;
+            self.evidence.incarnations.clear();
             return self.bytes(false);
         }
         Ok(bytes)
@@ -430,6 +514,43 @@ impl Default for Transport {
     }
 }
 impl Transport {
+    pub fn dormant_exchange(&mut self, frame: &mut [u8]) -> Result<()> {
+        let op = validate_frame(frame)?;
+        let payload = &frame[16..];
+        match op {
+            1 => {
+                if payload.len() < 32 + 64 + 128 {
+                    return Err(Error::msg("invalid debug predecision length"));
+                }
+                let count = u32::from_be_bytes(payload[20..24].try_into().unwrap()) as usize;
+                let length = 32 + count * 32;
+                if !(2..=256).contains(&count) || payload.len() != length + 128 {
+                    return Err(Error::msg("invalid debug predecision alternatives"));
+                }
+                validate_pending(&payload[..length])?;
+                self.witness = Witness::decode(&payload[length..])?;
+            }
+            2 => self.registry(payload)?,
+            3 => {
+                if payload.len() != 4 || le32(payload, 0) > 1 {
+                    return Err(Error::msg("invalid registry closure"));
+                }
+                self.close_registry(le32(payload, 0) == 1);
+            }
+            7 => {
+                if payload.len() != 32 || payload.iter().any(|b| *b != 0) {
+                    return Err(Error::msg("invalid debug enablement mask"));
+                }
+            }
+            10 => self.witness = Witness::decode(payload)?,
+            _ => {
+                return Err(Error::msg(
+                    "inspection unsupported without helper-owned runtime",
+                ));
+            }
+        }
+        Ok(())
+    }
     pub fn lock(&self) -> std::sync::MutexGuard<'_, Recorder> {
         self.recorder.lock().unwrap_or_else(|e| e.into_inner())
     }
@@ -507,6 +628,8 @@ impl Transport {
             5 => "probe",
             _ => return Err(Error::msg("invalid debug registration kind")),
         };
+        recorder.reserve(256 + name.len());
+        let owner = recorder.owner(&self.handle);
         owner.registry.entries.push(Registration {
             id,
             kind: kind.into(),
@@ -530,9 +653,285 @@ impl Transport {
         }
     }
 }
+pub fn validate_frame(frame: &[u8]) -> Result<u32> {
+    if frame.len() < 16
+        || frame.len() > MAX_FRAME
+        || le32(frame, 0) != 1
+        || le32(frame, 8) != 0
+        || le32(frame, 12) as usize != frame.len() - 16
+    {
+        return Err(Error::msg("invalid debug exchange frame"));
+    }
+    Ok(le32(frame, 4))
+}
+pub fn validate_pending(data: &[u8]) -> Result<Vec<[u8; 32]>> {
+    if data.len() < 32 {
+        return Err(Error::msg("invalid debug pending decision"));
+    }
+    let word = |at| u32::from_be_bytes(data[at..at + 4].try_into().unwrap());
+    let count = word(20) as usize;
+    if word(0) != 1
+        || !matches!(word(4), 1 | 2)
+        || word(16) & !4 != 0
+        || !(2..=256).contains(&count)
+        || word(24) as usize >= count
+        || data.len() != 32 + count * 32
+    {
+        return Err(Error::msg("invalid debug pending decision"));
+    }
+    let mut identities: Vec<[u8; 32]> = data[32..]
+        .chunks_exact(32)
+        .map(|bytes| bytes.try_into().unwrap())
+        .collect();
+    identities.sort();
+    if identities.contains(&[0u8; 32]) || identities.windows(2).any(|pair| pair[0] == pair[1]) {
+        return Err(Error::msg("invalid debug pending alternative identities"));
+    }
+    Ok(identities)
+}
 pub fn le32(bytes: &[u8], at: usize) -> u32 {
     u32::from_le_bytes(bytes[at..at + 4].try_into().unwrap())
 }
 pub fn digest(bytes: &[u8]) -> String {
     format!("{:x}", Sha256::digest(bytes))
+}
+fn base64_len(length: usize) -> usize {
+    length.div_ceil(3) * 4
+}
+fn encoded_growth(prior: usize, extra: usize) -> usize {
+    base64_len(prior + extra) - base64_len(prior)
+}
+fn put_handle(bytes: &mut Vec<u8>, handle: &Handle, controller: bool) -> Result<()> {
+    if handle.node.is_empty()
+        || handle.node.len() > 1024
+        || handle.node.contains(['\0', '\r', '\n'])
+        || if controller {
+            handle.node != "controller" || handle.incarnation != 0
+        } else {
+            handle.incarnation == 0
+        }
+    {
+        return Err(Error::msg("invalid inspection handle"));
+    }
+    bytes.extend_from_slice(&(handle.node.len() as u32).to_le_bytes());
+    bytes.extend_from_slice(handle.node.as_bytes());
+    bytes.extend_from_slice(&handle.incarnation.to_le_bytes());
+    Ok(())
+}
+fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
+    let mut bytes = vec![0; 4];
+    put_handle(&mut bytes, &boundary.handle, false)?;
+    for word in [
+        boundary.decision,
+        boundary.trace,
+        boundary.order,
+        boundary.time_nanos,
+        boundary.world_bytes,
+        boundary.lifecycle_bytes,
+    ] {
+        bytes.extend_from_slice(&word.to_le_bytes());
+    }
+    if boundary.cuts.is_empty() || boundary.cuts.len() > 65536 {
+        return Err(Error::msg("invalid inspection cut count"));
+    }
+    bytes.extend_from_slice(&(boundary.cuts.len() as u32).to_le_bytes());
+    for cut in &boundary.cuts {
+        if cut.state_encoding != STATE_ENCODING
+            || cut.network_state.len() != 32
+            || cut.storage_state.len() != 32
+            || cut.recovery_state.len() != 32
+            || cut.clock_run.len() > 1024
+            || Witness::decode(&cut.witness.runtime_state)? != cut.witness
+        {
+            return Err(Error::msg("invalid inspection cut or compulsory witness"));
+        }
+        put_handle(&mut bytes, &cut.handle, false)?;
+        for word in [
+            cut.choice_records,
+            cut.choice_bytes,
+            cut.wasi_bytes,
+            cut.network_bytes,
+            cut.storage_bytes,
+            cut.stdout_bytes,
+            cut.stderr_bytes,
+        ] {
+            bytes.extend_from_slice(&word.to_le_bytes());
+        }
+        bytes.extend_from_slice(&(cut.clock_run.len() as u32).to_le_bytes());
+        bytes.extend_from_slice(&cut.clock_run);
+        bytes.extend_from_slice(&cut.network_state);
+        bytes.extend_from_slice(&cut.storage_state);
+        bytes.extend_from_slice(&cut.recovery_state);
+        bytes.extend_from_slice(&cut.witness.runtime_state);
+    }
+    let length = bytes.len() - 4;
+    if length > MAX_METADATA {
+        return Err(Error::msg("inspection frame capacity"));
+    }
+    bytes[..4].copy_from_slice(&(length as u32).to_le_bytes());
+    Ok(bytes)
+}
+pub fn commitment(kind: &str, bytes: &[u8]) -> Vec<u8> {
+    let mut hash = Sha256::new();
+    if kind == "world" {
+        hash.update(b"gomad.inspection-world-sha256/v1\0");
+    } else {
+        hash.update(b"gomad.inspection-state-sha256/v1/");
+        hash.update(kind.as_bytes());
+        hash.update([0]);
+    }
+    hash.update((bytes.len() as u64).to_le_bytes());
+    hash.update(bytes);
+    hash.finalize().to_vec()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn witness_at(choices: u64) -> Witness {
+        let mut raw = vec![0; 128];
+        raw[..8].copy_from_slice(&choices.to_be_bytes());
+        raw[104..112].copy_from_slice(&choices.to_be_bytes());
+        raw[112..120].copy_from_slice(&1u64.to_be_bytes());
+        Witness::decode(&raw).unwrap()
+    }
+
+    #[test]
+    fn repeated_static_mount_and_world_cuts_fit_bounded_metadata() {
+        let mut recorder = Recorder::default();
+        let handle = Handle {
+            node: "history".into(),
+            incarnation: 1,
+        };
+        recorder.observe(&handle);
+        let mount = vec![b'm'; 64 << 10];
+        let world = vec![b'w'; 64 << 10];
+        for ordinal in 0..2000 {
+            recorder.snapshot(
+                Cut {
+                    handle: handle.clone(),
+                    storage_state: mount.clone(),
+                    ..Default::default()
+                },
+                &[],
+                &[],
+            );
+            recorder
+                .boundary(&handle, witness_at(ordinal), ordinal, vec![], &world)
+                .unwrap();
+            recorder.stream(&handle, "choice", &[0; 96]);
+        }
+        let encoded = recorder.bytes(true).unwrap();
+        eprintln!(
+            "inspection metadata: {} bytes for 2000 boundaries and repeated 64KiB mount/World",
+            encoded.len()
+        );
+        assert!(recorder.evidence.complete);
+        assert_eq!(recorder.evidence.schema, "gomad.wasm-inspection/v3");
+        assert_eq!(recorder.evidence.world_encoding, WORLD_ENCODING);
+        assert_eq!(recorder.evidence.boundaries.len(), 2000);
+        assert!(encoded.len() < 8 << 20);
+        assert_eq!(
+            recorder.evidence.boundaries[0].cuts[0].storage_state.len(),
+            32
+        );
+        assert_eq!(
+            recorder.evidence.incarnations[0].streams.choice.len(),
+            2000 * 96
+        );
+    }
+    #[test]
+    fn state_commitments_bind_domains_lengths_and_last_bytes() {
+        let storage = commitment("storage", b"abc");
+        let hex: String = storage.iter().map(|b| format!("{b:02x}")).collect();
+        assert_eq!(
+            hex,
+            "bc21ac8235dac2e82b5ff9401aec3720cbe19d167569211b906be2b290c51b7a"
+        );
+        for kind in ["storage", "recovery", "network", "world"] {
+            assert_eq!(commitment(kind, &[]).len(), 32);
+            assert_ne!(commitment(kind, b"abc"), commitment(kind, b"abd"));
+            assert_ne!(commitment(kind, b"abc"), commitment(kind, b"abc\0"));
+            if kind != "storage" {
+                assert_ne!(storage, commitment(kind, b"abc"));
+            }
+        }
+    }
+    #[test]
+    fn terminal_network_cut_commits_the_retained_terminal_document() {
+        let mut recorder = Recorder::default();
+        let handle = Handle {
+            node: "peer".into(),
+            incarnation: 1,
+        };
+        recorder.snapshot(
+            Cut {
+                handle: handle.clone(),
+                ..Default::default()
+            },
+            b"before",
+            &[],
+        );
+        recorder.terminal_network(&handle, b"after".to_vec());
+        let cut = recorder.cuts.get(&handle).unwrap();
+        assert_eq!(cut.network_state, commitment("network", b"after"));
+        assert_eq!(cut.network_bytes, 5);
+    }
+    #[test]
+    fn workflow_scale_inventory_fits_without_omitting_boundaries() {
+        let mut recorder = Recorder::default();
+        let handle = Handle {
+            node: "history".into(),
+            incarnation: 1,
+        };
+        recorder.snapshot(
+            Cut {
+                handle: handle.clone(),
+                storage_state: vec![b'm'; 64 << 10],
+                ..Default::default()
+            },
+            &[],
+            &[],
+        );
+        recorder.stream(&handle, "transcript", crate::transcript::HEADER);
+        let mut calls = 0;
+        for ordinal in 0..51_000 {
+            for _ in 0..if ordinal < 19_000 { 8 } else { 7 } {
+                recorder.event("model_effect", &handle);
+                calls += 1;
+                recorder.stream(
+                    &handle,
+                    "transcript",
+                    &crate::transcript::yield_record(calls),
+                );
+            }
+            {
+                let cut = recorder.cuts.get_mut(&handle).unwrap();
+                cut.choice_records = ordinal;
+                cut.choice_bytes = ordinal * 96;
+                cut.wasi_bytes = calls * 16 + crate::transcript::HEADER.len() as u64;
+            }
+            recorder
+                .boundary(&handle, witness_at(ordinal), ordinal, vec![], &[])
+                .unwrap();
+            recorder.stream(&handle, "choice", &[0; 96]);
+        }
+        recorder.terminal(&handle, false);
+        let encoded = recorder.bytes(true).unwrap();
+        eprintln!(
+            "workflow-scale metadata={} bytes, boundaries={}, model_effects={}, rawchoice={}, rawWASI={}, lifecycle={}, boundary_frames={}",
+            encoded.len(),
+            recorder.evidence.boundaries.len(),
+            calls,
+            recorder.evidence.incarnations[0].streams.choice.len(),
+            recorder.evidence.incarnations[0].streams.wasi.len(),
+            recorder.evidence.lifecycle.len(),
+            recorder.evidence.boundary_frames.len()
+        );
+        assert!(recorder.evidence.complete);
+        assert_eq!(calls, 376_000);
+        assert_eq!(recorder.evidence.boundaries.len(), 51_000);
+        assert!(encoded.len() <= MAX_METADATA);
+    }
 }

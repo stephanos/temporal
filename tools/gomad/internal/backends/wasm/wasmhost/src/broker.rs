@@ -655,6 +655,13 @@ impl Broker {
 
     pub fn abort(&self, termination: &'static str, message: String) {
         let mut inner = lock(&self.inner);
+        if matches!(
+            termination,
+            "inspected_prefix" | "instrumentation_divergence" | "debug_error" | "probe_fuel_limit"
+        ) && inner.aborted.is_none()
+        {
+            inner.raised = Some((termination, message.clone()));
+        }
         self.abort_locked(&mut inner, termination, message);
     }
 
@@ -685,6 +692,18 @@ impl Broker {
     /// first abort; it takes precedence over what the aborted instances report.
     pub fn failure(&self) -> Option<(&'static str, String)> {
         lock(&self.inner).raised.clone()
+    }
+
+    pub fn inspection_stopped(&self) -> bool {
+        self.failure().is_some_and(|(kind, _)| {
+            matches!(
+                kind,
+                "inspected_prefix"
+                    | "instrumentation_divergence"
+                    | "debug_error"
+                    | "probe_fuel_limit"
+            )
+        })
     }
 
     /// Blocks the coordinator until every instance finished (true) or the run
@@ -1089,6 +1108,26 @@ pub struct Clockwork<'a> {
 }
 
 impl Member {
+    fn inspection_network_snapshot(&self) {
+        let Some(endpoint) = &self.network else {
+            return;
+        };
+        let node = lock(&self.broker.inner).sessions[self.index].id.clone();
+        let mut recorder = lock(&self.broker.inspection);
+        if !recorder.observed || recorder.exhausted {
+            return;
+        }
+        match endpoint.evidence() {
+            Ok(bytes) => recorder.network_snapshot(
+                &crate::model::inspection::Handle {
+                    node,
+                    incarnation: self.incarnation,
+                },
+                bytes,
+            ),
+            Err(_) => recorder.exhausted = true,
+        }
+    }
     pub fn begin_output(&mut self, now: &mut u64) -> Result<(), Failure> {
         self.broker.check(self.index, self.incarnation)?;
         let current = self.broker.current();
@@ -1125,6 +1164,7 @@ impl Member {
             return Err(invalid("runtime idle layout"));
         }
         let deadline = u64::from_be_bytes(data[8..16].try_into().unwrap());
+        self.inspection_network_snapshot();
         let now = self.broker.idle(self.index, deadline)?;
         if now < *clock.now {
             return Err(invalid("broker clock moved backwards"));
@@ -1138,6 +1178,7 @@ impl Member {
             data[4..8].copy_from_slice(&1u32.to_be_bytes());
         }
         data[8..16].copy_from_slice(&now.to_be_bytes());
+        self.inspection_network_snapshot();
         self.broker.ready(self.index, "runtime_idle")
     }
 
@@ -1154,6 +1195,7 @@ impl Member {
             .as_mut()
             .ok_or(invalid("broker node requires stream network profile"))?;
         endpoint.serve(data, *clock.now, clock.runtime_active)?;
+        self.inspection_network_snapshot();
         self.broker.ready(self.index, "runtime_net_stream")
     }
 }
