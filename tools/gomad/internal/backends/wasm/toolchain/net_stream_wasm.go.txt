@@ -41,6 +41,9 @@ func gomadStreamRegisterPoll(func() (bool, bool))
 //go:linkname gomadStreamNanotime runtime.nanotime
 func gomadStreamNanotime() int64
 
+//go:linkname gomadStreamWitness runtime.gomadDebugWitnessOnly
+func gomadStreamWitness()
+
 type gomadStreamPending struct {
 	next   *gomadStreamPending
 	buffer []byte
@@ -67,6 +70,7 @@ func gomadStreamPort(addr Addr) uint32 {
 }
 
 func gomadStreamInvoke(buffer []byte) {
+	gomadStreamWitness()
 	if gomadWasmNetStream(&buffer[0], uint32(len(buffer))) != 0 {
 		panic("net: gomad stream model rejected operation")
 	}

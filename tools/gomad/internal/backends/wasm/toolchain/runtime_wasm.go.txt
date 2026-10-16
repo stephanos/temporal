@@ -56,6 +56,10 @@ var gomadDebugInspect func(uint32, uint32)
 var gomadDebugMask *[4]uint64
 var gomadDebugClosed bool
 var gomadDebugRegistryValid = true
+var gomadDebugHeapRecords [4096]MemProfileRecord
+var gomadDebugHeapCount int
+var gomadDebugHeapOK bool
+var gomadDebugHeapRate int
 
 //go:wasmimport gomad_debug_v1 exchange
 //go:noescape
@@ -115,6 +119,7 @@ func gomadDebugWitness(b []byte) {
 	gomadChoicePut64(b[120:128], uint64(sched.runq.size))
 }
 
+//go:linkname gomadDebugWitnessOnly
 func gomadDebugWitnessOnly() {
 	if gomadDebugInspecting {
 		return
@@ -293,6 +298,7 @@ func gomadDebugEmit(pointer *byte, length uint32) {
 }
 
 func gomadDebugRun() {
+	gomadDebugCaptureHeap()
 	for {
 		clear(gomadDebugBuffer[16:24])
 		gomadDebugCall(5, 8)
@@ -387,23 +393,24 @@ func gomadDebugStacks() {
 	gomadDebugFrame(8, 0, status, ^uint32(0), Frame{})
 }
 
+func gomadDebugCaptureHeap() {
+	gomadDebugHeapCount, gomadDebugHeapOK = MemProfile(gomadDebugHeapRecords[:], true)
+	gomadDebugHeapRate = MemProfileRate
+}
+
 func gomadDebugHeap() {
-	const maximum = 4096
-	count, _ := MemProfile(nil, true)
-	truncated := count > maximum
-	if count > maximum {
-		count = maximum
-	}
-	records := make([]MemProfileRecord, count)
-	if _, ok := MemProfile(records, true); !ok {
-		// MemProfile does not return a partial sample set.
+	clear(gomadDebugBuffer[16:64])
+	gomadDebugPut64(gomadDebugBuffer[16:24], uint64(gomadDebugHeapRate))
+	gomadDebugPut32(gomadDebugBuffer[56:60], ^uint32(0))
+	gomadDebugCall(9, 48)
+	if !gomadDebugHeapOK {
 		gomadDebugFrame(11, 0, 1<<31, ^uint32(0), Frame{})
 		return
 	}
-	for index := range records {
-		record := &records[index]
+	for index := 0; index < gomadDebugHeapCount; index++ {
+		record := &gomadDebugHeapRecords[index]
 		pcs := record.Stack()
-		gomadDebugPut64(gomadDebugBuffer[16:24], uint64(MemProfileRate))
+		gomadDebugPut64(gomadDebugBuffer[16:24], uint64(gomadDebugHeapRate))
 		gomadDebugPut64(gomadDebugBuffer[24:32], uint64(record.AllocObjects))
 		gomadDebugPut64(gomadDebugBuffer[32:40], uint64(record.FreeObjects))
 		gomadDebugPut64(gomadDebugBuffer[40:48], uint64(record.AllocBytes))
@@ -416,11 +423,7 @@ func gomadDebugHeap() {
 		gomadDebugCall(9, uint32(48+8*len(pcs)))
 		gomadDebugFrames(11, uint64(index), 0, pcs)
 	}
-	status := uint32(0)
-	if truncated {
-		status = 1 << 31
-	}
-	gomadDebugFrame(11, 0, status, ^uint32(0), Frame{})
+	gomadDebugFrame(11, 0, 0, ^uint32(0), Frame{})
 }
 
 //go:wasmimport gomad_wasm_v1 config
