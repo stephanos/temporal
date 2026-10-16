@@ -66,7 +66,7 @@ Gate classification: FULL, exit 1 (`unmatched: model/framework/README.md`), `.fl
 
 Source commit `841fb0b583`; base `8eafcf7ffdf649b39979cef0d089ee7428794410`. The evidence range also includes the conductor's plan-only `55dc59061f`. Two disjoint assistants returned inventory and external-proof scaffolding; the worker owned compiler commands and commits.
 
-Next native task .8 owns record execution, typed field descriptors and structural selectors; .9 owns native caller migration, its migration rule/proof, and removal of `LegacyAction`, token/Assigned/`:=` class forms, `InputAt`, tuple admission and arity APIs. Do not release fn-173.10 before committed .9.
+Next native task .8 owns record execution, typed field descriptors and structural selectors; .9 owns native caller migration, its framework-local migration recipe, and removal of `LegacyAction`, token/Assigned/`:=` class forms, `InputAt`, tuple admission and arity APIs. No task-specific Scalafix implementation or copied-Temporal proof is required by the current owner iteration policy. Do not release fn-173.10 before committed .9.
 
 Not run/claimed: `make check-framework`, `make model-check-changed`, original whole-model Quick commands, capture/exporter integration gates, exact Param/Class/default IR parity, schemas, Go/backend work, regeneration or Temporal restoration/migration. Original .1-.6 and complete R4/R6/R7/integration obligations remain held; this is native .7 closure only. Review remains at the owner's native source batch boundary. MILESTONES.md was not edited.
 

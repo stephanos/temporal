@@ -12,7 +12,7 @@ The scalar frontend retains native `In = A`; a one-field record is optional, nev
 
 Original .1-.6 stay open and held for exact IR/capture/reader retirement and integration. Consume native results there later; do not claim R4/R6/R7 complete. Native public API cleanup proceeds without compatibility for disabled Temporal or held exporter fixtures. After committed .9, release fn-173.10. This section supersedes older Execution/Boundaries/Quick commands wherever they schedule IR or Temporal before native work. Native tasks carry isolated compiler/test recipes and framework-local documentation.
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+Native DSL changes ship a concise migration recipe in framework-local guidance, not a task-specific Scalafix implementation or copied-Temporal proof. This owner iteration policy supersedes older rule/sweep mandates below. Temporal migration, production rule loading and full integration proofs remain held.
 
 ## Conversation Evidence
 

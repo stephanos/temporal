@@ -11,7 +11,7 @@ As of 2026-10-16.
 
 Select subsequent work only from framework-owned requirements. The earlier fn-169.2 registration and fn-174.3 production integration sequence remains historical planning until it is re-scoped to run without Temporal. Shared compiler/export changes and Scala build caches retain a single coordinated writer/build lane.
 
-**DSL-first execution order (owner override):** fn-165.7-.9, then fn-173.10-.12, fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10 are committed. Remaining native checkpoints cover record/scalar inputs, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
+**DSL-first execution order (owner override):** fn-165.8/.9, then fn-173.10-.12, fn-123.9/.10 and fn-153.7. Native expect/API/colon checkpoints fn-164.2/.11/.10 and record/scalar declaration frontend fn-165.7 are committed. Remaining native checkpoints cover record execution/shared selectors and caller retirement, collection state/input guards, reach/open/checker authoring and total retirement, faults/durability and typed Property illustrations. They run native compiler/runtime and relevant lint tests using framework sources only. All IR, capture/exporter, schema, Go, backend and regeneration work follows the complete native DSL queue. Fn-188.2 and fn-174.24 are held and never native prerequisites. Original mixed tasks retain their deferred proofs; native completion does not close their full R-IDs. Disabled Temporal callers and held IR fixtures do not constrain the final public DSL. Parallel agents prepare independent native requirements/tests; source/compiler writes stay coordinated.
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
@@ -146,7 +146,7 @@ facet vocabularies are recorded in fn-161.
 
 | Order | Native checkpoint | Scope |
 | --- | --- | --- |
-| 1 | fn-165.7 -> .8 -> .9 | Record/scalar classes/defaults, step functions/shared selectors, native callers and token/arity API retirement |
+| 1 | fn-165.8 -> .9 | Record/scalar frontend is committed; native step functions/shared selectors, callers and token/arity API retirement remain |
 | 2 | fn-173.10 -> .11 -> .12 | Collection state, finite domains/guards, reach/open/checker authoring and total retirement; native Scala Int remains host smoke, interpreted checked-int64 proof stays held |
 | 3 | fn-123.9 -> .10 | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions |
 | 4 | fn-153.7 | Typed Property illustration attachment and native validation on the final expect/record APIs |
@@ -620,10 +620,14 @@ fn-141 or fn-174.24. Fn-159.10's explicit defaults are already landed and must s
 changes. Scalars retain their actual input type with explicitly declared names/defaults; one-field
 records are optional. [Spec](.flow/specs/fn-165-inputs-as-records-named-classes.md).
 
+The native frontend checkpoint is committed at `841fb0b583` with receipt `fe4a92ed23`: 288 native
+tests and 29 lint tests pass; separately compiled library/client controls pass and nine intended
+invalid clients refuse. Actual record/scalar carriers, declared defaults and selected witnesses
+are retained. Record execution/shared selectors and final legacy retirement remain below.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-165.7 | 🔄 in progress | Native inventory, checked record named/default calls and true scalar input declarations; fn-164.10's committed receipt releases admission |
-| fn-165.8 | ⬜ todo after .7 | Native record step execution and structural shared-input selectors |
+| fn-165.8 | 🔄 in progress | Native record/scalar step execution and structural shared-input selectors on the committed frontend |
 | fn-165.9 | ⬜ todo after .8 | Native caller migration, token/arity API retirement and framework-local guidance |
 | fn-165.1-.6 | ⏸️ deferred (IR/integration) | Preserve exact IR/default/Param proofs, reader retirement and broader migration; consume native results later |
 

@@ -6,7 +6,7 @@ Execute native .7 after committed fn-123.10; release its explicit task admission
 
 Original .1-.6 stay held for schema/IR transport, Go classification, checked documentation/freshness, pilot and final compatibility proofs. Native attachment does not complete those requirements or add a second predicate evaluator. The historical mini pilot stays excluded with all Temporal sources. Finish framework-native DSL before new IR/Go/backend work.
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+Native DSL changes ship a concise migration recipe in framework-local guidance, not a task-specific Scalafix implementation or copied-Temporal proof. This owner iteration policy supersedes older rule/sweep mandates below. Temporal migration, production rule loading and full integration proofs remain held.
 
 > HTML render lens (local): open `.flow/artifacts/fn-153-checked-property-examples-pilot/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 

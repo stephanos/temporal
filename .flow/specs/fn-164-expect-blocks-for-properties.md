@@ -20,7 +20,7 @@ Original tasks .4/.5 and the full-scope .6/.1 seals remain held for Temporal mig
 | .8 public finisher removal and docs | R4, R5, R6, R7, framework only | .7 |
 | .9 colon enforcement and final framework check | R5, R7, R8, framework only | .8 |
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+Native DSL changes ship a concise migration recipe in framework-local guidance, not a task-specific Scalafix implementation or copied-Temporal proof. This owner iteration policy supersedes older rule/sweep mandates below. Temporal migration, production rule loading and full integration proofs remain held.
 
 > HTML render lens (local): open `.flow/artifacts/fn-164-expect-blocks-for-properties/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 

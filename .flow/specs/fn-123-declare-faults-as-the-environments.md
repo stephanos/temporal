@@ -8,7 +8,7 @@ Task .9 covers fault/modelOnly, typed budget fields and native realization choic
 
 Original .1-.8 remain open and held for IR/schema transport, Go derivation/budget enforcement, witness lowering, reporting and integration. Do not touch Temporal providers or require their historical seals for native work. After committed .10, release fn-153.7. All new IR/Go/backend work follows native DSL completion.
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+Native DSL changes ship a concise migration recipe in framework-local guidance, not a task-specific Scalafix implementation or copied-Temporal proof. This owner iteration policy supersedes older rule/sweep mandates below. Temporal migration, production rule loading and full integration proofs remain held.
 
 > HTML render lens (local): open `.flow/artifacts/fn-123-declare-faults-as-the-environments/spec.html` - regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
