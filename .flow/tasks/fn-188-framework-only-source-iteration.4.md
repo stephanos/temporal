@@ -44,9 +44,10 @@ No model/temporal reads, restoration or disabled-body consumption. No model/proj
 
 
 ## Done summary
-TBD
+Native sample suites (SampleExpectTest, NativeMapsTest, NativeVotingTest, NativeHistoryTest) are discovered once each as core suites and passed as core test inputs; ModelSources.frameworkCore stays DSL/realize only. The two Go-running SamplesSuite cases are held through a check-local GoHeld helper (HELD line plus munit ignore) only when UMPIRE_FRAMEWORK_BUILD is set; bodies and assertions are unchanged. FrameworkLoopSuite gained selector/no-duplicate/library-exclusion, HELD deduplication without pass credit, and a registration control run in both modes. README documents coverage and holds. Full R4/R5, fn-188.2's successful generic gate, fn-174.24 semantics and all Temporal/Go/backend obligations remain open; held cases earn no pass credit.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 75da741584
+- Tests: ordinary FrameworkLoopSuite OK 7 (.flow/tmp/fn1884-check-ordinary.log), framework mode with poisoned SAMPLE_REPORT_INPUT/BASE: FrameworkLoopSuite+BoundarySuite OK 10, both Go cases ignored run=0 (.flow/tmp/fn1884-check-framework.log), native samples via JUnitCore OK 42 (.flow/tmp/fn1884-samples.log), fresh framework.jar and reify.jar builds exit 0; FrameworkFixtureSettingsSuite OK 3 (.flow/tmp/fn1884-settings.log), check lint+boundary OK 32 (.flow/tmp/fn1884-lint.log); scalafmt --check and git diff --check pass
 - PRs:
