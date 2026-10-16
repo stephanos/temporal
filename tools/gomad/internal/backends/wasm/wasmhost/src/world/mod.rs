@@ -314,7 +314,8 @@ pub struct Model {
     history: Vec<Transition>,
     transcript: [u8; 32],
     /// [`digest::state_digest`]'s framed transition encodings for a prefix
-    /// of the append-only history, so a digest re-encodes only new ones.
+    /// of the append-only history, so a digest re-encodes only transitions
+    /// past that prefix.
     transition_frames: std::cell::RefCell<TransitionFrames>,
 }
 
@@ -324,7 +325,8 @@ struct TransitionFrames {
     bytes: Vec<u8>,
 }
 
-/// Retained framed transitions beyond this are dropped and re-encoded.
+/// Bound on the retained framed transitions; transitions past it are not
+/// retained and are framed while streaming into the hasher on every digest.
 const MAXIMUM_TRANSITION_FRAME_BYTES: usize = 256 << 20;
 
 fn capacity(dimension: &'static str, limit: u64, used: u64, delta: u64) -> Error {
