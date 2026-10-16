@@ -210,8 +210,20 @@ private[framework] object ExpectationBlock:
         fail(term, "a requirement block must not be empty or contain only helper vals")
 
     requirements(function(original))
+    val predicates = scala.collection.mutable.ArrayBuffer.empty[Expr[AnyRef]]
+    object forwarding extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case Apply(Select(receiver: Ref, "apply"), _)
+              if receiver.tpe.widen.baseClasses
+                .exists(s => s.fullName == "scala.Function1" || s.fullName == "scala.Function2") =>
+            val _ = predicates += receiver.asExprOf[AnyRef]
+          case _ => ()
+        super.traverseTree(tree)(owner)
+    forwarding.traverseTree(original)(Symbol.spliceOwner)
     val bindings = Expr.ofSeq(members.toSeq)
+    val forwarded = Expr.ofSeq(predicates.toSeq)
     val names = original match
       case Lambda(parameters, _) => Expr.ofSeq(parameters.map(parameter => Expr(parameter.name)))
       case other                 => fail(other, "write a contextual requirement block directly")
-    '{ new BlockPredicate[T]($body, $bindings.toVector, $names.toVector) }
+    '{ PredicateBindings.block[T]($body, $bindings.toVector, $names.toVector, $forwarded.toVector) }

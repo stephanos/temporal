@@ -1,8 +1,8 @@
 // Sugar: definitions whose meaning a core declaration already expresses, kept for readability. Each
 // names the core form it stands for. Marked definitions expand through the shared typed index;
 // declaration witnesses, rules and blocks still await constructed-value export. Among them are the
-// block forms a machine object's section `val`s are written in, `is { }` for a predicate of the
-// state and `effect { }` for a step function of it, with an effect block's `record` and
+// block forms a machine object's section `val`s are written in, `is:` for a predicate of the
+// state, `expect:` for requirements on its resulting step, and `effect:` for a step function, with `record` and
 // `reject(outcome)` statements, the `View` and `Draft` the field accessors of the state read and
 // assign through, and `Recorded`, the status fact a phase enum's case declares.
 package framework.dsl
@@ -117,7 +117,7 @@ sealed trait View[S]:
   // The value of one field of the state: `v.get(_.phase)`. Core form: `s.phase`.
   def get[A](field: S => A): A = field(state)
 
-// The view an `is { }` block reads: the state it is asked of. Core form: the predicate's parameter.
+// The view an `is:` block reads: the state it is asked of. Core form: the predicate's parameter.
 final private class Fixed[S](private[framework] val state: S) extends View[S]
 
 // The step an expectation checks; bare fields read its resulting state. Core form:
@@ -226,7 +226,7 @@ private[framework] object ExpectationMacros:
       body: Expr[Expectation[S, O, F] ?=> Unit]
   )(using Quotes): Expr[Property[S]] =
     val predicate = same(body)
-    '{ $builder.holds($predicate) }
+    '{ $builder.sameStep($predicate) }
 
   @scala.annotation.publicInBinary
   private[framework] def transitionProperty[S: Type, O: Type, F: Type](
@@ -234,7 +234,7 @@ private[framework] object ExpectationMacros:
       body: Expr[(Before[S], Expectation[S, O, F]) ?=> Unit]
   )(using Quotes): Expr[Property[S]] =
     val predicate = transition(body)
-    '{ $builder.holdsAcross($predicate) }
+    '{ $builder.transition($predicate) }
 
 @scala.annotation.publicInBinary
 private[framework] def sameExpectation[S, O, F](
@@ -242,7 +242,9 @@ private[framework] def sameExpectation[S, O, F](
 ): Step[S, O, F] => Boolean =
   new (Step[S, O, F] => Boolean) with PredicateBindings:
     def apply(step: Step[S, O, F]): Boolean = new Expectation(step).evaluate(prepared.body)
-    def validate(owner: Model): Unit = prepared.members.foreach(_.validate(owner))
+    def validate(owner: Model): Unit =
+      prepared.members.foreach(_.validate(owner))
+      prepared.predicates.foreach(PredicateBindings.validate(_, owner))
     def sourceParameters: Vector[String] = prepared.parameters
 
 @scala.annotation.publicInBinary
@@ -252,34 +254,36 @@ private[framework] def transitionExpectation[S, O, F](
   new ((S, Step[S, O, F]) => Boolean) with PredicateBindings:
     def apply(state: S, step: Step[S, O, F]): Boolean =
       new Expectation(step).evaluate(prepared.body(using new Before(state)))
-    def validate(owner: Model): Unit = prepared.members.foreach(_.validate(owner))
+    def validate(owner: Model): Unit =
+      prepared.members.foreach(_.validate(owner))
+      prepared.predicates.foreach(PredicateBindings.validate(_, owner))
     def sourceParameters: Vector[String] = prepared.parameters
 
 // A Property builder with before-state evidence enabled. Core form:
-// `builder.holdsAcross((b, a) => predicate(b, a))`.
+// `builder.transition((b, a) => predicate(b, a))` (private core construction).
 final class Across[S, O, F] private[framework] (
     private[framework] val builder: PropertyBuilder[S, O, F]
 ):
-  // Finishes a transition Property. Core form: `builder.holdsAcross((b, a) => predicate(b, a))`.
+  // Finishes a transition Property. Core form: `builder.transition((b, a) => predicate(b, a))`.
   inline infix def expect(
       body: (Before[S], Expectation[S, O, F]) ?=> Unit
   ): Property[S] = ${ ExpectationMacros.transitionProperty('builder, 'body) }
 
 // The same-step expectation view of an ordinary Property builder. Core form:
-// `builder.holds(s => predicate(s))`.
+// `builder.sameStep(s => predicate(s))` (private core construction).
 final class Expecting[S, O, F] private[framework] (
     private[framework] val builder: PropertyBuilder[S, O, F]
 ):
-  // Finishes a same-step Property. Core form: `builder.holds(s => predicate(s))`.
+  // Finishes a same-step Property. Core form: `builder.sameStep(s => predicate(s))`.
   inline infix def expect(body: Expectation[S, O, F] ?=> Unit): Property[S] =
     ${ ExpectationMacros.property('builder, 'body) }
 
-// Makes expectation finishing available on a core builder. Core form: `builder.holds(predicate)`.
+// Makes expectation finishing available on a core builder. Core form: `builder.sameStep(predicate)`.
 implicit def expectationBuilder[S, O, F](builder: PropertyBuilder[S, O, F]): Expecting[S, O, F] =
   new Expecting(builder)
 
 // Property heads preserve the builder's exact class or whole-action restriction. Core form:
-// `builder.when(c).holds(predicate)` or `builder.whenAction(action).holds(predicate)`.
+// `builder.when(c).sameStep(predicate)` or `builder.whenAction(action).sameStep(predicate)`.
 extension [S, O, F](builder: PropertyBuilder[S, O, F])
   // Restricts to one exact action class. Core form: `builder.when(c)`.
   infix def after(c: ClassRef | Composed): PropertyBuilder[S, O, F] = builder.when(c)
@@ -287,19 +291,19 @@ extension [S, O, F](builder: PropertyBuilder[S, O, F])
   def afterAction(action: String): PropertyBuilder[S, O, F] = builder.whenAction(action)
   // Restricts to a whole composed action. Core form: `builder.whenAction(action)`.
   def afterAction(action: Composed): PropertyBuilder[S, O, F] = builder.whenAction(action)
-  // Enables the before-state reading. Core form: `builder.holdsAcross(predicate)`.
+  // Enables the before-state reading. Core form: `builder.transition(predicate)`.
   def across: Across[S, O, F] = new Across(builder)
 
 // The status fact a phase enum's case is recorded as, declared on each case through the enum's
 // parameter, which has no default, so a case without one does not compile:
 // `enum Phase(val status: Fact) extends Recorded[Fact]`, `case started extends Phase(statusStarted)`.
-// An `effect { }` block that assigns such a value records its status after the facts the block
+// An `effect:` block that assigns such a value records its status after the facts the block
 // records. Core form: the status fact each step writes by hand,
 // `enter(s.copy(phase = started), statusStarted)`.
 trait Recorded[F]:
   def status: F
 
-// What an `effect { }` block makes of one step while it runs: the state it enters, which each field
+// What an `effect:` block makes of one step while it runs: the state it enters, which each field
 // assignment replaces with a copy, by the setters its state type declares, each of one shape:
 // `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`, or for a
 // field whose values are `Recorded`, `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit =
@@ -308,7 +312,7 @@ trait Recorded[F]:
 // which never leaves the block. Core form: the arguments of the step the step function returns,
 // `Step(outcome, s.copy(phase = p), List(facts*))`.
 @implicitNotFound(
-  "this assigns a field of ${S}, records a fact or rejects, which only an `effect { }` block does: " +
+  "this assigns a field of ${S}, records a fact or rejects, which only an `effect:` block does: " +
     "outside one, return the steps, `enter(s.copy(...), fact)` or `reject(outcome, s)`"
 )
 final class Draft[S, O, F] private[framework] (start: S) extends View[S]:
@@ -347,14 +351,14 @@ final class Draft[S, O, F] private[framework] (start: S) extends View[S]:
 
   private[framework] def refuse(outcome: O): Unit = rejection = Some(outcome)
 
-// `val held = is { phase == Phase.held }`: a predicate of the machine's state, its fields read by
+// `val held = is: phase == Phase.held`: a predicate of the machine's state, its fields read by
 // name. Core form: `def held(s: State) = s.phase == Phase.held`.
 def is[S, O, F](using
     @unused owner: Owner[S, O, F]
 )(body: View[S] ?=> Boolean): S => Boolean =
   s => body(using Fixed(s))
 
-// `val pause = effect { phase = Phase.paused; record(statusPaused) }`: a step function of the
+// `val pause = effect:` with `phase = Phase.paused` and `record(statusPaused)`: a step function of the
 // machine's state alone, its fields assigned by name, and its facts recorded, or its outcome
 // rejected, by statements. A block that neither records nor rejects enters the assigned state with
 // no fact. Core form: `def pause(s: State) = enter(s.copy(phase = Phase.paused), statusPaused)`, or
@@ -376,7 +380,7 @@ def effect[S, O, F](using
 // declares where its enum is `Recorded`, and nothing otherwise. It writes the phase through the
 // writer the machine's projection declares, `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`, and a
 // derived machine through its source's. It is what an effect whose whole body sets the phase,
-// `effect { phase = Phase.completed }`, does, so the rule shows the phase it enters and `effects`
+// `effect: phase = Phase.completed`, does, so the rule shows the phase it enters and `effects`
 // keeps the steps with logic. Core form: `enter(s.copy(phase = Phase.completed), statusCompleted)`,
 // or `enter(s.copy(phase = p))` for a phase that declares no status.
 // The phase's own type `C` may be narrower than the machine's phase type `P`, as a case that mixes
@@ -391,12 +395,12 @@ def enters[S, O, F, P, C <: P](phase: C)(using
     case _                                => Nil
   s => List(Step(ok.outcome, phasing.write(s, phase), status))
 
-// `record(statusPaused)`, in an `effect { }` block: the step records these facts, after those an
+// `record(statusPaused)`, in an `effect:` block: the step records these facts, after those an
 // earlier `record` of the block recorded. Core form: the facts of `enter(s.copy(...), facts*)`.
 def record[S, O, F](using draft: Draft[S, O, F])(first: F, rest: F*): Unit =
   draft.add(first +: rest)
 
-// `reject(Outcome.notFound)`, in an `effect { }` block: the step answers `outcome` and keeps the
+// `reject(Outcome.notFound)`, in an `effect:` block: the step answers `outcome` and keeps the
 // state, recording nothing. Core form: `reject(Outcome.notFound, s)`.
 def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit =
   draft.refuse(outcome)
@@ -466,7 +470,7 @@ private[framework] def memberRecorded[S, O, F, MF](
 // `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
 // machine or composition. Its default search budget is 512, with depth and schedule length equal
 // to the path length. Core form:
-// `query find m.property.when(b).holds(_.facts.contains(fact)) in m.scenario.actions(a, b) limits bounds`.
+// `query find m.property.when(b).sameStep(_.facts.contains(fact)) in m.scenario.actions(a, b) limits bounds`.
 extension [S](owner: Declares[S])
   def witness(
       first: ClassRef | Composed,
@@ -475,7 +479,7 @@ extension [S](owner: Declares[S])
     WitnessBuilder(owner, "", first +: rest.toVector)
 
   // A witness named explicitly, such as one in a list. Core form:
-  // `query("done") find m.property("done").when(b).holds(_.facts.contains(fact)) in m.scenario("done").actions(a, b) limits bounds`.
+  // `query("done") find m.property("done").when(b).sameStep(_.facts.contains(fact)) in m.scenario("done").actions(a, b) limits bounds`.
   def witness(name: String)(
       first: ClassRef | Composed,
       rest: (ClassRef | Composed)*
@@ -483,7 +487,7 @@ extension [S](owner: Declares[S])
     WitnessBuilder(owner, name, first +: rest.toVector)
 
 // A witness on the enclosing machine or composition, named after its val. Core form:
-// `query find property.when(last).holds(_.facts.contains(fact)) in scenario.actions(path*) limits bounds`.
+// `query find property.when(last).sameStep(_.facts.contains(fact)) in scenario.actions(path*) limits bounds`.
 def witness[S, O, F](
     first: ClassRef | Composed,
     rest: (ClassRef | Composed)*
@@ -491,7 +495,7 @@ def witness[S, O, F](
   WitnessBuilder(declaring.model, "", first +: rest.toVector)
 
 // A witness on the enclosing owner with an explicit name. Core form:
-// `query(name) find property(name).when(last).holds(_.facts.contains(fact)) in scenario(name).actions(path*) limits bounds`.
+// `query(name) find property(name).when(last).sameStep(_.facts.contains(fact)) in scenario(name).actions(path*) limits bounds`.
 def witness[S, O, F](name: String)(
     first: ClassRef | Composed,
     rest: (ClassRef | Composed)*
@@ -499,7 +503,7 @@ def witness[S, O, F](name: String)(
   WitnessBuilder(declaring.model, name, first +: rest.toVector)
 
 // Finishes a witness with a fact of its declaring machine. Core form:
-// `m.property.when(last).holds(step => step.facts.contains(fact))`, joined to the pinned Scenario
+// `m.property.when(last).sameStep(step => step.facts.contains(fact))`, joined to the pinned Scenario
 // by a find Query.
 final class WitnessFacts[S, O, F] private[framework] (
     private[framework] val builder: WitnessBuilder[S, O, F]
@@ -526,7 +530,7 @@ implicit def witnessFacts[S, O, F](builder: WitnessBuilder[S, O, F]): WitnessFac
 // Finishes with an absent primary fact. Core form: `builder.recording(step => !step.facts.contains(fact))`.
 extension [S, O, F](builder: WitnessBuilder[S, O, F])
   // Finishes with an absent primary fact. Core form:
-  // `m.property.when(last).holds(step => !step.facts.contains(fact))`.
+  // `m.property.when(last).sameStep(step => !step.facts.contains(fact))`.
   def excludes[G](fact: G)(using G <:< F): Witness[S, O, F] =
     builder.recording(step => !step.facts.contains(fact))
 
@@ -546,10 +550,10 @@ extension [S, O, F](claim: Witness[S, O, F])
 
 // Finishes a composition's witness with the fact of its selected member, whose machine fixes the
 // fact type, as the composition's declaration selector does. Core form:
-// `c.property.when(last).holds(step => step.facts.contains("member_fact"))`.
+// `c.property.when(last).sameStep(step => step.facts.contains("member_fact"))`.
 extension [S <: Product](builder: WitnessBuilder[S, String, String])
   // Finishes with an absent fact of the selected member. Core form:
-  // `c.property.when(last).holds(step => !step.facts.contains("member_fact"))`.
+  // `c.property.when(last).sameStep(step => !step.facts.contains("member_fact"))`.
   inline def excludes[MS, O, F](
       inline member: S => (MS, Machine[MS, O, F]),
       fact: F
@@ -601,74 +605,73 @@ private[framework] def witnessMemberFact[S <: Product, MS, O, F](
 
 // `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
 // before a step, the step keeps the value the projection selects. Core form:
-// `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
+// `b.transition((before, after) => !over(before) || after.state.phase == before.phase)`.
 extension [S, O, F](b: PropertyBuilder[S, O, F])
   @sugar
   def once(over: S => Boolean): Once[S, O, F] =
     require(
       b.when.isEmpty,
-      s"once declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+      s"once declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `expect`"
     )
     Once(b, over)
 
   // `never(to)`: no step is one `to` holds of, the same-step invariant. Core form:
-  // `holds(after => !to(after))`. `never(to).from(before)` says it of the steps from a state `before`
+  // `b.sameStep(after => !to(after))`. `never(to).from(before)` says it of the steps from a state `before`
   // holds of only.
   @sugar
   def never(to: Step[S, O, F] => Boolean): Never[S, O, F] =
     require(
       b.when.isEmpty,
-      s"never declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+      s"never declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `expect`"
     )
     PredicateBindings.validate(to, b.m)
     Never(b, to)
 
   // `stays(p)`: a step from a state `p` holds of keeps it holding. Core form:
-  // `holdsAcross((before, after) => !p(before) || p(after.state))`. `stays(p).unless(release)` also
+  // `b.transition((before, after) => !p(before) || p(after.state))`. `stays(p).unless(release)` also
   // lets a step `release` holds of leave it.
   @sugar
   def stays(p: S => Boolean): Stays[S, O, F] =
     require(
       b.when.isEmpty,
-      s"stays declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `holds`"
+      s"stays declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `expect`"
     )
     Stays(b, p)
 
-// What `once(over)` leaves to say: the value it keeps. Core form: the `holdsAcross` lambda `keeps`
-// finishes.
+// What `once(over)` leaves to say: the value it keeps. Core form: `b.transition(predicate)`.
 @sugar final class Once[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     over: S => Boolean
 ):
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
   // `_.order.phase`. Core form:
-  // `holdsAcross((before, after) => !over(before) || after.state.phase == before.phase)`.
+  // `b.transition((before, after) => !over(before) || after.state.phase == before.phase)`.
   @sugar def keeps[V](projection: S => V)(using CanEqual[V, V]): Property[S] =
-    b.holdsAcross((before, after) => !over(before) || projection(after.state) == projection(before))
+    b.transition((before, after) => !over(before) || projection(after.state) == projection(before))
 
 // `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
-// `holds(after => !to(after))`.
+// `b.sameStep(after => !to(after))`.
 @sugar final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
-) extends Property[S](b.holds(after => !to(after)).decl):
+) extends Property[S](b.sameStep(after => !to(after)).decl):
   // No step from a state `before` holds of is one `to` holds of. Core form:
-  // `holdsAcross((before, after) => !before(before) || !to(after))`.
+  // `b.transition((before, after) => !origin(before) || !to(after))`.
   @sugar def from(before: S => Boolean): Property[S] =
     val origin = before
-    b.holdsAcross((before, after) => !origin(before) || !to(after))
+    b.transition((before, after) => !origin(before) || !to(after))
 
 // `stays(p)`, a transition Property, which `unless` releases. Core form:
-// `holdsAcross((before, after) => !p(before) || p(after.state))`.
+// `b.transition((before, after) => !p(before) || p(after.state))`.
 @sugar final class Stays[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     p: S => Boolean
-) extends Property[S](b.holdsAcross((before, after) => !p(before) || p(after.state)).decl):
+) extends Property[S](b.transition((before, after) => !p(before) || p(after.state)).decl):
   // A step `release` holds of may leave `p`. Core form:
-  // `holdsAcross((before, after) => !p(before) || p(after.state) || release(after))`.
+  // `b.transition((before, after) => !p(before) || p(after.state) || release(after))`.
   @sugar def unless(release: Step[S, O, F] => Boolean): Property[S] =
     PredicateBindings.validate(release, b.m)
-    b.holdsAcross((before, after) => !p(before) || p(after.state) || release(after))
+    b.transition((before, after) => !p(before) || p(after.state) || release(after))
 
 // A named slot with the value it receives, what `slot := value` writes. Core form: the value itself,
 // written at the slot's place, `expires` in `start(unset, expires, unset)`.
@@ -959,7 +962,7 @@ extension (@unused companion: MemberPath.type)
 // When each action of a machine fires, written as the machine object's `object rules extends
 // Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
 // through its given: blocks of an action or action class,
-// `on(clerk.ship) { when(Phase.placed) ~> effects.send }`, whose cases each say where the action fires,
+// `on(clerk.ship): when(Phase.placed) ~> effects.send`, whose cases each say where the action fires,
 // `when(...)` of phases or of a named set of them, `where(g)` of the state,
 // `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
 // no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
@@ -970,7 +973,7 @@ extension (@unused companion: MemberPath.type)
 // refuses a bare target, and a bare `disabled` target, at its line, and a block refuses as the rules
 // construct any bare target, including imported names, using its original source spelling. The
 // blocks of the actions one object declares may be grouped in
-// `from(clerk) { on(clerk.ship) { ... } }`, which imports nothing. A case names phases through
+// `from(clerk):` with nested `on(clerk.ship):` blocks, which imports nothing. A case names phases through
 // their type, `when(Phase.placed)`. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
 // no common state, whichever blocks they sit in: each is checked against the earlier ones as it is
@@ -1112,7 +1115,7 @@ abstract class Rules[S, O, F, P](using
     written += rule
     order += decl
 
-  // The cases of a whole action: `on(clerk.ship) { when(Phase.placed) ~> effects.send }`. Core form: the
+  // The cases of a whole action: `on(clerk.ship): when(Phase.placed) ~> effects.send`. Core form: the
   // action's step function, whose arms are the cases in order.
   inline def on[I <: Tuple](inline a: Action[I])(
       cases: Firing[S, O, F, I] ?=> Unit
@@ -1121,7 +1124,7 @@ abstract class Rules[S, O, F, P](using
     block[I](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
-  // `on(courier.report(Report.delivered)) { when(sent) ~> effects.deliver }`. Core form: the arms
+  // `on(courier.report(Report.delivered)): when(sent) ~> effects.deliver`. Core form: the arms
   // `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
   inline def on(inline c: Class)(
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
@@ -1130,9 +1133,9 @@ abstract class Rules[S, O, F, P](using
     block[EmptyTuple](c.decl, Some(c.values), codeOf(c))(cases)
 
   // The same cases for two actions, or classes of them, whose effects read the state alone:
-  // `on(clerk.hold, clerk.cancel) { when(shipped) ~> rejects(Rejection.failedPrecondition) }`.
+  // `on(clerk.hold, clerk.cancel): when(shipped) ~> rejects(Rejection.failedPrecondition)`.
   // Fixed arities of two to four, since `codeOf` names no element of an `inline` varargs list.
-  // Core form: one block per target, `on(clerk.hold) { cases }` and `on(clerk.cancel) { cases }`.
+  // Core form: one block per target, `on(clerk.hold): cases` and `on(clerk.cancel): cases`.
   inline def on(inline a: Action[?] | Class, inline b: Action[?] | Class)(
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
   ): Unit =
@@ -1186,10 +1189,10 @@ abstract class Rules[S, O, F, P](using
     for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
 
   // The blocks of the actions `declarer` declares, each naming its action through its declarer as
-  // every block does: `from(clerk) { on(clerk.ship) { ... } }`. It only groups, and brings none of
+  // every block does: `from(clerk):` containing `on(clerk.ship):`. It only groups, and brings none of
   // the declarer's members into scope: a block means in a `from` what it means outside one, and the
   // IR generator refuses an `import clerk.*` in it. Core form: the blocks it holds,
-  // `on(clerk.ship) { ... }`.
+  // `on(clerk.ship): ...`.
   private[framework] def groupName: String = within.fold("<declarer>")(_._1)
 
   inline def from(declarer: AnyRef)(inline body: Unit): Unit =
@@ -1325,7 +1328,7 @@ object PhasesOf:
   given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
 
 // The rules of one action a derivation binds in its source's place:
-// `rebind(on(clerk.ship) { always ~> OrderRecord.effects.send })`, each case `where(g)` or
+// `rebind(on(clerk.ship): always ~> OrderRecord.effects.send)`, each case `where(g)` or
 // `always`, since a derivation's rules name no phase. Its action is `inline`, as a rule block's is
 // (`Rules`), so that an overlap names it as written. Core form: the step function
 // `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.

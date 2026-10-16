@@ -5,6 +5,31 @@ applies it to the real features. The rules are a system's and temporary (Tempora
 `model/temporal/migrate`, [its README](../../temporal/migrate/README.md)); this harness is the
 framework's and permanent.
 
+## Native expectations: fn-164
+
+The final native author surface is documented in [Framework authoring](../README.md). Replace
+same-step `property.holds(predicate)` callers with `property.expect: check(predicate(after))`;
+replace transition `property.holdsAcross(predicate)` with
+`property.across.expect: check(predicate(before, after))`, laid out as colon blocks. Inline
+conjunctions become ordered `check`/`records` requirements; explicit alternatives use `oneOf`
+with `branch` blocks. Preserve action restrictions with `after` for an exact class or
+`afterAction` for a whole action, and preserve explicit contextual parameter names.
+
+Keep independent core predicate oracles independent. Public finishers and renamed/deprecated
+compatibility routes are retired together. A reused composed predicate must retain its exact
+field/machine evidence through the final `check` forwarding form, including attachment rejection
+for invalid selectors in unreachable branches. Reordered members and repeated uses of one machine
+are distinct cases, not interchangeable fact names.
+
+The native compile/test recipe in the author guide excludes capture/exporter and system inputs.
+It proves native truth values, short-circuiting, exceptions and attachment checks only. Exact IR
+and exporter obligations in fn-164 .3/.7–.9 remain open, and the real-feature sweep stays held;
+the [system migration guidance](../../temporal/migrate/README.md) is the separate system-owned
+recipe. Do not run the lift-based harness below as evidence for this native checkpoint or restore
+disabled Temporal sources to make it run.
+
+## Lift-based migration proofs
+
 ```sh
 FEATURES=activity_mini model/framework/migrate/prove.sh <runner main class> [<target>]
 ```

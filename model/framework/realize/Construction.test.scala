@@ -14,12 +14,11 @@ class RealizationConstructionTest extends munit.FunSuite:
     .build()
 
   test("rpc retains scoped assignments and response reads in author order"):
-    val call = rpc("clock", method) {
+    val call = rpc("clock", method):
       field(_.seconds) := Operand.number(7)
       field(_.nanos) := Operand.integer(12)
       read(Field[Duration, Long](_.seconds), Cardinality.one)
         .into(Observed[Duration]("elapsed"), Target.Bind("seconds"))
-    }
     assertEquals(
       call.assign.map(_.value.operand),
       Vector(
@@ -45,11 +44,10 @@ class RealizationConstructionTest extends munit.FunSuite:
   ):
     val call = rpc("clock", method)(field(_.seconds) := Operand.number(7))
     val variant = call.withFields(field(_.nanos) := Operand.integer(12))
-    val own = call.extended {
+    val own = call.extended:
       field(_.nanos) := Operand.integer(30)
       read(Field[Duration, Int](_.nanos), Cardinality.one)
         .into(Target.Bind("fraction"))
-    }
     assertEquals(call.assign.size, 1)
     assertEquals(
       variant.assign.map(_.value.operand),
@@ -77,15 +75,14 @@ class RealizationConstructionTest extends munit.FunSuite:
   test(
     "withFields appends response reads and extended owns its identity after a shared variant"
   ):
-    val call = rpc("clock", method) {
+    val call = rpc("clock", method):
       read(Field[Duration, Long](_.seconds), Cardinality.one)
         .into(Target.Bind("seconds"))
-    }
-    val variant = call.withFields {
+    val variant = call.withFields:
       read(Field[Duration, Int](_.nanos), Cardinality.one)
         .into(Target.Bind("nanos"))
-    }
-    val own = variant.extended {}
+    val own = variant.extended:
+      ()
     assertEquals(
       call.reads.map(_.targets),
       Vector(Vector(Target.Bind("seconds")))
@@ -102,10 +99,9 @@ class RealizationConstructionTest extends munit.FunSuite:
     assertEquals(own.sharedName, None)
 
   test("proto retains scalar fields and repeated construction has no leakage"):
-    val value = proto[Duration] {
+    val value = proto[Duration]:
       field(_.seconds) := 5L
       field(_.nanos) := 40
-    }
     assertEquals(
       value.fields.map(_.value.value),
       Vector(ProtoValue.Number(5), ProtoValue.Number(40))
@@ -114,10 +110,9 @@ class RealizationConstructionTest extends munit.FunSuite:
     assertEquals(next.fields.map(_.value.value), Vector(ProtoValue.Number(2)))
 
     val duplicate = intercept[IllegalArgumentException](
-      proto[Duration] {
+      proto[Duration]:
         field(_.seconds) := 1L
         field(_.seconds) := 2L
-      }
     )
     assert(duplicate.getMessage.contains("seconds"))
     assert(duplicate.getMessage.contains("twice"))
@@ -134,11 +129,10 @@ class RealizationConstructionTest extends munit.FunSuite:
     val condition =
       Condition.equal(Field[Duration, Long](_.seconds), Operand.number(8))
     val poll =
-      readUntil(evidence, "clock", condition, Some(Duration(seconds = 1))) {
+      readUntil(evidence, "clock", condition, Some(Duration(seconds = 1))):
         field(_.seconds) := Operand.number(6)
         read(Field[Duration, Long](_.seconds), Cardinality.one)
           .into(Target.Bind("elapsed"))
-      }
     assertEquals(
       poll.assign.map(_.value.operand),
       Vector(Operand.Literal(ProtoValue.Number(6)))
@@ -226,7 +220,8 @@ class RealizationConstructionTest extends munit.FunSuite:
     assertEquals(field.selectedMessage, None)
     val opaque: Duration => Long = _.seconds
     assertEquals(Field(opaque).rootMessage, Some("google.protobuf.Duration"))
-    val call = rpc("clock", method) {}
+    val call = rpc("clock", method):
+      ()
     assertEquals(call.requestMessage, "google.protobuf.Duration")
     assertEquals(call.responseMessage, "google.protobuf.Duration")
     val recorded =

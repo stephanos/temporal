@@ -55,19 +55,18 @@ object RulesFixture:
 
     object rules extends Rules:
       Trace.initialized += "Switch.rules"
-      on(hand.press) {
+      on(hand.press):
         when(Lit.off) ~> effects.light
         when(Lit.on) ~> effects.dark
-      }
-      on(hand.turn(Knob.down))(when(Lit.on) ~> effects.dark)
-      on(hand.turn(Knob.up))(when(Lit.on) ~> effects.light)
-      on(hand.turn) {
+      on(hand.turn(Knob.down)):
+        when(Lit.on) ~> effects.dark
+      on(hand.turn(Knob.up)):
+        when(Lit.on) ~> effects.light
+      on(hand.turn):
         when(Lit.off) ~> effects.turned
         when(Lit.broken) ~> effects.refuse
-      }
-      on(clock.tick)(
+      on(clock.tick):
         where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear
-      )
 
   // The switch whose press is its own effect wherever it fires, and whose tick never fires.
   object Stuck extends Derived(Switch.rebind(hand.press ~> Switch.effects.wear))
@@ -75,7 +74,10 @@ object RulesFixture:
   // The switch whose press fires everywhere, under one rule.
   object Loose
       extends Derived(
-        Switch.rebind(on(hand.press)(always ~> Switch.effects.wear))
+        Switch.rebind(
+          on(hand.press):
+            always ~> Switch.effects.wear
+        )
       )
 
   object Overlapping extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
@@ -83,15 +85,18 @@ object RulesFixture:
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
+      on(hand.turn(Knob.up)):
+        when(Lit.off, Lit.on) ~> Switch.effects.light
+      on(hand.turn):
+        where(_.presses == 1) ~> Switch.effects.turned
 
   object Unfelt extends Machine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.press)(always ~> Switch.effects.light)
+      on(hand.press):
+        always ~> Switch.effects.light
       disabled(clock.tick)
 
   // One lamp's rules twice: step functions bound in the core, and argument-less `Rules` reading
@@ -124,19 +129,21 @@ object RulesFixture:
       def dark(l: Lit) = l != Lit.on
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when(Lit.on) ~> Switch.effects.dark
         when(states.dark) ~> Switch.effects.light
-      }
-      on(hand.turn)(when(Lit.off, Lit.broken) ~> Switch.effects.refuse)
+      on(hand.turn):
+        when(Lit.off, Lit.broken) ~> Switch.effects.refuse
 
   object OverlappingPhased extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.turn(Knob.up))(when(Lit.off, Lit.on) ~> Switch.effects.light)
-      on(hand.turn)(where(_.presses == 1) ~> Switch.effects.turned)
+      on(hand.turn(Knob.up)):
+        when(Lit.off, Lit.on) ~> Switch.effects.light
+      on(hand.turn):
+        where(_.presses == 1) ~> Switch.effects.turned
 
   // A derivation of a `Phased` machine reads its phase, with its phase type, and so does a
   // derivation of that.
@@ -157,13 +164,12 @@ object RulesFixture:
       def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when(Lit.off) ~> effects.light
         when(Lit.on) ~> rejects(Rejection.failedPrecondition).because(
           "the lamp is lit"
         )
         when(Lit.broken) ~> rejects(Rejection.notFound)
-      }
 
   // The switch's sets of lights, which a case names with `when(set)`.
   object lights:
@@ -176,35 +182,30 @@ object RulesFixture:
     override def end(s: Lamp) = s.light == Lit.broken
 
     object rules extends Rules:
-      from(hand) {
-        on(hand.press) {
+      from(hand):
+        on(hand.press):
           when(Lit.off) ~> Switch.effects.light
           when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
-        }
-        on(hand.turn(Knob.up), hand.turn(Knob.down)) {
+        on(hand.turn(Knob.up), hand.turn(Knob.down)):
           when(lights.unlit) ~> Switch.effects.wear
-        }
-      }
-      from(clock) {
-        on(clock.tick)(
+      from(clock):
+        on(clock.tick):
           when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
-        )
-      }
 
   object Plain extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when(Lit.off) ~> Switch.effects.light
         when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
-      }
-      on(hand.turn(Knob.up))(when(lights.unlit) ~> Switch.effects.wear)
-      on(hand.turn(Knob.down))(when(lights.unlit) ~> Switch.effects.wear)
-      on(clock.tick)(
+      on(hand.turn(Knob.up)):
+        when(lights.unlit) ~> Switch.effects.wear
+      on(hand.turn(Knob.down)):
+        when(lights.unlit) ~> Switch.effects.wear
+      on(clock.tick):
         when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
-      )
 
   // One action in several blocks whose cases hold in no common state.
   object Spread extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
@@ -212,9 +213,12 @@ object RulesFixture:
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.press)(when(Lit.off) ~> Switch.effects.light)
-      on(hand.press, clock.tick)(when(Lit.broken) ~> Switch.effects.wear)
-      on(hand.press)(when(Lit.on) ~> Switch.effects.dark)
+      on(hand.press):
+        when(Lit.off) ~> Switch.effects.light
+      on(hand.press, clock.tick):
+        when(Lit.broken) ~> Switch.effects.wear
+      on(hand.press):
+        when(Lit.on) ~> Switch.effects.dark
 
   // The rules each of these declares are refused as its rules construct.
   object Nested extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
@@ -222,36 +226,36 @@ object RulesFixture:
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.press) {
-        on(clock.tick)(always ~> Switch.effects.wear)
-      }
+      on(hand.press):
+        on(clock.tick):
+          always ~> Switch.effects.wear
 
   object NestedFrom extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      from(hand) {
-        from(clock) {
-          on(clock.tick)(always ~> Switch.effects.wear)
-        }
-      }
+      from(hand):
+        from(clock):
+          on(clock.tick):
+            always ~> Switch.effects.wear
 
   object Foreign extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      from(hand) {
-        on(clock.tick)(always ~> Switch.effects.wear)
-      }
+      from(hand):
+        on(clock.tick):
+          always ~> Switch.effects.wear
 
   object NamedTwice extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.press, clock.tick, hand.press)(always ~> Switch.effects.wear)
+      on(hand.press, clock.tick, hand.press):
+        always ~> Switch.effects.wear
 
   object DisabledTarget extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
@@ -259,20 +263,21 @@ object RulesFixture:
 
     object rules extends Rules:
       disabled(clock.tick)
-      on(hand.press, clock.tick)(always ~> Switch.effects.wear)
+      on(hand.press, clock.tick):
+        always ~> Switch.effects.wear
 
   object AcrossBlocks extends Machine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object rules extends Rules:
-      on(hand.turn)(when(Lit.off) ~> Switch.effects.turned)
-      on(hand.turn(Knob.down)) {
+      on(hand.turn):
+        when(Lit.off) ~> Switch.effects.turned
+      on(hand.turn(Knob.down)):
         when(Lit.on) ~> Switch.effects.dark
         when(lights.unlit).where(
           _.presses == 0
         ) ~> Switch.effects.wear
-      }
 
   final case class Pair(left: Lamp, right: Lamp)
 
@@ -590,10 +595,11 @@ class RulesTest extends munit.FunSuite:
 
   test("a derivation's rules are checked as it binds them") {
     val refused = intercept[IllegalArgumentException](
-      Switch.rebind(on(hand.press) {
-        always ~> Switch.effects.wear
-        where(_.light == Lit.off) ~> Switch.effects.dark
-      })
+      Switch.rebind(
+        on(hand.press):
+          always ~> Switch.effects.wear
+          where(_.light == Lit.off) ~> Switch.effects.dark
+      )
     )
     assertEquals(
       refused.getMessage,
@@ -712,11 +718,12 @@ class RulesTest extends munit.FunSuite:
       override def end(s: Lamp) = true
 
       object rules extends Rules:
-        on(tap)(always ~> Switch.effects.wear)
+        on(tap):
+          always ~> Switch.effects.wear
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare at Rules.test.scala:715:12: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:721:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }
@@ -860,7 +867,6 @@ object RoleRulesFixture:
       def open(s: Door) = stay[Door, Said, Nothing](s)
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when[Waiting] ~> effects.open
         when[Closed] ~> effects.open
-      }

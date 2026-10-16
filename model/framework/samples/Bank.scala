@@ -123,7 +123,8 @@ object Bank:
         else enter(withBalance(balances, toAddr, denom, toBalance + amount))
 
     object rules extends Rules:
-      on(client.send)(always ~> effects.send)
+      on(client.send):
+        always ~> effects.send
 
   object Leaky
       extends Derived(Model.rebind(client.send ~> Model.effects.sendFromNowhere)),
@@ -133,18 +134,20 @@ object Bank:
   def totalSupply(balances: Balances): Boolean =
     sumForDenom(balances, Denom.banana) == supply && sumForDenom(balances, Denom.burger) == supply
 
-  val totalSupplyInv: Property[Balances] = Model.property holds (after => totalSupply(after.state))
+  val totalSupplyInv: Property[Balances] = Model.property.expect:
+    (after: Expectation[Balances, Outcome, Nothing]) ?=> check(totalSupply(after.step.state))
   val leakyTotalSupplyInv: Property[Balances] =
-    Leaky.property holds (after => totalSupply(after.state))
-  val failedSendChangesNothing: Property[Balances] = Model.property holdsAcross { (before, after) =>
-    after.outcome == Outcome.accepted || after.state == before
-  }
+    Leaky.property.expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>
+      check(totalSupply(after.step.state))
+  val failedSendChangesNothing: Property[Balances] = Model.property.across.expect:
+    (before: Before[Balances], after: Expectation[Balances, Outcome, Nothing]) ?=>
+      if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
   val peachesGetsBananas: Property[Balances] =
-    Model.property.when(client.send(Addr.king, Addr.peaches, Denom.banana, UpTo(1))) holds {
-      after =>
-        balanceOf(after.state, Addr.king, Denom.banana) == 1 &&
-        balanceOf(after.state, Addr.peaches, Denom.banana) == 1
-    }
+    Model.property
+      .after(client.send(Addr.king, Addr.peaches, Denom.banana, UpTo(1)))
+      .expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>
+        check(balanceOf(after.step.state, Addr.king, Denom.banana) == 1)
+        check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)
 
   val anySend: Scenario[Balances] = Model.scenario.starts(Model.init).free
   val anyLeakySend: Scenario[Balances] = Leaky.scenario.starts(Model.init).free

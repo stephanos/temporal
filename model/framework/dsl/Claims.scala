@@ -1,12 +1,12 @@
 package framework.dsl
 
-// A Property's untyped part. A same-step Property names the action it is about under `when` and
+// A Property's untyped part. A same-step Property names the action it is about under `after` and
 // holds of the step that action produces; a transition Property holds of the state before a step
 // and the step after it.
 final class PropertyDecl private[framework] (
     val name: String,
     val machine: Model,
-    // The action class, or under `whenAction` the action, the Property is about.
+    // The exact action class or whole action the Property is about.
     private[framework] val when: Option[ClassRef | Composed | String],
     private[framework] val holds: Option[Nothing => Boolean],
     private[framework] val holds2: Option[(Nothing, Nothing) => Boolean]
@@ -39,12 +39,14 @@ final class PropertyBuilder[S, O, F] private[framework] (
     PropertyBuilder(name, m, Some(action))
 
   // Finishes a same-step Property.
-  infix def holds(f: Step[S, O, F] => Boolean): Property[S] =
+  @scala.annotation.publicInBinary
+  private[framework] def sameStep(f: Step[S, O, F] => Boolean): Property[S] =
     PredicateBindings.validate(f, m)
     Property(PropertyDecl(name, m, when, Some(f), None))
 
   // Finishes a transition Property: `f` reads the state before a step and the step after.
-  infix def holdsAcross(f: (S, Step[S, O, F]) => Boolean): Property[S] =
+  @scala.annotation.publicInBinary
+  private[framework] def transition(f: (S, Step[S, O, F]) => Boolean): Property[S] =
     PredicateBindings.validate(f, m)
     Property(PropertyDecl(name, m, when, None, Some(f)))
 

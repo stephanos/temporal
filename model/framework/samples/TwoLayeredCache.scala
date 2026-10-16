@@ -102,9 +102,12 @@ object TwoLayeredCache:
       def expire(cache: Cache) = enter(cache.copy(l1 = None))
 
     object rules extends Rules:
-      on(client.write)(where(_.num < 3) ~> effects.write)
-      on(client.read)(always ~> effects.read)
-      on(timers.l1Expire)(where(_.l1 != None) ~> effects.expire)
+      on(client.write):
+        where(_.num < 3) ~> effects.write
+      on(client.read):
+        always ~> effects.read
+      on(timers.l1Expire):
+        where(_.l1 != None) ~> effects.expire
 
   object WriteThroughL1
       extends Derived(Model.rebind(client.write ~> Model.effects.writeL1Only)),
@@ -112,13 +115,22 @@ object TwoLayeredCache:
 
   // after a read, both layers hold what it returned
   val readFillsL1: Property[Cache] =
-    Model.property.when(client.read) holds (after => agreed(after.state))
+    Model.property
+      .after(client.read)
+      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
+        check(agreed(after.step.state))
   // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
   // monitor, which a read of a value older than the last write breaks.
   val buggyWritesRecorded: Property[Cache] =
-    WriteThroughL1.property.when(client.write) holds (after => after.records(Event.wrote))
+    WriteThroughL1.property
+      .after(client.write)
+      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
+        records(Event.wrote)
   val servedFromL2: Property[Cache] =
-    Model.property.when(client.read) holds (after => after.records(Event.readL2))
+    Model.property
+      .after(client.read)
+      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
+        records(Event.readL2)
 
   // all layers contain the same latest written value, one step after they part
   val agreement: Progress[Cache] =

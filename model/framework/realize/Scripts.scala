@@ -70,8 +70,8 @@ private def commanded(c: Command | Instruction): Command = c match
   case c: Command     => c
   case i: Instruction => Command("", i)
 
-// The scope a call opens for its request of type `Req`: inside `rpc(…) { … }` or
-// `readUntil(…) { … }` each line assigns one field of that request. Core form of a line:
+// The scope a call opens for its request of type `Req`: inside `rpc(…):` or
+// `readUntil(…):` each line assigns one field of that request. Core form of a line:
 // `Assignment.typed(Field[Req, V](_.name), operand)`.
 final class RequestScope[Req] private[realize] ():
   private var assigned = Vector.empty[TypedAssignment[Req, ?]]
@@ -84,7 +84,7 @@ final class RequestScope[Req] private[realize] ():
     responseReads = responseReads :+ read
 
 // A unary call of `method` on `role`, its request's fields assigned in the scope it opens:
-// `rpc(orderService, METHOD_PAUSE_ORDER) { … }`. IR: Rpc.
+// `rpc(orderService, METHOD_PAUSE_ORDER):`. IR: Rpc.
 inline def rpc[Req <: GeneratedMessage, Rsp <: GeneratedMessage](
     role: String | Addressee,
     method: MethodDescriptor[Req, Rsp]

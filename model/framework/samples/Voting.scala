@@ -144,7 +144,8 @@ object Voting:
         enter(decision.copy(chosen = Some(v)))
 
     object rules extends Rules:
-      on(voter.voteFor)(where(_.chosen == None) ~> effects.choose)
+      on(voter.voteFor):
+        where(_.chosen == None) ~> effects.choose
 
   object Model extends Machine[Votes, Outcome, Nothing]:
     val init = Votes(
@@ -195,8 +196,10 @@ object Voting:
         else reject(Outcome.refused, votes)
 
     object rules extends Rules:
-      on(voter.increaseMaxBal)(always ~> effects.increaseMaxBal)
-      on(voter.voteFor)(always ~> effects.voteFor)
+      on(voter.increaseMaxBal):
+        always ~> effects.increaseMaxBal
+      on(voter.voteFor):
+        always ~> effects.voteFor
 
   object UnsafeVoting
       extends Derived(Model.unmonitored.rebind(voter.voteFor ~> Model.effects.voteUnsafe)),
@@ -206,18 +209,18 @@ object Voting:
   val chosenStays: Property[Decision] = Consensus.property.once(_.chosen != None).keeps(_.chosen)
   // at most one value is chosen
   val consistency: Property[Votes] =
-    Model.property holds (after =>
-      !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
-    )
+    Model.property.expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
+      check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
   val unsafeConsistency: Property[Votes] =
-    UnsafeVoting.property holds (after =>
-      !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
-    )
-  val invariant: Property[Votes] = Model.property holds (after => inv(after.state))
+    UnsafeVoting.property.expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
+      check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
+  val invariant: Property[Votes] = Model.property.expect:
+    (after: Expectation[Votes, Outcome, Nothing]) ?=> check(inv(after.step.state))
   val decides: Property[Votes] =
-    Model.property.when(voter.voteFor(Acceptor.a2, UpTo(0), Value.v1)) holds (after =>
-      chosen(after.state) == Some(Value.v1)
-    )
+    Model.property
+      .after(voter.voteFor(Acceptor.a2, UpTo(0), Value.v1))
+      .expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
+        check(chosen(after.step.state) == Some(Value.v1))
 
   val anyDecision: Scenario[Decision] = Consensus.scenario.starts(Consensus.init).free
   val anyVote: Scenario[Votes] = Model.scenario.starts(Model.init).free

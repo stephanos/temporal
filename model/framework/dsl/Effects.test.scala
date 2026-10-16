@@ -1,8 +1,8 @@
 package framework.dsl
 
 import framework.dsl.Finite.given
-// The block forms run as Scala: an `effect { }` block yields the steps of its method form, and an
-// `is { }` block answers as its predicate. Field assignments, `record` and the one-argument
+// The block forms run as Scala: an `effect:` block yields the steps of its method form, and an
+// `is:` block answers as its predicate. Field assignments, `record` and the one-argument
 // `reject` compile only inside an effect block.
 
 // A dotted file name holds no top-level definitions, so the fixture Model sits in an object.
@@ -34,30 +34,33 @@ object EffectsFixture:
     override def end(s: Job) = true
 
     object states:
-      val busy = is(phase == Phase.busy)
-      val retried = is(phase == Phase.busy && tries == UpTo[2](1))
+      val busy = is:
+        phase == Phase.busy
+      val retried = is:
+        phase == Phase.busy && tries == UpTo[2](1)
 
     object effects:
-      val start = effect {
+      val start = effect:
         phase = Phase.busy
         record(Note.started)
-      }
-      val retry = effect { tries = UpTo(1) }
-      val restart = effect {
+      val retry = effect:
+        tries = UpTo(1)
+      val restart = effect:
         phase = Phase.busy
         tries = UpTo(2)
         record(Note.started)
         record(Note.retried, Note.paused)
-      }
-      val pause = effect { phase = Phase.paused }
-      val keep = effect {}
-      val missing = effect(reject(Said.notFound))
+      val pause = effect:
+        phase = Phase.paused
+      val keep = effect:
+        ()
+      val missing = effect:
+        reject(Said.notFound)
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         where(states.busy) ~> effects.pause
         when(Phase.idle) ~> effects.start
-      }
 
   // A phase that declares, on each case, the status it is recorded as. An effect block that
   // assigns it records that status after its own facts.
@@ -81,16 +84,19 @@ object EffectsFixture:
     override def end(s: Task) = true
 
     object effects:
-      val work = effect { stage = Stage.working }
-      val retry = effect { attempts = UpTo(1) }
-      val rest = effect {
+      val work = effect:
+        stage = Stage.working
+      val retry = effect:
+        attempts = UpTo(1)
+      val rest = effect:
         stage = Stage.resting
         record(Status.retried)
-      }
-      val missing = effect(reject(Said.notFound))
+      val missing = effect:
+        reject(Said.notFound)
 
     object rules extends Rules:
-      on(hand.press)(when(Stage.waiting) ~> effects.work)
+      on(hand.press):
+        when(Stage.waiting) ~> effects.work
 
   // The rules and a choose enter a phase by `enters`, through the writer the projection declares.
   object Entering
@@ -103,13 +109,13 @@ object EffectsFixture:
       val rested = choice
       val worked = choice
       def restOrWork(s: Task) = choose(rested -> enters(Stage.resting)(s), worked -> work(s))
-      val work = effect { stage = Stage.working }
+      val work = effect:
+        stage = Stage.working
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when(Stage.waiting) ~> enters(Stage.working)
         when(Stage.working) ~> effects.restOrWork
-      }
 
   // A machine whose projection declares no writer, and one whose writer writes another field.
   object Unwritten extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
@@ -117,7 +123,8 @@ object EffectsFixture:
     override def end(s: Job) = true
 
     object rules extends Rules:
-      on(hand.press)(when(Phase.idle) ~> enters(Phase.busy))
+      on(hand.press):
+        when(Phase.idle) ~> enters(Phase.busy)
 
   object Miswritten
       extends Machine[Job, Said, Note],
@@ -126,7 +133,8 @@ object EffectsFixture:
     override def end(s: Job) = true
 
     object rules extends Rules:
-      on(hand.press)(when(Phase.idle) ~> enters(Phase.busy))
+      on(hand.press):
+        when(Phase.idle) ~> enters(Phase.busy)
 
 class EffectsTest extends munit.FunSuite:
   import EffectsFixture.*
@@ -171,10 +179,9 @@ class EffectsTest extends munit.FunSuite:
 
   test("an effect block that records the status its assignment records is refused") {
     given Owner[Task, Said, Status] = Owner(Tasker)
-    val twice = effect {
+    val twice = effect:
       stage = Stage.resting
       record(Status.resting)
-    }
     for state <- Finite[Task].values do
       val refused = intercept[IllegalArgumentException](twice(state))
       assert(
@@ -216,8 +223,10 @@ class EffectsTest extends munit.FunSuite:
   test("record, the one-argument reject and a field assignment compile only in an effect block") {
     given Owner[Job, Said, Note] = Owner(Subject)
     // The blocks compile here, so the errors below are the draft's.
-    assert(is(phase == Phase.idle)(Subject.init))
-    val draftOnly = "which only an `effect { }` block does"
+    val idle = is:
+      phase == Phase.idle
+    assert(idle(Subject.init))
+    val draftOnly = "which only an `effect:` block does"
     for (code, errors) <- List(
         "record(Note.started)" -> compileErrors("record(Note.started)"),
         "reject(Said.notFound)" -> compileErrors("reject(Said.notFound)"),

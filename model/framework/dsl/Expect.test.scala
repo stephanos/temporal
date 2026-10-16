@@ -39,8 +39,10 @@ class ExpectTest extends munit.FunSuite:
         check(phase == Phase.busy)
       val whole = Subject.property.afterAction("press").across.expect:
         check(before.phase == Phase.idle)
-      val forwarded = Subject.property.holds(same)
-      val forwardedAcross = Subject.property.holdsAcross(transition)
+      val forwarded = Subject.property.expect:
+        check(same(after))
+      val forwardedAcross = Subject.property.across.expect:
+        check(transition(before, after))
       generic(Subject)
     """),
       ""
@@ -162,6 +164,59 @@ class ExpectTest extends munit.FunSuite:
       if phase == Phase.busy then records(Note.started)
     assert(predicate(Step(Said.ok, Subject.init)))
     assert(!predicate(Step(Said.ok, Job(Phase.busy, UpTo(0)))))
+
+  test("ordinary expectation bridges preserve independent core pattern and monitor behavior"):
+    import EffectsFixture.*
+    val named: Step[Job, Said, Note] => Boolean = expect:
+      records(Note.started)
+      check(phase == Phase.busy)
+    val core: Step[Job, Said, Note] => Boolean =
+      step => step.records(Note.started) && step.state.phase == Phase.busy
+    val never = Subject.property.never(named).from(_.phase == Phase.idle)
+    val original = Property[Job](
+      PropertyDecl(
+        "",
+        Subject,
+        None,
+        None,
+        Some((old: Job, step: Step[Job, Said, Note]) => old.phase != Phase.idle || !core(step))
+      )
+    )
+    val actual = never.decl.holds2.get.asInstanceOf[(Job, Step[Job, Said, Note]) => Boolean]
+    val oracle = original.decl.holds2.get.asInstanceOf[(Job, Step[Job, Said, Note]) => Boolean]
+    val watched = sticky(named).readAfter(expect:
+      check(after.outcome == Said.ok))
+    val coreMonitor =
+      monitor[Job, Said, Note, Boolean](false)((broken, _, step) => broken || !core(step))(identity)
+        .readAfter(_.outcome == Said.ok)
+    val transition: (Job, Step[Job, Said, Note]) => Boolean = expect.across:
+      if before.phase == Phase.idle then check(core(after))
+    val acrossMonitor = stickyAcross(transition)
+    for old <- List(Subject.init, Job(Phase.busy, UpTo(0))) do
+      for state <- List(Subject.init, Job(Phase.busy, UpTo(0))) do
+        for facts <- List(Nil, List(Note.started)) do
+          val step = Step(Said.ok, state, facts)
+          assertEquals(actual(old, step), oracle(old, step))
+          for broken <- List(false, true) do
+            assertEquals(watched.next(broken, old, step), coreMonitor.next(broken, old, step))
+            assertEquals(
+              acrossMonitor.next(broken, old, step),
+              broken || !(old.phase != Phase.idle || core(step))
+            )
+          assertEquals(watched.readAt.get(step), coreMonitor.readAt.get(step))
+    val missing = hole
+    val promise: Step[Job, Said, Note] => Boolean = expect:
+      check(after.state.phase == Phase.busy)
+      check(missing.reached)
+    val watch = sticky(promise)
+    assert(watch.next(false, Subject.init, Step(Said.ok, Subject.init)))
+    assert(watch.next(true, Subject.init, Step(Said.ok, Job(Phase.busy, UpTo(0)))))
+    assertEquals(
+      intercept[HoleReached](
+        watch.next(false, Subject.init, Step(Said.ok, Job(Phase.busy, UpTo(0))))
+      ).hole,
+      missing
+    )
 
   test("if-else requirements and eager immutable helpers preserve their evaluation order"):
     import EffectsFixture.*
@@ -369,7 +424,7 @@ class ExpectTest extends munit.FunSuite:
         """import EffectsFixture.*; Subject.property.expect { val watch = monitor[Job, Said, Note, Boolean](false)((m, b, a) => m)(_ => false); check(true) }"""
       ),
       compileErrors(
-        """import EffectsFixture.*; Subject.property.expect { val q = query.verify(Subject.property.holds(_ => true)).in(Subject.scenario.free).limits(Limits(steps = 1, actions = 1, search = 1)); check(true) }"""
+        """import EffectsFixture.*; Subject.property.expect { val q = query.verify(Subject.property.expect { check(true) }).in(Subject.scenario.free).limits(Limits(steps = 1, actions = 1, search = 1)); check(true) }"""
       ),
       compileErrors(
         """import EffectsFixture.*; given Before[Job] = new Before(Subject.init); Subject.property.expect { check(before.equals(Subject.init)) }"""
@@ -395,14 +450,24 @@ class ExpectTest extends munit.FunSuite:
     def holds(p: Property[Joined], facts: List[String]): Boolean =
       p.decl.holds.get
         .asInstanceOf[Step[Joined, String, String] => Boolean](Step("accepted", joined, facts))
-    assert(holds(Reordered.property.holds(named), List("left_completed")))
-    assert(!holds(Repeated.property.holds(named), List("right_completed")))
-    assert(holds(Repeated.property.holds(named), List("left_completed")))
-    assert(Reordered.property.holdsAcross(transition).decl.holds2.nonEmpty)
-    val _ = intercept[IllegalArgumentException](Repeated.property.holdsAcross(transition))
+    val reordered = Reordered.property.expect:
+      check(named(after))
+    val repeated = Repeated.property.expect:
+      check(named(after))
+    assert(holds(reordered, List("left_completed")))
+    assert(!holds(repeated, List("right_completed")))
+    assert(holds(repeated, List("left_completed")))
+    val across = Reordered.property.across.expect:
+      check(transition(before, after))
+    assert(across.decl.holds2.nonEmpty)
+    val _ = intercept[IllegalArgumentException]:
+      Repeated.property.across.expect:
+        check(transition(before, after))
     val wrong: Step[Joined, String, String] => Boolean = expect:
       records(_.right -> Subject, Fact.completed)
-    val _ = intercept[IllegalArgumentException](Reordered.property.holds(wrong))
+    val _ = intercept[IllegalArgumentException]:
+      Reordered.property.expect:
+        check(wrong(after))
     val _ = intercept[IllegalArgumentException](Reordered.property.never(wrong))
     val _ = intercept[IllegalArgumentException](Reordered.property.stays(_ => true).unless(wrong))
     assert(!holds(Repeated.property.never(named), List("left_completed")))

@@ -130,7 +130,7 @@ class BlockFormRuleSuite extends munit.FunSuite:
       assertEquals(findings.size, 3)
       assertEquals(BlockFormRule.findings(root, _ => false), Vector.empty)
 
-  test("the native repository scan visits authored framework files"):
+  test("the native repository scan visits authored framework files and requires colon blocks"):
     var visited = 0
     val findings = BlockFormRule.findings(
       Tools.here.directory,
@@ -140,7 +140,7 @@ class BlockFormRuleSuite extends munit.FunSuite:
     )
     assert(visited > 0, "native source discovery must not pass an empty scan")
     println(s"Native block-form scan: $visited files, ${findings.size} findings")
-    findings.foreach(println)
+    assertEquals(findings, Vector.empty)
 
   test("selected expectation builders and qualified sugar require colon blocks"):
     val braces =

@@ -517,8 +517,8 @@ class RuleBindingsSuite extends munit.FunSuite:
         )
       )
       object rules extends Rules:
-        from(hand) {
-          on(hand.first, hand.second) {
+        from(hand):
+          on(hand.first, hand.second):
             callbacks += 1
             val c = Case[Boolean, Boolean, Nothing](
               "off",
@@ -526,8 +526,7 @@ class RuleBindingsSuite extends munit.FunSuite:
                 guards += 1; !project(s)
             )
             c.capturedRule0(effect, payload(literal))
-          }
-          on(hand.first, hand.second) {
+          on(hand.first, hand.second):
             callbacks += 1
             val c = Case[Boolean, Boolean, Nothing](
               "on",
@@ -535,7 +534,6 @@ class RuleBindingsSuite extends munit.FunSuite:
                 guards += 1; project(s)
             )
             c.capturedRule0(effect, payload(literal))
-          }
           capturedDisabledRules(hand.off)(
             Seq(
               "ordinary-disabled-v1",
@@ -548,7 +546,6 @@ class RuleBindingsSuite extends munit.FunSuite:
               encoded(ir.Position("timing.scala", 3))
             )
           )
-        }
     val table = Timed.table
     assertEquals(table.size, 3)
     assertEquals(callbacks, 4)

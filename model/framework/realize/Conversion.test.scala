@@ -419,7 +419,9 @@ class RealizationConversionTest extends munit.FunSuite:
       .setRequestMarshaller(new scalapb.grpc.Marshaller(Duration))
       .setResponseMarshaller(new scalapb.grpc.Marshaller(Duration))
       .build()
-    val call = rpc("clock", method) {}.named("baseCall")
+    val call = rpc("clock", method):
+      ()
+    .named("baseCall")
     val copiedCall = call.copy(role = "other")
     assertEquals(copiedCall.commandId("fixture"), "base-call")
     assert(copiedCall.method eq call.method)
@@ -495,10 +497,9 @@ class RealizationConversionTest extends munit.FunSuite:
       Some("google.protobuf.Duration"),
       Some("google.protobuf.Duration")
     )
-    val child = proto[Duration] {
+    val child = proto[Duration]:
       field(_.seconds) := 2L
       field(_.nanos) := 3
-    }
     val nested = new TypedProto[Duration](
       Vector(new TypedProtoField(nestedTarget, new TypedProtoValue(child))),
       "google.protobuf.Duration"
@@ -729,9 +730,8 @@ class RealizationConversionTest extends munit.FunSuite:
       selected,
       Commitment.reported
     )
-    val poll = readUntil(evidence, "clock", Condition.present(selected), None) {
+    val poll = readUntil(evidence, "clock", Condition.present(selected), None):
       read(selected, Cardinality.one).into(Target.Bind("value"))
-    }
     val namedPoll =
       poll.asInstanceOf[Instruction.TypedPoll[Duration, Duration]].named("poll")
     val copiedPoll = namedPoll.copy(role = "other")

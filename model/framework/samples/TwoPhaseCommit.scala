@@ -206,56 +206,43 @@ object TwoPhaseCommit:
         )
 
     object rules extends Rules:
-      on(rm.prepare(ResourceManager.rm1))(
+      on(rm.prepare(ResourceManager.rm1)):
         where(s => mayPrepare(s, ResourceManager.rm1)) ~> effects.prepareRm1
-      )
-      on(rm.prepare(ResourceManager.rm2))(
+      on(rm.prepare(ResourceManager.rm2)):
         where(s => mayPrepare(s, ResourceManager.rm2)) ~> effects.prepareRm2
-      )
-      on(rm.prepare(ResourceManager.rm3))(
+      on(rm.prepare(ResourceManager.rm3)):
         where(s => mayPrepare(s, ResourceManager.rm3)) ~> effects.prepareRm3
-      )
-      on(rm.abort(ResourceManager.rm1))(
+      on(rm.abort(ResourceManager.rm1)):
         where(s => mayAbort(s, ResourceManager.rm1)) ~> effects.abortRm1
-      )
-      on(rm.abort(ResourceManager.rm2))(
+      on(rm.abort(ResourceManager.rm2)):
         where(s => mayAbort(s, ResourceManager.rm2)) ~> effects.abortRm2
-      )
-      on(rm.abort(ResourceManager.rm3))(
+      on(rm.abort(ResourceManager.rm3)):
         where(s => mayAbort(s, ResourceManager.rm3)) ~> effects.abortRm3
-      )
-      on(rm.commit(ResourceManager.rm1))(
+      on(rm.commit(ResourceManager.rm1)):
         where(s => mayCommit(s, ResourceManager.rm1)) ~> effects.commitRm1
-      )
-      on(rm.commit(ResourceManager.rm2))(
+      on(rm.commit(ResourceManager.rm2)):
         where(s => mayCommit(s, ResourceManager.rm2)) ~> effects.commitRm2
-      )
-      on(rm.commit(ResourceManager.rm3))(
+      on(rm.commit(ResourceManager.rm3)):
         where(s => mayCommit(s, ResourceManager.rm3)) ~> effects.commitRm3
-      )
-      on(tm.addPrepared(ResourceManager.rm1))(
+      on(tm.addPrepared(ResourceManager.rm1)):
         where(s => mayReceive(s, ResourceManager.rm1)) ~> effects.addPreparedRm1
-      )
-      on(tm.addPrepared(ResourceManager.rm2))(
+      on(tm.addPrepared(ResourceManager.rm2)):
         where(s => mayReceive(s, ResourceManager.rm2)) ~> effects.addPreparedRm2
-      )
-      on(tm.addPrepared(ResourceManager.rm3))(
+      on(tm.addPrepared(ResourceManager.rm3)):
         where(s => mayReceive(s, ResourceManager.rm3)) ~> effects.addPreparedRm3
-      )
-      on(tm.decideOnCommit)(
+      on(tm.decideOnCommit):
         where(s => s.tmState == TransactionManagerState.init && all(s.tmPrepared)) ~>
           effects.decideOnCommit
-      )
-      on(tm.decideOnAbort)(
+      on(tm.decideOnAbort):
         where(_.tmState == TransactionManagerState.init) ~> effects.decideOnAbort
-      )
 
   // A transaction manager that commits once any one resource manager has prepared.
   object EagerCommit
       extends Derived(
-        Model.rebind(on(tm.decideOnCommit) {
-          where(Model.states.eagerlyCommits) ~> Model.effects.decideOnCommit
-        })
+        Model.rebind(
+          on(tm.decideOnCommit):
+            where(Model.states.eagerlyCommits) ~> Model.effects.decideOnCommit
+        )
       ),
         NegativeControl
 
@@ -265,13 +252,16 @@ object TwoPhaseCommit:
       someAre(state.rmStates, ResourceManagerState.aborted))
 
   val consistencyInv: Property[Transaction] =
-    Model.property holds (after => consistent(after.state))
+    Model.property.expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
+      check(consistent(after.step.state))
   val eagerConsistencyInv: Property[Transaction] =
-    EagerCommit.property holds (after => consistent(after.state))
+    EagerCommit.property.expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
+      check(consistent(after.step.state))
   val everyoneCommits: Property[Transaction] =
-    Model.property.when(rm.commit(ResourceManager.rm3)) holds { after =>
-      allCommitted(after.state)
-    }
+    Model.property
+      .after(rm.commit(ResourceManager.rm3))
+      .expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
+        check(allCommitted(after.step.state))
 
   val fairCommits = assume.fair(rm.commit)
   // once the transaction manager commits, every resource manager commits within three steps

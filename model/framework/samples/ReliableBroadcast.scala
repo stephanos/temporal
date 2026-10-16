@@ -201,38 +201,45 @@ object ReliableBroadcast:
       def deliverP2(state: Broadcast) = deliverAt(state, Proc.p2)
 
     object rules extends Rules:
-      on(sender.broadcast)(where(_.origin == Origin.idle) ~> effects.begin)
-      on(sender.send)(where(s => originSending(s) && !s.network.isFull) ~> effects.sendNext)
-      on(fault.crash)(where(originSending) ~> effects.crash)
-      on(monitors.network.deliver)(always ~> effects.receive)
-      on(process.relay(Proc.p1))(
+      on(sender.broadcast):
+        where(_.origin == Origin.idle) ~> effects.begin
+      on(sender.send):
+        where(s => originSending(s) && !s.network.isFull) ~> effects.sendNext
+      on(fault.crash):
+        where(originSending) ~> effects.crash
+      on(monitors.network.deliver):
+        always ~> effects.receive
+      on(process.relay(Proc.p1)):
         where(s => relaying(s.p1) && !s.network.isFull) ~> effects.relayP1
-      )
-      on(process.relay(Proc.p2))(
+      on(process.relay(Proc.p2)):
         where(s => relaying(s.p2) && !s.network.isFull) ~> effects.relayP2
-      )
-      on(process.deliver(Proc.p1))(where(s => relayed(s.p1)) ~> effects.deliverP1)
-      on(process.deliver(Proc.p2))(where(s => relayed(s.p2)) ~> effects.deliverP2)
+      on(process.deliver(Proc.p1)):
+        where(s => relayed(s.p1)) ~> effects.deliverP1
+      on(process.deliver(Proc.p2)):
+        where(s => relayed(s.p2)) ~> effects.deliverP2
 
   object Naive
       extends Derived(Model.rebind(Model.monitors.network.deliver ~> Model.effects.receiveNaive)),
         NegativeControl
 
-  val safety: Property[Broadcast] = Model.property holds (after => onlyBroadcast(after.state))
+  val safety: Property[Broadcast] = Model.property.expect:
+    (after: Expectation[Broadcast, Outcome, Nothing]) ?=> check(onlyBroadcast(after.step.state))
   // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
   // monitor, which a run that stops with one process delivered and the other not breaks.
-  val naiveSafety: Property[Broadcast] = Naive.property holds (after => onlyBroadcast(after.state))
+  val naiveSafety: Property[Broadcast] = Naive.property.expect:
+    (after: Expectation[Broadcast, Outcome, Nothing]) ?=> check(onlyBroadcast(after.step.state))
   // If I deliver a message, I have already forwarded it to all.
-  val reliability: Property[Broadcast] = Model.property holdsAcross { (before, after) =>
-    (deliveredValue(after.state.p1) == None || deliveredValue(before.p1) != None ||
-      relayed(before.p1)) &&
-    (deliveredValue(after.state.p2) == None || deliveredValue(before.p2) != None ||
-      relayed(before.p2))
-  }
-  val survivesCrash: Property[Broadcast] = Model.property.when(process.deliver(Proc.p2)) holds {
-    after =>
-      everyoneDelivered(after.state) && after.state.origin == Origin.crashed(Payload.hello)
-  }
+  val reliability: Property[Broadcast] = Model.property.across.expect:
+    (before: Before[Broadcast], after: Expectation[Broadcast, Outcome, Nothing]) ?=>
+      if deliveredValue(after.step.state.p1) != None && deliveredValue(before.state.p1) == None then
+        check(relayed(before.state.p1))
+      if deliveredValue(after.step.state.p2) != None && deliveredValue(before.state.p2) == None then
+        check(relayed(before.state.p2))
+  val survivesCrash: Property[Broadcast] = Model.property
+    .after(process.deliver(Proc.p2))
+    .expect: (after: Expectation[Broadcast, Outcome, Nothing]) ?=>
+      check(everyoneDelivered(after.step.state))
+      check(after.step.state.origin == Origin.crashed(Payload.hello))
 
   // once one process delivers, every process delivers the same, whatever else happens meanwhile:
   // the origin's sends or crash, four deliveries and the other process's forward and delivery

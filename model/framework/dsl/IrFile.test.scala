@@ -69,7 +69,12 @@ object DiscoveryFixtures:
           advance ~> ((s: RolePhase) => List(Step(Outcome.done, s)))
         )
   lazy val bounded = query("bounded")
-    .verify(propertyOwner.property("holds").holds(_ => true))
+    .verify(
+      propertyOwner
+        .property("holds")
+        .expect:
+          check(true)
+    )
     .in(queryOwner.scenario("free").free)
     .limits(Limits(steps = 1, actions = 1, search = 4))
 
@@ -140,10 +145,12 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         object safety:
           def helperProperty =
             initialized += "helper-def": Unit
-            property("helperDef").holds(_ => false)
+            property("helperDef").expect:
+              check(false)
           lazy val finished =
             initialized += "safety": Unit
-            property("finished").holds(_.state.equals(State.closed))
+            property("finished").expect:
+              check(after.state.equals(State.closed))
         object liveness:
           def helperProgress =
             initialized += "progress-def": Unit
@@ -165,7 +172,8 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         object helper:
           lazy val ignored =
             initialized += "helper": Unit
-            property("ignored").holds(_ => false)
+            property("ignored").expect:
+              check(false)
     assertEquals(Grouped.init, State.open)
     assertEquals(initialized.toList, Nil)
     object HelperOwner extends Machine[State, Outcome, Nothing]:
@@ -188,7 +196,8 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       object properties:
         lazy val safety =
           initialized += "flat-name": Unit
-          property("flatSafety").holds(_ => true)
+          property("flatSafety").expect:
+            check(true)
         def liveness =
           initialized += "liveness-def": Unit
           Grouped.properties.liveness
@@ -203,7 +212,8 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         private object safety:
           lazy val finished =
             initialized += "private-safety": Unit
-            property("privateFinished").holds(_.state.equals(State.closed))
+            property("privateFinished").expect:
+              check(after.state.equals(State.closed))
         private object liveness:
           lazy val reaches =
             initialized += "private-liveness": Unit

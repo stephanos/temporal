@@ -19,7 +19,9 @@ class ObservationTest extends munit.FunSuite:
       "framework.dsl.Observation(name = \"attempts\", on = framework.dsl.Entity(), read = \"info.attempt\")"
     )
     val positional =
-      typeCheckErrors("framework.dsl.Observation(\"attempts\", framework.dsl.Entity(), \"info.attempt\")")
+      typeCheckErrors(
+        "framework.dsl.Observation(\"attempts\", framework.dsl.Entity(), \"info.attempt\")"
+      )
     assertEquals(
       named.map(_.message).filter(_.contains("does not have a parameter read")).size,
       1,

@@ -102,7 +102,7 @@ class Inputs extends munit.FunSuite:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 1
       object rules extends Rules:
-        on(caller.five) {
+        on(caller.five):
           always ~> (
             (s: Counted, a: Timeout, b: Timeout, c: Timeout, flag: Boolean, result: Answer) =>
               enter(
@@ -110,7 +110,6 @@ class Inputs extends munit.FunSuite:
                 result
               )
           )
-        }
     val binding = FiveInputs.bindings.head
     val after = effectOf(binding.decl, binding.function)(FiveInputs.init, supplied.values).head
     assertEquals(after.state, Counted(UpTo(1), Timeout.expires))
@@ -230,9 +229,8 @@ class Inputs extends munit.FunSuite:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 2
       object rules extends Rules:
-        on(caller.six) {
+        on(caller.six):
           always ~> step
-        }
     val binding = SixInputs.bindings.head
     assertEquals(
       effectOf[Counted, outcomes.Outcome, Answer](binding.decl, binding.function)(

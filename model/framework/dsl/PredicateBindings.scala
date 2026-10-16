@@ -20,6 +20,14 @@ final private[framework] class MemberBinding(
 @scala.annotation.publicInBinary
 private[framework] object PredicateBindings:
   @scala.annotation.publicInBinary
+  private[framework] def block[T](
+      body: T,
+      members: Vector[MemberBinding],
+      parameters: Vector[String],
+      predicates: Vector[AnyRef]
+  ): BlockPredicate[T] = new BlockPredicate(body, members, parameters, predicates)
+
+  @scala.annotation.publicInBinary
   private[framework] def member(field: String, machine: Model): MemberBinding =
     new MemberBinding(field, machine)
 
@@ -32,5 +40,6 @@ final private[framework] class BlockPredicate[
 ] @scala.annotation.publicInBinary private[framework] (
     val body: T,
     val members: Vector[MemberBinding],
-    val parameters: Vector[String]
+    val parameters: Vector[String],
+    val predicates: Vector[AnyRef]
 )

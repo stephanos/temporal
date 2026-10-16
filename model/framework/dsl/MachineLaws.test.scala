@@ -81,9 +81,9 @@ object MachineLaws:
           val second = read(run(state, inputs))
           require(
             (first, second) match
-              case (Left(a), Left(b)) => a eq b
+              case (Left(a), Left(b))   => a eq b
               case (Right(a), Right(b)) => Objects.equals(a, b)
-              case _ => false,
+              case _                    => false,
             s"$state / $inputs repeats different ordered alternatives: $first / $second"
           )
           if first.isLeft then unknownRows += 1

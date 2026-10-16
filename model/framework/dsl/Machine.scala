@@ -72,10 +72,10 @@ trait Declares[S] extends Model:
   private[framework] def declaresPhase: Boolean = false
 
   // A Property or a Scenario is named after the `val` that declares it (`val completes =
-  // orderProduct.property holds ...`), or by the name it is given where it is declared without
+  // orderProduct.property expect: ...`), or by the name it is given where it is declared without
   // one, such as in a list or inside a function over a machine. A Scenario that names no start starts
   // in its machine's one declared start, or for a composition in its members' starts. Inside a
-  // machine or composition object they name it implicitly: `property when c holds ...`,
+  // machine or composition object they name it implicitly: `property after(c) expect: ...`,
   // `scenario.actions(...)`.
   def property: PropertyBuilder[S, Outcome, Fact] = PropertyBuilder("", this, None)
   def property(name: String): PropertyBuilder[S, Outcome, Fact] = PropertyBuilder(name, this, None)

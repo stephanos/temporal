@@ -12,15 +12,21 @@ class RuleSourceTest extends munit.FunSuite:
         def end(s: Lamp) = true
         object rules extends Rules:
           def body(): Unit = arity match
-            case 1 => on(press)(always ~> Switch.effects.wear)
-            case 2 => on(turn(Knob.up))(always ~> Switch.effects.wear)
-            case 3 => on(hand.press, turn(Knob.up))(always ~> Switch.effects.wear)
-            case 4 =>
-              on(hand.press, hand.turn(Knob.up), turn(Knob.down))(always ~> Switch.effects.wear)
-            case _ =>
-              on(hand.press, hand.turn(Knob.up), hand.turn(Knob.down), tick)(
+            case 1 =>
+              on(press):
                 always ~> Switch.effects.wear
-              )
+            case 2 =>
+              on(turn(Knob.up)):
+                always ~> Switch.effects.wear
+            case 3 =>
+              on(hand.press, turn(Knob.up)):
+                always ~> Switch.effects.wear
+            case 4 =>
+              on(hand.press, hand.turn(Knob.up), turn(Knob.down)):
+                always ~> Switch.effects.wear
+            case _ =>
+              on(hand.press, hand.turn(Knob.up), hand.turn(Knob.down), tick):
+                always ~> Switch.effects.wear
           if inFrom then from(hand)(body()) else body()
       val refused = intercept[IllegalArgumentException](Bare.bindings)
       val action = arity match
@@ -48,13 +54,15 @@ class RuleSourceTest extends munit.FunSuite:
         def end(s: Lamp) = true
         object rules extends Rules:
           def body(): Unit = arity match
-            case 2 => on(buttons.first, buttons.second)(always ~> Switch.effects.wear)
-            case 3 =>
-              on(buttons.first, buttons.second, buttons.third)(always ~> Switch.effects.wear)
-            case _ =>
-              on(buttons.first, buttons.second, buttons.third, buttons.fourth)(
+            case 2 =>
+              on(buttons.first, buttons.second):
                 always ~> Switch.effects.wear
-              )
+            case 3 =>
+              on(buttons.first, buttons.second, buttons.third):
+                always ~> Switch.effects.wear
+            case _ =>
+              on(buttons.first, buttons.second, buttons.third, buttons.fourth):
+                always ~> Switch.effects.wear
           if inFrom then from(buttons)(body()) else body()
       assertEquals(
         Qualified.bindings.map(_.decl),
@@ -68,16 +76,16 @@ class RuleSourceTest extends munit.FunSuite:
         def end(s: Lamp) = true
         object rules extends Rules:
           if wildcard then
-            from(hand) {
+            from(hand):
               import hand.*
-              on(press)(always ~> Switch.effects.wear)
-            }
+              on(press):
+                always ~> Switch.effects.wear
           else
-            from(hand) {
+            from(hand):
               import hand.press
               val _ = press
-              on(hand.press)(always ~> Switch.effects.wear)
-            }
+              on(hand.press):
+                always ~> Switch.effects.wear
       val refused = intercept[IllegalArgumentException](Imported.bindings)
       assert(refused.getMessage.contains("from(hand) imports members at RuleSource.test.scala:"))
       assert(refused.getMessage.contains("a from only groups"))
@@ -96,7 +104,13 @@ class RuleSourceTest extends munit.FunSuite:
         intercept[IllegalArgumentException](Off.bindings).getMessage
           .contains("disabled(tick) names its action bare")
       )
-    object Rebound extends Derived(Switch.rebind(on(press)(always ~> Switch.effects.wear)))
+    object Rebound
+        extends Derived(
+          Switch.rebind(
+            on(press):
+              always ~> Switch.effects.wear
+          )
+        )
     val refused = intercept[IllegalArgumentException](Rebound.bindings)
     assert(refused.getMessage.contains("on(press) names its action bare"))
 

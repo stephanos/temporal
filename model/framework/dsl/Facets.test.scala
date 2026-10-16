@@ -34,9 +34,8 @@ object FacetsFixture:
         )
 
       object rules extends Rules:
-        on(hand.press) {
+        on(hand.press):
           when(Lit.off, Lit.on) ~> effects.toggle
-        }
 
   // A facet that depends on Pressing's step.
   trait Breaking extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
@@ -51,10 +50,9 @@ object FacetsFixture:
           choose(smashed -> enters(Lit.broken)(s), toggled -> pressing.effects.toggle(s))
 
       object rules extends Rules:
-        on(hand.smash) {
+        on(hand.smash):
           when(Lit.on) ~> effects.smash
           when(Lit.off) ~> enters(Lit.broken)
-        }
 
   object Faceted
       extends Machine[Lamp, Said, Note],
@@ -79,13 +77,11 @@ object FacetsFixture:
       def smash(s: Lamp) = choose(smashed -> enters(Lit.broken)(s), toggled -> toggle(s))
 
     object rules extends Rules:
-      on(hand.press) {
+      on(hand.press):
         when(Lit.off, Lit.on) ~> effects.toggle
-      }
-      on(hand.smash) {
+      on(hand.smash):
         when(Lit.on) ~> effects.smash
         when(Lit.off) ~> enters(Lit.broken)
-      }
 
   // Two facets that both bind the press.
   trait Pressing2 extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
@@ -93,9 +89,8 @@ object FacetsFixture:
     object pressingAgain:
 
       object rules extends Rules:
-        on(hand.press) {
+        on(hand.press):
           when(Lit.broken) ~> enters(Lit.broken)
-        }
 
   object Twice
       extends Machine[Lamp, Said, Note],
@@ -153,18 +148,30 @@ class FacetsTest extends munit.FunSuite:
         object first:
           object rules extends Rules:
             kind match
-              case "ordinary" => on(targets.ordinary)(when(Lit.off) ~> enters(Lit.on))
-              case "timer"    => on(targets.tick)(when(Lit.off) ~> enters(Lit.on))
-              case "fault"    => on(targets.fault)(when(Lit.off) ~> enters(Lit.on))
-              case _          => disabled(targets.ordinary)
+              case "ordinary" =>
+                on(targets.ordinary):
+                  when(Lit.off) ~> enters(Lit.on)
+              case "timer" =>
+                on(targets.tick):
+                  when(Lit.off) ~> enters(Lit.on)
+              case "fault" =>
+                on(targets.fault):
+                  when(Lit.off) ~> enters(Lit.on)
+              case _ => disabled(targets.ordinary)
       trait Second extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
         object second:
           object rules extends Rules:
             kind match
-              case "ordinary" => on(targets.ordinary)(when(Lit.on) ~> enters(Lit.off))
-              case "timer"    => on(targets.tick)(when(Lit.on) ~> enters(Lit.off))
-              case "fault"    => on(targets.fault)(when(Lit.on) ~> enters(Lit.off))
-              case _          => disabled(targets.ordinary)
+              case "ordinary" =>
+                on(targets.ordinary):
+                  when(Lit.on) ~> enters(Lit.off)
+              case "timer" =>
+                on(targets.tick):
+                  when(Lit.on) ~> enters(Lit.off)
+              case "fault" =>
+                on(targets.fault):
+                  when(Lit.on) ~> enters(Lit.off)
+              case _ => disabled(targets.ordinary)
       object Duplicate
           extends Machine[Lamp, Said, Note],
             Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
@@ -192,10 +199,15 @@ class FacetsTest extends munit.FunSuite:
           object rules extends Rules:
             kind match
               case "ordinary" =>
-                on(targets.ordinary)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
-              case "timer" => on(targets.tick)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
-              case "fault" => on(targets.fault)(always ~> ((s: Lamp) => stay[Lamp, Said, Note](s)))
-              case _       => disabled(targets.ordinary)
+                on(targets.ordinary):
+                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+              case "timer" =>
+                on(targets.tick):
+                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+              case "fault" =>
+                on(targets.fault):
+                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+              case _ => disabled(targets.ordinary)
         object rules extends Facets(pressing.rules)
       val error = intercept[IllegalArgumentException](Unowned.bindings)
       assert(

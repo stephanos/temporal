@@ -66,29 +66,33 @@ object Kettle:
 
     // one step of the state machine: any enabled action
     object rules extends Rules:
-      on(user.pressButton)(where(!_.heatingOn) ~> effects.pressButton)
-      on(heater.failover)(
+      on(user.pressButton):
+        where(!_.heatingOn) ~> effects.pressButton
+      on(heater.failover):
         where(s => s.heatingOn && temperature(s) >= boilingTemperature) ~> effects.failover
-      )
-      on(heater.heat)(
+      on(heater.heat):
         where(s => s.heatingOn && temperature(s) < boilingTemperature) ~> effects.heat
-      )
-      on(user.depressButton)(where(_.heatingOn) ~> effects.depressButton)
+      on(user.depressButton):
+        where(_.heatingOn) ~> effects.depressButton
 
   // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
   // others (press, heat, depress), so a claim verified from it holds from all of them.
   val coldest = Snapshot(reading = UpTo(0), heatingOn = false, beeping = false)
 
-  val beepsOnlyWhenOff: Property[Snapshot] = Model.property holds { after =>
-    !after.state.beeping || !after.state.heatingOn
-  }
-  val warmsOnlyWhenOn: Property[Snapshot] = Model.property holdsAcross { (before, after) =>
-    before.heatingOn || temperature(after.state) <= temperature(before)
-  }
-  val failsOverAtBoiling: Property[Snapshot] = Model.property.when(heater.failover) holds { after =>
-    temperature(after.state) == boilingTemperature && after.state.beeping
-  }
-  val neverBeeps: Property[Snapshot] = Model.property holds (after => !after.state.beeping)
+  val beepsOnlyWhenOff: Property[Snapshot] = Model.property.expect:
+    (after: Expectation[Snapshot, Outcome, Nothing]) ?=>
+      if after.step.state.beeping then check(!after.step.state.heatingOn)
+  val warmsOnlyWhenOn: Property[Snapshot] = Model.property.across.expect:
+    (before: Before[Snapshot], after: Expectation[Snapshot, Outcome, Nothing]) ?=>
+      if !before.state.heatingOn then
+        check(temperature(after.step.state) <= temperature(before.state))
+  val failsOverAtBoiling: Property[Snapshot] = Model.property
+    .after(heater.failover)
+    .expect: (after: Expectation[Snapshot, Outcome, Nothing]) ?=>
+      check(temperature(after.step.state) == boilingTemperature)
+      check(after.step.state.beeping)
+  val neverBeeps: Property[Snapshot] = Model.property.expect:
+    (after: Expectation[Snapshot, Outcome, Nothing]) ?=> check(!after.step.state.beeping)
 
   val fromRoomTemperature: Scenario[Snapshot] = Model.scenario.starts(Model.init).free
   val fromAnyTemperature: Scenario[Snapshot] = Model.scenario.starts(coldest).free
