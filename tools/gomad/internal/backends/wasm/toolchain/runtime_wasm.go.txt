@@ -3,9 +3,11 @@
 package runtime
 
 import (
+	"internal/abi"
 	"internal/chacha8rand"
 	"internal/runtime/atomic"
 	"internal/runtime/exithook"
+	"internal/runtime/gc"
 	"unsafe"
 )
 
@@ -37,6 +39,389 @@ var gomadWasmObservationBuffer [gomadChoiceRecordBytes + gomadDiagnosticRecordBy
 var gomadWasmFinishBuffer [16]byte
 var gomadWasmIdleBuffer [16]byte
 var gomadWasmNotes *note
+
+const gomadDebugWitnessBytes = 128
+
+var gomadDebugBuffer [16 + 16 + 64*1024]byte
+var gomadDebugPending struct {
+	length   uint32
+	decision [32 + 32*gomadChoiceMaximumAlternatives]byte
+}
+var gomadDebugDecisions uint64
+var gomadDebugG *g
+var gomadDebugInspecting bool
+var gomadDebugStarted bool
+var gomadDebugClose func()
+var gomadDebugInspect func(uint32, uint32)
+var gomadDebugMask *[4]uint64
+var gomadDebugClosed bool
+var gomadDebugRegistryValid = true
+
+//go:wasmimport gomad_debug_v1 exchange
+//go:noescape
+func gomadDebugExchange(*byte, uint32) uint32
+
+func gomadDebugPut32(b []byte, n uint32) {
+	b[0], b[1], b[2], b[3] = byte(n), byte(n>>8), byte(n>>16), byte(n>>24)
+}
+
+func gomadDebugRead32(b []byte) uint32 {
+	return uint32(b[0]) | uint32(b[1])<<8 | uint32(b[2])<<16 | uint32(b[3])<<24
+}
+
+func gomadDebugPut64(b []byte, n uint64) {
+	gomadDebugPut32(b[:4], uint32(n))
+	gomadDebugPut32(b[4:8], uint32(n>>32))
+}
+
+func gomadDebugHeader(op, length uint32) {
+	clear(gomadDebugBuffer[:16])
+	gomadDebugPut32(gomadDebugBuffer[:4], 1)
+	gomadDebugPut32(gomadDebugBuffer[4:8], op)
+	gomadDebugPut32(gomadDebugBuffer[12:16], length)
+}
+
+func gomadDebugCall(op, length uint32) {
+	gomadDebugHeader(op, length)
+	if gomadDebugExchange(&gomadDebugBuffer[0], 16+length) != 0 {
+		gomadChoiceDivergeCurrent(0)
+	}
+}
+
+func gomadDebugWitness(b []byte) {
+	gomadWasmDiagnostic(b[:gomadDiagnosticRecordBytes])
+	var allocated uint64
+	for generation := range memstats.heapStats.stats {
+		stats := &memstats.heapStats.stats[generation]
+		allocated += stats.largeAlloc
+		for class, count := range stats.smallAllocCount {
+			allocated += count * uint64(gc.SizeClassToSize[class])
+		}
+	}
+	pp := getg().m.p.ptr()
+	for _, span := range pp.mcache.alloc {
+		allocated += uint64(span.allocCount-span.allocCountBeforeCache) * uint64(span.elemsize)
+	}
+	gomadChoicePut64(b[96:104], allocated)
+	gomadChoicePut64(b[104:112], gomadDebugDecisions)
+	var live uint64
+	forEachG(func(gp *g) {
+		status := readgstatus(gp) &^ _Gscan
+		if status != _Gdead && status != _Gdeadextra {
+			live++
+		}
+	})
+	gomadChoicePut64(b[112:120], live)
+	gomadChoicePut64(b[120:128], uint64(sched.runq.size))
+}
+
+func gomadDebugWitnessOnly() {
+	if gomadDebugInspecting {
+		return
+	}
+	gomadDebugWitness(gomadDebugBuffer[16 : 16+gomadDebugWitnessBytes])
+	gomadDebugCall(10, gomadDebugWitnessBytes)
+}
+
+func gomadDebugDecision(buffer []byte, length uint32) {
+	copy(gomadDebugBuffer[16:16+length], buffer[:length])
+	gomadDebugWitness(gomadDebugBuffer[16+length : 16+length+gomadDebugWitnessBytes])
+	gomadDebugHeader(1, length+gomadDebugWitnessBytes)
+	if gomadDebugExchange(&gomadDebugBuffer[0], 16+length+gomadDebugWitnessBytes) != 0 {
+		gomadChoiceDivergeCurrent(0)
+	}
+	switch gomadDebugRead32(gomadDebugBuffer[8:12]) {
+	case 0:
+		return
+	case 1:
+		selected := gomadChoiceRead32(gomadDebugBuffer[40:44])
+		if selected >= gomadChoiceRead32(buffer[20:24]) {
+			gomadChoiceDivergeCurrent(gomadChoiceDivergenceSelected)
+		}
+		gomadDebugPending.length = length
+		copy(gomadDebugPending.decision[:length], buffer[:length])
+		gomadChoicePut32(gomadDebugPending.decision[24:28], selected)
+		gomadDebugHandoff()
+	default:
+		gomadChoiceDivergeCurrent(0)
+	}
+}
+
+func gomadDebugInit() {
+	fn := gomadDebugRun
+	caller := getg()
+	systemstack(func() {
+		gomadDebugG = newproc1(*(**funcval)(unsafe.Pointer(&fn)), caller, abi.FuncPCABIInternal(gomadDebugRun), true, waitReasonDebugCall)
+	})
+}
+
+//go:yeswritebarrierrec
+func gomadDebugHandoff() {
+	gp := getg()
+	if gomadDebugG == nil || gomadDebugInspecting || gp.m.locks != 0 {
+		gomadChoiceDivergeCurrent(0)
+	}
+	gomadDebugInspecting = true
+	if gp == gp.m.g0 {
+		gomadDebugStarted = true
+		casgstatus(gomadDebugG, _Gwaiting, _Grunnable)
+		execute(gomadDebugG, false)
+	} else {
+		gopark(nil, nil, waitReasonDebugCall, traceBlockForever, 1)
+	}
+	throw("gomad inspection resumed application")
+}
+
+func gomadDebugAllowed(gp *g) bool {
+	return gp == gomadDebugG || funcname(findfunc(gp.startpc)) == "runtime.gcBgMarkStartWorkers.gowrap1"
+}
+
+func gomadDebugFindRunnable(pp *p) (*g, bool, bool) {
+	if !gomadDebugStarted {
+		gomadDebugStarted = true
+		casgstatus(gomadDebugG, _Gwaiting, _Grunnable)
+		return gomadDebugG, false, false
+	}
+	if gcBlackenEnabled != 0 {
+		if gp, _ := gcController.findRunnableGCWorker(pp, gomadWasmLastTime); gp != nil {
+			return gp, false, true
+		}
+	}
+	if next := pp.runnext; next != 0 && gomadDebugAllowed(next.ptr()) {
+		pp.runnext = 0
+		return next.ptr(), false, false
+	}
+	for offset := uint32(0); offset < pp.runqtail-pp.runqhead; offset++ {
+		index := (pp.runqhead + offset) % uint32(len(pp.runq))
+		gp := pp.runq[index].ptr()
+		if gomadDebugAllowed(gp) {
+			pp.runq[index] = pp.runq[pp.runqhead%uint32(len(pp.runq))]
+			pp.runqhead++
+			return gp, false, false
+		}
+	}
+	lock(&sched.lock)
+	var previous guintptr
+	for gp := sched.runq.head; gp != 0; gp = gp.ptr().schedlink {
+		if gomadDebugAllowed(gp.ptr()) {
+			if previous == 0 {
+				sched.runq.head = gp.ptr().schedlink
+			} else {
+				previous.ptr().schedlink = gp.ptr().schedlink
+			}
+			if sched.runq.tail == gp {
+				sched.runq.tail = previous
+			}
+			sched.runq.size--
+			gp.ptr().schedlink = 0
+			unlock(&sched.lock)
+			return gp.ptr(), false, false
+		}
+		previous = gp
+	}
+	unlock(&sched.lock)
+	gomadWasmExit(125)
+	return nil, false, false
+}
+
+//go:linkname gomadDebugRegisterLibrary
+func gomadDebugRegisterLibrary(close func(), inspect func(uint32, uint32), mask *[4]uint64) {
+	if gomadDebugClose != nil || gomadDebugClosed || close == nil || inspect == nil || mask == nil {
+		gomadChoiceDivergeCurrent(0)
+	}
+	gomadDebugClose, gomadDebugInspect, gomadDebugMask = close, inspect, mask
+	gomadDebugEnableMask()
+}
+
+func gomadDebugEnableMask() {
+	if gomadDebugMask == nil {
+		return
+	}
+	clear(gomadDebugBuffer[16:48])
+	gomadDebugCall(7, 32)
+	for index := range gomadDebugMask {
+		b := gomadDebugBuffer[16+8*index : 24+8*index]
+		gomadDebugMask[index] = uint64(gomadDebugRead32(b[:4])) | uint64(gomadDebugRead32(b[4:8]))<<32
+	}
+}
+
+//go:linkname gomadDebugRegister
+func gomadDebugRegister(kind, id uint32, name string, flags uint32) {
+	if gomadDebugClosed || len(name) == 0 || len(name) > 128 || id >= 256 {
+		gomadChoiceDivergeCurrent(0)
+	}
+	gomadDebugPut32(gomadDebugBuffer[16:20], kind)
+	gomadDebugPut32(gomadDebugBuffer[20:24], id)
+	gomadDebugPut32(gomadDebugBuffer[24:28], flags)
+	gomadDebugPut32(gomadDebugBuffer[28:32], uint32(len(name)))
+	copy(gomadDebugBuffer[32:], name)
+	gomadDebugCall(2, 16+uint32(len(name)))
+}
+
+//go:linkname gomadDebugRegistryClosed
+func gomadDebugRegistryClosed(ok bool) {
+	if gomadDebugClosed && ok {
+		gomadChoiceDivergeCurrent(0)
+	}
+	gomadDebugRegistryValid = gomadDebugRegistryValid && ok
+	gomadDebugClosed = true
+	value := uint32(0)
+	if gomadDebugRegistryValid {
+		value = 1
+	}
+	gomadDebugPut32(gomadDebugBuffer[16:20], value)
+	gomadDebugCall(3, 4)
+	gomadDebugEnableMask()
+}
+
+func gomadDebugMain() {
+	if gomadDebugClose != nil {
+		gomadDebugClose()
+	}
+	if !gomadDebugClosed {
+		gomadDebugRegistryClosed(true)
+	}
+}
+
+//go:linkname gomadDebugEmit
+func gomadDebugEmit(pointer *byte, length uint32) {
+	if length > uint32(len(gomadDebugBuffer)-16) {
+		gomadChoiceDivergeCurrent(0)
+	}
+	copy(gomadDebugBuffer[16:16+length], unsafe.Slice(pointer, length))
+	gomadDebugCall(4, length)
+}
+
+func gomadDebugRun() {
+	for {
+		clear(gomadDebugBuffer[16:24])
+		gomadDebugCall(5, 8)
+		kind := gomadDebugRead32(gomadDebugBuffer[16:20])
+		id := gomadDebugRead32(gomadDebugBuffer[20:24])
+		switch kind {
+		case 0:
+			gomadDebugCall(6, 0)
+			gomadWasmFinished = true
+			gomadWasmExit(0)
+		case 1:
+			gomadDebugStacks()
+		case 2:
+			gomadDebugHeap()
+		case 3, 4:
+			if gomadDebugInspect == nil {
+				gomadChoiceDivergeCurrent(0)
+			}
+			gomadDebugInspect(kind, id)
+		default:
+			gomadChoiceDivergeCurrent(0)
+		}
+	}
+}
+
+func gomadDebugFrame(op uint32, identity uint64, status, index uint32, frame Frame) {
+	function, file := frame.Function, frame.File
+	if len(function) > 2048 {
+		function = function[:2048]
+		status |= 1 << 31
+	}
+	if len(file) > 2048 {
+		file = file[:2048]
+		status |= 1 << 31
+	}
+	gomadDebugPut64(gomadDebugBuffer[16:24], identity)
+	gomadDebugPut32(gomadDebugBuffer[24:28], status)
+	gomadDebugPut32(gomadDebugBuffer[28:32], index)
+	gomadDebugPut64(gomadDebugBuffer[32:40], uint64(frame.PC))
+	gomadDebugPut32(gomadDebugBuffer[40:44], uint32(frame.Line))
+	gomadDebugPut32(gomadDebugBuffer[44:48], uint32(len(function)))
+	gomadDebugPut32(gomadDebugBuffer[48:52], uint32(len(file)))
+	n := copy(gomadDebugBuffer[52:], function)
+	n += copy(gomadDebugBuffer[52+n:], file)
+	gomadDebugCall(op, uint32(36+n))
+}
+
+func gomadDebugFrames(op uint32, identity uint64, status uint32, pcs []uintptr) {
+	frames := CallersFrames(pcs)
+	for index := uint32(0); ; index++ {
+		frame, more := frames.Next()
+		gomadDebugFrame(op, identity, status, index, frame)
+		if !more {
+			break
+		}
+	}
+}
+
+func gomadDebugStacks() {
+	const maximum = 4096
+	records := make([]StackRecord, maximum)
+	identities := make([]uint64, maximum)
+	statuses := make([]uint32, maximum)
+	count := 0
+	truncated := false
+	stw := stopTheWorld(stwAllGoroutinesStack)
+	forEachGRace(func(gp *g) {
+		status := readgstatus(gp) &^ _Gscan
+		if gp == gomadDebugG || status == _Gdead || status == _Gdeadextra {
+			return
+		}
+		if count == maximum {
+			truncated = true
+			return
+		}
+		identities[count], statuses[count] = gp.goid, status
+		systemstack(func() {
+			var u unwinder
+			u.initAt(^uintptr(0), ^uintptr(0), 0, gp, unwindSilentErrors)
+			tracebackPCs(&u, 0, records[count].Stack0[:])
+		})
+		count++
+	})
+	startTheWorld(stw)
+	for index := 0; index < count; index++ {
+		gomadDebugFrames(8, identities[index], statuses[index], records[index].Stack())
+	}
+	status := uint32(0)
+	if truncated {
+		status = 1 << 31
+	}
+	gomadDebugFrame(8, 0, status, ^uint32(0), Frame{})
+}
+
+func gomadDebugHeap() {
+	const maximum = 4096
+	count, _ := MemProfile(nil, true)
+	truncated := count > maximum
+	if count > maximum {
+		count = maximum
+	}
+	records := make([]MemProfileRecord, count)
+	if _, ok := MemProfile(records, true); !ok {
+		// MemProfile does not return a partial sample set.
+		gomadDebugFrame(11, 0, 1<<31, ^uint32(0), Frame{})
+		return
+	}
+	for index := range records {
+		record := &records[index]
+		pcs := record.Stack()
+		gomadDebugPut64(gomadDebugBuffer[16:24], uint64(MemProfileRate))
+		gomadDebugPut64(gomadDebugBuffer[24:32], uint64(record.AllocObjects))
+		gomadDebugPut64(gomadDebugBuffer[32:40], uint64(record.FreeObjects))
+		gomadDebugPut64(gomadDebugBuffer[40:48], uint64(record.AllocBytes))
+		gomadDebugPut64(gomadDebugBuffer[48:56], uint64(record.FreeBytes))
+		gomadDebugPut32(gomadDebugBuffer[56:60], uint32(index))
+		gomadDebugPut32(gomadDebugBuffer[60:64], uint32(len(pcs)))
+		for i, pc := range pcs {
+			gomadDebugPut64(gomadDebugBuffer[64+8*i:72+8*i], uint64(pc))
+		}
+		gomadDebugCall(9, uint32(48+8*len(pcs)))
+		gomadDebugFrames(11, uint64(index), 0, pcs)
+	}
+	status := uint32(0)
+	if truncated {
+		status = 1 << 31
+	}
+	gomadDebugFrame(11, 0, status, ^uint32(0), Frame{})
+}
 
 //go:wasmimport gomad_wasm_v1 config
 //go:noescape
@@ -72,6 +457,7 @@ func gomadWasmInit() {
 func gomadWasmStartUserCode(mp *m) {
 	gomadChoiceSeedRandom()
 	gomadChoiceRootIdentity(mp.curg)
+	gomadDebugInit()
 	exithook.Add(exithook.Hook{F: gomadWasmFinalize, RunOnFailure: true})
 	mrandinit(mp)
 	mp.p.ptr().schedtick = 0
@@ -120,6 +506,7 @@ func gomadChoiceDecision(kind, flags uint8, site uint64, alternatives [][32]byte
 		copy(buffer[32+32*index:32+32*(index+1)], alternatives[index][:])
 	}
 	length := uint32(32 + 32*len(alternatives))
+	gomadDebugDecision(buffer, length)
 	if gomadDiagnosticEnabled {
 		gomadWasmDiagnostic(buffer[length : length+gomadDiagnosticRecordBytes])
 		length += gomadDiagnosticRecordBytes
@@ -132,6 +519,7 @@ func gomadChoiceDecision(kind, flags uint8, site uint64, alternatives [][32]byte
 		gomadChoiceDivergeCurrent(gomadChoiceDivergenceSelected)
 	}
 	gomadChoiceRecords.Add(1)
+	gomadDebugDecisions++
 	return selected
 }
 
@@ -149,6 +537,7 @@ func gomadChoiceAppendRecord(value gomadChoiceRecordValue) {
 		gomadChoiceDivergeCurrent(0)
 	}
 	gomadChoiceRecords.Add(1)
+	gomadDebugWitnessOnly()
 }
 
 func gomadWasmFinalize() {
@@ -156,6 +545,7 @@ func gomadWasmFinalize() {
 		return
 	}
 	gomadWasmFinished = true
+	gomadDebugWitnessOnly()
 	gomadChoicePut32(gomadWasmFinishBuffer[:4], 1)
 	gomadChoicePut32(gomadWasmFinishBuffer[4:8], gomadChoicePeakGoroutines)
 	gomadChoicePut64(gomadWasmFinishBuffer[8:], uint64(gomadWasmLastTime))
@@ -233,7 +623,9 @@ func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
 	if gomadWasmNetPoll != nil {
 		var woken bool
 		woken, networkPending = gomadWasmNetPoll()
-		if woken { return nil, true }
+		if woken {
+			return nil, true
+		}
 	}
 	deadline := pollUntil
 	for n := gomadWasmNotes; n != nil; n = n.next {
@@ -244,8 +636,11 @@ func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
 	if (deadline == 0 || deadline == maxWhen) && !networkPending {
 		return nil, false
 	}
-	if deadline == maxWhen { deadline = 0 }
+	if deadline == maxWhen {
+		deadline = 0
+	}
 	if now < deadline || networkPending {
+		gomadDebugWitnessOnly()
 		clear(gomadWasmIdleBuffer[:])
 		gomadChoicePut32(gomadWasmIdleBuffer[:4], 1)
 		gomadChoicePut64(gomadWasmIdleBuffer[8:], uint64(deadline))
@@ -259,9 +654,13 @@ func gomadWasmBeforeIdle(now, pollUntil int64) (*g, bool) {
 		}
 		gomadWasmLastTime = now
 		if gomadWasmNetPoll != nil {
-			if woken, _ := gomadWasmNetPoll(); woken { return nil, true }
+			if woken, _ := gomadWasmNetPoll(); woken {
+				return nil, true
+			}
 		}
-		if flags == 2 { return nil, false }
+		if flags == 2 {
+			return nil, false
+		}
 	}
 	for n := gomadWasmNotes; n != nil; n = n.next {
 		if n.status == 1 && n.deadline <= now {

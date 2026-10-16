@@ -248,6 +248,10 @@ func publishedName(name string) string { return strings.ReplaceAll(name, "/", ".
 func stockRewrites() map[string][]rewrite {
 	return map[string][]rewrite{
 		"proc.go": {
+			{"\tfn := main_main // make an indirect call", "\tgomadDebugMain()\n\tfn := main_main // make an indirect call", 1},
+			{"\tif mp.lockedg != 0 {\n", "\tif mp.lockedg != 0 && !gomadDebugInspecting {\n", 1},
+			{"\t// now and pollUntil are saved for work stealing later,", "\tif gomadDebugInspecting {\n\t\treturn gomadDebugFindRunnable(pp)\n\t}\n\n\t// now and pollUntil are saved for work stealing later,", 1},
+			{"func execute(gp *g, inheritTime bool) {", "func execute(gp *g, inheritTime bool) {\n\tif gomadDebugInspecting && !gomadDebugAllowed(gp) { throw(\"gomad inspection dispatched application\") }", 1},
 			{"\trandinit() // must run before mallocinit, AlgInit, mcommoninit", "\tgomadWasmInit()\n\trandinit() // must run before mallocinit, AlgInit, mcommoninit", 1},
 			{"\t// Run the initializing tasks. Depending on build mode this", "\tgomadWasmStartUserCode(mp)\n\n\t// Run the initializing tasks. Depending on build mode this", 1},
 			{"\tif n, err := strconv.ParseInt(gogetenv(\"GOMAXPROCS\"), 10, 32); err == nil && n > 0 {", "\tif gomadEnabled {\n\t\tprocs = 1\n\t\tsched.customGOMAXPROCS = true\n\t} else if n, err := strconv.ParseInt(gogetenv(\"GOMAXPROCS\"), 10, 32); err == nil && n > 0 {", 1},
@@ -280,6 +284,8 @@ func stockRewrites() map[string][]rewrite {
 			{"\n\tt.unlock()\n\n\tif raceenabled {\n\t\t// Temporarily use the current P's racectx for g0.", "\n\tcallback := gomadChoiceTimerFire(t)\n\tt.unlock()\n\n\tif raceenabled {\n\t\t// Temporarily use the current P's racectx for g0.", 1},
 		},
 		"os_wasip1.go": {
+			{"func nanotime1() int64 {", "func nanotime1() int64 {\n\tif gomadDebugInspecting { return gomadWasmLastTime }", 1},
+			{"func walltime1() (sec int64, nsec int32) {", "func walltime1() (sec int64, nsec int32) {\n\tif gomadDebugInspecting { return gomadWasmLastTime / 1000000000, int32(gomadWasmLastTime % 1000000000) }", 1},
 			{"func exit(code int32)", "func gomadWasmExit(code int32)", 1},
 			{"\treturn int64(time)\n", "\tgomadWasmLastTime = int64(time)\n\treturn int64(time)\n", 1},
 		},
