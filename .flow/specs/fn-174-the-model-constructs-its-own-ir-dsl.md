@@ -2,9 +2,11 @@
 
 ## DSL-first execution hold (owner override)
 
-All remaining work in this spec follows native framework DSL completion. Committed native checkpoints are fn-164.2/.11/.10, fn-165.7-.9, fn-173.10-.17, fn-123.9/.10 and fn-153.7. The next admitted task is fn-188.3, the priority-0 final native public-client verification and formal batch-review gate. Native APIs, caller migration and public API retirement do not wait for this spec, its full closure, default/Class IR reconciliation in .24, or broad exporter verification. Completion of that native gate does not automatically release this spec; later IR work needs an explicit scheduling decision. Re-anchor capture/export consumers to the final native surface afterwards. Preserve every unfinished exact IR, schema, driver, metadata and consumer proof; none becomes complete through the priority change. Temporal integration stays excluded entirely and requires new owner authority.
+All remaining work in this spec follows native framework DSL completion. Committed native checkpoints are fn-164.2/.11/.10, fn-165.7-.9, fn-173.10-.17, fn-123.9/.10 and fn-153.7; fn-188.3 is complete with formal native-batch review SHIP. Any demonstrated unmet framework DSL requirement takes priority over this spec. Native APIs, caller migration and public API retirement do not wait for this spec, its full closure, default/Class IR reconciliation in .24, or broad exporter verification. Completion of the native gate does not release this spec; later IR work still needs an explicit scheduling decision after DSL requirement triage. Re-anchor capture/export consumers to the final native surface afterwards. Preserve every unfinished exact IR, schema, driver, metadata and consumer proof; none becomes complete through the priority change. Temporal integration stays excluded entirely, including disabled source contents, and requires new owner authority.
 
 > HTML render lens: `.flow/artifacts/fn-174-the-model-constructs-its-own-ir-dsl/spec.html` (local-open only; ignored, regenerable, markdown is the record). <!-- flow-next:artifact-link -->
+
+Next admitted work is fn-147.5, native Duration coverage/guidance only; it is not an exporter prerequisite implementation. This spec and .24 remain held afterward until separately selected.
 
 ## Conversation Evidence
 

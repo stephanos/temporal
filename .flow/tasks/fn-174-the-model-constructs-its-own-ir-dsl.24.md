@@ -2,12 +2,11 @@
 satisfies: [R3, R4, R6]
 ---
 
-# fn-174-the-model-constructs-its-own-ir-dsl.24 Reconcile framework Class/default IR before record-input baseline
-# Framework Class/default consistency before the record-input baseline
+# fn-174-the-model-constructs-its-own-ir-dsl.24 Reconcile framework Class/default IR before deferred exact-IR baseline
 
 ## Description
 
-**Framework-only source checkpoint.** Resolve the qualified old-reader/native Class/default discrepancy carried by fn-174.11 and .3 before fn-165.1 freezes its preservation baseline. This is not the full signature switch or completion of .3, fn-141, or fn-174.
+**Held framework IR checkpoint, not native DSL work.** Resolve the qualified old-reader/native Class/default discrepancy carried by fn-174.11 and .3 before the later fn-165 exact-IR preservation proof freezes its baseline. Native record-input authoring and its batch gate are already complete; this task never precedes or reopens them. Priority-0 fn-147.5 and any demonstrated unmet native DSL requirement come first. This is not the full signature switch or completion of .3, fn-141, or fn-174.
 
 **Admission:** committed fn-188.2 closure; fn-174.10/.11/.13/.14 source checkpoints and their committed receipts; settled fn-164 framework .2/.3/.7/.8/.9 surface. Cross-spec task admissions are conductor-checked. Do not resume held fn-174.2 or its system checks.
 

@@ -1,6 +1,10 @@
 # Migrate elapsed-time fields to protobuf Duration
 
-DSL changes ship a task-named Scalafix rule under `model/migrate/rules/`, prove it on copied `activity_mini` sources before the real-feature sweep, and follow `model/migrate/README.md`; production loading remains held in fn-166.10.
+## Current admission order (owner override, 2026-10-16)
+
+The framework DSL is priority 0. Native implementation and fn-188.3's formal batch gate are complete (SHIP). Next is .5: close only native Duration value/presence coverage and author guidance against the final public surface. Construction/retention is not owning-field admission; no new native validation policy is implied. Existing passing native evidence is retained.
+
+Tasks .1-.4 remain blocked integration work, not prerequisites of .5. Their schema/Go/lifting/runtime/equivalence/artifact obligations remain intact. The former whole-spec fn-145/fn-140/fn-123/fn-149 scheduling edges are removed only to admit .5; their original integration baselines below still bind .1-.4. Completion of .5 does not release them. No Temporal source, including disabled bodies, may be read or consumed. No new Scalafix rule, verifier or manifest is requested; earlier mini migration wording below is historical and superseded for current execution.
 
 > HTML render lens: .flow/artifacts/fn-147-migrate-elapsed-time-fields-to-protobuf/spec.html — open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
 
@@ -61,6 +65,16 @@ The structural prerequisites are integrated: fn-145 split the Umpire schema; fn-
 
 ## Quick commands
 
+Current native-only task .5 uses:
+
+```bash
+mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --test-only framework.realize.RealizationConstructionTest --require-tests
+```
+
+Retain already valid native evidence and run only reached controls during iteration. The broad native batch gate runs at batch end if source changes invalidate its evidence.
+
+Historical integration commands below remain held, not instructions for .5:
+
 ```bash
 go test -tags test_dep ./common/testing/testpilot/... ./tools/umpire/lower/... ./tools/umpire/conformance/...
 make umpire-gen-model
@@ -75,10 +89,10 @@ The owner authorized breaking IR changes on 2026-10-06. Preserve supported behav
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | The seven elapsed-time fields use `google.protobuf.Duration` in the successor Testpilot format, and corresponding Umpire realization fields lower through one checked conversion contract. Counts, ordinals, percentages, logical bounds and timestamps do not change. Errors: negative values where forbidden, non-positive polling intervals, sub-millisecond precision and conversion overflow are rejected at admission with the owning field named. | fn-147-migrate-elapsed-time-fields-to-protobuf.1, fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3 | — |
-| R2 | Each field preserves its absent, explicit-zero and default behavior, including instruction defaults, Program ceilings, Contract deadlines and Run Event monotonic coordinates. Errors: missing required presence, explicit zero where positive is required and a decreasing elapsed coordinate are rejected with their existing error class. | fn-147-migrate-elapsed-time-fields-to-protobuf.1, fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3 | — |
+| R1 | The seven elapsed-time fields use `google.protobuf.Duration` in the successor Testpilot format, and corresponding Umpire realization fields lower through one checked conversion contract. Counts, ordinals, percentages, logical bounds and timestamps do not change. Errors: negative values where forbidden, non-positive polling intervals, sub-millisecond precision and conversion overflow are rejected at admission with the owning field named. | fn-147-migrate-elapsed-time-fields-to-protobuf.1, fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3, fn-147-migrate-elapsed-time-fields-to-protobuf.5 | — |
+| R2 | Each field preserves its absent, explicit-zero and default behavior, including instruction defaults, Program ceilings, Contract deadlines and Run Event monotonic coordinates. Errors: missing required presence, explicit zero where positive is required and a decreasing elapsed coordinate are rejected with their existing error class. | fn-147-migrate-elapsed-time-fields-to-protobuf.1, fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3, fn-147-migrate-elapsed-time-fields-to-protobuf.5 | — |
 | R3 | Successor-format evidence reads perform one read when interval is absent and poll when a positive interval is present. This intentionally changes the old omitted-policy refusal. Scalar-only singleton oneofs use proto3 presence where their arm carries no additional domain meaning. Errors: present-zero or negative intervals, polling without an admitted timeout or default, and retired field spellings are rejected. | fn-147-migrate-elapsed-time-fields-to-protobuf.3 | — |
-| R4 | Scala authoring, lifting, Go lowering, Testpilot preparation, execution, verification, conformance and recorded artifacts use the same checked conversions. Errors: a source value that cannot be represented exactly fails before artifact generation or Driver I/O; retired formats are rejected rather than converted. | fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3, fn-147-migrate-elapsed-time-fields-to-protobuf.4 | — |
+| R4 | Scala authoring, lifting, Go lowering, Testpilot preparation, execution, verification, conformance and recorded artifacts use the same checked conversions. Errors: a source value that cannot be represented exactly fails before artifact generation or Driver I/O; retired formats are rejected rather than converted. | fn-147-migrate-elapsed-time-fields-to-protobuf.2, fn-147-migrate-elapsed-time-fields-to-protobuf.3, fn-147-migrate-elapsed-time-fields-to-protobuf.4, fn-147-migrate-elapsed-time-fields-to-protobuf.5 | — |
 | R5 | Generated Models, Cases, fixtures and canary bindings are regenerated once with categorized identity changes, and the semantics, module map and milestone overview document the new units and presence rules. Umpire's elapsed-time hint/default fields and the seven Testpilot fields are inventoried together. Errors: any artifact delta outside that inventory, its derived identities and R3's explicit presence cleanup stops the migration. | fn-147-migrate-elapsed-time-fields-to-protobuf.4 | — |
 
 ## Scope: the mini feature only (owner, 2026-10-11)

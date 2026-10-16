@@ -171,8 +171,9 @@ facet vocabularies are recorded in fn-161.
 | 3 | fn-173.13-.15 done | All six sample representations committed with retained old texts and explicit maps/deltas/intended-answer inventory, without graph proof claims |
 | 4 | fn-173.16 done | Native StepTables producer/CLI and catalog refinement/law walks retired; concrete structural controls retained and replacement proofs held |
 | 5 | fn-188.3 done; native batch SHIP | Five review findings fixed with red-first regressions; 463 native tests, lint/boundary/format and all cache-isolated public recipes pass; formal full-native-batch review SHIP; integration holds remain |
-| 6 | Remaining demonstrated generic DSL gaps | Re-anchor before IR; do not reopen integrated source work or Temporal-only obligations |
-| Later | IR/export/schema/Go/backends | Held until native DSL completion; original integration and exact-proof tasks remain open |
+| 6 | fn-147.5, priority 0 | Native Duration coverage and author guidance only; source/positive controls already integrated; no new native admission policy |
+| 7 | Demonstrated unmet framework DSL requirements, if any | Triage against final native evidence before selecting build/export; do not invent features or reopen completed work |
+| Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
 <summary>Superseded mini/IR-first schedule (historical)</summary>
@@ -377,7 +378,8 @@ The rest of fn-146/147/148 is deferred below.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-147.2 (Scala) | ⬜ todo | Native Duration source integrated; close focused presence/range/refusal, fixture, equivalence and author-doc proof; shared Go/artifact closure deferred |
+| fn-147.5 | ⬜ todo (priority 0) | Native Duration construction/presence retention coverage and author guidance; retain existing passing controls; no new field-admission policy |
+| fn-147.2 (integration) | ⏸️ deferred | Field-specific range/precision/refusals, lifting, fixtures/equivalence and schema/Go/artifact proofs remain open; not a native DSL prerequisite |
 
 ### fn-140: One-sentence witness Queries with explicit live expectations
 
@@ -1187,10 +1189,10 @@ Scalar-only singleton-oneof presence cleanup belongs here. Batch schema, produce
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-147.1 | 🔄 in progress | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
-| fn-147.2 | 🔄 in progress | Replace schemas and migrate Scala authoring, lifting, realization admission and producers |
-| fn-147.3 | 🔄 in progress | Runtime consumers, polling policy and scalar presence |
-| fn-147.4 | 🔄 in progress | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
+| fn-147.1 | ⏸️ deferred (integration) | Inventory, exact conversion bounds, defaults, presence and monotonicity; proof |
+| fn-147.2 | ⏸️ deferred (integration) | Schema/lifting/admission/producer obligations; native coverage/guidance split into .5 above |
+| fn-147.3 | ⏸️ deferred (integration) | Runtime consumers, polling policy and scalar presence |
+| fn-147.4 | ⏸️ deferred (integration) | Categorize identities, docs; close (artifacts, Run companions and full gates at fn-148.7) |
 
 ### fn-148: Consolidate Testpilot evidence and correlated state schemas
 

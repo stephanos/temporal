@@ -4,7 +4,9 @@ satisfies: [R1, R2, R4]
 # fn-147-migrate-elapsed-time-fields-to-protobuf.2 Replace elapsed-time schemas and migrate Umpire producers
 
 ## Description
-Replace integer elapsed-time fields directly and migrate Scala authoring, lifting and Umpire lowering. The tree may be temporarily red until Task 3 updates consumers; no parallel old fields or compatibility branches are introduced.
+**Current admission:** held integration work. Native Duration value/presence validation and author guidance are split into priority-0 fn-147.5; this task is not its prerequisite. Existing native source and valid fn-188.3 tests are integrated, not unapplied patches. This task retains all lifting, field-admission, schema, Go, equivalence and artifact obligations; completing .5 closes none of them. Temporal remains excluded entirely, including disabled bodies.
+
+Replace integer elapsed-time fields directly and migrate Scala authoring, lifting and Umpire lowering. The tree may be temporarily red until Task 3 updates consumers; no parallel old fields or compatibility branches are introduced. Historical mixed-scope targets below require re-scoping before any future admission.
 
 **Size:** M
 **Files:** Testpilot and Umpire protobuf schemas and generated APIs, Scala realization vocabulary and lifter, Go realization admission and lowering

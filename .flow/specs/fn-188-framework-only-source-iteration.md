@@ -4,11 +4,13 @@
 
 ## DSL-first execution hold (owner override)
 
-The native implementation checkpoints are committed: fn-164.2/.11/.10, fn-165.7-.9, fn-173.10-.17, fn-123.9/.10 and fn-153.7. The next admitted task is .3, the priority-0 final native DSL verification and batch-review gate. It does not depend on broad export verification in .2. Existing native evidence is retained; only missing, stale or invalidated checks need rerunning.
+The native implementation checkpoints are committed: fn-164.2/.11/.10, fn-165.7-.9, fn-173.10-.17, fn-123.9/.10 and fn-153.7. Task .3 is complete with formal native-batch review SHIP. The framework DSL remains priority 0: any demonstrated unmet author-facing DSL requirement is scheduled before build/export, IR, schema, Go or backend work. Do not invent new DSL features or reopen completed checkpoints to fill the queue. Existing final-source native evidence is retained; only missing, stale or invalidated checks need rerunning.
 
-Task .2 remains incomplete and owner-held, and now depends on .3. Completing .3 is necessary but does not automatically release .2 or any IR, capture/exporter, schema, Go or backend work: that later lane requires an explicit scheduling decision. Native work uses isolated native compiler/runtime and relevant lint checks; do not spend it repairing exporter/IR drivers. Preserve failed/interrupted evidence and all original integration obligations. Temporal sources remain disabled and excluded entirely, including their contents, and restoring that scope requires owner authority.
+Task .2 remains incomplete and owner-held, with its .3 dependency satisfied. Completion of .3 does not automatically release .2 or any IR, capture/exporter, schema, Go or backend work: that later lane requires an explicit scheduling decision after DSL requirement triage. Native work uses isolated native compiler/runtime and relevant lint checks; do not spend it repairing exporter/IR drivers. Before admitting .2, reconcile its suite accounting and no-Go execution boundary: the current broad runner includes a real Go build test and omits native sample suites, so it is not a DSL-only gate. Preserve those checks and all failed/interrupted evidence without pass credit. Temporal sources remain disabled and excluded entirely, including their contents, and restoring that scope requires owner authority.
 
 The owner changed the active scope to the framework only and explicitly requested renaming the Scala sources under `model/temporal` so they cannot be compiled accidentally.
+
+Next admitted work is fn-147.5, native Duration coverage/guidance only. It does not activate export or checked field-admission paths. Afterward triage demonstrated DSL gaps before any separately admitted integration lane.
 
 ## Acceptance
 
