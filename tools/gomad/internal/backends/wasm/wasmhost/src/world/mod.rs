@@ -313,7 +313,19 @@ pub struct Model {
     queue: BTreeSet<QueueKey>,
     history: Vec<Transition>,
     transcript: [u8; 32],
+    /// [`digest::state_digest`]'s framed transition encodings for a prefix
+    /// of the append-only history, so a digest re-encodes only new ones.
+    transition_frames: std::cell::RefCell<TransitionFrames>,
 }
+
+#[derive(Default)]
+struct TransitionFrames {
+    count: usize,
+    bytes: Vec<u8>,
+}
+
+/// Retained framed transitions beyond this are dropped and re-encoded.
+const MAXIMUM_TRANSITION_FRAME_BYTES: usize = 256 << 20;
 
 fn capacity(dimension: &'static str, limit: u64, used: u64, delta: u64) -> Error {
     Error::Capacity {
@@ -442,6 +454,7 @@ impl Model {
             queue: BTreeSet::new(),
             history: Vec::new(),
             transcript: digest::empty_digest(),
+            transition_frames: Default::default(),
         })
     }
 
@@ -495,6 +508,44 @@ impl Model {
 
     /// Go `stateDigest` of the current snapshot (replay progress is not bound).
     pub fn state_digest(&self) -> [u8; 32] {
+        self.state_digest_within(MAXIMUM_TRANSITION_FRAME_BYTES)
+    }
+
+    /// [`Self::state_digest`] reusing at most `maximum` retained bytes of
+    /// framed transitions; history is append-only, so a retained prefix
+    /// stays exact.
+    fn state_digest_within(&self, maximum: usize) -> [u8; 32] {
+        let mut frames = self.transition_frames.borrow_mut();
+        let mut encoded = Vec::new();
+        for transition in &self.history[frames.count.min(self.history.len())..] {
+            encoded.clear();
+            digest::append_transition_frame(&mut encoded, transition);
+            if frames.bytes.len() + encoded.len() > maximum {
+                *frames = TransitionFrames::default();
+                drop(frames);
+                return self.uncached_state_digest();
+            }
+            frames.bytes.extend_from_slice(&encoded);
+            frames.count += 1;
+        }
+        digest::state_digest_framed(
+            digest::StateInput {
+                config: &self.config,
+                now: self.now,
+                next_request_id: self.next_request_id,
+                next_event_id: self.next_event_id,
+                next_transition: self.next_transition,
+                payload_bytes: self.payload_bytes,
+                requests: self.requests(),
+                events: self.events(),
+                transitions: &self.history,
+                transcript: &self.transcript,
+            },
+            &frames.bytes,
+        )
+    }
+
+    fn uncached_state_digest(&self) -> [u8; 32] {
         digest::state_digest(digest::StateInput {
             config: &self.config,
             now: self.now,
