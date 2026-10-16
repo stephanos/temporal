@@ -52,7 +52,6 @@ object FrameworkSuites extends Registry:
     "ConstructedSignatureSuite",
     "FiniteSchemaSuite",
     "ReifyBoundarySuite",
-    "ReifySamplesSuite",
     "ExpectFixtures",
     "DerivedIds",
     "RolesSuite",
@@ -103,7 +102,9 @@ object FrameworkSuites extends Registry:
     "HintSnapshotsSuite" -> "system realization hints",
     "MiniRealizationFixtures" -> "real mini realizations and generated IR",
     "ActivityHeartbeatFixtures" -> "activity heartbeat and service API",
-    "ExpectationFixtures" -> "system realization expectations"
+    "ExpectationFixtures" -> "system realization expectations",
+    "ReifySamplesSuite" ->
+      "the samples' native Set, Map, plain Int and Option[Int] state need the IR schema of fn-173.4 (schema and Go held)"
   )
 
   def held(suite: Declared): Option[String] =

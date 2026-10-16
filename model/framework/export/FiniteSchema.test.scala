@@ -713,7 +713,11 @@ object Probe:
   // ReliableBroadcast's native migration (e9fdec5b0f) removed its whole-state values-only witness;
   // its machine retains the state schema on the state's Data witness, which has no values to read.
   test(
-    "unchanged samples compile and ReliableBroadcast retains its native state schema"
+    FrameworkIntegration(
+      "unchanged samples compile and ReliableBroadcast retains its native state schema",
+      "the samples' native Set, Map, plain Int and Option[Int] state need the IR schema of " +
+        "fn-173.4, which the owner holds with schema and Go work"
+    )
   ):
     val native = source(
       "original-sample",
