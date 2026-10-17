@@ -154,17 +154,17 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, delivered), true),
       (Step(Outcome.accepted, wrong), false)
     )
-    same(Model.invariants.safety, Model, None, safetyCases)(after =>
+    SectionClaims.same(Model, "invariants", "safety", None, safetyCases)(after =>
       onlyBroadcast(carried(after.state))
     )
-    same(Naive.invariants.naiveSafety, Naive, None, safetyCases)(after =>
+    SectionClaims.same(Naive, "invariants", "naiveSafety", None, safetyCases)(after =>
       onlyBroadcast(carried(after.state))
     )
     val forwarded =
       initial.copy(p1 = Local.relayed(Payload.hello), p2 = Local.relayed(Payload.hello))
-    across(
-      Model.postconditions.reliability,
+    SectionClaims.across(
       Model,
+      "reliability",
       List(
         (initial, Step(Outcome.accepted, initial), true),
         (forwarded, Step(Outcome.accepted, delivered), true),
@@ -185,9 +185,10 @@ class SampleExpectTest extends munit.FunSuite:
           carried(before).p2
         ))
     )
-    same(
-      Model.postconditions.survivesCrash,
+    SectionClaims.same(
       Model,
+      "queries",
+      "survivesCrash",
       Some(process.deliver(Proc.p2)),
       List(
         (Step(Outcome.accepted, delivered), true),

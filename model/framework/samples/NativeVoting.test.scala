@@ -2,7 +2,7 @@ package framework.dsl
 
 import samples.{ReliableBroadcast, Voting}
 import NativeControls.{assertRefuted, invariant}
-import SectionClaims.{declares, holds as claimHolds}
+import SectionClaims.{declares, holds as claimHolds, target}
 
 // The claims of a sample's sections, written as blocks of `check` (NativeClaims), evaluated
 // natively on one state or one step, as the default checks evaluate them on each.
@@ -82,9 +82,6 @@ class NativeVotingTest extends munit.FunSuite:
   ): List[Step[S, O, Nothing]] =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
-
-  private def holds[S, O](property: Property, state: S, outcome: O): Boolean =
-    property.decl.holds.get.asInstanceOf[Step[S, O, Nothing] => Boolean](Step(outcome, state))
 
   // A Voting state by its vars, as the Votes record holds them, and the record a state holds.
   private def voting(record: Voting.Votes): State =
@@ -435,10 +432,10 @@ class NativeVotingTest extends munit.FunSuite:
       run(Model, relayed, process.deliver(Proc.p1)),
       List(Step(Outcome.accepted, delivered))
     )
-    val reliable = Model.postconditions.reliability.decl.holds2.get
-      .asInstanceOf[(State, Step[State, Outcome, Nothing]) => Boolean]
-    assertEquals(reliable(relayed, Step(Outcome.accepted, delivered)), true)
-    assertEquals(reliable(received, Step(Outcome.accepted, delivered)), false)
+    def reliable(from: State) =
+      claimHolds(Model, "postconditions", "reliability")(delivered, Some(from))
+    assertEquals(reliable(relayed), true)
+    assertEquals(reliable(received), false)
     // The interpreter removes deliveries; this is an explicitly supplied post-channel state.
     val postChannel = delivered.copy(network = wire.network.empty)
     val second = postChannel.copy(p2 = Local.relaying(Payload.hello))
@@ -456,9 +453,10 @@ class NativeVotingTest extends munit.FunSuite:
     )
     val all = forwarded.copy(p2 = Local.delivered(Payload.hello))
     assertEquals(run(Model, forwarded, process.deliver(Proc.p2)), List(Step(Outcome.accepted, all)))
-    assertEquals(holds(Model.postconditions.survivesCrash, all, Outcome.accepted), true)
-    assertEquals(Model.postconditions.survivesCrash.decl.when, Some(process.deliver(Proc.p2)))
-    assertEquals(holds(Model.invariants.safety, all, Outcome.accepted), true)
+    val crashSurvived = Some(process.deliver(Proc.p2))
+    assertEquals(claimHolds(Model, "queries", "survivesCrash")(all, taken = crashSurvived), true)
+    assertEquals(target(Model, "queries", "survivesCrash"), crashSurvived)
+    assertEquals(claimHolds(Model, "invariants", "safety")(all), true)
 
   test("naive callback ends with disagreement and end-only agreement is not sticky"):
     import ReliableBroadcast.*
@@ -472,8 +470,8 @@ class NativeVotingTest extends munit.FunSuite:
     )
     assertEquals(Model.end(naive), true)
     assertEquals(Model.end(supplied.copy(p1 = Local.relaying(Payload.hello))), false)
-    assertEquals(holds(Naive.invariants.naiveSafety, naive, Outcome.accepted), true)
-    assert(Naive.invariants.naiveSafety.decl.machine eq Naive)
+    assertEquals(claimHolds(Naive, "invariants", "naiveSafety")(naive), true)
+    assert(declares(Naive, "invariants", "naiveSafety"))
     val agreement = Model.monitors.agreement
     val broken = agreement.next(false, supplied, Step(Outcome.accepted, naive))
     assertEquals(broken, true)
@@ -482,7 +480,7 @@ class NativeVotingTest extends munit.FunSuite:
     assertEquals(agreement.next(broken, naive, Step(Outcome.accepted, all)), false)
     assertEquals(agreement.atEnds, true)
     assertEquals(agreement.readAt, None)
-    assert(Model.progress.everyoneDelivers.machine eq Model)
+    assert(Model.progress.everyoneDelivers.machine.exists(_ eq Model))
     assertEquals(Model.progress.everyoneDelivers.within, 9)
 
   test("busy receivers ignore new payloads and full Inbox disables sends and relay"):
@@ -606,13 +604,13 @@ class NativeVotingTest extends munit.FunSuite:
     import ReliableBroadcast.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model)
-    // survivesCrash is a find's target: a run need not crash
+    // survivesCrash is a find's target, in queries, which is not checked by default: a run need not
+    // crash
     assertEquals(
       report.verdicts,
       Map(
         "safety" -> verified,
         "reliability" -> verified,
-        "survivesCrash" -> refuted,
         "everyoneDelivers" -> verified,
         "agreement" -> verified
       )
