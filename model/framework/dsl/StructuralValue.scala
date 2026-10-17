@@ -5,11 +5,11 @@ import scala.quoted.*
 
 final private[framework] class StructuralValue[T](
     root: String,
-    slots: List[StructuralValue.Slot],
+    slots: RecordMachine[?, ?, ?] => List[StructuralValue.Slot],
     check: StructuralValue.Check[T]
 ):
   def validate(value: T, owner: RecordMachine[?, ?, ?], context: String): Unit =
-    val inspection = new StructuralValue.Inspection(owner, root, slots, context)
+    val inspection = new StructuralValue.Inspection(owner, root, slots(owner), context)
     check(value, inspection, Nil)
 
 @scala.annotation.publicInBinary
@@ -21,10 +21,35 @@ private[framework] object StructuralValue:
   inline def domain[T]: StructuralValue[T] = ${ captured[T](true) }
 
   def make[T](root: String, slots: List[Slot], check: Check[T]): StructuralValue[T] =
-    new StructuralValue(root, slots, check)
+    new StructuralValue(root, _ => slots, check)
+
+  // The structure of a Machine's State, read off its vars where it is validated: each var's value
+  // is present, a bounded var's lies in its bound, and an Inbox var holds its channel's messages.
+  val state: StructuralValue[State] = new StructuralValue(
+    "framework.dsl.State",
+    owner =>
+      Vars
+        .of(owner)
+        .schema
+        .vars
+        .toList
+        .flatMap(v => v.inbox.map(message => Slot(List(v.name), message))),
+    (state, inspection, path) =>
+      val vars = Vars.of(inspection.owner)
+      vars.schema.vars
+        .lazyZip(vars.owned(state).values)
+        .foreach: (v, value) =>
+          val at = path :+ v.name
+          inspection.present(value, at)
+          v.bound.foreach(high => inspection.bounded(value, high, at))
+          value match
+            case inbox: Inbox[?] if v.inbox.nonEmpty =>
+              inspection.inbox(inbox, at, (message, check, place) => check.present(message, place))
+            case _ => ()
+  )
 
   final class Inspection(
-      owner: RecordMachine[?, ?, ?],
+      val owner: RecordMachine[?, ?, ?],
       root: String,
       slots: List[Slot],
       context: String
@@ -297,5 +322,8 @@ private[framework] object StructuralValue:
                 }
               case None => leaf[A](shape, selected)
 
-    val check = validator[T](Nil, Nil, selectedDomain, TypeRepr.of[T])
-    '{ make[T](${ Expr(TypeRepr.of[T].dealias.show) }, ${ Expr.ofList(slots.toList) }, $check) }
+    if TypeRepr.of[T] =:= TypeRepr.of[State] then
+      '{ state.asInstanceOf[StructuralValue[T]] } // scalafix:ok DisableSyntax.asInstanceOf
+    else
+      val check = validator[T](Nil, Nil, selectedDomain, TypeRepr.of[T])
+      '{ make[T](${ Expr(TypeRepr.of[T].dealias.show) }, ${ Expr.ofList(slots.toList) }, $check) }

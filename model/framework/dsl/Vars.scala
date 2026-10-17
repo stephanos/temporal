@@ -68,11 +68,13 @@ trait Recording[-F]:
   private[framework] def add(recorded: Seq[F]): Unit
 
 // One state var of a Machine as the compiler reads its declaration: its name, its declared type as
-// written, aliases intact (`UpTo[3]`), the bound of a bounded type, and how to compare its values.
+// written, aliases intact (`UpTo[3]`), the bound of a bounded type, the message type of an Inbox,
+// and how to compare its values.
 final class Var private[framework] (
     val name: String,
     val declared: String,
     val bound: Option[Int],
+    val inbox: Option[String],
     private[framework] val accepts: Any => Boolean,
     private[framework] val data: Data[Any]
 ):
@@ -107,6 +109,7 @@ object VarSchema:
       name: String,
       declared: String,
       bound: Option[Int],
+      inbox: Option[String],
       runtime: java.lang.Class[?],
       data: Data[?]
   ): Var =
@@ -114,6 +117,7 @@ object VarSchema:
       name,
       declared,
       bound,
+      inbox,
       value => boxed(runtime).isInstance(value),
       data.asInstanceOf[Data[Any]] // scalafix:ok DisableSyntax.asInstanceOf
     )
@@ -343,6 +347,11 @@ private[framework] object VarSchemaMacro:
               )
               None
         case _ => None
+      val inbox = tpe.dealias match
+        case AppliedType(tycon, List(message))
+            if tycon.typeSymbol.equals(TypeRepr.of[Inbox[?]].typeSymbol) =>
+          Some(message.dealias.show)
+        case _ => None
       tpe.asType match
         case '[t] =>
           val data = Expr
@@ -362,6 +371,7 @@ private[framework] object VarSchemaMacro:
               ${ Expr(v.name) },
               ${ Expr(shown) },
               ${ Expr(bound) },
+              ${ Expr(inbox) },
               $runtime,
               $data
             )
