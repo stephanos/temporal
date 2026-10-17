@@ -127,6 +127,16 @@ private[framework] object NativeClaims:
   // The facts the step under evaluation recorded, none outside an evaluation.
   def facts: List[Any] = current.fold(Nil)(_.recorded)
 
+  // Evaluates `body` on a step a monitor watches: with the state the step reached restored into the
+  // vars, and the state it started from, its outcome and its facts under evaluation.
+  def watching[A](before: Any, step: Step[?, ?, ?])(body: => A): A = (before, step.state) match
+    case (origin: State, now: State) =>
+      now.owner.at(now)(within(Context(Some(origin), None, Some(step.outcome), step.facts))(body))
+    case _ =>
+      throw IllegalArgumentException(
+        s"${step.state} is no state of a Machine that declares its vars: a monitor of vars watches one"
+      )
+
   // A claim written where it is checked rather than in a section, such as a negative control's in a
   // test, `invariant(check(!beeping))`: its block, run in each evaluation.
   final class Adhoc @scala.annotation.publicInBinary private[framework] (

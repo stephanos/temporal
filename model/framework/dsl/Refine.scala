@@ -11,8 +11,16 @@ import scala.annotation.unused
 abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(
     val of: RecordMachine[P, ?, ?]
 ):
-  // The state of the refined machine a state of this one reads as.
+  // The state of the refined machine a state of this one reads as. Of a Machine that declares its
+  // state as vars it reads them by name, `def toProduct(state: State) = Consensus.init.copy(chosen =
+  // chosen(current))`: it is evaluated with the state restored into them (`image`).
   def toProduct(s: S): P
+
+  // The image of `s` in the refined machine: `toProduct` evaluated with `s` restored into the vars
+  // of a Machine that declares them.
+  final def image(s: S): P = s match
+    case state: State => state.owner.at(state)(toProduct(s))
+    case _            => toProduct(s)
 
 object Refinement:
   // The machine `machine`'s `object refinement` refines, where it declares one, for the gate's

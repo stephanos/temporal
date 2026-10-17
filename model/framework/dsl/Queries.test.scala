@@ -19,9 +19,23 @@ object QueriesFixture:
     val open = action
     val close = action
 
+  // What the shop refines: a till that is full or empty.
+  object Drawer extends Machine[Said, Note]:
+    var empty = false
+
+    object transitions extends Transitions:
+      on(customer.close):
+        if !empty then effects.drain()
+
+    object effects:
+      def drain(): Unit = empty = true
+
   object Shop extends Machine[Said, Note]:
     var cash = 3
     var opened = false
+
+    object refinement extends Refinement(Drawer):
+      def toProduct(state: State) = Drawer.init.copy(empty = cash == 0)
 
     // the shop opened and holding nothing
     val emptied = starts(opened = true, cash = 0)
@@ -54,6 +68,16 @@ object QueriesFixture:
       val paysOnlyWhenOpen = after(customer.pay):
         check(before.opened)
 
+    object monitors:
+      // the payments that took cash, which never exceed what the till held
+      val payments = monitor(0)(paid =>
+        if recorded(Note.paid) && cash < before.cash then paid + 1 else paid
+      )(_ > 3)
+      // a refused payment changes nothing, read after every step
+      val refusalKeepsCash = sticky(outcome == Said.ok || cash == before.cash)
+      // what a step recorded, kept: a payment and an opening are never recorded together
+      val single = monitor(false)(seen => seen || facts.size > 1)(identity)
+
     object queries:
       // a find target: no promise, so it is declared here and not checked by default
       val emptiesTill = after(customer.pay):
@@ -77,7 +101,10 @@ class QueriesSuite extends munit.FunSuite:
       Map(
         "neverOverdrawn" -> verified,
         "alwaysFull" -> refuted,
-        "paysOnlyWhenOpen" -> verified
+        "paysOnlyWhenOpen" -> verified,
+        "payments" -> verified,
+        "refusalKeepsCash" -> verified,
+        "single" -> verified
       )
     )
     assertEquals(
@@ -95,6 +122,36 @@ class QueriesSuite extends munit.FunSuite:
       NativeCheck.queries(Shop).find(_.subject == "shop.emptying").get.detail,
       Vector("witness: open, pay(3)")
     )
+
+  test("monitors, refinement and witnesses of a Machine read its vars by name"):
+    import NativeControls.assertRefuted
+    val report = NativeCheck.verifyAll(Shop)
+    assertEquals(report.verdicts("payments"), verified)
+    assertEquals(report.verdicts("refusalKeepsCash"), verified)
+    assertEquals(report.verdicts("single"), verified)
+    val overpaid =
+      Shop.monitor(0)(paid => if Shop.recorded(Note.paid) && Shop.cash < 3 then 1 + paid else paid)(
+        _ > 1
+      )
+    val broken = assertRefuted(Shop, overpaid)
+    assertEquals(broken.detail, Vector("counterexample: open, pay(1), pay(0)"))
+    assertEquals(Shop.refinement.image(Shop.init.copy(cash = 0)), Drawer.init.copy(empty = true))
+    assertEquals(Shop.refinement.image(Shop.init), Drawer.init)
+    val emptied = Shop
+      .witness(customer.open(), customer.pay(UpTo[3](3)))
+      .records(Note.paid)
+      .ends(Shop.cash == 0)
+    assertEquals(NativeCheck.query(emptied, "shop.emptied").verdict, found)
+    val notEmptied = Shop
+      .witness(customer.open(), customer.pay(UpTo[3](1)))
+      .records(Note.paid)
+      .ends(Shop.cash == 0)
+    assertEquals(NativeCheck.query(notEmptied, "shop.notEmptied").verdict, refuted)
+    val opening = Shop
+      .witness(customer.open())
+      .records(Note.opened)
+      .recordsWhen(Shop.opened, Note.opened)
+    assertEquals(NativeCheck.query(opening, "shop.opening").verdict, found)
 
   test("a scenario is named after its val and composes by chaining"):
     import Shop.*

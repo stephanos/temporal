@@ -1216,6 +1216,40 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
   protected given recording: Recording[F] = new Recording[F]:
     private[framework] def add(recorded: Seq[F]): Unit = declared.add(recorded)
 
+  // A monitor of the Machine's steps, `monitor(List.empty[Observation])(history =>
+  // observe(history))(readHistoryBroken)`, named after its `val`: `next` reads the vars, with the
+  // state after each step restored into them, and `before`, `outcome`, `facts` and
+  // `recorded(fact)` of the step; `violated` says which of its states break the promise.
+  final def monitor[M](initial: M)(next: M => M)(violated: M => Boolean)(using
+      Data[M]
+  )(using StateData[M]): Monitor[State, O, F, M] =
+    framework.dsl.monitor[State, O, F, M](initial)((m, before, step) =>
+      NativeClaims.watching(before, step)(next(m))
+    )(violated)
+
+  // The monitors written over a state and a step, as outside a Machine.
+  final def monitor[S, MO, MF, M](initial: M)(next: (M, S, Step[S, MO, MF]) => M)(
+      violated: M => Boolean
+  )(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
+    framework.dsl.monitor[S, MO, MF, M](initial)(next)(violated)
+
+  final def monitor[S, MO, MF, M](name: String, initial: M)(
+      next: (M, S, Step[S, MO, MF]) => M
+  )(violated: M => Boolean)(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
+    framework.dsl.monitor[S, MO, MF, M](name, initial)(next)(violated)
+
+  // A monitor of a promise about every step, which once a step breaks it stays broken: `promise`
+  // reads the vars after the step, and `before`, `outcome`, `facts` and `recorded(fact)`.
+  final def sticky(promise: => Boolean): Monitor[State, O, F, Boolean] =
+    monitor[Boolean](false)(broken => broken || !promise)(broken => broken)
+
+  // The facts the step a monitor watches recorded.
+  final def facts: List[F] =
+    NativeClaims.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
+
+  // Whether the step a monitor watches recorded `fact`.
+  final def recorded(fact: F): Boolean = NativeClaims.facts.contains(fact)
+
   // The durability of a state var across a crash: `durable(p1)` keeps it, `ephemeral(pending, 0)`
   // resets it, `inMemory(origin)(sending -> crashed)` replaces the values listed.
   final protected inline def durable[A](inline variable: A): FieldDurability[State] =

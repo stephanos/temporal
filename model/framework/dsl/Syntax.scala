@@ -978,6 +978,15 @@ extension [S, O, F](claim: Witness[S, O, F])
       G <:< F
   ): Witness[S, O, F] =
     claim.recordingWhen(condition, _.facts.contains(fact))
+  // Requires an additional fact only when a condition of the vars holds after the step:
+  // `recordsWhen(l1 != None, Event.readL1)`. Core form:
+  // `prior(step) && (!condition(step.state) || step.facts.contains(fact))`.
+  @targetName("recordsWhenVars")
+  def recordsWhen[G](condition: => Boolean, fact: G)(using G <:< F, S <:< State): Witness[S, O, F] =
+    claim.recordingWhen(
+      s => summon[S <:< State](s).owner.at(s)(condition),
+      _.facts.contains(fact)
+    )
 
 // Finishes a composition's witness with the fact of its selected member, whose machine fixes the
 // fact type, as the composition's declaration selector does. Core form:

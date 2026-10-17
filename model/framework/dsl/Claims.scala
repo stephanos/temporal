@@ -490,6 +490,11 @@ final class Witness[S, O, F] private[framework] (
   def ends(predicate: S => Boolean): Witness[S, O, F] =
     copyWitness(ending = Some(predicate))
 
+  // The state the path ends in, of a Machine that declares its state as vars: `ends(agreed)`
+  // reads the vars, with the state the path ended in restored into them.
+  def ends(predicate: => Boolean)(using reads: S <:< State): Witness[S, O, F] =
+    copyWitness(ending = Some(s => reads(s).owner.at(s)(predicate)))
+
   def limits(bounds: Limits): Witness[S, O, F] =
     copyWitness(bounds = bounds)
 
