@@ -28,10 +28,6 @@ import scala.deriving.Mirror
 // composition must implement, since a derived one keeps its source's: the IR generator requires them
 // of a declared composition object and refuses them in a derived one. At run time a composition is
 // its members, which the gate constructs (IrFile.construct).
-//
-// A composition whose sections read its phase mixes in its projection, `extends
-// Composition[OverQueue](...), Phased[OverQueue, Phase](_.order.phase)` (model/framework/dsl/Syntax.scala).
-// A derived one mixes in none of its own, and one that does is refused as it initializes.
 abstract class Composition[S <: Product] private (
     private[framework] val shape: Composition.Shape[S],
     private[framework] val mirror: Mirror.ProductOf[S]
@@ -59,14 +55,6 @@ abstract class Composition[S <: Product] private (
 
   // The object's name with its first letter lowered.
   def name: String = objectName(this)
-
-  shape match
-    case Composition.Shape.Of(_) =>
-      require(
-        !declaresPhase,
-        s"${objectName(getClass)} is derived and keeps its source's phase: it mixes in no Phased of its own"
-      )
-    case _ => ()
 
   // The owner its `syncs` read the composed state type from.
   protected given compositionOwner: Composer[S] = Composer(this)
@@ -145,13 +133,11 @@ abstract class Composition[S <: Product] private (
     )
     s"${candidates.head}_${valueKey(outcome)}"
 
-// A composition derivation retaining its source's typed phase and stopping point, like Derived.
-abstract class DerivedComposition[S <: Product, P](derivation: Composition[S])(using
-    source: Inherited[derivation.type, S, P]
-) extends Composition[S](derivation):
-  private[framework] def sourcePhasing: Phasing[S, P] = Phasing(source.projection(derivation))
-  protected given derivedPhasing: Phasing[S, P] = sourcePhasing
-  final def end(s: S): Boolean = source.end(derivation)(s)
+// A composition derivation, as `Composition(derivation)` is, declared as an object that is it:
+// `object LateOverQueue extends DerivedComposition(OrderOverQueue.withMember(...))`. It keeps its
+// source's syncs and end, which the lifter reads from the source.
+abstract class DerivedComposition[S <: Product](derivation: Composition[S])
+    extends Composition[S](derivation)
 
 object Composition:
   private[framework] def retain[S](

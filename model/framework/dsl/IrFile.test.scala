@@ -59,10 +59,9 @@ object DiscoveryFixtures:
 
   object propertyOwner extends Derived(Original.restrict(advance))
 
-  object RoleSource
-      extends RecordMachine[RolePhase, Outcome, Nothing],
-        Phased[RolePhase, RolePhase](identity):
+  object RoleSource extends RecordMachine[RolePhase, Outcome, Nothing]:
     def init = RolePhase.pending
+    def end(s: RolePhase) = s.in[Closed]
 
     object transitions
         extends Bindings(
@@ -463,9 +462,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object BadClosedness extends Derived(RoleSource.refining(RoleSource)(_ => RolePhase.pending))
     val closedness = BadClosedness.refinementEvidence.get
     assert(closedness.of eq RoleSource)
-    assert(RoleSource.phaseEvidence.get(RolePhase.settled).equals(RolePhase.settled))
     assert(closedness.toProduct(RolePhase.settled).equals(RolePhase.pending))
-    assert(RoleSource.phaseEvidence.get(RolePhase.pending).equals(RolePhase.pending))
     object Partial
         extends Derived(
           Original.refining(Original)(s =>

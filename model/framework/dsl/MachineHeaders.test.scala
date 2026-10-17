@@ -22,9 +22,6 @@ class MachineHeadersSuite extends munit.FunSuite:
       def transitions: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError(
         "transitions read"
       )
-      override private[framework] def phaseEvidence: Option[Boolean => Any] = throw AssertionError(
-        "phase read"
-      )
       override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
         throw AssertionError("refinement read")
   private def retain(

@@ -9,7 +9,7 @@ package framework.dsl
 
 import scala.annotation.{implicitNotFound, targetName, unused}
 import scala.collection.mutable
-import scala.compiletime.{codeOf, error}
+import scala.compiletime.codeOf
 import scala.reflect.{ClassTag, TypeTest}
 import scala.util.NotGiven
 import scala.language.implicitConversions
@@ -80,7 +80,7 @@ object outcomes:
     case accepted
     case rejected(why: Rejection)
 
-// `when(...) ~> rejects(Rejection.notFound)`, in a rule of a machine on the shared outcomes: the
+// `where(g) ~> rejects(Rejection.notFound)`, in a rule of a machine on the shared outcomes: the
 // effect that keeps the state, records nothing and answers `rejected(why)`, and
 // `rejects(why).because("...")` the same effect with the server's explanation. Core form:
 // `reject(Outcome.rejected(Rejection.notFound), s)`.
@@ -492,27 +492,6 @@ def effect[S, O, F](using
     body(using draft)
     List(draft.step(s, ok))
 
-// `when(Phase.held) ~> enters(Phase.completed)`, or `retryPaused -> enters(Phase.paused)(s)` as an
-// alternative of a `choose`: the step function of the state alone that takes one step with the ok
-// outcome into the state with its phase replaced by `phase`, recording the status the phase's case
-// declares where its enum is `Recorded`, and nothing otherwise. It writes the phase through the
-// writer the machine's projection declares, `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`, and a
-// derived machine through its source's. It is what an effect whose whole body sets the phase,
-// `effect: phase = Phase.completed`, does, so the rule shows the phase it enters and `effects`
-// keeps the steps with logic. Core form: `enter(s.copy(phase = Phase.completed), statusCompleted)`,
-// or `enter(s.copy(phase = p))` for a phase that declares no status.
-// The phase's own type `C` may be narrower than the machine's phase type `P`, as a case that mixes
-// in its role is (`Phase & Held`): the machine's `Phasing` fixes `P`.
-def enters[S, O, F, P, C <: P](phase: C)(using
-    @unused owner: Owner[S, O, F],
-    ok: Ok[O],
-    phasing: Phasing[S, P]
-): S => List[Step[S, O, F]] =
-  val status = phase match
-    case recorded: Recorded[F @unchecked] => List(recorded.status)
-    case _                                => Nil
-  s => List(Step(ok.outcome, phasing.write(s, phase), status))
-
 // `record(statusPaused)`, in an `effect:` block or an effect of a Machine that declares its state
 // as vars: the step records these facts, after those an earlier `record` of the block recorded.
 // Core form: the facts of `enter(s.copy(...), facts*)`.
@@ -870,16 +849,15 @@ extension (a: Action[EmptyTuple])
     broken => broken
   )
 
-// A case of an `on` block: where in the state space its action fires, `when(Phase.placed)`,
-// `when(Phase.open)`, `where(g)`, `always` or `when(Phase.open).where(g)`, and through `~>` the
-// effect it has there, `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then e(s, inputs) else ...` of the
-// action's step function.
+// A case of an `on` block: where in the state space its action fires, `where(g)`, `always` or
+// `where(g).where(h)`, and through `~>` the effect it has there, `where(placed) ~> effects.ship`.
+// Core form: the arm `if g(s) then e(s, inputs) else ...` of the action's step function.
 final class Case[S, O, F] private[framework] (
     private[framework] val heading: String,
     private[framework] val guard: S => Boolean
 ):
-  // This case where `condition` also holds of the state, beyond its phases:
-  // `when(Phase.open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
+  // This case where `condition` also holds of the state, beyond its own condition:
+  // `where(open).where(_.timer == Timeout.expires)`. Core form: `g(s) && condition(s)`.
   def where(condition: S => Boolean): Case[S, O, F] =
     guard match
       case input: InputGuard[S] @unchecked =>
@@ -900,7 +878,7 @@ final class Case[S, O, F] private[framework] (
     Case(s"$heading.where", combined)
 
   // The effect of the block's action where this case holds, read of the state alone:
-  // `when(Phase.placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
+  // `where(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
   // function.
   infix def ~>(effect: S => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, ?]
@@ -908,7 +886,7 @@ final class Case[S, O, F] private[framework] (
     firing.bind(this, stateEffect(effect))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
-  // the input: `when(Phase.open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
+  // the input: `where(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
   @targetName("readsOne")
   infix def ~>[I, A](effect: (S, A) => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, I],
@@ -1090,61 +1068,17 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
   val _ = firing
   Case("always", _ => true)
 
-// The projection of a machine's or composition's state onto its phase, declared once by mixing it
-// into the object: `object OrderProduct extends RecordMachine[OrderState, Outcome, OrderFact],
-// Phased[OrderState, Phase](_.phase)`, or for a composition a nested phase,
-// `Phased[OverQueue, Phase](_.order.phase)`. Both types are written: a trait parent's lambda takes
-// no parameter type from the other parents. A machine whose rules or effects enter a phase by
-// `enters(Phase.x)` also declares the writer that replaces the phase the projection reads,
-// `Phased[OrderState, Phase](_.phase, (s, p) => s.copy(phase = p))`; the IR generator requires it to copy the
-// state along the projection's field path. Its sections read it as a given: `when(Phase.placed)` and
-// `when(states.terminal)` in `object transitions extends Rules:` test it. It is optional, as a machine that
-// names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
-// its own: a derived machine reads its source's, with its phase type. Its default end is the Closed
-// role, witnessed at the concrete parent declaration; an explicit end overrides it. The default's
-// first evaluation refuses a phase with no Closed case, naming the object and phase type. A derived
-// machine's final end prevents mixing it in, and a derived composition refuses its own projection
-// as it initializes. Core form: the given `Phasing(_.phase)` the object's sections read.
-trait Phased[S, P](
-    private[framework] val projection: S => P,
-    private[framework] val writer: (S, P) => S = Phasing.Unwritten
-)(using
-    Finite[P],
-    TypeTest[P, Closed],
-    ClassTag[P]
-) extends Declares[S]:
-  // The projection its sections and readers of their generated capability claims share.
-  given phased: Phasing[S, P] = Phasing(projection, writer)
-
-  private lazy val closedCases = phased.roleCases[Closed](name)
-
-  // The default stopping point is closedness. A machine whose stopping point differs overrides it.
-  // Core form: `projection(s).in(<the Closed cases of P>)`.
-  def end(s: S): Boolean = closedCases.contains(projection(s))
-
-  final override private[framework] def declaresPhase: Boolean = true
-
-// The phase a derived machine reads through its source. Its evidence is preferred to the evidence
-// of a source that declares no phase, which it extends. Core form: none of its own; it is the
-// source's `Phasing(_.phase)`.
-object Phased extends Inherited.Unphased:
-  // A source that mixes in `Phased[S, P]` projects its state onto `P` by its own projection.
-  // Core form: the source's `Phasing(_.phase)`.
-  given source[S, P, T <: Phased[S, P]]: Inherited[T, S, P] =
-    Inherited(_.projection, _.end, _.writer)
-
 private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
   book.isInstanceOf[RuleTable[?, ?, ?]]
 
 extension (@unused companion: MemberPath.type)
   private[framework] def field(member: Any): Option[String] = MemberPath.retainedField(member)
 
-// When each action of a machine fires, written as the machine object's `object transitions
-// extends Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
-// through its given: blocks of an action or action class,
-// `on(clerk.ship): when(Phase.placed) ~> effects.send`, whose cases each say where the action fires,
-// `when(...)` of phases or of a named set of them, `where(g)` of the state,
-// `when(...).where(g)` of both or `always`, and what it does there, `~> effects.x`; and the actions
+// When each action of a machine over a state record fires, written as the machine object's `object
+// transitions extends Rules`: blocks of an action or action class,
+// `on(clerk.ship): where(_.phase == Phase.placed) ~> effects.send`, whose cases each say where the
+// action fires, `where(g)` of the state, `where(g).where(h)` of both or `always`, and what it does
+// there, `~> effects.x`; and the actions
 // no state enables, `disabled(courier.strike)`. A block fires a whole action, `on(buyer.change)`,
 // one class of it, `on(buyer.change(Change.hold))`, whose effects then read the state alone, or
 // several of them alike, `on(clerk.ship, clerk.cancel)`; an effect that takes arguments beyond the
@@ -1153,8 +1087,7 @@ extension (@unused companion: MemberPath.type)
 // refuses a bare target, and a bare `disabled` target, at its line, and a block refuses as the rules
 // construct any bare target, including imported names, using its original source spelling. The
 // blocks of the actions one object declares may be grouped in
-// `from(clerk):` with nested `on(clerk.ship):` blocks, which imports nothing. A case names phases through
-// their type, `when(Phase.placed)`. Where no
+// `from(clerk):` with nested `on(clerk.ship):` blocks, which imports nothing. Where no
 // case holds, the action is disabled: there is no catch-all. The cases of one action class hold in
 // no common reached state, whichever blocks they sit in. Registration retains the rules without
 // running their guards or effects; overlap checking belongs to the interpreter. Core form: one step
@@ -1167,12 +1100,10 @@ extension (@unused companion: MemberPath.type)
 // lifter names it after its `val`, so `scala.compiletime.codeOf` names the action in an overlap
 // message. TASTy is pickled before inlining, so the lifter reads the unexpanded call, and it refuses
 // an expanded one loudly ("not a rule") rather than lift it.
-abstract class Rules[S, O, F, P](using
+abstract class Rules[S, O, F](using
     owner: Owner[S, O, F],
-    phasing: Phasing[S, ? <: P],
     source: FacetSource
 ) extends RuleTable[S, O, F]:
-  private val phase: S => P = phasing.projection
 
   // A generated crash uses the machine's retained field classification. Core form:
   // `on(action) { always ~> generatedReset }`.
@@ -1215,7 +1146,7 @@ abstract class Rules[S, O, F, P](using
         )
       cases(using firing)
 
-  // The cases of a whole action: `on(clerk.ship): when(Phase.placed) ~> effects.send`. Core form: the
+  // The cases of a whole action: `on(clerk.ship): where(placed) ~> effects.send`. Core form: the
   // action's step function, whose arms are the cases in order.
   inline def on[I](inline a: Action[I])(
       cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
@@ -1283,7 +1214,7 @@ abstract class Rules[S, O, F, P](using
     block[NativeInput[EmptyTuple]](a.decl, None, codeOf(a))(cases)
 
   // The cases of one class of an action, whose effects read the state alone:
-  // `on(courier.report(Report.delivered)): when(sent) ~> effects.deliver`. Core form: the arms
+  // `on(courier.report(Report.delivered)): where(sent) ~> effects.deliver`. Core form: the arms
   // `if g(s) && result == Report.delivered then deliver(s)` of the action's step function.
   inline def on(inline c: Class)(
       cases: Firing[S, O, F, EmptyTuple] ?=> Unit
@@ -1293,7 +1224,7 @@ abstract class Rules[S, O, F, P](using
     block[EmptyTuple](target.decl, Some(target.values), RuleSource.spelling(c))(cases)
 
   // The same cases for two actions, or classes of them, whose effects read the state alone:
-  // `on(clerk.hold, clerk.cancel): when(shipped) ~> rejects(Rejection.failedPrecondition)`.
+  // `on(clerk.hold, clerk.cancel): where(shipped) ~> rejects(Rejection.failedPrecondition)`.
   // Fixed arities of two to four, since `codeOf` names no element of an `inline` varargs list.
   // Core form: one block per target, `on(clerk.hold): cases` and `on(clerk.cancel): cases`.
   inline def on(inline a: Action[?] | Class, inline b: Action[?] | Class)(
@@ -1359,50 +1290,6 @@ abstract class Rules[S, O, F, P](using
   inline def from(declarer: AnyRef)(inline body: Unit): Unit =
     grouped(declarer, RuleSource.imports(body))(body)
 
-  // The retired rule-case spelling is refused where it is written, while `value.in(...)` remains
-  // the membership predicate below. Core form: none; write `when(...)` for a rule case.
-  inline def in[Q](@unused first: Q, @unused rest: Q*): Nothing =
-    error("in(...) is membership alone: write `when(...)` for a rule case")
-
-  // The retired role spelling is refused where it is written, while `value.in[R]` remains the
-  // membership predicate below. Core form: none; write `when[R]` for a role rule case.
-  inline def in[R]: Nothing =
-    error("in[R] is membership alone: write `when[R]` for a role rule case")
-
-  private[framework] def phases(
-      set: P => Boolean,
-      code: String
-  ): Case[S, O, F] =
-    Case(s"when(${code.trim})", s => set(phase(s)))
-
-  // A case that holds in the phases listed, each named through its phase type:
-  // `when(Phase.placed, Phase.open)`; the IR generator refuses a bare phase. Core form:
-  // `List(p1, p2).contains(s.phase)`.
-  def when[Q](first: Q, rest: Q*)(using PhasesOf[P, Q]): Case[S, O, F] =
-    val phases = first +: rest
-    Case(s"when(${phases.mkString(", ")})", s => phases.contains(phase(s)))
-
-  // A case that holds in a named set of phases: `when(states.terminal)`. Core
-  // form: `terminal(s.phase)`.
-  inline def when(inline set: P => Boolean)(using
-      PhasesOf[P, P]
-  ): Case[S, O, F] =
-    phases(set, codeOf(set))
-
-  // A case that holds in the phases with the role `R` (model/framework/dsl/Roles.scala), as the projection
-  // of the machine's `Phased` reads them: `when[Closed] ~> effects.notFound`; a machine that is
-  // not `Phased` names no role. Core form:
-  // `List(<the cases of R, in declaration order>).contains(s.phase)`.
-  def when[R](using
-      role: TypeTest[P, R],
-      named: ClassTag[R],
-      @unused projected: PhasesOf[P, P]
-  ): Case[S, O, F] =
-    Case(
-      s"when[${named.runtimeClass.getSimpleName}]",
-      s => role.unapply(phase(s)).nonEmpty
-    )
-
   // Actions no state enables, which the machine binds all the same, such as a courier's strike it does
   // not feel. Core form: `action ~> (_ => Nil)`.
   inline def disabled(inline actions: Action[?]*): Unit =
@@ -1423,23 +1310,6 @@ abstract class Rules[S, O, F, P](using
   extension [A](value: A)
     @sugar def in[R](using role: TypeTest[A, R]): Boolean =
       role.unapply(value).nonEmpty
-
-// Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
-// that mixes in `Phased[State, Phase](_.phase)` name phases with `when`, and the rules of
-// one that is not `Phased`, whose phase type is `Nothing`, name none. Core form: none of its own;
-// `when(p1, p2)` is `List(p1, p2).contains(s.phase)`.
-@implicitNotFound(
-  "when names phases of ${Q}, and these rules read phases of ${P}: mix the projection the " +
-    "phases are of into the machine, `Phased[State, Phase](_.phase)`"
-)
-final class PhasesOf[P, Q] private ()
-
-// The one projection a case's phases are of: its own. Core form: `List(p1, p2).contains(s.phase)`.
-object PhasesOf:
-  // Phases of the projection's own type, other than `Nothing`, or of a narrower one: a case that
-  // takes a role, `case done extends Phase, Succeeded`, is a `Phase & Succeeded`. Core form:
-  // `List(p1, p2).contains(s.phase)`, whose phases are of the type of `s.phase`.
-  given [P, Q <: P](using NotGiven[P =:= Nothing]): PhasesOf[P, Q] = PhasesOf()
 
 // The rules of one action a derivation binds in its source's place:
 // `rebind(on(clerk.ship): always ~> OrderRecord.effects.send)`, each case `where(g)` or

@@ -93,7 +93,7 @@ object TransitionsFixture:
       def flick(): Unit = light = if light == Lit.on then Lit.off else Lit.on
 
   // The spec's retry phase table (fn-190, API Contracts), as a `match` over a phase var and in the
-  // hidden `when` form over a phase record, with the same effects.
+  // hidden `where` form over a phase record, with the same effects.
   enum Phase:
     case unstarted, scheduled, started, paused
     case cancelRequested, pauseRequested, resetRequested, resetKeepingPause
@@ -147,10 +147,9 @@ object TransitionsFixture:
 
   final case class Retry(phase: Phase, retries: UpTo[2])
 
-  object RetryRecord
-      extends RecordMachine[Retry, Outcome, Nothing],
-        Phased[Retry, Phase](_.phase, (s, p) => s.copy(phase = p)):
+  object RetryRecord extends RecordMachine[Retry, Outcome, Nothing]:
     val init = Retry(Phase.unstarted, UpTo(2))
+    def end(s: Retry) = s.phase.in[Closed]
 
     object states:
       def retriesRemaining(s: Retry): Boolean = s.retries > 0
@@ -170,14 +169,17 @@ object TransitionsFixture:
 
     object transitions extends Rules:
       on(activityWorker.respondFailed(Failure.retryable)):
-        when(Phase.started).where(states.retriesRemaining) ~> effects.backOff
-        when(Phase.cancelRequested) ~> effects.cancel
-        when(Phase.pauseRequested).where(states.retriesRemaining) ~> effects.backOffPaused
-        when(Phase.started, Phase.pauseRequested).where(states.exhausted) ~> effects.fail
+        where(_.phase == Phase.started).where(states.retriesRemaining) ~> effects.backOff
+        where(_.phase == Phase.cancelRequested) ~> effects.cancel
+        where(_.phase == Phase.pauseRequested).where(states.retriesRemaining) ~>
+          effects.backOffPaused
+        where(_.phase.in(Phase.started, Phase.pauseRequested)).where(states.exhausted) ~>
+          effects.fail
       on(completionClient.respondFailedByID):
-        when(Phase.unstarted, Phase.scheduled, Phase.paused) ~> rejects(Rejection.notFound)
-        when[Closed] ~> rejects(Rejection.notFound)
-        when(Phase.resetRequested, Phase.resetKeepingPause) ~> effects.applyReset
+        where(_.phase.in(Phase.unstarted, Phase.scheduled, Phase.paused)) ~>
+          rejects(Rejection.notFound)
+        where(_.phase.in[Closed]) ~> rejects(Rejection.notFound)
+        where(_.phase.in(Phase.resetRequested, Phase.resetKeepingPause)) ~> effects.applyReset
 
 class TransitionsTest extends munit.FunSuite:
   import TransitionsFixture.*
@@ -278,7 +280,7 @@ class TransitionsTest extends munit.FunSuite:
         assertEquals(rules.map(_.values), Vector(Some(List(Knob.up)), Some(List(Knob.down))))
       case other => fail(s"turn is bound to $other")
 
-  test("the retry phase table as a match gives the steps of its when form, in every state"):
+  test("the retry phase table as a match gives the steps of its where form, in every state"):
     val classes =
       inputClassesOf(activityWorker.respondFailed.decl) ++
         inputClassesOf(completionClient.respondFailedByID.decl)

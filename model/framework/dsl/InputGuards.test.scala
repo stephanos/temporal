@@ -87,15 +87,13 @@ object InputGuardsFixture:
         )
       )
 
-  object PhasedNative
-      extends RecordMachine[Boolean, Boolean, Boolean],
-        Phased[Boolean, Boolean](identity):
+  object Conditioned extends RecordMachine[Boolean, Boolean, Boolean]:
     val init = false
-    override def end(s: Boolean): Boolean = s
+    def end(s: Boolean): Boolean = s
 
     object transitions extends Rules:
       on(caller.start):
-        when(false).where { (s, in) =>
+        where(s => !s).where { (s, in) =>
           seen += in
           !s && in.flag
         } ~> effect
@@ -213,9 +211,9 @@ class InputGuards extends munit.FunSuite:
       assertEquals(run(machine, false, first), Nil)
       assertEquals(order.toList, List("class", "state", "input"))
 
-  test("input guards survive facets, rule-group rebind, extension and phase conditions"):
+  test("input guards survive facets, rule-group rebind, extension and state conditions"):
     import InputGuardsFixture.*
-    for machine <- List(Faceted, Extended, Regrouped, PhasedNative) do
+    for machine <- List(Faceted, Extended, Regrouped, Conditioned) do
       val binding = machine.bindings.find(_.decl eq caller.start.decl).get
       val run = effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)
       seen.clear()

@@ -236,25 +236,12 @@ class FacetBindingsSuite extends munit.FunSuite:
     var getters = 0
     var guards = 0
     var effects = 0
-    var projections = 0
-    var writers = 0
     var callbacks = 0
     given Finite[Boolean] = new Finite[Boolean]:
       def values: IndexedSeq[Boolean] =
         catalogs += 1
         Vector(false, true)
-    given scala.reflect.TypeTest[Boolean, Closed] with
-      def unapply(value: Boolean): Option[value.type & Closed] = None
-    class CountedSource
-        extends Source(nativeTable = true),
-          Phased[Boolean, Boolean](
-            s =>
-              projections += 1;
-              s
-            ,
-            (_, p) =>
-              writers += 1; p
-          ):
+    class CountedSource extends Source(nativeTable = true):
       override def end(s: Boolean): Boolean = throw AssertionError("end read")
     val source = new CountedSource
     origin(source): Unit
@@ -278,11 +265,11 @@ class FacetBindingsSuite extends munit.FunSuite:
             "when",
             s =>
               guards += 1
-              source.projection(s) == enabled
+              s == enabled
           )
           val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] = (s, _) =>
             effects += 1
-            List(Step(true, source.writer(s, s)))
+            List(Step(true, s))
           val firing = summon[Firing[Boolean, Boolean, Nothing, NativeInput[Boolean]]]
           val base = template(source)
           val value = if enabled then base
@@ -298,21 +285,17 @@ class FacetBindingsSuite extends munit.FunSuite:
         }
     }
     val table = source.table
-    assertEquals(Vector(catalogs, guards, effects, projections, writers), Vector(0, 0, 0, 0, 0))
+    assertEquals(Vector(catalogs, guards, effects), Vector(0, 0, 0))
     val run = stepFunction[Boolean, Boolean, Nothing](table.head._1, table.head._2)
       .asInstanceOf[(Boolean, Boolean) => List[Step[Boolean, Boolean, Nothing]]]
     assertEquals(run(false, true), List(Step(true, false)))
-    val before =
-      Vector(catalogs, getters, guards, effects, projections, writers, callbacks, source.nameReads)
+    val before = Vector(catalogs, getters, guards, effects, callbacks, source.nameReads)
     // The explicit step validates its supplied scalar against the selected input catalog.
-    assertEquals(before, Vector(1, 3, 2, 1, 2, 1, 2, 0))
+    assertEquals(before, Vector(1, 3, 2, 1, 2, 0))
     assertEquals(callbacks, 2)
     val first = RuleBindings.collect(source)
     assertEquals(RuleBindings.collect(source), first)
-    assertEquals(
-      Vector(catalogs, getters, guards, effects, projections, writers, callbacks, source.nameReads),
-      before
-    )
+    assertEquals(Vector(catalogs, getters, guards, effects, callbacks, source.nameReads), before)
 
   test(
     "isolated Facets instantiate exact live context without emitting wrapper roots or leaking A/B/A"

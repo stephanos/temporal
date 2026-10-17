@@ -1,12 +1,12 @@
 package framework.dsl
 
 import scala.annotation.{publicInBinary, unused}
-import scala.reflect.{ClassTag, TypeTest}
 
 // One result of an action: the outcome, the next state and the facts it records. `because` is an
 // optional explanation a generated table view shows beside the row; no fingerprint reads it.
-// Covariant in its facts, so a step that records none, such as `stay(s)` or `reject(o, s)`, is a
-// step of every machine of its states and outcomes, and its effect needs no stated result type.
+// Covariant in its facts, so a step that records none, such as `stay(s)` or `reject(o, s)`, is
+// a step of every machine of its states and outcomes, and its effect needs no stated
+// result type.
 final case class Step[S, O, +F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
 
 // `steps.because("...")`: the explanation of each step written here, as `Step`'s `because` gives it.
@@ -154,10 +154,6 @@ trait Declares[S] extends Model:
   // as the type it stands for. Its outcomes and facts are not given names here: inside an object
   // they would hide the feature's own `Outcome` and fact types.
   type State = S
-
-  // Whether the object mixes in its own phase projection, `Phased[State, Phase](_.phase)`
-  // (model/framework/dsl/Syntax.scala), which a derived machine or derived composition may not.
-  private[framework] def declaresPhase: Boolean = false
 
   // A Property or a Scenario is named after the `val` that declares it (`val completes =
   // orderProduct.property expect: ...`), or by the name it is given where it is declared without
@@ -360,100 +356,13 @@ extension [I](a: Action[I])
     )
 
 // The owner of a machine's sections, which its `transitions` read the machine's types from:
-// `object transitions extends Rules:` in `object OrderProduct extends RecordMachine[...],
-// Phased[...](_.phase)`, whose rules read the phase projection from the machine's `Phasing`.
+// `object transitions extends Transitions:` in `object OrderProduct extends Machine[...]`.
 final class Owner[S, O, F] private[framework] (val machine: RecordMachine[S, O, F])
 
-// The projection of a machine's or composition's state onto its phase, which its sections read as a
-// given: `when(Phase.placed)` in its `transitions` tests it. The object's
-// `Phased[State, Phase](_.phase)` (model/framework/dsl/Syntax.scala) gives it, and a derived machine
-// gives its source's, with the source's phase type.
-final class Phasing[S, P] private[framework] (
-    private[framework] val projection: S => P,
-    private[framework] val writer: (S, P) => S = Phasing.Unwritten
-):
-  // Reads the phase a lifecycle reader tests, including a phase nested in a composed state.
-  def phase(state: S): P = projection(state)
-
-  // The state with its phase replaced by `p`, through the writer its `Phased` declares, which must
-  // give a state the projection reads `p` of.
-  private[framework] def write(state: S, p: P): S =
-    val written = writer(state, p)
-    require(
-      java.util.Objects.equals(projection(written), p),
-      s"the phase writer gives $written for $p, whose phase it does not read as $p: write the " +
-        "field the projection reads, `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
-    )
-    written
-
-  // The phase cases with a role, refused when none has it, naming the reader and the phase type.
-  def roleCases[R](owner: String)(using
-      finite: Finite[P],
-      witness: TypeTest[P, R],
-      phaseType: ClassTag[P],
-      role: ClassTag[R]
-  ): IndexedSeq[P] =
-    framework.dsl.roleCases[P, R](owner, role.runtimeClass.getSimpleName)(using
-      finite,
-      witness,
-      phaseType
-    )
-
-object Phasing:
-
-  private[framework] object Unwritten extends ((Any, Any) => Nothing):
-    def apply(state: Any, phase: Any): Nothing =
-      throw IllegalStateException(
-        s"enters($phase) writes the phase through the writer the machine's Phased declares, and it " +
-          "declares none: `Phased[State, Phase](_.phase, (s, p) => s.copy(phase = p))`"
-      )
-
-  // The phasing of an object that declares no phase: its phase type is `Nothing`, so `when(...)` of
-  // its rules does not compile, and its projection is never called.
-  given unphased[S]: Phasing[S, Nothing] =
-    Phasing(_ => throw IllegalStateException("this machine or composition declares no phase"))
-
 // What a machine a derivation makes is made from: `m.rebind(...)` is made from `m`. Its static type
-// keeps the source's object type, so a derived machine reads its source's phase.
+// keeps the source's object type.
 trait DerivedFrom[+M]:
   private[framework] def source: M
-
-// Evidence that `T`, the source of a derivation, projects its state `S` onto the phase type `P`:
-// through its own `Phased` (whose companion gives that evidence), through the source it is derived
-// from in turn, or, where it declares no phase, onto `Nothing`.
-final class Inherited[-T, S, P] private[framework] (
-    private[framework] val projection: T => S => P,
-    private[framework] val end: T => S => Boolean,
-    private[framework] val writer: T => (S, P) => S = (_: T) => Phasing.Unwritten
-)
-
-object Inherited extends Inherited.Unphased:
-  // A derivation, `m.rebind(...)`: its source's.
-  given derivation[S, P, M, T <: DerivedFrom[M]](using
-      source: Inherited[M, S, P]
-  ): Inherited[T, S, P] =
-    Inherited(
-      t => source.projection(t.source),
-      t => source.end(t.source),
-      t => source.writer(t.source)
-    )
-
-  // A derived machine, `object M extends Derived(m.rebind(...))`: its own, which is its source's.
-  given derived[S, P, T <: Derived[S, ?, ?, P]]: Inherited[T, S, P] =
-    Inherited(_.sourcePhasing.projection, _.end, _.sourcePhasing.writer)
-
-  given composed[S <: Product, P, T <: DerivedComposition[S, P]]: Inherited[T, S, P] =
-    Inherited(_.sourcePhasing.projection, _.end)
-
-  // The evidence of a source that declares no phase, below every other: a given defined in an
-  // object that extends this trait, such as `Phased`'s companion, is preferred to it.
-  trait Unphased:
-    // A source that declares no phase projects its state onto `Nothing`.
-    given unphased[T, S]: Inherited[T, S, Nothing] =
-      Inherited(
-        _ => Phasing.unphased[S].projection,
-        _ => _ => throw IllegalStateException("this derivation declares no phased stopping point")
-      )
 
 // What a `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.
@@ -608,10 +517,6 @@ private[framework] def writtenPath(code: String): String =
 //   object effects: ...
 //   object transitions extends Rules: ...
 // }}}
-//
-// A machine whose rules name phases mixes in its phase projection, `extends RecordMachine[OrderState,
-// Outcome, OrderFact], Phased[OrderState, Phase](_.phase)` (model/framework/dsl/Syntax.scala), which its
-// sections read; a machine that names no phase is a plain `Machine`.
 //
 // Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
@@ -974,17 +879,6 @@ abstract class RecordMachine[S, O, F](using
       .declaredBy(this)
       .map(_.asInstanceOf[Refinement[S, ?]]) // scalafix:ok DisableSyntax.asInstanceOf
 
-  private[framework] def phaseEvidence: Option[S => Any] =
-    if !declaresPhase then None
-    else
-      getClass.getMethod("phased").invoke(this) match
-        case phasing: Phasing[?, ?] =>
-          Some(
-            phasing.asInstanceOf[Phasing[S, ?]].projection // scalafix:ok DisableSyntax.asInstanceOf
-          )
-        case other =>
-          throw IllegalStateException(s"$name declares an invalid phase projection: $other")
-
   private[framework] def reaches: Seq[Model] = refinementEvidence.toSeq.map(_.of)
 
   // One step function per action: the rules of each, lowered (Rules.lowered).
@@ -1236,14 +1130,10 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
 // derivation is an expression of the core operations `rebind`, `extend`, `restrict`, `refining`,
 // `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
-// `properties`, `capabilities` and `queries`, and reuses its source's effects by name. It mixes in no
-// `Phased` of its own: its sections read its source's phase projection, with its phase type.
-//
-// Its phase type `P` is its source's, read off the derivation's static type, `Nothing` where the
-// source declares no phase.
-abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
-    source: Inherited[derivation.type, S, P]
-) extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
+// `properties`, `capabilities` and `queries`, and reuses its source's effects by name. Its end is its
+// source's.
+abstract class Derived[S, O, F](derivation: RecordMachine[S, O, F])
+    extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
       derivation.ss
     ):
   override def reach: Limits = derivation.reach
@@ -1266,17 +1156,6 @@ abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
       .map((own, inherited) => own.orElse(inherited))
   override private[framework] def factCases: Vector[(AnyRef, String)] =
     super.factCases ++ derivation.factCases
-  require(
-    !declaresPhase,
-    s"${objectName(getClass)} is derived and keeps its source's phase: it mixes in no Phased of its own"
-  )
-
-  // The phase projection its sections read: its source's, with its phase type.
-  private[framework] def sourcePhasing: Phasing[S, P] =
-    Phasing(source.projection(derivation), source.writer(derivation))
-
-  protected given derivedPhasing: Phasing[S, P] = sourcePhasing
-
   final def init: S = derivation.init
   final def end(s: S): Boolean = derivation.end(s)
   final def transitions: RuleBook[S, O, F] = derivation.transitions
@@ -1290,7 +1169,6 @@ abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
     derivation +: refinementEvidence.toSeq.map(_.of)
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] =
     super.refinementEvidence.orElse(derivation.refinementEvidence)
-  final override private[framework] def phaseEvidence: Option[S => Any] = derivation.phaseEvidence
   final override private[framework] def stateVars: Option[Vars] = derivation.stateVars
 
 // A machine a derivation makes from another: its name, its starts and ends, what it binds each
@@ -1354,9 +1232,3 @@ final private[framework] class Built[S, O, F, M <: Model](
       case _                               => operations
   final override private[framework] def reaches: Seq[Model] = source +: also
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] = refinement
-  final override private[framework] def phaseEvidence: Option[S => Any] = source match
-    case machine: RecordMachine[?, ?, ?] =>
-      machine
-        .asInstanceOf[RecordMachine[S, ?, ?]]
-        .phaseEvidence // scalafix:ok DisableSyntax.asInstanceOf
-    case _ => None

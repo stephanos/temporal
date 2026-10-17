@@ -32,7 +32,7 @@ object RulesFixture:
   object Trace:
     val initialized = mutable.ArrayBuffer.empty[String]
 
-  object Switch extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Switch extends RecordMachine[Lamp, Said, Nothing]:
     Trace.initialized += "Switch"
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
@@ -55,15 +55,15 @@ object RulesFixture:
     object transitions extends Rules:
       Trace.initialized += "Switch.transitions"
       on(hand.press):
-        when(Lit.off) ~> effects.light
-        when(Lit.on) ~> effects.dark
+        where(_.light == Lit.off) ~> effects.light
+        where(_.light == Lit.on) ~> effects.dark
       on(hand.turn(Knob.down)):
-        when(Lit.on) ~> effects.dark
+        where(_.light == Lit.on) ~> effects.dark
       on(hand.turn(Knob.up)):
-        when(Lit.on) ~> effects.light
+        where(_.light == Lit.on) ~> effects.light
       on(hand.turn):
-        when(Lit.off) ~> effects.turned
-        when(Lit.broken) ~> effects.refuse
+        where(_.light == Lit.off) ~> effects.turned
+        where(_.light == Lit.broken) ~> effects.refuse
       on(clock.tick):
         where(s => s.presses == 2 && s.light != Lit.broken) ~> effects.wear
 
@@ -79,13 +79,13 @@ object RulesFixture:
         )
       )
 
-  object Overlapping extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Overlapping extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object transitions extends Rules:
       on(hand.turn(Knob.up)):
-        when(Lit.off, Lit.on) ~> Switch.effects.light
+        where(_.light.in(Lit.off, Lit.on)) ~> Switch.effects.light
       on(hand.turn):
         where(_.presses == 1) ~> Switch.effects.turned
 
@@ -99,7 +99,7 @@ object RulesFixture:
       disabled(clock.tick)
 
   // One lamp's rules twice: step functions bound in the core, and argument-less `Rules` reading
-  // the machine's `Phased[Lamp, Lit](_.light)`.
+  // the lamp's light.
   object Projected extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
@@ -120,7 +120,7 @@ object RulesFixture:
           )
         )
 
-  object PhasedLamp extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object RuledLamp extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -129,32 +129,14 @@ object RulesFixture:
 
     object transitions extends Rules:
       on(hand.press):
-        when(Lit.on) ~> Switch.effects.dark
-        when(states.dark) ~> Switch.effects.light
+        where(_.light == Lit.on) ~> Switch.effects.dark
+        where(s => states.dark(s.light)) ~> Switch.effects.light
       on(hand.turn):
-        when(Lit.off, Lit.broken) ~> Switch.effects.refuse
-
-  object OverlappingPhased extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
-    val init = Lamp(Lit.off, UpTo(0))
-    override def end(s: Lamp) = true
-
-    object transitions extends Rules:
-      on(hand.turn(Knob.up)):
-        when(Lit.off, Lit.on) ~> Switch.effects.light
-      on(hand.turn):
-        where(_.presses == 1) ~> Switch.effects.turned
-
-  // A derivation of a `Phased` machine reads its phase, with its phase type, and so does a
-  // derivation of that.
-  object PhasedStuck extends Derived(PhasedLamp.rebind(hand.press ~> Switch.effects.wear)):
-    val phase = summon[Phasing[Lamp, Lit]]
-
-  object PhasedStucker extends Derived(PhasedStuck.restrict(hand.press)):
-    val phase = summon[Phasing[Lamp, Lit]]
+        where(_.light.in(Lit.off, Lit.broken)) ~> Switch.effects.refuse
 
   // The lamp on the shared outcomes: a press of a lit lamp is rejected with the server's reason,
   // and of a broken one as not found.
-  object Guarded extends RecordMachine[Lamp, outcomes.Outcome, Nothing], Phased[Lamp, Lit](_.light):
+  object Guarded extends RecordMachine[Lamp, outcomes.Outcome, Nothing]:
     import outcomes.Rejection
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
@@ -164,63 +146,63 @@ object RulesFixture:
 
     object transitions extends Rules:
       on(hand.press):
-        when(Lit.off) ~> effects.light
-        when(Lit.on) ~> rejects(Rejection.failedPrecondition).because(
+        where(_.light == Lit.off) ~> effects.light
+        where(_.light == Lit.on) ~> rejects(Rejection.failedPrecondition).because(
           "the lamp is lit"
         )
-        when(Lit.broken) ~> rejects(Rejection.notFound)
+        where(_.light == Lit.broken) ~> rejects(Rejection.notFound)
 
-  // The switch's sets of lights, which a case names with `when(set)`.
+  // The switch's sets of lights, which a case names with `where`.
   object lights:
     def unlit(l: Lit) = l != Lit.on
 
-  // One machine in the grouped forms, `from` with qualified targets, `when` and an `on` of two
+  // One machine in the grouped forms, `from` with qualified targets, `where` and an `on` of two
   // classes, and in the plain form, separate qualified `on` blocks, rule for rule.
-  object Grouped extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Grouped extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
 
     object transitions extends Rules:
       from(hand):
         on(hand.press):
-          when(Lit.off) ~> Switch.effects.light
-          when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+          where(_.light == Lit.off) ~> Switch.effects.light
+          where(_.light == Lit.on).where(_.presses == 1) ~> Switch.effects.dark
         on(hand.turn(Knob.up), hand.turn(Knob.down)):
-          when(lights.unlit) ~> Switch.effects.wear
+          where(s => lights.unlit(s.light)) ~> Switch.effects.wear
       from(clock):
         on(clock.tick):
-          when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
+          where(_.light.in(Lit.on, Lit.off)).where(_.presses == 2) ~> Switch.effects.wear
 
-  object Plain extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Plain extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
 
     object transitions extends Rules:
       on(hand.press):
-        when(Lit.off) ~> Switch.effects.light
-        when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
+        where(_.light == Lit.off) ~> Switch.effects.light
+        where(_.light == Lit.on).where(_.presses == 1) ~> Switch.effects.dark
       on(hand.turn(Knob.up)):
-        when(lights.unlit) ~> Switch.effects.wear
+        where(s => lights.unlit(s.light)) ~> Switch.effects.wear
       on(hand.turn(Knob.down)):
-        when(lights.unlit) ~> Switch.effects.wear
+        where(s => lights.unlit(s.light)) ~> Switch.effects.wear
       on(clock.tick):
-        when(Lit.on, Lit.off).where(_.presses == 2) ~> Switch.effects.wear
+        where(_.light.in(Lit.on, Lit.off)).where(_.presses == 2) ~> Switch.effects.wear
 
   // One action in several blocks whose cases hold in no common state.
-  object Spread extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Spread extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object transitions extends Rules:
       on(hand.press):
-        when(Lit.off) ~> Switch.effects.light
+        where(_.light == Lit.off) ~> Switch.effects.light
       on(hand.press, clock.tick):
-        when(Lit.broken) ~> Switch.effects.wear
+        where(_.light == Lit.broken) ~> Switch.effects.wear
       on(hand.press):
-        when(Lit.on) ~> Switch.effects.dark
+        where(_.light == Lit.on) ~> Switch.effects.dark
 
   // The rules each of these declares are refused as its rules construct.
-  object Nested extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Nested extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -229,7 +211,7 @@ object RulesFixture:
         on(clock.tick):
           always ~> Switch.effects.wear
 
-  object NestedFrom extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object NestedFrom extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -239,7 +221,7 @@ object RulesFixture:
           on(clock.tick):
             always ~> Switch.effects.wear
 
-  object Foreign extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object Foreign extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -248,7 +230,7 @@ object RulesFixture:
         on(clock.tick):
           always ~> Switch.effects.wear
 
-  object NamedTwice extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object NamedTwice extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -256,7 +238,7 @@ object RulesFixture:
       on(hand.press, clock.tick, hand.press):
         always ~> Switch.effects.wear
 
-  object DisabledTarget extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object DisabledTarget extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
@@ -265,16 +247,16 @@ object RulesFixture:
       on(hand.press, clock.tick):
         always ~> Switch.effects.wear
 
-  object AcrossBlocks extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+  object AcrossBlocks extends RecordMachine[Lamp, Said, Nothing]:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
     object transitions extends Rules:
       on(hand.turn):
-        when(Lit.off) ~> Switch.effects.turned
+        where(_.light == Lit.off) ~> Switch.effects.turned
       on(hand.turn(Knob.down)):
-        when(Lit.on) ~> Switch.effects.dark
-        when(lights.unlit).where(
+        where(_.light == Lit.on) ~> Switch.effects.dark
+        where(s => lights.unlit(s.light)).where(
           _.presses == 0
         ) ~> Switch.effects.wear
 
@@ -287,11 +269,6 @@ object RulesFixture:
       sync(_.left -> hand.press, _.right -> hand.press)
 
   object Odd extends Composition(Twins.withMember(_.right -> Stuck))
-
-  // A derived composition that mixes in a projection of its own.
-  object Reprojected
-      extends Composition(Twins.withMember(_.right -> Stuck)),
-        Phased[Pair, Lit](_.left.light)
 
 class RulesTest extends munit.FunSuite:
   import RulesFixture.*
@@ -456,126 +433,36 @@ class RulesTest extends munit.FunSuite:
   ) {
     val rules = Overlapping.table.collect { case (_, Bound.Ruled(rs)) => rs }.flatten
     assertEquals(rules.map(_.index), Vector(1, 2))
-    assertEquals(rules.map(_.heading), Vector("when(off, on)", "where"))
+    assertEquals(rules.map(_.heading), Vector("where", "where"))
     assertEquals(rules.map(_.values), Vector(Some(List(Knob.up)), None))
     assertEquals(Overlapping.bindings.size, 1)
   }
 
   test(
-    "argument-less rules read Phased as the core step functions read the phase"
+    "argument-less rules read the state as the core step functions read it"
   ) {
     val knobs = Knob.values.toList
     for s <- Finite[Lamp].values do
-      assertEquals(press(PhasedLamp, s), press(Projected, s), s)
-      for k <- knobs do assertEquals(turn(PhasedLamp, s, k), turn(Projected, s, k), (s, k))
-    assertEquals(press(PhasedLamp, off), List(Lamp(Lit.on, UpTo(1))))
-    assertEquals(press(PhasedLamp, lit), List(lit.copy(light = Lit.off)))
+      assertEquals(press(RuledLamp, s), press(Projected, s), s)
+      for k <- knobs do assertEquals(turn(RuledLamp, s, k), turn(Projected, s, k), (s, k))
+    assertEquals(press(RuledLamp, off), List(Lamp(Lit.on, UpTo(1))))
+    assertEquals(press(RuledLamp, lit), List(lit.copy(light = Lit.off)))
     assertEquals(
-      turn(PhasedLamp, off, Knob.up).map(_.outcome),
+      turn(RuledLamp, off, Knob.up).map(_.outcome),
       List(Said.refused)
     )
-    assertEquals(turn(PhasedLamp, lit, Knob.up), Nil)
+    assertEquals(turn(RuledLamp, lit, Knob.up), Nil)
   }
 
-  test(
-    "Phased rules preserve ordered metadata without checking overlap"
-  ) {
-    val rules = OverlappingPhased.table.collect { case (_, Bound.Ruled(rs)) => rs }.flatten
-    assertEquals(rules.map(_.index), Vector(1, 2))
-    assertEquals(rules.map(_.heading), Vector("when(off, on)", "where"))
-    assertEquals(OverlappingPhased.bindings.size, 1)
-  }
-
-  test("Rules takes its projection only from Phased") {
+  test("Rules takes no projection") {
     val refused = compileErrors(
       "object Old extends RecordMachine[Lamp, Said, Nothing]:\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  def end(s: Lamp) = true\n" +
         "  object transitions extends " + "Rules(_.light):\n" +
-        "    on(hand.press)(when(Lit.on) ~> Switch.effects.dark)"
+        "    on(hand.press)(where(_.light == Lit.on) ~> Switch.effects.dark)"
     )
     assert(refused.nonEmpty, "Rules still accepts a projection argument")
-  }
-
-  test("in is membership alone, and a rule case names when") {
-    val listed = compileErrors(
-      "object RetiredIn extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):\n" +
-        "  val init = Lamp(Lit.off, UpTo(0))\n" +
-        "  override def end(s: Lamp) = true\n" +
-        "  object transitions extends Rules:\n" +
-        "    on(hand.press) { in(Lit.on) ~> Switch.effects.dark }"
-    )
-    assert(listed.contains("when(...)"), listed)
-    val role = compileErrors(
-      "object RetiredRole extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):\n" +
-        "  val init = Lamp(Lit.off, UpTo(0))\n" +
-        "  override def end(s: Lamp) = true\n" +
-        "  object transitions extends Rules:\n" +
-        "    on(hand.press) { in[Closed] ~> Switch.effects.dark }"
-    )
-    assert(role.contains("when[R]"), role)
-  }
-
-  test("when names no phase in the rules of a machine that is not Phased") {
-    val fix =
-      "mix the projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
-    val listed = compileErrors(
-      "object Plain extends RecordMachine[Lamp, Said, Nothing]:\n" +
-        "  val init = Lamp(Lit.off, UpTo(0))\n" +
-        "  def end(s: Lamp) = true\n" +
-        "  object transitions extends Rules:\n" +
-        "    on(hand.press)(when(Lit.on) ~> Switch.effects.dark)"
-    )
-    assert(listed.contains(fix), listed)
-    val named = compileErrors(
-      "object Plain extends RecordMachine[Lamp, Said, Nothing]:\n" +
-        "  val init = Lamp(Lit.off, UpTo(0))\n" +
-        "  def end(s: Lamp) = true\n" +
-        "  def dark(l: Lit) = l != Lit.on\n" +
-        "  object transitions extends Rules:\n" +
-        "    on(hand.press)(when(dark) ~> Switch.effects.light)"
-    )
-    assert(named.contains(fix), named)
-  }
-
-  test(
-    "a derived machine reads its source's phase projection, with its phase type"
-  ) {
-    assertEquals(PhasedStuck.phase.projection(lit), Lit.on)
-    assertEquals(PhasedStucker.phase.projection(off), Lit.off)
-    for state <- Finite[Lamp].values do
-      assertEquals(PhasedStuck.phase.projection(state), state.light)
-      assertEquals(PhasedStucker.phase.projection(state), state.light)
-  }
-
-  test(
-    "a derived machine cannot replace its final source end with Phased's default"
-  ) {
-    val refused = compileErrors(
-      "import framework.*\nimport framework.dsl.RulesFixture.*\n" +
-        "object Rephased extends Derived(PhasedLamp.unmonitored), Phased[Lamp, Lit](_.light)"
-    )
-    assert(refused.contains("cannot override final member"), refused)
-    assert(refused.contains("end"), refused)
-  }
-
-  test(
-    "a derived composition that mixes in Phased is refused as it initializes"
-  ) {
-    for (derived, message) <- List(
-        (() => Reprojected.name, "reprojected")
-      )
-    do
-      val refused =
-        try
-          derived(): Unit
-          fail(s"$message initialized")
-        catch case e: ExceptionInInitializerError => e.getCause
-      assertEquals(
-        refused.getMessage,
-        s"requirement failed: $message is derived and keeps its source's phase: it mixes in no " +
-          "Phased of its own"
-      )
   }
 
   test("a derivation retains multiple rules without evaluating their overlap") {
@@ -695,7 +582,7 @@ class RulesTest extends munit.FunSuite:
   // Imported bare controls are compiled independently in RuleSourceTest.
   test("an on target with no declarer is refused as the rules construct") {
     val tap = hand.press
-    object Undeclared extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):
+    object Undeclared extends RecordMachine[Lamp, Said, Nothing]:
       val init = Lamp(Lit.off, UpTo(0))
       override def end(s: Lamp) = true
 
@@ -705,13 +592,13 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare at Rules.test.scala:703:12: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:590:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }
 
   test(
-    "from, when, when(set), when(...).where and on(a, b) build the qualified table"
+    "from, where, where(...).where and on(a, b) build the qualified table"
   ) {
     assertEquals(Grouped.bindings.map(_.decl), Plain.bindings.map(_.decl))
     assertEquals(steps(Grouped), steps(Plain))
@@ -797,9 +684,9 @@ class RulesTest extends munit.FunSuite:
     )
   }
 
-  // fn-136.4: `when[R]` fires in the phases with the role, the narrower roles' included, and
-  // `phase.in[R]` holds in them; rules that read no projection name no role.
-  test("when[R] fires in exactly the phases with the role R") {
+  // fn-136.4: a case on `phase.in[R]` fires in the phases with the role, the narrower roles'
+  // included.
+  test("a case on a role fires in exactly the phases with the role R") {
     import RoleRulesFixture.*
     val press =
       Gate.bindings.head.function
@@ -811,18 +698,6 @@ class RulesTest extends munit.FunSuite:
     assertEquals(
       Stage.values.toList.filter(_.in[Waiting]),
       List(Stage.queued, Stage.backingOff)
-    )
-    val refused = compileErrors(
-      "object NoProjection extends RecordMachine[Door, Said, Nothing] {\n" +
-        "  val init = Door(Stage.unstarted)\n  def end(s: Door) = true\n" +
-        "  object transitions extends Rules { on(hand.press)(when[Closed] ~> Gate.effects.open) }\n}"
-    )
-    assert(
-      refused.contains(
-        "when names phases of Nothing, and these rules read phases of Nothing: mix the " +
-          "projection the phases are of into the machine, `Phased[State, Phase](_.phase)`"
-      ),
-      refused
     )
   }
 
@@ -838,7 +713,7 @@ object RoleRulesFixture:
 
   final case class Door(stage: Stage)
 
-  object Gate extends RecordMachine[Door, Said, Nothing], Phased[Door, Stage](_.stage):
+  object Gate extends RecordMachine[Door, Said, Nothing]:
     type Press = Door => List[Step[Door, Said, Nothing]]
     val init = Door(Stage.unstarted)
     override def end(s: Door) = s.stage.in[Closed]
@@ -848,5 +723,5 @@ object RoleRulesFixture:
 
     object transitions extends Rules:
       on(hand.press):
-        when[Waiting] ~> effects.open
-        when[Closed] ~> effects.open
+        where(_.stage.in[Waiting]) ~> effects.open
+        where(_.stage.in[Closed]) ~> effects.open
