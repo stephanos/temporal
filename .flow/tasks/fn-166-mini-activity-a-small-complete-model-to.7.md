@@ -7,7 +7,7 @@ satisfies: [R10]
 Rename the model-side Make targets out of the `umpire-` family and into the repo's verb-noun convention, leaving the runtime family alone (R10). The prefix is the Go binary's name, not what the target does; the model workflow now has three naming styles (`umpire-<verb>-<noun>`, `<verb>-model`, `model`/`model-mini`), and the owner asked for `model` to be the clear one (2026-10-11).
 
 **Size:** S
-**Touches:** [Makefile, .github/workflows/**, AGENTS.md, model/README.md, model/SEMANTICS.md, .plans/*.md, model/check/*.scala, tools/umpire/**/*.go, tools/umpire/export/README.md, tools/canary/**]
+**Touches:** [Makefile, .github/workflows/**, AGENTS.md, model/README.md, model/framework/SEMANTICS.md, .plans/*.md, model/check/*.scala, tools/umpire/**/*.go, tools/umpire/export/README.md, tools/canary/**]
 
 ### Approach
 - Mapping (R10): `umpire-check-model` -> `check-model`, `umpire-gen-model` -> `gen-model`, `umpire-check-lint` -> `lint-ir`, `umpire-gen-cases`/`umpire-check-cases` -> `gen-cases`/`check-cases`, `umpire-gen-fixtures`/`umpire-check-fixtures` -> `gen-fixtures`/`check-fixtures`, `umpire-check-equivalence`/`umpire-capture-baseline` -> `check-equivalence`/`capture-baseline`. `umpire-ir-bridge` builds a binary and may keep its name or become `build-ir-bridge`; decide on the task. The runtime targets keep `umpire-`: they run Cases against a cluster and know nothing of the model.

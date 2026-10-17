@@ -10,7 +10,7 @@
 - Work across distributed processes whose clocks may disagree.
 
 This vision includes goals not yet implemented. The [shared specification](UMPIRE4_SPEC.md)
-defines the architectural rules; [model semantics](../model/SEMANTICS.md) describes what works today
+defines the architectural rules; [model semantics](../model/framework/SEMANTICS.md) describes what works today
 and its limits. [Industry research](UMPIRE4_INSPIRE.md) explains the lessons behind these choices.
 
 The owner approved the reachable-exploration architecture under GOV-02 on 2026-10-13:
@@ -111,7 +111,7 @@ Decides whether a recorded Run satisfies its Case's Contract and is explained by
 - **Temporal stays at the edges.** Only the Models and Testpilot's Temporal Driver know Temporal.
   The DSL framework, IR, checker, test generator, Testpilot runtime and judge stay
   Temporal-agnostic.
-- **One meaning, one source.** The IR has one interpretation, defined by `model/SEMANTICS.md` and
+- **One meaning, one source.** The IR has one interpretation, defined by `model/framework/SEMANTICS.md` and
   implemented by the Go reader, and every fact has one declaration. A Query may select Umpire by
   default, or Apalache or TLC to decide it through an export of that same IR, and may require other
   checkers to confirm it. Admission requires export coverage of every ingredient, including its

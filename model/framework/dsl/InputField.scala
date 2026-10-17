@@ -27,7 +27,7 @@ private[framework] object InputFieldMacros:
     import quotes.reflect.*
     if !TypeRepr.of[In].dealias.typeSymbol.flags.is(Flags.Case) then
       report.errorAndAbort("an input field requires a concrete case class record", selector)
-    val label = MemberPath.directField(selector.asTerm)
+    val label = MemberSelector.directField(selector.asTerm)
     val record = TypeRepr.of[In].dealias
     val field = record.typeSymbol.caseFields.find(_.name == label).get
     if !(record.memberType(field) =:= TypeRepr.of[A]) then

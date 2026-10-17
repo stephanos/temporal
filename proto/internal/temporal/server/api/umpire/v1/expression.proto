@@ -71,7 +71,7 @@ message Construct {
   string case = 2;
   repeated Expr args = 3;
   // For a step record (`umpire.Step`) only: the name of the alternative of a named choice this
-  // result is. Evaluation ignores it (model/SEMANTICS.md, Named choices); empty for an unnamed step.
+  // result is. Evaluation ignores it (model/framework/SEMANTICS.md, Named choices); empty for an unnamed step.
   string choice = 4;
 }
 
@@ -127,7 +127,7 @@ message If {
 
 // The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
 // value no case matches is a hole in the Model, which the interpreter reports.
-// That hole is an undeclared one (model/SEMANTICS.md, Holes), neither a declared hole nor an
+// That hole is an undeclared one (model/framework/SEMANTICS.md, Holes), neither a declared hole nor an
 // admission error.
 message Match {
   Expr scrutinee = 1;

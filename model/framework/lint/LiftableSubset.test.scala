@@ -186,7 +186,7 @@ object Checked extends Machine[Boolean, Boolean, Nothing]:
         "nanoTime"
       )
     do assert(result.output.contains(construct), result.output)
-    assert(result.output.contains("model/SEMANTICS.md#liftable-subset"), result.output)
+    assert(result.output.contains("model/framework/SEMANTICS.md#liftable-subset"), result.output)
     assert(!result.output.contains("Unsupported.scala:13:"), result.output)
 
   test("author checking and lifting preserve their distinct positioned refusal contracts"):
@@ -242,4 +242,4 @@ object Checked extends Machine[Boolean, Boolean, Nothing]:
       checked.output
     )
     assert(checked.output.contains("while"), checked.output)
-    assert(checked.output.contains("model/SEMANTICS.md#liftable-subset"), checked.output)
+    assert(checked.output.contains("model/framework/SEMANTICS.md#liftable-subset"), checked.output)

@@ -3,12 +3,9 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-// Modelled after https://github.com/quint-co/quint/blob/main/examples/classic/distributed/Paxos/Voting.qnt
-//
 // Lamport's Voting, the high-level algorithm behind Paxos: acceptors cast votes in numbered ballots,
 // and a value is chosen once a quorum of them voted for it in one ballot. Voting refines Consensus,
-// in which a value is chosen at most once and never changes: the theorem `Spec => C!Spec` that the
-// original states but cannot check is here a refinement the checks hold Voting to.
+// in which a value is chosen at most once and never changes.
 object Voting:
   enum Acceptor:
     case a1, a2, a3
@@ -117,21 +114,18 @@ object Voting:
     // the values chosen
     var chosen = Set.empty[Value]
 
-    val anyDecision = starts()
 
     object transitions extends Transitions:
       on(voter.voteFor): in =>
         if chosen.isEmpty then effects.choose(in)
 
     object effects:
-      def choose(in: VoteFor): Unit = chosen = Set(in.v)
+      def choose(in: VoteFor) =
+        chosen = Set(in.v)
 
     object postconditions:
       // once a value is chosen, it stays chosen
       val chosenStays = if before.chosen.nonEmpty then check(chosen == before.chosen)
-
-    object queries:
-      val chosenStaysInConsensus = verify(postconditions.chosenStays) in anyDecision
 
   object Model extends Machine[Outcome, Nothing]:
     // each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet
@@ -142,7 +136,6 @@ object Voting:
     // the votes as one record, which the predicates above read
     def current: Votes = Votes(votes, maxBal)
 
-    val anyVote = starts()
 
     object refinement extends Refinement(Consensus):
       def toProduct(state: State) = Consensus.init.copy(chosen = chosen(current))
@@ -158,25 +151,19 @@ object Voting:
 
     object effects:
       // An acceptor may increase its maxBal to a higher ballot at any time.
-      def increaseMaxBal(in: IncreaseMaxBal): Unit =
+      def increaseMaxBal(in: IncreaseMaxBal) =
         if maxBalAtMost(current, in.a, in.b) && !maxBalAtLeast(current, in.a, in.b) then
           maxBal = maxBal.updated(in.a, in.b)
         else reject(Outcome.refused)
       // An acceptor votes for v in ballot b: not below its maxBal, once per ballot, for the one
       // value of the ballot, and only where a quorum shows v safe at b.
-      def voteFor(in: VoteFor): Unit =
+      def voteFor(in: VoteFor) =
         if maxBalAtMost(current, in.a, in.b) && didNotVoteAt(current, in.a, in.b) &&
           othersAgree(current, in.b, in.v) && someQuorumShowsSafeAt(current, in.b, in.v)
         then vote(in)
         else reject(Outcome.refused)
-      // A vote that skips the quorum's showing that v is safe at b.
-      def voteUnsafe(in: VoteFor): Unit =
-        if maxBalAtMost(current, in.a, in.b) && didNotVoteAt(current, in.a, in.b) &&
-          othersAgree(current, in.b, in.v)
-        then vote(in)
-        else reject(Outcome.refused)
       // acceptor a's vote for v in ballot b, and a moved to b
-      private def vote(in: VoteFor): Unit =
+      private def vote(in: VoteFor) =
         val next = cast(current, in.a, in.b, in.v)
         votes = next.votes
         maxBal = next.maxBal
@@ -190,23 +177,4 @@ object Voting:
       // a find target: one vote chooses nothing, so it is no promise and not checked by default
       val decides = after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)):
         check(chosen(current).contains(Value.v1))
-      // Consensus's claim, read through the refinement
-      val chosenStaysInVoting = verify(Consensus.postconditions.chosenStays) in anyVote
-      val consistencyHolds = verify(invariants.consistency) in anyVote
-      val invariantHolds = verify(invariants.invariant) in anyVote
-      val valueChosen = find(decides) in anyVote
-
-  // A vote that skips the quorum's showing: the negative control of consistency, which the sample
-  // tests refute.
-  object UnsafeVoting
-      extends Derived(
-        Model.unmonitored.rebind(
-          on(voter.voteFor): in =>
-            Model.effects.voteUnsafe(in)
-        )
-      ),
-        NegativeControl:
-    import Model.current
-
-    object invariants:
-      val unsafeConsistency = check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))
+      val valueChosen = find(decides)

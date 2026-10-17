@@ -60,9 +60,11 @@ final class ReifyPlugin extends StandardPlugin:
         (current, modeSeen, cacheSeen)
     val store = new DefinitionStore
     val family = new FamilyPhase
+    val effects = new EffectsPhase
     if mode == "realization" then
       List(
         family,
+        effects,
         new StorePhase(store),
         new NamesPhase("reifyStore"),
         new SchemaPhase(store),
@@ -71,6 +73,7 @@ final class ReifyPlugin extends StandardPlugin:
     else if mode == "signature" then
       List(
         family,
+        effects,
         new StorePhase(store),
         new CapturePhase(store),
         new NamesPhase,
@@ -81,6 +84,7 @@ final class ReifyPlugin extends StandardPlugin:
     else
       List(
         family,
+        effects,
         new StorePhase(store),
         new EndpointsPhase(store),
         new RulesPhase(store),

@@ -27,7 +27,7 @@ Construct exact Actor names for isolated native signature messages (R3/R4/R6/R9)
 - model/framework/reify/plugin/ReifyPlugin.scala:306 and SchemaPhase.scala:104,397. Existing template metadata and phase ordering; Actor currently has no declaration/provenance attachment.
 - model/framework/dsl/Machine.scala:52 and model/framework/reify/body/BodyContext.scala:318. Runtime name helper versus compiler identity/admission.
 - model/framework/export/ConstructedResidualSignature.test.scala:93,142,164. Independent whole-message oracle, two-JVM projection, current-reader replay and qualified helper-jars controls.
-**Optional:** model/framework/dsl/Signature.test.scala:20; model/README.md:837,891,1191,1512 and model/SEMANTICS.md:162 for current authoring/qualification text.
+**Optional:** model/framework/dsl/Signature.test.scala:20; model/README.md:837,891,1191,1512 and model/framework/SEMANTICS.md:162 for current authoring/qualification text.
 
 ### Verification and boundaries
 Six unchanged framework samples are read-only regression inputs. No Temporal, tools/umpire, Go/integration, root Model/Make, schemas/protos/generated/IR regeneration, registry/module-map or migration changes/runs. Independent review and broad validation remain deferred to source-batch end. Root owns Flow/MILESTONES/completion and independent committed-source verification. Source worker returns with .14 in_progress, a source commit and terminal handoff; all original handles must be joined. Preserve owner design dirt and use exact scoped staging. Normal git commit is prohibited following the earlier unexplained empty-tree publication; verify a literal nonempty tree and parent, commit-tree, inspect exact paths and CAS update-ref.

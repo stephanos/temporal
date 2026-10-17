@@ -13,7 +13,7 @@ shared code. Real-feature source, IR/Cases and historical pins stay untouched fo
 **Size:** L
 **Files:** framework rule construction and focused tests, IR rule lifting and isolated fixtures,
 mini feature only where a missing contract requires it, author docs and the shared migration-rule source.
-**Touches:** [model/framework/Syntax.scala, model/framework/RuleSource.scala, model/framework/Rules.test.scala, model/framework/RuleSource.test.scala, model/irgen/Declarations.scala, model/irgen/test/QualifiedRules.test.scala, model/irgen/testdata/qualifiedRules/**, model/irgen/testdata/lifts/RuleRejects.scala, model/irgen/testdata/lifts/Grouped.scala, model/temporal/features/activity_mini/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Syntax.scala, model/framework/RuleSource.scala, model/framework/Rules.test.scala, model/framework/RuleSource.test.scala, model/irgen/Declarations.scala, model/irgen/test/QualifiedRules.test.scala, model/irgen/testdata/qualifiedRules/**, model/irgen/testdata/lifts/RuleRejects.scala, model/irgen/testdata/lifts/Grouped.scala, model/temporal/features/activity_mini/**/*.scala, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

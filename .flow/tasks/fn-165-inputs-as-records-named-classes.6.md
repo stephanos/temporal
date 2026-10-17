@@ -7,8 +7,8 @@ satisfies: [R3, R6, R8]
 Remove the token form and document the record form (R3, R6, R8).
 
 **Size:** S
-**Files:** `model/framework/Action.scala`, `model/framework/Syntax.scala`, `model/framework/Machine.scala`, `model/README.md` (inputs paragraph), `model/SEMANTICS.md` (step 3, the three-symbols note in step 21), `model/framework/Domain.scala` comments if they name tokens, the syntax lint's sugar list
-**Touches:** [model/framework/*.scala, model/README.md, model/SEMANTICS.md]
+**Files:** `model/framework/Action.scala`, `model/framework/Syntax.scala`, `model/framework/Machine.scala`, `model/README.md` (inputs paragraph), `model/framework/SEMANTICS.md` (step 3, the three-symbols note in step 21), `model/framework/Domain.scala` comments if they name tokens, the syntax lint's sugar list
+**Touches:** [model/framework/*.scala, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Delete `input[T]`, `Input`, `Slot`, `Assigned`, `:=` on classes, the `InputAt` overloads, `ActionDecl.tokens`, and any remaining arity-typed `~>`; a Model that writes a token form must fail to compile.

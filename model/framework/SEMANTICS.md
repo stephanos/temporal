@@ -20,7 +20,7 @@ The shared framework and Closable definition are cited where the mini consumes t
 The mini's `.live` values are authored expectations, not observed Verdicts. Its source compiles
 and lifts; Case lowering and live execution remain held in fn-166.4, the complete Make loop in
 fn-166.5, and production custom-rule loading in fn-166.10. Real features remain behind during the
-Scala DSL batch. [README, Writing a Model](README.md#writing-a-model) documents the focused route.
+Scala DSL batch. [README, Writing a Model](../README.md#writing-a-model) documents the focused route.
 
 Contents:
 
@@ -66,7 +66,7 @@ fields `C-v1-v2`, a record `v1-v2`, a list `[v1,v2]`.
 
 **Writing it.** Plain enums and case classes; bound integers with `UpTo[N]`:
 
-Source: [temporal/features/activity_mini/protocol/Protocol.scala:24](temporal/features/activity_mini/protocol/Protocol.scala#L24).
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:24](../temporal/features/activity_mini/protocol/Protocol.scala#L24).
 
 ```scala
 final case class State(phase: Phase, attempts: UpTo[2], scheduleToStart: Timeout,
@@ -114,7 +114,7 @@ A phase with no role is one where the entity does not exist yet (`unscheduled`).
 **Writing it.** A case takes roles in its own extends clause. A phase enum may also declare, per
 case, the *status fact* a step that enters it records:
 
-Source: [temporal/features/activity_mini/protocol/Protocol.scala:14](temporal/features/activity_mini/protocol/Protocol.scala#L14).
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:14](../temporal/features/activity_mini/protocol/Protocol.scala#L14).
 
 ```scala
 enum Phase(val status: Fact) extends Recorded[Fact]:
@@ -150,7 +150,7 @@ of the feature file, and every level's machine binds the same actions.
 
 An *entity* is what a machine keeps state for; a realization keys recorded evidence to it.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:37](temporal/features/activity_mini/MiniActivity.scala#L37).
+Source: [temporal/features/activity_mini/MiniActivity.scala:37](../temporal/features/activity_mini/MiniActivity.scala#L37).
 
 ```scala
 val activity = Entity(key = "activityId")
@@ -164,7 +164,7 @@ describe call); the realization's typed read does the reading.
 An *actor* is an object whose members are the actions it takes. `Actor.system` is reserved for the
 steps the system takes of its own: timers, internal steps, channel deliveries.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:42](temporal/features/activity_mini/MiniActivity.scala#L42).
+Source: [temporal/features/activity_mini/MiniActivity.scala:42](../temporal/features/activity_mini/MiniActivity.scala#L42).
 
 ```scala
 object client extends Client:
@@ -188,7 +188,7 @@ An action may take finite *inputs*. Each assignment of the inputs is one *class*
 `activityWorker.respondFailed(Failure.retryable)` are two classes, and the table has one column per
 class. An action with no input has one class.
 
-Source: [temporal/features/activity_mini/MiniActivity.scala:38](temporal/features/activity_mini/MiniActivity.scala#L38).
+Source: [temporal/features/activity_mini/MiniActivity.scala:38](../temporal/features/activity_mini/MiniActivity.scala#L38).
 
 ```scala
 val scheduleToStart = input[Timeout](default = Timeout.unset)
@@ -220,7 +220,7 @@ independent of enum order. An `expires` default remains valid for ordinary actio
 
 Every step answers an *outcome*. A machine declares its own enum, or adopts the shared one:
 
-Source: [temporal/features/activity_mini/product/Completion.scala:8](temporal/features/activity_mini/product/Completion.scala#L8).
+Source: [temporal/features/activity_mini/product/Completion.scala:8](../temporal/features/activity_mini/product/Completion.scala#L8).
 
 ```scala
 import framework.dsl.outcomes.{Outcome, Rejection}
@@ -239,7 +239,7 @@ all the reader needs to build the table ([The table](#7-the-table)).
 **Writing it.** A machine is an object that *is* the machine, named after the object with its first
 letter lowered (`object ActivityProduct` is `activityProduct`), stating its three types once:
 
-Source: [temporal/features/activity_mini/product/Product.scala:28](temporal/features/activity_mini/product/Product.scala#L28).
+Source: [temporal/features/activity_mini/product/Product.scala:28](../temporal/features/activity_mini/product/Product.scala#L28).
 
 ```scala
 object ActivityProduct
@@ -277,10 +277,16 @@ file's (structure lint); a section object of any other name; a `val` read before
 
 ## 5. Effects
 
+Native var-based Models declare their effects as methods in `object effects`. Every method there,
+including an unused or private helper, must return exactly `Unit`. Infer the result type and write
+the body on the following line; the author lint rejects explicit return annotations and inline
+bodies. Parameter type annotations are allowed. The record-state forms below remain reference for
+the held integration work.
+
 **Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
 lands in, the facts it records, and an optional explanation.
 
-Source: [framework/dsl/Machine.scala:10](framework/dsl/Machine.scala#L10).
+Source: [framework/dsl/Machine.scala:10](../framework/dsl/Machine.scala#L10).
 
 ```scala
 final case class Step[S, O, +F](outcome: O, state: S, facts: List[F] = Nil, because: String = "")
@@ -306,7 +312,7 @@ one is at the wrong *level* and is refused ([Levels](#levels)).
 Effects live in `object effects` as defs of the state (and the class's inputs), named for what
 they do and never giving `Nil`:
 
-Source: [temporal/features/activity_mini/protocol/Dispatching.scala:24](temporal/features/activity_mini/protocol/Dispatching.scala#L24).
+Source: [temporal/features/activity_mini/protocol/Dispatching.scala:24](../temporal/features/activity_mini/protocol/Dispatching.scala#L24).
 
 ```scala
 def schedule(s: State, scheduleToStart: Timeout, startToClose: Timeout, maxAttempts: MaxAttempts) =
@@ -332,7 +338,7 @@ enters(Phase.done)`.
 A step that can go more than one way names each way with `choose`. This is core: the names are
 what nothing else says.
 
-Source: [temporal/features/activity_mini/product/Completion.scala:16](temporal/features/activity_mini/product/Completion.scala#L16).
+Source: [temporal/features/activity_mini/product/Completion.scala:16](../temporal/features/activity_mini/product/Completion.scala#L16).
 
 ```scala
 val retryScheduled = choice
@@ -370,7 +376,7 @@ effect with `choose`, never two rules.
 
 **Writing it.**
 
-Source: [temporal/features/activity_mini/protocol/Dispatching.scala:30](temporal/features/activity_mini/protocol/Dispatching.scala#L30).
+Source: [temporal/features/activity_mini/protocol/Dispatching.scala:30](../temporal/features/activity_mini/protocol/Dispatching.scala#L30).
 
 ```scala
 object rules extends Rules:
@@ -491,7 +497,7 @@ exercises the Property.
 
 **Writing it.** In `object properties.safety`, named after the `val`:
 
-Source: [temporal/features/activity_mini/product/Product.scala:39](temporal/features/activity_mini/product/Product.scala#L39).
+Source: [temporal/features/activity_mini/product/Product.scala:39](../temporal/features/activity_mini/product/Product.scala#L39).
 
 ```scala
 object properties:
@@ -528,7 +534,7 @@ A Property's Definition ID is `<family>.<name>`, so two machines of one family m
 machine and a composition) declares the same Property on whichever model it is called with. Its
 state-dependent parts are parameters, each a def of the lifted sources, never a lambda:
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:29](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L29).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:29](../temporal/features/activity_mini/protocol/AnswerDispatch.scala#L29).
 
 ```scala
 def oldAnswerKeepsAttempt(m: Machine[AnswerState, Outcome, AnswerFact]): Property[AnswerState] =
@@ -560,7 +566,7 @@ generated Queries live.
 
 **Writing it.** In `object queries`, every Scenario before the Query that uses it:
 
-Source: [temporal/features/activity_mini/protocol/Protocol.scala:69](temporal/features/activity_mini/protocol/Protocol.scala#L69).
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:69](../temporal/features/activity_mini/protocol/Protocol.scala#L69).
 
 ```scala
 object queries:
@@ -642,7 +648,7 @@ forever takes it.
 
 **Writing it.** In `object monitors`:
 
-Source: [temporal/features/activity_mini/protocol/Protocol.scala:62](temporal/features/activity_mini/protocol/Protocol.scala#L62).
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:62](../temporal/features/activity_mini/protocol/Protocol.scala#L62).
 
 ```scala
 object monitors:
@@ -675,7 +681,7 @@ them away.
 **Writing it.** In `object properties.liveness`, always named, with an explicit finite bound and
 the assumptions on which the claim relies:
 
-Source: [temporal/features/activity_mini/protocol/DispatchingProgress.scala:12](temporal/features/activity_mini/protocol/DispatchingProgress.scala#L12).
+Source: [temporal/features/activity_mini/protocol/DispatchingProgress.scala:12](../temporal/features/activity_mini/protocol/DispatchingProgress.scala#L12).
 
 ```scala
 val workerFair = assume.fair(activityWorker.poll)
@@ -717,13 +723,13 @@ is incomplete; every other machine is checked as if the hole were not there.
 
 **Writing it.**
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:23](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L23).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:23](../temporal/features/activity_mini/protocol/AnswerDispatch.scala#L23).
 
 ```scala
 val cancelDuringBackoff = hole
 ```
 
-Source: [temporal/features/activity_mini/protocol/Answering.scala:53](temporal/features/activity_mini/protocol/Answering.scala#L53).
+Source: [temporal/features/activity_mini/protocol/Answering.scala:53](../temporal/features/activity_mini/protocol/Answering.scala#L53).
 
 ```scala
 def interrupt(@unused s: AnswerState): List[Step[AnswerState, Outcome, AnswerFact]] =
@@ -749,7 +755,7 @@ it `through` the refinement, and a progress claim only where the Protocol declar
 
 **Writing it.** `object refinement`, the second section:
 
-Source: [temporal/features/activity_mini/protocol/Protocol.scala:50](temporal/features/activity_mini/protocol/Protocol.scala#L50).
+Source: [temporal/features/activity_mini/protocol/Protocol.scala:50](../temporal/features/activity_mini/protocol/Protocol.scala#L50).
 
 ```scala
 object refinement extends Refinement(product.ActivityProduct):
@@ -786,13 +792,13 @@ still hold, a restriction that isolates one path.
 
 **Writing it.** An object of its own, in its package's family; the derivation is one expression:
 
-Source: [temporal/features/activity_mini/protocol/AnswerTrusting.scala:13](temporal/features/activity_mini/protocol/AnswerTrusting.scala#L13).
+Source: [temporal/features/activity_mini/protocol/AnswerTrusting.scala:13](../temporal/features/activity_mini/protocol/AnswerTrusting.scala#L13).
 
 ```scala
 object AnswerTrusting extends Derived(AnswerDispatch.rebind(answers.deliver ~> AnswerDispatch.answering.effects.trust)), NegativeControl:
 ```
 
-Source: [temporal/features/activity_mini/protocol/ProtocolMember.scala:5](temporal/features/activity_mini/protocol/ProtocolMember.scala#L5).
+Source: [temporal/features/activity_mini/protocol/ProtocolMember.scala:5](../temporal/features/activity_mini/protocol/ProtocolMember.scala#L5).
 
 ```scala
 object ProtocolMember extends Derived(ActivityProtocol.unmonitored)
@@ -830,7 +836,7 @@ effects they use; two facets binding one action are refused.
 
 **Writing it.** A trait in its own file, holding one object named after it:
 
-Source: [temporal/features/activity_mini/product/Completion.scala:12](temporal/features/activity_mini/product/Completion.scala#L12).
+Source: [temporal/features/activity_mini/product/Completion.scala:12](../temporal/features/activity_mini/product/Completion.scala#L12).
 
 ```scala
 trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
@@ -840,7 +846,7 @@ trait Completion extends Facet[State, Outcome, Fact], Phased[State, Phase]:
 
 The machine mixes them in and lists their rules and capabilities:
 
-Source: [temporal/features/activity_mini/product/Product.scala:37](temporal/features/activity_mini/product/Product.scala#L37).
+Source: [temporal/features/activity_mini/product/Product.scala:37](../temporal/features/activity_mini/product/Product.scala#L37).
 
 ```scala
 object rules extends Facets(dispatching.rules, completion.rules)
@@ -890,7 +896,7 @@ laws `Exclusive`, `Fenced`, `Idempotent`).
 **Writing it.** A case class extending `CapabilityOf[S, O, F]` with a companion `CapabilityKind`
 whose defs take the model, then fields by name:
 
-Source: [temporal/capabilities/product/Closable.scala:11](temporal/capabilities/product/Closable.scala#L11).
+Source: [temporal/capabilities/product/Closable.scala:11](../temporal/capabilities/product/Closable.scala#L11).
 
 ```scala
 final case class Closable[S, P, O](rejected: O)(using
@@ -903,7 +909,7 @@ final case class Closable[S, P, O](rejected: O)(using
 
 Declaring, waiving and bounding:
 
-Source: [temporal/features/activity_mini/product/Completion.scala:48](temporal/features/activity_mini/product/Completion.scala#L48).
+Source: [temporal/features/activity_mini/product/Completion.scala:48](../temporal/features/activity_mini/product/Completion.scala#L48).
 
 ```scala
 object capabilities extends Capabilities:
@@ -912,7 +918,7 @@ object capabilities extends Capabilities:
     because = "The Product omits late worker RPC replies; only client cancellation models NotFound after closure.")
 ```
 
-Source: [temporal/features/activity_mini/protocol/Completion.scala:51](temporal/features/activity_mini/protocol/Completion.scala#L51).
+Source: [temporal/features/activity_mini/protocol/Completion.scala:51](../temporal/features/activity_mini/protocol/Completion.scala#L51).
 
 ```scala
 object capabilities extends Capabilities:
@@ -944,8 +950,11 @@ of them can state: an activity over its task queue, an operation with its worker
 record with one field per member. A member's own action steps that member alone and is keyed
 `<field>_<class>`; a *sync* pairs two members' actions into one step keyed by the sync's name
 followed by both classes' inputs, whose results are the product of the members' results with the
-first member's outcome and both members' facts (`<field>_<fact>`). Only the rows reachable from the
-members' starts belong to it. Its outcome and fact types are therefore `String`, the composed keys.
+first member's outcome and both members' facts. Only the rows reachable from the
+members' starts belong to it. Its outcome type is `String`, the composed outcome key. Its fact type
+is an enum declared by the composition, with one case per member carrying that member's fact.
+Native claims read those tagged values directly; lifting and Go lowering still use the legacy
+`<field>_<fact>` keys until the composition migration's second phase.
 
 A member that *replaces* a machine stands in for it within the composition: a detailed provider in
 place of an opaque one. Its machine must declare a refinement of the replaced machine that holds,
@@ -954,7 +963,11 @@ and the composition relies on none of the replaced machine's assumptions.
 **Writing it.** An object with field selectors; `->` pairs a member with its value and never means
 a transition:
 
-Source: [temporal/features/activity_mini/protocol/Queue.scala:13](temporal/features/activity_mini/protocol/Queue.scala#L13).
+The source excerpt retains the held record-state spelling. A native composition declares its own
+`Fact` enum with per-member cases, such as `case activity(value: AdmissionFact)` and
+`case queue(value: QueueFact)`.
+
+Source: [temporal/features/activity_mini/protocol/Queue.scala:13](../temporal/features/activity_mini/protocol/Queue.scala#L13).
 
 ```scala
 final case class OverQueue(activity: State, queue: QueueView)
@@ -979,10 +992,13 @@ object Queue extends Composition[OverQueue](
 
 `synced` finds the one sync that pairs that member's action; `own` an action the member binds and
 no sync pairs. `withMember` replaces one member, keeping syncs, end and order; `DerivedComposition`
-is the form that also keeps the source's typed phase. A Property that reads a member's named state
-set writes `through(_.activity, ActivityRecord.states.twoActive)` where it would name a def;
-`after.records(_.member, fact)` reads a member's fact by its composed key. The framework's own
-composition starts from each member's first start; the reader composes every start.
+is the form that also keeps the source's fact type. A claim that reads a member's named state
+set calls its helper directly, `ActivityRecord.states.twoActive(activity)`. A member fact is wrapped
+in its case, `records(Fact.activity(AdmissionFact.admissionCommitFailed))`; witnesses use the same
+value in `.records`, `.excludes` and `.recordsWhen`. An unwrapped member fact is a type error.
+A native composed step carries those same tagged values in its facts, for example
+`Step("accepted", joined, List(Fact.activity(AdmissionFact.admissionCommitFailed)))`.
+The framework's own composition starts from each member's first start; the reader composes every start.
 
 **Refused.** A selector naming no field; a member of another state type; a sync of an action the
 member does not bind; a `synced` matching none or several; an `own` of a paired action; a
@@ -1003,13 +1019,13 @@ when the channel is lossy. A send to a full channel lands outside the catalog, s
 
 **Writing it.**
 
-Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](temporal/features/activity_mini/protocol/AnswerDispatch.scala#L22).
+Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:22](../temporal/features/activity_mini/protocol/AnswerDispatch.scala#L22).
 
 ```scala
 val answers = channel[Answer](capacity = 1, order = Order.fifo, loss = Loss.lossy)
 ```
 
-Source: [temporal/features/activity_mini/protocol/AnswerFaults.scala:18](temporal/features/activity_mini/protocol/AnswerFaults.scala#L18).
+Source: [temporal/features/activity_mini/protocol/AnswerFaults.scala:18](../temporal/features/activity_mini/protocol/AnswerFaults.scala#L18).
 
 ```scala
 given Finite[AnswerState] =
@@ -1069,7 +1085,7 @@ The pieces, each a declaration the IR carries as written:
 
 **Writing it.** An object typed by its machine, with sections in this order:
 
-Source: [temporal/features/activity_mini/realization/MiniActivityRun.scala:12](temporal/features/activity_mini/realization/MiniActivityRun.scala#L12).
+Source: [temporal/features/activity_mini/realization/MiniActivityRun.scala:12](../temporal/features/activity_mini/realization/MiniActivityRun.scala#L12).
 
 ```scala
 object MiniActivityRun extends Realizes(

@@ -810,7 +810,7 @@ type Construct struct {
 	Case string  `protobuf:"bytes,2,opt,name=case,proto3" json:"case,omitempty"`
 	Args []*Expr `protobuf:"bytes,3,rep,name=args,proto3" json:"args,omitempty"`
 	// For a step record (`umpire.Step`) only: the name of the alternative of a named choice this
-	// result is. Evaluation ignores it (model/SEMANTICS.md, Named choices); empty for an unnamed step.
+	// result is. Evaluation ignores it (model/framework/SEMANTICS.md, Named choices); empty for an unnamed step.
 	Choice        string `protobuf:"bytes,4,opt,name=choice,proto3" json:"choice,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -1153,7 +1153,7 @@ func (x *If) GetElse() *Expr {
 
 // The first case whose pattern matches the scrutinee, and whose guard holds, gives the value. A
 // value no case matches is a hole in the Model, which the interpreter reports.
-// That hole is an undeclared one (model/SEMANTICS.md, Holes), neither a declared hole nor an
+// That hole is an undeclared one (model/framework/SEMANTICS.md, Holes), neither a declared hole nor an
 // admission error.
 type Match struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`

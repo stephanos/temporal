@@ -6,7 +6,7 @@ satisfies: [R3, R5, R6]
 ## Description
 **Size:** M
 **Files:** Model author documentation, executable layout examples and final Scala grouping source seal.
-**Touches:** [model/README.md, model/SEMANTICS.md, model/irgen/testdata/layout/**, model/irgen/test/**, model/framework/*.test.scala]
+**Touches:** [model/README.md, model/framework/SEMANTICS.md, model/irgen/testdata/layout/**, model/irgen/test/**, model/framework/*.test.scala]
 
 Finish the Scala authoring surface after .6 (R3/R5/R6). The conductor releases fn-164 only after this task's source seal is committed. Legacy .5 retains tools/umpire reporting docs, full consumer reconciliation, managed publication, gates, review and live closure.
 
@@ -21,7 +21,7 @@ Finish the Scala authoring surface after .6 (R3/R5/R6). The conductor releases f
 ### Investigation targets
 **Required:**
 - model/README.md:33, :672, :923, :1222, :1295 - examples, claim sections and nesting rules.
-- model/SEMANTICS.md - current Claims/Progress semantics and owner-edited prose.
+- model/framework/SEMANTICS.md - current Claims/Progress semantics and owner-edited prose.
 - model/irgen/testdata/layout/lamp/product/Product.scala:36 - positively lifted executable author layout.
 - model/irgen/test/Fixtures.test.scala - dedicated grouping and layout inventories.
 - model/check/StepTables.scala and model/check/Gate.scala - source-table proof plus separate provenance ledger.

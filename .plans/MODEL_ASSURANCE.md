@@ -31,7 +31,7 @@ cannot discover every promise an author forgot to state. No single score establi
 The [vision](UMPIRE4_VISION.md) is the starting point, especially #DESIGN, #CONFORMANCE, #GUIDANCE,
 #PROTOCOLS, #REPLAY and #AUTHORING. This plan preserves the [shared specification](UMPIRE4_SPEC.md),
 the [module boundaries](UMPIRE_MODULES.md), and the distinct results in
-[model semantics](../model/SEMANTICS.md). It proposes work; it changes neither today's semantics nor
+[model semantics](../model/framework/SEMANTICS.md). It proposes work; it changes neither today's semantics nor
 the existing Flow specs. It introduces no exception to a shared architectural rule.
 
 ## The failures we need to distinguish
@@ -560,7 +560,7 @@ Definition ID to its new file instead of introducing a parallel implementation.
    and run the bounded must-detect set. Extend `Makefile` and `.github/workflows/umpire.yml` with a
    separate, explicitly bounded wider campaign. Render witnesses with the existing explorer/trace
    tooling; reuse `tools/umpire/explore` reduction where its contract applies. Document the workflow
-   in `model/README.md` and record only implemented semantics in `model/SEMANTICS.md`.
+   in `model/README.md` and record only implemented semantics in `model/framework/SEMANTICS.md`.
 7. **Prove reuse on a second feature.** Apply the same report and mutation runner to Nexus caller
    completion/closure, then to fn-122's second entity when available. Add only feature declarations
    and focused controls. If it needs feature-specific branches in the generic runner, revisit the
@@ -692,7 +692,7 @@ Follow the existing typed authoring, reader admission, located receipts and inde
 
 - `UMPIRE4_VISION.md`, `UMPIRE4_SPEC.md` and `UMPIRE_MODULES.md` in this directory set the goals,
   shared rules and module ownership.
-- `model/README.md` and `model/SEMANTICS.md` define today's pipeline, evidence and result meanings.
+- `model/README.md` and `model/framework/SEMANTICS.md` define today's pipeline, evidence and result meanings.
 - `model/temporal/standaloneactivity/{Model,Claims,System,Realization}.scala` hold the pilot behavior,
   independent claims, faulty designs and observations.
 - `model/umpire/Claims.scala`, `model/lifter/{Claims,Expressions}.scala` and

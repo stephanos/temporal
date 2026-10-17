@@ -14,7 +14,7 @@ at the sweep and receive no credit from this source checkpoint.
 **Size:** M
 **Files:** Bounds inventory, isolated Query-limit fixtures/proofs, actual task-named migration rule
 and mini source-cited author documentation; current source only where an unmet contract requires it.
-**Touches:** [model/temporal/Bounds.scala, model/temporal/Bounds.test.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/temporal/capabilities/**/*.scala, model/irgen/test/Bounds.test.scala, model/irgen/testdata/bounds/**, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/temporal/Bounds.scala, model/temporal/Bounds.test.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/temporal/capabilities/**/*.scala, model/irgen/test/Bounds.test.scala, model/irgen/testdata/bounds/**, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

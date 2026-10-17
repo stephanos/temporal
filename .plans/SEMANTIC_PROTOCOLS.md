@@ -2,7 +2,7 @@
 
 Design exploration, 2026-10-03. Question: instead of every Model restating what Describe, Terminate,
 Pause, Cancel, timeouts and retries mean, declare each as a reusable behavioral contract that a feature
-instantiates. Grounded in `model/temporal/*`, `model/SEMANTICS.md`, fn-112/114/118/119/120, and the
+instantiates. Grounded in `model/temporal/*`, `model/framework/SEMANTICS.md`, fn-112/114/118/119/120, and the
 server's handlers (`chasm/lib/{activity,nexusoperation,scheduler}`, `service/history/api/*`).
 Nothing here is a spec yet; the last section is the proposed spec text.
 

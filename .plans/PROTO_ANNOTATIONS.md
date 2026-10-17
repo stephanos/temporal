@@ -32,7 +32,7 @@ The words are fixed in section 7:
 - `unconstrained` is the no-op Tag that exhaustive tagging uses for fields with nothing to say.
 
 Grounded in `.plans/UMPIRE4_SPEC.md`, `.plans/UMPIRE4_VISION.md`, `.plans/UMPIRE_MODULES.md`,
-`model/README.md`, `model/SEMANTICS.md`, the working-tree `ir.proto`, `model/umpire`,
+`model/README.md`, `model/framework/SEMANTICS.md`, the working-tree `ir.proto`, `model/umpire`,
 `model/temporal`, `tools/umpire`, `.flow/specs/fn-125-*`, `.plans/DYNAMIC_CONFIG.md`, and the
 server's validators. Line numbers are from the working tree on 2026-10-06. External claims link to
 primary sources. **[unverified]** marks a claim that could not be confirmed.
@@ -68,7 +68,7 @@ Server citations appear only in the research sections (1, 4). The design links t
 
 - The framework ships the first Tag library: validation (`required`, `length`, `pattern`,
   `range`, `requires`, …, plus `unconstrained`). Its names stay close to protovalidate, and its
-  meanings are normative in `model/SEMANTICS.md`.
+  meanings are normative in `model/framework/SEMANTICS.md`.
 - The kit (in `foundations/`) adds Temporal markers (`namespace`, `workflowId`, …), shared Domains, and the
   dynamic-config keys bounds refer to.
 - A new Temporal-agnostic Go module, `tools/umpire/values`, interprets the validation library: it
@@ -125,7 +125,7 @@ Why this design:
   - An action has `inputs` (finite `TypeRef`s), `schemas` and `examples` (`ir.proto:322-343`).
   - An `Example` is an Abstraction Claim: a class value plus a free-text `example`
     (`ir.proto:345-349`; `model/umpire/Action.scala:29-31`, `:120-124`). Admission checks only
-    that its class exists (`model/SEMANTICS.md:705-706`).
+    that its class exists (`model/framework/SEMANTICS.md:705-706`).
   - Lowering copies the claims on a Case's path into provenance (`tools/umpire/check/claims.go:236-250`,
     `tools/umpire/lower/internal/producer/producer.go:442-447`, `case.proto:35-38`). Nothing reads
     them for values.
@@ -152,11 +152,11 @@ Why this design:
     this: "`Condition.equal`, `greater`, `not` and `all` keep their operator; today two pairs build
     identical values" (`.flow/tasks/fn-141-shrink-the-ir-generator-one-description.7.md:16`).
 - **Go re-checks paths and kinds against `protoregistry.GlobalFiles`**
-  (`tools/umpire/lower/descriptor.go:37-48`; `model/SEMANTICS.md:781-786`).
+  (`tools/umpire/lower/descriptor.go:37-48`; `model/framework/SEMANTICS.md:781-786`).
 - **Testpilot's expression language already has `AnyExpression`** (`proto/internal/temporal/server/api/testpilot/v1/expression.proto:22`, `:57`),
   but the IR `Operand` has no `Any`.
 - **Exploration enumerates authored Scenario alternatives only, at most 4096**
-  (`model/SEMANTICS.md:899-907`). The spec's class-member target (`.plans/UMPIRE4_SPEC.md:453-459`)
+  (`model/framework/SEMANTICS.md:899-907`). The spec's class-member target (`.plans/UMPIRE4_SPEC.md:453-459`)
   is not implemented. No Model has an invalid-input class.
 
 ### Where validation knowledge already hides
@@ -341,7 +341,7 @@ protovalidate's names and meanings, so a later import or export stays mechanical
 Why `unconstrained` over the other candidates:
 
 - `untagged` contradicts being a Tag.
-- `free` already means "any action at every step" for a Scenario (`model/SEMANTICS.md:394-395`).
+- `free` already means "any action at every step" for a Scenario (`model/framework/SEMANTICS.md:394-395`).
 - `unconstrained` says what consumers do with the field: any value of its protobuf type, or unset.
 
 Each Tag Definition name is itself a word under SEM-19. The lifter refuses two definitions of one
@@ -371,7 +371,7 @@ bundle a Tag Set reuses. It derives no input of its own. `input(startActivity)` 
 `Input[startActivity.Class]` whose `domain` is `startActivity.classes: Finite[startActivity.Class]`:
 
 - `ActionDecl.domains` gets that `Finite`, as for any input.
-- The checker builds action classes from it by the existing rule (`model/SEMANTICS.md:136-138`),
+- The checker builds action classes from it by the existing rule (`model/framework/SEMANTICS.md:136-138`),
   for example `start-valid` and `start-activityId_length`.
 - Step functions compare against its cases.
 - The Quint export sees one more enum.
@@ -402,7 +402,7 @@ does not edit those files.
 | `:224` | "The Fact domain is a Model's own type" (Fact) | Yes: a finite Domain |
 
 `model/README.md:753` ("the domain roles `caller` and `handler`") uses the subject-area sense and
-is reworded like `:59`. `model/SEMANTICS.md:286` and `:904-907` fit.
+is reworded like `:59`. `model/framework/SEMANTICS.md:286` and `:904-907` fit.
 
 **fn-141 (decision 15: land after fn-141.9).** fn-141 exports declarations from constructed values
 and lifts only function bodies (`.flow/specs/fn-141-shrink-the-ir-generator-one-description.md:49-57`,
@@ -484,7 +484,7 @@ rejecting Tags.
 
 **Settled (decision 10):**
 
-1. **The core validation Tags' meanings are normative in `model/SEMANTICS.md`.** A "Tag library"
+1. **The core validation Tags' meanings are normative in `model/framework/SEMANTICS.md`.** A "Tag library"
    section sits beside the IR's evaluation rules, so "one meaning, one source" holds
    (`.plans/UMPIRE4_VISION.md:101-102`).
 2. **One Go interpretation.** `tools/umpire/values` owns the interpreters, and lowering,
@@ -594,7 +594,7 @@ def exactlyOne[R](cs: Condition[R]*): Condition[R] = // sugar
 **Why `Operand` and not the Model's `Expr`:**
 
 - Tags speak about protobuf field paths. `Operand` already types its paths and literals against
-  descriptors at lowering (`model/SEMANTICS.md:781-786`).
+  descriptors at lowering (`model/framework/SEMANTICS.md:781-786`).
 - `Expr` speaks about the Model's finite types, and its values enter state keys and fingerprints.
 - Evaluating `Expr` over protobuf messages would need the value conversion the CEL spike measured
   at about a third of evaluation time (`.plans/UMPIRE_CEL_SPIKE.md:20-22`).
@@ -927,7 +927,7 @@ message Model {
   repeated string uses = 21; // the IR files this one references, by IR file name (`foundations`)
 }
 
-// A Tag's declared shape. The IR gives it no meaning; model/SEMANTICS.md's Tag library section
+// A Tag's declared shape. The IR gives it no meaning; model/framework/SEMANTICS.md's Tag library section
 // gives the framework Tags theirs.
 message TagDefinition {
   string name = 1; // e.g. `umpire.tags.length`, `temporal.tags.namespace`
@@ -1176,7 +1176,7 @@ Starts after fn-141.9 (decision 15).
 
 1. Tag mechanism in the framework and IR: definitions, Tags, field Domains, Tag Sets with
    single-fault classes, templates, `Any`, `setting`, `uses`. Exporter and Go admission. Recursive
-   exhaustiveness on. The Tag library section in `model/SEMANTICS.md`.
+   exhaustiveness on. The Tag library section in `model/framework/SEMANTICS.md`.
 2. Rename `model/temporal/shared/` to `model/temporal/foundations/` (decision 21), performed by
    fn-142: the task queue moves to `foundations/taskqueue`, the worker and the client to `actors/`,
    and `Bounds.scala` to `model/temporal/`. One regeneration batch: Definition IDs change exactly by
@@ -1207,7 +1207,7 @@ Starts after fn-141.9 (decision 15).
 | 7 | Violating classes | Status code plus no state change, through a kit-level `Validated` capability law | §7 |
 | 8 | Class shape | Single-fault: `valid` plus one class per (field path, rejecting Tag), 1 + Σ, through one action-level input over the request's Tag Set. `grouped` dropped; the class-count question dropped | §7 Single-fault classes |
 | 9 | Exhaustiveness | Requests now, recursing into every reachable message. No whole-value Tag Sets | §7 Exhaustive tagging |
-| 10 | Tag meanings | Core validation Tags normative in `model/SEMANTICS.md` | §7 |
+| 10 | Tag meanings | Core validation Tags normative in `model/framework/SEMANTICS.md` | §7 |
 | 11 | Messages | Conformance compares status codes only. Templates serve diagnostics and future codegen. No pattern match, no redaction policy | §7 Message templates |
 | 12 | fn-139 | Rename `rejects(r).because(text)` to `.message(template)`, with the same template form | §7 Message templates; fn-139 to update |
 | 13 | Server-state-dependent rules | A rejecting Tag left uninterpreted, recorded as a Known Gap, for now | §4, §7 |

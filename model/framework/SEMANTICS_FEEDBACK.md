@@ -1,7 +1,7 @@
 # Feedback on the Umpire DSL
 
 A review of the Scala DSL in `model/framework`, as the Models under `model/temporal` use it and as
-`model/SEMANTICS.md` describes it, at commit `63cd2f2b2c` plus the working tree (the `derives
+`model/framework/SEMANTICS.md` describes it, at commit `63cd2f2b2c` plus the working tree (the `derives
 Finite` removal). The subject is the language, not the guide: what an author has to write, what
 the words mean, where two words mean one thing or one word means two, and where the shape of a
 construct leads to wrong Models.

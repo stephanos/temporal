@@ -5,9 +5,11 @@ import framework.dsl.Finite.given
 object ExpectFixture:
   import WitnessFixture.*
 
-  object Reordered extends Composition[Joined](_.right -> Other, _.left -> Subject)
+  object Reordered extends Composition[Joined](_.right -> Other, _.left -> Subject):
+    type Fact = JoinedFact
 
-  object Repeated extends Composition[Joined](_.right -> Subject, _.left -> Subject)
+  object Repeated extends Composition[Joined](_.right -> Subject, _.left -> Subject):
+    type Fact = JoinedFact
   def left(using view: View[Joined]): State = view.get(_.left)
 
 class ExpectTest extends munit.FunSuite:
@@ -303,18 +305,15 @@ class ExpectTest extends munit.FunSuite:
           check(false)
     assert(outer(Step(Said.ok, Subject.init)))
 
-  test("witness selectors bind exact fields in reordered and repeated-machine compositions"):
+  test("tagged witness facts retain their member case across composition order"):
     import WitnessFixture.*
     import ExpectFixture.*
-    val step = Step("accepted", Joined(State.open, State.closed), List("left_completed"))
+    val step = Step("accepted", Joined(State.open, State.closed), List(JoinedFact.left(Fact.completed)))
     def recorded(q: Query): Boolean =
-      q.property.holds.get.asInstanceOf[Step[Joined, String, String] => Boolean](step)
-    assert(recorded(Reordered.witness(start()).records(_.left -> Subject, Fact.completed)))
-    assert(!recorded(Reordered.witness(start()).records(_.right -> Other, Foreign.completed)))
-    assert(recorded(Repeated.witness(start()).records(_.left -> Subject, Fact.completed)))
-    assert(!recorded(Repeated.witness(start()).records(_.right -> Subject, Fact.completed)))
-    intercept[IllegalArgumentException]:
-      Reordered.witness(start()).records(_.right -> Subject, Fact.completed)
+      q.property.holds.get.asInstanceOf[Step[Joined, String, JoinedFact] => Boolean](step)
+    assert(recorded(Reordered.witness(start()).records(JoinedFact.left(Fact.completed))))
+    assert(!recorded(Reordered.witness(start()).records(JoinedFact.right(Foreign.completed))))
+    assert(recorded(Repeated.witness(start()).records(JoinedFact.left(Fact.completed))))
 
   test("expectation validation refuses empty, discarded and wrong-level statements"):
     val invalid = List(
@@ -356,10 +355,10 @@ class ExpectTest extends munit.FunSuite:
         """import EffectsFixture.*; Subject.property.expect { check(after.records(WitnessFixture.Foreign.completed)) }"""
       ),
       compileErrors(
-        """import WitnessFixture.*; Together.property.expect { records(_.left -> Subject, Foreign.completed) }"""
+        """import WitnessFixture.*; Together.property.expect { records(Fact.completed) }"""
       ),
       compileErrors(
-        """import WitnessFixture.*; Together.property.expect { check(after.records(_.left -> Subject, Foreign.completed)) }"""
+        """import WitnessFixture.*; Together.property.expect { check(after.records(Fact.completed)) }"""
       ),
       compileErrors(
         """import EffectsFixture.*; Subject.property.expect { branch { check(true) } }"""
@@ -368,16 +367,10 @@ class ExpectTest extends munit.FunSuite:
     assertEquals(invalid.zipWithIndex.filter((diagnostic, _) => diagnostic.isEmpty), Nil)
 
   test("member metadata requires an authored direct field rather than a computed selector"):
-    val invalid = List(
-      compileErrors(
-        """import WitnessFixture.*; object Computed extends Composition[Joined](s => identity(s.left) -> Subject, _.right -> Other)"""
-      ),
-      compileErrors(
-        """import WitnessFixture.*; Together.property.expect { records(s => identity(s.left) -> Subject, Fact.completed) }"""
-      )
+    val computed = compileErrors(
+      """import WitnessFixture.*; object Computed extends Composition[Joined](s => identity(s.left) -> Subject, _.right -> Other)"""
     )
-    assert(invalid.head.contains("Required: framework.dsl.MemberSelection"), invalid.head)
-    assert(invalid(1).contains("direct"), invalid(1))
+    assert(computed.contains("Required: framework.dsl.MemberSelection"), computed)
     val foreignRoot = compileErrors(
       """import WitnessFixture.*; def build(foreign: Joined) = { object Wrong extends Composition[Joined](_ => foreign.left -> Subject, _.right -> Other); Wrong }"""
     )
@@ -437,44 +430,36 @@ class ExpectTest extends munit.FunSuite:
       Nil
     )
 
-  test("composed predicates retain exact field-machine requirements until attachment"):
+  test("composed predicates use tagged facts in ordinary and transition claims"):
     import WitnessFixture.*
     import ExpectFixture.*
-    val named: Step[Joined, String, String] => Boolean = expect:
-      records(_.left -> Subject, Fact.completed)
-    val transition: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
-      records(_.right -> Other, Foreign.completed)
+    val named: Step[Joined, String, JoinedFact] => Boolean = expect:
+      records(JoinedFact.left(Fact.completed))
+    val transition: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
+      records(JoinedFact.right(Foreign.completed))
       check(before.left.equals(after.state.left))
     val joined = Joined(State.open, State.closed)
-    def holds(p: Property, facts: List[String]): Boolean =
+    val memberState = Reordered.property.expect:
+      check(Subject.end(left))
+    val readsMember = memberState.decl.holds.get
+      .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
+    assert(!readsMember(Step("accepted", joined)))
+    assert(readsMember(Step("accepted", joined.copy(left = State.closed))))
+    def holds(p: Property, facts: List[JoinedFact]): Boolean =
       p.decl.holds.get
-        .asInstanceOf[Step[Joined, String, String] => Boolean](Step("accepted", joined, facts))
+        .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean](Step("accepted", joined, facts))
     val reordered = Reordered.property.expect:
       check(named(after))
-    val repeated = Repeated.property.expect:
-      check(named(after))
-    assert(holds(reordered, List("left_completed")))
-    assert(!holds(repeated, List("right_completed")))
-    assert(holds(repeated, List("left_completed")))
+    assert(holds(reordered, List(JoinedFact.left(Fact.completed))))
+    assert(!holds(reordered, List(JoinedFact.right(Foreign.completed))))
     val across = Reordered.property.across.expect:
       check(transition(before, after))
-    assert(across.decl.holds2.nonEmpty)
-    val _ = intercept[IllegalArgumentException]:
-      Repeated.property.across.expect:
-        check(transition(before, after))
-    val wrong: Step[Joined, String, String] => Boolean = expect:
-      records(_.right -> Subject, Fact.completed)
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property.expect:
-        check(wrong(after))
-    val _ = intercept[IllegalArgumentException](Reordered.property.never(wrong))
-    val _ = intercept[IllegalArgumentException](Reordered.property.stays(_ => true).unless(wrong))
-    assert(!holds(Repeated.property.never(named), List("left_completed")))
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property.expect:
-        if false then records(_.right -> Subject, Fact.completed)
+    val predicate = across.decl.holds2.get
+      .asInstanceOf[(Joined, Step[Joined, String, JoinedFact]) => Boolean]
+    assert(predicate(joined, Step("accepted", joined, List(JoinedFact.right(Foreign.completed)))))
+    assert(!predicate(joined, Step("accepted", joined, List(JoinedFact.left(Fact.completed)))))
     val conditional = Reordered.property.expect:
-      if after.records(_.right -> Other, Foreign.completed) then
-        records(_.left -> Subject, Fact.completed)
-    assert(!holds(conditional, List("right_completed")))
-    assert(holds(conditional, List("left_completed", "right_completed")))
+      if after.records(JoinedFact.right(Foreign.completed)) then
+        records(JoinedFact.left(Fact.completed))
+    assert(!holds(conditional, List(JoinedFact.right(Foreign.completed))))
+    assert(holds(conditional, List(JoinedFact.left(Fact.completed), JoinedFact.right(Foreign.completed))))

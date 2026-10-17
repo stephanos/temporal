@@ -7,8 +7,8 @@ satisfies: [R1, R2, R3, R4, R5]
 Demonstrate Temporal composition progress and close gates. Advances R1, R2, R3, R4, R5 of the parent spec.
 
 **Size:** M
-**Files:** `model/temporal/features/activity/standalone/system/**`, `model/ir/**`, `model/cases/**`, `model/README.md`, `model/SEMANTICS.md`, `tools/umpire/README.md`, `tools/umpire/check/*test.go`
-**Touches:** [model/temporal/features/activity/standalone/system/**, model/ir/**, model/cases/**, model/README.md, model/SEMANTICS.md, tools/umpire/README.md, tools/umpire/check/*test.go]
+**Files:** `model/temporal/features/activity/standalone/system/**`, `model/ir/**`, `model/cases/**`, `model/README.md`, `model/framework/SEMANTICS.md`, `tools/umpire/README.md`, `tools/umpire/check/*test.go`
+**Touches:** [model/temporal/features/activity/standalone/system/**, model/ir/**, model/cases/**, model/README.md, model/framework/SEMANTICS.md, tools/umpire/README.md, tools/umpire/check/*test.go]
 
 ### Approach
 - Use an existing Temporal composition such as StandaloneActivity as the base; choose a small explicitly restricted design with a reachable two-member obligation and a structural bound. The positive result must exercise from and must not be from-already-to.
@@ -20,7 +20,7 @@ Demonstrate Temporal composition progress and close gates. Advances R1, R2, R3, 
 ### Investigation targets
 **Required:**
 - `model/temporal/features/activity/standalone/system/System.scala:589` - existing composition.
-- `model/SEMANTICS.md:403` - composed state/start semantics; Progress section.
+- `model/framework/SEMANTICS.md:403` - composed state/start semantics; Progress section.
 - `model/README.md` - authoring and known limitations.
 - `tools/umpire/check/composed_test.go` - model composition checks.
 - `MILESTONES.md` - gate serialization.

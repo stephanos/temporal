@@ -191,7 +191,7 @@ private[framework] object NativeCheck:
       cut
     )
 
-  // A channel's delivery or loss, as the reader derives it (model/SEMANTICS.md, Channels): enabled
+  // A channel's delivery or loss, as the reader derives it (model/framework/SEMANTICS.md, Channels): enabled
   // where the inbox holds the message, first for a FIFO channel, it removes that entry and applies
   // the bound function; a delivery whose redeliveries are fewer than the channel's duplicates also
   // gives the same results with the entry put back.
@@ -455,7 +455,7 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       budget: Int
   ): Result =
-    val origins = scenario.start.fold(if starts.isEmpty then Seq(machine.init) else starts)(s =>
+    val origins = scenario.start.fold(if starts.isEmpty then machine.initialStates else starts)(s =>
       Seq(s.asInstanceOf[S]) // scalafix:ok DisableSyntax.asInstanceOf
     )
     val graph = explore(machine, origins, scenario.admits, budget)
@@ -743,7 +743,7 @@ private[framework] object NativeCheck:
       budget: Int = defaultBudget,
       sections: Option[AnyRef] = None
   ): Report =
-    val origins = if starts.isEmpty then Seq(machine.init) else starts
+    val origins = if starts.isEmpty then machine.initialStates else starts
     val owner = sections.getOrElse(machine)
     val graph = explore(machine, origins, budget = budget)
     def subject(member: String) = s"${machine.name}.$member"
@@ -921,7 +921,7 @@ private[framework] object NativeCheck:
   ): Result =
     val graph = explore(
       environment,
-      if starts.isEmpty then Seq(environment.init) else starts,
+      if starts.isEmpty then environment.initialStates else starts,
       budget = budget
     )
     progress(graph, s"${environment.name}.${claim.name}", claim, fairness(claim, environment))
@@ -933,18 +933,18 @@ private[framework] object NativeCheck:
       case m: RecordMachine[?, ?, ?] =>
         val machine =
           m.asInstanceOf[RecordMachine[Any, Any, Any]] // scalafix:ok DisableSyntax.asInstanceOf
-        val start = q.scenario.start.getOrElse(machine.init)
+        val starts = q.scenario.start.fold(machine.initialStates)(s => Seq(s))
         if q.property.leads.nonEmpty then
-          progress(machine, subject, q.property.leads.get, q.scenario, Seq(start), budget)
+          progress(machine, subject, q.property.leads.get, q.scenario, starts, budget)
         else if q.property.machine ne machine then
           val through =
             s"reads ${q.property.machine.name} through a refinement, which no native check reads"
           Result(subject, Verdict.unknown, budget, 0, false, Vector(through))
         else if q.scenario.free then
-          val graph = explore(machine, Seq(start), q.scenario.admits, budget)
+          val graph = explore(machine, starts, q.scenario.admits, budget)
           if finds(q) then find(graph, subject, q.property)
           else verify(graph, subject, q.property)
-        else pinned(machine, subject, q, start, budget)
+        else pinned(machine, subject, q, starts, budget)
       case other =>
         throw IllegalArgumentException(
           s"$subject runs on ${other.name}, which no native check explores"
@@ -957,7 +957,7 @@ private[framework] object NativeCheck:
       machine: RecordMachine[S, O, F],
       subject: String,
       q: Query,
-      start: S,
+      starts: Seq[S],
       budget: Int
   ): Result =
     val classes = q.scenario.actions.map:
@@ -968,7 +968,7 @@ private[framework] object NativeCheck:
           s"$subject pins $other, a composed step no native check reads"
         )
     val effects = machine.bindings.map(b => b.decl -> effectOf[S, O, F](b.decl, b.function))
-    var frontier = Vector(start)
+    var frontier = starts.toVector
     var witness = false
     var failure = Option.empty[String]
     classes.zipWithIndex.foreach: (cls, i) =>

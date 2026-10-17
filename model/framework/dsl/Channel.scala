@@ -25,7 +25,7 @@ final case class Delivery[M](message: M, redeliveries: Int)
 // A machine holds it in a state field of type `Inbox[M]`, sends with `Inbox.send`, and binds
 // `deliver` to what receiving a message does and, for a lossy channel, `lose` to what losing one
 // does. When a message can be delivered or lost, and the redelivery after a lost acknowledgment,
-// are derived from this declaration by the IR interpreter (model/SEMANTICS.md, Channels).
+// are derived from this declaration by the IR interpreter (model/framework/SEMANTICS.md, Channels).
 final class Channel[M] private[framework] (
     val name: String,
     val capacity: Int,

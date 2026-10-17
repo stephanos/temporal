@@ -1,4 +1,4 @@
-// Named choices (model/SEMANTICS.md, Named choices): each step function of `Chosen` names its
+// Named choices (model/framework/SEMANTICS.md, Named choices): each step function of `Chosen` names its
 // results with `choose`. The lifter's tests require each name on the step its alternative wrote, in
 // the order written, and an alternative that calls a function to call a copy of it whose every step
 // carries the name. An unnamed list of several steps is refused (Rejects.scala), so fn-120.1's

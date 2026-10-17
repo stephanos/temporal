@@ -7,7 +7,7 @@ satisfies: [R3, R4]
 Part A, first half: the lifter expands a function-level sugar from its Scala definition, with its arguments bound, then lifts core constructs and types. Remove the hand-written expression lowerings for enter, stay, reject, disabled, membership/role in, implies and records, covering all their current function-body overloads. Declaration-level patterns, witness builders and block/rule forms remain explicitly open in .4 and the constructed-value export tasks; they are not permanent exceptions to R3/R4. Current paths and mini-only execution follow MILESTONES.md and the activated parent spec.
 
 **Size:** L
-**Touches:** [model/framework/dsl/**, model/framework/export/**, model/framework/inspect/**, model/framework/lint/**, model/framework/check/**, model/temporal/check/**, model/temporal/migrate/README.md, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/dsl/**, model/framework/export/**, model/framework/inspect/**, model/framework/lint/**, model/framework/check/**, model/temporal/check/**, model/temporal/migrate/README.md, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Re-read export/{Syntax,Expressions,Claims,Context,Lift}.scala, inspect/Index.scala, dsl/Syntax.scala and the existing Sugar.scala fixture. Index the framework and fixture kit definitions as well as Model TASTy while excluding framework definitions from author roots and source lint. Reuse one shared index and existing parameter/type/function bindings.

@@ -8,7 +8,7 @@ Held sweep: integrate the migration adapter and execute mini/real-feature migrat
 
 **Size:** M
 **Files:** migration adapter/loading configuration, feature declarations and generated trees, model docs.
-**Touches:** [model/migrate/**, model/.scalafix.conf, model/temporal/features/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/migrate/**, model/.scalafix.conf, model/temporal/features/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Admission prerequisite: conductor verifies fn-166.10's runnable migration infrastructure closure is committed in the current branch. No whole-fn-166 edge is added, because its held final loop consumes the gap migration this task supplies.
@@ -26,7 +26,7 @@ Required:
 - `model/.scalafix.conf` — existing rule loading.
 - `model/check/Gate.scala` — scoped generation/lint route.
 - `model/README.md` — author commands and staged policy.
-- `model/SEMANTICS.md` — gap/derivation semantics.
+- `model/framework/SEMANTICS.md` — gap/derivation semantics.
 
 ### Verification
 Run the real adapter with dry-run/refusal fixtures, then mini and all selected source-backed features. Compare behavior identities, table pins, Cases and acceptance coverage at the settled baseline; archive all count receipts and failed placements. Run parent Quick commands, full relevant Scala/Go suites and equivalence, with no false green credit for inherited failures. Record removed source-feature files and preserve every legacy file until its owner retires it.

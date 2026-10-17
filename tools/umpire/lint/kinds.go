@@ -527,7 +527,7 @@ func neverEnabled(m *Model) ([]Tally, error) {
 // stuckStates is each reachable state of a machine or composition that is no end and in which no row has a result:
 // no action class, a timer's and an internal step's included, can happen there. A state with a hole
 // row is not stuck: a hole declares that unmodeled behavior may happen there, not a forgotten rule,
-// as the progress check reads it (model/SEMANTICS.md, Progress). The finding is at the machine and
+// as the progress check reads it (model/framework/SEMANTICS.md, Progress). The finding is at the machine and
 // carries the shortest path from a start to the state.
 func stuckStates(m *Model) ([]Tally, error) {
 	t := tally(StuckState)

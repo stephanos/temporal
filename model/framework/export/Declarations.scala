@@ -1541,7 +1541,7 @@ private[`export`] trait Declarations:
     id
 
   // An assumption a machine makes, which makes none of a composition's steps fair: a member's
-  // fairness reaches its compositions through their composed classes (model/SEMANTICS.md, Assumptions).
+  // fairness reaches its compositions through their composed classes (model/framework/SEMANTICS.md, Assumptions).
   def machineAssumption(sym: Symbol, at: Tree): String =
     val id = assumptionOf(sym, at)
     if assumptions(id).fairRefs.nonEmpty then

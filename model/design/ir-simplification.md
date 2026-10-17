@@ -210,7 +210,7 @@ The real differences, setting positions aside:
 - **Umpire splits guard from effect** into two functions, and returns a list of step records.
   Quint conjoins guard and assignments in one action and lets `actionAny` choose.
   - Umpire's split is deliberate: SEMANTICS §6 says "The IR binds each action to one step function"
-    (`model/SEMANTICS.md:358-363`).
+    (`model/framework/SEMANTICS.md:358-363`).
   - The list of records is what makes outcomes, facts and named choices first-class.
 - **Umpire names an outcome type and a step record.** Quint has neither.
 - **Umpire types every parameter**, and the types are finite. Quint's type annotations are

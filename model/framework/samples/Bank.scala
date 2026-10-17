@@ -3,8 +3,6 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-// Modelled after https://github.com/quint-co/quint/blob/main/examples/cosmos/bank/bank.qnt and bankTest.qnt
-//
 // The send logic of a bank module: accounts hold coins of several denominations, and a send moves
 // coins of one denomination from one account to another, or fails and changes nothing. The total
 // supply of each denomination is fixed, so the coins in all accounts always add up to it.
@@ -78,7 +76,7 @@ object Bank:
       // Transfers `amount` coins of `denom` from `fromAddr` to `toAddr`. It fails where the sender
       // holds none of `denom` or fewer than `amount`, and where the receiver would hold more than
       // the type of a balance can.
-      def send(in: Send): Unit =
+      def send(in: Send) =
         val fromBalance = balanceOf(balances, in.fromAddr, in.denom)
         val toBalance = balanceOf(balances, in.toAddr, in.denom)
         if fromBalance == 0 || fromBalance < in.amount then
@@ -92,14 +90,6 @@ object Bank:
             in.denom,
             toBalance + in.amount
           )
-
-      // A send that credits the receiver without debiting the sender: the coins it pays come from
-      // nowhere, and the total supply grows.
-      def sendFromNowhere(in: Send): Unit =
-        val toBalance = balanceOf(balances, in.toAddr, in.denom)
-        if in.fromAddr == in.toAddr then ()
-        else if toBalance + in.amount > supply then reject(Outcome.overflow)
-        else balances = withBalance(balances, in.toAddr, in.denom, toBalance + in.amount)
 
     object invariants:
       val totalSupplyInv = check(totalSupply(balances))
@@ -117,13 +107,3 @@ object Bank:
         check(balanceOf(balances, Addr.king, Denom.banana) == 1)
         check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
       val kingSendsPeachesBananas = find(peachesGetsBananas)
-
-  // A send that pays from nowhere: the negative control of the total supply, which its test asserts
-  // refuted.
-  object Leaky
-      extends Derived(
-        Model.rebind(
-          on(client.send): s =>
-            Model.effects.sendFromNowhere(s)
-        )
-      )

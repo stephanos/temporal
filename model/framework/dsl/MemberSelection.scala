@@ -15,7 +15,7 @@ object MemberSelection:
 
   private def captured(selected: Expr[(Any, Model)])(using Quotes): Expr[MemberSelection] =
     import quotes.reflect.*
-    val field = MemberPath.directField(selected.asTerm, Some(Symbol.spliceOwner.owner))
+    val field = MemberSelector.directField(selected.asTerm, Some(Symbol.spliceOwner.owner))
     '{
       val pair = $selected
       new MemberSelection(${ Expr(field) }, pair._1, pair._2)

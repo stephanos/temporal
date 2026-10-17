@@ -66,7 +66,7 @@ dump reports whether a step still leaves the set. The round count is the only nu
 module. A count that is too small shows as `closed: false` and fails the comparison.
 
 A step record carries the name of the alternative of a named choice it is, as `f_choice`, empty for
-an unnamed one (`model/SEMANTICS.md`, Named choices). The step function keeps every alternative of
+an unnamed one (`model/framework/SEMANTICS.md`, Named choices). The step function keeps every alternative of
 a choice in its result list, in order, each with its name; only a check module's step action picks
 one, by index (`nondet n = oneOf(rs.indices())`). A composed step record carries the empty name, as
 Go's composed results do.

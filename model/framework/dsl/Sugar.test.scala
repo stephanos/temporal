@@ -6,7 +6,34 @@ class SugarNativeTest extends munit.FunSuite:
     case changed
     case repeated(count: Int)
 
-  private val left: Pair => Boolean = _.left
+  test("a composition declares member fact cases and refuses an untagged member fact"):
+    assertEquals(
+      compileErrors("""object Tagged extends Composition[Pair]() {
+        enum Fact { case left(value: SugarNativeTest.this.Fact); case right(value: SugarNativeTest.this.Fact) }
+        val claim = witness(own(_.left, action("move", Actor("tester")))).records(Fact.left(SugarNativeTest.this.Fact.changed))
+      }"""),
+      ""
+    )
+
+  test("a derived composition retains the source's tagged fact type"):
+    assertEquals(
+      compileErrors("""enum Note { case changed }
+      object Member extends RecordMachine[Boolean, Boolean, Note] {
+        def init = false
+        def end(state: Boolean) = state
+        object transitions extends Rules
+      }
+      object Source extends Composition[Pair](_.left -> Member, _.right -> Member) {
+        enum Fact { case left(value: Note); case right(value: Note) }
+      }
+      object Derived extends DerivedComposition(Source.withMember(_.left -> Member)) {
+        val claim = witness(own(_.left, action("move", Actor("tester")))).records(Source.Fact.left(Note.changed))
+      }
+      val replacement = Source.withMember(_.left -> Member)
+      val claim = replacement.witness(replacement.own(_.left, action("move", Actor("tester")))).records(Source.Fact.left(Note.changed))
+      """),
+      ""
+    )
 
   test("never from retains its named argument and native transition meaning"):
     object Checked extends RecordMachine[Boolean, Boolean, Nothing]:
@@ -24,14 +51,18 @@ class SugarNativeTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Checked.property.when(press).stays(identity))
     assert(refused.getMessage.contains("takes no when"), refused.getMessage)
 
-  test("composition records uses the selected member even when member states and facts coincide"):
-    val after = Step(true, Pair(false, false), List("left_changed"))
-    assert(after.records(_.left, Fact.changed))
-    assert(!after.records(_.right, Fact.changed))
-    assert(!after.records(_.left, "other"))
-    val repeated = after.copy(facts = List("left_repeated-2"))
-    assert(repeated.records(_.left, Fact.repeated(2)))
-    assert(!repeated.records(_.right, Fact.repeated(2)))
+  test("tagged member facts retain member identity and fact payloads"):
+    enum Tagged:
+      case left(value: Fact)
+      case right(value: Fact)
+    val after = Step(true, Pair(false, false), List(Tagged.left(Fact.changed)))
+    assert(after.records(Tagged.left(Fact.changed)))
+    assert(!after.records(Tagged.right(Fact.changed)))
+    val repeated = after.copy(facts = List(Tagged.left(Fact.repeated(2))))
+    assert(repeated.records(Tagged.left(Fact.repeated(2))))
+    assert(!repeated.records(Tagged.left(Fact.repeated(3))))
+    assert(!repeated.records(Tagged.right(Fact.repeated(2))))
+    assert(compileErrors("after.records(Fact.changed)").nonEmpty)
 
   test("implication keeps its right side lazy and enter keeps fact order"):
     var reads = 0 // scalafix:ok DisableSyntax.var
@@ -48,12 +79,6 @@ class SugarNativeTest extends munit.FunSuite:
       List("second", "first", "second")
     )
 
-  @sugar private def forwarded(
-      after: Step[Pair, Boolean, String],
-      member: Pair => Boolean
-  ): Boolean =
-    after.records(member, Fact.changed)
-
   test("plain marked definitions retain strict argument order and by-name laziness"):
     @sugar def ignore(value: Boolean): Boolean = true
     @sugar def conditional(value: Boolean): Boolean = false && value
@@ -69,16 +94,3 @@ class SugarNativeTest extends munit.FunSuite:
     @sugar def swapped(first: Boolean, second: Boolean): Boolean = second && first && first
     assert(swapped(read(1), read(2)))
     assertEquals(order, List(1, 2))
-
-  test("a selector opaque at a plain helper boundary is refused at run time"):
-    val after = Step(true, Pair(false, false), List("left_changed"))
-    val refused = intercept[IllegalArgumentException](forwarded(after, _.left))
-    assert(refused.getMessage.contains("selector capture"), refused.getMessage)
-    val local: Pair => Boolean = _.left
-    for read <- Seq(
-        () => after.records(local, Fact.changed),
-        () => after.records(left, Fact.changed)
-      )
-    do
-      val refused = intercept[IllegalArgumentException](read())
-      assert(refused.getMessage.contains("selector capture"), refused.getMessage)

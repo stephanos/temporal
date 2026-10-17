@@ -1,5 +1,8 @@
 package framework.dsl
 
+import BankControls.Leaky
+import TwoPhaseCommitControls.EagerCommit
+
 import samples.*
 import NativeControls.{assertRefuted, invariant}
 

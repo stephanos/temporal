@@ -13,7 +13,7 @@ selected mini/shared admission inventory and compiled wrapping migration. Real s
 **Size:** M
 **Files:** facet aggregation/provenance, rule labels, facet admission/placement/level agreement,
 focused native/lifter fixtures, current core-form docs and any necessary API-spelling migration.
-**Touches:** [model/framework/Facet.scala, model/framework/FacetSource.scala, model/framework/Facets.test.scala, model/framework/RuleSource.scala, model/framework/RuleSource.test.scala, model/framework/Syntax.scala, model/framework/Machine.scala, model/irgen/Context.scala, model/irgen/Declarations.scala, model/irgen/Capabilities.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Facets.test.scala, model/irgen/testdata/facetContract/**, model/migrate/rules/Fn161Task1*.scala, model/migrate/test/FacetContract.test.scala, model/migrate/proof/RewriteFacetContractMini.scala, model/migrate/README.md, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Facet.scala, model/framework/FacetSource.scala, model/framework/Facets.test.scala, model/framework/RuleSource.scala, model/framework/RuleSource.test.scala, model/framework/Syntax.scala, model/framework/Machine.scala, model/irgen/Context.scala, model/irgen/Declarations.scala, model/irgen/Capabilities.scala, model/irgen/Order.scala, model/irgen/Structure.scala, model/irgen/test/Facets.test.scala, model/irgen/testdata/facetContract/**, model/migrate/rules/Fn161Task1*.scala, model/migrate/test/FacetContract.test.scala, model/migrate/proof/RewriteFacetContractMini.scala, model/migrate/README.md, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

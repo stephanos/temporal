@@ -1,6 +1,6 @@
 package ir
 
-// A Query's total is the author's count of its static combinations (model/SEMANTICS.md, Query
+// A Query's total is the author's count of its static combinations (model/framework/SEMANTICS.md, Query
 // totals): the Scenario machine's or composition's whole state catalog times the scheduled slots
 // within the step limit when pinned, or times its action classes, every input assignment of each,
 // times the step limit when free. Each is counted before any state is reached or any row evaluated,

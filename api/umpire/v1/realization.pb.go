@@ -576,7 +576,7 @@ func (RejectionCode_Rejection) EnumDescriptor() ([]byte, []int) {
 // A realization: how the find Queries of one machine run against a system. It declares the roles a
 // run addresses, the values a run learns, what it observes and reads as evidence, the controls it
 // needs, and the scripts its controller and its workers follow. It carries no Case: a reader lowers
-// one Query's witness through it (model/SEMANTICS.md, Realizations).
+// one Query's witness through it (model/framework/SEMANTICS.md, Realizations).
 type Realization struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// The key the IR names it by: the front end's qualified name.

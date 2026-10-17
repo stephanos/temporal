@@ -469,7 +469,7 @@ In this repository:
 
 - `chasm/statemachine.go`, `chasm/lib/activity/statemachine.go`, `service/matching/matcher_data.go`,
   `service/matching/pri_matcher.go`, `common/locks/*.go`
-- `model/SEMANTICS.md`, `tools/umpire/export/README.md`,
+- `model/framework/SEMANTICS.md`, `tools/umpire/export/README.md`,
   `model/temporal/features/activity/standalone/system/Realization.scala`,
   `.flow/specs/fn-150-bounded-liveness-across-composed.md`
 - `.plans/archive/UMPIRE4_RESEARCH.md`, the earlier Grove/Perennial entry

@@ -35,7 +35,7 @@ func (d Decision) Match() bool { return d.Expr.GetMatch() != nil }
 
 // Why is how one state and class of a machine evaluate: the steps, or the hole the value is, and the
 // branch decisions taken on the way, in the order the evaluator took them. A channel's delivery and
-// loss take no decision of a step function: their rows are derived (model/SEMANTICS.md, Channels).
+// loss take no decision of a step function: their rows are derived (model/framework/SEMANTICS.md, Channels).
 type Why struct {
 	Steps     []Value
 	Hole      *Hole

@@ -18,6 +18,21 @@ The lifter turns an effect body into one `copy` per path with sequential substit
 - Kettle `boils` in `heatingAlone` verifies with longest path 81; the same claim in `fromRoomTemperature` reports the press/depress cycle naming `heat`.
 - The retry-facet phase table (as `transitions`) lifts to the same arms as its `when` form except positions.
 - Focused dsl and reify suites pass.
+## Execution status
+
+The native implementation includes assignment effects, plain transitions, section claims, progress
+environments and complete `oneOf(domain)` start products. Assertion and alternative evaluation now
+skip after a failed requirement; the fact-argument regression is being verified separately. These
+are source changes awaiting final native verification and a user-owned commit, not a task closure.
+
+The original native requirements remain open: public legacy vocabulary is still reachable through
+record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
+naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
+Actually evaluated claim holes currently propagate instead of producing an unknown result. The
+native scenario class-selection and pinned-path budget/completion behavior also need reconciliation.
+Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
+as passing.
+
 ## Acceptance
 - [ ] TBD
 

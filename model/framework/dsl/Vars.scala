@@ -3,6 +3,22 @@ package framework.dsl
 import scala.language.dynamics
 import scala.quoted.*
 
+@scala.annotation.publicInBinary
+private[framework] object StartStatesMacro:
+  def initializer(using q: Quotes): Option[q.reflect.Symbol] =
+    import q.reflect.*
+    val owner = Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol)
+      .find(s => (s.isValDef || s.isDefDef) &&
+        !s.name.contains("$") && !s.name.startsWith("<") && s.name != "macro")
+    owner.filter(v => v.owner.isClassDef &&
+      v.owner.declarations.exists(_.name == s"${v.name}_="))
+
+  def initialize[A: Type](domain: Expr[Iterable[A]])(using Quotes): Expr[A] =
+    import quotes.reflect.*
+    val v = initializer.getOrElse(report.errorAndAbort("oneOf(domain) initializes a state var"))
+    val machine = This(v.owner).asExprOf[Machine[?, ?]]
+    '{ $machine.registerInitial(${ Expr(v.name) }, $domain.toVector) }
+
 // The state of a Machine that declares its state as vars (Machine.scala): one value per var, in
 // declaration order. It is the record a step starts from and goes to, `before` in a postcondition
 // and the start of a Scenario. A postcondition reads its fields by name, `before.temperature`,

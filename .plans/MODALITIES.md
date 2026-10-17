@@ -2,7 +2,7 @@
 
 Design study, 2026-10-03. Question: should a Model distinguish permitted, required and prohibited
 behavior (`may`, `must`, `mustNot`), generate a per-state and a per-operation modality report, and
-call "neither MAY, MUST nor MUST NOT" a specification hole? Grounded in `model/SEMANTICS.md`,
+call "neither MAY, MUST nor MUST NOT" a specification hole? Grounded in `model/framework/SEMANTICS.md`,
 `model/umpire`, `model/temporal/standaloneactivity`, `.plans/{TEMPORAL_PATTERNS,SEMANTIC_PROTOCOLS,
 DSL_OPERATORS,UMPIRE4_VISION}.md`, fn-112 (API Contracts) and fn-120 (.3 lint, .4 explorer). Section 6
 has numbers from a read-only evaluator over `model/ir/activity.json` (scratch script, not checked in).

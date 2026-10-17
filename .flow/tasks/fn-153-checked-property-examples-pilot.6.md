@@ -7,8 +7,8 @@ satisfies: [R2, R3, R4, R5, R6, R7]
 Write the evidence-limited pilot assessment, document authoring and check workflows, and join the original-to-final compatibility proof and gates. The conductor owns review, Flow closure and MILESTONES.
 
 **Size:** M
-**Files:** `model/README.md`, `model/SEMANTICS.md`, `tools/umpire/README.md`, new `model/docs/property-illustrations-assessment.md`, `.flow/tmp/fn-153/` evidence
-**Touches:** [model/README.md, model/SEMANTICS.md, tools/umpire/README.md, model/docs/property-illustrations-assessment.md]
+**Files:** `model/README.md`, `model/framework/SEMANTICS.md`, `tools/umpire/README.md`, new `model/docs/property-illustrations-assessment.md`, `.flow/tmp/fn-153/` evidence
+**Touches:** [model/README.md, model/framework/SEMANTICS.md, tools/umpire/README.md, model/docs/property-illustrations-assessment.md]
 
 ### Approach
 - Document the actual typed attachment, classification/error contract, managed document/gate workflow and hypothetical-versus-found distinction. Use the vocabulary/authoring and Claims/Results/Admission reader sections identified below; do not retell unrelated model semantics.
@@ -20,7 +20,7 @@ Write the evidence-limited pilot assessment, document authoring and check workfl
 ### Investigation targets
 **Required:**
 - `model/README.md:18` and `:413` - vocabulary and authoring
-- `model/SEMANTICS.md:434` and `:791` - Claims and Admission
+- `model/framework/SEMANTICS.md:434` and `:791` - Claims and Admission
 - `tools/umpire/README.md:40` - command/check workflow
 - `.flow/tmp/fn-153/` - .1's immutable baseline and task-local receipts
 - `MILESTONES.md` - canonical commands, one-hour rule and root ownership

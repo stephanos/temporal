@@ -1,6 +1,6 @@
 package ir
 
-// What a reader rejects of a realization before any lowering (model/SEMANTICS.md, Admission):
+// What a reader rejects of a realization before any lowering (model/framework/SEMANTICS.md, Admission):
 // each case is one mutation of the Nexus caller realization the lifter emitted, reported at the
 // position the lifter recorded for the declaration concerned.
 

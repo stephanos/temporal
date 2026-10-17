@@ -1,19 +1,12 @@
 package framework.dsl
 
 import scala.quoted.*
-import scala.annotation.unused
 
 final private[framework] class memberSelectors(val parameters: String)
     extends scala.annotation.StaticAnnotation
 
-final private[framework] case class MemberPath(field: String):
-  require(
-    field.nonEmpty && !field.contains('.'),
-    "selector capture requires a direct field at its call site; a plain function parameter or selector reference is opaque"
-  )
-
 @scala.annotation.publicInBinary
-private[framework] object MemberPath:
+private[framework] object MemberSelector:
   private[framework] def selectionParts(using
       quotes: Quotes
   )(
@@ -38,47 +31,6 @@ private[framework] object MemberPath:
             machine.tpe.widen <:< TypeRepr.of[Model] =>
         Some(state -> machine)
       case _ => None
-
-  private[framework] def memberBinding(using
-      quotes: Quotes
-  )(
-      member: quotes.reflect.Term
-  ): Option[Expr[MemberBinding]] =
-    import quotes.reflect.*
-    def unwrap(value: Term): Term = value match
-      case Inlined(_, _, body) => unwrap(body)
-      case Typed(body, _)      => unwrap(body)
-      case other               => other
-    unwrap(member) match
-      case Lambda(parameters, body) =>
-        selectionParts(body).map: (_, selected) =>
-          val field = directField(member)
-          object independent extends TreeTraverser:
-            override def traverseTree(tree: Tree)(owner: Symbol): Unit =
-              if parameters.exists(_.symbol.equals(tree.symbol)) then
-                report.errorAndAbort(
-                  "a selected member machine is independent of the state parameter",
-                  selected.pos
-                )
-              super.traverseTree(tree)(owner)
-          independent.traverseTree(selected)(Symbol.spliceOwner)
-          '{ PredicateBindings.member(${ Expr(field) }, ${ selected.asExprOf[Model] }) }
-      case _ => None
-
-  inline def captureBinding[S, MS, O, F](
-      inline member: S => (MS, RecordMachine[MS, O, F])
-  ): MemberBinding = ${ capturedBinding('member) }
-
-  private def capturedBinding[S: Type, MS: Type, O: Type, F: Type](
-      member: Expr[S => (MS, RecordMachine[MS, O, F])]
-  )(using Quotes): Expr[MemberBinding] =
-    import quotes.reflect.*
-    memberBinding(member.asTerm).getOrElse(
-      report.errorAndAbort(
-        "a member fact requires a direct field -> machine selector",
-        member.asTerm.pos
-      )
-    )
 
   private[framework] def directField(using
       quotes: Quotes
@@ -125,7 +77,7 @@ private[framework] object MemberPath:
   private def retained[S: Type, M: Type](member: Expr[S => M])(using Quotes): Expr[S => M] =
     import quotes.reflect.*
     val field = directField(member.asTerm)
-    '{ MemberPath.retain($member, ${ Expr(field) }) }
+    '{ MemberSelector.retain($member, ${ Expr(field) }) }
 
   def retainMove[S, M](member: S => M, field: String, action: () => Class | Action[?]): S => M =
     new Retained(member, field, Some(action))
@@ -142,23 +94,3 @@ private[framework] object MemberPath:
     case retained: Retained[S, M] @unchecked => retained.value(state)
     case _                                   => member(state)
 
-  inline def capture[S, M](inline member: S => M, @unused fact: Any): MemberPath = ${
-    captured('member)
-  }
-
-  private def captured[S: Type, M: Type](member: Expr[S => M])(using Quotes): Expr[MemberPath] =
-    import quotes.reflect.*
-    def field(term: Term): Option[String] = term match
-      case Inlined(_, _, body)                => field(body)
-      case Block(List(d: DefDef), _: Closure) =>
-        val parameters = d.termParamss.flatMap(_.params).map(_.symbol)
-        def path(t: Term): Option[List[String]] = t match
-          case p: Ident if parameters.contains(p.symbol) => Some(Nil)
-          case Select(p, name)
-              if p.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == name) =>
-            path(p).map(_ :+ name)
-          case _ => None
-        d.rhs.flatMap(path).filter(_.nonEmpty).map(_.mkString("."))
-      case _ => None
-    val name = field(member.asTerm).getOrElse("")
-    '{ MemberPath(${ Expr(name) }) }

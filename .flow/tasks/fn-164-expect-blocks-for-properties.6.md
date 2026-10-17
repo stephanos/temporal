@@ -6,7 +6,7 @@ satisfies: [R4, R5, R6, R7]
 ## Description
 **Size:** M
 **Files:** public Property builder finishers, remaining framework/test fixtures and author documentation.
-**Touches:** [model/framework/**, model/irgen/**, model/check/**, model/README.md, model/SEMANTICS.md, model/testdata/equivalence/**]
+**Touches:** [model/framework/**, model/irgen/**, model/check/**, model/README.md, model/framework/SEMANTICS.md, model/testdata/equivalence/**]
 
 Finish R6/R7, with a final R4/R5 integration seal, after production migration. This task releases the existing colon-style task; the latter supplies the final pre-fault seal.
 
@@ -18,7 +18,7 @@ Finish R6/R7, with a final R4/R5 integration seal, after production migration. T
 - Record the committed source seal and handoff to colon .1, then fn-123 Scala work and fn-141. Shared production regeneration/Go/full gates/review/live stay pending; no whole-spec closure substitution.
 
 ### Investigation targets
-**Required:** `model/framework/Claims.scala:19-48`; `model/framework/Syntax.scala` Core form examples; `model/irgen/test/Fixtures.test.scala`; `model/README.md` claim/block/shared-predicate/core-sugar guidance; `model/SEMANTICS.md` current claims/levels guidance; fn-164 predecessor inventories/source maps.
+**Required:** `model/framework/Claims.scala:19-48`; `model/framework/Syntax.scala` Core form examples; `model/irgen/test/Fixtures.test.scala`; `model/README.md` claim/block/shared-predicate/core-sugar guidance; `model/framework/SEMANTICS.md` current claims/levels guidance; fn-164 predecessor inventories/source maps.
 **Optional:** `model/check/SyntaxRule.scala`, layout template fixtures and independent equivalence baseline.
 
 ### Quick commands

@@ -169,11 +169,11 @@ var (
 		{name: "Empty", replacement: ".google.protobuf.Empty"},
 	}
 	schemaAddedFields = []schemaAddedField{
-		// The author's static combination count (model/SEMANTICS.md, Query totals).
+		// The author's static combination count (model/framework/SEMANTICS.md, Query totals).
 		{message: "Query", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("total"), Number: proto.Int32(10),
 			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_MESSAGE.Enum(),
 			TypeName: proto.String(".google.protobuf.Int64Value"), JsonName: proto.String("total")}},
-		// The name of a named choice's alternative on its step record (model/SEMANTICS.md, Named choices).
+		// The name of a named choice's alternative on its step record (model/framework/SEMANTICS.md, Named choices).
 		{message: "Construct", field: &descriptorpb.FieldDescriptorProto{Name: proto.String("choice"), Number: proto.Int32(4),
 			Label: descriptorpb.FieldDescriptorProto_LABEL_OPTIONAL.Enum(), Type: descriptorpb.FieldDescriptorProto_TYPE_STRING.Enum(),
 			JsonName: proto.String("choice")}},

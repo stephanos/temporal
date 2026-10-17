@@ -9,8 +9,8 @@ Let a realization name the Queries it runs (an unnamed find Query is model-only)
 **Scope (2026-10-12, Scala DSL batch rules):** re-scoped to its Scala part. The IR schema field (`Realization.queries`, field 21) is already committed in `realization.proto`, but the Go bindings, `lower.Realizable`, `conformance.realizationOf` and model lint cannot read it without owner-held regeneration and Go work; that half moved, unrelaxed, to the deferred fn-162.4.
 
 **Size:** M
-**Files:** `model/temporal/realize/Objects.scala` (`Realizes`/`DerivesFrom` `runs`), the lifter (`model/irgen/Realizations.scala` runs, `model/irgen/Lift.scala` duplicate Properties), `model/irgen/test/Fixtures.test.scala`, `model/README.md`, `model/SEMANTICS.md`
-**Touches:** [model/framework/*.scala, model/temporal/realize/*.scala, model/irgen/*.scala, model/irgen/test/**, model/README.md, model/SEMANTICS.md]
+**Files:** `model/temporal/realize/Objects.scala` (`Realizes`/`DerivesFrom` `runs`), the lifter (`model/irgen/Realizations.scala` runs, `model/irgen/Lift.scala` duplicate Properties), `model/irgen/test/Fixtures.test.scala`, `model/README.md`, `model/framework/SEMANTICS.md`
+**Touches:** [model/framework/*.scala, model/temporal/realize/*.scala, model/irgen/*.scala, model/irgen/test/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - **DSL (owner, 2026-10-10):** the realization names its Queries, e.g. `Realizes(ActivityProtocol, runs = Seq(ActivityProtocol.queries.protocolCompleted, …))`. The Query syntax doesn't change, which respects the one-way layer dependency (realization → system → product). A find Query no realization names is model-only and isn't lowered.

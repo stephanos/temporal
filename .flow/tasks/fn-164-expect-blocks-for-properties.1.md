@@ -4,7 +4,7 @@ satisfies: [R8]
 # fn-164-expect-blocks-for-properties.1 Use colon blocks consistently across the Scala DSL and enforce the style
 
 ## Description
-Touches: [model/.scalafmt.conf, model/.scalafix.conf, model/framework/, model/temporal/, model/irgen/, model/check/, model/README.md, model/SEMANTICS.md]
+Touches: [model/.scalafmt.conf, model/.scalafix.conf, model/framework/, model/temporal/, model/irgen/, model/check/, model/README.md, model/framework/SEMANTICS.md]
 
 Use colon-and-indentation blocks consistently across the Scala DSL after fn-164's `expect` implementation and caller migration, before the pre-fault meaning-preserving seal. Wire the dependency to the final expectation-migration task when the remaining fn-164 tasks are planned; this task alone does not implement or close R1-R7.
 

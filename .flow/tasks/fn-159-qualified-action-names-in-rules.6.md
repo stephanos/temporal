@@ -14,7 +14,7 @@ only. Real-feature uses, realizations, lift proofs and consumer closure remain a
 **Size:** S
 **Files:** isolated Observation API/name/typed-read controls, task-named migration/source proof,
 current framework/lifter comments and author docs where a demonstrated gap requires a change.
-**Touches:** [model/framework/Action.scala, model/framework/Observation.test.scala, model/irgen/Constants.scala, model/irgen/test/Observations.test.scala, model/irgen/testdata/observations/**, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Action.scala, model/framework/Observation.test.scala, model/irgen/Constants.scala, model/irgen/test/Observations.test.scala, model/irgen/testdata/observations/**, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

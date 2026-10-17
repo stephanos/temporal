@@ -8,7 +8,7 @@ Collect exact derivation provenance and validate inherited/local targets (Scala 
 
 **Size:** M
 **Files:** derivation extraction, gap target validation and fixtures.
-**Touches:** [model/irgen/Declarations.scala, model/irgen/Gaps.scala, model/irgen/Context.scala, model/irgen/Lifting.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/SEMANTICS.md]
+**Touches:** [model/irgen/Declarations.scala, model/irgen/Gaps.scala, model/irgen/Context.scala, model/irgen/Lifting.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/framework/SEMANTICS.md]
 
 ### Approach
 - Extend the existing derivation extractor before flattening destroys operation history. Preserve chained source origins and every existing drop/replacement/assumption behavior.

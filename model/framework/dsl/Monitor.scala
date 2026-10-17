@@ -6,7 +6,7 @@ package framework.dsl
 // that owe different obligations stay apart. Declared once over the state type, it watches every
 // machine that names it under `monitors`.
 //
-// The IR interpreter checks it (model/SEMANTICS.md, Monitors).
+// The IR interpreter checks it (model/framework/SEMANTICS.md, Monitors).
 final class Monitor[S, O, F, M] private[framework] (
     val name: String,
     val initial: M,

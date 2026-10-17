@@ -13,7 +13,7 @@ standalone/Nexus wrapping and full-set regeneration remain outside this source c
 **Size:** M
 **Files:** selected machine/vocabulary inventory, task-named wrapping rule and source proof,
 focused migration/admission controls, current author/migration documentation.
-**Touches:** [model/temporal/actors/worker/*.scala, model/temporal/foundations/taskqueue/**/*.scala, model/temporal/features/activity_mini/**/*.scala, model/irgen/Switches.scala, model/irgen/test/FacetAdmission.test.scala, model/irgen/testdata/facetAdmission/**, model/migrate/rules/Fn161Task4*.scala, model/migrate/test/FacetWrapping.test.scala, model/migrate/proof/RewriteFacetWrappingMini.scala, model/migrate/proof/check-facet-wrapping-delta.mjs, model/migrate/proof/test-facet-wrapping-delta.mjs, model/migrate/README.md, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/temporal/actors/worker/*.scala, model/temporal/foundations/taskqueue/**/*.scala, model/temporal/features/activity_mini/**/*.scala, model/irgen/Switches.scala, model/irgen/test/FacetAdmission.test.scala, model/irgen/testdata/facetAdmission/**, model/migrate/rules/Fn161Task4*.scala, model/migrate/test/FacetWrapping.test.scala, model/migrate/proof/RewriteFacetWrappingMini.scala, model/migrate/proof/check-facet-wrapping-delta.mjs, model/migrate/proof/test-facet-wrapping-delta.mjs, model/migrate/README.md, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

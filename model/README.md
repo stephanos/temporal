@@ -79,10 +79,10 @@ After either primary, `.excludes(fact)` appends an unconditional absent-fact gua
 After the primary, `.recordsWhen(condition, fact)` requires another fact only when the after-state
 condition is true. Its core is `!condition(after.state) || after.records(fact)`, conjoined with
 the primary fact, every earlier conditional clause and the optional `.ends` predicate. A composition
-uses `.recordsWhen(condition, _.member -> MemberMachine, fact)` to select that member's typed fact.
+uses `.recordsWhen(condition, Fact.member(fact))` to select that member's typed fact.
 Clauses accumulate in written order and survive `.ends`, `.limits`, `.live` and `.explore`;
 they do not finish a witness that has not stated its primary `.records` or `.excludes`.
-Composed `.excludes(_.member -> MemberMachine, fact)` keeps the selected member's fact identity.
+Composed `.excludes(Fact.member(fact))` keeps the selected member's fact identity.
 Keep `query verify` for invariants over every trace. If the last class occurs earlier in the
 path too, write a triple: a witness is refused because its same-step Property would test both.
 
@@ -90,7 +90,7 @@ A witness is a Query owned by the machine or composition on which it is declared
 generated Property and Scenario. Inside the owner, `witness(...)` uses that owner; elsewhere use
 `m.witness(...)`. Its `val` names the Query; use `witness("name")(...)` when no val supplies a name,
 such as an item in a helper's list. A composition uses its `own` or `synced` classes and records a
-member's fact with `.records(_.member -> MemberMachine, fact)`.
+member's fact with `.records(Fact.member(fact))`, using the composition's per-member fact enum.
 
 Without `.limits`, depth and schedule length are the number of listed classes and the search
 budget is 512; the lifted Limits take the Query's name. Here `.limits(two)` replaces that derived
@@ -267,8 +267,8 @@ the generic tests run. All original assertions remain. Held suites and ignored c
 credit. The source/build-directive boundary and command regressions run in the same loop.
 
 The core module's tests include the native samples. `model/framework/samples` is a core suite root
-and test input, so `SampleExpectTest`, `NativeMapsTest`, `NativeVotingTest` and `NativeHistoryTest`
-(package `framework.dsl`) run once each with the DSL/realize suites. The reusable library compiled
+and test input, so each sample's `<Sample>ExpectTest` and the `NativeMapsTest`, `NativeVotingTest`
+and `NativeHistoryTest` suites (package `framework.dsl`) run once each with the DSL/realize suites. The reusable library compiled
 for constructed fixtures stays DSL/realize only. Two `SamplesSuite` cases run the Go toolchain: the
 generated checker's overlap/diagnostics fixture and the real sample-report comparison. In this loop
 they are held by `GoHeld`, which reports `HELD test <name>: <reason>` and ignores them before their
@@ -468,7 +468,7 @@ and its Scenario `syncReplied`:
 
 The Property, the Scenario, the machine and its step functions are lifted into the same file the
 same way, each with its Scala source position. Step functions become expression trees, which
-[SEMANTICS.md](SEMANTICS.md) defines how to evaluate.
+[SEMANTICS.md](framework/SEMANTICS.md) defines how to evaluate.
 
 **Checked.** The Go reader builds the table of `nexusProtocol` from the IR and answers the Query:
 it finds the two-step path and confirms that the completion Property holds on its last step.
@@ -573,7 +573,7 @@ by id.
 | `model/temporal/migrate` | The migration rules the sweep has not applied yet, each with its proof runner and suite ([README](temporal/migrate/README.md)) |
 | `model/temporal/features/<feature>/generated` | The feature's checked-in `ir.json`, accepted lint findings, Cases and `manifest.json`; retained supplemental outputs live in `legacy/` |
 | `model/project.scala` | The build settings of the Temporal Models, on top of the framework's core (`framework/dsl/project.scala`) |
-| [SEMANTICS.md](SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
+| [SEMANTICS.md](framework/SEMANTICS.md) | The evaluation rules of the Umpire IR: what every construct means |
 | [Known bugs](../.plans/UMPIRE4_VISION.md#known-bugs-knownbugs) | Vision for acknowledging a known bug; not implemented |
 | `model/build` | Build output of the gate; ignored by git |
 
@@ -1449,7 +1449,7 @@ lint rule forbids where no rewrite keeps the behavior carries a line-scoped
 Model lint reads what the IR generator made of a Model, not its Scala. After `make umpire-gen-model`,
 `make umpire-check-lint` lints every feature's generated IR as the gate does: each finding at its Scala
 line, then each machine's coverage summary. `go run ./tools/umpire/cmd/umpire-lint --tables
-model/temporal/features/<feature>/generated/ir.json` adds each machine's table by class in the terms of model/SEMANTICS.md
+model/temporal/features/<feature>/generated/ir.json` adds each machine's table by class in the terms of model/framework/SEMANTICS.md
 ("Modalities"), each cell MAY with its results, MUST NOT with its guard or `?` for a hole, beside the
 claims that pin it. Fix a finding in the Model, or accept it with an entry of
 `model/temporal/features/<feature>/generated/ir.lint.json` that names its `kind`, its `owner`, its `subjects` as lint prints them
@@ -1488,7 +1488,7 @@ The IR generator reads what an author wrote, as written:
   assumption that mixes a machine's actions with composed steps or selects two compositions, a
   claim whose assumption selects steps of another composition, and a machine that assumes composed
   fairness. The bound counts composed steps, a sync's once, and weak fairness does not shorten it
-  (model/SEMANTICS.md, Progress); `system/DispatchProgress.scala` states the restrictions its
+  (model/framework/SEMANTICS.md, Progress); `system/DispatchProgress.scala` states the restrictions its
   one-step bound rests on, with the variant whose stopping worker refutes it. Composition progress
   is supported by the current Scala authoring, lifter and model-check path. It is model-only: no
   Case is generated from it, and this source support does not itself close fn-150's pending
@@ -1536,7 +1536,7 @@ The IR generator reads what an author wrote, as written:
   becomes the function's precondition; `ensuring` is not lifted. Only a step function, and a
   function it calls that gives steps, makes a step: the IR generator refuses `Step(…)`, `enter`, `stay`
   or a call of a step function at its line in a start, an `ends`, evidence, a refinement, a
-  monitor, a Property, a progress claim or a Scenario's start (model/SEMANTICS.md, "Levels").
+  monitor, a Property, a progress claim or a Scenario's start (model/framework/SEMANTICS.md, "Levels").
 - **Realization script helpers** (core, `framework/realize/Scripts.scala`): `script(id, activation)`
   of `everyCase(command)`, `onPath(classes*)(command)` and `perform(step -> command, …)` items;
   `command(instruction, …)`; `rpc(role, method) { … }`, `readUntil(…) { … }`,
@@ -1882,7 +1882,7 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    `toProduct`, the map onto the refined machine's states, and where declared `visible`,
    `visibleOutcomes` and `unobservable`. Where both machines' phases take roles, a model test
    names the refinement and checks that a state is `Closed` exactly when its image is
-   (model/SEMANTICS.md, "Machines" 6);
+   (model/framework/SEMANTICS.md, "Machines" 6);
 4. `object effects`: what each action does, plain defs named for it (`startAttempt`, `complete`),
    which never give `disabled` or `Nil`, and need no result type: `enter(…)`, `stay(s)` and
    `reject(Outcome.rejected(Rejection.notFound), s)`, a step that keeps the state with another outcome, say what each
@@ -2218,7 +2218,7 @@ def admitted(s: AdmissionState): List[AdmissionStep] = choose(
 )
 ```
 
-A name is inert metadata (model/SEMANTICS.md, Named choices): the rows, fingerprints, Query
+A name is inert metadata (model/framework/SEMANTICS.md, Named choices): the rows, fingerprints, Query
 answers and Cases are the ones the same steps give written as an unnamed list. Each alternative is
 one step written out, `enter(…)`, `stay(s)`, `List(Step(…))` or one of those with
 `.because("…")`, or a call of a function that gives at most one step in each branch, such as a step
@@ -2432,7 +2432,7 @@ action and both facets; one facet per file, named after it, is the structure lin
 Temporal Models. A machine may consist of a single facet. A facet's `properties` and `queries`
 are its machine's claims: each Property is declared once, in the facet whose promise it states, and
 keeps its name; a Query asks a Property of any facet it depends on. The machine lifts as if every
-facet's sections were written in it, in facet order (model/SEMANTICS.md, Machines, Facets): rows,
+facet's sections were written in it, in facet order (model/framework/SEMANTICS.md, Machines, Facets): rows,
 outcomes and facts are those of the same machine written as one object; only function names,
 positions and the order the machine binds its actions in (facet order) differ.
 
@@ -2739,7 +2739,7 @@ A Query that should become a Case needs a realization on its machine and
 authored Case-generation switch, for witnesses and ordinary Queries alike; a Query without it
 remains model-only. Capability expectation bindings make their generated Queries live too.
 A malformed expectation fails generation. What a realization may declare, and how
-each declaration lowers, is in [SEMANTICS.md](SEMANTICS.md) under Realizations and Generated Case
+each declaration lowers, is in [SEMANTICS.md](framework/SEMANTICS.md) under Realizations and Generated Case
 expectations.
 
 Expectations whose Property or Contract outcome is not satisfied require non-blank source text in

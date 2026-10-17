@@ -2320,7 +2320,7 @@ class Fixtures extends munit.FunSuite with RetainedScratch:
     Seq("UnnamedList", "UnnamedJoin", "UnnamedInHelper")
 
   // The refusals of fn-120.5's levels: a step made where no step function is, one per declaration
-  // kind whose Scala type admits one (model/SEMANTICS.md, Levels).
+  // kind whose Scala type admits one (model/framework/SEMANTICS.md, Levels).
   private val levelRejects: Seq[String] = Seq(
     "LevelStart",
     "LevelEnds",

@@ -7,7 +7,7 @@ satisfies: [R2, R16]
 Part D: recount the DSL's alternative spellings, retain every spelling used by the current mini/shared/kit/sample sources or a kept sugar's implementation, and retire unused author-facing alternatives with their lifter arms and obsolete fixtures. MILESTONES.md's pull-forward, mini-only and faster-tasks policies supersede the original paths and full-gate cadence. The owner authorizes the conductor to follow its recommendations for routine choices; report the count-based list to the conductor before removal, without a new user-approval gate.
 
 **Size:** M
-**Touches:** [model/framework/dsl/**, model/framework/realize/**, model/framework/export/**, model/framework/lint/**, model/framework/check/**, model/temporal/check/**, model/temporal/realize/Realize.scala, model/temporal/migrate/README.md, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/dsl/**, model/framework/realize/**, model/framework/export/**, model/framework/lint/**, model/framework/check/**, model/temporal/check/**, model/temporal/realize/Realize.scala, model/temporal/migrate/README.md, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Re-read the current framework and exporter and recount first. Inventory every multi-spelling construct, separating live mini/shared/kit/sample use, internal core/sugar dependencies, generic tests and exporter fixtures. Real-feature-only use does not constrain retirement and real-feature sources are not edited. Immutable historical sources and payloads remain untouched.

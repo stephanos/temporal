@@ -13,7 +13,7 @@ object NativeControls:
       starts: Seq[S] = Seq.empty,
       budget: Int = NativeCheck.defaultBudget
   )(using munit.Location): NativeCheck.Result =
-    val origins = if starts.isEmpty then Seq(machine.init) else starts
+    val origins = if starts.isEmpty then machine.initialStates else starts
     val graph = NativeCheck.explore(machine, origins, budget = budget)
     val subject = s"${machine.name}.${NativeCheck.claimName(claim, machine)}"
     refuted(NativeCheck.verify(graph, subject, claim.decl))
@@ -25,7 +25,7 @@ object NativeControls:
       watch: Monitor[S, O, F, M]
   )(using munit.Location): NativeCheck.Result =
     val subject = s"${machine.name}.${NativeCheck.claimName(watch, machine)}"
-    refuted(NativeCheck.monitor(machine, subject, watch, Seq(machine.init)))
+    refuted(NativeCheck.monitor(machine, subject, watch, machine.initialStates))
 
   // Asserts that a claim written here, `invariant(check(!beeping))`, is refuted on `machine` from
   // `starts` (its initial state unless named): `assertRefuted(Bank.Leaky,
@@ -41,7 +41,7 @@ object NativeControls:
       claim: NativeClaims.Adhoc,
       starts: Seq[S]
   )(using munit.Location): NativeCheck.Result =
-    val origins = if starts.isEmpty then Seq(machine.init) else starts
+    val origins = if starts.isEmpty then machine.initialStates else starts
     val graph = NativeCheck.explore(machine, origins)
     refuted(NativeCheck.verify(graph, s"${machine.name}.${claim.name}", claim))
 

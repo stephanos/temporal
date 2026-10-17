@@ -7,8 +7,8 @@ satisfies: [R2, R9, R10, R13, R15, R16]
 Remove what no path reaches, say what holds now, and report the size.
 
 **Size:** S
-**Files:** `model/irgen/**`, `model/README.md`, `model/SEMANTICS.md`, `.plans/{DSL_OPERATORS,SCALA}.md`, `MILESTONES.md`
-**Touches:** [model/irgen/**, model/README.md, model/SEMANTICS.md, .plans/**, MILESTONES.md]
+**Files:** `model/irgen/**`, `model/README.md`, `model/framework/SEMANTICS.md`, `.plans/{DSL_OPERATORS,SCALA}.md`, `MILESTONES.md`
+**Touches:** [model/irgen/**, model/README.md, model/framework/SEMANTICS.md, .plans/**, MILESTONES.md]
 **Deferred:** see MILESTONES.md, Deferred, fn-141. Planned 2026-10-06 against the tree before the DSL batch. The files and names below are that tree's and carry no line numbers on purpose: when the spec is revived, re-read them and recount before starting, since the DSL batch and fn-140 rewrite them.
 
 ### Approach

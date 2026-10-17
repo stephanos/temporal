@@ -437,6 +437,15 @@ Compiler refusals, exact texts:
   sweep. Errors: a `records` of a member fact that is not wrapped in its member case is an
   ordinary type error (the composed fact type does not admit it); no plugin text.
 
+- **R18:** Every authored method in a native Machine, Facet or native derivation's `effects`
+  section returns exactly `Unit`, including private, parameterized and unused methods. The
+  compiler checks the inferred or declared result type. A separate style lint requires an inferred
+  return type (no explicit return annotation) and a body on the following line; parameter type
+  annotations remain allowed. The samples follow both rules. Errors: a non-`Unit` effect is a
+  located compiler error, including an inferred `Nothing`; an explicit return annotation or
+  same-line body is a located lint finding. Unrelated objects and functions outside native effects,
+  and the retained record-state compatibility fixtures, are not effect declarations.
+
 ## Boundaries
 
 - No change to the IR schema beyond type naming; `field` and `copy` are the carriers.
@@ -559,6 +568,7 @@ change; the Go composition lowering follows in phase 2.
 | R15 | fn-190.1, fn-190.4, fn-190.7 | start-list iteration and vacuity reporting in the checker land in .7 |
 | R16 | fn-190.1, fn-190.4 | — |
 | R17 | fn-190.11, fn-190.12 | the lifter and Go halves are phase 2 (.12) |
+| R18 | fn-190.13 | compiler admission and author style requested 2026-10-17 |
 
 ## Phasing (owner, 2026-10-17)
 
@@ -568,6 +578,10 @@ The owner phased the work so the DSL settles before the IR and plugin change onc
 - **Phase 2, IR and plugin, batched:** fn-190.9 (lift vars, effects, transitions and check blocks; State record, schema and init from declarations; facet payloads removed), fn-190.3 (IR evaluator), fn-190.10 (samples lift and model-check, Go budget, oracles, equivalence), fn-190.5 (remove native execution), fn-190.12 (composition member facts as data in the lifter and Go), fn-190.8 with fn-189, fn-191.2/.3, the remaining fn-164.3 lowering and the export/lint re-anchoring. One full framework gate runs at the end.
 
 The plugin and lifter halves of .1, .2, .4, .6 and .7 moved to .9 and .10; each task's description records its phase.
+
+The owner's 2026-10-17 follow-up admits the narrow effect-definition checks in .13 during the
+native phase: validate every effect's result type, even when unused, and lint inferred return types
+and multiline bodies. This does not release the broader plugin, exporter, schema or Go work.
 
 ## Decisions from the fn-190.1 prototype (conductor, 2026-10-17)
 

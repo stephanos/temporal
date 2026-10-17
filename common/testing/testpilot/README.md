@@ -294,7 +294,7 @@ first planned use.
    (`tools/umpire/lower/internal/producer/build.go`) and a lowering test beside it. An element a Model
    has to ask for also needs its realization declaration in `model/umpire/realize`, its field in the
    Umpire IR and its case in the IR generator and in `tools/umpire/lower/realization.go`;
-   `model/SEMANTICS.md` (Realizations) says what each declaration lowers to.
+   `model/framework/SEMANTICS.md` (Realizations) says what each declaration lowers to.
 4. **Go interpreter or evaluator.** Instructions bind in `internal/execution` and run in its scheduler
    or the worker interpreter; references and paths bind in `internal/ir`; Contracts evaluate in
    `internal/verification`.

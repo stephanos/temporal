@@ -8,7 +8,7 @@ Held sweep. Completes R6's executable infrastructure and mini worked application
 
 **Size:** M
 **Files:** shared custom migration rule source/build/loading configuration under model, `model/.scalafix.conf`, existing Make fix route, worked-example fixtures and proof records.
-**Touches:** [model/migrate/**, model/.scalafix.conf, model/README.md, model/SEMANTICS.md, Makefile, .flow/specs/*.md]
+**Touches:** [model/migrate/**, model/.scalafix.conf, model/README.md, model/framework/SEMANTICS.md, Makefile, .flow/specs/*.md]
 
 ### Approach
 - Re-anchor the convention authored in task 9 and establish the actual custom Scalafix rule compilation/loading route at `Makefile:689`. Use one canonical location, not two competing migration modules. Reconcile fn-167's pure transformation location before wiring its adapter.

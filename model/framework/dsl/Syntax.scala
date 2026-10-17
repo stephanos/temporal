@@ -161,9 +161,9 @@ transparent inline def before[S](using context: Before[S]): Any =
 // `condition && remainingRequirements`.
 inline def check(inline condition: Boolean): Unit = ${ ClaimMacros.check('condition) }
 
-// Fact requirements specialized to the current step before typing a member selector. Inside a
+// Fact requirements specialized to the current step. Inside a
 // Machine, `records(fact)` asserts the fact in a claim and records it in an effect (ClaimWords).
-// Core form: `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
+// Core form: `s.facts.contains(fact)`.
 def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O, F] =
   new RequirementFacts(context)
 
@@ -184,13 +184,6 @@ final class RequirementFacts[S, O, F] private[framework] (
 ):
   // A fact of this step's own machine. Core form: `s.facts.contains(fact)`.
   def apply(fact: F): Unit = context.require(context.step.facts.contains(fact))
-
-  // A fact of the exact selected field and machine. Core form: `s.facts.contains("member_fact")`.
-  inline def apply[MS, MO, MF](
-      inline member: S => (MS, RecordMachine[MS, MO, MF]),
-      fact: MF
-  )(using evidence: F =:= String): Unit =
-    context.require(memberRecorded(context.step, MemberPath.captureBinding(member), fact))
 
 // Explicit alternatives of one requirement. Core form: `first || second || rest`.
 final class Alternatives[S, O, F] private[framework] (private[framework] val step: Step[S, O, F]):
@@ -222,6 +215,9 @@ final class ExpectedAlternatives[S, O, F] @scala.annotation.publicInBinary priva
 // `firstBranch || secondBranch || rest`.
 final class ClaimAlternatives:
   inline def apply(inline body: Branching ?=> Unit): Unit = ${ ClaimMacros.alternatives('body) }
+
+final class InitialAlternatives:
+  inline def apply[A](domain: Iterable[A]): A = ${ StartStatesMacro.initialize('domain) }
 
 // The evidence a `branch` of a claim's `oneOf` reads, that it is written inside one. Core form: none
 // of its own; it is the `||` between the branches.
@@ -470,7 +466,8 @@ private[framework] object ClaimMacros:
   @scala.annotation.publicInBinary
   private[framework] def oneOf(using q: Quotes): Expr[Any] =
     import q.reflect.*
-    Expr.summon[Expectation[?, ?, ?]] match
+    if StartStatesMacro.initializer.nonEmpty then '{ new InitialAlternatives() }
+    else Expr.summon[Expectation[?, ?, ?]] match
       case Some(context) =>
         arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
           case List(s, o, f) =>
@@ -823,46 +820,8 @@ final class StepFacts[S, O, F] private[framework] (private[framework] val step: 
   // A fact of the step's own type. Core form: `step.facts.contains(fact)`.
   @sugar def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
 
-  // A composition's selected member fact. Core form: `step.facts.contains("member_fact")`.
-  @sugar inline def records[M](inline member: S => M, fact: Any)(using
-      evidence: F =:= String,
-      @unused notTypedMember: NotGiven[M <:< (Any, Model)]
-  ): Boolean =
-    step.facts.contains(
-      evidence.flip(s"${MemberPath.capture(member, fact).field}_${valueKey(fact)}")
-    )
-
-  // A typed member fact, retaining its exact declaring field and machine. Core form:
-  // `step.facts.contains("member_fact")`.
-  @targetName("recordsTypedMember")
-  inline def records[MS, MO, MF](
-      inline member: S => (MS, RecordMachine[MS, MO, MF]),
-      fact: MF
-  )(using evidence: F =:= String): Boolean =
-    memberRecorded(step, MemberPath.captureBinding(member), fact)
-
 // Makes Boolean fact reads available on an ordinary step. Core form: `step.facts.contains(fact)`.
 implicit def stepFacts[S, O, F](step: Step[S, O, F]): StepFacts[S, O, F] = new StepFacts(step)
-
-// `after.records(_.member, fact)`: whether a composition's step records the fact of the member the
-// selector names, the composition form of `after.records(fact)`. Core form:
-// `after.facts.contains("member_fact")`, the composed key `<field>_<fact>` a composition records.
-@scala.annotation.publicInBinary
-private[framework] def memberRecorded[S, O, F, MF](
-    step: Step[S, O, F],
-    member: MemberBinding,
-    fact: MF
-)(using evidence: F =:= String): Boolean =
-  step.facts.contains(evidence.flip(s"${member.field}_${valueKey(fact)}"))
-
-// A captured member's exact composed fact key. Core form: `step.facts.contains(key)`.
-@scala.annotation.publicInBinary
-@sugar private[framework] def recorded[S, O](
-    step: Step[S, O, String],
-    member: MemberPath,
-    fact: Any
-): Boolean =
-  step.facts.contains(s"${member.field}_${valueKey(fact)}")
 
 // `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
 // machine or composition. Its default search budget is 512, with depth and schedule length equal
@@ -909,16 +868,6 @@ final class WitnessFacts[S, O, F] private[framework] (
   def records(fact: F): Witness[S, O, F] =
     builder.recording(_.facts.contains(fact))
 
-  // A primary fact of an exact selected member. Core form:
-  // `builder.recording(_.facts.contains("member_fact"))`.
-  inline def records[MS, MO, MF](
-      inline member: S => (MS, RecordMachine[MS, MO, MF]),
-      fact: MF
-  )(using evidence: F =:= String): Witness[S, O, F] =
-    val selected = MemberPath.captureBinding(member)
-    selected.validate(builder.owner)
-    builder.recording(step => memberRecorded(step, selected, fact))
-
 // Makes primary fact finishing available on a witness builder. Core form:
 // `builder.recording(_.facts.contains(fact))`.
 implicit def witnessFacts[S, O, F](builder: WitnessBuilder[S, O, F]): WitnessFacts[S, O, F] =
@@ -953,61 +902,6 @@ extension [S, O, F](claim: Witness[S, O, F])
       s => summon[S <:< State](s).owner.at(s)(condition),
       _.facts.contains(fact)
     )
-
-// Finishes a composition's witness with the fact of its selected member, whose machine fixes the
-// fact type, as the composition's declaration selector does. Core form:
-// `c.property.when(last).sameStep(step => step.facts.contains("member_fact"))`.
-extension [S <: Product](builder: WitnessBuilder[S, String, String])
-  // Finishes with an absent fact of the selected member. Core form:
-  // `c.property.when(last).sameStep(step => !step.facts.contains("member_fact"))`.
-  inline def excludes[MS, O, F](
-      inline member: S => (MS, RecordMachine[MS, O, F]),
-      fact: F
-  ): Witness[S, String, String] =
-    val key = witnessMemberFact(builder.owner, MemberPath.retainDirect(member), fact)
-    builder.recording(step => !step.facts.contains(key))
-
-// Appends composed guards using the same exact typed member selector as the primary. Core form:
-// `prior(step) && !step.facts.contains("member_fact")` or `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
-extension [S <: Product](claim: Witness[S, String, String])
-  // Requires an absent fact from the selected member. Core form:
-  // `prior(step) && !step.facts.contains("member_fact")`.
-  inline def excludes[MS, O, F](
-      inline member: S => (MS, RecordMachine[MS, O, F]),
-      fact: F
-  ): Witness[S, String, String] =
-    val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
-    claim.requiring(step => !step.facts.contains(key))
-  // Requires the selected member's fact under the composed after-state condition. Core form:
-  // `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
-  inline def recordsWhen[MS, O, F](
-      condition: S => Boolean,
-      inline member: S => (MS, RecordMachine[MS, O, F]),
-      fact: F
-  ): Witness[S, String, String] =
-    val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
-    claim.recordingWhen(condition, _.facts.contains(key))
-
-@scala.annotation.publicInBinary
-private[framework] def witnessMemberFact[S <: Product, MS, O, F](
-    owner: Declares[S],
-    member: S => (MS, RecordMachine[MS, O, F]),
-    fact: F
-): String =
-  val composition = owner match
-    case c: Composition[S @unchecked] => c
-    case _                            =>
-      throw IllegalArgumentException(
-        "a member fact belongs to a composition witness"
-      )
-  val machine = member(composition.mirror.fromProduct(Composition.Empty))._2
-  val field = MemberPath
-    .retainedField(member)
-    .getOrElse(
-      throw IllegalArgumentException("a member fact requires a retained direct field selector")
-    )
-  new MemberBinding(field, machine).validate(composition)
-  s"${field}_${valueKey(fact)}"
 
 // `m.property("terminalIsFinal").once(terminal).keeps(_.phase)`: once `over` holds of the state
 // before a step, the step keeps the value the projection selects. Core form:
@@ -1377,9 +1271,6 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 
 private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
   book.isInstanceOf[RuleTable[?, ?, ?]]
-
-extension (@unused companion: MemberPath.type)
-  private[framework] def field(member: Any): Option[String] = MemberPath.retainedField(member)
 
 // When each action of a machine over a state record fires, written as the machine object's `object
 // transitions extends Rules`: blocks of an action or action class,

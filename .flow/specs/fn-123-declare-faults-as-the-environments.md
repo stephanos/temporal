@@ -59,7 +59,7 @@ So every Model hand-encodes those answers:
 - **How often.** The response-loss machine carries a `lossAvailable: Boolean` field (`:1124-1127`) that its step functions clear and test by hand.
 - **Under what assumption.** Storage loss is admitted by a named assumption (`storageLossAssumed = assume("storageLoss")`, `:476`) that each machine binding the fault must also list (`:494`, `:664`).
 
-fn-107 asked for "a finite fault budget" and said "Crash loses ephemeral state; loss of committed storage requires a separately authored fault" (`.flow/specs/fn-107-*.md:63`, `:69`). Models meet both rules by hand. Channels show the alternative: a channel declares loss, duplication and redelivery once, and Go derives the rows (`model/framework/Channel.scala`, `model/SEMANTICS.md:116-152`).
+fn-107 asked for "a finite fault budget" and said "Crash loses ephemeral state; loss of committed storage requires a separately authored fault" (`.flow/specs/fn-107-*.md:63`, `:69`). Models meet both rules by hand. Channels show the alternative: a channel declares loss, duplication and redelivery once, and Go derives the rows (`model/framework/Channel.scala`, `model/framework/SEMANTICS.md:116-152`).
 
 This spec does for faults what channels did for delivery. A fault is declared once, with its kind, its budget and whether it can be realized. A machine declares which parts of its state are durable, and Go derives the crash. It is the spec fn-120's Boundaries leave open: "A choice's name is not carried into a Case or bound to a fault in a realization here."
 

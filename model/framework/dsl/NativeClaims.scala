@@ -36,27 +36,32 @@ private[framework] object NativeClaims:
       seen += checked.member: Unit
       collecting.top += checked: Unit
 
+    private[NativeClaims] def failed(member: String): Boolean =
+      collecting.top.exists(c => c.member == member && !c.holds)
+
     private[NativeClaims] def alternatives(member: String, line: Int)(body: => Unit): Unit =
-      seen += member: Unit
-      choosing.push(mutable.ArrayBuffer.empty)
-      val held =
-        try
-          body
-          choosing.top.exists(identity)
-        finally
-          val _ = choosing.pop()
-      add(Checked(member, line, "oneOf", held))
+      if !failed(member) then
+        seen += member: Unit
+        choosing.push(mutable.ArrayBuffer.empty)
+        val held =
+          try
+            body
+            choosing.top.exists(identity)
+          finally
+            val _ = choosing.pop()
+        add(Checked(member, line, "oneOf", held))
 
     private[NativeClaims] def alternative(body: => Unit): Unit =
       require(choosing.nonEmpty, "a branch is an alternative of a oneOf, written inside it")
-      collecting.push(mutable.ArrayBuffer.empty)
-      val held =
-        try
-          body
-          collecting.top.forall(_.holds)
-        finally
-          val _ = collecting.pop()
-      choosing.top += held: Unit
+      if !choosing.top.exists(identity) then
+        collecting.push(mutable.ArrayBuffer.empty)
+        val held =
+          try
+            body
+            collecting.top.forall(_.holds)
+          finally
+            val _ = collecting.pop()
+        choosing.top += held: Unit
 
     // The first assertion of `member` that failed.
     def failure(member: String): Option[Checked] =
@@ -78,14 +83,17 @@ private[framework] object NativeClaims:
 
   // An assertion of a claim: recorded under the evaluation under way, nothing outside one.
   def assertion(condition: => Boolean, member: String, line: Int, text: String): Unit =
-    current.foreach(_.add(Checked(member, line, text, condition)))
+    current.foreach: c =>
+      if !c.failed(member) then c.add(Checked(member, line, text, condition))
 
   // A fact: in a claim, an assertion that the step under evaluation recorded it; in an effect, a
   // fact the step records. Outside both, a claim's assertion records nothing, and an effect's fact
   // is refused, as the effect runs only as its transition's step.
   def recordFact(value: Any, member: String, line: Int, claim: Boolean): Unit =
     current match
-      case Some(c) => c.add(Checked(member, line, s"records($value)", c.recorded.contains(value)))
+      case Some(c) =>
+        if !c.failed(member) then
+          c.add(Checked(member, line, s"records($value)", c.recorded.contains(value)))
       case None    =>
         Vars.current match
           case Some(frame) => frame.facts = frame.facts :+ value

@@ -8,7 +8,7 @@ Implement the annotation surface and typed source admission (R1, R8), with the f
 
 **Size:** M
 **Files:** new framework gap declarations/tests; typed convention checks and fixtures; authoring docs.
-**Touches:** [model/framework/Gaps.scala, model/framework/Gaps.test.scala, model/irgen/Conventions.scala, model/irgen/test/Conventions.test.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Gaps.scala, model/framework/Gaps.test.scala, model/irgen/Conventions.scala, model/irgen/test/Conventions.test.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Extend existing reference types from Action rather than adding string identifiers or a second action/class vocabulary. Inspect every current lint kind before finalizing constructor signatures, including the optional kind.

@@ -2,7 +2,7 @@
 // in. A front end (model/irgen lifts Scala) emits it; the Go reader in tools/umpire/{ir,interp,check}
 // validates it, interprets it, and derives every table, identity and fingerprint from it. Like the
 // Testpilot protocol, it is an internal wire with no compatibility promise. The
-// evaluation rules are written in model/SEMANTICS.md; neither front end nor interpreter
+// evaluation rules are written in model/framework/SEMANTICS.md; neither front end nor interpreter
 // defines them.
 //
 // The IR carries declarations, never derived tables: steps are pure functions over values, and the
@@ -42,7 +42,7 @@ type Model struct {
 	Functions []*Function `protobuf:"bytes,3,rep,name=functions,proto3" json:"functions,omitempty"`
 	Actions   []*Action   `protobuf:"bytes,4,rep,name=actions,proto3" json:"actions,omitempty"`
 	Machines  []*Machine  `protobuf:"bytes,5,rep,name=machines,proto3" json:"machines,omitempty"`
-	// The IR's major version. model/SEMANTICS.md defines version 0, which every Model written
+	// The IR's major version. model/framework/SEMANTICS.md defines version 0, which every Model written
 	// before this field was is in; a reader rejects a version it does not know.
 	Version       uint32         `protobuf:"varint,6,opt,name=version,proto3" json:"version,omitempty"`
 	Channels      []*Channel     `protobuf:"bytes,7,rep,name=channels,proto3" json:"channels,omitempty"`

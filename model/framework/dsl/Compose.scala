@@ -11,6 +11,8 @@ import scala.deriving.Mirror
 // A member is named by a selector of its field, `_.order -> recordMember`; `->` pairs the
 // member with its value and never means a transition. The lifter reads the selectors from the
 // source, so what a composition holds here is what its author wrote.
+// A member's helper reads its state directly, `Order.held(s.order)`. A composition's facts
+// carry the member's fact in the enum case it declares for that member.
 //
 // Declared as an object that is the composition, named after the object with its first letter
 // lowered, with the states it may end in and its syncs:
@@ -34,7 +36,6 @@ abstract class Composition[S <: Product] private (
 )(using private[framework] val fs: Data[S], private[framework] val ss: StateData[S])
     extends Declares[S]:
   type Outcome = String
-  type Fact = String
 
   override def reach: Limits = shape match
     case Composition.Shape.Members(_)    => super.reach
@@ -60,7 +61,7 @@ abstract class Composition[S <: Product] private (
   protected given compositionOwner: Composer[S] = Composer(this)
 
   // What its `capabilities` section declares the capabilities of: this composition.
-  protected given declaring: Declaring[S, String, String] = Declaring(this)
+  protected given declaring: Declaring[S, String, Fact] = Declaring(this)
 
   // The members, each constructed: the machines and compositions it composes.
   private[framework] def members: Vector[Model] = shape match
@@ -71,12 +72,12 @@ abstract class Composition[S <: Product] private (
 
   private[framework] lazy val memberFields: Vector[(String, Model)] =
     def selected(member: S => (Any, Model)): (String, Model) =
-      val field = MemberPath
+      val field = MemberSelector
         .retainedField(member)
         .getOrElse(
           throw IllegalArgumentException(s"$name: no retained direct member selector metadata")
         )
-      field -> MemberPath.value(member, mirror.fromProduct(Composition.Empty))._2
+      field -> MemberSelector.value(member, mirror.fromProduct(Composition.Empty))._2
     shape match
       case Composition.Shape.Members(selectors) =>
         val fields = selectors.map(selected)
@@ -101,12 +102,15 @@ abstract class Composition[S <: Product] private (
   // for the one its new machine declares it refines; the lifter refuses a new machine of another
   // state type, one that binds no action a sync of the member pairs, and one that refines nothing
   // where the member replaces a machine.
-  def withMember(member: S => MemberSelection): Composition[S] & DerivedFrom[this.type] =
+  def withMember(
+      member: S => MemberSelection
+  ): Composition[S] { type Fact = Composition.this.Fact } & DerivedFrom[this.type] =
     new Composition[S](Composition.Shape.With(this, Composition.retain(member, mirror)), mirror)(
       using
       fs,
       ss
     ) with DerivedFrom[this.type]:
+      type Fact = Composition.this.Fact
       private[framework] def source: Composition.this.type = Composition.this
 
   // The step a sync takes, by one of the member actions it pairs, `c.synced(_.order -> dispatch)`:
@@ -136,8 +140,9 @@ abstract class Composition[S <: Product] private (
 // A composition derivation, as `Composition(derivation)` is, declared as an object that is it:
 // `object LateOverQueue extends DerivedComposition(OrderOverQueue.withMember(...))`. It keeps its
 // source's syncs and end, which the lifter reads from the source.
-abstract class DerivedComposition[S <: Product](derivation: Composition[S])
-    extends Composition[S](derivation)
+abstract class DerivedComposition[S <: Product, F](derivation: Composition[S] { type Fact = F })
+    extends Composition[S](derivation):
+  type Fact = F
 
 object Composition:
   private[framework] def retain[S](
@@ -145,7 +150,7 @@ object Composition:
       mirror: Mirror.ProductOf[S]
   ): S => (Any, Model) =
     val selected = selector(mirror.fromProduct(Empty))
-    MemberPath.retain(
+    MemberSelector.retain(
       state =>
         val member = selector(state)
         member.value -> member.model
@@ -189,7 +194,7 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
   def sync(first: S => (Any, Action[?]), second: S => (Any, Action[?])): Unit =
     val statement = Syncs.Statement.Sync("", move(first), move(second))
     statement.endpoints = Some(
-      (MemberPath.retainedField(first), MemberPath.retainedField(second), false)
+      (MemberSelector.retainedField(first), MemberSelector.retainedField(second), false)
     )
     recorded += statement: Unit
 
@@ -201,7 +206,7 @@ abstract class Syncs[S <: Product](using composer: Composer[S]):
   ): Unit =
     val statement = Syncs.Statement.Sync(name, move(first), move(second))
     statement.endpoints = Some(
-      (MemberPath.retainedField(first), MemberPath.retainedField(second), true)
+      (MemberSelector.retainedField(first), MemberSelector.retainedField(second), true)
     )
     recorded += statement: Unit
 
@@ -242,17 +247,6 @@ final class Composed private[framework] (
     private[framework] val operation: String = ""
 ):
   private[framework] lazy val retainedAction: Option[Class | Action[?]] =
-    MemberPath.selected(selected)
+    MemberSelector.selected(selected)
   def toIR(declaration: String): io.temporal.server.api.umpire.v1.ComposedActionRef =
     ComposedReference.convert(this, declaration)
-
-// A member's def read from the composed state: `through(_.order, Order.held)` is
-// `s => Order.held(s.order)`. A composition's capability field or a declaring function's
-// function-valued argument names it where it would name a def, so a Property reads a member's status
-// set without a def that restates it for the composition. The IR generator lifts it as one function
-// of the composed state, named after the state, the path and the def, and refuses a selector that is
-// not a field path and a `read` that is not a def of the lifted sources, as it refuses a lambda.
-//
-// Core: it says which member a Property reads, which no def of the lifted sources says. Its arguments
-// share one parameter list so that the composed state is inferred from where it is passed.
-def through[S, M, A](select: S => M, read: M => A): S => A = s => read(select(s))

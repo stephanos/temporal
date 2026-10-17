@@ -7,11 +7,11 @@ satisfies: [R6, R7]
 Completes R7 and supplies R6's rule source and isolated mini proof. Integration into the executable Make/Scalafix route remains in held task 10.
 
 **Size:** M
-**Files:** shared custom-rule source and focused fixtures under `model/migrate/`, `model/README.md`, `model/SEMANTICS.md`, convention sentence in open Scala DSL batch specs.
-**Touches:** [model/migrate/**, model/README.md, model/SEMANTICS.md, .flow/specs/*.md]
+**Files:** shared custom-rule source and focused fixtures under `model/migrate/`, `model/README.md`, `model/framework/SEMANTICS.md`, convention sentence in open Scala DSL batch specs.
+**Touches:** [model/migrate/**, model/README.md, model/framework/SEMANTICS.md, .flow/specs/*.md]
 
 ### Approach
-- Replace the hypothetical job in `model/SEMANTICS.md:13` with the complete committed mini feature from task 8. Cite actual files and source declarations for each example; do not invent a declaration for a guide snippet.
+- Replace the hypothetical job in `model/framework/SEMANTICS.md:13` with the complete committed mini feature from task 8. Cite actual files and source declarations for each example; do not invent a declaration for a guide snippet.
 - Update README Writing a Model with the complete three-level mini feature and its named hard instances.
 - Establish one shared custom-rule source location/naming under `model/migrate/` and author the worked rename as an actual Scalafix rule with isolated compile/transformation fixtures. Reuse the repository's existing Scalafix dependency; inspect its API before coding. A direct in-process source test is source proof, not proof of the production loader. Do not add a competing general-purpose rewrite engine or repeat fn-167.4's gap transformation.
 - Select a concrete rename that preserves semantic declaration identities and source positions so the specified byte-identical lift is demonstrable. A rule that renames an exported definition cannot silently substitute an expected identity change for that proof.

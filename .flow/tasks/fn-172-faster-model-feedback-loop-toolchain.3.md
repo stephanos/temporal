@@ -11,7 +11,7 @@ Verification evidence and measured artifacts are recorded in `.flow/tmp/fn172-r3
 **Touches:** model/framework/check/Samples.scala, model/framework/check/Samples.test.scala
 
 ### Investigation targets
-Required: model/framework/check/Samples.scala, model/framework/check/Samples.test.scala, model/framework/export/Lift.scala, model/framework/export/Lifting.scala, model/framework/export/InProcess.test.scala, model/framework/check/Tools.scala, model/README.md, model/SEMANTICS.md, .plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_VISION.md, .plans/UMPIRE_MODULES.md, .flow/tmp/handoffs/fn-172.1-summary.md, .flow/tmp/handoffs/fn-172.1-evidence.json, .flow/tmp/handoffs/fn-172.2-summary.md, .flow/tmp/handoffs/fn-172.2-evidence.json, .flow/tmp/handoffs/fn-172.6-summary.md, .flow/tmp/handoffs/fn-172.6-evidence.json.
+Required: model/framework/check/Samples.scala, model/framework/check/Samples.test.scala, model/framework/export/Lift.scala, model/framework/export/Lifting.scala, model/framework/export/InProcess.test.scala, model/framework/check/Tools.scala, model/README.md, model/framework/SEMANTICS.md, .plans/UMPIRE4_SPEC.md, .plans/UMPIRE4_VISION.md, .plans/UMPIRE_MODULES.md, .flow/tmp/handoffs/fn-172.1-summary.md, .flow/tmp/handoffs/fn-172.1-evidence.json, .flow/tmp/handoffs/fn-172.2-summary.md, .flow/tmp/handoffs/fn-172.2-evidence.json, .flow/tmp/handoffs/fn-172.6-summary.md, .flow/tmp/handoffs/fn-172.6-evidence.json.
 
 ### Quick commands
 - `mise exec -- scala-cli run --test model/framework/check model/temporal/check --main-class org.junit.runner.JUnitCore -- framework.check.SamplesSuite framework.check.ToolsSuite`

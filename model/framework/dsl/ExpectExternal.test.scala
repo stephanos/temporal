@@ -20,90 +20,47 @@ class ExpectExternalTest extends munit.FunSuite:
       Nil
     )
 
-  test("final author forwarding retains transitive member ownership even in unreachable branches"):
+  test("author forwarding preserves tagged facts in same-step and transition claims"):
     import WitnessFixture.*
     import ExpectFixture.*
-    val named: Step[Joined, String, String] => Boolean = expect:
-      records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
-    val forwarded: Step[Joined, String, String] => Boolean = expect:
-      check(named(after))
+    val named: Step[Joined, String, JoinedFact] => Boolean = expect:
+      records(JoinedFact.left(WitnessFixture.Fact.completed))
+    def forwarded(step: Step[Joined, String, JoinedFact]): Boolean = named(step)
     val same = Reordered.property.expect:
       check(forwarded(after))
-    val repeated = Repeated.property.expect:
-      check(named(after))
-    assertEquals(same.name, "")
-    assertEquals(repeated.name, "")
-    val transition: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
-      records(_.right -> Other, Foreign.completed)
+    val transition: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
+      records(JoinedFact.right(Foreign.completed))
       check(before.left.equals(after.state.left))
-    val across = Reordered.property.across.expect:
-      check(transition(before, after))
-    assertEquals(across.name, "")
-    val _ = intercept[IllegalArgumentException]:
-      Repeated.property.across.expect:
-        if false then check(transition(before, after))
-    val wrong: Step[Joined, String, String] => Boolean = expect:
-      records(_.right -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property.expect:
-        if false then check(wrong(after))
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property.never(expect:
-        check(wrong(after)))
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property
-        .stays(_ => true)
-        .unless(expect:
-          check(wrong(after)))
-
-  test("ordinary same-step method wrappers retain member ownership in unreachable branches"):
-    import WitnessFixture.*
-    import ExpectFixture.*
-    val named: Step[Joined, String, String] => Boolean = expect:
-      records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
-    def forwarded(step: Step[Joined, String, String]): Boolean = named(step)
-    val valid = Reordered.property.expect:
-      check(forwarded(after))
-    assertEquals(valid.name, "")
-    val wrong: Step[Joined, String, String] => Boolean = expect:
-      records(_.right -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
-    def wrongForwarded(step: Step[Joined, String, String]): Boolean = wrong(step)
-    val _ = intercept[IllegalArgumentException]:
-      Reordered.property.expect:
-        if false then check(wrongForwarded(after))
-
-  test("ordinary transition method wrappers retain member ownership in unreachable branches"):
-    import WitnessFixture.*
-    import ExpectFixture.*
-    val transition: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
-      records(_.right -> Other, Foreign.completed)
-    def forwarded(before: Joined, after: Step[Joined, String, String]): Boolean =
+    def across(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
       transition(before, after)
-    val valid = Reordered.property.across.expect:
-      check(forwarded(before, after))
-    assertEquals(valid.name, "")
-    val _ = intercept[IllegalArgumentException]:
-      Repeated.property.across.expect:
-        if false then check(forwarded(before, after))
+    val property = Reordered.property.across.expect:
+      check(across(before, after))
+    assertEquals(same.name, "")
+    assertEquals(property.name, "")
+    val state = Joined(State.open, State.closed)
+    assert(forwarded(Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed)))))
+    assert(!forwarded(Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
+    assert(across(state, Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
+    assert(!across(state, Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed)))))
 
   test("method wrappers refuse predicate dependencies confined to the helper scope"):
     val refusals = List(
       compileErrors("""
         import framework.dsl.WitnessFixture.*
         import framework.dsl.ExpectFixture.*
-        val named: Step[Joined, String, String] => Boolean = expect:
-          records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
-        def forwarded(predicate: Step[Joined, String, String] => Boolean,
-            step: Step[Joined, String, String]): Boolean = predicate(step)
+        val named: Step[Joined, String, JoinedFact] => Boolean = expect:
+          records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
+        def forwarded(predicate: Step[Joined, String, JoinedFact] => Boolean,
+            step: Step[Joined, String, JoinedFact]): Boolean = predicate(step)
         Reordered.property.expect:
           check(forwarded(named, after))
       """),
       compileErrors("""
         import framework.dsl.WitnessFixture.*
         import framework.dsl.ExpectFixture.*
-        val named: (Joined, Step[Joined, String, String]) => Boolean = expect.across:
-          records(_.right -> Other, Foreign.completed)
-        def forwarded(before: Joined, after: Step[Joined, String, String]): Boolean =
+        val named: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
+          records(JoinedFact.right(Foreign.completed))
+        def forwarded(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
           val local = named
           local(before, after)
         Reordered.property.across.expect:
@@ -145,10 +102,10 @@ class ExpectExternalTest extends munit.FunSuite:
       check(transition(before, after))
     assertEquals(same.name, "")
     assertEquals(across.name, "")
-    val member: Step[WitnessFixture.Joined, String, String] => Boolean = expect:
-      records(_.left -> WitnessFixture.Subject, WitnessFixture.Fact.completed)
+    val member: Step[WitnessFixture.Joined, String, WitnessFixture.JoinedFact] => Boolean = expect:
+      records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
     val composed = WitnessFixture.Together.property.expect:
       check(member(after))
     assertEquals(composed.name, "")
     val joined = WitnessFixture.Joined(WitnessFixture.State.open, WitnessFixture.State.closed)
-    assert(member(Step("accepted", joined, List("left_completed"))))
+    assert(member(Step("accepted", joined, List(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed)))))

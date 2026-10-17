@@ -23,7 +23,7 @@ Close only at the conjunctive shared fn-128.6/fn-129.5 boundary after .4 integra
 ## Investigation targets
 
 **Required** (read before executing):
-- `AGENTS.md`, `model/README.md`, `model/SEMANTICS.md` and `.plans/UMPIRE4_SPEC.md` current gate/conformance rules.
+- `AGENTS.md`, `model/README.md`, `model/framework/SEMANTICS.md` and `.plans/UMPIRE4_SPEC.md` current gate/conformance rules.
 - `Makefile` existing production generation, full gate and generated-Case live/replay targets; owning Testpilot/Umpire runner docs.
 - fn-128.6/.7/.8 and fn-129.1-.4 persisted plans, final original commits, scratch receipts and strict expectation inventory.
 - Retained activity-batch `live-preflight.md`, conductor receipt and separately sealed fn-138 original/adopted proof.

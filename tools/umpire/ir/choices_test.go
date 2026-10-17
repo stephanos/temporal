@@ -1,6 +1,6 @@
 package ir
 
-// Named choices (model/SEMANTICS.md): each result of a step may carry the name of the alternative it
+// Named choices (model/framework/SEMANTICS.md): each result of a step may carry the name of the alternative it
 // is, written on its step record's construct. The names are inert: a row's results report them, and
 // nothing else a Model derives changes with them. The fixture is the lifted admission specimen, whose
 // committed admission `admitted` either consumes the message or, besides that, retains it for another
@@ -127,7 +127,7 @@ func TestARedeliveryIsUnnamed(t *testing.T) {
 }
 
 // TestAlternativesAreNoClassesOfTheirOwn: a named choice's alternatives are results of one class, so
-// they are no factor of a Query's combination total (model/SEMANTICS.md, Query totals). With one
+// they are no factor of a Query's combination total (model/framework/SEMANTICS.md, Query totals). With one
 // alternative of the committed admission instead of two, every Query's total and its factors, the
 // state catalog, the classes, the counted evaluations and the rows are the same; only the results of
 // the rows the second alternative was in are fewer.

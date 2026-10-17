@@ -1533,7 +1533,7 @@ object Unsupported extends Machine[Boolean, Boolean, Nothing]:
     )
     assert(checked.diagnostics.contains("var out"), checked.diagnostics)
     assert(
-      checked.diagnostics.contains("model/SEMANTICS.md#liftable-subset"),
+      checked.diagnostics.contains("model/framework/SEMANTICS.md#liftable-subset"),
       checked.diagnostics
     )
     val lifted = recorded(

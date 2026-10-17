@@ -11,7 +11,7 @@ import (
 )
 
 // Total is a Query's static combination count with the factors it is the product of, counted before
-// any state is reached or any row is evaluated (model/SEMANTICS.md, Query totals). A pinned Scenario
+// any state is reached or any row is evaluated (model/framework/SEMANTICS.md, Query totals). A pinned Scenario
 // counts the Scenario machine's states times the scheduled slots within the step limit; a free one
 // counts its states times its action classes, every input assignment of each, times the step limit.
 // A composition counts its own state catalog and composed classes.

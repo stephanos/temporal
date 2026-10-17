@@ -39,7 +39,12 @@ object WitnessFixture:
           start ~> ((s: WitnessFixture.State) => List(Step(Outcome.accepted, s)))
         )
 
-  object Together extends Composition[Joined](_.left -> Subject, _.right -> Other)
+  enum JoinedFact:
+    case left(value: Fact)
+    case right(value: Foreign)
+
+  object Together extends Composition[Joined](_.left -> Subject, _.right -> Other):
+    type Fact = JoinedFact
 
 class WitnessTest extends munit.FunSuite:
   import WitnessFixture.*
@@ -155,29 +160,29 @@ class WitnessTest extends munit.FunSuite:
     )
     val member = Together
       .witness(Together.own(_.left, finish()))
-      .excludes(_.left -> Subject, Fact.completed)
-      .excludes(_.right -> Other, Foreign.completed)
+      .excludes(JoinedFact.left(Fact.completed))
+      .excludes(JoinedFact.right(Foreign.completed))
     val memberHolds =
-      member.property.holds.get.asInstanceOf[Step[Joined, String, String] => Boolean]
+      member.property.holds.get.asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
     val joined = Joined(State.closed, State.open)
     assert(memberHolds(Step("accepted", joined)))
-    assert(!memberHolds(Step("accepted", joined, List("left_completed"))))
-    assert(!memberHolds(Step("accepted", joined, List("right_completed"))))
+    assert(!memberHolds(Step("accepted", joined, List(JoinedFact.left(Fact.completed)))))
+    assert(!memberHolds(Step("accepted", joined, List(JoinedFact.right(Foreign.completed)))))
     val leftOnly = Together
       .witness(Together.own(_.left, finish()))
-      .excludes(_.left -> Subject, Fact.completed)
+      .excludes(JoinedFact.left(Fact.completed))
     val leftOnlyHolds = leftOnly.property.holds.get
-      .asInstanceOf[Step[Joined, String, String] => Boolean]
-    assert(leftOnlyHolds(Step("accepted", joined, List("right_completed"))))
-    assert(!leftOnlyHolds(Step("accepted", joined, List("left_completed"))))
+      .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
+    assert(leftOnlyHolds(Step("accepted", joined, List(JoinedFact.right(Foreign.completed)))))
+    assert(!leftOnlyHolds(Step("accepted", joined, List(JoinedFact.left(Fact.completed)))))
     val leftPresent = Together
       .witness(Together.own(_.left, finish()))
-      .records(_.left -> Subject, Fact.completed)
-      .excludes(_.right -> Other, Foreign.completed)
+      .records(JoinedFact.left(Fact.completed))
+      .excludes(JoinedFact.right(Foreign.completed))
     val leftPresentHolds = leftPresent.property.holds.get
-      .asInstanceOf[Step[Joined, String, String] => Boolean]
-    assert(leftPresentHolds(Step("accepted", joined, List("left_completed"))))
-    assert(!leftPresentHolds(Step("accepted", joined, List("left_completed", "right_completed"))))
+      .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
+    assert(leftPresentHolds(Step("accepted", joined, List(JoinedFact.left(Fact.completed)))))
+    assert(!leftPresentHolds(Step("accepted", joined, List(JoinedFact.left(Fact.completed), JoinedFact.right(Foreign.completed)))))
     var mixedCalls = Vector.empty[Int]
     val mixed = Subject
       .witness(start())
@@ -215,7 +220,7 @@ class WitnessTest extends munit.FunSuite:
     )
     assert(
       compileErrors(
-        "Together.witness(Together.own(_.left, finish())).excludes(_.left -> Subject, Foreign.completed)"
+        "Together.witness(Together.own(_.left, finish())).excludes(Fact.completed)"
       ).nonEmpty
     )
   }
@@ -268,22 +273,18 @@ class WitnessTest extends munit.FunSuite:
     )
   }
 
-  test("a composition's recorded fact is typed by its selected member") {
+  test("a composition's recorded fact requires its member case") {
     val path = Together.own(_.left, finish())
     val q = Together
       .witness("joined")(path)
-      .records(_.left -> Subject, Fact.completed)
+      .records(JoinedFact.left(Fact.completed))
     assertEquals(q.scenario.actions, Vector(path))
     assertEquals(q.property.when, Some(path))
     val holds =
-      q.property.holds.get.asInstanceOf[Step[Joined, String, String] => Boolean]
+      q.property.holds.get.asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
     val state = Joined(State.closed, State.open)
-    assert(holds(Step("accepted", state, List("left_completed"))))
-    assert(!holds(Step("accepted", state, List("right_completed"))))
-    val foreign = intercept[IllegalArgumentException](
-      Together.witness(path).records(_.left -> DerivedSubject, Fact.completed)
-    )
-    assert(foreign.getMessage.contains("left is not bound to derivedSubject in together"))
+    assert(holds(Step("accepted", state, List(JoinedFact.left(Fact.completed)))))
+    assert(!holds(Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
     assert(
       compileErrors(
         "Subject.witness(start()).records(Foreign.completed)"
@@ -291,7 +292,7 @@ class WitnessTest extends munit.FunSuite:
     )
     assert(
       compileErrors(
-        "Together.witness(Together.own(_.left, finish())).records(_.left -> Subject, Foreign.completed)"
+        "Together.witness(Together.own(_.left, finish())).records(Fact.completed)"
       ).nonEmpty
     )
     assert(compileErrors("val q: Query = Subject.witness(start())").nonEmpty)
@@ -399,21 +400,20 @@ class WitnessTest extends munit.FunSuite:
     assert(!holds(Step(Outcome.accepted, State.closed)))
     val joined = Together
       .witness(Together.own(_.left, finish()))
-      .records(_.left -> Subject, Fact.completed)
+      .records(JoinedFact.left(Fact.completed))
       .recordsWhen(
         _.right.equals(State.closed),
-        _.right -> Other,
-        Foreign.completed
+        JoinedFact.right(Foreign.completed)
       )
       .ends(_.left.equals(State.closed))
     val joinedHolds = joined.property.holds.get
-      .asInstanceOf[Step[Joined, String, String] => Boolean]
+      .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
     assert(
       joinedHolds(
         Step(
           "accepted",
           Joined(State.closed, State.open),
-          List("left_completed")
+          List(JoinedFact.left(Fact.completed))
         )
       )
     )
@@ -422,7 +422,7 @@ class WitnessTest extends munit.FunSuite:
         Step(
           "accepted",
           Joined(State.closed, State.closed),
-          List("left_completed")
+          List(JoinedFact.left(Fact.completed))
         )
       )
     )
@@ -431,7 +431,7 @@ class WitnessTest extends munit.FunSuite:
         Step(
           "accepted",
           Joined(State.closed, State.closed),
-          List("left_completed", "right_completed")
+          List(JoinedFact.left(Fact.completed), JoinedFact.right(Foreign.completed))
         )
       )
     )
@@ -440,7 +440,7 @@ class WitnessTest extends munit.FunSuite:
         Step(
           "accepted",
           Joined(State.closed, State.closed),
-          List("left_completed", "left_completed")
+          List(JoinedFact.left(Fact.completed), JoinedFact.left(Fact.completed))
         )
       )
     )
@@ -492,7 +492,7 @@ class WitnessTest extends munit.FunSuite:
     )
     assert(
       compileErrors(
-        "Together.witness(Together.own(_.left, finish())).records(_.left -> Subject, Fact.completed).recordsWhen((s: Joined) => true, _.left -> Subject, Foreign.completed)"
+        "Together.witness(Together.own(_.left, finish())).records(JoinedFact.left(Fact.completed)).recordsWhen((s: Joined) => true, Fact.completed)"
       ).nonEmpty
     )
   }

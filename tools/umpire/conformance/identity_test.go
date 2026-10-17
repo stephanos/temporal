@@ -510,7 +510,7 @@ func TestAQueryTotalMovesNoModelIdentity(t *testing.T) {
 	require.NotEmpty(t, with)
 }
 
-// A named-choice name is inert (model/SEMANTICS.md, Named choices): naming every step record of the
+// A named-choice name is inert (model/framework/SEMANTICS.md, Named choices): naming every step record of the
 // admission Model moves no Model identity, while any other change of a step record does.
 func TestAChoiceNameMovesNoModelIdentity(t *testing.T) {
 	plain := lifted(t, "admission")

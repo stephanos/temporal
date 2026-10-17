@@ -523,7 +523,7 @@ func distinctRowKeys(states []Value, classes []Class) bool {
 
 // rows evaluates every step function once per state and class, states-major, keeping the enabled
 // pairs as rows and rejecting a result outside the state domain and two results of one row with the
-// same name (model/SEMANTICS.md, Named choices).
+// same name (model/framework/SEMANTICS.md, Named choices).
 // It also keeps each row's transition, and the pairs whose value is a hole as hole rows; a channel's
 // delivery and loss are evaluated as transfers.
 func (in *Interpreter) rows(mm *Machine, states []Value, spec *umpire.TableSpec) error {

@@ -3,8 +3,6 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-// Modelled after https://github.com/quint-co/quint/blob/main/examples/classic/distributed/ReliableBroadcast/reliablebc.qnt
-//
 // The folklore reliable broadcast: in the presence of crashes, all correct processes should see the
 // same messages. The origin sends a message to every process, and may crash part way through. So
 // that a crash cannot split the processes, a process that receives a message first forwards it to
@@ -142,7 +140,6 @@ object ReliableBroadcast:
     // a run stops once nothing is in flight and no process is part way through
     override def end = !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
 
-    val anyRun = starts()
 
     object transitions extends Transitions:
       on(sender.broadcast): payload =>
@@ -163,50 +160,56 @@ object ReliableBroadcast:
         if relayed(p2) then effects.deliverP2()
 
     object effects:
-      def begin(payload: Payload): Unit = origin = Origin.sending(payload, Proc.p1)
-      def sendNext(): Unit = origin match
-        case Origin.sending(payload, next) =>
-          origin =
-            if next == Proc.p1 then Origin.sending(payload, Proc.p2) else Origin.done(payload)
-          network = network.send(Msg(next, payload))
-        case Origin.idle       => ()
-        case Origin.done(_)    => ()
-        case Origin.crashed(_) => ()
-      def crash(): Unit = origin match
-        case Origin.sending(payload, _) => origin = Origin.crashed(payload)
-        case Origin.idle                => ()
-        case Origin.done(_)             => ()
-        case Origin.crashed(_)          => ()
+      def begin(payload: Payload) =
+        origin = Origin.sending(payload, Proc.p1)
+      def sendNext() =
+        origin match
+          case Origin.sending(payload, next) =>
+            origin =
+              if next == Proc.p1 then Origin.sending(payload, Proc.p2) else Origin.done(payload)
+            network = network.send(Msg(next, payload))
+          case Origin.idle       => ()
+          case Origin.done(_)    => ()
+          case Origin.crashed(_) => ()
+      def crash() =
+        origin match
+          case Origin.sending(payload, _) => origin = Origin.crashed(payload)
+          case Origin.idle                => ()
+          case Origin.done(_)             => ()
+          case Origin.crashed(_)          => ()
       // On receiving m: forward m to all, then deliver m; a process already busy ignores it.
-      def receive(msg: Msg): Unit =
+      def receive(msg: Msg) =
         if localOf(current, msg.receiver) == Local.idle then
           setLocal(msg.receiver, Local.relaying(msg.payload))
-      // The naive algorithm: deliver m on receiving it, forwarding nothing.
-      def receiveNaive(msg: Msg): Unit =
-        if localOf(current, msg.receiver) == Local.idle then
-          setLocal(msg.receiver, Local.delivered(msg.payload))
-      def relayP1(): Unit = relayFrom(Proc.p1)
-      def relayP2(): Unit = relayFrom(Proc.p2)
-      def deliverP1(): Unit = deliverAt(Proc.p1)
-      def deliverP2(): Unit = deliverAt(Proc.p2)
+      def relayP1() =
+        relayFrom(Proc.p1)
+      def relayP2() =
+        relayFrom(Proc.p2)
+      def deliverP1() =
+        deliverAt(Proc.p1)
+      def deliverP2() =
+        deliverAt(Proc.p2)
 
-      private def relayFrom(p: Proc): Unit = localOf(current, p) match
-        case Local.relaying(payload) =>
-          network = network.send(Msg(other(p), payload))
-          setLocal(p, Local.relayed(payload))
-        case Local.idle         => ()
-        case Local.relayed(_)   => ()
-        case Local.delivered(_) => ()
+      private def relayFrom(p: Proc) =
+        localOf(current, p) match
+          case Local.relaying(payload) =>
+            network = network.send(Msg(other(p), payload))
+            setLocal(p, Local.relayed(payload))
+          case Local.idle         => ()
+          case Local.relayed(_)   => ()
+          case Local.delivered(_) => ()
 
-      private def deliverAt(p: Proc): Unit = localOf(current, p) match
-        case Local.relayed(payload) => setLocal(p, Local.delivered(payload))
-        case Local.idle             => ()
-        case Local.relaying(_)      => ()
-        case Local.delivered(_)     => ()
+      private def deliverAt(p: Proc) =
+        localOf(current, p) match
+          case Local.relayed(payload) => setLocal(p, Local.delivered(payload))
+          case Local.idle             => ()
+          case Local.relaying(_)      => ()
+          case Local.delivered(_)     => ()
 
-      private def setLocal(p: Proc, local: Local): Unit = p match
-        case Proc.p1 => p1 = local
-        case Proc.p2 => p2 = local
+      private def setLocal(p: Proc, local: Local) =
+        p match
+          case Proc.p1 => p1 = local
+          case Proc.p2 => p2 = local
 
     object invariants:
       val safety = check(onlyBroadcast(current))
@@ -236,22 +239,4 @@ object ReliableBroadcast:
       val survivesCrash = after(process.deliver(Proc.p2)):
         check(everyoneDelivered(current))
         check(origin == Origin.crashed(Payload.hello))
-      val safetyHolds = verify(invariants.safety) in anyRun
-      val reliabilityHolds = verify(postconditions.reliability) in anyRun
-      val deliveredDespiteCrash = find(survivesCrash) in anyRun
-
-  // The naive algorithm, which delivers a message on receiving it and forwards nothing: the negative
-  // control of agreement, which the sample tests refute.
-  object Naive
-      extends Derived(
-        Model.rebind(
-          on(Model.monitors.network.deliver): msg =>
-            Model.effects.receiveNaive(msg)
-        )
-      ),
-        NegativeControl:
-
-    object invariants:
-      // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
-      // monitor, which a run that stops with one process delivered and the other not breaks.
-      val naiveSafety = check(onlyBroadcast(Model.current))
+      val deliveredDespiteCrash = find(survivesCrash)

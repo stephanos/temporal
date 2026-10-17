@@ -17,7 +17,7 @@ private[framework] object ComposedReference:
     val composition = value.composition match
       case c: Composition[?] => c
       case _                 => fail("selection has no composition owner")
-    def field(selector: Any): String = MemberPath
+    def field(selector: Any): String = MemberSelector
       .retainedField(selector)
       .getOrElse(
         fail(

@@ -8,7 +8,7 @@ Resolve annotations into internal lifter metadata (groundwork for R1–R4 and R7
 
 **Size:** M
 **Files:** gap collection, lifter context/integration, capabilities integration, gap fixtures and docs.
-**Touches:** [model/irgen/Gaps.scala, model/irgen/Context.scala, model/irgen/Lifting.scala, model/irgen/Lift.scala, model/irgen/Capabilities.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/irgen/Gaps.scala, model/irgen/Context.scala, model/irgen/Lifting.scala, model/irgen/Lift.scala, model/irgen/Capabilities.scala, model/irgen/test/Gaps.test.scala, model/irgen/testdata/gaps/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Reuse existing symbol identities, positions, facet consumer ownership and capability waiver resolution. Keep annotation placement separate from matched finding owner; normalize each constructor to the current kind's exact subject representation.

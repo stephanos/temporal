@@ -7,8 +7,8 @@ satisfies: [R3, R4, R5, R6]
 Prepare grouped author docs and the final meaning-preserving source seal before fn-123's fault changes; link the shared batch close later. Advances R3, R4, R5, R6.
 
 **Size:** M
-**Files:** `model/README.md`, `model/SEMANTICS.md`, `tools/umpire/README.md`, `model/irgen/testdata/layout/**`; managed trees and functional/canary pins publish once through fn-123.8's shared close.
-**Touches:** [model/README.md, model/SEMANTICS.md, tools/umpire/README.md, model/irgen/testdata/layout/**, .flow/tmp/fn149/task5/**]
+**Files:** `model/README.md`, `model/framework/SEMANTICS.md`, `tools/umpire/README.md`, `model/irgen/testdata/layout/**`; managed trees and functional/canary pins publish once through fn-123.8's shared close.
+**Touches:** [model/README.md, model/framework/SEMANTICS.md, tools/umpire/README.md, model/irgen/testdata/layout/**, .flow/tmp/fn149/task5/**]
 
 **Owner-mode split:** This task retains its original integrated acceptance below and stays deferred. New .7 owns Model author docs, executable layout and the committed Scala grouping source seal that releases fn-164. This task consumes that seal and .4's complete consumer proof, updates tools/umpire reporting docs and closes the actual shared fn-123.8 evidence. Require committed full fn-155.6/fn-156.7 closures. No native/source result closes actual Query/progress verdicts, canonical artifacts, expected/actual live/replay assessments, full gates, review or live work. Preserve the original complete closure contract below; publication remains separately authorized.
 
@@ -22,7 +22,7 @@ Prepare grouped author docs and the final meaning-preserving source seal before 
 ### Investigation targets
 **Required:**
 - `model/README.md` - authoring and gate instructions.
-- `model/SEMANTICS.md:164` - safety claims; Claims at :434 and bounded Progress at :506.
+- `model/framework/SEMANTICS.md:164` - safety claims; Claims at :434 and bounded Progress at :506.
 - `model/irgen/testdata/layout` - executable author layout.
 - `MILESTONES.md` - verification and regeneration serialization.
 - `tools/umpire/README.md` - current reporting documentation.

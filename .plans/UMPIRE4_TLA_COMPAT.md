@@ -1,7 +1,7 @@
 # Umpire 4: TLA+ and Quint compatibility
 
 Design notes, 2026-09-30. This proposal records ideas for exporting Umpire Models to TLA+. It does
-not change the [shared specification](UMPIRE4_SPEC.md), [IR semantics](../model/SEMANTICS.md),
+not change the [shared specification](UMPIRE4_SPEC.md), [IR semantics](../model/framework/SEMANTICS.md),
 or implemented behavior.
 
 ## Recommendation
@@ -325,7 +325,7 @@ Use these anchors to understand the contract before designing an encoding:
 | Anchor | What it establishes |
 | --- | --- |
 | [Shared specification](UMPIRE4_SPEC.md) | Authority, explicit Limits, deterministic Artifacts, Evidence rules, and execution boundaries; pending amendments are marked. |
-| [IR semantics](../model/SEMANTICS.md) | Values, evaluation order, catalogs, Steps, channels, monitors, assumptions, refinement, holes, and Claims. |
+| [IR semantics](../model/framework/SEMANTICS.md) | Values, evaluation order, catalogs, Steps, channels, monitors, assumptions, refinement, holes, and Claims. |
 | [IR schema](../proto/internal/temporal/server/api/umpire/v1/ir.proto) | Serialized declarations and source positions; schema presence alone does not establish evaluator support. |
 | [IR admission](../tools/umpire/model/validate.go) and [row derivation](../tools/umpire/model/machine.go) | Current validation and derivation of classes, results, channel behavior, holes, and refinement. |
 | [Go search](../tools/umpire/model/internal/checker/search.go) and [monitors](../tools/umpire/model/internal/checker/monitor.go) | Query state identity, trigger bookkeeping, evaluation points, and bounded search outcomes. |

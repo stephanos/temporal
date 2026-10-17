@@ -86,7 +86,7 @@ func Load(path string) (*umpirespb.Model, error) {
 var choiceField = (&umpirespb.Construct{}).ProtoReflect().Descriptor().Fields().ByName("choice")
 
 // WithoutChoiceNames is a copy of a Model with every named choice's names cleared: what an identity
-// hashed from a Model's content reads, since the names are inert (model/SEMANTICS.md, Named choices).
+// hashed from a Model's content reads, since the names are inert (model/framework/SEMANTICS.md, Named choices).
 func WithoutChoiceNames(m *umpirespb.Model) *umpirespb.Model {
 	out := proto.CloneOf(m)
 	clearChoices(out.ProtoReflect())

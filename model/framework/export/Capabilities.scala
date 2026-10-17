@@ -1245,7 +1245,7 @@ private[`export`] trait Capabilities:
             "how to compute"
         )
 
-  // A Query's static combination count, as model/SEMANTICS.md (Query totals) and Go's `Validate`
+  // A Query's static combination count, as model/framework/SEMANTICS.md (Query totals) and Go's `Validate`
   // count it: the Scenario machine's states times, for a free Scenario, its action classes times the
   // step limit, and for a pinned one, the least of the step limit and its scheduled actions.
   private def staticTotal(machine: String, s: ir.Scenario, l: ir.Limits, at: Tree): Long =

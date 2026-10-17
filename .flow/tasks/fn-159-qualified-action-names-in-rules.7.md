@@ -14,7 +14,7 @@ The owner Scope excludes standalone/Nexus/legacy edits, lifts, regeneration and 
 **Size:** M
 **Files:** existing enters primitive/lifter, focused native/isolated lift controls, the remaining
 mini phase-only effects and their concrete phase writer, task-named migration proof and accurate docs.
-**Touches:** [model/framework/Syntax.scala, model/framework/Effects.test.scala, model/framework/Entering.test.scala, model/framework/Phased.test.scala, model/irgen/Syntax.scala, model/irgen/Declarations.scala, model/irgen/Context.scala, model/irgen/Conventions.scala, model/irgen/test/Entering.test.scala, model/irgen/testdata/entering/**, model/irgen/testdata/lifts/Entering.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/actors/worker/Serving.scala, model/temporal/actors/worker/Worker.scala, model/temporal/foundations/**/*.scala, model/temporal/capabilities/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/Syntax.scala, model/framework/Effects.test.scala, model/framework/Entering.test.scala, model/framework/Phased.test.scala, model/irgen/Syntax.scala, model/irgen/Declarations.scala, model/irgen/Context.scala, model/irgen/Conventions.scala, model/irgen/test/Entering.test.scala, model/irgen/testdata/entering/**, model/irgen/testdata/lifts/Entering.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/actors/worker/Serving.scala, model/temporal/actors/worker/Worker.scala, model/temporal/foundations/**/*.scala, model/temporal/capabilities/**/*.scala, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

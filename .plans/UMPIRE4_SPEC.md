@@ -57,7 +57,7 @@ a declared Nexus history Observation reaches a correlated completion within a bo
   State values may contain native `Map`, `Set`, `List` and checked signed 64-bit `Int`, including
   records, enums and Options of these; state types need no whole-state catalog. Its schema is
   `proto/internal/temporal/server/api/umpire/v1/ir.proto`, its evaluation rules are
-  `model/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
+  `model/framework/SEMANTICS.md`, and an interpreter derives every table, identity and fingerprint
   from it without running front end code. *(The state/input distinction is approved under the
   targeted 2026-10-13 GOV-02 amendment; the other 2026-09-30 IR draft remains pending.)*
 - **Model Definition.** A named, handwritten part of the Behavior Model, such as a state, Action,

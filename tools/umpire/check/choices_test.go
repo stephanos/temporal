@@ -1,6 +1,6 @@
 package check
 
-// Named choices (model/SEMANTICS.md): each result of a step may carry the name of the alternative it
+// Named choices (model/framework/SEMANTICS.md): each result of a step may carry the name of the alternative it
 // is, written on its step record's construct. The names are inert: a row's results report them, and
 // nothing else a Model derives changes with them. The fixture is the lifted admission specimen, whose
 // committed admission `admitted` either consumes the message or, besides that, retains it for another

@@ -7,8 +7,8 @@ satisfies: [R12]
 Rename the middle level from System to Protocol everywhere in the Scala model, so the three levels read Product / Protocol / Realization and sort alphabetically in their conceptual order (owner, 2026-10-10).
 
 **Size:** M
-**Files:** every `system/` level folder (`features/activity/standalone/system`, `features/nexus/{standalone,workflow}/system`, `foundations/taskqueue/system`), the level machines and their files (`ActivitySystem` → `ActivityProtocol`, `NexusSystem` → `NexusProtocol`, task-queue System → Protocol, `System.scala` → `Protocol.scala`), references across model/temporal, the structure lint's level vocabulary in model/irgen and model/check, fixtures, `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md` and docs that name the level.
-**Touches:** [model/temporal/**, model/irgen/**, model/check/**, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md]
+**Files:** every `system/` level folder (`features/activity/standalone/system`, `features/nexus/{standalone,workflow}/system`, `foundations/taskqueue/system`), the level machines and their files (`ActivitySystem` → `ActivityProtocol`, `NexusSystem` → `NexusProtocol`, task-queue System → Protocol, `System.scala` → `Protocol.scala`), references across model/temporal, the structure lint's level vocabulary in model/irgen and model/check, fixtures, `model/README.md`, `model/framework/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md` and docs that name the level.
+**Touches:** [model/temporal/**, model/irgen/**, model/check/**, model/README.md, model/framework/SEMANTICS.md, .plans/UMPIRE_MODULES.md]
 
 ### Approach
 - Rename folders, packages, files and level machines in one pass with the fn-160.3/.4 moves, so files move once.

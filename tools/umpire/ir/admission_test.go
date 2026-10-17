@@ -1,6 +1,6 @@
 package ir
 
-// What a reader rejects before any check (model/SEMANTICS.md, Admission), each case one
+// What a reader rejects before any check (model/framework/SEMANTICS.md, Admission), each case one
 // mutation of a source-derived Model, reported at the position the lifter recorded for the
 // declaration or node concerned.
 

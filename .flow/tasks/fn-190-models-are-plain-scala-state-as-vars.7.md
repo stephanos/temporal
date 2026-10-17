@@ -15,6 +15,17 @@ Prerequisite: fn-191 has put the samples into sections. Rewrite Kettle, Bank, Vo
 ### Verification
 - Six samples compile and lift; the four native suites pass on the evaluator.
 - Graph comparison per sample recorded; the samples model-check stage (fn-191.3) passes on the default budget with every answer matching the inventory.
+## Execution status
+
+The six samples use plain vars, transitions and assignment effects. Kettle declares all temperatures
+from -40 through 40 as starts and has no query section; redundant verification queries are removed
+from the other samples. Five negative designs and their special effects live only in test sources,
+with prior answer cases retained as default checks or explicit test queries. The six sample
+expectation cases now have one test file per sample. Quint references are removed from authored
+sample comments. The owner's effect-definition follow-up uses inferred, multiline method bodies.
+Final native verification and user-owned source commits remain outstanding; the .10 lifting,
+schema/Go/oracle and equivalence obligations stay open.
+
 ## Acceptance
 - [ ] TBD
 

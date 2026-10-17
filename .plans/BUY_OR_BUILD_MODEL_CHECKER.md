@@ -54,7 +54,7 @@ evidence; recorded gate results were not rerun for this study.
   Quint route with a minimal direct export and supplies the semantic translation contract.
 - [QUINT_MODULE_LAYOUT.md](QUINT_MODULE_LAYOUT.md) adopted Quint's module reading order for
   Scala Models. That authoring decision does not select a verification backend.
-- [model/SEMANTICS.md](../model/SEMANTICS.md) defines finite typed values, ordered expression
+- [model/framework/SEMANTICS.md](../model/framework/SEMANTICS.md) defines finite typed values, ordered expression
   evaluation, atomic alternatives, channels, monitors, holes, compositions, refinement, bounded
   Queries and progress. These are the semantics every route must preserve.
 - The [current export README](../tools/umpire/export/README.md) documents independent Quint
@@ -141,7 +141,7 @@ external checker buys broader algorithms while keeping Umpire's Query interpreta
 diagnostics and witness qualification. The finite IR also gives a custom checker useful constraints:
 we do not need arbitrary TLA+ evaluation to implement the native bounded contract.
 [Native progress engine](../tools/umpire/internal/engine/progress.go),
-[IR semantics](../model/SEMANTICS.md).
+[IR semantics](../model/framework/SEMANTICS.md).
 
 ## Free tools and their fit for Umpire
 
@@ -194,7 +194,7 @@ unknown behavior, unexercised Properties and exhausted Search remain separate ou
 choose witnesses deterministically, retain Definition IDs and Behavior Fingerprints, and feed
 existing lowering and conformance without roundtripping through an external trace format.
 [Checker receipts](../tools/umpire/check/checking.go),
-[IR results](../model/SEMANTICS.md#results).
+[IR results](../model/framework/SEMANTICS.md#results).
 
 It also offers a useful place for Umpire-specific diagnostics and coverage. For example, the checker
 can explain which action class exercised a promise and which realization prevents its witness from
@@ -377,7 +377,7 @@ integration need.
 ## Semantic work shared by all external routes
 
 The hard part is preserving the question. These obligations come from
-[IR semantics](../model/SEMANTICS.md) and the
+[IR semantics](../model/framework/SEMANTICS.md) and the
 [existing compatibility plan](UMPIRE4_TLA_COMPAT.md#semantic-contract).
 
 | Umpire concept | Required external encoding or check |

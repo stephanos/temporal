@@ -68,6 +68,7 @@ object FrameworkSuites extends Registry:
     "FacetsTest",
     "AdmissionSuite",
     "EligibleWitnessFixtures",
+    "EffectDefinitionsSuite",
     "PropertyGroupsFixtures",
     "QualifiedPhasesTest",
     "OrderFixtures",

@@ -1223,7 +1223,7 @@ private[framework] trait Expressions:
 
   // The refusal of a step made outside a step function: a start, an `ends`, evidence, a refinement,
   // a monitor, a Property or a progress claim reads values, states and steps and makes none
-  // (model/SEMANTICS.md, Levels).
+  // (model/framework/SEMANTICS.md, Levels).
   def wrongLevel(t: Term): Nothing =
     def made(t: Term): String = t match
       case Apply(fn, _)        => made(fn)
@@ -1237,7 +1237,7 @@ private[framework] trait Expressions:
     )
 
   // The refusal of a step function's several results written without names: every branching of a
-  // Model is intentional and named (model/SEMANTICS.md, Named choices).
+  // Model is intentional and named (model/framework/SEMANTICS.md, Named choices).
   def unnamed(at: Tree, written: String): Nothing =
     fail(
       at,

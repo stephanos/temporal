@@ -33,7 +33,7 @@ After committed .20, capture complete declared Facets rules and construct isolat
 - model/framework/reify/plugin/ReifyPlugin.scala:820-1110 and PluginContext.scala:186-199. Current direct-module restriction, current-unit storage and phase source lookup.
 - model/framework/reify/body/BodyEngine.scala:53-86,208-232 and BodySyntax.scala:337-379. Shared guard/position/writer hooks; BodyContext.scala:179 retains helper names.
 - model/framework/export/Declarations.scala:435-488,544-660 and existing export/Facets.test.scala plus dsl/Facets.test.scala. Old assembly projection, ownership/refinement checks and actual native contracts.
-- model/framework/export/ConstructedRules.test.scala:99-271 and model/SEMANTICS.md:780-881. Standalone equivalence harness and unchanged derivation/Facets meaning.
+- model/framework/export/ConstructedRules.test.scala:99-271 and model/framework/SEMANTICS.md:780-881. Standalone equivalence harness and unchanged derivation/Facets meaning.
 
 ### Resolved planning proof
 

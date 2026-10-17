@@ -103,7 +103,7 @@ starts at zero", is resolved by unbounded `Int` (§6.4).
 
 Today's table is every catalog state × every class (`interp/machine.go:529-568`), and SEMANTICS says
 "Reachability, stuck states, Definition IDs and the Behavior Fingerprint are computed from this
-table" (`model/SEMANTICS.md:443-444`). For each benefit: does it matter, and what replaces it.
+table" (`model/framework/SEMANTICS.md:443-444`). For each benefit: does it matter, and what replaces it.
 
 ### 1.1 Catalog-wide checks on unreachable states
 
@@ -111,7 +111,7 @@ table" (`model/SEMANTICS.md:443-444`). For each benefit: does it matter, and wha
 
 - **Today.** The framework refuses two rules of one class that both hold in *any* catalog state
   (`Machine.scala:332-347`, run at `Syntax.scala:740-746, 993`). Rule order therefore changes no
-  row anywhere (SEMANTICS §6, `model/SEMANTICS.md:365-369`).
+  row anywhere (SEMANTICS §6, `model/framework/SEMANTICS.md:365-369`).
 - **Does it matter?** Only on reachable rows, since a row no start reaches is no behavior. One
   benefit is real: a latent overlap is caught before a later change makes its state reachable.
 - **Replaced by** §5.1's structural check, which covers phase-, role- and class-headed rules over
@@ -711,7 +711,7 @@ It folds them into an `if` chain (`chain`, `1180-1187`). So the IR cannot tell t
 
 **Catches:** every overlap between rules headed by phases, roles or classes, over all phases, with no
 state enumerated. That is the common shape in the Temporal Models (SEMANTICS §6's headings table,
-`model/SEMANTICS.md:387-396`).
+`model/framework/SEMANTICS.md:387-396`).
 
 **Cannot catch:** overlaps between `where` guards at states no root reaches.
 
@@ -910,7 +910,7 @@ message Field { /* … */ repeated Value domain = N; }
 ```
 
 Binary arithmetic gains `OP_MUL`, `OP_DIV` and `OP_MOD`, which Quint has. Today only `+` and `-` lift
-(`model/SEMANTICS.md:1198-1199`).
+(`model/framework/SEMANTICS.md:1198-1199`).
 
 ### 6.2 Admission (`tools/umpire/ir/validate.go`)
 
@@ -1202,7 +1202,7 @@ Today:
 
 Proposed:
 
-> **One meaning, one source.** The IR has one interpretation, defined by `model/SEMANTICS.md` and
+> **One meaning, one source.** The IR has one interpretation, defined by `model/framework/SEMANTICS.md` and
 > implemented by the Go reader, and every fact has one declaration. A Query may name the checker that
 > decides it: the Go checker by default, or Apalache or TLC through the export of the same IR. A
 > checker may decide only a Query whose every ingredient its export covers. Every trace it returns

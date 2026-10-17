@@ -1,5 +1,8 @@
 package framework.dsl
 
+import VotingControls.UnsafeVoting
+import ReliableBroadcastControls.Naive
+
 import samples.{ReliableBroadcast, Voting}
 import NativeControls.{assertRefuted, invariant}
 import SectionClaims.{declares, holds as claimHolds, target}
@@ -582,14 +585,14 @@ class NativeVotingTest extends munit.FunSuite:
     assertEquals(report.warnings, Vector.empty)
     assertEquals(NativeCheck.verifyAll(Consensus).verdicts, Map("chosenStays" -> verified))
     // chosenStaysInVoting reads Consensus through Voting's refinement, which no native check reads
+    // Consensus's claim, read through the refinement
+    assertEquals(
+      NativeCheck.query(verify(Consensus.postconditions.chosenStays) in Scenario.of(Some(Model), None), "model.chosenStaysInVoting").verdict,
+      unknown
+    )
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector(
-        "model.chosenStaysInVoting" -> unknown,
-        "model.consistencyHolds" -> verified,
-        "model.invariantHolds" -> verified,
-        "model.valueChosen" -> found
-      )
+      Vector("model.valueChosen" -> found)
     )
     // the negative control: a vote that skips the quorum's showing chooses both values
     val refutesUnsafeVoting = assertRefuted(
@@ -618,11 +621,7 @@ class NativeVotingTest extends munit.FunSuite:
     assertEquals(report.warnings, Vector.empty)
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector(
-        "model.safetyHolds" -> verified,
-        "model.reliabilityHolds" -> verified,
-        "model.deliveredDespiteCrash" -> found
-      )
+      Vector("model.deliveredDespiteCrash" -> found)
     )
     // the naive algorithm delivers only what was broadcast; what refutes it is the agreement it
     // keeps from the Model, a run that stops with one process delivered and the other not

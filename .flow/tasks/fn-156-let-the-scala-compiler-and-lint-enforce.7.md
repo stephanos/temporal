@@ -8,8 +8,8 @@ satisfies: [R1, R2, R3, R4, R5, R6, R7, R8, R9]
 Complete R9 and the spec's documentation and integration checks at one standalone boundary before Batch 2. This task owns the full gates once after all source changes and reports their actual dispositions.
 
 **Size:** M
-**Files:** `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`, compiler research reports, existing gate/Make wiring and final evidence.
-**Touches:** [model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md, .plans/SCALA.md, .plans/SCALA_CAPTURE_CHECKING.md, Makefile, model/check/**, .flow/tmp/fn156/integration/**]
+**Files:** `model/README.md`, `model/framework/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`, compiler research reports, existing gate/Make wiring and final evidence.
+**Touches:** [model/README.md, model/framework/SEMANTICS.md, .plans/UMPIRE_MODULES.md, .plans/SCALA.md, .plans/SCALA_CAPTURE_CHECKING.md, Makefile, model/check/**, .flow/tmp/fn156/integration/**]
 
 ## Approach
 
@@ -26,7 +26,7 @@ Complete R9 and the spec's documentation and integration checks at one standalon
 - `model/check/Gate.scala:461` - framework/Model/lifter build and fixture steps.
 - `Makefile:674` - lint modes and JDK split.
 - `model/README.md:415` - author/compiler/lint guidance.
-- `model/SEMANTICS.md:191` - role-based refinement law.
+- `model/framework/SEMANTICS.md:191` - role-based refinement law.
 - `.plans/UMPIRE_MODULES.md:30` - Scala ownership and dependencies.
 - `MILESTONES.md:22` - evidence reuse, full gates, locking and deferred outcomes.
 - `.flow/specs/fn-157-bound-native-verification-memory-and.md` - retained complete native RED obligations.

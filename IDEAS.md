@@ -4,3 +4,4 @@
 - use Scala's `compiletime.error("<<= is removed; migrate to := instead")`?
 - gzip generated JSON files
 - follow https://arxiv.org/pdf/2410.02307 and try to apply Umpire on etcd and so on
+- Apalache publishes Scala libraries (tla-ir/tla-io, since 0.59) with a typed TLA+ builder and a type-annotation-aware printer

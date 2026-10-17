@@ -630,7 +630,7 @@ The current lifter, schema and generated payloads remain unchanged. Batch-end re
 
 ### fn-165: Inputs as records: named classes, declared defaults, no `:=`
 
-Captured 2026-10-11 from `model/SEMANTICS_FEEDBACK.md` 3.3. An action's inputs become a case class
+Captured 2026-10-11 from `model/framework/SEMANTICS_FEEDBACK.md` 3.3. An action's inputs become a case class
 (`final case class Start(scheduleToStart: Timeout = Timeout.unset, ...)`, declared with
 `action(this).inputs[Start]`), so a class is plain Scala: `start()` is every default,
 `start(maxAttempts = MaxAttempts.two)` names what differs, and a step function reads `in.startToClose`
@@ -1057,16 +1057,14 @@ with a Kettle prototype and verdict in `model/design`.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-190.1 | ⬜ todo | Prototype the plain-Scala form on Kettle; verdict in `model/design` (R1) |
-| fn-190.2 | ⬜ todo | After .1: `Machine[O, F]`, synthesised State record, `init` and schema from declarations, erasing bounded aliases; supersedes fn-189.6 (R2, R9, R10) |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.4 | ⬜ todo | After .2: assignment-block effects, `if`/`match` transitions (`rules` renamed), reads by name and properties as `check` blocks (`invariant:`/`transition:`/`after(action):`, `before` record) in the lifter; refusals (R3, R4, R11, R12, R13, R14, R15, R16) |
+| fn-190.4 | 🔄 in progress | Native assignment effects, transitions and check claims are implemented; finish public vocabulary retirement, safety-claim environments and complete refusal/short-circuit coverage. Plugin/lifter proofs remain .9 |
 | fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
-| fn-190.6 | ⬜ todo | After .4: facets and phases as vars; `Phased` and contextual-phase machinery removed (R5) |
-| fn-190.7 | ⬜ todo | After .3/.5/.6 and fn-191.1: rewrite the six samples; the checker takes the budget, iterates the start list and reports vacuity, the IR Query loses its bounds; regenerate oracles, equivalence (R8, R14, R15) |
+| fn-190.7 | 🔄 in progress | Six native sample rewrites, witness-only query sections and test-only negative controls; verify the complete start lists and native suites. IR/Go/oracle/equivalence proofs remain .10 |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
 | fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
+| fn-190.13 | 🔄 in progress | Check every native effect returns Unit, even unused; lint inferred return types and multiline bodies; samples follow the rules (R18) |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 
@@ -1081,7 +1079,6 @@ comparing every answer with the inventory.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-191.1 | ⬜ todo | The five remaining samples and NativeInputs into the kind sections; Kettle `boils`; lints and SEMANTICS updated; reify sample roots updated (R2) |
 | fn-191.2 | ⬜ todo | After .1: samples lint stage in `checkFramework` with a focused test (R3) |
 | fn-191.3 | ⬜ todo | After .1: samples model-check stage in `checkFramework`; the two `GoHeld` cases run and compare answers with the inventory (R4) |
 

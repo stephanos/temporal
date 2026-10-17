@@ -227,8 +227,8 @@ control independently. See the [module map](UMPIRE_MODULES.md) and
 | --- | --- | --- |
 | Finite models and model-to-model refinement | [Scala results](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/scala/RESULTS.md), [Go results](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/go/RESULTS.md) | Existing reports show Nexus table, Query, refinement, and Case parity. This establishes agreement between representations over their shared domain. |
 | Proofs over model behavior | [Scala results, Stainless lemmas](https://github.com/stephanos/temporal/blob/0b31bab957174df1b10ba46794fd72b9672e8d32/model0/scala/RESULTS.md#what-stainless-proves) | Reported lemmas concern the model kernel, including bounded attempts and refinement. They do not prove the Temporal server implementation. |
-| Scala authoring, serializable IR, Go interpretation | [IR README](../model/README.md), [IR semantics](../model/SEMANTICS.md) | The interpreter builds the lifted Nexus tables. The full authored semantic surface exceeds the implemented interpreter surface. |
-| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/SEMANTICS.md#what-the-reader-implements) | As of 2026-10-03 the reader implements all of them. It reports three cases as `unsupported`: a Query over a composition whose member names monitors, a `find` with `through`, and a transition Property with `when`. |
+| Scala authoring, serializable IR, Go interpretation | [IR README](../model/README.md), [IR semantics](../model/framework/SEMANTICS.md) | The interpreter builds the lifted Nexus tables. The full authored semantic surface exceeds the implemented interpreter surface. |
+| Channels, monitors, assumptions, holes, scoped replacement, progress | [IR semantics, implementation status](../model/framework/SEMANTICS.md#what-the-reader-implements) | As of 2026-10-03 the reader implements all of them. It reports three cases as `unsupported`: a Query over a composition whose member names monitors, a `find` with `through`, and a transition Property with `when`. |
 | Executable Cases and live/offline Contract evaluation | [Testpilot](../common/testing/testpilot/README.md), [Evaluator](../common/testing/testpilot/internal/verification/README.md) | The runtime implements bounded execution, immutable records, correlated evaluation, and semantic replay. |
 | Runtime faults | [Instruction schema](../proto/internal/temporal/server/api/testpilot/v1/instruction.proto), [worker fault tests](../common/testing/testpilot/temporal/worker/fault_test.go) | The fault enum supplies worker stop/resume, a hold and release of a validated activity dispatch, and loss of one committed admission response. It does not supply arbitrary network delivery, server crash, or storage-commit scheduling. |
 | Replay, reduction, promotion | [Specification](UMPIRE4_SPEC.md#exploration-replay-and-promotion) | The design separates offline Verdict replay, fresh reruns, and diagnostic SDK history replay. Fresh reruns are required for promotion. |
@@ -239,7 +239,7 @@ the IR semantics recorded that the reader (`tools/umpire/model`) read some decla
 without applying their semantics. The 2026-10-03 status says the reader implements them and reports
 the three remaining gaps as `unsupported`. The principle remains: a successful load cannot stand in
 for a successful check of every declared obligation, and a backend counts only where it checks the
-same declared meaning. See [implementation status](../model/SEMANTICS.md#what-the-reader-implements),
+same declared meaning. See [implementation status](../model/framework/SEMANTICS.md#what-the-reader-implements),
 the [current validator](../tools/umpire/model/validate.go), and the
 [backend agreement receipts](../tools/umpire/export/README.md).
 
@@ -856,7 +856,7 @@ It began from an outside review that described Umpire's semantics as Scala funct
 their meaning. That premise is out of date. The lifter reads typed Scala trees and writes step
 functions, Properties, and monitors into the IR as expression trees with a source position on every
 node. Go evaluates those trees and never runs Scala. See the [IR README](../model/README.md) and
-[expression semantics](../model/SEMANTICS.md). The exporter translates the same IR to Quint and P, and
+[expression semantics](../model/framework/SEMANTICS.md). The exporter translates the same IR to Quint and P, and
 a backend counts only where its run agrees with Go's reading
 ([backend agreement](../tools/umpire/export/README.md)). The ideas below are read against that IR.
 None is a reason to build one.
@@ -935,7 +935,7 @@ Each crash function decides by hand what survives. fn-107 asked for a finite fau
 crash to lose ephemeral state
 ([fn-107](../.flow/specs/fn-107-scala-umpire-prototype-for-standalone.md)). Channels already show
 the better pattern: Go derives loss, duplication, and redelivery from a channel declaration
-([Channels](../model/SEMANTICS.md#channels)).
+([Channels](../model/framework/SEMANTICS.md#channels)).
 
 Three things are worth adopting:
 
@@ -1055,7 +1055,7 @@ for behavior the author did not intend:
 - two results from one state, differing in outcome, that no Property distinguishes.
 
 fn-120 lint covers the first. For the second, a check that explores a hole row already reports its
-result as incomplete and names the hole ([Holes](../model/SEMANTICS.md#holes)). The third needs a
+result as incomplete and names the hole ([Holes](../model/framework/SEMANTICS.md#holes)). The third needs a
 search per finding, which fn-120 deliberately excludes. It is a candidate for a later `find` mode. Alloy's
 wording is also a model for result language. A verdict reached within Limits should read as
 bounded, as Umpire's semantics already require ("a reached limit proves nothing").

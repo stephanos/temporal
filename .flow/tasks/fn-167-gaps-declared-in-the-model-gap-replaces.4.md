@@ -8,7 +8,7 @@ Build the deterministic Scala migration transformation and copied-mini source pr
 
 **Size:** M
 **Files:** new migration core/tests/fixtures; mini-only source proof; docs.
-**Touches:** [model/migrate/**, model/temporal/features/activity_mini/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/migrate/**, model/temporal/features/activity_mini/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 - Admission prerequisite: conductor verifies fn-166.3 is done with its closure committed in the current branch. The CLI does not support cross-spec task edges; this prerequisite is not replaced with a whole-spec dependency that would create a sweep cycle.

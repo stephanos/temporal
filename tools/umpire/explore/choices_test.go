@@ -1,6 +1,6 @@
 package explore
 
-// Named choices are inert (model/SEMANTICS.md, Named choices): an exploration of a Model whose step
+// Named choices are inert (model/framework/SEMANTICS.md, Named choices): an exploration of a Model whose step
 // records name their alternatives has the candidates, digests, Case identities and Case bytes of the
 // Model without the names.
 

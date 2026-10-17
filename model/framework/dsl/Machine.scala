@@ -49,7 +49,7 @@ def choose(first: Alternative, second: Alternative, rest: Alternative*): Unit =
 
 // `choose(committed -> enter(...), redelivered -> stay(s))`: the results of a step that can go more
 // than one way, in the order written, each named by its token. The names are metadata no check reads
-// (model/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
+// (model/framework/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
 // unnamed list. Each alternative is one step written out, or a call of a function that gives at most
 // one, such as a step another action shares, and each token names one of them; an alternative whose
 // function gives no step is not taken. A choose of one alternative does not compile, since one result
@@ -652,6 +652,8 @@ abstract class RecordMachine[S, O, F](using
   // The state the machine starts in, named `init` as Quint and TLA+ name it.
   def init: S
 
+  def initialStates: Seq[S] = Seq(init)
+
   // Whether the machine may end in `s`.
   def end(s: S): Boolean
 
@@ -899,7 +901,7 @@ abstract class RecordMachine[S, O, F](using
       trace: => Option[DerivationBindings.Event] = None,
       addedAssumptions: List[(Assumption, String)] = Nil
   ): RecordMachine[S, O, F] & DerivedFrom[this.type] = // format: off
-    Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
+    Built[S, O, F, this.type](objectName(this), initialStates.toList, end, table, this, Seq.empty,
       if keepRefinement then refinementEvidence else None, operation.toVector, trace,
       authoredAssumptions ++ addedAssumptions)(using // format: on
       fs,
@@ -1044,7 +1046,7 @@ abstract class RecordMachine[S, O, F](using
       def toProduct(s: S): PS = map(s)
     Built[S, O, F, this.type](
       objectName(this),
-      List(init),
+      initialStates.toList,
       end,
       table,
       this,
@@ -1059,7 +1061,7 @@ abstract class RecordMachine[S, O, F](using
     built(table, addedAssumptions = added.map(_ -> at).toList)
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
-  // a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
+  // a member's monitors may not watch (model/framework/SEMANTICS.md leaves that undefined).
   def unmonitored: RecordMachine[S, O, F] & DerivedFrom[this.type] =
     built(table, keepRefinement = false)
 
@@ -1086,6 +1088,7 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
     extends RecordMachine[State, O, F],
       ClaimWords:
   private lazy val declared: Vars = Vars(this, schema)
+  private val initialDomains = scala.collection.mutable.LinkedHashMap.empty[String, Vector[Any]]
 
   final override private[framework] def stateVars: Option[Vars] = Some(declared)
 
@@ -1094,6 +1097,17 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
 
   // The state its vars start in: their initialisers.
   final def init: State = declared.initial
+
+  final override def initialStates: Seq[State] =
+    schema.vars.foldLeft(Vector(init)): (states, variable) =>
+      initialDomains.get(variable.name).fold(states): domain =>
+        states.flatMap(state => domain.map(value => declared.updated(state, Seq(variable.name -> value))))
+
+  @publicInBinary private[framework] def registerInitial[A](name: String, domain: Vector[A]): A =
+    require(domain.nonEmpty, s"$name: oneOf takes a non-empty domain")
+    require(!initialDomains.contains(name), s"$name: oneOf declares one initial domain")
+    initialDomains.update(name, domain.distinct)
+    domain.head
 
   // Whether the machine may stop in the state its vars hold: anywhere, unless it says otherwise.
   def end: Boolean = true
@@ -1193,6 +1207,8 @@ abstract class Derived[S, O, F](derivation: RecordMachine[S, O, F])
   override private[framework] def factCases: Vector[(AnyRef, String)] =
     super.factCases ++ derivation.factCases
   final def init: S = derivation.init
+
+  final override def initialStates: Seq[S] = derivation.initialStates
   final def end(s: S): Boolean = derivation.end(s)
   final def transitions: RuleBook[S, O, F] = derivation.transitions
   override private[framework] def authoredAssumptions: List[(Assumption, String)] =
@@ -1254,7 +1270,7 @@ final private[framework] class Built[S, O, F, M <: Model](
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
     case machine: RecordMachine[?, ?, ?] => super.factCases ++ machine.factCases
     case _                               => super.factCases
-  private lazy val initialStates = starts
+  override lazy val initialStates: Seq[S] = starts
   def init: S = initialStates.head
   def end(s: S): Boolean = isEnd(s)
 

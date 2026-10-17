@@ -809,7 +809,7 @@ type Query struct {
 	Exploration *Exploration    `protobuf:"bytes,9,opt,name=exploration,proto3" json:"exploration,omitempty"`
 	// The author's count of the Query's static combinations: the Scenario machine's states times the
 	// scheduled slots within the step limit when pinned, or times its action classes times the step
-	// limit when free (model/SEMANTICS.md, Query totals). The reader recomputes and checks it; nothing
+	// limit when free (model/framework/SEMANTICS.md, Query totals). The reader recomputes and checks it; nothing
 	// else reads it, so no fingerprint, answer, lowering or exploration identity changes with it. Unset
 	// only in IR lifted before it existed. A wrapper, not proto3 `optional`, which the pinned
 	// protoc-gen-go-helpers

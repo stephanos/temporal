@@ -7,8 +7,8 @@ satisfies: [R3]
 The early proof. Go derives the crash row from the durability record (R3), as channel rows are derived today, and `SEMANTICS.md` gains its Faults section. The proof is a Go test over a fixture copy of the queue: the derived table equals `crashDetail`'s table cell by cell. If it does not, stop and list the rows for the owner before task 4.
 
 **Size:** M
-**Files:** `tools/umpire/interp/machine.go`, new `tools/umpire/interp/faults.go` (+ `_test.go`), `tools/umpire/ir/validate.go` (admission), `tools/umpire/internal/engine/table.go` (if rows are listed there), `model/SEMANTICS.md` (Faults section beside Channels; Admission list), a fixture IR under the interp or engine testdata
-**Touches:** [tools/umpire/interp/**, tools/umpire/ir/**, tools/umpire/internal/engine/**, model/SEMANTICS.md, model/irgen/testdata/**]
+**Files:** `tools/umpire/interp/machine.go`, new `tools/umpire/interp/faults.go` (+ `_test.go`), `tools/umpire/ir/validate.go` (admission), `tools/umpire/internal/engine/table.go` (if rows are listed there), `model/framework/SEMANTICS.md` (Faults section beside Channels; Admission list), a fixture IR under the interp or engine testdata
+**Touches:** [tools/umpire/interp/**, tools/umpire/ir/**, tools/umpire/internal/engine/**, model/framework/SEMANTICS.md, model/irgen/testdata/**]
 **Order:** After task 2. No regeneration of `model/ir`, since no Model changes.
 
 ### Approach
@@ -23,7 +23,7 @@ The early proof. Go derives the crash row from the durability record (R3), as ch
 - `tools/umpire/interp/machine.go:510-530` - where channel classes branch
 - `tools/umpire/interp/channels.go:143` - `transfer`, the derived-row pattern
 - `tools/umpire/ir/validate.go:672-760` - machine, holds and step admission
-- `model/SEMANTICS.md:250-290, 690-765` - Channels and Admission
+- `model/framework/SEMANTICS.md:250-290, 690-765` - Channels and Admission
 
 **Optional** (reference as needed):
 - `tools/umpire/internal/engine/table.go:160, 369-430` - `RowsFrom`, `checkSpec`, `checkRows`

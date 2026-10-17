@@ -14,7 +14,7 @@ remain at the sweep under the current owner Scope.
 **Size:** S–M
 **Files:** existing system capability source/tests, independent name/origin and selected-reference
 controls, actual task-named source migration/proof and accurate author documentation.
-**Touches:** [model/temporal/capabilities/system/Retryable.scala, model/temporal/capabilities/system/Retryable.test.scala, model/temporal/capabilities/system/Expirable.scala, model/temporal/capabilities/system/Expirable.test.scala, model/temporal/capabilities/Names.test.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/irgen/test/CapabilityNames.test.scala, model/irgen/testdata/capabilityNames/**, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/temporal/capabilities/system/Retryable.scala, model/temporal/capabilities/system/Retryable.test.scala, model/temporal/capabilities/system/Expirable.scala, model/temporal/capabilities/system/Expirable.test.scala, model/temporal/capabilities/Names.test.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/**/*.scala, model/temporal/actors/**/*.scala, model/irgen/test/CapabilityNames.test.scala, model/irgen/testdata/capabilityNames/**, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

@@ -24,7 +24,8 @@ object NativeInputs:
         if in.amount <= in.ceiling && !seen.contains(in.amount) then effects.submit(in)
 
     object effects:
-      def submit(in: Request): Unit = seen = seen.incl(in.amount)
+      def submit(in: Request) =
+        seen = seen.incl(in.amount)
 
     object postconditions:
       val zeroWasAccepted = after(caller.submit(amount = 0)):

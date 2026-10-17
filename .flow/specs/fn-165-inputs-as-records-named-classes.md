@@ -26,7 +26,7 @@ Native DSL changes ship a concise migration recipe in framework-local guidance, 
 > user: "is there a design that uses the new case class but preserves the first loss. maybe named/opaque input types or sth. give a few options, you mentioned traits too"
 > user (selected): "okay Option 1; write a flow spec/tasks as needed"
 
-Source: `model/SEMANTICS_FEEDBACK.md` 3.3 and the design discussion of 2026-10-11 that followed it.
+Source: `model/framework/SEMANTICS_FEEDBACK.md` 3.3 and the design discussion of 2026-10-11 that followed it.
 
 ## Goal & Context
 <!-- scope: business -->

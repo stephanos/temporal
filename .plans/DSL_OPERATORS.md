@@ -226,7 +226,7 @@ field path or a `read` that is not a def; one lifting fixture and one refusal fi
   blocks whose cases are disjoint. `when(p1, p2) ~> effects.x` and `where(g) ~> effects.y` each sit
   on their own line. The rules read the machine's
   `Phased[State, Phase](_.phase)` projection, which lowers to the
-  guarded step function (`model/SEMANTICS.md`, Rules); an effect never returns `disabled`. The
+  guarded step function (`model/framework/SEMANTICS.md`, Rules); an effect never returns `disabled`. The
   cases, `when`, `where` and `always`, say where an action fires only, never a guard inside a step or
   an effect, and there is no standalone guard helper. Bare `in` is membership alone and is refused
   as a rule heading with a diagnostic naming `when`.

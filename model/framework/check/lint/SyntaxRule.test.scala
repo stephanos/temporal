@@ -105,7 +105,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
       "model/framework/dsl/Syntax.scala",
       "model/framework/dsl/DerivationBindings.scala",
       "model/framework/dsl/FacetBindings.scala",
-      "model/framework/dsl/MemberPath.scala",
+      "model/framework/dsl/MemberSelector.scala",
       "model/framework/dsl/RuleBindings.scala"
     )
     assertEquals(

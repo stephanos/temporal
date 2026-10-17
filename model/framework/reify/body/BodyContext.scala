@@ -301,7 +301,7 @@ private[framework] trait BodyContext:
     finally choosing = was
 
   // What is being lifted: whether it may make a step, being the body of a function that gives
-  // steps, a step function or one it calls (model/SEMANTICS.md, Levels), and where it is, for the
+  // steps, a step function or one it calls (model/framework/SEMANTICS.md, Levels), and where it is, for the
   // refusal of a step made anywhere else. A declared value, such as a start, makes none.
   var making: (Boolean, String) = (false, "a declared value") // scalafix:ok DisableSyntax.var
 

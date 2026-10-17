@@ -114,7 +114,7 @@ Rust declarations -> Rust frontend -> the same Umpire IR -> existing Go pipeline
 
 The IR represents finite types and symbolic functions/expressions, not native
 callbacks. Its meaning is defined in
-[SEMANTICS.md](../temporal/model/SEMANTICS.md), independently of the Scala
+[SEMANTICS.md](../temporal/model/framework/SEMANTICS.md), independently of the Scala
 lifter. A complete standalone model can therefore be authored in Rust while
 checking and live execution remain in Go. No Rust Temporal SDK, async runtime,
 FFI bridge or Temporal server rewrite is required for that scope.

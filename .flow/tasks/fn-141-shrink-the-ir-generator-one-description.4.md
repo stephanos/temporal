@@ -7,8 +7,8 @@ satisfies: [R3, R4, R16]
 Part A, second half. The claim patterns and the sticky monitors are compositions of core builders, so their definitions can be followed like any helper def. After this task the lifter names no sugar that Part A can reach, and the syntax lint says so.
 
 **Size:** M
-**Files:** `model/framework/export/{Syntax,Claims,Declarations,Expansion,Expressions}.scala`, `model/framework/dsl/{Syntax,Claims}.scala`, `model/framework/check/lint/**`, `model/framework/inspect/**`, affected fixtures and coverage, `model/SEMANTICS.md`.
-**Touches:** [model/framework/export/**, model/framework/dsl/**, model/framework/check/**, model/framework/inspect/**, model/framework/lint/**, model/temporal/check/**, model/SEMANTICS.md, model/README.md]
+**Files:** `model/framework/export/{Syntax,Claims,Declarations,Expansion,Expressions}.scala`, `model/framework/dsl/{Syntax,Claims}.scala`, `model/framework/check/lint/**`, `model/framework/inspect/**`, affected fixtures and coverage, `model/framework/SEMANTICS.md`.
+**Touches:** [model/framework/export/**, model/framework/dsl/**, model/framework/check/**, model/framework/inspect/**, model/framework/lint/**, model/temporal/check/**, model/framework/SEMANTICS.md, model/README.md]
 **Activation (2026-10-13):** fn-141.3 is committed and done (receipt `550ce56a0e`). Current homes replace the old `irgen`, `umpire`, and `check` paths below. Re-read and recount before editing. Mini/shared/framework/kit/sample scope only; no real activity/Nexus, generated payloads, schema, Go, tooling or Makefile edits. Stay on `umpire`, single writer, review none under the batch policy, planSync=false. Independent review, broad lint and strict IR/Go propagation run at the source-batch boundary, not as waived requirements.
 
 ### Approach
@@ -30,7 +30,7 @@ Part A, second half. The claim patterns and the sticky monitors are compositions
 
 **Author-time liftable-subset check (owner, 2026-10-13).** Beyond holding the lifter to core constructs, the syntax lint (now under `framework/check/lint` after fn-169.1) refuses non-liftable Scala in step functions and predicates while they are written, not only at lift. The check covers tree forms outside the subset and library operations outside the allowlist, and it names the construct and points to the subset table. It runs in `make model-check-changed`.
 
-**One documented subset (owner, 2026-10-13).** `model/SEMANTICS.md` gets one table of the liftable subset: each supported tree form and each allowed library operation (today `contains`, `copy`, `map`, `find`, `min`, `max`, `++`, `toList`, `toVector`, ...), with its IR lowering. Each row has one fixture. Adding an operation means adding a row and a fixture, so growth is a visible decision. The lint and the lifter read the same allowlist.
+**One documented subset (owner, 2026-10-13).** `model/framework/SEMANTICS.md` gets one table of the liftable subset: each supported tree form and each allowed library operation (today `contains`, `copy`, `map`, `find`, `min`, `max`, `++`, `toList`, `toVector`, ...), with its IR lowering. Each row has one fixture. Adding an operation means adding a row and a fixture, so growth is a visible decision. The lint and the lifter read the same allowlist.
 ## Acceptance
 - [ ] No lifter code names a claim pattern or a sticky monitor.
 - [ ] The sugar fixture's pattern and monitor pairs lift to the same IR as before, function names included.

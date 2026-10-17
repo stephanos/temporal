@@ -1,7 +1,7 @@
 # Model assurance: academic mechanisms and practical experiments
 
 Research sweep, 2026-10-03. Companion to [the assurance plan](MODEL_ASSURANCE.md), grounded in
-[the vision](UMPIRE4_VISION.md), [current semantics](../model/SEMANTICS.md), and the
+[the vision](UMPIRE4_VISION.md), [current semantics](../model/framework/SEMANTICS.md), and the
 [modality analysis](MODALITIES.md). These are recommendations, not implemented capabilities or
 changes to the shared specification. Industry system-testing experience is collected in
 [UMPIRE4_INSPIRE.md](UMPIRE4_INSPIRE.md).

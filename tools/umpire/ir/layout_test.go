@@ -281,7 +281,7 @@ func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
 			line = withoutKeptRuntimeVocabulary(line)
 			if retiredModelVocabulary.MatchString(line) ||
 				(strings.HasPrefix(rel, "model/temporal/") && strings.Contains(line, `scenario("`)) ||
-				((rel == "model/README.md" || rel == "model/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
+				((rel == "model/README.md" || rel == "model/framework/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
 					retiredLevelProse.MatchString(line)) {
 				mentions = append(mentions, fmt.Sprintf("%s:%d", rel, i+1))
 			}

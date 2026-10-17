@@ -7,8 +7,8 @@ satisfies: [R4, R5]
 Classify identity changes from the Duration fields and presence cleanup and update the rules of record for R4 and R5. Regeneration of affected Models, Cases and Run companions, full gates, review and live-run evidence occur once at fn-148.7; fn-147 does not close before that evidence is recorded.
 
 **Size:** M
-**Files:** generated Model IR and Cases, functional and canary fixtures, `model/README.md`, `model/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`
-**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**, model/README.md, model/SEMANTICS.md, .plans/UMPIRE_MODULES.md]
+**Files:** generated Model IR and Cases, functional and canary fixtures, `model/README.md`, `model/framework/SEMANTICS.md`, `.plans/UMPIRE_MODULES.md`
+**Touches:** [model/ir/**, model/cases/**, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**, model/README.md, model/framework/SEMANTICS.md, .plans/UMPIRE_MODULES.md]
 
 ### Approach
 - Hand the milestone summary and shared-close evidence to the conductor. Only the conductor edits `MILESTONES.md` and completes its required update at the shared fn-148.7 close; workers do not edit that file.
@@ -20,7 +20,7 @@ Classify identity changes from the Duration fields and presence cleanup and upda
 **Required** (read before coding):
 - `MILESTONES.md:19-49` - regeneration and full-gate discipline
 - `model/README.md:117-165` - Umpire to Testpilot artifact pipeline
-- `model/SEMANTICS.md` - realization and generated Case semantics
+- `model/framework/SEMANTICS.md` - realization and generated Case semantics
 - `common/testing/testpilot/recordedrun/recordedrun.go:40-90` - current pairing
 - `.plans/UMPIRE_MODULES.md` - Module ownership and Exact artifacts and fixture compatibility (the Archive and intermediate-state rules are historical)
 

@@ -7,7 +7,7 @@ status: draft
 Design direction agreed in discussion, 2026-10-03. Concrete authoring and checker contracts remain
 proposals. This note supports #AUTHORING, #ZOOM and #PORTABILITY in the
 [vision](UMPIRE4_VISION.md). It changes neither the authoritative
-[shared specification](UMPIRE4_SPEC.md) nor today's [model semantics](../model/SEMANTICS.md).
+[shared specification](UMPIRE4_SPEC.md) nor today's [model semantics](../model/framework/SEMANTICS.md).
 
 ## Decision
 
@@ -170,7 +170,7 @@ The [assurance plan](MODEL_ASSURANCE.md) owns the checks rather than a second as
 ## Handoffs and decisions still needed
 
 Keep the direction in the vision and this rationale here. Add concrete contracts to the shared
-specification only after design review; add behavior to `model/SEMANTICS.md` only when implemented.
+specification only after design review; add behavior to `model/framework/SEMANTICS.md` only when implemented.
 No schema change, task creation, code change or relaxation of an existing spec freeze follows from
 this note alone.
 

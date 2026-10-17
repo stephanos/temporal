@@ -139,15 +139,6 @@ private[framework] object ExpectationBlock:
       accessible.traverseTree(receiver)(Symbol.spliceOwner)
       val _ = predicates += receiver.asExprOf[AnyRef]
 
-    def retainMembers(term: Term): Unit =
-      arguments(term).foreach: argument =>
-        if argument.tpe.widen.typeSymbol.fullName.startsWith("scala.Function") then
-          members += MemberPath
-            .memberBinding(argument)
-            .getOrElse(
-              fail(argument, "a composed fact uses a direct field -> machine selector")
-            )
-
     def pure(tree: Tree): Unit =
       object inspect extends TreeTraverser:
         override def traverseTree(tree: Tree)(owner: Symbol): Unit =
@@ -158,7 +149,6 @@ private[framework] object ExpectationBlock:
                 ) == "before" || value.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.Before") =>
               fail(value, "before-state evidence is available only in across blocks")
             case value: Term if name(value) == "records" =>
-              retainMembers(value)
               arguments(value).foreach(pure)
             case reference: Ref
                 if wrongLevel(reference.tpe) &&
@@ -233,7 +223,6 @@ private[framework] object ExpectationBlock:
           if !unit(conditional.elsep) then requirements(conditional.elsep)
           required = true
         case value: Term if Set("check", "records")(name(value)) =>
-          if name(value) == "records" then retainMembers(value)
           arguments(value).foreach(pure)
           required = true
         case value: Term if name(value) == "oneOf" =>

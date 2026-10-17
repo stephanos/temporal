@@ -157,7 +157,7 @@ func (f *Factory) New(context.Context) (testpilot.Assessor, error) { return newA
 
 // modelIdentity is a Model's content with every source position, Query total, named-choice name and
 // Property origin taken out, so that moving a declaration in its file, correcting a total no
-// assessment reads, naming a result (model/SEMANTICS.md, Named choices) or tracing a generated
+// assessment reads, naming a result (model/framework/SEMANTICS.md, Named choices) or tracing a generated
 // Property to its capability Property moves no identity.
 func modelIdentity(m *umpirespb.Model) (string, error) {
 	bare := ir.WithoutChoiceNames(ir.WithoutTotals(ir.WithoutOrigins(m)))

@@ -7,8 +7,8 @@ satisfies: [R1, R4, R5, R6, R7]
 Remove superseded expression machinery after its callers migrate, categorize CEL identity deltas, and update the ownership and semantics records for R1 through R7. Managed companion regeneration, full gates, review and live-run evidence belong to the shared fn-148.7 close; fn-146 does not close before that evidence is recorded.
 
 **Size:** M
-**Files:** retired Testpilot expression implementation, `model/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, generated artifacts and fixtures
-**Touches:** [common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/**, common/testing/testpilot/temporal/**, common/testing/testpilot/internal/ir/**, model/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, model/cases/**, common/testing/testpilot/**/testdata/**]
+**Files:** retired Testpilot expression implementation, `model/framework/SEMANTICS.md`, `model/README.md`, `.plans/UMPIRE_MODULES.md`, `.plans/UMPIRE4_SPEC.md`, generated artifacts and fixtures
+**Touches:** [common/testing/testpilot/casefile/**, common/testing/testpilot/evaluation/**, common/testing/testpilot/temporal/**, common/testing/testpilot/internal/ir/**, model/framework/SEMANTICS.md, model/README.md, .plans/UMPIRE_MODULES.md, .plans/UMPIRE4_SPEC.md, model/cases/**, common/testing/testpilot/**/testdata/**]
 
 ### Approach
 - Hand the milestone summary and shared-close evidence to the conductor. Only the conductor edits `MILESTONES.md` and completes its required update at the shared fn-148.7 close; workers do not edit that file.
@@ -21,7 +21,7 @@ Remove superseded expression machinery after its callers migrate, categorize CEL
 **Required** (read before coding):
 - `.plans/UMPIRE_CEL_RUNTIME_RESEARCH.md:134-154` - migration decision and retirement checklist
 - `.plans/UMPIRE_MODULES.md:20-80` - schema and runtime ownership rows
-- `model/SEMANTICS.md` - Realizations, especially Run Event payload guards and shared `GuardProblem` admission
+- `model/framework/SEMANTICS.md` - Realizations, especially Run Event payload guards and shared `GuardProblem` admission
 - `common/testing/testpilot/protocol_test.go:80-175` - protocol contract
 - `MILESTONES.md:19-49` - full-gate evidence discipline
 

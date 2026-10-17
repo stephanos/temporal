@@ -458,7 +458,8 @@ this does not retire the evaluator. Task 7 delivered it: the two files, `Alterer
 a caller are gone, and `model/framework` outside tests was 2,415 lines at that point; after fn-113 Part D
 it is 1,191 lines.
 
-Checked IR, generated Cases, specimens, specs, README and SEMANTICS move directly under `model/`.
+Checked IR, generated Cases, specimens, specs and README move directly under `model/`; SEMANTICS
+moves under `model/framework/`.
 Reserve `model/examples` for fn-119 authoring examples and `tools/umpire/explore` for fn-120 explorer
 work; no example or UI is implemented here. Root lists kept their meaning until fn-114.1 moved them
 into Scala: each IR file is an `irFile` val beside its Models, and the gate's `Roots.scala` is gone.

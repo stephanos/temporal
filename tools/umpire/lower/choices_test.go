@@ -1,6 +1,6 @@
 package lower
 
-// Named choices are inert (model/SEMANTICS.md, Named choices): a Case lowered from a Model whose step
+// Named choices are inert (model/framework/SEMANTICS.md, Named choices): a Case lowered from a Model whose step
 // records name their alternatives is the Case of the Model without the names, byte for byte.
 
 import (

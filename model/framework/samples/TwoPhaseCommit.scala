@@ -3,17 +3,14 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-// Modelled after https://github.com/quint-co/quint/blob/main/examples/classic/distributed/TwoPhaseCommit/two_phase_commit.qnt
-//
 // Lamport's two-phase commit (TwoPhase.tla): resource managers prepare and tell the transaction
 // manager, which commits once every one of them has prepared, or aborts at any time before; a
 // resource manager may also abort on its own while it still works. Messages are never lost and
 // never consumed, so the network is the set of messages ever sent.
 //
-// TODO: model after two_phase_commit_modules.qnt in the same directory instead, which splits the
-// state into message, resource manager and transaction manager modules: a composition of three
-// members. It waits on bounded collections and on syncs that pair equal inputs; today a sync pairs
-// every input of one member with every input of the other.
+// TODO: split the state into message, resource manager and transaction manager modules: a
+// composition of three members. It waits on bounded collections and on syncs that pair equal inputs;
+// today a sync pairs every input of one member with every input of the other.
 object TwoPhaseCommit:
   enum ResourceManager:
     case rm1, rm2, rm3
@@ -131,11 +128,6 @@ object TwoPhaseCommit:
       tmState != TransactionManagerState.init &&
         resourceManagers.forall(rm => done(stateOf(rmStates, rm)))
 
-    object states:
-      // the transaction manager has heard from any one resource manager
-      def eagerlyCommits: Boolean =
-        tmState == TransactionManagerState.init && any(tmPrepared)
-
     object transitions extends Transitions:
       on(rm.prepare(ResourceManager.rm1)):
         if mayPrepare(current, ResourceManager.rm1) then effects.prepareRm1()
@@ -167,38 +159,51 @@ object TwoPhaseCommit:
         if tmState == TransactionManagerState.init then effects.decideOnAbort()
 
     object effects:
-      def prepareRm1(): Unit = prepare(ResourceManager.rm1)
-      def prepareRm2(): Unit = prepare(ResourceManager.rm2)
-      def prepareRm3(): Unit = prepare(ResourceManager.rm3)
-      def abortRm1(): Unit = abort(ResourceManager.rm1)
-      def abortRm2(): Unit = abort(ResourceManager.rm2)
-      def abortRm3(): Unit = abort(ResourceManager.rm3)
-      def commitRm1(): Unit = commit(ResourceManager.rm1)
-      def commitRm2(): Unit = commit(ResourceManager.rm2)
-      def commitRm3(): Unit = commit(ResourceManager.rm3)
-      def addPreparedRm1(): Unit = receive(ResourceManager.rm1)
-      def addPreparedRm2(): Unit = receive(ResourceManager.rm2)
-      def addPreparedRm3(): Unit = receive(ResourceManager.rm3)
-      def decideOnCommit(): Unit =
+      def prepareRm1() =
+        prepare(ResourceManager.rm1)
+      def prepareRm2() =
+        prepare(ResourceManager.rm2)
+      def prepareRm3() =
+        prepare(ResourceManager.rm3)
+      def abortRm1() =
+        abort(ResourceManager.rm1)
+      def abortRm2() =
+        abort(ResourceManager.rm2)
+      def abortRm3() =
+        abort(ResourceManager.rm3)
+      def commitRm1() =
+        commit(ResourceManager.rm1)
+      def commitRm2() =
+        commit(ResourceManager.rm2)
+      def commitRm3() =
+        commit(ResourceManager.rm3)
+      def addPreparedRm1() =
+        receive(ResourceManager.rm1)
+      def addPreparedRm2() =
+        receive(ResourceManager.rm2)
+      def addPreparedRm3() =
+        receive(ResourceManager.rm3)
+      def decideOnCommit() =
         tmState = TransactionManagerState.committed
         messages = messages.incl(Message.commit)
-      def decideOnAbort(): Unit =
+      def decideOnAbort() =
         tmState = TransactionManagerState.aborted
         messages = messages.incl(Message.abort)
 
       // a resource manager prepares and tells the transaction manager
-      private def prepare(rm: ResourceManager): Unit =
+      private def prepare(rm: ResourceManager) =
         rmStates = withState(rmStates, rm, ResourceManagerState.prepared)
         messages = messages.incl(Message.prepared(rm))
 
       // there is no need to let others know that a resource manager aborted
-      private def abort(rm: ResourceManager): Unit =
+      private def abort(rm: ResourceManager) =
         rmStates = withState(rmStates, rm, ResourceManagerState.aborted)
 
-      private def commit(rm: ResourceManager): Unit =
+      private def commit(rm: ResourceManager) =
         rmStates = withState(rmStates, rm, ResourceManagerState.committed)
 
-      private def receive(rm: ResourceManager): Unit = tmPrepared = withMember(tmPrepared, rm)
+      private def receive(rm: ResourceManager) =
+        tmPrepared = withMember(tmPrepared, rm)
 
     object invariants:
       val consistencyInv = check(consistent(current))
@@ -221,13 +226,3 @@ object TwoPhaseCommit:
       val everyoneCommits = after(rm.commit(ResourceManager.rm3)):
         check(allCommitted(current))
       val successTest = find(everyoneCommits)
-
-  // A transaction manager that commits once any one resource manager has prepared: the negative
-  // control of consistency, which its test asserts refuted.
-  object EagerCommit
-      extends Derived(
-        Model.rebind(
-          on(tm.decideOnCommit):
-            if Model.states.eagerlyCommits then Model.effects.decideOnCommit()
-        )
-      )

@@ -5,7 +5,7 @@
 // Generic realizations construct their ScalaPB messages through Conversion.scala. The compiler
 // retains reference spelling where commands are passed to helpers; native values retain their
 // callables and typed scopes. Go lowers one Query's witness through the resulting declaration
-// (model/SEMANTICS.md, Realizations). No code here builds a Case.
+// (model/framework/SEMANTICS.md, Realizations). No code here builds a Case.
 //
 // Nothing here is particular to one system. What a system has of its own (the roles it addresses
 // and their kinds, who runs a script beside the controller, the instructions only it carries out,

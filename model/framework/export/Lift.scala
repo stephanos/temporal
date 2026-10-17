@@ -165,7 +165,7 @@ class Lifter(
     // Every root is lifted, and one that fails is reported without stopping the others. Nothing is
     // written once one failed, so what a failed root left behind matters only as the functions it
     // was still lifting. A root that lifted then gives each Query it declared that asserts no total
-    // the static combination count the lifter computes (model/SEMANTICS.md, Query totals), which Go
+    // the static combination count the lifter computes (model/framework/SEMANTICS.md, Query totals), which Go
     // holds every total to, as it holds an author's.
     for root <- roots.distinct.sorted do
       val before = queries.keySet.toSet

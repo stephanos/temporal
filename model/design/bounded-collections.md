@@ -45,7 +45,7 @@ encoding it replaces (§7).
 
 ### 1.1 Every state type is a finite catalog, and every catalog is walked in full
 
-- SEMANTICS §1 (`model/SEMANTICS.md:51-95`): catalog order is semantic. Values are keyed by
+- SEMANTICS §1 (`model/framework/SEMANTICS.md:51-95`): catalog order is semantic. Values are keyed by
   spelling: a case is `C-v1-v2`, a record `v1-v2`, a list `[v1,v2]` (line 64-65). A list or an
   unbounded `Int` field is refused (line 90-92).
 - `Finite[T]` is derived from a `Mirror`. Its `@implicitNotFound` text names "a plain Int or a List"
@@ -76,7 +76,7 @@ A channel is a native IR collection:
 - its size has a closed form that is checked before listing (`limits.go:116-131, 170-188`);
 - its operations are one `Expr` kind with an op enum (`expression.proto:181-197`; `channels.go:96-120`);
 - its state field is bound through a hand-written `given Finite[S]` block
-  (`Types.scala:187-202`; SEMANTICS §18, `model/SEMANTICS.md:1012-1019`).
+  (`Types.scala:187-202`; SEMANTICS §18, `model/framework/SEMANTICS.md:1012-1019`).
 
 An unordered channel keeps its contents in catalog order "so that sending the same messages in
 another order reaches the same state" (`Channel.scala:97-108`; `channels.go:74-94`). That is the
@@ -196,7 +196,7 @@ Design notes:
 ### 2.3 Value spelling in the IR
 
 SEMANTICS §1 keys values by spelling, and table identity is computed from those keys
-(`model/SEMANTICS.md:443`). The spelling is therefore a compatibility commitment, chosen once:
+(`model/framework/SEMANTICS.md:443`). The spelling is therefore a compatibility commitment, chosen once:
 
 | Value | Spelling | Example |
 | --- | --- | --- |
@@ -233,7 +233,7 @@ SEMANTICS §1 keys values by spelling, and table identity is computed from those
 
 All of these may appear at every level that reads values: step functions, guards, `end`,
 refinement maps, Properties, monitor `next`/`violated`, starts. The levels rule of SEMANTICS §20
-(`model/SEMANTICS.md:1142-1156`) is unchanged, because no collection operation makes a step.
+(`model/framework/SEMANTICS.md:1142-1156`) is unchanged, because no collection operation makes a step.
 
 | Authored | Receiver | IR lowering |
 | --- | --- | --- |
@@ -272,9 +272,9 @@ refinement maps, Properties, monitor `next`/`violated`, starts. The levels rule 
 - Any Scala `Map` operation (§2.1).
 
 Today `forall` is admitted only over a capability's fact family. SEMANTICS says it has "no dynamic
-collection lowering" (`model/SEMANTICS.md:1207`; `model/framework/inspect/LiftableSubset.scala:63`).
+collection lowering" (`model/framework/SEMANTICS.md:1207`; `model/framework/inspect/LiftableSubset.scala:63`).
 This proposal adds that lowering deliberately and adds rows to the liftable-subset table, each with
-a fixture, as that section requires (`model/SEMANTICS.md:1166-1169`).
+a fixture, as that section requires (`model/framework/SEMANTICS.md:1166-1169`).
 
 ### 3.2 Quantifier semantics: defined by desugaring
 
@@ -300,7 +300,7 @@ The unrolled chain stays the semantic definition and the test oracle (§9).
 
 **Tension with `.plans/DSL_OPERATORS.md` rule 8** ("No operator whose lowering needs a new IR
 node"). That rule governs *sugar*. These collections are core in the sense of SEMANTICS §21: "what
-the IR needs declared" (`model/SEMANTICS.md:1269-1278`). The precedent is `Inbox`, a core node with
+the IR needs declared" (`model/framework/SEMANTICS.md:1269-1278`). The precedent is `Inbox`, a core node with
 an op enum. The proposal adds one `Expr` kind, `Collection`, with one op enum, and no sugar.
 
 ### 3.4 Guards that read inputs (independent of collections)
@@ -321,12 +321,12 @@ on(rm.prepare) {
   the input names, as `effectCall` does (`Declarations.scala:1109-1118`, `1158-1168`). The step
   function already takes the inputs as parameters (`Declarations.scala:1202-1208`), so the lowering
   stays `if g(s, i) then e(s, i) else …`. SEMANTICS §6 already writes this core form with `c1(i)`
-  (`model/SEMANTICS.md:360-363`; `Syntax.scala:660-662`).
+  (`model/framework/SEMANTICS.md:360-363`; `Syntax.scala:660-662`).
 - **Composition with `when`.** A phase heading followed by an input-reading guard,
   `when(Phase.a).where((s, i) => …)`, is `Heading.And` with a two-parameter guard
   (`Declarations.scala:1139-1140`).
 - **Derivations.** `rebind(on(actor.a) { where((s, i) => …) ~> e })` uses the same `Case`
-  (`model/SEMANTICS.md:801-809`).
+  (`model/framework/SEMANTICS.md:801-809`).
 
 ---
 
@@ -805,7 +805,7 @@ The lifter would rewrite each collection into a record:
 
 General `List`, `Map`, `Set` values as in Quint, with unbounded fold and recursion. Rejected:
 SEMANTICS §1 requires every state type to have a finite, ordered catalog, and §20 keeps step
-functions non-recursive (`model/SEMANTICS.md:356`; `validate.go:180-211`). This proposal is native
+functions non-recursive (`model/framework/SEMANTICS.md:356`; `validate.go:180-211`). This proposal is native
 only in *representation*. Every collection type still has an exact finite catalog, quantifiers
 range over finite members, and there is no recursion.
 
@@ -844,9 +844,9 @@ come from somewhere outside the type too, which is (b).
   `object Finite`, beside `Option`'s (`model/framework/dsl/Domain.scala:42-43`), does not compete
   with the derived given (`Domain.scala:53-54`). A Model's own `given Finite[S]` block wins over the
   derived one. That is how a state binds its `Inbox` catalog today (`Domain.scala:45-58`;
-  `model/SEMANTICS.md:1014-1019`).
+  `model/framework/SEMANTICS.md:1014-1019`).
 - **CanEqual.** Every option gets `CanEqual[T, T]` from the blanket given wherever a `Finite[T]`
-  exists (`Domain.scala:23`). Under `-language:strictEquality` (`model/SEMANTICS.md:85-88`), `==` on
+  exists (`Domain.scala:23`). Under `-language:strictEquality` (`model/framework/SEMANTICS.md:85-88`), `==` on
   a collection compiles exactly where a catalog exists, as for every finite type today. Scala's
   `Set`/`Map`/`List` equality is by content, and `Total`/`ListUpTo` are opaque over `Map`/`List`,
   so runtime equality agrees with Go's canonical-form equality (`tools/umpire/interp/eval.go:103-120`)
@@ -946,7 +946,7 @@ plus a runtime totality check. Rejected: the commonest operation becomes the noi
   `Mirror`s (`Domain.scala:53-83`), and a `Mirror` carries no field annotations. Scala could not
   list the catalog for the overlap check or the step tables without a macro, and
   `.plans/DSL_OPERATORS.md` rule 5 forbids macros on the author surface. Annotations are read only
-  by the lifter today (`@gap`, `model/framework/dsl/Gaps.scala:8`; `model/SEMANTICS.md:457-467`).
+  by the lifter today (`@gap`, `model/framework/dsl/Gaps.scala:8`; `model/framework/SEMANTICS.md:457-467`).
 - **(a)/(b) loses coherence and position.** The bound belongs to a given, not to a field:
   - every `List[Op]` in scope has the same bound;
   - a stray given in scope silently changes a catalog;
@@ -954,9 +954,9 @@ plus a runtime totality check. Rejected: the commonest operation becomes the noi
     (`proto/internal/temporal/server/api/umpire/v1/value.proto:51-52`). The lifter would have to
     tell the two apart by position alone.
 - **The repo has decided this question twice already, for `Int`.** "A plain `Int` field is refused
-  at its declaration, even with a local `Finite[Int]`: write `UpTo[N]`" (`model/SEMANTICS.md:81-82`;
+  at its declaration, even with a local `Finite[Int]`: write `UpTo[N]`" (`model/framework/SEMANTICS.md:81-82`;
   `Types.scala:60-66`). "A plain `Int` message is refused … even with `Finite.upTo(n)`"
-  (`model/SEMANTICS.md:1022-1023`).
+  (`model/framework/SEMANTICS.md:1022-1023`).
 - **The IR, totals and admission lose nothing** under (a)/(b) if the lifter finds the given: it emits
   the same `SeqOf{n}`. The lifter's counter needs `n` either way (`Capabilities.scala:1294-1308`).
   The loss is in authoring and Scala-side checking.
@@ -1188,7 +1188,7 @@ Every phase leaves the gate (`make umpire-check-model`) green. Phases 1 and 2 ar
   - `model/framework/dsl/Machine.scala`: `Rule.guard`, `overlap`, a guard adapter beside `effectOf`;
   - `model/framework/export/Declarations.scala`: `condition`; the heading capture for
     `Heading.When`/`And`;
-  - `model/SEMANTICS.md` §6: headings table and core form.
+  - `model/framework/SEMANTICS.md` §6: headings table and core form.
 - Tests:
   - `model/framework/dsl/Rules.test.scala`: two rules of one action whose input-reading guards
     overlap on one class are refused, naming the class; disjoint ones are accepted;
@@ -1231,7 +1231,7 @@ Every phase leaves the gate (`make umpire-check-model`) green. Phases 1 and 2 ar
   - `model/framework/export/Capabilities.scala`: `size`;
   - `model/framework/inspect/LiftableSubset.scala`: `permitted` for `Set`, `ArrayOps` over enum
     `values`, `ListUpTo`'s list operations;
-  - `model/SEMANTICS.md`: §1 types, §5 "What a step function may contain", §20 liftable-subset rows
+  - `model/framework/SEMANTICS.md`: §1 types, §5 "What a step function may contain", §20 liftable-subset rows
     with fixtures, §21 core list.
 - Tests:
   - `model/framework/export/testdata/lifts/Collections.scala` with a `Fixtures.test.scala` case per

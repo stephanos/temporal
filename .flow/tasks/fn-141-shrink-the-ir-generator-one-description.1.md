@@ -7,7 +7,7 @@ satisfies: [R1, R16]
 Part C: give the declaration-order lint, structure lint and marker checks a home and gate step of their own, preserving what they refuse. This task runs now under the owner's pull-forward and faster-tasks decisions in MILESTONES.md, from the integrated fn-169.6 source checkpoint. The original model/irgen paths are superseded by model/framework/export.
 
 **Size:** M
-**Touches:** [model/framework/export/**, model/framework/check/**, model/framework/lint/**, model/framework/inspect/**, model/temporal/export/**, model/temporal/check/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/framework/export/**, model/framework/check/**, model/framework/lint/**, model/framework/inspect/**, model/temporal/export/**, model/temporal/check/**, model/README.md, model/framework/SEMANTICS.md]
 New lint/shared-reader directories are options, not a prescribed layout. Keep modules deep, reuse the existing typed-tree index, and do not duplicate a TASTy read or create lint/export dependency cycles.
 
 ### Approach

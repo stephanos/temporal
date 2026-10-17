@@ -3,8 +3,6 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-// Modelled after https://github.com/quint-co/quint/blob/main/examples/classic/distributed/TwoLayeredCache/two_layered_cache.qnt
-//
 // A two-layered cache of one key: a write stores its value in both layers, a read serves from layer
 // 1, else from layer 2, writing the value back into layer 1, and layer 1 is volatile, so it may
 // expire at any time. Every write stores a greater value than the one before, and no read may see
@@ -92,25 +90,21 @@ object TwoLayeredCache:
         if l1 != None then effects.expire()
 
     object effects:
-      def write(): Unit =
+      def write() =
         l1 = Some(num)
         l2 = Some(num)
         num = num + 1
         records(Event.wrote)
-      // A buggy write that stores its value in layer 1 only.
-      def writeL1Only(): Unit =
-        l1 = Some(num)
-        num = num + 1
-        records(Event.wrote)
       // If the value is not in layer 1, read it from layer 2 and write it back to layer 1;
       // otherwise it is not found.
-      def read(): Unit =
+      def read() =
         if l1 != None then records(Event.readL1)
         else if l2 != None then
           l1 = l2
           records(Event.readL2)
         else records(Event.notFound)
-      def expire(): Unit = l1 = None
+      def expire() =
+        l1 = None
 
     object postconditions:
       // after a read, both layers hold what it returned
@@ -132,21 +126,4 @@ object TwoLayeredCache:
       // a read served from layer 2: no promise of every read, so a find target here
       val servedFromL2 = after(client.read):
         records(Event.readL2)
-      val readFillsL1Holds = verify(postconditions.readFillsL1)
       val readAfterExpiry = find(servedFromL2)
-
-  // A negative control: writes that store their value in layer 1 only. The readAfterWrite monitor
-  // it keeps from Model is refuted, in the tests.
-  object WriteThroughL1
-      extends Derived(
-        Model.rebind(
-          on(client.write):
-            if Model.num < 3 then Model.effects.writeL1Only()
-        )
-      ):
-
-    object postconditions:
-      // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
-      // monitor, which a read of a value older than the last write breaks.
-      val buggyWritesRecorded = after(client.write):
-        records(Event.wrote)

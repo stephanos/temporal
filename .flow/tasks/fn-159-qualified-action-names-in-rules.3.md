@@ -13,7 +13,7 @@ code. Standalone/Nexus/legacy sources and generated artifacts remain untouched f
 **Size:** M
 **Files:** typed phase-import/rule-heading checks, isolated qualification fixtures, source-rule
 proof and author docs; mini/shared source only where an unmet contract requires a change.
-**Touches:** [model/irgen/Conventions.scala, model/irgen/Declarations.scala, model/irgen/test/QualifiedPhases.test.scala, model/irgen/testdata/qualifiedPhases/**, model/irgen/testdata/conventions/PhaseImports.scala, model/irgen/testdata/lifts/RuleRejects.scala, model/framework/Syntax.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/taskqueue/**/*.scala, model/migrate/**, model/README.md, model/SEMANTICS.md]
+**Touches:** [model/irgen/Conventions.scala, model/irgen/Declarations.scala, model/irgen/test/QualifiedPhases.test.scala, model/irgen/testdata/qualifiedPhases/**, model/irgen/testdata/conventions/PhaseImports.scala, model/irgen/testdata/lifts/RuleRejects.scala, model/framework/Syntax.scala, model/temporal/features/activity_mini/**/*.scala, model/temporal/foundations/taskqueue/**/*.scala, model/migrate/**, model/README.md, model/framework/SEMANTICS.md]
 
 ### Approach
 

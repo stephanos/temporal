@@ -6,7 +6,7 @@ private[framework] object LiftableSubset:
   val binary: Set[String] = Set("==", "!=", "&&", "||", "<", "<=", ">", ">=", "+", "-", "++")
   val body: Set[String] = binary ++ Set("unary_!", "contains", "copy", "min", "max", "+:", "toList")
   val declaration: Set[String] = Set("map", "toVector", "find")
-  val subsetTable = "model/SEMANTICS.md#liftable-subset"
+  val subsetTable = "model/framework/SEMANTICS.md#liftable-subset"
 
   def unsupported(using quotes: Quotes)(tree: quotes.reflect.Tree): Option[String] =
     import quotes.reflect.*

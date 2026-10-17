@@ -1,6 +1,6 @@
 // Package interp interprets the Umpire IR: every value, table, identity and fingerprint of a Model is
 // computed here from the IR's declarations, with no code of the front end that wrote them. The
-// evaluation rules are the ones model/SEMANTICS.md states. It reads a Model as given: package ir is
+// evaluation rules are the ones model/framework/SEMANTICS.md states. It reads a Model as given: package ir is
 // what admits one.
 package interp
 
@@ -38,7 +38,7 @@ type Value struct {
 	Fields []Value
 	Items  []Value
 	// Choice is the name of the alternative of a named choice a step record was built as, or empty.
-	// It is inert (model/SEMANTICS.md, Named choices): Key, equality and every reading of the value
+	// It is inert (model/framework/SEMANTICS.md, Named choices): Key, equality and every reading of the value
 	// ignore it, and only the result a table keeps of the step reports it.
 	Choice string
 	lambda *umpirespb.Lambda

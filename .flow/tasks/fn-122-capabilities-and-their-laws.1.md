@@ -26,7 +26,7 @@ Create the entity-neutral and Temporal law defs with their `Law` values, the cat
 - `.plans/UMPIRE4_VISION.md` "Reusable behavioral protocols (#PROTOCOLS)" - the acceptance test this spec anchors on
 - `model/temporal/standaloneactivity/Properties.scala` (post fn-112.8) - the three parameterized R4 defs and `Declares[S]`
 - `model/lifter/Claims.scala` `fold` - how a def's arguments are bound (the `Apply(fn, args) if isFunction` case) and fn-112.4's function-argument binding
-- `model/SEMANTICS.md` Claims section - what a Property may say
+- `model/framework/SEMANTICS.md` Claims section - what a Property may say
 **Optional:**
 - `chasm/lib/activity/handler.go`, `chasm/lib/nexusoperation/operation.go`, `chasm/lib/scheduler/scheduler.go` - citations
 

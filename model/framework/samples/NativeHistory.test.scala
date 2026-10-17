@@ -1,5 +1,8 @@
 package framework.dsl
 
+import KettleControls.{coldest, room, fromRoomTemperature}
+import TwoLayeredCacheControls.WriteThroughL1
+
 import samples.{Kettle, TwoLayeredCache}
 import NativeControls.{assertRefuted, invariant}
 import SampleClaims.{holds as invariantHolds, judged}
@@ -22,10 +25,18 @@ class NativeHistoryTest extends munit.FunSuite:
     TwoLayeredCache.Model.init.copy(l1 = l1, l2 = l2, num = num)
 
   test("Kettle stores signed Celsius for room and cold starts"):
-    val room: Int = Kettle.Model.at(Kettle.Model.init)(Kettle.Model.temperature)
-    val cold: Int = Kettle.Model.at(Kettle.coldest)(Kettle.Model.temperature)
-    assertEquals(room, 20)
+    val roomTemperature: Int = Kettle.Model.at(room)(Kettle.Model.temperature)
+    val cold: Int = Kettle.Model.at(coldest)(Kettle.Model.temperature)
+    assertEquals(roomTemperature, 20)
     assertEquals(cold, -40)
+
+  test("Kettle checks every temperature admitted by its nondeterministic initializer"):
+    import Kettle.*
+    assertEquals(Model.initialStates.map(s => Model.at(s)(Model.temperature)), -40 to 40)
+    assert(Model.initialStates.forall(s => Model.at(s)(!Model.heatingOn && !Model.beeping)))
+    val report = NativeCheck.verifyAll(Model)
+    assertEquals(report.result("boils").verdict, NativeCheck.Verdict.verified)
+    assertEquals(report.result("boils").longest, Some(141))
 
   test("cache monitors retain immutable event history rather than a last-write summary"):
     val read: Any = TwoLayeredCache.Model.monitors.readAfterWrite.initial
@@ -300,10 +311,10 @@ class NativeHistoryTest extends munit.FunSuite:
         heater.heat(),
         List(Step(Outcome.accepted, snapshot(-39, true, false)))
       ),
-      (Model.init, heater.heat(), Nil),
-      (Model.init, heater.failover(), Nil),
-      (Model.init, user.depressButton(), Nil),
-      (Model.init, user.pressButton(), List(Step(Outcome.accepted, snapshot(20, true, false)))),
+      (room, heater.heat(), Nil),
+      (room, heater.failover(), Nil),
+      (room, user.depressButton(), Nil),
+      (room, user.pressButton(), List(Step(Outcome.accepted, snapshot(20, true, false)))),
       (snapshot(20, true, false), user.pressButton(), Nil),
       (
         snapshot(20, true, false),
@@ -319,7 +330,7 @@ class NativeHistoryTest extends munit.FunSuite:
     ).foreach: (before, cls, expected) =>
       assertEquals(run(Model, before, cls), expected)
     assertEquals(Model.at(coldest)(Model.temperature), -40)
-    assertEquals(Model.at(Model.init)(Model.temperature), 20)
+    assertEquals(Model.at(room)(Model.temperature), 20)
     assertEquals(boilingTemperature, 100)
 
   test("Kettle 99-to-100 boundary retains beeping negative control and >= failover guard"):
@@ -366,7 +377,7 @@ class NativeHistoryTest extends munit.FunSuite:
     val actions = List(user.pressButton(), heater.heat(), heater.failover())
     def next(s: State): List[State] =
       actions.flatMap(a => run(Model, s, a)).map(_.state)
-    val on = next(Model.init)
+    val on = next(room)
     assertEquals(on, List(snapshot(20, true, false)))
     assert(from(on.head) && !to(on.head))
     val path = Iterator.iterate(on)(_.flatMap(next)).drop(1).take(81).toList
@@ -385,7 +396,7 @@ class NativeHistoryTest extends munit.FunSuite:
   test("Kettle's claims are checked by default from both starts, and neverBeeps is refuted"):
     import Kettle.*
     import NativeCheck.Verdict.*
-    val report = NativeCheck.verifyAll(Model, Seq(Model.init, coldest))
+    val report = NativeCheck.verifyAll(Model, Seq(room, coldest))
     assertEquals(
       report.verdicts,
       Map(
@@ -405,32 +416,33 @@ class NativeHistoryTest extends munit.FunSuite:
       s"model.beepsOnlyWhenOff: verified (budget $complete states, 82 steps; exploration complete)"
     )
     // the negative control: a kettle that never beeps is refuted by the boiling path
-    val neverBeeps = assertRefuted(Model, invariant(check(!Model.beeping)))
+    val neverBeeps = assertRefuted(Model, invariant(check(!Model.beeping)), Seq(room))
     assertEquals(
       neverBeeps.detail.head,
       "counterexample: pressButton" + ", heat" * 80 + ", failover"
     )
     assertEquals(neverBeeps.subject, "model.neverBeeps")
 
-  test("Kettle's queries answer as intended natively: three verified, boiling found"):
+  test("Kettle checks its claims without declaring queries"):
     import Kettle.*
     import NativeCheck.Verdict.*
-    assertEquals(
-      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector(
-        "model.beepsOnlyWhenOff" -> verified,
-        "model.warmsOnlyWhenOn" -> verified,
-        "model.failsOverAtBoiling" -> verified,
-        "model.boilsAndBeeps" -> found
-      )
-    )
+    assertEquals(NativeCheck.queries(Model), Vector.empty)
+    // the claims from the coldest start, which reaches every warmer one
+    for claim <- List(
+      verify(Model.invariants.beepsOnlyWhenOff),
+      verify(Model.postconditions.warmsOnlyWhenOn),
+      verify(Model.postconditions.failsOverAtBoiling)
+    ) do assertEquals(NativeCheck.query(claim in KettleControls.fromAnyTemperature, "model.claim").verdict, verified)
+    // the room-temperature kettle boils after a press and 80 heats
+    val boilsAndBeeps = find(Model.postconditions.failsOverAtBoiling) in fromRoomTemperature
+    assertEquals(NativeCheck.query(boilsAndBeeps, "model.boilsAndBeeps").verdict, found)
     // refutesNeverBeeps, a negative control: refuted from room temperature
-    val refutesNeverBeeps = assertRefuted(Model, invariant(check(!Model.beeping)))
+    val refutesNeverBeeps = assertRefuted(Model, invariant(check(!Model.beeping)), Seq(room))
     assertEquals(refutesNeverBeeps.verdict, refuted)
 
   test("Kettle's boils is verified in heatingAlone with longest path 81"):
     import Kettle.*
-    val report = NativeCheck.verifyAll(Model)
+    val report = NativeCheck.verifyAll(Model, Seq(room))
     val boils = report.result("boils")
     assertEquals(boils.verdict, NativeCheck.Verdict.verified)
     assertEquals(boils.longest, Some(81))
@@ -443,7 +455,7 @@ class NativeHistoryTest extends munit.FunSuite:
   test("Kettle's boils on the whole Kettle from room temperature reports the press/depress cycle"):
     import Kettle.*
     val boils =
-      NativeCheck.query(verify(Model.progress.boils) in Model.fromRoomTemperature, "model.boils")
+      NativeCheck.query(verify(Model.progress.boils) in fromRoomTemperature, "model.boils")
     assertEquals(boils.verdict, NativeCheck.Verdict.cycle)
     assertEquals(
       boils.detail,
@@ -458,22 +470,22 @@ class NativeHistoryTest extends munit.FunSuite:
     import NativeCheck.Verdict.*
     val boils = Model.progress.boils
     // switched on with no heater, the kettle stays on and never beeps
-    val stuck = NativeCheck.query(verify(boils) in only(user.pressButton), "model.boils")
+    val stuck = NativeCheck.query(verify(boils) in fromRoomTemperature.only(user.pressButton), "model.boils")
     assertEquals(stuck.verdict, deadlock)
     assertEquals(stuck.detail, Vector("deadlock: pressButton ends in " + snapshot(20, true, false)))
     val sooner = LeadsTo.declared("boils", boils.machine, boils.from, boils.to, 80, boils.scenario)
-    val late = NativeCheck.query(verify(sooner), "model.boils")
+    val late = NativeCheck.query(verify(sooner) in fromRoomTemperature, "model.boils")
     assertEquals(late.verdict, missedDeadline)
     assertEquals(late.detail, Vector("model.boils: a path of 80 steps reaches no to state"))
     // pressing and depressing forever is a cycle a fair heat does not leave, since heat is not
     // enabled once the element is off
-    val unfair = NativeCheck.query(verify(boils) in fair(heater.heat), "model.boils")
+    val unfair = NativeCheck.query(verify(boils) in fromRoomTemperature.fair(heater.heat), "model.boils")
     assertEquals(unfair.verdict, cycle)
 
   test("a cut exploration answers unknown, never verified, and a counterexample before it stands"):
     import Kettle.*
     import NativeCheck.Verdict.*
-    val report = NativeCheck.verifyAll(Model, budget = 10)
+    val report = NativeCheck.verifyAll(Model, Seq(room), budget = 10)
     assertEquals(report.verdicts("beepsOnlyWhenOff"), unknown)
     assertEquals(
       report.result("beepsOnlyWhenOff").line,
@@ -482,9 +494,9 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(report.warnings, Vector.empty)
     assertEquals(report.verdicts("boils"), unknown)
     // one state short of the whole graph: the beep is reached, its last state is not
-    val states = NativeCheck.explore(Model, Seq(Model.init)).states.size
-    val short = NativeCheck.verifyAll(Model, budget = states - 1)
-    val graph = NativeCheck.explore(Model, Seq(Model.init), budget = states - 1)
+    val states = NativeCheck.explore(Model, Seq(room)).states.size
+    val short = NativeCheck.verifyAll(Model, Seq(room), budget = states - 1)
+    val graph = NativeCheck.explore(Model, Seq(room), budget = states - 1)
     val neverBeeps =
       NativeCheck.verify(graph, "model.neverBeeps", invariant(check(!Model.beeping)))
     assertEquals(neverBeeps.verdict, refuted)
@@ -524,7 +536,7 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(report.warnings, Vector.empty)
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector("model.readFillsL1Holds" -> verified, "model.readAfterExpiry" -> found)
+      Vector("model.readAfterExpiry" -> found)
     )
     // servedFromL2 is a find's target in queries, not a promise of every read: verified, it is
     // refuted, and the find answers found
