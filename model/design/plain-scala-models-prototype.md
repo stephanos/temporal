@@ -59,7 +59,7 @@ The fixtures:
   sequential read and a `reject`.
 
 `kettle/Kettle.test.scala` keeps the Kettle cases of `samples/NativeHistory.test.scala` (the
-enabledness table and the 99-to-100 boundary) and of `samples/Expect.test.scala` (the four truth
+enabledness table and the 99-to-100 boundary) and of `samples/Kettle.test.scala` (the four truth
 tables), with the same cases and expected results, over states built from the initial state by
 named updates.
 

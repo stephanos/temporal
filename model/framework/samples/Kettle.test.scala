@@ -3,7 +3,7 @@ package framework.dsl
 import KettleControls.{coldest, room}
 import samples.Kettle
 
-class KettleExpectTest extends munit.FunSuite:
+class KettleTest extends munit.FunSuite:
   test("Kettle's four native predicates retain implication and conjunction truth tables"):
     import Kettle.*
     import Kettle.Model.{beeping, heatingOn, temperature}
@@ -76,3 +76,19 @@ class KettleExpectTest extends munit.FunSuite:
         (hot, false)
       )
     )(state => Model.at(state)(!beeping))
+
+object KettleControls:
+  import samples.Kettle.*
+
+  // A nondeterministic start would be anywhere in -40..40C. The coldest start reaches every one of the
+  // others (press, heat, depress), so a claim verified from it holds from all of them.
+  val coldest = Model.init.copy(temperature = -40)
+
+  // the temperature in the kettle in Celsius, whether it is heating and whether it is beeping: room
+  // temperature (20C), the element off and quiet. The temperature is an unbounded host Int; a signed
+  // bounded reading would need a domain the DSL does not have yet.
+  val room = Model.init.copy(temperature = 20)
+
+  // the kettle from room temperature, and from the coldest start
+  val fromRoomTemperature = starts(temperature = 20)
+  val fromAnyTemperature = starts(temperature = -40)

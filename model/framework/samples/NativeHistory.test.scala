@@ -1,6 +1,6 @@
 package framework.dsl
 
-import KettleControls.{coldest, room, fromRoomTemperature}
+import KettleControls.{coldest, fromRoomTemperature, room}
 import TwoLayeredCacheControls.WriteThroughL1
 
 import samples.{Kettle, TwoLayeredCache}
@@ -429,10 +429,15 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(NativeCheck.queries(Model), Vector.empty)
     // the claims from the coldest start, which reaches every warmer one
     for claim <- List(
-      verify(Model.invariants.beepsOnlyWhenOff),
-      verify(Model.postconditions.warmsOnlyWhenOn),
-      verify(Model.postconditions.failsOverAtBoiling)
-    ) do assertEquals(NativeCheck.query(claim in KettleControls.fromAnyTemperature, "model.claim").verdict, verified)
+        verify(Model.invariants.beepsOnlyWhenOff),
+        verify(Model.postconditions.warmsOnlyWhenOn),
+        verify(Model.postconditions.failsOverAtBoiling)
+      )
+    do
+      assertEquals(
+        NativeCheck.query(claim in KettleControls.fromAnyTemperature, "model.claim").verdict,
+        verified
+      )
     // the room-temperature kettle boils after a press and 80 heats
     val boilsAndBeeps = find(Model.postconditions.failsOverAtBoiling) in fromRoomTemperature
     assertEquals(NativeCheck.query(boilsAndBeeps, "model.boilsAndBeeps").verdict, found)
@@ -470,16 +475,19 @@ class NativeHistoryTest extends munit.FunSuite:
     import NativeCheck.Verdict.*
     val boils = Model.progress.boils
     // switched on with no heater, the kettle stays on and never beeps
-    val stuck = NativeCheck.query(verify(boils) in fromRoomTemperature.only(user.pressButton), "model.boils")
+    val stuck =
+      NativeCheck.query(verify(boils) in fromRoomTemperature.only(user.pressButton), "model.boils")
     assertEquals(stuck.verdict, deadlock)
     assertEquals(stuck.detail, Vector("deadlock: pressButton ends in " + snapshot(20, true, false)))
     val sooner = LeadsTo.declared("boils", boils.machine, boils.from, boils.to, 80, boils.scenario)
-    val late = NativeCheck.query(verify(sooner) in fromRoomTemperature, "model.boils")
+    val late =
+      NativeCheck.query(verify(sooner) in boils.scenario.starts(temperature = 20), "model.boils")
     assertEquals(late.verdict, missedDeadline)
     assertEquals(late.detail, Vector("model.boils: a path of 80 steps reaches no to state"))
     // pressing and depressing forever is a cycle a fair heat does not leave, since heat is not
     // enabled once the element is off
-    val unfair = NativeCheck.query(verify(boils) in fromRoomTemperature.fair(heater.heat), "model.boils")
+    val unfair =
+      NativeCheck.query(verify(boils) in fromRoomTemperature.fair(heater.heat), "model.boils")
     assertEquals(unfair.verdict, cycle)
 
   test("a cut exploration answers unknown, never verified, and a counterexample before it stands"):

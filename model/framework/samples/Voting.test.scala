@@ -3,7 +3,7 @@ package framework.dsl
 import VotingControls.UnsafeVoting
 import samples.Voting
 
-class VotingExpectTest extends munit.FunSuite:
+class VotingTest extends munit.FunSuite:
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
     import Voting.*
     // a Voting state by its vars, as the Votes record holds them, and the record a state holds
@@ -61,3 +61,32 @@ class VotingExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, conflicting), true)
       )
     )(after => chosen(recorded(after.state)).contains(Value.v1))
+
+object VotingControls:
+  import samples.Voting.*
+
+  object effects:
+    // A vote that skips the quorum's showing that v is safe at b.
+    def voteUnsafe(in: VoteFor) =
+      if maxBalAtMost(Model.current, in.a, in.b) && didNotVoteAt(Model.current, in.a, in.b) &&
+        othersAgree(Model.current, in.b, in.v)
+      then
+        val next = cast(Model.current, in.a, in.b, in.v)
+        Model.votes = next.votes
+        Model.maxBal = next.maxBal
+      else Model.stateVars.get.refuse(Outcome.refused)
+
+  // A vote that skips the quorum's showing: the negative control of consistency, which the sample
+  // tests refute.
+  object UnsafeVoting
+      extends Derived(
+        Model.unmonitored.rebind(
+          on(voter.voteFor): in =>
+            effects.voteUnsafe(in)
+        )
+      ),
+        NegativeControl:
+    import Model.current
+
+    object invariants:
+      val unsafeConsistency = check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))

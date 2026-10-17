@@ -44,7 +44,12 @@ class FrameworkLoopSuite extends munit.FunSuite:
     for (file, source) <- Seq(
         "model/framework/dsl/Core.test.scala" -> "package framework.dsl\nclass CoreSuite extends munit.FunSuite\n",
         "model/framework/check/Check.test.scala" -> "package framework.check\nclass CheckSuite extends munit.FunSuite\n",
-        "model/framework/samples/Expect.test.scala" -> "package framework.dsl\nclass SampleExpectTest extends munit.FunSuite\n",
+        "model/framework/samples/Bank.test.scala" -> "package framework.dsl\nclass BankTest extends munit.FunSuite\n",
+        "model/framework/samples/Kettle.test.scala" -> "package framework.dsl\nclass KettleTest extends munit.FunSuite\n",
+        "model/framework/samples/ReliableBroadcast.test.scala" -> "package framework.dsl\nclass ReliableBroadcastTest extends munit.FunSuite\n",
+        "model/framework/samples/TwoLayeredCache.test.scala" -> "package framework.dsl\nclass TwoLayeredCacheTest extends munit.FunSuite\n",
+        "model/framework/samples/TwoPhaseCommit.test.scala" -> "package framework.dsl\nclass TwoPhaseCommitTest extends munit.FunSuite\n",
+        "model/framework/samples/Voting.test.scala" -> "package framework.dsl\nclass VotingTest extends munit.FunSuite\n",
         "model/framework/samples/NativeMaps.test.scala" -> "package framework.dsl\nclass NativeMapsTest extends munit.FunSuite\n",
         "model/framework/samples/NativeVoting.test.scala" -> "package framework.dsl\nclass NativeVotingTest extends munit.FunSuite\n",
         "model/framework/samples/NativeHistory.test.scala" -> "package framework.dsl\nclass NativeHistoryTest extends munit.FunSuite\n",
@@ -102,7 +107,12 @@ class FrameworkLoopSuite extends munit.FunSuite:
       text
     )
     val samples = Seq(
-      "framework.dsl.SampleExpectTest",
+      "framework.dsl.BankTest",
+      "framework.dsl.KettleTest",
+      "framework.dsl.ReliableBroadcastTest",
+      "framework.dsl.TwoLayeredCacheTest",
+      "framework.dsl.TwoPhaseCommitTest",
+      "framework.dsl.VotingTest",
       "framework.dsl.NativeMapsTest",
       "framework.dsl.NativeVotingTest",
       "framework.dsl.NativeHistoryTest"
@@ -122,7 +132,7 @@ class FrameworkLoopSuite extends munit.FunSuite:
     assert(Files.isRegularFile(record.resolve("build/framework.jar")))
     assert(Files.isRegularFile(record.resolve("build/reify.jar")))
     val recorded = Files.readString(record.resolve("record.md"))
-    assert(recorded.contains("PASS framework gate: 7 generic suites; 0 held suites"), recorded)
+    assert(recorded.contains("PASS framework gate: 12 generic suites; 0 held suites"), recorded)
     for suite <- samples do
       assert(recorded.contains(s"GENERIC $suite (model/framework/samples/"), recorded)
 
@@ -136,10 +146,15 @@ class FrameworkLoopSuite extends munit.FunSuite:
     assertEquals(
       samples.map(_.name).sorted,
       Vector(
+        "framework.dsl.BankTest",
+        "framework.dsl.KettleTest",
         "framework.dsl.NativeHistoryTest",
         "framework.dsl.NativeMapsTest",
         "framework.dsl.NativeVotingTest",
-        "framework.dsl.SampleExpectTest"
+        "framework.dsl.ReliableBroadcastTest",
+        "framework.dsl.TwoLayeredCacheTest",
+        "framework.dsl.TwoPhaseCommitTest",
+        "framework.dsl.VotingTest"
       )
     )
     assert(samples.forall(_.module == core))

@@ -4,7 +4,7 @@ import BankControls.Leaky
 import framework.dsl.Finite.given
 import samples.Bank
 
-class BankExpectTest extends munit.FunSuite:
+class BankTest extends munit.FunSuite:
   val _ = () => summon[CanEqual[Bank.Outcome, Bank.Outcome]]
 
   test("Bank's four native predicates retain supply, refusal and exact-send requirements"):
@@ -75,3 +75,27 @@ class BankExpectTest extends munit.FunSuite:
       )
       assertEquals(exact(after, send), Some(expected))
       assertEquals(exact(after, client.send(Send(Addr.king, Addr.peaches, Denom.banana, 2))), None)
+
+object BankControls:
+  import samples.Bank.*
+
+  val _ = () => summon[CanEqual[Outcome, Outcome]]
+
+  object effects:
+    // A send that credits the receiver without debiting the sender: the coins it pays come from
+    // nowhere, and the total supply grows.
+    def sendFromNowhere(in: Send) =
+      val toBalance = balanceOf(Model.balances, in.toAddr, in.denom)
+      if in.fromAddr == in.toAddr then ()
+      else if toBalance + in.amount > supply then Model.stateVars.get.refuse(Outcome.overflow)
+      else Model.balances = withBalance(Model.balances, in.toAddr, in.denom, toBalance + in.amount)
+
+  // A send that pays from nowhere: the negative control of the total supply, which its test asserts
+  // refuted.
+  object Leaky
+      extends Derived(
+        Model.rebind(
+          on(client.send): s =>
+            effects.sendFromNowhere(s)
+        )
+      )

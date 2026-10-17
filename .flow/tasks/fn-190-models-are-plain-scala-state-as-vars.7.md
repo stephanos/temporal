@@ -21,10 +21,13 @@ The six samples use plain vars, transitions and assignment effects. Kettle decla
 from -40 through 40 as starts and has no query section; redundant verification queries are removed
 from the other samples. Five negative designs and their special effects live only in test sources,
 with prior answer cases retained as default checks or explicit test queries. The six sample
-expectation cases now have one test file per sample. Quint references are removed from authored
-sample comments. The owner's effect-definition follow-up uses inferred, multiline method bodies.
-Final native verification and user-owned source commits remain outstanding; the .10 lifting,
-schema/Go/oracle and equivalence obligations stay open.
+cases now live in `<Sample>.test.scala`, each with its matching control objects; the shared controls
+file and `Expect` suffix are removed. Quint references are removed from authored sample comments.
+The owner's effect-definition follow-up uses inferred, multiline method bodies and multiline Model
+val/def object members, including constants; vars, method/function locals and declarations outside
+Models are exempt. The native DSL/realize/sample run passes all 538 tests. Suite discovery (8 tests),
+block-form lint (7 tests), boundary checks (3 tests) and scoped formatting also pass. This records a
+native source checkpoint; the .10 lifting, schema/Go/oracle and equivalence obligations stay open.
 
 ## Acceptance
 - [ ] TBD

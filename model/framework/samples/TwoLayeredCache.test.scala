@@ -3,7 +3,7 @@ package framework.dsl
 import TwoLayeredCacheControls.WriteThroughL1
 import samples.TwoLayeredCache
 
-class TwoLayeredCacheExpectTest extends munit.FunSuite:
+class TwoLayeredCacheTest extends munit.FunSuite:
   test("TwoLayeredCache's three native predicates retain state and fact requirements"):
     import TwoLayeredCache.*
     import SampleClaims.judged
@@ -53,3 +53,29 @@ class TwoLayeredCacheExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, initial, List(Event.readL2)), true)
       )
     )(after => after.records(Event.readL2))
+
+object TwoLayeredCacheControls:
+  import samples.TwoLayeredCache.*
+
+  object effects:
+    // A buggy write that stores its value in layer 1 only.
+    def writeL1Only() =
+      Model.l1 = Some(Model.num)
+      Model.num = Model.num + 1
+      Model.stateVars.get.add(Seq(Event.wrote))
+
+  // A negative control: writes that store their value in layer 1 only. The readAfterWrite monitor
+  // it keeps from Model is refuted, in the tests.
+  object WriteThroughL1
+      extends Derived(
+        Model.rebind(
+          on(client.write):
+            if Model.num < 3 then effects.writeL1Only()
+        )
+      ):
+
+    object postconditions:
+      // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
+      // monitor, which a read of a value older than the last write breaks.
+      val buggyWritesRecorded = after(client.write):
+        records(Event.wrote)

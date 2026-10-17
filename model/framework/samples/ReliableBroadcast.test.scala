@@ -1,9 +1,12 @@
 package framework.dsl
 
+import framework.dsl.Finite.given
 import ReliableBroadcastControls.Naive
 import samples.ReliableBroadcast
 
-class ReliableBroadcastExpectTest extends munit.FunSuite:
+class ReliableBroadcastTest extends munit.FunSuite:
+  val _ = () => summon[CanEqual[ReliableBroadcast.Origin, ReliableBroadcast.Origin]]
+
   test("ReliableBroadcast's four native predicates retain both process implications"):
     import ReliableBroadcast.*
     // the Broadcast record a state holds
@@ -66,3 +69,30 @@ class ReliableBroadcastExpectTest extends munit.FunSuite:
       everyoneDelivered(carried(after.state)) &&
         carried(after.state).origin == Origin.crashed(Payload.hello)
     )
+
+object ReliableBroadcastControls:
+  import samples.ReliableBroadcast.*
+
+  object effects:
+    // The naive algorithm: deliver m on receiving it, forwarding nothing.
+    def receiveNaive(msg: Msg) =
+      if localOf(Model.current, msg.receiver) == Local.idle then
+        msg.receiver match
+          case Proc.p1 => Model.p1 = Local.delivered(msg.payload)
+          case Proc.p2 => Model.p2 = Local.delivered(msg.payload)
+
+  // The naive algorithm, which delivers a message on receiving it and forwards nothing: the negative
+  // control of agreement, which the sample tests refute.
+  object Naive
+      extends Derived(
+        Model.rebind(
+          on(Model.monitors.network.deliver): msg =>
+            effects.receiveNaive(msg)
+        )
+      ),
+        NegativeControl:
+
+    object invariants:
+      // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
+      // monitor, which a run that stops with one process delivered and the other not breaks.
+      val naiveSafety = check(onlyBroadcast(Model.current))

@@ -1,9 +1,11 @@
 package framework.dsl
 
+import framework.dsl.Finite.given
+
 import TwoPhaseCommitControls.EagerCommit
 import samples.TwoPhaseCommit
 
-class TwoPhaseCommitExpectTest extends munit.FunSuite:
+class TwoPhaseCommitTest extends munit.FunSuite:
   test("TwoPhaseCommit's three native predicates retain consistency and exact commit selection"):
     import TwoPhaseCommit.*
     // the Transaction record a state holds
@@ -52,3 +54,23 @@ class TwoPhaseCommitExpectTest extends munit.FunSuite:
       assertEquals(allCommitted(recorded(after.state)), expected)
       assertEquals(exact(after, rm.commit(ResourceManager.rm3)), Some(expected))
       assertEquals(exact(after, rm.commit(ResourceManager.rm1)), None)
+
+object TwoPhaseCommitControls:
+  import samples.TwoPhaseCommit.*
+
+  val _ = () => summon[CanEqual[TransactionManagerState, TransactionManagerState]]
+
+  object states:
+    // the transaction manager has heard from any one resource manager
+    def eagerlyCommits: Boolean =
+      Model.tmState == TransactionManagerState.init && any(Model.tmPrepared)
+
+  // A transaction manager that commits once any one resource manager has prepared: the negative
+  // control of consistency, which its test asserts refuted.
+  object EagerCommit
+      extends Derived(
+        Model.rebind(
+          on(tm.decideOnCommit):
+            if states.eagerlyCommits then Model.effects.decideOnCommit()
+        )
+      )
