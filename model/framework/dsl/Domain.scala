@@ -232,6 +232,12 @@ object Finite:
   // A domain with no members: a machine that records no facts has `Nothing` as its fact type.
   given Finite[Nothing] = of()
 
+  // A bounded counter's values `0..N`. It lives here rather than in `UpTo`'s companion, which is in
+  // the implicit scope of `Data[UpTo[N]]`: there it would compete with Data's structural comparison
+  // and make a machine whose whole state is an `UpTo[N]` ambiguous.
+  given [N <: Int](using bound: ValueOf[N]): Finite[UpTo[N]] =
+    of((0 to bound.value).map(UpTo[N](_))*)
+
   // An optional value: absent, then present with each member of `A` in its catalog order.
   given [A](using a: Finite[A], structural: Data.Structural[A]): Finite[Option[A]] =
     new Finite[Option[A]]:
@@ -291,5 +297,3 @@ object UpTo:
   def apply[N <: Int](n: Int)(using bound: ValueOf[N]): UpTo[N] =
     require(0 <= n && n <= bound.value, s"$n is outside 0..${bound.value}")
     n
-
-  given [N <: Int](using bound: ValueOf[N]): Finite[UpTo[N]] = Finite.of((0 to bound.value)*)

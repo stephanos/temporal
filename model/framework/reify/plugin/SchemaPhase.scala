@@ -621,6 +621,7 @@ final private class SchemaPhase(
         if indexes(index) then retainSelector(argument) else argument
       )
       val retained = cpy.Apply(named)(named.fun, args)
+      if parentCall(tree) then return retained
       return signatureAttach(
         nameProvenance(retained),
         tree.tpe,
@@ -636,7 +637,17 @@ final private class SchemaPhase(
         cpy.NamedArg(arg)(arg.name, reads.transform(arg.arg))
       case arg => arg
     }
-    attach(cpy.Apply(tree)(tree.fun, args), tree.tpe)
+    val read = cpy.Apply(tree)(tree.fun, args)
+    if parentCall(tree) then read else attach(read, tree.tpe)
+
+  // A class's call to its parent's constructor, `new Finite[T]: …`'s `Finite[T](using …)`: it
+  // constructs no value of its own, and a parent must stay a constructor call, so nothing is
+  // attached to it. Its class's own instance is attached where it is used as a value.
+  private def parentCall(tree: tpd.Apply)(using ctx: Context): Boolean =
+    val constructor = ctx.owner
+    tree.symbol.isConstructor && constructor.isPrimaryConstructor &&
+    constructor.owner.isClass &&
+    constructor.owner.asClass.parentSyms.contains(tree.symbol.owner)
 
   private def nameProvenance(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
     val owner = tree.fun.symbol.owner.fullName.toString.stripSuffix("$")

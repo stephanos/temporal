@@ -20,14 +20,7 @@ object Aliased extends Machine[Alias, Outcome, Nothing]:
   val init = State(Inner(Mode.ready, false))
   def end(s: State) = true
   object rules extends Bindings()
-// Direct UpTo state passes its structural evidence: `Data[UpTo[N]]` is otherwise ambiguous
-// between Data's structural given and UpTo's catalog.
-abstract class ScalarSupport
-    extends Machine[UpTo[2], Boolean, Nothing](using
-      summon[Data.Structural[UpTo[2]]],
-      summon[Finite[Boolean]],
-      summon[Finite[Nothing]]
-    ):
+abstract class ScalarSupport extends Machine[UpTo[2], Boolean, Nothing]:
   val init = UpTo[2](0)
   def end(s: State) = true
 object Scalar extends ScalarSupport:
