@@ -14,9 +14,13 @@ class NativeHistoryTest extends munit.FunSuite:
   private def holds[S, O, F](property: Property, step: Step[S, O, F]): Boolean =
     property.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean](step)
 
+  // A Kettle state by its vars, in declaration order: temperature, heatingOn, beeping.
+  private def snapshot(temperature: Int, heatingOn: Boolean, beeping: Boolean): State =
+    Kettle.Model.init.copy(temperature = temperature, heatingOn = heatingOn, beeping = beeping)
+
   test("Kettle stores signed Celsius for room and cold starts"):
-    val room: Int = Kettle.Model.init.temperature
-    val cold: Int = Kettle.coldest.temperature
+    val room: Int = Kettle.Model.at(Kettle.Model.init)(Kettle.Model.temperature)
+    val cold: Int = Kettle.Model.at(Kettle.coldest)(Kettle.Model.temperature)
     assertEquals(room, 20)
     assertEquals(cold, -40)
 
@@ -278,41 +282,41 @@ class NativeHistoryTest extends munit.FunSuite:
     import Kettle.*
     import framework.dsl.outcomes.Outcome
     List(
-      (coldest, user.pressButton(), List(Step(Outcome.accepted, Snapshot(-40, true, false)))),
+      (coldest, user.pressButton(), List(Step(Outcome.accepted, snapshot(-40, true, false)))),
       (
-        Snapshot(-40, true, false),
+        snapshot(-40, true, false),
         heater.heat(),
-        List(Step(Outcome.accepted, Snapshot(-39, true, false)))
+        List(Step(Outcome.accepted, snapshot(-39, true, false)))
       ),
       (Model.init, heater.heat(), Nil),
       (Model.init, heater.failover(), Nil),
       (Model.init, user.depressButton(), Nil),
-      (Model.init, user.pressButton(), List(Step(Outcome.accepted, Snapshot(20, true, false)))),
-      (Snapshot(20, true, false), user.pressButton(), Nil),
+      (Model.init, user.pressButton(), List(Step(Outcome.accepted, snapshot(20, true, false)))),
+      (snapshot(20, true, false), user.pressButton(), Nil),
       (
-        Snapshot(20, true, false),
+        snapshot(20, true, false),
         heater.heat(),
-        List(Step(Outcome.accepted, Snapshot(21, true, false)))
+        List(Step(Outcome.accepted, snapshot(21, true, false)))
       ),
       (
-        Snapshot(21, true, true),
+        snapshot(21, true, true),
         user.depressButton(),
-        List(Step(Outcome.accepted, Snapshot(21, false, false)))
+        List(Step(Outcome.accepted, snapshot(21, false, false)))
       ),
-      (Snapshot(21, false, false), heater.heat(), Nil)
+      (snapshot(21, false, false), heater.heat(), Nil)
     ).foreach: (before, cls, expected) =>
       assertEquals(run(Model, before, cls), expected)
-    assertEquals(coldest.temperature, -40)
-    assertEquals(Model.init.temperature, 20)
+    assertEquals(Model.at(coldest)(Model.temperature), -40)
+    assertEquals(Model.at(Model.init)(Model.temperature), 20)
     assertEquals(boilingTemperature, 100)
 
   test("Kettle 99-to-100 boundary retains beeping negative control and >= failover guard"):
     import Kettle.*
     import framework.dsl.outcomes.Outcome
-    val boiling = Snapshot(100, true, false)
-    val beep = Step[Snapshot, Outcome, Nothing](Outcome.accepted, Snapshot(100, false, true))
+    val boiling = snapshot(100, true, false)
+    val beep = Step[State, Outcome, Nothing](Outcome.accepted, snapshot(100, false, true))
     assertEquals(
-      run(Model, Snapshot(99, true, false), heater.heat()),
+      run(Model, snapshot(99, true, false), heater.heat()),
       List(Step(Outcome.accepted, boiling))
     )
     assertEquals(run(Model, boiling, heater.heat()), Nil)
@@ -322,8 +326,8 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(holds(Model.invariants.neverBeeps, beep), false)
     assertEquals(run(Model, beep.state, heater.failover()), Nil)
     assertEquals(run(Model, beep.state, user.pressButton()), List(Step(Outcome.accepted, boiling)))
-    val above = Step[Snapshot, Outcome, Nothing](Outcome.accepted, Snapshot(101, false, true))
-    assertEquals(run(Model, Snapshot(101, true, false), heater.failover()), List(above))
+    val above = Step[State, Outcome, Nothing](Outcome.accepted, snapshot(101, false, true))
+    assertEquals(run(Model, snapshot(101, true, false), heater.failover()), List(above))
     assertEquals(holds(Model.postconditions.failsOverAtBoiling, above), false)
 
   test("Kettle's boils claim runs on the press and the heater alone and beeps within 81 steps"):
@@ -340,16 +344,16 @@ class NativeHistoryTest extends munit.FunSuite:
     )
     // from switching on at room temperature, the one enabled step at a time reaches the beep
     val actions = List(user.pressButton(), heater.heat(), heater.failover())
-    def next(s: Snapshot): List[Snapshot] =
+    def next(s: State): List[State] =
       actions.flatMap(a => run(HeatingOnly, s, a)).map(_.state)
     val on = next(HeatingOnly.init)
-    assertEquals(on, List(Snapshot(20, true, false)))
+    assertEquals(on, List(snapshot(20, true, false)))
     assert(boils.from(on.head) && !boils.to(on.head))
     val path = Iterator.iterate(on)(_.flatMap(next)).drop(1).take(81).toList
     path.foreach(states => assertEquals(states.size, 1))
     assertEquals(path.indexWhere(_.exists(boils.to)), 80)
-    assertEquals(path.last, List(Snapshot(100, false, true)))
+    assertEquals(path.last, List(snapshot(100, false, true)))
     assertEquals(
-      run(HeatingOnly, Snapshot(100, false, true), user.pressButton()).map(_.state),
-      List(Snapshot(100, true, false))
+      run(HeatingOnly, snapshot(100, false, true), user.pressButton()).map(_.state),
+      List(snapshot(100, true, false))
     )

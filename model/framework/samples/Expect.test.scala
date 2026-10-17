@@ -84,9 +84,10 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("Kettle's four native predicates retain implication and conjunction truth tables"):
     import Kettle.*
+    import Kettle.Model.{beeping, heatingOn, temperature}
     import framework.dsl.outcomes.Outcome
     val quiet = Model.init
-    val hot = Snapshot(100, heatingOn = false, beeping = true)
+    val hot = quiet.copy(temperature = 100, heatingOn = false, beeping = true)
     val heating = quiet.copy(heatingOn = true)
     same(
       Model.invariants.beepsOnlyWhenOff,
@@ -98,7 +99,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, hot), true),
         (Step(Outcome.accepted, hot.copy(heatingOn = true)), false)
       )
-    )(after => !after.state.beeping || !after.state.heatingOn)
+    )(after => Model.at(after.state)(!beeping || !heatingOn))
     across(
       Model.postconditions.warmsOnlyWhenOn,
       Model,
@@ -108,7 +109,10 @@ class SampleExpectTest extends munit.FunSuite:
         (quiet, Step(Outcome.accepted, coldest), true),
         (quiet, Step(Outcome.accepted, hot), false)
       )
-    )((before, after) => before.heatingOn || after.state.temperature <= before.temperature)
+    )((before, after) =>
+      Model.at(before)(heatingOn) ||
+        Model.at(after.state)(temperature) <= Model.at(before)(temperature)
+    )
     same(
       Model.postconditions.failsOverAtBoiling,
       Model,
@@ -118,7 +122,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, hot.copy(beeping = false)), false),
         (Step(Outcome.accepted, quiet.copy(beeping = true)), false)
       )
-    )(after => after.state.temperature == boilingTemperature && after.state.beeping)
+    )(after => Model.at(after.state)(temperature == boilingTemperature && beeping))
     same(
       Model.invariants.neverBeeps,
       Model,
@@ -127,7 +131,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, quiet), true),
         (Step(Outcome.accepted, hot), false)
       )
-    )(after => !after.state.beeping)
+    )(after => Model.at(after.state)(!beeping))
 
   test("ReliableBroadcast's four native predicates retain both process implications"):
     import ReliableBroadcast.*
