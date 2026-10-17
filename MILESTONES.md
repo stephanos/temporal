@@ -1059,12 +1059,17 @@ IR evaluator in `framework/check`. Supersedes fn-189.6 and closes fn-189's facet
 with a Kettle prototype and verdict in `model/design`.
 [Spec](.flow/specs/fn-190-models-are-plain-scala-state-as-vars.md).
 
+The sample naming follow-up fn-190.17 is committed (`4996481ded`, closure `e10c2c0105`).
+`Inputs` and `VotingBehavior` replace the prefixed names; all 21 History cases now live in
+Kettle's and TwoLayeredCache's own test suites. The same full native command passes 644 cases
+before and after the split; discovery passes eight tests and lint 31, with formatting clean.
+This changes names and test organization, without advancing held IR obligations.
+
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
 | fn-190.15 | ⬜ todo | Carried by fn-196.1: native execution moves out of `framework.dsl` into the product checker module; the DSL executes nothing (R6, DSL half) |
 | fn-190.16 | ⬜ todo | DSL completion, after .15 and fn-193.2: delete the record-state vocabulary (`RecordMachine`, `Rules`/`~>`, `property`/`expect`, `query`/`Limits`, `assume`, ...) from the DSL |
-| fn-190.17 | 🔄 in progress | User follow-up: remove the samples' `Native` filename/model/suite prefix and split History's tests into Kettle and TwoLayeredCache |
 | fn-190.5 | ⬜ todo | Phase 3, after .3: delete the test-support native runtime once the IR evaluator carries the suites (R6) |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.12 | ⬜ todo | Phase 3, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
