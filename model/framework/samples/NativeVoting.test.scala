@@ -23,6 +23,18 @@ class NativeVotingTest extends munit.FunSuite:
   private def decision(chosen: Set[Voting.Value]): State =
     Voting.Consensus.init.copy(chosen = chosen)
 
+  // A ReliableBroadcast state by its vars, as the Broadcast record holds them, and the record a
+  // state holds.
+  private def broadcasting(record: ReliableBroadcast.Broadcast): State =
+    ReliableBroadcast.Model.init.copy(
+      origin = record.origin,
+      p1 = record.p1,
+      p2 = record.p2,
+      network = record.network
+    )
+  private def carried(state: State): ReliableBroadcast.Broadcast =
+    ReliableBroadcast.Model.at(state)(ReliableBroadcast.Model.current)
+
   private def inconsistent: State =
     import Voting.*
     voting(
@@ -291,20 +303,23 @@ class NativeVotingTest extends munit.FunSuite:
 
   test("broadcast sends and authored crashes preserve durable locals and actual network"):
     import ReliableBroadcast.*
-    val started =
+    val started = broadcasting(
       Broadcast(Origin.sending(Payload.hello, Proc.p1), Local.idle, Local.idle, wire.network.empty)
+    )
     assertEquals(
       run(Model, Model.init, sender.broadcast(Payload.hello)),
       List(Step(Outcome.accepted, started))
     )
-    val sent = Broadcast(
-      Origin.sending(Payload.hello, Proc.p2),
-      Local.idle,
-      Local.idle,
-      wire.network.empty.send(Msg(Proc.p1, Payload.hello))
+    val sent = broadcasting(
+      Broadcast(
+        Origin.sending(Payload.hello, Proc.p2),
+        Local.idle,
+        Local.idle,
+        wire.network.empty.send(Msg(Proc.p1, Payload.hello))
+      )
     )
     assertEquals(run(Model, started, sender.send()), List(Step(Outcome.accepted, sent)))
-    assertEquals(sent.network.deliveries, List(Delivery(Msg(Proc.p1, Payload.hello), 0)))
+    assertEquals(carried(sent).network.deliveries, List(Delivery(Msg(Proc.p1, Payload.hello), 0)))
     for payload <- List(Payload.hello, Payload.goodbye); next <- List(Proc.p1, Proc.p2) do
       val before = sent.copy(
         origin = Origin.sending(payload, next),
@@ -313,15 +328,16 @@ class NativeVotingTest extends munit.FunSuite:
       )
       val crashed = before.copy(origin = Origin.crashed(payload))
       assertEquals(run(Model, before, fault.crash()), List(Step(Outcome.accepted, crashed)))
-      assert(crashed.network.channel eq wire.network)
+      assert(carried(crashed).network.channel eq wire.network)
       assertEquals(run(Model, crashed, sender.send()), Nil)
     for origin <- List(Origin.idle, Origin.done(Payload.hello), Origin.crashed(Payload.goodbye)) do
       assertEquals(run(Model, sent.copy(origin = origin), fault.crash()), Nil)
 
   test("receive callbacks keep supplied Inbox and relay precedes local delivery"):
     import ReliableBroadcast.*
-    val supplied =
+    val supplied = broadcasting(
       Broadcast(Origin.crashed(Payload.hello), Local.idle, Local.idle, wire.network.empty)
+    )
     val received = supplied.copy(p1 = Local.relaying(Payload.hello))
     assertEquals(
       run(Model, supplied, wire.network.deliver(Msg(Proc.p1, Payload.hello))),
@@ -347,7 +363,7 @@ class NativeVotingTest extends munit.FunSuite:
       List(Step(Outcome.accepted, delivered))
     )
     val reliable = Model.postconditions.reliability.decl.holds2.get
-      .asInstanceOf[(Broadcast, Step[Broadcast, Outcome, Nothing]) => Boolean]
+      .asInstanceOf[(State, Step[State, Outcome, Nothing]) => Boolean]
     assertEquals(reliable(relayed, Step(Outcome.accepted, delivered)), true)
     assertEquals(reliable(received, Step(Outcome.accepted, delivered)), false)
     // The interpreter removes deliveries; this is an explicitly supplied post-channel state.
@@ -373,8 +389,9 @@ class NativeVotingTest extends munit.FunSuite:
 
   test("naive callback ends with disagreement and end-only agreement is not sticky"):
     import ReliableBroadcast.*
-    val supplied =
+    val supplied = broadcasting(
       Broadcast(Origin.crashed(Payload.hello), Local.idle, Local.idle, wire.network.empty)
+    )
     val naive = supplied.copy(p1 = Local.delivered(Payload.hello))
     assertEquals(
       run(Naive, supplied, wire.network.deliver(Msg(Proc.p1, Payload.hello))),
@@ -460,8 +477,8 @@ class NativeVotingTest extends munit.FunSuite:
     import ReliableBroadcast.*
     val crossed = channel[Msg](capacity = 4, order = Order.unordered, loss = Loss.reliable)
     for owner <- List(Model, Naive) do
-      val property = owner.property.expect: (after: Expectation[Broadcast, Outcome, Nothing]) ?=>
-        check(onlyBroadcast(after.step.state))
+      val property = owner.property.expect:
+        check(onlyBroadcast(Model.current))
       val supplied = Model.init.copy(network = wire.network.empty.send(Msg(Proc.p1, Payload.hello)))
       val attached = property.illustrate(
         "valid",

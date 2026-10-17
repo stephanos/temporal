@@ -140,6 +140,8 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("ReliableBroadcast's four native predicates retain both process implications"):
     import ReliableBroadcast.*
+    // the Broadcast record a state holds
+    def carried(state: State): Broadcast = Model.at(state)(Model.current)
     val initial = Model.init
     val delivered = initial.copy(
       origin = Origin.crashed(Payload.hello),
@@ -152,9 +154,11 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, delivered), true),
       (Step(Outcome.accepted, wrong), false)
     )
-    same(Model.invariants.safety, Model, None, safetyCases)(after => onlyBroadcast(after.state))
+    same(Model.invariants.safety, Model, None, safetyCases)(after =>
+      onlyBroadcast(carried(after.state))
+    )
     same(Naive.invariants.naiveSafety, Naive, None, safetyCases)(after =>
-      onlyBroadcast(after.state)
+      onlyBroadcast(carried(after.state))
     )
     val forwarded =
       initial.copy(p1 = Local.relayed(Payload.hello), p2 = Local.relayed(Payload.hello))
@@ -170,11 +174,15 @@ class SampleExpectTest extends munit.FunSuite:
         (forwarded.copy(p2 = Local.idle), Step(Outcome.accepted, delivered), false)
       )
     )((before, after) =>
-      (deliveredValue(after.state.p1) == None || deliveredValue(before.p1) != None || relayed(
-        before.p1
+      (deliveredValue(carried(after.state).p1) == None || deliveredValue(
+        carried(before).p1
+      ) != None || relayed(
+        carried(before).p1
       )) &&
-        (deliveredValue(after.state.p2) == None || deliveredValue(before.p2) != None || relayed(
-          before.p2
+        (deliveredValue(carried(after.state).p2) == None || deliveredValue(
+          carried(before).p2
+        ) != None || relayed(
+          carried(before).p2
         ))
     )
     same(
@@ -188,7 +196,8 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, wrong), false)
       )
     )(after =>
-      everyoneDelivered(after.state) && after.state.origin == Origin.crashed(Payload.hello)
+      everyoneDelivered(carried(after.state)) &&
+        carried(after.state).origin == Origin.crashed(Payload.hello)
     )
 
   test("TwoLayeredCache's three native predicates retain state and fact requirements"):
