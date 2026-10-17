@@ -1,0 +1,114 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[[33mhint[0m] ./model/framework/dsl/project.scala:11:20
+[[33mhint[0m] "munit is outdated, update to 1.3.6"
+[[33mhint[0m]      munit 1.2.0 -> org.scalameta::munit:1.3.6
+[[33mhint[0m] //> using test.dep org.scalameta::munit:1.2.0
+[[33mhint[0m]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[[33mhint[0m] ./model/framework/dsl/project.scala:9:15
+[[33mhint[0m] "scalapb-runtime-grpc is outdated, update to 0.11.21"
+[[33mhint[0m]      scalapb-runtime-grpc 0.11.20 -> com.thesamet.scalapb::scalapb-runtime-grpc:0.11.21
+[[33mhint[0m] //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+[[33mhint[0m]               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+== Together (Witness.test.scala): left and right both bind start, synced
+members: left = subject { phase: Phase }; right = other { phase: Phase }
+sync started: left.start with right.start
+own steps: left.finish
+reachable: 3 states, 2 steps
+  0 (left = State(phase = open), right = State(phase = open))
+     started -> 1  facts [left(completed), right(completed)]
+  1 (left = State(phase = closed), right = State(phase = closed)) (may end)
+     left.finish -> 2  facts [left(reopened)]
+  2 (left = State(phase = open), right = State(phase = closed))
+  together.invariants.rightClosedWithLeft: verified (budget 65536 states, 2 steps; exploration complete)
+  together.postconditions.startClosesBoth: verified (budget 65536 states, 2 steps; exploration complete)
+  together.postconditions.finishMovesLeftAlone: verified (budget 65536 states, 2 steps; exploration complete)
+  together.reopenedFound: found (budget 65536 states, 2 steps; exploration complete)
+    witness: started, left.finish
+== Reordered (Expect.test.scala): the same members, right first
+members: right = other { phase: Phase }; left = subject { phase: Phase }
+sync started: left.start with right.start
+own steps: left.finish
+reachable: 3 states, 2 steps
+  0 (right = State(phase = open), left = State(phase = open)) (may end)
+     started -> 1  facts [left(completed), right(completed)]
+  1 (right = State(phase = closed), left = State(phase = closed)) (may end)
+     left.finish -> 2  facts [left(reopened)]
+  2 (right = State(phase = closed), left = State(phase = open)) (may end)
+  reordered.invariants.rightClosedWithLeft: verified (budget 65536 states, 2 steps; exploration complete)
+== Apart: no sync; Together's sections checked on it
+members: left = subject { phase: Phase }; right = other { phase: Phase }
+own steps: left.start, left.finish, right.start
+reachable: 4 states, 6 steps
+  0 (left = State(phase = open), right = State(phase = open)) (may end)
+     left.start -> 1  facts [left(completed)]
+     right.start -> 2  facts [right(completed)]
+  1 (left = State(phase = closed), right = State(phase = open)) (may end)
+     left.finish -> 0  facts [left(reopened)]
+     right.start -> 3  facts [right(completed)]
+  2 (left = State(phase = open), right = State(phase = closed)) (may end)
+     left.start -> 3  facts [left(completed)]
+  3 (left = State(phase = closed), right = State(phase = closed)) (may end)
+     left.finish -> 2  facts [left(reopened)]
+  apart.invariants.rightClosedWithLeft: refuted (budget 65536 states, 2 steps; exploration complete)
+    counterexample: left.start
+    state: (left = State(phase = closed), right = State(phase = open))
+    line 93: check(right.phase == Phase.closed)
+  apart.postconditions.startClosesBoth: verified (budget 65536 states, 2 steps; exploration complete)
+  apart.postconditions.finishMovesLeftAlone: verified (budget 65536 states, 2 steps; exploration complete)
+  apart.reopenedFound: found (budget 65536 states, 2 steps; exploration complete)
+    witness: left.start, left.finish
+  warning: apart.postconditions.startClosesBoth: no step takes its after target
+== LateTogether: Together.withMember(right = LateOther)
+members: left = subject { phase: Phase }; right = lateOther (in place of other) { phase: Phase }
+sync started: left.start with right.start
+own steps: left.finish
+reachable: 2 states, 2 steps
+  0 (left = State(phase = open), right = State(phase = open))
+     started -> 1  facts [left(completed), right(completed)]
+  1 (left = State(phase = closed), right = State(phase = open))
+     left.finish -> 0  facts [left(reopened)]
+  lateTogether.invariants.rightStaysOpen: verified (budget 65536 states, 1 steps; exploration complete)
+   Together's sections checked on LateTogether:
+  lateTogether.invariants.rightClosedWithLeft: refuted (budget 65536 states, 1 steps; exploration complete)
+    counterexample: started
+    state: (left = State(phase = closed), right = State(phase = open))
+    line 93: check(right.phase == Phase.closed)
+  lateTogether.postconditions.startClosesBoth: refuted (budget 65536 states, 1 steps; exploration complete)
+    counterexample: started
+    line 99: check(left.isClosed && right.phase == Phase.closed)
+  lateTogether.postconditions.finishMovesLeftAlone: verified (budget 65536 states, 1 steps; exploration complete)
+  lateTogether.reopenedFound: found (budget 65536 states, 1 steps; exploration complete)
+    witness: started, left.finish
+== Queue (SEMANTICS section 17's example, cut down): each action bound by one member
+members: activity = activity { phase: Phase }; queue = taskQueue { outstanding: UpTo[2] }
+sync admit: activity.poll with queue.deliver
+own steps: queue.schedule
+reachable: 6 states, 6 steps
+  0 (activity = State(phase = scheduled), queue = State(outstanding = 0))
+     queue.schedule -> 1  facts []
+  1 (activity = State(phase = scheduled), queue = State(outstanding = 1))
+     queue.schedule -> 2  facts []
+     admit -> 3  facts []
+  2 (activity = State(phase = scheduled), queue = State(outstanding = 2))
+     admit -> 4  facts []
+  3 (activity = State(phase = started), queue = State(outstanding = 0)) (may end)
+     queue.schedule -> 4  facts []
+  4 (activity = State(phase = started), queue = State(outstanding = 1)) (may end)
+     queue.schedule -> 5  facts []
+  5 (activity = State(phase = started), queue = State(outstanding = 2)) (may end)
+  queue.postconditions.deliveredWasScheduled: verified (budget 65536 states, 4 steps; exploration complete)
+  queue.startedWithOneLeftFound: found (budget 65536 states, 4 steps; exploration complete)
+    witness: queue.schedule, queue.schedule, admit
+== negative control: invariant(check(left.phase == right.phase)) on Together
+  together.sameSides: refuted (budget 65536 states, 2 steps; exploration complete)
+    counterexample: started, left.finish
+    state: (left = State(phase = open), right = State(phase = closed))
+    line 60: check(Together.left.phase == Together.right.phase)
+== refused when read
+  Doubled: doubled: left and right hold the same vars (subjectAgain's are subject's): a Machine's vars hold one state, so each member holds vars of its own
+  Ambiguous: Refused.test.scala:26:21: sync started: left and right bind start; name the member, left(start)
+  Unbound: Refused.test.scala:34:22: sync finished: right (other) binds no finish
+  withMember(rigth = ...): rigth is not a member of together: its members are left, right
+  withMember(right = Subject): together.withMember(right = subject): subject does not hold other's vars; a replacement is other or a derivation of it, so the claims that read right read it

@@ -1,0 +1,30 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[[33mhint[0m] ./model/framework/dsl/project.scala:11:20
+[[33mhint[0m] "munit is outdated, update to 1.3.6"
+[[33mhint[0m]      munit 1.2.0 -> org.scalameta::munit:1.3.6
+[[33mhint[0m] //> using test.dep org.scalameta::munit:1.2.0
+[[33mhint[0m]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[[33mhint[0m] ./model/framework/dsl/project.scala:9:15
+[[33mhint[0m] "scalapb-runtime-grpc is outdated, update to 0.11.21"
+[[33mhint[0m]      scalapb-runtime-grpc 0.11.20 -> com.thesamet.scalapb::scalapb-runtime-grpc:0.11.21
+[[33mhint[0m] //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+[[33mhint[0m]               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by scala.runtime.LazyVals$ (file:/home/agent/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar)
+WARNING: Please consider reporting this to the maintainers of class scala.runtime.LazyVals$
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[32mframework.dsl.compose.ComposeSuite:[0m
+[32m  + [0m[32mmembers are the vals that name Machines, in declaration order[0m [90m0.292s[0m
+[32m  + [0m[32ma sync steps both members in one step, each fact in its member's case[0m [90m0.009s[0m
+[32m  + [0m[32man action no sync pairs steps its member alone; a paired one never does[0m [90m0.01s[0m
+[32m  + [0m[32mclaims read the members' vars and helpers by ordinary calls[0m [90m0.009s[0m
+[32m  + [0m[32mevery claim of the sections is checked by default; the witness is found[0m [90m0.053s[0m
+[32m  + [0m[32mmember order changes the composed state, not the member cases or the verdicts[0m [90m0.019s[0m
+[32m  + [0m[32ma refuted claim is a test's negative control[0m [90m0.016s[0m
+[32m  + [0m[32mwithout the sync, Together's invariant is refuted on the members alone[0m [90m0.024s[0m
+[32m  + [0m[32ma derivation replaces one member, keeping syncs, order, end and the fact type[0m [90m0.049s[0m
+[32m  + [0m[32ma sync of actions one member each binds names them alone; the poll names the sync's step[0m [90m0.104s[0m
+[32m  + [0m[32mthe runtime refuses what it cannot run, with a located message[0m [90m0.026s[0m
+[32m  + [0m[32mthe compiler refuses a member it cannot read, a member fact without its case, a misplaced before[0m [90m0.007s[0m
