@@ -324,9 +324,18 @@ class NativeMapsTest extends munit.FunSuite:
     assertEquals(recorded(committed).messages, sent.incl(Message.commit))
     assertEquals(Model.end(committed), true)
     assertEquals(run(Model, committed, rm.commit(ResourceManager.rm1)), Nil)
-    val everyone =
-      Model.postconditions.everyoneCommits.decl.holds.get
-        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
+    def everyone(step: Step[State, Outcome, Nothing]) =
+      SampleClaims
+        .judged(
+          Model,
+          Model,
+          "queries",
+          "everyoneCommits",
+          step,
+          Some(decided),
+          Some(rm.commit(ResourceManager.rm3))
+        )
+        .get
     assertEquals(everyone(Step(Outcome.accepted, committed)), true)
     assertEquals(everyone(Step(Outcome.accepted, decided)), false)
 
@@ -408,16 +417,15 @@ class NativeMapsTest extends munit.FunSuite:
       Set(Message.prepared(ResourceManager.rm1), Message.commit)
     )
     assertEquals(recorded(conflict.state).tmPrepared, Set(ResourceManager.rm1))
-    val normal =
-      Model.invariants.consistencyInv.decl.holds.get
-        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
-    val eager = EagerCommit.invariants.eagerConsistencyInv.decl.holds.get
-      .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
+    def normal(step: Step[State, Outcome, Nothing]) =
+      SampleClaims.judged(Model, Model, "invariants", "consistencyInv", step).get
+    val eagerConsistencyInv = invariant(check(consistent(Model.current)))
+    def eager(step: Step[State, Outcome, Nothing]) =
+      SampleClaims.holds(EagerCommit, eagerConsistencyInv, step.state)
     assertEquals(normal(Step(Outcome.accepted, Model.init)), true)
     assertEquals(eager(Step(Outcome.accepted, Model.init)), true)
     assertEquals(normal(conflict), false)
     assertEquals(eager(conflict), false)
-    assert(EagerCommit.invariants.eagerConsistencyInv.decl.machine eq EagerCommit)
 
   test("NativeInputs accepts an amount within its ceiling once, by an input guard on its vars"):
     import NativeInputs.*
@@ -473,14 +481,9 @@ class NativeMapsTest extends munit.FunSuite:
     import TwoPhaseCommit.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model)
-    // everyoneCommits is a find's target: the last commit need not be rm3's
     assertEquals(
       report.verdicts,
-      Map(
-        "consistencyInv" -> verified,
-        "everyoneCommits" -> refuted,
-        "commitReachesEveryone" -> verified
-      )
+      Map("consistencyInv" -> verified, "commitReachesEveryone" -> verified)
     )
     // once committed, the three resource managers commit one by one
     assertEquals(report.result("commitReachesEveryone").longest, Some(3))
@@ -490,15 +493,20 @@ class NativeMapsTest extends munit.FunSuite:
         "exploration complete)"
     )
     assertEquals(report.warnings, Vector.empty)
+    // everyoneCommits is a find's target: the last commit need not be rm3's, so verified as a
+    // promise it is refuted
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector("model.consistencyHolds" -> verified, "model.successTest" -> found)
+      Vector("model.successTest" -> found)
     )
-    assertRefuted(EagerCommit, EagerCommit.invariants.eagerConsistencyInv): Unit
     assertEquals(
-      NativeCheck.queries(EagerCommit).map(r => r.subject -> r.verdict),
-      Vector("eagerCommit.refutesEagerCommit" -> refuted)
+      NativeCheck.query(verify(Model.queries.everyoneCommits), "model.everyoneCommits").verdict,
+      refuted
     )
+    val eagerConsistencyInv = invariant(check(consistent(Model.current)))
+    val eager = assertRefuted(EagerCommit, eagerConsistencyInv)
+    assertEquals(eager.subject, "eagerCommit.eagerConsistencyInv")
+    assertEquals(NativeCheck.queries(EagerCommit), Vector.empty)
 
   test("NativeInputs' postcondition is checked by default over every input class"):
     import NativeInputs.*

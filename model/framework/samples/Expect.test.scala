@@ -279,22 +279,33 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, committed), true),
       (Step(Outcome.accepted, split), false)
     )
-    same(Model.invariants.consistencyInv, Model, None, consistencyCases)(after =>
-      consistent(recorded(after.state))
-    )
-    same(EagerCommit.invariants.eagerConsistencyInv, EagerCommit, None, consistencyCases)(after =>
-      consistent(recorded(after.state))
-    )
-    same(
-      Model.postconditions.everyoneCommits,
-      Model,
-      Some(rm.commit(ResourceManager.rm3)),
-      List(
-        (Step(Outcome.accepted, committed), true),
-        (Step(Outcome.accepted, initial), false),
-        (Step(Outcome.accepted, split), false)
+    val eagerConsistencyInv = NativeControls.invariant(check(consistent(Model.current)))
+    consistencyCases.foreach: (after, expected) =>
+      assertEquals(consistent(recorded(after.state)), expected)
+      assertEquals(
+        SampleClaims.judged(Model, Model, "invariants", "consistencyInv", after),
+        Some(expected)
       )
-    )(after => allCommitted(recorded(after.state)))
+      assertEquals(SampleClaims.holds(EagerCommit, eagerConsistencyInv, after.state), expected)
+    // about the steps of rm3's commit, and no other class of commit
+    def exact(after: Step[State, Outcome, Nothing], taken: Class) =
+      SampleClaims.judged(
+        Model,
+        Model,
+        "queries",
+        "everyoneCommits",
+        after,
+        Some(initial),
+        Some(taken)
+      )
+    List(
+      (Step(Outcome.accepted, committed), true),
+      (Step(Outcome.accepted, initial), false),
+      (Step(Outcome.accepted, split), false)
+    ).foreach: (after, expected) =>
+      assertEquals(allCommitted(recorded(after.state)), expected)
+      assertEquals(exact(after, rm.commit(ResourceManager.rm3)), Some(expected))
+      assertEquals(exact(after, rm.commit(ResourceManager.rm1)), None)
 
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
     import Voting.*

@@ -79,6 +79,14 @@ outcome accepted, facts=Nothing, default reach and composition TODO scope are re
 from TM committed to allCommitted, within 3 under fairCommits; intended Progress answer Verified.
 This native checkpoint pins concrete successful and conflicting paths, not fairness evaluation.
 
+Plain form (fn-190.7, phase 1): every claim is checked by default, so `consistencyHolds` is gone
+and its answer is the default check's verdict of `consistencyInv` (Verified). `everyoneCommits`
+moved from `postconditions` to `queries` as a find target, not checked by default; `successTest`
+stays (Found). `refutesEagerCommit` is the test's `assertRefuted(EagerCommit,
+eagerConsistencyInv)` (Counterexample), and EagerCommit keeps no sections. `fairCommits` is the
+Model's scenario `fair(rm.commit)`, and `commitReachesEveryone` is `leadsTo(from =, to =, within =
+3) in fairCommits` in `progress` (Verified, longest path 3). No Query names Limits.
+
 ## Voting (.14 representation map complete)
 
 Map old Votes.a1/a2/a3 to exact acceptor keys in both native maps. An old Ballots
