@@ -25,9 +25,17 @@ Record the contract in model/README.md: every Model and every definition it lift
 - [ ] The contract is recorded in model/README.md and the cross-jar fixtures are retired, not disabled.
 
 ## Done summary
-TBD
+Single-compilation contract recorded in model/README.md (`ec8e76e236`). The plugin's jar reads, trust checks, carrier versions/fingerprints and non-root positions are deleted (`b2172d764a`). The cross-jar ReifyBoundary fixtures are retired (`50e83417b5`). Merged as `7dbd90b6d9`. reify/plugin shrinks from 5,072 to 4,194 lines. The task grep (ZipFile, DottyUnpickler, TastyLoader, binaryFile, underlyingSource, SourceFile annotation, digests) finds nothing in reify.
 
+Gate on the merged tip:
+- 637 native tests (`.flow/tmp/p2-1891-native.log`).
+- The plugin packages (`p2-1891-pkg.log`).
+- `-Xplugin` realization-mode compile of dsl/realize/samples passes (`p2-1891-xplugin.log`). Before, it failed with 11 trust-check refusals on DSL macro constructors.
+
+Full-mode (export fixture) compilation still fails on the plain var Machine form, as before. ReifyBoundarySuite keeps its 4 pre-existing retired-vocabulary failures, and ReifySamplesSuite fails as before. Both are Phase 3 (fn-190.9) and are not counted as passing. The "mark its definition @lifted" refusal text changes with fn-189.5.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ec8e76e236, b2172d764a, 50e83417b5, 7dbd90b6d9
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests, mise exec -- scala-cli compile --server=false --scalac-option -Xplugin:model/build/reify.jar --scalac-option -P:umpire-reify:mode=realization model/framework/dsl model/framework/realize model/framework/samples
 - PRs:
