@@ -147,9 +147,9 @@ that reads it:
 | `forall`, `exists` | yes | `forall` only for a capability's fact family | — | Bank, ReliableBroadcast, TwoPhaseCommit, Voting |
 | `map`, `filter`, `sum`, `values`, `toSet`, `head`, `nonEmpty` | yes | — | — | Bank, ReliableBroadcast, NativeInputs, Voting |
 
-The last two rows are used by the samples but are in neither today's subset nor fn-192's initial
-table: once plain-form Models are lifted, a sample that keeps them is refused unless the table grows
-or the sample is rewritten ([Known gaps](#known-gaps)).
+The last two rows are used by the samples, but no body lifts them today and fn-192's initial table
+does not hold them: once plain-form Models are lifted, a sample that keeps them is refused unless
+the table grows or the sample is rewritten ([Known gaps](#known-gaps)).
 
 ---
 
