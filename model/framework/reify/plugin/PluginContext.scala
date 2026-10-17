@@ -30,6 +30,9 @@ final private[reify] case class StatusOutcome(
     proofs: Vector[CallGroupEvidence] = Vector.empty
 )
 
+// A compiler tree the plugin's own rewrite does not find in the shape it wrote.
+final private[reify] class CompilerApiError(detail: String) extends Exception(detail)
+
 final private[reify] class SectionRefusal(val position: ir.Position, root: String, message: String)
     extends Exception(s"${position.file}:${position.line}: $root: $message")
 
@@ -37,17 +40,12 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     root: quotes.reflect.Tree,
     outcomes: List[quotes.reflect.Tree],
     load: quotes.reflect.Symbol => Option[ir.Model],
-    inRun: quotes.reflect.Symbol => Boolean,
-    inJar: quotes.reflect.Symbol => Boolean,
-    jarSugar: quotes.reflect.Symbol => Option[quotes.reflect.Tree],
     sectionPresent: quotes.reflect.Symbol => Boolean,
     section: quotes.reflect.Symbol => Option[SectionOutcome],
     facet: quotes.reflect.Symbol => Option[FacetOutcome],
     status: quotes.reflect.Symbol => Option[StatusOutcome],
     outcome: quotes.reflect.Symbol => Option[StatusOutcome],
-    sources: Map[String, String],
-    sourceLabel: quotes.reflect.Symbol => Option[String],
-    retainedCallGroups: (quotes.reflect.Symbol, ir.Model) => Vector[CallGroupEvidence]
+    retainedCallGroups: quotes.reflect.Symbol => Vector[CallGroupEvidence]
 ) extends BodyContext:
   import quotes.reflect.*
   private given CanEqual[ir.Function, ir.Function] = CanEqual.derived
@@ -57,14 +55,6 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     mutable.LinkedHashMap.empty[Symbol, Definition]
   private val trees = mutable.Map.empty[Symbol, Tree]
   private var refused = Option.empty[Tree]
-  val sourceLabels = mutable.Map.from(sources)
-
-  private def retainSource(sym: Symbol, position: Option[ir.Position]): Unit =
-    for label <- sourceLabel(sym); at <- position if at.file.nonEmpty do
-      sourceLabels(at.file) = label
-
-  def retainTypeSource(sym: Symbol, position: ir.Position): Unit =
-    retainSource(sym, Some(position))
 
   object collect extends TreeTraverser:
     override def traverseTree(tree: Tree)(owner: Symbol): Unit =
@@ -85,18 +75,9 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     case _ => ()
   }
 
-  private def sugar(sym: Symbol): Boolean =
-    sym.annotations.exists(_.tpe.typeSymbol.fullName == "framework.dsl.sugar")
+  override def expansionAllowed(sym: Symbol): Boolean = defs.contains(sym)
 
-  override def expansionAllowed(sym: Symbol): Boolean =
-    defs.contains(sym) || (!inRun(sym) && inJar(sym))
-
-  def sourceTree(sym: Symbol): Option[Tree] =
-    trees.get(sym).orElse {
-      if !sym.isNoSymbol && !inRun(sym) && inJar(sym) && (sugar(sym) || sugar(sym.owner)) then
-        jarSugar(sym)
-      else None
-    }
+  def sourceTree(sym: Symbol): Option[Tree] = trees.get(sym)
 
   def definition(sym: Symbol): Option[Definition] =
     defs.get(sym).orElse(sourceTree(sym).collect { case d: Definition => d })
@@ -166,14 +147,10 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     if contextualFacet.isEmpty && facetObject(sym.maybeOwner.maybeOwner) then None
     else
       section(sym).map { outcome =>
-        if outcome.root != sym.fullName || !Set("is", "effect")(outcome.form) then
-          fail(at, s"${sym.fullName} has stale section-value provenance")
         outcome.refusal.foreach((position, message) =>
           throw SectionRefusal(position, outcome.root, message)
         )
-        val model =
-          outcome.model.getOrElse(fail(at, s"${sym.fullName} has no stored section outcome"))
-        importModel(sym, at, model)
+        importModel(sym, at, outcome.model.get)
         outcome.root
       }
 
@@ -181,16 +158,10 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     if contextualFacet.isEmpty then None
     else
       facet(sym).map { outcome =>
-        val namespace = sym.maybeOwner.maybeOwner
-        if !facetObject(namespace) || outcome.root != sym.fullName ||
-          outcome.namespace != namespace.fullName || outcome.facet != namespace.maybeOwner.fullName
-        then fail(at, s"${sym.fullName} has stale facet-template provenance")
         outcome.refusal.foreach((position, message) =>
           throw SectionRefusal(position, outcome.root, message)
         )
-        val model =
-          outcome.model.getOrElse(fail(at, s"${sym.fullName} has no stored facet template"))
-        importModel(sym, at, model)
+        importModel(sym, at, outcome.model.get)
         contextualSites ++= outcome.sites
         outcome.root
       }
@@ -199,57 +170,45 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     if defs.contains(sym) then None
     else
       status(sym).map { outcome =>
-        if outcome.root != sym.fullName || outcome.phase != sym.owner.companionClass.fullName then
-          fail(at, s"${sym.fullName} has stale Recorded status provenance")
         outcome.refusal.foreach((position, message) =>
           throw SectionRefusal(position, outcome.root, message)
         )
-        val model =
-          outcome.model.getOrElse(fail(at, s"${sym.fullName} has no stored Recorded status"))
-        retainSource(sym, outcome.value.flatMap(_.position))
-        importClosure(at, model)
+        importClosure(at, outcome.model.get)
         callGroups ++= outcome.proofs.map(p =>
           if p.owner.isEmpty then p.copy(owner = callOwner) else p
         )
-        outcome.value.getOrElse(
-          fail(at, s"${sym.fullName} has no retained status fact")
-        ) -> outcome.name
+        outcome.value.get -> outcome.name
       }
 
   def importedOutcome(ok: Term): Option[ir.Expr] = ok match
     case reference: Ref if contextualFacet.nonEmpty && !defs.contains(resolveSymbol(reference)) =>
       val symbol = resolveSymbol(reference)
       outcome(symbol).map { retained =>
-        if retained.root != symbol.fullName || retained.phase != "framework.dsl.Ok" then
-          fail(ok, s"${symbol.fullName} has stale Ok outcome provenance")
         retained.refusal.foreach((position, message) =>
           throw SectionRefusal(position, retained.root, message)
         )
-        val model =
-          retained.model.getOrElse(fail(ok, s"${symbol.fullName} has no retained Ok closure"))
-        retainSource(symbol, retained.value.flatMap(_.position))
-        importClosure(ok, model)
+        importClosure(ok, retained.model.get)
         callGroups ++= retained.proofs.map(p =>
           if p.owner.isEmpty then p.copy(owner = callOwner) else p
         )
-        retained.value.getOrElse(fail(ok, s"${symbol.fullName} has no retained Ok outcome"))
+        retained.value.get
       }
     case _ => None
 
   private def importModel(sym: Symbol, at: Tree, model: ir.Model): Unit =
-    retainSource(sym, model.functions.find(_.name == sym.fullName).flatMap(_.position))
     importClosure(at, model)
-    if !functions.contains(sym.fullName) then
-      fail(at, s"${sym.fullName}'s stored IR has no root function")
-    callGroups ++= retainedCallGroups(sym, model)
+    callGroups ++= retainedCallGroups(sym)
 
+  // A stored model keeps a position on its root function only, so the same function can arrive
+  // with and without positions; the positioned one is kept.
   private def importClosure(at: Tree, model: ir.Model): Unit =
     for f <- model.functions do
-      functions
-        .get(f.name)
-        .filter(_ != f)
-        .foreach(_ => fail(at, s"stored function ${f.name} has two different definitions"))
-      functions(f.name) = f
+      functions.get(f.name) match
+        case Some(known)
+            if Carrier.unpositioned(known, ir.Function) != Carrier.unpositioned(f, ir.Function) =>
+          fail(at, s"stored function ${f.name} has two different definitions")
+        case Some(known) if known.position.nonEmpty => ()
+        case _                                      => functions(f.name) = f
     for t <- model.types do
       types
         .get(t.name)

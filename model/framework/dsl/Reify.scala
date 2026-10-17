@@ -18,9 +18,6 @@ final private[framework] class recordedStatusIr(val chunks: String*)
 final private[framework] class declaredOutcomeIr(val chunks: String*)
     extends scala.annotation.StaticAnnotation
 
-final private[framework] class ruleTypePosition(val data: String*)
-    extends scala.annotation.StaticAnnotation
-
 final private[framework] class ruleCallGroups(val data: String*)
     extends scala.annotation.StaticAnnotation
 
