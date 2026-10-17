@@ -660,9 +660,17 @@ private[framework] object NativeCheck:
     val graph = explore(machine, origins, budget = budget)
     def subject(member: String) = s"${machine.name}.$member"
     val claims = Vector("invariants", "postconditions").flatMap: kind =>
-      section(owner, kind).collect:
+      section(owner, kind).map:
         case (member, p: Property) => (kind, member, p.decl)
-    val safety = claims.map((_, member, decl) => verify(graph, subject(member), decl))
+        case (member, other)       =>
+          throw IllegalArgumentException(
+            s"${machine.name}.$kind.$member holds $other: a member of $kind is a claim, a block of " +
+              "check, records, if or oneOf, and a requirement block must not be empty or contain " +
+              "only helper vals"
+          )
+    val (blockResults, blockWarnings) = blocks(graph, owner, subject)
+    val safety =
+      claims.map((_, member, decl) => verify(graph, subject(member), decl)) ++ blockResults
     val progressResults = section(owner, "progress").collect:
       case (member, p: Progress[?]) =>
         val claim = p.asInstanceOf[Progress[S]] // scalafix:ok DisableSyntax.asInstanceOf
@@ -694,7 +702,119 @@ private[framework] object NativeCheck:
           case ("postconditions", member, decl)
               if decl.when.nonEmpty && !graph.allEdges.exists(e => selects(decl.when, e.cls)) =>
             s"${subject(member)}: ${selector(decl.when)} never fires, the postcondition is vacuous"
-    Report(safety ++ progressResults ++ monitorResults, idle ++ vacuous)
+    Report(safety ++ progressResults ++ monitorResults, idle ++ vacuous ++ blockWarnings)
+
+  // The claims of `owner`'s `invariants` and `postconditions` written as blocks of assertions
+  // (NativeClaims), each section evaluated once per state, or once per step, of the graph: an
+  // invariant in every reached state, a postcondition on every step, from the state it started in
+  // to the state it reached (the state it started in, for a rejection). A member's first failing
+  // assertion is its counterexample; a postcondition about the steps of a target that no step of a
+  // complete exploration takes is vacuous.
+  private def blocks[S, O, F](
+      graph: Graph[S, O, F],
+      owner: AnyRef,
+      subject: String => String
+  ): (Vector[Result], Vector[String]) =
+    val results = Vector.newBuilder[Result]
+    val warnings = Vector.newBuilder[String]
+    for
+      kind <- Vector("invariants", "postconditions")
+      cls <- NativeClaims.sectionClass(owner, kind)
+      members = NativeClaims.members(cls) if members.nonEmpty
+    do
+      val vars = varsOf(graph.machine, s"$kind of ${graph.machine.name}")
+      val outcome = Evaluated()
+      if kind == "invariants" then
+        for i <- graph.states.indices do
+          outcome.note(
+            NativeClaims.evaluate(vars, cls, stateOf(graph.states(i)), NativeClaims.Context()),
+            Vector(
+              s"counterexample: ${graph.path(i).mkString(", ")}",
+              s"in ${graph.states(i)}"
+            )
+          )
+      else
+        for e <- graph.allEdges do
+          outcome.note(
+            NativeClaims.evaluate(vars, cls, stateOf(e.step.state), stepContext(graph, e)),
+            counterexample(graph, e)
+          )
+      for member <- outcome.ordered(members) do
+        results += graph.result(subject(member), outcome.failures.get(member)): Unit
+      if graph.complete then
+        for (member, target) <- outcome.targeted if !outcome.triggered(member) do
+          warnings += s"${subject(member)}: ${targetName(target)} never fires, the postcondition " +
+            "is vacuous": Unit
+    (results.result(), warnings.result())
+
+  // What the evaluations of one section found: each member's first failure, where it was found,
+  // the members about the steps of a target and those a step triggered, and the order the members
+  // ran in.
+  final private class Evaluated:
+    val failures = mutable.LinkedHashMap.empty[String, Vector[String]]
+    val targeted = mutable.LinkedHashMap.empty[String, Any]
+    val triggered = mutable.HashSet.empty[String]
+    private val order = mutable.LinkedHashSet.empty[String]
+
+    def note(context: NativeClaims.Context, where: => Vector[String]): Unit =
+      order ++= context.seen
+      context.targeted.foreach((member, target) => targeted.getOrElseUpdate(member, target): Unit)
+      triggered ++= context.triggered
+      for member <- context.seen if !failures.contains(member) do
+        context
+          .failure(member)
+          .foreach(f => failures.update(member, where :+ s"fails at line ${f.line}: ${f.text}"))
+
+    def ordered(members: Vector[String]): Vector[String] =
+      order.toVector.filter(members.contains) ++ members.filterNot(order.contains)
+
+  private def targetName(target: Any): String = target match
+    case c: Class     => shown(c)
+    case a: Action[?] => actionName(a.decl)
+    case other        => other.toString
+
+  private def stateOf(state: Any): State = state match
+    case value: State => value
+    case other        =>
+      throw IllegalArgumentException(s"$other is no state of a Machine that declares its vars")
+
+  private def varsOf(machine: RecordMachine[?, ?, ?], what: String): Vars =
+    machine.stateVars.getOrElse(
+      throw IllegalArgumentException(s"the $what read vars, and ${machine.name} declares none")
+    )
+
+  // The evaluation of a step of the graph: the state it started from, the class taken, the outcome
+  // it answered and the facts it recorded.
+  private def stepContext[S, O, F](graph: Graph[S, O, F], e: Edge[S, O, F]): NativeClaims.Context =
+    NativeClaims.Context(
+      Some(stateOf(graph.states(e.source))),
+      Some(e.cls),
+      Some(e.step.outcome),
+      e.step.facts
+    )
+
+  // A claim written where it is checked, such as a negative control's in a test: evaluated in
+  // every reached state, as an invariant.
+  def verify[S, O, F](graph: Graph[S, O, F], subject: String, claim: NativeClaims.Adhoc): Result =
+    val vars = varsOf(graph.machine, s"claim $subject")
+    val failing = graph.states.indices.iterator
+      .map(i =>
+        i -> NativeClaims
+          .evaluate(vars, claim, stateOf(graph.states(i)), NativeClaims.Context())
+          .checks
+          .find(!_.holds)
+      )
+      .collectFirst { case (i, Some(f)) => (i, f) }
+    graph.result(
+      subject,
+      failing.map((i, f) =>
+        Vector(
+          s"counterexample: ${graph.path(i).mkString(", ")}",
+          s"in ${graph.states(i)}",
+          s"fails at line ${f.line}: ${f.text}"
+        )
+      )
+    )
 
   // The actions a progress claim assumes weakly fair: its own assumptions' and its Machine's.
   def fairness[S](claim: Progress[S], machine: RecordMachine[?, ?, ?]): Seq[ActionDecl] =

@@ -140,21 +140,40 @@ final class Before[S] private[framework] (val state: S)
 // The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
 def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
 
+// What `after` is in a postcondition of a Machine (ClaimWords): the block about the steps of
+// `target`, `after(heater.failover): check(beeping)`, which must hold an assertion. Core form:
+// `!(a.action == target) || requirements`.
+final class StepTarget @scala.annotation.publicInBinary private[framework] ():
+  inline def apply(target: Action[?] | Class | Composed)(inline block: Unit): Unit =
+    ${ ClaimMacros.targeted('target, 'block) }
+
 // The state before a transition's step: for a Machine that declares its state as vars, its State
 // record, whose vars a postcondition reads by name, `before.temperature`. Core form: `b` in
 // `(b, a) => a.state == b`.
 transparent inline def before[S](using context: Before[S]): Any =
   ${ ExpectationMacros.stateBefore[S]('context) }
 
-// One Boolean requirement; failure skips the remaining requirements. Core form:
+// One assertion of a claim, reported on its own where it fails: `val neverBeeps = check(!beeping)` in
+// `invariants`, or in a block of the retired `expect`, a requirement whose failure skips the rest. It
+// records nothing outside an evaluation, and is refused in `progress`. Core form:
 // `condition && remainingRequirements`.
-def check[S, O, F](condition: Boolean)(using context: Expectation[S, O, F]): Unit =
-  context.require(condition)
+inline def check(inline condition: Boolean): Unit = ${ ClaimMacros.check('condition) }
 
 // Fact requirements specialized to the current step before typing a member selector. Core form:
 // `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
 def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O, F] =
   new RequirementFacts(context)
+
+// What `records` is in a claim or an effect of a Machine whose facts are `F` (ClaimWords): in a
+// claim the assertion that the step recorded the fact, in an effect a fact the step records.
+// Core form: `a.facts.contains(fact)`, or the facts of `Step(outcome, state, facts)`.
+final class StepRecords[F] @scala.annotation.publicInBinary private[framework] ():
+  inline def apply(fact: F): Unit = ${ ClaimMacros.fact('fact) }
+
+// The outcome the step answered, in a postcondition or a monitor, `if outcome != Outcome.accepted then
+// check(balances == before.balances)`, typed with the outcomes of the Machine it is in. Core form:
+// `a.outcome` in `(b, a) => predicate(b, a)`.
+transparent inline def outcome: Any = ${ ClaimMacros.outcome }
 
 // The callable fact requirement in a block. Core form: `s.facts.contains(fact)`.
 final class RequirementFacts[S, O, F] private[framework] (
@@ -188,6 +207,22 @@ def oneOf[S, O, F](using
 )(body: Alternatives[S, O, F] ?=> Unit): Unit =
   context.require(new Alternatives(context.step).evaluate(body))
 
+// What `oneOf` is in a block of the retired `expect`. Core form: `firstBranch || secondBranch`.
+final class ExpectedAlternatives[S, O, F] @scala.annotation.publicInBinary private[framework] (
+    context: Expectation[S, O, F]
+):
+  def apply(body: Alternatives[S, O, F] ?=> Unit): Unit =
+    context.require(new Alternatives(context.step).evaluate(body))
+
+// What `oneOf` is in a claim: its branches, of which there are at least two. Core form:
+// `firstBranch || secondBranch || rest`.
+final class ClaimAlternatives @scala.annotation.publicInBinary private[framework] ():
+  inline def apply(inline body: Branching ?=> Unit): Unit = ${ ClaimMacros.alternatives('body) }
+
+// The evidence a `branch` of a claim's `oneOf` reads, that it is written inside one. Core form: none
+// of its own; it is the `||` between the branches.
+final class Branching @scala.annotation.publicInBinary private[framework] ()
+
 // Explicit finite input catalogs. Core form: `Finite.of(values*)` with checked membership.
 object domains:
   // Explicit choices in authored order. Core form: `Finite.of(values*)`.
@@ -204,6 +239,282 @@ extension [In, A](field: InputField[In, A])
 def branch[S, O, F](using
     alternatives: Alternatives[S, O, F]
 )(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
+
+// What `branch` is in a block of the retired `expect`. Core form: `(first && second)`.
+final class ExpectedBranch[S, O, F] @scala.annotation.publicInBinary private[framework] (
+    alternatives: Alternatives[S, O, F]
+):
+  def apply(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
+
+// What `branch` is in a claim's `oneOf`. Core form: `(first && second)`.
+final class ClaimBranch @scala.annotation.publicInBinary private[framework] ():
+  inline def apply(inline body: Unit): Unit = ${ ClaimMacros.branchBlock('body) }
+
+@scala.annotation.publicInBinary
+private[framework] def requirementFacts[S, O, F](
+    context: Expectation[S, O, F]
+): RequirementFacts[S, O, F] = new RequirementFacts(context)
+
+@scala.annotation.publicInBinary
+private[framework] def expectedAlternatives[S, O, F](
+    context: Expectation[S, O, F]
+): ExpectedAlternatives[S, O, F] = new ExpectedAlternatives(context)
+
+@scala.annotation.publicInBinary
+private[framework] def expectedBranch[S, O, F](
+    alternatives: Alternatives[S, O, F]
+): ExpectedBranch[S, O, F] = new ExpectedBranch(alternatives)
+
+// The compile-time half of the claim words: each reads where it is written. Inside a block of the
+// retired `expect`, whose expectation it finds as a given, it is the requirement it was; in a claim
+// section of a Machine it asserts natively (NativeClaims), and outside the sections it belongs in it
+// is refused with the spec's text.
+@scala.annotation.publicInBinary
+private[framework] object ClaimMacros:
+  import scala.quoted.*
+
+  private val claimSections = Set("invariants$", "postconditions$", "queries$")
+  private val stepSections = Set("postconditions$", "monitors$", "queries$")
+  private val emptyBlock = "a requirement block must not be empty or contain only helper vals"
+
+  private def owners(using q: Quotes): List[q.reflect.Symbol] =
+    import q.reflect.*
+    Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol).toList
+
+  private def inside(names: Set[String])(using q: Quotes): Boolean =
+    owners.exists(s => s.isClassDef && names(s.name))
+
+  // The member the expansion sits in: the val, or the def, of a section that declares the claim.
+  private def member(using q: Quotes): Expr[String] =
+    import q.reflect.*
+    Expr(
+      owners
+        .find(s =>
+          (s.isValDef || s.isDefDef) && !s.flags.is(Flags.Synthetic) && !s.name.contains("$") &&
+            !s.name.startsWith("<") && s.name != "macro"
+        )
+        .fold("")(_.name)
+    )
+
+  private def line(using q: Quotes): Expr[Int] =
+    Expr(q.reflect.Position.ofMacroExpansion.startLine + 1)
+
+  private def machine(using q: Quotes): Option[q.reflect.Symbol] =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    owners.find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
+
+  // The outcome (0) or fact (1) type of the Machine the expansion sits in.
+  private def machineType(using q: Quotes)(index: Int, word: String): q.reflect.TypeRepr =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    machine
+      .map(_.typeRef.baseType(base))
+      .collect { case AppliedType(_, List(_, o, f)) => if index == 0 then o else f }
+      .getOrElse(report.errorAndAbort(s"$word reads a step of a Machine: write it in one"))
+
+  private def machineRef(using q: Quotes)(cls: q.reflect.Symbol): Expr[RecordMachine[?, ?, ?]] =
+    import q.reflect.*
+    val ref = if cls.flags.is(Flags.Module) then Ref(cls.companionModule) else This(cls)
+    ref.asExprOf[RecordMachine[?, ?, ?]]
+
+  private def arguments(using q: Quotes)(tpe: q.reflect.TypeRepr, of: q.reflect.Symbol) =
+    tpe.widen.baseType(of).typeArgs
+
+  // The calls of a block to one of the claim words `named`, as written, or expanded (the claim
+  // words are inline, and a block an enclosing word reads may hold either), not looking inside one.
+  private def calls(using q: Quotes)(block: q.reflect.Term, named: Set[String]): Int =
+    import q.reflect.*
+    def word(s: Symbol): Option[String] =
+      if !s.exists then None
+      else if s.name == "apply" then
+        Map(
+          "ClaimAlternatives" -> "oneOf",
+          "ClaimBranch" -> "branch",
+          "StepRecords" -> "records",
+          "StepTarget" -> "after"
+        ).get(s.owner.name)
+      else if s.owner.name == "NativeClaims$" then
+        Map(
+          "assertion" -> "check",
+          "recordFact" -> "records",
+          "alternatives" -> "oneOf",
+          "alternative" -> "branch",
+          "targeting" -> "after"
+        ).get(s.name)
+      else if s.name == "check" && s.owner.name.startsWith("Syntax$package") then Some("check")
+      else None
+    var found = 0
+    new TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit = tree match
+        case call: Apply if word(call.fun.symbol).exists(named) => found += 1
+        case _                                                  => super.traverseTree(tree)(owner)
+    .traverseTree(block)(Symbol.spliceOwner)
+    found
+
+  // Whether a block asserts anything: a check, a fact or alternatives.
+  private def asserts(using q: Quotes)(block: q.reflect.Term): Boolean =
+    calls(block, Set("check", "records", "oneOf")) > 0
+
+  @scala.annotation.publicInBinary
+  private[framework] def check(condition: Expr[Boolean])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) => '{ $context.require($condition) }
+      case None          =>
+        if inside(Set("progress$")) then
+          report.errorAndAbort(
+            "an invariant or postcondition belongs in invariants or postconditions"
+          )
+        val text = Expr(condition.asTerm.pos.sourceCode.getOrElse(condition.show))
+        '{ NativeClaims.assertion($condition, $member, $line, $text) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def after(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{ ${ context.asInstanceOf[Expr[Expectation[s, o, f]]] }.step }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => '{ $context.step }
+      case None =>
+        if !inside(Set("postconditions$", "queries$")) then
+          report.errorAndAbort("after(action) is a postcondition: write it in postconditions")
+        '{ new StepTarget() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def targeted(target: Expr[Action[?] | Class | Composed], block: Expr[Unit])(
+      using q: Quotes
+  ): Expr[Unit] =
+    import q.reflect.*
+    if !asserts(block.asTerm) then report.errorAndAbort(emptyBlock, block.asTerm.pos)
+    '{ NativeClaims.targeting($target, $member)($block) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def before(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Before[?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Before[?]].typeSymbol).headOption
+          .getOrElse(TypeRepr.of[Any])
+          .asType match
+          case '[s] => ExpectationMacros.stateBefore[s](context.asExprOf[Before[s]])
+      case None =>
+        if !inside(stepSections) then
+          report.errorAndAbort("before is the state a step started from; use it in a postcondition")
+        val cls = machine.getOrElse(
+          report.errorAndAbort("before is the state a step of a Machine started from")
+        )
+        val record = VarSchemaMacro
+          .enclosingMachine(Symbol.spliceOwner)
+          .fold(TypeRepr.of[State]): declared =>
+            VarSchemaMacro
+              .stateVars(declared)
+              .foldLeft(TypeRepr.of[State]): (record, variable) =>
+                Refinement(record, variable.name, VarSchemaMacro.declaredType(declared, variable))
+        val owner = machineRef(cls)
+        record.asType match
+          case '[r] =>
+            '{
+              NativeClaims
+                .start($owner.init.asInstanceOf[State]) // scalafix:ok DisableSyntax.asInstanceOf
+                .asInstanceOf[r] // scalafix:ok DisableSyntax.asInstanceOf
+            }
+
+  @scala.annotation.publicInBinary
+  private[framework] def outcome(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    if !inside(stepSections) then
+      report.errorAndAbort(
+        "outcome is what a step answered: read it in a postcondition or a monitor"
+      )
+    machineType(0, "outcome").asType match
+      case '[o] =>
+        val fallback = Expr.summon[Ok[o]].fold('{ None })(ok => '{ Some($ok.outcome) })
+        '{
+          NativeClaims
+            .answer($fallback.orNull)
+            .asInstanceOf[o] // scalafix:ok DisableSyntax.asInstanceOf
+        }
+
+  @scala.annotation.publicInBinary
+  private[framework] def records(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{ requirementFacts(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] }) }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("records reads the step of an expectation")
+      case None =>
+        machineType(1, "records").asType match
+          case '[f] => '{ new StepRecords[f]() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def fact[F: Type](value: Expr[F])(using q: Quotes): Expr[Unit] =
+    val claim = Expr(inside(claimSections ++ Set("monitors$")))
+    '{ NativeClaims.recordFact($value, $member, $line, $claim) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def oneOf(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{
+                  expectedAlternatives(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] })
+                }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("oneOf reads the step of an expectation")
+      case None => '{ new ClaimAlternatives() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def alternatives(body: Expr[Branching ?=> Unit])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    val branches = calls(body.asTerm, Set("branch"))
+    if branches < 2 then
+      report.errorAndAbort("oneOf requires at least two branches", body.asTerm.pos)
+    '{ NativeClaims.alternatives($member, $line)($body(using new Branching())) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def branch(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[framework.dsl.Alternatives[?, ?, ?]] match
+      case Some(alternatives) =>
+        arguments(
+          alternatives.asTerm.tpe,
+          TypeRepr.of[framework.dsl.Alternatives[?, ?, ?]].typeSymbol
+        ) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{
+                  expectedBranch(${
+                    alternatives.asInstanceOf[Expr[framework.dsl.Alternatives[s, o, f]]]
+                  })
+                }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("branch reads the step of an expectation")
+      case None =>
+        if Expr.summon[Branching].isEmpty then
+          report.errorAndAbort("branch is an alternative of oneOf: write it inside oneOf")
+        '{ new ClaimBranch() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def branchBlock(body: Expr[Unit])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    if !asserts(body.asTerm) then report.errorAndAbort(emptyBlock, body.asTerm.pos)
+    '{ NativeClaims.alternative($body) }
 
 // An ordinary step predicate with statement requirements. Core form:
 // `(s: Step[S, O, F]) => first(s) && second(s)`.

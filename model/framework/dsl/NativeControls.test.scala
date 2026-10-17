@@ -27,6 +27,29 @@ object NativeControls:
     val subject = s"${machine.name}.${NativeCheck.claimName(watch, machine)}"
     refuted(NativeCheck.monitor(machine, subject, watch, Seq(machine.init)))
 
+  // Asserts that a claim written here, `invariant(check(!beeping))`, is refuted on `machine` from
+  // `starts` (its initial state unless named): `assertRefuted(Bank.Leaky,
+  // invariant(check(totalSupply(balances))))`.
+  def assertRefuted[S, O, F](
+      machine: RecordMachine[S, O, F],
+      claim: NativeClaims.Adhoc
+  )(using munit.Location): NativeCheck.Result =
+    assertRefuted(machine, claim, Seq.empty[S])
+
+  def assertRefuted[S, O, F](
+      machine: RecordMachine[S, O, F],
+      claim: NativeClaims.Adhoc,
+      starts: Seq[S]
+  )(using munit.Location): NativeCheck.Result =
+    val origins = if starts.isEmpty then Seq(machine.init) else starts
+    val graph = NativeCheck.explore(machine, origins)
+    refuted(NativeCheck.verify(graph, s"${machine.name}.${claim.name}", claim))
+
+  // An invariant written in a test, its block of assertions evaluated in every reached state of the
+  // Machine it is checked on: `invariant(check(!beeping))`.
+  inline def invariant(inline body: Unit): NativeClaims.Adhoc =
+    NativeClaims.Adhoc(NativeLocation.declaredName.getOrElse("invariant"), () => body)
+
   private def refuted(result: NativeCheck.Result)(using munit.Location): NativeCheck.Result =
     munit.Assertions.assertEquals(result.verdict, NativeCheck.Verdict.refuted, result.toString)
     munit.Assertions.assert(result.detail.exists(_.startsWith("counterexample: ")), result.toString)

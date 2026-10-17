@@ -1189,7 +1189,8 @@ abstract class RecordMachine[S, O, F](using
 // state it is about restored into them (Vars), and the object reads as its initial state between
 // them.
 abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
-    extends RecordMachine[State, O, F]:
+    extends RecordMachine[State, O, F],
+      ClaimWords:
   private lazy val declared: Vars = Vars(this, schema)
 
   final override private[framework] def stateVars: Option[Vars] = Some(declared)
@@ -1245,7 +1246,8 @@ abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
 ) extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
       derivation.ss
-    ):
+    ),
+      ClaimWords:
   override def reach: Limits = derivation.reach
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] =
     derivation.nativeDurability ++ super.nativeDurability
