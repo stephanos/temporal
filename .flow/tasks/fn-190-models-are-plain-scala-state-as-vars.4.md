@@ -120,8 +120,10 @@ all seven changed Scala files. Logs are `.flow/tmp/whole-member-boundary-check-g
 The native task remains open: public legacy vocabulary is still reachable through record-state
 compatibility, and naked helpers before a scoped claim's final `in` expression can still execute
 during metadata discovery. Parenthesizing the whole scoped block already defers it, but that does
-not establish the unparenthesized form. The enclosing val's complete RHS is available to its macro
-(probe `.flow/tmp/claim-scope-probe.log`); full-member capture remains to be implemented and checked.
+not establish the unparenthesized form. A macro probe can see the enclosing val's complete RHS
+after typing, but early type completion can expose a val tree without its RHS. The follow-up probe
+therefore captured no prefix (`.flow/tmp/claim-whole-scope-probe.log`); reliable full-member capture
+remains unproven and unimplemented. No production change followed this probe.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 
