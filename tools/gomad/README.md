@@ -522,7 +522,7 @@ exact unsupported analyses (the amd64 xxhash assembly), because the packs that
 admit their facts are scoped to darwin/arm64, and the thirteen tier 3 workloads
 are expected `intermittent`: the twelve `./tests` suites cite the linux replay
 divergence recorded in the
-[milestones](../../MILESTONES.md#open-findings), and the probe
+[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105), and the probe
 cites its own finding, one linux run whose seed 17 did not reproduce its
 evidence. Every
 qualified workload runs two
@@ -1002,7 +1002,7 @@ and the coordinator adopts each request's reported time before applying its
 model operation. Consecutive readings differ at nanosecond resolution only;
 timestamps truncated to a coarser unit can still tie. Repeatability and exact
 replay remain workload qualification claims; the
-[milestones](../../MILESTONES.md#open-findings) record remaining divergence.
+[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105) record remaining divergence.
 Runtime-internal clock reads do not tick. The policy reaches the target as
 `GOMAD_CLOCK_TICK=forward`, which is part of the
 recorded environment and therefore of Campaign, Artifact, plan, and evidence
@@ -1160,7 +1160,7 @@ where the patched toolchain does not build, against a stand-in `gomad
 qualify`; that run measured no Gomad bound. The first retained scheduled or
 dispatched run on each platform supplies the native bound, and linux/amd64
 stays informational while the
-[linux replay divergence](../../MILESTONES.md#open-findings) (historical fn-105
+[linux replay divergence](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105) (historical fn-105
 D12, now owned by deferred fn-128.2) is open. Native soak execution and retained
 bounds belong to deferred fn-149.4 on Darwin and fn-128.5/fn-128.7 on Linux.
 

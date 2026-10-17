@@ -40,7 +40,7 @@ qualification platforms; native execution qualification remains deferred under
 fn-128/fn-149. Artifacts replay only on their recorded platform. Qualification
 applies to declared workloads, rather than proving
 arbitrary Go programs deterministic. The
-[milestones](../../MILESTONES.md#open-findings) record remaining
+[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105) record remaining
 functional-suite replay divergences and known host-clock escapes, including
 `MemStats.LastGC`. Garbage-collector timing is not fully controlled.
 
@@ -355,7 +355,7 @@ truncated to a coarser unit can still tie. The recorded environment binds the
 policy into Campaign, Artifact, and portable-plan identity, and replay
 restores it. These source semantics do not establish workload repeatability
 or exact replay; the remaining qualification is recorded in the
-[milestones](../../MILESTONES.md#open-findings).
+[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105).
 
 ### Quiescence and native timers
 

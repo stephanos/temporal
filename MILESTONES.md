@@ -26,7 +26,7 @@ validation, source review and other independent acceptance remain required. Nati
 execution stays with the native owner; portable coverage does not substitute for that gate.
 Both platforms remain unverified for the current candidate until their owners retain native proof.
 No PR, push or CI action is authorized by the deferral or its revival.
-The [2026-10-14 native hibernation decision](#native-backend-hibernation)
+The [2026-10-14 native hibernation decision](#native-backend-hibernation-owner-decision-2026-10-14)
 extends this acceptance deferral to the new shared-owner native execution gates.
 Both backends are developed together here, and `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
@@ -39,17 +39,10 @@ Native deferral labels preserve the previously recorded task state; they do not 
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
-<a id="maintenance-cost"></a>
-<a id="search-path-findings-fn-114"></a>
-<a id="canonical-json-publication-cleanup-fn-153"></a>
-<a id="virtual-network-stalling-fn-154"></a>
-<a id="server-consistency-oracles"></a>
 
 Completed specs and their evidence remain in `.flow/` and Git history.
 
 ## Immediate delivery order
-
-<a id="native-backend-hibernation"></a>
 
 ### Native backend hibernation (owner decision, 2026-10-14)
 
@@ -71,8 +64,6 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 2. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
 3. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
-<a id="native-backend-isolation"></a>
-
 ### Native backend isolation (owner decision, 2026-10-16)
 
 The owner answered, "yes to isolate native backend". The native backend leaves the default Gomad host gates (build, vet, lint, `go test ./...`, archcheck default inventory, the WASM and host-tools CI jobs) and stays in the tree, buildable and testable through one explicit selection owned by fn-184. This is freezing under the feature-preservation constraint, not removal: every native source, test, fixture, generator and ledger stays, fn-128 and fn-149 keep their deferred scope and revival triggers, and no native execution pass is recorded. A default build refuses a native installation instead of falling back to WASM. This decision grants no PR, push or CI authority.
@@ -85,13 +76,9 @@ Owner performance decision (2026-10-13): WASM execution-speed work stays in the 
 helper, accepting Go→Rust duplication where it buys performance; embedding Wasmtime in Go
 (`wasmtime-go`) is rejected.
 
-<a id="wasm-performance-acceptance-host"></a>
-
 ### WASM performance measurement host (owner decision, 2026-10-17)
 
 The owner answered, "since this is WASM, we don't need a particular env. that was for the native backend." WASM performance measurements may run on any host; no host platform qualifies or disqualifies a WASM result. This supersedes the 2026-10-14 Linux/arm64 requirement. Baseline and candidate are still measured on the same host in the same window with the specified selections and inputs, and every threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, identity and resource-budget requirement still applies; retain host evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. Native platform qualification stays deferred under fn-128 and fn-149.
-
-<a id="performance-checks-deferred-to-fn-185"></a>
 
 ### Performance checks deferred to fn-185 (owner decision, 2026-10-17)
 
@@ -237,19 +224,11 @@ CI, PR, or push authority.
 
 ## WASM
 
-<a id="wasm-execution-performance"></a>
-
-<a id="replay-instrumentation"></a>
-
-<a id="upstream-sync-fn-189"></a>
-
 ### Upstream sync — [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md)
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | ⬜ Todo | Merge upstream temporalio/temporal main into gomad and requalify |
-
-<a id="helper-fixture-tests-fn-187"></a>
 
 ### WASM helper fixture tests and module ownership — [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md)
 
@@ -261,8 +240,6 @@ CI, PR, or push authority.
 | [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | ⬜ Todo | Restructure model, engine, namespace and cluster modules behind the corpus |
 | [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
 
-<a id="host-side-cost-profile-fn-185"></a>
-
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |
@@ -270,8 +247,6 @@ CI, PR, or push authority.
 | [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
-
-<a id="quality-assessment-2026-10-01"></a>
 
 ## Native
 
@@ -293,10 +268,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
 6. Keep fn-128 and its Linux CI work deferred until an explicit Linux qualification request and native linux/amd64 execution are available. Its eventual sequence remains baseline, causal D12 strict-replay fix, D21-triggered D11 audit, native model/consumer/soak evidence and final Linux matrix. No PR or CI run is part of the current work.
 
-<a id="open-findings"></a>
-<a id="determinism-gaps"></a>
-<a id="f10-follow-ups-deferred-scope"></a>
-
 ### F10: follow-ups (deferred scope) — [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md)
 
 | Name / ID | Status | Description |
@@ -308,8 +279,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⏸ Deferred (recorded: ⬜ Todo) | D9: shared downstream packs/source checks; native qualification moved to fn-149.3/fn-128.6 |
 | [fn-105.10](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | D10: downstream-seam guide |
 | [fn-105.15](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.15.md) | ⏸ Deferred (recorded: ⬜ Todo) | D15: support larger choice traces when a workload needs them |
-
-<a id="deep-modules-and-tool-interfaces-fn-109"></a>
 
 ### Deep modules and tool interfaces — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) — Deferred
 
@@ -359,8 +328,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-109.62](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md) | ⏸ Deferred (recorded: 🚧 In progress) | Bound progress-test startup and observe early completion |
 | [fn-109.64](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.64.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check watchdog fixture readiness writes without masking setup failure |
 
-<a id="runtime-patch-minimization-fn-110"></a>
-
 ### Runtime patch minimization — [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) — Deferred
 
 | Name / ID | Status | Description |
@@ -368,8 +335,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Relocate crypto initialization and syscall declarations to overlays; waits for fn-155.7 |
 | [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
 | [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Qualify the final candidate and publish measurements and guidance |
-
-<a id="syscall-boundary-fn-155"></a>
 
 ### Syscall-level I/O boundary — [fn-155](.flow/specs/fn-155-gomad-syscall-level-io-boundary-from.md) — Deferred
 
@@ -383,8 +348,6 @@ and native deferrals; this priority grants no PR, push or CI authority.
 | [fn-155.6](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | Classify the 15 adapters and run network adapters excluded |
 | [fn-155.7](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md) | ⏸ Deferred (recorded: ⬜ Todo) | Measure size, record the files/DNS decision and annotate dependent work |
 | [fn-155.8](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Admit the edge's socket entry points in capability guard and closure policy |
-
-<a id="append-log-storage-fn-152"></a>
 
 ### Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) — Deferred
 

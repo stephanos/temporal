@@ -54,7 +54,7 @@ required exact replay belong to fn-149 and fn-128 under the
 These source dispositions supply no new native pass or soak bound. Typed scenario
 shrinking remains open on the roadmap.
 
-[MILESTONES.md](../MILESTONES.md#search-path-findings-fn-114) retains the delivery order,
+[MILESTONES.md](../MILESTONES.md#work-tracking) retains the delivery order,
 platform limits, and links to the reviewed task evidence.
 
 ## Direction
@@ -99,7 +99,7 @@ shrinking, and live Go process snapshots are extensions.
 [Current workflows](../tools/gomad3/CLI.md)
 
 Known workload/platform replay gaps remain in the
-[milestones](../MILESTONES.md#open-findings). Establish a qualified benchmark
+[milestones](../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105). Establish a qualified benchmark
 set before judging a new policy. Host-load divergence, unsupported operations,
 trace overflow, and watchdog expiration need separate outcomes and cannot become
 confirmed target bugs.

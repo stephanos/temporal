@@ -26,7 +26,7 @@ emits it, and nothing reports where two runs first differed. Linux D12 has been
 open on that basis: about one tier-3 seed-run in 26 diverges at choice ordinals
 from 8 to about 85k, far from its cause.
 
-The [2026-10-01 quality assessment](../../MILESTONES.md#quality-assessment-2026-10-01)
+The [2026-10-01 quality assessment](../../MILESTONES.md#native)
 records the findings this spec owns. Its runtime findings came from source
 reading and were not executed, so each one is re-anchored against the code
 before work starts. The assessment's identifiers Q1, Q2, Q6, Q7, and Q8 are

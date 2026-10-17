@@ -28,7 +28,7 @@ Keep deferred until the owner requests Darwin qualification and supplies native 
 
 ## Acceptance
 
-Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
+Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation-owner-decision-2026-10-14), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
 
 - [ ] Native darwin/arm64 runtime builds and launches with source/toolchain/profile identities and all R1 inherited native controls pass with retained exact commands, outcomes and baseline/candidate identities. Missing or failing gates remain open.
 - [ ] Independent review accepts the evidence and any separately admitted source changes; no static, developmental or historical result is substituted for native execution.

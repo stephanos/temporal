@@ -84,6 +84,6 @@ module simulation linkname allowance does not apply to a downstream target.
 The [milestone constraints](../MILESTONES.md) govern every extension.
 
 Closure-mode support, Linux downstream packs, and the seam guide remain D8, D9,
-and D10 in [deferred follow-ups](../MILESTONES.md#f10-follow-ups-deferred-scope).
+and D10 in [deferred follow-ups](../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105).
 The completed capability design and September 29 closure-analysis baseline remain
 in fn-104 and Git history.

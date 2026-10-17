@@ -29,7 +29,7 @@ Keep deferred until the owner requests Darwin qualification and supplies native 
 
 ## Acceptance
 
-Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
+Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation-owner-decision-2026-10-14), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
 
 - [ ] Actual scheduled/dispatched Darwin report and execution artifacts retain all R4 cohort, diagnostics, load, failure classification and bound requirements. No bound is claimed from stand-ins or local-only substitute runs.
 - [ ] Final matrix accounts for every transferred native command and task on the same source/toolchain/profile/module closure with passing results, preserved dispositions, refreshed identities, independent review and checked documentation. Any missing required result keeps overall Darwin qualification open.

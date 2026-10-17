@@ -2,7 +2,7 @@
 
 ## Native hibernation scope extension (2026-10-14)
 
-This deferred owner also receives the new fn-153/fn-154/fn-166/fn-179 native execution obligations mapped in the [owner's hibernation decision](../../MILESTONES.md#native-backend-hibernation). Its existing R-IDs and task owners cover runtime/baseline, model/consumer execution and final matrix reconciliation respectively. Those obligations remain incomplete until supported current-candidate execution; revival prerequisites and original qualification ledgers are preserved. Portable/source coverage and WASM Darwin performance measurements remain with their source owners.
+This deferred owner also receives the new fn-153/fn-154/fn-166/fn-179 native execution obligations mapped in the [owner's hibernation decision](../../MILESTONES.md#native-backend-hibernation-owner-decision-2026-10-14). Its existing R-IDs and task owners cover runtime/baseline, model/consumer execution and final matrix reconciliation respectively. Those obligations remain incomplete until supported current-candidate execution; revival prerequisites and original qualification ledgers are preserved. Portable/source coverage and WASM Darwin performance measurements remain with their source owners.
 
 ## Goal & Context
 

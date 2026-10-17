@@ -24,7 +24,7 @@ Owner requests qualification and supplies a native linux/amd64 host or CI and a 
 
 ## Acceptance
 
-Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
+Scope extension (owner decision, 2026-10-14): retain the additional native obligations assigned to this task by [native hibernation](../../MILESTONES.md#native-backend-hibernation-owner-decision-2026-10-14), with their original selectors/semantics and current-candidate evidence. This task stays deferred and incomplete under its existing revival prerequisites.
 
 - [ ] Native linux/amd64 toolchain builds and launches with recorded source/profile/toolchain identity; all inherited initial runtime/host commands and controls execute with source-bound reports, exit codes and outcomes. No failing gate is labeled passed; unresolved acceptance carries forward to task 7. Evidence refresh obligations are recorded for changes from the initial candidate.
 - [ ] Retain exact commands, exit codes, source/build identities and an independent review for accepted changes; commit task progress before completing it.

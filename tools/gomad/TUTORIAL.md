@@ -268,7 +268,7 @@ Readings differ only at nanosecond resolution, so coarser timestamps can still
 tie. The recorded environment binds the policy into execution identity, and
 replay restores it. These source semantics do not establish workload
 repeatability or exact replay; the remaining qualification is recorded in the
-[milestones](../../MILESTONES.md#open-findings).
+[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105).
 
 Virtual time does not bulldoze runnable work. A busy loop or a goroutine
 repeatedly polling a `select` remains runnable, so it prevents an idle jump to a
@@ -712,7 +712,7 @@ runtime Choice replay. CI status says whether the reported results matched
 declared expectations, which can include an unresolved divergence. Historical
 Darwin D14 evidence retains its recorded correction; it does not qualify a later
 integrated source candidate. D12, large-trace limits, and host-clock escapes such
-as `MemStats.LastGC` remain in the [milestones](../../MILESTONES.md#open-findings).
+as `MemStats.LastGC` remain in the [milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105).
 
 Cgo, external linking, multiple Ps, signals, finalizers, subprocesses,
 non-loopback networking, DNS, plugins, and
