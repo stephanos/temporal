@@ -1,9 +1,7 @@
 package framework.reify
 
 import java.util.Base64
-import java.util.zip.ZipFile
 import scala.collection.mutable
-import scala.jdk.CollectionConverters.*
 import scala.quoted.Quotes
 import scala.quoted.runtime.impl.QuotesImpl
 import dotty.tools.dotc.CompilationUnit
@@ -27,7 +25,6 @@ import dotty.tools.dotc.core.Flags.{
 }
 import dotty.tools.dotc.core.Types.{MethodOrPoly, MethodType}
 import dotty.tools.dotc.core.Names.termName
-import dotty.tools.dotc.core.tasty.DottyUnpickler
 import dotty.tools.dotc.core.Symbols.*
 import dotty.tools.dotc.plugins.{PluginPhase, StandardPlugin}
 import dotty.tools.dotc.report
@@ -97,6 +94,9 @@ final class ReifyPlugin extends StandardPlugin:
         new SchemaPhase(store, signatures = true)
       )
 
+// The carriers a definition's lifted IR crosses compiler runs in. Every Model and everything it
+// lifts from compile in one compilation (model/README.md), so a carrier was written by this plugin
+// before pickling in this build: it holds data only, with no version, checksum or position table.
 private object Carrier:
   val marker = "framework.dsl.lifted"
   val stored = "framework.dsl.liftedIr"
@@ -105,32 +105,56 @@ private object Carrier:
   val facet = "framework.dsl.facetIr"
   val status = "framework.dsl.recordedStatusIr"
   val outcome = "framework.dsl.declaredOutcomeIr"
-  val typePosition = "framework.dsl.ruleTypePosition"
   val callGroups = "framework.dsl.ruleCallGroups"
   val familyFlow = "framework.dsl.familyFlow"
   val namedResult = "framework.dsl.namedResult"
 
-  private def modelFingerprint(model: ir.Model): String =
-    Base64.getEncoder.encodeToString(
-      java.security.MessageDigest
-        .getInstance("SHA-256")
-        .digest(model.toByteArray)
+  // A stored model keeps a position on its root function only.
+  def rooted(model: ir.Model, root: Option[String]): ir.Model =
+    model.copy(
+      functions = model.functions.map(f =>
+        if root.contains(f.name) then f else unpositioned(f, ir.Function)
+      ),
+      types = model.types.map(_.clearPosition)
     )
 
-  private def callGroupsFingerprint(
-      model: ir.Model,
-      chunks: Seq[String]
-  ): String =
-    val digest = java.security.MessageDigest.getInstance("SHA-256")
-    digest.update(model.toByteArray)
-    chunks.foreach { chunk =>
-      val bytes = chunk.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-      digest.update(
-        java.nio.ByteBuffer.allocate(4).putInt(bytes.length).array()
-      )
-      digest.update(bytes)
-    }
-    Base64.getEncoder.encodeToString(digest.digest())
+  def rootedGroups(
+      proofs: Seq[CallGroupEvidence],
+      root: Option[String]
+  ): Vector[CallGroupEvidence] = proofs.toVector.map(p =>
+    p.copy(
+      call = if p.owner == root then p.call else unpositioned(p.call, ir.Call),
+      function =
+        if root.contains(p.function.name) then p.function
+        else unpositioned(p.function, ir.Function)
+    )
+  )
+
+  def rootedSites(
+      sites: Seq[ContextualPhaseSite],
+      root: Option[String]
+  ): Vector[ContextualPhaseSite] = sites.toVector.map(site =>
+    if site.owner == root then site else site.copy(call = unpositioned(site.call, ir.Call))
+  )
+
+  def unpositioned[A <: scalapb.GeneratedMessage](
+      value: A,
+      companion: scalapb.GeneratedMessageCompanion[A]
+  ): A =
+    import scalapb.descriptors.{PEmpty, PMessage, PRepeated, PValue, ScalaType}
+    def strip(value: PValue): PValue = value match
+      case PMessage(fields) =>
+        PMessage(fields.map { (field, child) =>
+          field -> (field.scalaType match
+            case ScalaType.Message(descriptor)
+                if !field.isRepeated &&
+                  descriptor.fullName == ir.Position.scalaDescriptor.fullName =>
+              PEmpty
+            case _ => strip(child))
+        })
+      case PRepeated(values) => PRepeated(values.map(strip))
+      case _                 => value
+    companion.messageReads.read(strip(value.toPMessage))
 
   def callGroupChunks(proof: CallGroupEvidence): List[String] = List(
     proof.owner.getOrElse(""),
@@ -139,98 +163,34 @@ private object Carrier:
     proof.groups.mkString(",")
   )
 
-  def saveCallGroups(
-      sym: Symbol,
-      model: ir.Model,
-      proofs: Seq[CallGroupEvidence],
-      at: tpd.Tree
-  )(using
+  private def readGroups(data: List[String]): Vector[CallGroupEvidence] =
+    data
+      .grouped(4)
+      .collect { case List(owner, call, function, groups) =>
+        CallGroupEvidence(
+          Option(owner).filter(_.nonEmpty),
+          ir.Call.parseFrom(Base64.getDecoder.decode(call)),
+          ir.Function.parseFrom(Base64.getDecoder.decode(function)),
+          groups.split(',').map(_.toInt).toVector
+        )
+      }
+      .toVector
+
+  def saveCallGroups(sym: Symbol, proofs: Seq[CallGroupEvidence], at: tpd.Tree)(using
       Context
   ): Unit =
     val retained = proofs.distinct
     if retained.nonEmpty then
-      val chunks = retained.flatMap(callGroupChunks)
       sym.addAnnotation(
         Annotation(
           requiredClass(callGroups),
-          List(
-            literals(
-              List(
-                "rule-call-groups-v2",
-                sym.fullName.toString,
-                modelFingerprint(model),
-                callGroupsFingerprint(model, chunks)
-              ) ++ chunks
-            )
-          ),
+          List(literals(retained.toList.flatMap(callGroupChunks))),
           at.span
         )
       )
 
-  def readCallGroups(sym: Symbol, model: ir.Model)(using
-      Context
-  ): Vector[CallGroupEvidence] =
-    def fail(message: String): Nothing =
-      val position = model.functions
-        .find(_.name == sym.fullName.toString)
-        .flatMap(_.position)
-        .getOrElse(ir.Position.defaultInstance)
-      throw new SectionRefusal(
-        position,
-        sym.fullName.toString,
-        s"has $message compiler-owned curried-call metadata"
-      )
-    val marker = getClassIfDefined(callGroups)
-    if !marker.exists then Vector.empty
-    else
-      val annotations = sym.annotations
-        .filter(_.symbol == marker)
-        .map(_.arguments.flatMap(strings))
-        .distinct
-      if annotations.size > 1 then fail("conflicting")
-      annotations.headOption.toVector.flatMap { data =>
-        if data.take(3) != List(
-            "rule-call-groups-v2",
-            sym.fullName.toString,
-            modelFingerprint(model)
-          ) ||
-          data.size <= 4 || (data.size - 4) % 4 != 0
-        then fail("malformed or stale")
-        val proofs = try
-          data
-            .drop(4)
-            .grouped(4)
-            .map { group =>
-              CallGroupEvidence(
-                Option(group(0)).filter(_.nonEmpty),
-                ir.Call.parseFrom(Base64.getDecoder.decode(group(1))),
-                ir.Function.parseFrom(Base64.getDecoder.decode(group(2))),
-                group(3).split(',').map(_.toInt).toVector
-              )
-            }
-            .toVector
-        catch case scala.util.control.NonFatal(_) => fail("malformed")
-        def containsCall(value: Any, call: ir.Call): Boolean = value match
-          case found: ir.Call if found.equals(call) => true
-          case values: Seq[?]                       => values.exists(containsCall(_, call))
-          case product: Product                     =>
-            product.productIterator.exists(containsCall(_, call))
-          case _ => false
-        proofs.foreach { proof =>
-          if !model.functions.exists(_.equals(proof.function)) ||
-            proof.call.function != proof.function.name || proof.groups.size < 2 ||
-            proof.groups.exists(_ < 0) || proof.groups
-              .map(_.toLong)
-              .sum != proof.function.params.size.toLong ||
-            proof.call.args.size >= proof.function.params.size || proof.call.args.size != proof.groups.last ||
-            !proof.owner.exists(owner =>
-              model.functions.exists(f => f.name == owner && containsCall(f, proof.call))
-            )
-          then fail("stale")
-        }
-        if data(3) != callGroupsFingerprint(model, data.drop(4)) then fail("stale")
-        proofs
-      }
+  def readCallGroups(sym: Symbol)(using Context): Vector[CallGroupEvidence] =
+    annotation(sym, callGroups).fold(Vector.empty)(readGroups)
 
   def chunks(model: ir.Model): List[String] =
     chunks(model.toByteArray)
@@ -245,109 +205,40 @@ private object Carrier:
     case Apply(_, args)                             => args.flatMap(strings)
     case _                                          => Nil
 
+  private def annotation(sym: Symbol, name: String)(using Context): Option[List[String]] =
+    val cls = getClassIfDefined(name)
+    if !cls.exists then None else sym.getAnnotation(cls).map(_.arguments.flatMap(strings))
+
+  private def model(chunks: Seq[String]): ir.Model =
+    ir.Model.parseFrom(Base64.getDecoder.decode(chunks.mkString))
+
+  private def text(chunks: Seq[String]): String =
+    new String(Base64.getDecoder.decode(chunks.mkString), java.nio.charset.StandardCharsets.UTF_8)
+
+  private def refusal(position: ir.Position, message: String): List[String] =
+    List("refused", position.file, position.line.toString) ++
+      chunks(message.getBytes(java.nio.charset.StandardCharsets.UTF_8))
+
   def read(sym: Symbol)(using Context): Option[ir.Model] =
-    val cls = getClassIfDefined(stored)
-    if !cls.exists then None
-    else
-      sym.getAnnotation(cls).map { a =>
-        ir.Model.parseFrom(
-          Base64.getDecoder.decode(a.arguments.flatMap(strings).mkString)
-        )
-      }
+    annotation(sym, stored).map(model)
 
   def hasSection(sym: Symbol)(using Context): Boolean =
     val cls = getClassIfDefined(section)
     cls.exists && sym.hasAnnotation(cls)
 
-  def readTypePosition(sym: Symbol)(using Context): Option[ir.Position] =
-    val marker = getClassIfDefined(typePosition)
-    if !marker.exists then None
-    else
-      val values =
-        sym.annotations.filter(_.symbol == marker).map { annotation =>
-          annotation.arguments.flatMap(strings) match
-            case List("rule-type-position-v1", name, file, line)
-                if name == sym.fullName.toString && file.nonEmpty && line.toIntOption
-                  .exists(_ > 0) =>
-              ir.Position(file, line.toInt)
-            case _ =>
-              throw CompilerApiError(
-                s"${sym.fullName} has malformed or stale type-definition position metadata"
-              )
-        }
-      if values.distinct.size > 1 then
-        throw CompilerApiError(
-          s"${sym.fullName} has conflicting type-definition position metadata"
-        )
-      values.headOption
-
-  private def sectionBytes(sym: Symbol, value: String)(using
-      Context
-  ): Array[Byte] =
-    try Base64.getDecoder.decode(value)
-    catch
-      case error: IllegalArgumentException =>
-        throw CompilerApiError(
-          s"${sym.fullName} has malformed compiler-owned section IR: ${error.getMessage}"
-        )
-
-  private def sectionModel(sym: Symbol, value: String)(using
-      Context
-  ): ir.Model =
-    try ir.Model.parseFrom(sectionBytes(sym, value))
-    catch
-      case error: com.google.protobuf.InvalidProtocolBufferException =>
-        throw CompilerApiError(
-          s"${sym.fullName} has malformed compiler-owned section IR: ${error.getMessage}"
-        )
+  def sectionChunks(outcome: SectionOutcome): List[String] =
+    List(outcome.root, outcome.form) ++ outcome.refusal.fold(
+      "ok" :: chunks(outcome.model.get)
+    )(refusal)
 
   def readSection(sym: Symbol)(using Context): Option[SectionOutcome] =
-    val cls = getClassIfDefined(section)
-    if !cls.exists then None
-    else
-      sym.getAnnotation(cls).map { annotation =>
-        val data = annotation.arguments.flatMap(strings)
-        data match
-          case "section-v1" :: root :: form :: "ok" :: body
-              if root == sym.fullName.toString && Set("is", "effect")(
-                form
-              ) && body.nonEmpty =>
-            SectionOutcome(
-              root,
-              form,
-              Some(sectionModel(sym, body.mkString)),
-              None
-            )
-          case "section-v1" :: root :: form :: "refused" :: file :: line :: message
-              if root == sym.fullName.toString && Set("is", "effect")(
-                form
-              ) && message.nonEmpty &&
-                file.nonEmpty && line.toIntOption.exists(_ > 0) =>
-            SectionOutcome(
-              root,
-              form,
-              None,
-              Some(
-                ir.Position(file, line.toInt) ->
-                  new String(
-                    sectionBytes(sym, message.mkString),
-                    java.nio.charset.StandardCharsets.UTF_8
-                  )
-              )
-            )
-          case _ =>
-            throw CompilerApiError(
-              s"${sym.fullName} has malformed or stale compiler-owned section IR"
-            )
-      }
-
-  def sectionChunks(outcome: SectionOutcome): List[String] =
-    val prefix = List("section-v1", outcome.root, outcome.form)
-    outcome.refusal match
-      case Some((position, message)) =>
-        prefix ++ List("refused", position.file, position.line.toString) ++
-          chunks(message.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-      case None => prefix ++ List("ok") ++ chunks(outcome.model.get)
+    annotation(sym, section).map { data =>
+      val root :: form :: state :: body = data: @unchecked
+      if state == "ok" then SectionOutcome(root, form, Some(model(body)), None)
+      else
+        val file :: line :: message = body: @unchecked
+        SectionOutcome(root, form, None, Some(ir.Position(file, line.toInt) -> text(message)))
+    }
 
   def siteChunks(site: ContextualPhaseSite): List[String] =
     def bytes(value: scalapb.GeneratedMessage): String =
@@ -363,240 +254,90 @@ private object Carrier:
     )
 
   def facetChunks(outcome: FacetOutcome): List[String] =
-    val prefix =
-      List("facet-helper-v1", outcome.facet, outcome.namespace, outcome.root)
-    val data = outcome.refusal match
-      case Some((position, message)) =>
-        prefix ++ List("refused", position.file, position.line.toString) ++
-          chunks(message.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-      case None =>
-        val model = chunks(outcome.model.get)
-        prefix ++ List("ok", model.size.toString) ++ model ++
-          List(outcome.sites.size.toString) ++ outcome.sites.toList.flatMap(
-            siteChunks
-          )
-    data :+ callGroupsFingerprint(ir.Model.defaultInstance, data)
+    List(outcome.facet, outcome.namespace, outcome.root) ++ outcome.refusal.fold {
+      val model = chunks(outcome.model.get)
+      List("ok", model.size.toString) ++ model ++
+        List(outcome.sites.size.toString) ++ outcome.sites.toList.flatMap(siteChunks)
+    }(refusal)
 
   def readFacet(sym: Symbol)(using Context): Option[FacetOutcome] =
-    val marker = getClassIfDefined(facet)
-    if !marker.exists then None
-    else
-      val annotations = sym.annotations
-        .filter(_.symbol == marker)
-        .map(_.arguments.flatMap(strings))
-        .distinct
-      def fail(): Nothing = throw CompilerApiError(
-        s"${sym.fullName} has malformed, conflicting or stale compiler-owned facet template"
-      )
-      if annotations.size > 1 then fail()
-      annotations.headOption.map { all =>
-        try
-          if all.size < 7 || all(0) != "facet-helper-v1" || all(
-              3
-            ) != sym.fullName.toString ||
-            all.last != callGroupsFingerprint(
-              ir.Model.defaultInstance,
-              all.init
+    annotation(sym, facet).map { all =>
+      val owner :: namespace :: root :: state :: data = all: @unchecked
+      if state != "ok" then
+        val file :: line :: message = data: @unchecked
+        FacetOutcome(
+          owner,
+          namespace,
+          root,
+          None,
+          Vector.empty,
+          Some(ir.Position(file, line.toInt) -> text(message))
+        )
+      else
+        val count = data.head.toInt
+        val sites = data
+          .drop(2 + count)
+          .grouped(7)
+          .map { values =>
+            def decode(value: String) = Base64.getDecoder.decode(value)
+            ContextualPhaseSite(
+              values(0),
+              Option(values(1)).filter(_.nonEmpty),
+              ir.Call.parseFrom(decode(values(2))),
+              ir.TypeRef.parseFrom(decode(values(3))),
+              ir.TypeRef.parseFrom(decode(values(4))),
+              ir.TypeRef.parseFrom(decode(values(5))),
+              Option(values(6)).filter(_.nonEmpty).map(v => ir.Position.parseFrom(decode(v)))
             )
-          then fail()
-          val data = all.init
-          data(4) match
-            case "refused" =>
-              if data.size < 8 || data(5).isEmpty || data(6).toInt < 1 then fail()
-              FacetOutcome(
-                data(1),
-                data(2),
-                data(3),
-                None,
-                Vector.empty,
-                Some(
-                  ir.Position(data(5), data(6).toInt) -> new String(
-                    Base64.getDecoder.decode(data.drop(7).mkString),
-                    java.nio.charset.StandardCharsets.UTF_8
-                  )
-                )
-              )
-            case "ok" =>
-              val count = data(5).toInt
-              if count < 1 || count > data.size - 7 then fail()
-              val model = sectionModel(sym, data.slice(6, 6 + count).mkString)
-              val sites = data(6 + count).toInt
-              if sites < 0 || (data.size - 7 - count).toLong != sites.toLong * 7
-              then fail()
-              val found = data
-                .drop(7 + count)
-                .grouped(7)
-                .map { values =>
-                  ContextualPhaseSite(
-                    values(0),
-                    Option(values(1)).filter(_.nonEmpty),
-                    ir.Call.parseFrom(Base64.getDecoder.decode(values(2))),
-                    ir.TypeRef.parseFrom(Base64.getDecoder.decode(values(3))),
-                    ir.TypeRef.parseFrom(Base64.getDecoder.decode(values(4))),
-                    ir.TypeRef.parseFrom(Base64.getDecoder.decode(values(5))),
-                    Option(values(6))
-                      .filter(_.nonEmpty)
-                      .map(v => ir.Position.parseFrom(Base64.getDecoder.decode(v)))
-                  )
-                }
-                .toVector
-              def contains(value: Any, call: ir.Call): Boolean = value match
-                case current: ir.Call if current.equals(call) => true
-                case values: Seq[?]                           => values.exists(contains(_, call))
-                case product: Product                         =>
-                  product.productIterator.exists(contains(_, call))
-                case _ => false
-              if !model.functions
-                  .exists(_.name == data(3)) || found.exists(site =>
-                  !Set("read", "write")(site.kind) ||
-                    !site.call.function.startsWith("$facet-context-v1.") ||
-                    !site.call.function.endsWith("." + site.kind) ||
-                    site.call.function.length <= "$facet-context-v1.".length + site.kind.length + 1 ||
-                    site.call.args.size != (if site.kind == "read" then 1
-                                            else 2) ||
-                    site.state.ref.isEmpty || site.phase.ref.isEmpty || site.result.ref.isEmpty ||
-                    !site.result.equals(if site.kind == "read" then site.phase
-                    else site.state) ||
-                    site.placement.exists(p =>
-                      !p.equals(ir.Position.defaultInstance) &&
-                        (p.file.isEmpty || p.line < 1)
-                    ) ||
-                    (site.kind == "write" && site.placement.nonEmpty) ||
-                    !site.owner.exists(owner =>
-                      model.functions.exists(f => f.name == owner && contains(f, site.call))
-                    )
-                )
-              then fail()
-              FacetOutcome(data(1), data(2), data(3), Some(model), found, None)
-            case _ => fail()
-        catch
-          case error: CompilerApiError        => throw error
-          case scala.util.control.NonFatal(_) => fail()
-      }
+          }
+          .toVector
+        FacetOutcome(owner, namespace, root, Some(model(data.slice(1, 1 + count))), sites, None)
+    }
 
-  def statusChunks(
-      outcome: StatusOutcome,
-      version: String = "recorded-status-v1"
-  ): List[String] =
-    val prefix = List(version, outcome.root, outcome.phase, outcome.name)
-    val data = outcome.refusal match
-      case Some((position, message)) =>
-        prefix ++ List("refused", position.file, position.line.toString) ++
-          chunks(message.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-      case None =>
-        val model = chunks(outcome.model.get)
-        prefix ++ List(
-          "ok",
-          Base64.getEncoder.encodeToString(outcome.value.get.toByteArray),
-          model.size.toString
-        ) ++ model ++ List(outcome.proofs.size.toString) ++
-          outcome.proofs.toList.flatMap(callGroupChunks)
-    data :+ callGroupsFingerprint(ir.Model.defaultInstance, data)
+  def statusChunks(outcome: StatusOutcome): List[String] =
+    List(outcome.root, outcome.phase, outcome.name) ++ outcome.refusal.fold {
+      val model = chunks(outcome.model.get)
+      List(
+        "ok",
+        Base64.getEncoder.encodeToString(outcome.value.get.toByteArray),
+        model.size.toString
+      ) ++ model ++ outcome.proofs.toList.flatMap(callGroupChunks)
+    }(refusal)
 
   def readStatus(sym: Symbol)(using Context): Option[StatusOutcome] =
-    readDeclared(sym, status, "recorded-status-v1")
+    readDeclared(sym, status)
 
   def readOutcome(sym: Symbol)(using Context): Option[StatusOutcome] =
-    readDeclared(sym, outcome, "declared-ok-v1")
+    readDeclared(sym, outcome)
 
-  private def readDeclared(sym: Symbol, annotation: String, version: String)(using
+  private def readDeclared(sym: Symbol, name: String)(using
       Context
   ): Option[StatusOutcome] =
-    val marker = getClassIfDefined(annotation)
-    if !marker.exists then None
-    else
-      def fail(): Nothing = throw CompilerApiError(
-        s"${sym.fullName} has malformed, conflicting or stale Recorded status metadata"
-      )
-      val annotations = sym.annotations
-        .filter(_.symbol == marker)
-        .map(_.arguments.flatMap(strings))
-        .distinct
-      if annotations.size > 1 then fail()
-      annotations.headOption.map { all =>
-        try
-          if all.size < 9 || all.head != version || all(
-              1
-            ) != sym.fullName.toString ||
-            all.last != callGroupsFingerprint(
-              ir.Model.defaultInstance,
-              all.init
-            )
-          then fail()
-          val data = all.init
-          data(4) match
-            case "refused" =>
-              if data(5).isEmpty || data(6).toInt < 1 then fail()
-              StatusOutcome(
-                data(1),
-                data(2),
-                data(3),
-                None,
-                None,
-                Some(
-                  ir.Position(data(5), data(6).toInt) -> new String(
-                    Base64.getDecoder.decode(data.drop(7).mkString),
-                    java.nio.charset.StandardCharsets.UTF_8
-                  )
-                )
-              )
-            case "ok" =>
-              val value = ir.Expr.parseFrom(Base64.getDecoder.decode(data(5)))
-              val count = data(6).toInt
-              if count < 0 || count > data.size - 8 then fail()
-              val model = sectionModel(sym, data.slice(7, 7 + count).mkString)
-              val size = data(7 + count).toInt
-              if size < 0 || (data.size - 8 - count).toLong != size.toLong * 4
-              then fail()
-              val proofs = data
-                .drop(8 + count)
-                .grouped(4)
-                .map { group =>
-                  CallGroupEvidence(
-                    Option(group(0)).filter(_.nonEmpty),
-                    ir.Call.parseFrom(Base64.getDecoder.decode(group(1))),
-                    ir.Function.parseFrom(Base64.getDecoder.decode(group(2))),
-                    group(3).split(',').map(_.toInt).toVector
-                  )
-                }
-                .toVector
-              def contains(value: Any, call: ir.Call): Boolean = value match
-                case found: ir.Call if found.equals(call) => true
-                case values: Seq[?]                       => values.exists(contains(_, call))
-                case product: Product                     =>
-                  product.productIterator.exists(contains(_, call))
-                case _ => false
-              if value.kind.isEmpty || data(3).isEmpty ||
-                !model
-                  .copy(functions = Nil, types = Nil)
-                  .equals(ir.Model()) || proofs.exists(p =>
-                  !model.functions.exists(
-                    _.equals(p.function)
-                  ) || p.call.function != p.function.name ||
-                    p.groups.size < 2 || p.groups.exists(_ < 0) ||
-                    p.groups
-                      .map(_.toLong)
-                      .sum != p.function.params.size.toLong ||
-                    p.call.args.size >= p.function.params.size || p.call.args.size != p.groups.last ||
-                    !p.owner.fold(contains(value, p.call))(owner =>
-                      model.functions.exists(f => f.name == owner && contains(f, p.call))
-                    )
-                )
-              then fail()
-              StatusOutcome(
-                data(1),
-                data(2),
-                data(3),
-                Some(value),
-                Some(model),
-                None,
-                proofs
-              )
-            case _ => fail()
-        catch
-          case error: CompilerApiError        => throw error
-          case scala.util.control.NonFatal(_) => fail()
-      }
+    annotation(sym, name).map { all =>
+      val root :: phase :: named :: state :: data = all: @unchecked
+      if state != "ok" then
+        val file :: line :: message = data: @unchecked
+        StatusOutcome(
+          root,
+          phase,
+          named,
+          None,
+          None,
+          Some(ir.Position(file, line.toInt) -> text(message))
+        )
+      else
+        val value :: size :: rest = data: @unchecked
+        val count = size.toInt
+        StatusOutcome(
+          root,
+          phase,
+          named,
+          Some(ir.Expr.parseFrom(Base64.getDecoder.decode(value))),
+          Some(model(rest.take(count))),
+          None,
+          readGroups(rest.drop(count))
+        )
+    }
 
   def literals(chunks: List[String])(using Context): tpd.Tree =
     SeqLiteral(chunks.map(s => Literal(Constant(s))), TypeTree(defn.StringType))
@@ -628,113 +369,6 @@ private object FacetDeclaration:
       section.owner
     )
 
-private object RuleTypeLocations:
-  def chunks(e: PluginEngine)(
-      reference: e.ctx.quotes.reflect.Term,
-      state: Option[e.ctx.quotes.reflect.TypeRepr],
-      sourcePositions: Map[String, ir.Position]
-  )(using Context): List[String] =
-    Carrier.chunks(model(e)(reference, state, sourcePositions))
-
-  def model(e: PluginEngine)(
-      reference: e.ctx.quotes.reflect.Term,
-      state: Option[e.ctx.quotes.reflect.TypeRepr],
-      sourcePositions: Map[String, ir.Position]
-  )(using Context): ir.Model =
-    import e.ctx.quotes.reflect.*
-    val machine = getClassIfDefined("framework.dsl.Machine")
-    val frameworkJar =
-      Option(machine.binaryFile).flatMap(_.underlyingSource).map(_.path)
-    val positions = mutable.Map.empty[String, ir.Position]
-    val seen = mutable.Set.empty[String]
-    def location(symbol: e.ctx.quotes.reflect.Symbol): Unit =
-      if !symbol.isNoSymbol && symbol.isClassDef && !symbol.flags.is(
-          Flags.Module
-        ) &&
-        (symbol.flags.is(Flags.Enum) || symbol.flags.is(Flags.Case)) &&
-        !positions.contains(e.ctx.irTypeName(symbol))
-      then
-        val raw = symbol.asInstanceOf[dotty.tools.dotc.core.Symbols.Symbol]
-        val jar = Option(raw.binaryFile).flatMap(_.underlyingSource).map(_.path)
-        val position = sourcePositions
-          .get(symbol.fullName)
-          .getOrElse(if jar.nonEmpty && jar == frameworkJar then ir.Position.defaultInstance
-          else
-            Carrier
-              .readTypePosition(raw)
-              .getOrElse(
-                e.ctx.fail(
-                  reference,
-                  s"${symbol.fullName} has no retained type-definition position metadata"
-                )
-              ))
-        e.ctx.retainTypeSource(symbol, position)
-        positions(e.ctx.irTypeName(symbol)) = position
-    def domain(tpe: TypeRepr): Unit =
-      val t = tpe.dealias
-      val symbol = t.typeSymbol
-      if !symbol.isNoSymbol && seen.add(t.show) then
-        location(symbol)
-        t.typeArgs.foreach(domain)
-        symbol.caseFields.foreach(field => domain(t.memberType(field)))
-        symbol.children.foreach(child =>
-          child.caseFields.foreach(field => domain(child.typeRef.memberType(field)))
-        )
-    def inputs(tpe: TypeRepr): Unit =
-      val t = tpe.dealias
-      if t.typeSymbol.fullName == "scala.*:" then
-        t.typeArgs.headOption.foreach(domain)
-        t.typeArgs.drop(1).headOption.foreach(inputs)
-      else if t.typeSymbol.fullName.matches("scala\\.Tuple\\d+") then t.typeArgs.foreach(domain)
-      // A native scalar or record input is the action's type argument itself.
-      else domain(t)
-    val action = Symbol.requiredClass("framework.dsl.Action")
-    object actions extends TreeTraverser:
-      override def traverseTree(t: Tree)(owner: Symbol): Unit =
-        t match
-          case term: Term =>
-            term.tpe.widen.baseType(action).typeArgs.headOption.foreach(inputs)
-          case _ => ()
-        super.traverseTree(t)(owner)
-    state.foreach(domain)
-    actions.traverseTree(reference)(Symbol.spliceOwner)
-    e.ctx.namedTypeSymbols.foreach(location)
-    ir.Model(types = positions.toVector.sortBy(_._1).map { (name, position) =>
-      ir.Type(name = name, position = Some(position))
-    })
-
-private object FacetPositions:
-  def qualify[A <: scalapb.GeneratedMessage](
-      value: A,
-      companion: scalapb.GeneratedMessageCompanion[A],
-      sources: collection.Map[String, String],
-      collisions: Set[String]
-  ): A =
-    import scalapb.descriptors.{PMessage, PRepeated, PValue, ScalaType}
-    def position(value: PValue): PValue = value match
-      case message: PMessage =>
-        val at = ir.Position.messageReads.read(message)
-        if sources.get(at.file).exists(collisions) then ir.Position.defaultInstance.toPMessage
-        else value
-      case _ => value
-    def rewrite(value: PValue): PValue = value match
-      case PMessage(fields) =>
-        PMessage(fields.map { (field, child) =>
-          val rewritten = field.scalaType match
-            case ScalaType.Message(descriptor)
-                if descriptor.fullName == ir.Position.scalaDescriptor.fullName =>
-              position(child)
-            case _ => rewrite(child)
-          field -> rewritten
-        })
-      case PRepeated(values) => PRepeated(values.map(rewrite))
-      case _                 => value
-    companion.messageReads.read(
-      if companion.scalaDescriptor.fullName == ir.Position.scalaDescriptor.fullName
-      then position(value.toPMessage)
-      else rewrite(value.toPMessage)
-    )
-
 final private class DefinitionStore:
   private val active = mutable.Set.empty[Symbol]
   private val sites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.DefDef)]
@@ -745,13 +379,8 @@ final private class DefinitionStore:
   private val outcomeSites =
     mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
   private val declared = mutable.Set.empty[Symbol]
-  private val locations = mutable.Map.empty[String, ir.Position]
-  private val sugarTrees = mutable.Map.empty[Symbol, tpd.Tree]
-  private val sugarRoots =
-    new java.util.IdentityHashMap[DottyUnpickler, List[tpd.Tree]]
   private var indexed = false
   private var compilerRun = Option.empty[dotty.tools.dotc.Run]
-  private var frameworkLabels = Option.empty[Set[String]]
 
   private def enterRun()(using ctx: Context): Unit =
     if !compilerRun.exists(_ eq ctx.run) then
@@ -761,103 +390,8 @@ final private class DefinitionStore:
       statusSites.clear()
       outcomeSites.clear()
       declared.clear()
-      locations.clear()
-      sugarTrees.clear()
-      sugarRoots.clear()
       indexed = false
-      frameworkLabels = None
       compilerRun = Some(ctx.run)
-
-  private def sourceLabel(symbol: Symbol)(using Context): Option[String] =
-    val marker = getClassIfDefined("scala.annotation.internal.SourceFile")
-    if !marker.exists then None
-    else
-      Iterator
-        .iterate(symbol)(_.owner)
-        .takeWhile(s => s.exists && !s.is(Package))
-        .flatMap(_.getAnnotation(marker).flatMap(_.argumentConstantString(0)))
-        .nextOption()
-
-  private def frameworkSourceLabels(using ctx: Context): Set[String] =
-    frameworkLabels.getOrElse {
-      val machine = getClassIfDefined("framework.dsl.Machine")
-      val file = Option(machine.binaryFile)
-        .flatMap(_.underlyingSource)
-        .map(_.path)
-        .filter(_.endsWith(".jar"))
-      val labels = file.fold {
-        val sources = mutable.Set.empty[String]
-        ctx.run.units.foreach { unit =>
-          new tpd.TreeTraverser:
-            def traverse(tree: tpd.Tree)(using Context): Unit =
-              tree match
-                case definition: tpd.TypeDef
-                    if List("framework.dsl.", "framework.realize.")
-                      .exists(definition.symbol.fullName.toString.startsWith) =>
-                  sources += sourceLabel(definition.symbol).getOrElse(
-                    unit.source.file.name
-                  ): Unit
-                case _ => ()
-              traverseChildren(tree)
-          .traverse(unit.tpdTree)
-        }
-        sources.toSet
-      } { path =>
-        val zip = new ZipFile(path)
-        try
-          zip.entries.asScala
-            .filter(_.getName.endsWith(".tasty"))
-            .flatMap { entry =>
-              val name = entry.getName.stripSuffix(".tasty").replace('/', '.')
-              List(getClassIfDefined(name), getClassIfDefined(name + "$"))
-                .filter(_.exists)
-                .flatMap(sourceLabel)
-            }
-            .toSet
-        finally zip.close()
-      }
-      frameworkLabels = Some(labels)
-      labels
-    }
-
-  def qualify[A <: scalapb.GeneratedMessage](
-      engine: PluginEngine,
-      value: A,
-      companion: scalapb.GeneratedMessageCompanion[A]
-  )(using Context): A =
-    FacetPositions.qualify(
-      value,
-      companion,
-      engine.ctx.sourceLabels,
-      frameworkSourceLabels
-    )
-
-  def qualifiedGroups(engine: PluginEngine, proofs: Vector[CallGroupEvidence])(using
-      Context
-  ): Vector[CallGroupEvidence] = proofs.map(p =>
-    p.copy(
-      call = qualify(engine, p.call, ir.Call),
-      function = qualify(engine, p.function, ir.Function)
-    )
-  )
-
-  def qualifiedSites(engine: PluginEngine, sites: Vector[ContextualPhaseSite])(using
-      Context
-  ): Vector[ContextualPhaseSite] =
-    sites.map(s => s.copy(call = qualify(engine, s.call, ir.Call)))
-
-  def locatedModel(engine: PluginEngine)(
-      reference: engine.ctx.quotes.reflect.Term,
-      model: ir.Model
-  )(using Context): ir.Model =
-    val positions = RuleTypeLocations
-      .model(engine)(reference, None, typeLocations)
-      .types
-      .map(t => t.name -> t.getPosition)
-      .toMap
-    model.copy(types =
-      model.types.map(t => positions.get(t.name).fold(t)(p => t.copy(position = Some(p))))
-    )
 
   private def index()(using ctx: Context): Unit =
     enterRun()
@@ -880,15 +414,6 @@ final private class DefinitionStore:
                 statusSites(v.symbol) = unit -> v
               case _ => ()
             t match
-              case d: tpd.TypeDef
-                  if d.symbol.isClass && !d.symbol.is(Module) &&
-                    (d.symbol.is(Enum) || d.symbol.is(Case)) =>
-                val position = d.srcPos.sourcePos
-                if position.exists then
-                  locations(d.symbol.fullName.toString) =
-                    ir.Position(position.source.path, position.line + 1)
-              case _ => ()
-            t match
               case d: tpd.MemberDef => declared += d.symbol
               case _                => ()
             traverseChildren(t)
@@ -897,37 +422,6 @@ final private class DefinitionStore:
   def inRun(sym: Symbol)(using Context): Boolean =
     index()
     declared(sym)
-
-  def typeLocations(using Context): Map[String, ir.Position] =
-    index()
-    locations.toMap
-
-  def saveTypeLocation(tree: tpd.TypeDef)(using Context): Unit =
-    typeLocations.get(tree.symbol.fullName.toString).foreach { position =>
-      Carrier.readTypePosition(tree.symbol) match
-        case Some(prior) if !prior.equals(position) =>
-          throw CompilerApiError(
-            s"${tree.symbol.fullName} has stale type-definition position metadata"
-          )
-        case Some(_) => ()
-        case None    =>
-          tree.symbol.addAnnotation(
-            Annotation(
-              getClassIfDefined(Carrier.typePosition).asClass,
-              List(
-                Carrier.literals(
-                  List(
-                    "rule-type-position-v1",
-                    tree.symbol.fullName.toString,
-                    position.file,
-                    position.line.toString
-                  )
-                )
-              ),
-              tree.span
-            )
-          )
-    }
 
   private def sectionForm(v: tpd.ValDef)(using Context): Option[String] =
     def form(t: tpd.Tree): Option[String] = t match
@@ -1050,13 +544,16 @@ final private class DefinitionStore:
               "outcome",
               Some(value),
               Some(
-                ir.Model(
-                  functions = e.ctx.reachableFunctions(Seq(value)),
-                  types = e.ctx.types.values.toVector
+                Carrier.rooted(
+                  ir.Model(
+                    functions = e.ctx.reachableFunctions(Seq(value)),
+                    types = e.ctx.types.values.toVector
+                  ),
+                  None
                 )
               ),
               None,
-              e.ctx.retainedGroups(Seq(value))
+              Carrier.rootedGroups(e.ctx.retainedGroups(Seq(value)), None)
             )
           catch
             case error: LiftError =>
@@ -1091,7 +588,7 @@ final private class DefinitionStore:
             Annotation(
               requiredClass(Carrier.outcome),
               List(
-                Carrier.literals(Carrier.statusChunks(result, "declared-ok-v1"))
+                Carrier.literals(Carrier.statusChunks(result))
               ),
               definition.span
             )
@@ -1152,13 +649,16 @@ final private class DefinitionStore:
                 name,
                 Some(value),
                 Some(
-                  ir.Model(
-                    functions = e.ctx.reachableFunctions(Seq(value)),
-                    types = e.ctx.types.values.toVector
+                  Carrier.rooted(
+                    ir.Model(
+                      functions = e.ctx.reachableFunctions(Seq(value)),
+                      types = e.ctx.types.values.toVector
+                    ),
+                    None
                   )
                 ),
                 None,
-                e.ctx.retainedGroups(Seq(value))
+                Carrier.rootedGroups(e.ctx.retainedGroups(Seq(value)), None)
               )
             catch
               case error: LiftError =>
@@ -1237,21 +737,18 @@ final private class DefinitionStore:
             e.readFinites()
             val d = definition.asInstanceOf[DefDef]
             e.ctx.functions(root) = e.function(root, d.termParamss.flatMap(_.params), d.rhs.get, d)
-            val model = locatedModel(e)(
-              d.rhs.get,
-              ir.Model(
-                functions = e.ctx.reachableFunctions(Nil, Seq(root)),
-                types = e.ctx.types.values.toVector
-              )
+            val model = ir.Model(
+              functions = e.ctx.reachableFunctions(Nil, Seq(root)),
+              types = e.ctx.types.values.toVector
             )
             FacetOutcome(
               namespace.owner.fullName.toString,
               namespace.fullName.toString,
               root,
-              Some(qualify(e, model, ir.Model)),
-              qualifiedSites(
-                e,
-                e.ctx.retainedContextualSites(roots = Seq(root))
+              Some(Carrier.rooted(model, Some(root))),
+              Carrier.rootedSites(
+                e.ctx.retainedContextualSites(roots = Seq(root)),
+                Some(root)
               ),
               None
             )
@@ -1291,14 +788,12 @@ final private class DefinitionStore:
               definition.span
             )
           )
-          result.model.foreach(model =>
+          if result.model.nonEmpty then
             Carrier.saveCallGroups(
               symbol,
-              model,
-              qualifiedGroups(e, e.ctx.retainedGroups(Nil, Seq(root))),
+              Carrier.rootedGroups(e.ctx.retainedGroups(Nil, Seq(root)), Some(root)),
               definition
             )
-          )
           Some(result)
       }
 
@@ -1335,13 +830,10 @@ final private class DefinitionStore:
               functions = e.ctx.reachableFunctions(Nil, Seq(root)),
               types = e.ctx.types.values.toVector
             )
-            val emitted = if contextual then
-              qualify(e, locatedModel(e)(block.body, model), ir.Model)
-            else model
             SectionOutcome(
               root,
               form,
-              Some(emitted),
+              Some(Carrier.rooted(model, Some(root))),
               None
             )
           catch
@@ -1374,15 +866,12 @@ final private class DefinitionStore:
               value.span
             )
           )
-          result.model.foreach(model =>
-            val proofs = e.ctx.retainedGroups(Nil, Seq(root))
+          if result.model.nonEmpty then
             Carrier.saveCallGroups(
               value.symbol,
-              model,
-              if contextual then qualifiedGroups(e, proofs) else proofs,
+              Carrier.rootedGroups(e.ctx.retainedGroups(Nil, Seq(root)), Some(root)),
               value
             )
-          )
           if contextual then
             value.symbol.addAnnotation(
               Annotation(
@@ -1395,9 +884,9 @@ final private class DefinitionStore:
                         namespace.fullName.toString,
                         root,
                         result.model,
-                        qualifiedSites(
-                          e,
-                          e.ctx.retainedContextualSites(roots = Seq(root))
+                        Carrier.rootedSites(
+                          e.ctx.retainedContextualSites(roots = Seq(root)),
+                          Some(root)
                         ),
                         result.refusal
                       )
@@ -1445,49 +934,14 @@ final private class DefinitionStore:
       root.asInstanceOf[q.reflect.Tree],
       outcomes.toList.map(_.asInstanceOf[q.reflect.Tree]),
       s => load(s.asInstanceOf[Symbol]),
-      s => inRun(s.asInstanceOf[Symbol]),
-      s => inJar(s.asInstanceOf[Symbol]),
-      s => jarSugar(s.asInstanceOf[Symbol]).map(_.asInstanceOf[q.reflect.Tree]),
       s => sectionPresent(s.asInstanceOf[Symbol]),
       s => section(s.asInstanceOf[Symbol]),
       s => facet(s.asInstanceOf[Symbol]),
       s => status(s.asInstanceOf[Symbol]),
       s => outcome(s.asInstanceOf[Symbol]),
-      ctx.run.units
-        .map(unit => unit.source.path -> unit.source.file.name)
-        .toMap,
-      s => sourceLabel(s.asInstanceOf[Symbol]),
-      (s, model) => Carrier.readCallGroups(s.asInstanceOf[Symbol], model)
+      s => Carrier.readCallGroups(s.asInstanceOf[Symbol])
     )
     new PluginEngine(pc)
-
-  private def jarSugar(sym: Symbol)(using Context): Option[tpd.Tree] =
-    enterRun()
-    sugarTrees.get(sym).orElse {
-      var found = Option.empty[tpd.Tree]
-      val walk = new tpd.TreeTraverser:
-        def traverse(t: tpd.Tree)(using Context): Unit =
-          if t.symbol == sym then found = Some(t)
-          else
-            t match
-              case _: tpd.DefDef | _: tpd.ValDef => ()
-              case _ if found.isEmpty            => traverseChildren(t)
-              case _                             => ()
-      val provider = JarSugar.provider(sym)
-      val cached = sugarRoots.get(provider)
-      val roots = if cached != null then cached
-      else
-        val roots = provider.rootTrees
-        sugarRoots.put(provider, roots): Unit
-        roots
-      roots.foreach(walk.traverse)
-      found.foreach(t => sugarTrees(sym) = t)
-      found
-    }
-
-  private def inJar(sym: Symbol)(using Context): Boolean =
-    val file = sym.binaryFile
-    file != null && file.underlyingSource.exists(_.path.endsWith(".jar"))
 
   def save(d: tpd.DefDef)(using ctx: Context): Option[ir.Model] =
     enterRun()
@@ -1507,9 +961,12 @@ final private class DefinitionStore:
           val dd = d.asInstanceOf[DefDef]
           val name = d.symbol.fullName.toString
           e.ctx.functions(name) = e.function(name, dd.termParamss.flatMap(_.params), dd.rhs.get, dd)
-          val model = ir.Model(
-            functions = e.ctx.functions.values.toVector,
-            types = e.ctx.types.values.toVector
+          val model = Carrier.rooted(
+            ir.Model(
+              functions = e.ctx.functions.values.toVector,
+              types = e.ctx.types.values.toVector
+            ),
+            Some(name)
           )
           d.symbol.addAnnotation(
             Annotation(
@@ -1518,7 +975,7 @@ final private class DefinitionStore:
               d.span
             )
           )
-          Carrier.saveCallGroups(d.symbol, model, e.ctx.callGroups.toVector, d)
+          Carrier.saveCallGroups(d.symbol, Carrier.rootedGroups(e.ctx.callGroups.toVector, Some(name)), d)
           Some(model)
         catch
           case err: SectionRefusal =>
@@ -1540,13 +997,6 @@ final private class StorePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyStore"
   override val runsAfter = Set("reifyFamily")
   override val runsBefore = Set("sbt-api", Pickler.name)
-
-  override def transformTypeDef(tree: tpd.TypeDef)(using Context): tpd.Tree =
-    try store.saveTypeLocation(tree)
-    catch
-      case error: CompilerApiError =>
-        report.error(error.getMessage, tree.srcPos)
-    tree
 
   override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =
     store.saveSection(tree): Unit
@@ -1779,30 +1229,13 @@ final private class EndpointsPhase(
             val writer = captured("writer", e.phaseWriter(cls, c), 2)
             val roots = (projection.toList ++ writer.toList).map(_.name)
             val model = Carrier.chunks(
-              store.qualify(
-                e,
-                ir.Model(
-                  functions = e.ctx.reachableFunctions(Nil, roots),
-                  types = e.ctx.types.values.toVector
-                ),
-                ir.Model
+              ir.Model(
+                functions = e.ctx.reachableFunctions(Nil, roots),
+                types = e.ctx.types.values.toVector
               )
             )
-            val positions = Carrier.chunks(
-              store.qualify(
-                e,
-                RuleTypeLocations.model(e)(
-                  c.constructor.rhs.getOrElse(c.parents.collectFirst { case t: Term =>
-                    t
-                  }.get),
-                  Some(state),
-                  store.typeLocations
-                ),
-                ir.Model
-              )
-            )
-            val proofs =
-              store.qualifiedGroups(e, e.ctx.retainedGroups(Nil, roots))
+            val positions = Carrier.chunks(ir.Model())
+            val proofs = e.ctx.retainedGroups(Nil, roots)
             def bytes(value: scalapb.GeneratedMessage): String =
               Base64.getEncoder.encodeToString(value.toByteArray)
             val data = List(
@@ -1850,22 +1283,15 @@ final private class EndpointsPhase(
                 )
             }
             val roots = authored.map(_.name).toSeq
-            val locations = RuleTypeLocations
-              .model(e)(
-                c.parents.collectFirst { case t: Term => t }.get,
-                Some(fact),
-                store.typeLocations
-              )
-              .types
-              .map(t => t.name -> t.position)
-              .toMap
             val model = ir.Model(
               functions = e.ctx.reachableFunctions(Nil, roots),
-              types = e.ctx.types.values.toVector.map(t =>
-                t.copy(position = locations.getOrElse(t.name, t.position))
-              )
+              types = e.ctx.types.values.toVector
             )
             val proofs = e.ctx.retainedGroups(Nil, roots)
+            val sources = ctx.run.units
+              .map(unit => unit.source.path -> unit.source.file.name)
+              .distinct
+              .sortBy(_._1)
             val schema = new SchemaEngine(
               store.engine(ctx.compilationUnit.tpdTree).ctx
             )
@@ -1906,10 +1332,8 @@ final private class EndpointsPhase(
                   p.groups.mkString(","),
                   p.owner.getOrElse("")
                 )
-              ) ++ List(e.ctx.sourceLabels.size.toString) ++
-              e.ctx.sourceLabels.toVector
-                .sortBy(_._1)
-                .flatMap((file, raw) => List(file, raw))
+              ) ++ List(sources.size.toString) ++
+              sources.flatMap((file, raw) => List(file, raw))
             require(
               factRef.equals(ref),
               "evidence Fact capture and selected schema disagree"
@@ -2083,20 +1507,14 @@ final private class RulesPhase(
                 fragments: Seq[ir.Expr] = Nil
             ): List[String] =
               if derived.nonEmpty then
-                val sites = store.qualifiedSites(
-                  e,
-                  e.ctx.retainedContextualSites(fragments)
-                )
+                val sites = e.ctx.retainedContextualSites(fragments)
                 List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++
                   List(sites.size.toString) ++ sites.toList.flatMap(
                     Carrier.siteChunks
                   )
               else
                 facet.fold(ordinary) { namespace =>
-                  val sites = store.qualifiedSites(
-                    e,
-                    e.ctx.retainedContextualSites(fragments)
-                  )
+                  val sites = e.ctx.retainedContextualSites(fragments)
                   List(
                     if disabled then "facet-disabled-v1" else "facet-rule-v1",
                     owner.get.fullName.toString,
@@ -2108,17 +1526,7 @@ final private class RulesPhase(
                       Carrier.siteChunks
                     )
                 }
-            def positionChunks(reference: Term): List[String] =
-              val positions = RuleTypeLocations.model(e)(
-                reference,
-                cls.typeRef
-                  .baseType(machineClass.asInstanceOf[Symbol])
-                  .typeArgs
-                  .headOption,
-                store.typeLocations
-              )
-              Carrier.chunks(if contextual then store.qualify(e, positions, ir.Model)
-              else positions)
+            val typePositions = Carrier.chunks(ir.Model())
             if disabled then
               val targets =
                 tree.args.flatMap(a => e.varargs(a.asInstanceOf[Term]))
@@ -2132,7 +1540,6 @@ final private class RulesPhase(
                   )
                 List(name, bytes(e.ctx.pos(target)))
               }
-              val typePositions = positionChunks(tree.asInstanceOf[Term])
               tree.putAttachment(
                 RulesPayload.key,
                 RulesPayload.Payload(
@@ -2250,19 +1657,10 @@ final private class RulesPhase(
                 "capture",
                 tree.asInstanceOf[Tree]
               )
-              val guard =
-                if contextual then store.qualify(e, capturedGuard, ir.Expr)
-                else capturedGuard
-              val result =
-                if contextual then store.qualify(e, capturedResult, ir.Expr)
-                else capturedResult
               val fragments =
-                Carrier.chunks(ir.ListOf(Seq(guard, result)).toByteArray)
-              val capturedProofs =
-                e.ctx.retainedGroups(Seq(capturedGuard, capturedResult))
+                Carrier.chunks(ir.ListOf(Seq(capturedGuard, capturedResult)).toByteArray)
               val curried =
-                (if contextual then store.qualifiedGroups(e, capturedProofs)
-                 else capturedProofs).map { proof =>
+                e.ctx.retainedGroups(Seq(capturedGuard, capturedResult)).map { proof =>
                   List(
                     bytes(proof.call),
                     bytes(proof.function),
@@ -2274,31 +1672,14 @@ final private class RulesPhase(
                 functions = e.ctx.reachableFunctions(Seq(capturedGuard, capturedResult)),
                 types = e.ctx.types.values.toVector
               )
-              val closure =
-                Carrier.chunks(if contextual then store.qualify(e, model, ir.Model)
-                else model)
-              val typePositions = positionChunks(
-                e.ruleBlock(rules, tree.asInstanceOf[Tree])
-              )
+              val closure = Carrier.chunks(model)
               val ordinary = List(
                 "ordinary-rule-v3",
                 e.forwardedDef(effect).fold(effect.show)(_.fullName)
               ) ++ provenance ++
                 List(
-                  bytes(if contextual then
-                    store.qualify(
-                      e,
-                      e.ruleSite(rules, tree.asInstanceOf[Tree]),
-                      ir.Position
-                    )
-                  else e.ruleSite(rules, tree.asInstanceOf[Tree])),
-                  bytes(if contextual then
-                    store.qualify(
-                      e,
-                      e.ctx.pos(tree.asInstanceOf[Tree]),
-                      ir.Position
-                    )
-                  else e.ctx.pos(tree.asInstanceOf[Tree])),
+                  bytes(e.ruleSite(rules, tree.asInstanceOf[Tree])),
+                  bytes(e.ctx.pos(tree.asInstanceOf[Tree])),
                   params.size.toString
                 ) ++
                 params.map(bytes) ++ List(
@@ -2512,33 +1893,14 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                   functions = r.ctx.reachableFunctions(Seq(result)),
                   types = r.ctx.types.values.toVector
                 )
-                val fragments = Carrier.chunks(
-                  ir.ListOf(
-                    Seq(
-                      guard,
-                      if contextual then store.qualify(r, result, ir.Expr)
-                      else result
-                    )
-                  ).toByteArray
-                )
-                val closure = Carrier.chunks(if contextual then store.qualify(r, captured, ir.Model)
-                else captured)
-                val positions = Carrier.chunks(
-                  RuleTypeLocations.model(r)(
-                    effect,
-                    owner.typeRef
-                      .baseType(machineClass.asInstanceOf[Symbol])
-                      .typeArgs
-                      .headOption,
-                    store.typeLocations
-                  )
-                )
+                val fragments = Carrier.chunks(ir.ListOf(Seq(guard, result)).toByteArray)
+                val closure = Carrier.chunks(captured)
+                val positions = Carrier.chunks(ir.Model())
                 def bytes(value: scalapb.GeneratedMessage): String =
                   Base64.getEncoder.encodeToString(value.toByteArray)
                 val proofs = r.ctx.retainedGroups(Seq(result))
                 val groups =
-                  (if contextual then store.qualifiedGroups(r, proofs)
-                   else proofs).toList.flatMap(p =>
+                  proofs.toList.flatMap(p =>
                     List(
                       bytes(p.call),
                       bytes(p.function),
@@ -2564,10 +1926,7 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                   positions.size.toString
                 ) ++ positions ++ groups
                 if contextual then
-                  val sites = store.qualifiedSites(
-                    r,
-                    r.ctx.retainedContextualSites(Seq(result))
-                  )
+                  val sites = r.ctx.retainedContextualSites(Seq(result))
                   List(
                     "derived-rule-v1",
                     ordinary.size.toString
@@ -2764,14 +2123,12 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
       val framework = Vector(
         canonicalImplementation(
           "framework.realize.Conversion$package$",
-          "/model/framework/realize/Conversion.scala",
           "commandId",
           2,
           "java.lang.String"
         ),
         canonicalImplementation(
           "framework.realize.Conversion$package$",
-          "/model/framework/realize/Conversion.scala",
           "constructedCommandToIR",
           3,
           "io.temporal.server.api.umpire.v1.Command"
@@ -2781,14 +2138,12 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
       val kitImplementations = Vector(
         canonicalImplementation(
           "temporal.realize.TemporalConversion",
-          "/model/temporal/realize/Conversion.scala",
           "commandToIR",
           2,
           "io.temporal.server.api.umpire.v1.Command"
         ),
         canonicalImplementation(
           "temporal.realize.TemporalConversion",
-          "/model/temporal/realize/Conversion.scala",
           "deadlineItem",
           4,
           "io.temporal.server.api.umpire.v1.Item"
@@ -2804,9 +2159,7 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
   private def describedStatusDefinition(
       tree: tpd.DefDef
   )(using Context): Boolean =
-    describedStatusMember(tree.symbol) && tree.srcPos.sourcePos.source.file.path
-      .replace('\\', '/')
-      .endsWith("/model/temporal/realize/Modules.scala")
+    describedStatusMember(tree.symbol)
 
   private def defaultArgument(tree: tpd.Tree)(using Context): Boolean =
     var found = false
@@ -2891,7 +2244,6 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
 
   private def canonicalImplementation(
       owner: String,
-      source: String,
       name: String,
       parameters: Int,
       result: String
@@ -2901,10 +2253,7 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
           if symbol.owner.fullName.toString == owner &&
             symbol.name.toString == name &&
             symbol.paramSymss.flatten.size == parameters &&
-            definition.tpt.tpe.widenDealias.typeSymbol.fullName.toString == result &&
-            definition.srcPos.sourcePos.source.file.path
-              .replace('\\', '/')
-              .endsWith(source) =>
+            definition.tpt.tpe.widenDealias.typeSymbol.fullName.toString == result =>
         symbol
     }.toVector
     methods match
@@ -2946,26 +2295,11 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
     enclosingMethods(ctx.owner).exists(temporalConversionImplementations)
 
   private def commandedResult(tree: tpd.Apply)(using Context): Boolean =
-    def artifact(sym: Symbol): Option[String] =
-      val file = if sym.exists then sym.binaryFile else null
-      if file == null then None else file.underlyingSource.map(_.path)
     val method = tree.fun.symbol
-    indexResults()
-    val named = getClassIfDefined("framework.realize.Named")
-    val artifactOwned = named.exists && artifact(method).exists(
-      artifact(named).contains
-    )
-    val implementationOwned = resultSites
-      .get(method)
-      .fold(artifactOwned): definition =>
-        definition.srcPos.sourcePos.source.file.path
-          .replace('\\', '/')
-          .endsWith("/model/framework/realize/Scripts.scala")
     method.exists && method.is(Method) &&
     method.name.toString == "commanded" &&
     method.owner.fullName.toString == "framework.realize.Scripts$package$" &&
-    method.paramSymss.flatten.size == 1 && tree.args.size == 1 &&
-    implementationOwned
+    method.paramSymss.flatten.size == 1 && tree.args.size == 1
 
   override def transformTemplate(tree: tpd.Template)(using
       ctx: Context

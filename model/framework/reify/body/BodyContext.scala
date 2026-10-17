@@ -520,7 +520,6 @@ private[framework] trait BodyContext:
   // The type each IR type name was taken by, and the name each type takes, computed once.
   private val typeTakenBy = mutable.Map.empty[String, Symbol]
   private val typeNames = mutable.Map.empty[Symbol, String]
-  def namedTypeSymbols: List[Symbol] = typeNames.keys.toList
 
   // The name the IR gives the type `sym`: its fully qualified name (`qualifiedName`). Two types the
   // lift reads that would share a name are refused, which only a name the compiler made up allows.
