@@ -137,14 +137,14 @@ object VarSchema:
       ).getOrElse(runtime, runtime)
 
 // The native runtime of one Machine's vars until the IR evaluator replaces it (fn-190.3/.5): the
-// Machine object holds one live state, its vars, which it reads and writes through their accessors.
-// They are looked up by name: a closure among the arguments of the Machine's parent constructor
-// would be hoisted into the object that encloses the Machine, whose initialization would then run
-// inside the Machine's. `at` restores a state into them, evaluates a
-// step, a guard or a claim on them, and puts back the state it found, which outside every
-// evaluation is the initial state, captured from the vars before the first evaluation. So the
-// Machine object reads as its initial state between evaluations, and evaluations of one Machine
-// run one at a time.
+// Machine object holds one live state, its vars. `at` restores a state into them, evaluates a step,
+// a guard or a claim on them, and puts back the state it found, which outside every evaluation is
+// the initial state, captured from the vars before the first evaluation. So the Machine object
+// reads as its initial state between evaluations, and evaluations of one Machine run one at a time.
+//
+// The vars are read and written through their accessors, looked up by name: a closure among the
+// arguments of the Machine's parent constructor would be hoisted into the object that encloses the
+// Machine, whose initialization would then run inside the Machine's.
 final class Vars private[framework] (
     private[framework] val machine: RecordMachine[State, ?, ?],
     private[framework] val schema: VarSchema
@@ -178,10 +178,8 @@ final class Vars private[framework] (
     accessors
       .lazyZip(state.values)
       .foreach: (accessor, value) =>
-        val _ = accessor._2.invoke(
-          machine,
-          value.asInstanceOf[AnyRef]
-        ) // scalafix:ok DisableSyntax.asInstanceOf
+        val boxed = value.asInstanceOf[AnyRef] // scalafix:ok DisableSyntax.asInstanceOf
+        val _ = accessor._2.invoke(machine, boxed)
 
   private[framework] def owned(state: Any): State = state match
     case value: State if value.owner.eq(this) => value
