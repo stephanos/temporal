@@ -48,9 +48,10 @@ the held lifting, schema/Go/oracle, Temporal or equivalence work.
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 (DSL) half complete. The six samples use plain vars, `transitions` and assignment effects in the section layout. Negative designs and refuted claims are test-only controls in `<Sample>.test.scala`. Kettle's starts are `oneOf(-40 to 40)` and it has no queries section. All compile under the native strict flags; none uses retired vocabulary after `aa2b5e3bf7`. 637 native tests pass on merged tip `5fd91dc1bf` (`.flow/tmp/phase1-merged-native.log`). Lifting, the Go budget, start list, vacuity, oracles and equivalence are fn-190.10. No exhaustive Bank proof is claimed.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6339e6c654, 575eaceb02, e4a0febb8a, 9dab787128, 5fd91dc1bf
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests
 - PRs:

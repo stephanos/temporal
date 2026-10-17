@@ -131,9 +131,16 @@ as passing.
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 (DSL) native half complete. It builds on the checkpoints recorded in Execution status: assignment effects, plain transitions, section claims, progress environments, `oneOf` start products, short-circuit and whole-member boundaries, hole/unknown evidence and claim environments.
 
+Final native obligations, in commits `aa2b5e3bf7` and `044bd71557` (merge `5fd91dc1bf`):
+- Legacy vocabulary is unreachable outside `framework`: building a `RecordMachine` or a `Rules` subclass, `property`, `expect`/`across`, `~>`, `where`/`always`/`rejects`/`enter`, `query`, `Limits` construction, `assume`, named `leadsTo` overloads, `restrict`/`assuming`. The machinery stays `private[framework]` for the Phase 2 lifter fixtures; fn-190.5 deletes native execution. `check` in a retired `properties`/`safety`/`liveness` object is refused with the spec text. `ExpectExternal.test.scala` (package `expectauthor`) refuses each word, and a positive control keeps the plain words compiling.
+- Scoped-claim prefix: conductor decision to refuse rather than capture, because the macro probe showed whole-member capture is unreliable. `BlockFormRule.scopedPrefixes` flags a multi-statement claim block whose last statement alone takes `in`, and asks for `{ ... } in env`. Plain parentheses cannot hold several statements in Scala 3. It is documented in SEMANTICS §9.
+
+Merged-tip verification: 637 native dsl/realize/samples tests (`.flow/tmp/phase1-merged-native.log`), 31 lint RuleSuite tests (`.flow/tmp/phase1-merged-rules.log`) and FrameworkLoopSuite (`.flow/tmp/phase1-merged-loop.log`) pass. The lifter rules and lift-time refusals are fn-190.9; the engine/IR proofs are fn-190.10. No held gate is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aa2b5e3bf7, 044bd71557, 5fd91dc1bf
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests, mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite', mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.FrameworkLoopSuite
 - PRs:

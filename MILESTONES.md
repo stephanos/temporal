@@ -183,8 +183,8 @@ facet vocabularies are recorded in fn-161.
 | Builtins | fn-192 (captured 2026-10-17) | Every value operator a Model may use is a row of one checked-in table, `model/builtins.json`; the lifter emits a generic `BuiltinCall`; the Go interpreter and the Quint exporter hold the semantics; a conformance test holds all three to the list; fn-173.4's `Set`/`Map` operations land as builtins, not a `Collection` node. Not planned yet |
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
-| Phase 1 (now) | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): sections, then the plain-Scala Models (state as vars, effects as assignments, claims as `check` blocks) until dsl/realize/samples compile and the native sample suites pass. Gate: the native checks; the export gate is expected red |
-| Phase 2 (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189, fn-192, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks, the IR evaluator, plugin diet, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. Needs fn-173.4's collection schema and the Go hold released for the sample answers |
+| Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 2 |
+| Phase 2 (now, batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189, fn-192, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks, the IR evaluator, plugin diet, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. Needs fn-173.4's collection schema and the Go hold released for the sample answers |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -1058,13 +1058,9 @@ with a Kettle prototype and verdict in `model/design`.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.4 | 🔄 in progress | Native effects, transitions, claim environments and whole Unit-member short-circuit boundaries are implemented; 636 native tests pass. Finish public vocabulary retirement and unsafe helpers before scoped `in` metadata; typed Hole-call lifting remains .9 |
 | fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
-| fn-190.7 | 🔄 in progress | Six native sample rewrites, witness-only query sections and test-only negative controls; sample tests colocated and all 636 native tests pass. Bank uses step/witness/refutation checks without an exhaustive safety assertion; complete-start-list coverage and IR/Go/oracle/equivalence proofs remain open |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
-| fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
 | fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
-| fn-190.14 | ✅ done | Full adjacency tables removed; on-demand safety/find/refutation/monitor checks, progress successor replay. Native core 502, selected samples 42 and lint 29 pass; expanded Bank exhaustive proof remains unclaimed |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 

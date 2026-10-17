@@ -22,9 +22,14 @@ Phase 1, DSL only (owner's phasing, 2026-10-17). Retire the composition vocabula
 - [ ] A member fact written without its member case is a type error (fixture).
 
 ## Done summary
-TBD
+Phase 1 (DSL) of R17 is complete. The owner's `6983e0b1d7` already removed `MemberPath`, `through`, the member `records` overloads, `memberRecorded` and `captureBinding` from the DSL. Compositions declare a per-member `Fact` enum, and native composed steps carry the tagged cases (`Expect.test.scala` "tagged witness facts retain their member case across composition order"). `Witness.test.scala` "a composition's recorded fact requires its member case" is the type-error fixture for an unwrapped member fact. `b8dbcf4823` removes the remaining DSL-side `through`/member-key prose from SEMANTICS.md and model/README.md.
 
+Verification: `grep -rn 'through(\|MemberPath\|memberRecorded\|captureBinding' model/framework/{dsl,samples,realize}` is empty. Baseline native run: 636 tests pass (`.flow/tmp/conductor-baseline-native.log`). Source lint passes 29 RuleSuite tests (`.flow/tmp/fn19011-rules.log`). GuideSourcesTest still fails on a Temporal excerpt path disabled by fn-188, a held suite unrelated to this change.
+
+The lifter's `<state>.through.<path>.<def>` functions, the `<field>_<fact>` keys and the Go lowering stay in fn-190.12. The Temporal compositions migrate at the sweep.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 6983e0b1d7, b8dbcf4823
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests, mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite'
 - PRs:
