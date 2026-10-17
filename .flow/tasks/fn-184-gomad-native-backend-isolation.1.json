@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-184-gomad-native-backend-isolation",
   "spec_path": ".flow/tasks/fn-184-gomad-native-backend-isolation.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Decide and prototype the isolation mechanism",
-  "updated_at": "2026-10-16T00:38:54.861393Z"
+  "updated_at": "2026-10-17T00:54:38.209356Z"
 }

@@ -10,16 +10,17 @@ Prototype both candidates on a throwaway branch: a nested Go module at internal/
 **Files:** tools/gomad/go.mod, tools/gomad/internal/backends/native/** (prototype only), tools/gomad/cmd/gomad/internal/cli/launcher.go, .flow/specs/fn-184-gomad-native-backend-isolation.md
 
 ## Acceptance
-- [ ] Both mechanisms prototyped; `go list -deps ./cmd/gomad` on the default set lists no native package for the chosen one
-- [ ] Native set builds and `go vet` passes under the selection
-- [ ] Identity check recorded: no rotation, or the exact identities that rotate and why
-- [ ] Baseline numbers for R5 retained (package count, lines, gate wall times, host identity)
-- [ ] Decision and trade-offs written into the spec
-
+- [x] Both mechanisms prototyped; `go list -deps ./cmd/gomad` on the default set lists no native package for the chosen one
+- [x] Native set builds and `go vet` passes under the selection
+- [x] Identity check recorded: no rotation, or the exact identities that rotate and why
+- [x] Baseline numbers for R5 retained (package count, lines, gate wall times, host identity) — package and line counts and host identity retained; gate wall times **transferred to fn-185 R6** (owner decision 2026-10-17)
+- [x] Decision and trade-offs written into the spec (Decision Context)
 ## Done summary
-TBD
+Prototyped both mechanisms on throwaway branches: nested module (`1d72581886`) gives zero native packages with default build/vet exit 0; pure build tags (`ffac982ecb`) fail because overlay packages stay visible to stock Go. Chose the nested module. Identity probes show no rotation (choice, volume, network, World, WASM model). Baseline counts: 80 packages, 118,144 production / 131,789 test lines at `3dae95b99f`. Gate wall times are transferred to fn-185 R6 by the owner decision of 2026-10-17. Detail: `.flow/artifacts/fn184-closeout-2026-10-17.md`.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d40debd4db
+- Tests: cd tools/gomad && go list -deps ./cmd/gomad | grep internal/backends/native, cd tools/gomad && go build ./... && go vet ./..., BASE_SHA_EXPECTED=3dae95b99f AFTER_SHA_EXPECTED=f22f8ef227 bash /home/agent/wt/evidence/fn184/measure.sh structural
 - PRs:
+- Detailed evidence: `.flow/artifacts/fn184-closeout-2026-10-17.md` (R-ID map, commits, commands, exits, reviews, fn-185 R6 transfer)

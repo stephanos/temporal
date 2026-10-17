@@ -55,6 +55,8 @@ Shared code that reads native sources stays as is: the volume projection generat
 
 Owner decision (2026-10-16): isolate the native backend. The 2026-10-14 hibernation deferred native acceptance but left native code in every gate; isolation converts that decision into lower maintenance cost per WASM task. The feature-preservation constraint is honored because the code stays and remains buildable and testable through the selection.
 
+Mechanism decision (task .1): the nested Go module was chosen. Its prototype (`1d72581886`) built and vetted the default set with zero native packages and no identity rotation, and touches fewer native files. The pure build-constraint prototype (`ffac982ecb`) failed because the preserved runtime overlay packages stay visible to stock Go, and tagging generated native sources made their checks stale. Costs accepted: a child `go.mod`/`go.sum` with the same pins, explicit pin-impact and archcheck inventory of the child module, and wiring-only command-path adaptations in native descriptors and generators. Details: `.flow/artifacts/fn184-current-batch-2026-10-16.md` and `.flow/artifacts/fn184-closeout-2026-10-17.md`.
+
 ## Early proof point
 
 Task .1 prototypes the chosen mechanism on a throwaway branch and shows `go build ./...` plus `go vet ./...` of the default set succeeding with zero native packages in `go list -deps`, and the native set building under the selection. If neither mechanism achieves that without touching shared identities, stop and report before the seam work.

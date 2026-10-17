@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-184-gomad-native-backend-isolation.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: native backend isolation",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T00:39:27.754307Z"
+  "updated_at": "2026-10-17T00:54:42.853318Z"
 }

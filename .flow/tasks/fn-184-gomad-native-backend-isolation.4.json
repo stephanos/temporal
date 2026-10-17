@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-184-gomad-native-backend-isolation",
   "spec_path": ".flow/tasks/fn-184-gomad-native-backend-isolation.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure, document and hand over the isolated candidate",
-  "updated_at": "2026-10-16T00:38:54.862337Z"
+  "updated_at": "2026-10-17T00:54:41.382688Z"
 }
