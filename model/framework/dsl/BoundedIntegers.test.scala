@@ -3,7 +3,7 @@ package framework.dsl
 object BoundedIntegersFixture:
 
   object counter extends Actor:
-    val tick = action(this)
+    val tick = action
 
   // A whole state that is a bounded counter, authored without explicit evidence.
   object Bounded extends RecordMachine[UpTo[2], Boolean, Nothing]:

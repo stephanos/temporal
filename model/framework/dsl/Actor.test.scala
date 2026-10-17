@@ -1,6 +1,23 @@
 package framework.dsl
 
+object ActorFixture:
+
+  object user extends Actor:
+    val press = action
+
+  object heater extends Internal:
+    val heat = step
+    val expire = timer
+
 class ActorTest extends munit.FunSuite:
+  import ActorFixture.*
+
+  private val placement =
+    "an action is declared in an Actor object; a step the system takes on its own in an Internal object"
+
+  private def assertPlaced(errors: String): Unit =
+    assert(errors.contains(placement), errors)
+
   test("an empty in-place Actor retains its exact constructor name in IR"):
     val actor = Actor("")
     assertEquals(action("empty", actor).declaredAt("fixture.empty").toIR.actor, "")
@@ -43,3 +60,25 @@ class ActorTest extends munit.FunSuite:
     do
       val value = action("constructor", actor).declaredAt("fixture.constructor")
       assertEquals(value.toIR.actor, expected)
+
+  test("an Actor object declares its actions and an Internal object its steps and timers"):
+    assertEquals(user.press.decl.actor, user)
+    assert(!user.press.decl.internal && !user.press.decl.timer)
+    assertEquals(heater.heat.decl.actor, Actor.system)
+    assert(heater.heat.decl.internal && !heater.heat.decl.timer)
+    assertEquals(heater.expire.decl.actor, Actor.system)
+    assert(heater.expire.decl.timer && !heater.expire.decl.internal)
+
+  test("an action outside an Actor object is refused with the placement text"):
+    assertPlaced(compileErrors("object loose:\n  val press = action"))
+
+  test("a step or timer outside an Internal object is refused with the placement text"):
+    assertPlaced(compileErrors("object loose:\n  val heat = step"))
+    assertPlaced(compileErrors("object loose:\n  val expire = timer"))
+
+  test("an action in an Internal object is refused with the placement text"):
+    assertPlaced(compileErrors("object heater extends Internal:\n  val press = action"))
+
+  test("a step or timer in an Actor object is refused with the placement text"):
+    assertPlaced(compileErrors("object user extends Actor:\n  val heat = step"))
+    assertPlaced(compileErrors("object user extends Actor:\n  val expire = timer"))

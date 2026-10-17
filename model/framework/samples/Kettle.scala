@@ -17,12 +17,12 @@ object Kettle:
   val coldest = Model.init.copy(temperature = -40)
 
   object user extends Actor:
-    val pressButton = action(this)
-    val depressButton = action(this)
+    val pressButton = action
+    val depressButton = action
 
-  object heater:
-    val heat = internal
-    val failover = internal
+  object heater extends Internal:
+    val heat = step
+    val failover = step
 
   object Model extends Machine[Outcome, Nothing]:
     // the temperature in the kettle in Celsius, whether it is heating and whether it is beeping: room

@@ -106,15 +106,15 @@ object ReliableBroadcast:
   given Ok[Outcome] = Ok(Outcome.accepted)
 
   object sender extends Actor:
-    val broadcast = action(this).input[Payload](name = "payload")
-    val send = action(this)
+    val broadcast = action.input[Payload](name = "payload")
+    val send = action
 
   object fault extends Actor:
-    val crash = action(this).crash
+    val crash = action.crash
 
-  object process:
-    val relay = internal.input[Proc](name = "process")
-    val deliver = internal.input[Proc](name = "process")
+  object process extends Internal:
+    val relay = step.input[Proc](name = "process")
+    val deliver = step.input[Proc](name = "process")
 
   object Model extends Machine[Outcome, Nothing], FailureModel:
     // the origin, each process and the messages in flight: nothing broadcast, nothing sent

@@ -4,10 +4,14 @@ import scala.annotation.publicInBinary
 import scala.language.dynamics
 
 // Who takes an action: an object that extends it, `object caller extends Actor`, whose members are
-// the actions it takes, `val start = action(this)`, named after its object with the first letter
+// the actions it takes, `val start = action`, named after its object with the first letter
 // lowered; or one named in place, `Actor("fixture")`. `system` is reserved for the steps a machine
 // takes of its own: its timers, its internal steps and a channel's deliveries and losses.
 open class Actor(named: String = ""):
+  // Declares an action this actor takes, a stimulus a test drives, named after the `val` that
+  // declares it.
+  protected inline def action: Action[EmptyTuple] = framework.dsl.action(this)
+
   private var moduleName = Option.empty[String]
   private var conflictingName = false
 
@@ -30,7 +34,8 @@ object Actor:
   // An actor named in place, rather than by an object of its own.
   def apply(name: String): Actor = new Actor(name)
 
-  // `system` also takes the steps `internal` declares and a channel's deliveries and losses.
+  // `system` also takes the steps an `Internal` object declares and a channel's deliveries and
+  // losses.
   val system: Actor = Actor("system")
 
 // What a machine keeps state for, named after its `val` unless `name` names it. `key` names the
@@ -345,29 +350,55 @@ class Action[I] private[framework] (
 
   override def toString: String = decl.name
 
-// Declares an action an actor takes.
-def action(name: String, actor: Actor): Action[EmptyTuple] =
+// The steps the system takes on its own, which a test only observes: an object that extends it,
+// `object heater extends Internal`, whose members are its steps, `val heat = step`, and its timers,
+// `val expire = timer`, each named after the `val` that declares it.
+abstract class Internal:
+  // Declares a step of the system that is not a timer, such as a dispatch or a commit.
+  protected inline def step: Action[EmptyTuple] = framework.dsl.internal
+
+  // Declares a timer, an action with no input that the system performs.
+  protected inline def timer: Action[EmptyTuple] = systemTimer
+
+// Refuses an action outside an `Actor` object; inside one, the inherited `action` declares it.
+inline def action: Action[EmptyTuple] = compiletime.error(
+  "an action is declared in an Actor object; a step the system takes on its own in an Internal object"
+)
+
+// Refuses a step outside an `Internal` object; inside one, the inherited `step` declares it.
+inline def step: Action[EmptyTuple] = compiletime.error(
+  "an action is declared in an Actor object; a step the system takes on its own in an Internal object"
+)
+
+// Refuses a timer outside an `Internal` object; inside one, the inherited `timer` declares it.
+inline def timer: Action[EmptyTuple] = compiletime.error(
+  "an action is declared in an Actor object; a step the system takes on its own in an Internal object"
+)
+
+// Declares an action an actor takes, named in place. Hidden: the DSL's own fixtures declare actions
+// of an in-place `Actor` with it; a Model declares them in their `Actor` object.
+private[framework] def action(name: String, actor: Actor): Action[EmptyTuple] =
   val value = ActionDecl(name, actor)
   value.declarationName.mark(true, s"action $name")
   Action(value)
 
 // Declares an action an actor takes, named after the `val` that declares it. The name is read by
-// the lifter, so the declaration's own `name` is empty here.
-def action(actor: Actor): Action[EmptyTuple] =
+// the lifter, so the declaration's own `name` is empty here. Hidden: an `Actor` object's inherited
+// `action` calls it.
+@publicInBinary private[framework] def action(actor: Actor): Action[EmptyTuple] =
   val value = ActionDecl("", actor)
   value.declarationName.mark(false, "action")
   Action(value)
 
-// Declares a timer, an action with no input that the system performs, named after the `val` that
-// declares it.
-def timer: Action[EmptyTuple] =
+// Declares a timer. Hidden: an `Internal` object's inherited `timer` calls it.
+@publicInBinary private[framework] def systemTimer: Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, timer = true)
   value.declarationName.mark(false, "timer")
   Action(value)
 
-// Declares a step of the system that is not a timer, such as a dispatch or a commit, named after
-// the `val` that declares it.
-def internal: Action[EmptyTuple] =
+// Declares a step of the system that is not a timer. Hidden: an `Internal` object's inherited
+// `step` calls it.
+@publicInBinary private[framework] def internal: Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, internal = true)
   value.declarationName.mark(false, "internal")
   Action(value)

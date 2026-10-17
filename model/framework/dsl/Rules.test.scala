@@ -22,10 +22,10 @@ object RulesFixture:
   given Ok[Said] = Ok(Said.ok)
 
   object hand extends Actor:
-    val press = action(this)
-    val turn = action(this).input[Knob](name = "knob")
+    val press = action
+    val turn = action.input[Knob](name = "knob")
 
-  object clock:
+  object clock extends Internal:
     val tick = timer
 
   // What initialized, in order, so the tests read when each object is constructed.

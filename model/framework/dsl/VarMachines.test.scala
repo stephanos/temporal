@@ -18,10 +18,10 @@ object VarMachinesFixture:
   given Ok[Said] = Ok(Said.ok)
 
   object hand extends Actor:
-    val press = action(this)
-    val smash = action(this)
-    val repair = action(this)
-    val set = action(this).input[Lit](name = "light")
+    val press = action
+    val smash = action
+    val repair = action
+    val set = action.input[Lit](name = "light")
 
   object Lamp extends Machine[Said, Note]:
     var light = Lit.off

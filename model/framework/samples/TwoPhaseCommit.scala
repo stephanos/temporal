@@ -97,15 +97,15 @@ object TwoPhaseCommit:
 
   given Ok[Outcome] = Ok(Outcome.accepted)
 
-  object rm:
-    val prepare = internal.input[ResourceManager](name = "rm")
-    val abort = internal.input[ResourceManager](name = "rm")
-    val commit = internal.input[ResourceManager](name = "rm")
+  object rm extends Internal:
+    val prepare = step.input[ResourceManager](name = "rm")
+    val abort = step.input[ResourceManager](name = "rm")
+    val commit = step.input[ResourceManager](name = "rm")
 
-  object tm:
-    val addPrepared = internal.input[ResourceManager](name = "rm")
-    val decideOnCommit = internal
-    val decideOnAbort = internal
+  object tm extends Internal:
+    val addPrepared = step.input[ResourceManager](name = "rm")
+    val decideOnCommit = step
+    val decideOnAbort = step
 
   // two resource managers have not arrived at conflicting decisions
   def consistent(state: Transaction): Boolean =

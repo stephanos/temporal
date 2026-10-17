@@ -23,10 +23,10 @@ object TwoLayeredCache:
   given Ok[Outcome] = Ok(Outcome.accepted)
 
   object client extends Actor:
-    val write = action(this)
-    val read = action(this)
+    val write = action
+    val read = action
 
-  object timers:
+  object timers extends Internal:
     // layer 1 usually lives in memory
     val l1Expire = timer
 

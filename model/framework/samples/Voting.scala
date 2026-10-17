@@ -30,10 +30,10 @@ object Voting:
   final case class VoteFor(a: Acceptor, b: Int, v: Value)
 
   object voter extends Actor:
-    val increaseMaxBal = action(this).inputs[IncreaseMaxBal](
+    val increaseMaxBal = action.inputs[IncreaseMaxBal](
       inputField[IncreaseMaxBal](_.b).in(domains.oneOf(0 to 1))
     )
-    val voteFor = action(this).inputs[VoteFor](inputField[VoteFor](_.b).in(domains.oneOf(0 to 1)))
+    val voteFor = action.inputs[VoteFor](inputField[VoteFor](_.b).in(domains.oneOf(0 to 1)))
 
   // True iff acceptor a has voted for v in ballot b.
   def votedFor(votes: Votes, a: Acceptor, b: Int, v: Value): Boolean =

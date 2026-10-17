@@ -58,7 +58,7 @@ object Bank:
 
   object client extends Actor:
     // an amount is zero up to one more than the supply, so that a send may ask too much
-    val send = action(this).inputs[Send](inputField[Send](_.amount).in(domains.oneOf(0 to 3)))
+    val send = action.inputs[Send](inputField[Send](_.amount).in(domains.oneOf(0 to 3)))
 
   // the total supply of the network is equal to the sum of all coins from the accounts
   def totalSupply(balances: Balances): Boolean =

@@ -17,7 +17,7 @@ object NativeHoleCallbackFixture:
     def values: IndexedSeq[String] = Vector("known")
 
   object caller extends Actor:
-    val interrupt = action(this)
+    val interrupt = action
 
   def callback(run: State => List[Step[State, Answer, String]]) =
     val subject = new RecordMachine[State, Answer, String]:

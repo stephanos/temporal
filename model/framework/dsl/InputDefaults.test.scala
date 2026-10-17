@@ -101,7 +101,9 @@ class InputDefaults extends munit.FunSuite:
     )
     assertEquals(optional.decl.nativeInputs.flatMap(_.defaultAt(1)), Some(None))
     assertEquals(action(Actor("sender"))().values, Nil)
-    assertEquals(timer().values, Nil)
+    object clock extends Internal:
+      val tick = timer
+    assertEquals(clock.tick().values, Nil)
     val named = action(Actor("sender")).input[Boolean](name = "requiredNamed")
     val missing = intercept[IllegalArgumentException]:
       val _ = named()

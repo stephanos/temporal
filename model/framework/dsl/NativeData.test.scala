@@ -11,8 +11,8 @@ object NativeDataFixture:
   final case class Poison(flag: Flag, ready: Boolean)
 
   object caller extends Actor:
-    val act = action(this)
-    val extra = action(this)
+    val act = action
+    val extra = action
 
 class NativeDataTest extends munit.FunSuite:
   import NativeDataFixture.*
@@ -267,7 +267,7 @@ class NativeDataTest extends munit.FunSuite:
     assert(compileErrors("""
       import framework.dsl.*
       object Bad extends Actor:
-        val pick = action(this).input[Int](name = "number")
+        val pick = action.input[Int](name = "number")
     """).nonEmpty)
   }
 

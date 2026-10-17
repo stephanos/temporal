@@ -8,9 +8,9 @@ object InputGuardsFixture:
   val order = scala.collection.mutable.ArrayBuffer.empty[String]
 
   object caller extends Actor:
-    val start = action(this).inputs[Request]
-    val unit = action(this).input[EmptyTuple](name = "unit")
-    val empty = action(this)
+    val start = action.inputs[Request]
+    val unit = action.input[EmptyTuple](name = "unit")
+    val empty = action
 
   def effect(s: Boolean, in: Request): List[Step[Boolean, Boolean, Boolean]] =
     seen += in
@@ -243,7 +243,7 @@ class InputGuards extends munit.FunSuite:
       import framework.dsl.*
       final case class Request(flag: Boolean)
       object caller extends Actor:
-        val start = action(this).inputs[Request]
+        val start = action.inputs[Request]
       object Native extends RecordMachine[Boolean, Boolean, Nothing]:
         val init = false
         def end(s: Boolean) = s

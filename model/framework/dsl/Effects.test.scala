@@ -27,7 +27,7 @@ object EffectsFixture:
   def tries_=(t: UpTo[2])(using d: Draft[Job, ?, ?]): Unit = d.set(_.copy(tries = t))
 
   object hand extends Actor:
-    val press = action(this)
+    val press = action
 
   object Subject extends RecordMachine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))

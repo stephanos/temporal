@@ -9,7 +9,7 @@ object NativeInputs:
   given Ok[Boolean] = Ok(true)
 
   object caller extends Actor:
-    val submit = action(this).inputs[Request](
+    val submit = action.inputs[Request](
       inputField[Request](_.amount).in(domains.oneOf(2, 0)),
       inputField[Request](_.ceiling).in(domains.oneOf(1 to 2))
     )

@@ -29,23 +29,23 @@ object InputExecutionFixture:
   val selected = Finite.of(first, second)
 
   object caller extends Actor:
-    val start = action(this).inputs[Request](using
+    val start = action.inputs[Request](using
       summon[scala.deriving.Mirror.ProductOf[Request]],
       selected,
       summon[EmptyTuple =:= EmptyTuple]
     )
-    val faceted = action(this).inputs[Request](using
+    val faceted = action.inputs[Request](using
       summon[scala.deriving.Mirror.ProductOf[Request]],
       selected,
       summon[EmptyTuple =:= EmptyTuple]
     )
-    val product = action(this).input[Other](name = "settings", default = Other())
-    val pair = action(this).input[(Boolean, Boolean)](name = "pair", default = (true, false))
-    val single = action(this).input[Tuple1[Boolean]](name = "single", default = Tuple1(true))
-    val alternate = action(this).inputs[Other]
-    val scalar = action(this).input[Boolean](name = "result", default = false)
-    val empty = action(this)
-    val defaulted = action(this).inputs[Defaulted](using
+    val product = action.input[Other](name = "settings", default = Other())
+    val pair = action.input[(Boolean, Boolean)](name = "pair", default = (true, false))
+    val single = action.input[Tuple1[Boolean]](name = "single", default = Tuple1(true))
+    val alternate = action.inputs[Other]
+    val scalar = action.input[Boolean](name = "result", default = false)
+    val empty = action
+    val defaulted = action.inputs[Defaulted](using
       summon[scala.deriving.Mirror.ProductOf[Defaulted]],
       Finite.of(defaultValue),
       summon[EmptyTuple =:= EmptyTuple]
@@ -147,8 +147,8 @@ class InputExecution extends munit.FunSuite:
       import framework.dsl.*
       final case class Request(flag: Boolean = false, other: Boolean = true)
       object caller extends Actor:
-        val start = action(this).inputs[Request]
-        val finish = action(this).input[Boolean](name = "result", default = false)
+        val start = action.inputs[Request]
+        val finish = action.input[Boolean](name = "result", default = false)
       def bind[In](a: Action[In], f: (Boolean, In) => List[Step[Boolean, Boolean, Nothing]]) = a ~> f
       val direct = bind(caller.start, (s: Boolean, in: Request) => List(Step(in.flag, s)))
       object Native extends RecordMachine[Boolean, Boolean, Nothing]:
@@ -285,14 +285,14 @@ class InputExecution extends munit.FunSuite:
         final case class Request(flag: Boolean)
         final case class Other(flag: Boolean)
         object caller extends Actor:
-          val start = action(this).inputs[Request]
+          val start = action.inputs[Request]
         val bad = caller.start ~> ((s: Boolean, in: Other) => List(Step(in.flag, s)))
       """),
       compiletime.testing.typeCheckErrors("""
         import framework.dsl.*
         final case class Request(a: Boolean, b: Boolean)
         object caller extends Actor:
-          val start = action(this).inputs[Request]
+          val start = action.inputs[Request]
         object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
@@ -303,7 +303,7 @@ class InputExecution extends munit.FunSuite:
       compiletime.testing.typeCheckErrors("""
         import framework.dsl.*
         object caller extends Actor:
-          val start = action(this).input[Tuple1[Boolean]](name = "value")
+          val start = action.input[Tuple1[Boolean]](name = "value")
         object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
@@ -326,8 +326,8 @@ class InputExecution extends munit.FunSuite:
       compiletime.testing.typeCheckErrors("""
       import framework.dsl.*
       object caller extends Actor:
-        val start = action(this).input[Tuple1[Boolean]](name = "value")
-        val pair = action(this).input[(Boolean, Boolean)](name = "pair")
+        val start = action.input[Tuple1[Boolean]](name = "value")
+        val pair = action.input[(Boolean, Boolean)](name = "pair")
       val good = caller.start ~> ((s: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, s)))
       val tuple = caller.pair ~> ((s: Boolean, in: (Boolean, Boolean)) => List(Step(in._1, s)))
     """),

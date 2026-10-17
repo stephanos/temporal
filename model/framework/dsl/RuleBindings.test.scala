@@ -529,10 +529,16 @@ class RuleBindingsSuite extends munit.FunSuite:
         Vector(false, true)
     object hand extends Actor:
       private val firstValue =
-        action("first").input[Boolean](name = "flag").declaredAt("fixture.first")
+        RuleBindingsSuite.this
+          .action("first")
+          .input[Boolean](name = "flag")
+          .declaredAt("fixture.first")
       private val secondValue =
-        action("second").input[Boolean](name = "flag").declaredAt("fixture.second")
-      private val offValue = action("off")
+        RuleBindingsSuite.this
+          .action("second")
+          .input[Boolean](name = "flag")
+          .declaredAt("fixture.second")
+      private val offValue = RuleBindingsSuite.this.action("off")
       Seq(firstValue, secondValue).foreach(
         _.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
       )

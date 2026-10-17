@@ -20,8 +20,8 @@ object FacetsFixture:
   given Ok[Said] = Ok(Said.ok)
 
   object hand extends Actor:
-    val press = action(this)
-    val smash = action(this)
+    val press = action
+    val smash = action
 
   // The facet the others step through: pressing.
   trait Pressing extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
@@ -142,7 +142,7 @@ class FacetsTest extends munit.FunSuite:
 
   for kind <- List("ordinary", "timer", "fault", "disabled") do
     test(s"duplicate $kind owners name the actual action and both facets"):
-      object targets:
+      object targets extends Internal:
         val ordinary = action(Actor("caller"))
         val tick = timer
         val fault = action(Actor("fault")).crash
@@ -191,7 +191,7 @@ class FacetsTest extends munit.FunSuite:
 
   for kind <- List("ordinary", "timer", "fault", "disabled") do
     test(s"Facets refuses unowned $kind rules despite a facet-looking object name"):
-      object targets:
+      object targets extends Internal:
         val ordinary = action(Actor("caller"))
         val tick = timer
         val fault = action(Actor("fault")).crash
