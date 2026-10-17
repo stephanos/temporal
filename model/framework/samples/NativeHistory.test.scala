@@ -346,12 +346,12 @@ class NativeHistoryTest extends munit.FunSuite:
       Some(false)
     )
 
-  test("Kettle's boils claim runs on the press and the heater alone and beeps within 81 steps"):
+  test("Kettle's boils claim runs on the press and the heater alone and beeps within 141 steps"):
     import Kettle.*
     val boils = Model.progress.boils
     assert(boils.machine.exists(_ eq Model))
     assertEquals(boils.name, "boils")
-    assertEquals(boils.within, 81)
+    assertEquals(boils.within, 141)
     assertEquals(boils.scenario.name, "heatingAlone")
     assertEquals(boils.scenario.decl.fair, Vector.empty)
     val admitted = Model.bindings.map(_.decl).filter(boils.scenario.decl.admits)
@@ -392,11 +392,11 @@ class NativeHistoryTest extends munit.FunSuite:
         "beepsOnlyWhenOff" -> verified,
         "warmsOnlyWhenOn" -> verified,
         "failsOverAtBoiling" -> verified,
-        // boils promises 81 steps from room temperature; switched on at the coldest start, the
-        // water takes 140 heats, so from both starts the deadline is missed
-        "boils" -> missedDeadline
+        "boils" -> verified
       )
     )
+    // switched on at the coldest start, the water boils after 140 heats and the failover
+    assertEquals(report.result("boils").longest, Some(141))
     assertEquals(report.warnings, Vector.empty)
     // the depth is breadth-first from the nearer start: room temperature boils after a press, 80
     // heats and the failover, and the coldest start reaches every colder state sooner

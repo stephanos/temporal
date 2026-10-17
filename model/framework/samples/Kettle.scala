@@ -78,9 +78,9 @@ object Kettle:
         check(beeping)
 
     object progress:
-      // switched on, the water boils and the kettle beeps: 80 heats from room temperature and the
-      // failover
-      val boils = leadsTo(from = heatingOn, to = beeping, within = 81) in heatingAlone
+      // switched on, the water boils and the kettle beeps from every start it admits: 140 heats
+      // from the coldest start and the failover (80 heats from room temperature)
+      val boils = leadsTo(from = heatingOn, to = beeping, within = 141) in heatingAlone
 
     object queries:
       // the claims from the coldest start, which reaches every warmer one

@@ -202,7 +202,9 @@ checked by default, and refutesNeverBeeps leaves its queries: both are the Nativ
 `assertRefuted(Model, invariant(check(!beeping)))`. The other four queries keep their names, with
 fromRoomTemperature and fromAnyTemperature as Machine vals (`starts()`, `starts(temperature =
 -40)`) on the default budget. HeatingOnly is retired: boils is Model's `leadsTo(from = heatingOn,
-to = beeping, within = 81) in heatingAlone`, `heatingAlone = only(pressButton, heat, failover)`.
+to = beeping, within = 141) in heatingAlone`, `heatingAlone = only(pressButton, heat, failover)`:
+true from every start the Kettle admits (conductor), Verified with longest path 81 from Model.init
+and 141 from Model.init and coldest together (a press at -40, 140 heats and the failover).
 
 ## Complete Query inventory
 
@@ -243,7 +245,7 @@ the retained sources govern any future reconciliation.
 
 Kettle gains (fn-191) the boils Progress, owned by `HeatingOnly`, a `Derived` restriction of
 Model to pressButton, heat and failover: from heatingOn to beeping within 81 (a press at room
-temperature, 80 heats and the failover), with no assumption. depressButton is restricted away,
+temperature, 80 heats and the failover), with no assumption (within 141 since fn-190.7, below). depressButton is restricted away,
 since a user who switches the kettle off before it boils would refute it; pressButton stays,
 since from Model.init nothing heats until the element is on, and without it the claim would hold
 vacuously. Intended Progress answer Verified.
