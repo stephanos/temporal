@@ -1,0 +1,13 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[33m[33m-- [E029] Pattern Match Exhaustivity Warning: /home/agent/.cache/codex-build/tmp/tmp.7n1As03Dde/NonExhaustive.scala:18:6 [0m[0m
+[33m18 |[0m      light [33mmatch[0m
+[33m[33m   |[0m      ^^^^^[0m
+[33m   |[0m      [33mmatch[0m may not be exhaustive.
+[33m   |[0m
+[33m   |[0m      It would fail on pattern case: on
+[33m   |[0m
+[33m   |[0m longer explanation available when compiling with `-explain`
+No warnings can be incurred under -Werror
+1 warning found
+1 error found
+Compilation failed
