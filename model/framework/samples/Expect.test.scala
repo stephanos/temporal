@@ -43,20 +43,25 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("Bank's four native predicates retain supply, refusal and exact-send requirements"):
     import Bank.*
+    // a Bank state by its one var, and the balances a state holds
+    def bank(balances: Balances): State = Model.init.copy(balances = balances)
+    def held(state: State): Balances = Model.at(state)(Model.balances)
     val initial = Model.init
-    val paid =
-      withBalance(withBalance(initial, Addr.king, Denom.banana, 1), Addr.peaches, Denom.banana, 1)
-    val inflated = withBalance(initial, Addr.peaches, Denom.banana, 1)
+    val start = held(initial)
+    val paid = bank(
+      withBalance(withBalance(start, Addr.king, Denom.banana, 1), Addr.peaches, Denom.banana, 1)
+    )
+    val inflated = bank(withBalance(start, Addr.peaches, Denom.banana, 1))
     val supplyCases = List(
       (Step(Outcome.accepted, initial), true),
       (Step(Outcome.accepted, paid), true),
       (Step(Outcome.accepted, inflated), false)
     )
     same(Model.invariants.totalSupplyInv, Model, None, supplyCases)(after =>
-      totalSupply(after.state)
+      totalSupply(held(after.state))
     )
     same(Leaky.invariants.leakyTotalSupplyInv, Leaky, None, supplyCases)(after =>
-      totalSupply(after.state)
+      totalSupply(held(after.state))
     )
     across(
       Model.postconditions.failedSendChangesNothing,
@@ -75,11 +80,11 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, paid), true),
         (Step(Outcome.accepted, initial), false),
         (Step(Outcome.accepted, inflated), false),
-        (Step(Outcome.accepted, withBalance(initial, Addr.king, Denom.banana, 1)), false)
+        (Step(Outcome.accepted, bank(withBalance(start, Addr.king, Denom.banana, 1))), false)
       )
     )(after =>
-      balanceOf(after.state, Addr.king, Denom.banana) == 1 &&
-        balanceOf(after.state, Addr.peaches, Denom.banana) == 1
+      balanceOf(held(after.state), Addr.king, Denom.banana) == 1 &&
+        balanceOf(held(after.state), Addr.peaches, Denom.banana) == 1
     )
 
   test("Kettle's four native predicates retain implication and conjunction truth tables"):

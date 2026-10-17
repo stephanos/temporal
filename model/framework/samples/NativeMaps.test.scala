@@ -11,9 +11,13 @@ class NativeMapsTest extends munit.FunSuite:
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
 
+  // A Bank state by its one var, and the balances a state holds.
+  private def bank(balances: Bank.Balances): State = Bank.Model.init.copy(balances = balances)
+  private def held(state: State): Bank.Balances = Bank.Model.at(state)(Bank.Model.balances)
+
   test("Bank native balances do not invent a whole-state integer bound"):
     import Bank.*
-    val large = withBalance(Model.init, Addr.king, Denom.banana, 7)
+    val large = withBalance(held(Model.init), Addr.king, Denom.banana, 7)
     assertEquals(balanceOf(large, Addr.king, Denom.banana), 7)
     assertEquals(balanceOf(large, Addr.king, Denom.burger), 2)
 
@@ -23,17 +27,19 @@ class NativeMapsTest extends munit.FunSuite:
     assertEquals(balanceOf(empty, Addr.mario, Denom.banana), 0)
     val burgers = Balances(Map(Addr.king -> Map(Denom.burger -> 2)))
     assertEquals(balanceOf(burgers, Addr.king, Denom.banana), 0)
-    assertEquals(withBalance(Model.init, Addr.king, Denom.banana, 0), burgers)
+    assertEquals(withBalance(held(Model.init), Addr.king, Denom.banana, 0), burgers)
     assertEquals(withBalance(burgers, Addr.king, Denom.burger, 0), empty)
     assertEquals(withBalance(empty, Addr.mario, Denom.banana, 0), empty)
 
   test("Bank ordinary transfer debits and credits with sparse cleanup"):
     import Bank.*
     val first = run(Model, Model.init, client.send(Send(Addr.king, Addr.peaches, Denom.banana, 1)))
-    val paid = Balances(
-      Map(
-        Addr.king -> Map(Denom.banana -> 1, Denom.burger -> 2),
-        Addr.peaches -> Map(Denom.banana -> 1)
+    val paid = bank(
+      Balances(
+        Map(
+          Addr.king -> Map(Denom.banana -> 1, Denom.burger -> 2),
+          Addr.peaches -> Map(Denom.banana -> 1)
+        )
       )
     )
     assertEquals(first, List(Step(Outcome.accepted, paid)))
@@ -43,14 +49,18 @@ class NativeMapsTest extends munit.FunSuite:
       List(
         Step(
           Outcome.accepted,
-          Balances(Map(Addr.king -> Map(Denom.burger -> 2), Addr.peaches -> Map(Denom.banana -> 2)))
+          bank(
+            Balances(
+              Map(Addr.king -> Map(Denom.burger -> 2), Addr.peaches -> Map(Denom.banana -> 2))
+            )
+          )
         )
       )
     )
-    val last = Balances(Map(Addr.mario -> Map(Denom.banana -> 1)))
+    val last = bank(Balances(Map(Addr.mario -> Map(Denom.banana -> 1))))
     assertEquals(
       run(Model, last, client.send(Send(Addr.mario, Addr.peaches, Denom.banana, 1))),
-      List(Step(Outcome.accepted, Balances(Map(Addr.peaches -> Map(Denom.banana -> 1)))))
+      List(Step(Outcome.accepted, bank(Balances(Map(Addr.peaches -> Map(Denom.banana -> 1))))))
     )
 
   test("Bank zero sends preserve funded acceptance and empty refusal including self"):
@@ -85,8 +95,9 @@ class NativeMapsTest extends munit.FunSuite:
       run(Leaky, Model.init, client.send(Send(Addr.mario, Addr.mario, Denom.banana, 3))),
       List(Step(Outcome.accepted, Model.init))
     )
-    val fullReceiver =
+    val fullReceiver = bank(
       Balances(Map(Addr.king -> Map(Denom.banana -> 2), Addr.peaches -> Map(Denom.banana -> 2)))
+    )
     assertEquals(
       run(Model, fullReceiver, client.send(Send(Addr.king, Addr.peaches, Denom.banana, 1))),
       List(Step(Outcome.overflow, fullReceiver))
@@ -101,27 +112,29 @@ class NativeMapsTest extends munit.FunSuite:
       inflated,
       Step(
         Outcome.accepted,
-        Balances(
-          Map(
-            Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2),
-            Addr.peaches -> Map(Denom.banana -> 1)
+        bank(
+          Balances(
+            Map(
+              Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2),
+              Addr.peaches -> Map(Denom.banana -> 1)
+            )
           )
         )
       )
     )
     val supply =
       Model.invariants.totalSupplyInv.decl.holds.get
-        .asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
+        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
     val leaky =
       Leaky.invariants.leakyTotalSupplyInv.decl.holds.get
-        .asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
+        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
     assertEquals(supply(paid), true)
     assertEquals(supply(inflated), false)
     assertEquals(leaky(paid), true)
     assertEquals(leaky(inflated), false)
     assert(Leaky.invariants.leakyTotalSupplyInv.decl.machine eq Leaky)
     val refuses = Model.postconditions.failedSendChangesNothing.decl.holds2.get
-      .asInstanceOf[(Balances, Step[Balances, Outcome, Nothing]) => Boolean]
+      .asInstanceOf[(State, Step[State, Outcome, Nothing]) => Boolean]
     assertEquals(refuses(Model.init, Step(Outcome.overflow, Model.init)), true)
     assertEquals(refuses(Model.init, Step(Outcome.overflow, paid.state)), false)
 

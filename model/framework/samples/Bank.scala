@@ -64,13 +64,11 @@ object Bank:
   def totalSupply(balances: Balances): Boolean =
     sumForDenom(balances, Denom.banana) == supply && sumForDenom(balances, Denom.burger) == supply
 
-  object Model extends RecordMachine[Balances, Outcome, Nothing]:
-    // the king has it all
-    val init = Balances(
+  object Model extends Machine[Outcome, Nothing]:
+    // the balances of every address: the king has it all
+    var balances = Balances(
       of = Map(Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2))
     )
-    // a run may stop between any two sends
-    def end(balances: Balances) = true
 
     object rules extends Rules:
       on(client.send):
@@ -80,46 +78,36 @@ object Bank:
       // Transfers `amount` coins of `denom` from `fromAddr` to `toAddr`. It fails where the sender
       // holds none of `denom` or fewer than `amount`, and where the receiver would hold more than
       // the type of a balance can.
-      def send(
-          balances: Balances,
-          in: Send
-      ): List[Step[Balances, Bank.Outcome, Nothing]] =
+      def send(in: Send): Unit =
         val fromBalance = balanceOf(balances, in.fromAddr, in.denom)
         val toBalance = balanceOf(balances, in.toAddr, in.denom)
         if fromBalance == 0 || fromBalance < in.amount then
-          reject(Outcome.invalidCoinsOrInsufficientFunds, balances)
-        else if in.fromAddr == in.toAddr then stay(balances)
-        else if toBalance + in.amount > supply then reject(Outcome.overflow, balances)
+          reject(Outcome.invalidCoinsOrInsufficientFunds)
+        else if in.fromAddr == in.toAddr then ()
+        else if toBalance + in.amount > supply then reject(Outcome.overflow)
         else
-          enter(
-            withBalance(
-              withBalance(balances, in.fromAddr, in.denom, fromBalance - in.amount),
-              in.toAddr,
-              in.denom,
-              toBalance + in.amount
-            )
+          balances = withBalance(
+            withBalance(balances, in.fromAddr, in.denom, fromBalance - in.amount),
+            in.toAddr,
+            in.denom,
+            toBalance + in.amount
           )
 
       // A send that credits the receiver without debiting the sender: the coins it pays come from
       // nowhere, and the total supply grows.
-      def sendFromNowhere(
-          balances: Balances,
-          in: Send
-      ): List[Step[Balances, Bank.Outcome, Nothing]] =
+      def sendFromNowhere(in: Send): Unit =
         val toBalance = balanceOf(balances, in.toAddr, in.denom)
-        if in.fromAddr == in.toAddr then stay(balances)
-        else if toBalance + in.amount > supply then reject(Outcome.overflow, balances)
-        else enter(withBalance(balances, in.toAddr, in.denom, toBalance + in.amount))
+        if in.fromAddr == in.toAddr then ()
+        else if toBalance + in.amount > supply then reject(Outcome.overflow)
+        else balances = withBalance(balances, in.toAddr, in.denom, toBalance + in.amount)
 
     object invariants:
       val totalSupplyInv: Property = property.expect:
-        (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
-          check(totalSupply(after.step.state))
+        check(totalSupply(balances))
 
     object postconditions:
       val failedSendChangesNothing: Property = property.across.expect:
-        (before: Before[Balances], after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
-          if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
+        if after.outcome != Outcome.accepted then check(after.state == before)
       val peachesGetsBananas: Property =
         property
           .after(
@@ -130,9 +118,9 @@ object Bank:
               amount = 1
             )
           )
-          .expect: (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
-            check(balanceOf(after.step.state, Addr.king, Denom.banana) == 1)
-            check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)
+          .expect:
+            check(balanceOf(balances, Addr.king, Denom.banana) == 1)
+            check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
 
     object queries:
       val anySend: Scenario = scenario.starts(init).free
@@ -148,11 +136,11 @@ object Bank:
   object Leaky
       extends Derived(Model.rebind(client.send ~> Model.effects.sendFromNowhere)),
         NegativeControl:
+    import Model.balances
 
     object invariants:
       val leakyTotalSupplyInv: Property = property.expect:
-        (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
-          check(totalSupply(after.step.state))
+        check(totalSupply(balances))
 
     object queries:
       val anyLeakySend: Scenario = scenario.starts(Model.init).free
