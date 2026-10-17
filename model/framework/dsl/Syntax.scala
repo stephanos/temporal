@@ -216,6 +216,7 @@ final class ExpectedAlternatives[S, O, F] @scala.annotation.publicInBinary priva
 final class ClaimAlternatives:
   inline def apply(inline body: Branching ?=> Unit): Unit = ${ ClaimMacros.alternatives('body) }
 
+// The alternatives of a var's initial value. Core form: `Machine.registerInitial(name, domain)`.
 final class InitialAlternatives:
   inline def apply[A](domain: Iterable[A]): A = ${ StartStatesMacro.initialize('domain) }
 

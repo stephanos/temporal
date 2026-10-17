@@ -45,7 +45,7 @@ object VarMachinesFixture:
         where(light != Lit.broken) ~> effects.flip()
 
     object effects:
-      def press(): Unit =
+      def press() =
         presses = UpTo(presses + 1)
         if light == Lit.on then
           light = Lit.off
@@ -53,17 +53,20 @@ object VarMachinesFixture:
         else
           light = Lit.on
           record(Note.lit)
-      def refuse(): Unit = reject(Said.broken)
-      def smash(): Unit = light = Lit.broken
+      def refuse() =
+        reject(Said.broken)
+      def smash() =
+        light = Lit.broken
       // a read after a write in the same effect sees the write
-      def repair(): Unit =
+      def repair() =
         presses = UpTo(0)
         light = if presses == 0 then Lit.off else Lit.on
-      def set(to: Lit): Unit = light = to
+      def set(to: Lit) =
+        light = to
       val lit = choice
       val darkened = choice
       // either way, recording which
-      def flip(): Unit =
+      def flip() =
         choose(
           lit -> {
             light = Lit.on

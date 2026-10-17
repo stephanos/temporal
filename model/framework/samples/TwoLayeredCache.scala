@@ -65,10 +65,12 @@ object TwoLayeredCache:
     var num = 0
 
     // the cache as one record, which the predicates above read
-    def current: Cache = Cache(l1, l2, num)
+    def current: Cache =
+      Cache(l1, l2, num)
 
     // a run stops where the layers agree
-    override def end = agreed(current)
+    override def end =
+      agreed(current)
 
     // What a step showed of the cache: the event it recorded, a write before a read, and the value
     // a read returned, layer 1's after the step, which a layer-2 hit wrote back.
@@ -108,22 +110,28 @@ object TwoLayeredCache:
 
     object postconditions:
       // after a read, both layers hold what it returned
-      val readFillsL1 = after(client.read):
-        check(agreed(current))
+      val readFillsL1 =
+        after(client.read):
+          check(agreed(current))
 
     object monitors:
       // read the latest write: no read returns a value older than the last write, and a miss is
       // older than any write
-      val readAfterWrite = monitor(List.empty[Observation])(observe)(readHistoryBroken)
+      val readAfterWrite =
+        monitor(List.empty[Observation])(observe)(readHistoryBroken)
       // a later write stores a greater value
-      val writeAfterWrite = monitor(List.empty[Observation])(observe)(writeHistoryBroken)
+      val writeAfterWrite =
+        monitor(List.empty[Observation])(observe)(writeHistoryBroken)
 
     object progress:
       // all layers contain the same latest written value, one step after they part
-      val agreement = leadsTo(from = !agreed(current), to = agreed(current), within = 1)
+      val agreement =
+        leadsTo(from = !agreed(current), to = agreed(current), within = 1)
 
     object queries:
       // a read served from layer 2: no promise of every read, so a find target here
-      val servedFromL2 = after(client.read):
-        records(Event.readL2)
-      val readAfterExpiry = find(servedFromL2)
+      val servedFromL2 =
+        after(client.read):
+          records(Event.readL2)
+      val readAfterExpiry =
+        find(servedFromL2)

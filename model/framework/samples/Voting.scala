@@ -114,7 +114,6 @@ object Voting:
     // the values chosen
     var chosen = Set.empty[Value]
 
-
     object transitions extends Transitions:
       on(voter.voteFor): in =>
         if chosen.isEmpty then effects.choose(in)
@@ -125,7 +124,8 @@ object Voting:
 
     object postconditions:
       // once a value is chosen, it stays chosen
-      val chosenStays = if before.chosen.nonEmpty then check(chosen == before.chosen)
+      val chosenStays =
+        if before.chosen.nonEmpty then check(chosen == before.chosen)
 
   object Model extends Machine[Outcome, Nothing]:
     // each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet
@@ -134,14 +134,17 @@ object Voting:
     var maxBal = Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
 
     // the votes as one record, which the predicates above read
-    def current: Votes = Votes(votes, maxBal)
-
+    def current: Votes =
+      Votes(votes, maxBal)
 
     object refinement extends Refinement(Consensus):
-      def toProduct(state: State) = Consensus.init.copy(chosen = chosen(current))
+      def toProduct(state: State) =
+        Consensus.init.copy(chosen = chosen(current))
       // a vote that chooses nothing, a refused one and a move to a higher ballot change no decision
-      val visibleOutcomes = (_: Voting.Outcome) => false
-      val unobservable = List(voter.increaseMaxBal)
+      val visibleOutcomes =
+        (_: Voting.Outcome) => false
+      val unobservable =
+        List(voter.increaseMaxBal)
 
     object transitions extends Transitions:
       on(voter.increaseMaxBal): in =>
@@ -170,11 +173,15 @@ object Voting:
 
     object invariants:
       // at most one value is chosen
-      val consistency = check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))
-      val invariant = check(inv(current))
+      val consistency =
+        check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))
+      val invariant =
+        check(inv(current))
 
     object queries:
       // a find target: one vote chooses nothing, so it is no promise and not checked by default
-      val decides = after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)):
-        check(chosen(current).contains(Value.v1))
-      val valueChosen = find(decides)
+      val decides =
+        after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)):
+          check(chosen(current).contains(Value.v1))
+      val valueChosen =
+        find(decides)

@@ -77,7 +77,7 @@ object TransitionsFixture:
       val smashed = choice
       val toggled = choice
 
-      def toggle(): Unit =
+      def toggle() =
         presses = UpTo(presses + 1)
         if light == Lit.on then
           light = Lit.off
@@ -85,12 +85,16 @@ object TransitionsFixture:
         else
           light = Lit.on
           record(Note.lit)
-      def smash(): Unit =
+      def smash() =
         choose(smashed -> { light = Lit.broken }, toggled -> { if presses < 3 then toggle() })
-      def breakOff(): Unit = light = Lit.broken
-      def repair(): Unit = light = Lit.off
-      def set(to: Lit): Unit = light = to
-      def flick(): Unit = light = if light == Lit.on then Lit.off else Lit.on
+      def breakOff() =
+        light = Lit.broken
+      def repair() =
+        light = Lit.off
+      def set(to: Lit) =
+        light = to
+      def flick() =
+        light = if light == Lit.on then Lit.off else Lit.on
 
   // The spec's retry phase table (fn-190, API Contracts), as a `match` over a phase var and in the
   // hidden `where` form over a phase record, with the same effects.
@@ -133,15 +137,17 @@ object TransitionsFixture:
           case _                                                => ()
 
     object effects:
-      def backOff(): Unit =
+      def backOff() =
         phase = Phase.scheduled
         retries = UpTo(retries - 1)
-      def cancel(): Unit = phase = Phase.canceled
-      def backOffPaused(): Unit =
+      def cancel() =
+        phase = Phase.canceled
+      def backOffPaused() =
         phase = Phase.paused
         retries = UpTo(retries - 1)
-      def fail(): Unit = phase = Phase.failed
-      def applyReset(): Unit =
+      def fail() =
+        phase = Phase.failed
+      def applyReset() =
         phase = Phase.scheduled
         retries = UpTo(2)
 

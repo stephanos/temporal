@@ -27,7 +27,8 @@ object Lamp:
         effects.press()
 
     object effects:
-      def press(): Unit = dark = !dark
+      def press() =
+        dark = !dark
 
   object Model extends Machine[Said, Note]:
     var lit = false
@@ -45,11 +46,11 @@ object Lamp:
         if to != lit && presses < 3 then effects.set(to)
 
     object effects:
-      def press(): Unit =
+      def press() =
         lit = !lit
         presses += 1
         records(if lit then Note.lit else Note.darkened)
-      def set(to: Boolean): Unit =
+      def set(to: Boolean) =
         lit = to
         presses += 1
         records(if lit then Note.lit else Note.darkened)

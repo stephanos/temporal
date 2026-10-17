@@ -121,7 +121,8 @@ object TwoPhaseCommit:
     var messages = Set.empty[Message]
 
     // the transaction as one record, which the predicates above read
-    def current: Transaction = Transaction(rmStates, tmState, tmPrepared, messages)
+    def current: Transaction =
+      Transaction(rmStates, tmState, tmPrepared, messages)
 
     // the transaction is over once it is decided and every resource manager has followed
     override def end =
@@ -206,10 +207,12 @@ object TwoPhaseCommit:
         tmPrepared = withMember(tmPrepared, rm)
 
     object invariants:
-      val consistencyInv = check(consistent(current))
+      val consistencyInv =
+        check(consistent(current))
 
     // the commits are weakly fair: a resource manager that may commit eventually does
-    val fairCommits = fair(rm.commit)
+    val fairCommits =
+      fair(rm.commit)
 
     object progress:
       // once the transaction manager commits, every resource manager commits within three steps
@@ -223,6 +226,8 @@ object TwoPhaseCommit:
     object queries:
       // the last commit, rm3's, leaves every resource manager committed: not on every path, as the
       // last commit need not be rm3's, so it is a find's target, not a promise
-      val everyoneCommits = after(rm.commit(ResourceManager.rm3)):
-        check(allCommitted(current))
-      val successTest = find(everyoneCommits)
+      val everyoneCommits =
+        after(rm.commit(ResourceManager.rm3)):
+          check(allCommitted(current))
+      val successTest =
+        find(everyoneCommits)

@@ -36,14 +36,15 @@ object ClaimsFixture:
         if heatingOn then effects.depressButton()
 
     object effects:
-      def pressButton(): Unit =
+      def pressButton() =
         heatingOn = true
         beeping = false
-      def failover(): Unit =
+      def failover() =
         heatingOn = false
         beeping = true
-      def heat(): Unit = temperature += 1
-      def depressButton(): Unit =
+      def heat() =
+        temperature += 1
+      def depressButton() =
         heatingOn = false
         beeping = false
 
@@ -86,11 +87,13 @@ object ClaimsFixture:
         if heatingOn && temperature < boilingTemperature then effects.heat()
 
     object effects:
-      def pressButton(): Unit = heatingOn = true
-      def failover(): Unit =
+      def pressButton() =
+        heatingOn = true
+      def failover() =
         heatingOn = false
         beeping = true
-      def heat(): Unit = temperature += 1
+      def heat() =
+        temperature += 1
 
     object invariants:
       val staysCold =
@@ -129,10 +132,10 @@ object ClaimsFixture:
         if !opened then effects.open()
 
     object effects:
-      def pay(amount: UpTo[3]): Unit =
+      def pay(amount: UpTo[3]) =
         cash = cash - amount
         records(Note.paid)
-      def open(): Unit =
+      def open() =
         opened = true
         records(Note.opened)
 
@@ -164,7 +167,8 @@ object ClaimsFixture:
         if !pressed then effects.press()
 
     object effects:
-      def press(): Unit = pressed = true
+      def press() =
+        pressed = true
 
     object invariants:
       val limit = 3

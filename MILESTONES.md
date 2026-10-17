@@ -1064,7 +1064,6 @@ with a Kettle prototype and verdict in `model/design`.
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
 | fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
-| fn-190.13 | 🔄 in progress | Check every native effect returns Unit, even unused; lint inferred return types and multiline bodies; samples follow the rules (R18) |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 

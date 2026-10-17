@@ -27,7 +27,8 @@ object Kettle:
     // rather than assumed away: a user who switches the kettle off before it boils keeps it from
     // boiling, which no fairness of the heater excludes. Pressing the button stays, since from room
     // temperature nothing heats until the user switches the element on.
-    val heatingAlone = only(user.pressButton, heater.heat, heater.failover)
+    val heatingAlone =
+      only(user.pressButton, heater.heat, heater.failover)
 
     // one step of the state machine: any enabled action
     object transitions extends Transitions:
@@ -58,15 +59,19 @@ object Kettle:
         beeping = false
 
     object invariants:
-      val beepsOnlyWhenOff = if beeping then check(!heatingOn)
+      val beepsOnlyWhenOff =
+        if beeping then check(!heatingOn)
 
     object postconditions:
-      val warmsOnlyWhenOn = if !before.heatingOn then check(temperature <= before.temperature)
-      val failsOverAtBoiling = after(heater.failover):
-        check(temperature == boilingTemperature)
-        check(beeping)
+      val warmsOnlyWhenOn =
+        if !before.heatingOn then check(temperature <= before.temperature)
+      val failsOverAtBoiling =
+        after(heater.failover):
+          check(temperature == boilingTemperature)
+          check(beeping)
 
     object progress:
       // switched on, the water boils and the kettle beeps from every start it admits: 140 heats
       // from the coldest start and the failover (80 heats from room temperature)
-      val boils = leadsTo(from = heatingOn, to = beeping, within = 141) in heatingAlone
+      val boils =
+        leadsTo(from = heatingOn, to = beeping, within = 141) in heatingAlone

@@ -20,7 +20,8 @@ final private[framework] class ConventionInspector(
     errors ++= (Conventions(index, policy)
       .refusals(_ => false)
       ++ Subset(index).refusals(_ => false)
-      ++ EffectDefinitions(index).refusals(_ => false))
+      ++ EffectDefinitions(index).refusals(_ => false)
+      ++ DeclarationStyle(index).refusals(_ => false))
       .sortBy((file, line, error) => (file, line, error.message))
       .map(_._3)
       .distinct

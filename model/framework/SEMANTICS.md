@@ -280,8 +280,10 @@ file's (structure lint); a section object of any other name; a `val` read before
 Native var-based Models declare their effects as methods in `object effects`. Every method there,
 including an unused or private helper, must return exactly `Unit`. Infer the result type and write
 the body on the following line; the author lint rejects explicit return annotations and inline
-bodies. Parameter type annotations are allowed. The record-state forms below remain reference for
-the held integration work.
+bodies. Parameter type annotations are allowed. Within a native Model and its nested section
+objects, every `val` and `def` member body starts on the next line, including literal constant vals.
+`var`s, declarations inside methods/functions and declarations outside the Model are exempt.
+The record-state forms below remain reference for the held integration work.
 
 **Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
 lands in, the facts it records, and an optional explanation.

@@ -38,7 +38,7 @@ object FacetsFixture:
             case _                => ()
 
       object effects:
-        def toggle(): Unit =
+        def toggle() =
           light = if light == Lit.on then Lit.off else Lit.on
           presses = UpTo(1)
 
@@ -58,10 +58,10 @@ object FacetsFixture:
       object effects:
         val smashed = choice
         val toggled = choice
-        def breakDown(): Unit =
+        def breakDown() =
           light = Lit.broken
           record(light.status)
-        def smash(): Unit =
+        def smash() =
           choose(smashed -> breakDown(), toggled -> pressing.effects.toggle())
 
   object Faceted extends Machine[Said, Note], Pressing, Breaking:
@@ -92,13 +92,14 @@ object FacetsFixture:
     object effects:
       val smashed = choice
       val toggled = choice
-      def toggle(): Unit =
+      def toggle() =
         light = if light == Lit.on then Lit.off else Lit.on
         presses = UpTo(1)
-      def breakDown(): Unit =
+      def breakDown() =
         light = Lit.broken
         record(light.status)
-      def smash(): Unit = choose(smashed -> breakDown(), toggled -> toggle())
+      def smash() =
+        choose(smashed -> breakDown(), toggled -> toggle())
 
   // Two facets that both bind the press.
   trait Pressing2 extends Facet[Said, Note]:
@@ -113,7 +114,7 @@ object FacetsFixture:
             case _          => ()
 
       object effects:
-        def stayBroken(): Unit =
+        def stayBroken() =
           light = Lit.broken
           record(light.status)
 
@@ -226,7 +227,8 @@ class FacetsTest extends munit.FunSuite:
                     case _       => ()
               case _ => disabled(targets.ordinary)
           object effects:
-            def lightUp(): Unit = light = Lit.on
+            def lightUp() =
+              light = Lit.on
       trait Second extends Facet[Said, Note]:
         var light: Lit
         object second:
@@ -249,7 +251,8 @@ class FacetsTest extends munit.FunSuite:
                     case _      => ()
               case _ => disabled(targets.ordinary)
           object effects:
-            def darken(): Unit = light = Lit.off
+            def darken() =
+              light = Lit.off
       object Duplicate extends Machine[Said, Note], First, Second:
         var light = Lit.off
         object transitions extends Facets(first.transitions, second.transitions)
@@ -286,7 +289,8 @@ class FacetsTest extends munit.FunSuite:
                     case _ => effects.stay()
               case _ => disabled(targets.ordinary)
         object effects:
-          def stay(): Unit = ()
+          def stay() =
+            ()
         object transitions extends Facets(pressing.transitions)
       val error = intercept[IllegalArgumentException](Unowned.bindings)
       assert(

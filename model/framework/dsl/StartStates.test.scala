@@ -4,6 +4,7 @@ import framework.dsl.Finite.given
 import framework.dsl.outcomes.Outcome
 
 object StartStatesFixture:
+
   object switches extends Actor:
     val finish = action
 
@@ -17,13 +18,15 @@ object StartStatesFixture:
         if ready && !finished then effects.finish()
 
     object effects:
-      def finish(): Unit = finished = true
+      def finish() =
+        finished = true
 
     object invariants:
       val belowTwo = check(count < 2)
 
   class Empty extends Machine[Outcome, Nothing]:
     var count = oneOf(List.empty[Int])
+
     object transitions extends Transitions
 
 class StartStatesTest extends munit.FunSuite:

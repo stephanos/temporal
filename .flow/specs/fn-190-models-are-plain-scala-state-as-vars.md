@@ -446,6 +446,16 @@ Compiler refusals, exact texts:
   same-line body is a located lint finding. Unrelated objects and functions outside native effects,
   and the retained record-state compatibility fixtures, are not effect declarations.
 
+- **R19:** Inside native Models, every `val` initializer and `def` body declared as an
+  object member starts on a later line than its declaration header, including literal constants
+  and members of nested section objects. Declarations outside the Model and local declarations
+  inside methods or functions are exempt. `var` declarations, givens, parameters and
+  compiler-generated declarations are exempt. This authoring rule leaves framework
+  implementation/tool sources and test harness files unchanged; authored fixture inputs remain
+  subject to it. Errors: a same-line member body is a located lint finding; line breaks in
+  parameters alone do not satisfy the rule. Existing multiline bodies, local declarations and
+  declarations outside Models receive no finding.
+
 ## Boundaries
 
 - No change to the IR schema beyond type naming; `field` and `copy` are the carriers.
@@ -569,6 +579,7 @@ change; the Go composition lowering follows in phase 2.
 | R16 | fn-190.1, fn-190.4 | — |
 | R17 | fn-190.11, fn-190.12 | the lifter and Go halves are phase 2 (.12) |
 | R18 | fn-190.13 | compiler admission and author style requested 2026-10-17 |
+| R19 | fn-190.13 | multiline Model object members, including constants; locals and outer declarations exempt |
 
 ## Phasing (owner, 2026-10-17)
 

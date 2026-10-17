@@ -28,7 +28,8 @@ object QueriesFixture:
         if !empty then effects.drain()
 
     object effects:
-      def drain(): Unit = empty = true
+      def drain() =
+        empty = true
 
   object Shop extends Machine[Said, Note]:
     var cash = 3
@@ -52,13 +53,14 @@ object QueriesFixture:
         if opened then effects.close()
 
     object effects:
-      def pay(amount: UpTo[3]): Unit =
+      def pay(amount: UpTo[3]) =
         cash = cash - amount
         records(Note.paid)
-      def open(): Unit =
+      def open() =
         opened = true
         records(Note.opened)
-      def close(): Unit = opened = false
+      def close() =
+        opened = false
 
     object invariants:
       val neverOverdrawn = check(cash >= 0)

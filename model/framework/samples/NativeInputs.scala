@@ -17,7 +17,8 @@ object NativeInputs:
   object Accepted extends Machine[Boolean, Nothing]:
     var seen = Set.empty[Int]
 
-    override def end = seen.nonEmpty
+    override def end =
+      seen.nonEmpty
 
     object transitions extends Transitions:
       on(caller.submit): in =>
@@ -28,9 +29,10 @@ object NativeInputs:
         seen = seen.incl(in.amount)
 
     object postconditions:
-      val zeroWasAccepted = after(caller.submit(amount = 0)):
-        oneOf:
-          branch:
-            check(seen == Set(0))
-          branch:
-            check(seen == Set(0, 2))
+      val zeroWasAccepted =
+        after(caller.submit(amount = 0)):
+          oneOf:
+            branch:
+              check(seen == Set(0))
+            branch:
+              check(seen == Set(0, 2))

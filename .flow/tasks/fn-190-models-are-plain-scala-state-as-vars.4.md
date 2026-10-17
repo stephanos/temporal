@@ -22,8 +22,9 @@ The lifter turns an effect body into one `copy` per path with sequential substit
 
 The native implementation includes assignment effects, plain transitions, section claims, progress
 environments and complete `oneOf(domain)` start products. Assertion and alternative evaluation now
-skip after a failed requirement; the fact-argument regression is being verified separately. These
-are source changes awaiting final native verification and a user-owned commit, not a task closure.
+skip after a failed requirement, including fact arguments; a reached fact argument evaluates once.
+All five short-circuit regressions pass in the 538-test native run; the lazy fact-argument correction
+is committed as `36f548713d`. This is a source checkpoint, not a task closure.
 
 The original native requirements remain open: public legacy vocabulary is still reachable through
 record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and

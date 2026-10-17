@@ -92,7 +92,8 @@ object Bank:
           )
 
     object invariants:
-      val totalSupplyInv = check(totalSupply(balances))
+      val totalSupplyInv =
+        check(totalSupply(balances))
 
     object postconditions:
       val failedSendChangesNothing =
@@ -101,9 +102,9 @@ object Bank:
     object queries:
       // a send of one banana from the king to peaches: not every such send pays, so it is a find's
       // target, not a promise
-      val peachesGetsBananas = after(
-        client.send(fromAddr = Addr.king, toAddr = Addr.peaches, denom = Denom.banana, amount = 1)
-      ):
-        check(balanceOf(balances, Addr.king, Denom.banana) == 1)
-        check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
-      val kingSendsPeachesBananas = find(peachesGetsBananas)
+      val peachesGetsBananas =
+        after(client.send(fromAddr = Addr.king, toAddr = Addr.peaches, denom = Denom.banana, amount = 1)):
+          check(balanceOf(balances, Addr.king, Denom.banana) == 1)
+          check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
+      val kingSendsPeachesBananas =
+        find(peachesGetsBananas)

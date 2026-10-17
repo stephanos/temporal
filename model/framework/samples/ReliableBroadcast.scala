@@ -135,11 +135,12 @@ object ReliableBroadcast:
     )
 
     // the broadcast as one record, which the predicates above read
-    def current: Broadcast = Broadcast(origin, p1, p2, network)
+    def current: Broadcast =
+      Broadcast(origin, p1, p2, network)
 
     // a run stops once nothing is in flight and no process is part way through
-    override def end = !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
-
+    override def end =
+      !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
 
     object transitions extends Transitions:
       on(sender.broadcast): payload =>
@@ -212,7 +213,8 @@ object ReliableBroadcast:
           case Proc.p2 => p2 = local
 
     object invariants:
-      val safety = check(onlyBroadcast(current))
+      val safety =
+        check(onlyBroadcast(current))
 
     object postconditions:
       // If I deliver a message, I have already forwarded it to all.
@@ -223,9 +225,11 @@ object ReliableBroadcast:
           check(relayed(before.p2))
 
     object monitors:
-      val network = wire.network
+      val network =
+        wire.network
       // where a run stops, the processes delivered the same messages
-      val agreement = monitor(false)(_ => !agreed(current))(identity).readAtEnds
+      val agreement =
+        monitor(false)(_ => !agreed(current))(identity).readAtEnds
 
     object progress:
       // once one process delivers, every process delivers the same, whatever else happens
@@ -236,7 +240,9 @@ object ReliableBroadcast:
 
     object queries:
       // a find target: a run need not crash, so it is no promise and not checked by default
-      val survivesCrash = after(process.deliver(Proc.p2)):
-        check(everyoneDelivered(current))
-        check(origin == Origin.crashed(Payload.hello))
-      val deliveredDespiteCrash = find(survivesCrash)
+      val survivesCrash =
+        after(process.deliver(Proc.p2)):
+          check(everyoneDelivered(current))
+          check(origin == Origin.crashed(Payload.hello))
+      val deliveredDespiteCrash =
+        find(survivesCrash)

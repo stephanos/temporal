@@ -34,12 +34,18 @@ object VarDerivationsFixture:
         if tossed then effects.lose()
 
     object effects:
-      def toss(): Unit = tossed = true
-      def pay(amount: UpTo[3]): Unit = score = score - amount
-      def payTwice(amount: UpTo[3]): Unit = score = score - 2 * amount
-      def win(): Unit = score = score + 1
-      def lose(): Unit = score = score - 1
-      def jackpot(): Unit = score = score + 10
+      def toss() =
+        tossed = true
+      def pay(amount: UpTo[3]) =
+        score = score - amount
+      def payTwice(amount: UpTo[3]) =
+        score = score - 2 * amount
+      def win() =
+        score = score + 1
+      def lose() =
+        score = score - 1
+      def jackpot() =
+        score = score + 10
 
   object Generous
       extends Derived(
