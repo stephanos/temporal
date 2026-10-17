@@ -20,9 +20,10 @@ Remove the state type parameter: `Machine[O, F]`. The plugin collects the Machin
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 (DSL only). `Machine[O, F]` declares state as vars with a macro-derived schema (names, declared types, bounds, Inbox message types, comparisons), a typed `State` record and the native snapshot runtime (restore before each step/claim, reset to init after; accessors found by name); `before` is the typed State record; Property and Scenario lose the state parameter. Refusals with the spec's texts, tested with compileErrors: a Machine without vars, a var with no schema, `before` where no step started. All six samples and NativeInputs migrated, every native test keeping its cases (states built from init by named updates). Bridge: the DSL's own ~177 fixtures stay on `RecordMachine[S, O, F]` (shared effects and case-class assertions) until fn-190.4/.7; var forms of where/~>/leadsTo/once/keeps exist as extensions. Native checks: compile exit 0, 481 tests, 29 lint tests (block-form 128 files, 0 findings). Deferred: `UpTo` as an erasing alias (breaks finite catalogs until enumeration is removed: fn-190.5/.9); outcome/fact as abstract type members (engine reparameterisation: fn-190.4/.7); choose and phases on var machines, private vars (fn-190.4/.6).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 05fdc2e, 2253c76, 2444303, c30fab3, e08f355, e0f49b1, 6ec0366, b429e46, 589c444, 3981e0f, 226bc15, eaec94c, a491f19
+- Tests: compile dsl realize samples: exit 0, test dsl realize samples: 481 passed, lint *RuleSuite: 29 passed
 - PRs:
