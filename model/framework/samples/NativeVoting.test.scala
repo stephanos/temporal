@@ -14,21 +14,32 @@ class NativeVotingTest extends munit.FunSuite:
   private def holds[S, O](property: Property, state: S, outcome: O): Boolean =
     property.decl.holds.get.asInstanceOf[Step[S, O, Nothing] => Boolean](Step(outcome, state))
 
-  private def inconsistent: Voting.Votes =
+  // A Voting state by its vars, as the Votes record holds them, and the record a state holds.
+  private def voting(record: Voting.Votes): State =
+    Voting.Model.init.copy(votes = record.votes, maxBal = record.maxBal)
+  private def recorded(state: State): Voting.Votes = Voting.Model.at(state)(Voting.Model.current)
+
+  // A Consensus state by its one var.
+  private def decision(chosen: Set[Voting.Value]): State =
+    Voting.Consensus.init.copy(chosen = chosen)
+
+  private def inconsistent: State =
     import Voting.*
-    Votes(
-      Map(
-        Acceptor.a1 -> Set(Vote(0, Value.v1)),
-        Acceptor.a2 -> Set(Vote(0, Value.v2)),
-        Acceptor.a3 -> Set.empty
-      ),
-      Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+    voting(
+      Votes(
+        Map(
+          Acceptor.a1 -> Set(Vote(0, Value.v1)),
+          Acceptor.a2 -> Set(Vote(0, Value.v2)),
+          Acceptor.a3 -> Set.empty
+        ),
+        Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+      )
     )
 
   test("normal max-ballot increase accepts the approved supplied invariant violation"):
     import Voting.*
     val supplied = inconsistent
-    assertEquals(inv(supplied), false)
+    assertEquals(inv(recorded(supplied)), false)
     val expected = supplied.copy(maxBal = Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> 0))
     assertEquals(
       run(Model, supplied, voter.increaseMaxBal(IncreaseMaxBal(Acceptor.a3, 0))),
@@ -38,14 +49,16 @@ class NativeVotingTest extends munit.FunSuite:
   test("normal vote accepts the approved supplied invariant violation"):
     import Voting.*
     val supplied = inconsistent
-    assertEquals(inv(supplied), false)
-    val expected = Votes(
-      Map(
-        Acceptor.a1 -> Set(Vote(0, Value.v1)),
-        Acceptor.a2 -> Set(Vote(0, Value.v2)),
-        Acceptor.a3 -> Set(Vote(1, Value.v1))
-      ),
-      Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> 1)
+    assertEquals(inv(recorded(supplied)), false)
+    val expected = voting(
+      Votes(
+        Map(
+          Acceptor.a1 -> Set(Vote(0, Value.v1)),
+          Acceptor.a2 -> Set(Vote(0, Value.v2)),
+          Acceptor.a3 -> Set(Vote(1, Value.v1))
+        ),
+        Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> 1)
+      )
     )
     assertEquals(
       run(Model, supplied, voter.voteFor(VoteFor(Acceptor.a3, 1, Value.v1))),
@@ -63,9 +76,11 @@ class NativeVotingTest extends munit.FunSuite:
 
   test("normal quorum progression preserves refused Steps and remaining vote conditions"):
     import Voting.*
-    val initial = Votes(
-      Map(Acceptor.a1 -> Set.empty, Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty),
-      Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
+    val initial = voting(
+      Votes(
+        Map(Acceptor.a1 -> Set.empty, Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty),
+        Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
+      )
     )
     assertEquals(Model.init, initial)
     val first = initial.copy(maxBal = Map(Acceptor.a1 -> 0, Acceptor.a2 -> -1, Acceptor.a3 -> -1))
@@ -95,12 +110,12 @@ class NativeVotingTest extends munit.FunSuite:
       List(Step(Outcome.accepted, ready))
     )
     assertEquals(run(Model, ready, vote1), List(Step(Outcome.accepted, one)))
-    assertEquals(chosen(one), Set.empty[Value])
+    assertEquals(chosen(recorded(one)), Set.empty[Value])
     assertEquals(
       run(Model, one, voter.voteFor(VoteFor(Acceptor.a2, 0, Value.v1))),
       List(Step(Outcome.accepted, two))
     )
-    assertEquals(chosen(two), Set(Value.v1))
+    assertEquals(chosen(recorded(two)), Set(Value.v1))
     assertEquals(run(Model, two, vote1), List(Step(Outcome.refused, two)))
     assertEquals(
       run(Model, two, voter.voteFor(VoteFor(Acceptor.a3, 0, Value.v2))),
@@ -151,11 +166,11 @@ class NativeVotingTest extends munit.FunSuite:
     import Voting.*
     val cls = voter.voteFor(VoteFor(Acceptor.a2, 0, Value.v1))
     assertEquals(
-      run(Consensus, Decision(Set.empty), cls),
-      List(Step(Outcome.accepted, Decision(Set(Value.v1))))
+      run(Consensus, decision(Set.empty), cls),
+      List(Step(Outcome.accepted, decision(Set(Value.v1))))
     )
-    assertEquals(run(Consensus, Decision(Set(Value.v1)), cls), Nil)
-    assertEquals(Model.refinement.toProduct(Model.init), Decision(Set.empty))
+    assertEquals(run(Consensus, decision(Set(Value.v1)), cls), Nil)
+    assertEquals(Model.refinement.toProduct(Model.init), decision(Set.empty))
     for (left, right) <- List(
         (Acceptor.a1, Acceptor.a2),
         (Acceptor.a1, Acceptor.a3),
@@ -163,18 +178,20 @@ class NativeVotingTest extends munit.FunSuite:
       )
     do
       val supplied = Model.init.copy(votes =
-        Model.init.votes
+        recorded(Model.init).votes
           .updated(left, Set(Vote(0, Value.v1)))
           .updated(right, Set(Vote(0, Value.v1)))
       )
-      assertEquals(chosen(supplied), Set(Value.v1))
-      assertEquals(Model.refinement.toProduct(supplied), Decision(Set(Value.v1)))
+      assertEquals(chosen(recorded(supplied)), Set(Value.v1))
+      assertEquals(Model.refinement.toProduct(supplied), decision(Set(Value.v1)))
     val both = Set(Vote(0, Value.v1), Vote(1, Value.v2))
-    val conflict = Votes(
-      Map(Acceptor.a1 -> both, Acceptor.a2 -> both, Acceptor.a3 -> Set.empty),
-      Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+    val conflict = voting(
+      Votes(
+        Map(Acceptor.a1 -> both, Acceptor.a2 -> both, Acceptor.a3 -> Set.empty),
+        Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+      )
     )
-    assertEquals(Model.refinement.toProduct(conflict), Decision(Set(Value.v1, Value.v2)))
+    assertEquals(Model.refinement.toProduct(conflict), decision(Set(Value.v1, Value.v2)))
     assertEquals(holds(Model.postconditions.decides, conflict, Outcome.accepted), true)
     assertEquals(holds(Model.invariants.consistency, conflict, Outcome.accepted), false)
     assert(Consensus.postconditions.chosenStays.decl.machine eq Consensus)
@@ -213,9 +230,11 @@ class NativeVotingTest extends munit.FunSuite:
       d,
       Step(
         Outcome.accepted,
-        Votes(
-          Map(Acceptor.a1 -> both, Acceptor.a2 -> both, Acceptor.a3 -> Set.empty),
-          Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+        voting(
+          Votes(
+            Map(Acceptor.a1 -> both, Acceptor.a2 -> both, Acceptor.a3 -> Set.empty),
+            Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+          )
         )
       )
     )
@@ -223,7 +242,7 @@ class NativeVotingTest extends munit.FunSuite:
       run(UnsafeVoting, d.state, voter.voteFor(VoteFor(Acceptor.a1, 0, Value.v1))),
       List(Step(Outcome.refused, d.state))
     )
-    assertEquals(chosen(d.state), Set(Value.v1, Value.v2))
+    assertEquals(chosen(recorded(d.state)), Set(Value.v1, Value.v2))
     assertEquals(holds(UnsafeVoting.invariants.unsafeConsistency, d.state, Outcome.accepted), false)
     assertEquals(holds(Model.invariants.invariant, d.state, Outcome.accepted), false)
     assertEquals(holds(Model.postconditions.decides, d.state, Outcome.accepted), true)
@@ -267,7 +286,7 @@ class NativeVotingTest extends munit.FunSuite:
         voter.voteFor(VoteFor(Acceptor.a1, ballot, Value.v1))
       ): Unit
     intercept[NoSuchElementException](
-      votedFor(Model.init.copy(votes = Map.empty), Acceptor.a1, 0, Value.v1)
+      votedFor(recorded(Model.init.copy(votes = Map.empty)), Acceptor.a1, 0, Value.v1)
     ): Unit
 
   test("broadcast sends and authored crashes preserve durable locals and actual network"):

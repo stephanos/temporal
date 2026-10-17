@@ -16,9 +16,6 @@ object Voting:
   enum Value:
     case v1, v2
 
-  // Consensus: the values chosen.
-  final case class Decision(chosen: Set[Value])
-
   final case class Vote(ballot: Int, value: Value)
 
   // Each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet.
@@ -116,36 +113,38 @@ object Voting:
       maxBal = votes.maxBal.updated(a, b)
     )
 
-  object Consensus extends RecordMachine[Decision, Outcome, Nothing]:
-    val init = Decision(chosen = Set.empty)
-    def end(decision: Decision) = true
+  object Consensus extends Machine[Outcome, Nothing]:
+    // the values chosen
+    var chosen = Set.empty[Value]
 
     object rules extends Rules:
       on(voter.voteFor):
-        where(_.chosen.isEmpty) ~> effects.choose
+        where(chosen.isEmpty) ~> effects.choose
 
     object effects:
-      def choose(decision: Decision, in: VoteFor) =
-        enter(decision.copy(chosen = Set(in.v)))
+      def choose(in: VoteFor): Unit = chosen = Set(in.v)
 
     object postconditions:
       // once a value is chosen, it stays chosen
-      val chosenStays: Property = property.once(_.chosen.nonEmpty).keeps(_.chosen)
+      val chosenStays: Property = property.once(chosen.nonEmpty).keeps(chosen)
 
     object queries:
       val anyDecision: Scenario = scenario.starts(init).free
       val chosenStaysInConsensus =
         query verify postconditions.chosenStays in anyDecision limits Model.queries.everyBallot
 
-  object Model extends RecordMachine[Votes, Outcome, Nothing]:
-    val init = Votes(
-      votes = Map(Acceptor.a1 -> Set.empty, Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty),
-      maxBal = Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
-    )
-    def end(votes: Votes) = true
+  object Model extends Machine[Outcome, Nothing]:
+    // each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet
+    var votes =
+      Map(Acceptor.a1 -> Set.empty[Vote], Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty)
+    var maxBal = Map(Acceptor.a1 -> -1, Acceptor.a2 -> -1, Acceptor.a3 -> -1)
+
+    // the votes as one record, which the predicates above read
+    def current: Votes = Votes(votes, maxBal)
 
     object refinement extends Refinement(Consensus):
-      def toProduct(votes: Votes): Decision = Decision(chosen = chosen(votes))
+      def toProduct(state: State): State =
+        Consensus.init.copy(chosen = Model.at(state)(chosen(current)))
       // a vote that chooses nothing, a refused one and a move to a higher ballot change no decision
       val visibleOutcomes = (_: Voting.Outcome) => false
       val unobservable = List(voter.increaseMaxBal)
@@ -158,47 +157,42 @@ object Voting:
 
     object effects:
       // An acceptor may increase its maxBal to a higher ballot at any time.
-      def increaseMaxBal(
-          votes: Votes,
-          in: IncreaseMaxBal
-      ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if maxBalAtMost(votes, in.a, in.b) && !maxBalAtLeast(votes, in.a, in.b) then
-          enter(votes.copy(maxBal = votes.maxBal.updated(in.a, in.b)))
-        else reject(Outcome.refused, votes)
+      def increaseMaxBal(in: IncreaseMaxBal): Unit =
+        if maxBalAtMost(current, in.a, in.b) && !maxBalAtLeast(current, in.a, in.b) then
+          maxBal = maxBal.updated(in.a, in.b)
+        else reject(Outcome.refused)
       // An acceptor votes for v in ballot b: not below its maxBal, once per ballot, for the one
       // value of the ballot, and only where a quorum shows v safe at b.
-      def voteFor(
-          votes: Votes,
-          in: VoteFor
-      ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
-          othersAgree(votes, in.b, in.v) && someQuorumShowsSafeAt(votes, in.b, in.v)
-        then enter(cast(votes, in.a, in.b, in.v))
-        else reject(Outcome.refused, votes)
+      def voteFor(in: VoteFor): Unit =
+        if maxBalAtMost(current, in.a, in.b) && didNotVoteAt(current, in.a, in.b) &&
+          othersAgree(current, in.b, in.v) && someQuorumShowsSafeAt(current, in.b, in.v)
+        then vote(in)
+        else reject(Outcome.refused)
       // A vote that skips the quorum's showing that v is safe at b.
-      def voteUnsafe(
-          votes: Votes,
-          in: VoteFor
-      ): List[Step[Votes, Voting.Outcome, Nothing]] =
-        if maxBalAtMost(votes, in.a, in.b) && didNotVoteAt(votes, in.a, in.b) &&
-          othersAgree(votes, in.b, in.v)
-        then enter(cast(votes, in.a, in.b, in.v))
-        else reject(Outcome.refused, votes)
+      def voteUnsafe(in: VoteFor): Unit =
+        if maxBalAtMost(current, in.a, in.b) && didNotVoteAt(current, in.a, in.b) &&
+          othersAgree(current, in.b, in.v)
+        then vote(in)
+        else reject(Outcome.refused)
+      // acceptor a's vote for v in ballot b, and a moved to b
+      private def vote(in: VoteFor): Unit =
+        val next = cast(current, in.a, in.b, in.v)
+        votes = next.votes
+        maxBal = next.maxBal
 
     object invariants:
       // at most one value is chosen
-      val consistency: Property =
-        property.expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
-          check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
+      val consistency: Property = property.expect:
+        check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))
       val invariant: Property = property.expect:
-        (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=> check(inv(after.step.state))
+        check(inv(current))
 
     object postconditions:
       val decides: Property =
         property
           .after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1))
-          .expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
-            check(chosen(after.step.state).contains(Value.v1))
+          .expect:
+            check(chosen(current).contains(Value.v1))
 
     object queries:
       val anyVote: Scenario = scenario.starts(init).free
@@ -214,11 +208,11 @@ object Voting:
   object UnsafeVoting
       extends Derived(Model.unmonitored.rebind(voter.voteFor ~> Model.effects.voteUnsafe)),
         NegativeControl:
+    import Model.current
 
     object invariants:
-      val unsafeConsistency: Property =
-        property.expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
-          check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
+      val unsafeConsistency: Property = property.expect:
+        check(!(isChosen(current, Value.v1) && isChosen(current, Value.v2)))
 
     object queries:
       val anyUnsafeVote: Scenario = scenario.starts(Model.init).free

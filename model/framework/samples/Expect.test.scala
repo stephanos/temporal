@@ -264,19 +264,26 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
     import Voting.*
+    // a Voting state by its vars, as the Votes record holds them, and the record a state holds
+    def voting(record: Votes): State = Model.init.copy(votes = record.votes, maxBal = record.maxBal)
+    def recorded(state: State): Votes = Model.at(state)(Model.current)
     val initial = Model.init
-    val chosenV1 = Votes(
-      Map(
-        Acceptor.a1 -> Set(Vote(0, Value.v1)),
-        Acceptor.a2 -> Set(Vote(0, Value.v1)),
-        Acceptor.a3 -> Set.empty
-      ),
-      Map(Acceptor.a1 -> 0, Acceptor.a2 -> 0, Acceptor.a3 -> -1)
+    val chosenV1 = voting(
+      Votes(
+        Map(
+          Acceptor.a1 -> Set(Vote(0, Value.v1)),
+          Acceptor.a2 -> Set(Vote(0, Value.v1)),
+          Acceptor.a3 -> Set.empty
+        ),
+        Map(Acceptor.a1 -> 0, Acceptor.a2 -> 0, Acceptor.a3 -> -1)
+      )
     )
     val conflict = Set(Vote(0, Value.v1), Vote(1, Value.v2))
-    val conflicting = Votes(
-      Map(Acceptor.a1 -> conflict, Acceptor.a2 -> conflict, Acceptor.a3 -> Set.empty),
-      Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+    val conflicting = voting(
+      Votes(
+        Map(Acceptor.a1 -> conflict, Acceptor.a2 -> conflict, Acceptor.a3 -> Set.empty),
+        Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
+      )
     )
     val consistencyCases = List(
       (Step(Outcome.accepted, initial), true),
@@ -284,10 +291,10 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, conflicting), false)
     )
     same(Model.invariants.consistency, Model, None, consistencyCases)(after =>
-      !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
+      !(isChosen(recorded(after.state), Value.v1) && isChosen(recorded(after.state), Value.v2))
     )
     same(UnsafeVoting.invariants.unsafeConsistency, UnsafeVoting, None, consistencyCases)(after =>
-      !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
+      !(isChosen(recorded(after.state), Value.v1) && isChosen(recorded(after.state), Value.v2))
     )
     same(
       Model.invariants.invariant,
@@ -298,7 +305,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, chosenV1), true),
         (Step(Outcome.accepted, conflicting), false)
       )
-    )(after => inv(after.state))
+    )(after => inv(recorded(after.state)))
     same(
       Model.postconditions.decides,
       Model,
@@ -308,4 +315,4 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, chosenV1), true),
         (Step(Outcome.accepted, conflicting), true)
       )
-    )(after => chosen(after.state).contains(Value.v1))
+    )(after => chosen(recorded(after.state)).contains(Value.v1))
