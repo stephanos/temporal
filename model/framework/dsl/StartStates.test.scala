@@ -49,6 +49,7 @@ class StartStatesTest extends munit.FunSuite:
     val report = NativeCheck.verifyAll(Model)
     assertEquals(report.result("belowTwo").verdict, NativeCheck.Verdict.refuted)
     val graph = NativeCheck.explore(Model, Model.initialStates)
+    graph.drain()
     assertEquals(graph.starts.size, 4)
     assertEquals(graph.states.size, 6)
 

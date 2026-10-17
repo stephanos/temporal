@@ -635,6 +635,13 @@ Case or assessment field and cannot supply or change judge explanations. Existin
 IDs and `expected_run` metadata are still emitted and compared. Capability expectation bindings
 use the same expectation values and the same source-text rule.
 
+Native checks generate successors on demand and retain visited states and predecessor paths,
+without a full transition table. Witness searches and safety checks stop at the first decisive
+answer. Successful verification requires exhausting the finite reachable state space; a state
+budget that prevents that gives `unknown`, unless a witness or counterexample already establishes
+an answer. Monitors explore machine/monitor state pairs directly. Progress checks retain cycle
+bookkeeping and regenerate successors when needed for fairness and cycle reports.
+
 ## 10. Monitors and assumptions
 
 **Meaning.** A *monitor* is a finite state of its own that every step advances and a verdict read at

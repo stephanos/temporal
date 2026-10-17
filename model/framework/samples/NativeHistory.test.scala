@@ -502,7 +502,9 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(report.warnings, Vector.empty)
     assertEquals(report.verdicts("boils"), unknown)
     // one state short of the whole graph: the beep is reached, its last state is not
-    val states = NativeCheck.explore(Model, Seq(room)).states.size
+    val search = NativeCheck.explore(Model, Seq(room))
+    search.drain()
+    val states = search.states.size
     val short = NativeCheck.verifyAll(Model, Seq(room), budget = states - 1)
     val graph = NativeCheck.explore(Model, Seq(room), budget = states - 1)
     val neverBeeps =
