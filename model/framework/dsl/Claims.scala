@@ -44,7 +44,7 @@ final class PropertyBuilder[S, O, F] private[framework] (
   private[framework] def sameStep(f: Step[S, O, F] => Boolean): SameStepProperty[S, O, F] =
     PredicateBindings.validate(f, m)
     new SameStepProperty[S, O, F](
-      PropertyDecl(name, m, when, Some(f), None),
+      PropertyDecl(name, m, when, Some(restored(f)), None),
       () => m.illustrationMachine,
       Vector.empty
     )
@@ -54,9 +54,30 @@ final class PropertyBuilder[S, O, F] private[framework] (
   private[framework] def transition(f: (S, Step[S, O, F]) => Boolean): TransitionProperty[S, O, F] =
     PredicateBindings.validate(f, m)
     new TransitionProperty[S, O, F](
-      PropertyDecl(name, m, when, None, Some(f)),
+      PropertyDecl(name, m, when, None, Some(restored(f))),
       () => m.illustrationMachine,
       Vector.empty
+    )
+
+  // A predicate of a Machine's vars reads them with the state its step went to restored into them.
+  private def restored(f: Step[S, O, F] => Boolean): Step[S, O, F] => Boolean =
+    m.stateVars.fold(f)(vars =>
+      vars
+        .sameStep(
+          f.asInstanceOf[Step[State, O, F] => Boolean]
+        ) // scalafix:ok DisableSyntax.asInstanceOf
+        .asInstanceOf[Step[S, O, F] => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
+    )
+
+  private def restored(f: (S, Step[S, O, F]) => Boolean): (S, Step[S, O, F]) => Boolean =
+    m.stateVars.fold(f)(vars =>
+      vars
+        .transition(
+          f.asInstanceOf[
+            (State, Step[State, O, F]) => Boolean
+          ] // scalafix:ok DisableSyntax.asInstanceOf
+        )
+        .asInstanceOf[(S, Step[S, O, F]) => Boolean] // scalafix:ok DisableSyntax.asInstanceOf
     )
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A

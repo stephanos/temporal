@@ -71,3 +71,41 @@ private[framework] object InboxAssociation:
         )
       )
     }
+
+  // The association of a Machine's state var with the channel whose Inbox it holds:
+  // `inbox(network, wire.network)` names the var `network`.
+  def captureVar[M: Type](
+      owner: Expr[Machine[?, ?]],
+      variable: Expr[Inbox[M]],
+      channel: Expr[Channel[M]]
+  )(using Quotes): Expr[Unit] =
+    import quotes.reflect.*
+    def unwrap(term: Term): Term = term match
+      case Inlined(_, _, body) => unwrap(body)
+      case Typed(body, _)      => unwrap(body)
+      case Block(Nil, body)    => unwrap(body)
+      case other               => other
+    val name = unwrap(variable.asTerm) match
+      case reference: Ref
+          if reference.symbol.flags.is(Flags.Mutable) && reference.symbol.owner.isClassDef =>
+        reference.symbol.name
+      case _ =>
+        report.errorAndAbort(
+          "an Inbox association names the state var that holds the Inbox",
+          variable
+        )
+    val at = Position.ofMacroExpansion
+    val location = s"${at.sourceFile.name}:${at.startLine + 1}:${at.startColumn + 1}"
+    '{
+      val declaring = $owner
+      declaring.retainNativeInbox(
+        new InboxOwnership.Native(
+          declaring,
+          ${ Expr(TypeRepr.of[State].show) },
+          List(${ Expr(name) }),
+          ${ Expr(TypeRepr.of[M].dealias.show) },
+          $channel,
+          ${ Expr(location) }
+        )
+      )
+    }

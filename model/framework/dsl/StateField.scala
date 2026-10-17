@@ -53,6 +53,139 @@ private[framework] object StateField:
     fields(index) = value
     mirror.fromProduct(Tuple.fromArray(fields))
 
+  private def validator[T: Type](using Quotes): Option[Expr[T => Boolean]] =
+    import quotes.reflect.*
+    def defaultBounded(term: Term): Boolean = term match
+      case Inlined(_, _, body)    => defaultBounded(body)
+      case Apply(function, _)     => defaultBounded(function)
+      case TypeApply(function, _) => defaultBounded(function)
+      case other => other.symbol.fullName == "framework.dsl.Finite.given_Finite_UpTo"
+    def bounded: Option[Expr[T => Boolean]] = Type.of[T] match
+      case '[UpTo[n]] =>
+        TypeRepr.of[n] match
+          case ConstantType(IntConstant(high)) =>
+            Some('{ (value: UpTo[n]) =>
+              value >= 0 && value <= ${ Expr(high) }
+            }.asExprOf[T => Boolean])
+          case _ => None
+      case _ => None
+    Expr.summon[Finite[T]] match
+      case Some(finite) if defaultBounded(finite.asTerm) && bounded.nonEmpty => bounded
+      case Some(finite)                                                      =>
+        Some('{ (value: T) =>
+          $finite.values.exists(candidate => $finite.equivalent(candidate, value))
+        })
+      case None =>
+        Type.of[T] match
+          case '[Int]       => Some('{ (_: Int) => true }.asExprOf[T => Boolean])
+          case '[Boolean]   => Some('{ (_: Boolean) => true }.asExprOf[T => Boolean])
+          case '[String]    => Some('{ (value: String) => value != null }.asExprOf[T => Boolean])
+          case '[Option[a]] =>
+            validator[a].map(check =>
+              '{ (value: Option[a]) => value.forall($check) }.asExprOf[T => Boolean]
+            )
+          case '[List[a]] =>
+            validator[a].map(check =>
+              '{ (value: List[a]) => value.forall($check) }.asExprOf[T => Boolean]
+            )
+          case '[Set[a]] =>
+            validator[a].map(check =>
+              '{ (value: Set[a]) => value.forall($check) }.asExprOf[T => Boolean]
+            )
+          case '[Map[k, v]] =>
+            for key <- validator[k]; value <- validator[v] yield '{ (entries: Map[k, v]) =>
+              entries.forall((k, v) => $key(k) && $value(v))
+            }.asExprOf[T => Boolean]
+          case _ =>
+            val record = TypeRepr.of[T].dealias
+            if !record.typeSymbol.flags.is(Flags.Case) then None
+            else
+              val checks = record.typeSymbol.caseFields.map: field =>
+                record.memberType(field).asType match
+                  case '[member] => validator[member].map(field -> _)
+              if checks.exists(_.isEmpty) then None
+              else
+                def checked(value: Expr[T]): Expr[Boolean] =
+                  checks.flatten.foldLeft(Expr(true)): (previous, entry) =>
+                    val (field, check) = entry
+                    record.memberType(field).asType match
+                      case '[member] =>
+                        val typed = check.asExprOf[member => Boolean]
+                        val selected = Select.unique(value.asTerm, field.name).asExprOf[member]
+                        '{ $previous && $typed($selected) }
+                Some('{ (value: T) => ${ checked('value) } })
+
+  // The state var a durability classification names, `durable(p1)`, as a field of its Machine's
+  // State: its path is the var's name.
+  inline def captureVar[A](
+      inline variable: A,
+      owner: RecordMachine[State, ?, ?]
+  ): StateField[State, A] = ${ capturedVar[A]('variable, 'owner) }
+
+  private[framework] def capturedVar[A: Type](
+      variable: Expr[A],
+      owner: Expr[RecordMachine[State, ?, ?]]
+  )(using Quotes): Expr[StateField[State, A]] =
+    import quotes.reflect.*
+    def unwrap(term: Term): Term = term match
+      case Inlined(_, _, body) => unwrap(body)
+      case Typed(body, _)      => unwrap(body)
+      case other               => other
+    val name = unwrap(variable.asTerm) match
+      case reference: Ref
+          if reference.symbol.flags.is(Flags.Mutable) && reference.symbol.owner.isClassDef =>
+        reference.symbol.name
+      case _ =>
+        report.errorAndAbort("a state field names a state var of its Machine", variable)
+    val at = Position.ofMacroExpansion
+    val location = s"${at.sourceFile.name}:${at.startLine + 1}:${at.startColumn + 1}"
+    '{
+      stateVar[A](
+        $owner,
+        ${ Expr(name) },
+        ${ Expr(TypeRepr.of[A].show) },
+        ${ Expr(location) },
+        ${ validity[A] }
+      )
+    }
+
+  def stateVar[A](
+      owner: RecordMachine[State, ?, ?],
+      name: String,
+      fieldType: String,
+      location: String,
+      validity: A => Option[Boolean]
+  ): StateField[State, A] =
+    val vars = Vars.of(owner)
+    val index = vars.schema.indexOf(name)
+    require(index >= 0, s"$name is not a state var of ${owner.name}")
+    def updated(state: State, replacements: Vector[(List[String], Any)]): State =
+      vars.updated(
+        state,
+        replacements.map:
+          case (List(selected), value) => selected -> value
+          case (path, _)               =>
+            throw IllegalArgumentException(
+              s"durability field ${path.mkString(".")} at $location: a Machine classifies whole vars"
+            )
+      )
+    make[State, A](
+      "framework.dsl.State",
+      fieldType,
+      List(name),
+      location,
+      vars.schema.vars.map(v => List(v.name)),
+      validity,
+      state =>
+        vars.owned(state).values(index).asInstanceOf[A], // scalafix:ok DisableSyntax.asInstanceOf
+      (state, value) => updated(state, Vector(List(name) -> value)),
+      updated
+    )
+
+  private def validity[A: Type](using Quotes): Expr[A => Option[Boolean]] = validator[A] match
+    case Some(check) => '{ $check.andThen[Option[Boolean]](value => Some(value)) }
+    case None        => '{ (_: A) => None }
+
   private[framework] def captured[S: Type, A: Type](selector: Expr[S => A])(using
       Quotes
   ): Expr[StateField[S, A]] =
@@ -153,69 +286,6 @@ private[framework] object StateField:
           leaves(record.memberType(field), prefix :+ field.name, record :: seen)
       else List(prefix)
 
-    def validator[T: Type]: Option[Expr[T => Boolean]] =
-      def defaultBounded(term: Term): Boolean = term match
-        case Inlined(_, _, body)    => defaultBounded(body)
-        case Apply(function, _)     => defaultBounded(function)
-        case TypeApply(function, _) => defaultBounded(function)
-        case other => other.symbol.fullName == "framework.dsl.Finite.given_Finite_UpTo"
-      def bounded: Option[Expr[T => Boolean]] = Type.of[T] match
-        case '[UpTo[n]] =>
-          TypeRepr.of[n] match
-            case ConstantType(IntConstant(high)) =>
-              Some('{ (value: UpTo[n]) =>
-                value >= 0 && value <= ${ Expr(high) }
-              }.asExprOf[T => Boolean])
-            case _ => None
-        case _ => None
-      Expr.summon[Finite[T]] match
-        case Some(finite) if defaultBounded(finite.asTerm) && bounded.nonEmpty => bounded
-        case Some(finite)                                                      =>
-          Some('{ (value: T) =>
-            $finite.values.exists(candidate => $finite.equivalent(candidate, value))
-          })
-        case None =>
-          Type.of[T] match
-            case '[Int]       => Some('{ (_: Int) => true }.asExprOf[T => Boolean])
-            case '[Boolean]   => Some('{ (_: Boolean) => true }.asExprOf[T => Boolean])
-            case '[String]    => Some('{ (value: String) => value != null }.asExprOf[T => Boolean])
-            case '[Option[a]] =>
-              validator[a].map(check =>
-                '{ (value: Option[a]) => value.forall($check) }.asExprOf[T => Boolean]
-              )
-            case '[List[a]] =>
-              validator[a].map(check =>
-                '{ (value: List[a]) => value.forall($check) }.asExprOf[T => Boolean]
-              )
-            case '[Set[a]] =>
-              validator[a].map(check =>
-                '{ (value: Set[a]) => value.forall($check) }.asExprOf[T => Boolean]
-              )
-            case '[Map[k, v]] =>
-              for key <- validator[k]; value <- validator[v] yield '{ (entries: Map[k, v]) =>
-                entries.forall((k, v) => $key(k) && $value(v))
-              }.asExprOf[T => Boolean]
-            case _ =>
-              val record = TypeRepr.of[T].dealias
-              if !record.typeSymbol.flags.is(Flags.Case) then None
-              else
-                val checks = record.typeSymbol.caseFields.map: field =>
-                  record.memberType(field).asType match
-                    case '[member] => validator[member].map(field -> _)
-                if checks.exists(_.isEmpty) then None
-                else
-                  def checked(value: Expr[T]): Expr[Boolean] =
-                    checks.flatten.foldLeft(Expr(true)): (previous, entry) =>
-                      val (field, check) = entry
-                      record.memberType(field).asType match
-                        case '[member] =>
-                          val typed = check.asExprOf[member => Boolean]
-                          val selected = Select.unique(value.asTerm, field.name).asExprOf[member]
-                          '{ $previous && $typed($selected) }
-                  Some('{ (value: T) => ${ checked('value) } })
-    val validity: Expr[A => Option[Boolean]] = validator[A] match
-      case Some(check) => '{ $check.andThen[Option[Boolean]](value => Some(value)) }
-      case None        => '{ (_: A) => None }
     val rootFields =
       Expr.ofList(leaves(TypeRepr.of[S], Nil, Nil).map(p => Expr.ofList(p.map(Expr(_)))))
     val at = Position.ofMacroExpansion
@@ -227,7 +297,7 @@ private[framework] object StateField:
         ${ Expr.ofList(path.map(Expr(_))) },
         ${ Expr(location) },
         $rootFields.toVector,
-        $validity,
+        ${ validity[A] },
         $selector,
         $writer,
         $rebuilder

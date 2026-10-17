@@ -101,6 +101,16 @@ extension [S, O, F](m: RecordMachine[S, O, F])
   )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =
     Progress(name, m, from, to, within, under.toList)
 
+// A progress claim of a Machine that declares its state as vars: `from` and `to` read them, with
+// the state they are asked of restored into them.
+extension [O, F](m: RecordMachine[State, O, F])
+  @scala.annotation.targetName("leadsToVars")
+  def leadsTo(
+      name: String
+  )(from: => Boolean, to: => Boolean, within: Int, under: Assumption*): Progress[State] =
+    val vars = Vars.of(m)
+    Progress(name, m, s => vars.at(s)(from), s => vars.at(s)(to), within, under.toList)
+
 extension [S <: Product](c: Composition[S])
   def leadsTo(
       name: String

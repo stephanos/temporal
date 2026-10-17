@@ -73,6 +73,13 @@ object Data:
   trait Structural[T] extends Data[T]
 
   object Structural:
+    // The comparison of a state var whose type has no schema, which its Machine refuses at compile
+    // time; it stands in only so the refusal is the one reported.
+    @scala.annotation.publicInBinary
+    private[framework] def unschematic[T]: Structural[T] = new Structural[T]:
+      def compare(left: T, right: T): Int =
+        throw IllegalStateException("a state var without a schema is refused at compile time")
+
     private def ordered[T](ordering: Ordering[T]): Structural[T] = new Structural[T]:
       def compare(left: T, right: T): Int = ordering.compare(left, right)
 
@@ -168,6 +175,8 @@ object StateData:
     new StateData[Map[K, V]] {}
   given [M](using StateData[M]): StateData[Inbox[M]] = new StateData[Inbox[M]] {}
   given [N <: Int]: StateData[UpTo[N]] = new StateData[UpTo[N]] {}
+  // A Machine's State: each of its vars has been checked to be state data where it is declared.
+  given StateData[State] = new StateData[State] {}
   given [T](using m: Mirror.Of[T], members: Members[m.MirroredElemTypes]): StateData[T] =
     new StateData[T] {}
 

@@ -17,7 +17,7 @@ import scala.language.implicitConversions
 // The outcome `enter` and `stay` answer for a machine whose outcomes are `O`, declared once beside
 // the outcome type: `given Ok[Outcome] = Ok(Outcome.accepted)`. Core form: the outcome itself,
 // `Outcome.accepted`, written in each `Step`.
-final case class Ok[O](outcome: O)
+final case class Ok[O](outcome: O) extends Accepting[O]
 
 // The ok outcomes the framework declares itself, in the implicit scope of every `Ok`: a Model's own
 // `given Ok` outranks them, and a machine on the shared outcomes declares none. Core form: the
@@ -139,8 +139,11 @@ final class Before[S] private[framework] (val state: S)
 // The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
 def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
 
-// The state before a transition's step. Core form: `b` in `(b, a) => a.state == b`.
-def before[S](using context: Before[S]): S = context.state
+// The state before a transition's step: for a Machine that declares its state as vars, its State
+// record, whose vars a postcondition reads by name, `before.temperature`. Core form: `b` in
+// `(b, a) => a.state == b`.
+transparent inline def before[S](using context: Before[S]): Any =
+  ${ ExpectationMacros.stateBefore[S]('context) }
 
 // One Boolean requirement; failure skips the remaining requirements. Core form:
 // `condition && remainingRequirements`.
@@ -237,6 +240,23 @@ private[framework] type ExpectationCapture = Option[(String, Seq[String])]
 @scala.annotation.publicInBinary
 private[framework] object ExpectationMacros:
   import scala.quoted.*
+
+  // The state a transition's step started from, typed for a Machine that declares its state as vars
+  // as its State record refined with the vars of the Machine the expansion sits in.
+  @scala.annotation.publicInBinary
+  private[framework] def stateBefore[S: Type](context: Expr[Before[S]])(using Quotes): Expr[Any] =
+    import quotes.reflect.*
+    if !(TypeRepr.of[S] =:= TypeRepr.of[State]) then '{ $context.state }
+    else
+      val record = VarSchemaMacro
+        .enclosingMachine(Symbol.spliceOwner)
+        .fold(TypeRepr.of[State]): machine =>
+          VarSchemaMacro
+            .stateVars(machine)
+            .foldLeft(TypeRepr.of[State]): (record, variable) =>
+              Refinement(record, variable.name, VarSchemaMacro.declaredType(machine, variable))
+      record.asType match
+        case '[r] => '{ $context.state.asInstanceOf[r] } // scalafix:ok DisableSyntax.asInstanceOf
 
   @scala.annotation.publicInBinary
   private[framework] def same[S: Type, O: Type, F: Type](body: Expr[Expectation[S, O, F] ?=> Unit])(
@@ -412,7 +432,7 @@ trait Recorded[F]:
   "this assigns a field of ${S}, records a fact or rejects, which only an `effect:` block does: " +
     "outside one, return the steps, `enter(s.copy(...), fact)` or `reject(outcome, s)`"
 )
-final class Draft[S, O, F] private[framework] (start: S) extends View[S]:
+final class Draft[S, O, F] private[framework] (start: S) extends View[S], Refusing[O], Recording[F]:
   private var current: S = start // scalafix:ok DisableSyntax.var
   private var facts: List[F] = Nil // scalafix:ok DisableSyntax.var
   private var rejection: Option[O] = None // scalafix:ok DisableSyntax.var
@@ -492,15 +512,17 @@ def enters[S, O, F, P, C <: P](phase: C)(using
     case _                                => Nil
   s => List(Step(ok.outcome, phasing.write(s, phase), status))
 
-// `record(statusPaused)`, in an `effect:` block: the step records these facts, after those an
-// earlier `record` of the block recorded. Core form: the facts of `enter(s.copy(...), facts*)`.
-def record[S, O, F](using draft: Draft[S, O, F])(first: F, rest: F*): Unit =
-  draft.add(first +: rest)
+// `record(statusPaused)`, in an `effect:` block or an effect of a Machine that declares its state
+// as vars: the step records these facts, after those an earlier `record` of the block recorded.
+// Core form: the facts of `enter(s.copy(...), facts*)`.
+def record[F](first: F, rest: F*)(using recording: Recording[F]): Unit =
+  recording.add(first +: rest)
 
-// `reject(Outcome.notFound)`, in an `effect:` block: the step answers `outcome` and keeps the
-// state, recording nothing. Core form: `reject(Outcome.notFound, s)`.
-def reject[S, O, F](using draft: Draft[S, O, F])(outcome: O): Unit =
-  draft.refuse(outcome)
+// `reject(Outcome.notFound)`, in an `effect:` block or an effect of a Machine that declares its
+// state as vars: the step answers `outcome` and keeps the state it started from, recording
+// nothing. Core form: `reject(Outcome.notFound, s)`.
+def reject[O](outcome: O)(using refusing: Refusing[O]): Unit =
+  refusing.refuse(outcome)
 
 // `phase.in(a, b, c)`: whether the value is one of the members listed, of which there is at least
 // one. Written dotted, never infix. Core form: `List(a, b, c).contains(phase)`.
@@ -735,9 +757,30 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
     )
     Stays(b, p)
 
+// `property.once(chosen.nonEmpty).keeps(chosen)`, of a Machine that declares its state as vars:
+// `over` and the value kept read them, with the state before a step, or after it, restored into
+// them. Core form: `b.transition((before, after) => !over(before) || after.state.chosen == before.chosen)`.
+extension [O, F](b: PropertyBuilder[State, O, F])
+  @sugar @targetName("onceVars")
+  def once(over: => Boolean): Once[State, O, F] =
+    require(
+      b.when.isEmpty,
+      s"once declares ${b.name} about every step, so it takes no when: write the restriction into its predicates, or declare the Property with `expect`"
+    )
+    val vars = Vars.of(b.m)
+    Once(b, (s: State) => vars.at(s)(over))
+
+// The value of a Machine's vars a step from a state `over` holds of keeps: `keeps(chosen)`.
+// Core form: `b.transition((before, after) => !over(before) || after.state.chosen == before.chosen)`.
+extension [O, F](once: Once[State, O, F])
+  @sugar @targetName("keepsVars")
+  def keeps[V](projection: => V)(using CanEqual[V, V]): Property =
+    val vars = Vars.of(once.b.m)
+    once.keeps((s: State) => vars.at(s)(projection))
+
 // What `once(over)` leaves to say: the value it keeps. Core form: `b.transition(predicate)`.
 @sugar final class Once[S, O, F] private[framework] (
-    b: PropertyBuilder[S, O, F],
+    private[framework] val b: PropertyBuilder[S, O, F],
     over: S => Boolean
 ):
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
@@ -885,6 +928,34 @@ final class Case[S, O, F] private[framework] (
   )(using firing: Firing[S, O, F, I], input: RuleInput[I, A]): Unit =
     firing.retaining(this, data)(this.~>(effect)(using firing, input))
 
+// The effects of a Machine that declares its state as vars, where a case of its rules holds: a call
+// of an effect that assigns them, which takes one step, the rejection the effect makes or the
+// accepted outcome into the vars it assigned. Core form: the arm `if g(s) then e(s, in)` of the
+// action's step function.
+object Case:
+  // A call of an effect of a Machine's vars where the case holds. Core form: the arm
+  // `if g(s) then e(s, in)` of the action's step function.
+  extension [O, F](arm: Case[State, O, F])
+    // `where(!heatingOn) ~> effects.pressButton()`. Core form: the arm `if g(s) then pressButton(s)`.
+    @targetName("varEffect")
+    infix def ~>(effect: => Unit)(using firing: Firing[State, O, F, ?], ok: Ok[O]): Unit =
+      val vars = machineVars(firing)
+      firing.bind(arm, stateEffect((s: State) => vars.step[O, F](s, ok.outcome)(effect)))
+
+    // `always ~> effects.send`, an effect of the action's one input. Core form: the arm
+    // `if g(s) then send(s, in)`.
+    @targetName("varInputEffect")
+    infix def ~>[I, A](effect: A => Unit)(using
+        firing: Firing[State, O, F, I],
+        @unused input: RuleInput[I, A],
+        ok: Ok[O]
+    ): Unit =
+      val vars = machineVars(firing)
+      firing.bind(
+        arm,
+        effectOf(firing.decl, (s: State, value: A) => vars.step[O, F](s, ok.outcome)(effect(value)))
+      )
+
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
 // block's cases. Core form: none of its own; it is the `action` of `action ~> stepFunction`, whose
 // arms the block's cases are.
@@ -897,7 +968,7 @@ final class Firing[S, O, F, I] private[framework] (
         (S, List[Any]) => List[Step[S, O, F]],
         Option[RuleBindings.Registration]
     ) => Unit,
-    source: Option[RecordMachine[S, O, F]] = None,
+    private[framework] val source: Option[RecordMachine[S, O, F]] = None,
     origin: Option[FacetBindings.Origin] = None,
     budgets: Vector[NativeBudget[?]] = Vector.empty
 ):
@@ -982,6 +1053,35 @@ extension [S, O, F, I](cases: GuardCases[S, O, F, I])
   // A state and native input condition. Core form: `if condition(s, in) then e(s, in)`.
   def apply[A](using input: RuleInput[I, A])(condition: (S, A) => Boolean): Case[S, O, F] =
     Case("where", cases.firing.inputGuard(condition)(using input.native))
+
+// The conditions of a Machine that declares its state as vars, which read them with the state
+// restored into them. Core form: `if g(s, in) then e(s, in)`.
+extension [O, F, I](cases: GuardCases[State, O, F, I])
+  // A condition of the vars: `where(!heatingOn)`. Core form: `if condition(s) then e(s, in)`.
+  @targetName("varCondition")
+  def apply(condition: => Boolean): Case[State, O, F] =
+    val vars = machineVars(cases.firing)
+    Case("where", s => vars.at(s)(condition))
+
+  // A condition of the vars and the action's input: `where((in: Request) => in.amount <= 2)`.
+  // Core form: `if condition(s, in) then e(s, in)`.
+  @targetName("varInputCondition")
+  def apply[A](using input: RuleInput[I, A])(condition: A => Boolean): Case[State, O, F] =
+    val vars = machineVars(cases.firing)
+    Case(
+      "where",
+      cases.firing.inputGuard((s: State, value: A) => vars.at(s)(condition(value)))(using
+        input.native
+      )
+    )
+
+// The vars of the Machine whose rules a firing is in.
+private def machineVars(firing: Firing[?, ?, ?, ?]): Vars =
+  Vars.of(
+    firing.source.getOrElse(
+      throw IllegalArgumentException(s"Rule ${firing.action}: no Machine declares its vars here")
+    )
+  )
 
 // A case that holds in every state: `always ~> effects.keep`. Core form:
 // `if true then e(s) else ...`.

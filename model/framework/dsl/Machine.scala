@@ -118,6 +118,10 @@ trait Declares[S] extends Model:
 
   private[framework] def illustrationMachine: Option[RecordMachine[S, Outcome, Fact]] = None
 
+  // The vars its state is declared as, for a Machine and a derivation of one: what its effects,
+  // guards and claims are evaluated on natively.
+  private[framework] def stateVars: Option[Vars] = None
+
   def reach: Limits = frameworkReach
 
   // The state type, which a machine or composition object's members name through it, `def end(s:
@@ -302,6 +306,33 @@ extension [I](a: Action[I])
       chunks: Seq[String]
   )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
     StepBinding.linking(a.decl, f, root, chunks)
+
+  // `action ~> effects.writeL1Only()`, in a derivation of a Machine that declares its state as
+  // vars: the action bound to a call of an effect that assigns them, which takes one step, the
+  // rejection the effect makes or the accepted outcome into the vars it assigned.
+  @scala.annotation.targetName("varBinding")
+  infix def ~>[O, F](effect: => Unit)(using
+      owner: Owner[State, O, F],
+      accepted: Accepting[O],
+      @unused empty: I =:= EmptyTuple
+  ): StepBinding[State, O, F] =
+    require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
+    val vars = Vars.of(owner.machine)
+    StepBinding(a.decl, (s: State) => vars.step[O, F](s, accepted.outcome)(effect))
+
+  // `action ~> effects.sendFromNowhere`: the action bound to an effect of its input that assigns
+  // the vars of a Machine.
+  @scala.annotation.targetName("varInputBinding")
+  infix def ~>[O, F](effect: I => Unit)(using
+      owner: Owner[State, O, F],
+      accepted: Accepting[O]
+  ): StepBinding[State, O, F] =
+    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
+    val vars = Vars.of(owner.machine)
+    StepBinding(
+      a.decl,
+      (s: State, value: I) => vars.step[O, F](s, accepted.outcome)(effect(value))
+    )
 
 // The owner of a machine's sections, which its `rules` read the machine's types from:
 // `object rules extends Rules:` in `object OrderProduct extends RecordMachine[...], Phased[...](_.phase)`,
@@ -536,6 +567,10 @@ private[framework] def writtenPath(code: String): String =
     .find(p => p.nonEmpty && p != "framework" && p != "framework.dsl" && p != "apply")
     .getOrElse(code)
 
+// A machine whose state is one record type `S`, threaded through its effects as a parameter and
+// replaced with `copy`: the form before a Machine declared its state as vars (Machine below), kept
+// for the DSL's own fixtures until fn-190.4 rewrites them. A Machine is one with `S` its State.
+//
 // A machine: a transition relation over state data `S` with finite outcomes `O` and facts `F`.
 // Declared as an object that is the machine, named after the object with its first letter lowered:
 //
@@ -1108,6 +1143,69 @@ abstract class RecordMachine[S, O, F](using
   def unmonitored: RecordMachine[S, O, F] & DerivedFrom[this.type] =
     built(table, keepRefinement = false)
 
+// A Machine: a transition relation over state declared as vars, with finite outcomes `O` and facts
+// `F`. Declared as an object that is the machine, named after the object with its first letter
+// lowered, whose `var`s, in declaration order, are its state, `State`, their initialisers its
+// initial state, `init`:
+//
+// {{{
+// object Kettle extends Machine[Outcome, Nothing]:
+//   var temperature = 20
+//   var heatingOn = false
+//   object rules extends Rules: ...
+//   object effects: ...
+// }}}
+//
+// The compiler reads the vars where the object extends Machine (VarSchema): a Machine without vars,
+// and a var whose type has no schema, do not compile. Its effects assign the vars, its guards and
+// claims read them by name, and `end`, where it may stop, reads them too. Until the IR evaluator
+// replaces native execution (fn-190.3/.5), a step, a guard or a claim runs on the vars with the
+// state it is about restored into them (Vars), and the object reads as its initial state between
+// them.
+abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
+    extends RecordMachine[State, O, F]:
+  private lazy val declared: Vars = Vars(this, schema)
+
+  final override private[framework] def stateVars: Option[Vars] = Some(declared)
+
+  // The vars it declares, in declaration order.
+  final def vars: Vector[Var] = schema.vars
+
+  // The state its vars start in: their initialisers.
+  final def init: State = declared.initial
+
+  // Whether the machine may stop in the state its vars hold: anywhere, unless it says otherwise.
+  def end: Boolean = true
+
+  final def end(s: State): Boolean = declared.at(s)(end)
+
+  // `evaluate` on the vars as they are in `state`: `Model.at(state)(temperature)`.
+  final def at[A](state: State)(evaluate: => A): A = declared.at(state)(evaluate)
+
+  // The outcome an effect rejects with and the facts it records, statements its effects make.
+  protected given refusing: Refusing[O] = new Refusing[O]:
+    private[framework] def refuse(outcome: O): Unit = declared.refuse(outcome)
+
+  protected given recording: Recording[F] = new Recording[F]:
+    private[framework] def add(recorded: Seq[F]): Unit = declared.add(recorded)
+
+  // The durability of a state var across a crash: `durable(p1)` keeps it, `ephemeral(pending, 0)`
+  // resets it, `inMemory(origin)(sending -> crashed)` replaces the values listed.
+  final protected inline def durable[A](inline variable: A): FieldDurability[State] =
+    FieldDurability.durable(this, StateField.captureVar(variable, this))
+
+  final protected inline def ephemeral[A](inline variable: A, resetTo: A): FieldDurability[State] =
+    FieldDurability.ephemeral(this, StateField.captureVar(variable, this), resetTo)
+
+  final protected inline def inMemory[A](inline variable: A)(entries: (A, A)*)(using
+      Data.Structural[A]
+  ): FieldDurability[State] =
+    FieldDurability.inMemory(this, StateField.captureVar(variable, this), entries.toVector)
+
+  // The Inbox a state var holds for `channel`: `inbox(network, wire.network)`.
+  final protected inline def inbox[M](inline variable: Inbox[M], channel: Channel[M]): Unit =
+    ${ InboxAssociation.captureVar[M]('this, 'variable, 'channel) }
+
 // A machine derived from another, declared as an object that is it:
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
 // derivation is an expression of the core operations `rebind`, `extend`, `restrict`, `refining`,
@@ -1167,6 +1265,7 @@ abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] =
     super.refinementEvidence.orElse(derivation.refinementEvidence)
   final override private[framework] def phaseEvidence: Option[S => Any] = derivation.phaseEvidence
+  final override private[framework] def stateVars: Option[Vars] = derivation.stateVars
 
 // A machine a derivation makes from another: its name, its starts and ends, what it binds each
 // action to, its source and the other machines it is made from. What else it declares only the
@@ -1209,6 +1308,9 @@ final private[framework] class Built[S, O, F, M <: Model](
   override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
     case machine: RecordMachine[?, ?, ?] => machine.headerSchemaKeys
     case _                               => super.headerSchemaKeys
+  override private[framework] def stateVars: Option[Vars] = source match
+    case machine: RecordMachine[?, ?, ?] => machine.stateVars
+    case _                               => None
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
     case machine: RecordMachine[?, ?, ?] => super.factCases ++ machine.factCases
     case _                               => super.factCases
