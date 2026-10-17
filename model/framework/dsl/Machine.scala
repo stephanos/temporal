@@ -1092,7 +1092,8 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 // them.
 abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
     extends RecordMachine[State, O, F],
-      ClaimWords:
+      ClaimWords,
+      Lifted:
   private lazy val declared: Vars = Vars(this, schema)
   private val initialDomains = scala.collection.mutable.LinkedHashMap.empty[String, Vector[Any]]
 

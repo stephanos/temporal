@@ -1,7 +1,7 @@
 {
   "unmarkedForeignHelper": {
     "oldReader": "admitted; complete original-UnmarkedEvidence.json is immutable",
-    "existingBodyCapture": "ForeignProbe.scala:7: fixture.constructedevidence.Foreign$.text is reached outside this capture's compilation unit: mark its definition @lifted so its IR is stored at the definition site",
+    "existingBodyCapture": "ForeignProbe.scala:7: fixture.constructedevidence.Foreign$.text is reached from another file: define it in an object that extends Lifted",
     "qualification": "Constructed capture reuses the existing body engine and requires stored foreign helper IR. This is not full old-reader admission parity for unmarked foreign bodies."
   },
   "opaqueCallableVal": {

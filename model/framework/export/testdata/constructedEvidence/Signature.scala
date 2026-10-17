@@ -25,12 +25,12 @@ object hand extends Actor:
   val go = action(this)
   val more = action(this)
 
-object Helpers:
-  @lifted def text(f: Fact): String = if f == Fact.first then "one" else "other"
-  @lifted def external(f: Fact): String =
+object Helpers extends Lifted:
+  def text(f: Fact): String = if f == Fact.first then "one" else "other"
+  def external(f: Fact): String =
     require(wire.empty.isEmpty)
     if f == Fact.second then unknown.reached else "external"
-  @lifted def curried(prefix: Boolean)(f: Fact): String =
+  def curried(prefix: Boolean)(f: Fact): String =
     if prefix && f == Fact.first then "first" else "other"
 
 object External extends Machine[EvidenceState, Boolean, Fact]:

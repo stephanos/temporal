@@ -207,7 +207,6 @@ private[framework] trait BodyEngine
     def unapply(t: Term): Option[ir.Expr] = phasingRead(t)
 
   def storedFunction(sym: Symbol, at: Tree): Option[String] = None
-  def storedSectionFunction(sym: Symbol, at: Tree): Option[String] = None
 
   def functionParameterTypes(sym: Symbol): List[TypeRepr] = defs.get(sym) match
     case Some(d: DefDef) => d.termParamss.flatMap(_.params).map(_.tpt.tpe)

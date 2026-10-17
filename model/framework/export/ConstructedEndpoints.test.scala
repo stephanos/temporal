@@ -295,10 +295,9 @@ class ConstructedEndpointsSuite extends munit.FunSuite:
       foreign.resolve("Unmarked.scala"),
       """package fixture.unmarkedendpoint
 import framework.dsl.*
-import fixture.endpointlibrary.Helpers
 object Refused extends Machine[Boolean, Boolean, Nothing]:
   val init = false
-  def end(s: Boolean) = Helpers.unmarked(s)
+  def end(s: Boolean) = fixture.endpointlibrary.Unmarked.unmarked(s)
   object rules extends Bindings()
 """
     ): Unit
@@ -310,8 +309,8 @@ object Refused extends Machine[Boolean, Boolean, Nothing]:
     )
     assertEquals(refusal.exit, 1, refusal.diagnostics)
     assert(
-      refusal.diagnostics.contains("Helpers$.unmarked") && refusal.diagnostics.contains(
-        "mark its definition @lifted"
+      refusal.diagnostics.contains("Unmarked$.unmarked") && refusal.diagnostics.contains(
+        "is reached from another file: define it in an object that extends Lifted"
       ),
       refusal.diagnostics
     )

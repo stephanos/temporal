@@ -53,18 +53,26 @@ private[framework] trait Expressions:
   // name nor is hidden by one. References are lifted by symbol, so they read the new name through
   // `nameOf`.
   def parameters(ps: List[ValDef], body: Term): Seq[ir.Param] =
+    val _ = renameGenerated(ps, body)
+    ps.map(param)
+
+  def renameGenerated(
+      ps: List[ValDef],
+      body: Term,
+      reserved: Set[String] = Set.empty
+  ): Set[String] =
     // `Flags.Synthetic` marks neither every placeholder `_$N` nor only compiler-named parameters.
     val made = ps.filter(_.name.contains('$'))
     if made.nonEmpty then
       val own = made.map(_.symbol).toSet
-      val taken = inScope(made.head.symbol.owner, body).diff(own).map(nameOf)
+      val taken = inScope(made.head.symbol.owner, body).diff(own).map(nameOf) ++ reserved
       made.foldLeft(taken) { (taken, p) =>
         val base = typeName(p.tpt.tpe)
         val name = (base #:: LazyList.from(2).map(i => s"$base$i")).filterNot(taken).head
         renamed(p.symbol) = name
         taken + name
-      }: Unit
-    ps.map(param)
+      }
+    else reserved
 
   // A type whose name in lower case is a keyword, such as `Type`, gives `it`.
   val keywords =
@@ -239,7 +247,7 @@ private[framework] trait Expressions:
   // declaring function being folded names the def its call binds it to.
   def callee(named: Symbol, at: Tree): String =
     val sym = boundFunctions.getOrElse(named, named)
-    storedSectionFunction(sym, at).getOrElse(
+    storedFunction(sym, at).getOrElse(
       throughOf
         .get(sym)
         .fold(
@@ -851,9 +859,9 @@ private[framework] trait Expressions:
         s"`var ${v.name}` has no IR form: a step function is one pure expression, so write the value it ends with"
       )
     case While(_, _) => fail(t, "a loop has no IR form: a step function is one pure expression")
-    case Block(ValDef(name, _, Some(rhs)) :: rest, e) =>
+    case Block((v @ ValDef(_, _, Some(rhs))) :: rest, e) =>
       val value = lift(rhs)
-      expr(t)(E.Let(ir.Let(name, Some(value), Some(lift(Block(rest, e), expected)))))
+      expr(t)(E.Let(ir.Let(nameOf(v.symbol), Some(value), Some(lift(Block(rest, e), expected)))))
 
     case If(c, a, b) =>
       val branch = expected.orElse(Some(t.tpe))

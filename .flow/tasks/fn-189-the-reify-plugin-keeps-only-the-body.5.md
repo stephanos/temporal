@@ -3,7 +3,7 @@ satisfies: [R2]
 ---
 # fn-189-the-reify-plugin-keeps-only-the-body.5 One lifting rule: Lifted container marker, step-list type, no per-def @lifted
 
-Touches: model/framework/dsl/{Reify,Machine}.scala, model/framework/reify/plugin/{ReifyPlugin,PluginContext}.scala (DefinitionStore, StorePhase), model/framework/reify/body/{BodyEngine,BodySyntax,Expressions}.scala, model/framework/{README,SEMANTICS,REFERENCE}.md, model/README.md, model/framework/samples, model/framework/export/{ConstructedEndpoints,ConstructedRules,ReifyBoundary}.test.scala and migrated export/testdata reify fixtures
+Touches: model/framework/dsl/{Reify,Machine}.scala, model/framework/reify/plugin/{ReifyPlugin,PluginContext}.scala (DefinitionStore, StorePhase), model/framework/reify/body/{BodyArguments,BodyContext,BodyEngine,BodySyntax,Expressions}.scala, model/framework/{README,SEMANTICS,REFERENCE}.md, model/README.md, model/framework/samples, model/framework/export/{ConstructedEndpoints,ConstructedRules,ReifyBoundary}.test.scala and migrated export/testdata reify fixtures
 
 ## Description
 **DSL completion phase (owner, 2026-10-17):** scheduled before the IR/plugin phase because it changes what authors write or can reach; the gate is the native checks plus the plugin compiling the six samples.
@@ -20,10 +20,10 @@ Introduce the marker trait `framework.dsl.Lifted`. The store phase writes lifted
 - Focused dsl, reify and export suites pass; fixtures for sections, facets, statuses and outcomes are rewritten to the single carrier.
 
 ## Acceptance
-- [ ] No public @lifted annotation exists; Lifted container, step-list type and Machine.end/evidence override are the only storage rules.
-- [ ] Only liftedIr and capture remain as reify annotations in the DSL.
+- [x] No public @lifted annotation exists; Lifted container, step-list type and Machine.end/evidence override are the only storage rules.
+- [x] Only liftedIr and capture remain as reify annotations in the DSL.
 - [ ] Full-compile and warm-edit scenarios pass; the cross-file refusal text matches the spec in both.
-- [ ] Same-file tree lift and stored IR agree (test).
+- [x] Same-file tree lift and stored IR agree (test).
 
 ## Done summary
 TBD

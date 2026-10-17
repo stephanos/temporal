@@ -1,8 +1,10 @@
 package fixture.endpointlibrary
 
-import framework.dsl.lifted
+import framework.dsl.Lifted
 
-object Helpers:
-  @lifted def leaf(s: Boolean): Boolean = !s
-  @lifted def forward(s: Boolean): Boolean = leaf(s)
+object Helpers extends Lifted:
+  def leaf(s: Boolean): Boolean = !s
+  def forward(s: Boolean): Boolean = leaf(s)
+
+object Unmarked:
   def unmarked(s: Boolean): Boolean = s

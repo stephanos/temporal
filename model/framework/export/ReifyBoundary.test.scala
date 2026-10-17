@@ -91,10 +91,10 @@ object SameRunCaller:
       both,
       "ZHelper.scala",
       """package framework.boundary
-import framework.dsl.lifted
-object LastHelper:
-  @lifted def invert(s: Boolean): Boolean = !s
-  @lifted def forward(s: Boolean): Boolean = invert(s)
+import framework.dsl.Lifted
+object LastHelper extends Lifted:
+  def invert(s: Boolean): Boolean = !s
+  def forward(s: Boolean): Boolean = invert(s)
 """
     )
     val ran = tools.scalaCli(
@@ -137,16 +137,273 @@ object UnmarkedCaller:
       else
         assert(ran.failed, s"$name: ${ran.diagnostics}")
         assert(ran.diagnostics.contains(s"framework.boundary.Unmarked$$.$reached"), ran.diagnostics)
-        assert(ran.diagnostics.contains("mark its definition @lifted"), ran.diagnostics)
+        assert(
+          ran.diagnostics.contains(
+            s"framework.boundary.Unmarked$$.$reached is reached from another file: define it in an object that extends Lifted"
+          ),
+          ran.diagnostics
+        )
         assert(ran.diagnostics.contains("Caller.scala:4:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
+
+  test("stored helpers may reach an unmarked helper in their own file"):
+    val dir = scratch.resolve("helper-locality")
+    source(
+      dir,
+      "ABridge.scala",
+      """package framework.boundary
+import framework.dsl.*
+object Bridge extends Lifted:
+  def forward(value: Boolean): Boolean = LocalVocabulary.forward(value)
+"""
+    )
+    source(
+      dir,
+      "ZVocabulary.scala",
+      """package framework.boundary
+import framework.dsl.*
+object LocalLeaf:
+  def invert(value: Boolean): Boolean = !value
+object LocalVocabulary extends Lifted:
+  def forward(value: Boolean): Boolean = LocalLeaf.invert(value)
+"""
+    )
+    source(
+      dir,
+      "Caller.scala",
+      """package framework.boundary
+import framework.dsl.*
+object LocalityCaller:
+  def main(args: Array[String]): Unit =
+    val captured = Reify.capture(Bridge.forward)
+    assert(captured.model.functions.size == 3)
+    assert(captured.model.functions.find(_.name.endsWith(".invert")).get.getBody.getUnary.op.name == "OP_NOT")
+    assert(captured.callable(false))
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        dir.toString,
+        "--main-class",
+        "framework.boundary.LocalityCaller"
+      ) ++ settings ++ pluginOption
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
+    source(
+      dir,
+      "ABridge.scala",
+      """package framework.boundary
+import framework.dsl.*
+object Bridge extends Lifted:
+  def forward(value: Boolean): Boolean = InlineBridge.forward(value)
+"""
+    )
+    source(
+      dir,
+      "ZVocabulary.scala",
+      """package framework.boundary
+object LocalLeaf:
+  def invert(value: Boolean): Boolean = !value
+object InlineBridge:
+  inline def forward(value: Boolean): Boolean = LocalLeaf.invert(value)
+"""
+    )
+    val refused = tools.scalaCli(Seq("compile", dir.toString) ++ settings ++ pluginOption)
+    assert(refused.exit != 0, refused.diagnostics)
+    assert(
+      refused.diagnostics.contains(
+        "framework.boundary.LocalLeaf$.invert is reached from another file: define it in an object that extends Lifted"
+      ),
+      refused.diagnostics
+    )
+    assert(refused.diagnostics.contains("ABridge.scala:4:"), refused.diagnostics)
+
+  test("same-file tree lifting agrees with the stored helper body"):
+    val dir = scratch.resolve("tree-stored")
+    source(
+      dir,
+      "Helper.scala",
+      """package framework.boundary
+import framework.dsl.*
+object TreeHelper extends Lifted:
+  def invert(value: Boolean): Boolean = !value
+  val local = Reify.function(invert)
+  inline def twice(value: Boolean): Boolean = value && value
+  def strict(value: Boolean): Boolean = twice(invert(value))
+  val localStrict = Reify.function(strict)
+  def collisions(value: Boolean): Boolean =
+    val boolean = value
+    twice(twice(invert(value))) && twice(invert(boolean))
+  val localCollisions = Reify.function(collisions)
+object StepHelper:
+  def keep(value: Boolean): List[Step[Boolean, Boolean, Nothing]] = List(Step(true, value, Nil, ""))
+"""
+    )
+    source(
+      dir,
+      "Caller.scala",
+      """package framework.boundary
+import framework.dsl.*
+object StoredCaller:
+  def main(args: Array[String]): Unit =
+    val stored = Reify.function(TreeHelper.invert)
+    assert(stored.clearPosition == TreeHelper.local.clearPosition)
+    assert(stored.getBody.getUnary.op.name == "OP_NOT")
+    val strict = Reify.function(TreeHelper.strict)
+    assert(strict.clearPosition == TreeHelper.localStrict.clearPosition, s"stored: $strict\ntree: ${TreeHelper.localStrict}")
+    assert(strict.getBody.getLet.getValue.getCall.function.endsWith(".invert"))
+    val collisions = Reify.function(TreeHelper.collisions)
+    assert(collisions.clearPosition == TreeHelper.localCollisions.clearPosition)
+    assert(collisions.getBody.getLet.name == "boolean")
+    val conjunction = collisions.getBody.getLet.getBody.getBinary
+    val temporaries = Seq(conjunction.getLeft.getLet, conjunction.getLeft.getLet.getValue.getLet, conjunction.getRight.getLet)
+    assert(temporaries.map(_.name) == Seq("boolean2", "boolean3", "boolean4"))
+    for temporary <- temporaries do
+      assert(temporary.getBody.getBinary.getLeft.getVar == temporary.name)
+      assert(temporary.getBody.getBinary.getRight.getVar == temporary.name)
+    assert(conjunction.getRight.getLet.getValue.getCall.args.head.getVar == "boolean")
+    assert(TreeHelper.collisions(false) && !TreeHelper.collisions(true))
+    val steps = Reify.capture(StepHelper.keep)
+    assert(steps.model.functions.map(_.name) == Seq("framework.boundary.StepHelper$.keep"))
+    assert(steps.function.getBody.getList.items.head.getConstruct.args.head.getLiteral.getBool)
+    assert(steps.callable(false).head.state == false)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        dir.toString,
+        "--main-class",
+        "framework.boundary.StoredCaller"
+      ) ++ settings ++ pluginOption
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
+  test("Machine marks authored helpers in arbitrarily named nested containers"):
+    val dir = scratch.resolve("machine-marker")
+    source(
+      dir,
+      "Subject.scala",
+      """package framework.boundary
+import framework.dsl.*
+given Ok[Boolean] = Ok(true)
+class Subject extends Machine[Boolean, Nothing]:
+  var flag = false
+  override def end: Boolean = false
+  object transitions extends Transitions
+  object vocabulary:
+    object nested:
+      def invert(value: Boolean): Boolean = !value
+class Endpoint extends RecordMachine[Boolean, Boolean, Nothing]:
+  val init = false
+  def end(value: Boolean): Boolean = !value
+  object transitions extends Bindings[Boolean, Boolean, Nothing]()
+object Subjects:
+  val subject = new Subject
+  val endpoint = new Endpoint
+"""
+    )
+    source(
+      dir,
+      "Caller.scala",
+      """package framework.boundary
+import framework.dsl.*
+object MachineCaller:
+  def main(args: Array[String]): Unit =
+    val captured = Reify.capture(Subjects.subject.vocabulary.nested.invert)
+    assert(captured.function.getBody.getUnary.op.name == "OP_NOT")
+    assert(captured.callable(false))
+    val endpoint = Reify.capture(Subjects.endpoint.end)
+    assert(endpoint.function.getBody.getUnary.op.name == "OP_NOT")
+    assert(endpoint.callable(false))
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        dir.toString,
+        "--main-class",
+        "framework.boundary.MachineCaller"
+      ) ++ settings ++ pluginOption
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
+  test("a local def in a marked container is not eagerly stored"):
+    val dir = scratch.resolve("local-helper")
+    source(
+      dir,
+      "Helper.scala",
+      """package framework.boundary
+import framework.dsl.*
+object LocalHelper extends Lifted:
+  inline def run(value: Boolean): Boolean =
+    def local(): Boolean =
+      var result = false
+      result = value
+      result
+    local()
+object LocalCaller:
+  def main(args: Array[String]): Unit = assert(LocalHelper.run(true))
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq(
+        "run",
+        dir.toString,
+        "--main-class",
+        "framework.boundary.LocalCaller"
+      ) ++ settings ++ pluginOption
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
+  test("a marked definition compiled without the plugin has no stored body"):
+    val helper = scratch.resolve("without-plugin-helper")
+    source(
+      helper,
+      "Helper.scala",
+      """package framework.boundary
+import framework.dsl.Lifted
+object Unstored extends Lifted:
+  def invert(value: Boolean): Boolean = !value
+"""
+    )
+    val jar = scratch.resolve("without-plugin.jar")
+    tools
+      .scalaCli(
+        Seq("--power", "package", "--library", helper.toString, "-o", jar.toString) ++ settings
+      )
+      .orFail(): Unit
+    val caller = scratch.resolve("without-plugin-caller")
+    source(
+      caller,
+      "Caller.scala",
+      """package framework.boundary
+import framework.dsl.Reify
+object UnstoredCaller:
+  val captured = Reify.function(Unstored.invert)
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("compile", caller.toString, "--jar", jar.toString) ++ settings ++ pluginOption
+    )
+    assert(ran.failed, ran.diagnostics)
+    assert(
+      ran.diagnostics.contains(
+        "framework.boundary.Unstored$.invert is reached from another file: define it in an object that extends Lifted"
+      ),
+      ran.diagnostics
+    )
+    assert(ran.diagnostics.contains("Caller.scala:4:"), ran.diagnostics)
+    assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
 
   test("unsupported bodies refuse at their tree in captures and lifted definitions"):
     val bodies = Seq(
       "definition" -> """package framework.boundary
-import framework.dsl.lifted
-object Broken:
-  @lifted def broken(s: Boolean): Boolean =
+import framework.dsl.Lifted
+object Broken extends Lifted:
+  def broken(s: Boolean): Boolean =
     var count = 0
     count = 1
     s
@@ -169,6 +426,28 @@ object Broken:
       assert(ran.diagnostics.contains("Broken.scala:5:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
 
+  test("recursive marked helpers keep the body lifter's refusal"):
+    val dir = scratch.resolve("recursive-helper")
+    source(
+      dir,
+      "Recursive.scala",
+      """package framework.boundary
+import framework.dsl.Lifted
+object Recursive extends Lifted:
+  def first(value: Boolean): Boolean = second(value)
+  def second(value: Boolean): Boolean = first(value)
+"""
+    )
+    val ran = tools.scalaCli(Seq("compile", dir.toString) ++ settings ++ pluginOption)
+    assert(ran.failed, ran.diagnostics)
+    assert(
+      ran.diagnostics.contains(
+        "calls itself, directly or through another function: a recursive function has no IR form"
+      ),
+      ran.diagnostics
+    )
+    assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
+
   test("a def of two or more parameter lists is refused at its call in lifted code"):
     for (name, text, line, count) <- Seq(
         (
@@ -185,10 +464,10 @@ object Curried:
         (
           "definition",
           """package framework.boundary
-import framework.dsl.lifted
-object Curried:
+import framework.dsl.Lifted
+object Curried extends Lifted:
   def warmBy(reading: Int)(step: Int)(scale: Int): Int = (reading + step) * scale
-  @lifted def heat(s: Int): Int = warmBy(s)(1)(2)
+  def heat(s: Int): Int = warmBy(s)(1)(2)
 """,
           5,
           "three"
@@ -262,9 +541,9 @@ object TypeChecking:
       helper,
       "Large.scala",
       s"""package framework.boundary
-import framework.dsl.lifted
-object Large:
-  @lifted def all(s: Boolean): Boolean = ${balanced(10)}
+import framework.dsl.Lifted
+object Large extends Lifted:
+  def all(s: Boolean): Boolean = ${balanced(10)}
 """
     )
     val caller = scratch.resolve("large-caller")
@@ -353,9 +632,9 @@ object WarmCaller:
       dir,
       "Helper.scala",
       s"""package framework.boundary
-import framework.dsl.lifted
-object WarmHelper:
-  @lifted def result(s: Boolean): Boolean = $body
+import framework.dsl.Lifted
+object WarmHelper extends Lifted:
+  def result(s: Boolean): Boolean = $body
 """
     )
     try
@@ -367,6 +646,7 @@ object WarmHelper:
         )
         .orFail()
       assert(first.output.contains("captured-result=false"), first.diagnostics)
+      println(first.output.trim)
       helper("true")
       val second = tools
         .scalaCli(
@@ -377,6 +657,10 @@ object WarmHelper:
       assert(second.output.contains("captured-result=true"), second.diagnostics)
       for name <- Seq("Helper.scala", "Caller.scala") do
         assert(second.diagnostics.contains(s"$name after phase typer"), second.diagnostics)
+      println(second.output.trim)
+      println(
+        second.diagnostics.linesIterator.filter(_.contains("after phase typer")).mkString("\n")
+      )
       helper("{ var n = 0; n = 1; s }")
       val refused = tools.scalaCli(Seq("compile", dir.toString) ++ warmSettings)
       assert(refused.failed, refused.diagnostics)
@@ -389,6 +673,7 @@ object WarmHelper:
         )
         .orFail()
       assert(recovered.output.contains("captured-result=false"), recovered.diagnostics)
+      println(recovered.output.trim)
     finally
       tools
         .run("scala-cli", Seq("--power", "bloop", "exit", "--bloop-daemon-dir", daemon.toString))
@@ -400,12 +685,12 @@ object WarmHelper:
       helper,
       "Records.scala",
       """package framework.boundary
-import framework.dsl.lifted
+import framework.dsl.Lifted
 case class Leaf(flag: Boolean)
 case class Record(leaf: Leaf, optional: Option[Leaf])
-object Records:
-  @lifted def flag(r: Record): Boolean = r.leaf.flag
-  @lifted def again(r: Record): Boolean = flag(r)
+object Records extends Lifted:
+  def flag(r: Record): Boolean = r.leaf.flag
+  def again(r: Record): Boolean = flag(r)
 """
     )
     val caller = scratch.resolve("records-caller")
@@ -480,13 +765,13 @@ object BindingCaller:
 import framework.dsl.*
 enum ChoiceOutcome:
   case ok
-object Choices:
+object Choices extends Lifted:
   val first = choice
   val second = choice
-  @lifted def single(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] =
+  def single(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] =
     List(Step(ChoiceOutcome.ok, !s, Nil, ""))
-  @lifted def forward(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] = single(s)
-  @lifted def multiple(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] =
+  def forward(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] = single(s)
+  def multiple(s: Boolean): List[Step[Boolean, ChoiceOutcome, Nothing]] =
     choose(first -> List(Step(ChoiceOutcome.ok, s, Nil, "")), second -> List(Step(ChoiceOutcome.ok, !s, Nil, "")))
 """
     )

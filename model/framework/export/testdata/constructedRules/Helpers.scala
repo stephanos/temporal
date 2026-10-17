@@ -11,12 +11,12 @@ object Library extends Machine[Boolean, Boolean, Nothing]:
   object states:
     val ready = is(true)
     val unused = is(throw IllegalArgumentException("unused"))
-    @lifted def guarded(s: Boolean): Boolean =
+    def guarded(s: Boolean): Boolean =
       require(s)
       s
   object effects:
     val keep = effect {}
-    @lifted def held(s: Boolean): List[Step[Boolean, Boolean, Nothing]] =
+    def held(s: Boolean): List[Step[Boolean, Boolean, Nothing]] =
       require(s)
       stay[Boolean, Boolean, Nothing](s)
   object rules extends Rules:

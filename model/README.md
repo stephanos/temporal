@@ -810,20 +810,26 @@ Temporal kit and the selected features, as the Makefile's `MODEL_SOURCES` alread
 jars on the Models' classpath are the generated IR and API proto jars and the reify plugin; neither
 holds a liftable body. Lifted code outside that one compilation is not supported. The plugin
 therefore reads no TASTy or trees from a jar, checks no artifact identity or source path, and
-treats nothing on the classpath as untrusted. Its carriers are annotations it wrote before pickling
-in the same build, read back under incremental compilation where a file is not in the run; they
-hold data only, with no version, fingerprint or position table. A stored `ir.Model` carries a
+treats nothing on the classpath as untrusted. Its body carrier is an annotation it wrote before
+pickling in the same build, read back under incremental compilation where a file is not in the
+run; it holds data only, with no version, fingerprint or position table. A stored `ir.Model` carries a
 position on its root function only; compile-time refusals are reported at their trees and keep
 their positions.
 
 `framework/reify/body` is the one body engine used by the TASTy exporter and the pinned Scala
-3.9.0 compiler plugin. The plugin stores `@lifted` functions before pickling and captures typed
+3.9.0 compiler plugin. The plugin stores covered functions before pickling and captures typed
 arguments before inlining. Its internal carrier contains the root and the complete transitive
 function/type closure as existing IR protobuf, in 24,000-character Base64 chunks. It keeps the
 native callable; `Reify.function` returns an `ir.Function`, not a new author-facing wrapper.
-A helper in another source unit must carry definition-site IR. Unmarked source bodies of other
-units are not read. Inline bodies are expanded by Scala, including when their definitions live in
-another source unit.
+A shared vocabulary declares `object vocabulary extends Lifted` once. Its members and members of
+nested containers qualify for storage; lexical coverage stops at local method scopes. `Machine`
+inherits `Lifted`, so its ordinary `object effects:` needs no marker. Step-list result types and
+overrides of the Machine endpoint contract are the other storage rules. A helper in another source
+unit must carry definition-site IR; otherwise the capture refuses
+`<fullName> is reached from another file: define it in an object that extends Lifted`, even in a
+full compile. Same-file helpers use their trees. Inline bodies are expanded by Scala, including
+when their definitions live in another source unit. Only `liftedIr` and `capture` remain as reify
+annotations; sections, facets, statuses and outcomes have no separate carrier or refusal replay.
 
 Build the independent DSL/realization library without the plugin. Package the plugin with
 `scala-cli --power package --server=false --assembly --preamble=false
@@ -833,12 +839,11 @@ ScalaPB classes, while the host supplies the pinned compiler. Consumer builds lo
 with `-Xplugin:<absolute-path>` and retain the DSL's compiler options, notably strict equality.
 Production Model builds also pass `-P:umpire-reify:mode=realization`: this activates family
 provenance, naming and the nonsignature schema transforms constructed realizations need, while the
-endpoint, rule and function-capture phases remain held for their later tasks. Compiler-proven family
-and self-naming results cross compiler runs through framework-private annotation carriers;
-ordinary Model source outside the framework cannot name those carriers. Model source and its
-authors are trusted: reserved-literal checks catch accidental or direct marker spelling, not a
-deliberately synthesized equivalent byte string. No experimental setting or retained-tree flag is
-required.
+endpoint, rule and function-capture phases remain held for their later tasks. It also leaves
+plain Machine bodies to the full-mode phase: var reads and Unit effects are not lowered yet.
+The marker covers those declarations structurally; realization compilation establishes no body
+IR or original six-sample equivalence proof. Family is a supplied `given Family` and self-naming
+uses current-run declaration analysis. No experimental setting or retained-tree flag is required.
 
 Native Model tests compile only their test sources against that packaged Model jar, without the
 plugin; assertion libraries and deliberate anonymous native controls need no family-forwarding
@@ -856,8 +861,8 @@ mode still refuses unsupported endpoint bodies at their authored positions. Fram
 also selects its module policy per lift; production lifts retain the installed system policy.
 
 The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations
-and phase ordering. Definition and recursion caches reset on the actual compiler run identity,
-including warm compilations.
+and phase ordering. Definition storage has no cross-run site index, recursion cache or refusal
+replay; recursive body calls are checked by the body lifter in each lift.
 
 The existing typed `action ~> callback` overloads capture arities 0, 1, 2, 3, 4 and 6. They retain
 the original native function, constructor, product, equality and unapply shape, attaching internal
@@ -912,6 +917,11 @@ broad gates stay at source-batch end; the six samples still supply only their ex
 function checks.
 
 ### Constructed Machine headers (staged)
+
+The staged exporter sections below record earlier implementation checkpoints. Their original
+full-mode Model/sample, Rules/Facets and old-exporter equivalence proofs are not passing gates of
+the R2 native-source checkpoint. They remain open under fn-189.7 after plain-var/Unit lowering in
+fn-190.9; the focused helper storage and warm-edit controls do not replace them.
 
 Private `MachineHeaders.collect` constructs an isolated contribution: family, name, stateType,
 outcomeType, factType, and the complete selected Type messages. It returns no incomplete
@@ -968,7 +978,7 @@ controls remain native-only, with their existing initialization and Built reads 
 
 Direct endpoint require/ensuring and unsupported bodies retain their old located refusals.
 Called helper requires remains on its Function; helper ensuring retains the historical stripping
-behavior. Local helpers lift in the unit; foreign helpers require stored `@lifted` IR, including
+behavior. Local helpers lift in the unit; foreign helpers require stored `liftedIr`, including
 other files in the run and helper jars. Capture does not read foreign author trees. Direct default
 ends without Closed, or with field-bearing Closed cases, refuse at capture. Those domains still
 have valid Finite schemas, and ordinary inherited native controls keep their qualified runtime
@@ -1014,13 +1024,12 @@ metadata refuses. The prebuilt framework artifact is identified by its actual bi
 unavailable declaration positions retain the old reader's explicit unknown Position `{}`, not a
 guessed call site or an absent Position. Existing schema carriers remain unchanged.
 
-Recognized definition-owned section vals carry versioned IR or a located refusal. Merely importing
-their symbols does not force an unused refusal; reaching one does, including across compilation
-units and jars. Arbitrary function vals remain opaque and foreign helper defs still require
-`@lifted`. Marked definitions remain strict. Same-run contextual Ok declarations supply only their
-declared outcome, not admission of foreign helper bodies. Direct guard/effect contracts preserve
-old refusals; called helpers keep their own requires/body/positions. Authored step-returning effects
-defs are checked immediately, used or unused, through Block/If/Match results without helper recursion.
+The historical section checkpoint used definition-owned section carriers and deferred refusals.
+R2 removes that storage and replay engine: only covered function bodies carry `liftedIr`.
+Arbitrary function vals remain opaque; foreign helper defs require definition-site body IR from
+a `Lifted` container or another storage rule. Covered definitions remain strict. The original
+section-contract, contextual outcome and no-empty effect integration proofs remain obligations of
+the full-mode plugin phase, not proofs supplied by the native-source checkpoint.
 
 A lifted body calls a def with one term parameter list; `using` clauses do not count, and their
 arguments follow the list's in the Call as their parameters follow it in the Function. A call of a
@@ -1066,14 +1075,11 @@ conflicting, copied, malformed or incorrectly typed contextual metadata refuses 
 contribution returns. Harmless Derived/Built forwarding preserves its original assembly and roots;
 rule-changing histories use the isolated derivation contribution below.
 
-Recognized definition-owned facet templates may import their own stored contextual helper closure.
-Capture reads the current compilation unit or stored IR and never recovers a foreign author body.
-Unrelated foreign helpers retain their stored-IR admission, and explicit `@lifted` definitions stay
-strict. Recognized definition-owned Ok evidence carries its closed outcome across facet-library and
-warm incremental compilations. Section values retain their definition-owned IR or located refusal
-until reached. Unused imports do not force refusals. Step-returning effects definitions keep their
-immediate no-empty checks, including before any assembly exists.
-Warm helper edits update the trait's definition-owned templates. Unchanged concrete projection/writer
+The historical facet checkpoint imported contextual helper closures through facet, outcome and
+section carriers. R2 removes those carriers and their deferred refusal path; shared vocabulary now
+uses `Lifted`, with one stored body closure. Capture reads its own compilation unit or stored IR,
+not foreign author bodies. The original facet projection, outcome and warm-template integration
+proofs remain full-mode plugin obligations. The former checkpoint's unchanged concrete projection/writer
 captures need not be recompiled; the suite checks changed-trait retyping and complete original,
 edited and restored contributions against the independent old outputs.
 
@@ -1179,7 +1185,7 @@ remain in full .4; the collector does not guess a consumer's source context.
 The standalone evidence suite retains complete plugin-free old Models, saved trees, semantic and
 separate canonical/projected position checks, two-JVM determinism, same-unit and stored-helper jar
 variants and warm body-edit/restore controls. Its compatibility record distinguishes old-reader admission from the
-existing capture boundary: unmarked foreign bodies need stored `@lifted` IR, opaque callable vals
+existing capture boundary: foreign bodies need definition-site `liftedIr`, opaque callable vals
 are not captured lambdas, and the external Inbox fixture retains the established same-unit
 State/witness placement. Full cross-unit nested-State endpoint ownership is not claimed. No new
 primitive repair is applied; the .21 combined-helper qualification and .22 exact 79-slot correction

@@ -541,6 +541,30 @@ The Duration controls in [RealizationConstructionTest](realize/Construction.test
 exact signed millisecond construction, optional/default/explicit-zero retention, copies and
 public helper forwarding, alongside the existing positive interval, timeout and 1234ms fixtures.
 
+## Shared lifted helpers
+
+Declare a vocabulary shared with captures in other files as a `Lifted` container:
+
+```scala
+object temperatures extends Lifted:
+  def boiling(reading: Int): Boolean = reading >= 100
+```
+
+Member definitions in nested containers are covered too. `Machine` supplies this marker, so its
+ordinary `object effects:` stays as written. Local defs belong to their enclosing body; a marker
+does not make them independent stored functions. A step-list result type or an override of the
+Machine endpoint contract also qualifies a member for storage. No per-def annotation is needed.
+
+The plugin stores one `liftedIr` body carrier, also when several rules cover the same definition.
+Same-file captures use the tree. An uncovered helper reached from another file is refused at the
+capture with `<fullName> is reached from another file: define it in an object that extends Lifted`,
+both in a full compile and incrementally. A marker on a library compiled without the plugin
+supplies no stored body and gets the same refusal.
+
+The native checkpoint's realization-mode sample compilation leaves plain Machine bodies to
+fn-190.9. Marker coverage does not establish var/Unit-effect lowering or the six samples' original
+full-mode IR and exporter-equivalence proofs.
+
 ## Native checks
 
 Run from the repository root, serially, using the pinned tools and existing

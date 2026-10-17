@@ -16,8 +16,8 @@ object Source extends Machine[Snapshot, Boolean, Nothing]:
   val init = Snapshot(false, wire.empty)
   def end(s: Snapshot) = s.flag
   object effects:
-    @lifted def first(s: Snapshot): List[Step[Snapshot, Boolean, Nothing]] = List(Step(true, s))
-    @lifted def external(s: Snapshot): List[Step[Snapshot, Boolean, Nothing]] =
+    def first(s: Snapshot): List[Step[Snapshot, Boolean, Nothing]] = List(Step(true, s))
+    def external(s: Snapshot): List[Step[Snapshot, Boolean, Nothing]] =
       require(s.messages.isEmpty)
       if s.flag then unknown.reached else List(Step(true, s))
   object rules extends Rules:

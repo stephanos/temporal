@@ -14,9 +14,9 @@ val other = action(Actor("user"))
 val explicit = action("authoredName", Actor("user"))
 val alias = explicit
 
-@lifted def namedStep(s: State): List[Step[State, Outcome, Nothing]] =
+def namedStep(s: State): List[Step[State, Outcome, Nothing]] =
   List(Step(Outcome.accepted, s))
-@lifted def changedStep(@unused s: State): List[Step[State, Outcome, Nothing]] =
+def changedStep(@unused s: State): List[Step[State, Outcome, Nothing]] =
   List(Step(Outcome.accepted, State.done))
 val functionAlias: State => List[Step[State, Outcome, Nothing]] = namedStep
 

@@ -28,6 +28,7 @@ private[framework] trait BodyArguments:
         false
       case _ => true
     }
+    inlineNames = renameGenerated(bindings.collect { case v: ValDef => v }, t.body, inlineNames)
     try
       binding(Map.empty, Map.empty, deferred) {
         lift(if bindings.isEmpty then t.body else Block(bindings, t.body), expected)

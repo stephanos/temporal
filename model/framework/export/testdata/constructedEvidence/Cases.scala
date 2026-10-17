@@ -97,7 +97,7 @@ object RuleSource extends Machine[Boolean, Boolean, Fact]:
   val init = false
   def end(s: Boolean) = s
   object effects:
-    @lifted def keep(s: Boolean): List[Step[Boolean, Boolean, Fact]] = List(Step(true, s))
+    def keep(s: Boolean): List[Step[Boolean, Boolean, Fact]] = List(Step(true, s))
   object rules extends Rules:
     on(hand.go)(always ~> effects.keep)
 

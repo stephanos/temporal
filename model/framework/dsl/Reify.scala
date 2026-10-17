@@ -3,22 +3,8 @@ package framework.dsl
 import java.util.Base64
 import io.temporal.server.api.umpire.v1 as ir
 
-final class lifted extends scala.annotation.StaticAnnotation
+trait Lifted
 final class liftedIr(val chunks: String*) extends scala.annotation.StaticAnnotation
-
-final private[framework] class sectionIr(val chunks: String*)
-    extends scala.annotation.StaticAnnotation
-
-final private[framework] class facetIr(val chunks: String*)
-    extends scala.annotation.StaticAnnotation
-
-final private[framework] class recordedStatusIr(val chunks: String*)
-    extends scala.annotation.StaticAnnotation
-
-final private[framework] class declaredOutcomeIr(val chunks: String*)
-    extends scala.annotation.StaticAnnotation
-
-final private[framework] class namedResult private () extends scala.annotation.StaticAnnotation
 
 final private[framework] class capture(val target: String) extends scala.annotation.StaticAnnotation
 

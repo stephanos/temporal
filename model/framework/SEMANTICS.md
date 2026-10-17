@@ -286,6 +286,17 @@ objects, every `val` and `def` member body starts on the next line, including li
 `var`s, declarations inside methods/functions and declarations outside the Model are exempt.
 The record-state forms below remain reference for the held integration work.
 
+For lifting, `Machine` is a `Lifted` container: its authored members and members of nested
+containers are covered without changing `object effects:`. A shared vocabulary in another file
+writes `object temperatures extends Lifted` once. Lexical coverage stops at a local method scope;
+local defs belong to the body that contains them. Definitions returning `List[Step[S, O, F]]`
+and overrides of the Machine endpoint contract also qualify for storage. The plugin has one
+body carrier, `liftedIr`, and no per-definition lifting annotation.
+A same-file helper is lifted from its tree. Another file must supply stored IR, or the capture
+refuses `<fullName> is reached from another file: define it in an object that extends Lifted`,
+including during a full compile. This container rule establishes the declaration boundary;
+plain-var and Unit-effect body lowering and full sample IR equivalence remain fn-190.9 work.
+
 **Meaning.** A *step* is one result of an action in one state: the outcome it answers, the state it
 lands in, the facts it records, and an optional explanation.
 
@@ -1293,6 +1304,10 @@ Function-body `enter`, `stay`, `reject`, `disabled`, both membership forms, `imp
 lifter reads the core form inside `Inlined`, using its call to name sugar in a refusal and report
 the call site. Scala owns argument evaluation and recursive-inline checks. There is no sugar
 annotation or plugin expansion engine.
+Strict inline arguments remain evaluated once in IR `Let` bindings. Compiler-generated bindings
+use collision-free names derived from their types, as generated parameters do; authored local
+names are retained. Tree lifting and stored bodies therefore do not depend on compiler fresh-name
+counters.
 
 A composition claim names a member fact by its member case, `records(Fact.activity(f))`: an
 ordinary enum value, so the DSL has no member form of `records` and no selector capture for it.

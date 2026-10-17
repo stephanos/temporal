@@ -4,7 +4,6 @@ import java.util.Base64
 import scala.collection.mutable
 import scala.quoted.Quotes
 import scala.quoted.runtime.impl.QuotesImpl
-import dotty.tools.dotc.CompilationUnit
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.ast.tpd.*
 import dotty.tools.dotc.core.Annotations.Annotation
@@ -14,7 +13,6 @@ import dotty.tools.dotc.core.Flags.{
   Accessor,
   Case,
   Enum,
-  Given,
   Method,
   Module,
   Package,
@@ -60,7 +58,7 @@ final class ReifyPlugin extends StandardPlugin:
     if mode == "realization" then
       List(
         effects,
-        new StorePhase(store),
+        new StorePhase(store, realization = true),
         new NamesPhase("reifyStore"),
         new SchemaPhase(store),
         new RealizationNamesPhase
@@ -94,14 +92,8 @@ final class ReifyPlugin extends StandardPlugin:
 // lifts from compile in one compilation (model/README.md), so a carrier was written by this plugin
 // before pickling in this build: it holds data only, with no version, checksum or position table.
 private object Carrier:
-  val marker = "framework.dsl.lifted"
   val stored = "framework.dsl.liftedIr"
   val capture = "framework.dsl.capture"
-  val section = "framework.dsl.sectionIr"
-  val facet = "framework.dsl.facetIr"
-  val status = "framework.dsl.recordedStatusIr"
-  val outcome = "framework.dsl.declaredOutcomeIr"
-  val namedResult = "framework.dsl.namedResult"
 
   // A stored model keeps a position on its root function only.
   def rooted(model: ir.Model, root: Option[String]): ir.Model =
@@ -110,13 +102,6 @@ private object Carrier:
         model.functions.map(f => if root.contains(f.name) then f else unpositioned(f, ir.Function)),
       types = model.types.map(_.clearPosition)
     )
-
-  def rootedSites(
-      sites: Seq[ContextualPhaseSite],
-      root: Option[String]
-  ): Vector[ContextualPhaseSite] = sites.toVector.map(site =>
-    if site.owner == root then site else site.copy(call = unpositioned(site.call, ir.Call))
-  )
 
   def unpositioned[A <: scalapb.GeneratedMessage](
       value: A,
@@ -157,33 +142,8 @@ private object Carrier:
   private def model(chunks: Seq[String]): ir.Model =
     ir.Model.parseFrom(Base64.getDecoder.decode(chunks.mkString))
 
-  private def text(chunks: Seq[String]): String =
-    new String(Base64.getDecoder.decode(chunks.mkString), java.nio.charset.StandardCharsets.UTF_8)
-
-  private def refusal(position: ir.Position, message: String): List[String] =
-    List("refused", position.file, position.line.toString) ++
-      chunks(message.getBytes(java.nio.charset.StandardCharsets.UTF_8))
-
   def read(sym: Symbol)(using Context): Option[ir.Model] =
     annotation(sym, stored).map(model)
-
-  def hasSection(sym: Symbol)(using Context): Boolean =
-    val cls = getClassIfDefined(section)
-    cls.exists && sym.hasAnnotation(cls)
-
-  def sectionChunks(outcome: SectionOutcome): List[String] =
-    List(outcome.root, outcome.form) ++ outcome.refusal.fold(
-      "ok" :: chunks(outcome.model.get)
-    )(refusal)
-
-  def readSection(sym: Symbol)(using Context): Option[SectionOutcome] =
-    annotation(sym, section).map { data =>
-      val root :: form :: state :: body = data: @unchecked
-      if state == "ok" then SectionOutcome(root, form, Some(model(body)), None)
-      else
-        val file :: line :: message = body: @unchecked
-        SectionOutcome(root, form, None, Some(ir.Position(file, line.toInt) -> text(message)))
-    }
 
   def siteChunks(site: ContextualPhaseSite): List[String] =
     def bytes(value: scalapb.GeneratedMessage): String =
@@ -198,106 +158,8 @@ private object Carrier:
       site.placement.fold("")(bytes)
     )
 
-  def facetChunks(outcome: FacetOutcome): List[String] =
-    List(outcome.facet, outcome.namespace, outcome.root) ++ outcome.refusal.fold {
-      val model = chunks(outcome.model.get)
-      List("ok", model.size.toString) ++ model ++
-        List(outcome.sites.size.toString) ++ outcome.sites.toList.flatMap(siteChunks)
-    }(refusal)
-
-  def readFacet(sym: Symbol)(using Context): Option[FacetOutcome] =
-    annotation(sym, facet).map { all =>
-      val owner :: namespace :: root :: state :: data = all: @unchecked
-      if state != "ok" then
-        val file :: line :: message = data: @unchecked
-        FacetOutcome(
-          owner,
-          namespace,
-          root,
-          None,
-          Vector.empty,
-          Some(ir.Position(file, line.toInt) -> text(message))
-        )
-      else
-        val count = data.head.toInt
-        val sites = data
-          .drop(2 + count)
-          .grouped(7)
-          .map { values =>
-            def decode(value: String) = Base64.getDecoder.decode(value)
-            ContextualPhaseSite(
-              values(0),
-              Option(values(1)).filter(_.nonEmpty),
-              ir.Call.parseFrom(decode(values(2))),
-              ir.TypeRef.parseFrom(decode(values(3))),
-              ir.TypeRef.parseFrom(decode(values(4))),
-              ir.TypeRef.parseFrom(decode(values(5))),
-              Option(values(6)).filter(_.nonEmpty).map(v => ir.Position.parseFrom(decode(v)))
-            )
-          }
-          .toVector
-        FacetOutcome(owner, namespace, root, Some(model(data.slice(1, 1 + count))), sites, None)
-    }
-
-  def statusChunks(outcome: StatusOutcome): List[String] =
-    List(outcome.root, outcome.phase, outcome.name) ++ outcome.refusal.fold {
-      val model = chunks(outcome.model.get)
-      List(
-        "ok",
-        Base64.getEncoder.encodeToString(outcome.value.get.toByteArray),
-        model.size.toString
-      ) ++ model
-    }(refusal)
-
-  def readStatus(sym: Symbol)(using Context): Option[StatusOutcome] =
-    readDeclared(sym, status)
-
-  def readOutcome(sym: Symbol)(using Context): Option[StatusOutcome] =
-    readDeclared(sym, outcome)
-
-  private def readDeclared(sym: Symbol, name: String)(using
-      Context
-  ): Option[StatusOutcome] =
-    annotation(sym, name).map { all =>
-      val root :: phase :: named :: state :: data = all: @unchecked
-      if state != "ok" then
-        val file :: line :: message = data: @unchecked
-        StatusOutcome(
-          root,
-          phase,
-          named,
-          None,
-          None,
-          Some(ir.Position(file, line.toInt) -> text(message))
-        )
-      else
-        val value :: size :: rest = data: @unchecked
-        val count = size.toInt
-        StatusOutcome(
-          root,
-          phase,
-          named,
-          Some(ir.Expr.parseFrom(Base64.getDecoder.decode(value))),
-          Some(model(rest.take(count))),
-          None
-        )
-    }
-
   def literals(chunks: List[String])(using Context): tpd.Tree =
     SeqLiteral(chunks.map(s => Literal(Constant(s))), TypeTree(defn.StringType))
-
-private object SectionDiagnostics:
-  def error(error: SectionRefusal)(using Context): Unit =
-    val position = error.position
-    if position.file.isEmpty || position.line < 1 then report.error(error.getMessage)
-    else
-      val text = "\n" * (position.line - 1) + " "
-      val source = dotty.tools.dotc.util.SourceFile.virtual(position.file, text)
-      val span = dotty.tools.dotc.util.Spans.Span(text.length - 1, text.length)
-      report.error(
-        error.getMessage,
-        dotty.tools.dotc.util.SourcePosition(source, span)
-      )
 
 private object FacetDeclaration:
   def namespace(sym: Symbol)(using Context): Boolean =
@@ -314,649 +176,87 @@ private object FacetDeclaration:
     )
 
 final private class DefinitionStore:
-  private val active = mutable.Set.empty[Symbol]
-  private val sites = mutable.Map.empty[Symbol, (CompilationUnit, tpd.DefDef)]
-  private val sectionSites =
-    mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
-  private val statusSites =
-    mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
-  private val outcomeSites =
-    mutable.Map.empty[Symbol, (CompilationUnit, tpd.ValDef)]
-  private val declared = mutable.Set.empty[Symbol]
-  private var indexed = false
-  private var compilerRun = Option.empty[dotty.tools.dotc.Run]
+  private def owners(sym: Symbol)(using Context): Iterator[Symbol] =
+    Iterator.iterate(sym.owner)(_.owner).takeWhile(s => s.exists && !s.is(Method))
 
-  private def enterRun()(using ctx: Context): Unit =
-    if !compilerRun.exists(_ eq ctx.run) then
-      active.clear()
-      sites.clear()
-      sectionSites.clear()
-      statusSites.clear()
-      outcomeSites.clear()
-      declared.clear()
-      indexed = false
-      compilerRun = Some(ctx.run)
+  private def derives(sym: Symbol, name: String)(using Context): Boolean =
+    val cls = getClassIfDefined(name)
+    sym.isClass && cls.exists && sym.asClass.derivesFrom(cls)
 
-  private def index()(using ctx: Context): Unit =
-    enterRun()
-    if !indexed then
-      indexed = true
-      for unit <- ctx.run.units do
-        new tpd.TreeTraverser:
-          def traverse(t: tpd.Tree)(using Context): Unit =
-            t match
-              case d: tpd.DefDef                            => sites(d.symbol) = unit -> d
-              case v: tpd.ValDef if sectionForm(v).nonEmpty =>
-                sectionSites(v.symbol) = unit -> v
-              case _ => ()
-            t match
-              case v: tpd.ValDef if okDeclaration(v) =>
-                outcomeSites(v.symbol) = unit -> v
-              case _ => ()
-            t match
-              case v: tpd.ValDef if v.symbol.is(Enum) && v.symbol.is(Case) =>
-                statusSites(v.symbol) = unit -> v
-              case _ => ()
-            t match
-              case d: tpd.MemberDef => declared += d.symbol
-              case _                => ()
-            traverseChildren(t)
-        .traverse(unit.tpdTree)
+  def machineMember(sym: Symbol)(using Context): Boolean =
+    owners(sym).exists(derives(_, "framework.dsl.Machine"))
 
-  def inRun(sym: Symbol)(using Context): Boolean =
-    index()
-    declared(sym)
-
-  private def sectionForm(v: tpd.ValDef)(using Context): Option[String] =
-    def form(t: tpd.Tree): Option[String] = t match
-      case tpd.Typed(value, _)        => form(value)
-      case tpd.Block(Nil, value)      => form(value)
-      case tpd.Inlined(_, Nil, value) => form(value)
-      case t
-          if Set("is", "effect")(t.symbol.name.toString) &&
-            t.symbol.owner.fullName.toString == "framework.dsl.Syntax$package$" =>
-        Some(t.symbol.name.toString)
-      case _ => None
-    form(v.rhs).filter { _ =>
-      val section = v.symbol.owner
-      val owner = section.owner
-      val machine = getClassIfDefined("framework.dsl.Machine")
-      section.isClass && section.is(Module) && (
-        FacetDeclaration.namespace(owner) ||
-          (owner.isClass && owner.is(Module) && machine.exists &&
-            owner.asClass.typeRef.derivesFrom(machine.asClass))
-      )
-    }
-
-  def sectionPresent(sym: Symbol)(using Context): Boolean =
-    index()
-    Carrier.hasSection(sym) || sectionSites.contains(sym)
-
-  def section(sym: Symbol)(using ctx: Context): Option[SectionOutcome] =
-    index()
-    Carrier
-      .readSection(sym)
-      .orElse(sectionSites.get(sym).flatMap { (unit, value) =>
-        given Context =
-          ctx.fresh.setCompilationUnit(unit).setOwner(value.symbol)
-        saveSection(value)
-      })
-
-  def facet(sym: Symbol)(using ctx: Context): Option[FacetOutcome] =
-    index()
-    val marker = getClassIfDefined(Carrier.marker)
-    if marker.exists && sym.hasAnnotation(marker) then None
-    else
-      Carrier.readFacet(sym).orElse {
-        if !FacetDeclaration.member(sym) then None
-        else
-          sectionSites
-            .get(sym)
-            .flatMap { (unit, value) =>
-              given Context =
-                ctx.fresh.setCompilationUnit(unit).setOwner(value.symbol)
-              saveSection(value): Unit
-              Carrier.readFacet(sym)
-            }
-            .orElse {
-              sites.get(sym).flatMap { (unit, definition) =>
-                given Context =
-                  ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
-                saveFacet(definition)
-              }
-            }
-      }
-
-  def status(sym: Symbol)(using ctx: Context): Option[StatusOutcome] =
-    index()
-    Carrier
-      .readStatus(sym)
-      .orElse(statusSites.get(sym).flatMap { (unit, definition) =>
-        given Context =
-          ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
-        saveStatus(definition)
-      })
-
-  private def okDeclaration(definition: tpd.ValDef)(using Context): Boolean =
-    val ok = getClassIfDefined("framework.dsl.Ok")
-    definition.symbol.is(Given) && ok.exists && definition.tpt.tpe.derivesFrom(
-      ok.asClass
+  def covered(sym: Symbol)(using Context): Boolean =
+    val result = sym.info.finalResultType.widenDealias
+    val step = getClassIfDefined("framework.dsl.Step")
+    val list = result.baseType(defn.ListClass)
+    val steps = step.exists && list.argInfos.headOption.exists(_.derivesFrom(step))
+    owners(sym).exists(derives(_, "framework.dsl.Lifted")) || steps ||
+    sym.allOverriddenSymbols.exists(s =>
+      Set("framework.dsl.Machine", "framework.dsl.RecordMachine")(s.owner.fullName.toString) &&
+        Set("end", "evidence")(s.name.toString)
     )
 
-  def outcome(sym: Symbol)(using ctx: Context): Option[StatusOutcome] =
-    index()
-    Carrier
-      .readOutcome(sym)
-      .orElse(outcomeSites.get(sym).flatMap { (unit, definition) =>
-        given Context =
-          ctx.fresh.setCompilationUnit(unit).setOwner(definition.symbol)
-        saveOutcome(definition)
-      })
+  def admitted(d: tpd.DefDef)(using Context): Boolean =
+    !d.rhs.isEmpty && member(d.symbol)
 
-  def saveOutcome(
-      definition: tpd.ValDef
-  )(using ctx: Context): Option[StatusOutcome] =
-    if !okDeclaration(definition) then None
-    else
-      Carrier.readOutcome(definition.symbol).orElse {
-        val symbol = definition.symbol
-        val root = symbol.fullName.toString
-        val at = definition.srcPos.sourcePos
-        val position = ir.Position(at.source.path, at.line + 1)
-        if !active.add(symbol) then
-          Some(
-            StatusOutcome(
-              root,
-              "framework.dsl.Ok",
-              "outcome",
-              None,
-              None,
-              Some(position -> s"$root recursively declares its Ok outcome")
-            )
-          )
-        else
-          val e = engine(ctx.compilationUnit.tpdTree)
-          val result = try
-            e.readFinites()
-            val reference =
-              e.ctx.quotes.reflect
-                .Ref(symbol.asInstanceOf[e.ctx.quotes.reflect.Symbol])
-            val value = e.outcomeOf(reference, "captured Ok")
-            StatusOutcome(
-              root,
-              "framework.dsl.Ok",
-              "outcome",
-              Some(value),
-              Some(
-                Carrier.rooted(
-                  ir.Model(
-                    functions = e.ctx.reachableFunctions(Seq(value)),
-                    types = e.ctx.types.values.toVector
-                  ),
-                  None
-                )
-              ),
-              None
-            )
-          catch
-            case error: LiftError =>
-              StatusOutcome(
-                root,
-                "framework.dsl.Ok",
-                "outcome",
-                None,
-                None,
-                Some(e.ctx.pos(e.ctx.refusedAt) -> error.message)
-              )
-            case error: SectionRefusal =>
-              StatusOutcome(
-                root,
-                "framework.dsl.Ok",
-                "outcome",
-                None,
-                None,
-                Some(error.position -> error.getMessage)
-              )
-            case error: CompilerApiError =>
-              StatusOutcome(
-                root,
-                "framework.dsl.Ok",
-                "outcome",
-                None,
-                None,
-                Some(position -> error.getMessage)
-              )
-          finally active.remove(symbol): Unit
-          symbol.addAnnotation(
-            Annotation(
-              requiredClass(Carrier.outcome),
-              List(
-                Carrier.literals(Carrier.statusChunks(result))
-              ),
-              definition.span
-            )
-          )
-          Some(result)
-      }
+  private def member(sym: Symbol)(using Context): Boolean =
+    sym.owner.isClass && !sym.is(Synthetic) && !sym.is(Accessor) &&
+      !sym.is(dotty.tools.dotc.core.Flags.Inline) && sym.name.toString != "<init>" &&
+      !sym.name.toString.contains("$default$") &&
+      !sym.fullName.toString.startsWith("framework.dsl.") &&
+      !sym.fullName.toString.startsWith("framework.realize.") && covered(sym)
 
-  def saveStatus(definition: tpd.ValDef)(using
-      ctx: Context
-  ): Option[StatusOutcome] =
-    val symbol = definition.symbol
-    val recorded = getClassIfDefined("framework.dsl.Recorded")
-    if !symbol.is(Enum) || !symbol.is(Case) || !recorded.exists then None
-    else
-      val e = engine(ctx.compilationUnit.tpdTree)
-      import e.ctx.quotes.reflect.Ref
-      val current = symbol.asInstanceOf[e.ctx.quotes.reflect.Symbol]
-      val phase = e.enumOf(current)
-      if !phase.typeRef.derivesFrom(
-          recorded.asInstanceOf[e.ctx.quotes.reflect.Symbol]
-        )
-      then None
-      else
-        Carrier.readStatus(symbol).orElse {
-          val root = symbol.fullName.toString
-          val at = definition.srcPos.sourcePos
-          val position = ir.Position(at.source.path, at.line + 1)
-          if !active.add(symbol) then
-            Some(
-              StatusOutcome(
-                root,
-                phase.fullName,
-                "",
-                None,
-                None,
-                Some(position -> s"$root recursively declares its status")
-              )
-            )
-          else
-            val result = try
-              e.readFinites()
-              val declared =
-                e.declaredStatus(
-                  current,
-                  definition.asInstanceOf[e.ctx.quotes.reflect.Tree]
-                )
-              val name = e.resolve(declared) match
-                case r: Ref => r.symbol.name
-                case other  => other.show
-              val fact = phase.typeRef
-                .baseType(recorded.asInstanceOf[e.ctx.quotes.reflect.Symbol])
-                .typeArgs
-                .headOption
-              val value = e.lift(declared, fact)
-              StatusOutcome(
-                root,
-                phase.fullName,
-                name,
-                Some(value),
-                Some(
-                  Carrier.rooted(
-                    ir.Model(
-                      functions = e.ctx.reachableFunctions(Seq(value)),
-                      types = e.ctx.types.values.toVector
-                    ),
-                    None
-                  )
-                ),
-                None
-              )
-            catch
-              case error: LiftError =>
-                StatusOutcome(
-                  root,
-                  phase.fullName,
-                  "",
-                  None,
-                  None,
-                  Some(e.ctx.pos(e.ctx.refusedAt) -> error.message)
-                )
-              case error: SectionRefusal =>
-                StatusOutcome(
-                  root,
-                  phase.fullName,
-                  "",
-                  None,
-                  None,
-                  Some(error.position -> error.getMessage)
-                )
-              case error: CompilerApiError =>
-                StatusOutcome(
-                  root,
-                  phase.fullName,
-                  "",
-                  None,
-                  None,
-                  Some(position -> error.getMessage)
-                )
-            finally active.remove(symbol): Unit
-            symbol.addAnnotation(
-              Annotation(
-                requiredClass(Carrier.status),
-                List(Carrier.literals(Carrier.statusChunks(result))),
-                definition.span
-              )
-            )
-            Some(result)
-        }
-
-  def saveFacet(definition: tpd.DefDef)(using
-      ctx: Context
-  ): Option[FacetOutcome] =
-    val symbol = definition.symbol
-    val marker = getClassIfDefined(Carrier.marker)
-    if !FacetDeclaration.member(symbol) || symbol.is(Synthetic) || symbol.is(
-        Accessor
-      ) ||
-      symbol.name.toString == "<init>" || definition.rhs.isEmpty ||
-      (marker.exists && symbol.hasAnnotation(marker))
-    then None
-    else
-      Carrier.readFacet(symbol).orElse {
-        val root = symbol.fullName.toString
-        val namespace = symbol.owner.owner
-        val at = definition.srcPos.sourcePos
-        val position = ir.Position(at.source.path, at.line + 1)
-        if !active.add(symbol) then
-          Some(
-            FacetOutcome(
-              namespace.owner.fullName.toString,
-              namespace.fullName.toString,
-              root,
-              None,
-              Vector.empty,
-              Some(
-                position -> s"$root calls itself: a recursive function has no IR form"
-              )
-            )
-          )
-        else
-          val e = engine(ctx.compilationUnit.tpdTree)
-          import e.ctx.quotes.reflect.DefDef
-          e.ctx.contextualFacet = Some(namespace.owner.asInstanceOf[e.ctx.quotes.reflect.Symbol])
-          val result = try
-            e.readFinites()
-            val d = definition.asInstanceOf[DefDef]
-            e.ctx.functions(root) = e.function(root, d.termParamss.flatMap(_.params), d.rhs.get, d)
-            val model = ir.Model(
-              functions = e.ctx.reachableFunctions(Nil, Seq(root)),
-              types = e.ctx.types.values.toVector
-            )
-            FacetOutcome(
-              namespace.owner.fullName.toString,
-              namespace.fullName.toString,
-              root,
-              Some(Carrier.rooted(model, Some(root))),
-              Carrier.rootedSites(
-                e.ctx.retainedContextualSites(roots = Seq(root)),
-                Some(root)
-              ),
-              None
-            )
-          catch
-            case error: LiftError =>
-              FacetOutcome(
-                namespace.owner.fullName.toString,
-                namespace.fullName.toString,
-                root,
-                None,
-                Vector.empty,
-                Some(e.ctx.pos(e.ctx.refusedAt) -> error.message)
-              )
-            case error: SectionRefusal =>
-              FacetOutcome(
-                namespace.owner.fullName.toString,
-                namespace.fullName.toString,
-                root,
-                None,
-                Vector.empty,
-                Some(error.position -> error.getMessage)
-              )
-            case error: CompilerApiError =>
-              FacetOutcome(
-                namespace.owner.fullName.toString,
-                namespace.fullName.toString,
-                root,
-                None,
-                Vector.empty,
-                Some(position -> error.getMessage)
-              )
-          finally active.remove(symbol): Unit
-          symbol.addAnnotation(
-            Annotation(
-              requiredClass(Carrier.facet),
-              List(Carrier.literals(Carrier.facetChunks(result))),
-              definition.span
-            )
-          )
-          Some(result)
-      }
-
-  def saveSection(value: tpd.ValDef)(using
-      ctx: Context
-  ): Option[SectionOutcome] =
-    enterRun()
-    sectionForm(value).map { form =>
-      Carrier.readSection(value.symbol).getOrElse {
-        val root = value.symbol.fullName.toString
-        val at = value.srcPos.sourcePos
-        val position = ir.Position(at.source.path, at.line + 1)
-        if !active.add(value.symbol) then
-          SectionOutcome(
-            root,
-            form,
-            None,
-            Some(
-              position ->
-                s"${value.name} calls itself, directly or through another function: a recursive function has no IR form"
-            )
-          )
-        else
-          val e = engine(ctx.compilationUnit.tpdTree)
-          import e.ctx.quotes.reflect.Symbol
-          val namespace = value.symbol.owner.owner
-          val contextual = FacetDeclaration.namespace(namespace)
-          if contextual then e.ctx.contextualFacet = Some(namespace.owner.asInstanceOf[Symbol])
-          val result = try
-            e.readFinites()
-            val block = e.ctx.blockVal(value.symbol.asInstanceOf[Symbol]).get
-            e.ctx.functions(root) = e.blockFunction(root, block)
-            val model = ir.Model(
-              functions = e.ctx.reachableFunctions(Nil, Seq(root)),
-              types = e.ctx.types.values.toVector
-            )
-            SectionOutcome(
-              root,
-              form,
-              Some(Carrier.rooted(model, Some(root))),
-              None
-            )
-          catch
-            case error: LiftError =>
-              SectionOutcome(
-                root,
-                form,
-                None,
-                Some(e.ctx.pos(e.ctx.refusedAt) -> error.message)
-              )
-            case error: SectionRefusal =>
-              SectionOutcome(
-                root,
-                form,
-                None,
-                Some(error.position -> error.getMessage)
-              )
-            case error: CompilerApiError =>
-              SectionOutcome(
-                root,
-                form,
-                None,
-                Some(position -> error.getMessage)
-              )
-          finally active.remove(value.symbol): Unit
-          value.symbol.addAnnotation(
-            Annotation(
-              requiredClass(Carrier.section),
-              List(Carrier.literals(Carrier.sectionChunks(result))),
-              value.span
-            )
-          )
-          if contextual then
-            value.symbol.addAnnotation(
-              Annotation(
-                requiredClass(Carrier.facet),
-                List(
-                  Carrier.literals(
-                    Carrier.facetChunks(
-                      FacetOutcome(
-                        namespace.owner.fullName.toString,
-                        namespace.fullName.toString,
-                        root,
-                        result.model,
-                        Carrier.rootedSites(
-                          e.ctx.retainedContextualSites(roots = Seq(root)),
-                          Some(root)
-                        ),
-                        result.refusal
-                      )
-                    )
-                  )
-                ),
-                value.span
-              )
-            )
-          result
-      }
-    }
-
-  def load(sym: Symbol)(using ctx: Context): Option[ir.Model] =
-    index()
-    Carrier.read(sym).orElse {
-      sites
-        .get(sym)
-        .filter { (_, d) =>
-          val marker = getClassIfDefined(Carrier.marker)
-          marker.exists && d.symbol.hasAnnotation(marker)
-        }
-        .flatMap { (unit, d) =>
-          given Context = ctx.fresh.setCompilationUnit(unit).setOwner(d.symbol)
-          save(d)
-        }
-    }
-
-  def engine(root: tpd.Tree)(using ctx: Context): PluginEngine =
-    enterRun()
+  def engine(root: tpd.Tree, storing: Boolean = false)(using ctx: Context): PluginEngine =
     val q: Quotes = QuotesImpl()
-    val outcomes = mutable.ListBuffer.empty[tpd.Tree]
-    val ok = getClassIfDefined("framework.dsl.Ok")
-    if ok.exists then
-      for unit <- ctx.run.units do
-        new tpd.TreeTraverser:
-          def traverse(t: tpd.Tree)(using Context): Unit =
-            t match
-              case d: tpd.ValDef if d.symbol.is(Given) && d.tpt.tpe.derivesFrom(ok.asClass) =>
-                outcomes += d
-              case _ => ()
-            traverseChildren(t)
-        .traverse(unit.tpdTree)
+    val dependencies = if storing then ctx.run.units.map(_.tpdTree).filterNot(_ eq root) else Nil
     val pc = new PluginContext(using q)(
       root.asInstanceOf[q.reflect.Tree],
-      outcomes.toList.map(_.asInstanceOf[q.reflect.Tree]),
-      s => load(s.asInstanceOf[Symbol]),
-      s => sectionPresent(s.asInstanceOf[Symbol]),
-      s => section(s.asInstanceOf[Symbol]),
-      s => facet(s.asInstanceOf[Symbol]),
-      s => status(s.asInstanceOf[Symbol]),
-      s => outcome(s.asInstanceOf[Symbol])
+      dependencies.toList.map(_.asInstanceOf[q.reflect.Tree]),
+      s => storing && s.isDefDef && member(s.asInstanceOf[Symbol]),
+      s => Carrier.read(s.asInstanceOf[Symbol])
     )
     new PluginEngine(pc)
 
-  def save(d: tpd.DefDef)(using ctx: Context): Option[ir.Model] =
-    enterRun()
-    Carrier.read(d.symbol).orElse {
-      if !active.add(d.symbol) then
-        report.error(
-          s"${d.name} calls itself, directly or through another function: " +
-            "a recursive function has no IR form, so write the bounded computation out",
-          d.srcPos
+  def save(d: tpd.DefDef)(using ctx: Context): Unit =
+    if Carrier.read(d.symbol).isEmpty then
+      val e = engine(ctx.compilationUnit.tpdTree, storing = true)
+      import e.ctx.quotes.reflect.DefDef
+      try
+        e.readFinites()
+        val dd = d.asInstanceOf[DefDef]
+        val name = d.symbol.fullName.toString
+        e.ctx.lifting += name
+        e.ctx.functions(name) = e.function(name, dd.termParamss.flatMap(_.params), dd.rhs.get, dd)
+        val model = Carrier.rooted(
+          ir.Model(
+            functions = e.ctx.reachableFunctions(Nil, Seq(name)),
+            types = e.ctx.types.values.toVector
+          ),
+          Some(name)
         )
-        None
-      else
-        val e = engine(ctx.compilationUnit.tpdTree)
-        import e.ctx.quotes.reflect.DefDef
-        try
-          e.readFinites()
-          val dd = d.asInstanceOf[DefDef]
-          val name = d.symbol.fullName.toString
-          e.ctx.functions(name) = e.function(name, dd.termParamss.flatMap(_.params), dd.rhs.get, dd)
-          val model = Carrier.rooted(
-            ir.Model(
-              functions = e.ctx.functions.values.toVector,
-              types = e.ctx.types.values.toVector
-            ),
-            Some(name)
+        d.symbol.addAnnotation(
+          Annotation(
+            requiredClass(Carrier.stored),
+            List(Carrier.literals(Carrier.chunks(model))),
+            d.span
           )
-          d.symbol.addAnnotation(
-            Annotation(
-              requiredClass(Carrier.stored),
-              List(Carrier.literals(Carrier.chunks(model))),
-              d.span
-            )
-          )
-          Some(model)
-        catch
-          case err: SectionRefusal =>
-            SectionDiagnostics.error(err)
-            None
-          case err: LiftError =>
-            report.error(
-              err.message,
-              e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos
-            )
-            None
-          case err: CompilerApiError =>
-            report.error(err.getMessage, d.srcPos)
-            None
-        finally active.remove(d.symbol): Unit
-    }
+        )
+      catch
+        case err: LiftError =>
+          report.error(err.message, e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos)
+        case err: CompilerApiError =>
+          report.error(err.getMessage, d.srcPos)
 
-final private class StorePhase(store: DefinitionStore) extends PluginPhase:
+final private class StorePhase(store: DefinitionStore, realization: Boolean = false)
+    extends PluginPhase:
   val phaseName = "reifyStore"
   override val runsAfter = Set("reifyEffects")
   override val runsBefore = Set("sbt-api", Pickler.name)
 
-  override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =
-    store.saveSection(tree): Unit
-    store.saveStatus(tree): Unit
-    store.saveOutcome(tree): Unit
-    tree
-
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
-    val section = tree.symbol.owner
-    val declaring = section.owner
-    val machine = getClassIfDefined("framework.dsl.Machine")
-    if section.isClass && section.is(Module) && section.name.toString
-        .stripSuffix(
-          "$"
-        ) == "effects" &&
-      (FacetDeclaration.namespace(declaring) ||
-        (declaring.isClass && declaring.is(Module) && machine.exists &&
-          declaring.asClass.typeRef.derivesFrom(machine.asClass)))
-    then
-      val e = store.engine(summon[Context].compilationUnit.tpdTree)
-      import e.ctx.quotes.reflect.DefDef
-      val definition = tree.asInstanceOf[DefDef]
-      try if e.makesSteps(definition.returnTpt.tpe) then e.givesNoEmpty(definition)
-      catch
-        case err: LiftError =>
-          report.error(
-            err.message,
-            e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos
-          )
-    val marker = getClassIfDefined(Carrier.marker)
-    if marker.exists && tree.symbol.hasAnnotation(marker) then store.save(tree): Unit
-    else store.saveFacet(tree): Unit
+    if store.admitted(tree) && !(realization && store.machineMember(tree.symbol)) then
+      store.save(tree)
     tree
 
 private object EndpointPayload:
@@ -1144,8 +444,8 @@ final private class EndpointsPhase(
                   val function = if form == "projection" then
                     c.body
                       .collectFirst {
-                        case definition: Definition
-                            if definition.name.stripSuffix("$") == "rules" =>
+                        case definition: ClassDef
+                            if definition.symbol.typeRef.derivesFrom(e.ctx.rulesClass) =>
                           lifted.copy(position = Some(e.ctx.pos(definition)))
                       }
                       .getOrElse(lifted)
@@ -1290,9 +590,6 @@ final private class EndpointsPhase(
             ): Unit
           tree
         catch
-          case err: SectionRefusal =>
-            SectionDiagnostics.error(err)
-            tree
           case err: LiftError =>
             dotty.tools.dotc.report
               .error(err.message, e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos)
@@ -1605,8 +902,7 @@ final private class RulesPhase(
               ): Unit
             tree
           catch
-            case error: SectionRefusal => SectionDiagnostics.error(error); tree
-            case error: LiftError      =>
+            case error: LiftError =>
               dotty.tools.dotc.report
                 .error(
                   error.message,
@@ -1827,8 +1123,6 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
               catch
                 case error: LiftError =>
                   List("refused-rule-effect-v1", error.message)
-                case error: SectionRefusal =>
-                  List("refused-rule-effect-v1", error.getMessage)
             }
             def implementation(owner: Symbol): Symbol =
               val methods =
@@ -1856,9 +1150,6 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
             ): Unit
             tree
           catch
-            case err: SectionRefusal =>
-              SectionDiagnostics.error(err)
-              tree
             case err: LiftError =>
               report.error(
                 err.message,
@@ -2099,9 +1390,7 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
     else
       indexResults()
       describedStatusAwait match
-        case None =>
-          val carrier = getClassIfDefined(Carrier.namedResult)
-          carrier.exists && sym.hasAnnotation(carrier)
+        case None             => false
         case Some(definition) =>
           sym == definition.symbol && resultContracts.getOrElseUpdate(
             definition.symbol,
@@ -2109,17 +1398,6 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
               definition.rhs
             )
           )
-
-  private def retainNamedResult(tree: tpd.DefDef)(using Context): Unit =
-    if describedStatusDefinition(tree) &&
-      resultContracts.getOrElseUpdate(
-        tree.symbol,
-        noNamedResultEscape(tree.rhs) && namedExpression(tree.rhs)
-      )
-    then
-      val carrier = getClassIfDefined(Carrier.namedResult)
-      if carrier.exists && !tree.symbol.hasAnnotation(carrier) then
-        tree.symbol.addAnnotation(Annotation(carrier.asClass, Nil, tree.span))
 
   private def enclosingMethods(owner: Symbol)(using Context): Vector[Symbol] =
     val methods = Vector.newBuilder[Symbol]
@@ -2312,7 +1590,6 @@ final private class NamesPhase(after: String = "reifyCapture") extends PluginPha
       cpy.Apply(tree)(tree.fun, args)
 
   override def transformDefDef(tree: tpd.DefDef)(using Context): tpd.Tree =
-    retainNamedResult(tree)
     val named = getClassIfDefined("framework.realize.Named")
     if named.exists && tree.name.toString.contains("$default$") && !top(
         tree.tpt.tpe.widenDealias.typeSymbol

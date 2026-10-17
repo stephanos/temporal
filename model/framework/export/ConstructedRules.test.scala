@@ -854,16 +854,31 @@ object Native:
       ).orFail(): Unit
 
   test(
-    "definition symbols expose versioned success and lazy located-refusal carriers across jars"
+    "overlapping storage rules write exactly one body carrier"
   ):
-    val (_, helperJar, _) =
-      compile(Seq("Helpers.scala"), "carrier-helpers", true)
+    val helper = Files.createDirectories(scratch.resolve("carrier-helpers"))
+    Files.writeString(
+      helper.resolve("Helpers.scala"),
+      """package fixture.ruleslibrary
+import framework.dsl.*
+object Library extends Lifted:
+  def keep(s: Boolean): List[Step[Boolean, Boolean, Nothing]] = List(Step(true, s, Nil, ""))
+"""
+    ): Unit
+    val helperJar = scratch.resolve("carrier-helpers.jar")
+    recorded(
+      "carrier-helpers",
+      tools.scalaCli(
+        Seq("compile", helper.toString, "--compilation-output", helperJar.toString) ++ settings(
+          true
+        )
+      )
+    ).orFail(): Unit
     val dir = Files.createDirectories(scratch.resolve("carrier-inspector"))
     Files.writeString(
       dir.resolve("Inspect.scala"),
       """package framework.rulescarrier
 import scala.quoted.*
-import fixture.ruleslibrary.Library
 object Inspect:
   inline def verify(): Unit = ${verifyImpl}
   def verifyImpl(using Quotes): Expr[Unit] =
@@ -874,25 +889,15 @@ object Inspect:
       case Typed(value, _) => strings(value)
       case Repeated(values, _) => values.flatMap(strings)
       case _ => Nil
-    def referenced(t: Term): Symbol = t match
-      case Inlined(_, _, value) => referenced(value)
-      case Typed(value, _) => referenced(value)
-      case Block(Nil, value) => referenced(value)
-      case value => value.symbol
-    val refs: List[(Expr[Any], String, String)] = List(
-      ('{Library.states.ready}, "is", "ok"),
-      ('{Library.states.unused}, "is", "refused"),
-      ('{Library.effects.keep}, "effect", "ok"))
-    refs.foreach { (ref, form, status) =>
-      val symbol = referenced(ref.asTerm)
-      val annotation = symbol.annotations.find(_.tpe.typeSymbol.fullName == "framework.dsl.sectionIr")
-        .getOrElse(report.errorAndAbort("missing section carrier: " + symbol.fullName))
-      val data = strings(annotation)
-      if data.take(4) != List("section-v1", symbol.fullName, form, status) then
-        report.errorAndAbort("stale section symbol carrier: " + data)
-      if status == "refused" && (!data(4).endsWith("Helpers.scala") || data(5) != "13") then
-        report.errorAndAbort("missing definition-owned refusal position: " + data)
-    }
+    val symbol = Symbol.requiredModule("fixture.ruleslibrary.Library").methodMember("keep").head
+    val annotations = symbol.annotations.filter(_.tpe.typeSymbol.fullName == "framework.dsl.liftedIr")
+    if annotations.size != 1 then report.errorAndAbort("expected one stored body: " + annotations)
+    val bytes = java.util.Base64.getDecoder.decode(strings(annotations.head).mkString)
+    val model = io.temporal.server.api.umpire.v1.Model.parseFrom(bytes)
+    if model.functions.map(_.name) != Seq(symbol.fullName) then
+      report.errorAndAbort("stored body has unexpected functions: " + model)
+    if !model.functions.head.getBody.getList.items.head.getConstruct.args.head.getLiteral.getBool then
+      report.errorAndAbort("stored body lost its accepted outcome")
     '{ () }
 """
     ): Unit
@@ -1212,48 +1217,41 @@ object Unused extends Machine[Boolean, Boolean, Nothing]:
     "opaque callback vals and unmarked foreign helper defs remain outside the stored boundary"
   ):
     for opaque <- Seq(false, true) do
-      val dir =
-        Files.createDirectories(scratch.resolve(if opaque then "opaque-library"
-        else "unmarked-library"))
-      val original = Files.readString(stored.resolve("Helpers.scala"))
-      val text = if opaque then
-        original.replace(
-          "val ready = is(true)",
-          "val ready: Boolean => Boolean = (s: Boolean) => s"
-        )
-      else original.replace("@lifted ", "")
-      Files.writeString(dir.resolve("Helpers.scala"), text): Unit
-      val jar = scratch.resolve(if opaque then "opaque-library.jar"
-      else "unmarked-library.jar")
-      recorded(
-        s"boundary-library-$opaque",
-        tools.scalaCli(
-          Seq(
-            "compile",
-            dir.toString,
-            "--compilation-output",
-            jar.toString
-          ) ++ settings(true)
-        )
-      ).orFail(): Unit
-      val client =
-        Files.createDirectories(scratch.resolve(s"boundary-client-$opaque"))
-      Files.copy(
-        stored.resolve("Client.scala"),
-        client.resolve("Client.scala")
+      val dir = Files.createDirectories(scratch.resolve(if opaque then "opaque-library"
+      else "unmarked-library"))
+      val declaration = if opaque then "val ready: Boolean => Boolean = (s: Boolean) => s"
+      else "def ready(s: Boolean): Boolean = s"
+      Files.writeString(
+        dir.resolve("Helper.scala"),
+        s"""package fixture.foreignhelpers
+object Library:
+  $declaration
+"""
+      ): Unit
+      val client = Files.createDirectories(scratch.resolve(if opaque then "opaque-client"
+      else "unmarked-client"))
+      Files.writeString(
+        client.resolve("Caller.scala"),
+        """package fixture.foreignhelpers
+import framework.dsl.Reify
+object Caller:
+  val captured = Reify.function(Library.ready)
+"""
       ): Unit
       val result = recorded(
-        s"boundary-client-$opaque",
-        tools.scalaCli(
-          Seq("compile", client.toString) ++
-            settings(true) ++ Seq("--jar", jar.toString)
-        )
+        s"boundary-$opaque",
+        tools.scalaCli(Seq("compile", client.toString, dir.toString) ++ settings(true))
       )
       assertEquals(result.exit, 1, result.diagnostics)
       assert(
-        result.diagnostics.contains(if opaque then "ready" else "@lifted"),
+        result.diagnostics.contains(
+          if opaque then "ready"
+          else
+            "fixture.foreignhelpers.Library$.ready is reached from another file: define it in an object that extends Lifted"
+        ),
         result.diagnostics
       )
+      assert(!result.diagnostics.contains("unhandled exception"), result.diagnostics)
 
   test(
     "all frozen direct-result and direct-contract refusals survive strict capture independently"

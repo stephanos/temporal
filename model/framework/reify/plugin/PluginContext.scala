@@ -6,49 +6,18 @@ import scala.quoted.runtime.impl.QuotesImpl
 import dotty.tools.dotc.ast.tpd
 import dotty.tools.dotc.core.Contexts.Context
 import dotty.tools.dotc.core.Phases.inliningPhase
+import dotty.tools.dotc.core.Symbols.Symbol as CompilerSymbol
 import dotty.tools.dotc.inlines.Inlines
 import io.temporal.server.api.umpire.v1 as ir
-
-final private[reify] case class SectionOutcome(
-    root: String,
-    form: String,
-    model: Option[ir.Model],
-    refusal: Option[(ir.Position, String)]
-)
-
-final private[reify] case class FacetOutcome(
-    facet: String,
-    namespace: String,
-    root: String,
-    model: Option[ir.Model],
-    sites: Vector[ContextualPhaseSite],
-    refusal: Option[(ir.Position, String)]
-)
-
-final private[reify] case class StatusOutcome(
-    root: String,
-    phase: String,
-    name: String,
-    value: Option[ir.Expr],
-    model: Option[ir.Model],
-    refusal: Option[(ir.Position, String)]
-)
 
 // A compiler tree the plugin's own rewrite does not find in the shape it wrote.
 final private[reify] class CompilerApiError(detail: String) extends Exception(detail)
 
-final private[reify] class SectionRefusal(val position: ir.Position, root: String, message: String)
-    extends Exception(s"${position.file}:${position.line}: $root: $message")
-
 final private[reify] class PluginContext(using val quotes: Quotes)(
     root: quotes.reflect.Tree,
-    outcomes: List[quotes.reflect.Tree],
-    load: quotes.reflect.Symbol => Option[ir.Model],
-    sectionPresent: quotes.reflect.Symbol => Boolean,
-    section: quotes.reflect.Symbol => Option[SectionOutcome],
-    facet: quotes.reflect.Symbol => Option[FacetOutcome],
-    status: quotes.reflect.Symbol => Option[StatusOutcome],
-    outcome: quotes.reflect.Symbol => Option[StatusOutcome]
+    dependencies: List[quotes.reflect.Tree],
+    covered: quotes.reflect.Symbol => Boolean,
+    load: quotes.reflect.Symbol => Option[ir.Model]
 ) extends BodyContext:
   import quotes.reflect.*
   private given CanEqual[ir.Function, ir.Function] = CanEqual.derived
@@ -71,18 +40,18 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
         case _ => ()
       super.traverseTree(tree)(owner)
   collect.traverseTree(root)(Symbol.spliceOwner)
-  outcomes.foreach {
-    case v: ValDef =>
-      defs(v.symbol) = v
-      trees(v.symbol) = v
-    case _ => ()
-  }
+  dependencies.foreach(collect.traverseTree(_)(Symbol.spliceOwner))
 
   def sourceTree(sym: Symbol): Option[Tree] = trees.get(sym)
 
+  private def currentDefinition: Option[Definition] =
+    callOwner.flatMap(name => defs.valuesIterator.find(_.symbol.fullName == name))
+
   override def inlineCall(t: Term): Option[Term] =
     val compiler = quotes.asInstanceOf[QuotesImpl].ctx
-    given Context = compiler.fresh.setPhase(inliningPhase(using compiler))
+    val inlining = compiler.fresh.setPhase(inliningPhase(using compiler))
+    given Context = currentDefinition
+      .fold(inlining)(owner => inlining.setOwner(owner.symbol.asInstanceOf[CompilerSymbol]))
     val tree = t.asInstanceOf[tpd.Tree]
     Option.when(Inlines.needsInlining(tree))(
       Inlines.inlineCall(tree).asInstanceOf[Term]
@@ -120,13 +89,11 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
       }
 
   override def isFunction(sym: Symbol): Boolean =
-    super.isFunction(sym) || sectionPresent(sym) || (sym.isDefDef && !sym.fullName.startsWith(
+    super.isFunction(sym) || (sym.isDefDef && !sym.fullName.startsWith(
       "framework.dsl."
     ) &&
       !sym.fullName.startsWith("scala.") && !sym.fullName.startsWith("java.") &&
       sym.maybeOwner.fullName != "<special-ops>")
-
-  override def sectionValue(sym: Symbol): Boolean = super.sectionValue(sym) || sectionPresent(sym)
 
   protected def written(t: Tree): ir.Position =
     scala.util
@@ -140,63 +107,17 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     throw LiftError(where(t), message)
 
   def imported(sym: Symbol, at: Tree): Option[String] =
-    if defs.contains(sym) then None
+    val file = written(currentDefinition.getOrElse(root)).file
+    if defs.get(sym).exists(d => written(d).file == file || covered(sym)) then None
     else
       val model = load(sym).getOrElse(
         fail(
           at,
-          s"${sym.fullName} is reached outside this capture's compilation unit: " +
-            "mark its definition @lifted so its IR is stored at the definition site"
+          s"${sym.fullName} is reached from another file: define it in an object that extends Lifted"
         )
       )
       importClosure(at, model)
       Some(sym.fullName)
-
-  def importedSection(sym: Symbol, at: Tree): Option[String] =
-    if contextualFacet.isEmpty && facetObject(sym.maybeOwner.maybeOwner) then None
-    else
-      section(sym).map { outcome =>
-        outcome.refusal.foreach((position, message) =>
-          throw SectionRefusal(position, outcome.root, message)
-        )
-        importClosure(at, outcome.model.get)
-        outcome.root
-      }
-
-  def importedFacet(sym: Symbol, at: Tree): Option[String] =
-    if contextualFacet.isEmpty then None
-    else
-      facet(sym).map { outcome =>
-        outcome.refusal.foreach((position, message) =>
-          throw SectionRefusal(position, outcome.root, message)
-        )
-        importClosure(at, outcome.model.get)
-        contextualSites ++= outcome.sites
-        outcome.root
-      }
-
-  def importedStatus(sym: Symbol, at: Tree): Option[(ir.Expr, String)] =
-    if defs.contains(sym) then None
-    else
-      status(sym).map { outcome =>
-        outcome.refusal.foreach((position, message) =>
-          throw SectionRefusal(position, outcome.root, message)
-        )
-        importClosure(at, outcome.model.get)
-        outcome.value.get -> outcome.name
-      }
-
-  def importedOutcome(ok: Term): Option[ir.Expr] = ok match
-    case reference: Ref if contextualFacet.nonEmpty && !defs.contains(resolveSymbol(reference)) =>
-      val symbol = resolveSymbol(reference)
-      outcome(symbol).map { retained =>
-        retained.refusal.foreach((position, message) =>
-          throw SectionRefusal(position, retained.root, message)
-        )
-        importClosure(ok, retained.model.get)
-        retained.value.get
-      }
-    case _ => None
 
   // A stored model keeps a position on its root function only, so the same function can arrive
   // with and without positions; the positioned one is kept.
@@ -221,15 +142,7 @@ private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
   import ctx.quotes.reflect.*
 
   override def storedFunction(sym: Symbol, at: Tree): Option[String] =
-    importedFacet(sym, at).orElse(imported(sym, at))
-  override def storedSectionFunction(sym: Symbol, at: Tree): Option[String] =
-    importedFacet(sym, at).orElse(importedSection(sym, at))
-
-  override def storedStatus(sym: Symbol, at: Tree): Option[(ir.Expr, String)] =
-    importedStatus(sym, at)
-
-  override def outcomeOf(ok: Term, form: String): ir.Expr =
-    importedOutcome(ok).getOrElse(super.outcomeOf(ok, form))
+    imported(sym, at)
 
   override def functionParameterTypes(sym: Symbol): List[TypeRepr] =
     val local = super.functionParameterTypes(sym)

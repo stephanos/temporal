@@ -146,16 +146,12 @@ private[framework] trait BodySyntax:
         fail(at, s"${caseSym.name} of ${phase.name} declares no status")
       )
 
-  def storedStatus(caseSym: Symbol, at: Tree): Option[(ir.Expr, String)] = None
-
   private def statusOf(caseSym: Symbol, at: Tree, fact: Option[TypeRepr]): (ir.Expr, String) =
-    storedStatus(caseSym, at).getOrElse {
-      val declared = declaredStatus(caseSym, at)
-      val name = resolve(declared) match
-        case r: Ref => r.symbol.name
-        case other  => other.show
-      lift(declared, fact) -> name
-    }
+    val declared = declaredStatus(caseSym, at)
+    val name = resolve(declared) match
+      case r: Ref => r.symbol.name
+      case other  => other.show
+    lift(declared, fact) -> name
 
   private def syntaxCall(fn: Term, name: String): Boolean =
     fn.symbol.name == name && fn.symbol.maybeOwner.fullName == sugarOwner

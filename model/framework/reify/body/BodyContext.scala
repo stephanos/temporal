@@ -172,11 +172,16 @@ private[framework] trait BodyContext:
       }
     }.distinct
   var callOwner = Option.empty[String]
+  var inlineNames = Set.empty[String]
   def owningFunction[A](name: String)(body: => A): A =
     val previous = callOwner
+    val previousNames = inlineNames
     callOwner = Some(name)
+    inlineNames = Set.empty
     try body
-    finally callOwner = previous
+    finally
+      callOwner = previous
+      inlineNames = previousNames
   val actions = mutable.LinkedHashMap.empty[String, ir.Action]
   // The token of each input of an action, by the action's Definition ID, in input order: the val of
   // an input declared by its token, and none for one declared by a name.

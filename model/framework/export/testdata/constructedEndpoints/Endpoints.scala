@@ -39,11 +39,11 @@ object Outer:
     val init = false
     def end(s: Boolean) = s
     object rules extends Bindings()
-object Helpers:
-  @lifted def guarded(s: Boolean): Boolean =
+object Helpers extends Lifted:
+  def guarded(s: Boolean): Boolean =
     require(s)
     s
-  @lifted def assured(s: Boolean): Boolean = s.ensuring((result: Boolean) => result == s)
+  def assured(s: Boolean): Boolean = s.ensuring((result: Boolean) => result == s)
 object HelperRequire extends Machine[Boolean, Boolean, Nothing]:
   val init = Helpers.guarded(true)
   def end(s: Boolean) = Helpers.guarded(s)
