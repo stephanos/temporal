@@ -189,8 +189,10 @@ final private[framework] class Order(
       }
     def key(t: Term): Option[String] = plain(t) match
       // A native class reference, `action(values*)`, arrives as `applyDynamic("apply")(values*)`.
-      case Apply(Apply(Select(action, "applyDynamic"), List(Literal(StringConstant("apply")))), args)
-          if action.tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.dsl.Action")) =>
+      case Apply(
+            Apply(Select(action, "applyDynamic"), List(Literal(StringConstant("apply")))),
+            args
+          ) if action.tpe.widen.dealias.derivesFrom(Symbol.requiredClass("framework.dsl.Action")) =>
         val values = args.flatMap(a =>
           plain(a) match
             case Repeated(items, _) => items
@@ -262,10 +264,8 @@ final private[framework] class Order(
               negated = !negated
             // `records(fact)` of a requirement block, or `after.records(fact)`.
             case Apply(fn, _)
-                if (fn.symbol.name == "records" && Set(
-                  "framework.dsl.Syntax$package$",
-                  "framework.dsl.StepFacts"
-                )(fn.symbol.maybeOwner.fullName)) ||
+                if (fn.symbol.name == "records" &&
+                  fn.symbol.maybeOwner.fullName == "framework.dsl.Syntax$package$") ||
                   (fn.symbol.name == "apply" &&
                     fn.symbol.maybeOwner.fullName == "framework.dsl.RequirementFacts") =>
               if negated then negative = true else positive = true

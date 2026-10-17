@@ -2,6 +2,11 @@ package framework.reify
 
 import scala.collection.mutable
 import scala.quoted.Quotes
+import scala.quoted.runtime.impl.QuotesImpl
+import dotty.tools.dotc.ast.tpd
+import dotty.tools.dotc.core.Contexts.Context
+import dotty.tools.dotc.core.Phases.inliningPhase
+import dotty.tools.dotc.inlines.Inlines
 import io.temporal.server.api.umpire.v1 as ir
 
 final private[reify] case class SectionOutcome(
@@ -73,9 +78,15 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     case _ => ()
   }
 
-  override def expansionAllowed(sym: Symbol): Boolean = defs.contains(sym)
-
   def sourceTree(sym: Symbol): Option[Tree] = trees.get(sym)
+
+  override def inlineCall(t: Term): Option[Term] =
+    val compiler = quotes.asInstanceOf[QuotesImpl].ctx
+    given Context = compiler.fresh.setPhase(inliningPhase(using compiler))
+    val tree = t.asInstanceOf[tpd.Tree]
+    Option.when(Inlines.needsInlining(tree))(
+      Inlines.inlineCall(tree).asInstanceOf[Term]
+    )
 
   def definition(sym: Symbol): Option[Definition] =
     defs.get(sym).orElse(sourceTree(sym).collect { case d: Definition => d })

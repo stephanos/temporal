@@ -7,7 +7,7 @@ private[framework] trait BodyEngine
     extends Types,
       Constants,
       Expressions,
-      Expansion,
+      BodyArguments,
       PhaseRoles,
       BodySyntax:
   val ctx: BodyContext

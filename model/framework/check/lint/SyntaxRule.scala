@@ -212,7 +212,7 @@ object SyntaxRule:
     case Object, Template, Extension, Other
 
   private val callableViews =
-    Set("Across", "Expecting", "RequirementFacts", "StepFacts", "WitnessFacts")
+    Set("Across", "Expecting", "RequirementFacts", "WitnessFacts")
 
   // A line that opens a block: its indentation, what it opens, where it starts, and, for an
   // extension, whether a definition of its block was read yet.

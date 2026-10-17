@@ -50,9 +50,6 @@ private[framework] object ExpectationBlock:
           if other.symbol.exists && other.symbol.owner.fullName == "framework.dsl.RequirementFacts" && other.symbol.name == "apply" =>
         "records"
       case other
-          if other.symbol.exists && other.symbol.owner.fullName == "framework.dsl.StepFacts" && other.symbol.name == "records" =>
-        "records"
-      case other
           if other.symbol.exists && other.symbol.owner.fullName == "framework.dsl.ExpectedAlternatives" && other.symbol.name == "apply" =>
         "oneOf"
       case other

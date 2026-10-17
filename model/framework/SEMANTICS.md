@@ -3,7 +3,8 @@
 This is the design guide to the DSL in `model/framework`: how a Model is built, one concept at a
 time, in the order you write it. Each step says what the concept *means* (what the Go reader does
 with it), how it is *written*, and what is *refused* and by whom. The README covers the pipeline,
-the file layout and the commands; this guide covers the language.
+the file layout and the commands; this guide covers the language. [REFERENCE.md](REFERENCE.md)
+lists the same language for lookup: every form, where it may be written, and its refusal texts.
 
 A Model is ordinary Scala 3. The compiler checks its types, the framework checks its rules as they
 are constructed, the IR generator (`model/framework/export`) reads the compiled trees and refuses what the IR
@@ -697,7 +698,8 @@ complete exploration, since the graph is finite only there.
 
 An unbounded claim is checked under weak fairness: a cycle that avoids `to` is no counterexample
 when a fair class is enabled throughout it and never taken inside it, since a fair path leaves it.
-A bound uses no fairness: any cycle that avoids `to` misses every deadline, so a bounded claim
+A bound gains nothing from fairness: any cycle that avoids `to` fails a bounded claim, reported as
+a cycle when no fair class leaves it and as a missed deadline when one does, so a bounded claim
 holds only where the graph leaves no path that spends its steps elsewhere. That is why the
 dispatch designs *restrict* the actions that could, rather than assume them away, and why a bound
 is stated only where it is the promise ("repaired within one step"), not a count of the model's
@@ -706,18 +708,25 @@ steps.
 **Writing it.** In `progress`, named after its `val`; the bound is optional and the environment is
 a Scenario after `in`:
 
+Source: [samples/Kettle.scala:71](samples/Kettle.scala#L71).
+
 ```scala
-object progress:
-  // switched on and left on, the water boils and the kettle beeps
-  val boils =
-    (whenever(heatingOn):
-      eventually(beeping)
-    ) in without(user.depressButton)
-  // every disagreement of the layers is repaired at once
-  val agreement =
-    whenever(!agreed(current)):
-      eventually(agreed(current), within = 1)
+    // The user switches the kettle on but never off: one who switches it off keeps it from boiling,
+    // whatever the heater does.
+    val neverSwitchedOff =
+      without(user.depressButton)
+
+    object progress:
+      // Every claim above also holds for a kettle that never heats; this one says it boils.
+      // Switched on and left on, the water boils and the kettle beeps.
+      val boils =
+        (whenever(heatingOn):
+          eventually(beeping)
+        ) in neverSwitchedOff
 ```
+
+A bound, where it is the promise, is the second argument of `eventually`, as in TwoLayeredCache:
+`whenever(!agreed(current)): eventually(agreed(current), within = 1)`.
 
 `eventually` is written only in a `whenever` block, and `within` is a positive constant: a literal,
 or arithmetic over `inline val`s. `leadsTo(from = p, to = q, within = n)` is the same bounded
@@ -1223,75 +1232,8 @@ any other place is refused at its line.
 
 ### Expressions the reader evaluates
 
-#### Liftable subset
-
-The typed author lint and the lifter use `framework.inspect.LiftableSubset` for the library
-allowlist. A step, guard or predicate is a pure expression in the rows below. Other Scala tree
-forms and library operations are refused at the author's line, naming the construct and this
-table. Declaration computation is a different context: a library operation in a declaration
-does not thereby become legal in its captured function. The table records the currently supported
-source export, including the temporary declaration readers that constructed-value export retires.
-Adding an operation requires a row and its fixture; the fixture names below are functions in
-`framework/export/testdata/lifts/Subset.scala` unless another path is stated.
-
-| Source tree or operation | Context and IR lowering | Fixture |
-| --- | --- | --- |
-| Boolean literal | Body: Boolean `Literal` | `booleanLiteral` |
-| Integer literal | Body: integer `Literal` | `integerLiteral` |
-| String literal | Body: text `Literal` | `textLiteral` |
-| Parameter or local reference | Body: `Var`, or its bound argument | `reference` |
-| Field selection | Body: `Field` | `field` |
-| Source function application | Body: `Call` of the indexed function | `called` |
-| Case-class or enum constructor | Body: `Construct`, fields in declaration order | `constructed` |
-| Typed/type-applied/named/inlined wrappers | Body: underlying expression; type and argument binding retained | `wrapped` |
-| Local immutable `val` block | Body: ordered `Let` | `localValue` |
-| Structural lambda | Callback: `Function`; expression: `Lambda` | `predicate` |
-| Empty draft block | `effect` capture only: unchanged state with the declared ok outcome; Unit is not a body value | `EmptyDraft.effects.keep` |
-| `if` | Body: `If`, only the selected branch is read | `conditional` |
-| `match` and literal, case, bind, wildcard, alternative patterns | Body: `Match` and matching IR patterns; enum wildcard restrictions still apply | `matched` |
-| `List(...)` / `Nil` / repeated arguments | Body: `List` in written order | `listed` |
-| `Some(...)` / `None` | Body: synthetic finite Option enum | `optional` |
-| `Step(...)` | Step body only: core step `Construct` | `stepRecord` |
-| `==` | Body: structural `OP_EQ` | `equal` |
-| `!=` | Body: structural `OP_NE` | `unequal` |
-| `&&` | Body: short-circuit `OP_AND` | `conjoined` |
-| `||` | Body: short-circuit `OP_OR` | `disjoined` |
-| `!` | Body: `OP_NOT` | `negated` |
-| `<` | Body: integer `OP_LT` | `less` |
-| `<=` | Body: integer `OP_LE` | `lessEqual` |
-| `>` | Body: integer `OP_GT` | `greater` |
-| `>=` | Body: integer `OP_GE` | `greaterEqual` |
-| `+` | Body: integer `OP_ADD` | `added` |
-| `-` | Body: integer `OP_SUB` | `subtracted` |
-| `contains` | Body, Scala sequence receiver: list membership `OP_CONTAINS`; String and Java collection receivers are refused | `contained` |
-| `copy` | Body, case-class receiver: `Copy`; default getters preserve unchanged fields | `copied` |
-| `min` | Body, integer receiver: `If` with `OP_LE` | `minimum` |
-| `max` | Body, integer receiver: `If` with `OP_GE` | `maximum` |
-| `++` | Body, Scala sequence receiver: `OP_CONCAT`; unnamed step branching remains refused | `concatenated` |
-| `+:` | Body, Scala sequence receiver: prepend a literal item or `OP_CONCAT` | `prepended` |
-| `toList` | Body, Scala sequence receiver: identity of the already lifted list | `converted` |
-| `forall` | Capability's bound fact-family parameter only: ordered conjunction of the recorded-fact guards; no dynamic collection lowering | `lifts/DeadlineCapabilities.scala`; `lifts/DeadlineCapabilityRejects.scala` |
-| `map` | Declaration sequence reader: substitute each written item into a structural mapper; no body lowering | `LiftableSubsetFixtures` declaration control; body refusal control |
-| `toVector` | Declaration sequence reader: underlying written items; no body lowering | `LiftableSubsetFixtures` declaration control |
-| `find` | Query declaration: `FORM_FIND`; collection `find` has no body lowering | `lifts/Declarations.scala` find Query; `LiftableSubsetFixtures` body refusal control |
-| `require` | Function contract: precondition | `contracted` |
-| `ensuring` | Function contract: body; postcondition is not an IR assertion | `contracted` |
-| Builder `name`/`when`, optional/sequence `isEmpty` | Declaration precondition only: read already-bound core metadata, then check the definition's `require`; no Option body lowering | `DefinitionExpansionTest` restricted helper/core twin; existing `whenStays` refusal |
-| String interpolation | Constant values only: text `Literal` | `interpolated` |
-| Channel `empty` | Channel literal | `lifts/Channels.scala` |
-| Channel `send` | `Inbox` send | `lifts/Channels.scala` |
-| Channel `isEmpty` | `Inbox` empty test | `lifts/Channels.scala` |
-| Channel `isFull` | `Inbox` full test | `lifts/Channels.scala` |
-| Hole `reached` | Body: declared `Hole` read | `lifts/Hints.scala` |
-| Role test through a marked definition | Body: membership in the enum's role cases | `lifts/RolesCompatibility.scala` |
-| `choose` | Core choice naming | `lifts/Choices.scala` |
-| `because` | Core explanation | `lifts/Sugar.scala` |
-| `UpTo` | Bounded integer | `lifts/Inputs.scala` |
-| `through` (retired from the DSL; lifter arm until fn-190.12) | Projected source `Call` | `lifts/Members.scala` |
-
-`var`, assignment, loops, `return`, exceptions and comprehensions inside these bodies are outside
-the subset. A declaration may compute its declarations; the functions it hands them remain held
-to this table. The author-time refusal controls are `framework.lint.LiftableSubsetFixtures`.
+The allowlist of Scala forms a step, guard or predicate may use, with each form's IR lowering
+and fixture, is the [Liftable subset](REFERENCE.md#liftable-subset) in the reference.
 
 The IR holds functions as expression trees: literals, variables, field reads, calls (after the
 callee's precondition), constructors, `copy`, `not`/`and`/`or` (short-circuit), `=`/`≠`
@@ -1347,27 +1289,19 @@ Sugar lives only in the framework and kit `Syntax.scala` files; each form docume
 imports sugar; `make lint-model` checks it.
 
 Function-body `enter`, `stay`, `reject`, `disabled`, both membership forms, `implies` and step
-`records`, and the claim patterns and sticky monitors, are marked `@sugar`. The lifter expands their indexed definitions with the supplied
-types, values and functions bound; adding a marked kit definition requires no exporter registration.
-Generated nodes take the call's position, and explicit arguments keep their source positions.
-An unsupported definition names its definition position; recursive expansion names the cycle.
-Observable by-value arguments retain eager, once-only evaluation in caller order through core
-`let` bindings where substitution would drop, delay, duplicate or reorder a read. By-name arguments
-remain under the definition's short-circuit or conditional control.
+`records` are inline definitions. Scala expands their bodies and supplies their arguments; the
+lifter reads the core form inside `Inlined`, using its call to name sugar in a refusal and report
+the call site. Scala owns argument evaluation and recursive-inline checks. There is no sugar
+annotation or plugin expansion engine.
 
 A composition claim names a member fact by its member case, `records(Fact.activity(f))`: an
 ordinary enum value, so the DSL has no member form of `records` and no selector capture for it.
 The lifter's remaining `<field>_<fact>` member-key capture leaves with the composition migration's
 second phase.
-The declaration expansion follows marked constructors and their core parent declarations, binding
-their type parameters and fields. Structural callback bindings preserve the originating method's
-function name; a selector-shaped generic callback retains its field path. Core `holds` and `monitor`
-read those bindings, without a registry of pattern or monitor names. Caller positions and the direct
-builder-chain refusals are retained. The syntax lint checks lifter references in code and dispatch
-strings, including its remaining `Syntax.scala`, against the temporary owners below.
-Definition preconditions are read from their `require` statements and core builder metadata;
-the framework patterns declare their no-`when` policy there. An unrelated marked helper over
-restricted `holds` has the same meaning as its core spelling.
+The legacy declaration patterns and sticky monitors retain their native implementation. Their
+old exporter's constructor expansion, callback naming and declaration-precondition interpretation
+left with the sugar engine. Their historical equivalence fixtures remain obligations of the
+plugin/IR phase; native construction alone supplies no IR equivalence evidence.
 
 | Remaining source reduction | Removal owner |
 | --- | --- |

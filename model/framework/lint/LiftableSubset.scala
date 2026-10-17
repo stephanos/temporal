@@ -10,7 +10,7 @@ final private[framework] class Subset(index: Index):
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
     val seen = mutable.Set.empty[Symbol]
-    var sugar = Option.empty[DefDef] // scalafix:ok DisableSyntax.var
+    var sugar = Option.empty[Term] // scalafix:ok DisableSyntax.var
     def fileOf(t: Tree): String =
       val path = t.pos.sourceFile.path
       index.sourceRoots.getOrElse(path, "") + path
@@ -26,11 +26,11 @@ final private[framework] class Subset(index: Index):
           Flags.Case
         ))
     def refuse(t: Tree, construct: String): Unit =
-      val file = fileOf(t)
-      val line = scala.util.Try(index.sourceLine(file, t.pos.start)).getOrElse(t.pos.startLine + 1)
-      val origin = sugar.fold("")(d =>
-        s"sugar ${d.symbol.fullName} defined at ${fileOf(d)}:${d.pos.startLine + 1} cannot be lifted: "
-      )
+      val at = sugar.getOrElse(t)
+      val file = fileOf(at)
+      val line =
+        scala.util.Try(index.sourceLine(file, at.pos.start)).getOrElse(at.pos.startLine + 1)
+      val origin = sugar.fold("")(call => s"sugar ${call.symbol.fullName} cannot be lifted: ")
       refused += ((
         file,
         line,
@@ -58,6 +58,13 @@ final private[framework] class Subset(index: Index):
         case _ => false
       object expressions extends TreeTraverser:
         override def traverseTree(t: Tree)(owner: Symbol): Unit = t match
+          case Inlined(call, bindings, body) =>
+            val saved = sugar
+            sugar = saved.orElse(call.collect { case term: Term => term })
+            try
+              bindings.foreach(inspectBody(_, draft))
+              inspectBody(body, draft)
+            finally sugar = saved
           case Literal(UnitConstant()) if draft                                        => ()
           case a: Apply if a.symbol.fullName == "framework.dsl.Syntax$package$.effect" =>
             a.args.foreach(arg => inspectBody(arg, draft = true))
@@ -81,13 +88,8 @@ final private[framework] class Subset(index: Index):
             then
               seen += sym: Unit
               index.defs(sym) match
-                case d: DefDef =>
-                  val saved = sugar
-                  if d.symbol.annotations.exists(_.tpe.typeSymbol.fullName == "framework.dsl.sugar")
-                  then sugar = Some(d)
-                  try d.rhs.foreach(inspectBody(_, draft))
-                  finally sugar = saved
-                case _ => ()
+                case d: DefDef => d.rhs.foreach(inspectBody(_, draft))
+                case _         => ()
             if contextual.nonEmpty then
               traverseTree(a.fun)(owner)
               a.args

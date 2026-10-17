@@ -76,7 +76,7 @@ class SyntaxRuleSuite extends munit.FunSuite:
         name
       )
     val view = """// Core form: `step.facts.contains(fact)`.
-      |final class StepFacts:
+      |extension (step: Step[Boolean, Boolean, String])
       |  // Core form: `step.facts.contains(fact)`.
       |  def records(fact: String): Boolean = true
       |""".stripMargin

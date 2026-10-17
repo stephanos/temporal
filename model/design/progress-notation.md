@@ -66,7 +66,8 @@ fair class leaves) before it looks at `within`; the bound was only the last comp
 longest path. Two consequences followed:
 
 - **A bound made fairness inert.** Any cycle that avoids `to` failed a bounded claim, fair or not;
-  fairness only chose its label (cycle or missed deadline). TwoPhaseCommit's
+  fairness only chose its label: a cycle where no fair class leaves it, a missed deadline where one
+  does. TwoPhaseCommit's
   `commitReachesEveryone` verifies with longest path 3 with and without `fairCommits` (checked with
   a scratch probe). Under an unbounded claim a cycle that a fair class always leaves is no
   counterexample, which is what `fair` says.
@@ -155,8 +156,8 @@ name, as R13 requires. That is open question 1.
 - `LeadsTo.within` (`dsl/Assume.scala:129`) is an `Option[Int]`; `leadsTo` gives `Some(within)`.
 
 **Checker** (`dsl/NativeCheck.scala:625`): with no bound, the cycles a fair class leaves are no
-counterexample, and the claim is verified on a complete exploration; with a bound, any cycle is a
-missed deadline, as before. The named `Progress` form passes its bound unchanged.
+counterexample, and the claim is verified on a complete exploration; with a bound, any cycle fails
+the claim, as before: a cycle where no fair class leaves it, a missed deadline where one does. The named `Progress` form passes its bound unchanged.
 
 **`without`** (`dsl/Claims.scala`): `ScenarioDecl` gains `excluded` (line 131) and `Scenario` the
 builder `without` (line 202), with a top-level `without` beside `only` (`dsl/Syntax.scala:1813`).

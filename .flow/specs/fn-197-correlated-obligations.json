@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-197-correlated-obligations",
+  "created_at": "2026-10-17T22:36:26.682509Z",
+  "depends_on_epics": [],
+  "id": "fn-197-correlated-obligations",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-197-correlated-obligations.md",
+  "status": "open",
+  "title": "Correlated obligations: owes(fact).until(fact), a progress claim keyed by a fact's payload",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-17T22:36:42.857764Z"
+}

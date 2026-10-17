@@ -52,6 +52,7 @@ object FrameworkSuites extends Registry:
     "ConstructedSignatureSuite",
     "FiniteSchemaSuite",
     "ReifyBoundarySuite",
+    "InlineSugarSuite",
     "ExpectFixtures",
     "ExpectCaptureSuite",
     "DerivedIds",

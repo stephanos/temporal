@@ -26,8 +26,8 @@ private[framework] trait BodyContext:
   val defs: collection.Map[Symbol, Definition]
   def definition(sym: Symbol): Option[Definition]
   def sourceTree(sym: Symbol): Option[Tree]
+  def inlineCall(t: Term): Option[Term] = None
   def refuse(t: Tree, message: String): Nothing
-  def expansionAllowed(sym: Symbol): Boolean = true
   // A function of the lifted sources: a def, or a section member a block declares (`blockVal`).
   def isFunction(sym: Symbol): Boolean = defs.get(sym) match
     case Some(_: DefDef) => true

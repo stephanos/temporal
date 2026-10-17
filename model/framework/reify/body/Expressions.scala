@@ -114,22 +114,21 @@ private[framework] trait Expressions:
   // The def of the lifted sources a function value names: the def, eta-expanded or called with a
   // lambda's own parameters, or a function-valued parameter bound to one, also called so.
   def forwardedDef(t: Term): Option[Symbol] = t match
-    case Typed(e, _)                                   => forwardedDef(e)
-    case Inlined(_, Nil, e)                            => forwardedDef(e)
-    case Block(Nil, e)                                 => forwardedDef(e)
-    case r: Ref if boundFunctions.contains(r.symbol)   => Some(boundFunctions(r.symbol))
-    case r: Ref if isFunction(r.symbol) && !expands(r) => Some(r.symbol)
-    case c: Apply if throughCall(c)                    => Some(through(c))
-    case c: Apply if blockCall(c).nonEmpty             => misplacedBlock(blockCall(c).get.form, c)
-    case _                                             =>
+    case Typed(e, _)                                 => forwardedDef(e)
+    case Inlined(_, Nil, e)                          => forwardedDef(e)
+    case Block(Nil, e)                               => forwardedDef(e)
+    case r: Ref if boundFunctions.contains(r.symbol) => Some(boundFunctions(r.symbol))
+    case r: Ref if isFunction(r.symbol) && !r.symbol.flags.is(Flags.Inline) => Some(r.symbol)
+    case c: Apply if throughCall(c)                                         => Some(through(c))
+    case c: Apply if blockCall(c).nonEmpty => misplacedBlock(blockCall(c).get.form, c)
+    case _                                 =>
       lambda(t).flatMap { (params, body) =>
         def forwards(args: List[Term]) =
           args.map(_.symbol) == params.map(_.symbol)
         body match
           case Apply(target, args)
-              if forwards(args) && isFunction(target.symbol) && !sugared(target) && !expands(
-                target
-              ) =>
+              if forwards(args) && isFunction(target.symbol) &&
+                !target.symbol.flags.is(Flags.Inline) && !sugared(target) =>
             Some(target.symbol)
           case Apply(Select(f: Ref, "apply"), args)
               if forwards(args) && boundFunctions.contains(f.symbol) =>
@@ -442,7 +441,8 @@ private[framework] trait Expressions:
                 if expectationVal(f.symbol).nonEmpty && forwards(args) =>
               Some(callee(f.symbol, c))
             case c @ Apply(f, args)
-                if isFunction(f.symbol) && !sugared(f) && !expands(f) && forwards(args) =>
+                if isFunction(f.symbol) && !f.symbol.flags.is(Flags.Inline) &&
+                  !sugared(f) && forwards(args) =>
               Some(callee(f.symbol, c))
             case _ => None
         case _ => None
@@ -737,28 +737,11 @@ private[framework] trait Expressions:
     case _ => t
 
   def lift(t: Term, expected: Option[TypeRepr] = None): ir.Expr = t match
+    case InlineCall(body)      => lift(body, expected)
     case ExpectationRead(read) => read
     // A standalone expectation value, called: `finished(after)`.
     case Apply(Select(f: Ref, "apply"), args) if expectationVal(f.symbol).nonEmpty =>
       call(f.symbol, args, t)
-    // `after.records(_.field -> Machine, fact)`: the typed member fact of a step, read through
-    // the step's fact view.
-    case Apply(Apply(TypeApply(Select(view, _), _), List(member, fact)), List(_))
-        if isNamed(
-          view.tpe,
-          "framework.dsl.StepFacts"
-        ) && member.tpe.widen.dealias.isFunctionType &&
-          member.tpe.widen.dealias.typeArgs.lastOption
-            .exists(_.typeSymbol.fullName == "scala.Tuple2") =>
-      val step = view match
-        case Apply(_, List(on)) => on
-        case other              => fail(other, "a member fact reads the step it is asked of")
-      binary(
-        ir.Binary.Op.OP_CONTAINS,
-        text(memberFactKey(member, fact, t), t),
-        expr(t)(E.Field(ir.FieldAccess(Some(lift(step)), "facts"))),
-        t
-      )
     case Apply(Apply(TypeApply(fn, _), List(step, binding, fact)), _)
         if fn.symbol.fullName == "framework.dsl.Syntax$package$.memberRecorded" =>
       val member = binding match
@@ -775,7 +758,7 @@ private[framework] trait Expressions:
     case r: Ref if boundExpressions.contains(r.symbol) => boundExpressions(r.symbol)
     case PhasingRead(read)                             => read
     case _ if t.symbol.name.contains("$default$") && defs.contains(t.symbol) =>
-      expanded(t, expected)
+      functionArgument(t)(lift(_, expected))
     case _ if memberCapture(t).nonEmpty => memberCapture(t).get
     // The field a captured member selection names, `MemberPath.capture(member, fact).field`.
     case Select(captured, "field") if memberCapture(captured).nonEmpty =>
@@ -831,7 +814,6 @@ private[framework] trait Expressions:
     // A block written where no section's val declares it.
     case _ if blockCall(t).nonEmpty => misplacedBlock(blockCall(t).get.form, t)
 
-    case _ if expands(t) => expanded(t, expected)
     case a: Apply
         if LiftableSubset.library(a.symbol.maybeOwner.fullName) &&
           !LiftableSubset.permitted(using ctx.quotes)(a) =>
@@ -847,7 +829,7 @@ private[framework] trait Expressions:
     case Typed(Repeated(items, elem), _) => list(items.map(i => lift(i, Some(elem.tpe))), t)
     case Repeated(items, elem)           => list(items.map(i => lift(i, Some(elem.tpe))), t)
     case Typed(e, tpt)                   => lift(e, expected.orElse(Some(tpt.tpe)))
-    case Inlined(_, Nil, e)              => lift(e, expected)
+    case inlined: Inlined                => inlineBody(inlined, expected)
     case Block(Nil, e)                   => lift(e, expected)
     case NamedArg(_, e)                  => lift(e, expected)
     case Literal(BooleanConstant(b))     => lit(ir.Value.Kind.Bool(b), t)
@@ -998,7 +980,7 @@ private[framework] trait Expressions:
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
     // one.
     case Apply(Select(f: Ref, "apply"), args) if boundValues.contains(f.symbol) =>
-      declarationCallback(f, args).getOrElse(functionArgument(boundValues(f.symbol)) { target =>
+      functionArgument(boundValues(f.symbol)) { target =>
         lambda(target) match
           case Some((ps, body)) =>
             binding(Map.empty, Map.empty, ps.map(_.symbol).zip(args).toMap)(lift(body, expected))
@@ -1006,7 +988,7 @@ private[framework] trait Expressions:
             forwardedDef(target).fold(fail(t, s"not a bound function: ${target.show}"))(fn =>
               call(fn, args, t)
             )
-      })
+      }
     case Apply(fn, args) if isFunction(fn.symbol) => call(fn.symbol, args, t)
     case Apply(Select(f: Ref, "apply"), args) if boundFunctions.contains(f.symbol) =>
       call(f.symbol, args, t)

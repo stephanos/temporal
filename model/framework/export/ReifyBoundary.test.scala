@@ -103,15 +103,15 @@ object LastHelper:
     )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
-  test("an unmarked helper or sugar in another source unit is refused"):
+  test("another source unit needs stored helper IR while inline sugar uses the compiler"):
     val helper = scratch.resolve("unmarked-helper")
     source(
       helper,
       "Helper.scala",
       """package framework.boundary
-import framework.dsl.sugar
+import framework.dsl.*
 object Unmarked:
-  @sugar def eligible(s: Boolean): Boolean = !s
+  inline def eligible(s: Boolean): Boolean = !s
   def ordinary(s: Boolean): Boolean = !s
 """
     )
@@ -133,10 +133,12 @@ object UnmarkedCaller:
       val ran = tools.scalaCli(
         Seq("compile", caller.toString, helper.toString) ++ settings ++ pluginOption
       )
-      assert(ran.failed, s"$name: ${ran.diagnostics}")
-      assert(ran.diagnostics.contains(s"framework.boundary.Unmarked$$.$reached"), ran.diagnostics)
-      assert(ran.diagnostics.contains("mark its definition @lifted"), ran.diagnostics)
-      assert(ran.diagnostics.contains("Caller.scala:4:"), ran.diagnostics)
+      if name == "sugar" then assertEquals(ran.exit, 0, ran.diagnostics)
+      else
+        assert(ran.failed, s"$name: ${ran.diagnostics}")
+        assert(ran.diagnostics.contains(s"framework.boundary.Unmarked$$.$reached"), ran.diagnostics)
+        assert(ran.diagnostics.contains("mark its definition @lifted"), ran.diagnostics)
+        assert(ran.diagnostics.contains("Caller.scala:4:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
 
   test("unsupported bodies refuse at their tree in captures and lifted definitions"):
@@ -659,7 +661,7 @@ $bindings
         ),
         (
           "forwarded",
-          "  @sugar def forwarded(after: Step[Pair, Boolean, String], member: Pair => Member): Boolean = after.records(member, RecordedFact.noted)\n",
+          "  inline def forwarded(after: Step[Pair, Boolean, String], member: Pair => Member): Boolean = after.records(member, RecordedFact.noted)\n",
           "forwarded(after, _.left)",
           "selector capture cannot cross a plain function parameter"
         )

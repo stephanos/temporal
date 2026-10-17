@@ -135,7 +135,7 @@ def fresh(s: Boolean): Boolean = (new Reader(s)).read
 def foreign(s: java.util.List[Boolean]): Boolean = s.contains(true)
 def stringContains(s: Boolean): Boolean = s.toString.contains("t")
 given observed: Boolean = System.nanoTime() > 0L
-@sugar def contextual(s: Boolean)(using observed: Boolean): Boolean = observed && s
+inline def contextual(s: Boolean)(using observed: Boolean): Boolean = observed && s
 val press = action(Actor("user"))
 object Checked extends Machine[Boolean, Boolean, Nothing]:
   val init = false
@@ -186,7 +186,7 @@ object Checked extends Machine[Boolean, Boolean, Nothing]:
         "nanoTime"
       )
     do assert(result.output.contains(construct), result.output)
-    assert(result.output.contains("model/framework/SEMANTICS.md#liftable-subset"), result.output)
+    assert(result.output.contains("model/framework/REFERENCE.md#liftable-subset"), result.output)
     assert(!result.output.contains("Unsupported.scala:13:"), result.output)
 
   test("author checking and lifting preserve their distinct positioned refusal contracts"):
@@ -242,4 +242,4 @@ object Checked extends Machine[Boolean, Boolean, Nothing]:
       checked.output
     )
     assert(checked.output.contains("while"), checked.output)
-    assert(checked.output.contains("model/framework/SEMANTICS.md#liftable-subset"), checked.output)
+    assert(checked.output.contains("model/framework/REFERENCE.md#liftable-subset"), checked.output)

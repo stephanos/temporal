@@ -198,7 +198,7 @@ inline def eventually(inline to: Boolean)(using Whenever): Deadline =
   Deadline.declared(() => to, None)
 
 // `eventually(agreed, within = 1)`, in a `whenever` block: `to` holds within `within` steps on
-// every admitted path, a positive constant. Any cycle that avoids `to` misses the bound, whatever
-// is fair.
+// every admitted path, a positive constant. Any cycle that avoids `to` fails the claim, whatever
+// is fair: a cycle where no fair class leaves it, a missed deadline where one does.
 inline def eventually(inline to: Boolean, inline within: Int)(using Whenever): Deadline =
   ${ QueryMacros.eventually('to, 'within) }

@@ -80,9 +80,9 @@ class SugarNativeTest extends munit.FunSuite:
     )
 
   test("plain marked definitions retain strict argument order and by-name laziness"):
-    @sugar def ignore(value: Boolean): Boolean = true
-    @sugar def conditional(value: Boolean): Boolean = false && value
-    @sugar def lazyConditional(value: => Boolean): Boolean = false && value
+    inline def ignore(value: Boolean): Boolean = true
+    inline def conditional(value: Boolean): Boolean = false && value
+    inline def lazyConditional(value: => Boolean): Boolean = false && value
     val missing = hole
     assertEquals(intercept[HoleReached](ignore(missing.reached)).hole, missing)
     assertEquals(intercept[HoleReached](conditional(missing.reached)).hole, missing)
@@ -91,6 +91,6 @@ class SugarNativeTest extends munit.FunSuite:
     def read(n: Int): Boolean =
       order = order :+ n
       true
-    @sugar def swapped(first: Boolean, second: Boolean): Boolean = second && first && first
+    inline def swapped(first: Boolean, second: Boolean): Boolean = second && first && first
     assert(swapped(read(1), read(2)))
     assertEquals(order, List(1, 2))

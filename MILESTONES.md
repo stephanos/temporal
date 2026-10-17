@@ -184,8 +184,8 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1 done; fn-189.4/.2/.3, then fn-189.5; fn-193.1/.2; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into a test-support module; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
-| Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2 and fn-193.1 done; fn-189.3 in progress, then fn-189.5; fn-193.2; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -1028,9 +1028,7 @@ fn-190 R17, and the generic-call IR is fn-192.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-189.2 | ⬜ todo | After .1: refuse curried helpers in lifted code; remove call-group proofs (R6) |
-| fn-189.3 | ⬜ todo | After .1: sugar as `inline` defs; remove the plugin's expansion engine (R7) |
-| fn-189.4 | ⬜ todo | After .1: `given Family`; remove FamilyPhase (R3) |
+| fn-189.3 | 🔄 in progress | After .1: sugar as `inline` defs; remove the plugin's expansion engine (R7) |
 | fn-189.5 | ⬜ todo | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
 | fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
@@ -1058,7 +1056,7 @@ with a Kettle prototype and verdict in `model/design`.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.15 | ⬜ todo | DSL completion: native execution moves out of `framework.dsl` into a test-support module; the DSL executes nothing (R6, DSL half) |
+| fn-190.15 | ⬜ todo | Carried by fn-196.1: native execution moves out of `framework.dsl` into the product checker module; the DSL executes nothing (R6, DSL half) |
 | fn-190.16 | ⬜ todo | DSL completion, after .15 and fn-193.2: delete the record-state vocabulary (`RecordMachine`, `Rules`/`~>`, `property`/`expect`, `query`/`Limits`, `assume`, ...) from the DSL |
 | fn-190.5 | ⬜ todo | Phase 3, after .3: delete the test-support native runtime once the IR evaluator carries the suites (R6) |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
@@ -1076,7 +1074,6 @@ with fn-190.12, and the Temporal compositions migrate at the sweep.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-193.1 | ⬜ todo | Prototype and verdict in `model/design`: members as vals, syncs by reference, claims in sections, a one-member derivation, native sync stepping (R1) |
 | fn-193.2 | ⬜ todo | After .1: plain compositions in the DSL; fixtures, tests, SEMANTICS §17 and README rewritten; nothing needs `RecordMachine` (R2-R5) |
 
 ### fn-194: Parametric Models: constants and finite domains as constructor parameters, instantiated by the suite
@@ -1133,6 +1130,28 @@ Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md
 | fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
 | fn-196.5 | ⬜ todo | After .3: MILESTONES Direction, README and SEMANTICS say the Scala checker is the oracle (R7) |
 
+### fn-197: Correlated obligations: `owes(fact).until(fact)`
+
+Captured on 2026-10-17 from the owner's review of a notation survey (FizzBee, P, statecharts, Alloy,
+Event-B, Ivy, UPPAAL): P's hot/cold observer states keyed by request id were the one idea judged new.
+A progress claim over state, `whenever(pending.nonEmpty): eventually(pending.isEmpty)`, cannot say
+"every request is answered by its own response"; the claim that can is a `Set[Id]` monitor every
+model rewrites by hand, and the fold is where the correlation mistake hides. The spec gives it one
+word in `progress`, `owes(Fact.requested).until(Fact.responded)`, with `within` optional and a
+Scenario after `in`: the owed set is explored with the vars and in state identity, and each payload
+is a leads-to checked by the Scala checker (deadlock or end while owed, fair non-progress cycle,
+missed deadline, reported with the payload and path). DSL only, in the DSL completion phase after
+fn-193/fn-194/fn-195 (placement to be confirmed by the owner); no IR, export or conformance change.
+The sibling idea, Event-B parameters drawn from state, is recorded as an idea only in
+`model/design/parameters-drawn-from-state.md`.
+[Spec](.flow/specs/fn-197-correlated-obligations.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-197.1 | ⬜ todo | Prototype the spelling on a dispatcher fixture and the mini feature's monitors; design note with the owner's decision (R4) |
+| fn-197.2 | ⬜ todo | After .1: the `owes`/`until` word, compile refusals, checker semantics over the owed set, fixture tests, lifter unchanged (R1, R2, R3, R6) |
+| fn-197.3 | ⬜ todo | After .2: SEMANTICS §11, README and progress-notation describe the word; ReliableBroadcast rewritten or the reason recorded (R5) |
+
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 
 Captured on 2026-10-16. The six samples predate the section convention. The owner replaced the
@@ -1162,6 +1181,23 @@ both sides. The author writes plain Scala as today; a builtin outside the table 
 refusal. The owner's condition is a tight list: a new builtin is an R-ID of this spec. Phase 2, batched
 with fn-173.4 and fn-189.10. Not planned into tasks yet.
 [Spec](.flow/specs/fn-192-builtins-one-table-of-operators-a.md).
+
+### fn-198: Framework tests are case folders: sources in, expected files out
+
+Captured on 2026-10-17 from the owner's proposal to test the framework exclusively through fixtures
+with the expectation as a file in the same folder. Today only the `lifts` fixture is golden (23
+expected files, one update flag, a leftover guard, identity contracts); the other ~70 testdata
+folders keep their expectations inline in Scala (1,008 `contains(` assertions, 353 `intercept`s, a
+hardcoded fixture list), and export carries 22k test lines for 8k of source. The spec makes the case
+folder the only shape for toolchain tests: a unit is one scala-cli package with a `README.md` and an
+`expected/` directory whose files alone select what runs (`<root>.ir.json`, `<root>.waivers.json`,
+`refusals.txt`, `compile.txt`, `lint.txt`, `inspect.txt`, `identity.json`), one runner per tool
+discovers units and diffs whole files, one flag updates after a complete run, and every inline
+export and lint test over a tool's output is deleted. Native behaviour tests in dsl and realize
+stay Scala; the samples' tests are fn-195's. Placed at the head of Phase 3's export and lint
+re-anchoring (my reading, for the owner to confirm): the fixtures are rewritten then anyway, so they
+are written once, as cases. Not planned into tasks yet.
+[Spec](.flow/specs/fn-198-framework-tests-are-case-folders.md).
 
 ## Deferred for now
 

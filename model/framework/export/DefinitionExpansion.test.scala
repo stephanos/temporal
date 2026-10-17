@@ -77,7 +77,7 @@ $extra
   test("a marked kit definition expands without registering its name"):
     val (result, out) = liftSource(
       "kit",
-      "  @sugar def selected(value: State): Boolean = value == State.done",
+      "  inline def selected(value: State): Boolean = value == State.done",
       "kit.selected(s)"
     )
     assertEquals(result.exit, 0, result.diagnostics)
@@ -92,9 +92,9 @@ $extra
   test("declaration definitions preserve callback names without name registration"):
     val (result, out) = liftSource(
       "declaration",
-      """  @sugar def invariant(b: PropertyBuilder[State, Outcome, Fact], predicate: Step[State, Outcome, Fact] => Boolean): Property[State] =
+      """  inline def invariant(b: PropertyBuilder[State, Outcome, Fact], predicate: Step[State, Outcome, Fact] => Boolean): Property[State] =
     b.expect(check(!predicate(after)))
-  @sugar def latched(predicate: Step[State, Outcome, Fact] => Boolean): Monitor[State, Outcome, Fact, Boolean] =
+  inline def latched(predicate: Step[State, Outcome, Fact] => Boolean): Monitor[State, Outcome, Fact, Boolean] =
     monitor[State, Outcome, Fact, Boolean](false)((broken, before, after) => broken || !predicate(after))(broken => broken)
 """,
       "false",
@@ -143,10 +143,10 @@ val restrictedCore = Watched.property.when(press).expect(check(!completed(after)
       "binding",
       """  final case class Wanted[A](value: A)
   given Wanted[State] = Wanted(State.done)
-  @sugar def selected[A](value: A, predicate: A => Boolean, enabled: Boolean = true)(using wanted: Wanted[A]): Boolean =
+  inline def selected[A](value: A, predicate: A => Boolean, enabled: Boolean = true)(using wanted: Wanted[A]): Boolean =
     enabled && predicate(value) && wanted.value == value
-  @sugar def among[A](value: A, rest: A*): Boolean = rest.toList.contains(value)
-  @sugar def outer(value: State): Boolean = selected(value, (s: State) => among(s, State.idle, State.done))
+  inline def among[A](value: A, rest: A*): Boolean = rest.toList.contains(value)
+  inline def outer(value: State): Boolean = selected(value, (s: State) => among(s, State.idle, State.done))
 """,
       "kit.outer(s)"
     )
@@ -159,7 +159,7 @@ val restrictedCore = Watched.property.when(press).expect(check(!completed(after)
   test("generated nodes use the call line and explicit arguments retain their lines"):
     val (result, out) = liftSource(
       "positions",
-      "  @sugar def selected(value: State): Boolean = value == State.done",
+      "  inline def selected(value: State): Boolean = value == State.done",
       "kit.selected(\n    s\n  )"
     )
     assertEquals(result.exit, 0, result.diagnostics)
@@ -174,7 +174,7 @@ val restrictedCore = Watched.property.when(press).expect(check(!completed(after)
     val (result, out) = liftSource(
       "member",
       """  final case class Pair(left: State, right: State)
-  @sugar def selectedMember(after: Step[Pair, String, String]): Boolean = after.records(_.left, Fact.first)
+  inline def selectedMember(after: Step[Pair, String, String]): Boolean = after.records(_.left, Fact.first)
 """,
       "s == State.done",
       """object PairUnderTest extends Composition[kit.Pair](_.left -> MachineUnderTest, _.right -> MachineUnderTest):
@@ -197,12 +197,12 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
   for (name, definitions, cycle) <- Seq(
       (
         "direct",
-        "  @sugar def selected(value: State): Boolean = selected(value)",
+        "  inline def selected(value: State): Boolean = selected(value)",
         "selected -> fixture.expansion.kit$.selected"
       ),
       (
         "indirect",
-        "  @sugar def selected(value: State): Boolean = other(value)\n  @sugar def other(value: State): Boolean = selected(value)",
+        "  inline def selected(value: State): Boolean = other(value)\n  inline def other(value: State): Boolean = selected(value)",
         "selected -> fixture.expansion.kit$.other -> fixture.expansion.kit$.selected"
       )
     )
@@ -218,7 +218,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
     val (result, out) = liftSource(
       "opaque-member",
       """  final case class Pair(left: State, right: State)
-  @sugar def selectedMember(after: Step[Pair, String, String], member: Pair => State): Boolean =
+  inline def selectedMember(after: Step[Pair, String, String], member: Pair => State): Boolean =
     after.records(member, Fact.first)
 """,
       "s == State.done",
@@ -238,13 +238,13 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after, _.le
 
   for (name, definitions) <- Seq(
       "local" -> """  final case class Pair(left: State, right: State)
-  @sugar def selectedMember(after: Step[Pair, String, String]): Boolean =
+  inline def selectedMember(after: Step[Pair, String, String]): Boolean =
     val member: Pair => State = _.left
     after.records(member, Fact.first)
 """,
       "object" -> """  final case class Pair(left: State, right: State)
   val member: Pair => State = _.left
-  @sugar def selectedMember(after: Step[Pair, String, String]): Boolean = after.records(member, Fact.first)
+  inline def selectedMember(after: Step[Pair, String, String]): Boolean = after.records(member, Fact.first)
 """
     )
   do
@@ -270,7 +270,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
   test("an unliftable definition names the sugar and definition position"):
     val (result, out) = liftSource(
       "unliftable",
-      "  @sugar def selected(value: State): Boolean = System.nanoTime() > 0",
+      "  inline def selected(value: State): Boolean = System.nanoTime() > 0",
       "kit.selected(s)"
     )
     assertEquals(result.exit, 1, result.diagnostics)
@@ -282,9 +282,9 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
     assert(!Files.exists(out))
 
   for (name, definition) <- Seq(
-      "unused" -> "  @sugar def selected(value: Boolean): Boolean = true",
-      "conditional" -> "  @sugar def selected(value: Boolean): Boolean = false && value",
-      "repeated" -> "  @sugar def selected(value: Boolean): Boolean = value && value"
+      "unused" -> "  inline def selected(value: Boolean): Boolean = true",
+      "conditional" -> "  inline def selected(value: Boolean): Boolean = false && value",
+      "repeated" -> "  inline def selected(value: Boolean): Boolean = value && value"
     )
   do
     test(s"a by-value $name argument is evaluated once before the expanded body"):
@@ -307,7 +307,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
     val (result, out) = liftSource(
       "strict-order",
       """  def reached(): Boolean = missing.reached
-  @sugar def selected(first: Boolean, second: Boolean): Boolean = second && first
+  inline def selected(first: Boolean, second: Boolean): Boolean = second && first
 """,
       "kit.selected(kit.reached(), other.reached)",
       "val missing = hole\nval other = hole"
@@ -326,7 +326,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
     )
     val (lazyResult, lazyOut) = liftSource(
       "lazy",
-      "  @sugar def selected(value: => Boolean): Boolean = false && value",
+      "  inline def selected(value: => Boolean): Boolean = false && value",
       "kit.selected(missing.reached)",
       "val missing = hole"
     )
@@ -338,7 +338,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
   test("a nested caller invocation of the same marker is not a definition cycle"):
     val (result, out) = liftSource(
       "nested-call",
-      "  @sugar def negated(value: Boolean): Boolean = !value",
+      "  inline def negated(value: Boolean): Boolean = !value",
       "kit.negated(kit.negated(s == State.done))"
     )
     assertEquals(result.exit, 0, result.diagnostics)
@@ -351,7 +351,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
       """  def makeFn(): Boolean => Boolean =
     val forced: Boolean = missing.reached
     value => value && forced
-  @sugar def selected(predicate: Boolean => Boolean): Boolean = true
+  inline def selected(predicate: Boolean => Boolean): Boolean = true
 """,
       "kit.selected(kit.makeFn())",
       "val missing = hole"
@@ -369,7 +369,7 @@ val checked = PairUnderTest.property expect(check(kit.selectedMember(after)))
       val (result, out) = liftSource(
         s"callback-$name",
         """  def predicate(value: State): Boolean = value == State.done
-  @sugar def selected(value: State, predicate: State => Boolean = kit.predicate): Boolean = predicate(value)
+  inline def selected(value: State, predicate: State => Boolean = kit.predicate): Boolean = predicate(value)
 """,
         expression
       )

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T22:36:27.118267Z",
+  "depends_on": [
+    "fn-197-correlated-obligations.1"
+  ],
+  "id": "fn-197-correlated-obligations.2",
+  "priority": null,
+  "spec": "fn-197-correlated-obligations",
+  "spec_path": ".flow/tasks/fn-197-correlated-obligations.2.md",
+  "status": "todo",
+  "title": "DSL completion: the owes/until word and its checker semantics, with the fixture tests",
+  "updated_at": "2026-10-17T22:37:07.997980Z"
+}

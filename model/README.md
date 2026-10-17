@@ -782,17 +782,16 @@ production migration loader. The current focused source checks do not close thos
 ### Function-body sugar
 
 The seven function-body sugar families (`enter`, `stay`, `reject`, `disabled`, `in`, `implies`,
-and step `records`) expand from definitions marked `@sugar`. A kit can add a plain marked
-definition in its `Syntax.scala`, written in the same liftable core subset; the exporter needs
-no name registration. Defaults, contextual values, type arguments, functions and repeated arguments
-are bound at each call. Generated expressions take the call's position, while explicit arguments
-keep their original positions. An unsupported body names the sugar and its definition, and a cycle
-names every definition it passes through.
-Observable by-value arguments are evaluated once in caller order before the body; unused,
-conditional or repeated reads use core `let` bindings. A single unconditional read in caller order
-can substitute the argument directly. By-name arguments remain lazy.
-Function arguments use a structural lambda or a named def. An opaque function-producing call is
-refused at its argument, including when the marked definition would otherwise ignore it.
+and step `records`) are inline definitions. Scala expands them, including defaults, contextual
+values, type arguments and repeated arguments; the lifter reads the resulting core expression.
+`disabled` is an inline def returning `Nil`. The role-test overload of `in` takes its `TypeTest`
+at the call site. Kits can define inline helpers in the same liftable core subset.
+The lifter uses the `Inlined` call to name an unsupported sugar body and report it at its call
+site. Argument evaluation and recursion checks belong to Scala; the plugin has no sugar
+annotation or expansion engine.
+Capture precedes pickling, so its compiler host requests the pinned compiler's inliner on demand.
+The resulting bindings retain strict argument order and lazy by-name reads; static type evidence
+does not become IR state.
 
 The composition overload keeps `after.records(_.member, fact)`. Its inline boundary captures only
 the typed selector path; it never lifts a function body. A plain definition forms the member's
@@ -823,7 +822,8 @@ arguments before inlining. Its internal carrier contains the root and the comple
 function/type closure as existing IR protobuf, in 24,000-character Base64 chunks. It keeps the
 native callable; `Reify.function` returns an `ir.Function`, not a new author-facing wrapper.
 A helper in another source unit must carry definition-site IR. Unmarked source bodies of other
-units are not read, and a `@sugar` body expands only from the capture's own unit.
+units are not read. Inline bodies are expanded by Scala, including when their definitions live in
+another source unit.
 
 Build the independent DSL/realization library without the plugin. Package the plugin with
 `scala-cli --power package --server=false --assembly --preamble=false

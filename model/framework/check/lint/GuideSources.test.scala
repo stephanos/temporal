@@ -9,7 +9,7 @@ class GuideSourcesTest extends munit.FunSuite:
     val cited = "(?s)Source: \\[.*?\\]\\(([^)#]+)#L([0-9]+)\\)\\.\\n\\n```scala\\n(.*?)\\n```".r
     val blocks = cited.findAllMatchIn(text).toVector
     assertEquals(blocks.size, "```scala".r.findAllIn(text).size)
-    assertEquals(blocks.size, 30)
+    assertEquals(blocks.size, 31)
     def normalized(lines: Seq[String]) = lines.map(_.dropWhile(_ == ' ')).mkString("\n")
     for block <- blocks do
       val file = Path.of("model/framework").resolve(block.group(1))

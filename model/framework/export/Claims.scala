@@ -98,9 +98,9 @@ private[`export`] trait Claims:
     case Apply(Apply(Select(a, "applyDynamic"), List(Literal(StringConstant("apply")))), args)
         if isAction(a) =>
       args.flatMap(varargs) match
-        case Nil           => defaultClass(a, t)
-        case List(value)   => recordClass(a, value, t)
-        case values        =>
+        case Nil         => defaultClass(a, t)
+        case List(value) => recordClass(a, value, t)
+        case values      =>
           val id = action(a)
           ir.ActionClass(
             id,
@@ -110,10 +110,13 @@ private[`export`] trait Claims:
     case Apply(Apply(Select(a, "applyDynamicNamed"), List(Literal(StringConstant("apply")))), args)
         if isAction(a) =>
       val id = action(a)
-      val supplied = args.flatMap(varargs).map {
-        case Apply(_, List(label, value)) => constString(label) -> value
-        case other                        => fail(other, "a named input is `field = value`")
-      }.toMap
+      val supplied = args
+        .flatMap(varargs)
+        .map {
+          case Apply(_, List(label, value)) => constString(label) -> value
+          case other                        => fail(other, "a named input is `field = value`")
+        }
+        .toMap
       ir.ActionClass(
         id,
         actions(id).inputs.zipWithIndex.map((param, i) =>
@@ -127,10 +130,14 @@ private[`export`] trait Claims:
   private def recordClass(a: Term, value: Term, at: Tree): ir.ActionClass =
     val id = action(a)
     val inputs = actions(id).inputs
-    val record = a.tpe.widen.dealias.baseType(Symbol.requiredClass("framework.dsl.Action")).typeArgs
+    val record = a.tpe.widen.dealias
+      .baseType(Symbol.requiredClass("framework.dsl.Action"))
+      .typeArgs
       .headOption
-      .filter(r => r.typeSymbol.flags.is(Flags.Case) && !r.typeSymbol.flags.is(Flags.Enum) &&
-        r.typeSymbol.caseFields.map(_.name) == inputs.map(_.name))
+      .filter(r =>
+        r.typeSymbol.flags.is(Flags.Case) && !r.typeSymbol.flags.is(Flags.Enum) &&
+          r.typeSymbol.caseFields.map(_.name) == inputs.map(_.name)
+      )
     record.filter(r => value.tpe.widen <:< r) match
       case Some(r) =>
         def fields(v: Term): List[Option[Term]] = resolve(v) match
@@ -147,7 +154,8 @@ private[`export`] trait Claims:
             field.fold(defaultInput(id, i, at))(literalValue(_, param.`type`))
           }
         )
-      case None => ir.ActionClass(id, List(value).zip(inputs).map((v, p) => literalValue(v, p.`type`)))
+      case None =>
+        ir.ActionClass(id, List(value).zip(inputs).map((v, p) => literalValue(v, p.`type`)))
 
   // An action, or one of its declared-input forms (`ScalarAction`, `RecordAction`).
   private def isAction(t: Term): Boolean =
@@ -422,27 +430,11 @@ private[`export`] trait Claims:
   )(predicate: (String, String) => String): Decl =
     fold(b, env, named) match
       case Decl.PropertyOn(m, name, when) =>
-        val builder = resolve(b).show
-        val metadata = boundValues.collect {
-          case (symbol, value)
-              if value.tpe.widen.dealias.typeSymbol.fullName == "framework.dsl.PropertyBuilder" &&
-                resolve(value).show == builder =>
-            symbol -> Decl.PropertyOn(m, name, when)
-        }.toMap
-        checkingDeclaration {
-          case condition @ Apply(_, List(precondition, message)) =>
-            fold(precondition, env ++ metadata, named) match
-              case Decl.Truth(true)  => ()
-              case Decl.Truth(false) =>
-                fail(expansionAt(t), textOf(fold(message, env ++ metadata, named), message))
-              case other => fail(condition, s"a declaration precondition is Boolean, not $other")
-          case other => fail(other, s"not a declaration precondition: ${other.show}")
-        }
         val p = ir.Property(
           machine = m,
           name = name,
           position = Some(pos(t)),
-          holds = readingDeclaration(s"$m.property.$name")(predicate(m, name)),
+          holds = predicate(m, name),
           transition = transition,
           when = when.fold(ir.Property.When.Empty)(
             _.fold(
@@ -460,7 +452,6 @@ private[`export`] trait Claims:
       env: Map[Symbol, Decl],
       named: Option[Symbol] = None
   ): Decl = t match
-    case _ if declarationExpansion(t)             => expandedDeclaration(t)(fold(_, env, named))
     case r: Ref if env.contains(r.symbol)         => env(r.symbol)
     case r: Ref if boundValues.contains(r.symbol) =>
       suppliedValue(r.symbol)(fold(boundValues(r.symbol), env, named))

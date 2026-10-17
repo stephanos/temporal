@@ -8,6 +8,8 @@ Touches: model/framework/dsl/Syntax.scala, model/framework/reify/body/Expansion.
 ## Description
 **DSL completion phase (owner, 2026-10-17):** scheduled before the IR/plugin phase because it changes what authors write or can reach; the gate is the native checks plus the plugin compiling the six samples.
 
+**Current milestone execution boundary (2026-10-17):** this task closes the native-source checkpoint: remove the annotation and custom expansion engine, preserve native behavior, and compile the six samples with the realization-mode plugin. Full-mode sample and Facets lifting/equivalence remains Phase 3 debt under the original R7 requirement below. The old exporter's declaration-constructor expansion, callback naming and precondition interpretation are removed with the engine; its existing DefinitionExpansion, DeclarationSugar, Sugar, Facets and ReifySamples proof obligations remain open. Those historical tests are not disabled or counted as passing. This checkpoint does not close parent R7's full IR obligation.
+
 Make enter, stay, reject and the two `in` extensions `inline def`; `disabled` becomes `inline def disabled` (an inline val cannot hold Nil). Remove the sugar annotation and the plugin's expansion: the substitution, arity and cycle checks in Expansion, expansionAllowed and the sugar branch of sourceTree. The lifter meets the core form inside an Inlined node; take the sugar's name for diagnostics from the Inlined call so an error can still say which sugar failed, at the call site. Compile the Facets fixture first: the `in` overload with a using TypeTest must still resolve its given at the call site once inline.
 
 **Size:** M

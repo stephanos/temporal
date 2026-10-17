@@ -1476,12 +1476,11 @@ private[`export`] trait Declarations:
           name = name,
           state = Some(typeRef(m.tpe, t)),
           initial = Some(lift(initial, Some(m.tpe))),
-          next = readingDeclaration(id)(stepFunction(next, id, "next")),
-          violated = readingDeclaration(id)(stepFunction(violated, id, "violated")),
+          next = stepFunction(next, id, "next"),
+          violated = stepFunction(violated, id, "violated"),
           evaluate = ir.Monitor.Evaluate.EveryStep(Empty())
         )
       def walk(t: Term): ir.Monitor = t match
-        case _ if declarationExpansion(t)               => expandedDeclaration(t)(walk)
         case Select(inner, "readAtEnds")                => walk(inner).withAtEnds(Empty())
         case Apply(Select(inner, "readAfter"), List(f)) =>
           walk(inner).withAfter(stepFunction(f, id, "after"))
