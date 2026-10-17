@@ -101,7 +101,6 @@ private object Carrier:
   val facet = "framework.dsl.facetIr"
   val status = "framework.dsl.recordedStatusIr"
   val outcome = "framework.dsl.declaredOutcomeIr"
-  val callGroups = "framework.dsl.ruleCallGroups"
   val namedResult = "framework.dsl.namedResult"
 
   // A stored model keeps a position on its root function only.
@@ -111,18 +110,6 @@ private object Carrier:
         model.functions.map(f => if root.contains(f.name) then f else unpositioned(f, ir.Function)),
       types = model.types.map(_.clearPosition)
     )
-
-  def rootedGroups(
-      proofs: Seq[CallGroupEvidence],
-      root: Option[String]
-  ): Vector[CallGroupEvidence] = proofs.toVector.map(p =>
-    p.copy(
-      call = if p.owner == root then p.call else unpositioned(p.call, ir.Call),
-      function =
-        if root.contains(p.function.name) then p.function
-        else unpositioned(p.function, ir.Function)
-    )
-  )
 
   def rootedSites(
       sites: Seq[ContextualPhaseSite],
@@ -149,42 +136,6 @@ private object Carrier:
       case PRepeated(values) => PRepeated(values.map(strip))
       case _                 => value
     companion.messageReads.read(strip(value.toPMessage))
-
-  def callGroupChunks(proof: CallGroupEvidence): List[String] = List(
-    proof.owner.getOrElse(""),
-    Base64.getEncoder.encodeToString(proof.call.toByteArray),
-    Base64.getEncoder.encodeToString(proof.function.toByteArray),
-    proof.groups.mkString(",")
-  )
-
-  private def readGroups(data: List[String]): Vector[CallGroupEvidence] =
-    data
-      .grouped(4)
-      .collect { case List(owner, call, function, groups) =>
-        CallGroupEvidence(
-          Option(owner).filter(_.nonEmpty),
-          ir.Call.parseFrom(Base64.getDecoder.decode(call)),
-          ir.Function.parseFrom(Base64.getDecoder.decode(function)),
-          groups.split(',').map(_.toInt).toVector
-        )
-      }
-      .toVector
-
-  def saveCallGroups(sym: Symbol, proofs: Seq[CallGroupEvidence], at: tpd.Tree)(using
-      Context
-  ): Unit =
-    val retained = proofs.distinct
-    if retained.nonEmpty then
-      sym.addAnnotation(
-        Annotation(
-          requiredClass(callGroups),
-          List(literals(retained.toList.flatMap(callGroupChunks))),
-          at.span
-        )
-      )
-
-  def readCallGroups(sym: Symbol)(using Context): Vector[CallGroupEvidence] =
-    annotation(sym, callGroups).fold(Vector.empty)(readGroups)
 
   def chunks(model: ir.Model): List[String] =
     chunks(model.toByteArray)
@@ -295,7 +246,7 @@ private object Carrier:
         "ok",
         Base64.getEncoder.encodeToString(outcome.value.get.toByteArray),
         model.size.toString
-      ) ++ model ++ outcome.proofs.toList.flatMap(callGroupChunks)
+      ) ++ model
     }(refusal)
 
   def readStatus(sym: Symbol)(using Context): Option[StatusOutcome] =
@@ -328,8 +279,7 @@ private object Carrier:
           named,
           Some(ir.Expr.parseFrom(Base64.getDecoder.decode(value))),
           Some(model(rest.take(count))),
-          None,
-          readGroups(rest.drop(count))
+          None
         )
     }
 
@@ -546,8 +496,7 @@ final private class DefinitionStore:
                   None
                 )
               ),
-              None,
-              Carrier.rootedGroups(e.ctx.retainedGroups(Seq(value)), None)
+              None
             )
           catch
             case error: LiftError =>
@@ -651,8 +600,7 @@ final private class DefinitionStore:
                     None
                   )
                 ),
-                None,
-                Carrier.rootedGroups(e.ctx.retainedGroups(Seq(value)), None)
+                None
               )
             catch
               case error: LiftError =>
@@ -782,12 +730,6 @@ final private class DefinitionStore:
               definition.span
             )
           )
-          if result.model.nonEmpty then
-            Carrier.saveCallGroups(
-              symbol,
-              Carrier.rootedGroups(e.ctx.retainedGroups(Nil, Seq(root)), Some(root)),
-              definition
-            )
           Some(result)
       }
 
@@ -860,12 +802,6 @@ final private class DefinitionStore:
               value.span
             )
           )
-          if result.model.nonEmpty then
-            Carrier.saveCallGroups(
-              value.symbol,
-              Carrier.rootedGroups(e.ctx.retainedGroups(Nil, Seq(root)), Some(root)),
-              value
-            )
           if contextual then
             value.symbol.addAnnotation(
               Annotation(
@@ -932,8 +868,7 @@ final private class DefinitionStore:
       s => section(s.asInstanceOf[Symbol]),
       s => facet(s.asInstanceOf[Symbol]),
       s => status(s.asInstanceOf[Symbol]),
-      s => outcome(s.asInstanceOf[Symbol]),
-      s => Carrier.readCallGroups(s.asInstanceOf[Symbol])
+      s => outcome(s.asInstanceOf[Symbol])
     )
     new PluginEngine(pc)
 
@@ -968,11 +903,6 @@ final private class DefinitionStore:
               List(Carrier.literals(Carrier.chunks(model))),
               d.span
             )
-          )
-          Carrier.saveCallGroups(
-            d.symbol,
-            Carrier.rootedGroups(e.ctx.callGroups.toVector, Some(name)),
-            d
           )
           Some(model)
         catch
@@ -1233,7 +1163,6 @@ final private class EndpointsPhase(
               )
             )
             val positions = Carrier.chunks(ir.Model())
-            val proofs = e.ctx.retainedGroups(Nil, roots)
             def bytes(value: scalapb.GeneratedMessage): String =
               Base64.getEncoder.encodeToString(value.toByteArray)
             val data = List(
@@ -1249,17 +1178,7 @@ final private class EndpointsPhase(
               writer.fold("")(_ => bytes(stateRef)),
               model.size.toString
             ) ++ model ++
-              List(positions.size.toString) ++ positions ++ List(
-                proofs.size.toString
-              ) ++
-              proofs.toList.flatMap(p =>
-                List(
-                  bytes(p.call),
-                  bytes(p.function),
-                  p.groups.mkString(","),
-                  p.owner.getOrElse("")
-                )
-              )
+              List(positions.size.toString) ++ positions ++ List("0")
             tree.putAttachment(FacetContextPayload.key, data): Unit
           if !cls.typeRef.derivesFrom(e.ctx.derivedClass) then
             val fact = cls.typeRef.baseType(e.ctx.machineClass).typeArgs(2)
@@ -1285,7 +1204,6 @@ final private class EndpointsPhase(
               functions = e.ctx.reachableFunctions(Nil, roots),
               types = e.ctx.types.values.toVector
             )
-            val proofs = e.ctx.retainedGroups(Nil, roots)
             val sources = ctx.run.units
               .map(unit => unit.source.path -> unit.source.file.name)
               .distinct
@@ -1323,14 +1241,7 @@ final private class EndpointsPhase(
                 authored.fold("")(fn => bytes(model.functions.find(_.name == fn.name).get)),
                 body.size.toString
               ) ++ body ++
-              List(proofs.size.toString) ++ proofs.toList.flatMap(p =>
-                List(
-                  bytes(p.call),
-                  bytes(p.function),
-                  p.groups.mkString(","),
-                  p.owner.getOrElse("")
-                )
-              ) ++ List(sources.size.toString) ++
+              List("0", sources.size.toString) ++
               sources.flatMap((file, raw) => List(file, raw))
             require(
               factRef.equals(ref),
@@ -1657,15 +1568,6 @@ final private class RulesPhase(
               )
               val fragments =
                 Carrier.chunks(ir.ListOf(Seq(capturedGuard, capturedResult)).toByteArray)
-              val curried =
-                e.ctx.retainedGroups(Seq(capturedGuard, capturedResult)).map { proof =>
-                  List(
-                    bytes(proof.call),
-                    bytes(proof.function),
-                    proof.groups.mkString(","),
-                    proof.owner.getOrElse("")
-                  )
-                }
               val model = ir.Model(
                 functions = e.ctx.reachableFunctions(Seq(capturedGuard, capturedResult)),
                 types = e.ctx.types.values.toVector
@@ -1686,7 +1588,7 @@ final private class RulesPhase(
                 List(closure.size.toString) ++ closure ++ List(
                   typePositions.size.toString
                 ) ++
-                typePositions ++ curried.toList.flatten
+                typePositions
               val placements = guardPlacements(heading)
               val data = List(
                 "rule-guard-placements-v1",
@@ -1896,16 +1798,6 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                 val positions = Carrier.chunks(ir.Model())
                 def bytes(value: scalapb.GeneratedMessage): String =
                   Base64.getEncoder.encodeToString(value.toByteArray)
-                val proofs = r.ctx.retainedGroups(Seq(result))
-                val groups =
-                  proofs.toList.flatMap(p =>
-                    List(
-                      bytes(p.call),
-                      bytes(p.function),
-                      p.groups.mkString(","),
-                      p.owner.getOrElse("")
-                    )
-                  )
                 val position = bytes(r.ctx.pos(tree.asInstanceOf[Tree]))
                 val ordinary = List(
                   "ordinary-rule-v3",
@@ -1922,7 +1814,7 @@ final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
                   closure.size.toString
                 ) ++ closure ++ List(
                   positions.size.toString
-                ) ++ positions ++ groups
+                ) ++ positions
                 if contextual then
                   val sites = r.ctx.retainedContextualSites(Seq(result))
                   List(

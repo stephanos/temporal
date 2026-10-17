@@ -167,6 +167,70 @@ object Broken:
       assert(ran.diagnostics.contains("Broken.scala:5:"), ran.diagnostics)
       assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
 
+  test("a def of two or more parameter lists is refused at its call in lifted code"):
+    for (name, text, line, count) <- Seq(
+        (
+          "capture",
+          """package framework.boundary
+import framework.dsl.Reify
+object Curried:
+  def warmBy(reading: Int)(step: Int): Int = reading + step
+  val captured = Reify.function((s: Int) => warmBy(s)(1))
+""",
+          5,
+          "two"
+        ),
+        (
+          "definition",
+          """package framework.boundary
+import framework.dsl.lifted
+object Curried:
+  def warmBy(reading: Int)(step: Int)(scale: Int): Int = (reading + step) * scale
+  @lifted def heat(s: Int): Int = warmBy(s)(1)(2)
+""",
+          5,
+          "three"
+        )
+      )
+    do
+      val dir = scratch.resolve(s"curried-$name")
+      source(dir, "Curried.scala", text)
+      val ran = tools.scalaCli(Seq("compile", dir.toString) ++ settings ++ pluginOption)
+      assert(ran.failed, ran.diagnostics)
+      assert(
+        ran.diagnostics.contains(
+          s"framework.boundary.Curried.warmBy has $count parameter lists: write it with one"
+        ),
+        ran.diagnostics
+      )
+      assert(ran.diagnostics.contains(s"Curried.scala:$line:"), ran.diagnostics)
+      assert(!ran.diagnostics.contains("unhandled exception"), ran.diagnostics)
+
+  test("a using clause does not count as a parameter list and its arguments follow the list's"):
+    val dir = scratch.resolve("using-clause")
+    source(
+      dir,
+      "UsingClause.scala",
+      """package framework.boundary
+import framework.dsl.Reify
+object UsingClause:
+  def warmBy(reading: Int)(using step: Int): Int = reading + step
+  def main(args: Array[String]): Unit =
+    val captured = Reify.capture((s: Int) => warmBy(s)(using 1))
+    assert(captured.callable(1) == 2)
+    val helper = captured.model.functions.find(_.name.endsWith(".warmBy")).get
+    assert(helper.params.map(_.name) == Seq("reading", "step"), helper.params.toString)
+    assert(captured.function.getBody.getCall.args.size == 2, captured.function.toString)
+    println("using-clause-accepted")
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", dir.toString, "--main-class", "framework.boundary.UsingClause")
+        ++ settings ++ pluginOption
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+    assert(ran.output.contains("using-clause-accepted"), ran.diagnostics)
+
   test("typeCheckErrors does not replace compiling a plugin refusal fixture"):
     val dir = scratch.resolve("type-check-errors")
     source(

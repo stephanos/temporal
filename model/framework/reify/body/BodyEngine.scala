@@ -34,22 +34,6 @@ private[framework] trait BodyEngine
     case Select(_, n)     => Some(n -> Nil)
     case _                => None
 
-  def retainCallGroups(fn: Symbol, at: Tree, call: ir.Call): Unit =
-    def termGroups(tpe: TypeRepr): Vector[Int] = tpe match
-      case poly: PolyType     => termGroups(poly.resType)
-      case method: MethodType => method.paramTypes.size +: termGroups(method.resType)
-      case _                  => Vector.empty
-    val groups = termGroups(fn.termRef.widen)
-    val applied = at match
-      case term: Term => ruleCall(term).map(_._2.map(_.size).toVector)
-      case _          => None
-    functions.get(call.function).foreach { function =>
-      if groups.size > 1 && applied.contains(groups) &&
-        groups.map(_.toLong).sum == function.params.size.toLong &&
-        call.args.size < function.params.size && call.args.size == groups.last
-      then callGroups += CallGroupEvidence(callOwner, call, function, groups): Unit
-    }
-
   def ruleSite(rules: ClassDef, at: Tree): ir.Position = pos(ruleBlock(rules, at))
 
   def ruleBlock(rules: ClassDef, at: Tree): Term =

@@ -1022,24 +1022,10 @@ declared outcome, not admission of foreign helper bodies. Direct guard/effect co
 old refusals; called helpers keep their own requires/body/positions. Authored step-returning effects
 defs are checked immediately, used or unused, through Block/If/Match results without helper recursion.
 
-Compatibility is deliberately historical: the old reader flattens curried helper parameters but
-its partial-effect Call retains only the trailing argument group. Exact old output is preserved,
-with private evidence for that exact typed application, callee and group shape. Parameter clauses
-come from the typed method signature, including empty term clauses and foreign `@lifted` methods,
-never foreign bodies; type-parameter clauses do not count as term clauses. Leading, middle, repeated
-and trailing empty clauses preserve their exact old Call, including a trailing zero-argument Call;
-unrelated or stale wrong-arity calls refuse. Exhaustion of `s`, `state`, `s0` previously failed inside
-the reader; the collector now refuses contextually rather than silently choosing a fourth parameter name.
-
-Call-group evidence follows the complete reached helper closure, not only the rule fragment.
-Private, automatically emitted `rule-call-groups-v2` metadata sits beside unchanged `liftedIr` and
-`sectionIr`, bound to the definition symbol, exact stored Model and length-delimited proof fingerprint.
-This detects stale proof edits even when their clause sizes still sum to the same arity. It retains the
-owning Function, exact Call/callee and typed clause sizes. Imports validate it only when reached;
-unused corrupt helpers remain unforced. Fragment proofs acquire the exact lowered Rule owner and
-only their variables are renamed; helper-owned parameters retain their lexical names. Legacy
-under-arity IR without this proof refuses rather than recovering a foreign body or guessing from
-argument counts. No new author marker is required.
+A lifted body calls a def with one term parameter list; `using` clauses do not count, and their
+arguments follow the list's in the Call as their parameters follow it in the Function. A call of a
+def with two or more term parameter lists is refused at the call, `pkg.warmBy has two parameter
+lists: write it with one`, so no call-group evidence is carried.
 
 The first native Rules/table acquisition already performs overlap/catalog/guard work and reflective
 `from` getters. After that boundary collection adds zero native callbacks, catalogs, guard/effect,
