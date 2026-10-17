@@ -6,6 +6,8 @@ satisfies: [R2]
 Touches: model/framework/dsl/Reify.scala, model/framework/dsl/Machine.scala, model/framework/reify/plugin/ReifyPlugin.scala (DefinitionStore, StorePhase), model/framework/reify/plugin/PluginContext.scala, model/framework/samples, model/framework/export reify fixtures
 
 ## Description
+**DSL completion phase (owner, 2026-10-17):** scheduled before the IR/plugin phase because it changes what authors write or can reach; the gate is the native checks plus the plugin compiling the six samples.
+
 Introduce the marker trait `framework.dsl.Lifted`. The store phase writes liftedIr for a def when its owner derives from Lifted, when its result type is a step list `List[Step[S, O, F]]`, or when it overrides Machine.end or Machine.evidence. Machine's own `effects` object derives from Lifted through the framework so no sample changes. Remove the public `lifted` annotation and the five role-specific carriers (sectionIr, facetIr, recordedStatusIr, declaredOutcomeIr and the namedResult marker's storage role) together with their site indexes, recursion guards and refusal replays in DefinitionStore; Recorded statuses and Ok outcomes are no longer lifted at definition but referenced by name and converted by their DSL values at construction. The `effects`/`rules` names are no longer recognised by spelling. A capture that reaches a def in another file that no rule covers is refused at the capture with `<fullName> is reached from another file: define it in an object that extends Lifted`; a full compile reports the same text. Same-file helpers lift from their tree as today; a test asserts tree-lift and stored IR agree for a def covered by both.
 
 **Size:** L

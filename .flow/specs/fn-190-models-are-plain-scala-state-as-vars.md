@@ -595,6 +595,16 @@ The owner's 2026-10-17 follow-up admits the narrow effect-definition checks in .
 native phase: validate every effect's result type, even when unused, and lint inferred return types
 and multiline bodies. This does not release the broader plugin, exporter, schema or Go work.
 
+## DSL completion phase (owner, 2026-10-17)
+
+The next phase is ordered by DSL impact: every remaining change to what a Model author writes or can
+reach in `framework.dsl`, and nothing else. In order: fn-189.1 (plugin prerequisite), then fn-189.4,
+.2 and .3, then fn-189.5; fn-193 (plain-Scala compositions, prototype first); fn-190.15 (native
+runtime out of `framework.dsl`, the DSL half of R6); fn-190.16 (delete the record-state vocabulary,
+after fn-190.15 and fn-193.2). The gate is the native checks plus the plugin compiling the six
+samples. The IR/plugin phase above (fn-190.9/.3/.10/.5/.12/.8, fn-189.9/.10/.12, fn-192, fn-191.2/.3)
+follows; fn-189.8 stays behind fn-174.8.
+
 ## Decisions from the fn-190.1 prototype (conductor, 2026-10-17)
 
 The prototype (model/design/plain-scala-models-prototype.md, probe in model/design/plain-scala-prototype/) adopts the form natively. Recorded decisions, applied in fn-190.2/.4/.7:

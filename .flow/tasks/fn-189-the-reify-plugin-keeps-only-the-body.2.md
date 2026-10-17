@@ -6,6 +6,8 @@ satisfies: [R6]
 Touches: model/framework/reify/body, model/framework/reify/plugin, model/framework/dsl/Reify.scala
 
 ## Description
+**DSL completion phase (owner, 2026-10-17):** scheduled before the IR/plugin phase because it changes what authors write or can reach; the gate is the native checks plus the plugin compiling the six samples.
+
 A lifted body may call a def with one term parameter list; using clauses do not count. Refuse a call to a def with two or more term parameter lists at the call with the exact text `<fullName> has two parameter lists: write it with one` (the count spelled as written: two, three). Delete CallGroupEvidence, retainCallGroups, retainedGroups, the ruleCallGroups annotation and its Carrier.saveCallGroups/readCallGroups, and the proof copies in namedCopy and function copies. Add a red-first refusal fixture and a using-clause control that is accepted.
 
 **Size:** S

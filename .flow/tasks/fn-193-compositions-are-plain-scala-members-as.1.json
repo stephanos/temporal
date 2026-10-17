@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T19:50:55.878431Z",
+  "depends_on": [],
+  "id": "fn-193-compositions-are-plain-scala-members-as.1",
+  "priority": null,
+  "spec": "fn-193-compositions-are-plain-scala-members-as",
+  "spec_path": ".flow/tasks/fn-193-compositions-are-plain-scala-members-as.1.md",
+  "status": "todo",
+  "title": "Prototype the plain composition form and record the verdict",
+  "updated_at": "2026-10-17T19:50:55.878431Z"
+}

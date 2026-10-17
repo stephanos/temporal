@@ -6,6 +6,8 @@ satisfies: [R1, R5]
 Touches: model/framework/reify/plugin, model/framework/dsl/Reify.scala, model/framework/export reify fixtures, model/README.md
 
 ## Description
+**DSL completion phase (owner, 2026-10-17):** scheduled before the IR/plugin phase because it changes what authors write or can reach; the gate is the native checks plus the plugin compiling the six samples.
+
 Record the contract in model/README.md: every Model and every definition it lifts from compile in one scala-cli compilation of sources under model/; the only jars on the classpath are the generated proto jars and the plugin. Then delete everything in the plugin that exists for another jar: JarSugar and the DottyUnpickler reads, jarSugar/sugarRoots/inJar in DefinitionStore, frameworkSourceLabels and the zip walk, FacetPositions.qualify and every qualify/qualifiedGroups/qualifiedSites call, retainSource and the source-label maps in PluginContext, trusted-artifact lists and artifact() checks in FamilyPhase and NamesPhase, the source-path anchors in canonicalImplementation, the version strings and fingerprints on every carrier (section-v1, facet, status, outcome, rule-call-groups-v2, family v1, rule-type-position-v1) and their malformed-or-stale replay. Positions: a stored ir.Model keeps a position on its root function only; remove ruleTypePosition, RuleTypeLocations, saveTypeLocation and locatedModel. Retire the test fixtures that package helpers or traits into jars (ReifyBoundary helper-jar cases, trait-before-client jars, spoofed-package regressions) and keep their same-compilation twins. Keep the one liftedIr annotation written before pickler and its warm-Bloop invalidation test.
 
 **Size:** L

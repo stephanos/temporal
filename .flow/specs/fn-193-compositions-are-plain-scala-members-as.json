@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-193-compositions-are-plain-scala-members-as",
+  "created_at": "2026-10-17T19:50:44.821184Z",
+  "depends_on_epics": [],
+  "id": "fn-193-compositions-are-plain-scala-members-as",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-193-compositions-are-plain-scala-members-as.md",
+  "status": "open",
+  "title": "Compositions are plain Scala: members as vals, no state case class",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-17T19:50:44.838667Z"
+}

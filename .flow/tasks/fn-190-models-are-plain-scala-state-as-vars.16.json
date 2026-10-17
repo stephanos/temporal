@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T19:51:15.167158Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.15"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.16",
+  "priority": null,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.16.md",
+  "status": "todo",
+  "title": "DSL completion: delete the record-state vocabulary from the DSL",
+  "updated_at": "2026-10-17T19:51:15.167158Z"
+}
