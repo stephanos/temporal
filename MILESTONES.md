@@ -1058,7 +1058,7 @@ with a Kettle prototype and verdict in `model/design`.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.4 | 🔄 in progress | Native effects, transitions, check claims and exact-class only/fair scenarios are implemented; finish public vocabulary retirement, safety-claim environments, progress/monitor hole results and whole-member short-circuit coverage. Native safety claim holes now retain unknown evidence; plugin/lifter proofs remain .9 |
+| fn-190.4 | 🔄 in progress | Native effects, transitions, check claims and exact-class only/fair scenarios are implemented; finish public vocabulary retirement, safety-claim environments and whole-member short-circuit coverage. Native claim predicate holes now retain unknown evidence; plugin/lifter proofs remain .9 |
 | fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
 | fn-190.7 | 🔄 in progress | Six native sample rewrites, witness-only query sections and test-only negative controls; verify the complete start lists and native suites. IR/Go/oracle/equivalence proofs remain .10 |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |

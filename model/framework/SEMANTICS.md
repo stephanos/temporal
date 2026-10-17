@@ -737,7 +737,10 @@ is incomplete; every other machine is checked as if the hole were not there.
 Native invariant, postcondition and ad-hoc checks retain missing evidence per claim member.
 An unknown `oneOf` branch does not count as false, and a known successful alternative establishes
 the claim. A pinned check stops that path at a predicate hole and preserves any counterexample
-already established. Native progress and monitor predicate-hole handling remains pending in phase 1.
+already established. Progress and monitor predicate holes also produce `unknown`; a monitor
+stops the affected product path and checks other branches. An initial progress predicate hole
+stops before effects run. Unmodeled outgoing actions do not establish a deadlock; fair-cycle checks
+treat their classes as possibly enabled, while a known cycle can still miss a finite deadline.
 
 **Writing it.**
 

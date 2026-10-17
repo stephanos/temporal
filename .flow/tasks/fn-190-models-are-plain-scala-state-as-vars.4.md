@@ -57,13 +57,28 @@ reproduced eight failures with one positive control; the branch-guard regression
 failures before scoped recovery. All eight selected sample suites pass 42 tests, source lint passes
 29 tests, and scoped formatting passes. Fresh-context same-family read-only review found no material
 in-scope issue. Logs: `.flow/tmp/claim-holes-{red,guard-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
-Progress/monitor predicate-hole handling and the whole-member naked-guard boundary remain open.
+The whole-member naked-guard boundary remains open.
+The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
+
+Native progress and monitor predicate holes now produce contextual unknown results. Progress
+reads predicates while discovering states, so an initial missing predicate executes no effects;
+consumed searches restart for later checks. Monitor holes stop the affected product path while
+other branches can still establish a violation. Ordinary callback exceptions still propagate.
+Unknown outgoing classes cannot establish a deadlock or prove a fair class disabled; a known
+non-progress cycle still establishes a missed finite deadline when fairness is unknown. Progress
+reports retain the missing row and hole, and the cycle diagnostic avoids claiming known fairness.
+
+All 13 progress/monitor hole regressions pass in the final 535-test DSL/realize run. The baseline
+reproduced ten failures with three positive controls; the initial-effect and diagnostic regression
+reproduced three further failures before the final change. Eight selected sample suites pass 42
+tests, source lint passes 29 tests, scoped formatting passes, and a fresh-context same-family
+read-only review and re-review found no remaining material issue. Logs are
+`.flow/tmp/progress-monitor-holes-{red,early-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
 The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
 
 The original native requirements remain open: public legacy vocabulary is still reachable through
 record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
 naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
-Progress and monitor predicate holes still need native unknown results.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 

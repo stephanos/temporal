@@ -87,6 +87,7 @@ private[framework] object NativeCheck:
     val parents = mutable.ArrayBuffer.empty[Option[Edge[S, O, F]]]
     // The steps a declared hole left unknown, as `<action> at <state>`.
     val unknown = mutable.ArrayBuffer.empty[String]
+    private val unknownSteps = mutable.HashMap.empty[S, mutable.Set[Class]]
     var cut = false
     private var exhausted = false
     private var next = 0
@@ -110,6 +111,8 @@ private[framework] object NativeCheck:
     val starts: Vector[Int] = origins.map(reach(_, 0, None)).filter(_ >= 0).distinct.toVector
     def complete: Boolean = exhausted && !cut && unknown.isEmpty
     def depth: Int = depths.maxOption.getOrElse(0)
+    def reachesHole(state: Int): Boolean = unknownSteps.contains(states(state))
+    def mayEnable(state: Int, cls: Class): Boolean = unknownSteps.get(states(state)).exists(_(cls))
 
     // Native outcomes in binding/class order, shared by state and monitor-product searches.
     def steps(source: S, noteHoles: Boolean = true): Iterator[(Class, Step[S, O, F])] =
@@ -122,6 +125,7 @@ private[framework] object NativeCheck:
               case HoleReached(hole) =>
                 if noteHoles then
                   unknown += s"${shown(cls)} at $source reaches ${holeName(hole)}": Unit
+                  unknownSteps.getOrElseUpdate(source, mutable.HashSet.empty) += cls: Unit
                 Nil
           results.iterator.map(cls -> _)
 
@@ -420,6 +424,7 @@ private[framework] object NativeCheck:
     val product = mutable.ArrayBuffer.empty[(S, M)]
     val parents = mutable.ArrayBuffer.empty[Option[(Int, Class)]]
     val depths = mutable.ArrayBuffer.empty[Int]
+    val blocked = mutable.HashSet.empty[Int]
     var cut = false
     def reach(state: (S, M), depth: Int, via: Option[(Int, Class)]): Int =
       index.getOrElse(
@@ -442,21 +447,30 @@ private[framework] object NativeCheck:
         .reverse
     def endsBroken(at: Int): Boolean =
       val (state, m) = product(at)
-      watch.atEnds && machine.end(state) && watch.violated(m)
+      try watch.atEnds && machine.end(state) && watch.violated(m)
+      catch
+        case HoleReached(hole) =>
+          search.unknown += s"$subject after ${path(at).mkString(", ")} at $state reaches ${holeName(hole)}": Unit
+          blocked += at: Unit
+          false
     starts.foreach(s => reach((s, watch.initial), 0, None): Unit)
     var violation = product.indices.find(endsBroken).map(at => path(at))
     var next = 0
     while violation.isEmpty && next < product.size do
       val (state, m) = product(next)
-      val out = search.steps(state)
+      val out = if blocked(next) then Iterator.empty else search.steps(state)
       while violation.isEmpty && out.hasNext do
         val (cls, step) = out.next()
-        val after = watch.next(m, state, step)
-        val read = !watch.atEnds && watch.readAt.forall(_(step))
-        if read && watch.violated(after) then violation = Some(path(next) :+ shown(cls))
-        else
-          val at = reach((step.state, after), depths(next) + 1, Some((next, cls)))
-          if at >= 0 && endsBroken(at) then violation = Some(path(at))
+        try
+          val after = watch.next(m, state, step)
+          val read = !watch.atEnds && watch.readAt.forall(_(step))
+          if read && watch.violated(after) then violation = Some(path(next) :+ shown(cls))
+          else
+            val at = reach((step.state, after), depths(next) + 1, Some((next, cls)))
+            if at >= 0 && !blocked(at) && endsBroken(at) then violation = Some(path(at))
+        catch
+          case HoleReached(hole) =>
+            search.unknown += s"$subject after ${(path(next) :+ shown(cls)).mkString(", ")} at ${step.state} reaches ${holeName(hole)}": Unit
       next += 1
     val complete = violation.isEmpty && !cut && search.unknown.isEmpty
     val depth = depths.maxOption.getOrElse(0)
@@ -468,7 +482,9 @@ private[framework] object NativeCheck:
           budget,
           depth,
           complete,
-          Vector(s"counterexample: ${actions.mkString(", ")}")
+          Vector(s"counterexample: ${actions.mkString(", ")}") ++ search.unknown.map(u =>
+            s"unknown: $u"
+          )
         )
       case None =>
         Result(
@@ -492,14 +508,14 @@ private[framework] object NativeCheck:
       subject: String,
       claim: Progress[S],
       fair: Seq[ActionDecl]
-  ): Result = leading(graph, subject, claim.from, claim.to, claim.within, fair)
+  ): Result = leading(graph.forCheck, subject, claim.from, claim.to, claim.within, fair)
 
   // A progress claim of a Machine's vars, `leadsTo(...)`, checked on the graph of its environment,
   // its `from` and `to` read with each state restored into the vars.
   def progress[S, O, F](graph: Search[S, O, F], subject: String, claim: LeadsTo): Result =
     val vars = varsOf(graph.machine, s"progress claim $subject")
     leading(
-      graph,
+      graph.forCheck,
       subject,
       s => vars.at(s)(claim.from()),
       s => vars.at(s)(claim.to()),
@@ -535,69 +551,103 @@ private[framework] object NativeCheck:
       within: Int,
       fair: Seq[ActionDecl | Class]
   ): Result =
-    graph.drain()
-    val fairClasses = fair.flatMap:
-      case cls: Class       => List(cls)
-      case decl: ActionDecl => classesOf(decl)
-    val n = graph.states.size
-    val to = Array.tabulate(n)(i => reached(graph.states(i)))
-    val inRegion = Array.fill(n)(false)
-    val region = mutable.ArrayBuffer.empty[Int]
-    for i <- 0 until n if !to(i) && from(graph.states(i)) do
-      inRegion(i) = true
-      region += i: Unit
-    var at = 0
-    while at < region.size do
-      for e <- graph.successors(region(at)) if e.target >= 0 && !to(e.target) && !inRegion(e.target)
-      do
-        inRegion(e.target) = true
-        region += e.target: Unit
-      at += 1
-    def inside(s: Int): Iterator[Edge[S, O, F]] =
-      graph.successors(s).filter(e => e.target >= 0 && inRegion(e.target))
-    val deadlock = region.find(s => graph.successors(s).isEmpty)
-    lazy val parts = components(region.toVector, s => inside(s).map(_.target))
-    lazy val cyclic = parts.filter: part =>
-      val members = part.toSet
-      part.exists(s => inside(s).exists(e => members(e.target)))
-    lazy val joined = region.zipWithIndex.toMap
-    lazy val fairCycle = cyclic
-      .filter: part =>
+    var evaluating = Option.empty[S]
+    def evaluate(predicate: S => Boolean, state: S): Boolean =
+      evaluating = Some(state)
+      predicate(state)
+    try
+      val to = mutable.ArrayBuffer.empty[Boolean]
+      val origins = mutable.ArrayBuffer.empty[Boolean]
+      graph.walk(onState = i =>
+        val state = graph.states(i)
+        val target = evaluate(reached, state)
+        to += target: Unit
+        origins += (!target && evaluate(from, state)): Unit
+        false)
+      val fairClasses = fair.flatMap:
+        case cls: Class       => List(cls)
+        case decl: ActionDecl => classesOf(decl)
+      val n = graph.states.size
+      val inRegion = Array.fill(n)(false)
+      val region = mutable.ArrayBuffer.empty[Int]
+      for i <- 0 until n if origins(i) do
+        inRegion(i) = true
+        region += i: Unit
+      var at = 0
+      while at < region.size do
+        for
+          e <- graph.successors(region(at)) if e.target >= 0 && !to(e.target) && !inRegion(e.target)
+        do
+          inRegion(e.target) = true
+          region += e.target: Unit
+        at += 1
+      def inside(s: Int): Iterator[Edge[S, O, F]] =
+        graph.successors(s).filter(e => e.target >= 0 && inRegion(e.target))
+      val deadlock = region.find(s => graph.successors(s).isEmpty && !graph.reachesHole(s))
+      lazy val parts = components(region.toVector, s => inside(s).map(_.target))
+      lazy val cyclic = parts.filter: part =>
         val members = part.toSet
-        val taken = part.flatMap(s => inside(s).filter(e => members(e.target)).map(_.cls)).toSet
-        val excluded = fairClasses.exists: cls =>
-          !taken(cls) && part.forall(s => graph.successors(s).exists(e => e.cls == cls))
-        !excluded
-      .sortBy(_.map(joined).min)
-      .headOption
-      .map(_.sortBy(joined))
-    def result(verdict: Verdict, detail: Vector[String], longest: Option[Int] = None) =
-      Result(subject, verdict, graph.budget, graph.depth, graph.complete, detail, longest)
-    deadlock match
-      case Some(s) =>
-        result(
-          Verdict.deadlock,
-          Vector(s"deadlock: ${graph.path(s).mkString(", ")} ends in ${graph.states(s)}")
+        part.exists(s => inside(s).exists(e => members(e.target)))
+      lazy val joined = region.zipWithIndex.toMap
+      lazy val fairCycle = cyclic
+        .filter: part =>
+          val members = part.toSet
+          val taken = part.flatMap(s => inside(s).filter(e => members(e.target)).map(_.cls)).toSet
+          val excluded = fairClasses.exists: cls =>
+            !taken(cls) && part.forall(s =>
+              graph.successors(s).exists(e => e.cls == cls) || graph.mayEnable(s, cls)
+            )
+          !excluded
+        .sortBy(_.map(joined).min)
+        .headOption
+        .map(_.sortBy(joined))
+      def result(verdict: Verdict, detail: Vector[String], longest: Option[Int] = None) =
+        Result(
+          subject,
+          verdict,
+          graph.budget,
+          graph.depth,
+          graph.complete,
+          detail ++ graph.unknown.map(u => s"unknown: $u"),
+          longest
         )
-      case None =>
-        fairCycle match
-          case Some(part) => result(Verdict.cycle, cycleReport(graph, subject, part, inside))
-          case None       =>
-            if cyclic.nonEmpty then
-              result(
-                Verdict.missedDeadline,
-                Vector(s"$subject: a cycle no fair action leaves spends any number of steps")
-              )
-            else
-              val steps = longest(region.toVector, parts, inside)
-              if steps >= within then
+      deadlock match
+        case Some(s) =>
+          result(
+            Verdict.deadlock,
+            Vector(s"deadlock: ${graph.path(s).mkString(", ")} ends in ${graph.states(s)}")
+          )
+        case None =>
+          fairCycle match
+            case Some(part) => result(Verdict.cycle, cycleReport(graph, subject, part, inside))
+            case None       =>
+              if cyclic.nonEmpty then
                 result(
                   Verdict.missedDeadline,
-                  Vector(s"$subject: a path of $steps steps reaches no to state")
+                  Vector(s"$subject: a cycle can avoid a to state for any number of steps")
                 )
-              else if !graph.complete then result(Verdict.unknown, Vector.empty)
-              else if region.isEmpty then result(Verdict.verified, Vector.empty, Some(0))
-              else result(Verdict.verified, Vector.empty, Some(steps + 1))
+              else
+                val steps = longest(region.toVector, parts, inside)
+                if steps >= within then
+                  result(
+                    Verdict.missedDeadline,
+                    Vector(s"$subject: a path of $steps steps reaches no to state")
+                  )
+                else if !graph.complete then result(Verdict.unknown, Vector.empty)
+                else if region.isEmpty then result(Verdict.verified, Vector.empty, Some(0))
+                else result(Verdict.verified, Vector.empty, Some(steps + 1))
+    catch
+      case HoleReached(hole) =>
+        val location = evaluating.fold(graph.machine.name)(_.toString)
+        Result(
+          subject,
+          Verdict.unknown,
+          graph.budget,
+          graph.depth,
+          false,
+          Vector(s"unknown: $subject at $location reaches ${holeName(hole)}") ++
+            graph.unknown.map(u => s"unknown: $u")
+        )
 
   // The cycle report: the actions of a cycle through the part's first state, the one that joined
   // the region first, in order, and an admitted action enabled on it and never taken on it (D13),
@@ -641,8 +691,9 @@ private[framework] object NativeCheck:
             "the scenario, or admit fewer actions with only"
         )
       case None =>
+        val enabled = if visited.exists(graph.reachesHole) then "known action" else "action"
         Vector(
-          s"$subject: cycle $cycle: every action enabled on it is taken; admit fewer actions with only"
+          s"$subject: cycle $cycle: every $enabled enabled on it is taken; admit fewer actions with only"
         )
 
   // The strongly connected parts of a graph over `nodes`, by Tarjan's algorithm without recursion.
