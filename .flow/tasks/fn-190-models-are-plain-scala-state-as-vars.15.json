@@ -9,6 +9,6 @@
   "spec": "fn-190-models-are-plain-scala-state-as-vars",
   "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.15.md",
   "status": "todo",
-  "title": "DSL completion: move the native runtime out of framework.dsl into a test-support module",
-  "updated_at": "2026-10-17T19:51:15.166819Z"
+  "title": "DSL completion: native runtime moves to the product checker under fn-196.1",
+  "updated_at": "2026-10-17T23:51:00.519934Z"
 }
