@@ -44,10 +44,26 @@ independent review (same model family) found no material issue. Logs are
 The expanded Bank exhaustive proof remains unclaimed; user Bank and negative-control edits were
 left untouched. The native task remains open for the requirements below.
 
+Native safety claim holes now retain unknown evidence per member instead of escaping. Invariant,
+postcondition and ad-hoc checks distinguish missing evidence from a known failure; `oneOf` can
+still establish a known successful alternative, including after an unknown branch guard. Free and
+pinned searches cannot turn unknown predicates into witnesses. A pinned counterexample survives a
+later hole, while a prior match still requires a complete schedule. Native diagnostics resolve
+declared hole names. An unscoped section abort remains conservative until the whole-member boundary
+is implemented.
+
+Twelve focused hole regressions pass in the final 522-test DSL/realize run. The initial baseline
+reproduced eight failures with one positive control; the branch-guard regression reproduced three
+failures before scoped recovery. All eight selected sample suites pass 42 tests, source lint passes
+29 tests, and scoped formatting passes. Fresh-context same-family read-only review found no material
+in-scope issue. Logs: `.flow/tmp/claim-holes-{red,guard-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
+Progress/monitor predicate-hole handling and the whole-member naked-guard boundary remain open.
+The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
+
 The original native requirements remain open: public legacy vocabulary is still reachable through
 record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
 naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
-Actually evaluated claim holes currently propagate instead of producing an unknown result.
+Progress and monitor predicate holes still need native unknown results.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 

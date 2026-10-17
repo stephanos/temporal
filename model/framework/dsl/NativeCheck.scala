@@ -120,7 +120,8 @@ private[framework] object NativeCheck:
             try effect(source, cls)
             catch
               case HoleReached(hole) =>
-                if noteHoles then unknown += s"${shown(cls)} at $source reaches ${hole.name}": Unit
+                if noteHoles then
+                  unknown += s"${shown(cls)} at $source reaches ${holeName(hole)}": Unit
                 Nil
           results.iterator.map(cls -> _)
 
@@ -176,19 +177,21 @@ private[framework] object NativeCheck:
         subject: String,
         violation: Option[Vector[String]],
         holds: Verdict = Verdict.verified,
-        violated: Verdict = Verdict.refuted
+        violated: Verdict = Verdict.refuted,
+        missing: Seq[String] = Seq.empty
     ): Result =
+      val finished = complete && missing.isEmpty
       violation match
-        case Some(detail) => Result(subject, violated, budget, depth, complete, detail)
+        case Some(detail) => Result(subject, violated, budget, depth, finished, detail ++ missing)
         case None         =>
-          val verdict = if complete then holds else Verdict.unknown
+          val verdict = if finished then holds else Verdict.unknown
           Result(
             subject,
             verdict,
             budget,
             depth,
-            complete,
-            unknown.map(u => s"unknown: $u").toVector
+            finished,
+            unknown.map(u => s"unknown: $u").toVector ++ missing
           )
 
   // The name an action is declared under.
@@ -198,6 +201,9 @@ private[framework] object NativeCheck:
       .orElse(decl.spelling)
       .filter(_.nonEmpty)
       .getOrElse(decl.name)
+
+  def holeName(hole: Hole): String =
+    Option(synchronized(holes.get(hole))).getOrElse(hole.name)
 
   // A class as a report shows it: its action, and its inputs where it has any.
   def shown(cls: Class): String =
@@ -319,11 +325,18 @@ private[framework] object NativeCheck:
       case Some(ref) => claim(graph, subject, ref, finds)
       case None      =>
         var decisive = Option.empty[Edge[S, O, F]]
-        graph.walk(onEdge = e =>
-          val matches = selects(decl.when, e.cls) &&
-            (holds(decl, graph.states(e.source), e.step) == finds)
-          if matches then decisive = Some(e)
-          matches)
+        graph.walk(onEdge =
+          e =>
+            try
+              val matches = selects(decl.when, e.cls) &&
+                (holds(decl, graph.states(e.source), e.step) == finds)
+              if matches then decisive = Some(e)
+              matches
+            catch
+              case HoleReached(hole) =>
+                graph.unknown += s"$subject at ${e.step.state} reaches ${holeName(hole)}": Unit
+                true
+        )
         if finds then
           decisive match
             case Some(e) => found(graph, subject, graph.path(e.source) :+ shown(e.cls))
@@ -355,9 +368,15 @@ private[framework] object NativeCheck:
     val vars = varsOf(graph.machine, s"claim $subject")
     var decisive = Option.empty[Vector[String]]
     def judged(context: NativeClaims.Context, path: => Vector[String]): Boolean =
-      val matches = context.applies(ref.member) && (context.failure(ref.member).isEmpty == finds)
+      val missing = context.missing(ref.member)
+      missing.foreach(hole =>
+        graph.unknown += s"$subject after ${path.mkString(", ")} reaches ${holeName(hole)}": Unit
+      )
+      val matches = context.applies(ref.member) &&
+        (context.failure(ref.member).nonEmpty || missing.isEmpty) &&
+        (context.failure(ref.member).isEmpty == finds)
       if matches then decisive = Some(path)
-      matches
+      matches || missing.nonEmpty
     if ref.section == "invariants" then
       graph.walk(onState =
         i =>
@@ -720,6 +739,7 @@ private[framework] object NativeCheck:
   // object of the feature declares, a channel's delivery and loss under the channel's val.
   private val spelled = java.util.IdentityHashMap[ActionDecl, String]()
   private val channels = java.util.IdentityHashMap[ActionDecl, Channel[?]]()
+  private val holes = java.util.IdentityHashMap[Hole, String]()
   private val claims = java.util.IdentityHashMap[AnyRef, String]()
   private val features = mutable.HashSet.empty[String]
 
@@ -733,7 +753,10 @@ private[framework] object NativeCheck:
         .flatMap(module(_, loader))
         .foreach: o =>
           members(o).foreach:
-            case (member, a: Action[?])  => spell(a.decl, member)
+            case (member, a: Action[?]) => spell(a.decl, member)
+            case (member, hole: Hole)   =>
+              if !holes.containsKey(hole) then
+                val _ = holes.put(hole, member)
             case (member, c: Channel[?]) =>
               spell(c.deliver.decl, s"$member.deliver")
               spell(c.lose.decl, s"$member.lose")
@@ -852,6 +875,7 @@ private[framework] object NativeCheck:
       Evaluated()
     )
     val failures = mutable.HashMap.empty[Int, Vector[String]]
+    val missing = mutable.HashMap.empty[Int, Vector[String]]
     val selected = mutable.HashSet.empty[Int]
     val fired = mutable.HashSet.empty[ActionDecl]
     val referenced = claims.zipWithIndex.flatMap:
@@ -877,19 +901,26 @@ private[framework] object NativeCheck:
         if ref.section == kind && !failures.contains(at)
       do
         val evaluated = NativeClaims.evaluate(vars, cls, stateOf(state), context())
+        val holes = evaluated.missing(ref.member)
+        if holes.nonEmpty then
+          missing.getOrElseUpdate(
+            at,
+            holes.map(hole => s"unknown: ${holeName(hole)} at $state")
+          ): Unit
         if evaluated.applies(ref.member) then
           selected += at: Unit
           if evaluated.failure(ref.member).nonEmpty then
             failures.update(at, Vector(s"counterexample: ${path.mkString(", ")}"))
     graph.walk(
       onState = i =>
-        for (kind, cls, _, vars, outcome) <- sections if kind == "invariants" do
+        for (kind, cls, members, vars, outcome) <- sections if kind == "invariants" do
           outcome.note(
             NativeClaims.evaluate(vars, cls, stateOf(graph.states(i)), NativeClaims.Context()),
             Vector(
               s"counterexample: ${graph.path(i).mkString(", ")}",
               s"in ${graph.states(i)}"
-            )
+            ),
+            members
           )
         noteReferences("invariants", graph.states(i), () => NativeClaims.Context(), graph.path(i))
         finished
@@ -901,12 +932,21 @@ private[framework] object NativeCheck:
           if decl.claim.isEmpty && selects(decl.when, e.cls)
         do
           selected += at: Unit
-          if !failures.contains(at) && !holds(decl, graph.states(e.source), e.step) then
-            failures.update(at, counterexample(graph, e))
-        for (kind, cls, _, vars, outcome) <- sections if kind == "postconditions" do
+          if !failures.contains(at) then
+            try
+              if !holds(decl, graph.states(e.source), e.step) then
+                failures.update(at, counterexample(graph, e))
+            catch
+              case HoleReached(hole) =>
+                missing.getOrElseUpdate(
+                  at,
+                  Vector(s"unknown: ${holeName(hole)} at ${e.step.state}")
+                ): Unit
+        for (kind, cls, members, vars, outcome) <- sections if kind == "postconditions" do
           outcome.note(
             NativeClaims.evaluate(vars, cls, stateOf(e.step.state), stepContext(graph, e)),
-            counterexample(graph, e)
+            counterexample(graph, e),
+            members
           )
         noteReferences(
           "postconditions",
@@ -917,12 +957,23 @@ private[framework] object NativeCheck:
         finished
     )
     val results = claims.zipWithIndex.map:
-      case ((_, member, _), at) => graph.result(subject(member), failures.get(at))
+      case ((_, member, _), at) =>
+        graph.result(
+          subject(member),
+          failures.get(at),
+          missing = missing.getOrElse(at, Vector.empty)
+        )
     val blockResults = sections.flatMap:
       case (_, _, members, _, outcome) =>
         outcome
           .ordered(members)
-          .map(member => graph.result(subject(member), outcome.failures.get(member)))
+          .map(member =>
+            graph.result(
+              subject(member),
+              outcome.failures.get(member),
+              missing = outcome.missing.getOrElse(member, Vector.empty)
+            )
+          )
     val vacuous =
       if !graph.complete then Vector.empty
       else
@@ -944,14 +995,25 @@ private[framework] object NativeCheck:
   // ran in.
   final private class Evaluated:
     val failures = mutable.LinkedHashMap.empty[String, Vector[String]]
+    val missing = mutable.LinkedHashMap.empty[String, Vector[String]]
     val targeted = mutable.LinkedHashMap.empty[String, Any]
     val triggered = mutable.HashSet.empty[String]
     private val order = mutable.LinkedHashSet.empty[String]
 
-    def note(context: NativeClaims.Context, where: => Vector[String]): Unit =
+    def note(
+        context: NativeClaims.Context,
+        where: => Vector[String],
+        members: Vector[String]
+    ): Unit =
       order ++= context.seen
       context.targeted.foreach((member, target) => targeted.getOrElseUpdate(member, target): Unit)
       triggered ++= context.triggered
+      for member <- members if context.missing(member).nonEmpty do
+        missing.getOrElseUpdate(
+          member,
+          context.missing(member).map(hole => s"unknown: ${holeName(hole)}") ++
+            where.map(_.stripPrefix("counterexample: ")).map(s => s"at $s")
+        ): Unit
       for member <- context.seen if !failures.contains(member) do
         context
           .failure(member)
@@ -992,10 +1054,12 @@ private[framework] object NativeCheck:
     val vars = varsOf(graph.machine, s"claim $subject")
     var failure = Option.empty[Vector[String]]
     graph.walk(onState = i =>
-      val failing = NativeClaims
+      val context = NativeClaims
         .evaluate(vars, claim, stateOf(graph.states(i)), NativeClaims.Context())
-        .checks
-        .find(!_.holds)
+      val failing = context.checks.find(!_.holds)
+      context.missing.foreach(hole =>
+        graph.unknown += s"$subject at ${graph.states(i)} reaches ${holeName(hole)}": Unit
+      )
       failure = failing.map(f =>
         Vector(
           s"counterexample: ${graph.path(i).mkString(", ")}",
@@ -1003,7 +1067,7 @@ private[framework] object NativeCheck:
           s"fails at line ${f.line}: ${f.text}"
         )
       )
-      failure.nonEmpty)
+      failure.nonEmpty || context.missing.nonEmpty)
     graph.result(subject, failure)
 
   // The actions a progress claim assumes weakly fair: its own assumptions' and its Machine's.
@@ -1096,20 +1160,25 @@ private[framework] object NativeCheck:
           try effect(before, cls)
           catch
             case HoleReached(hole) =>
-              unknown += s"unknown: ${shown(cls)} at $before reaches ${hole.name}"
+              unknown += s"unknown: ${shown(cls)} at $before reaches ${holeName(hole)}"
               Nil
         steps.flatMap: step =>
-          val holds = judge(q.property, before, cls, step)
-          holds match
-            case Some(false) if failure.isEmpty =>
-              failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
-            case _ => ()
-          val now = matched || holds.contains(true)
-          if i == classes.size - 1 && now then witness = true
-          if admit(step.state) then
-            depth = i + 1
-            Some(step.state -> now)
-          else None
+          try
+            val holds = judge(q.property, before, cls, step)
+            holds match
+              case Some(false) if failure.isEmpty =>
+                failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
+              case _ => ()
+            val now = matched || holds.contains(true)
+            if i == classes.size - 1 && now then witness = true
+            if admit(step.state) then
+              depth = i + 1
+              Some(step.state -> now)
+            else None
+          catch
+            case HoleReached(hole) =>
+              unknown += s"unknown: ${shown(cls)} at ${step.state} reaches ${holeName(hole)}"
+              None
       }.distinct
     val missing = unknown.result()
     val complete = !cut && missing.isEmpty
@@ -1148,6 +1217,8 @@ private[framework] object NativeCheck:
           else
             NativeClaims.Context(Some(stateOf(before)), Some(cls), Some(step.outcome), step.facts)
         val evaluated = NativeClaims.evaluate(vars, section, stateOf(step.state), context)
+        if evaluated.applies(ref.member) && evaluated.failure(ref.member).isEmpty then
+          evaluated.missing(ref.member).headOption.foreach(hole => throw HoleReached(hole))
         if evaluated.applies(ref.member) then Some(evaluated.failure(ref.member).isEmpty) else None
       case None =>
         if selects(decl.when, cls) then Some(holds(decl, before, step)) else None

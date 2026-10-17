@@ -101,8 +101,11 @@ class ClaimShortCircuitSuite extends munit.FunSuite:
       )
     )
 
-  test("an actually evaluated hole is propagated"):
-    assertEquals(intercept[HoleReached](NativeCheck.verifyAll(Missing)).hole, Missing.missing)
+  test("an actually evaluated hole leaves the claim unknown"):
+    val result = NativeCheck.verifyAll(Missing).result("reached")
+    assertEquals(result.verdict, unknown)
+    assert(!result.complete)
+    assert(result.detail.exists(_.contains("missing")))
 
   test("a failed requirement skips the argument of a later fact assertion"):
     assertEquals(NativeCheck.verifyAll(Recorded).verdicts, Map("guarded" -> refuted))

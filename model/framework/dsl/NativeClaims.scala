@@ -25,8 +25,15 @@ private[framework] object NativeClaims:
       val recorded: List[Any] = Nil
   ):
     private val collecting = mutable.Stack(mutable.ArrayBuffer.empty[Checked])
-    private val choosing = mutable.Stack.empty[mutable.ArrayBuffer[Boolean]]
+    private val uncertain = mutable.Stack(mutable.ArrayBuffer.empty[(String, Hole)])
+    private val choosing =
+      mutable.Stack.empty[mutable.ArrayBuffer[(Boolean, Vector[(String, Hole)])]]
+    private val choosingMembers = mutable.Stack.empty[String]
+    private[NativeClaims] var aborted = Option.empty[Hole]
     def checks: Vector[Checked] = collecting.last.toVector
+    def missing(member: String): Vector[Hole] =
+      aborted.toVector ++ uncertain.last.collect { case (`member`, hole) => hole }
+    def missing: Vector[Hole] = aborted.toVector ++ uncertain.last.map(_._2)
     // The members about the steps of one target, with that target, and those this step triggered.
     val targeted: mutable.LinkedHashMap[String, Any] = mutable.LinkedHashMap.empty
     val triggered: mutable.LinkedHashSet[String] = mutable.LinkedHashSet.empty
@@ -37,31 +44,48 @@ private[framework] object NativeClaims:
       collecting.top += checked: Unit
 
     private[NativeClaims] def failed(member: String): Boolean =
-      collecting.top.exists(c => c.member == member && !c.holds)
+      collecting.top.exists(c => c.member == member && !c.holds) ||
+        uncertain.top.exists(_._1 == member)
+
+    private[NativeClaims] def attempt(member: String)(body: => Unit): Unit =
+      try body
+      catch
+        case HoleReached(hole) =>
+          seen += member: Unit
+          uncertain.top += ((member, hole)): Unit
 
     private[NativeClaims] def alternatives(member: String, line: Int)(body: => Unit): Unit =
       if !failed(member) then
         seen += member: Unit
         choosing.push(mutable.ArrayBuffer.empty)
-        val held =
+        choosingMembers.push(member): Unit
+        val alternatives =
           try
             body
-            choosing.top.exists(identity)
+            choosing.top.toVector
           finally
             val _ = choosing.pop()
-        add(Checked(member, line, "oneOf", held))
+            val _ = choosingMembers.pop()
+        if alternatives.exists((held, holes) => held && holes.isEmpty) then
+          add(Checked(member, line, "oneOf", true))
+        else
+          val holes = alternatives.filter(_._1).flatMap(_._2)
+          if holes.nonEmpty then uncertain.top ++= holes: Unit
+          else add(Checked(member, line, "oneOf", false))
 
     private[NativeClaims] def alternative(body: => Unit): Unit =
       require(choosing.nonEmpty, "a branch is an alternative of a oneOf, written inside it")
-      if !choosing.top.exists(identity) then
+      if !choosing.top.exists((held, holes) => held && holes.isEmpty) then
         collecting.push(mutable.ArrayBuffer.empty)
-        val held =
+        uncertain.push(mutable.ArrayBuffer.empty)
+        val result =
           try
-            body
-            collecting.top.forall(_.holds)
+            attempt(choosingMembers.top)(body)
+            (collecting.top.forall(_.holds), uncertain.top.toVector)
           finally
             val _ = collecting.pop()
-        choosing.top += held: Unit
+            val _ = uncertain.pop()
+        choosing.top += result: Unit
 
     // The first assertion of `member` that failed.
     def failure(member: String): Option[Checked] =
@@ -84,7 +108,8 @@ private[framework] object NativeClaims:
   // An assertion of a claim: recorded under the evaluation under way, nothing outside one.
   def assertion(condition: => Boolean, member: String, line: Int, text: String): Unit =
     current.foreach: c =>
-      if !c.failed(member) then c.add(Checked(member, line, text, condition))
+      c.attempt(member):
+        if !c.failed(member) then c.add(Checked(member, line, text, condition))
 
   // A fact: in a claim, an assertion that the step under evaluation recorded it; in an effect, a
   // fact the step records. Outside both, a claim's assertion records nothing, and an effect's fact
@@ -92,9 +117,10 @@ private[framework] object NativeClaims:
   def recordFact(value: => Any, member: String, line: Int, claim: Boolean): Unit =
     current match
       case Some(c) =>
-        if !c.failed(member) then
-          val fact = value
-          c.add(Checked(member, line, s"records($fact)", c.recorded.contains(fact)))
+        c.attempt(member):
+          if !c.failed(member) then
+            val fact = value
+            c.add(Checked(member, line, s"records($fact)", c.recorded.contains(fact)))
       case None =>
         Vars.current match
           case Some(frame) => frame.facts = frame.facts :+ value
@@ -118,7 +144,7 @@ private[framework] object NativeClaims:
       c.targeted.getOrElseUpdate(member, target): Unit
       if c.taken.exists(selects(target, _)) then
         c.triggered += member: Unit
-        block
+        c.attempt(member)(block)
 
   // Whether a step of `cls` is a step of `target`: the class itself, or any class of an action.
   def selects(target: Any, cls: Class): Boolean = target match
@@ -192,12 +218,14 @@ private[framework] object NativeClaims:
 
   // Evaluates a section of `owner` on the vars of `vars` holding `now`, under `context`.
   def evaluate(vars: Vars, section: java.lang.Class[?], now: State, context: Context): Context =
-    vars.at(now)(within(context)(Reload.initialise(section)))
+    try vars.at(now)(within(context)(Reload.initialise(section)))
+    catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
   // Evaluates an ad-hoc claim on the vars of `vars` holding `now`, under `context`.
   def evaluate(vars: Vars, claim: Adhoc, now: State, context: Context): Context =
-    vars.at(now)(within(context)(claim.body()))
+    try vars.at(now)(within(context)(claim.body()))
+    catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
   // Reruns a static object's initialiser: defines the class afresh in a child loader that sees every

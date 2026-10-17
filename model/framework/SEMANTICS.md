@@ -734,6 +734,11 @@ fails there, and the search does not continue through it. A hole reached outside
 an `end`, a refinement map) leaves that machine without a table, and everything that depends on it
 is incomplete; every other machine is checked as if the hole were not there.
 
+Native invariant, postcondition and ad-hoc checks retain missing evidence per claim member.
+An unknown `oneOf` branch does not count as false, and a known successful alternative establishes
+the claim. A pinned check stops that path at a predicate hole and preserves any counterexample
+already established. Native progress and monitor predicate-hole handling remains pending in phase 1.
+
 **Writing it.**
 
 Source: [temporal/features/activity_mini/protocol/AnswerDispatch.scala:23](../temporal/features/activity_mini/protocol/AnswerDispatch.scala#L23).
