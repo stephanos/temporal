@@ -143,7 +143,7 @@ def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context
 // What `after` is in a postcondition of a Machine (ClaimWords): the block about the steps of
 // `target`, `after(heater.failover): check(beeping)`, which must hold an assertion. Core form:
 // `!(a.action == target) || requirements`.
-final class StepTarget @scala.annotation.publicInBinary private[framework] ():
+final class StepTarget:
   inline def apply(target: Action[?] | Class | Composed)(inline block: Unit): Unit =
     ${ ClaimMacros.targeted('target, 'block) }
 
@@ -167,7 +167,7 @@ def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O
 // What `records` is in a claim or an effect of a Machine whose facts are `F` (ClaimWords): in a
 // claim the assertion that the step recorded the fact, in an effect a fact the step records.
 // Core form: `a.facts.contains(fact)`, or the facts of `Step(outcome, state, facts)`.
-final class StepRecords[F] @scala.annotation.publicInBinary private[framework] ():
+final class StepRecords[F]:
   inline def apply(fact: F): Unit = ${ ClaimMacros.fact('fact) }
 
 // The outcome the step answered, in a postcondition or a monitor, `if outcome != Outcome.accepted then
@@ -216,12 +216,12 @@ final class ExpectedAlternatives[S, O, F] @scala.annotation.publicInBinary priva
 
 // What `oneOf` is in a claim: its branches, of which there are at least two. Core form:
 // `firstBranch || secondBranch || rest`.
-final class ClaimAlternatives @scala.annotation.publicInBinary private[framework] ():
+final class ClaimAlternatives:
   inline def apply(inline body: Branching ?=> Unit): Unit = ${ ClaimMacros.alternatives('body) }
 
 // The evidence a `branch` of a claim's `oneOf` reads, that it is written inside one. Core form: none
 // of its own; it is the `||` between the branches.
-final class Branching @scala.annotation.publicInBinary private[framework] ()
+final class Branching
 
 // Explicit finite input catalogs. Core form: `Finite.of(values*)` with checked membership.
 object domains:
@@ -247,7 +247,7 @@ final class ExpectedBranch[S, O, F] @scala.annotation.publicInBinary private[fra
   def apply(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
 
 // What `branch` is in a claim's `oneOf`. Core form: `(first && second)`.
-final class ClaimBranch @scala.annotation.publicInBinary private[framework] ():
+final class ClaimBranch:
   inline def apply(inline body: Unit): Unit = ${ ClaimMacros.branchBlock('body) }
 
 @scala.annotation.publicInBinary
@@ -2092,7 +2092,7 @@ private[framework] object QueryMacros:
         .fold("")(_.name)
     )
     '{
-      LeadsTo(
+      LeadsTo.declared(
         $named,
         $enclosingImpl,
         () => $from,

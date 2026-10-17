@@ -48,7 +48,10 @@ object NativeControls:
   // An invariant written in a test, its block of assertions evaluated in every reached state of the
   // Machine it is checked on: `invariant(check(!beeping))`.
   inline def invariant(inline body: Unit): NativeClaims.Adhoc =
-    NativeClaims.Adhoc(NativeLocation.declaredName.getOrElse("invariant"), () => body)
+    NativeClaims.Adhoc(
+      NativeLocation.declaredName.filterNot(_.startsWith("<")).getOrElse("invariant"),
+      () => body
+    )
 
   private def refuted(result: NativeCheck.Result)(using munit.Location): NativeCheck.Result =
     munit.Assertions.assertEquals(result.verdict, NativeCheck.Verdict.refuted, result.toString)

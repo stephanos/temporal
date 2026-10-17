@@ -153,6 +153,31 @@ class QueriesSuite extends munit.FunSuite:
       .recordsWhen(Shop.opened, Note.opened)
     assertEquals(NativeCheck.query(opening, "shop.opening").verdict, found)
 
+  test("a Machine outside the framework's packages is written in every word of the plain form"):
+    import outside.Lamp.*
+    val report = NativeCheck.verifyAll(Model)
+    assertEquals(
+      report.verdicts,
+      Map(
+        "bounded" -> verified,
+        "counts" -> verified,
+        "lights" -> verified,
+        "litCount" -> verified,
+        "quiet" -> verified,
+        "wearsOut" -> verified
+      )
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector("model.lighting" -> found, "model.bounding" -> verified)
+    )
+    assertEquals(Model.refinement.image(Model.init.copy(lit = true)), Dark.init.copy(dark = false))
+    val stuck = NativeCheck.verifyAll(Stuck, sections = Some(Model))
+    assertEquals(stuck.verdicts("bounded"), verified)
+    // a lamp that stops after one press never wears out: only presses are admitted, and it stops
+    assertEquals(stuck.verdicts("wearsOut"), deadlock)
+
   test("a scenario is named after its val and composes by chaining"):
     import Shop.*
     assertEquals(paying.name, "paying")
@@ -168,6 +193,9 @@ class QueriesSuite extends munit.FunSuite:
     assertEquals(queries.overdrawn.scenario.machine, Shop)
     assertEquals(queries.emptying.scenario.start, None)
     assert(queries.emptying.scenario.free)
+    val unchanged = verify(invariants.neverOverdrawn) in starts()
+    assertEquals(unchanged.scenario.start, None)
+    assert(!unchanged.scenario.modelOnly)
 
   test("a scenario's start names vars of the Machine, checked when it is bound"):
     val unknown = intercept[IllegalArgumentException](

@@ -123,7 +123,7 @@ extension [S <: Product](c: Composition[S])
 // within `within` steps. Its environment is a Scenario, every path from the Machine's starts unless
 // it says one, `in only(heater.heat, heater.failover)`: nothing is fair unless the scenario says so.
 // `from` and `to` read the vars, with the state they are asked of restored into them.
-final class LeadsTo @scala.annotation.publicInBinary private[framework] (
+final class LeadsTo private[framework] (
     val name: String,
     val machine: Option[Model],
     val from: () => Boolean,
@@ -140,6 +140,17 @@ final class LeadsTo @scala.annotation.publicInBinary private[framework] (
     scala.compiletime.error("in takes a scenario: only(...), fair(...), starts(...) or a named one")
 
   override def toString: String = s"progress $name"
+
+object LeadsTo:
+  @scala.annotation.publicInBinary
+  private[framework] def declared(
+      name: String,
+      machine: Option[Model],
+      from: () => Boolean,
+      to: () => Boolean,
+      within: Int,
+      scenario: Scenario
+  ): LeadsTo = LeadsTo(name, machine, from, to, within, scenario)
 
 // `leadsTo(from = heatingOn, to = beeping, within = 81)`, in `progress`: from every state its
 // environment reaches where `from` holds, every admitted path reaches one where `to` holds within

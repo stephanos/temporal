@@ -194,6 +194,12 @@ object Scenario:
       require(method == "apply", s"starts.$method is not a start")
       Scenario(scenario.decl.copy(updates = scenario.decl.updates ++ updates))
 
+    // `starts()`: the Machine's own starts, unchanged, as the scenario of a check that names
+    // nothing else, such as a refined Machine's claim checked on the Machine that refines it.
+    def applyDynamic(method: String)(): Scenario =
+      require(method == "apply", s"starts.$method is not a start")
+      scenario
+
   // A scenario that says nothing yet, of the machine it was built in, if any.
   @scala.annotation.publicInBinary
   private[framework] def of(machine: Option[Model], name: Option[String]): Scenario =
