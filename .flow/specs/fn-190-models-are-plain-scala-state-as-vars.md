@@ -456,6 +456,10 @@ Compiler refusals, exact texts:
   parameters alone do not satisfy the rule. Existing multiline bodies, local declarations and
   declarations outside Models receive no finding.
 
+- **R20:** Native on-demand exploration (owner, 2026-10-17).
+
+  Remove the separate full-reachability-table execution path entirely. Native safety, witness/refutation, monitor and progress/fairness checks share on-demand successor generation and retain only visited-state, predecessor and cycle bookkeeping as needed. Safety checks, witness/refutation searches and monitors stop generating successors when their answer is conclusive. Progress may exhaust reachable states to retain its cycle/fairness and diagnostic ordering, regenerating successors without storing adjacency. A successful finite verification may exhaust reachable states; a cut remains unknown unless a witness or counterexample already establishes an answer. No optional full-graph fallback remains. This follow-up stays within the native framework and does not release the held IR/schema/Go/Temporal work.
+
 ## Boundaries
 
 - No change to the IR schema beyond type naming; `field` and `copy` are the carriers.
@@ -615,7 +619,3 @@ The prototype (model/design/plain-scala-models-prototype.md, probe in model/desi
 - `scenario` stays a member or val, never a top-level object beside `Scenario` (case-insensitive file systems).
 - Phase-1 native runtime as the prototype recommends: a macro-derived var schema, immutable snapshot records restored before each step or claim and reset to init after, a step context for `before`, `choose` replayed per alternative, and claim sections re-evaluated through a child class loader as a test-only stopgap removed by fn-190.5. One live state per Machine, so evaluations of one Machine are not parallel.
 - Refusing a var read outside a lifted scope needs the plugin: fn-190.9.
-
-## R20 — Native on-demand exploration (owner, 2026-10-17)
-
-Remove the separate full-reachability-table execution path entirely. Native safety, witness/refutation, monitor and progress/fairness checks share on-demand successor generation and retain only visited-state, predecessor and cycle bookkeeping as needed. Safety checks, witness/refutation searches and monitors stop generating successors when their answer is conclusive. Progress may exhaust reachable states to retain its cycle/fairness and diagnostic ordering, regenerating successors without storing adjacency. A successful finite verification may exhaust reachable states; a cut remains unknown unless a witness or counterexample already establishes an answer. No optional full-graph fallback remains. This follow-up stays within the native framework and does not release the held IR/schema/Go/Temporal work.
