@@ -30,7 +30,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
-      val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(entries*) {}
+      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(entries*) {}
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
 
@@ -121,7 +121,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     object Source extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
-      object rules extends Bindings(binding)
+      object transitions extends Bindings(binding)
     val selected = Vector(Source, Source.restrict(action), Source.unmonitored)
     selected.foreach { machine =>
       val kept = machine.bindings.head
@@ -237,7 +237,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = false
         def end(s: Boolean): Boolean = s
-        val rules: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
+        val transitions: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
           def table = Vector(decl -> Bound.Function(callable, source.captured))
     intercept[IllegalArgumentException](CoreBindings.collect(bound(run.decl, new Object()))): Unit
     intercept[IllegalArgumentException](
@@ -438,7 +438,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
         refinements += 1
         None
-      val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
+      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
     val replacement: Owner[Boolean, Boolean, Nothing] ?=> Rebinding[Boolean, Boolean, Nothing] =
       operands += 1
       linked
@@ -483,7 +483,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = false
         def end(s: Boolean): Boolean = s
-        val rules: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
+        val transitions: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
           def table = Vector(run.decl -> bound)
     val ruled = source(Bound.Ruled(Vector(rule)))
     val captured = binding(run, ir.Model(functions = Vector(function("effect"))), "effect")
@@ -546,11 +546,11 @@ class CoreBindingsSuite extends munit.FunSuite:
     val source = new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
-      val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
+      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
       override private[framework] def table
           : Vector[(ActionDecl, Bound[Boolean, Boolean, Nothing])] =
         tableReads += 1
-        rules.table
+        transitions.table
     val added = source.extend(
       binding(action("extra"), ir.Model(functions = Vector(function("extra"))), "extra")
     )

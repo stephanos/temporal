@@ -28,7 +28,7 @@ object PhasedFixture:
         Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
 
-    object rules extends Rules
+    object transitions extends Rules
 
   object OverrideEnd
       extends RecordMachine[Snapshot, Answer, Nothing],
@@ -36,7 +36,7 @@ object PhasedFixture:
     val init = Snapshot(Phase.absent)
     override def end(s: State) = s.phase == Phase.paused
 
-    object rules extends Rules
+    object transitions extends Rules
 
   object DefaultPair
       extends Composition[Pair](_.left -> DefaultEnd, _.right -> DefaultEnd),
@@ -74,7 +74,7 @@ object PhasedFixture:
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
 
-    object rules extends Rules
+    object transitions extends Rules
 
   object OpenOverride
       extends RecordMachine[OpenPhase, Answer, Nothing],
@@ -82,7 +82,7 @@ object PhasedFixture:
     val init = OpenPhase.waiting
     override def end(s: State) = s == OpenPhase.waiting
 
-    object rules extends Rules
+    object transitions extends Rules
 
 class PhasedSuite extends munit.FunSuite:
   import PhasedFixture.*

@@ -9,7 +9,7 @@ class NativeBudgetSuite extends munit.FunSuite:
       var calls = 0
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
-      object rules
+      object transitions
           extends Bindings(
             (if selectRemaining then loss.budgetedBy(_.remaining)
              else loss.budgetedBy(_.available)) ~>
@@ -35,17 +35,18 @@ class NativeBudgetSuite extends munit.FunSuite:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
       val target = loss.budgetedBy(_.available)
-      object rules extends Bindings(target ~> ((s: BudgetState) => List(Step(true, s))))
+      object transitions extends Bindings(target ~> ((s: BudgetState) => List(Step(true, s))))
     val source = new Source
     object Foreign extends RecordMachine[BudgetState, Boolean, Nothing]:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings(source.target ~> ((s: BudgetState) => List(Step(true, s))))
+      object transitions
+          extends Bindings(source.target ~> ((s: BudgetState) => List(Step(true, s))))
     intercept[IllegalArgumentException](Foreign.bindings): Unit
     object Duplicate extends RecordMachine[BudgetState, Boolean, Nothing]:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
-      object rules
+      object transitions
           extends Bindings(
             loss.budgetedBy(_.available).budgetedBy(_.other) ~> ((s: BudgetState) =>
               List(Step(true, s))
@@ -66,7 +67,7 @@ class NativeBudgetSuite extends munit.FunSuite:
     object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
       val init = BudgetState(true, 2, UpTo(2), false)
       def end(s: BudgetState): Boolean = false
-      object rules extends Rules:
+      object transitions extends Rules:
         on(targets.loss.budgetedBy(_.bounded)):
           always ~> program
     assertEquals(Subject.nativeBudgets.head.field.path, List("bounded"))

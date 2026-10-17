@@ -52,8 +52,8 @@ object RulesFixture:
         )
       def wear(s: Lamp) = enter[Lamp, Said, Nothing](s.copy(light = Lit.broken))
 
-    object rules extends Rules:
-      Trace.initialized += "Switch.rules"
+    object transitions extends Rules:
+      Trace.initialized += "Switch.transitions"
       on(hand.press):
         when(Lit.off) ~> effects.light
         when(Lit.on) ~> effects.dark
@@ -83,7 +83,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.turn(Knob.up)):
         when(Lit.off, Lit.on) ~> Switch.effects.light
       on(hand.turn):
@@ -93,7 +93,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         always ~> Switch.effects.light
       disabled(clock.tick)
@@ -107,7 +107,7 @@ object RulesFixture:
     object states:
       def dark(l: Lit) = l != Lit.on
 
-    object rules
+    object transitions
         extends Bindings(
           hand.press ~> ((s: Lamp) =>
             if s.light == Lit.on then Switch.effects.dark(s)
@@ -127,7 +127,7 @@ object RulesFixture:
     object states:
       def dark(l: Lit) = l != Lit.on
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Lit.on) ~> Switch.effects.dark
         when(states.dark) ~> Switch.effects.light
@@ -138,7 +138,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.turn(Knob.up)):
         when(Lit.off, Lit.on) ~> Switch.effects.light
       on(hand.turn):
@@ -162,7 +162,7 @@ object RulesFixture:
     object effects:
       def light(s: Lamp) = enter[Lamp, Outcome, Nothing](s.copy(light = Lit.on))
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Lit.off) ~> effects.light
         when(Lit.on) ~> rejects(Rejection.failedPrecondition).because(
@@ -180,7 +180,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
 
-    object rules extends Rules:
+    object transitions extends Rules:
       from(hand):
         on(hand.press):
           when(Lit.off) ~> Switch.effects.light
@@ -195,7 +195,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = s.light == Lit.broken
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Lit.off) ~> Switch.effects.light
         when(Lit.on).where(_.presses == 1) ~> Switch.effects.dark
@@ -211,7 +211,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Lit.off) ~> Switch.effects.light
       on(hand.press, clock.tick):
@@ -224,7 +224,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         on(clock.tick):
           always ~> Switch.effects.wear
@@ -233,7 +233,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       from(hand):
         from(clock):
           on(clock.tick):
@@ -243,7 +243,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       from(hand):
         on(clock.tick):
           always ~> Switch.effects.wear
@@ -252,7 +252,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press, clock.tick, hand.press):
         always ~> Switch.effects.wear
 
@@ -260,7 +260,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       disabled(clock.tick)
       on(hand.press, clock.tick):
         always ~> Switch.effects.wear
@@ -269,7 +269,7 @@ object RulesFixture:
     val init = Lamp(Lit.off, UpTo(0))
     override def end(s: Lamp) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.turn):
         when(Lit.off) ~> Switch.effects.turned
       on(hand.turn(Knob.down)):
@@ -330,7 +330,7 @@ class RulesTest extends munit.FunSuite:
           monitor[Lamp, Said, Nothing, Boolean]("unchanged", false)((_, before, after) =>
             before.light == after.state.light
           )(identity)
-      object rules
+      object transitions
           extends Bindings(
             hand.press ~> ((s: Lamp) => List(Step(Said.refused, s)))
           )
@@ -362,13 +362,13 @@ class RulesTest extends munit.FunSuite:
     assertEquals(Switch.init, off)
     assert(Trace.initialized.contains("Switch"))
     assert(
-      !Trace.initialized.contains("Switch.rules"),
+      !Trace.initialized.contains("Switch.transitions"),
       Trace.initialized.toString
     )
     Switch.bindings: Unit
     assertEquals(
       Trace.initialized.toList.filter(_.startsWith("Switch")).take(2),
-      List("Switch", "Switch.rules")
+      List("Switch", "Switch.transitions")
     )
   }
 
@@ -491,7 +491,7 @@ class RulesTest extends munit.FunSuite:
       "object Old extends RecordMachine[Lamp, Said, Nothing]:\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  def end(s: Lamp) = true\n" +
-        "  object rules extends " + "Rules(_.light):\n" +
+        "  object transitions extends " + "Rules(_.light):\n" +
         "    on(hand.press)(when(Lit.on) ~> Switch.effects.dark)"
     )
     assert(refused.nonEmpty, "Rules still accepts a projection argument")
@@ -502,7 +502,7 @@ class RulesTest extends munit.FunSuite:
       "object RetiredIn extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  override def end(s: Lamp) = true\n" +
-        "  object rules extends Rules:\n" +
+        "  object transitions extends Rules:\n" +
         "    on(hand.press) { in(Lit.on) ~> Switch.effects.dark }"
     )
     assert(listed.contains("when(...)"), listed)
@@ -510,7 +510,7 @@ class RulesTest extends munit.FunSuite:
       "object RetiredRole extends RecordMachine[Lamp, Said, Nothing], Phased[Lamp, Lit](_.light):\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  override def end(s: Lamp) = true\n" +
-        "  object rules extends Rules:\n" +
+        "  object transitions extends Rules:\n" +
         "    on(hand.press) { in[Closed] ~> Switch.effects.dark }"
     )
     assert(role.contains("when[R]"), role)
@@ -523,7 +523,7 @@ class RulesTest extends munit.FunSuite:
       "object Plain extends RecordMachine[Lamp, Said, Nothing]:\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  def end(s: Lamp) = true\n" +
-        "  object rules extends Rules:\n" +
+        "  object transitions extends Rules:\n" +
         "    on(hand.press)(when(Lit.on) ~> Switch.effects.dark)"
     )
     assert(listed.contains(fix), listed)
@@ -532,7 +532,7 @@ class RulesTest extends munit.FunSuite:
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  def end(s: Lamp) = true\n" +
         "  def dark(l: Lit) = l != Lit.on\n" +
-        "  object rules extends Rules:\n" +
+        "  object transitions extends Rules:\n" +
         "    on(hand.press)(when(dark) ~> Switch.effects.light)"
     )
     assert(named.contains(fix), named)
@@ -699,7 +699,7 @@ class RulesTest extends munit.FunSuite:
       val init = Lamp(Lit.off, UpTo(0))
       override def end(s: Lamp) = true
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(tap):
           always ~> Switch.effects.wear
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
@@ -815,7 +815,7 @@ class RulesTest extends munit.FunSuite:
     val refused = compileErrors(
       "object NoProjection extends RecordMachine[Door, Said, Nothing] {\n" +
         "  val init = Door(Stage.unstarted)\n  def end(s: Door) = true\n" +
-        "  object rules extends Rules { on(hand.press)(when[Closed] ~> Gate.effects.open) }\n}"
+        "  object transitions extends Rules { on(hand.press)(when[Closed] ~> Gate.effects.open) }\n}"
     )
     assert(
       refused.contains(
@@ -846,7 +846,7 @@ object RoleRulesFixture:
     object effects:
       def open(s: Door) = stay[Door, Said, Nothing](s)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when[Waiting] ~> effects.open
         when[Closed] ~> effects.open

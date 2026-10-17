@@ -38,5 +38,7 @@ object FacetSource:
       )
       .map(_.name.stripSuffix("$"))
     val named =
-      section.fold("<rules>")(s => s.owner.name.stripSuffix("$") + "." + s.name.stripSuffix("$"))
+      section.fold("<transitions>")(s =>
+        s.owner.name.stripSuffix("$") + "." + s.name.stripSuffix("$")
+      )
     '{ make(${ Expr(facet) }, ${ Expr(named) }) }

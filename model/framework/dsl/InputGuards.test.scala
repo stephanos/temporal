@@ -27,7 +27,7 @@ object InputGuardsFixture:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(caller.start(first)):
         where { s =>
           order += "class"
@@ -59,7 +59,7 @@ object InputGuardsFixture:
 
     object applying:
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.start):
           where((s, in) => enabled(s, in)) ~> effect
 
@@ -67,7 +67,7 @@ object InputGuardsFixture:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends Facets(applying.rules)
+    object transitions extends Facets(applying.transitions)
 
   object Extended
       extends Derived(
@@ -93,7 +93,7 @@ object InputGuardsFixture:
     val init = false
     override def end(s: Boolean): Boolean = s
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(caller.start):
         when(false).where { (s, in) =>
           seen += in
@@ -128,7 +128,7 @@ class InputGuards extends munit.FunSuite:
     class Source extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(s: Boolean): Boolean = s
-      object rules extends Rules
+      object transitions extends Rules
       var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Boolean])]
       override private[framework] def table = rows
       retainHeaderIdentity("guardFixture", "source")
@@ -247,7 +247,7 @@ class InputGuards extends munit.FunSuite:
       object Native extends RecordMachine[Boolean, Boolean, Nothing]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start):
             where((s, in) => in.flag && !s).where((s, in) => in.flag != s) ~>
               ((s: Boolean, in: Request) => List(Step(in.flag, s)))
@@ -264,7 +264,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start, caller.empty):
             where((s: Boolean, in: Request) => in.flag && s) ~> effect
     """).nonEmpty
@@ -277,7 +277,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.empty):
             where((s: Boolean, in: EmptyTuple) => s && in == EmptyTuple) ~>
               ((s: Boolean) => List(Step(true, s)))
@@ -292,7 +292,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(widened):
             where((s: Boolean, in: EmptyTuple) => s && in == EmptyTuple) ~>
               ((s: Boolean) => List(Step(true, s)))
@@ -306,7 +306,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start):
             where((s: Boolean, in: String) => in.nonEmpty && s) ~> effect
     """).nonEmpty
@@ -319,7 +319,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start):
             where((s: Boolean, in: Request, other: Boolean) => in.flag && s && other) ~> effect
     """).nonEmpty
@@ -332,7 +332,7 @@ class InputGuards extends munit.FunSuite:
       object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start(first)):
             where((s: Boolean, in: Request) => in.flag && s) ~> effect
     """).nonEmpty

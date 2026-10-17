@@ -10,7 +10,7 @@ object BoundedIntegersFixture:
     val init = UpTo[2](0)
     def end(s: UpTo[2]): Boolean = s == UpTo[2](2)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(counter.tick):
         where(s => s < 2) ~> ((s: UpTo[2]) => List(Step(false, UpTo[2](s + 1))))
 

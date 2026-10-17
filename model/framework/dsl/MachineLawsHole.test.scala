@@ -23,7 +23,7 @@ object NativeHoleCallbackFixture:
     val subject = new RecordMachine[State, Answer, String]:
       val init = NativeHoleCallbackFixture.State.beforeHole
       def end(s: NativeHoleCallbackFixture.State) = s == NativeHoleCallbackFixture.State.known
-      object rules extends Bindings(caller.interrupt ~> run)
+      object transitions extends Bindings(caller.interrupt ~> run)
     effectOf[State, Answer, String](caller.interrupt.decl, subject.bindings.head.function)
 
 class NativeHoleCallbackTest extends munit.FunSuite:

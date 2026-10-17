@@ -225,10 +225,10 @@ object StepBinding:
     val linked = Reify.captured(f, root, chunks)
     StepBinding[S, O, F](decl, f).attach(linked)
 
-// One rule of a machine's `rules` (model/framework/dsl/Syntax.scala): the action, or one class of it, it
-// fires, the condition under which it fires, and its effect, over the state and the class's inputs
-// in declaration order. `index` is its place among its machine's rules, from 1, and `heading` and
-// `action` are how a refusal names it and its action.
+// One rule of a machine's `transitions` (model/framework/dsl/Syntax.scala): the action, or one
+// class of it, it fires, the condition under which it fires, and its effect, over the state and the
+// class's inputs in declaration order. `index` is its place among its machine's rules, from 1, and
+// `heading` and `action` are how a refusal names it and its action.
 final case class Rule[S, O, F] private[framework] (
     index: Int,
     heading: String,
@@ -334,15 +334,15 @@ extension [I](a: Action[I])
       (s: State, value: I) => vars.step[O, F](s, accepted.outcome)(effect(value))
     )
 
-// The owner of a machine's sections, which its `rules` read the machine's types from:
-// `object rules extends Rules:` in `object OrderProduct extends RecordMachine[...], Phased[...](_.phase)`,
-// whose rules read the phase projection from the machine's `Phasing`.
+// The owner of a machine's sections, which its `transitions` read the machine's types from:
+// `object transitions extends Rules:` in `object OrderProduct extends RecordMachine[...],
+// Phased[...](_.phase)`, whose rules read the phase projection from the machine's `Phasing`.
 final class Owner[S, O, F] private[framework] (val machine: RecordMachine[S, O, F])
 
 // The projection of a machine's or composition's state onto its phase, which its sections read as a
-// given: `when(Phase.placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
-// (model/framework/dsl/Syntax.scala) gives it, and a derived machine gives its source's, with the source's
-// phase type.
+// given: `when(Phase.placed)` in its `transitions` tests it. The object's
+// `Phased[State, Phase](_.phase)` (model/framework/dsl/Syntax.scala) gives it, and a derived machine
+// gives its source's, with the source's phase type.
 final class Phasing[S, P] private[framework] (
     private[framework] val projection: S => P,
     private[framework] val writer: (S, P) => S = Phasing.Unwritten
@@ -435,20 +435,21 @@ object Inherited extends Inherited.Unphased:
 final class Declaring[S, O, F] private[framework] (val model: Declares[S])
 
 // What a machine binds each action to, in the order the first binding of each names it: a step
-// function, rules, or nothing. A machine's `rules` (model/framework/dsl/Syntax.scala) is the one a Model
-// writes; a derivation keeps what it makes as built, and the core `Bindings` binds step functions.
+// function, rules, or nothing. A machine's `transitions` (model/framework/dsl/Syntax.scala) is the
+// one a Model writes; a derivation keeps what it makes as built, and the core `Bindings` binds step
+// functions.
 abstract class RuleBook[S, O, F]:
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])]
   private[framework] def facetSource: Option[String] = None
-  private[framework] def sectionName: String = "<rules>"
+  private[framework] def sectionName: String = "<transitions>"
   private[framework] def actionName(decl: ActionDecl): String = decl.toString
   private[framework] def facetOrigin: Option[FacetBindings.Origin] = None
 
 // A machine's rules in the core: one step function per action, bound by hand,
-// `object rules extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`, which is
-// what `Rules` lower to. It is the spelling of the IR generator's core fixtures, whose step
-// functions are written out; a Model says when each action fires in `Rules`, and the IR generator
-// refuses a hand-bound step function in a Model (fn-126 R17).
+// `object transitions extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`,
+// which is what `Rules` lower to. It is the spelling of the IR generator's core fixtures, whose
+// step functions are written out; a Model says when each action fires in `Rules`, and the IR
+// generator refuses a hand-bound step function in a Model (fn-126 R17).
 abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
     bindings: StepBinding[S, O, F]*
 ) extends RuleBook[S, O, F]:
@@ -580,7 +581,7 @@ private[framework] def writtenPath(code: String): String =
 //   def end(s: OrderState) = states.terminal(s.phase)
 //   object states: ...
 //   object effects: ...
-//   object rules extends Rules: ...
+//   object transitions extends Rules: ...
 // }}}
 //
 // A machine whose rules name phases mixes in its phase projection, `extends RecordMachine[OrderState,
@@ -591,14 +592,14 @@ private[framework] def writtenPath(code: String): String =
 // where it declares them, `entity` and `evidence`; then its sections, objects named after what they
 // hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
 // `refinement`, where it refines another machine (framework.dsl.Refinement); `effects`; `monitors`;
-// `rules`, which it must declare; `properties`; `capabilities`, its capabilities
+// `transitions`, which it must declare; `properties`; `capabilities`, its capabilities
 // `framework.dsl.Capabilities`; and `queries`. Its `entity` is the one entity its
 // actions are `on`, or create, unless it names another. The IR generator (model/framework/export) reads them
 // from the source, and names each of its declarations after where it is declared: its package and
 // the objects it sits in. At run time a machine is its init, its end and the step function each
-// action's rules lower to: `rules` is the one section the machine itself reads, through the member
-// it mixes in, so no section is found by reflection, and a section object, which initializes on
-// its first use, is never read while the machine initializes.
+// action's rules lower to: `transitions` is the one section the machine itself reads, through the
+// member it mixes in, so no section is found by reflection, and a section object, which initializes
+// on its first use, is never read while the machine initializes.
 //
 // A member of `states` or `effects` is a def of the state, `def held(s: OrderState) =
 // s.phase.in(…)`, `def ship(s: OrderState) = enter(s.copy(phase = shipped), Fact.statusShipped)`,
@@ -724,13 +725,13 @@ abstract class RecordMachine[S, O, F](using
   // Whether the machine may end in `s`.
   def end(s: S): Boolean
 
-  // When each action fires, and what it does then: `object rules extends Rules`.
-  def rules: RuleBook[S, O, F]
+  // When each action fires, and what it does then: `object transitions extends Rules`.
+  def transitions: RuleBook[S, O, F]
 
   // The object's name with its first letter lowered.
   def name: String = objectName(this)
 
-  // The owner its `rules` and other sections read its types from.
+  // The owner its `transitions` and other sections read its types from.
   protected given machineOwner: Owner[S, O, F] = Owner(this)
 
   // What its `capabilities` section declares the capabilities of: this machine.
@@ -803,7 +804,7 @@ abstract class RecordMachine[S, O, F](using
   private[framework] def acquiredRuleBook: Option[RuleBook[?, ?, ?]] = acquiredBook
   final private[framework] def acquireRuleBook(): RuleBook[S, O, F] =
     acquiredBook.getOrElse {
-      val book = rules
+      val book = transitions
       acquiredBook = Some(book)
       book
     }
@@ -818,7 +819,7 @@ abstract class RecordMachine[S, O, F](using
   private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = None
   private[framework] def derivationEvent: Option[DerivationBindings.Event] = None
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
-    val book = rules
+    val book = transitions
     acquiredBook = Some(book)
     acquireRuleTable(book.table)
 
@@ -1152,7 +1153,7 @@ abstract class RecordMachine[S, O, F](using
 // object Kettle extends Machine[Outcome, Nothing]:
 //   var temperature = 20
 //   var heatingOn = false
-//   object rules extends Rules: ...
+//   object transitions extends Rules: ...
 //   object effects: ...
 // }}}
 //
@@ -1253,7 +1254,7 @@ abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
 
   final def init: S = derivation.init
   final def end(s: S): Boolean = derivation.end(s)
-  final def rules: RuleBook[S, O, F] = derivation.rules
+  final def transitions: RuleBook[S, O, F] = derivation.transitions
   override private[framework] def authoredAssumptions: List[(Assumption, String)] =
     derivation.authoredAssumptions ++ super.authoredAssumptions
   final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
@@ -1318,7 +1319,7 @@ final private[framework] class Built[S, O, F, M <: Model](
   def init: S = initialStates.head
   def end(s: S): Boolean = isEnd(s)
 
-  object rules extends RuleBook[S, O, F]:
+  object transitions extends RuleBook[S, O, F]:
     private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] = Vector.empty
   final override private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
     acquireRuleTable(bound)

@@ -90,7 +90,7 @@ object TwoLayeredCache:
     // a run stops where the layers agree
     override def end = agreed(current)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(client.write):
         where(num < 3) ~> effects.write()
       on(client.read):

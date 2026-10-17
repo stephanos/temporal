@@ -9,7 +9,7 @@ class NativeAssumptionsSuite extends munit.FunSuite:
     new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
-      object rules
+      object transitions
           extends Bindings(
             actions.map(a => a ~> ((s: Boolean) => List(Step(true, !s))))*
           )
@@ -77,7 +77,7 @@ class NativeAssumptionsSuite extends munit.FunSuite:
         def init: Boolean = throw AssertionError("init evaluated")
         def end(s: Boolean): Boolean = throw AssertionError("end evaluated")
         assumes(duplicate)
-        object rules
+        object transitions
             extends Bindings(
               loss ~> ((_: Boolean) => throw AssertionError("effect evaluated"))
             )

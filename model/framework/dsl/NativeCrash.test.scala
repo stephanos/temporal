@@ -30,7 +30,7 @@ class NativeCrashSuite extends munit.FunSuite:
       durable(_.other)
     )
 
-    object rules extends Rules:
+    object transitions extends Rules:
       mode match
         case 0 => crashes(faults.crash, false, true, false)
         case 1 => crashes(faults.crash.budgetedBy(_.available), false, true, false)
@@ -61,7 +61,7 @@ class NativeCrashSuite extends munit.FunSuite:
       def init: Paired = Paired(1, 1)
       def end(state: Paired): Boolean = false
       durability(ephemeral(_.left, 0), ephemeral(_.right, 0))
-      object rules extends Bindings(crashes(faults.crash, true))
+      object transitions extends Bindings(crashes(faults.crash, true))
     val binding = PairedSubject.bindings.head
     val result = effectOf[Paired, Boolean, Boolean](binding.decl, binding.function)(
       Paired(1, 1),
@@ -82,7 +82,7 @@ class NativeCrashSuite extends munit.FunSuite:
         ephemeral(_.pair.right, 0),
         durable(_.remaining)
       )
-      object rules extends Bindings(crashes(faults.crash.budgetedBy(_.remaining), true))
+      object transitions extends Bindings(crashes(faults.crash.budgetedBy(_.remaining), true))
     val binding = CoupledSubject.bindings.head
     val execute = effectOf[Coupled, Boolean, Boolean](binding.decl, binding.function)
     assertEquals(execute(Coupled(Paired(1, 1), 1), Nil), List(Step(true, Coupled(Paired(0, 0), 0))))
@@ -145,7 +145,7 @@ class NativeCrashSuite extends munit.FunSuite:
     class Missing extends RecordMachine[CrashState, Boolean, Nothing]:
       def init: CrashState = throw AssertionError("init evaluated")
       def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules:
+      object transitions extends Rules:
         crashes(faults.crash, true)
     val missing = new Missing
     val error = intercept[IllegalArgumentException](missing.bindings)
@@ -155,7 +155,7 @@ class NativeCrashSuite extends munit.FunSuite:
       def init: CrashState = throw AssertionError("init evaluated")
       def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
       durability(durable(_.kept))
-      object rules extends Bindings()
+      object transitions extends Bindings()
     intercept[IllegalArgumentException](new Orphan().bindings): Unit
 
   test("crash-free restrictions retain valid classification without hiding derived invalid fields"):
@@ -169,7 +169,7 @@ class NativeCrashSuite extends munit.FunSuite:
     object Plain extends RecordMachine[CrashState, Boolean, Boolean]:
       def init: CrashState = throw AssertionError("init evaluated")
       def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings()
+      object transitions extends Bindings()
     object NewlyClassified extends Derived(Plain):
       durability(
         durable(_.kept),
@@ -224,7 +224,7 @@ class NativeCrashSuite extends munit.FunSuite:
         durable(_.bounded),
         FieldDurability.inMemory(this, poisoned, Vector(true -> false))
       )
-      object rules extends Rules:
+      object transitions extends Rules:
         mode match
           case 1 => crashes(faults.crash.budgetedBy(_.available), true)
           case 2 => crashes(faults.crash.budgetedBy(_.remaining), true)
@@ -257,7 +257,7 @@ class NativeCrashSuite extends munit.FunSuite:
         durable(_.bounded),
         durable(_.other)
       )
-      object rules extends Bindings(crashes(faults.crash, true), crashes(faults.crash, false))
+      object transitions extends Bindings(crashes(faults.crash, true), crashes(faults.crash, false))
     val error = intercept[IllegalArgumentException](new Duplicate().bindings)
     assert(error.getMessage.contains("crash"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
@@ -281,7 +281,7 @@ class NativeCrashSuite extends munit.FunSuite:
             durable(_.pending)
           )
         case _ => durability(ephemeral(_.value, resetTo = UpTo[2](0)), durable(_.pending))
-      object rules
+      object transitions
           extends Bindings(
             faults.crash.budgetedBy(_.value) ~>
               ((_: InvalidState) => throw AssertionError("effect evaluated"))
@@ -298,7 +298,7 @@ class NativeCrashSuite extends munit.FunSuite:
       def init: Nested = throw AssertionError("init evaluated")
       def end(s: Nested): Boolean = throw AssertionError("end evaluated")
       durability(durable(_.inner.remaining), ephemeral(_.inner.pending, false), durable(_.kept))
-      object rules extends Rules:
+      object transitions extends Rules:
         crashes(faults.crash.budgetedBy(_.inner.remaining), true)
     val binding = Subject.bindings.head
     val result = effectOf[Nested, Boolean, Nothing](binding.decl, binding.function)(
@@ -326,7 +326,7 @@ class NativeCrashSuite extends munit.FunSuite:
           durable(_.bounded),
           durable(_.other)
         )
-      object rules extends Rules:
+      object transitions extends Rules:
         crashes(faults.crash, true)
     class Kit(val machine: RecordMachine[?, ?, ?]) extends ConstructedRealization:
       val runs: Seq[AnyRef] = Nil
@@ -362,7 +362,7 @@ class NativeCrashSuite extends munit.FunSuite:
         durable(_.bounded),
         durable(_.other)
       )
-      object rules
+      object transitions
           extends Bindings(
             crashes(faults.crash.budgetedBy(_.remaining), false),
             (if shared then faults.second.budgetedBy(_.remaining)

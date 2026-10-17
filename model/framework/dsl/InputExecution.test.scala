@@ -61,7 +61,7 @@ object InputExecutionFixture:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(caller.start):
         where(s => !s) ~> effect
       on(caller.start(first)):
@@ -78,7 +78,7 @@ object InputExecutionFixture:
 
     object applying:
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.faceted):
           always ~> effect
 
@@ -86,7 +86,7 @@ object InputExecutionFixture:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends Facets(applying.rules)
+    object transitions extends Facets(applying.transitions)
 
   object Rebound extends Derived(Native.rebind(caller.start ~> replacement))
 
@@ -94,7 +94,7 @@ object InputExecutionFixture:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(caller.defaulted()):
         always ~> ((s: Boolean) => List(Step(false, s, List(true))))
 
@@ -154,7 +154,7 @@ class InputExecution extends munit.FunSuite:
       object Native extends RecordMachine[Boolean, Boolean, Nothing]:
         val init = false
         def end(s: Boolean) = s
-        object rules extends Rules:
+        object transitions extends Rules:
           on(caller.start):
             always ~> ((s: Boolean, in: Request) => List(Step(in.flag, s)))
           on(caller.finish):
@@ -267,7 +267,7 @@ class InputExecution extends munit.FunSuite:
     val bare = new RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(s: Boolean): Boolean = s
-      def rules: RuleBook[Boolean, Boolean, Boolean] = new Rules:
+      def transitions: RuleBook[Boolean, Boolean, Boolean] = new Rules:
         import caller.defaulted
         on(defaulted()):
           always ~> ((s: Boolean) => List(Step(false, s, List(true))))
@@ -296,7 +296,7 @@ class InputExecution extends munit.FunSuite:
         object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
-          object rules extends Rules:
+          object transitions extends Rules:
             on(caller.start):
               always ~> ((s: Boolean, a: Boolean, b: Boolean) => List(Step(a, s)))
       """),
@@ -307,7 +307,7 @@ class InputExecution extends munit.FunSuite:
         object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
-          object rules extends Rules:
+          object transitions extends Rules:
             on(caller.start):
               always ~> ((s: Boolean, in: Boolean) => List(Step(in, s)))
       """)

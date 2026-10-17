@@ -40,7 +40,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
 
     private object written extends Rules:
       override private[framework] def table = rows
-    def rules: RuleBook[Boolean, Boolean, Nothing] =
+    def transitions: RuleBook[Boolean, Boolean, Nothing] =
       reads.books += 1
       written
     retainHeaderIdentity("proof", "input")
@@ -171,7 +171,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     val forged = new RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = s
-      def rules = input.rules
+      def transitions = input.transitions
       override private[framework] def table = copiedTable
       override private[framework] def derivationParent = restricted.derivationParent
       override private[framework] def derivationEvent = restricted.derivationEvent
@@ -465,7 +465,8 @@ class DerivationBindingsSuite extends munit.FunSuite:
     class CoreSource extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = s
-      val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(complete("source", "core")) {}
+      val transitions: RuleBook[Boolean, Boolean, Nothing] =
+        new Bindings(complete("source", "core")) {}
       retainHeaderIdentity("proof", "core")
       retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
     val source = new CoreSource
@@ -566,7 +567,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
       var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
       private object written extends Rules:
         override private[framework] def table = rows
-      def rules: RuleBook[Boolean, Boolean, Nothing] = written
+      def transitions: RuleBook[Boolean, Boolean, Nothing] = written
       retainHeaderIdentity("proof", "inbox")
       retainHeaderSchema(
         0,

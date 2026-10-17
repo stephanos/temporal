@@ -11,7 +11,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
         object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
           val init = BudgetState(1)
           def end(s: BudgetState): Boolean = false
-          object rules extends Rules:
+          object transitions extends Rules:
             on(caller.empty.budgetedBy(_.remaining)):
               where((s: BudgetState, in: EmptyTuple) => in == EmptyTuple) ~>
                 ((s: BudgetState) => List(Step(true, s)))
@@ -24,7 +24,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
         object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
           val init = BudgetState(1)
           def end(s: BudgetState): Boolean = false
-          object rules extends Rules:
+          object transitions extends Rules:
             on(caller.empty.budgetedBy(_.remaining)):
               always ~> ((s: BudgetState, in: EmptyTuple) => List(Step(in == EmptyTuple, s)))
       """)
@@ -41,7 +41,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
       object targets:
         val plain: Action[EmptyTuple] = caller.unit
         val selected: BudgetedAction[BudgetState, EmptyTuple] = caller.unit.budgetedBy(_.remaining)
-      object rules extends Rules:
+      object transitions extends Rules:
         if budgeted then
           on(targets.selected):
             always ~> ((s: BudgetState) => List(Step(true, s)))
@@ -69,7 +69,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
     object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
       val init = BudgetState(1, true)
       def end(s: BudgetState): Boolean = false
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.empty.budgetedBy(_.remaining)):
           where(_.remaining > 0) ~> ((s: BudgetState) => List(Step(true, s)))
         on(caller.record.budgetedBy(_.remaining)):

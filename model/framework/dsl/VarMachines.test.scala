@@ -30,7 +30,7 @@ object VarMachinesFixture:
     // a run stops once the lamp is broken
     override def end = light == Lit.broken
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         where(light != Lit.broken && presses < 3) ~> effects.press()
         where(light == Lit.broken) ~> effects.refuse()
@@ -225,4 +225,4 @@ class VarMachinesTest extends munit.FunSuite:
 object Thermometer extends Machine[VarMachinesFixture.Said, Nothing]:
   var temperature = 20
 
-  object rules extends Rules
+  object transitions extends Rules

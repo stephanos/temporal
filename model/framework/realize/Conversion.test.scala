@@ -61,7 +61,7 @@ class RealizationConversionTest extends munit.FunSuite:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends framework.dsl.Rules
+    object transitions extends framework.dsl.Rules
 
   final private class ConstructedFactProbe extends ConstructedRealization:
     val machine = FactMachine
@@ -342,7 +342,7 @@ class RealizationConversionTest extends munit.FunSuite:
     val init = false
     def end(s: Boolean): Boolean = s
 
-    object rules extends framework.dsl.Rules
+    object transitions extends framework.dsl.Rules
 
   test("shared framework rejection reasons retain their closed IR codes"):
     import framework.dsl.outcomes.Rejection

@@ -1098,7 +1098,7 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
 // `enters(Phase.x)` also declares the writer that replaces the phase the projection reads,
 // `Phased[OrderState, Phase](_.phase, (s, p) => s.copy(phase = p))`; the IR generator requires it to copy the
 // state along the projection's field path. Its sections read it as a given: `when(Phase.placed)` and
-// `when(states.terminal)` in `object rules extends Rules:` test it. It is optional, as a machine that
+// `when(states.terminal)` in `object transitions extends Rules:` test it. It is optional, as a machine that
 // names no phase is a plain `Machine`. A derived machine or derived composition mixes in none of
 // its own: a derived machine reads its source's, with its phase type. Its default end is the Closed
 // role, witnessed at the concrete parent declaration; an explicit end overrides it. The default's
@@ -1139,8 +1139,8 @@ private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
 extension (@unused companion: MemberPath.type)
   private[framework] def field(member: Any): Option[String] = MemberPath.retainedField(member)
 
-// When each action of a machine fires, written as the machine object's `object rules extends
-// Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
+// When each action of a machine fires, written as the machine object's `object transitions
+// extends Rules`, whose cases may name phases where the machine mixes in `Phased[State, Phase](_.phase)`
 // through its given: blocks of an action or action class,
 // `on(clerk.ship): when(Phase.placed) ~> effects.send`, whose cases each say where the action fires,
 // `when(...)` of phases or of a named set of them, `where(g)` of the state,

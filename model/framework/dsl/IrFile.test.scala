@@ -19,7 +19,7 @@ object DiscoveryFixtures:
     def init = open
     def end(s: DiscoveryFixtures.State) = s.equals(closed)
 
-    object rules
+    object transitions
         extends Bindings(
           advance ~> ((_: DiscoveryFixtures.State) => List(Step(Outcome.done, closed)))
         )
@@ -48,7 +48,7 @@ object DiscoveryFixtures:
     def init = State.open
     def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
 
-    object rules
+    object transitions
         extends Bindings(
           advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s)))
         )
@@ -64,7 +64,7 @@ object DiscoveryFixtures:
         Phased[RolePhase, RolePhase](identity):
     def init = RolePhase.pending
 
-    object rules
+    object transitions
         extends Bindings(
           advance ~> ((s: RolePhase) => List(Step(Outcome.done, s)))
         )
@@ -137,7 +137,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object Grouped extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((_: State) => List(Step(Outcome.done, State.closed)))
           )
@@ -179,7 +179,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object HelperOwner extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
@@ -189,7 +189,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object HelperSection extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
@@ -204,7 +204,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object PrivateOwner extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
@@ -298,7 +298,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       override def name = "duplicate"
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )
@@ -331,7 +331,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object Permuted extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             retreat ~> ((_: State) => throw AssertionError("binding inspection invoked retreat")),
             advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
@@ -349,7 +349,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     object DuplicateBinding extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance")),
             advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
@@ -423,7 +423,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         ):
       def init = State.open
       def end(s: State) = s.equals(State.closed)
-      object rules
+      object transitions
           extends Bindings(
             advance ~> ((s: State) => List(Step(Outcome.done, s)))
           )

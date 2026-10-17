@@ -37,7 +37,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(state: Boolean): Boolean = state
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.record):
           always ~> recordProgram
         on(caller.scalar):
@@ -78,7 +78,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(state: Boolean): Boolean = state
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.selected(false)):
           always ~> offProgram
         on(caller.selected(true)):
@@ -133,7 +133,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.selected):
           where { s => guards += 1; !s } ~> offProgram
           where { s => guards += 1; s } ~> onProgram
@@ -142,7 +142,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
     object OpaqueSubject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.selected):
           where((s: Boolean) => !s) ~> offProgram
           where((s: Boolean) => s) ~>

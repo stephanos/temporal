@@ -57,7 +57,7 @@ object EffectsFixture:
       val missing = effect:
         reject(Said.notFound)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         where(states.busy) ~> effects.pause
         when(Phase.idle) ~> effects.start
@@ -94,7 +94,7 @@ object EffectsFixture:
       val missing = effect:
         reject(Said.notFound)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Stage.waiting) ~> effects.work
 
@@ -112,7 +112,7 @@ object EffectsFixture:
       val work = effect:
         stage = Stage.working
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Stage.waiting) ~> enters(Stage.working)
         when(Stage.working) ~> effects.restOrWork
@@ -122,7 +122,7 @@ object EffectsFixture:
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Phase.idle) ~> enters(Phase.busy)
 
@@ -132,7 +132,7 @@ object EffectsFixture:
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Phase.idle) ~> enters(Phase.busy)
 

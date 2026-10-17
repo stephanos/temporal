@@ -33,7 +33,7 @@ object Kettle:
     var beeping = false
 
     // one step of the state machine: any enabled action
-    object rules extends Rules:
+    object transitions extends Rules:
       on(user.pressButton):
         where(!heatingOn) ~> effects.pressButton()
       on(heater.failover):

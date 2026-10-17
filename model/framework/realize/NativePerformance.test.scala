@@ -41,7 +41,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules
+      object transitions extends Rules
     val error = intercept[IllegalArgumentException](realization(Subject, performance))
     assert(error.getMessage.contains("control withdrawn"), error.getMessage)
 
@@ -74,7 +74,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     class Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings(performed ~> program)
+      object transitions extends Bindings(performed ~> program)
 
     val machine = new Subject
     val selected = Performance(performed, command).choosing(declared)
@@ -109,7 +109,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     object WrongMachine extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules
+      object transitions extends Rules
     intercept[IllegalArgumentException](realization(WrongMachine, selected)): Unit
 
   test("choosing membership belongs to the performed class rather than its whole action"):
@@ -130,7 +130,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.performed(false)):
           always ~> offProgram
         on(caller.performed(true)):
@@ -147,7 +147,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object rules
+      object transitions
           extends Bindings(
             performed ~> ((_: Boolean) => throw AssertionError("opaque callback evaluated"))
           )

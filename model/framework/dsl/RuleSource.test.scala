@@ -10,7 +10,7 @@ class RuleSourceTest extends munit.FunSuite:
       object Bare extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
-        object rules extends Rules:
+        object transitions extends Rules:
           def body(): Unit = arity match
             case 1 =>
               on(press):
@@ -52,7 +52,7 @@ class RuleSourceTest extends munit.FunSuite:
       object Qualified extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
-        object rules extends Rules:
+        object transitions extends Rules:
           def body(): Unit = arity match
             case 2 =>
               on(buttons.first, buttons.second):
@@ -74,7 +74,7 @@ class RuleSourceTest extends munit.FunSuite:
       object Imported extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
-        object rules extends Rules:
+        object transitions extends Rules:
           if wildcard then
             from(hand):
               import hand.*
@@ -98,7 +98,7 @@ class RuleSourceTest extends munit.FunSuite:
       object Off extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
-        object rules extends Rules:
+        object transitions extends Rules:
           if inFrom then from(clock)(disabled(tick)) else disabled(tick)
       assert(
         intercept[IllegalArgumentException](Off.bindings).getMessage

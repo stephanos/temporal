@@ -115,7 +115,7 @@ class Inputs extends munit.FunSuite:
     object FiveInputs extends RecordMachine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 1
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.five):
           always ~> ((s: Counted, in: Five) =>
             enter(
@@ -261,7 +261,7 @@ class Inputs extends munit.FunSuite:
     object SixInputs extends RecordMachine[Counted, outcomes.Outcome, Answer]:
       val init = Counted(UpTo(0), Timeout.unset)
       def end(s: Counted): Boolean = s.attempts == 2
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.six):
           always ~> step
     val binding = SixInputs.bindings.head

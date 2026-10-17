@@ -33,7 +33,7 @@ object FacetsFixture:
           s.copy(light = if s.light.in(Lit.on) then Lit.off else Lit.on, presses = UpTo[1](1))
         )
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(hand.press):
           when(Lit.off, Lit.on) ~> effects.toggle
 
@@ -49,7 +49,7 @@ object FacetsFixture:
         def smash(s: Lamp) =
           choose(smashed -> enters(Lit.broken)(s), toggled -> pressing.effects.toggle(s))
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(hand.smash):
           when(Lit.on) ~> effects.smash
           when(Lit.off) ~> enters(Lit.broken)
@@ -61,7 +61,7 @@ object FacetsFixture:
         Breaking:
     val init = Lamp(Lit.off, UpTo(0))
 
-    object rules extends Facets(pressing.rules, breaking.rules)
+    object transitions extends Facets(pressing.transitions, breaking.transitions)
 
   object Whole
       extends RecordMachine[Lamp, Said, Note],
@@ -76,7 +76,7 @@ object FacetsFixture:
       )
       def smash(s: Lamp) = choose(smashed -> enters(Lit.broken)(s), toggled -> toggle(s))
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(hand.press):
         when(Lit.off, Lit.on) ~> effects.toggle
       on(hand.smash):
@@ -88,7 +88,7 @@ object FacetsFixture:
 
     object pressingAgain:
 
-      object rules extends Rules:
+      object transitions extends Rules:
         on(hand.press):
           when(Lit.broken) ~> enters(Lit.broken)
 
@@ -99,7 +99,7 @@ object FacetsFixture:
         Pressing2:
     val init = Lamp(Lit.off, UpTo(0))
 
-    object rules extends Facets(pressing.rules, pressingAgain.rules)
+    object transitions extends Facets(pressing.transitions, pressingAgain.transitions)
 
 class FacetsTest extends munit.FunSuite:
   import FacetsFixture.*
@@ -127,7 +127,7 @@ class FacetsTest extends munit.FunSuite:
     assertEquals(
       refused.getMessage,
       "press is bound by the facets pressing and pressingAgain: an action belongs to one facet, " +
-        "which holds all its rules"
+        "which holds all its transitions"
     )
   }
 
@@ -135,7 +135,7 @@ class FacetsTest extends munit.FunSuite:
     val errors = compileErrors(
       "object Lone extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light), Breaking:\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
-        "  object rules extends Facets(breaking.rules)"
+        "  object transitions extends Facets(breaking.transitions)"
     )
     assert(errors.contains("Pressing"), errors)
   }
@@ -148,7 +148,7 @@ class FacetsTest extends munit.FunSuite:
         val fault = action(Actor("fault")).crash
       trait First extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
         object first:
-          object rules extends Rules:
+          object transitions extends Rules:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
@@ -162,7 +162,7 @@ class FacetsTest extends munit.FunSuite:
               case _ => disabled(targets.ordinary)
       trait Second extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
         object second:
-          object rules extends Rules:
+          object transitions extends Rules:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
@@ -180,13 +180,13 @@ class FacetsTest extends munit.FunSuite:
             First,
             Second:
         val init = Lamp(Lit.off, UpTo(0))
-        object rules extends Facets(first.rules, second.rules)
+        object transitions extends Facets(first.transitions, second.transitions)
       val actionName =
         if kind == "timer" then "tick" else if kind == "fault" then "fault" else "ordinary"
       val error = intercept[IllegalArgumentException](Duplicate.bindings)
       assertEquals(
         error.getMessage,
-        s"$actionName is bound by the facets first and second: an action belongs to one facet, which holds all its rules"
+        s"$actionName is bound by the facets first and second: an action belongs to one facet, which holds all its transitions"
       )
 
   for kind <- List("ordinary", "timer", "fault", "disabled") do
@@ -198,7 +198,7 @@ class FacetsTest extends munit.FunSuite:
       object Unowned extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
         val init = Lamp(Lit.off, UpTo(0))
         object pressing:
-          object rules extends Rules:
+          object transitions extends Rules:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
@@ -210,10 +210,12 @@ class FacetsTest extends munit.FunSuite:
                 on(targets.fault):
                   always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
               case _ => disabled(targets.ordinary)
-        object rules extends Facets(pressing.rules)
+        object transitions extends Facets(pressing.transitions)
       val error = intercept[IllegalArgumentException](Unowned.bindings)
       assert(
-        error.getMessage.contains("pressing.rules") && error.getMessage.contains("not a facet"),
+        error.getMessage.contains("pressing.transitions") && error.getMessage.contains(
+          "not a facet"
+        ),
         error.getMessage
       )
       val expected =
@@ -232,7 +234,7 @@ trait B extends Facet[Lamp, Said, Note]:
 object Both extends RecordMachine[Lamp, Said, Note], A, B:
   val init = Lamp(Lit.off, UpTo(0))
   def end(s: State) = true
-  object rules extends Facets()
+  object transitions extends Facets()
 val _ = Both.a.effects.settle(Both.init)
 val _ = Both.b.effects.settle(Both.init)
 """)
@@ -248,7 +250,7 @@ trait B extends Facet[Lamp, Said, Note]:
 object Both extends RecordMachine[Lamp, Said, Note], A, B:
   val init = Lamp(Lit.off, UpTo(0))
   def end(s: State) = true
-  object rules extends Facets()
+  object transitions extends Facets()
 val _ = Both.shared.effects.settle(Both.init)
 """)
     assert(

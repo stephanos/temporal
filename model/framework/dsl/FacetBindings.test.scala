@@ -84,7 +84,7 @@ class FacetBindingsSuite extends munit.FunSuite:
 
     object owned:
 
-      object rules extends Rules
+      object transitions extends Rules
 
   private class Source(
       projectionBody: ir.Expr = variable("phaseState"),
@@ -98,9 +98,9 @@ class FacetBindingsSuite extends munit.FunSuite:
       nameReads += 1
       if nativeTable then "source" else throw AssertionError("name read")
 
-    object rules extends Facets(owned.rules)
+    object transitions extends Facets(owned.transitions)
     var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
-    override private[framework] def table = if nativeTable then rules.table else rows
+    override private[framework] def table = if nativeTable then transitions.table else rows
     retainHeaderIdentity("fixture", "source")
     retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
     val capturedProjection = ir.Function(
@@ -137,15 +137,15 @@ class FacetBindingsSuite extends munit.FunSuite:
     val traitName = "framework.dsl.FacetBindingsSuite.Owned"
     val namespaceName = s"$traitName.owned$$"
     source.retainFacetNamespace(source.owned, traitName, namespaceName, classOf[Owned])
-    source.owned.rules.retainFacetOrigin(
+    source.owned.transitions.retainFacetOrigin(
       source,
       source.owned,
       classOf[Owned],
       traitName,
       namespaceName,
-      s"$namespaceName.rules$$"
+      s"$namespaceName.transitions$$"
     )
-    source.owned.rules.facetOrigin.get
+    source.owned.transitions.facetOrigin.get
   private def template(source: Source): FacetBindings.Template =
     val identity = origin(source).source.identity.get
     val definition =
@@ -269,7 +269,7 @@ class FacetBindingsSuite extends munit.FunSuite:
         getters += 1
         go
     val targets = new Targets
-    val book = source.owned.rules
+    val book = source.owned.transitions
     book.grouped(targets, "") {
       for enabled <- Vector(true, false) do
         book.block[NativeInput[Boolean]](targets.goAction.decl, None, "targets.goAction") {
@@ -408,11 +408,11 @@ class FacetBindingsSuite extends munit.FunSuite:
       classOf[Owned],
       traitName,
       namespaceName,
-      s"$namespaceName.rules$$"
+      s"$namespaceName.transitions$$"
     )
     val unregistered = FacetBindings.Origin(
-      source.owned.rules,
-      new FacetSource(Some("owned"), "owned.rules", Some(identity))
+      source.owned.transitions,
+      new FacetSource(Some("owned"), "owned.transitions", Some(identity))
     )
     val definition =
       FacetBindings.Definition(identity.traitName, identity.namespaceName, identity.rulesName)
@@ -452,10 +452,10 @@ class FacetBindingsSuite extends munit.FunSuite:
     val other = new DoubleSource
     other.retainFacetNamespace(other.owned, traitName, namespaceName, classOf[Owned])
     assert(classOf[java.lang.Runnable].isInstance(other))
-    assert(other.owned.rules.facetOrigin.isEmpty)
+    assert(other.owned.transitions.facetOrigin.isEmpty)
     assert(
       intercept[IllegalArgumentException](
-        other.owned.rules.retainFacetOrigin(
+        other.owned.transitions.retainFacetOrigin(
           other,
           other.owned,
           classOf[java.lang.Runnable],
@@ -465,7 +465,7 @@ class FacetBindingsSuite extends munit.FunSuite:
         )
       ).getMessage.contains("namespace")
     )
-    assert(other.owned.rules.facetOrigin.isEmpty)
+    assert(other.owned.transitions.facetOrigin.isEmpty)
     val valid = origin(other)
     FacetBindings.checkedOrigin(other, valid, definition)
 

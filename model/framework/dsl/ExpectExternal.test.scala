@@ -127,7 +127,7 @@ class ExpectExternalTest extends munit.FunSuite:
     def init: Job = Job(false)
     def end(state: Job): Boolean = state.done
 
-    object rules extends Rules
+    object transitions extends Rules
 
   test("an author outside the framework can build and forward ordinary expectation functions"):
     val predicate: Step[Job, Outcome, Fact] => Boolean = expect: s ?=>

@@ -32,7 +32,7 @@ class NativeFaultSuite extends munit.FunSuite:
       new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = throw AssertionError("init evaluated")
         def end(s: Boolean): Boolean = throw AssertionError("end evaluated")
-        object rules
+        object transitions
             extends Bindings(a ~> ((_: Boolean) => throw AssertionError("effect evaluated")))
     val ordinary = machine(action("ordinary", caller))
     assertEquals(ordinary.bindings.size, 1)

@@ -12,7 +12,7 @@ class SugarNativeTest extends munit.FunSuite:
     object Checked extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = false
-      object rules extends Bindings[Boolean, Boolean, Nothing]()
+      object transitions extends Bindings[Boolean, Boolean, Nothing]()
     val property = Checked.property.never(_.state).from(before = identity)
     val holds = property.decl.holds2.get.asInstanceOf[
       (Boolean, Step[Boolean, Boolean, Nothing]) => Boolean

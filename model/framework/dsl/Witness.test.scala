@@ -18,7 +18,7 @@ object WitnessFixture:
     def init = State.open
     def end(s: WitnessFixture.State) = s.equals(State.closed)
 
-    object rules
+    object transitions
         extends Bindings(
           start ~> ((s: WitnessFixture.State) => List(Step(Outcome.accepted, s)))
         )
@@ -34,7 +34,7 @@ object WitnessFixture:
     def init = State.open
     def end(s: WitnessFixture.State) = s.equals(State.closed)
 
-    object rules
+    object transitions
         extends Bindings(
           start ~> ((s: WitnessFixture.State) => List(Step(Outcome.accepted, s)))
         )

@@ -19,7 +19,9 @@ class MachineHeadersSuite extends munit.FunSuite:
       override def name: String = throw AssertionError("native name getter read")
       def init: Boolean = throw AssertionError("init read")
       def end(s: Boolean): Boolean = throw AssertionError("end read")
-      def rules: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError("rules read")
+      def transitions: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError(
+        "transitions read"
+      )
       override private[framework] def phaseEvidence: Option[Boolean => Any] = throw AssertionError(
         "phase read"
       )

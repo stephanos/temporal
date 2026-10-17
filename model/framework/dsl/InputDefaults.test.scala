@@ -172,7 +172,7 @@ class InputDefaults extends munit.FunSuite:
     class Base extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: State) = true
-      object rules extends Bindings()
+      object transitions extends Bindings()
     val base = new Base
     class MissingMachine extends Base:
       val path = scenario.actions(send())

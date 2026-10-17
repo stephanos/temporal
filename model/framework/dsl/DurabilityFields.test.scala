@@ -16,13 +16,13 @@ class DurabilityFieldsSuite extends munit.FunSuite:
     def init: Record = throw AssertionError("init evaluated")
     def end(state: Record): Boolean = throw AssertionError("end evaluated")
 
-    object rules extends Bindings()
+    object transitions extends Bindings()
 
   object Foreign extends RecordMachine[Record, Boolean, Nothing]:
     def init: Record = throw AssertionError("init evaluated")
     def end(state: Record): Boolean = throw AssertionError("end evaluated")
 
-    object rules extends Bindings()
+    object transitions extends Bindings()
 
   private def inner = FieldDurability.durable(Subject, StateField.capture[Record, Inner](_.inner))
   private def queue =
@@ -79,7 +79,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
     object Owner extends RecordMachine[Selected, Boolean, Nothing]:
       def init: Selected = throw AssertionError("init evaluated")
       def end(state: Selected): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings()
+      object transitions extends Bindings()
     given Finite[Int] = Finite.of(1, 3)
     val invalid = FieldDurability.ephemeral(Owner, StateField.capture[Selected, Int](_.value), 2)
     val valid = FieldDurability.ephemeral(Owner, StateField.capture[Selected, Int](_.value), 3)
@@ -127,7 +127,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
     object InboxOwner extends RecordMachine[InboxRecord, Boolean, Nothing]:
       def init: InboxRecord = throw AssertionError("init evaluated")
       def end(state: InboxRecord): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings()
+      object transitions extends Bindings()
     val wire = channel[Boolean](capacity = 1, order = Order.fifo, loss = Loss.reliable)
     val descriptor = FieldDurability.ephemeral(
       InboxOwner,
@@ -145,7 +145,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
     object Subject extends RecordMachine[OpaqueState, Boolean, Nothing]:
       def init: OpaqueState = throw AssertionError("init evaluated")
       def end(s: OpaqueState): Boolean = throw AssertionError("end evaluated")
-      object rules extends Bindings()
+      object transitions extends Bindings()
     val unsupported = FieldDurability.ephemeral(
       Subject,
       StateField.capture[OpaqueState, Positive.Value](_.value),

@@ -70,7 +70,7 @@ object Bank:
       of = Map(Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2))
     )
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(client.send):
         always ~> effects.send
 

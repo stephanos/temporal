@@ -142,7 +142,7 @@ object ReliableBroadcast:
     // a run stops once nothing is in flight and no process is part way through
     override def end = !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(sender.broadcast):
         where(origin == Origin.idle) ~> effects.begin
       on(sender.send):

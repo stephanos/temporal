@@ -16,20 +16,20 @@ import scala.collection.mutable
 //   this: Dispatch =>
 //   object pausing:
 //     object effects: ...
-//     object rules extends Rules: ...
+//     object transitions extends Rules: ...
 // }}}
 //
 // A facet that uses another's step names it in its self-type, `this: Dispatch =>`, so a machine
 // that does not mix that facet in does not compile. The machine object mixes in its facets and lists
 // their rules, in facet order: `object ActivityProtocol extends RecordMachine[...], Phased[...](...),
-// Dispatch, Pausing` with `object rules extends Facets(dispatch.rules, pausing.rules)`. What stays
-// machine-wide stays in the machine object: its state and phase types, `init`, `end`, the projection,
-// the refinement, monitors, properties and queries over the whole feature. A facet declares the
-// capabilities of the actions it owns in its object's `object capabilities extends Capabilities`,
-// and the machine lists them as it lists their rules, `object capabilities extends
-// FacetCapabilities(pausing.capabilities, ...)`. Core form: the machine whose `rules` holds every
-// facet's blocks, in facet order, whose `effects` holds every facet's effects, and whose
-// `capabilities` holds every facet's capabilities and waivers.
+// Dispatch, Pausing` with `object transitions extends Facets(dispatch.transitions,
+// pausing.transitions)`. What stays machine-wide stays in the machine object: its state and phase
+// types, `init`, `end`, the projection, the refinement, monitors, properties and queries over the
+// whole feature. A facet declares the capabilities of the actions it owns in its object's `object
+// capabilities extends Capabilities`, and the machine lists them as it lists their rules, `object
+// capabilities extends FacetCapabilities(pausing.capabilities, ...)`. Core form: the machine whose
+// `transitions` holds every facet's blocks, in facet order, whose `effects` holds every facet's
+// effects, and whose `capabilities` holds every facet's capabilities and waivers.
 trait Facet[S, O, F] extends RecordMachine[S, O, F]:
   // The owner its sections read the machine's types from: the machine that mixes it in. A facet's
   // sections cannot read the machine's own given, a val of the class `Machine`, from a trait, and
@@ -42,8 +42,8 @@ trait Facet[S, O, F] extends RecordMachine[S, O, F]:
 
 // A machine's rules assembled from its facets' rules, in the order listed: each action's cases are
 // the cases of the one facet that binds it. An action bound by two facets is refused as the rules
-// construct, naming the action and both facets. Core form: one `object rules extends Rules` holding
-// every facet's blocks in facet order.
+// construct, naming the action and both facets. Core form: one `object transitions extends Rules`
+// holding every facet's blocks in facet order.
 abstract class Facets[S, O, F](using
     owner: Owner[S, O, F]
 )(
@@ -56,7 +56,7 @@ abstract class Facets[S, O, F](using
     facets.toVector.flatMap { rules =>
       val facet = rules.facetSource.getOrElse(
         throw IllegalArgumentException(
-          s"${rules.sectionName} is not a facet's rules: Facets lists the rules declared in its facets"
+          s"${rules.sectionName} is not a facet's transitions: Facets lists the transitions declared in its facets"
             + s"; ${rules.table.map((decl, _) => rules.actionName(decl)).mkString(", ")} has no owning facet"
         )
       )
@@ -65,7 +65,7 @@ abstract class Facets[S, O, F](using
           val action = rules.actionName(decl)
           throw IllegalArgumentException(
             s"$action is bound by the facets $other and $facet: an action belongs to one facet, " +
-              "which holds all its rules"
+              "which holds all its transitions"
           )
         owners(decl) = facet
         decl -> bound

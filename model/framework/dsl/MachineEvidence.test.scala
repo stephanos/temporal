@@ -39,7 +39,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
         if flag then "yes" else "no"
     private val book = new RuleBook[Cell, Boolean, Boolean]:
       private[framework] def table = Vector.empty
-    def rules: RuleBook[Cell, Boolean, Boolean] =
+    def transitions: RuleBook[Cell, Boolean, Boolean] =
       reads.rules += 1
       book
     override private[framework] def table: Vector[(ActionDecl, Bound[Cell, Boolean, Boolean])] =

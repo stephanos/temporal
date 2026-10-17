@@ -19,7 +19,7 @@ class RuleBindingsSuite extends munit.FunSuite:
     def end(s: Boolean): Boolean = throw AssertionError("end read")
     override def name: String = throw AssertionError("public name read")
 
-    object rules extends Rules:
+    object transitions extends Rules:
       override private[framework] def facetSource = if facet then Some("fixture.facet") else None
     var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
     override private[framework] def table = rows
@@ -351,7 +351,8 @@ class RuleBindingsSuite extends munit.FunSuite:
     val pending = new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
-      def rules: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError("early rules read")
+      def transitions: RuleBook[Boolean, Boolean, Nothing] =
+        throw AssertionError("early transitions read")
     assert(
       intercept[IllegalArgumentException](RuleBindings.collect(pending)).getMessage
         .contains("registration")
@@ -579,7 +580,7 @@ class RuleBindingsSuite extends munit.FunSuite:
           ir.Model()
         )
       )
-      object rules extends Rules:
+      object transitions extends Rules:
         from(hand):
           on(hand.first, hand.second):
             callbacks += 1

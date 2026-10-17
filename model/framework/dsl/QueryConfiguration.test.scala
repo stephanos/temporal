@@ -15,7 +15,7 @@ object QueryConfigurationFixture:
     def init = State.ready
     def end(s: QueryConfigurationFixture.State) = s.equals(State.done)
 
-    object rules
+    object transitions
         extends Bindings(
           advance ~> ((s: QueryConfigurationFixture.State) => List(Step(Outcome.accepted, s)))
         )
@@ -25,7 +25,7 @@ object QueryConfigurationFixture:
     def init = State.ready
     def end(s: QueryConfigurationFixture.State) = s.equals(State.done)
 
-    object rules
+    object transitions
         extends Bindings(
           advance ~> ((s: QueryConfigurationFixture.State) => List(Step(Outcome.accepted, s)))
         )
@@ -143,7 +143,7 @@ class QueryConfigurationTest extends munit.FunSuite:
         Limits("constructorReach", steps = 4, actions = 6, search = 53)
       def init = State.ready
       def end(s: QueryConfigurationFixture.State) = s.equals(State.done)
-      object rules
+      object transitions
           extends Bindings(
             QueryConfigurationFixture.advance ~>
               ((s: QueryConfigurationFixture.State) => List(Step(Outcome.accepted, s)))
@@ -285,11 +285,11 @@ class QueryConfigurationTest extends munit.FunSuite:
       override val reach = Limits("poisonReach", steps = 0, actions = 23, search = 43)
       def init: State = throw AssertionError("init executed")
       override def end(s: State): Boolean = throw AssertionError("end executed")
-      object rules extends Rules:
+      object transitions extends Rules:
         on(QueryConfigurationFixture.advance):
           where((_: State) => throw AssertionError("guard executed")) ~>
             ((_: State) => throw AssertionError("effect executed"))
-    val _ = Poison.rules
+    val _ = Poison.transitions
     val p = Poison.property("poison").sameStep(_ => throw AssertionError("predicate executed"))
     val q = query("poison")
       .verify(p)

@@ -49,7 +49,7 @@ class NativeDataTest extends munit.FunSuite:
     object Native extends RecordMachine[Held, Boolean, Nothing]:
       val init = Held(wire.empty, Nil)
       def end(s: Held) = s.inbox.isEmpty
-      object rules extends Rules:
+      object transitions extends Rules:
         disabled(wire.deliver)
     assertEquals(Native.bindings.size, 1)
     val sent = Native.init.copy(inbox = wire.empty.send(Flag.second).send(Flag.first))
@@ -67,7 +67,7 @@ class NativeDataTest extends munit.FunSuite:
     object NumericOutcome extends RecordMachine[Collections, Int, Nothing]:
       val init = Collections(Set.empty, Nil, Map.empty)
       def end(s: Collections) = true
-      object rules extends Rules:
+      object transitions extends Rules:
         disabled(caller.act)
     assertEquals(NumericOutcome.fo.values.toList, List(2, 0))
     assertEquals(NumericOutcome.ff.values.toList, Nil)
@@ -101,7 +101,7 @@ class NativeDataTest extends munit.FunSuite:
     object Native extends RecordMachine[Collections, Boolean, Nothing]:
       val init = Collections(Set.empty, Nil, Map.empty)
       def end(s: Collections) = s.pending.isEmpty
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.act):
           always ~> ((s: Collections) =>
             List(
@@ -135,7 +135,7 @@ class NativeDataTest extends munit.FunSuite:
     object Native extends RecordMachine[Poison, Boolean, Nothing]:
       val init = Poison(Flag.first, false)
       def end(s: Poison) = false
-      object rules extends Rules:
+      object transitions extends Rules:
         on(caller.act):
           where(guard) ~> effect
           where(guard) ~> effect
@@ -233,7 +233,7 @@ class NativeDataTest extends munit.FunSuite:
       object Bad extends RecordMachine[String, Boolean, Nothing]:
         val init = "text"
         def end(s: String) = true
-        object rules extends Rules
+        object transitions extends Rules
     """).nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*
@@ -254,7 +254,7 @@ class NativeDataTest extends munit.FunSuite:
       object Bad extends RecordMachine[Int, Int, Nothing]:
         val init = 0
         def end(s: Int) = true
-        object rules extends Rules
+        object transitions extends Rules
     """).nonEmpty)
     assert(compileErrors("""summon[framework.dsl.Finite[List[Int]]]""").nonEmpty)
     assert(compileErrors("""
@@ -262,7 +262,7 @@ class NativeDataTest extends munit.FunSuite:
       object Bad extends RecordMachine[Int, Boolean, Int]:
         val init = 0
         def end(s: Int) = true
-        object rules extends Rules
+        object transitions extends Rules
     """).nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*

@@ -414,7 +414,7 @@ class ExpectTest extends munit.FunSuite:
         """import EffectsFixture.*; given Owner[Job, Said, Note] = Owner(Subject); Subject.property.expect { val step = effect { record(Note.started) }; check(true) }"""
       ),
       compileErrors(
-        """import EffectsFixture.*; object Bad extends RecordMachine[Job, Said, Note] { def init = Subject.init; def end(s: Job) = true; object rules extends Rules; val bad = property.expect { val path = witness(hand.press()); check(true) } }"""
+        """import EffectsFixture.*; object Bad extends RecordMachine[Job, Said, Note] { def init = Subject.init; def end(s: Job) = true; object transitions extends Rules; val bad = property.expect { val path = witness(hand.press()); check(true) } }"""
       ),
       compileErrors(
         """import EffectsFixture.*; Subject.property.expect { val temporal = Subject.leadsTo("p")(_ => true, _ => true, 1); check(true) }"""

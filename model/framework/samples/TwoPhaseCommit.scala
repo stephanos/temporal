@@ -138,7 +138,7 @@ object TwoPhaseCommit:
       def eagerlyCommits: Boolean =
         tmState == TransactionManagerState.init && any(tmPrepared)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(rm.prepare(ResourceManager.rm1)):
         where(mayPrepare(current, ResourceManager.rm1)) ~> effects.prepareRm1()
       on(rm.prepare(ResourceManager.rm2)):

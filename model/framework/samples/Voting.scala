@@ -117,7 +117,7 @@ object Voting:
     // the values chosen
     var chosen = Set.empty[Value]
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(voter.voteFor):
         where(chosen.isEmpty) ~> effects.choose
 
@@ -149,7 +149,7 @@ object Voting:
       val visibleOutcomes = (_: Voting.Outcome) => false
       val unobservable = List(voter.increaseMaxBal)
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(voter.increaseMaxBal):
         always ~> effects.increaseMaxBal
       on(voter.voteFor):

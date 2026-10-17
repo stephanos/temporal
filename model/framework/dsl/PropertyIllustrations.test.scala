@@ -27,7 +27,7 @@ object PropertyIllustrationsFixture:
     def init: NativeState = throw AssertionError("init evaluated")
     def end(state: NativeState): Boolean = throw AssertionError("end evaluated")
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(PropertyIllustrationsFixture.plain):
         where((_: NativeState) => throw AssertionError("guard evaluated")) ~>
           ((_: NativeState) => throw AssertionError("effect evaluated"))
@@ -43,7 +43,7 @@ object PropertyIllustrationsFixture:
     def init = false
     def end(state: Boolean): Boolean = state
 
-    object rules
+    object transitions
         extends Bindings(
           PropertyIllustrationsFixture.plain ~> ((s: Boolean) => List(Step(accepted, s)))
         )
