@@ -1,10 +1,12 @@
 ---
-satisfies: [R2, R3]
+satisfies: [R2, R3, R6]
 ---
 # fn-185-gomad-wasm-host-side-execution-cost.2 Capture host-side profiles on cluster and single-guest workloads
 
 ## Description
 On a quiet host, run the fn-178 cluster scenario (the wasmmeasure producer replacing TestMatchedReleaseClusterCandidate, seeds 7, 19, 42) and the single-guest workflow and activity selections (seeds 0, 1000003, 2000006), one warmup plus three warm repetitions each, with the diagnostic-profile helper, and the same runs under `perf record` on the helper. Fold perf samples by symbol, map them to the same owners and compare the top three owners with the wall attribution. Verify the choice witness of every profiled run equals the release-helper run at the same seed. Retain under .flow/artifacts/fn185-*/ the raw profile JSON, folded stacks, host cpuinfo, boot id, source/helper/module/engine/model identities and exact rerun commands; summarize per-owner and per-op medians with ranges in a markdown artifact. Diagnostic and guest-profile helpers are never qualification evidence.
+
+Also run the R6 measurements transferred from fn-182 R4 and fn-184 R5 (owner decision 2026-10-17), with the release helper, each baseline/candidate pair on the same host in the same window. fn-182: `python3 -I .flow/artifacts/fn182-current-2026-10-16/measure.py <checkout> <new root> --stock-go … --helper … --binary … --inputs … --run` (one checkout, profiles `full` versus `slim`, ABBAAB success cells plus canaries). The frozen helper, `qualification.test` and inputs listed in `.flow/artifacts/fn182-closeout-2026-10-17.md` predate the cluster finish-window fix `6ead645c9e`; rebuild them from the measured candidate. fn-184: `measure.sh run` from `/home/agent/wt/evidence/fn184/` with `BASE_SHA_EXPECTED=3dae95b99f AFTER_SHA_EXPECTED=f22f8ef227` (REPS=3, cold and warm, alternating side order). If a driver, its worktrees or its inputs are gone, re-create the same contract against fn-185's own baseline and candidate. Retain results under .flow/artifacts/fn185-*/.
 
 **Size:** M
 **Files:** .flow/artifacts/fn185-host-cost-profile-<date>.md and directory, measurement scripts kept with the artifact
@@ -14,6 +16,7 @@ On a quiet host, run the fn-178 cluster scenario (the wasmmeasure producer repla
 - [ ] perf-derived owner ranking agrees with wall attribution on the top three owners, or the disagreement is reported
 - [ ] Choice witnesses match release runs for every profiled run
 - [ ] Identities, raw data and rerun commands retained; host is quiet and recorded
+- [ ] R6: fn-182 full/slim timing and helper peak RSS (plus candidate compiled-cache bytes) and fn-184 build/vet/lint/default-test wall times (default and selected sets) measured as matched same-host baseline/candidate pairs with repetitions, median/range, gain-versus-spread labels, identities and rerun commands
 
 ## Done summary
 TBD
