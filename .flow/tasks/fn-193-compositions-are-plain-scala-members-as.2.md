@@ -8,6 +8,15 @@ satisfies: [R2, R3, R4, R5]
 
 **Size:** L
 
+### Execution notes from the accepted prototype
+
+- Follow model/design/plain-composition-prototype.md's adopted spelling and its fixture migration map. Reuse the prototype's member/schema and sync work where appropriate, but generalize the existing on-demand NativeCheck.Search rather than copying the prototype's separate breadth-first explorer or introducing a synthetic RecordMachine adapter.
+- R3 includes progress, monitors, scenarios, starts, fairness, witnesses and derivation-owned claims; the prototype's omitted forms are implementation work here, not a reason to narrow the acceptance gate. Preserve on-demand budget/cut behavior, vacuity and pinned-path ordering.
+- R2 admits Machine and Composition members. A nested composition must therefore step and expose its member state and tagged facts correctly; accepting it at compile time and later refusing it as having no vars is the prototype's gap, not the final implementation.
+- Preserve the existing fixture assertions through the plain-form rewrites, including reordered facts, derived end predicates, replaced-member claims and refused undeclared actions. Where the accepted prototype refuses a formerly written shape (repeated/shared vars or an unrelated replacement), retain the corresponding semantic control on a valid replacement fixture and add the refusal control.
+- Widen the existing claim/target lookup for compositions rather than maintaining parallel copies of the claim words. Remove composition dependencies on RecordMachine, Owner and Declaring, leaving held export/IR adapters for fn-190.12.
+- Keep framework/REFERENCE.md user-facing when updating the author surface: no Scala implementation/test filename citations or source/fixture columns, and preserve public-surface coverage.
+
 ### Verification
 - `mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests` passes; lint RuleSuite passes.
 - Located refusals for a non-Machine member and a sync of an undeclared action (fixtures).
