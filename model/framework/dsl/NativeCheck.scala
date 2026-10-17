@@ -445,9 +445,9 @@ private[framework] object NativeCheck:
               else if region.isEmpty then result(Verdict.verified, Vector.empty, Some(0))
               else result(Verdict.verified, Vector.empty, Some(steps + 1))
 
-  // The cycle report: the actions of a cycle through the part's first state (its members are in
-  // the order they joined the region), in order, and an
-  // admitted action enabled on it and never taken on it, with both remedies.
+  // The cycle report: the actions of a cycle through the part's first state, the one that joined
+  // the region first, in order, and an admitted action enabled on it and never taken on it (D13),
+  // with both remedies.
   private def cycleReport[S, O, F](
       graph: Graph[S, O, F],
       subject: String,
