@@ -1,0 +1,12 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[[33mhint[0m] ./model/framework/dsl/project.scala:11:20
+[[33mhint[0m] "munit is outdated, update to 1.3.6"
+[[33mhint[0m]      munit 1.2.0 -> org.scalameta::munit:1.3.6
+[[33mhint[0m] //> using test.dep org.scalameta::munit:1.2.0
+[[33mhint[0m]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+[[33mhint[0m] ./model/framework/dsl/project.scala:9:15
+[[33mhint[0m] "scalapb-runtime-grpc is outdated, update to 0.11.21"
+[[33mhint[0m]      scalapb-runtime-grpc 0.11.20 -> com.thesamet.scalapb::scalapb-runtime-grpc:0.11.21
+[[33mhint[0m] //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
+[[33mhint[0m]               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
