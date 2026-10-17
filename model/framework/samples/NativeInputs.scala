@@ -19,17 +19,17 @@ object NativeInputs:
 
     override def end = seen.nonEmpty
 
-    object transitions extends Rules:
-      on(caller.submit):
-        where((in: Request) => in.amount <= in.ceiling && !seen.contains(in.amount)) ~>
-          ((in: Request) => seen = seen.incl(in.amount))
+    object transitions extends Transitions:
+      on(caller.submit): in =>
+        if in.amount <= in.ceiling && !seen.contains(in.amount) then effects.submit(in)
+
+    object effects:
+      def submit(in: Request): Unit = seen = seen.incl(in.amount)
 
     object postconditions:
-      val zeroWasAccepted = property
-        .after(caller.submit(amount = 0))
-        .expect:
-          oneOf:
-            branch:
-              check(seen == Set(0))
-            branch:
-              check(seen == Set(0, 2))
+      val zeroWasAccepted = after(caller.submit(amount = 0)):
+        oneOf:
+          branch:
+            check(seen == Set(0))
+          branch:
+            check(seen == Set(0, 2))

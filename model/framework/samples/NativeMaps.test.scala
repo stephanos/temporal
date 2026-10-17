@@ -442,8 +442,18 @@ class NativeMapsTest extends munit.FunSuite:
     )
     assert(!Accepted.end(Accepted.init))
     assert(Accepted.end(accepted(Set(2))))
-    val zero = Accepted.postconditions.zeroWasAccepted.decl.holds.get
-      .asInstanceOf[Step[State, Boolean, Nothing] => Boolean]
+    def zero(step: Step[State, Boolean, Nothing]) =
+      SampleClaims
+        .judged(
+          Accepted,
+          Accepted,
+          "postconditions",
+          "zeroWasAccepted",
+          step,
+          Some(Accepted.init),
+          Some(caller.submit(amount = 0))
+        )
+        .get
     assert(zero(Step(true, accepted(Set(0)))))
     assert(zero(Step(true, accepted(Set(0, 2)))))
     assert(!zero(Step(true, accepted(Set(2)))))
