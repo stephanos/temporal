@@ -273,25 +273,71 @@ private[framework] object NativeCheck:
 
   // An invariant or postcondition, checked on every step of the graph it selects.
   def verify[S, O, F](graph: Graph[S, O, F], subject: String, decl: PropertyDecl): Result =
-    val failing = graph.allEdges.find: e =>
-      selects(decl.when, e.cls) && !holds(decl, graph.states(e.source), e.step)
-    graph.result(subject, failing.map(counterexample(graph, _)))
+    decl.claim match
+      case Some(ref) => claim(graph, subject, ref, finds = false)
+      case None      =>
+        val failing = graph.allEdges.find: e =>
+          selects(decl.when, e.cls) && !holds(decl, graph.states(e.source), e.step)
+        graph.result(subject, failing.map(counterexample(graph, _)))
 
   // A find: a step of the graph the Property selects and holds of.
   def find[S, O, F](graph: Graph[S, O, F], subject: String, decl: PropertyDecl): Result =
-    val witness = graph.allEdges.find: e =>
-      selects(decl.when, e.cls) && holds(decl, graph.states(e.source), e.step)
-    witness match
-      case Some(e) =>
-        Result(
-          subject,
-          Verdict.found,
-          graph.budget,
-          graph.depth,
-          graph.complete,
-          Vector(s"witness: ${(graph.path(e.source) :+ shown(e.cls)).mkString(", ")}")
-        )
-      case None => graph.result(subject, None, holds = Verdict.refuted)
+    decl.claim match
+      case Some(ref) => claim(graph, subject, ref, finds = true)
+      case None      =>
+        val witness = graph.allEdges.find: e =>
+          selects(decl.when, e.cls) && holds(decl, graph.states(e.source), e.step)
+        witness match
+          case Some(e) => found(graph, subject, graph.path(e.source) :+ shown(e.cls))
+          case None    => graph.result(subject, None, holds = Verdict.refuted)
+
+  private def found[S, O, F](graph: Graph[S, O, F], subject: String, path: Vector[String]) =
+    Result(
+      subject,
+      Verdict.found,
+      graph.budget,
+      graph.depth,
+      graph.complete,
+      Vector(s"witness: ${path.mkString(", ")}")
+    )
+
+  // A member of a claim section written as a block of assertions, which `verify` or `find` names:
+  // verified where no evaluation of its section on the graph finds it failing, found where one finds
+  // it about the step (a step of its target, if it names one) and holding.
+  private def claim[S, O, F](
+      graph: Graph[S, O, F],
+      subject: String,
+      ref: NativeClaims.Ref,
+      finds: Boolean
+  ): Result =
+    val section = NativeClaims
+      .sectionClass(ref.machine, ref.section)
+      .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
+    val vars = varsOf(graph.machine, s"claim $subject")
+    def judged(context: NativeClaims.Context): Option[Boolean] =
+      if context.applies(ref.member) then Some(context.failure(ref.member).isEmpty) else None
+    val evaluations: Iterator[(Option[Boolean], () => Vector[String])] =
+      if ref.section == "invariants" then
+        graph.states.indices.iterator.map: i =>
+          val context =
+            NativeClaims.evaluate(vars, section, stateOf(graph.states(i)), NativeClaims.Context())
+          judged(context) -> (() => graph.path(i))
+      else
+        graph.allEdges.map: e =>
+          val context =
+            NativeClaims.evaluate(vars, section, stateOf(e.step.state), stepContext(graph, e))
+          judged(context) -> (() => graph.path(e.source) :+ shown(e.cls))
+    if finds then
+      evaluations.collectFirst { case (Some(true), path) => path() } match
+        case Some(path) => found(graph, subject, path)
+        case None       => graph.result(subject, None, holds = Verdict.refuted)
+    else
+      graph.result(
+        subject,
+        evaluations.collectFirst { case (Some(false), path) =>
+          Vector(s"counterexample: ${path().mkString(", ")}")
+        }
+      )
 
   private def counterexample[S, O, F](graph: Graph[S, O, F], e: Edge[S, O, F]): Vector[String] =
     Vector(
@@ -848,7 +894,7 @@ private[framework] object NativeCheck:
             s"reads ${q.property.machine.name} through a refinement, which no native check reads"
           Result(subject, Verdict.unknown, budget, 0, false, Vector(through))
         else if q.scenario.free then
-          val graph = explore(machine, Seq(start), budget = budget)
+          val graph = explore(machine, Seq(start), q.scenario.admits, budget)
           if finds(q) then find(graph, subject, q.property)
           else verify(graph, subject, q.property)
         else pinned(machine, subject, q, start, budget)
@@ -887,16 +933,45 @@ private[framework] object NativeCheck:
         )
       frontier = frontier.flatMap: before =>
         effect(before, cls).map: step =>
-          if selects(q.property.when, cls) then
-            if holds(q.property, before, step) then witness = true
-            else if failure.isEmpty then
+          judge(q.property, before, cls, step) match
+            case Some(true)                     => witness = true
+            case Some(false) if failure.isEmpty =>
               failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
+            case _ => ()
           step.state
     val verdict =
       if finds(q) then if witness then Verdict.found else Verdict.refuted
       else if failure.isEmpty then Verdict.verified
       else Verdict.refuted
     Result(subject, verdict, budget, classes.size, true, failure.toVector)
+
+  // Whether a Property holds of one step of `cls` from `before`, where it is about that step.
+  private def judge[S, O, F](
+      decl: PropertyDecl,
+      before: S,
+      cls: Class,
+      step: Step[S, O, F]
+  ): Option[Boolean] =
+    decl.claim match
+      case Some(ref) =>
+        val section = NativeClaims
+          .sectionClass(ref.machine, ref.section)
+          .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
+        val vars = varsOf(
+          ref.machine match
+            case m: RecordMachine[?, ?, ?] => m
+            case other => throw IllegalArgumentException(s"${other.name} declares no vars")
+          ,
+          s"claim $ref"
+        )
+        val context =
+          if ref.section == "invariants" then NativeClaims.Context()
+          else
+            NativeClaims.Context(Some(stateOf(before)), Some(cls), Some(step.outcome), step.facts)
+        val evaluated = NativeClaims.evaluate(vars, section, stateOf(step.state), context)
+        if evaluated.applies(ref.member) then Some(evaluated.failure(ref.member).isEmpty) else None
+      case None =>
+        if selects(decl.when, cls) then Some(holds(decl, before, step)) else None
 
   // Every Query of a Machine's `queries` section, run natively, by the member that declares it.
   def queries(machine: Model, budget: Int = defaultBudget): Vector[Result] =

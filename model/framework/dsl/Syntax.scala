@@ -1997,6 +1997,105 @@ def reject(why: outcomes.Rejection)(using
     ) refusing: Refusing[outcomes.Outcome]
 ): Unit = refusing.refuse(outcomes.Outcome.rejected(why))
 
+// `verify(invariants.consistency) in anyVote`, in `queries`: a check that a claim of the Machine
+// holds on every path of the scenario, named after its `val`; a claim is a member of `invariants`,
+// `postconditions` or `progress`, or a find target declared in `queries`. Every claim is checked by
+// default, so a Model writes one only where a realization names it or a scenario other than the
+// default matters. Core form: `query verify claim in scenario limits bounds`.
+inline def verify(inline claim: Any): ClaimQuery = ${ QueryMacros.verifying('claim) }
+
+// `find(servedFromL2) in anyRun`, in `queries`: a check that some step of the scenario is one the
+// claim is about and holds of, a witness, named after its `val`. Its target is a claim, typically a
+// postcondition-shaped block declared in `queries` itself, `val servedFromL2 =
+// after(client.read): records(Event.readL2)`, which is no promise and is not checked by default.
+// Core form: `query find claim in scenario limits bounds`.
+inline def find(inline claim: Any): ClaimQuery = ${ QueryMacros.finding('claim) }
+
+// `only(heater.heat, heater.failover)`: the scenario that admits these actions and no others, named
+// after its `val` where it is one. Core form: `scenario.free` restricted to the actions listed.
+inline def only(actions: (Action[?] | Class | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).only(actions*)
+
+// `fair(rm.commit)`: the scenario that makes these actions weakly fair, an action that stays enabled
+// is eventually taken, and admits every action. Core form: `scenario.free` assuming `fair(actions)`.
+inline def fair(actions: (Action[?] | Class | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).fair(actions*)
+
+// `starts(temperature = -40)`: the scenario that starts in the Machine's initial state with the
+// vars named changed, checked against its vars when it is checked. Core form:
+// `scenario.starts(init.copy(temperature = -40)).free`.
+inline def starts: Scenario.Starts =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).starts
+
+// `actions(client.write(), client.read())`: the scenario pinned to exactly these classes, in order.
+// Core form: `scenario.actions(classes*)`.
+inline def actions(cs: (ClassRef | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).actions(cs*)
+
+// The compile-time half of `verify`, `find` and the scenario words: what claim a check names, and
+// the machine a scenario is built in.
+@scala.annotation.publicInBinary
+private[framework] object QueryMacros:
+  import scala.quoted.*
+
+  private val blockSections = Set("invariants$", "postconditions$", "queries$")
+
+  // The Machine object the expansion sits in, if any.
+  @scala.annotation.publicInBinary
+  private[framework] inline def enclosing: Option[Model] = ${ enclosingImpl }
+
+  @scala.annotation.publicInBinary
+  private[framework] def enclosingImpl(using q: Quotes): Expr[Option[Model]] =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(!_.isNoSymbol)
+      .find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
+      .fold('{ None })(cls => '{ Some(${ This(cls).asExprOf[Model] }) })
+
+  @scala.annotation.publicInBinary
+  private[framework] def verifying(claim: Expr[Any])(using Quotes): Expr[ClaimQuery] =
+    select(claim, finds = false)
+
+  @scala.annotation.publicInBinary
+  private[framework] def finding(claim: Expr[Any])(using Quotes): Expr[ClaimQuery] =
+    select(claim, finds = true)
+
+  private def select(claim: Expr[Any], finds: Boolean)(using q: Quotes): Expr[ClaimQuery] =
+    import q.reflect.*
+    val word = if finds then "find" else "verify"
+    val form = if finds then '{ QueryForm.find } else '{ QueryForm.verify }
+    def refused = report.errorAndAbort(
+      s"$word takes an invariant, a postcondition or a progress claim",
+      claim.asTerm.pos
+    )
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    val term = unwrap(claim.asTerm)
+    val tpe = term.tpe.widen
+    if tpe <:< TypeRepr.of[Property] then
+      '{ ClaimQuery.property($form, ${ term.asExprOf[Property] }) }
+    else
+      val member = term.symbol
+      val section = if member.exists then member.owner else Symbol.noSymbol
+      if !member.exists || !member.isValDef || !(tpe =:= TypeRepr.of[Unit]) ||
+        !section.isClassDef || !section.flags.is(Flags.Module) || !blockSections(section.name)
+      then refused
+      val machine = section.owner
+      if !machine.isClassDef || !machine.flags.is(Flags.Module) then refused
+      val owner = Ref(machine.companionModule).asExprOf[Model]
+      '{
+        ClaimQuery.block(
+          $form,
+          $owner,
+          ${ Expr(section.name.stripSuffix("$")) },
+          ${ Expr(member.name) }
+        )
+      }
+
 // The compile-time half of a derivation's block: in the rule words it binds those rules, and in
 // plain control flow over a Machine's vars the one rule a transitions block would.
 @scala.annotation.publicInBinary

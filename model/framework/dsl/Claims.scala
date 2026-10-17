@@ -1,5 +1,7 @@
 package framework.dsl
 
+import scala.language.dynamics
+
 // A Property's untyped part. A same-step Property names the action it is about under `after` and
 // holds of the step that action produces; a transition Property holds of the state before a step
 // and the step after it.
@@ -10,7 +12,10 @@ final class PropertyDecl private[framework] (
     private[framework] val when: Option[ClassRef | Composed | String],
     private[framework] val holds: Option[Nothing => Boolean],
     private[framework] val holds2: Option[(Nothing, Nothing) => Boolean],
-    val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty
+    val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty,
+    // A member of a claim section written as a block of assertions, which `verify` and `find`
+    // name, and whose native evaluation reruns its section (NativeClaims).
+    private[framework] val claim: Option[NativeClaims.Ref] = None
 )
 
 // A Property over a machine or composition, whatever its state. The claim patterns of model/framework/dsl/Syntax.scala
@@ -81,19 +86,117 @@ final class PropertyBuilder[S, O, F] private[framework] (
     )
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A
-// pinned Scenario lists its actions exactly; a free one lists none and admits any action.
+// pinned Scenario lists its actions exactly; a free one lists none and admits any action. The
+// environment of a check is a Scenario too: `only` the actions it admits, `fair` the admitted
+// actions that are weakly fair (one that stays enabled is eventually taken), and `updates` the
+// vars it changes from the Machine's initial state, its start.
 final class ScenarioDecl private[framework] (
     val name: String,
     val machine: Model,
     val start: Option[Any],
     // The declared classes, or for a composition its composed classes.
     val actions: Vector[ClassRef | Composed],
-    val free: Boolean
-)
+    val free: Boolean,
+    val only: Option[Vector[Action[?] | Class | Composed]] = None,
+    val fair: Vector[Action[?] | Class | Composed] = Vector.empty,
+    val updates: Vector[(String, Any)] = Vector.empty
+):
+  require(
+    only.isEmpty || actions.isEmpty,
+    "a scenario admits actions with only or pins them with actions, not both"
+  )
 
-// A Scenario over a machine or composition, whatever its state.
+  // Whether a check of this scenario says more of the environment than a realization can drive:
+  // that it admits only some actions, or assumes some are fair.
+  def modelOnly: Boolean = only.nonEmpty || fair.nonEmpty
+
+  // Whether it admits an action: every action, unless it says `only`.
+  private[framework] def admits(decl: ActionDecl): Boolean =
+    only.forall(_.exists:
+      case a: Action[?] => a.decl eq decl
+      case c: Class     => c.decl eq decl
+      case _            => false)
+
+  // The actions it assumes weakly fair: every class of each one named, or the one class named.
+  private[framework] def fairActions: Vector[ActionDecl] = fair.collect:
+    case a: Action[?] => a.decl
+    case c: Class     => c.decl
+
+  private[framework] def copy(
+      name: String = name,
+      machine: Model = machine,
+      start: Option[Any] = start,
+      actions: Vector[ClassRef | Composed] = actions,
+      free: Boolean = free,
+      only: Option[Vector[Action[?] | Class | Composed]] = only,
+      fair: Vector[Action[?] | Class | Composed] = fair,
+      updates: Vector[(String, Any)] = updates
+  ): ScenarioDecl = ScenarioDecl(name, machine, start, actions, free, only, fair, updates)
+
+// The machine of a Scenario built where no machine is in scope, `only(user.pressButton)` in a test:
+// the claim it is a scenario of names it.
+private[framework] object Unbound extends Model:
+  def name: String = ""
+
+// A Scenario over a machine or composition, whatever its state. Built from `only(...)`,
+// `fair(...)`, `starts(x = v)` and `actions(...)`, it composes by chaining them: `only(a, b).fair(a)`,
+// `fair(a).starts(heatingOn = true)`. One that says none of them admits every path from the
+// Machine's starts and assumes nothing.
 final class Scenario private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
+
+  // Admits these actions and no others.
+  def only(actions: (Action[?] | Class | Composed)*): Scenario =
+    require(decl.only.isEmpty, s"a scenario says only once: ${decl.name}")
+    Scenario(decl.copy(only = Some(actions.toVector)))
+
+  // Makes these admitted actions weakly fair: one that stays enabled is eventually taken.
+  def fair(actions: (Action[?] | Class | Composed)*): Scenario =
+    Scenario(decl.copy(fair = decl.fair ++ actions))
+
+  // Starts in the Machine's initial state with the vars named changed: `.starts(heatingOn = true)`.
+  def starts: Scenario.Starts = Scenario.Starts(this)
+
+  // Pins the schedule to exactly these classes, in order.
+  def actions(cs: (ClassRef | Composed)*): Scenario =
+    Scenario(decl.copy(actions = cs.toVector, free = false))
+
+  // The scenario of a check of `machine`'s claim: its own machine where it was built in one, and
+  // its start the initial state with its updates, checked against the Machine's vars.
+  private[framework] def bound(machine: Model, named: String): ScenarioDecl =
+    val owner = if decl.machine eq Unbound then machine else decl.machine
+    val start =
+      if decl.updates.isEmpty then decl.start
+      else
+        owner match
+          case declares: Declares[?] =>
+            val vars = declares.stateVars.getOrElse(
+              throw IllegalArgumentException(
+                s"starts(${decl.updates.map(_._1).mkString(", ")}) names vars, and " +
+                  s"${owner.name} declares none"
+              )
+            )
+            Some(vars.updated(vars.initial, decl.updates))
+          case other =>
+            throw IllegalArgumentException(s"starts names vars, and ${other.name} declares none")
+    decl.copy(
+      name = if decl.name.isEmpty then named else decl.name,
+      machine = owner,
+      start = start
+    )
+
+object Scenario:
+  // The named updates of a scenario's start, `starts(heatingOn = true)`.
+  final class Starts private[framework] (scenario: Scenario) extends scala.Dynamic:
+    def applyDynamicNamed(method: String)(updates: (String, Any)*): Scenario =
+      require(method == "apply", s"starts.$method is not a start")
+      Scenario(scenario.decl.copy(updates = scenario.decl.updates ++ updates))
+
+  // A scenario that says nothing yet, of the machine it was built in, if any.
+  private[framework] def of(machine: Option[Model], name: Option[String]): Scenario =
+    Scenario(
+      ScenarioDecl(name.getOrElse(""), machine.getOrElse(Unbound), None, Vector.empty, free = true)
+    )
 
 // Declares a Scenario.
 final class ScenarioBuilder[S] private[framework] (
@@ -210,12 +313,76 @@ class Query private[framework] (
   // Marks a Query as one that generates a live Case, and states what its Run is expected to show
   // (fn-140 R3): a Query without it is checked in the model alone.
   def live(expected: framework.realize.RunExpectation): Query =
+    realizable()
     configured(configuration.copy(expectedRun = Some(expected)))
 
   def explore(space: framework.realize.Exploration): Query =
+    realizable()
     configured(configuration.copy(exploration = Some(space)))
 
+  // A realization drives only what a Case can: a scenario that restricts or assumes the
+  // environment is checked in the model alone.
+  protected def realizable(): Unit =
+    require(
+      !scenario.modelOnly,
+      s"${if name.nonEmpty then name else scenario.name} runs on the model only: its scenario " +
+        "restricts or assumes the environment"
+    )
+
   override def toString: String = name
+
+// A check a Model names in `queries`, `verify(invariants.consistency) in anyVote` or
+// `find(servedFromL2) in anyRun`, named after its `val`: a claim of the Machine, or a find target
+// declared in `queries` itself, checked in a scenario, every path from the Machine's starts unless
+// it says one. It names no bound: the checker's budget is the caller's.
+final class ClaimQuery private[framework] (
+    form: QueryForm,
+    property: PropertyDecl,
+    scenario: ScenarioDecl,
+    config: QueryConfiguration = QueryConfiguration()
+) extends Query("", form, property, scenario, frameworkReach, config):
+  // The scenario the claim is checked in.
+  infix def in(s: Scenario): ClaimQuery =
+    ClaimQuery(form, property, s.bound(property.machine, ""), configuration)
+
+  // What is no scenario is refused where it is written: `verify(x) in 3` would otherwise read as
+  // membership.
+  inline infix def in(@scala.annotation.unused other: Any): Nothing =
+    scala.compiletime.error("in takes a scenario: only(...), fair(...), starts(...) or a named one")
+
+  // A Model declares no Limits: a bound is a promise or the checker's budget.
+  inline infix def limits(@scala.annotation.unused bounds: Any): Nothing =
+    scala.compiletime.error(
+      "a bound is a promise (within) or a budget (the checker's configuration); a Model declares " +
+        "no Limits"
+    )
+
+  override private[framework] def configured(config: QueryConfiguration): Query =
+    ClaimQuery(form, property, scenario, config)
+
+object ClaimQuery:
+  // A check of a Property, a claim of a Machine written in the retired `property` form.
+  @scala.annotation.publicInBinary
+  private[framework] def property(form: QueryForm, claim: Property): ClaimQuery =
+    ClaimQuery(form, claim.decl, Scenario.of(None, None).bound(claim.decl.machine, ""))
+
+  // A check of a member of a claim section written as a block of assertions.
+  @scala.annotation.publicInBinary
+  private[framework] def block(
+      form: QueryForm,
+      machine: Model,
+      section: String,
+      member: String
+  ): ClaimQuery =
+    val decl = PropertyDecl(
+      member,
+      machine,
+      None,
+      None,
+      None,
+      claim = Some(NativeClaims.Ref(machine, section, member))
+    )
+    ClaimQuery(form, decl, Scenario.of(None, None).bound(machine, ""))
 
 // `val completion = query find completes in completed limits three`, named after its `val`, or
 // `query("syncCompletion") find syncSucceeds in syncReplied limits two`. A Query neither names, such
