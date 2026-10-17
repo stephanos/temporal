@@ -41,8 +41,17 @@ object NativeControls:
       claim: NativeClaims.Adhoc,
       starts: Seq[S]
   )(using munit.Location): NativeCheck.Result =
+    assertRefuted(machine, claim, starts, NativeCheck.defaultBudget)
+
+  // The same within `budget` states: a counterexample found before the cut stands.
+  def assertRefuted[S, O, F](
+      machine: RecordMachine[S, O, F],
+      claim: NativeClaims.Adhoc,
+      starts: Seq[S],
+      budget: Int
+  )(using munit.Location): NativeCheck.Result =
     val origins = if starts.isEmpty then machine.initialStates else starts
-    val graph = NativeCheck.explore(machine, origins)
+    val graph = NativeCheck.explore(machine, origins, budget = budget)
     refuted(NativeCheck.verify(graph, s"${machine.name}.${claim.name}", claim))
 
   // An invariant written in a test, its block of assertions evaluated in every reached state of the

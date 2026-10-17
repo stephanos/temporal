@@ -17,16 +17,12 @@ object Bank:
   enum Denom:
     case banana, burger
 
-  import Addr.*, Denom.*
-
-  // the supply of each denomination, and so the most coins one account can hold. Quint's supply
-  // of 10_000, scaled down so that exploration reaches every state; it also stands in for the
-  // SDK's Int256 bound, which Quint checks as MAX_INT256.
+  // The total coins of each denomination. Scaling the supply to two keeps the sample small;
+  // the same magnitude bounds a signed balance in place of the SDK's Int256 range.
   val supply = 2
 
-  // Whether an amount fits a balance: the scaled Int256 range. Quint's integers are unbounded and
-  // it checks only what the receiver would hold; a negative send raises the sender's balance, so
-  // here both balances are held to the range, which keeps the reachable states finite.
+  // Whether a signed balance fits the sample's range. A negative send can increase the sender's
+  // balance or leave the receiver owing coins, so both resulting balances must fit.
   def fits(amount: Int): Boolean =
     -supply <= amount && amount <= supply
 
@@ -71,7 +67,9 @@ object Bank:
 
   object Model extends Machine[Outcome, Nothing]:
     // the balances of every address: the king has it all
-    var balances = Balances(of = Map(king -> Map(banana -> supply, burger -> supply)))
+    var balances = Balances(
+      of = Map(Addr.king -> Map(Denom.banana -> supply, Denom.burger -> supply))
+    )
 
     object transitions extends Transitions:
       on(client.send): in =>
@@ -111,8 +109,10 @@ object Bank:
       // a send of one banana from the king to peaches: not every such send pays, so it is a find's
       // target, not a promise
       val peachesGetsBananas =
-        after(client.send(fromAddr = king, toAddr = peaches, denom = banana, amount = 1)):
-          check(balances(king, banana) == 1)
-          check(balances(peaches, banana) == 1)
+        after(
+          client.send(fromAddr = Addr.king, toAddr = Addr.peaches, denom = Denom.banana, amount = 1)
+        ):
+          check(balances(Addr.king, Denom.banana) == 1)
+          check(balances(Addr.peaches, Denom.banana) == 1)
       val kingSendsPeachesBananas =
         find(peachesGetsBananas)

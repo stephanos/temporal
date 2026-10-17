@@ -50,7 +50,7 @@ class FrameworkLoopSuite extends munit.FunSuite:
         "model/framework/samples/TwoLayeredCache.test.scala" -> "package framework.dsl\nclass TwoLayeredCacheTest extends munit.FunSuite\n",
         "model/framework/samples/TwoPhaseCommit.test.scala" -> "package framework.dsl\nclass TwoPhaseCommitTest extends munit.FunSuite\n",
         "model/framework/samples/Voting.test.scala" -> "package framework.dsl\nclass VotingTest extends munit.FunSuite\n",
-        "model/framework/samples/NativeMaps.test.scala" -> "package framework.dsl\nclass NativeMapsTest extends munit.FunSuite\n",
+        "model/framework/samples/NativeInputs.test.scala" -> "package framework.dsl\nclass NativeInputsTest extends munit.FunSuite\n",
         "model/framework/samples/NativeVoting.test.scala" -> "package framework.dsl\nclass NativeVotingTest extends munit.FunSuite\n",
         "model/framework/samples/NativeHistory.test.scala" -> "package framework.dsl\nclass NativeHistoryTest extends munit.FunSuite\n",
         "model/framework/export/Ids.test.scala" -> "package framework.`export`\nclass DerivedIds extends munit.FunSuite\n",
@@ -113,7 +113,7 @@ class FrameworkLoopSuite extends munit.FunSuite:
       "framework.dsl.TwoLayeredCacheTest",
       "framework.dsl.TwoPhaseCommitTest",
       "framework.dsl.VotingTest",
-      "framework.dsl.NativeMapsTest",
+      "framework.dsl.NativeInputsTest",
       "framework.dsl.NativeVotingTest",
       "framework.dsl.NativeHistoryTest"
     )
@@ -149,7 +149,7 @@ class FrameworkLoopSuite extends munit.FunSuite:
         "framework.dsl.BankTest",
         "framework.dsl.KettleTest",
         "framework.dsl.NativeHistoryTest",
-        "framework.dsl.NativeMapsTest",
+        "framework.dsl.NativeInputsTest",
         "framework.dsl.NativeVotingTest",
         "framework.dsl.ReliableBroadcastTest",
         "framework.dsl.TwoLayeredCacheTest",

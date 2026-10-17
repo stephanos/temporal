@@ -29,6 +29,21 @@ Models are exempt. The native DSL/realize/sample run passes all 538 tests. Suite
 block-form lint (7 tests), boundary checks (3 tests) and scoped formatting also pass. This records a
 native source checkpoint; the .10 lifting, schema/Go/oracle and equivalence obligations stay open.
 
+The owner's Bank follow-up removes the exhaustive `verifyAll(Model)` assertion from its test.
+Bank retains its individual-step supply/refusal checks, witness queries and bounded Leaky
+counterexample. Its supply and signed-balance comments no longer imply full exploration.
+The 17 `NativeMapsTest` cases and their helpers now live with Bank and TwoPhaseCommit, plus a new
+`NativeInputs.test.scala`; the combined suite is removed and framework discovery follows the new
+name. Existing signed-send and sparse-balance cases and test comments are preserved. The bounded
+ad-hoc refutation helper is included with its Bank consumer.
+
+All 617 native DSL/realize/sample tests now pass, including all nine sample suites. Framework
+discovery and source lint pass all 37 checks; scoped formatting and a fresh-context same-family
+read-only review pass. The discovery test first reproduced the missing NativeInputs suite.
+Logs: `.flow/tmp/bank-test-split-{discovery-red,native-gate,check-gate,fmt-check}.log`.
+This passes the complete native run; it does not claim an exhaustive Bank safety proof or release
+the held lifting, schema/Go/oracle, Temporal or equivalence work.
+
 ## Acceptance
 - [ ] TBD
 
