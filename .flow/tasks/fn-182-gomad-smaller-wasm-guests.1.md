@@ -29,15 +29,16 @@ Establish R1 and the pre-change half of R4 before changing dependency selection.
 From tools/gomad: `go test -tags test_dep ./internal/backends/wasm/backend`; use TestDiagnosticGuestVariants/measurement driver conventions for actual guest baseline capture, with their documented explicit helper inputs.
 
 ## Acceptance
-- [ ] Representative qualified single/cluster guest closures and registration dependencies recorded with exact inputs
-- [ ] Selected exclusion has a measured smaller disposable build of the same workload and a documented preserved-provider seam
-- [ ] Required/default-profile dependencies are retained; Elasticsearch is a candidate rather than mandatory removal
-- [ ] Matched pre-change same-host baseline retained for every R4 metric before implementation; missing measurements remain open
-
+- [x] Representative qualified single/cluster guest closures and registration dependencies recorded with exact inputs
+- [x] Selected exclusion has a measured smaller disposable build of the same workload and a documented preserved-provider seam
+- [x] Required/default-profile dependencies are retained; Elasticsearch is a candidate rather than mandatory removal
+- [x] Matched pre-change same-host baseline retained for every R4 metric before implementation; missing measurements remain open — byte metrics retained (module bytes, baseline compiled-cache bytes); the timing/RSS metrics are **transferred to fn-185 R6** (owner decision 2026-10-17)
 ## Done summary
-TBD
+Recorded the qualified one-box and multi-instance guest closures under the provider's WASI build environment, selected three optional-provider exclusions (cloud archivers, ringpop, MySQL/PostgreSQL test drivers) and rejected Elasticsearch, which the scheduler query converter needs. Re-verified on the post-fn-178 candidate (`bb20a23e6f`): multi-instance 1446 -> 1320 packages, 126 removed, 0 added, identical to the predicted edge cut. Byte baseline: full one-box module 338,040,129 B and compiled cache 693,979,010 B (n=1). The timed baseline part of R4 is transferred to fn-185 R6 by the owner decision of 2026-10-17. Detail: `.flow/artifacts/fn182-closeout-2026-10-17.md`.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9335ea7c32, bb20a23e6f
+- Tests: go list -mod=readonly -pgo=off -deps -test -json -tags disable_grpc_modules,sqlite3_dotlk,test_dep[,gomad_wasm_slim] <guest package> (GOOS=wasip1 GOARCH=wasm CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc), go test -tags test_dep -run TestSlimGuestClosureCutsOnlyOptionalProviderSeams ./internal/backends/wasm/backend
 - PRs:
+- Detailed evidence: `.flow/artifacts/fn182-closeout-2026-10-17.md` (R-ID map, commits, commands, exits, reviews, fn-185 R6 transfer)

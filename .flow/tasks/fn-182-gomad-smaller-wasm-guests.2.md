@@ -29,15 +29,16 @@ Implement the smallest proven exclusion from task .1 and integrate its existing 
 From tools/gomad: `go test -tags test_dep ./internal/backends/wasm/backend`; from repository root run affected visibility/package tests with `-tags test_dep` under default and selected guest build configurations.
 
 ## Acceptance
-- [ ] Selected guest build excludes the demonstrated closure and is smaller for unchanged workload selection
-- [ ] Default production/stock/native source and configuration behavior preserved; excluded provider requests fail explicitly
-- [ ] Tag-only and closure-only changes cannot reuse incompatible preparation/cache entries; provenance names actual selection
-- [ ] No runtime/GC/fuel changes, missing test coverage or assumed cross-build exact tape compatibility
-
+- [x] Selected guest build excludes the demonstrated closure and is smaller for unchanged workload selection
+- [x] Default production/stock/native source and configuration behavior preserved; excluded provider requests fail explicitly
+- [x] Tag-only and closure-only changes cannot reuse incompatible preparation/cache entries; provenance names actual selection
+- [x] No runtime/GC/fuel changes, missing test coverage or assumed cross-build exact tape compatibility
 ## Done summary
-TBD
+Added the guest-only `gomad_wasm_slim` profile (`52a9413803`) over the existing provider seams; production, stock and native selections are unchanged. Excluded providers refuse explicitly without fallback (three refusal tests, gated by `make -C tools/gomad test-wasm-slim-refusals`, `6211345a9c`). Build selection binds preparation, provenance and compiled-cache identity (`TestBuildSelectionChangesInvalidateCompilationCache`, `TestQualificationGuestProfilesBindOnlySlimSelection`, `TestReplayRejectsChangedArtifactIdentityBeforeGuest`). Slim modules are 9.35% (one-box) and 13.0% (multi-instance) smaller for the same workload. Detail: `.flow/artifacts/fn182-closeout-2026-10-17.md`.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 52a9413803, 6211345a9c, de4c050853
+- Tests: make -C tools/gomad test-wasm-slim-refusals GOMAD_STOCK_GO=<pinned go1.27.1>, go test -tags test_dep -run 'TestSlimGuestClosureCutsOnlyOptionalProviderSeams|TestBuildSelectionChangesInvalidateCompilationCache' ./internal/backends/wasm/backend, go test -tags test_dep -run TestQualificationGuestProfilesBindOnlySlimSelection ./internal/backends/wasm/qualification
 - PRs:
+- Detailed evidence: `.flow/artifacts/fn182-closeout-2026-10-17.md` (R-ID map, commits, commands, exits, reviews, fn-185 R6 transfer)

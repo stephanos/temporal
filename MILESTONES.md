@@ -67,11 +67,10 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
-1. Complete [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md) smaller guests and matched qualification.
-2. Then [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation.
-3. Then [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md) upstream sync: merge `temporalio/temporal` `main` into `gomad` (merge, not rebase, so retained evidence SHAs stay valid) and requalify.
-4. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
-5. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
+1. Complete [fn-184](.flow/specs/fn-184-gomad-native-backend-isolation.md) native backend isolation.
+2. Then [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md) upstream sync: merge `temporalio/temporal` `main` into `gomad` (merge, not rebase, so retained evidence SHAs stay valid) and requalify.
+3. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
+4. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 <a id="native-backend-isolation"></a>
 
@@ -242,14 +241,6 @@ CI, PR, or push authority.
 <a id="wasm-execution-performance"></a>
 
 <a id="replay-instrumentation"></a>
-
-### Smaller WASM guests — [fn-182](.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-182.1](.flow/tasks/fn-182-gomad-smaller-wasm-guests.1.md) | 🚧 In progress | Measure guest dependency closures and select safe exclusions |
-| [fn-182.2](.flow/tasks/fn-182-gomad-smaller-wasm-guests.2.md) | 🚧 In progress | Trim optional guest providers and bind build selection to identity |
-| [fn-182.3](.flow/tasks/fn-182-gomad-smaller-wasm-guests.3.md) | 🚧 In progress | Measure trimmed guests and qualify behavior and replay |
 
 <a id="native-backend-isolation-fn-184"></a>
 

@@ -53,15 +53,16 @@ Next implement only bounded exact-byte reuse of recovery commitments in model/in
 ### Quick commands
 `make -C tools/gomad test-wasm GOMAD_STOCK_GO=/absolute/pinned/go1.27.1` and the selected actual qualification/performance drivers with explicit inputs; confirm no acceptance selector skipped. Run helper formatting, tests, clippy, generated/pin validation and source review for the repair before actual requalification. Root serializes heavy host work and owns final review, integration and completion.
 ## Acceptance
-- [ ] Matched same-host measurements cover all R4 metrics with identities, repetitions, ranges and rerun commands
-- [ ] Existing resource budgets pass; measurement spread and regressions are reported explicitly
-- [ ] Success and canary failures remain observable, with repeated execution and fresh retained replay under the new candidate
-- [ ] Build documentation and qualification report reflect actual results and preserve native deferrals
-
+- [x] Matched same-host measurements cover all R4 metrics with identities, repetitions, ranges and rerun commands — module bytes recorded at close; timing, helper peak RSS and slim compiled-cache bytes **transferred to fn-185 R6** (owner decision 2026-10-17)
+- [x] Existing resource budgets pass; measurement spread and regressions are reported explicitly — all 8 R5 cells within budget with 0 violations; spread reporting **transferred to fn-185 R6**
+- [x] Success and canary failures remain observable, with repeated execution and fresh retained replay under the new candidate
+- [x] Build documentation and qualification report reflect actual results and preserve native deferrals
 ## Done summary
-TBD
+All 8 R5 cells pass on the candidate (full and slim; one-box and multi-instance; success and canary): deterministic, 2/2 fresh retained replays match, expected canary bugs observed, budgets within with 0 violations. Multi-instance canaries passed on retry after a 5 s finish-window overrun under host load, fixed by gomad `6ead645c9e`. The inspection-cost prerequisite and review follow-ups merged via `3dae95b99f` (reviews SHIP). test-wasm, Rust tests/clippy/fmt and lint-code-gomad-wasm exit 0. QUALIFICATION.md now points to the close-out and claims no performance gain. The matched timing and RSS comparison is transferred to fn-185 R6 (owner decision 2026-10-17). Detail: `.flow/artifacts/fn182-closeout-2026-10-17.md`.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bb8f1440b2, 3dae95b99f, 6ead645c9e
+- Tests: make -C tools/gomad test-wasm GOMAD_STOCK_GO=<pinned go1.27.1>, python3 -I /home/agent/wt/evidence/fn182/run_cell.py <root> {base,cand} {onebox,multi-instance} {success,canary} <stock go> <helper 4964b928> <qualification.test 3ee4e147> <inputs>, cargo +1.94.1 test --release --locked, make lint-code-gomad-wasm GOLANGCI_LINT_BASE_REV=01c419c40a GOLANGCI_LINT_FIX=false
 - PRs:
+- Detailed evidence: `.flow/artifacts/fn182-closeout-2026-10-17.md` (R-ID map, commits, commands, exits, reviews, fn-185 R6 transfer)

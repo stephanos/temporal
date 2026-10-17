@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-182-gomad-smaller-wasm-guests.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: Smaller WASM guests",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-15T14:56:57.963891Z"
+  "updated_at": "2026-10-17T00:52:08.155136Z"
 }
