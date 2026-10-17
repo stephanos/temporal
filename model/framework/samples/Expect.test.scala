@@ -212,7 +212,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, initial, List.empty[Event]), true),
         (Step(Outcome.accepted, mismatched, List.empty[Event]), false)
       )
-    )(after => agreed(after.state))
+    )(after => agreed(Model.at(after.state)(Model.current)))
     val factCases = List(
       (Step(Outcome.accepted, initial, List.empty[Event]), false),
       (Step(Outcome.accepted, initial, List(Event.wrote)), true),

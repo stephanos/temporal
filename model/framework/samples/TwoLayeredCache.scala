@@ -37,7 +37,7 @@ object TwoLayeredCache:
 
   def observe(
       history: List[Observation],
-      after: Step[Cache, Outcome, Event]
+      after: Step[State, Outcome, Event]
   ): List[Observation] =
     val event =
       if after.records(Event.wrote) then Some(Event.wrote)
@@ -46,8 +46,9 @@ object TwoLayeredCache:
           event == Event.readL1 || event == Event.readL2 || event == Event.notFound
         )
     event match
-      case Some(event) => history :+ Observation(event, readValue(after.state))
-      case None        => history
+      case Some(event) =>
+        history :+ Observation(event, readValue(Model.at(after.state)(Model.current)))
+      case None => history
 
   def readHistoryBroken(history: List[Observation]): Boolean =
     history
@@ -77,71 +78,75 @@ object TwoLayeredCache:
 
   def agreed(cache: Cache): Boolean = cache.l1 == cache.l2
 
-  object Model extends RecordMachine[Cache, Outcome, Event]:
-    val init = Cache(l1 = None, l2 = None, num = 0)
+  object Model extends Machine[Outcome, Event]:
+    // the two layers and the value the next write stores: empty, and the first write stores 0
+    var l1 = Option.empty[Int]
+    var l2 = Option.empty[Int]
+    var num = 0
+
+    // the cache as one record, which the predicates above read
+    def current: Cache = Cache(l1, l2, num)
+
     // a run stops where the layers agree
-    def end(cache: Cache) = agreed(cache)
+    override def end = agreed(current)
 
     object rules extends Rules:
       on(client.write):
-        where(_.num < 3) ~> effects.write
+        where(num < 3) ~> effects.write()
       on(client.read):
-        always ~> effects.read
+        always ~> effects.read()
       on(timers.l1Expire):
-        where(_.l1 != None) ~> effects.expire
+        where(l1 != None) ~> effects.expire()
 
     object effects:
-      def write(cache: Cache) =
-        enter(
-          cache.copy(
-            l1 = Some(cache.num),
-            l2 = Some(cache.num),
-            num = cache.num + 1
-          ),
-          Event.wrote
-        )
+      def write(): Unit =
+        l1 = Some(num)
+        l2 = Some(num)
+        num = num + 1
+        record(Event.wrote)
       // A buggy write that stores its value in layer 1 only.
-      def writeL1Only(cache: Cache) =
-        enter(
-          cache.copy(l1 = Some(cache.num), num = cache.num + 1),
-          Event.wrote
-        )
+      def writeL1Only(): Unit =
+        l1 = Some(num)
+        num = num + 1
+        record(Event.wrote)
       // If the value is not in layer 1, read it from layer 2 and write it back to layer 1;
       // otherwise it is not found.
-      def read(cache: Cache) =
-        if cache.l1 != None then enter(cache, Event.readL1)
-        else if cache.l2 != None then enter(cache.copy(l1 = cache.l2), Event.readL2)
-        else enter(cache, Event.notFound)
-      def expire(cache: Cache) = enter(cache.copy(l1 = None))
+      def read(): Unit =
+        if l1 != None then record(Event.readL1)
+        else if l2 != None then
+          l1 = l2
+          record(Event.readL2)
+        else record(Event.notFound)
+      def expire(): Unit = l1 = None
 
     object postconditions:
       // after a read, both layers hold what it returned
       val readFillsL1: Property =
         property
           .after(client.read)
-          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
-            check(agreed(after.step.state))
+          .expect:
+            check(agreed(current))
       val servedFromL2: Property =
         property
           .after(client.read)
-          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
+          .expect:
             records(Event.readL2)
 
     object monitors:
       // read the latest write: no read returns a value older than the last write, and a miss is
       // older than any write
-      val readAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+      val readAfterWrite = monitor[State, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
         (history, _, after) => observe(history, after)
       )(readHistoryBroken)
       // a later write stores a greater value
-      val writeAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+      val writeAfterWrite = monitor[State, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
         (history, _, after) => observe(history, after)
       )(writeHistoryBroken)
 
     object progress:
       // all layers contain the same latest written value, one step after they part
-      val agreement: Progress[Cache] =
-        Model.leadsTo("agreement")(cache => !agreed(cache), agreed, within = 1)
+      val agreement: Progress[State] =
+        Model.leadsTo("agreement")(!agreed(current), agreed(current), within = 1)
 
     object queries:
       val anyRun: Scenario = scenario.starts(init).free
@@ -151,7 +156,7 @@ object TwoLayeredCache:
       val readAfterExpiry = query find postconditions.servedFromL2 in anyRun limits history
 
   object WriteThroughL1
-      extends Derived(Model.rebind(client.write ~> Model.effects.writeL1Only)),
+      extends Derived(Model.rebind(client.write ~> Model.effects.writeL1Only())),
         NegativeControl:
 
     object postconditions:
@@ -160,7 +165,7 @@ object TwoLayeredCache:
       val buggyWritesRecorded: Property =
         property
           .after(client.write)
-          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
+          .expect:
             records(Event.wrote)
 
     object queries:

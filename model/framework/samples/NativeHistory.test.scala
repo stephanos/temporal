@@ -18,6 +18,10 @@ class NativeHistoryTest extends munit.FunSuite:
   private def snapshot(temperature: Int, heatingOn: Boolean, beeping: Boolean): State =
     Kettle.Model.init.copy(temperature = temperature, heatingOn = heatingOn, beeping = beeping)
 
+  // A TwoLayeredCache state by its vars, in declaration order: l1, l2, num.
+  private def cache(l1: Option[Int], l2: Option[Int], num: Int): State =
+    TwoLayeredCache.Model.init.copy(l1 = l1, l2 = l2, num = num)
+
   test("Kettle stores signed Celsius for room and cold starts"):
     val room: Int = Kettle.Model.at(Kettle.Model.init)(Kettle.Model.temperature)
     val cold: Int = Kettle.Model.at(Kettle.coldest)(Kettle.Model.temperature)
@@ -31,12 +35,12 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(write, List.empty)
 
   private def cachePath(
-      machine: RecordMachine[TwoLayeredCache.Cache, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
-      initial: TwoLayeredCache.Cache,
+      machine: RecordMachine[State, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
+      initial: State,
       cases: List[
         (
             Class,
-            TwoLayeredCache.Cache,
+            State,
             List[TwoLayeredCache.Event],
             List[TwoLayeredCache.Observation],
             Boolean,
@@ -68,9 +72,9 @@ class NativeHistoryTest extends munit.FunSuite:
     val w0 = Observation(Event.wrote, Some(0))
     val r0 = Observation(Event.readL1, Some(0))
     val l20 = Observation(Event.readL2, Some(0))
-    val empty = Cache(None, None, 0)
-    val filled = Cache(Some(0), Some(0), 1)
-    val expired = Cache(None, Some(0), 1)
+    val empty = cache(None, None, 0)
+    val filled = cache(Some(0), Some(0), 1)
+    val expired = cache(None, Some(0), 1)
     cachePath(
       Model,
       empty,
@@ -99,9 +103,9 @@ class NativeHistoryTest extends munit.FunSuite:
     val w2 = Observation(Event.wrote, Some(2))
     List(Model, WriteThroughL1).foreach: machine =>
       val l2 = if machine eq Model then Some(2) else None
-      val s1 = Cache(Some(0), if machine eq Model then Some(0) else None, 1)
-      val s2 = Cache(Some(1), if machine eq Model then Some(1) else None, 2)
-      val s3 = Cache(Some(2), l2, 3)
+      val s1 = cache(Some(0), if machine eq Model then Some(0) else None, 1)
+      val s2 = cache(Some(1), if machine eq Model then Some(1) else None, 2)
+      val s3 = cache(Some(2), l2, 3)
       cachePath(
         machine,
         Model.init,
@@ -119,7 +123,7 @@ class NativeHistoryTest extends munit.FunSuite:
           ),
           (
             timers.l1Expire(),
-            Cache(None, l2, 3),
+            cache(None, l2, 3),
             Nil,
             List(w0, w1, w2, Observation(Event.readL1, Some(2))),
             false,
@@ -141,21 +145,21 @@ class NativeHistoryTest extends munit.FunSuite:
       Model,
       Model.init,
       List(
-        (client.write(), Cache(Some(0), Some(0), 1), List(Event.wrote), List(w0), false, false),
-        (timers.l1Expire(), Cache(None, Some(0), 1), Nil, List(w0), false, false),
-        (client.read(), Cache(Some(0), Some(0), 1), List(Event.readL2), List(w0, r0), false, false),
+        (client.write(), cache(Some(0), Some(0), 1), List(Event.wrote), List(w0), false, false),
+        (timers.l1Expire(), cache(None, Some(0), 1), Nil, List(w0), false, false),
+        (client.read(), cache(Some(0), Some(0), 1), List(Event.readL2), List(w0, r0), false, false),
         (
           client.write(),
-          Cache(Some(1), Some(1), 2),
+          cache(Some(1), Some(1), 2),
           List(Event.wrote),
           List(w0, r0, w1),
           false,
           false
         ),
-        (timers.l1Expire(), Cache(None, Some(1), 2), Nil, List(w0, r0, w1), false, false),
+        (timers.l1Expire(), cache(None, Some(1), 2), Nil, List(w0, r0, w1), false, false),
         (
           client.read(),
-          Cache(Some(1), Some(1), 2),
+          cache(Some(1), Some(1), 2),
           List(Event.readL2),
           List(w0, r0, w1, r1),
           false,
@@ -163,16 +167,16 @@ class NativeHistoryTest extends munit.FunSuite:
         ),
         (
           client.write(),
-          Cache(Some(2), Some(2), 3),
+          cache(Some(2), Some(2), 3),
           List(Event.wrote),
           List(w0, r0, w1, r1, w2),
           false,
           false
         ),
-        (timers.l1Expire(), Cache(None, Some(2), 3), Nil, List(w0, r0, w1, r1, w2), false, false),
+        (timers.l1Expire(), cache(None, Some(2), 3), Nil, List(w0, r0, w1, r1, w2), false, false),
         (
           client.read(),
-          Cache(Some(2), Some(2), 3),
+          cache(Some(2), Some(2), 3),
           List(Event.readL2),
           List(w0, r0, w1, r1, w2, r2),
           false,
@@ -190,13 +194,13 @@ class NativeHistoryTest extends munit.FunSuite:
       WriteThroughL1,
       Model.init,
       List(
-        (client.write(), Cache(Some(0), None, 1), List(Event.wrote), List(w0), false, false),
-        (timers.l1Expire(), Cache(None, None, 1), Nil, List(w0), false, false),
-        (client.read(), Cache(None, None, 1), List(Event.notFound), List(w0, n), true, false),
-        (client.read(), Cache(None, None, 1), List(Event.notFound), List(w0, n, n), true, false),
+        (client.write(), cache(Some(0), None, 1), List(Event.wrote), List(w0), false, false),
+        (timers.l1Expire(), cache(None, None, 1), Nil, List(w0), false, false),
+        (client.read(), cache(None, None, 1), List(Event.notFound), List(w0, n), true, false),
+        (client.read(), cache(None, None, 1), List(Event.notFound), List(w0, n, n), true, false),
         (
           client.write(),
-          Cache(Some(1), None, 2),
+          cache(Some(1), None, 2),
           List(Event.wrote),
           List(w0, n, n, w1),
           true,
@@ -204,7 +208,7 @@ class NativeHistoryTest extends munit.FunSuite:
         ),
         (
           client.read(),
-          Cache(Some(1), None, 2),
+          cache(Some(1), None, 2),
           List(Event.readL1),
           List(w0, n, n, w1, Observation(Event.readL1, Some(1))),
           true,
@@ -212,11 +216,11 @@ class NativeHistoryTest extends munit.FunSuite:
         )
       )
     )
-    assertEquals(WriteThroughL1.end(Cache(None, None, 1)), true)
+    assertEquals(WriteThroughL1.end(cache(None, None, 1)), true)
     assert(
       holds(
         WriteThroughL1.postconditions.buggyWritesRecorded,
-        Step(Outcome.accepted, Cache(Some(0), None, 1), List(Event.wrote))
+        Step(Outcome.accepted, cache(Some(0), None, 1), List(Event.wrote))
       )
     )
 
@@ -225,13 +229,13 @@ class NativeHistoryTest extends munit.FunSuite:
     val w1 = Observation(Event.wrote, Some(1))
     cachePath(
       WriteThroughL1,
-      Cache(Some(0), Some(0), 1),
+      cache(Some(0), Some(0), 1),
       List(
-        (client.write(), Cache(Some(1), Some(0), 2), List(Event.wrote), List(w1), false, false),
-        (timers.l1Expire(), Cache(None, Some(0), 2), Nil, List(w1), false, false),
+        (client.write(), cache(Some(1), Some(0), 2), List(Event.wrote), List(w1), false, false),
+        (timers.l1Expire(), cache(None, Some(0), 2), Nil, List(w1), false, false),
         (
           client.read(),
-          Cache(Some(0), Some(0), 2),
+          cache(Some(0), Some(0), 2),
           List(Event.readL2),
           List(w1, Observation(Event.readL2, Some(0))),
           true,
@@ -266,7 +270,7 @@ class NativeHistoryTest extends munit.FunSuite:
 
   test("supplied multi-fact steps append once with write priority and after-L1 payload"):
     import TwoLayeredCache.*
-    val state = Cache(Some(0), Some(2), 1)
+    val state = cache(Some(0), Some(2), 1)
     val read = Model.monitors.readAfterWrite
     val write = Model.monitors.writeAfterWrite
     List(
