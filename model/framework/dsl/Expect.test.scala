@@ -308,7 +308,8 @@ class ExpectTest extends munit.FunSuite:
   test("tagged witness facts retain their member case across composition order"):
     import WitnessFixture.*
     import ExpectFixture.*
-    val step = Step("accepted", Joined(State.open, State.closed), List(JoinedFact.left(Fact.completed)))
+    val step =
+      Step("accepted", Joined(State.open, State.closed), List(JoinedFact.left(Fact.completed)))
     def recorded(q: Query): Boolean =
       q.property.holds.get.asInstanceOf[Step[Joined, String, JoinedFact] => Boolean](step)
     assert(recorded(Reordered.witness(start()).records(JoinedFact.left(Fact.completed))))
@@ -462,4 +463,62 @@ class ExpectTest extends munit.FunSuite:
       if after.records(JoinedFact.right(Foreign.completed)) then
         records(JoinedFact.left(Fact.completed))
     assert(!holds(conditional, List(JoinedFact.right(Foreign.completed))))
-    assert(holds(conditional, List(JoinedFact.left(Fact.completed), JoinedFact.right(Foreign.completed))))
+    assert(
+      holds(conditional, List(JoinedFact.left(Fact.completed), JoinedFact.right(Foreign.completed)))
+    )
+
+  test("method forwarding preserves tagged facts in same-step and transition claims"):
+    import WitnessFixture.*
+    import ExpectFixture.*
+    val named: Step[Joined, String, JoinedFact] => Boolean = expect:
+      records(JoinedFact.left(WitnessFixture.Fact.completed))
+    def forwarded(step: Step[Joined, String, JoinedFact]): Boolean = named(step)
+    val same = Reordered.property.expect:
+      check(forwarded(after))
+    val transition: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
+      records(JoinedFact.right(Foreign.completed))
+      check(before.left.equals(after.state.left))
+    def across(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
+      transition(before, after)
+    val property = Reordered.property.across.expect:
+      check(across(before, after))
+    assertEquals(same.name, "")
+    assertEquals(property.name, "")
+    val state = Joined(State.open, State.closed)
+    assert(forwarded(Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed)))))
+    assert(!forwarded(Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
+    assert(across(state, Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
+    assert(
+      !across(state, Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed))))
+    )
+
+  test("method wrappers refuse predicate dependencies confined to the helper scope"):
+    val refusals = List(
+      compileErrors("""
+        import framework.dsl.WitnessFixture.*
+        import framework.dsl.ExpectFixture.*
+        val named: Step[Joined, String, JoinedFact] => Boolean = expect:
+          records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
+        def forwarded(predicate: Step[Joined, String, JoinedFact] => Boolean,
+            step: Step[Joined, String, JoinedFact]): Boolean = predicate(step)
+        Reordered.property.expect:
+          check(forwarded(named, after))
+      """),
+      compileErrors("""
+        import framework.dsl.WitnessFixture.*
+        import framework.dsl.ExpectFixture.*
+        val named: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
+          records(JoinedFact.right(Foreign.completed))
+        def forwarded(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
+          val local = named
+          local(before, after)
+        Reordered.property.across.expect:
+          check(forwarded(before, after))
+      """)
+    )
+    assertEquals(
+      refusals.filterNot(
+        _.contains("expect: a forwarded predicate must be accessible outside its source helper")
+      ),
+      Nil
+    )

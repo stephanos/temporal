@@ -85,7 +85,7 @@ class BudgetedAction[S, I] @publicInBinary private[framework] (
         .asInstanceOf[RecordMachine[S, ?, ?]] // scalafix:ok DisableSyntax.asInstanceOf
     new BudgetedAction(action, budgets :+ new NativeBudget(owner, action.decl, field))
 
-  infix def ~>[O, F](effect: S => List[Step[S, O, F]])(using
+  private[framework] infix def ~>[O, F](effect: S => List[Step[S, O, F]])(using
       @unused empty: I =:= EmptyTuple
   ): StepBinding[S, O, F] =
     require(
@@ -95,7 +95,9 @@ class BudgetedAction[S, I] @publicInBinary private[framework] (
     StepBinding(action.decl, budgetedFunction[S, O, F](action.decl, effect, budgets))
 
   @targetName("budgetedInputBinding")
-  infix def ~>[O, F](effect: (S, I) => List[Step[S, O, F]]): StepBinding[S, O, F] =
+  private[framework] infix def ~>[O, F](
+      effect: (S, I) => List[Step[S, O, F]]
+  ): StepBinding[S, O, F] =
     require(action.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
     StepBinding(action.decl, budgetedFunction[S, O, F](action.decl, effect, budgets))
 
