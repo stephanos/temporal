@@ -855,9 +855,6 @@ loader re-entry, new symbol universe, broad reflection search, or fallback to au
 The cached root list is read once per original unpickler identity: without retained trees a second
 read consumes the same TASTy reader and can return nothing. All provider roots, selected trees and
 definition/recursion caches reset on the actual compiler run identity, including warm compilations.
-The private `recorded` helper and `MemberPath` object use `@scala.annotation.publicInBinary` to
-prevent uninspectable inline access proxies; their Scala source visibility is unchanged. The
-ordinary `after.records(_.member, fact)` spelling and selector refusals stay intact.
 
 The existing typed `action ~> callback` overloads capture arities 0, 1, 2, 3, 4 and 6. They retain
 the original native function, constructor, product, equality and unapply shape, attaching internal
@@ -2088,24 +2085,13 @@ Like `Derived` for machines, it inherits the source's typed `Phasing` and `end`,
 stopping points and chained derivations. Plain `Composition[S]` remains the form for other
 compositions; its constructor alone cannot retain the source's phase type.
 
-A shared Property over a composition reads a member's named state set with `through(select, read)`,
-where it would name a def: a non-role capability field or a declaring function's function-valued argument.
-`through(_.activity, Admission.twoActive)` is `s => Admission.twoActive(s.activity)`, so a
-composition needs no def of its own that restates its member's:
-
-```scala
-atMostOneActive(c)(through(_.activity, Admission.twoActive))
-```
-
-The IR generator lifts each `through` as one function of the composed state,
-`<state>.through.<path>.<def>` (here
-`temporal.features.activity.standalone.protocol.OverQueue.through.activity.temporal.features.activity.standalone.protocol.ActivityRecord$.states$.paused`),
-which the Property calls as it calls a def. `select` is a field path, `_.activity` or `_.left.phase`, and
-`read` a def of the lifted sources; each other selector and a lambda for `read` are refused at their
-line, as a lambda is, and a `read` over another type than the member's does not compile. Its two
-arguments share one parameter list: Scala infers the composed state from where the function is
-passed only then. `through` is core, not sugar: no def of the lifted sources says which member a
-Property reads.
+A Property over a composition reads a member's named state set by calling the member's helper on
+the member's state, `ActivityRecord.states.twoActive(activity)`: an ordinary call, with no
+composition vocabulary. A member fact is the composition's own enum case carrying it,
+`records(Fact.activity(AdmissionFact.admissionCommitFailed))`; an unwrapped member fact is a type
+error. `through`, the member form of `records` and `MemberPath` are retired from the DSL (fn-190
+R17); the lifter's `<state>.through.<path>.<def>` functions and `<field>_<fact>` keys leave with
+fn-190.12, and the Temporal compositions migrate at the sweep.
 
 The queue in that example is the task queue, `model/temporal/foundations/taskqueue`: a shared entity
 (`taskQueue`, keyed by the queue's name) that a feature composes by synchronizing its own actions
@@ -2136,8 +2122,7 @@ object Pausable extends CapabilityKind:
       .from(s => phasing.roleCases[Suspended](m.name).contains(phasing.phase(s)))
 ```
 
-A lambda passed for a function-valued parameter is refused at its line, naming the def to write (a
-member's def read with `through`, above, passes for a def), and so is a claim pattern after `when` (a
+A lambda passed for a function-valued parameter is refused at its line, naming the def to write, and so is a claim pattern after `when` (a
 pattern reads every step) and a `keeps` projection that is not a field path. Any other value
 parameter, such as an outcome, a fact or an action class, reads as the value the call passes: an
 expression, a class or `when` reads `rejected` as `Outcome.rejected(Rejection.notFound)`.
@@ -2614,8 +2599,7 @@ Closable, Terminable and Describable.
 **How a Property is brought.** Each capability Property is its companion's def (or the def an
 `overriding(property -> def, because = …)` names) folded with the model and the fields or owned roles
 of the capabilities that bring it, bound by parameter name. Every field that takes a
-function names a def of the lifted sources, or a member's def read with `through` on a composition,
-never a lambda. A same-step Property of one action class (`when`) is
+function names a def of the lifted sources, never a lambda. A same-step Property of one action class (`when`) is
 asked by a `find` from the start through the capability's path to a live state (its field that lists
 action classes, Terminable's `reach`) and that class, expecting of a server the Run its
 `RunExpectation` field names; transition Properties, including selected Retryable and Expirable

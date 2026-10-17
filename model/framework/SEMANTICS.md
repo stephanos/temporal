@@ -960,7 +960,7 @@ object capabilities extends Capabilities:
 name; both need a reason and are recorded as waivers (`<file>.waivers.json`, forwarded into
 `.lint.json`, not findings). A Query of the machine's own reads a brought Property with
 `capabilities.claim(Kind.property[...])`. Every field that takes a function names a def of the
-lifted sources, or a member's def through `through` on a composition; a lambda is refused at its
+lifted sources, or a member's helper called on the member's state; a lambda is refused at its
 line. A Query brought by a same-step Property is a `find` through the capability's `reach` path and
 expects the Run its field names; every other brought Property is a free `verify`.
 
@@ -1258,7 +1258,7 @@ Adding an operation requires a row and its fixture; the fixture names below are 
 | `choose` | Core choice naming | `lifts/Choices.scala` |
 | `because` | Core explanation | `lifts/Sugar.scala` |
 | `UpTo` | Bounded integer | `lifts/Inputs.scala` |
-| `through` | Projected source `Call` | `lifts/Members.scala` |
+| `through` (retired from the DSL; lifter arm until fn-190.12) | Projected source `Call` | `lifts/Members.scala` |
 
 `var`, assignment, loops, `return`, exceptions and comprehensions inside these bodies are outside
 the subset. A declaration may compute its declarations; the functions it hands them remain held
@@ -1284,7 +1284,7 @@ several:
 | `counterexample` / `found` | a witness, which holes elsewhere do not take away |
 | `resource-limit`, `limit-reached`, `unresolved` | a ceiling or bound stopped the work; proves nothing |
 | `incomplete` | no witness, and a hole was read; named with the row |
-| `unsupported` | listed, not checked (a `find` with `through`; a composition with a monitored member) |
+| `unsupported` | listed, not checked (a composition with a monitored member) |
 | `verified-within-limits` / `not-found` | holds on everything the scope reached, no hole read |
 
 A result names the table it read (Definition ID and Behavior Fingerprint), the limits, the
@@ -1307,7 +1307,7 @@ The DSL is kept in two layers so it can be changed with confidence. **Core** is 
 declared: `Machine`, `Derived`, `Composition`, `Phased`, the derivations, `Actor`, `action` and its
 classes, `input`, `UpTo`, `Bindings` and `~>`, `Step` and `because`, `Declares[S]`, `property` with
 `holds`/`holdsAcross`/`when`, `monitor`, `leadsTo`, `Syncs` with `sync`/`synced`/`own`/`withMember`,
-`through`, `scenario`, `query`, `Limits`, `total`, `Capabilities`, `choose`, `channel`, `hole`,
+`scenario`, `query`, `Limits`, `total`, `Capabilities`, `choose`, `channel`, `hole`,
 `assume`, and the realization declarations with their script helpers. **Sugar** is any form whose
 meaning a core form already says: `Rules` with `on`/`from`/`when`/`where`/`always`/`disabled`,
 `enter`/`stay`/`reject`/`rejects`/`enters`/`disabled`, the `is { }` and `effect { }` blocks,
@@ -1326,12 +1326,10 @@ Observable by-value arguments retain eager, once-only evaluation in caller order
 `let` bindings where substitution would drop, delay, duplicate or reorder a read. By-name arguments
 remain under the definition's short-circuit or conditional control.
 
-Composition `records(_.member, fact)` has a thin inline selector capture point. It records the
-typed field path, without executing or lifting the selector. The core capture validates the selected
-member and its fact type; a plain marked definition builds the canonical exact member key and tests
-the step's facts. Equal states and identically named facts of another member cannot satisfy it.
-Capture requires a direct field-selector expression at the call site. Plain selector parameters
-and selector `val` references are opaque and refused, rather than assigning invented metadata.
+A composition claim names a member fact by its member case, `records(Fact.activity(f))`: an
+ordinary enum value, so the DSL has no member form of `records` and no selector capture for it.
+The lifter's remaining `<field>_<fact>` member-key capture leaves with the composition migration's
+second phase.
 The declaration expansion follows marked constructors and their core parent declarations, binding
 their type parameters and fields. Structural callback bindings preserve the originating method's
 function name; a selector-shaped generic callback retains its field path. Core `holds` and `monitor`
