@@ -171,7 +171,7 @@ def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O
 // claim the assertion that the step recorded the fact, in an effect a fact the step records.
 // Core form: `a.facts.contains(fact)`, or the facts of `Step(outcome, state, facts)`.
 final class StepRecords[F]:
-  inline def apply(fact: F): Unit = ${ ClaimMacros.fact('fact) }
+  inline def apply(inline fact: F): Unit = ${ ClaimMacros.fact('fact) }
 
 // The outcome the step answered, in a postcondition or a monitor, `if outcome != Outcome.accepted then
 // check(balances == before.balances)`, typed with the outcomes of the Machine it is in. Core form:
@@ -467,18 +467,19 @@ private[framework] object ClaimMacros:
   private[framework] def oneOf(using q: Quotes): Expr[Any] =
     import q.reflect.*
     if StartStatesMacro.initializer.nonEmpty then '{ new InitialAlternatives() }
-    else Expr.summon[Expectation[?, ?, ?]] match
-      case Some(context) =>
-        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
-          case List(s, o, f) =>
-            (s.asType, o.asType, f.asType) match
-              case ('[s], '[o], '[f]) =>
-                '{
-                  expectedAlternatives(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] })
-                }
-              case _ => report.errorAndAbort("a step's types are unknown here")
-          case _ => report.errorAndAbort("oneOf reads the step of an expectation")
-      case None => '{ new ClaimAlternatives() }
+    else
+      Expr.summon[Expectation[?, ?, ?]] match
+        case Some(context) =>
+          arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+            case List(s, o, f) =>
+              (s.asType, o.asType, f.asType) match
+                case ('[s], '[o], '[f]) =>
+                  '{
+                    expectedAlternatives(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] })
+                  }
+                case _ => report.errorAndAbort("a step's types are unknown here")
+            case _ => report.errorAndAbort("oneOf reads the step of an expectation")
+        case None => '{ new ClaimAlternatives() }
 
   @scala.annotation.publicInBinary
   private[framework] def alternatives(body: Expr[Branching ?=> Unit])(using q: Quotes): Expr[Unit] =

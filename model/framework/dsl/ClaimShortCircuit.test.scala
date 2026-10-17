@@ -4,8 +4,10 @@ import framework.dsl.Finite.given
 import framework.dsl.outcomes.Outcome
 
 object ClaimShortCircuitFixture:
+
   object Guarded extends Machine[Outcome, Nothing]:
     var value: Option[Int] = None
+
     object transitions extends Transitions
 
     object invariants:
@@ -16,6 +18,7 @@ object ClaimShortCircuitFixture:
 
   object Alternatives extends Machine[Outcome, Nothing]:
     var value: Option[Int] = None
+
     object transitions extends Transitions
 
     object invariants:
@@ -57,6 +60,7 @@ object ClaimShortCircuitFixture:
   object Missing extends Machine[Outcome, Nothing]:
     var value = false
     val missing = hole
+
     object transitions extends Transitions
 
     object invariants:
@@ -68,6 +72,7 @@ object ClaimShortCircuitFixture:
 
   object Recorded extends Machine[Outcome, Boolean]:
     var value: Option[Boolean] = None
+
     object transitions extends Transitions
 
     object invariants:
@@ -101,3 +106,14 @@ class ClaimShortCircuitSuite extends munit.FunSuite:
 
   test("a failed requirement skips the argument of a later fact assertion"):
     assertEquals(NativeCheck.verifyAll(Recorded).verdicts, Map("guarded" -> refuted))
+
+  test("a fact assertion evaluates its argument once when reached"):
+    var evaluated = 0
+    def fact =
+      evaluated += 1
+      true
+    val context = NativeClaims.Context(recorded = List(true))
+    NativeClaims.within(context):
+      NativeClaims.recordFact(fact, "recorded", 1, true)
+    assertEquals(evaluated, 1)
+    assertEquals(context.checks.map(_.holds), Vector(true))

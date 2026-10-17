@@ -89,12 +89,13 @@ private[framework] object NativeClaims:
   // A fact: in a claim, an assertion that the step under evaluation recorded it; in an effect, a
   // fact the step records. Outside both, a claim's assertion records nothing, and an effect's fact
   // is refused, as the effect runs only as its transition's step.
-  def recordFact(value: Any, member: String, line: Int, claim: Boolean): Unit =
+  def recordFact(value: => Any, member: String, line: Int, claim: Boolean): Unit =
     current match
       case Some(c) =>
         if !c.failed(member) then
-          c.add(Checked(member, line, s"records($value)", c.recorded.contains(value)))
-      case None    =>
+          val fact = value
+          c.add(Checked(member, line, s"records($fact)", c.recorded.contains(fact)))
+      case None =>
         Vars.current match
           case Some(frame) => frame.facts = frame.facts :+ value
           case None        =>
