@@ -19,9 +19,10 @@ A facet trait declares `var phase: Phase` and any shared state abstractly; the M
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 (DSL only). Facet traits declare the vars they share abstractly and the Machine defines them (the schema macro collects them in the Machine's order); phases are plain vars read in transitions and assigned in effects; Phased, Phasing, Inherited, PhasesOf, enters and the when/in phase stubs are removed natively, ends are explicit (`override def end`), and assigning a Recorded phase records nothing (explicit `record(status)`). The Facets fixture is rewritten with the same native meaning (equal steps and ends over every var combination); an undefined facet var is Scala's abstract-member error, and a facet var defined with an initializer is refused. FacetBindings stays hidden for the plugin; RecordFacet keeps record-state fixtures. Native checks: compile exit 0, 505 tests, 29 lint. Plugin/lifter/export references move with fn-190.9.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4c0275ff85, ff694dea83, e9102c5d3a, 9031033c78
+- Tests: compile dsl realize samples: exit 0, test dsl realize samples: 505 passed, lint *RuleSuite: 29 passed
 - PRs:
