@@ -137,24 +137,46 @@ final class Expectation[S, O, F] private[framework] (val step: Step[S, O, F]) ex
 @implicitNotFound("before is the state a step started from; use it in a postcondition")
 final class Before[S] private[framework] (val state: S)
 
-// The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
+// The typed step whose requirements an expectation reads. Inside a Machine, `after(action):` is
+// the word of a postcondition (ClaimWords). Core form: `s` in `s.facts`.
 def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
 
-// The state before a transition's step: for a Machine that declares its state as vars, its State
-// record, whose vars a postcondition reads by name, `before.temperature`. Core form: `b` in
+// What `after` is in a postcondition of a Machine (ClaimWords): the block about the steps of
+// `target`, `after(heater.failover): check(beeping)`, which must hold an assertion. Core form:
+// `!(a.action == target) || requirements`.
+final class StepTarget:
+  inline def apply(target: Action[?] | Class | Composed)(inline block: Unit): Unit =
+    ${ ClaimMacros.targeted('target, 'block) }
+
+// The state before a transition's step in an `across` block: for a Machine that declares its state
+// as vars, its State record, whose vars a postcondition reads by name, `before.temperature`; inside a
+// Machine, the State record a postcondition's step started from (ClaimWords). Core form: `b` in
 // `(b, a) => a.state == b`.
 transparent inline def before[S](using context: Before[S]): Any =
   ${ ExpectationMacros.stateBefore[S]('context) }
 
-// One Boolean requirement; failure skips the remaining requirements. Core form:
+// One assertion of a claim, reported on its own where it fails: `val neverBeeps = check(!beeping)` in
+// `invariants`, or in a block of the retired `expect`, a requirement whose failure skips the rest. It
+// records nothing outside an evaluation, and is refused in `progress`. Core form:
 // `condition && remainingRequirements`.
-def check[S, O, F](condition: Boolean)(using context: Expectation[S, O, F]): Unit =
-  context.require(condition)
+inline def check(inline condition: Boolean): Unit = ${ ClaimMacros.check('condition) }
 
-// Fact requirements specialized to the current step before typing a member selector. Core form:
-// `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
+// Fact requirements specialized to the current step before typing a member selector. Inside a
+// Machine, `records(fact)` asserts the fact in a claim and records it in an effect (ClaimWords).
+// Core form: `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
 def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O, F] =
   new RequirementFacts(context)
+
+// What `records` is in a claim or an effect of a Machine whose facts are `F` (ClaimWords): in a
+// claim the assertion that the step recorded the fact, in an effect a fact the step records.
+// Core form: `a.facts.contains(fact)`, or the facts of `Step(outcome, state, facts)`.
+final class StepRecords[F]:
+  inline def apply(fact: F): Unit = ${ ClaimMacros.fact('fact) }
+
+// The outcome the step answered, in a postcondition or a monitor, `if outcome != Outcome.accepted then
+// check(balances == before.balances)`, typed with the outcomes of the Machine it is in. Core form:
+// `a.outcome` in `(b, a) => predicate(b, a)`.
+transparent inline def outcome: Any = ${ ClaimMacros.outcome }
 
 // The callable fact requirement in a block. Core form: `s.facts.contains(fact)`.
 final class RequirementFacts[S, O, F] private[framework] (
@@ -181,12 +203,29 @@ final class Alternatives[S, O, F] private[framework] (private[framework] val ste
       false
     catch case signal: scala.util.control.ControlThrowable if signal eq success => true
 
-// At least one explicit branch must hold; later branches are skipped after success. Core form:
+// At least one explicit branch must hold; later branches are skipped after success. Inside a
+// Machine, the alternatives of a claim (ClaimWords). Core form:
 // `firstBranch || secondBranch || remainingBranches`.
 def oneOf[S, O, F](using
     context: Expectation[S, O, F]
 )(body: Alternatives[S, O, F] ?=> Unit): Unit =
   context.require(new Alternatives(context.step).evaluate(body))
+
+// What `oneOf` is in a block of the retired `expect`. Core form: `firstBranch || secondBranch`.
+final class ExpectedAlternatives[S, O, F] @scala.annotation.publicInBinary private[framework] (
+    context: Expectation[S, O, F]
+):
+  def apply(body: Alternatives[S, O, F] ?=> Unit): Unit =
+    context.require(new Alternatives(context.step).evaluate(body))
+
+// What `oneOf` is in a claim: its branches, of which there are at least two. Core form:
+// `firstBranch || secondBranch || rest`.
+final class ClaimAlternatives:
+  inline def apply(inline body: Branching ?=> Unit): Unit = ${ ClaimMacros.alternatives('body) }
+
+// The evidence a `branch` of a claim's `oneOf` reads, that it is written inside one. Core form: none
+// of its own; it is the `||` between the branches.
+final class Branching
 
 // Explicit finite input catalogs. Core form: `Finite.of(values*)` with checked membership.
 object domains:
@@ -199,11 +238,288 @@ extension [In, A](field: InputField[In, A])
   // The catalog selected for this typed field. Core form: `InputBinding.make(field, domain)`.
   def in(domain: Finite[A]): InputBinding[In] = InputBinding.make(field, domain)
 
-// Conjunctive requirements of one alternative, only inside oneOf. Core form:
-// `(first && second)` as an operand of `firstBranch || secondBranch`.
+// Conjunctive requirements of one alternative, only inside oneOf; inside a Machine, an alternative
+// of a claim's oneOf (ClaimWords). Core form: `(first && second)` as an operand of
+// `firstBranch || secondBranch`.
 def branch[S, O, F](using
     alternatives: Alternatives[S, O, F]
 )(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
+
+// What `branch` is in a block of the retired `expect`. Core form: `(first && second)`.
+final class ExpectedBranch[S, O, F] @scala.annotation.publicInBinary private[framework] (
+    alternatives: Alternatives[S, O, F]
+):
+  def apply(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
+
+// What `branch` is in a claim's `oneOf`. Core form: `(first && second)`.
+final class ClaimBranch:
+  inline def apply(inline body: Unit): Unit = ${ ClaimMacros.branchBlock('body) }
+
+@scala.annotation.publicInBinary
+private[framework] def requirementFacts[S, O, F](
+    context: Expectation[S, O, F]
+): RequirementFacts[S, O, F] = new RequirementFacts(context)
+
+@scala.annotation.publicInBinary
+private[framework] def expectedAlternatives[S, O, F](
+    context: Expectation[S, O, F]
+): ExpectedAlternatives[S, O, F] = new ExpectedAlternatives(context)
+
+@scala.annotation.publicInBinary
+private[framework] def expectedBranch[S, O, F](
+    alternatives: Alternatives[S, O, F]
+): ExpectedBranch[S, O, F] = new ExpectedBranch(alternatives)
+
+// The compile-time half of the claim words: each reads where it is written. Inside a block of the
+// retired `expect`, whose expectation it finds as a given, it is the requirement it was; in a claim
+// section of a Machine it asserts natively (NativeClaims), and outside the sections it belongs in it
+// is refused with the spec's text.
+@scala.annotation.publicInBinary
+private[framework] object ClaimMacros:
+  import scala.quoted.*
+
+  private val claimSections = Set("invariants$", "postconditions$", "queries$")
+  private val stepSections = Set("postconditions$", "monitors$", "queries$")
+  private val emptyBlock = "a requirement block must not be empty or contain only helper vals"
+
+  private def owners(using q: Quotes): List[q.reflect.Symbol] =
+    import q.reflect.*
+    Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol).toList
+
+  private def inside(names: Set[String])(using q: Quotes): Boolean =
+    owners.exists(s => s.isClassDef && names(s.name))
+
+  // The member the expansion sits in: the val, or the def, of a section that declares the claim.
+  private def member(using q: Quotes): Expr[String] =
+    import q.reflect.*
+    Expr(
+      owners
+        .find(s =>
+          (s.isValDef || s.isDefDef) && !s.flags.is(Flags.Synthetic) && !s.name.contains("$") &&
+            !s.name.startsWith("<") && s.name != "macro"
+        )
+        .fold("")(_.name)
+    )
+
+  private def line(using q: Quotes): Expr[Int] =
+    Expr(q.reflect.Position.ofMacroExpansion.startLine + 1)
+
+  private def machine(using q: Quotes): Option[q.reflect.Symbol] =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    owners.find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
+
+  // The outcome (0) or fact (1) type of the Machine the expansion sits in.
+  private def machineType(using q: Quotes)(index: Int, word: String): q.reflect.TypeRepr =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    machine
+      .map(_.typeRef.baseType(base))
+      .collect { case AppliedType(_, List(_, o, f)) => if index == 0 then o else f }
+      .getOrElse(report.errorAndAbort(s"$word reads a step of a Machine: write it in one"))
+
+  private def machineRef(using q: Quotes)(cls: q.reflect.Symbol): Expr[RecordMachine[?, ?, ?]] =
+    import q.reflect.*
+    val ref = if cls.flags.is(Flags.Module) then Ref(cls.companionModule) else This(cls)
+    ref.asExprOf[RecordMachine[?, ?, ?]]
+
+  private def arguments(using q: Quotes)(tpe: q.reflect.TypeRepr, of: q.reflect.Symbol) =
+    tpe.widen.baseType(of).typeArgs
+
+  // The calls of a block to one of the claim words `named`, as written, or expanded (the claim
+  // words are inline, and a block an enclosing word reads may hold either), not looking inside one.
+  private def calls(using q: Quotes)(block: q.reflect.Term, named: Set[String]): Int =
+    import q.reflect.*
+    def word(s: Symbol): Option[String] =
+      if !s.exists then None
+      else if s.name == "apply" then
+        Map(
+          "ClaimAlternatives" -> "oneOf",
+          "ClaimBranch" -> "branch",
+          "StepRecords" -> "records",
+          "StepTarget" -> "after"
+        ).get(s.owner.name)
+      else if s.owner.name == "NativeClaims$" then
+        Map(
+          "assertion" -> "check",
+          "recordFact" -> "records",
+          "alternatives" -> "oneOf",
+          "alternative" -> "branch",
+          "targeting" -> "after"
+        ).get(s.name)
+      else if s.name == "check" && s.owner.name.startsWith("Syntax$package") then Some("check")
+      else None
+    var found = 0
+    new TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit = tree match
+        case call: Apply if word(call.fun.symbol).exists(named) => found += 1
+        case _                                                  => super.traverseTree(tree)(owner)
+    .traverseTree(block)(Symbol.spliceOwner)
+    found
+
+  // Whether a block asserts anything: a check, a fact or alternatives.
+  private def asserts(using q: Quotes)(block: q.reflect.Term): Boolean =
+    calls(block, Set("check", "records", "oneOf")) > 0
+
+  @scala.annotation.publicInBinary
+  private[framework] def check(condition: Expr[Boolean])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) => '{ $context.require($condition) }
+      case None          =>
+        if inside(Set("progress$")) then
+          report.errorAndAbort(
+            "an invariant or postcondition belongs in invariants or postconditions"
+          )
+        val text = Expr(condition.asTerm.pos.sourceCode.getOrElse(condition.show))
+        '{ NativeClaims.assertion($condition, $member, $line, $text) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def after(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{ ${ context.asInstanceOf[Expr[Expectation[s, o, f]]] }.step }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => '{ $context.step }
+      case None =>
+        if !inside(Set("postconditions$", "queries$")) then
+          report.errorAndAbort("after(action) is a postcondition: write it in postconditions")
+        '{ new StepTarget() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def targeted(target: Expr[Action[?] | Class | Composed], block: Expr[Unit])(
+      using q: Quotes
+  ): Expr[Unit] =
+    import q.reflect.*
+    if !asserts(block.asTerm) then report.errorAndAbort(emptyBlock, block.asTerm.pos)
+    '{ NativeClaims.targeting($target, $member)($block) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def before(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Before[?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Before[?]].typeSymbol).headOption
+          .getOrElse(TypeRepr.of[Any])
+          .asType match
+          case '[s] => ExpectationMacros.stateBefore[s](context.asExprOf[Before[s]])
+      case None =>
+        if !inside(stepSections) then
+          report.errorAndAbort("before is the state a step started from; use it in a postcondition")
+        val cls = machine.getOrElse(
+          report.errorAndAbort("before is the state a step of a Machine started from")
+        )
+        val record = VarSchemaMacro
+          .enclosingMachine(Symbol.spliceOwner)
+          .fold(TypeRepr.of[State]): declared =>
+            VarSchemaMacro
+              .stateVars(declared)
+              .foldLeft(TypeRepr.of[State]): (record, variable) =>
+                Refinement(record, variable.name, VarSchemaMacro.declaredType(declared, variable))
+        val owner = machineRef(cls)
+        record.asType match
+          case '[r] =>
+            '{
+              NativeClaims
+                .start($owner.init.asInstanceOf[State]) // scalafix:ok DisableSyntax.asInstanceOf
+                .asInstanceOf[r] // scalafix:ok DisableSyntax.asInstanceOf
+            }
+
+  @scala.annotation.publicInBinary
+  private[framework] def outcome(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    if !inside(stepSections) then
+      report.errorAndAbort(
+        "outcome is what a step answered: read it in a postcondition or a monitor"
+      )
+    machineType(0, "outcome").asType match
+      case '[o] =>
+        val fallback = Expr.summon[Ok[o]].fold('{ None })(ok => '{ Some($ok.outcome) })
+        '{
+          NativeClaims
+            .answer($fallback.orNull)
+            .asInstanceOf[o] // scalafix:ok DisableSyntax.asInstanceOf
+        }
+
+  @scala.annotation.publicInBinary
+  private[framework] def records(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{ requirementFacts(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] }) }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("records reads the step of an expectation")
+      case None =>
+        machineType(1, "records").asType match
+          case '[f] => '{ new StepRecords[f]() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def fact[F: Type](value: Expr[F])(using q: Quotes): Expr[Unit] =
+    val claim = Expr(inside(claimSections ++ Set("monitors$")))
+    '{ NativeClaims.recordFact($value, $member, $line, $claim) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def oneOf(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[Expectation[?, ?, ?]] match
+      case Some(context) =>
+        arguments(context.asTerm.tpe, TypeRepr.of[Expectation[?, ?, ?]].typeSymbol) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{
+                  expectedAlternatives(${ context.asInstanceOf[Expr[Expectation[s, o, f]]] })
+                }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("oneOf reads the step of an expectation")
+      case None => '{ new ClaimAlternatives() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def alternatives(body: Expr[Branching ?=> Unit])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    val branches = calls(body.asTerm, Set("branch"))
+    if branches < 2 then
+      report.errorAndAbort("oneOf requires at least two branches", body.asTerm.pos)
+    '{ NativeClaims.alternatives($member, $line)($body(using new Branching())) }
+
+  @scala.annotation.publicInBinary
+  private[framework] def branch(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[framework.dsl.Alternatives[?, ?, ?]] match
+      case Some(alternatives) =>
+        arguments(
+          alternatives.asTerm.tpe,
+          TypeRepr.of[framework.dsl.Alternatives[?, ?, ?]].typeSymbol
+        ) match
+          case List(s, o, f) =>
+            (s.asType, o.asType, f.asType) match
+              case ('[s], '[o], '[f]) =>
+                '{
+                  expectedBranch(${
+                    alternatives.asInstanceOf[Expr[framework.dsl.Alternatives[s, o, f]]]
+                  })
+                }
+              case _ => report.errorAndAbort("a step's types are unknown here")
+          case _ => report.errorAndAbort("branch reads the step of an expectation")
+      case None =>
+        if Expr.summon[Branching].isEmpty then
+          report.errorAndAbort("branch is an alternative of oneOf: write it inside oneOf")
+        '{ new ClaimBranch() }
+
+  @scala.annotation.publicInBinary
+  private[framework] def branchBlock(body: Expr[Unit])(using q: Quotes): Expr[Unit] =
+    import q.reflect.*
+    if !asserts(body.asTerm) then report.errorAndAbort(emptyBlock, body.asTerm.pos)
+    '{ NativeClaims.alternative($body) }
 
 // An ordinary step predicate with statement requirements. Core form:
 // `(s: Step[S, O, F]) => first(s) && second(s)`.
@@ -628,6 +944,15 @@ extension [S, O, F](claim: Witness[S, O, F])
       G <:< F
   ): Witness[S, O, F] =
     claim.recordingWhen(condition, _.facts.contains(fact))
+  // Requires an additional fact only when a condition of the vars holds after the step:
+  // `recordsWhen(l1 != None, Event.readL1)`. Core form:
+  // `prior(step) && (!condition(step.state) || step.facts.contains(fact))`.
+  @targetName("recordsWhenVars")
+  def recordsWhen[G](condition: => Boolean, fact: G)(using G <:< F, S <:< State): Witness[S, O, F] =
+    claim.recordingWhen(
+      s => summon[S <:< State](s).owner.at(s)(condition),
+      _.facts.contains(fact)
+    )
 
 // Finishes a composition's witness with the fact of its selected member, whose machine fixes the
 // fact type, as the composition's declaration selector does. Core form:
@@ -1297,34 +1622,39 @@ abstract class Rules[S, O, F](using
 // `rebind(on(clerk.ship): always ~> OrderRecord.effects.send)`, each case `where(g)` or
 // `always`, since a derivation's rules name no phase. Its action is `inline`, as a rule block's is
 // (`Rules`), so that an overlap names it as written. Core form: the step function
-// `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
+// `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`. For a Machine that declares its state as
+// vars, the block is plain control flow whose input is its parameter,
+// `rebind(on(client.send): s => Model.effects.sendFromNowhere(s))`.
 inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
-    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+    inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
 )(using NotGiven[I =:= EmptyTuple]): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derivedInput[S, O, F, I](owner, a.decl, codeOf(a), cases)
 
 // A native scalar action's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
 @targetName("onScalarInput")
 inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: ScalarAction[I])(
-    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+    inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derivedInput[S, O, F, I](owner, a.decl, codeOf(a), cases)
 
-// A state-only action's cases. Core form: `action ~> (s => if g(s) then e(s) else Nil)`.
+// A state-only action's cases. Core form: `action ~> (s => if g(s) then e(s) else Nil)`. For a
+// Machine that declares its state as vars, the block is plain control flow over the vars whose leaves
+// call an effect, reject or are `()`, as a block of `transitions` is,
+// `rebind(on(tm.decideOnCommit): if Model.states.eagerlyCommits then Model.effects.decideOnCommit())`.
 @targetName("onWithoutInput")
 inline def on[S, O, F](using
     owner: Owner[S, O, F]
 )(inline a: Action[EmptyTuple])(
-    cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+    inline cases: Firing[S, O, F, EmptyTuple] ?=> Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derived[S, O, F](owner, a.decl, codeOf(a), cases)
 
 // A declared EmptyTuple scalar's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
 @targetName("onScalarEmptyTuple")
@@ -1532,6 +1862,330 @@ def reject(why: outcomes.Rejection)(using
         "Machine on the shared outcomes: `import framework.dsl.outcomes.{Outcome, Rejection}`"
     ) refusing: Refusing[outcomes.Outcome]
 ): Unit = refusing.refuse(outcomes.Outcome.rejected(why))
+
+// `verify(invariants.consistency) in anyVote`, in `queries`: a check that a claim of the Machine
+// holds on every path of the scenario, named after its `val`; a claim is a member of `invariants`,
+// `postconditions` or `progress`, or a find target declared in `queries`. Every claim is checked by
+// default, so a Model writes one only where a realization names it or a scenario other than the
+// default matters. Core form: `query verify claim in scenario limits bounds`.
+inline def verify(inline claim: Any): ClaimQuery = ${ QueryMacros.verifying('claim) }
+
+// `find(servedFromL2) in anyRun`, in `queries`: a check that some step of the scenario is one the
+// claim is about and holds of, a witness, named after its `val`. Its target is a claim, typically a
+// postcondition-shaped block declared in `queries` itself, `val servedFromL2 =
+// after(client.read): records(Event.readL2)`, which is no promise and is not checked by default.
+// Core form: `query find claim in scenario limits bounds`.
+inline def find(inline claim: Any): ClaimQuery = ${ QueryMacros.finding('claim) }
+
+// `only(heater.heat, heater.failover)`: the scenario that admits these actions and no others, named
+// after its `val` where it is one. Core form: `scenario.free` restricted to the actions listed.
+inline def only(actions: (Action[?] | Class | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).only(actions*)
+
+// `fair(rm.commit)`: the scenario that makes these actions weakly fair, an action that stays enabled
+// is eventually taken, and admits every action. Core form: `scenario.free` assuming `fair(actions)`.
+inline def fair(actions: (Action[?] | Class | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).fair(actions*)
+
+// `starts(temperature = -40)`: the scenario that starts in the Machine's initial state with the
+// vars named changed, checked against its vars when it is checked. Core form:
+// `scenario.starts(init.copy(temperature = -40)).free`.
+inline def starts: Scenario.Starts =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).starts
+
+// `actions(client.write(), client.read())`: the scenario pinned to exactly these classes, in order.
+// Core form: `scenario.actions(classes*)`.
+inline def actions(cs: (ClassRef | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).actions(cs*)
+
+// The compile-time half of `verify`, `find` and the scenario words: what claim a check names, and
+// the machine a scenario is built in.
+@scala.annotation.publicInBinary
+private[framework] object QueryMacros:
+  import scala.quoted.*
+
+  private val blockSections = Set("invariants$", "postconditions$", "queries$")
+
+  // The Machine object the expansion sits in, if any.
+  @scala.annotation.publicInBinary
+  private[framework] inline def enclosing: Option[Model] = ${ enclosingImpl }
+
+  @scala.annotation.publicInBinary
+  private[framework] def enclosingImpl(using q: Quotes): Expr[Option[Model]] =
+    import q.reflect.*
+    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(!_.isNoSymbol)
+      .find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
+      .fold('{ None })(cls => '{ Some(${ This(cls).asExprOf[Model] }) })
+
+  @scala.annotation.publicInBinary
+  private[framework] def verifying(claim: Expr[Any])(using Quotes): Expr[ClaimQuery] =
+    select(claim, finds = false)
+
+  @scala.annotation.publicInBinary
+  private[framework] def finding(claim: Expr[Any])(using Quotes): Expr[ClaimQuery] =
+    select(claim, finds = true)
+
+  @scala.annotation.publicInBinary
+  private[framework] def leadsTo(from: Expr[Boolean], to: Expr[Boolean], within: Expr[Int])(using
+      q: Quotes
+  ): Expr[LeadsTo] =
+    import q.reflect.*
+    val owners = Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol).toList
+    if !owners.exists(s => s.isClassDef && s.name == "progress$") then
+      report.errorAndAbort("a progress claim belongs in progress")
+    within.value match
+      case Some(n) if n > 0 => ()
+      case _                =>
+        report.errorAndAbort(
+          "within is a positive number of steps, written as a literal",
+          within.asTerm.pos
+        )
+    val named = Expr(
+      owners
+        .find(s => s.isValDef && !s.flags.is(Flags.Synthetic) && !s.name.contains("$"))
+        .fold("")(_.name)
+    )
+    '{
+      LeadsTo.declared(
+        $named,
+        $enclosingImpl,
+        () => $from,
+        () => $to,
+        $within,
+        Scenario.of($enclosingImpl, None)
+      )
+    }
+
+  private def select(claim: Expr[Any], finds: Boolean)(using q: Quotes): Expr[ClaimQuery] =
+    import q.reflect.*
+    val word = if finds then "find" else "verify"
+    val form = if finds then '{ QueryForm.find } else '{ QueryForm.verify }
+    def refused = report.errorAndAbort(
+      s"$word takes an invariant, a postcondition or a progress claim",
+      claim.asTerm.pos
+    )
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    val term = unwrap(claim.asTerm)
+    val tpe = term.tpe.widen
+    if tpe <:< TypeRepr.of[Property] then
+      '{ ClaimQuery.property($form, ${ term.asExprOf[Property] }) }
+    else if tpe <:< TypeRepr.of[LeadsTo] then
+      if finds then
+        report.errorAndAbort("a progress claim is verified, not found", claim.asTerm.pos)
+      '{ ClaimQuery.progress($form, ${ term.asExprOf[LeadsTo] }) }
+    else
+      val member = term.symbol
+      val section = if member.exists then member.owner else Symbol.noSymbol
+      if !member.exists || !member.isValDef || !(tpe =:= TypeRepr.of[Unit]) ||
+        !section.isClassDef || !section.flags.is(Flags.Module) || !blockSections(section.name)
+      then refused
+      val machine = section.owner
+      if !machine.isClassDef || !machine.flags.is(Flags.Module) then refused
+      val owner = Ref(machine.companionModule).asExprOf[Model]
+      '{
+        ClaimQuery.block(
+          $form,
+          $owner,
+          ${ Expr(section.name.stripSuffix("$")) },
+          ${ Expr(member.name) }
+        )
+      }
+
+// The compile-time half of a derivation's block: in the rule words it binds those rules, and in
+// plain control flow over a Machine's vars the one rule a transitions block would.
+@scala.annotation.publicInBinary
+private[framework] object DerivationMacros:
+  import scala.quoted.*
+
+  // A derivation's block of a whole action without inputs: written in the rule words, whose cases
+  // read the block's Firing, it binds those rules; written as plain control flow over a Machine's
+  // vars, which reads no Firing, it binds the one rule the block's run gives, as `transitions` does.
+  private[framework] inline def derived[S, O, F](
+      owner: Owner[S, O, F],
+      decl: ActionDecl,
+      code: String,
+      inline cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): RuleGroup[S, O, F] = ${ derivedImpl[S, O, F]('owner, 'decl, 'code, 'cases) }
+
+  private def derivedImpl[S: Type, O: Type, F: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, EmptyTuple] ?=> Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    import quotes.reflect.*
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    def reads(tree: Tree, parameter: Symbol): Boolean =
+      var found = false
+      new TreeTraverser:
+        override def traverseTree(t: Tree)(owner: Symbol): Unit =
+          if t.symbol.equals(parameter) then found = true
+          else super.traverseTree(t)(owner)
+      .traverseTree(tree)(Symbol.spliceOwner)
+      found
+    unwrap(cases.asTerm) match
+      case Lambda(List(parameter), body) if !reads(body, parameter.symbol) =>
+        if !(TypeRepr.of[S] =:= TypeRepr.of[State]) then
+          report.errorAndAbort(
+            "a block of plain control flow binds a Machine that declares its state as vars"
+          )
+        val ok = Expr
+          .summon[Ok[O]]
+          .getOrElse(
+            report.errorAndAbort(
+              s"a block of plain control flow takes its accepted outcome from a given Ok[${Type.show[O]}]"
+            )
+          )
+        val run = TransitionMacros.leaves(body.asExprOf[Unit])
+        '{
+          derivedTransition[O, F](
+            $owner.asInstanceOf[Owner[State, O, F]], // scalafix:ok DisableSyntax.asInstanceOf
+            $ok,
+            $decl,
+            None,
+            $code,
+            () => $run
+          ).asInstanceOf[RuleGroup[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
+        }
+      case _ => '{ derivedRules[S, O, F, EmptyTuple]($owner, $decl, $code)($cases) }
+
+  // A derivation's block of an action with an input: written in the rule words, it binds those
+  // rules; written as plain control flow whose input is the block's parameter, `s => ...`, it binds
+  // the one rule the block's run on the input gives.
+  private[framework] inline def derivedInput[S, O, F, I](
+      owner: Owner[S, O, F],
+      decl: ActionDecl,
+      code: String,
+      inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
+  ): RuleGroup[S, O, F] = ${ derivedInputImpl[S, O, F, I]('owner, 'decl, 'code, 'cases) }
+
+  private def derivedInputImpl[S: Type, O: Type, F: Type, I: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    import quotes.reflect.*
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case Block(Nil, inner)      => unwrap(inner)
+      case other                  => other
+    unwrap(cases.asTerm) match
+      case Lambda(List(_), body) =>
+        unwrap(body) match
+          case function @ Lambda(List(_), _) =>
+            if !(TypeRepr.of[S] =:= TypeRepr.of[State]) then
+              report.errorAndAbort(
+                "a block of plain control flow binds a Machine that declares its state as vars"
+              )
+            val ok = Expr
+              .summon[Ok[O]]
+              .getOrElse(
+                report.errorAndAbort(
+                  "a block of plain control flow takes its accepted outcome from a given " +
+                    s"Ok[${Type.show[O]}]"
+                )
+              )
+            val run = TransitionMacros.inputImpl[I](function.asExprOf[I => Unit])
+            '{
+              derivedInputTransition[O, F, I](
+                $owner.asInstanceOf[Owner[State, O, F]], // scalafix:ok DisableSyntax.asInstanceOf
+                $ok,
+                $decl,
+                $code,
+                $run
+              ).asInstanceOf[RuleGroup[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
+            }
+          case _ => rules(owner, decl, code, cases)
+      case _ => rules(owner, decl, code, cases)
+
+  private def rules[S: Type, O: Type, F: Type, I: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    '{
+      derivedRules[S, O, F, NativeInput[I]]($owner, $decl, $code): firing ?=>
+        val _ = $cases(using firing)
+    }
+
+// The one rule a derivation's block of a Machine's vars binds: it holds where the block's run takes
+// a step, as a block of `transitions` does.
+@scala.annotation.publicInBinary
+private[framework] def derivedTransition[O, F](
+    owner: Owner[State, O, F],
+    ok: Ok[O],
+    decl: ActionDecl,
+    values: Option[List[Any]],
+    code: String,
+    body: () => Unit
+): RuleGroup[State, O, F] =
+  derivedRule(
+    owner,
+    decl,
+    values,
+    code,
+    new InputEffect[State, O, F]:
+      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body())
+  )
+
+@scala.annotation.publicInBinary
+private[framework] def derivedInputTransition[O, F, I](
+    owner: Owner[State, O, F],
+    ok: Ok[O],
+    decl: ActionDecl,
+    code: String,
+    body: I => Unit
+): RuleGroup[State, O, F] =
+  val shape = decl.nativeInputs.getOrElse(
+    throw IllegalArgumentException(s"on(${writtenAction(code)}) reads an input it does not declare")
+  )
+  derivedRule(
+    owner,
+    decl,
+    None,
+    code,
+    new InputEffect[State, O, F]:
+      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+        apply(state, Class(decl, values))
+      override def apply(state: State, cls: Class): List[Step[State, O, F]] =
+        val input = shape.input(cls).asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
+        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body(input))
+  )
+
+private def derivedRule[O, F](
+    owner: Owner[State, O, F],
+    decl: ActionDecl,
+    values: Option[List[Any]],
+    code: String,
+    effect: InputEffect[State, O, F]
+): RuleGroup[State, O, F] =
+  val action = writtenAction(code)
+  require(
+    writtenPath(code).contains('.'),
+    s"on($action) names its action bare: name it through the object that declares it, " +
+      s"`on(<declarer>.$action)`"
+  )
+  val _ = owner
+  val guard = new InputGuard[State]:
+    def apply(state: State, cls: Class): Boolean = effect(state, cls).nonEmpty
+  val rule = Rule[State, O, F](1, "on", action, decl, values, guard, effect)
+  rule.publishCapture(None)
+  val group = RuleGroup(Vector(rule))
+  group.publishOrigin(None)
+  group
 
 // A plain definition expanded from its body where a lifted function calls it. Core form: its `body`.
 final class sugar extends scala.annotation.StaticAnnotation

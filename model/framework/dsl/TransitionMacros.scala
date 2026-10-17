@@ -23,10 +23,10 @@ private[framework] object TransitionMacros:
   private def blockImpl(body: Expr[Unit])(using Quotes): Expr[() => Unit] =
     '{ () => ${ leaves(body) } }
 
-  private def inputImpl[I: Type](body: Expr[I => Unit])(using Quotes): Expr[I => Unit] =
+  private[framework] def inputImpl[I: Type](body: Expr[I => Unit])(using Quotes): Expr[I => Unit] =
     '{ (in: I) => ${ leaves(Expr.betaReduce('{ $body(in) })) } }
 
-  private def leaves(body: Expr[Unit])(using Quotes): Expr[Unit] =
+  private[framework] def leaves(body: Expr[Unit])(using Quotes): Expr[Unit] =
     import quotes.reflect.*
     val machine = TypeRepr.of[Machine[?, ?]].typeSymbol
 
