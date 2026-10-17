@@ -1064,7 +1064,7 @@ with a Kettle prototype and verdict in `model/design`.
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
 | fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
-| fn-190.14 | 🔄 in progress | Remove full reachability tables; on-demand safety, witness/refutation, monitor and progress checks with visited/predecessor/cycle bookkeeping only |
+| fn-190.14 | ✅ done | Full adjacency tables removed; on-demand safety/find/refutation/monitor checks, progress successor replay. Native core 502, selected samples 42 and lint 29 pass; expanded Bank exhaustive proof remains unclaimed |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 
