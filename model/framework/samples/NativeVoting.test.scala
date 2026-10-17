@@ -1,7 +1,78 @@
 package framework.dsl
 
 import samples.{ReliableBroadcast, Voting}
-import NativeControls.assertRefuted
+import NativeControls.{assertRefuted, invariant}
+import SectionClaims.{declares, holds as claimHolds}
+
+// The claims of a sample's sections, written as blocks of `check` (NativeClaims), evaluated
+// natively on one state or one step, as the default checks evaluate them on each.
+object SectionClaims extends munit.Assertions:
+  private def evaluated(machine: RecordMachine[?, ?, ?], section: String)(
+      now: State,
+      from: Option[State],
+      taken: Option[Class],
+      outcome: Option[Any]
+  ): NativeClaims.Context =
+    val cls = NativeClaims.sectionClass(machine, section).get
+    val context =
+      if section == "invariants" then NativeClaims.Context()
+      else NativeClaims.Context(from, taken, outcome)
+    NativeClaims.evaluate(machine.stateVars.get, cls, now, context)
+
+  // Whether the claim `member` of `machine`'s `section` holds in `now`: a postcondition on the step
+  // to `now` from `from`, taking `taken` and answering `outcome`.
+  def holds(machine: RecordMachine[?, ?, ?], section: String, member: String)(
+      now: State,
+      from: Option[State] = None,
+      taken: Option[Class] = None,
+      outcome: Option[Any] = None
+  ): Boolean =
+    evaluated(machine, section)(now, from, taken, outcome).failure(member).isEmpty
+
+  // The action, or class of it, whose steps the claim `member` is about, if it is about one's.
+  def target(machine: RecordMachine[?, ?, ?], section: String, member: String): Option[Any] =
+    evaluated(machine, section)(machine.init.asInstanceOf[State], None, None, None).targeted
+      .get(member)
+
+  // Whether `machine`'s own `section` declares the claim `member`.
+  def declares(machine: Model, section: String, member: String): Boolean =
+    NativeClaims.sectionClass(machine, section).exists(NativeClaims.members(_).contains(member))
+
+  // A claim holds of each case as the predicate it was written as before (fn-190.4) does: in the
+  // state a step reached, about the steps of `about` where it names one.
+  def same[O, F](
+      machine: RecordMachine[?, ?, ?],
+      section: String,
+      member: String,
+      about: Option[Class],
+      cases: List[(Step[State, O, F], Boolean)]
+  )(old: Step[State, O, F] => Boolean): Unit =
+    assertEquals(target(machine, section, member), about)
+    cases.foreach: (step, expected) =>
+      assertEquals(old(step), expected)
+      assertEquals(
+        holds(machine, section, member)(step.state, taken = about, outcome = Some(step.outcome)),
+        expected
+      )
+
+  // A postcondition holds of each step from the state before as the predicate it was written as
+  // before (fn-190.4) does.
+  def across[O, F](
+      machine: RecordMachine[?, ?, ?],
+      member: String,
+      cases: List[(State, Step[State, O, F], Boolean)]
+  )(old: (State, Step[State, O, F]) => Boolean): Unit =
+    assertEquals(target(machine, "postconditions", member), None)
+    cases.foreach: (before, after, expected) =>
+      assertEquals(old(before, after), expected)
+      assertEquals(
+        holds(machine, "postconditions", member)(
+          after.state,
+          from = Some(before),
+          outcome = Some(after.outcome)
+        ),
+        expected
+      )
 
 class NativeVotingTest extends munit.FunSuite:
   private def run[S, O](
@@ -183,7 +254,7 @@ class NativeVotingTest extends munit.FunSuite:
       List(Step(Outcome.accepted, decision(Set(Value.v1))))
     )
     assertEquals(run(Consensus, decision(Set(Value.v1)), cls), Nil)
-    assertEquals(Model.refinement.toProduct(Model.init), decision(Set.empty))
+    assertEquals(Model.refinement.image(Model.init), decision(Set.empty))
     for (left, right) <- List(
         (Acceptor.a1, Acceptor.a2),
         (Acceptor.a1, Acceptor.a3),
@@ -196,7 +267,7 @@ class NativeVotingTest extends munit.FunSuite:
           .updated(right, Set(Vote(0, Value.v1)))
       )
       assertEquals(chosen(recorded(supplied)), Set(Value.v1))
-      assertEquals(Model.refinement.toProduct(supplied), decision(Set(Value.v1)))
+      assertEquals(Model.refinement.image(supplied), decision(Set(Value.v1)))
     val both = Set(Vote(0, Value.v1), Vote(1, Value.v2))
     val conflict = voting(
       Votes(
@@ -204,11 +275,11 @@ class NativeVotingTest extends munit.FunSuite:
         Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
       )
     )
-    assertEquals(Model.refinement.toProduct(conflict), decision(Set(Value.v1, Value.v2)))
-    assertEquals(holds(Model.postconditions.decides, conflict, Outcome.accepted), true)
-    assertEquals(holds(Model.invariants.consistency, conflict, Outcome.accepted), false)
-    assert(Consensus.postconditions.chosenStays.decl.machine eq Consensus)
-    assert(Model.invariants.invariant.decl.machine eq Model)
+    assertEquals(Model.refinement.image(conflict), decision(Set(Value.v1, Value.v2)))
+    assertEquals(claimHolds(Model, "queries", "decides")(conflict, taken = Some(cls)), true)
+    assertEquals(claimHolds(Model, "invariants", "consistency")(conflict), false)
+    assert(declares(Consensus, "postconditions", "chosenStays"))
+    assert(declares(Model, "invariants", "invariant"))
     assertEquals(Model.refinement.visibleOutcomes(Outcome.accepted), false)
     assertEquals(Model.refinement.visibleOutcomes(Outcome.refused), false)
     assertEquals(Model.refinement.unobservable, List(voter.increaseMaxBal))
@@ -256,10 +327,11 @@ class NativeVotingTest extends munit.FunSuite:
       List(Step(Outcome.refused, d.state))
     )
     assertEquals(chosen(recorded(d.state)), Set(Value.v1, Value.v2))
-    assertEquals(holds(UnsafeVoting.invariants.unsafeConsistency, d.state, Outcome.accepted), false)
-    assertEquals(holds(Model.invariants.invariant, d.state, Outcome.accepted), false)
-    assertEquals(holds(Model.postconditions.decides, d.state, Outcome.accepted), true)
-    assert(UnsafeVoting.invariants.unsafeConsistency.decl.machine eq UnsafeVoting)
+    assertEquals(claimHolds(UnsafeVoting, "invariants", "unsafeConsistency")(d.state), false)
+    assertEquals(claimHolds(Model, "invariants", "invariant")(d.state), false)
+    val decided = voter.voteFor(VoteFor(Acceptor.a2, 0, Value.v1))
+    assertEquals(claimHolds(Model, "queries", "decides")(d.state, taken = Some(decided)), true)
+    assert(declares(UnsafeVoting, "invariants", "unsafeConsistency"))
 
   test("Voting classes retain field order and refuse ballots outside zero and one"):
     import Voting.*
@@ -506,11 +578,9 @@ class NativeVotingTest extends munit.FunSuite:
     import Voting.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model)
-    // decides is a find's target: one vote chooses nothing
-    assertEquals(
-      report.verdicts,
-      Map("consistency" -> verified, "invariant" -> verified, "decides" -> refuted)
-    )
+    // decides is a find's target, in queries, which is not checked by default: one vote chooses
+    // nothing
+    assertEquals(report.verdicts, Map("consistency" -> verified, "invariant" -> verified))
     assertEquals(report.warnings, Vector.empty)
     assertEquals(NativeCheck.verifyAll(Consensus).verdicts, Map("chosenStays" -> verified))
     // chosenStaysInVoting reads Consensus through Voting's refinement, which no native check reads
@@ -523,11 +593,14 @@ class NativeVotingTest extends munit.FunSuite:
         "model.valueChosen" -> found
       )
     )
-    assertRefuted(UnsafeVoting, UnsafeVoting.invariants.unsafeConsistency): Unit
-    assertEquals(
-      NativeCheck.queries(UnsafeVoting).map(r => r.subject -> r.verdict),
-      Vector("unsafeVoting.refutesUnsafeVoting" -> refuted)
+    // the negative control: a vote that skips the quorum's showing chooses both values
+    val refutesUnsafeVoting = assertRefuted(
+      UnsafeVoting,
+      invariant(check(!(isChosen(Model.current, Value.v1) && isChosen(Model.current, Value.v2))))
     )
+    assertEquals(refutesUnsafeVoting.subject, "unsafeVoting.refutesUnsafeVoting")
+    assertEquals(NativeCheck.verifyAll(UnsafeVoting).verdicts, Map("unsafeConsistency" -> refuted))
+    assertEquals(NativeCheck.queries(UnsafeVoting), Vector.empty)
 
   test("ReliableBroadcast's claims are checked by default and Naive breaks agreement"):
     import ReliableBroadcast.*

@@ -301,15 +301,17 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, chosenV1), true),
       (Step(Outcome.accepted, conflicting), false)
     )
-    same(Model.invariants.consistency, Model, None, consistencyCases)(after =>
+    SectionClaims.same(Model, "invariants", "consistency", None, consistencyCases)(after =>
       !(isChosen(recorded(after.state), Value.v1) && isChosen(recorded(after.state), Value.v2))
     )
-    same(UnsafeVoting.invariants.unsafeConsistency, UnsafeVoting, None, consistencyCases)(after =>
-      !(isChosen(recorded(after.state), Value.v1) && isChosen(recorded(after.state), Value.v2))
+    SectionClaims.same(UnsafeVoting, "invariants", "unsafeConsistency", None, consistencyCases)(
+      after =>
+        !(isChosen(recorded(after.state), Value.v1) && isChosen(recorded(after.state), Value.v2))
     )
-    same(
-      Model.invariants.invariant,
+    SectionClaims.same(
       Model,
+      "invariants",
+      "invariant",
       None,
       List(
         (Step(Outcome.accepted, initial), true),
@@ -317,9 +319,10 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, conflicting), false)
       )
     )(after => inv(recorded(after.state)))
-    same(
-      Model.postconditions.decides,
+    SectionClaims.same(
       Model,
+      "queries",
+      "decides",
       Some(Class(voter.voteFor.decl, List(Acceptor.a2, 0, Value.v1))),
       List(
         (Step(Outcome.accepted, initial), false),

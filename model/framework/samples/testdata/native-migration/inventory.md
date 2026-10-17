@@ -204,8 +204,8 @@ monitor states: no blanket product-graph bijection is implied by a projection.
 | Voting | chosenStaysInVoting | verify chosenStays / Consensus through Model refinement | anyVote / Model.init; everyBallot | Verified |
 | Voting | consistencyHolds | verify consistency / Model | anyVote / Model.init; everyBallot | Verified |
 | Voting | invariantHolds | verify invariant / Model | anyVote / Model.init; everyBallot | Verified |
-| Voting | valueChosen | find decides / Model | anyVote / Model.init; everyBallot | Found |
-| Voting | refutesUnsafeVoting | verify unsafeConsistency / UnsafeVoting NegativeControl | anyUnsafeVote / Model.init; everyBallot | Counterexample |
+| Voting | valueChosen | find decides / Model (fn-190.4: decides, a find target, is declared in Model.queries) | anyVote / Model.init; everyBallot | Found |
+| Voting | refutesUnsafeVoting | moved (fn-190.4) to NativeVoting.test as assertRefuted of the consistency invariant on UnsafeVoting NegativeControl, a negative control being a test | Model.init; default budget | Counterexample |
 | ReliableBroadcast | safetyHolds | verify safety / Model | anyRun / Model.init; broadcastLimits (11,11,1048576) | Verified |
 | ReliableBroadcast | reliabilityHolds | verify reliability / Model; across | anyRun / Model.init; broadcastLimits | Verified |
 | ReliableBroadcast | deliveredDespiteCrash | find survivesCrash / Model | anyRun / Model.init; broadcastLimits | Found |
