@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T02:58:23.609319Z",
+  "depends_on": [
+    "fn-190-models-are-plain-scala-state-as-vars.4",
+    "fn-190-models-are-plain-scala-state-as-vars.6"
+  ],
+  "id": "fn-190-models-are-plain-scala-state-as-vars.11",
+  "priority": null,
+  "spec": "fn-190-models-are-plain-scala-state-as-vars",
+  "spec_path": ".flow/tasks/fn-190-models-are-plain-scala-state-as-vars.11.md",
+  "status": "todo",
+  "title": "Phase 1: composition member facts as a tagged fact enum and member reads as plain calls; retire through, member records, MemberPath (R17)",
+  "updated_at": "2026-10-17T02:58:23.609319Z"
+}

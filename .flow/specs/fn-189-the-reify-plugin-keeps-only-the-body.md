@@ -201,13 +201,41 @@ Compiler refusals, exact texts are the contract:
   annotations in the DSL's reify vocabulary (two: `liftedIr`, `capture`), and plugin lines outside
   the body-lifter files. The last is reported, not gated. No error surface.
 
+- **R10:** Body-lifter simplifications that change no DSL and no IR beyond positions: no lifted
+  `ir.Expr` carries a position (only `ir.Function.position`), and the `at`/`pos` threading, `placing`,
+  `unplacing`, `argumentAt` and `boundValuePositions` are gone; one tree-normalization pass strips
+  `Typed`, `Inlined`, empty `Block`, `NamedArg`, synthetic argument vals and default getters, in
+  place of the per-site `unwrapped` helpers and wrapper match arms; `typedRemainder` is gone and an
+  exhaustive final `case _: Role` lifts as a role pattern; and, once fn-174.8 has retired the old
+  reader, the declaration-level tables, declaration-fold bindings and override seams that exist in
+  `reify/body` only for `framework/export` are removed and `export` no longer compiles `reify/body`.
+  The six samples lift to the same IR except positions; refusal texts and positions are unchanged
+  except the three `typedRemainder` refusals, whose fixtures are retired. Reported in the counts
+  receipt. Errors: no new error surface.
+
+- **R11:** Helpers inline at their call site. A root is a def or member the plugin captures by its
+  own name: an effect, a transition, a claim member, a monitor function, `end`, `evidence`, a
+  refinement map. Any other def of the lifted sources that a lifted body calls (a `Lifted`
+  vocabulary object's def, a step-list helper, an effect fragment) is replaced in place by its body
+  with each parameter bound by a `Let` to the lifted argument, in parameter order; no `ir.Call` and
+  no `ir.Function` is emitted for a helper, and roots keep their names and their `ir.Function`. The
+  `liftedIr` a def stores under R2 is that body, with its parameters, for callers in other files to
+  splice. `namedCopy`, `functionCopies`, the reachable-function walk and the cross-function
+  cardinality rule go: a `choose` alternative that calls a helper is checked on the inlined steps
+  with today's refusal text, "the alternative <token> of a choose is not one step written out".
+  The six samples lift to IR whose reachable graph is unchanged. Errors: a helper that calls itself,
+  directly or through another helper, keeps today's refusal; a `require` in a helper is refused at
+  the `require` with `<helper> has a precondition: a helper inlines at its call and carries none;
+  move the require to the effect or transition that calls it`; a helper reached from another file
+  without a stored body keeps the R2 refusal.
+
 ## Boundaries
 
 - Closed facet templates (explicit phase lens, composition as an IR call) are not in this spec.
   Facets keep today's contextual-phase mechanism until a design note in `model/design` decides it.
 - Declaration-site naming and the fate of `scripted(alias)` spelling are not in this spec.
   `NamesPhase` and the name-related `retain*` rewrites stay as they are.
-- No change to the body lifter's expression language.
+- No change to the body lifter's expression language. R10 changes its code, not the language.
 - No change to Go consumers, the IR schema, Testpilot, or the old TASTy reader except that R8 is
   sequenced after its retirement.
 - No support for lifted code outside the single `model/` compilation, now or later.
@@ -245,7 +273,28 @@ facet item in Boundaries is closed by fn-190.6. R1, R2, R3, R5, R6, R7 and R8 st
 fn-190.8 re-records R9.
 
 Order of work, cheapest and least visible first: R1 and R5 together, then R6, R7, R3, R2, R4, and R8
-when its prerequisite lands.
+when its prerequisite lands. R10 follows R5 and R7 (.9, .10) and R8 (.11). R11 (.12) follows R2 and R10's normalization (.5, .10).
+
+**2026-10-17, after the owner's pass over the body lifter.** The body lifter is about 4,000 lines; its
+generic Scala core (literals, references, field reads, `if`, `match`, `let`, lambda, construction,
+`copy`, synthetic-argument unwrapping) is about 350 of them. R10 collects the reductions that cost
+no DSL change and no IR change beyond positions, which fn-174 already allows: positions kept on
+root functions only and the `at` threading removed with them; one normalization pass instead of six
+local `unwrapped` helpers and dozens of wrapper arms; `typedRemainder` deleted because
+`rolePattern` already lifts the same case; and the old lifter's tables and seams removed once
+`export` retires. Sacrifices (inlining helpers at the call site, dropping the composition
+vocabulary) and a generic-call IR with the semantics table in Go were assessed the same day and
+are not in this spec.
+
+**2026-10-17, helper inlining (owner: "if it's just helpers etc, yes").** Emitting an `ir.Call`
+per helper is what makes the lifter carry a function table, a reachability walk, a recursion guard
+across functions, `callee` resolution through eta-expansion, and `namedCopy` for named choices; it
+is also the only reason stored helper IR has to be a complete `ir.Function`. Inlining removes all
+of that and keeps the carrier as "this def's body". Effects and every other root keep their
+names, which facets and `rebind` share by name and Go diagnostics report. The cost accepted: IR
+duplication where a helper is called often, and no `require` in helpers, since the IR has no
+precondition form below a function; the Temporal sources' many `require`s sit mostly in effects
+and transitions, which are roots, and the rest move up one level at the sweep.
 
 ## Requirement coverage
 
@@ -260,6 +309,8 @@ when its prerequisite lands.
 | R7 | fn-189.3 | — |
 | R8 | fn-189.8 | after fn-174.8 retires the old reader |
 | R9 | fn-189.7, fn-189.8 | — |
+| R10 | fn-189.9, fn-189.10, fn-189.11 | fn-189.11 waits for fn-174.8 |
+| R11 | fn-189.12 | — |
 
 ## Phasing (owner, 2026-10-17)
 

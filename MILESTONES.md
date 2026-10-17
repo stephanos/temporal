@@ -178,12 +178,13 @@ facet vocabularies are recorded in fn-161.
 | 6 | fn-147.5 done; SHIP | Native Duration construction/presence coverage and guidance; 22 focused tests and 29 lint tests pass; no runtime source change or new admission policy |
 | 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
 | 8 | fn-188.2 done; fn-188 closed | The framework-only gate is green: boundary, core 466, check 100, export 286; 117 generic suites, 21 held with recorded reasons (record `.flow/tmp/checks/framework.7448953529908255698`). The exporter, lifter, reify plugin and fixtures are re-anchored to the native DSL; the sample lifts are held on fn-173.4's native-collection IR schema |
-| Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Eight tasks planned |
-| Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Eight tasks; starts with a Kettle prototype and verdict |
+| Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Twelve tasks planned (R10 body-lifter simplifications and R11 helper inlining added 2026-10-17) |
+| Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Twelve tasks (R17, composition vocabulary retired, added 2026-10-17); starts with a Kettle prototype and verdict |
+| Builtins | fn-192 (captured 2026-10-17) | Every value operator a Model may use is a row of one checked-in table, `model/builtins.json`; the lifter emits a generic `BuiltinCall`; the Go interpreter and the Quint exporter hold the semantics; a conformance test holds all three to the list; fn-173.4's `Set`/`Map` operations land as builtins, not a `Collection` node. Not planned yet |
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
-| Phase 1 (now) | fn-191.1, fn-190.1/.2/.4/.6/.7 | DSL only (owner, 2026-10-17): sections, then the plain-Scala Models (state as vars, effects as assignments, claims as `check` blocks) until dsl/realize/samples compile and the native sample suites pass. Gate: the native checks; the export gate is expected red |
-| Phase 2 (batched) | fn-190.9/.3/.10/.5/.8, fn-189, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks, the IR evaluator, plugin diet, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. Needs fn-173.4's collection schema and the Go hold released for the sample answers |
+| Phase 1 (now) | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): sections, then the plain-Scala Models (state as vars, effects as assignments, claims as `check` blocks) until dsl/realize/samples compile and the native sample suites pass. Gate: the native checks; the export gate is expected red |
+| Phase 2 (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189, fn-192, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks, the IR evaluator, plugin diet, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. Needs fn-173.4's collection schema and the Go hold released for the sample answers |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -1018,7 +1019,11 @@ instead of any per-def annotation, and one parameter list for helpers in lifted 
 `def end` keep today's spelling as overrides of `Machine` members. Sugar becomes `inline`; positions
 stay on root functions only; `Captured[F]` capture arguments (R8) wait for fn-174.8. Closed facet
 templates and declaration-site naming are explicitly out, pending a design note.
-Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8.
+Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8. R10 added 2026-10-17 after a pass over the
+body lifter (about 4,000 lines, a generic core of about 350): three no-sacrifice tasks, .9 to .11, with no
+DSL change and no IR change beyond positions. Helper inlining, dropping the composition vocabulary and a
+generic-call IR were assessed the same day: inlining is R11 (.12), the composition vocabulary goes under
+fn-190 R17, and the generic-call IR is fn-192.
 
 | Name | Status | What |
 | --- | --- | --- |
@@ -1030,6 +1035,10 @@ Planned 2026-10-16 into eight tasks; .8 waits for fn-174.8.
 | fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
 | fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
+| fn-189.9 | ⬜ todo | After .1: root-only positions inside the body lifter; the `at`/`pos` threading, `placing` and `argumentAt` go (R5, R10) |
+| fn-189.10 | ⬜ todo | After .3/.9: one tree-normalization pass replaces the per-site `unwrapped` helpers and wrapper arms; `typedRemainder` deleted (R10) |
+| fn-189.11 | ⬜ todo | After .8 and fn-174.8: the old lifter's declaration tables, fold bindings and override seams leave `reify/body`; `export` stops compiling it (R10) |
+| fn-189.12 | ⬜ todo | After .5/.10: helpers inline at the call site with a `Let` per parameter; roots keep their names; `namedCopy`, the function table and the cardinality proof go; `require` refused in helpers (R11) |
 [Spec](.flow/specs/fn-189-the-reify-plugin-keeps-only-the-body.md).
 
 ### fn-190: Models are plain Scala: state as vars, effects as assignments, lifted by the plugin, evaluated on the IR
@@ -1056,6 +1065,8 @@ with a Kettle prototype and verdict in `model/design`.
 | fn-190.6 | ⬜ todo | After .4: facets and phases as vars; `Phased` and contextual-phase machinery removed (R5) |
 | fn-190.7 | ⬜ todo | After .3/.5/.6 and fn-191.1: rewrite the six samples; the checker takes the budget, iterates the start list and reports vacuity, the IR Query loses its bounds; regenerate oracles, equivalence (R8, R14, R15) |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
+| fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
+| fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 
@@ -1073,6 +1084,20 @@ comparing every answer with the inventory.
 | fn-191.1 | ⬜ todo | The five remaining samples and NativeInputs into the kind sections; Kettle `boils`; lints and SEMANTICS updated; reify sample roots updated (R2) |
 | fn-191.2 | ⬜ todo | After .1: samples lint stage in `checkFramework` with a focused test (R3) |
 | fn-191.3 | ⬜ todo | After .1: samples model-check stage in `checkFramework`; the two `GoHeld` cases run and compare answers with the inventory (R4) |
+
+### fn-192: Builtins: one table of operators, a generic call in the IR, semantics in the back ends
+
+Captured on 2026-10-17 after the owner's pass over the body lifter. Each value operator (`Inbox.send`,
+`isFull`, `min`/`max`, `+:`, `contains`, the coming `Set`/`Map` operations) is written three times today:
+recognised and lowered in the plugin, evaluated in Go, translated for Quint. Following Quint's own
+shape, the operators become **builtins**: one closed table checked in as `model/builtins.json`
+(families `int`, `list`, `set`, `map`, `option`, `inbox`), a generic `BuiltinCall` in the IR in place of
+the `Inbox` message, `OP_CONTAINS`, `OP_CONCAT` and the proposed `Collection` node, the lifter reduced to
+a table lookup, the semantics in the Go interpreter and the Quint exporter, and a conformance test on
+both sides. The author writes plain Scala as today; a builtin outside the table stays a compile-time
+refusal. The owner's condition is a tight list: a new builtin is an R-ID of this spec. Phase 2, batched
+with fn-173.4 and fn-189.10. Not planned into tasks yet.
+[Spec](.flow/specs/fn-192-builtins-one-table-of-operators-a.md).
 
 ## Deferred for now
 

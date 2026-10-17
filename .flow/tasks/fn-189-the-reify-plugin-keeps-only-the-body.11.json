@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T01:58:01.680511Z",
+  "depends_on": [
+    "fn-189-the-reify-plugin-keeps-only-the-body.8"
+  ],
+  "id": "fn-189-the-reify-plugin-keeps-only-the-body.11",
+  "priority": null,
+  "spec": "fn-189-the-reify-plugin-keeps-only-the-body",
+  "spec_path": ".flow/tasks/fn-189-the-reify-plugin-keeps-only-the-body.11.md",
+  "status": "todo",
+  "title": "After .8 and fn-174.8: remove the old lifter tables, bindings and seams from reify/body (R10)",
+  "updated_at": "2026-10-17T01:58:01.680511Z"
+}

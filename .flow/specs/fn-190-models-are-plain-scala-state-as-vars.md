@@ -424,6 +424,19 @@ Compiler refusals, exact texts:
   six samples and the fixtures use the two containers. Errors: the placement refusal text in API
   Contracts.
 
+- **R17:** Composition member facts and member reads are data, not vocabulary. A composed Machine's
+  fact type is an enum the composition declares with one case per member, each carrying that
+  member's fact (`Fact.activity(AdmissionFact.admissionCommitFailed)`), so a claim writes
+  `records(Fact.activity(AdmissionFact.admissionCommitFailed))` and the lifter sees an ordinary enum
+  construction inside the `records` it already lifts; a member's helper is called on the member's
+  state directly (`ActivityRecord.states.twoActive(activity)`), an ordinary call. `through`,
+  `records(_.member -> Machine, fact)`, `memberRecorded`, `MemberPath`, `captureBinding` and the
+  `<field>_<fact>` text keys are retired from the DSL, the lifter and the IR the composition emits;
+  the Go composition lowering reads the tagged enum instead of the text key. The two Temporal uses
+  (the activity standalone protocol's record-over-queue and record-over-matching) migrate at the
+  sweep. Errors: a `records` of a member fact that is not wrapped in its member case is an
+  ordinary type error (the composed fact type does not admit it); no plugin text.
+
 ## Boundaries
 
 - No change to the IR schema beyond type naming; `field` and `copy` are the carriers.
@@ -517,6 +530,14 @@ a lint enforces it rather than a style rule.
 
 Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15+R16, R6, R5, R8, R10.
 
+**2026-10-17, composition vocabulary (owner).** The composition forms `through(_.member, read)` and
+`records(_.member -> Machine, fact)` cost about 150 lines of the body lifter (selector extraction,
+field paths, `MemberPath`, member-fact keys, a synthesised `State.through.<path>.<def>` function) and
+are used twice in all Temporal sources. The owner chose to drop them (R17). The replacement is data
+the lifter already handles: a per-member case in the composition's fact enum, and a plain call on
+the member's state. The text-key encoding of member facts goes with it, which is the one IR-visible
+change; the Go composition lowering follows in phase 2.
+
 ## Requirement coverage
 
 | Req | Task(s) | Gap justification |
@@ -537,13 +558,14 @@ Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15
 | R14 | fn-190.1, fn-190.4, fn-190.7 | the Go budget argument and result shape land with the sample rewrite in .7 |
 | R15 | fn-190.1, fn-190.4, fn-190.7 | start-list iteration and vacuity reporting in the checker land in .7 |
 | R16 | fn-190.1, fn-190.4 | — |
+| R17 | fn-190.11, fn-190.12 | the lifter and Go halves are phase 2 (.12) |
 
 ## Phasing (owner, 2026-10-17)
 
 The owner phased the work so the DSL settles before the IR and plugin change once:
 
-- **Phase 1, DSL only:** fn-191.1, then fn-190.1, .2, .4, .6, .7. Only model/framework/dsl, realize and samples change. The gate is the native checks: dsl/realize/samples compile under the strict flags, their native suites pass, and the block-form lint passes. Until fn-190.3/.5, a native runtime reads and writes a Machine's vars as a snapshot so effects, guards and claims execute as Scala and the sample suites keep their assertions. The framework export gate is expected to be red during phase 1.
-- **Phase 2, IR and plugin, batched:** fn-190.9 (lift vars, effects, transitions and check blocks; State record, schema and init from declarations; facet payloads removed), fn-190.3 (IR evaluator), fn-190.10 (samples lift and model-check, Go budget, oracles, equivalence), fn-190.5 (remove native execution), fn-190.8 with fn-189, fn-191.2/.3, the remaining fn-164.3 lowering and the export/lint re-anchoring. One full framework gate runs at the end.
+- **Phase 1, DSL only:** fn-191.1, then fn-190.1, .2, .4, .6, .11, .7. Only model/framework/dsl, realize and samples change. The gate is the native checks: dsl/realize/samples compile under the strict flags, their native suites pass, and the block-form lint passes. Until fn-190.3/.5, a native runtime reads and writes a Machine's vars as a snapshot so effects, guards and claims execute as Scala and the sample suites keep their assertions. The framework export gate is expected to be red during phase 1.
+- **Phase 2, IR and plugin, batched:** fn-190.9 (lift vars, effects, transitions and check blocks; State record, schema and init from declarations; facet payloads removed), fn-190.3 (IR evaluator), fn-190.10 (samples lift and model-check, Go budget, oracles, equivalence), fn-190.5 (remove native execution), fn-190.12 (composition member facts as data in the lifter and Go), fn-190.8 with fn-189, fn-191.2/.3, the remaining fn-164.3 lowering and the export/lint re-anchoring. One full framework gate runs at the end.
 
 The plugin and lifter halves of .1, .2, .4, .6 and .7 moved to .9 and .10; each task's description records its phase.
 
