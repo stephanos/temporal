@@ -137,7 +137,8 @@ final class Expectation[S, O, F] private[framework] (val step: Step[S, O, F]) ex
 @implicitNotFound("before is the state a step started from; use it in a postcondition")
 final class Before[S] private[framework] (val state: S)
 
-// The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
+// The typed step whose requirements an expectation reads. Inside a Machine, `after(action):` is
+// the word of a postcondition (ClaimWords). Core form: `s` in `s.facts`.
 def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
 
 // What `after` is in a postcondition of a Machine (ClaimWords): the block about the steps of
@@ -147,8 +148,9 @@ final class StepTarget:
   inline def apply(target: Action[?] | Class | Composed)(inline block: Unit): Unit =
     ${ ClaimMacros.targeted('target, 'block) }
 
-// The state before a transition's step: for a Machine that declares its state as vars, its State
-// record, whose vars a postcondition reads by name, `before.temperature`. Core form: `b` in
+// The state before a transition's step in an `across` block: for a Machine that declares its state
+// as vars, its State record, whose vars a postcondition reads by name, `before.temperature`; inside a
+// Machine, the State record a postcondition's step started from (ClaimWords). Core form: `b` in
 // `(b, a) => a.state == b`.
 transparent inline def before[S](using context: Before[S]): Any =
   ${ ExpectationMacros.stateBefore[S]('context) }
@@ -159,8 +161,9 @@ transparent inline def before[S](using context: Before[S]): Any =
 // `condition && remainingRequirements`.
 inline def check(inline condition: Boolean): Unit = ${ ClaimMacros.check('condition) }
 
-// Fact requirements specialized to the current step before typing a member selector. Core form:
-// `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
+// Fact requirements specialized to the current step before typing a member selector. Inside a
+// Machine, `records(fact)` asserts the fact in a claim and records it in an effect (ClaimWords).
+// Core form: `s.facts.contains(fact)` or `s.facts.contains("member_fact")`.
 def records[S, O, F](using context: Expectation[S, O, F]): RequirementFacts[S, O, F] =
   new RequirementFacts(context)
 
@@ -200,7 +203,8 @@ final class Alternatives[S, O, F] private[framework] (private[framework] val ste
       false
     catch case signal: scala.util.control.ControlThrowable if signal eq success => true
 
-// At least one explicit branch must hold; later branches are skipped after success. Core form:
+// At least one explicit branch must hold; later branches are skipped after success. Inside a
+// Machine, the alternatives of a claim (ClaimWords). Core form:
 // `firstBranch || secondBranch || remainingBranches`.
 def oneOf[S, O, F](using
     context: Expectation[S, O, F]
@@ -234,8 +238,9 @@ extension [In, A](field: InputField[In, A])
   // The catalog selected for this typed field. Core form: `InputBinding.make(field, domain)`.
   def in(domain: Finite[A]): InputBinding[In] = InputBinding.make(field, domain)
 
-// Conjunctive requirements of one alternative, only inside oneOf. Core form:
-// `(first && second)` as an operand of `firstBranch || secondBranch`.
+// Conjunctive requirements of one alternative, only inside oneOf; inside a Machine, an alternative
+// of a claim's oneOf (ClaimWords). Core form: `(first && second)` as an operand of
+// `firstBranch || secondBranch`.
 def branch[S, O, F](using
     alternatives: Alternatives[S, O, F]
 )(body: Expectation[S, O, F] ?=> Unit): Unit = alternatives.attempt(body)
