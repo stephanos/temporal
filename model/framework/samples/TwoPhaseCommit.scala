@@ -147,7 +147,7 @@ object TwoPhaseCommit:
 
   val fairCommits = assume.fair(rm.commit)
 
-  object Model extends Machine[Transaction, Outcome, Nothing]:
+  object Model extends RecordMachine[Transaction, Outcome, Nothing]:
     val init = Transaction(
       rmStates = Map(
         ResourceManager.rm1 -> ResourceManagerState.working,
@@ -232,12 +232,12 @@ object TwoPhaseCommit:
         )
 
     object invariants:
-      val consistencyInv: Property[Transaction] =
+      val consistencyInv: Property =
         property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
           check(consistent(after.step.state))
 
     object postconditions:
-      val everyoneCommits: Property[Transaction] =
+      val everyoneCommits: Property =
         property
           .after(rm.commit(ResourceManager.rm3))
           .expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
@@ -254,7 +254,7 @@ object TwoPhaseCommit:
         )
 
     object queries:
-      val anyRun: Scenario[Transaction] = scenario.starts(init).free
+      val anyRun: Scenario = scenario.starts(init).free
       // three prepares, three receipts, the decision and three commits
       val transaction = Limits(steps = 10, actions = 10, search = 1 << 20)
       val consistencyHolds = query verify invariants.consistencyInv in anyRun limits transaction
@@ -271,11 +271,11 @@ object TwoPhaseCommit:
         NegativeControl:
 
     object invariants:
-      val eagerConsistencyInv: Property[Transaction] =
+      val eagerConsistencyInv: Property =
         property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
           check(consistent(after.step.state))
 
     object queries:
-      val anyEagerRun: Scenario[Transaction] = scenario.starts(Model.init).free
+      val anyEagerRun: Scenario = scenario.starts(Model.init).free
       val refutesEagerCommit =
         query verify invariants.eagerConsistencyInv in anyEagerRun limits Model.queries.transaction

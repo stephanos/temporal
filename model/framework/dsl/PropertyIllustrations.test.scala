@@ -19,7 +19,7 @@ object PropertyIllustrationsFixture:
     def values = throw AssertionError("state catalog evaluated")
 
   object Native
-      extends Machine[NativeState, Boolean, Boolean](using
+      extends RecordMachine[NativeState, Boolean, Boolean](using
         summon[Data[NativeState]],
         Finite.of(true),
         Finite.of(false)
@@ -35,7 +35,7 @@ object PropertyIllustrationsFixture:
         always ~> ((_: NativeState, _: Input) => throw AssertionError("input effect evaluated"))
 
   object Opaque
-      extends Machine[Boolean, Answer.Value, Answer.Value](using
+      extends RecordMachine[Boolean, Answer.Value, Answer.Value](using
         summon[Data[Boolean]],
         Finite.of(accepted),
         Finite.of(accepted)
@@ -71,7 +71,7 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
       start(),
       Step(Outcome.accepted, State.closed)
     )
-    val ordinary: Property[State] = second
+    val ordinary: Property = second
     val q = query
       .verify(ordinary)
       .in(Subject.scenario.free)
@@ -257,7 +257,7 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
   test(
     "composed owners reject attachment but generic and legacy ordinary properties keep no new duty"
   ):
-    def generic[S](owner: Declares[S]): Property[S] = owner.property.expect:
+    def generic[S](owner: Declares[S]): Property = owner.property.expect:
       check(true)
     assert(generic(Together).decl.illustrations.isEmpty)
     assert(generic(Subject).decl.illustrations.isEmpty)

@@ -15,7 +15,7 @@ object DiscoveryFixtures:
   val stayed = choice
   val advanced = choice
 
-  object Original extends Machine[State, Outcome, Nothing]:
+  object Original extends RecordMachine[State, Outcome, Nothing]:
     def init = open
     def end(s: DiscoveryFixtures.State) = s.equals(closed)
 
@@ -44,7 +44,7 @@ object DiscoveryFixtures:
 
   object Mapped extends Derived(Added.refining(Original)(identity))
 
-  object capabilityOwner extends Machine[State, Outcome, Nothing]:
+  object capabilityOwner extends RecordMachine[State, Outcome, Nothing]:
     def init = State.open
     def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
 
@@ -60,7 +60,7 @@ object DiscoveryFixtures:
   object propertyOwner extends Derived(Original.restrict(advance))
 
   object RoleSource
-      extends Machine[RolePhase, Outcome, Nothing],
+      extends RecordMachine[RolePhase, Outcome, Nothing],
         Phased[RolePhase, RolePhase](identity):
     def init = RolePhase.pending
 
@@ -134,7 +134,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
   test("IR construction initializes only designated property groups once") {
     val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
     final case class Bundle(progress: Progress[State])
-    object Grouped extends Machine[State, Outcome, Nothing]:
+    object Grouped extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -176,7 +176,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
               check(false)
     assertEquals(Grouped.init, State.open)
     assertEquals(initialized.toList, Nil)
-    object HelperOwner extends Machine[State, Outcome, Nothing]:
+    object HelperOwner extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -186,7 +186,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       def properties =
         initialized += "properties-def": Unit
         Grouped.properties
-    object HelperSection extends Machine[State, Outcome, Nothing]:
+    object HelperSection extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -201,7 +201,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
         def liveness =
           initialized += "liveness-def": Unit
           Grouped.properties.liveness
-    object PrivateOwner extends Machine[State, Outcome, Nothing]:
+    object PrivateOwner extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -281,7 +281,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     )
     for subject <- subjects do
       subject match
-        case machine: Machine[?, ?, ?] =>
+        case machine: RecordMachine[?, ?, ?] =>
           val declarations = machine.bindings.map(_.decl)
           assertEquals(declarations, List(advance.decl))
           assert(declarations.head eq advance.decl)
@@ -294,7 +294,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
   }
 
   test("a name collision and a duplicate declaration identity are refused") {
-    def instance = new Machine[State, Outcome, Nothing]:
+    def instance = new RecordMachine[State, Outcome, Nothing]:
       override def name = "duplicate"
       def init = State.open
       def end(s: State) = s.equals(State.closed)
@@ -328,7 +328,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     assert(!(stayed eq advanced))
     given Finite[State] with
       def values = throw AssertionError("binding inspection enumerated whole-state catalog")
-    object Permuted extends Machine[State, Outcome, Nothing]:
+    object Permuted extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -346,7 +346,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       actual.map(decl => s"${decl.actor.name}.${decl.name}"),
       List("tester.retreat", "tester.advance")
     )
-    object DuplicateBinding extends Machine[State, Outcome, Nothing]:
+    object DuplicateBinding extends RecordMachine[State, Outcome, Nothing]:
       def init = State.open
       def end(s: State) = s.equals(State.closed)
       object rules
@@ -416,7 +416,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     "refinement maps return authored images and successive callbacks can differ"
   ) {
     object Narrow
-        extends Machine[State, Outcome, Nothing](using
+        extends RecordMachine[State, Outcome, Nothing](using
           Finite.of(State.open),
           Finite[Outcome],
           Finite[Nothing]

@@ -77,7 +77,7 @@ object TwoLayeredCache:
 
   def agreed(cache: Cache): Boolean = cache.l1 == cache.l2
 
-  object Model extends Machine[Cache, Outcome, Event]:
+  object Model extends RecordMachine[Cache, Outcome, Event]:
     val init = Cache(l1 = None, l2 = None, num = 0)
     // a run stops where the layers agree
     def end(cache: Cache) = agreed(cache)
@@ -116,12 +116,12 @@ object TwoLayeredCache:
 
     object postconditions:
       // after a read, both layers hold what it returned
-      val readFillsL1: Property[Cache] =
+      val readFillsL1: Property =
         property
           .after(client.read)
           .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
             check(agreed(after.step.state))
-      val servedFromL2: Property[Cache] =
+      val servedFromL2: Property =
         property
           .after(client.read)
           .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
@@ -144,7 +144,7 @@ object TwoLayeredCache:
         Model.leadsTo("agreement")(cache => !agreed(cache), agreed, within = 1)
 
     object queries:
-      val anyRun: Scenario[Cache] = scenario.starts(init).free
+      val anyRun: Scenario = scenario.starts(init).free
       // three writes, each expired and read back
       val history = Limits(steps = 9, actions = 9, search = 65536)
       val readFillsL1Holds = query verify postconditions.readFillsL1 in anyRun limits history
@@ -157,13 +157,13 @@ object TwoLayeredCache:
     object postconditions:
       // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
       // monitor, which a read of a value older than the last write breaks.
-      val buggyWritesRecorded: Property[Cache] =
+      val buggyWritesRecorded: Property =
         property
           .after(client.write)
           .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
             records(Event.wrote)
 
     object queries:
-      val anyBuggyRun: Scenario[Cache] = scenario.starts(Model.init).free
+      val anyBuggyRun: Scenario = scenario.starts(Model.init).free
       val refutesWriteThroughL1 =
         query verify postconditions.buggyWritesRecorded in anyBuggyRun limits Model.queries.history

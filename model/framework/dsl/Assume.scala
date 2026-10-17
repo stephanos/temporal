@@ -95,7 +95,7 @@ final class Progress[S] private[framework] (
 ):
   override def toString: String = s"progress $name"
 
-extension [S, O, F](m: Machine[S, O, F])
+extension [S, O, F](m: RecordMachine[S, O, F])
   def leadsTo(
       name: String
   )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =

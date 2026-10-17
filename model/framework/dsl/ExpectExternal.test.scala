@@ -123,7 +123,7 @@ class ExpectExternalTest extends munit.FunSuite:
   private enum Fact:
     case completed
 
-  private object Subject extends Machine[Job, Outcome, Fact]:
+  private object Subject extends RecordMachine[Job, Outcome, Fact]:
     def init: Job = Job(false)
     def end(state: Job): Boolean = state.done
 

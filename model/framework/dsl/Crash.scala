@@ -3,7 +3,7 @@ package framework.dsl
 import scala.annotation.publicInBinary
 
 final private[framework] class NativeCrash[S, O, F](
-    owner: Machine[S, O, F],
+    owner: RecordMachine[S, O, F],
     declaration: ActionDecl,
     outcome: O,
     facts: List[F],

@@ -12,13 +12,13 @@ class DurabilityFieldsSuite extends munit.FunSuite:
   final case class Inner(remaining: Int, pending: Boolean)
   final case class Record(inner: Inner, queue: List[UpTo[2]], phase: UpTo[2])
 
-  object Subject extends Machine[Record, Boolean, Nothing]:
+  object Subject extends RecordMachine[Record, Boolean, Nothing]:
     def init: Record = throw AssertionError("init evaluated")
     def end(state: Record): Boolean = throw AssertionError("end evaluated")
 
     object rules extends Bindings()
 
-  object Foreign extends Machine[Record, Boolean, Nothing]:
+  object Foreign extends RecordMachine[Record, Boolean, Nothing]:
     def init: Record = throw AssertionError("init evaluated")
     def end(state: Record): Boolean = throw AssertionError("end evaluated")
 
@@ -76,7 +76,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
 
   test("reset validity uses selected leaf evidence and recursively validates collection members"):
     final case class Selected(value: Int, values: List[Int])
-    object Owner extends Machine[Selected, Boolean, Nothing]:
+    object Owner extends RecordMachine[Selected, Boolean, Nothing]:
       def init: Selected = throw AssertionError("init evaluated")
       def end(state: Selected): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings()
@@ -124,7 +124,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
 
   test("unsupported custom reset evidence refuses with its selected field location"):
     final case class InboxRecord(queue: Inbox[Boolean])
-    object InboxOwner extends Machine[InboxRecord, Boolean, Nothing]:
+    object InboxOwner extends RecordMachine[InboxRecord, Boolean, Nothing]:
       def init: InboxRecord = throw AssertionError("init evaluated")
       def end(state: InboxRecord): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings()
@@ -142,7 +142,7 @@ class DurabilityFieldsSuite extends munit.FunSuite:
 
   test("opaque numeric shape needs selected validity evidence rather than its Int representation"):
     final case class OpaqueState(value: Positive.Value)
-    object Subject extends Machine[OpaqueState, Boolean, Nothing]:
+    object Subject extends RecordMachine[OpaqueState, Boolean, Nothing]:
       def init: OpaqueState = throw AssertionError("init evaluated")
       def end(s: OpaqueState): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings()

@@ -167,7 +167,7 @@ class InputDefaults extends munit.FunSuite:
 
   test("machine, Scenario and realization script initialization refuse required scalar omissions"):
     val send = action(Actor("sender")).input[Boolean](name = "requiredAnswer")
-    class Base extends Machine[Boolean, Boolean, Nothing]:
+    class Base extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: State) = true
       object rules extends Bindings()

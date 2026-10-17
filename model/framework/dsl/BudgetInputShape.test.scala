@@ -8,7 +8,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
         case class BudgetState(remaining: Int)
         object caller:
           val empty = action("empty", Actor("fault")).responseLoss
-        object Subject extends Machine[BudgetState, Boolean, Nothing]:
+        object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
           val init = BudgetState(1)
           def end(s: BudgetState): Boolean = false
           object rules extends Rules:
@@ -21,7 +21,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
         case class BudgetState(remaining: Int)
         object caller:
           val empty = action("empty", Actor("fault")).responseLoss
-        object Subject extends Machine[BudgetState, Boolean, Nothing]:
+        object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
           val init = BudgetState(1)
           def end(s: BudgetState): Boolean = false
           object rules extends Rules:
@@ -35,7 +35,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
     case class BudgetState(remaining: Int)
     object caller:
       val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
-    class Subject(budgeted: Boolean) extends Machine[BudgetState, Boolean, Nothing]:
+    class Subject(budgeted: Boolean) extends RecordMachine[BudgetState, Boolean, Nothing]:
       val init = BudgetState(1)
       def end(s: BudgetState): Boolean = false
       object targets:
@@ -66,7 +66,7 @@ class BudgetInputShapeSuite extends munit.FunSuite:
       val empty = action("empty", Actor("fault")).responseLoss
       val record = action("record", Actor("fault")).inputs[Request].responseLoss
       val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
-    object Subject extends Machine[BudgetState, Boolean, Nothing]:
+    object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
       val init = BudgetState(1, true)
       def end(s: BudgetState): Boolean = false
       object rules extends Rules:

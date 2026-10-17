@@ -1,12 +1,12 @@
 package framework.realize
 
-import framework.dsl.{Action, ActionDecl, ClassRef, Machine}
+import framework.dsl.{Action, ActionDecl, ClassRef, RecordMachine}
 import io.temporal.server.api.umpire.v1 as ir
 
 // The framework-facing value of any realization kit. A kit owns its conversion; the export driver
 // owns dependency lifting, Query selection and final Model assembly.
 trait ConstructedRealization:
-  def machine: Machine[?, ?, ?]
+  def machine: RecordMachine[?, ?, ?]
   def runs: Seq[AnyRef]
   protected def declaredPerformances: Vector[Performance]
   protected def declaredDependencies: ConstructedRealization.Dependencies
@@ -121,7 +121,7 @@ object ConstructedRealization:
         ActionDependency.Declaration(identity)
 
   private def factName(
-      machine: Machine[?, ?, ?],
+      machine: RecordMachine[?, ?, ?],
       value: Fact,
       context: Context
   ): String =

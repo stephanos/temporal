@@ -8,7 +8,7 @@ final private[framework] class StructuralValue[T](
     slots: List[StructuralValue.Slot],
     check: StructuralValue.Check[T]
 ):
-  def validate(value: T, owner: Machine[?, ?, ?], context: String): Unit =
+  def validate(value: T, owner: RecordMachine[?, ?, ?], context: String): Unit =
     val inspection = new StructuralValue.Inspection(owner, root, slots, context)
     check(value, inspection, Nil)
 
@@ -23,9 +23,17 @@ private[framework] object StructuralValue:
   def make[T](root: String, slots: List[Slot], check: Check[T]): StructuralValue[T] =
     new StructuralValue(root, slots, check)
 
-  final class Inspection(owner: Machine[?, ?, ?], root: String, slots: List[Slot], context: String):
+  final class Inspection(
+      owner: RecordMachine[?, ?, ?],
+      root: String,
+      slots: List[Slot],
+      context: String
+  ):
     private val lineage =
-      def collect(current: Machine[?, ?, ?], seen: List[Machine[?, ?, ?]]): List[Machine[?, ?, ?]] =
+      def collect(
+          current: RecordMachine[?, ?, ?],
+          seen: List[RecordMachine[?, ?, ?]]
+      ): List[RecordMachine[?, ?, ?]] =
         require(!seen.exists(_.eq(current)), s"$context: cyclic machine Inbox lineage")
         current :: current.derivationParent.toList.flatMap(collect(_, current :: seen))
       if slots.isEmpty then Nil else collect(owner, Nil)

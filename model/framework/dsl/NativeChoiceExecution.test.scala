@@ -2,7 +2,7 @@ package framework.dsl
 
 class NativeChoiceExecutionSuite extends munit.FunSuite:
   private def run(
-      machine: Machine[Boolean, Boolean, Boolean],
+      machine: RecordMachine[Boolean, Boolean, Boolean],
       cls: Class
   ): List[Step[Boolean, Boolean, Boolean]] =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
@@ -34,7 +34,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
       scalarFirst -> ((s: Boolean, in: Boolean) => List(Step(in, !s, List(in)))),
       scalarSecond -> ((_: Boolean, _: Boolean) => Nil)
     )
-    object Subject extends Machine[Boolean, Boolean, Boolean]:
+    object Subject extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(state: Boolean): Boolean = state
       object rules extends Rules:
@@ -75,7 +75,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
       ),
       onOther -> ((_: Boolean) => Nil)
     )
-    object Subject extends Machine[Boolean, Boolean, Boolean]:
+    object Subject extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(state: Boolean): Boolean = state
       object rules extends Rules:
@@ -130,7 +130,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
       onToken -> ((_: Boolean) => throw AssertionError("on arm evaluated")),
       onOther -> ((_: Boolean) => throw AssertionError("on arm evaluated"))
     )
-    object Subject extends Machine[Boolean, Boolean, Nothing]:
+    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Rules:
@@ -139,7 +139,7 @@ class NativeChoiceExecutionSuite extends munit.FunSuite:
           where { s => guards += 1; s } ~> onProgram
     Subject.validateNativeChoices(caller.selected(), Vector(offToken, onToken))
     assertEquals(guards, 0)
-    object OpaqueSubject extends Machine[Boolean, Boolean, Nothing]:
+    object OpaqueSubject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Rules:

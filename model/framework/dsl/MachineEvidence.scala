@@ -37,7 +37,7 @@ private[framework] object MachineEvidence:
       private[MachineEvidence] val canonical: Canonical
   )
   final case class Retained(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       owner: String,
       family: String,
       name: String,
@@ -151,7 +151,7 @@ private[framework] object MachineEvidence:
     private var retained = Option.empty[Retained]
     def value: Option[Retained] = synchronized(retained)
     def owns(value: Retained): Boolean = synchronized(retained.exists(_.eq(value)))
-    def retain(source: Machine[?, ?, ?], data: Seq[String]): Unit = synchronized {
+    def retain(source: RecordMachine[?, ?, ?], data: Seq[String]): Unit = synchronized {
       val payload = try
         val c = new Cursor(data)
         require(c.next() == "machine-evidence-v2", "unsupported evidence version")
@@ -209,7 +209,7 @@ private[framework] object MachineEvidence:
       if retained.isEmpty then retained = Some(payload)
     }
 
-  private def checked(source: Machine[?, ?, ?], value: Retained): Unit =
+  private def checked(source: RecordMachine[?, ?, ?], value: Retained): Unit =
     val context = s"Machine ${value.family}.${value.name} evidence"
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
     def check(condition: Boolean, message: String): Unit = if !condition then fail(message)
@@ -315,9 +315,9 @@ private[framework] object MachineEvidence:
       )
     }
 
-  def collect(machine: Machine[?, ?, ?]): Contribution =
+  def collect(machine: RecordMachine[?, ?, ?]): Contribution =
     require(machine ne null, "Machine evidence: declaration is not initialized")
-    def declaring(current: Machine[?, ?, ?]): Machine[?, ?, ?] = current match
+    def declaring(current: RecordMachine[?, ?, ?]): RecordMachine[?, ?, ?] = current match
       case _: Derived[?, ?, ?, ?] | _: Built[?, ?, ?, ?] =>
         current.derivationParent.fold(current)(declaring)
       case _ => current

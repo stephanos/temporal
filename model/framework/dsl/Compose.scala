@@ -136,7 +136,7 @@ abstract class Composition[S <: Product] private (
 
   // The key of one member outcome in this composition. The member fixes the outcome type, so a
   // capability cannot bind an outcome of another machine or hand-write the composed encoding.
-  def composedOutcome[MS, O, F](member: Machine[MS, O, F], outcome: O): String =
+  def composedOutcome[MS, O, F](member: RecordMachine[MS, O, F], outcome: O): String =
     val fields = mirror.fromProduct(Composition.Empty).productElementNames.toVector
     val candidates = fields.zip(members).collect { case (field, m) if m eq member => field }
     require(

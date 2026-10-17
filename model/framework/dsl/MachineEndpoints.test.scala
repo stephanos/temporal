@@ -9,15 +9,15 @@ class MachineEndpointsSuite extends munit.FunSuite:
   private val literal = ir.Expr(kind = ir.Expr.Kind.Literal(ir.Value(ir.Value.Kind.Bool(true))))
   private def end(tpe: ir.TypeRef = bool, body: ir.Expr = literal): ir.Expr =
     ir.Expr(kind = ir.Expr.Kind.Lambda(ir.Lambda(Seq(ir.Param("written", Some(tpe))), Some(body))))
-  private def machine: Machine[Boolean, Boolean, Nothing] =
-    new Machine[Boolean, Boolean, Nothing]:
+  private def machine: RecordMachine[Boolean, Boolean, Nothing] =
+    new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init read")
       def end(s: Boolean): Boolean = throw AssertionError("end read")
       def rules: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError("rules read")
       override def name: String = throw AssertionError("public name read")
   private def chunks(bytes: Array[Byte]): Seq[String] = Seq(Base64.getEncoder.encodeToString(bytes))
   private def retained(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       starts: Seq[ir.Expr] = Seq(literal),
       ends: ir.Expr = end(),
       model: ir.Model = ir.Model()
@@ -208,7 +208,7 @@ class MachineEndpointsSuite extends munit.FunSuite:
       )
     ): Unit
     val original = pending.endpointMetadata
-    val stale = new Machine[Boolean, Boolean, Nothing]:
+    val stale = new RecordMachine[Boolean, Boolean, Nothing]:
       def init = false
       def end(s: Boolean) = s
       object rules extends Bindings()

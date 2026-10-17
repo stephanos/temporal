@@ -6,7 +6,7 @@ object BoundedIntegersFixture:
     val tick = action(this)
 
   // A whole state that is a bounded counter, authored without explicit evidence.
-  object Bounded extends Machine[UpTo[2], Boolean, Nothing]:
+  object Bounded extends RecordMachine[UpTo[2], Boolean, Nothing]:
     val init = UpTo[2](0)
     def end(s: UpTo[2]): Boolean = s == UpTo[2](2)
 

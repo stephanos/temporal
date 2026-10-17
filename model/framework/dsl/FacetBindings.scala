@@ -23,7 +23,7 @@ private[framework] object FacetBindings:
   )
   final case class Retained(origin: Origin, template: Template)
   final case class Context(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       owner: String,
       family: String,
       machine: String,
@@ -118,7 +118,7 @@ private[framework] object FacetBindings:
   final class Metadata:
     private var retained = Option.empty[Context]
     def value: Option[Context] = retained
-    def retain(source: Machine[?, ?, ?], data: Seq[String]): Unit = synchronized {
+    def retain(source: RecordMachine[?, ?, ?], data: Seq[String]): Unit = synchronized {
       val context = decoding {
         val c = new Cursor(data)
         requireThat(c.next() == "facet-context-v1", "unsupported assembly context version")
@@ -168,7 +168,7 @@ private[framework] object FacetBindings:
       retained = Some(context)
     }
 
-  def checkedOrigin(source: Machine[?, ?, ?], origin: Origin, definition: Definition): Unit =
+  def checkedOrigin(source: RecordMachine[?, ?, ?], origin: Origin, definition: Definition): Unit =
     val identity = origin.source.identity.getOrElse(fail("missing live facet source identity"))
     requireThat(identity.source.eq(source), "foreign facet assembly source")
     requireThat(identity.namespace ne null, "facet namespace is not initialized")
@@ -193,7 +193,10 @@ private[framework] object FacetBindings:
     )
     requireThat(origin.book.facetOrigin.exists(_.eq(origin)), "stale facet RuleBook source token")
 
-  def contributors(source: Machine[?, ?, ?], book: RuleBook[?, ?, ?]): Option[Vector[Origin]] =
+  def contributors(
+      source: RecordMachine[?, ?, ?],
+      book: RuleBook[?, ?, ?]
+  ): Option[Vector[Origin]] =
     book match
       case facets: Facets[?, ?, ?] =>
         requireThat(facets.assembly.eq(source), "foreign Facets assembly")
@@ -409,11 +412,11 @@ private[framework] object FacetBindings:
 
   private def reserved(call: ir.Call): Boolean = call.function.startsWith("$facet-context-v1.")
 
-  def instantiate(source: Machine[?, ?, ?], template: Template): RuleBindings.Packet =
+  def instantiate(source: RecordMachine[?, ?, ?], template: Template): RuleBindings.Packet =
     instantiate(source, template.packet, template.sites, template.definition.traitName)
 
   def instantiate(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       packet: RuleBindings.Packet,
       sites: Vector[Site],
       fragmentOwner: String

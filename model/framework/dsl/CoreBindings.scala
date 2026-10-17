@@ -9,7 +9,7 @@ private[framework] object CoreBindings:
       before: Vector[ActionDecl],
       operands: Vector[ActionDecl],
       unsupported: Boolean,
-      source: Option[Machine[?, ?, ?]] = None,
+      source: Option[RecordMachine[?, ?, ?]] = None,
       sourceTable: Vector[(ActionDecl, Bound[?, ?, ?])] = Vector.empty,
       rawOperands: Vector[Rebinding[?, ?, ?]] = Vector.empty,
       sourceEvidence: Option[DerivationBindings.Snapshot] = None,
@@ -42,7 +42,7 @@ private[framework] object CoreBindings:
       name: String,
       before: Vector[(ActionDecl, Bound[S, O, F])],
       operands: Vector[Rebinding[S, O, F]],
-      source: Option[Machine[?, ?, ?]] = None,
+      source: Option[RecordMachine[?, ?, ?]] = None,
       sourceEvidence: Option[DerivationBindings.Snapshot] = None,
       operandEvidence: Vector[DerivationBindings.OperandEvidence] = Vector.empty,
       nativeEvidence: Option[DerivationBindings.Snapshot] = None,
@@ -166,7 +166,7 @@ private[framework] object CoreBindings:
         E.Inbox(inbox.copy(contents = inbox.contents.map(next), message = inbox.message.map(next)))
       case other => other)
 
-  def collect[S, O, F](machine: Machine[S, O, F]): Contribution =
+  def collect[S, O, F](machine: RecordMachine[S, O, F]): Contribution =
     val context = s"machine ${machine.name} core bindings"
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
     def identity(decl: ActionDecl): String = decl.sourceIdentity

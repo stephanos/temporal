@@ -13,9 +13,9 @@ final class PropertyDecl private[framework] (
     val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty
 )
 
-// A Property over a machine whose state type is `S`. The claim patterns of model/framework/dsl/Syntax.scala
+// A Property over a machine or composition, whatever its state. The claim patterns of model/framework/dsl/Syntax.scala
 // are Properties of their own kinds.
-class Property[S] private[framework] (val decl: PropertyDecl):
+class Property private[framework] (val decl: PropertyDecl):
   def name: String = decl.name
 
 // Declares a Property on a machine whose steps are `Step[S, O, F]`.
@@ -70,8 +70,8 @@ final class ScenarioDecl private[framework] (
     val free: Boolean
 )
 
-// A Scenario over a machine whose state type is `S`.
-final class Scenario[S] private[framework] (val decl: ScenarioDecl):
+// A Scenario over a machine or composition, whatever its state.
+final class Scenario private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
 
 // Declares a Scenario.
@@ -85,11 +85,11 @@ final class ScenarioBuilder[S] private[framework] (
 
   // Pins the schedule to exactly these classes, in order: a machine's classes, or a composition's as
   // `c.synced(_.member -> action)` and `c.own(_.member, action)` select them.
-  def actions(cs: (ClassRef | Composed)*): Scenario[S] =
+  def actions(cs: (ClassRef | Composed)*): Scenario =
     Scenario(ScenarioDecl(name, m, start, cs.toVector, free = false))
 
   // Admits any action at every step, within the Query's step limit.
-  def free: Scenario[S] = Scenario(
+  def free: Scenario = Scenario(
     ScenarioDecl(name, m, start, Vector.empty, free = true)
   )
 
@@ -201,20 +201,20 @@ class Query private[framework] (
 // as an item of a list, is named `<machine>.<scenario>.<property>` after its Scenario's machine, its
 // Scenario and its Property.
 final class QueryDecl private[framework] (name: String):
-  infix def find[P](p: Property[P]): QueryOn[P] =
+  infix def find(p: Property): QueryOn =
     QueryOn(name, QueryForm.find, p)
-  infix def verify[P](p: Property[P]): QueryOn[P] =
+  infix def verify(p: Property): QueryOn =
     QueryOn(name, QueryForm.verify, p)
 
-final class QueryOn[P] private[framework] (
+final class QueryOn private[framework] (
     name: String,
     form: QueryForm,
-    p: Property[P]
+    p: Property
 ):
   // The Scenario's machine is the Property's, or refines it: a Property of the refined machine is
-  // read through the refinement the Scenario's machine declares. `Machine[S, O, F]` does not carry
+  // read through the refinement the Scenario's machine declares. `RecordMachine[S, O, F]` does not carry
   // the type it refines, so the lifter, not the compiler, refuses a pair of unrelated machines.
-  infix def in[S](s: Scenario[S]): QueryIn = QueryIn(name, form, p.decl, s.decl)
+  infix def in(s: Scenario): QueryIn = QueryIn(name, form, p.decl, s.decl)
 
 final class QueryIn private[framework] (
     name: String,

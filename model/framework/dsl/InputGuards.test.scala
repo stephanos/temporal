@@ -23,7 +23,7 @@ object InputGuardsFixture:
       seen += in
       in.flag
 
-  object Native extends Machine[Boolean, Boolean, Boolean]:
+  object Native extends RecordMachine[Boolean, Boolean, Boolean]:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -63,7 +63,7 @@ object InputGuardsFixture:
         on(caller.start):
           where((s, in) => enabled(s, in)) ~> effect
 
-  object Faceted extends Machine[Boolean, Boolean, Boolean], Applying:
+  object Faceted extends RecordMachine[Boolean, Boolean, Boolean], Applying:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -88,7 +88,7 @@ object InputGuardsFixture:
       )
 
   object PhasedNative
-      extends Machine[Boolean, Boolean, Boolean],
+      extends RecordMachine[Boolean, Boolean, Boolean],
         Phased[Boolean, Boolean](identity):
     val init = false
     override def end(s: Boolean): Boolean = s
@@ -125,7 +125,7 @@ class InputGuards extends munit.FunSuite:
       .input[Boolean](name = "flag")(using selected)
       .declaredAt("guardFixture.start")
     start.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
-    class Source extends Machine[Boolean, Boolean, Boolean]:
+    class Source extends RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(s: Boolean): Boolean = s
       object rules extends Rules
@@ -194,7 +194,7 @@ class InputGuards extends munit.FunSuite:
 
   test("native guards share actual inputs with effects and short circuit after class filtering"):
     import InputGuardsFixture.*
-    def run(machine: Machine[Boolean, Boolean, Boolean], s: Boolean, in: Request) =
+    def run(machine: RecordMachine[Boolean, Boolean, Boolean], s: Boolean, in: Request) =
       val binding = machine.bindings.find(_.decl eq caller.start.decl).get
       effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)(s, caller.start(in))
     for machine <- List(Native, Rebound, Restricted) do
@@ -244,7 +244,7 @@ class InputGuards extends munit.FunSuite:
       final case class Request(flag: Boolean)
       object caller extends Actor:
         val start = action(this).inputs[Request]
-      object Native extends Machine[Boolean, Boolean, Nothing]:
+      object Native extends RecordMachine[Boolean, Boolean, Nothing]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -261,7 +261,7 @@ class InputGuards extends munit.FunSuite:
         .typeCheckErrors("""
       import framework.dsl.*
       import InputGuardsFixture.*
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -274,7 +274,7 @@ class InputGuards extends munit.FunSuite:
         .typeCheckErrors("""
       import framework.dsl.*
       import InputGuardsFixture.*
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -289,7 +289,7 @@ class InputGuards extends munit.FunSuite:
       import framework.dsl.*
       import InputGuardsFixture.*
       val widened: Action[EmptyTuple] = caller.unit
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -303,7 +303,7 @@ class InputGuards extends munit.FunSuite:
         .typeCheckErrors("""
       import framework.dsl.*
       import InputGuardsFixture.*
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -316,7 +316,7 @@ class InputGuards extends munit.FunSuite:
         .typeCheckErrors("""
       import framework.dsl.*
       import InputGuardsFixture.*
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -329,7 +329,7 @@ class InputGuards extends munit.FunSuite:
         .typeCheckErrors("""
       import framework.dsl.*
       import InputGuardsFixture.*
-      object Bad extends Machine[Boolean, Boolean, Boolean]:
+      object Bad extends RecordMachine[Boolean, Boolean, Boolean]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:

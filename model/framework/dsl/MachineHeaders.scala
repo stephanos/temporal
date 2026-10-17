@@ -60,7 +60,7 @@ private[framework] object MachineHeaders:
       selected = selected.updated(index, Some(key))
     }
 
-  def collect(machine: Machine[?, ?, ?], nested: Seq[(Data[?], String)] = Nil): Contribution =
+  def collect(machine: RecordMachine[?, ?, ?], nested: Seq[(Data[?], String)] = Nil): Contribution =
     require(machine ne null, "Machine header: declaration is not initialized")
     val (family, name) = machine.headerIdentity.getOrElse(
       throw IllegalArgumentException("Machine header: no retained declaration identity")

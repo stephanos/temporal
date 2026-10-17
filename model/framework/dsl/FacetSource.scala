@@ -10,7 +10,7 @@ final private[framework] class FacetSource(
 
 object FacetSource:
   final private[framework] case class Identity(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       namespace: AnyRef,
       traitClass: java.lang.Class[?],
       traitName: String,

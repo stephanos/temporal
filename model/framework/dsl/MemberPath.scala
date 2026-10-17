@@ -66,11 +66,11 @@ private[framework] object MemberPath:
       case _ => None
 
   inline def captureBinding[S, MS, O, F](
-      inline member: S => (MS, Machine[MS, O, F])
+      inline member: S => (MS, RecordMachine[MS, O, F])
   ): MemberBinding = ${ capturedBinding('member) }
 
   private def capturedBinding[S: Type, MS: Type, O: Type, F: Type](
-      member: Expr[S => (MS, Machine[MS, O, F])]
+      member: Expr[S => (MS, RecordMachine[MS, O, F])]
   )(using Quotes): Expr[MemberBinding] =
     import quotes.reflect.*
     memberBinding(member.asTerm).getOrElse(

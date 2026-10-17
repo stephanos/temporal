@@ -14,7 +14,7 @@ object WitnessFixture:
   val start = action("start", actor)
   val finish = action("finish", actor)
 
-  object Subject extends Machine[State, Outcome, Fact]:
+  object Subject extends RecordMachine[State, Outcome, Fact]:
     def init = State.open
     def end(s: WitnessFixture.State) = s.equals(State.closed)
 
@@ -30,7 +30,7 @@ object WitnessFixture:
 
   final case class Joined(left: State, right: State)
 
-  object Other extends Machine[State, Outcome, Foreign]:
+  object Other extends RecordMachine[State, Outcome, Foreign]:
     def init = State.open
     def end(s: WitnessFixture.State) = s.equals(State.closed)
 

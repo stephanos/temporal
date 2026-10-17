@@ -5,7 +5,7 @@ class NativeBudgetSuite extends munit.FunSuite:
   private val loss = action("loss", Actor("fault")).responseLoss
 
   test("budgets belong to each binding and leave authored state and callbacks intact"):
-    class Subject(selectRemaining: Boolean) extends Machine[BudgetState, Boolean, Nothing]:
+    class Subject(selectRemaining: Boolean) extends RecordMachine[BudgetState, Boolean, Nothing]:
       var calls = 0
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
@@ -31,18 +31,18 @@ class NativeBudgetSuite extends munit.FunSuite:
       assertEquals(subject.calls, 1)
 
   test("completed acquisition refuses duplicate budgets and another machine's field binding"):
-    class Source extends Machine[BudgetState, Boolean, Nothing]:
+    class Source extends RecordMachine[BudgetState, Boolean, Nothing]:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
       val target = loss.budgetedBy(_.available)
       object rules extends Bindings(target ~> ((s: BudgetState) => List(Step(true, s))))
     val source = new Source
-    object Foreign extends Machine[BudgetState, Boolean, Nothing]:
+    object Foreign extends RecordMachine[BudgetState, Boolean, Nothing]:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings(source.target ~> ((s: BudgetState) => List(Step(true, s))))
     intercept[IllegalArgumentException](Foreign.bindings): Unit
-    object Duplicate extends Machine[BudgetState, Boolean, Nothing]:
+    object Duplicate extends RecordMachine[BudgetState, Boolean, Nothing]:
       def init: BudgetState = throw AssertionError("init evaluated")
       def end(s: BudgetState): Boolean = throw AssertionError("end evaluated")
       object rules
@@ -63,7 +63,7 @@ class NativeBudgetSuite extends munit.FunSuite:
       first -> ((s: BudgetState) => List(Step(true, s))),
       second -> ((_: BudgetState) => Nil)
     )
-    object Subject extends Machine[BudgetState, Boolean, Nothing]:
+    object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
       val init = BudgetState(true, 2, UpTo(2), false)
       def end(s: BudgetState): Boolean = false
       object rules extends Rules:

@@ -7,7 +7,7 @@ class RuleSourceTest extends munit.FunSuite:
     test(s"imported bare target form $arity refuses with from=$inFrom"):
       import hand.{press, turn}
       import clock.tick
-      object Bare extends Machine[Lamp, Said, Nothing]:
+      object Bare extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
         object rules extends Rules:
@@ -49,7 +49,7 @@ class RuleSourceTest extends munit.FunSuite:
       val third = action(actor)
       val fourth = action(actor)
     for inFrom <- List(false, true); arity <- 2 to 4 do
-      object Qualified extends Machine[Lamp, Said, Nothing]:
+      object Qualified extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
         object rules extends Rules:
@@ -71,7 +71,7 @@ class RuleSourceTest extends munit.FunSuite:
 
   test("a from import refuses even with an already qualified target"):
     for wildcard <- List(false, true) do
-      object Imported extends Machine[Lamp, Said, Nothing]:
+      object Imported extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
         object rules extends Rules:
@@ -95,7 +95,7 @@ class RuleSourceTest extends munit.FunSuite:
     import clock.tick
     import hand.press
     for inFrom <- List(false, true) do
-      object Off extends Machine[Lamp, Said, Nothing]:
+      object Off extends RecordMachine[Lamp, Said, Nothing]:
         val init = Lamp(Lit.off, UpTo(0))
         def end(s: Lamp) = true
         object rules extends Rules:

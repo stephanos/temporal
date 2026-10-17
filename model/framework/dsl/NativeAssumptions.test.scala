@@ -5,8 +5,8 @@ class NativeAssumptionsSuite extends munit.FunSuite:
   private val tick = action("tick", Actor("caller"))
   private val loss = action("storageLoss", fault).storageLoss
 
-  private def machine(actions: Action[EmptyTuple]*): Machine[Boolean, Boolean, Nothing] =
-    new Machine[Boolean, Boolean, Nothing]:
+  private def machine(actions: Action[EmptyTuple]*): RecordMachine[Boolean, Boolean, Nothing] =
+    new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
       object rules
@@ -73,7 +73,7 @@ class NativeAssumptionsSuite extends munit.FunSuite:
   test("authored storage-loss collisions refuse at acquisition before callbacks"):
     val generated = machine(loss).assumptions.head
     for duplicate <- List(framework.dsl.assume("storageLoss"), generated) do
-      val source = new Machine[Boolean, Boolean, Nothing]:
+      val source = new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = throw AssertionError("init evaluated")
         def end(s: Boolean): Boolean = throw AssertionError("end evaluated")
         assumes(duplicate)

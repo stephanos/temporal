@@ -21,7 +21,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     var operands = 0
     def snapshot = Vector(starts, ends, books, values, guards, effects, operands)
   private class Input(reads: Reads)
-      extends Machine[Boolean, Boolean, Nothing](using
+      extends RecordMachine[Boolean, Boolean, Nothing](using
         new Finite[Boolean]:
           def values =
             reads.values += 1
@@ -45,7 +45,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
       written
     retainHeaderIdentity("proof", "input")
     retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
-  private class Published(source: Machine[Boolean, Boolean, Nothing]) extends Derived(source):
+  private class Published(source: RecordMachine[Boolean, Boolean, Nothing]) extends Derived(source):
     retainHeaderIdentity("proof", "published")
   private def operation(kind: String, count: Int) = Seq(
     "derivation-operation-v1",
@@ -168,7 +168,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
         case other             => other
       decl -> copied
     }
-    val forged = new Machine[Boolean, Boolean, Nothing]:
+    val forged = new RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = s
       def rules = input.rules
@@ -462,7 +462,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
         .retainOrigin(owner, machine, false, encoded(position))
       result.publishDerivation(Left("unused rule effect refusal"))
       result
-    class CoreSource extends Machine[Boolean, Boolean, Nothing]:
+    class CoreSource extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = s
       val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(complete("source", "core")) {}
@@ -556,7 +556,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
       )
     )
     class InboxSource(selectedWitness: Finite[Boolean])
-        extends Machine[Boolean, Boolean, Nothing](using
+        extends RecordMachine[Boolean, Boolean, Nothing](using
           selectedWitness,
           Finite[Boolean],
           Finite[Nothing]

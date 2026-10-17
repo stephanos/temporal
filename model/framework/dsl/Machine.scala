@@ -116,12 +116,12 @@ trait Declares[S] extends Model:
   type Outcome
   type Fact
 
-  private[framework] def illustrationMachine: Option[Machine[S, Outcome, Fact]] = None
+  private[framework] def illustrationMachine: Option[RecordMachine[S, Outcome, Fact]] = None
 
   def reach: Limits = frameworkReach
 
   // The state type, which a machine or composition object's members name through it, `def end(s:
-  // State)`, so `extends Machine[S, O, F]` is the one place it is written. The IR generator reads it
+  // State)`, so `extends RecordMachine[S, O, F]` is the one place it is written. The IR generator reads it
   // as the type it stands for. Its outcomes and facts are not given names here: inside an object
   // they would hide the feature's own `Outcome` and fact types.
   type State = S
@@ -304,9 +304,9 @@ extension [I](a: Action[I])
     StepBinding.linking(a.decl, f, root, chunks)
 
 // The owner of a machine's sections, which its `rules` read the machine's types from:
-// `object rules extends Rules:` in `object OrderProduct extends Machine[...], Phased[...](_.phase)`,
+// `object rules extends Rules:` in `object OrderProduct extends RecordMachine[...], Phased[...](_.phase)`,
 // whose rules read the phase projection from the machine's `Phasing`.
-final class Owner[S, O, F] private[framework] (val machine: Machine[S, O, F])
+final class Owner[S, O, F] private[framework] (val machine: RecordMachine[S, O, F])
 
 // The projection of a machine's or composition's state onto its phase, which its sections read as a
 // given: `when(Phase.placed)` in its `rules` tests it. The object's `Phased[State, Phase](_.phase)`
@@ -540,7 +540,7 @@ private[framework] def writtenPath(code: String): String =
 // Declared as an object that is the machine, named after the object with its first letter lowered:
 //
 // {{{
-// object OrderProduct extends Machine[OrderState, Outcome, OrderFact]:
+// object OrderProduct extends RecordMachine[OrderState, Outcome, OrderFact]:
 //   val init = OrderState(placed)
 //   def end(s: OrderState) = states.terminal(s.phase)
 //   object states: ...
@@ -548,7 +548,7 @@ private[framework] def writtenPath(code: String): String =
 //   object rules extends Rules: ...
 // }}}
 //
-// A machine whose rules name phases mixes in its phase projection, `extends Machine[OrderState,
+// A machine whose rules name phases mixes in its phase projection, `extends RecordMachine[OrderState,
 // Outcome, OrderFact], Phased[OrderState, Phase](_.phase)` (model/framework/dsl/Syntax.scala), which its
 // sections read; a machine that names no phase is a plain `Machine`.
 //
@@ -570,7 +570,7 @@ private[framework] def writtenPath(code: String): String =
 // or a `val` written as a block that reads, and in an effect assigns, the state's fields by name
 // (model/framework/dsl/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
 // shipped }`, which records the status the assigned case declares, where its enum declares one.
-abstract class Machine[S, O, F](using
+abstract class RecordMachine[S, O, F](using
     private[framework] val fs: Data[S],
     private[framework] val fo: Finite[O],
     private[framework] val ff: Finite[F]
@@ -579,7 +579,9 @@ abstract class Machine[S, O, F](using
   type Outcome = O
   type Fact = F
 
-  final override private[framework] def illustrationMachine: Option[Machine[S, O, F]] = Some(this)
+  final override private[framework] def illustrationMachine: Option[RecordMachine[S, O, F]] = Some(
+    this
+  )
 
   private var declaredInboxes = Vector.empty[InboxOwnership.Native]
   @publicInBinary final private[framework] def retainNativeInbox(
@@ -641,14 +643,14 @@ abstract class Machine[S, O, F](using
     facetContextData.value
   @publicInBinary final private[framework] def retainFacetContext(data: Seq[String]): Unit =
     facetContextData.retain(this, data)
-  private[framework] def endpointSource: Machine[?, ?, ?] = this
-  private[framework] def evidenceSource: Machine[?, ?, ?] = this
+  private[framework] def endpointSource: RecordMachine[?, ?, ?] = this
+  private[framework] def evidenceSource: RecordMachine[?, ?, ?] = this
   private[framework] def evidenceMetadata: Option[MachineEvidence.Retained] = evidenceData.value
   final private[framework] def ownsEvidence(value: MachineEvidence.Retained): Boolean =
     evidenceData.owns(value)
   @publicInBinary final private[framework] def retainEvidence(data: Seq[String]): Unit =
     evidenceData.retain(this, data)
-  private[framework] def ruleSource: Machine[?, ?, ?] = this
+  private[framework] def ruleSource: RecordMachine[?, ?, ?] = this
   private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value
   @publicInBinary final private[framework] def retainEndpoints(
       owner: String,
@@ -727,7 +729,7 @@ abstract class Machine[S, O, F](using
 
   private var declaredAssumptions = List.empty[(Assumption, String)]
   final protected def assumes(values: Assumption*): Unit =
-    val at = NativeLocation.caller("framework.dsl.Machine")
+    val at = NativeLocation.caller("framework.dsl.RecordMachine")
     declaredAssumptions ++= values.map(_ -> at)
   private[framework] def authoredAssumptions: List[(Assumption, String)] = declaredAssumptions
 
@@ -778,7 +780,7 @@ abstract class Machine[S, O, F](using
     validateNativeAssumptions(table)
     acquiredTable = Some(DerivationBindings.snapshot(table))
     table
-  private[framework] def derivationParent: Option[Machine[?, ?, ?]] = None
+  private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = None
   private[framework] def derivationEvent: Option[DerivationBindings.Event] = None
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     val book = rules
@@ -816,7 +818,7 @@ abstract class Machine[S, O, F](using
             rule.copy(effect = budgetEffect(adapted, inherited)))
         case Bound.Disabled() => after
 
-  private def ownsBudget(owner: Machine[?, ?, ?]): Boolean =
+  private def ownsBudget(owner: RecordMachine[?, ?, ?]): Boolean =
     this.eq(owner) || derivationParent.exists(_.ownsBudget(owner))
 
   private def validateNativeTable(entries: Vector[(ActionDecl, Bound[S, O, F])]): Unit =
@@ -941,7 +943,7 @@ abstract class Machine[S, O, F](using
       operation: => Option[CoreBindings.Operation] = None,
       trace: => Option[DerivationBindings.Event] = None,
       addedAssumptions: List[(Assumption, String)] = Nil
-  ): Machine[S, O, F] & DerivedFrom[this.type] = // format: off
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] = // format: off
     Built[S, O, F, this.type](objectName(this), List(init), end, table, this, Seq.empty,
       if keepRefinement then refinementEvidence else None, operation.toVector, trace,
       authoredAssumptions ++ addedAssumptions)(using // format: on
@@ -953,7 +955,7 @@ abstract class Machine[S, O, F](using
   // A machine that keeps the rows of the named actions and drops the rest, named after the object
   // that declares it, `object M extends Derived(m.restrict(...))`. It keeps the state type, starts
   // and ends, owns its own name and Definition IDs, and does not inherit a refinement.
-  def restrict(keep: Action[?]*): Machine[S, O, F] & DerivedFrom[this.type] =
+  def restrict(keep: Action[?]*): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
     lazy val before = DerivationBindings.snapshot(table)
@@ -971,18 +973,18 @@ abstract class Machine[S, O, F](using
   // The lifter refuses an action this machine does not bind.
   def rebind(
       replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     rebindWith(replaced, None)
 
   @publicInBinary private[framework] def capturedRebind(
       replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  )(data: Seq[String]): Machine[S, O, F] & DerivedFrom[this.type] =
+  )(data: Seq[String]): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     rebindWith(replaced, Some(DerivationBindings.operationSite(this, data)))
 
   private def rebindWith(
       replaced: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
       site: Option[DerivationBindings.OperationSite]
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val operands = Vector.newBuilder[Rebinding[S, O, F]]
     val evidence = Vector.newBuilder[DerivationBindings.OperandEvidence]
     val nativeSources = Vector.newBuilder[DerivationBindings.Snapshot]
@@ -1036,18 +1038,18 @@ abstract class Machine[S, O, F](using
   // already, and a bare binding where this machine's actions are bound by rules.
   def extend(
       added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     extendWith(added, None)
 
   @publicInBinary private[framework] def capturedExtend(
       added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  )(data: Seq[String]): Machine[S, O, F] & DerivedFrom[this.type] =
+  )(data: Seq[String]): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     extendWith(added, Some(DerivationBindings.operationSite(this, data)))
 
   private def extendWith(
       added: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
       site: Option[DerivationBindings.OperationSite]
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val acquired = added.map { r =>
       val operand = r(using machineOwner)
       operand -> DerivationBindings.operandEvidence(operand)
@@ -1080,9 +1082,9 @@ abstract class Machine[S, O, F](using
 
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
-  def refining[PS, PO, PF](product: Machine[PS, PO, PF])(
+  def refining[PS, PO, PF](product: RecordMachine[PS, PO, PF])(
       map: S => PS
-  ): Machine[S, O, F] & DerivedFrom[this.type] =
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val refinement = new Refinement[S, PS](using machineOwner)(product):
       def toProduct(s: S): PS = map(s)
     Built[S, O, F, this.type](
@@ -1097,13 +1099,14 @@ abstract class Machine[S, O, F](using
     )(using fs, fo, ff)(using ss)
 
   // A machine whose checks also make the assumptions named, in their authored order.
-  def assuming(added: Assumption*): Machine[S, O, F] & DerivedFrom[this.type] =
-    val at = NativeLocation.caller("framework.dsl.Machine")
+  def assuming(added: Assumption*): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+    val at = NativeLocation.caller("framework.dsl.RecordMachine")
     built(table, addedAssumptions = added.map(_ -> at).toList)
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
   // a member's monitors may not watch (model/SEMANTICS.md leaves that undefined).
-  def unmonitored: Machine[S, O, F] & DerivedFrom[this.type] = built(table, keepRefinement = false)
+  def unmonitored: RecordMachine[S, O, F] & DerivedFrom[this.type] =
+    built(table, keepRefinement = false)
 
 // A machine derived from another, declared as an object that is it:
 // `object LateRecord extends Derived(OrderRecord.rebind(...))`, named after the object. The
@@ -1114,21 +1117,25 @@ abstract class Machine[S, O, F](using
 //
 // Its phase type `P` is its source's, read off the derivation's static type, `Nothing` where the
 // source declares no phase.
-abstract class Derived[S, O, F, P](derivation: Machine[S, O, F])(using
+abstract class Derived[S, O, F, P](derivation: RecordMachine[S, O, F])(using
     source: Inherited[derivation.type, S, P]
-) extends Machine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using derivation.ss):
+) extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
+      derivation.ss
+    ):
   override def reach: Limits = derivation.reach
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] =
     derivation.nativeDurability ++ super.nativeDurability
 
-  final override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = Some(
+  final override private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = Some(
     derivation
   )
   final override private[framework] def acquiredRuleTable: Option[DerivationBindings.Snapshot] =
     derivation.acquiredRuleTable
-  final override private[framework] def endpointSource: Machine[?, ?, ?] = derivation.endpointSource
-  final override private[framework] def evidenceSource: Machine[?, ?, ?] = derivation.evidenceSource
-  final override private[framework] def ruleSource: Machine[?, ?, ?] = derivation.ruleSource
+  final override private[framework] def endpointSource: RecordMachine[?, ?, ?] =
+    derivation.endpointSource
+  final override private[framework] def evidenceSource: RecordMachine[?, ?, ?] =
+    derivation.evidenceSource
+  final override private[framework] def ruleSource: RecordMachine[?, ?, ?] = derivation.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
     super.headerSchemaKeys
       .zip(derivation.headerSchemaKeys)
@@ -1176,35 +1183,35 @@ final private[framework] class Built[S, O, F, M <: Model](
     trace: => Option[DerivationBindings.Event] = None,
     authored: => List[(Assumption, String)] = Nil
 )(using Data[S], Finite[O], Finite[F])(using StateData[S])
-    extends Machine[S, O, F],
+    extends RecordMachine[S, O, F],
       DerivedFrom[M]:
   override private[framework] def authoredAssumptions: List[(Assumption, String)] = authored
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] = source match
-    case machine: Machine[S, ?, ?] @unchecked => machine.nativeDurability
-    case _                                    => super.nativeDurability
+    case machine: RecordMachine[S, ?, ?] @unchecked => machine.nativeDurability
+    case _                                          => super.nativeDurability
   override def reach: Limits = source match
     case owner: Declares[?] => owner.reach
     case _                  => super.reach
 
-  override private[framework] def derivationParent: Option[Machine[?, ?, ?]] = source match
-    case machine: Machine[?, ?, ?] => Some(machine)
-    case _                         => None
+  override private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = source match
+    case machine: RecordMachine[?, ?, ?] => Some(machine)
+    case _                               => None
   override private[framework] lazy val derivationEvent: Option[DerivationBindings.Event] = trace
-  override private[framework] def endpointSource: Machine[?, ?, ?] = source match
-    case machine: Machine[?, ?, ?] => machine.endpointSource
-    case _                         => super.endpointSource
-  override private[framework] def evidenceSource: Machine[?, ?, ?] = source match
-    case machine: Machine[?, ?, ?] => machine.evidenceSource
-    case _                         => super.evidenceSource
-  override private[framework] def ruleSource: Machine[?, ?, ?] = source match
-    case machine: Machine[?, ?, ?] => machine.ruleSource
-    case _                         => super.ruleSource
+  override private[framework] def endpointSource: RecordMachine[?, ?, ?] = source match
+    case machine: RecordMachine[?, ?, ?] => machine.endpointSource
+    case _                               => super.endpointSource
+  override private[framework] def evidenceSource: RecordMachine[?, ?, ?] = source match
+    case machine: RecordMachine[?, ?, ?] => machine.evidenceSource
+    case _                               => super.evidenceSource
+  override private[framework] def ruleSource: RecordMachine[?, ?, ?] = source match
+    case machine: RecordMachine[?, ?, ?] => machine.ruleSource
+    case _                               => super.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
-    case machine: Machine[?, ?, ?] => machine.headerSchemaKeys
-    case _                         => super.headerSchemaKeys
+    case machine: RecordMachine[?, ?, ?] => machine.headerSchemaKeys
+    case _                               => super.headerSchemaKeys
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
-    case machine: Machine[?, ?, ?] => super.factCases ++ machine.factCases
-    case _                         => super.factCases
+    case machine: RecordMachine[?, ?, ?] => super.factCases ++ machine.factCases
+    case _                               => super.factCases
   private lazy val initialStates = starts
   def init: S = initialStates.head
   def end(s: S): Boolean = isEnd(s)
@@ -1215,11 +1222,13 @@ final private[framework] class Built[S, O, F, M <: Model](
     acquireRuleTable(bound)
   final override private[framework] lazy val coreOperations: Vector[CoreBindings.Operation] =
     source match
-      case machine: Machine[?, ?, ?] => machine.coreOperations ++ operations
-      case _                         => operations
+      case machine: RecordMachine[?, ?, ?] => machine.coreOperations ++ operations
+      case _                               => operations
   final override private[framework] def reaches: Seq[Model] = source +: also
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] = refinement
   final override private[framework] def phaseEvidence: Option[S => Any] = source match
-    case machine: Machine[?, ?, ?] =>
-      machine.asInstanceOf[Machine[S, ?, ?]].phaseEvidence // scalafix:ok DisableSyntax.asInstanceOf
+    case machine: RecordMachine[?, ?, ?] =>
+      machine
+        .asInstanceOf[RecordMachine[S, ?, ?]]
+        .phaseEvidence // scalafix:ok DisableSyntax.asInstanceOf
     case _ => None

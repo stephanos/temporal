@@ -57,7 +57,7 @@ object InputExecutionFixture:
     Trace.inputs += in
     List(Step(in.g, !state, List(in.a)))
 
-  object Native extends Machine[Boolean, Boolean, Boolean]:
+  object Native extends RecordMachine[Boolean, Boolean, Boolean]:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -82,7 +82,7 @@ object InputExecutionFixture:
         on(caller.faceted):
           always ~> effect
 
-  object Faceted extends Machine[Boolean, Boolean, Boolean], Applying:
+  object Faceted extends RecordMachine[Boolean, Boolean, Boolean], Applying:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -90,7 +90,7 @@ object InputExecutionFixture:
 
   object Rebound extends Derived(Native.rebind(caller.start ~> replacement))
 
-  object DefaultSource extends Machine[Boolean, Boolean, Boolean]:
+  object DefaultSource extends RecordMachine[Boolean, Boolean, Boolean]:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -151,7 +151,7 @@ class InputExecution extends munit.FunSuite:
         val finish = action(this).input[Boolean](name = "result", default = false)
       def bind[In](a: Action[In], f: (Boolean, In) => List[Step[Boolean, Boolean, Nothing]]) = a ~> f
       val direct = bind(caller.start, (s: Boolean, in: Request) => List(Step(in.flag, s)))
-      object Native extends Machine[Boolean, Boolean, Nothing]:
+      object Native extends RecordMachine[Boolean, Boolean, Nothing]:
         val init = false
         def end(s: Boolean) = s
         object rules extends Rules:
@@ -204,7 +204,7 @@ class InputExecution extends munit.FunSuite:
 
   test("class restrictions and native replacements retain explicit step pins"):
     import InputExecutionFixture.*
-    def run(machine: Machine[Boolean, Boolean, Boolean], state: Boolean, cls: Class) =
+    def run(machine: RecordMachine[Boolean, Boolean, Boolean], state: Boolean, cls: Class) =
       val binding = machine.bindings.find(_.decl eq cls.decl).get
       effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)(state, cls)
     assertEquals(run(Native, true, caller.start(first)), List(Step(false, true, List(true))))
@@ -264,7 +264,7 @@ class InputExecution extends munit.FunSuite:
     val before = Trace.defaults -> Trace.defaultConstructors
     val binding = DefaultSource.bindings.head
     assertEquals(Trace.defaults -> Trace.defaultConstructors, (before._1 + 1, before._2 + 1))
-    val bare = new Machine[Boolean, Boolean, Boolean]:
+    val bare = new RecordMachine[Boolean, Boolean, Boolean]:
       val init = false
       def end(s: Boolean): Boolean = s
       def rules: RuleBook[Boolean, Boolean, Boolean] = new Rules:
@@ -293,7 +293,7 @@ class InputExecution extends munit.FunSuite:
         final case class Request(a: Boolean, b: Boolean)
         object caller extends Actor:
           val start = action(this).inputs[Request]
-        object Bad extends Machine[Boolean, Boolean, Nothing]:
+        object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
           object rules extends Rules:
@@ -304,7 +304,7 @@ class InputExecution extends munit.FunSuite:
         import framework.dsl.*
         object caller extends Actor:
           val start = action(this).input[Tuple1[Boolean]](name = "value")
-        object Bad extends Machine[Boolean, Boolean, Nothing]:
+        object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
           val init = false
           def end(s: Boolean) = s
           object rules extends Rules:

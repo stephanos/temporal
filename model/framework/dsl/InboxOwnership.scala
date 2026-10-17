@@ -3,7 +3,7 @@ package framework.dsl
 @scala.annotation.publicInBinary
 private[framework] object InboxOwnership:
   final class Native(
-      val owner: Machine[?, ?, ?],
+      val owner: RecordMachine[?, ?, ?],
       val root: String,
       val path: List[String],
       val message: String,

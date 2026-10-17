@@ -173,7 +173,7 @@ class ExpectTest extends munit.FunSuite:
     val core: Step[Job, Said, Note] => Boolean =
       step => step.records(Note.started) && step.state.phase == Phase.busy
     val never = Subject.property.never(named).from(_.phase == Phase.idle)
-    val original = Property[Job](
+    val original = Property(
       PropertyDecl(
         "",
         Subject,
@@ -262,10 +262,10 @@ class ExpectTest extends munit.FunSuite:
   test("generic Declares builders supply transition and composition state contexts"):
     import WitnessFixture.*
     import ExpectFixture.*
-    def generic[S](owner: Declares[S], equal: (S, S) => Boolean): Property[S] =
+    def generic[S](owner: Declares[S], equal: (S, S) => Boolean): Property =
       owner.property.across.expect:
         check(equal(before, after.state))
-    def composed(owner: Declares[Joined]): Property[Joined] = owner.property.expect:
+    def composed(owner: Declares[Joined]): Property = owner.property.expect:
       check(left.equals(State.open))
     val predicate = generic(Reordered, (a, b) => a.equals(b)).decl.holds2.get
       .asInstanceOf[(Joined, Step[Joined, String, String]) => Boolean]
@@ -414,7 +414,7 @@ class ExpectTest extends munit.FunSuite:
         """import EffectsFixture.*; given Owner[Job, Said, Note] = Owner(Subject); Subject.property.expect { val step = effect { record(Note.started) }; check(true) }"""
       ),
       compileErrors(
-        """import EffectsFixture.*; object Bad extends Machine[Job, Said, Note] { def init = Subject.init; def end(s: Job) = true; object rules extends Rules; val bad = property.expect { val path = witness(hand.press()); check(true) } }"""
+        """import EffectsFixture.*; object Bad extends RecordMachine[Job, Said, Note] { def init = Subject.init; def end(s: Job) = true; object rules extends Rules; val bad = property.expect { val path = witness(hand.press()); check(true) } }"""
       ),
       compileErrors(
         """import EffectsFixture.*; Subject.property.expect { val temporal = Subject.leadsTo("p")(_ => true, _ => true, 1); check(true) }"""
@@ -446,7 +446,7 @@ class ExpectTest extends munit.FunSuite:
       records(_.right -> Other, Foreign.completed)
       check(before.left.equals(after.state.left))
     val joined = Joined(State.open, State.closed)
-    def holds(p: Property[Joined], facts: List[String]): Boolean =
+    def holds(p: Property, facts: List[String]): Boolean =
       p.decl.holds.get
         .asInstanceOf[Step[Joined, String, String] => Boolean](Step("accepted", joined, facts))
     val reordered = Reordered.property.expect:

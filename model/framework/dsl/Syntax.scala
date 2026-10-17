@@ -161,7 +161,7 @@ final class RequirementFacts[S, O, F] private[framework] (
 
   // A fact of the exact selected field and machine. Core form: `s.facts.contains("member_fact")`.
   inline def apply[MS, MO, MF](
-      inline member: S => (MS, Machine[MS, MO, MF]),
+      inline member: S => (MS, RecordMachine[MS, MO, MF]),
       fact: MF
   )(using evidence: F =:= String): Unit =
     context.require(memberRecorded(context.step, MemberPath.captureBinding(member), fact))
@@ -536,7 +536,7 @@ final class StepFacts[S, O, F] private[framework] (private[framework] val step: 
   // `step.facts.contains("member_fact")`.
   @targetName("recordsTypedMember")
   inline def records[MS, MO, MF](
-      inline member: S => (MS, Machine[MS, MO, MF]),
+      inline member: S => (MS, RecordMachine[MS, MO, MF]),
       fact: MF
   )(using evidence: F =:= String): Boolean =
     memberRecorded(step, MemberPath.captureBinding(member), fact)
@@ -612,7 +612,7 @@ final class WitnessFacts[S, O, F] private[framework] (
   // A primary fact of an exact selected member. Core form:
   // `builder.recording(_.facts.contains("member_fact"))`.
   inline def records[MS, MO, MF](
-      inline member: S => (MS, Machine[MS, MO, MF]),
+      inline member: S => (MS, RecordMachine[MS, MO, MF]),
       fact: MF
   )(using evidence: F =:= String): Witness[S, O, F] =
     val selected = MemberPath.captureBinding(member)
@@ -652,7 +652,7 @@ extension [S <: Product](builder: WitnessBuilder[S, String, String])
   // Finishes with an absent fact of the selected member. Core form:
   // `c.property.when(last).sameStep(step => !step.facts.contains("member_fact"))`.
   inline def excludes[MS, O, F](
-      inline member: S => (MS, Machine[MS, O, F]),
+      inline member: S => (MS, RecordMachine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
     val key = witnessMemberFact(builder.owner, MemberPath.retainDirect(member), fact)
@@ -664,7 +664,7 @@ extension [S <: Product](claim: Witness[S, String, String])
   // Requires an absent fact from the selected member. Core form:
   // `prior(step) && !step.facts.contains("member_fact")`.
   inline def excludes[MS, O, F](
-      inline member: S => (MS, Machine[MS, O, F]),
+      inline member: S => (MS, RecordMachine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
     val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
@@ -673,7 +673,7 @@ extension [S <: Product](claim: Witness[S, String, String])
   // `prior(step) && (!condition(step.state) || step.facts.contains("member_fact"))`.
   inline def recordsWhen[MS, O, F](
       condition: S => Boolean,
-      inline member: S => (MS, Machine[MS, O, F]),
+      inline member: S => (MS, RecordMachine[MS, O, F]),
       fact: F
   ): Witness[S, String, String] =
     val key = witnessMemberFact(claim.owner, MemberPath.retainDirect(member), fact)
@@ -682,7 +682,7 @@ extension [S <: Product](claim: Witness[S, String, String])
 @scala.annotation.publicInBinary
 private[framework] def witnessMemberFact[S <: Product, MS, O, F](
     owner: Declares[S],
-    member: S => (MS, Machine[MS, O, F]),
+    member: S => (MS, RecordMachine[MS, O, F]),
     fact: F
 ): String =
   val composition = owner match
@@ -743,7 +743,7 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
   // The value a step from a state `over` holds of keeps, a field path such as `_.phase` or
   // `_.order.phase`. Core form:
   // `b.transition((before, after) => !over(before) || after.state.phase == before.phase)`.
-  @sugar def keeps[V](projection: S => V)(using CanEqual[V, V]): Property[S] =
+  @sugar def keeps[V](projection: S => V)(using CanEqual[V, V]): Property =
     b.transition((before, after) => !over(before) || projection(after.state) == projection(before))
 
 // `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
@@ -751,10 +751,10 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 @sugar final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
-) extends Property[S](b.sameStep(after => !to(after)).decl):
+) extends Property(b.sameStep(after => !to(after)).decl):
   // No step from a state `before` holds of is one `to` holds of. Core form:
   // `b.transition((before, after) => !origin(before) || !to(after))`.
-  @sugar def from(before: S => Boolean): Property[S] =
+  @sugar def from(before: S => Boolean): Property =
     val origin = before
     b.transition((before, after) => !origin(before) || !to(after))
 
@@ -763,10 +763,10 @@ extension [S, O, F](b: PropertyBuilder[S, O, F])
 @sugar final class Stays[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     p: S => Boolean
-) extends Property[S](b.transition((before, after) => !p(before) || p(after.state)).decl):
+) extends Property(b.transition((before, after) => !p(before) || p(after.state)).decl):
   // A step `release` holds of may leave `p`. Core form:
   // `b.transition((before, after) => !p(before) || p(after.state) || release(after))`.
-  @sugar def unless(release: Step[S, O, F] => Boolean): Property[S] =
+  @sugar def unless(release: Step[S, O, F] => Boolean): Property =
     PredicateBindings.validate(release, b.m)
     b.transition((before, after) => !p(before) || p(after.state) || release(after))
 
@@ -897,7 +897,7 @@ final class Firing[S, O, F, I] private[framework] (
         (S, List[Any]) => List[Step[S, O, F]],
         Option[RuleBindings.Registration]
     ) => Unit,
-    source: Option[Machine[S, O, F]] = None,
+    source: Option[RecordMachine[S, O, F]] = None,
     origin: Option[FacetBindings.Origin] = None,
     budgets: Vector[NativeBudget[?]] = Vector.empty
 ):
@@ -990,7 +990,7 @@ def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
   Case("always", _ => true)
 
 // The projection of a machine's or composition's state onto its phase, declared once by mixing it
-// into the object: `object OrderProduct extends Machine[OrderState, Outcome, OrderFact],
+// into the object: `object OrderProduct extends RecordMachine[OrderState, Outcome, OrderFact],
 // Phased[OrderState, Phase](_.phase)`, or for a composition a nested phase,
 // `Phased[OverQueue, Phase](_.order.phase)`. Both types are written: a trait parent's lambda takes
 // no parameter type from the other parents. A machine whose rules or effects enter a phase by
@@ -1075,7 +1075,7 @@ abstract class Rules[S, O, F, P](using
   final override private[framework] def facetOrigin: Option[FacetBindings.Origin] = origin
   @scala.annotation.publicInBinary
   final private[framework] def retainFacetOrigin(
-      assembly: Machine[?, ?, ?],
+      assembly: RecordMachine[?, ?, ?],
       namespace: AnyRef,
       traitClass: java.lang.Class[?],
       traitName: String,

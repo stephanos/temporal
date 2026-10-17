@@ -4,7 +4,7 @@ import samples.*
 
 class NativeMapsTest extends munit.FunSuite:
   private def run[S, O](
-      machine: Machine[S, O, Nothing],
+      machine: RecordMachine[S, O, Nothing],
       state: S,
       cls: Class
   ): List[Step[S, O, Nothing]] =

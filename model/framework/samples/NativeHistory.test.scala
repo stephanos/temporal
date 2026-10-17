@@ -4,14 +4,14 @@ import samples.{Kettle, TwoLayeredCache}
 
 class NativeHistoryTest extends munit.FunSuite:
   private def run[S, O, F](
-      machine: Machine[S, O, F],
+      machine: RecordMachine[S, O, F],
       state: S,
       cls: Class
   ): List[Step[S, O, F]] =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, F](binding.decl, binding.function)(state, cls)
 
-  private def holds[S, O, F](property: Property[S], step: Step[S, O, F]): Boolean =
+  private def holds[S, O, F](property: Property, step: Step[S, O, F]): Boolean =
     property.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean](step)
 
   test("Kettle stores signed Celsius for room and cold starts"):
@@ -27,7 +27,7 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(write, List.empty)
 
   private def cachePath(
-      machine: Machine[TwoLayeredCache.Cache, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
+      machine: RecordMachine[TwoLayeredCache.Cache, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
       initial: TwoLayeredCache.Cache,
       cases: List[
         (

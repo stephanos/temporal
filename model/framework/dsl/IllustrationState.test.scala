@@ -14,13 +14,13 @@ object IllustrationStateFixture:
   given Finite[Variant] = new Finite[Variant]:
     def values = throw AssertionError("sum state catalog evaluated")
 
-  object Subject extends Machine[Record, Boolean, Nothing]:
+  object Subject extends RecordMachine[Record, Boolean, Nothing]:
     def init: Record = throw AssertionError("init evaluated")
     def end(state: Record): Boolean = throw AssertionError("end evaluated")
 
     object rules extends Bindings()
 
-  object SumSubject extends Machine[Variant, Boolean, Nothing]:
+  object SumSubject extends RecordMachine[Variant, Boolean, Nothing]:
     def init: Variant = throw AssertionError("init evaluated")
     def end(state: Variant): Boolean = throw AssertionError("end evaluated")
 
@@ -45,13 +45,13 @@ object IllustrationStateFixture:
 
   final case class OpaqueRecord(value: Positive.Value)
 
-  object OpaqueOwner extends Machine[OpaqueRecord, Boolean, Nothing]:
+  object OpaqueOwner extends RecordMachine[OpaqueRecord, Boolean, Nothing]:
     def init: OpaqueRecord = throw AssertionError("init evaluated")
     def end(state: OpaqueRecord): Boolean = throw AssertionError("end evaluated")
 
     object rules extends Bindings()
 
-  class MailOwner(mapping: Int) extends Machine[Mailbox, Boolean, Nothing]:
+  class MailOwner(mapping: Int) extends RecordMachine[Mailbox, Boolean, Nothing]:
     if mapping != 0 then
       inbox(_.direct, wire)
       inbox(_.nested.get.box, if mapping == 3 then wire else other)
@@ -66,7 +66,7 @@ object IllustrationStateFixture:
     case idle
     case active(nested: Held)
 
-  object BranchOwner extends Machine[MailState, Boolean, Nothing]:
+  object BranchOwner extends RecordMachine[MailState, Boolean, Nothing]:
     inboxCase[MailState.active, Boolean](_.nested.box, wire)
     def init: MailState = throw AssertionError("init evaluated")
     def end(state: MailState): Boolean = throw AssertionError("end evaluated")
@@ -77,13 +77,13 @@ object IllustrationStateFixture:
     case empty
     case full(value: A)
 
-  object PacketOwner extends Machine[Packet[UpTo[2]], Boolean, Nothing]:
+  object PacketOwner extends RecordMachine[Packet[UpTo[2]], Boolean, Nothing]:
     def init: Packet[UpTo[2]] = throw AssertionError("init evaluated")
     def end(state: Packet[UpTo[2]]): Boolean = false
 
     object rules extends Bindings()
 
-  object PacketMailOwner extends Machine[Packet[Held], Boolean, Nothing]:
+  object PacketMailOwner extends RecordMachine[Packet[Held], Boolean, Nothing]:
     inboxCase[Packet.full[Held], Boolean](_.value.box, wire)
     def init: Packet[Held] = throw AssertionError("init evaluated")
     def end(state: Packet[Held]): Boolean = false
@@ -214,7 +214,7 @@ class IllustrationStateSuite extends munit.FunSuite:
 
   test("absent optional Inbox needs no inferred association and present value requires one"):
     final case class OptionalMail(nested: Option[Held])
-    object Owner extends Machine[OptionalMail, Boolean, Nothing]:
+    object Owner extends RecordMachine[OptionalMail, Boolean, Nothing]:
       def init: OptionalMail = throw AssertionError("init evaluated")
       def end(state: OptionalMail): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings()
@@ -228,7 +228,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     val selected =
       new Channel[Boolean]("selected", 2, Order.fifo, Loss.reliable, 0)(using Finite.of(false))
     final case class SelectedMail(box: Inbox[Boolean])
-    object Owner extends Machine[SelectedMail, Boolean, Nothing]:
+    object Owner extends RecordMachine[SelectedMail, Boolean, Nothing]:
       inbox(_.box, selected)
       def init: SelectedMail = throw AssertionError("init evaluated")
       def end(state: SelectedMail): Boolean = throw AssertionError("end evaluated")
@@ -245,7 +245,7 @@ class IllustrationStateSuite extends munit.FunSuite:
       Finite.of[UpTo[2]](UpTo[2](0), outside)
     )
     final case class BoundedMail(box: Inbox[UpTo[2]])
-    object BoundedOwner extends Machine[BoundedMail, Boolean, Nothing]:
+    object BoundedOwner extends RecordMachine[BoundedMail, Boolean, Nothing]:
       inbox(_.box, bounded)
       def init: BoundedMail = throw AssertionError("init evaluated")
       def end(state: BoundedMail): Boolean = false
@@ -265,7 +265,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     val reversed =
       new Channel[Int]("reversed", 2, Order.unordered, Loss.reliable, 0)(using Finite.of(2, 0))
     final case class UnorderedMail(box: Inbox[Int])
-    object UnorderedOwner extends Machine[UnorderedMail, Boolean, Nothing]:
+    object UnorderedOwner extends RecordMachine[UnorderedMail, Boolean, Nothing]:
       inbox(_.box, reversed)
       def init: UnorderedMail = throw AssertionError("init evaluated")
       def end(state: UnorderedMail): Boolean = false
@@ -292,7 +292,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     "nested sum Inbox declarations accept an exact rooted typed branch without selector execution"
   ):
     final case class Envelope(phase: MailState)
-    object Owner extends Machine[Envelope, Boolean, Nothing]:
+    object Owner extends RecordMachine[Envelope, Boolean, Nothing]:
       inbox(
         (s: Envelope) =>
           s.phase match
@@ -318,7 +318,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     assert(compileErrors("""
       import framework.dsl.*
       import framework.dsl.IllustrationStateFixture.*
-      object Owner extends Machine[Mailbox, Boolean, Nothing]:
+      object Owner extends RecordMachine[Mailbox, Boolean, Nothing]:
         inbox(s => if s.direct.isEmpty then s.direct else s.nested.get.box, wire)
         def init: Mailbox = throw AssertionError("init evaluated")
         def end(state: Mailbox): Boolean = false
@@ -327,7 +327,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     assert(compileErrors("""
       import framework.dsl.*
       import framework.dsl.IllustrationStateFixture.*
-      object Owner extends Machine[Mailbox, Boolean, Nothing]:
+      object Owner extends RecordMachine[Mailbox, Boolean, Nothing]:
         inbox(_ => wire.empty, wire)
         def init: Mailbox = throw AssertionError("init evaluated")
         def end(state: Mailbox): Boolean = false
@@ -341,7 +341,7 @@ class IllustrationStateSuite extends munit.FunSuite:
       StructuralValue.capture[Packet[UpTo[2]]].validate(Packet.full(outside), PacketOwner, context)
     assert(error.getMessage.contains("<full>.value"), error.getMessage)
     final case class Envelope(packet: Option[Packet[UpTo[2]]])
-    object Owner extends Machine[Envelope, Boolean, Nothing]:
+    object Owner extends RecordMachine[Envelope, Boolean, Nothing]:
       def init: Envelope = throw AssertionError("init evaluated")
       def end(state: Envelope): Boolean = false
       object rules extends Bindings()

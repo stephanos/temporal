@@ -9,7 +9,7 @@ class SugarNativeTest extends munit.FunSuite:
   private val left: Pair => Boolean = _.left
 
   test("never from retains its named argument and native transition meaning"):
-    object Checked extends Machine[Boolean, Boolean, Nothing]:
+    object Checked extends RecordMachine[Boolean, Boolean, Nothing]:
       val init = false
       def end(s: Boolean) = false
       object rules extends Bindings[Boolean, Boolean, Nothing]()

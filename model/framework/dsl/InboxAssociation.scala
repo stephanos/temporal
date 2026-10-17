@@ -5,7 +5,7 @@ import scala.quoted.*
 
 private[framework] object InboxAssociation:
   def capture[S: Type, C: Type, M: Type](
-      owner: Expr[Machine[S, ?, ?]],
+      owner: Expr[RecordMachine[S, ?, ?]],
       selector: Expr[C => Inbox[M]],
       channel: Expr[Channel[M]]
   )(using Quotes): Expr[Unit] =

@@ -11,7 +11,7 @@ object QueryConfigurationFixture:
   val actor = Actor("queryTester")
   val advance = action("advance", actor)
 
-  object Default extends Machine[State, Outcome, Fact]:
+  object Default extends RecordMachine[State, Outcome, Fact]:
     def init = State.ready
     def end(s: QueryConfigurationFixture.State) = s.equals(State.done)
 
@@ -20,7 +20,7 @@ object QueryConfigurationFixture:
           advance ~> ((s: QueryConfigurationFixture.State) => List(Step(Outcome.accepted, s)))
         )
 
-  object Bounded extends Machine[State, Outcome, Fact]:
+  object Bounded extends RecordMachine[State, Outcome, Fact]:
     override val reach = Limits("ownerReach", steps = 7, actions = 13, search = 29)
     def init = State.ready
     def end(s: QueryConfigurationFixture.State) = s.equals(State.done)
@@ -136,7 +136,7 @@ class QueryConfigurationTest extends munit.FunSuite:
   test("reach is not read before the owner constructor finishes") {
     var initialized = false
     var reads = 0
-    class ConstructorBound extends Machine[State, Outcome, Fact]:
+    class ConstructorBound extends RecordMachine[State, Outcome, Fact]:
       override def reach: Limits =
         assert(initialized, "reach read during superclass construction")
         reads += 1
@@ -281,7 +281,7 @@ class QueryConfigurationTest extends munit.FunSuite:
   }
 
   test("metadata construction copying and inspection do not execute model callbacks") {
-    object Poison extends Machine[State, Outcome, Fact]:
+    object Poison extends RecordMachine[State, Outcome, Fact]:
       override val reach = Limits("poisonReach", steps = 0, actions = 23, search = 43)
       def init: State = throw AssertionError("init executed")
       override def end(s: State): Boolean = throw AssertionError("end executed")

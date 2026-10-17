@@ -26,8 +26,8 @@ class CoreBindingsSuite extends munit.FunSuite:
       .retainOrigin("fixture.Source", "source", named)
   private def machine(
       entries: StepBinding[Boolean, Boolean, Nothing]*
-  ): Machine[Boolean, Boolean, Nothing] =
-    new Machine[Boolean, Boolean, Nothing]:
+  ): RecordMachine[Boolean, Boolean, Nothing] =
+    new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
       val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(entries*) {}
@@ -118,7 +118,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       "source.step",
       Vector(Base64.getEncoder.encodeToString(model.toByteArray))
     )
-    object Source extends Machine[Boolean, Boolean, Nothing]:
+    object Source extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
       object rules extends Bindings(binding)
@@ -233,8 +233,8 @@ class CoreBindingsSuite extends munit.FunSuite:
   test("stale callable or declaration and unrelated conflicting functions or types refuse"):
     val run = action("run")
     val source = binding(run, ir.Model(functions = Vector(function("step"))), "step")
-    def bound(decl: ActionDecl, callable: AnyRef): Machine[Boolean, Boolean, Nothing] =
-      new Machine[Boolean, Boolean, Nothing]:
+    def bound(decl: ActionDecl, callable: AnyRef): RecordMachine[Boolean, Boolean, Nothing] =
+      new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = false
         def end(s: Boolean): Boolean = s
         val rules: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
@@ -430,7 +430,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       callbacks += 1
       List(Step(true, s))
     val linked = binding(run, ir.Model(functions = Vector(function("step"))), "step", f = f)
-    val source = new Machine[Boolean, Boolean, Nothing]:
+    val source = new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean =
         starts += 1
         false
@@ -479,8 +479,8 @@ class CoreBindingsSuite extends munit.FunSuite:
       (s, _) =>
         effects += 1; List(Step(true, s))
     )
-    def source(bound: Bound[Boolean, Boolean, Nothing]): Machine[Boolean, Boolean, Nothing] =
-      new Machine[Boolean, Boolean, Nothing]:
+    def source(bound: Bound[Boolean, Boolean, Nothing]): RecordMachine[Boolean, Boolean, Nothing] =
+      new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = false
         def end(s: Boolean): Boolean = s
         val rules: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
@@ -543,7 +543,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val run = action("run")
     var tableReads = 0
     val linked = binding(run, ir.Model(functions = Vector(function("step"))), "step")
-    val source = new Machine[Boolean, Boolean, Nothing]:
+    val source = new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
       val rules: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}

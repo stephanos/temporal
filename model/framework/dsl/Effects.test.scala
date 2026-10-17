@@ -29,7 +29,7 @@ object EffectsFixture:
   object hand extends Actor:
     val press = action(this)
 
-  object Subject extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
+  object Subject extends RecordMachine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
 
@@ -79,7 +79,7 @@ object EffectsFixture:
   def attempts(using v: View[Task]): UpTo[2] = v.get(_.attempts)
   def attempts_=(a: UpTo[2])(using d: Draft[Task, ?, Status]): Unit = d.set(_.copy(attempts = a))
 
-  object Tasker extends Machine[Task, Said, Status], Phased[Task, Stage](_.stage):
+  object Tasker extends RecordMachine[Task, Said, Status], Phased[Task, Stage](_.stage):
     val init = Task(Stage.waiting, UpTo(0))
     override def end(s: Task) = true
 
@@ -100,7 +100,7 @@ object EffectsFixture:
 
   // The rules and a choose enter a phase by `enters`, through the writer the projection declares.
   object Entering
-      extends Machine[Task, Said, Status],
+      extends RecordMachine[Task, Said, Status],
         Phased[Task, Stage](_.stage, (s, p) => s.copy(stage = p)):
     val init = Task(Stage.waiting, UpTo(0))
     override def end(s: Task) = true
@@ -118,7 +118,7 @@ object EffectsFixture:
         when(Stage.working) ~> effects.restOrWork
 
   // A machine whose projection declares no writer, and one whose writer writes another field.
-  object Unwritten extends Machine[Job, Said, Note], Phased[Job, Phase](_.phase):
+  object Unwritten extends RecordMachine[Job, Said, Note], Phased[Job, Phase](_.phase):
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
 
@@ -127,7 +127,7 @@ object EffectsFixture:
         when(Phase.idle) ~> enters(Phase.busy)
 
   object Miswritten
-      extends Machine[Job, Said, Note],
+      extends RecordMachine[Job, Said, Note],
         Phased[Job, Phase](_.phase, (s, _) => s.copy(tries = UpTo(1))):
     val init = Job(Phase.idle, UpTo(0))
     override def end(s: Job) = true
@@ -266,7 +266,7 @@ class EffectsTest extends munit.FunSuite:
 
   test("enters refuses a projection with no writer, and a writer that misses the phase") {
     type Steps = Job => List[Step[Job, Said, Note]]
-    def press(m: Machine[Job, Said, Note]) =
+    def press(m: RecordMachine[Job, Said, Note]) =
       m.bindings.head.function.asInstanceOf[Steps] // scalafix:ok DisableSyntax.asInstanceOf
     val unwritten = intercept[IllegalStateException](press(Unwritten)(Unwritten.init))
     assert(

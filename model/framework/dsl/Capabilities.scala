@@ -68,7 +68,7 @@ abstract class Capabilities[S, O, F](using declaring: Declaring[S, O, F]):
   // The Property this section generates for the capability Property `property`,
   // `<machine>.<property>`, for a Query of its own to read; the IR generator names it, and refuses
   // one the section does not bring or waives with `except`.
-  def claim(@unused property: AnyRef): Property[S] =
+  def claim(@unused property: AnyRef): Property =
     Property(PropertyDecl("", model, None, None, None))
 
   // Bounds every Query generated from the Properties these capabilities bring under `limits`, and

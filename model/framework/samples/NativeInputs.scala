@@ -13,7 +13,7 @@ object NativeInputs:
       inputField[Request](_.ceiling).in(domains.oneOf(1 to 2))
     )
 
-  object Accepted extends Machine[AcceptedState, Boolean, Nothing]:
+  object Accepted extends RecordMachine[AcceptedState, Boolean, Nothing]:
     val init = AcceptedState(Set.empty)
     def end(s: AcceptedState): Boolean = s.seen.nonEmpty
 

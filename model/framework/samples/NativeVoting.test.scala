@@ -4,14 +4,14 @@ import samples.{ReliableBroadcast, Voting}
 
 class NativeVotingTest extends munit.FunSuite:
   private def run[S, O](
-      machine: Machine[S, O, Nothing],
+      machine: RecordMachine[S, O, Nothing],
       state: S,
       cls: Class
   ): List[Step[S, O, Nothing]] =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
 
-  private def holds[S, O](property: Property[S], state: S, outcome: O): Boolean =
+  private def holds[S, O](property: Property, state: S, outcome: O): Boolean =
     property.decl.holds.get.asInstanceOf[Step[S, O, Nothing] => Boolean](Step(outcome, state))
 
   private def inconsistent: Voting.Votes =

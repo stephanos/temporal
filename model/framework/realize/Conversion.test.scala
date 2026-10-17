@@ -57,7 +57,7 @@ class RealizationConversionTest extends munit.FunSuite:
   private case class OwnedRecord(flag: Boolean)
   private case class ForeignRecord(flag: Boolean)
 
-  private object FactMachine extends framework.dsl.Machine[Boolean, Boolean, OwnedFact]:
+  private object FactMachine extends framework.dsl.RecordMachine[Boolean, Boolean, OwnedFact]:
     val init = false
     def end(s: Boolean): Boolean = s
 
@@ -338,7 +338,7 @@ class RealizationConversionTest extends munit.FunSuite:
     assertEquals(result.getHoldDelivery, "fixture.inbox")
     assertEquals(result.role, "worker")
 
-  private object Machine extends framework.dsl.Machine[Boolean, Boolean, Boolean]:
+  private object Machine extends framework.dsl.RecordMachine[Boolean, Boolean, Boolean]:
     val init = false
     def end(s: Boolean): Boolean = s
 

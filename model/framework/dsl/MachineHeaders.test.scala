@@ -14,8 +14,8 @@ class MachineHeadersSuite extends munit.FunSuite:
       state: Data[Boolean] = witness,
       outcome: Finite[Boolean] = witness,
       facts: Finite[Nothing] = Finite.of()
-  ): Machine[Boolean, Boolean, Nothing] =
-    new Machine[Boolean, Boolean, Nothing](using state, outcome, facts):
+  ): RecordMachine[Boolean, Boolean, Nothing] =
+    new RecordMachine[Boolean, Boolean, Nothing](using state, outcome, facts):
       override def name: String = throw AssertionError("native name getter read")
       def init: Boolean = throw AssertionError("init read")
       def end(s: Boolean): Boolean = throw AssertionError("end read")
@@ -26,7 +26,7 @@ class MachineHeadersSuite extends munit.FunSuite:
       override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
         throw AssertionError("refinement read")
   private def retain(
-      value: Machine[?, ?, ?],
+      value: RecordMachine[?, ?, ?],
       index: Int,
       key: String,
       root: ir.TypeRef,
@@ -39,7 +39,7 @@ class MachineHeadersSuite extends munit.FunSuite:
       Seq(Base64.getEncoder.encodeToString(ir.Model(types = types).toByteArray)),
       Nil
     )
-  private def scalar(value: Machine[?, ?, ?]): Unit =
+  private def scalar(value: RecordMachine[?, ?, ?]): Unit =
     retain(value, 0, "scala.Boolean", bool)
     retain(value, 1, "scala.Boolean", bool)
     retain(value, 2, "scala.Nothing", nothing)

@@ -20,7 +20,7 @@ object NativeHoleCallbackFixture:
     val interrupt = action(this)
 
   def callback(run: State => List[Step[State, Answer, String]]) =
-    val subject = new Machine[State, Answer, String]:
+    val subject = new RecordMachine[State, Answer, String]:
       val init = NativeHoleCallbackFixture.State.beforeHole
       def end(s: NativeHoleCallbackFixture.State) = s == NativeHoleCallbackFixture.State.known
       object rules extends Bindings(caller.interrupt ~> run)

@@ -14,7 +14,7 @@ class RuleBindingsSuite extends munit.FunSuite:
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
 
   // Runtime-only metadata controls; compiled author admission is tested by ConstructedRulesSuite.
-  private class Source(facet: Boolean = false) extends Machine[Boolean, Boolean, Nothing]:
+  private class Source(facet: Boolean = false) extends RecordMachine[Boolean, Boolean, Nothing]:
     def init: Boolean = throw AssertionError("init read")
     def end(s: Boolean): Boolean = throw AssertionError("end read")
     override def name: String = throw AssertionError("public name read")
@@ -348,7 +348,7 @@ class RuleBindingsSuite extends munit.FunSuite:
   test(
     "pending declarations Facets and invalid retained typed class domains refuse before rows escape"
   ):
-    val pending = new Machine[Boolean, Boolean, Nothing]:
+    val pending = new RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = false
       def end(s: Boolean): Boolean = s
       def rules: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError("early rules read")
@@ -542,7 +542,7 @@ class RuleBindingsSuite extends munit.FunSuite:
         getters += 1; secondValue
       def off =
         getters += 1; offValue
-    object Timed extends Machine[Boolean, Boolean, Nothing]:
+    object Timed extends RecordMachine[Boolean, Boolean, Nothing]:
       retainHeaderIdentity("fixture", "timed")
       retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
       override def name: String = "timed"

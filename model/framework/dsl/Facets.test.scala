@@ -55,7 +55,7 @@ object FacetsFixture:
           when(Lit.off) ~> enters(Lit.broken)
 
   object Faceted
-      extends Machine[Lamp, Said, Note],
+      extends RecordMachine[Lamp, Said, Note],
         Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
         Pressing,
         Breaking:
@@ -64,7 +64,7 @@ object FacetsFixture:
     object rules extends Facets(pressing.rules, breaking.rules)
 
   object Whole
-      extends Machine[Lamp, Said, Note],
+      extends RecordMachine[Lamp, Said, Note],
         Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)):
     val init = Lamp(Lit.off, UpTo(0))
 
@@ -93,7 +93,7 @@ object FacetsFixture:
           when(Lit.broken) ~> enters(Lit.broken)
 
   object Twice
-      extends Machine[Lamp, Said, Note],
+      extends RecordMachine[Lamp, Said, Note],
         Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
         Pressing,
         Pressing2:
@@ -104,7 +104,9 @@ object FacetsFixture:
 class FacetsTest extends munit.FunSuite:
   import FacetsFixture.*
 
-  def steps(m: Machine[Lamp, Said, Note]): List[(String, Lamp, List[Step[Lamp, Said, Note]])] =
+  def steps(
+      m: RecordMachine[Lamp, Said, Note]
+  ): List[(String, Lamp, List[Step[Lamp, Said, Note]])] =
     for
       b <- m.bindings
       s <- Finite[Lamp].values.toList
@@ -131,7 +133,7 @@ class FacetsTest extends munit.FunSuite:
 
   test("a machine that mixes in a facet without the facet it depends on does not compile") {
     val errors = compileErrors(
-      "object Lone extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light), Breaking:\n" +
+      "object Lone extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light), Breaking:\n" +
         "  val init = Lamp(Lit.off, UpTo(0))\n" +
         "  object rules extends Facets(breaking.rules)"
     )
@@ -173,7 +175,7 @@ class FacetsTest extends munit.FunSuite:
                   when(Lit.on) ~> enters(Lit.off)
               case _ => disabled(targets.ordinary)
       object Duplicate
-          extends Machine[Lamp, Said, Note],
+          extends RecordMachine[Lamp, Said, Note],
             Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
             First,
             Second:
@@ -193,7 +195,7 @@ class FacetsTest extends munit.FunSuite:
         val ordinary = action(Actor("caller"))
         val tick = timer
         val fault = action(Actor("fault")).crash
-      object Unowned extends Machine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
+      object Unowned extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
         val init = Lamp(Lit.off, UpTo(0))
         object pressing:
           object rules extends Rules:
@@ -227,7 +229,7 @@ trait B extends Facet[Lamp, Said, Note]:
   object b:
     object effects:
       def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-object Both extends Machine[Lamp, Said, Note], A, B:
+object Both extends RecordMachine[Lamp, Said, Note], A, B:
   val init = Lamp(Lit.off, UpTo(0))
   def end(s: State) = true
   object rules extends Facets()
@@ -243,7 +245,7 @@ trait B extends Facet[Lamp, Said, Note]:
   object shared:
     object effects:
       def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-object Both extends Machine[Lamp, Said, Note], A, B:
+object Both extends RecordMachine[Lamp, Said, Note], A, B:
   val init = Lamp(Lit.off, UpTo(0))
   def end(s: State) = true
   object rules extends Facets()

@@ -6,12 +6,12 @@ import samples.*
 class SampleExpectTest extends munit.FunSuite:
   val _ = () => summon[CanEqual[Bank.Outcome, Bank.Outcome]]
   private def same[S, O, F](
-      actual: Property[S],
+      actual: Property,
       owner: Model,
       restriction: Option[ClassRef | Composed | String],
       cases: List[(Step[S, O, F], Boolean)]
   )(old: Step[S, O, F] => Boolean): Unit =
-    val oracle = Property[S](PropertyDecl(actual.name, owner, restriction, Some(old), None))
+    val oracle = Property(PropertyDecl(actual.name, owner, restriction, Some(old), None))
     assert(actual.decl.machine eq oracle.decl.machine)
     assertEquals(actual.decl.when, oracle.decl.when)
     assertEquals(actual.decl.holds2, None)
@@ -23,11 +23,11 @@ class SampleExpectTest extends munit.FunSuite:
       assertEquals(migrated(step), expected)
 
   private def across[S, O, F](
-      actual: Property[S],
+      actual: Property,
       owner: Model,
       cases: List[(S, Step[S, O, F], Boolean)]
   )(old: (S, Step[S, O, F]) => Boolean): Unit =
-    val oracle = Property[S](PropertyDecl(actual.name, owner, None, None, Some(old)))
+    val oracle = Property(PropertyDecl(actual.name, owner, None, None, Some(old)))
     assert(actual.decl.machine eq oracle.decl.machine)
     assertEquals(actual.decl.when, None)
     assertEquals(actual.decl.holds, None)

@@ -13,7 +13,7 @@ private[framework] object MachineEndpoints:
       holes: Vector[String]
   )
   final case class Retained(
-      source: Machine[?, ?, ?],
+      source: RecordMachine[?, ?, ?],
       owner: String,
       family: String,
       name: String,
@@ -26,7 +26,7 @@ private[framework] object MachineEndpoints:
     private var retained = Option.empty[Retained]
     def value: Option[Retained] = synchronized(retained)
     def retain(
-        source: Machine[?, ?, ?],
+        source: RecordMachine[?, ?, ?],
         owner: String,
         family: String,
         name: String,
@@ -59,7 +59,7 @@ private[framework] object MachineEndpoints:
       retained = Some(payload)
     }
 
-  private def checked(source: Machine[?, ?, ?], value: Retained): Contribution =
+  private def checked(source: RecordMachine[?, ?, ?], value: Retained): Contribution =
     val context = s"Machine ${value.family}.${value.name} endpoints"
     require(value.source.eq(source), s"$context: stale endpoint source")
     require(value.owner.nonEmpty && value.name.nonEmpty, s"$context: missing endpoint provenance")
@@ -96,7 +96,7 @@ private[framework] object MachineEndpoints:
       dependencies.holes
     )
 
-  def collect(machine: Machine[?, ?, ?]): Contribution =
+  def collect(machine: RecordMachine[?, ?, ?]): Contribution =
     require(machine ne null, "Machine endpoints: declaration is not initialized")
     val source = machine.endpointSource
     require(source ne null, "Machine endpoints: source is not initialized")

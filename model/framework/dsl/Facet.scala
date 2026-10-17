@@ -21,7 +21,7 @@ import scala.collection.mutable
 //
 // A facet that uses another's step names it in its self-type, `this: Dispatch =>`, so a machine
 // that does not mix that facet in does not compile. The machine object mixes in its facets and lists
-// their rules, in facet order: `object ActivityProtocol extends Machine[...], Phased[...](...),
+// their rules, in facet order: `object ActivityProtocol extends RecordMachine[...], Phased[...](...),
 // Dispatch, Pausing` with `object rules extends Facets(dispatch.rules, pausing.rules)`. What stays
 // machine-wide stays in the machine object: its state and phase types, `init`, `end`, the projection,
 // the refinement, monitors, properties and queries over the whole feature. A facet declares the
@@ -30,7 +30,7 @@ import scala.collection.mutable
 // FacetCapabilities(pausing.capabilities, ...)`. Core form: the machine whose `rules` holds every
 // facet's blocks, in facet order, whose `effects` holds every facet's effects, and whose
 // `capabilities` holds every facet's capabilities and waivers.
-trait Facet[S, O, F] extends Machine[S, O, F]:
+trait Facet[S, O, F] extends RecordMachine[S, O, F]:
   // The owner its sections read the machine's types from: the machine that mixes it in. A facet's
   // sections cannot read the machine's own given, a val of the class `Machine`, from a trait, and
   // this one, of a subclass of `Machine`, is preferred to it in the machine object as well.
@@ -49,7 +49,7 @@ abstract class Facets[S, O, F](using
 )(
     facets: RuleBook[S, O, F]*
 ) extends RuleBook[S, O, F]:
-  private[framework] val assembly: Machine[S, O, F] = owner.machine
+  private[framework] val assembly: RecordMachine[S, O, F] = owner.machine
   private[framework] val contributors: Vector[RuleBook[S, O, F]] = facets.toVector
   private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
     val owners = mutable.LinkedHashMap.empty[ActionDecl, String]

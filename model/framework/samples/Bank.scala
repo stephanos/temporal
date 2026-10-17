@@ -64,7 +64,7 @@ object Bank:
   def totalSupply(balances: Balances): Boolean =
     sumForDenom(balances, Denom.banana) == supply && sumForDenom(balances, Denom.burger) == supply
 
-  object Model extends Machine[Balances, Outcome, Nothing]:
+  object Model extends RecordMachine[Balances, Outcome, Nothing]:
     // the king has it all
     val init = Balances(
       of = Map(Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2))
@@ -112,15 +112,15 @@ object Bank:
         else enter(withBalance(balances, in.toAddr, in.denom, toBalance + in.amount))
 
     object invariants:
-      val totalSupplyInv: Property[Balances] = property.expect:
+      val totalSupplyInv: Property = property.expect:
         (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
           check(totalSupply(after.step.state))
 
     object postconditions:
-      val failedSendChangesNothing: Property[Balances] = property.across.expect:
+      val failedSendChangesNothing: Property = property.across.expect:
         (before: Before[Balances], after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
           if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
-      val peachesGetsBananas: Property[Balances] =
+      val peachesGetsBananas: Property =
         property
           .after(
             client.send(
@@ -135,7 +135,7 @@ object Bank:
             check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)
 
     object queries:
-      val anySend: Scenario[Balances] = scenario.starts(init).free
+      val anySend: Scenario = scenario.starts(init).free
       // every distribution of the supply is at most four sends from the start
       val short = Limits(steps = 4, actions = 4, search = 65536)
       val totalSupplyHolds = query verify invariants.totalSupplyInv in anySend limits short
@@ -150,11 +150,11 @@ object Bank:
         NegativeControl:
 
     object invariants:
-      val leakyTotalSupplyInv: Property[Balances] = property.expect:
+      val leakyTotalSupplyInv: Property = property.expect:
         (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
           check(totalSupply(after.step.state))
 
     object queries:
-      val anyLeakySend: Scenario[Balances] = scenario.starts(Model.init).free
+      val anyLeakySend: Scenario = scenario.starts(Model.init).free
       val refutesLeakyTotalSupply =
         query verify invariants.leakyTotalSupplyInv in anyLeakySend limits Model.queries.short

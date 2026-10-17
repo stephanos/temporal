@@ -23,12 +23,16 @@ object PhasedFixture:
   final case class Snapshot(phase: Phase)
   final case class Pair(left: Snapshot, right: Snapshot)
 
-  object DefaultEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
+  object DefaultEnd
+      extends RecordMachine[Snapshot, Answer, Nothing],
+        Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
 
     object rules extends Rules
 
-  object OverrideEnd extends Machine[Snapshot, Answer, Nothing], Phased[Snapshot, Phase](_.phase):
+  object OverrideEnd
+      extends RecordMachine[Snapshot, Answer, Nothing],
+        Phased[Snapshot, Phase](_.phase):
     val init = Snapshot(Phase.absent)
     override def end(s: State) = s.phase == Phase.paused
 
@@ -66,14 +70,14 @@ object PhasedFixture:
   object PlainDerivedPair extends Composition(PlainPair.withMember(_.right -> OverrideEnd))
 
   object OpenEnd
-      extends Machine[OpenPhase, Answer, Nothing],
+      extends RecordMachine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
 
     object rules extends Rules
 
   object OpenOverride
-      extends Machine[OpenPhase, Answer, Nothing],
+      extends RecordMachine[OpenPhase, Answer, Nothing],
         Phased[OpenPhase, OpenPhase](identity):
     val init = OpenPhase.waiting
     override def end(s: State) = s == OpenPhase.waiting

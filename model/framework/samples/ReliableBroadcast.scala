@@ -132,7 +132,7 @@ object ReliableBroadcast:
       case Local.relaying(_)      => stay(state)
       case Local.delivered(_)     => stay(state)
 
-  object Model extends Machine[Broadcast, Outcome, Nothing], FailureModel:
+  object Model extends RecordMachine[Broadcast, Outcome, Nothing], FailureModel:
     inbox(_.network, wire.network)
     durability(
       inMemory(_.origin)(
@@ -218,13 +218,13 @@ object ReliableBroadcast:
       def deliverP2(state: Broadcast) = deliverAt(state, Proc.p2)
 
     object invariants:
-      val safety: Property[Broadcast] = property.expect:
+      val safety: Property = property.expect:
         (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
           check(onlyBroadcast(after.step.state))
 
     object postconditions:
       // If I deliver a message, I have already forwarded it to all.
-      val reliability: Property[Broadcast] = property.across.expect:
+      val reliability: Property = property.across.expect:
         (
             before: Before[Broadcast],
             after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]
@@ -233,7 +233,7 @@ object ReliableBroadcast:
           then check(relayed(before.state.p1))
           if deliveredValue(after.step.state.p2) != None && deliveredValue(before.state.p2) == None
           then check(relayed(before.state.p2))
-      val survivesCrash: Property[Broadcast] = property
+      val survivesCrash: Property = property
         .after(process.deliver(Proc.p2))
         .expect: (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
           check(everyoneDelivered(after.step.state))
@@ -254,7 +254,7 @@ object ReliableBroadcast:
         Model.leadsTo("everyoneDelivers")(someoneDelivered, everyoneDelivered, within = 9)
 
     object queries:
-      val anyRun: Scenario[Broadcast] = scenario.starts(init).free
+      val anyRun: Scenario = scenario.starts(init).free
       val broadcastLimits = Limits(steps = 11, actions = 11, search = 1 << 20)
       val safetyHolds = query verify invariants.safety in anyRun limits broadcastLimits
       val reliabilityHolds =
@@ -269,11 +269,11 @@ object ReliableBroadcast:
     object invariants:
       // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
       // monitor, which a run that stops with one process delivered and the other not breaks.
-      val naiveSafety: Property[Broadcast] = property.expect:
+      val naiveSafety: Property = property.expect:
         (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
           check(onlyBroadcast(after.step.state))
 
     object queries:
-      val anyNaiveRun: Scenario[Broadcast] = scenario.starts(Model.init).free
+      val anyNaiveRun: Scenario = scenario.starts(Model.init).free
       val refutesNaiveAgreement =
         query verify invariants.naiveSafety in anyNaiveRun limits Model.queries.broadcastLimits

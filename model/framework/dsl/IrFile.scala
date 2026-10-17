@@ -45,7 +45,7 @@ final class IrFile private[framework] (
           declarations.update(id, m)
         IrFile.propertiesOf(m).foreach(root)
         m match
-          case machine: Machine[?, ?, ?] =>
+          case machine: RecordMachine[?, ?, ?] =>
             machine.reaches.foreach(model)
           case c: Composition[?] =>
             c.members.foreach(model)
@@ -57,12 +57,12 @@ final class IrFile private[framework] (
     def query(q: Query): Unit =
       Seq(q.scenario.machine, q.property.machine).foreach(model)
     def root(r: Any): Unit = r match
-      case m: Machine[?, ?, ?]       => model(m)
+      case m: RecordMachine[?, ?, ?] => model(m)
       case c: Composition[?]         => model(c)
       case q: Query                  => query(q)
       case qs: Seq[?]                => qs.foreach { case q: Query => query(q); case _ => () }
       case p: Progress[?]            => model(p.machine)
-      case p: Property[?]            => model(p.decl.machine)
+      case p: Property               => model(p.decl.machine)
       case r: ConstructedRealization => model(r.machine)
       case c: Capabilities[?, ?, ?]  => model(c.model)
       case section: AnyRef           =>
@@ -87,8 +87,8 @@ final class IrFile private[framework] (
   def construct(): Set[String] =
     val declarations = subjects()
     declarations.foreach:
-      case machine: Machine[?, ?, ?] => machine.bindings: Unit
-      case _                         => ()
+      case machine: RecordMachine[?, ?, ?] => machine.bindings: Unit
+      case _                               => ()
     declarations.map(_.name).toSet
 
 object IrFile:
@@ -241,12 +241,12 @@ object IrFile:
             ) // scalafix:ok DisableSyntax.null
         )
     def claimType(t: java.lang.Class[?]): Boolean =
-      classOf[Property[?]].isAssignableFrom(t) ||
+      classOf[Property].isAssignableFrom(t) ||
         classOf[Progress[?]].isAssignableFrom(t) ||
         classOf[Monitor[?, ?, ?, ?]].isAssignableFrom(t) ||
         (classOf[Product].isAssignableFrom(t) &&
           t.getDeclaredMethods.exists(f =>
-            classOf[Property[?]].isAssignableFrom(f.getReturnType) ||
+            classOf[Property].isAssignableFrom(f.getReturnType) ||
               classOf[Progress[?]].isAssignableFrom(f.getReturnType)
           ))
     def claims(o: AnyRef): Seq[Any] =
@@ -271,7 +271,7 @@ object IrFile:
           f.get(o)
       (values ++ stored).flatMap: value =>
         value match
-          case p: Property[?]         => Seq(p)
+          case p: Property            => Seq(p)
           case p: Progress[?]         => Seq(p)
           case m: Monitor[?, ?, ?, ?] => Seq(m)
           case p: Product             => p.productIterator.toSeq

@@ -28,8 +28,8 @@ class NativeFaultSuite extends munit.FunSuite:
       assertEquals(copied.decl.modelOnlyReason, a.decl.modelOnlyReason)
 
   test("completed binding acquisition refuses missing duplicate and invalid fault metadata"):
-    def machine(a: Action[EmptyTuple]): Machine[Boolean, Boolean, Nothing] =
-      new Machine[Boolean, Boolean, Nothing]:
+    def machine(a: Action[EmptyTuple]): RecordMachine[Boolean, Boolean, Nothing] =
+      new RecordMachine[Boolean, Boolean, Nothing]:
         def init: Boolean = throw AssertionError("init evaluated")
         def end(s: Boolean): Boolean = throw AssertionError("end evaluated")
         object rules

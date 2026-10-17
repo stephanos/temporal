@@ -22,7 +22,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import framework.dsl.{Action, Channel, Choice, ClassRef, Machine, Monitor}
+import framework.dsl.{Action, Channel, Choice, ClassRef, Monitor, RecordMachine}
 
 // The root of the Definition IDs a realization declares, such as its evidence's,
 // `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
@@ -41,7 +41,7 @@ def contextualFamily: String = family
 // `name`, it is named after the `val` that declares it.
 final case class Realization(
     name: String = "",
-    machine: Machine[?, ?, ?],
+    machine: RecordMachine[?, ?, ?],
     producer: String,
     producerVersion: String,
     roles: Vector[Addressee],

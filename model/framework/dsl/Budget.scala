@@ -4,7 +4,7 @@ import scala.annotation.{publicInBinary, targetName, unused}
 import scala.quoted.*
 
 final private[framework] class NativeBudget[S](
-    val owner: Machine[S, ?, ?],
+    val owner: RecordMachine[S, ?, ?],
     val declaration: ActionDecl,
     val field: StateField[S, ?]
 ):
@@ -81,7 +81,8 @@ class BudgetedAction[S, I] @publicInBinary private[framework] (
 
   @publicInBinary private[framework] def append[A](field: StateField[S, A]): BudgetedAction[S, I] =
     val owner =
-      budgets.head.owner.asInstanceOf[Machine[S, ?, ?]] // scalafix:ok DisableSyntax.asInstanceOf
+      budgets.head.owner
+        .asInstanceOf[RecordMachine[S, ?, ?]] // scalafix:ok DisableSyntax.asInstanceOf
     new BudgetedAction(action, budgets :+ new NativeBudget(owner, action.decl, field))
 
   infix def ~>[O, F](effect: S => List[Step[S, O, F]])(using

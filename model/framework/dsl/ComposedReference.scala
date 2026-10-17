@@ -39,9 +39,9 @@ private[framework] object ComposedReference:
     catch case error: IllegalArgumentException => fail(error.getMessage)
     def endpoint(member: String, action: ActionDecl): Endpoint =
       val machine = members.find(_._1 == member).map(_._2) match
-        case Some(m: Machine[?, ?, ?]) => m
-        case Some(_)                   => fail(s"$member is not a machine member")
-        case None                      => fail(s"no member $member of ${composition.name}")
+        case Some(m: RecordMachine[?, ?, ?]) => m
+        case Some(_)                         => fail(s"$member is not a machine member")
+        case None                            => fail(s"no member $member of ${composition.name}")
       val id = action.sourceIdentity.getOrElse(
         fail(s"action ${action.name} has no retained source identity")
       )

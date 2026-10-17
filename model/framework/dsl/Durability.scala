@@ -3,7 +3,7 @@ package framework.dsl
 import scala.annotation.publicInBinary
 
 sealed abstract class FieldDurability[S] private[framework] (
-    private[framework] val owner: Machine[S, ?, ?],
+    private[framework] val owner: RecordMachine[S, ?, ?],
     private[framework] val field: StateField[S, ?]
 ):
   private[framework] def check(): Unit
@@ -16,7 +16,7 @@ sealed abstract class FieldDurability[S] private[framework] (
 @publicInBinary
 object FieldDurability:
   @publicInBinary private[framework] def durable[S, A](
-      machine: Machine[S, ?, ?],
+      machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A]
   ): FieldDurability[S] =
     new FieldDurability[S](machine, selected):
@@ -37,7 +37,7 @@ object FieldDurability:
     )
 
   @publicInBinary private[framework] def ephemeral[S, A](
-      machine: Machine[S, ?, ?],
+      machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A],
       resetTo: A
   ): FieldDurability[S] =
@@ -47,7 +47,7 @@ object FieldDurability:
       def replacement(state: S): Option[(List[String], Any)] = Some(selected.path -> resetTo)
 
   @publicInBinary private[framework] def inMemory[S, A](
-      machine: Machine[S, ?, ?],
+      machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A],
       entries: Vector[(A, A)]
   )(using data: Data.Structural[A]): FieldDurability[S] =
@@ -75,17 +75,17 @@ object FieldDurability:
           .map((_, fallback) => selected.path -> fallback)
 
   private[framework] def validate[S](
-      owner: Machine[S, ?, ?],
+      owner: RecordMachine[S, ?, ?],
       descriptors: Vector[FieldDurability[S]],
       budgetPaths: Vector[List[String]]
   ): Unit =
     validate(owner, descriptors, budgetPaths, candidate => candidate eq owner)
 
   private[framework] def validate[S](
-      owner: Machine[S, ?, ?],
+      owner: RecordMachine[S, ?, ?],
       descriptors: Vector[FieldDurability[S]],
       budgetPaths: Vector[List[String]],
-      ownerAllowed: Machine[?, ?, ?] => Boolean
+      ownerAllowed: RecordMachine[?, ?, ?] => Boolean
   ): Unit =
     descriptors.zipWithIndex.foreach: (descriptor, index) =>
       require(

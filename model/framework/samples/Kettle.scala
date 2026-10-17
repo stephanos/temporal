@@ -29,7 +29,7 @@ object Kettle:
     val heat = internal
     val failover = internal
 
-  object Model extends Machine[Snapshot, Outcome, Nothing]:
+  object Model extends RecordMachine[Snapshot, Outcome, Nothing]:
     // room temperature (20C), the element off and quiet
     val init = Snapshot(temperature = 20, heatingOn = false, beeping = false)
     // a run may stop in any state

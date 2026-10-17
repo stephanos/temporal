@@ -25,7 +25,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
       val reads: Reads,
       state: Finite[Cell],
       facts: Finite[Boolean]
-  ) extends Machine[Cell, Boolean, Boolean](using state, Finite[Boolean], facts):
+  ) extends RecordMachine[Cell, Boolean, Boolean](using state, Finite[Boolean], facts):
     def init: Cell =
       reads.init += 1
       Cell(wire.empty)
@@ -49,7 +49,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
       reads.refinement += 1
       None
     var replacement = Option.empty[MachineEvidence.Retained]
-    var redirect = Option.empty[Machine[?, ?, ?]]
+    var redirect = Option.empty[RecordMachine[?, ?, ?]]
     override private[framework] def evidenceSource = redirect.getOrElse(super.evidenceSource)
     override private[framework] def evidenceMetadata = replacement.orElse(super.evidenceMetadata)
     def original = super.evidenceMetadata.get

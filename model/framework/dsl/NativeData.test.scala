@@ -46,7 +46,7 @@ class NativeDataTest extends munit.FunSuite:
       def values = throw AssertionError("Inbox construction enumerated messages")
     val wire = channel[Flag](2, Order.unordered, Loss.reliable)
     final case class Held(inbox: Inbox[Flag], received: List[Flag])
-    object Native extends Machine[Held, Boolean, Nothing]:
+    object Native extends RecordMachine[Held, Boolean, Nothing]:
       val init = Held(wire.empty, Nil)
       def end(s: Held) = s.inbox.isEmpty
       object rules extends Rules:
@@ -64,7 +64,7 @@ class NativeDataTest extends munit.FunSuite:
     assert(Data[Int].compare(0, 2) < 0)
     val data: Data[Int] = Finite[Int]
     assert(data.compare(0, 2) < 0)
-    object NumericOutcome extends Machine[Collections, Int, Nothing]:
+    object NumericOutcome extends RecordMachine[Collections, Int, Nothing]:
       val init = Collections(Set.empty, Nil, Map.empty)
       def end(s: Collections) = true
       object rules extends Rules:
@@ -98,7 +98,7 @@ class NativeDataTest extends munit.FunSuite:
   }
 
   test("collection machine state uses native partial Map operations") {
-    object Native extends Machine[Collections, Boolean, Nothing]:
+    object Native extends RecordMachine[Collections, Boolean, Nothing]:
       val init = Collections(Set.empty, Nil, Map.empty)
       def end(s: Collections) = s.pending.isEmpty
       object rules extends Rules:
@@ -132,7 +132,7 @@ class NativeDataTest extends munit.FunSuite:
     def guard(s: Poison): Boolean = throw AssertionError("construction invoked guard")
     def effect(s: Poison): List[Step[Poison, Boolean, Nothing]] =
       throw AssertionError("construction invoked effect")
-    object Native extends Machine[Poison, Boolean, Nothing]:
+    object Native extends RecordMachine[Poison, Boolean, Nothing]:
       val init = Poison(Flag.first, false)
       def end(s: Poison) = false
       object rules extends Rules:
@@ -230,7 +230,7 @@ class NativeDataTest extends munit.FunSuite:
     assert(compileErrors("""
       import framework.dsl.*
       given Finite[String] = Finite.of("text")
-      object Bad extends Machine[String, Boolean, Nothing]:
+      object Bad extends RecordMachine[String, Boolean, Nothing]:
         val init = "text"
         def end(s: String) = true
         object rules extends Rules
@@ -251,7 +251,7 @@ class NativeDataTest extends munit.FunSuite:
   test("outcomes facts and action inputs still require finite catalogs") {
     assert(compileErrors("""
       import framework.dsl.*
-      object Bad extends Machine[Int, Int, Nothing]:
+      object Bad extends RecordMachine[Int, Int, Nothing]:
         val init = 0
         def end(s: Int) = true
         object rules extends Rules
@@ -259,7 +259,7 @@ class NativeDataTest extends munit.FunSuite:
     assert(compileErrors("""summon[framework.dsl.Finite[List[Int]]]""").nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*
-      object Bad extends Machine[Int, Boolean, Int]:
+      object Bad extends RecordMachine[Int, Boolean, Int]:
         val init = 0
         def end(s: Int) = true
         object rules extends Rules

@@ -38,14 +38,14 @@ class NativePerformanceSuite extends munit.FunSuite:
     val hidden = action("later-hidden", Actor("fault")).crash
     val performance = Performance(hidden, command)
     val _ = hidden.modelOnly(because = "control withdrawn")
-    object Subject extends Machine[Boolean, Boolean, Nothing]:
+    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Rules
     val error = intercept[IllegalArgumentException](realization(Subject, performance))
     assert(error.getMessage.contains("control withdrawn"), error.getMessage)
 
-  private def realization(machine: Machine[?, ?, ?], performance: Performance): Realization =
+  private def realization(machine: RecordMachine[?, ?, ?], performance: Performance): Realization =
     Realization(
       name = "native-test",
       machine = machine,
@@ -71,7 +71,7 @@ class NativePerformanceSuite extends munit.FunSuite:
       declared -> ((_: Boolean) => throw AssertionError("choice arm evaluated")),
       other -> ((_: Boolean) => throw AssertionError("choice arm evaluated"))
     )
-    class Subject extends Machine[Boolean, Boolean, Nothing]:
+    class Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Bindings(performed ~> program)
@@ -80,7 +80,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     val selected = Performance(performed, command).choosing(declared)
     assert(realization(machine, selected).scripts.head.items.head.performs.head eq selected)
     var exposedDependencies = 0
-    final class NativeKit(val machine: Machine[?, ?, ?], performance: Performance)
+    final class NativeKit(val machine: RecordMachine[?, ?, ?], performance: Performance)
         extends ConstructedRealization:
       protected def declaredPerformances: Vector[Performance] = Vector(performance)
       val runs: Seq[AnyRef] = Seq.empty
@@ -106,7 +106,7 @@ class NativePerformanceSuite extends munit.FunSuite:
       intercept[IllegalArgumentException](invalidKit.nativePerformances): Unit
       intercept[IllegalArgumentException](invalidKit.dependencies): Unit
       assertEquals(exposedDependencies, 1)
-    object WrongMachine extends Machine[Boolean, Boolean, Nothing]:
+    object WrongMachine extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Rules
@@ -127,7 +127,7 @@ class NativePerformanceSuite extends munit.FunSuite:
       otherFirst -> ((_: Boolean) => throw AssertionError("on arm evaluated")),
       otherSecond -> ((_: Boolean) => throw AssertionError("on arm evaluated"))
     )
-    object Subject extends Machine[Boolean, Boolean, Nothing]:
+    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules extends Rules:
@@ -144,7 +144,7 @@ class NativePerformanceSuite extends munit.FunSuite:
   test("explicit choosing refuses opaque callbacks while omitted selection accepts them"):
     val performed = action("opaque", Actor("caller"))
     val token = choice
-    object Subject extends Machine[Boolean, Boolean, Nothing]:
+    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
       def init: Boolean = throw AssertionError("init evaluated")
       def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
       object rules
