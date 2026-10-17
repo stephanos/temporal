@@ -67,7 +67,8 @@ private[framework] object NativeCheck:
       val machine: RecordMachine[S, O, F],
       origins: Seq[S],
       admit: ActionDecl => Boolean,
-      val budget: Int
+      val budget: Int,
+      select: Class => Boolean
   ):
     require(budget > 0, "a budget admits at least one state")
     scan(machine)
@@ -78,7 +79,7 @@ private[framework] object NativeCheck:
         val run = Option(synchronized(channels.get(b.decl))).fold(effect.apply(_: S, _: Class))(
           channel => carried(channel, b.decl, effect)
         )
-        (b.decl, run, classesOf(b.decl))
+        (b.decl, run, classesOf(b.decl).filter(select))
     val admitted: Vector[ActionDecl] = effects.map(_._1).toVector
     private val index = mutable.HashMap.empty[S, Int]
     val states = mutable.ArrayBuffer.empty[S]
@@ -159,7 +160,7 @@ private[framework] object NativeCheck:
     // A check starts at the roots even if another consumer already advanced this frontier.
     def forCheck: Search[S, O, F] =
       if announced.nonEmpty || outgoing.nonEmpty || exhausted then
-        Search(machine, origins, admit, budget)
+        Search(machine, origins, admit, budget, select)
       else this
 
     // The actions of the breadth-first path from a start to a state.
@@ -216,8 +217,9 @@ private[framework] object NativeCheck:
       machine: RecordMachine[S, O, F],
       starts: Seq[S],
       admit: ActionDecl => Boolean = _ => true,
-      budget: Int = defaultBudget
-  ): Search[S, O, F] = Search(machine, starts, admit, budget)
+      budget: Int = defaultBudget,
+      select: Class => Boolean = _ => true
+  ): Search[S, O, F] = Search(machine, starts, admit, budget, select)
 
   // A channel's delivery or loss, as the reader derives it (model/framework/SEMANTICS.md, Channels): enabled
   // where the inbox holds the message, first for a FIFO channel, it removes that entry and applies
@@ -499,7 +501,7 @@ private[framework] object NativeCheck:
     val origins = scenario.start.fold(if starts.isEmpty then machine.initialStates else starts)(s =>
       Seq(s.asInstanceOf[S]) // scalafix:ok DisableSyntax.asInstanceOf
     )
-    val graph = explore(machine, origins, scenario.admits, budget)
+    val graph = explore(machine, origins, scenario.admits, budget, scenario.admits)
     progress(
       graph,
       subject,
@@ -512,9 +514,12 @@ private[framework] object NativeCheck:
       from: S => Boolean,
       reached: S => Boolean,
       within: Int,
-      fair: Seq[ActionDecl]
+      fair: Seq[ActionDecl | Class]
   ): Result =
     graph.drain()
+    val fairClasses = fair.flatMap:
+      case cls: Class       => List(cls)
+      case decl: ActionDecl => classesOf(decl)
     val n = graph.states.size
     val to = Array.tabulate(n)(i => reached(graph.states(i)))
     val inRegion = Array.fill(n)(false)
@@ -541,9 +546,8 @@ private[framework] object NativeCheck:
       .filter: part =>
         val members = part.toSet
         val taken = part.flatMap(s => inside(s).filter(e => members(e.target)).map(_.cls)).toSet
-        val excluded = fair.exists: decl =>
-          classesOf(decl).exists: cls =>
-            !taken(cls) && part.forall(s => graph.successors(s).exists(e => e.cls == cls))
+        val excluded = fairClasses.exists: cls =>
+          !taken(cls) && part.forall(s => graph.successors(s).exists(e => e.cls == cls))
         !excluded
       .sortBy(_.map(joined).min)
       .headOption
@@ -1036,7 +1040,7 @@ private[framework] object NativeCheck:
             s"reads ${q.property.machine.name} through a refinement, which no native check reads"
           Result(subject, Verdict.unknown, budget, 0, false, Vector(through))
         else if q.scenario.free then
-          val graph = explore(machine, starts, q.scenario.admits, budget)
+          val graph = explore(machine, starts, q.scenario.admits, budget, q.scenario.admits)
           if finds(q) then find(graph, subject, q.property)
           else verify(graph, subject, q.property)
         else pinned(machine, subject, q, starts, budget)

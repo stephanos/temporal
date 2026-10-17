@@ -566,6 +566,10 @@ it holds, and that path is the Query's *witness*. `.live` marks an authored Quer
 generation; without it the Query is model-only. Capability expectation bindings make their
 generated Queries live.
 
+A native environment may select a whole action or one input class: `only(action)` admits every
+class of that action, while `only(action(input))` admits just that class. Similarly, `fair(action)`
+makes every class weakly fair; `fair(action(input))` makes only the selected class weakly fair.
+
 **Writing it.** In `object queries`, every Scenario before the Query that uses it:
 
 Source: [temporal/features/activity_mini/protocol/Protocol.scala:69](../temporal/features/activity_mini/protocol/Protocol.scala#L69).

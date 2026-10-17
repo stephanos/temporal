@@ -34,11 +34,20 @@ Scoped formatting and a fresh read-only review also pass. The broader sample run
 Bank graph evaluation and is not counted as passing; its log is
 `.flow/tmp/pinned-queries-native-gate.log`.
 
+Native scenario selection now preserves exact input classes: `only(a(input))` filters before
+effects execute, while `only(a)` keeps every class; `fair(a(input))` applies only to that class,
+while `fair(a)` still applies separately to every class. The eight scenario regressions reproduce
+four failures before the fix and pass after it. Final verification passes 510 DSL/realize tests,
+42 tests in eight selected sample suites, 29 source-lint tests and scoped formatting. A fresh-context
+independent review (same model family) found no material issue. Logs are
+`.flow/tmp/scenario-classes-{red,green,core-gate,samples-gate,lint-gate,fmt-check}.log`.
+The expanded Bank exhaustive proof remains unclaimed; user Bank and negative-control edits were
+left untouched. The native task remains open for the requirements below.
+
 The original native requirements remain open: public legacy vocabulary is still reachable through
 record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
 naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
-Actually evaluated claim holes currently propagate instead of producing an unknown result. The
-native scenario class-selection behavior also needs reconciliation.
+Actually evaluated claim holes currently propagate instead of producing an unknown result.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 

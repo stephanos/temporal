@@ -119,10 +119,16 @@ final class ScenarioDecl private[framework] (
       case c: Class     => c.decl eq decl
       case _            => false)
 
+  private[framework] def admits(cls: Class): Boolean =
+    only.forall(_.exists:
+      case a: Action[?] => a.decl eq cls.decl
+      case c: Class     => c == cls
+      case _            => false)
+
   // The actions it assumes weakly fair: every class of each one named, or the one class named.
-  private[framework] def fairActions: Vector[ActionDecl] = fair.collect:
+  private[framework] def fairActions: Vector[ActionDecl | Class] = fair.collect:
     case a: Action[?] => a.decl
-    case c: Class     => c.decl
+    case c: Class     => c
 
   private[framework] def copy(
       name: String = name,
