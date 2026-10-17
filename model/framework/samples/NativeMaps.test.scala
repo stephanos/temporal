@@ -1,6 +1,7 @@
 package framework.dsl
 
 import samples.*
+import NativeControls.assertRefuted
 
 class NativeMapsTest extends munit.FunSuite:
   private def run[S, O](
@@ -399,3 +400,72 @@ class NativeMapsTest extends munit.FunSuite:
     assert(zero(Step(true, accepted(Set(0)))))
     assert(zero(Step(true, accepted(Set(0, 2)))))
     assert(!zero(Step(true, accepted(Set(2)))))
+
+  // The default checks (fn-190.4): every claim of a Machine's sections checked over its whole
+  // reachable graph by the native checker.
+  test("Bank's claims are checked by default and Leaky's total supply is refuted"):
+    import Bank.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model)
+    // peachesGetsBananas is a find's target, not a promise of every such send: the find answers found
+    assertEquals(
+      report.verdicts,
+      Map(
+        "totalSupplyInv" -> verified,
+        "failedSendChangesNothing" -> verified,
+        "peachesGetsBananas" -> refuted
+      )
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector(
+        "model.totalSupplyHolds" -> verified,
+        "model.failedSendChangesNothingHolds" -> verified,
+        "model.kingSendsPeachesBananas" -> found
+      )
+    )
+    val leak = assertRefuted(Leaky, Leaky.invariants.leakyTotalSupplyInv)
+    assertEquals(leak.subject, "leaky.leakyTotalSupplyInv")
+    assertEquals(leak.detail.head, "counterexample: send(king, donkeykong, banana, 1)")
+    assertEquals(
+      NativeCheck.queries(Leaky).map(r => r.subject -> r.verdict),
+      Vector("leaky.refutesLeakyTotalSupply" -> refuted)
+    )
+
+  test("TwoPhaseCommit's claims are checked by default and EagerCommit's consistency is refuted"):
+    import TwoPhaseCommit.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model)
+    // everyoneCommits is a find's target: the last commit need not be rm3's
+    assertEquals(
+      report.verdicts,
+      Map(
+        "consistencyInv" -> verified,
+        "everyoneCommits" -> refuted,
+        "commitReachesEveryone" -> verified
+      )
+    )
+    // once committed, the three resource managers commit one by one
+    assertEquals(report.result("commitReachesEveryone").longest, Some(3))
+    assertEquals(
+      report.result("consistencyInv").line,
+      s"model.consistencyInv: verified (budget ${NativeCheck.defaultBudget} states, 10 steps; " +
+        "exploration complete)"
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector("model.consistencyHolds" -> verified, "model.successTest" -> found)
+    )
+    assertRefuted(EagerCommit, EagerCommit.invariants.eagerConsistencyInv): Unit
+    assertEquals(
+      NativeCheck.queries(EagerCommit).map(r => r.subject -> r.verdict),
+      Vector("eagerCommit.refutesEagerCommit" -> refuted)
+    )
+
+  test("NativeInputs' postcondition is checked by default over every input class"):
+    import NativeInputs.*
+    val report = NativeCheck.verifyAll(Accepted)
+    assertEquals(report.verdicts, Map("zeroWasAccepted" -> NativeCheck.Verdict.verified))
+    assertEquals(report.warnings, Vector.empty)

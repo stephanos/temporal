@@ -1,6 +1,7 @@
 package framework.dsl
 
 import samples.{ReliableBroadcast, Voting}
+import NativeControls.assertRefuted
 
 class NativeVotingTest extends munit.FunSuite:
   private def run[S, O](
@@ -498,3 +499,68 @@ class NativeVotingTest extends munit.FunSuite:
           Step(Outcome.accepted, supplied.copy(network = crossed.empty))
         )
       assert(error.getMessage.contains("network"), error.getMessage)
+
+  // The default checks (fn-190.4): every claim of a Machine's sections checked over its whole
+  // reachable graph by the native checker.
+  test("Voting's claims are checked by default and UnsafeVoting's consistency is refuted"):
+    import Voting.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model)
+    // decides is a find's target: one vote chooses nothing
+    assertEquals(
+      report.verdicts,
+      Map("consistency" -> verified, "invariant" -> verified, "decides" -> refuted)
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(NativeCheck.verifyAll(Consensus).verdicts, Map("chosenStays" -> verified))
+    // chosenStaysInVoting reads Consensus through Voting's refinement, which no native check reads
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector(
+        "model.chosenStaysInVoting" -> unknown,
+        "model.consistencyHolds" -> verified,
+        "model.invariantHolds" -> verified,
+        "model.valueChosen" -> found
+      )
+    )
+    assertRefuted(UnsafeVoting, UnsafeVoting.invariants.unsafeConsistency): Unit
+    assertEquals(
+      NativeCheck.queries(UnsafeVoting).map(r => r.subject -> r.verdict),
+      Vector("unsafeVoting.refutesUnsafeVoting" -> refuted)
+    )
+
+  test("ReliableBroadcast's claims are checked by default and Naive breaks agreement"):
+    import ReliableBroadcast.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model)
+    // survivesCrash is a find's target: a run need not crash
+    assertEquals(
+      report.verdicts,
+      Map(
+        "safety" -> verified,
+        "reliability" -> verified,
+        "survivesCrash" -> refuted,
+        "everyoneDelivers" -> verified,
+        "agreement" -> verified
+      )
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector(
+        "model.safetyHolds" -> verified,
+        "model.reliabilityHolds" -> verified,
+        "model.deliveredDespiteCrash" -> found
+      )
+    )
+    // the naive algorithm delivers only what was broadcast; what refutes it is the agreement it
+    // keeps from the Model, a run that stops with one process delivered and the other not
+    val naive = NativeCheck.verifyAll(Naive)
+    assertEquals(naive.verdicts, Map("naiveSafety" -> verified))
+    assertEquals(naive.warnings, Vector("naive: relay never fires", "naive: deliver never fires"))
+    val split = assertRefuted(Naive, Model.monitors.agreement)
+    assertEquals(split.subject, "naive.agreement")
+    assertEquals(
+      split.detail,
+      Vector("counterexample: broadcast(hello), send, crash, network.deliver(Msg(p1,hello))")
+    )
