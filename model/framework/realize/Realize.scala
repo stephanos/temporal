@@ -24,18 +24,9 @@ import scala.util.NotGiven
 import com.google.protobuf.ByteString
 import framework.dsl.{Action, Channel, Choice, ClassRef, Monitor, RecordMachine}
 
-// The root of the Definition IDs a realization declares, such as its evidence's,
-// `family + ".evidence." + kind`: the package of the declaration being lifted, which the IR
-// generator writes in its place wherever a realization's declarations reach it, through the
-// functions of a realization kit shared by several features too. Nobody writes it: a declaration's
-// package is where its IDs come from. The compiler resolves source-owned families and retains
-// vocabulary references symbolically until conversion has the declaring package.
-lazy val family: String =
-  throw IllegalStateException("family requires compiler source provenance")
-
-// A shared realization kit forwards the declaration package without inspecting it. Plugin-built
-// callers keep this value symbolic until the constructed export driver supplies the root package.
-def contextualFamily: String = family
+// The Definition IDs a realization declares hang off its feature's package, the `Family` the
+// feature package supplies once (`given Family = Family.here`); a kit function that forms one takes
+// `(using f: Family)` and reads `f.id`.
 
 // How the find Queries of one machine run against a system. Declared with named arguments and no
 // `name`, it is named after the `val` that declares it.
@@ -64,7 +55,7 @@ final case class Realization(
   protected def declaredDependencies: ConstructedRealization.Dependencies =
     ConstructedRealization.dependencies(this)
   def toIR(context: ConstructedRealization.Context): ir.Realization =
-    this.toIRWithFamily(context.declaration, context.metadata, context.sourcePackage)
+    this.toIR(context.declaration, context.metadata)
 
 // One system-specific rejection reason and the gRPC status code a realization returns for it. The
 // realization kit supplies its reason enum; the generic framework carries it without importing a

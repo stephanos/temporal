@@ -1993,8 +1993,9 @@ name: its package and every object it sits in, then its own name,
 type is named so too, `temporal.features.activity.standalone.protocol.State`. A machine's or
 composition's family, the root every ID derived from it hangs off (`<family>.query.<name>`, its
 target, its claims), is the package that declares it, `temporal.features.activity.standalone.protocol`,
-and a realization's IDs (its evidence, sources and producer) hang off its own package, which the
-kit's `framework.realize.family` reads. Nobody writes an ID or a family: moving a declaration between
+and a realization's IDs (its evidence, sources and producer) hang off its feature's package, which
+the feature supplies once, `given Family = Family.here`, and the kit's functions take as
+`(using f: Family)`. Nobody writes an ID or a family: moving a declaration between
 files of one package keeps every name, and moving it into another object or package, or renaming
 it, changes them, which is accepted. Scala names no two declarations alike; the IR generator refuses
 two that would derive one ID anyway, two machines or two Queries of one name in one package

@@ -88,7 +88,6 @@ private[`export`] trait Constructed:
   def prepareConstructed(root: String): Pending =
     val sym = rootSymbol(root)
     val at = valDef(sym, sym.tree, "a constructed realization")
-    validateContract(sym, at, root)
     val declaration = definitionId(sym, at)
     try
       val value = Constructed.read(root, runtimeLoader)
@@ -134,10 +133,7 @@ private[`export`] trait Constructed:
           metadata,
           p.sourcePackage
         )
-        val result = ConstructedRealization.resolveFamily(
-          p.value.toIR(context),
-          context
-        )
+        val result = p.value.toIR(context)
         require(
           result.id == p.declaration,
           s"constructed realization id ${result.id} differs from ${p.declaration}"
@@ -193,30 +189,6 @@ private[`export`] trait Constructed:
         "names no declaration of the lifted sources"
       )
     )
-
-  private def validateContract(sym: Symbol, at: Tree, root: String): Unit =
-    def strings(tree: Tree): List[String] = tree match
-      case Literal(StringConstant(value)) => List(value)
-      case Typed(value, _)                => strings(value)
-      case Repeated(values, _)            => values.flatMap(strings)
-      case Apply(_, args)                 => args.flatMap(strings)
-      case _                              => Nil
-    val carrier = Symbol.requiredClass("framework.dsl.familyFlow")
-    val symbols = Seq(sym, moduleClassOf(sym)).filterNot(_.isNoSymbol).distinct
-    val contract = symbols.iterator
-      .flatMap(_.getAnnotation(carrier))
-      .map(strings)
-      .find(_.nonEmpty)
-      .getOrElse(Nil)
-    val valid = contract match
-      case List("v1", result) =>
-        result.split(',').filter(_.nonEmpty).forall(Set("-1", "-2"))
-      case _ => false
-    if !valid then
-      fail(
-        at,
-        s"while constructing root $root: missing or invalid compiler source provenance; compile the declaration with the reify plugin"
-      )
 
   private def sourceDeclaration(sourceId: String, at: Tree): Symbol = defs.keys
     .find(s =>

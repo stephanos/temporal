@@ -595,13 +595,6 @@ extension (value: Realization)
       declaration: String,
       metadata: ir.Model = ir.Model()
   ): ir.Realization =
-    value.toIRWithFamily(declaration, metadata, None)
-
-  private[framework] def toIRWithFamily(
-      declaration: String,
-      metadata: ir.Model,
-      sourcePackage: Option[String]
-  ): ir.Realization =
     val ctx =
       new Construction(
         declaration,
@@ -627,7 +620,7 @@ extension (value: Realization)
       value.serverSteps.isEmpty,
       s"$declaration: server steps require their owning kit's constructed conversion"
     )
-    val result = ir.Realization(
+    ir.Realization(
       id = declaration,
       name =
         if value.name.nonEmpty then value.name else declaration.split('.').last,
@@ -653,4 +646,3 @@ extension (value: Realization)
       cleanup = value.cleanup,
       rejectionCodes = value.rejectionCodes.map(_.toIR(declaration))
     )
-    Family.resolve(result, declaration, sourcePackage)

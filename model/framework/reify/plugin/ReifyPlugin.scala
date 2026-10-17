@@ -56,11 +56,9 @@ final class ReifyPlugin extends StandardPlugin:
         report.error(s"unknown umpire-reify option: $option")
         (current, modeSeen, cacheSeen)
     val store = new DefinitionStore
-    val family = new FamilyPhase
     val effects = new EffectsPhase
     if mode == "realization" then
       List(
-        family,
         effects,
         new StorePhase(store),
         new NamesPhase("reifyStore"),
@@ -69,7 +67,6 @@ final class ReifyPlugin extends StandardPlugin:
       )
     else if mode == "signature" then
       List(
-        family,
         effects,
         new StorePhase(store),
         new CapturePhase(store),
@@ -80,7 +77,6 @@ final class ReifyPlugin extends StandardPlugin:
       )
     else
       List(
-        family,
         effects,
         new StorePhase(store),
         new EndpointsPhase(store),
@@ -106,15 +102,13 @@ private object Carrier:
   val status = "framework.dsl.recordedStatusIr"
   val outcome = "framework.dsl.declaredOutcomeIr"
   val callGroups = "framework.dsl.ruleCallGroups"
-  val familyFlow = "framework.dsl.familyFlow"
   val namedResult = "framework.dsl.namedResult"
 
   // A stored model keeps a position on its root function only.
   def rooted(model: ir.Model, root: Option[String]): ir.Model =
     model.copy(
-      functions = model.functions.map(f =>
-        if root.contains(f.name) then f else unpositioned(f, ir.Function)
-      ),
+      functions =
+        model.functions.map(f => if root.contains(f.name) then f else unpositioned(f, ir.Function)),
       types = model.types.map(_.clearPosition)
     )
 
@@ -975,7 +969,11 @@ final private class DefinitionStore:
               d.span
             )
           )
-          Carrier.saveCallGroups(d.symbol, Carrier.rootedGroups(e.ctx.callGroups.toVector, Some(name)), d)
+          Carrier.saveCallGroups(
+            d.symbol,
+            Carrier.rootedGroups(e.ctx.callGroups.toVector, Some(name)),
+            d
+          )
           Some(model)
         catch
           case err: SectionRefusal =>
@@ -995,7 +993,7 @@ final private class DefinitionStore:
 
 final private class StorePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyStore"
-  override val runsAfter = Set("reifyFamily")
+  override val runsAfter = Set("reifyEffects")
   override val runsBefore = Set("sbt-api", Pickler.name)
 
   override def transformValDef(tree: tpd.ValDef)(using Context): tpd.Tree =

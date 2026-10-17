@@ -21,9 +21,6 @@ final private[framework] class declaredOutcomeIr(val chunks: String*)
 final private[framework] class ruleCallGroups(val data: String*)
     extends scala.annotation.StaticAnnotation
 
-final private[framework] class familyFlow private (val contract: String*)
-    extends scala.annotation.StaticAnnotation
-
 final private[framework] class namedResult private () extends scala.annotation.StaticAnnotation
 
 final private[framework] class capture(val target: String) extends scala.annotation.StaticAnnotation
