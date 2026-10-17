@@ -158,7 +158,7 @@ private[framework] object StateField:
         case Inlined(_, _, body)    => defaultBounded(body)
         case Apply(function, _)     => defaultBounded(function)
         case TypeApply(function, _) => defaultBounded(function)
-        case other => other.symbol.fullName == "framework.dsl.UpTo.given_Finite_UpTo"
+        case other => other.symbol.fullName == "framework.dsl.Finite.given_Finite_UpTo"
       def bounded: Option[Expr[T => Boolean]] = Type.of[T] match
         case '[UpTo[n]] =>
           TypeRepr.of[n] match
