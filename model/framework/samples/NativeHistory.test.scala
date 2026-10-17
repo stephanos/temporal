@@ -13,9 +13,6 @@ class NativeHistoryTest extends munit.FunSuite:
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, F](binding.decl, binding.function)(state, cls)
 
-  private def holds[S, O, F](property: Property, step: Step[S, O, F]): Boolean =
-    property.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean](step)
-
   // A Kettle state by its vars, in declaration order: temperature, heatingOn, beeping.
   private def snapshot(temperature: Int, heatingOn: Boolean, beeping: Boolean): State =
     Kettle.Model.init.copy(temperature = temperature, heatingOn = heatingOn, beeping = beeping)
@@ -94,8 +91,14 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(Model.end(expired), false)
     assertEquals(Model.end(filled), true)
     assertEquals(run(Model, expired, timers.l1Expire()), Nil)
-    assert(
-      holds(Model.postconditions.servedFromL2, Step(Outcome.accepted, filled, List(Event.readL2)))
+    assertEquals(
+      judged(
+        verify(Model.queries.servedFromL2),
+        expired,
+        client.read(),
+        Step(Outcome.accepted, filled, List(Event.readL2))
+      ),
+      Some(true)
     )
 
   test("three successive writes retain payloads and stop at the original bound in both owners"):
@@ -219,11 +222,14 @@ class NativeHistoryTest extends munit.FunSuite:
       )
     )
     assertEquals(WriteThroughL1.end(cache(None, None, 1)), true)
-    assert(
-      holds(
-        WriteThroughL1.postconditions.buggyWritesRecorded,
+    assertEquals(
+      judged(
+        verify(WriteThroughL1.postconditions.buggyWritesRecorded),
+        Model.init,
+        client.write(),
         Step(Outcome.accepted, cache(Some(0), None, 1), List(Event.wrote))
-      )
+      ),
+      Some(true)
     )
 
   test("supplied seeded mutant state separately pins an older present L2 read"):
@@ -502,12 +508,10 @@ class NativeHistoryTest extends munit.FunSuite:
     import TwoLayeredCache.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model, budget = 4096)
-    // servedFromL2 is a find's target, not a promise of every read: the find answers found
     assertEquals(
       report.verdicts,
       Map(
         "readFillsL1" -> verified,
-        "servedFromL2" -> refuted,
         "agreement" -> verified,
         "readAfterWrite" -> unknown,
         "writeAfterWrite" -> unknown
@@ -521,6 +525,12 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
       Vector("model.readFillsL1Holds" -> verified, "model.readAfterExpiry" -> found)
+    )
+    // servedFromL2 is a find's target in queries, not a promise of every read: verified, it is
+    // refuted, and the find answers found
+    assertEquals(
+      NativeCheck.query(verify(Model.queries.servedFromL2), "model.servedFromL2").verdict,
+      refuted
     )
     assertEquals(
       NativeCheck.verifyAll(WriteThroughL1).verdicts,
