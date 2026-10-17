@@ -56,6 +56,21 @@ object ClaimsFixture:
         check(temperature == boilingTemperature)
         check(beeping)
 
+    // the kettle left to itself once switched on: a depress disables heat rather than leaving it
+    // enabled, so fairness on heat would not help, and the user's depress is not admitted
+    val heatingAlone = only(user.pressButton, heater.heat, heater.failover)
+    val fromRoomTemperature = starts(temperature = 20)
+
+    object progress:
+      val boils = leadsTo(from = heatingOn, to = beeping, within = 81) in heatingAlone
+      val boilsSooner = leadsTo(from = heatingOn, to = beeping, within = 80) in heatingAlone
+
+    object queries:
+      val boilsAtRoomTemperature = verify(progress.boils) in fromRoomTemperature
+      val boilsWithFairHeat = verify(progress.boils) in fair(heater.heat)
+      val boilsWithoutHeater = verify(progress.boils) in only(user.pressButton)
+      val boilsAsDeclared = verify(progress.boils)
+
   // The same kettle with claims it breaks, each failing assertion reported on its own.
   object Faulty extends Machine[Outcome, Nothing]:
     var temperature = 20
@@ -166,7 +181,9 @@ class ClaimsSuite extends munit.FunSuite:
       Map(
         "beepsOnlyWhenOff" -> verified,
         "warmsOnlyWhenOn" -> verified,
-        "failsOverAtBoiling" -> verified
+        "failsOverAtBoiling" -> verified,
+        "boils" -> verified,
+        "boilsSooner" -> missedDeadline
       )
     )
     assertEquals(report.warnings, Vector.empty)
@@ -175,6 +192,65 @@ class ClaimsSuite extends munit.FunSuite:
       s"kettle.failsOverAtBoiling: verified (budget ${NativeCheck.defaultBudget} states, 82 " +
         "steps; exploration complete)"
     )
+
+  test("Kettle's boils is verified in heatingAlone with longest path 81"):
+    val report = NativeCheck.verifyAll(Kettle)
+    val boils = report.result("boils")
+    assertEquals(boils.longest, Some(81))
+    assertEquals(
+      boils.line,
+      s"kettle.boils: verified (budget ${NativeCheck.defaultBudget} states, 82 steps; exploration " +
+        "complete)"
+    )
+    assertEquals(
+      report.result("boilsSooner").detail,
+      Vector("kettle.boilsSooner: a path of 80 steps reaches no to state")
+    )
+
+  test("the same claim in fromRoomTemperature reports the press/depress cycle naming heat"):
+    val results = NativeCheck.queries(Kettle)
+    assertEquals(
+      results.map(r => r.subject -> r.verdict),
+      Vector(
+        "kettle.boilsAtRoomTemperature" -> cycle,
+        "kettle.boilsWithFairHeat" -> cycle,
+        "kettle.boilsWithoutHeater" -> deadlock,
+        "kettle.boilsAsDeclared" -> verified
+      )
+    )
+    assertEquals(
+      results.head.detail,
+      Vector(
+        "kettle.boilsAtRoomTemperature: cycle depressButton, pressButton: heat stays enabled and " +
+          "is never taken; add fair(heat) to the scenario, or admit fewer actions with only"
+      )
+    )
+    assertEquals(results(3).longest, Some(81))
+
+  test("a progress claim belongs in progress, with a literal within, checked in a scenario"):
+    val machine = "object M extends Machine[ClaimsFixture.Said, Nothing]:\n  var x = 1\n"
+    val misplaced = compileErrors(
+      machine + "  object invariants:\n    val a = leadsTo(from = x == 1, to = x == 2, within = 3)\n"
+    )
+    assert(misplaced.contains("a progress claim belongs in progress"), misplaced)
+    val zero = compileErrors(
+      machine + "  object progress:\n    val a = leadsTo(from = x == 1, to = x == 2, within = 0)\n"
+    )
+    assert(zero.contains("within is a positive number of steps, written as a literal"), zero)
+    val computed = compileErrors(
+      machine + "  val n = 3\n  object progress:\n    val a = leadsTo(from = x == 1, to = x == 2, within = n)\n"
+    )
+    assert(
+      computed.contains("within is a positive number of steps, written as a literal"),
+      computed
+    )
+    val notScenario = compileErrors("ClaimsFixture.Kettle.progress.boils in 3")
+    assert(
+      notScenario.contains("in takes a scenario: only(...), fair(...), starts(...) or a named one"),
+      notScenario
+    )
+    val found = compileErrors("find(ClaimsFixture.Kettle.progress.boils)")
+    assert(found.contains("a progress claim is verified, not found"), found)
 
   test("each failing assertion of a block is reported on its own, with its counterexample"):
     val report = NativeCheck.verifyAll(Faulty)

@@ -15,7 +15,9 @@ final class PropertyDecl private[framework] (
     val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty,
     // A member of a claim section written as a block of assertions, which `verify` and `find`
     // name, and whose native evaluation reruns its section (NativeClaims).
-    private[framework] val claim: Option[NativeClaims.Ref] = None
+    private[framework] val claim: Option[NativeClaims.Ref] = None,
+    // A progress claim, which `verify` names.
+    private[framework] val leads: Option[LeadsTo] = None
 )
 
 // A Property over a machine or composition, whatever its state. The claim patterns of model/framework/dsl/Syntax.scala
@@ -193,6 +195,7 @@ object Scenario:
       Scenario(scenario.decl.copy(updates = scenario.decl.updates ++ updates))
 
   // A scenario that says nothing yet, of the machine it was built in, if any.
+  @scala.annotation.publicInBinary
   private[framework] def of(machine: Option[Model], name: Option[String]): Scenario =
     Scenario(
       ScenarioDecl(name.getOrElse(""), machine.getOrElse(Unbound), None, Vector.empty, free = true)
@@ -365,6 +368,17 @@ object ClaimQuery:
   @scala.annotation.publicInBinary
   private[framework] def property(form: QueryForm, claim: Property): ClaimQuery =
     ClaimQuery(form, claim.decl, Scenario.of(None, None).bound(claim.decl.machine, ""))
+
+  // A check of a progress claim, in its own environment unless `in` names another.
+  @scala.annotation.publicInBinary
+  private[framework] def progress(form: QueryForm, claim: LeadsTo): ClaimQuery =
+    require(
+      form eq QueryForm.verify,
+      s"${claim.name} is a progress claim, which is verified, not found"
+    )
+    val machine = claim.machine.getOrElse(Unbound)
+    val decl = PropertyDecl(claim.name, machine, None, None, None, leads = Some(claim))
+    ClaimQuery(form, decl, claim.scenario.bound(machine, claim.name))
 
   // A check of a member of a claim section written as a block of assertions.
   @scala.annotation.publicInBinary

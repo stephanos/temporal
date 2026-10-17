@@ -430,12 +430,54 @@ private[framework] object NativeCheck:
       subject: String,
       claim: Progress[S],
       fair: Seq[ActionDecl]
+  ): Result = leading(graph, subject, claim.from, claim.to, claim.within, fair)
+
+  // A progress claim of a Machine's vars, `leadsTo(...)`, checked on the graph of its environment,
+  // its `from` and `to` read with each state restored into the vars.
+  def progress[S, O, F](graph: Graph[S, O, F], subject: String, claim: LeadsTo): Result =
+    val vars = varsOf(graph.machine, s"progress claim $subject")
+    leading(
+      graph,
+      subject,
+      s => vars.at(s)(claim.from()),
+      s => vars.at(s)(claim.to()),
+      claim.within,
+      claim.scenario.decl.fairActions
+    )
+
+  // A progress claim in the environment a scenario says: the graph from its start, or from
+  // `starts` where it names none, under the actions it admits, and the actions it makes fair.
+  def progress[S, O, F](
+      machine: RecordMachine[S, O, F],
+      subject: String,
+      claim: LeadsTo,
+      scenario: ScenarioDecl,
+      starts: Seq[S],
+      budget: Int
+  ): Result =
+    val origins = scenario.start.fold(if starts.isEmpty then Seq(machine.init) else starts)(s =>
+      Seq(s.asInstanceOf[S]) // scalafix:ok DisableSyntax.asInstanceOf
+    )
+    val graph = explore(machine, origins, scenario.admits, budget)
+    progress(
+      graph,
+      subject,
+      LeadsTo(claim.name, claim.machine, claim.from, claim.to, claim.within, Scenario(scenario))
+    )
+
+  private def leading[S, O, F](
+      graph: Graph[S, O, F],
+      subject: String,
+      from: S => Boolean,
+      reached: S => Boolean,
+      within: Int,
+      fair: Seq[ActionDecl]
   ): Result =
     val n = graph.states.size
-    val to = Array.tabulate(n)(i => claim.to(graph.states(i)))
+    val to = Array.tabulate(n)(i => reached(graph.states(i)))
     val inRegion = Array.fill(n)(false)
     val region = mutable.ArrayBuffer.empty[Int]
-    for i <- 0 until n if !to(i) && claim.from(graph.states(i)) do
+    for i <- 0 until n if !to(i) && from(graph.states(i)) do
       inRegion(i) = true
       region += i: Unit
     var at = 0
@@ -482,7 +524,7 @@ private[framework] object NativeCheck:
               )
             else
               val steps = longest(region.toVector, parts, inside)
-              if steps >= claim.within then
+              if steps >= within then
                 result(
                   Verdict.missedDeadline,
                   Vector(s"$subject: a path of $steps steps reaches no to state")
@@ -651,7 +693,7 @@ private[framework] object NativeCheck:
               spell(c.lose.decl, s"$member.lose")
               val _ = channels.put(c.deliver.decl, c)
               val _ = channels.put(c.lose.decl, c)
-            case (member, claim: (Property | Progress[?] | Monitor[?, ?, ?, ?])) =>
+            case (member, claim: (Property | Progress[?] | Monitor[?, ?, ?, ?] | LeadsTo)) =>
               if !claims.containsKey(claim) then
                 val _ = claims.put(claim, member)
             case _ => ()
@@ -729,6 +771,9 @@ private[framework] object NativeCheck:
             )
           case _ => graph
         progress(environment, subject(member), claim, fairness(claim, environment.machine))
+      case (member, claim: LeadsTo) =>
+        val scenario = claim.scenario.bound(machine, member)
+        progress(machine, subject(member), claim, scenario, origins, budget)
     val monitorResults = section(owner, "monitors").collect:
       case (member, m: Monitor[?, ?, ?, ?]) =>
         val watch =
@@ -889,7 +934,9 @@ private[framework] object NativeCheck:
         val machine =
           m.asInstanceOf[RecordMachine[Any, Any, Any]] // scalafix:ok DisableSyntax.asInstanceOf
         val start = q.scenario.start.getOrElse(machine.init)
-        if q.property.machine ne machine then
+        if q.property.leads.nonEmpty then
+          progress(machine, subject, q.property.leads.get, q.scenario, Seq(start), budget)
+        else if q.property.machine ne machine then
           val through =
             s"reads ${q.property.machine.name} through a refinement, which no native check reads"
           Result(subject, Verdict.unknown, budget, 0, false, Vector(through))

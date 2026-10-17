@@ -2062,6 +2062,37 @@ private[framework] object QueryMacros:
   private[framework] def finding(claim: Expr[Any])(using Quotes): Expr[ClaimQuery] =
     select(claim, finds = true)
 
+  @scala.annotation.publicInBinary
+  private[framework] def leadsTo(from: Expr[Boolean], to: Expr[Boolean], within: Expr[Int])(using
+      q: Quotes
+  ): Expr[LeadsTo] =
+    import q.reflect.*
+    val owners = Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol).toList
+    if !owners.exists(s => s.isClassDef && s.name == "progress$") then
+      report.errorAndAbort("a progress claim belongs in progress")
+    within.value match
+      case Some(n) if n > 0 => ()
+      case _                =>
+        report.errorAndAbort(
+          "within is a positive number of steps, written as a literal",
+          within.asTerm.pos
+        )
+    val named = Expr(
+      owners
+        .find(s => s.isValDef && !s.flags.is(Flags.Synthetic) && !s.name.contains("$"))
+        .fold("")(_.name)
+    )
+    '{
+      LeadsTo(
+        $named,
+        $enclosingImpl,
+        () => $from,
+        () => $to,
+        $within,
+        Scenario.of($enclosingImpl, None)
+      )
+    }
+
   private def select(claim: Expr[Any], finds: Boolean)(using q: Quotes): Expr[ClaimQuery] =
     import q.reflect.*
     val word = if finds then "find" else "verify"
@@ -2078,6 +2109,10 @@ private[framework] object QueryMacros:
     val tpe = term.tpe.widen
     if tpe <:< TypeRepr.of[Property] then
       '{ ClaimQuery.property($form, ${ term.asExprOf[Property] }) }
+    else if tpe <:< TypeRepr.of[LeadsTo] then
+      if finds then
+        report.errorAndAbort("a progress claim is verified, not found", claim.asTerm.pos)
+      '{ ClaimQuery.progress($form, ${ term.asExprOf[LeadsTo] }) }
     else
       val member = term.symbol
       val section = if member.exists then member.owner else Symbol.noSymbol
