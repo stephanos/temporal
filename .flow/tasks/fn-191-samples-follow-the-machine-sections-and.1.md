@@ -19,9 +19,10 @@ Follow the Kettle layout applied on capture: each Machine gains `object properti
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 (DSL only). The five remaining samples and NativeInputs keep claims, scenarios, limits and queries in the machine sections in fn-190's order (states, refinement, rules, effects, invariants, postconditions, monitors, progress, queries); queries are named vals, the Vector is gone, negative controls own their sections and borrow the shared Limits. Kettle's progress claim lives in a HeatingOnly derivation restricted to pressButton/heat/failover (the spec's restriction alone never heats from the only start, so the claim would be vacuous); a native test walks its 81-step path. Native checks: compile exit 0, 468 tests (one new), 29 lint rule tests, scalafmt clean. Phase 2 owns: ReifySamples roots, IrFile discovery of the new sections, structure/order lints and SEMANTICS (fn-191.2, fn-190.9).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f8a81391bd
+- Tests: scala-cli compile dsl realize samples: exit 0, scala-cli test dsl realize samples --require-tests: 468 passed, lint *RuleSuite: 29 passed
 - PRs:
