@@ -1519,5 +1519,167 @@ private[framework] def derivedRules[S, O, F, I](
   )
   group
 
+// When each action of a Machine that declares its state as vars fires, written as the Machine
+// object's `object transitions extends Transitions`: blocks of plain control flow over the vars,
+// `on(user.pressButton): if !heatingOn then effects.pressButton()`, whose leaves each end the block
+// one way, a call of an effect, `reject(r)` or `()`. A block fires where it reaches an effect
+// call, answers the rejection where it reaches a `reject`, and is disabled where it reaches `()`,
+// as an `if` without an `else` does. A `match` is a phase table, `case a | b`, `case a if g`,
+// `case _: Role` and `case _ => ()`, the first matching case winning as in Scala. An input is the
+// block's parameter, `on(client.send): s => effects.send(s)`. A leaf never assigns a var, which is
+// what effects do: the block says when the action fires and its effect what it does. Blocks name
+// their action, a class of it, or two to four of them alike, as the blocks of `Rules` do, and
+// `from`, `disabled` and `crashes` mean what they mean there. Core form: one step function per
+// action, `action ~> ((s, in) => if g(s) then e(s, in) else Nil)`.
+abstract class Transitions[O, F](using
+    owner: Owner[State, O, F],
+    ok: Ok[O],
+    source: FacetSource
+) extends RuleTable[State, O, F]:
+  // The block of a whole action without inputs. Core form: `action ~> (s => if g(s) then e(s) else Nil)`.
+  @targetName("onWithoutInput")
+  inline def on(inline a: Action[EmptyTuple])(inline body: Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    transition(a.decl, None, codeOf(a), TransitionMacros.block(body))
+
+  // The block of a whole action whose input is the block's parameter, `s => effects.send(s)`. Core
+  // form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
+  inline def on[I](inline a: Action[I])(inline body: I => Unit)(using
+      NotGiven[I =:= EmptyTuple]
+  ): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    inputTransition[I](a.decl, codeOf(a), TransitionMacros.input[I](body))
+
+  // The block of one class of an action, which reads the vars alone. Core form: the arm
+  // `if g(s) && in == c then e(s) else ...` of the action's step function.
+  inline def on(inline c: Class)(inline body: Unit): Unit =
+    RuleSource.qualified(c, "on", groupName)
+    val target = c
+    transition(
+      target.decl,
+      Some(target.values),
+      RuleSource.spelling(c),
+      TransitionMacros.block(body)
+    )
+
+  // The same block for two actions, or classes of them. Core form: one block per target.
+  inline def on(inline a: Action[?] | Class, inline b: Action[?] | Class)(inline body: Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    each(
+      List(a -> RuleSource.spelling(a), b -> RuleSource.spelling(b, 1)),
+      TransitionMacros.block(body)
+    )
+
+  // The same block for three actions, or classes of them. Core form: one block per target.
+  inline def on(
+      inline a: Action[?] | Class,
+      inline b: Action[?] | Class,
+      inline c: Action[?] | Class
+  )(inline body: Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    RuleSource.qualified(c, "on", groupName, 2)
+    each(
+      List(
+        a -> RuleSource.spelling(a),
+        b -> RuleSource.spelling(b, 1),
+        c -> RuleSource.spelling(c, 2)
+      ),
+      TransitionMacros.block(body)
+    )
+
+  // The same block for four actions, or classes of them. Core form: one block per target.
+  inline def on(
+      inline a: Action[?] | Class,
+      inline b: Action[?] | Class,
+      inline c: Action[?] | Class,
+      inline d: Action[?] | Class
+  )(inline body: Unit): Unit =
+    RuleSource.qualified(a, "on", groupName)
+    RuleSource.qualified(b, "on", groupName, 1)
+    RuleSource.qualified(c, "on", groupName, 2)
+    RuleSource.qualified(d, "on", groupName, 3)
+    each(
+      List(
+        a -> RuleSource.spelling(a),
+        b -> RuleSource.spelling(b, 1),
+        c -> RuleSource.spelling(c, 2),
+        d -> RuleSource.spelling(d, 3)
+      ),
+      TransitionMacros.block(body)
+    )
+
+  // The blocks of the actions `declarer` declares, each naming its action through its declarer.
+  // Core form: the blocks it holds, `on(clerk.ship): ...`.
+  inline def from(declarer: AnyRef)(inline body: Unit): Unit =
+    grouped(declarer, RuleSource.imports(body))(body)
+
+  // Actions no state enables, which the machine binds all the same. Core form: `action ~> (_ => Nil)`.
+  inline def disabled(inline actions: Action[?]*): Unit =
+    disable(RuleSource.disabledLabels(actions), actions*)
+
+  // A generated crash, which resets the vars its durability does not keep. Core form:
+  // `on(action): effects.generatedReset()`.
+  inline def crashes(inline action: Action[EmptyTuple], outcome: O, facts: F*): Unit =
+    RuleSource.qualified(action, "crashes", groupName)
+    registerCrash(
+      crashBinding(owner, action, Vector.empty, outcome, facts, NativeLocation.here),
+      RuleSource.spelling(action)
+    )
+
+  private def each(named: List[(Action[?] | Class, String)], body: () => Unit): Unit =
+    for (decl, values, code) <- blockTargets(named) do transition(decl, values, code, body)
+
+  // One rule per block: its steps are the paths of the block's run from a state, and it holds
+  // where the run takes a step, which is where it reaches an effect call or a rejection. Running
+  // the block to read its guard is safe, as a run only assigns vars and every run restores them.
+  @scala.annotation.publicInBinary
+  private[framework] def transition(
+      decl: ActionDecl,
+      values: Option[List[Any]],
+      code: String,
+      body: () => Unit
+  ): Unit =
+    register(decl, values, code)(
+      new InputEffect[State, O, F]:
+        def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+          Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body())
+    )
+
+  @scala.annotation.publicInBinary
+  private[framework] def inputTransition[I](decl: ActionDecl, code: String, body: I => Unit): Unit =
+    val shape = decl.nativeInputs.getOrElse(
+      throw IllegalArgumentException(
+        s"on(${writtenAction(code)}) reads an input it does not declare"
+      )
+    )
+    register(decl, None, code)(
+      new InputEffect[State, O, F]:
+        def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+          apply(state, Class(decl, values))
+        override def apply(state: State, cls: Class): List[Step[State, O, F]] =
+          val input = shape.input(cls).asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
+          Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body(input))
+    )
+
+  private def register(decl: ActionDecl, values: Option[List[Any]], code: String)(
+      effect: InputEffect[State, O, F]
+  ): Unit =
+    val guard = new InputGuard[State]:
+      def apply(state: State, cls: Class): Boolean = effect(state, cls).nonEmpty
+    openBlock(decl, code):
+      bindRule(decl, values, "on", guard, effect, code, None)
+
+// `reject(Rejection.notFound)`, in a transition or an effect of a Machine on the shared outcomes:
+// the step answers `rejected(why)` and keeps the state it started from. Core form:
+// `reject(Outcome.rejected(Rejection.notFound))`.
+def reject(why: outcomes.Rejection)(using
+    @implicitNotFound(
+      "reject(Rejection) answers the shared framework.dsl.outcomes.Outcome, so it rejects in a " +
+        "Machine on the shared outcomes: `import framework.dsl.outcomes.{Outcome, Rejection}`"
+    ) refusing: Refusing[outcomes.Outcome]
+): Unit = refusing.refuse(outcomes.Outcome.rejected(why))
+
 // A plain definition expanded from its body where a lifted function calls it. Core form: its `body`.
 final class sugar extends scala.annotation.StaticAnnotation
