@@ -412,6 +412,40 @@ object Probe:
       )
     assertEquals(ran.exit, 0, ran.diagnostics)
 
+  // The plugin once attached a schema to an anonymous or concrete named subclass's parent call,
+  // `new Finite[T]:`'s `Finite[T](using …)`, which then no longer compiled as a parent.
+  test("anonymous and concrete named Finite subclasses compile and retain their schema"):
+    val file = source(
+      "anonymous",
+      s"""package fixture.anonymous
+import framework.dsl.*
+enum Mode:
+  case ready, stopped
+final case class Broadcast(mode: Mode, flag: Boolean)
+object Broadcast:
+  given Finite[Broadcast] = new Finite[Broadcast]:
+    def values = Finite.derived[Broadcast].values
+final class Stopped extends Finite[Mode]:
+  def values = IndexedSeq(Mode.stopped)
+object Probe:
+  def main(args: Array[String]): Unit =
+    val witness = summon[Finite[Broadcast]]
+    assert(witness.schema.get.root.getNamed == "fixture.anonymous.Broadcast")
+    assert(witness.values.size == 4)
+    val local: Finite[Mode] = new Finite[Mode]:
+      def values = IndexedSeq(Mode.ready)
+    assert(local.schema.get.root.getNamed == "fixture.anonymous.Mode")
+    assert(local.values.map(_.ordinal) == IndexedSeq(0))
+    val named = Stopped()
+    assert(named.schema.get == local.schema.get)
+    assert(named.values.map(_.ordinal) == IndexedSeq(1))
+"""
+    )
+    val ran = tools.scalaCli(
+      Seq("run", file.toString, "--main-class", "fixture.anonymous.Probe") ++ settings
+    )
+    assertEquals(ran.exit, 0, ran.diagnostics)
+
   test(
     "invalid bounds, fields, recursive schemas and name collisions refuse at the requesting source"
   ):
