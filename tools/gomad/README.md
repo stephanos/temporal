@@ -5,6 +5,11 @@ Gomad namespace. Artifacts from the previous namespace require their matching
 historical build, including for inspection; current readers refuse their format
 and profile identifiers. There are no old-name aliases or automatic migrations.
 
+The upstream integration candidate uses Temporal `main` at
+`48a1e5ff025e55b3d4d0f44247423d4c279ff636`. The
+[fn-189 integration report](../../.flow/artifacts/fn189-upstream-sync-2026-10-17.md)
+records merge resolutions and current qualification evidence.
+
 The shared core and stock-Go WASM backend use this module. Native runtime,
 transcript, build preparation, upgrade and generation code retain their source
 paths in the child module `internal/backends/native`. The WASM backend lives
@@ -709,8 +714,8 @@ Three exact adapters keep the Temporal server's own dependencies away from the
 host so that closure mode can be claimed for `./tests`: `go.uber.org/fx@v1.24.0`
 keeps its shutdowner channel plumbing but never registers with `os/signal` and
 names its signals locally instead of through `x/sys/unix`;
-`go.temporal.io/sdk@v1.48.0` returns an interrupt channel that never fires
-instead of installing a signal handler; and `go.opentelemetry.io/otel/sdk@v1.44.0`
+`go.temporal.io/sdk@v1.49.0` returns an interrupt channel that never fires
+instead of installing a signal handler; and `go.opentelemetry.io/otel/sdk@v1.45.0`
 reports `<unknown>` for the process owner and `uname` the way the module already
 does on unsupported platforms, and its BSD host-id command runner refuses
 instead of reaching `os/exec`. Each rewrite is anchored to exact file digests,

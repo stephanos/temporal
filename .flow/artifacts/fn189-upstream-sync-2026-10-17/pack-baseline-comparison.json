@@ -1,0 +1,27 @@
+{
+  "baseline_ref": "d8f936d2cea34f87acfad8f355702e59c9ed17e8",
+  "head_pack_classes": [
+    {
+      "class": "pack-rule",
+      "total": 54,
+      "unaffected": 14,
+      "not_selected": 0,
+      "stale": 0,
+      "invalidated": 40,
+      "unknown": 0
+    }
+  ],
+  "candidate_pack_classes": [
+    {
+      "class": "pack-rule",
+      "total": 54,
+      "unaffected": 14,
+      "not_selected": 0,
+      "stale": 0,
+      "invalidated": 40,
+      "unknown": 0
+    }
+  ],
+  "same_pack_rule_ids": true,
+  "changed_pack_rules": []
+}

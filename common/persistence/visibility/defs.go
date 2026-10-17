@@ -23,7 +23,10 @@ func AllowListForValidation(
 	}
 
 	switch storeNames[0] {
-	case sqlplugin.MySQLPluginName, sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName, sqlplugin.SQLitePluginName:
+	case sqlplugin.PluginNameMySQL,
+		sqlplugin.PluginNamePostgreSQL,
+		sqlplugin.PluginNamePostgreSQLPGX,
+		sqlplugin.PluginNameSQLite:
 		// Advanced visibility with SQL DB don't support list of values
 		return dynamicconfig.GetBoolPropertyFnFilteredByNamespace(false)
 	default:

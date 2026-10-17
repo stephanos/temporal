@@ -16,7 +16,7 @@ import (
 func TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback(t *testing.T) {
 	previous := cliFlags.persistenceDriver
 	t.Cleanup(func() { cliFlags.persistenceDriver = previous })
-	for _, driver := range []string{sqlplugin.MySQLPluginName, sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName} {
+	for _, driver := range []string{sqlplugin.PluginNameMySQL, sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX} {
 		cliFlags.persistenceDriver = driver
 		require.True(t, UseSQLVisibility(), "%s must not fall back to Elasticsearch visibility", driver)
 		for _, kind := range []sqlplugin.DbKind{sqlplugin.DbKindMain, sqlplugin.DbKindVisibility} {
@@ -26,6 +26,6 @@ func TestSlimGuestRefusesUnlinkedSQLDriversWithoutFallback(t *testing.T) {
 			require.Nil(t, db)
 		}
 	}
-	cliFlags.persistenceDriver = sqlplugin.SQLitePluginName
+	cliFlags.persistenceDriver = sqlplugin.PluginNameSQLite
 	require.True(t, UseSQLVisibility())
 }

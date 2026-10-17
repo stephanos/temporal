@@ -65,9 +65,9 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
     let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
       "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
       "manual_start":true,"broker":broker_config(),"instances":[
-        {"id":"a","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
-        {"id":"b","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()},
-        {"id":"c","memory_bytes":65536,"fuel":10000,"output_bytes":1024,"local_model":model()}]});
+        {"id":"a","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()},
+        {"id":"b","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()},
+        {"id":"c","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()}]});
     let execute = |control: Option<Value>| {
         let inspecting = control.is_some();
         let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
@@ -153,6 +153,16 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
     };
     let recorded = execute(None);
     assert_eq!(recorded.last().unwrap()["termination"], "exit");
+    let recorded_results: Vec<_> = recorded
+        .iter()
+        .filter(|frame| frame["type"] == "result")
+        .map(|frame| (frame["instance"].clone(), frame["termination"].clone()))
+        .collect();
+    assert_eq!(
+        recorded_results,
+        vec![(json!("a"), json!("exit")), (json!("b"), json!("exit"))],
+        "{recorded:?}"
+    );
     let raw: Vec<u8> = recorded
         .iter()
         .filter(|f| f["stream"] == "inspection")
@@ -725,7 +735,7 @@ fn failing() -> Vec<Instance> {
         Instance {
             id: "2-fuel",
             memory_bytes: 262144,
-            fuel: 2_000,
+            fuel: 20_000,
             errno: 0,
         },
         Instance {

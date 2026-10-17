@@ -22,6 +22,7 @@ type HostPackage struct {
 }
 
 type Inventory struct {
+	root             string
 	Packages         []HostPackage
 	Sources, Modules []string
 }
@@ -89,8 +90,15 @@ func Discover(root, goCommand string, platform Platform) (Inventory, []Finding, 
 	return discover(root, goCommand, platform, true)
 }
 
+func canonicalRoot(root string) (canonical string, err error) {
+	if canonical, err = filepath.Abs(root); err == nil {
+		canonical, err = filepath.EvalSymlinks(canonical)
+	}
+	return canonical, err
+}
+
 func discover(root, goCommand string, platform Platform, legacy bool) (Inventory, []Finding, error) {
-	root, err := filepath.Abs(root)
+	root, err := canonicalRoot(root)
 	if err != nil {
 		return Inventory{}, nil, err
 	}
@@ -121,7 +129,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	if len(packages) == 0 {
 		return Inventory{}, nil, fmt.Errorf("go list selected no packages")
 	}
-	inventory := Inventory{}
+	inventory := Inventory{root: root}
 	var findings []Finding
 	add := func(category, path, detail string) { findings = append(findings, Finding{category, path, detail}) }
 	listed, matched := map[string]HostPackage{}, map[string]bool{}

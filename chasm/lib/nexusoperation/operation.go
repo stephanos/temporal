@@ -139,11 +139,15 @@ func newStandaloneOperation(
 		UserMetadata: frontendReq.GetUserMetadata(),
 		Identity:     frontendReq.GetIdentity(),
 	})
-	op.Visibility = chasm.NewComponentField(ctx, chasm.NewVisibilityWithData(
+	visibility, err := chasm.NewVisibilityWithData(
 		ctx,
 		frontendReq.GetSearchAttributes().GetIndexedFields(),
 		nil,
-	))
+	)
+	if err != nil {
+		return nil, err
+	}
+	op.Visibility = chasm.NewComponentField(ctx, visibility)
 	if err := op.addCompletionCallbacks(
 		ctx,
 		frontendReq.GetRequestId(),
@@ -728,6 +732,11 @@ func (o *Operation) buildPollResponse(
 	resp := &workflowservice.PollNexusOperationExecutionResponse{
 		RunId:          ctx.ExecutionKey().RunID,
 		OperationToken: o.OperationToken,
+		PropagatedNexusSerializationContext: &nexuspb.PropagatedSerializationContext{
+			Endpoint:  o.GetEndpoint(),
+			Service:   o.GetService(),
+			Operation: o.GetOperation(),
+		},
 	}
 
 	if o.isClosed() {
@@ -864,7 +873,8 @@ func (o *Operation) metricsHandler(ctx chasm.Context) metrics.Handler {
 	namespaceName := ctx.NamespaceEntry().Name().String()
 
 	wftt := standaloneOperationWorkflowTypeName
-	if store, ok := o.Store.TryGet(ctx); ok {
+	store, workflowOperation := o.Store.TryGet(ctx)
+	if workflowOperation {
 		wftt = store.WorkflowTypeName()
 	}
 	tags := []metrics.Tag{
@@ -878,6 +888,9 @@ func (o *Operation) metricsHandler(ctx chasm.Context) metrics.Handler {
 		softassert.Fail(ctx.Logger(), "operation context missing")
 	} else {
 		conf := opCtx.MetricTagConfig()
+		if conf.IncludeBackendTag {
+			tags = append(tags, metrics.NexusOperationBackendTag("chasm"))
+		}
 		if conf.IncludeServiceTag {
 			tags = append(tags, metrics.NexusServiceTag(o.GetService()))
 		}

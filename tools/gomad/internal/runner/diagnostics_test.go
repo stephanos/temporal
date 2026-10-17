@@ -258,7 +258,11 @@ func TestDiagnosticsOffPreservesExistingIdentities(t *testing.T) {
 			if !bytes.Equal(encoded, repeated) {
 				t.Fatalf("diagnostics-off identity projection is not repeatable (%s)", name)
 			}
-			expected, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+name+".json"))
+			flavor := "portable"
+			if nativeTestsEnabled {
+				flavor = "native"
+			}
+			expected, err := os.ReadFile(filepath.Join("testdata", "diagnostic-identity-"+name+"-"+flavor+".json"))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -332,14 +336,18 @@ type diagnosticBaselineExecutor struct {
 }
 
 func (e *diagnosticBaselineExecutor) Run(ctx context.Context, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
-	paths, err := filepath.Glob(filepath.Join(e.root, "v1", "*", ".prepared", "plan.json"))
+	paths, err := filepath.Glob(filepath.Join(e.root, "v1", "*"))
 	if err != nil {
 		return backend.ExecutionResult{}, err
 	}
 	if len(paths) != 1 {
 		return backend.ExecutionResult{}, fmt.Errorf("campaign plan paths: %v", paths)
 	}
-	e.plan, err = os.ReadFile(paths[0])
+	plan, err := campaign.ReadResumePlan(paths[0])
+	if err != nil {
+		return backend.ExecutionResult{}, err
+	}
+	e.plan, err = json.Marshal(plan)
 	if err != nil {
 		return backend.ExecutionResult{}, err
 	}

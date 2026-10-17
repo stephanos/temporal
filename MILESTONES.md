@@ -228,7 +228,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | ⬜ Todo | Merge upstream temporalio/temporal main into gomad and requalify |
+| [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | 🚧 In progress | Merge upstream temporalio/temporal main into gomad and requalify |
 
 ### WASM helper fixture tests and module ownership — [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md)
 

@@ -12,10 +12,6 @@ import (
 )
 
 func Check(root, goCommand string, platform Platform, config Config) ([]Finding, error) {
-	root, err := filepath.Abs(root)
-	if err != nil {
-		return nil, err
-	}
 	inventory, findings, err := discover(root, goCommand, platform, false)
 	if err != nil || slices.ContainsFunc(findings, func(f Finding) bool { return f.Category == "package-error" }) {
 		return findings, err
@@ -58,7 +54,7 @@ func Check(root, goCommand string, platform Platform, config Config) ([]Finding,
 		files[pkg.ImportPath], names[pkg.ImportPath] = map[string]*ast.File{}, map[string]bool{}
 		for _, name := range pkg.IgnoredGoFiles {
 			path := filepath.Join(pkg.Dir, name)
-			relative, err := filepath.Rel(root, path)
+			relative, err := filepath.Rel(inventory.root, path)
 			if err != nil {
 				return findings, err
 			}
@@ -84,7 +80,7 @@ func Check(root, goCommand string, platform Platform, config Config) ([]Finding,
 		pure := len(sources) != 0
 		for _, name := range sources {
 			path := filepath.Join(pkg.Dir, name)
-			relative, err := filepath.Rel(root, path)
+			relative, err := filepath.Rel(inventory.root, path)
 			if err != nil {
 				return findings, err
 			}

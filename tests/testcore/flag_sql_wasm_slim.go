@@ -11,4 +11,4 @@ import (
 // build, so selecting MySQL or PostgreSQL still chooses SQL visibility rather
 // than falling back to Elasticsearch. Only SQLite is linked and registered:
 // the other drivers fail at plugin lookup with sql.ErrPluginNotSupported.
-var sqlPluginNames = []string{sqlplugin.MySQLPluginName, sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName, sqlite.PluginName}
+var sqlPluginNames = []string{sqlplugin.PluginNameMySQL, sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX, sqlite.PluginName}

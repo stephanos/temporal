@@ -33,11 +33,11 @@ func GetTestClusterOption(storeType, driver string) *TestBaseOptions {
 	switch storeType {
 	case config.StoreTypeSQL:
 		switch driver {
-		case sqlplugin.MySQLPluginName:
+		case sqlplugin.PluginNameMySQL:
 			return GetMySQLTestClusterOption()
-		case sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName:
+		case sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX:
 			return GetPostgreSQLTestClusterOption(driver, nil)
-		case sqlplugin.SQLitePluginName:
+		case sqlplugin.PluginNameSQLite:
 			return GetSQLiteMemoryTestClusterOption()
 		default:
 			panic(fmt.Sprintf("unknown sql driver: %v", driver))
@@ -63,7 +63,7 @@ func GetCassandraTestClusterOption() *TestBaseOptions {
 // GetMySQLTestClusterOption return test options
 func GetMySQLTestClusterOption() *TestBaseOptions {
 	return &TestBaseOptions{
-		SQLDBPluginName: sqlplugin.MySQLPluginName,
+		SQLDBPluginName: sqlplugin.PluginNameMySQL,
 		DBName:          GenerateRandomDBName(),
 		DBUsername:      testMySQLUser,
 		DBPassword:      testMySQLPassword,
@@ -80,14 +80,14 @@ func GetPostgreSQLTestClusterOption(
 	connectAttributes map[string]string,
 ) *TestBaseOptions {
 	switch pluginName {
-	case sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName:
+	case sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX:
 		// no-op
 	default:
 		panic(fmt.Sprintf(
 			"invalid postgresql plugin name: %s (valid options: %s, %s)",
 			pluginName,
-			sqlplugin.PostgreSQLPluginName,
-			sqlplugin.PostgreSQLPGXPluginName,
+			sqlplugin.PluginNamePostgreSQL,
+			sqlplugin.PluginNamePostgreSQLPGX,
 		))
 	}
 	return &TestBaseOptions{
@@ -106,7 +106,7 @@ func GetPostgreSQLTestClusterOption(
 // GetSQLiteFileTestClusterOption return test options
 func GetSQLiteFileTestClusterOption() *TestBaseOptions {
 	return &TestBaseOptions{
-		SQLDBPluginName: sqlplugin.SQLitePluginName,
+		SQLDBPluginName: sqlplugin.PluginNameSQLite,
 		DBName:          filepath.Join(os.TempDir(), GenerateRandomDBName()), // put files in temp to avoid cluttering the project
 		DBUsername:      testSQLiteUser,
 		DBPassword:      testSQLitePassword,
@@ -126,7 +126,7 @@ func GetSQLiteFileTestClusterOption() *TestBaseOptions {
 // GetSQLiteMemoryTestClusterOption return test options
 func GetSQLiteMemoryTestClusterOption() *TestBaseOptions {
 	return &TestBaseOptions{
-		SQLDBPluginName:   sqlplugin.SQLitePluginName,
+		SQLDBPluginName:   sqlplugin.PluginNameSQLite,
 		DBName:            GenerateRandomDBName(),
 		DBUsername:        testSQLiteUser,
 		DBPassword:        testSQLitePassword,

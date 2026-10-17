@@ -1,10 +1,10 @@
 package sqlplugin
 
-// Plugin names live here so callers that only compare names do not link the
-// drivers behind them.
+// Names of the SQL plugins that ship with the server. They are defined here, and not only in the
+// plugin packages, so that code can refer to a plugin without linking its database driver.
 const (
-	MySQLPluginName         = "mysql8"
-	PostgreSQLPluginName    = "postgres12"
-	PostgreSQLPGXPluginName = "postgres12_pgx"
-	SQLitePluginName        = "sqlite"
+	PluginNameMySQL         = "mysql8"
+	PluginNamePostgreSQL    = "postgres12"
+	PluginNamePostgreSQLPGX = "postgres12_pgx"
+	PluginNameSQLite        = "sqlite"
 )

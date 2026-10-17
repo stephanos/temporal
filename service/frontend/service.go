@@ -57,7 +57,6 @@ type Config struct {
 	VisibilityEnableShadowReadMode          dynamicconfig.BoolPropertyFn
 	VisibilityDisableOrderByClause          dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	VisibilityEnableManualPagination        dynamicconfig.BoolPropertyFnWithNamespaceFilter
-	VisibilityEnableUnifiedQueryConverter   dynamicconfig.BoolPropertyFn
 	VisibilityAllowList                     dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	SuppressErrorSetSystemSearchAttribute   dynamicconfig.BoolPropertyFnWithNamespaceFilter
 
@@ -210,8 +209,8 @@ type Config struct {
 	// Batch operation dynamic configs
 	MaxConcurrentBatchOperation     dynamicconfig.IntPropertyFnWithNamespaceFilter
 	MaxExecutionCountBatchOperation dynamicconfig.IntPropertyFnWithNamespaceFilter
-	// Admin Batch operation dynamic config
-	MaxConcurrentAdminBatchOperation             dynamicconfig.IntPropertyFnWithNamespaceFilter
+	// Admin batch operations only run in the temporal-system namespace, so this limit is global.
+	MaxConcurrentAdminBatchOperation             dynamicconfig.IntPropertyFn
 	EnableBatchOperationsForStandaloneActivities dynamicconfig.BoolPropertyFnWithNamespaceFilter
 
 	EnableUpdateWorkflowExecution                              dynamicconfig.BoolPropertyFnWithNamespaceFilter
@@ -260,8 +259,6 @@ type Config struct {
 	WorkerCommandsEnabled                   dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	PollerAutoscalingAutoEnroll             dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	WorkflowPauseEnabled                    dynamicconfig.BoolPropertyFnWithNamespaceFilter
-	WorkflowTimeSkippingEnabled             dynamicconfig.BoolPropertyFnWithNamespaceFilter
-	WorkflowTimeSkippingMaxSkipPerSession   dynamicconfig.IntPropertyFnWithNamespaceFilter
 	StandaloneNexusOperationsEnabled        dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	EnableWorkflowTaskCompletionPagination  dynamicconfig.BoolPropertyFnWithNamespaceFilter
 	WorkflowTaskCompletionBufferSizeLimit   dynamicconfig.IntPropertyFnWithNamespaceFilter
@@ -271,6 +268,11 @@ type Config struct {
 
 	// CHASM archetypes
 	Activity *activity.Config
+
+	// Time-Skipping related settings
+	WorkflowTimeSkippingEnabled       dynamicconfig.BoolPropertyFnWithNamespaceFilter
+	CHASMSchedulerTimeSkippingEnabled dynamicconfig.BoolPropertyFnWithNamespaceFilter
+	TimeSkippingMaxSkipPerSession     dynamicconfig.IntPropertyFnWithNamespaceFilter
 }
 
 // IsExperimentAllowed checks if an experiment is enabled for a given namespace in the dynamic config.
@@ -319,7 +321,6 @@ func NewConfig(
 		VisibilityEnableShadowReadMode:          dynamicconfig.VisibilityEnableShadowReadMode.Get(dc),
 		VisibilityDisableOrderByClause:          dynamicconfig.VisibilityDisableOrderByClause.Get(dc),
 		VisibilityEnableManualPagination:        dynamicconfig.VisibilityEnableManualPagination.Get(dc),
-		VisibilityEnableUnifiedQueryConverter:   dynamicconfig.VisibilityEnableUnifiedQueryConverter.Get(dc),
 		VisibilityAllowList:                     dynamicconfig.VisibilityAllowList.Get(dc),
 		SuppressErrorSetSystemSearchAttribute:   dynamicconfig.SuppressErrorSetSystemSearchAttribute.Get(dc),
 
@@ -414,7 +415,7 @@ func NewConfig(
 		EnableBatcher:                                dynamicconfig.FrontendEnableBatcher.Get(dc),
 		MaxConcurrentBatchOperation:                  dynamicconfig.FrontendMaxConcurrentBatchOperationPerNamespace.Get(dc),
 		MaxExecutionCountBatchOperation:              dynamicconfig.FrontendMaxExecutionCountBatchOperationPerNamespace.Get(dc),
-		MaxConcurrentAdminBatchOperation:             dynamicconfig.FrontendMaxConcurrentAdminBatchOperationPerNamespace.Get(dc),
+		MaxConcurrentAdminBatchOperation:             dynamicconfig.FrontendMaxConcurrentAdminBatchOperation.Get(dc),
 		EnableBatchOperationsForStandaloneActivities: dynamicconfig.FrontendEnableBatchOperationsForStandaloneActivities.Get(dc),
 
 		EnableUpdateWorkflowExecution:                              dynamicconfig.FrontendEnableUpdateWorkflowExecution.Get(dc),
@@ -456,8 +457,6 @@ func NewConfig(
 		WorkerCommandsEnabled:                   dynamicconfig.WorkerCommandsEnabled.Get(dc),
 		PollerAutoscalingAutoEnroll:             dynamicconfig.PollerAutoscalingAutoEnroll.Get(dc),
 		WorkflowPauseEnabled:                    dynamicconfig.WorkflowPauseEnabled.Get(dc),
-		WorkflowTimeSkippingEnabled:             dynamicconfig.WorkflowTimeSkippingEnabled.Get(dc),
-		WorkflowTimeSkippingMaxSkipPerSession:   dynamicconfig.WorkflowTimeSkippingMaxSkipPerSession.Get(dc),
 		StandaloneNexusOperationsEnabled:        chasmnexus.Enabled.Get(dc),
 		EnableWorkflowTaskCompletionPagination:  dynamicconfig.EnableWorkflowTaskCompletionPagination.Get(dc),
 		WorkflowTaskCompletionBufferSizeLimit:   dynamicconfig.WorkflowTaskCompletionBufferSizeLimit.Get(dc),
@@ -466,6 +465,11 @@ func NewConfig(
 		AllowedExperiments: dynamicconfig.FrontendAllowedExperiments.Get(dc),
 
 		Activity: activity.ConfigProvider(dc),
+
+		// Time-Skipping related settings
+		WorkflowTimeSkippingEnabled:       dynamicconfig.WorkflowTimeSkippingEnabled.Get(dc),
+		CHASMSchedulerTimeSkippingEnabled: dynamicconfig.CHASMSchedulerTimeSkippingEnabled.Get(dc),
+		TimeSkippingMaxSkipPerSession:     dynamicconfig.TimeSkippingMaxSkipPerSession.Get(dc),
 	}
 }
 

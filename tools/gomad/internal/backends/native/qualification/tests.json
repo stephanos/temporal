@@ -305,12 +305,41 @@
       }
     },
     {
-      "id": "tests-activity-api-reset-client-test-suite",
-      "name": "TestActivityApiResetClientTestSuite",
+      "id": "tests-activity-api-reset-client-test-suite-execution-api",
+      "name": "TestActivityApiResetClientTestSuiteExecutionAPI",
       "tier": 3,
-      "invariant": "TestActivityApiResetClientTestSuite passes through the one-box cluster under virtual time",
+      "invariant": "TestActivityApiResetClientTestSuiteExecutionAPI passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestActivityApiResetClientTestSuite",
+      "test": "TestActivityApiResetClientTestSuiteExecutionAPI",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-activity-api-reset-client-test-suite-legacy-api",
+      "name": "TestActivityApiResetClientTestSuiteLegacyAPI",
+      "tier": 3,
+      "invariant": "TestActivityApiResetClientTestSuiteLegacyAPI passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestActivityApiResetClientTestSuiteLegacyAPI",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -542,6 +571,35 @@
       }
     },
     {
+      "id": "tests-admin-batch-delegation-test-suite",
+      "name": "TestAdminBatchDelegationTestSuite",
+      "tier": 3,
+      "invariant": "TestAdminBatchDelegationTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestAdminBatchDelegationTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "tests-admin-batch-refresh-workflow-tasks-test-suite",
       "name": "TestAdminBatchRefreshWorkflowTasksTestSuite",
       "tier": 3,
@@ -635,36 +693,6 @@
       "invariant": "TestAdvancedVisibilitySuite passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestAdvancedVisibilitySuite",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "clock_tick": "forward",
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-advanced-visibility-suite-legacy",
-      "name": "TestAdvancedVisibilitySuiteLegacy",
-      "tier": 3,
-      "invariant": "TestAdvancedVisibilitySuiteLegacy passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestAdvancedVisibilitySuiteLegacy",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -1174,6 +1202,35 @@
       }
     },
     {
+      "id": "tests-eager-activity-batch-with-rate-limit",
+      "name": "TestEagerActivityBatchWithRateLimit",
+      "tier": 3,
+      "invariant": "TestEagerActivityBatchWithRateLimit passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestEagerActivityBatchWithRateLimit",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
       "id": "tests-eager-activity-falls-back-when-backlog-exists",
       "name": "TestEagerActivityFallsBackWhenBacklogExists",
       "tier": 3,
@@ -1238,35 +1295,6 @@
       "invariant": "TestEagerWorkflowTestSuite passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestEagerWorkflowTestSuite",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-fairness-auto-enable-suite",
-      "name": "TestFairnessAutoEnableSuite",
-      "tier": 3,
-      "invariant": "TestFairnessAutoEnableSuite passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestFairnessAutoEnableSuite",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -1464,99 +1492,12 @@
       }
     },
     {
-      "id": "tests-list-schedules-preserves-v2-schedule-id-with-v1-prefix",
-      "name": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix",
-      "tier": 3,
-      "invariant": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestListSchedulesPreservesV2ScheduleIDWithV1Prefix",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
       "id": "tests-max-buffered-event-suite",
       "name": "TestMaxBufferedEventSuite",
       "tier": 3,
       "invariant": "TestMaxBufferedEventSuite passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestMaxBufferedEventSuite",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-mirrored-include-exclude-spec",
-      "name": "TestMirroredIncludeExcludeSpec",
-      "tier": 3,
-      "invariant": "TestMirroredIncludeExcludeSpec passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestMirroredIncludeExcludeSpec",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-mirrored-include-exclude-spec-on-update",
-      "name": "TestMirroredIncludeExcludeSpecOnUpdate",
-      "tier": 3,
-      "invariant": "TestMirroredIncludeExcludeSpecOnUpdate passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestMirroredIncludeExcludeSpecOnUpdate",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -2020,12 +1961,41 @@
       }
     },
     {
-      "id": "tests-nexus-workflow-update-test-suite",
-      "name": "TestNexusWorkflowUpdateTestSuite",
+      "id": "tests-nexus-workflow-update-test-suite-standalone-caller",
+      "name": "TestNexusWorkflowUpdateTestSuiteStandaloneCaller",
       "tier": 3,
-      "invariant": "TestNexusWorkflowUpdateTestSuite passes through the one-box cluster under virtual time",
+      "invariant": "TestNexusWorkflowUpdateTestSuiteStandaloneCaller passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestNexusWorkflowUpdateTestSuite",
+      "test": "TestNexusWorkflowUpdateTestSuiteStandaloneCaller",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-nexus-workflow-update-test-suite-workflow-caller",
+      "name": "TestNexusWorkflowUpdateTestSuiteWorkflowCaller",
+      "tier": 3,
+      "invariant": "TestNexusWorkflowUpdateTestSuiteWorkflowCaller passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestNexusWorkflowUpdateTestSuiteWorkflowCaller",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -2576,12 +2546,41 @@
       }
     },
     {
-      "id": "tests-schedule-chasm",
-      "name": "TestScheduleCHASM",
+      "id": "tests-schedule-chasm-audit-visibility",
+      "name": "TestScheduleCHASMAuditVisibility",
       "tier": 3,
-      "invariant": "TestScheduleCHASM passes through the one-box cluster under virtual time",
+      "invariant": "TestScheduleCHASMAuditVisibility passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestScheduleCHASM",
+      "test": "TestScheduleCHASMAuditVisibility",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-chasm-shared-suite",
+      "name": "TestScheduleCHASMSharedSuite",
+      "tier": 3,
+      "invariant": "TestScheduleCHASMSharedSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleCHASMSharedSuite",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -2611,151 +2610,6 @@
       "invariant": "TestScheduleCHASMSuite passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestScheduleCHASMSuite",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-chasm-workflow-pause-interaction",
-      "name": "TestScheduleCHASMWorkflowPauseInteraction",
-      "tier": 3,
-      "invariant": "TestScheduleCHASMWorkflowPauseInteraction passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleCHASMWorkflowPauseInteraction",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-counts-visibility",
-      "name": "TestScheduleCountsVisibility",
-      "tier": 3,
-      "invariant": "TestScheduleCountsVisibility passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleCountsVisibility",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-creation-rollout-percent",
-      "name": "TestScheduleCreationRolloutPercent",
-      "tier": 3,
-      "invariant": "TestScheduleCreationRolloutPercent passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleCreationRolloutPercent",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-far-future-action-times",
-      "name": "TestScheduleFarFutureActionTimes",
-      "tier": 3,
-      "invariant": "TestScheduleFarFutureActionTimes passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleFarFutureActionTimes",
-      "build_tags": [
-        "disable_grpc_modules",
-        "gomad",
-        "test_dep"
-      ],
-      "capability_mode": "closure",
-      "read_only_mounts": [
-        {
-          "source": "./schema",
-          "target": "/go.temporal.io/server/schema"
-        }
-      ],
-      "choice_bytes": 0,
-      "replay_successes": false,
-      "success_artifact_limit": 0,
-      "success_bytes_limit": 0,
-      "overall_timeout": "20m",
-      "test_parallel": 8,
-      "expectation": {
-        "classification": "qualified"
-      }
-    },
-    {
-      "id": "tests-schedule-many-calendars",
-      "name": "TestScheduleManyCalendars",
-      "tier": 3,
-      "invariant": "TestScheduleManyCalendars passes through the one-box cluster under virtual time",
-      "package": "./tests",
-      "test": "TestScheduleManyCalendars",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -2982,12 +2836,12 @@
       }
     },
     {
-      "id": "tests-schedule-rejects-invalid-requests",
-      "name": "TestScheduleRejectsInvalidRequests",
+      "id": "tests-schedule-v1-action-delay-metrics",
+      "name": "TestScheduleV1ActionDelayMetrics",
       "tier": 3,
-      "invariant": "TestScheduleRejectsInvalidRequests passes through the one-box cluster under virtual time",
+      "invariant": "TestScheduleV1ActionDelayMetrics passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestScheduleRejectsInvalidRequests",
+      "test": "TestScheduleV1ActionDelayMetrics",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -3011,12 +2865,12 @@
       }
     },
     {
-      "id": "tests-schedule-v1",
-      "name": "TestScheduleV1",
+      "id": "tests-schedule-v1-audit-visibility",
+      "name": "TestScheduleV1AuditVisibility",
       "tier": 3,
-      "invariant": "TestScheduleV1 passes through the one-box cluster under virtual time",
+      "invariant": "TestScheduleV1AuditVisibility passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestScheduleV1",
+      "test": "TestScheduleV1AuditVisibility",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -3040,12 +2894,41 @@
       }
     },
     {
-      "id": "tests-schedule-v1-workflow-pause-interaction",
-      "name": "TestScheduleV1WorkflowPauseInteraction",
+      "id": "tests-schedule-v1-shared-suite",
+      "name": "TestScheduleV1SharedSuite",
       "tier": 3,
-      "invariant": "TestScheduleV1WorkflowPauseInteraction passes through the one-box cluster under virtual time",
+      "invariant": "TestScheduleV1SharedSuite passes through the one-box cluster under virtual time",
       "package": "./tests",
-      "test": "TestScheduleV1WorkflowPauseInteraction",
+      "test": "TestScheduleV1SharedSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-schedule-v1-suite",
+      "name": "TestScheduleV1Suite",
+      "tier": 3,
+      "invariant": "TestScheduleV1Suite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestScheduleV1Suite",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",
@@ -3934,6 +3817,35 @@
       "invariant": "TestWorkflowAPIBatchSignalClientTestSuite passes through the one-box cluster under virtual time",
       "package": "./tests",
       "test": "TestWorkflowAPIBatchSignalClientTestSuite",
+      "build_tags": [
+        "disable_grpc_modules",
+        "gomad",
+        "test_dep"
+      ],
+      "capability_mode": "closure",
+      "read_only_mounts": [
+        {
+          "source": "./schema",
+          "target": "/go.temporal.io/server/schema"
+        }
+      ],
+      "choice_bytes": 0,
+      "replay_successes": false,
+      "success_artifact_limit": 0,
+      "success_bytes_limit": 0,
+      "overall_timeout": "20m",
+      "test_parallel": 8,
+      "expectation": {
+        "classification": "qualified"
+      }
+    },
+    {
+      "id": "tests-workflow-api-batch-stop-client-test-suite",
+      "name": "TestWorkflowAPIBatchStopClientTestSuite",
+      "tier": 3,
+      "invariant": "TestWorkflowAPIBatchStopClientTestSuite passes through the one-box cluster under virtual time",
+      "package": "./tests",
+      "test": "TestWorkflowAPIBatchStopClientTestSuite",
       "build_tags": [
         "disable_grpc_modules",
         "gomad",

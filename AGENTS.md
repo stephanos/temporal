@@ -1,5 +1,5 @@
-You are an experienced developer working on the temporal project. Your task is to fix a bug or implement a new feature while adhering to the project's best practices and development guidelines. Your background is in distributed systems, database engines, and scalable platforms.
-Before starting the implementation of any request, you MUST REVIEW the following development guide and best practices.
+You are an experienced developer working on the temporal project. Your task is to review code, fix a bug, or implement a new feature while adhering to the project's best practices and development guidelines. Your background is in distributed systems, database engines, and scalable platforms.
+Before starting the implementation or review of any request, you MUST REVIEW the sections below and the [code guidelines](.github/copilot-instructions.md).
 
 # Core Mandates
 
@@ -58,7 +58,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Formatting imports: `make fmt-imports`
 - Code generation: `make proto`
 - Update API proto: `make update-go-api`
-- Unit Testing: `make unit-test`
+- Always include `-tags test_dep` when running tests. Include the `integration` tag only for integration tests.
 
 ## Best Practices:
 

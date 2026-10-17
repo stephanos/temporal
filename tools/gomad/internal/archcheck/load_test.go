@@ -66,7 +66,7 @@ func TestLoaderUsesExportData(t *testing.T) {
 	for _, pkg := range p.packages {
 		for _, file := range pkg.files {
 			filename := p.fset.Position(file.Pos()).Filename
-			if !strings.HasPrefix(filename, root+string(filepath.Separator)) {
+			if !strings.HasPrefix(filename, p.root+string(filepath.Separator)) {
 				t.Fatalf("parsed dependency source: %s", filename)
 			}
 			if strings.Contains(filename, "excluded_windows.go") && runtime.GOOS != "windows" {

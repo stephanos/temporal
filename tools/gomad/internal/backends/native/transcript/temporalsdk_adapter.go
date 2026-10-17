@@ -6,18 +6,18 @@ import (
 
 const (
 	temporalSDKModulePath                       = "go.temporal.io/sdk"
-	temporalSDKVersion                          = "v1.48.0"
-	temporalSDKSum                              = "h1:WDctKDVuh0Z8Nf7euAyqs/EwcPg1JTIIq1Fut8Tq118="
-	temporalSDKOriginalSourceInventorySHA256    = "sha256:6926d4cf41adf86a33470ada5055f2a4c569ea9a6b115ba6eb757841cc81ac65"
-	temporalSDKReplacementSourceInventorySHA256 = "sha256:121ceca590af1b635205ba2674baa072e545dbe3e909bbc4b88dac6fd9ab9eb1"
+	temporalSDKVersion                          = "v1.49.0"
+	temporalSDKSum                              = "h1:CtGI0BUe/SCo3eoqTwuWWtXKueii9GBVus7KrKKH1Vo="
+	temporalSDKOriginalSourceInventorySHA256    = "sha256:fc76ccf2b03a37cd42533b3af03fbe51ee127d0053c950ae43455ea8633c7644"
+	temporalSDKReplacementSourceInventorySHA256 = "sha256:12eefbbe4a827127b9821bcfdc0963e158af410bb472d91e87457425e05e21c4"
 	temporalSDKUtilsPath                        = "internal/internal_utils.go"
-	temporalSDKUtilsSourceSHA256                = "sha256:7e7549f7b790779d45f1c8042ceb42753cf87d0cec97f37c5391d4229b5e1eb7"
-	temporalSDKUtilsReplacementSHA256           = "sha256:32a474075bd195aebbc147d64d573a198a149562100dcc7d2c583c5193e3034d"
+	temporalSDKUtilsSourceSHA256                = "sha256:502b4a346c0ddb6b6bf14c1fcf164f094597535f80f45e214c9399b711648d20"
+	temporalSDKUtilsReplacementSHA256           = "sha256:2a62b1b424053fdf72e85c66d01ae0f86ad133d7c64faa0c8777d537f05516c6"
 )
 
 var temporalSDKPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd",
-	"linux/amd64":  "sha256:0071fcadbc4f15cdc22a845abc404ecfe5d1b54dde74ecbc6160f00ce5421cdd",
+	"darwin/arm64": "sha256:4d8a18511e183959a759c12b6bf0c21951c7d47a23a1cc714d2fa92fe5344510",
+	"linux/amd64":  "sha256:852c90534cc599fcc374bdadf372a6d35641f4fd7728c5be5793f686e550a452",
 }
 
 var temporalSDKPreparedSourceSetSHA256 = hostPin(temporalSDKPreparedSourceSetSHA256ByHost)
@@ -37,9 +37,9 @@ var temporalSDKRewrites = []sourceRewrite{
 				replacement: []byte("\t\"os\"\n\t\"strings\"\n\t\"sync\"\n\t\"time\"\n"),
 			},
 			{
-				anchor: []byte("func InterruptCh() <-chan interface{} {\n\tc := make(chan os.Signal, 1)\n\tsignal.Notify(c, os.Interrupt, syscall.SIGTERM)\n\n" +
-					"\tret := make(chan interface{}, 1)\n\tgo func() {\n\t\ts := <-c\n\t\tret <- s\n\t\tclose(ret)\n\t}()\n\n\treturn ret\n}\n"),
-				replacement: []byte("func InterruptCh() <-chan interface{} {\n\treturn make(chan interface{})\n}\n"),
+				anchor: []byte("func InterruptCh() <-chan any {\n\tc := make(chan os.Signal, 1)\n\tsignal.Notify(c, os.Interrupt, syscall.SIGTERM)\n\n" +
+					"\tret := make(chan any, 1)\n\tgo func() {\n\t\ts := <-c\n\t\tret <- s\n\t\tclose(ret)\n\t}()\n\n\treturn ret\n}\n"),
+				replacement: []byte("func InterruptCh() <-chan any {\n\treturn make(chan any)\n}\n"),
 			},
 		},
 	},

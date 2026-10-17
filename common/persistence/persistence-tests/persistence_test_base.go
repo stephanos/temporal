@@ -151,11 +151,11 @@ func NewTestBaseWithSQL(options *TestBaseOptions) *TestBase {
 
 	if options.DBPort == 0 {
 		switch options.SQLDBPluginName {
-		case sqlplugin.MySQLPluginName:
+		case sqlplugin.PluginNameMySQL:
 			options.DBPort = environment.GetMySQLPort()
-		case sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName:
+		case sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX:
 			options.DBPort = environment.GetPostgreSQLPort()
-		case sqlplugin.SQLitePluginName:
+		case sqlplugin.PluginNameSQLite:
 			options.DBPort = 0
 		default:
 			panic(fmt.Sprintf("unknown sql store driver: %v", options.SQLDBPluginName))
@@ -163,11 +163,11 @@ func NewTestBaseWithSQL(options *TestBaseOptions) *TestBase {
 	}
 	if options.DBHost == "" {
 		switch options.SQLDBPluginName {
-		case sqlplugin.MySQLPluginName:
+		case sqlplugin.PluginNameMySQL:
 			options.DBHost = environment.GetMySQLAddress()
-		case sqlplugin.PostgreSQLPluginName, sqlplugin.PostgreSQLPGXPluginName:
+		case sqlplugin.PluginNamePostgreSQL, sqlplugin.PluginNamePostgreSQLPGX:
 			options.DBHost = environment.GetPostgreSQLAddress()
-		case sqlplugin.SQLitePluginName:
+		case sqlplugin.PluginNameSQLite:
 			options.DBHost = environment.GetLocalhostIP()
 		default:
 			panic(fmt.Sprintf("unknown sql store driver: %v", options.SQLDBPluginName))

@@ -147,7 +147,7 @@ var rewrittenModuleAdapters = []struct {
 		prepare: prepareTemporalSDK, rewrites: temporalSDKRewrites,
 		originalInventorySHA256: temporalSDKOriginalSourceInventorySHA256, replacementInventorySHA256: temporalSDKReplacementSourceInventorySHA256, preparedSourceSetSHA256: temporalSDKPreparedSourceSetSHA256,
 		removed:  []string{"\"os/signal\"", "\"syscall\"", "signal.Notify", "syscall.SIGTERM"},
-		retained: []string{"func InterruptCh() <-chan interface{} {", "os.Hostname()"},
+		retained: []string{"func InterruptCh() <-chan any {", "os.Hostname()"},
 	},
 	{
 		name: "otel-sdk", module: otelSDKModulePath, version: otelSDKVersion, sum: otelSDKSum, preparedPackage: otelSDKModulePath + "/resource", importPath: otelSDKModulePath + "/resource",

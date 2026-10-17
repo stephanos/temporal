@@ -53,8 +53,9 @@ type (
 		// changed is set when metadata changes in memory and cleared by a
 		// successful write, so a change is never lost to a clock that
 		// reports it in the same instant as the last write.
-		changed   bool
-		lastWrite time.Time // updated when metadata is successfully written to db
+		changed    bool
+		lastChange time.Time // updated when metadata is changed in memory
+		lastWrite  time.Time // updated when metadata is successfully written to db
 	}
 
 	dbSubqueue struct {
@@ -65,7 +66,6 @@ type (
 
 	taskQueueState struct {
 		rangeID       int64
-		ackLevel      int64 // TODO(pri): old matcher cleanup, delete later
 		subqueues     []persistencespb.SubqueueInfo
 		otherHasTasks bool
 		scaleState    *persistencespb.PartitionScaleState
@@ -169,7 +169,6 @@ func (db *taskQueueDB) RenewLease(
 	}
 	return taskQueueState{
 		rangeID:       db.rangeID,
-		ackLevel:      db.subqueues[subqueueZero].AckLevel, // TODO(pri): cleanup, only used by old backlog manager
 		subqueues:     db.cloneSubqueues(),
 		otherHasTasks: !db.isDraining && db.otherHasTasks,
 		scaleState:    db.scaleState,
@@ -217,7 +216,7 @@ func (db *taskQueueDB) takeOverTaskQueueLocked(
 		// If we are the draining one, then assume the other has tasks, so we can migrate
 		// backwards safely. Also assume other has tasks if the config allows for migration
 		// (and the partition supports fairness) since we may have just turned on fairness and need to migrate.
-		canMigrate := (db.config.NewMatcher || db.config.EnableFairness) && db.queue.Partition().SupportsFairness()
+		canMigrate := db.queue.Partition().SupportsFairness()
 		db.otherHasTasks = canMigrate || db.isDraining
 
 		if _, err := db.store.CreateTaskQueue(ctx, &persistence.CreateTaskQueueRequest{
@@ -259,36 +258,6 @@ func (db *taskQueueDB) updateTaskQueueLocked(ctx context.Context, incrementRange
 	return nil
 }
 
-// OldUpdateState updates the queue state with the given value. This is used by old backlog
-// manager (not subqueue-enabled).
-// TODO(pri): old matcher cleanup
-func (db *taskQueueDB) OldUpdateState(
-	ctx context.Context,
-	ackLevel int64,
-) error {
-	db.Lock()
-	defer db.Unlock()
-	// We don't need to update lastWrite/changed in here since this function is only used by
-	// the old backlog manager and those fields are only used by the new backlog manager.
-
-	// Reset approximateBacklogCount to fix the count divergence issue
-	maxReadLevel := db.getMaxReadLevelLocked(subqueueZero)
-	if ackLevel == maxReadLevel {
-		db.subqueues[subqueueZero].ApproximateBacklogCount = 0
-		db.subqueues[subqueueZero].oldestTime = time.Time{} // zero time means no backlog
-	}
-
-	prevAckLevel := db.subqueues[subqueueZero].AckLevel
-	db.subqueues[subqueueZero].AckLevel = ackLevel
-
-	err := db.updateTaskQueueLocked(ctx, false)
-	if err != nil {
-		db.subqueues[subqueueZero].AckLevel = prevAckLevel
-	}
-	db.emitPhysicalBacklogGaugesLocked()
-	return err
-}
-
 // shouldUpdateMetadataOnAppendLocked returns whether a task append should also write the
 // metadata blob. This is always true when enough time has passed since the last metadata
 // write (controlled by MetadataUpdateOnAppendInterval), so that backlog counts stay
@@ -308,7 +277,7 @@ func (db *taskQueueDB) SyncState(ctx context.Context) error {
 	// Cap at 24h so that the scavenger (which looks for metadata not updated in 48h) doesn't
 	// mistake the queue for idle, even if a future partition kind has a longer TTL.
 	ttl := min(24*time.Hour, cmp.Or(db.queue.Partition().PersistenceTTL(), 24*time.Hour))
-	needWrite := db.changed || time.Since(db.lastWrite) > ttl/2
+	needWrite := db.changed || db.lastChange.After(db.lastWrite) || time.Since(db.lastWrite) > ttl/2
 	if !needWrite {
 		// If we don't write, though, we wouldn't know if someone else has stolen ownership
 		// momentarily (this could happen due to eventual consistency of membership updates).
@@ -408,15 +377,6 @@ func (db *taskQueueDB) setKnownFairBacklogCount(subqueue subqueueIndex, count in
 			db.subqueues[subqueue].oldestTime = time.Time{}
 		}
 	}
-}
-
-// updateApproximateBacklogCount updates the in-memory DB state with the given delta value
-// TODO(pri): old matcher cleanup
-func (db *taskQueueDB) updateBacklogStats(countDelta int64, oldestTime time.Time) {
-	db.Lock()
-	defer db.Unlock()
-	db.changed = true
-	db.updateBacklogStatsLocked(subqueueZero, countDelta, oldestTime)
 }
 
 func (db *taskQueueDB) updateBacklogStatsLocked(subqueue subqueueIndex, countDelta int64, oldestTime time.Time) {

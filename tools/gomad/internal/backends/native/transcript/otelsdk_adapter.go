@@ -6,24 +6,24 @@ import (
 
 const (
 	otelSDKModulePath                       = "go.opentelemetry.io/otel/sdk"
-	otelSDKVersion                          = "v1.44.0"
-	otelSDKSum                              = "h1:nHYwb9lK+fJPU/dnT6s7W7Z8itMWyqrnVfbheVYrZ58="
-	otelSDKOriginalSourceInventorySHA256    = "sha256:f3ed96a52f3df5a3040d9fc031e1e3016ffffabd68dae0be7bc9d6adf5e21d16"
-	otelSDKReplacementSourceInventorySHA256 = "sha256:0a578e4766412e295375a4c3df2a63b3446b82c6a0945fc934b32632ea7540d3"
+	otelSDKVersion                          = "v1.45.0"
+	otelSDKSum                              = "h1:4VVSMgQ83dUgW2aoX5f6JgLvHwIvzcuLnF9lUdCSpCw="
+	otelSDKOriginalSourceInventorySHA256    = "sha256:eb3224a421187a27fbc7270eacab0c1370ab2422f9bcd1b0c5c2fb42f43fc278"
+	otelSDKReplacementSourceInventorySHA256 = "sha256:ad8b2c0454c56565e87a834d724dce6e0fd7547ffc7bd332e1c97eb8d4109693"
 	otelSDKProcessPath                      = "resource/process.go"
 	otelSDKOSUnixPath                       = "resource/os_unix.go"
 	otelSDKHostIDExecPath                   = "resource/host_id_exec.go"
-	otelSDKProcessSourceSHA256              = "sha256:44e977fb2bcab86d3dec9f74c5ae99613ed6df34462324235237014989978854"
-	otelSDKProcessReplacementSHA256         = "sha256:62c9b39dc9f7c86bb7e1e1a788b2bd9e1f772d0f10148dd58e7b125bf7562577"
-	otelSDKOSUnixSourceSHA256               = "sha256:c11a96200ddd84d22524ee6bae631f3ce454ab9b636294b38081ba46f65250de"
-	otelSDKOSUnixReplacementSHA256          = "sha256:65a327c25dfea41778aeb598610dc47f5a9b80071bcd0478e1e970b95e7da5ef"
-	otelSDKHostIDExecSourceSHA256           = "sha256:6086e8a93c1aef9ccc1a1d17fdb25f109692fe7b823290433573821e0041a256"
-	otelSDKHostIDExecReplacementSHA256      = "sha256:630bd1c268665d1fcdac0fbf61ddbc1932a53389b1c88a3f18bdd5afc62de8fb"
+	otelSDKProcessSourceSHA256              = "sha256:cc58934674d5e12424ae43a3c63c2b59812c7b141af48e38561e6fd580d8f7b4"
+	otelSDKProcessReplacementSHA256         = "sha256:39518e6b36396093da73a0ab96cb6174a71a7193eafced9243eacb035a60f779"
+	otelSDKOSUnixSourceSHA256               = "sha256:56d383a5b108e0037049989dbb00c358c7ca8239fb9f9d5fad672eb3ef697100"
+	otelSDKOSUnixReplacementSHA256          = "sha256:77a54c07215e60fedfdb3b26a6ff34196a93710f7ecf119485b86ab90d7b353b"
+	otelSDKHostIDExecSourceSHA256           = "sha256:cc31e43da26ad90ad8a869baa7f5617137963fc3ea3ef179b88a34f69a102d33"
+	otelSDKHostIDExecReplacementSHA256      = "sha256:73a4d92b3433f6ab793b9002b2d6ee5cf9fadb1b54d66168e5edf94cfc0e67fe"
 )
 
 var otelSDKPreparedSourceSetSHA256ByHost = map[string]string{
-	"darwin/arm64": "sha256:7489999c6dd03e333c2d0ee6ae365a3a352c6c9430822ce276a3094327a07f41",
-	"linux/amd64":  "sha256:09d2dc39778ec54345b545ae235dc2ff51fd15e059b349638843fc6b94606f76",
+	"darwin/arm64": "sha256:d8bd182d665e7fe7fe297592c8d3600758496a8e61a4c421343662d0f2f9192c",
+	"linux/amd64":  "sha256:10880f920b4c28d03806b53f0655e0116ef26e80a114455d139efb20d2c11866",
 }
 
 var otelSDKPreparedSourceSetSHA256 = hostPin(otelSDKPreparedSourceSetSHA256ByHost)

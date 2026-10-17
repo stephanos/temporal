@@ -129,7 +129,7 @@ func sourceAsset(pkg metadata, relative string) bool {
 }
 
 func load(root, goCommand string, platform Platform, pure func(string) bool) (*program, error) {
-	root, err := filepath.Abs(root)
+	root, err := canonicalRoot(root)
 	if err != nil {
 		return nil, err
 	}

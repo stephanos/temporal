@@ -19,8 +19,8 @@ import (
 
 const (
 	// PluginName is the name of the plugin
-	PluginName    = sqlplugin.PostgreSQLPluginName
-	PluginNamePGX = sqlplugin.PostgreSQLPGXPluginName
+	PluginName    = sqlplugin.PluginNamePostgreSQL
+	PluginNamePGX = sqlplugin.PluginNamePostgreSQLPGX
 )
 
 var defaultDatabaseNames = []string{

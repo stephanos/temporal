@@ -36,7 +36,6 @@ import (
 	persistencespb "go.temporal.io/server/api/persistence/v1"
 	"go.temporal.io/server/common/dynamicconfig"
 	"go.temporal.io/server/common/metrics"
-	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/common/testing/parallelsuite"
 	"go.temporal.io/server/common/testing/testhooks"
 	"go.temporal.io/server/common/testing/testvars"
@@ -68,6 +67,7 @@ func TestDeploymentVersionSuite(t *testing.T) {
 func (s *DeploymentVersionSuite) newTestEnv(opts ...testcore.TestOption) *testcore.TestEnv {
 	baseOpts := []testcore.TestOption{
 		testcore.WithDynamicConfig(dynamicconfig.MatchingDeploymentWorkflowVersion, int(workerdeployment.VersionDataRevisionNumber)),
+		testcore.WithDynamicConfig(wciclient.WorkerControllerEnabled, true),
 		testcore.WithDynamicConfig(wciclient.WorkerControllerEnabledComputeProviders, []string{string(wciiface.ComputeProviderTypeTestInvoke)}),
 
 		// Make sure we don't hit the rate limiter in tests
@@ -144,7 +144,7 @@ func (s *DeploymentVersionSuite) startVersionWorkflowAndStopPoll(ctx context.Con
 	}()
 	s.waitForVersionWorkflow(ctx, env, tv)
 	cancelPoll()
-	await.Rcv(s.T(), pollDone)
+	s.Rcv(pollDone)
 }
 
 func (s *DeploymentVersionSuite) waitForVersionWorkflow(ctx context.Context, env *testcore.TestEnv, tv *testvars.TestVars) {
@@ -507,7 +507,7 @@ func (s *DeploymentVersionSuite) startVersionedWorkflow(ctx context.Context, env
 	defer w.Stop()
 	run, err := env.SdkClient().ExecuteWorkflow(ctx, sdkclient.StartWorkflowOptions{TaskQueue: tv.TaskQueue().String()}, wf)
 	s.NoError(err)
-	await.Rcv(s.T(), started)
+	s.Rcv(started)
 	return run
 }
 
@@ -749,7 +749,7 @@ func (s *DeploymentVersionSuite) TestWorkerDeploymentActivityOutcomeMetricTags()
 			)
 			s.NoError(err)
 			if tc.outcome == "cancel" {
-				await.Rcv(s.T(), activityStarted)
+				s.Rcv(activityStarted)
 				s.NoError(env.SdkClient().CancelWorkflow(s.Context(), run.GetID(), run.GetRunID()))
 			}
 			if tc.expectError {
