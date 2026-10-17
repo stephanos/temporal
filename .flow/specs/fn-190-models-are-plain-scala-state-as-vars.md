@@ -574,7 +574,7 @@ change; the Go composition lowering follows in phase 2.
 | R7 | fn-190.3 | — |
 | R8 | fn-190.7 | after fn-191.1 puts the samples in sections |
 | R9 | fn-190.2 | — |
-| R10 | fn-190.2, fn-190.8 | — |
+| R10 | fn-190.2, fn-190.8, fn-190.18 | .18 keeps the user-facing reference free of implementation-file pointers |
 | R11 | fn-190.1, fn-190.4 | — |
 | R12 | fn-190.1, fn-190.4 | — |
 | R13 | fn-190.1, fn-190.4 | — |

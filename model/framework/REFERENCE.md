@@ -1,17 +1,15 @@
 # Umpire DSL reference
 
 A lookup of the DSL's API: each form, where it may be written, what it means, and what refuses it.
-[SEMANTICS.md](SEMANTICS.md) walks through the same language as a guide; this file lists it. Paths
-are relative to `model/framework`. Entries cite the file that defines a form, not a line: the DSL
-moves faster than line numbers.
+[SEMANTICS.md](SEMANTICS.md) walks through the same language as a guide; this file lists it.
 
 ## Scope and status
 
 - **Current form.** A Model is a plain-form `Machine`: state as `var`s, `object transitions extends
   Transitions`, `object effects`, and the claim sections (fn-190). The samples in `samples/` are the
   canonical examples; every example here is current unless marked otherwise.
-- **Checked natively.** Today the plain form is checked by the Scala checker
-  (`dsl/NativeCheck.scala`). Lifting a plain-form Machine to the IR is phase 2 of fn-190 (fn-190.9
+- **Checked natively.** Today the plain form is checked by the Scala checker.
+  Lifting a plain-form Machine to the IR is phase 2 of fn-190 (fn-190.9
   and on) and not done: the exporter (`export/`) and several lints still read the old record form.
 - **Status words.** *Current*: write it. *Legacy*: public, but only the old record form uses it; do
   not write it in a new Model. *Retired*: removed or `private[framework]`; [Retired
@@ -76,8 +74,6 @@ Machine-level `val` just before the section that uses it. No lint holds the plai
 ---
 
 ## 2. Domains and data
-
-Defined in `dsl/Domain.scala` and `dsl/DomainChoices.scala`.
 
 ### Type classes
 
@@ -155,9 +151,6 @@ the table grows or the sample is rewritten ([Known gaps](#known-gaps)).
 
 ## 3. The signature
 
-Defined in `dsl/Action.scala`, `dsl/ActionInputs.scala`, `dsl/InputField.scala`,
-`dsl/InputSource.scala` and `dsl/Syntax.scala`.
-
 ### Actors and steps
 
 | Form | Where | Meaning |
@@ -174,7 +167,7 @@ Refusal (compile), for `action` outside an `Actor`, `action` in an `Internal`, o
 outside an `Internal`: `an action is declared in an Actor object; a step the system takes on its own
 in an Internal object`.
 
-Example (`samples/Kettle.scala`):
+Kettle example:
 
 ```scala
 object user extends Actor:
@@ -213,7 +206,7 @@ derived read; no sample uses them.
 | field | `inputField[In](_.f)`, `rec.field(_.f)` | A typed descriptor of one direct field |
 | bind | `field.in(domain)` | The field's catalog |
 
-Example (`samples/Bank.scala`):
+Bank example:
 
 ```scala
 object client extends Actor:
@@ -244,7 +237,7 @@ A class is one assignment of an action's inputs. `type ClassRef = Class | Action
 
 ### Phases and roles
 
-Role traits mix into enum cases as metadata and add no state (`dsl/Roles.scala`): `Live`, `Waiting`,
+Role traits mix into enum cases as metadata and add no state: `Live`, `Waiting`,
 `Retrying`, `Held`, `Suspended`, `Closed`, `Succeeded`, `Failed`, `Canceled`, `Terminated`,
 `TimedOut`. A Model may declare its own, `trait Expired extends TimedOut`.
 
@@ -264,8 +257,6 @@ runtime `<owner>'s phase type <T> has no <role> case`.
 ---
 
 ## 4. The Machine
-
-Defined in `dsl/Machine.scala`, `dsl/Vars.scala` and `dsl/Markers.scala`.
 
 ### `Machine[O, F]`
 
@@ -350,7 +341,7 @@ A Machine holds these objects. Each is found by name.
 | `NegativeControl` | A deliberately wrong design. R15 moves negative controls into tests, where the samples now keep them |
 | `FailureModel` | A design that binds faults: `object Model extends Machine[Outcome, Nothing], FailureModel` |
 
-Lint refusals (`lint/Markers.scala`):
+Lint refusals:
 `<n> binds the fault <a> and is marked neither a FailureModel ... nor a NegativeControl ...: mix in the one it is`;
 `<n> is a failure model and binds no fault: bind an action of the actor \`fault\` that some state enables`;
 `<n> is marked a failure model and a negative control: it is one`;
@@ -359,9 +350,6 @@ Lint refusals (`lint/Markers.scala`):
 ---
 
 ## 5. Transitions
-
-Defined in `dsl/Syntax.scala` (`Transitions`), `dsl/TransitionMacros.scala` and
-`dsl/RuleTable.scala`.
 
 ```scala
 object transitions extends Transitions:
@@ -418,8 +406,6 @@ object transitions extends Transitions:
 
 ## 6. Effects
 
-Defined in `dsl/Syntax.scala`, `dsl/Vars.scala` and `dsl/Machine.scala` (`choice`, `choose`).
-
 ```scala
 object effects:
   // turn on the heating element
@@ -469,9 +455,6 @@ Do not use in an effect:
 ---
 
 ## 7. Invariants and postconditions
-
-Defined in `dsl/Syntax.scala` (`ClaimMacros`), `dsl/ClaimWords.scala`, `dsl/NativeClaims.scala`
-and `dsl/Claims.scala`.
 
 ```scala
 object invariants:
@@ -548,8 +531,6 @@ A claim section of a class instance (a facet's) is refused when checked:
 
 ## 8. Monitors
 
-Defined in `dsl/Machine.scala` and `dsl/Monitor.scala`.
-
 ```scala
 object monitors:
   val agreement =
@@ -576,9 +557,6 @@ Legacy: the three-argument `monitor[S, O, F, M](initial)((m, state, step) => ...
 ---
 
 ## 9. Progress
-
-Defined in `dsl/Assume.scala` and `dsl/Syntax.scala` (`QueryMacros`); checked by
-`NativeCheck.leading`.
 
 ```scala
 val neverSwitchedOff =
@@ -650,8 +628,6 @@ Detail lines:
 
 ## 10. Scenarios
 
-Defined in `dsl/Claims.scala` (`Scenario`, `ScenarioDecl`) and `dsl/Syntax.scala`.
-
 | Builder | Meaning |
 |---|---|
 | `only(a, ...)` | Admits these and no others: whole actions, or single classes `a(input)` |
@@ -682,8 +658,6 @@ Legacy: `scenario.free`, `scenario.actions(...)`, `scenario starts s`, `scenario
 ---
 
 ## 11. Queries
-
-Defined in `dsl/Claims.scala` (`Query`, `ClaimQuery`, `Witness`) and `dsl/Syntax.scala`.
 
 ```scala
 object queries:
@@ -727,8 +701,8 @@ path with a last-step fact.
 
 ## 12. Checking and results
 
-Defined in `dsl/NativeCheck.scala`. Its entry points are `private[framework]`: tests in package
-`framework.dsl` call them.
+The checker entry points are currently `private[framework]`; tests in package `framework.dsl`
+call them.
 
 ### What is checked by default
 
@@ -743,7 +717,7 @@ Defined in `dsl/NativeCheck.scala`. Its entry points are `private[framework]`: t
   monitors.
 
 Other entry points: `query(q, subject)` checks one Query; `queries(machine)` checks every Query of
-`queries`. Test helpers (`dsl/NativeControls.test.scala`): `assertRefuted(machine, claim)` and
+`queries`. Test helpers: `assertRefuted(machine, claim)` and
 `invariant(body)`, the negative-control idiom.
 
 ### Budget
@@ -806,8 +780,6 @@ condition never holds.
 
 ## 13. Holes and gaps
 
-Defined in `dsl/Assume.scala` (`Hole`) and `dsl/Gaps.scala`.
-
 | Form | Meaning |
 |---|---|
 | `val missing = hole` | A declared unknown, named after its `val`, declared in an object of the feature |
@@ -831,8 +803,6 @@ naming the hole.
 ---
 
 ## 14. Refinement
-
-Defined in `dsl/Refine.scala`.
 
 ```scala
 object refinement extends Refinement(Consensus):
@@ -865,8 +835,6 @@ refinement extends Refinement(product)\`...`;
 ---
 
 ## 15. Derivations and markers
-
-Defined in `dsl/Machine.scala` (`Derived`) and `dsl/DerivationBindings.scala`.
 
 ```scala
 object Generous extends Derived(
@@ -910,8 +878,6 @@ Retired: `restrict`, `assuming`, `rebind(a ~> e)`.
 
 ## 16. Facets
 
-Defined in `dsl/Facet.scala`.
-
 ```scala
 trait Pressing extends Facet[Said, Note]:
   var light: Lit
@@ -945,7 +911,7 @@ Refusals:
 | `<action> is bound by the facets <a> and <b>: an action belongs to one facet, which holds all its transitions` | runtime |
 | `<section> is not a facet's transitions: Facets lists the transitions declared in its facets; ...` | runtime |
 | `<v>: <Trait> defines a var, which a facet declares abstractly and the Machine defines: \`var v: T\`` | compile |
-| `<F> is a facet in <file>: a facet's file is named after it, <F>.scala` | lint |
+| A facet's file must be named after the facet | lint |
 
 `FacetCapabilities(...)` lists the facets' capability sections (legacy).
 
@@ -953,8 +919,7 @@ Refusals:
 
 ## 17. Capabilities
 
-Legacy. Defined in `dsl/Capabilities.scala`; read only by the exporter
-(`export/Capabilities.scala`).
+Legacy; read only by the exporter.
 
 ```scala
 object capabilities extends Capabilities:
@@ -977,7 +942,7 @@ ignores capabilities. See [Known gaps](#known-gaps).
 
 ## 18. Compositions
 
-Legacy. Defined in `dsl/Compose.scala`. No plain-form example exists, and no native check explores
+Legacy. No plain-form example exists, and no native check explores
 a composition: `<subject> runs on <c>, which no native check explores`.
 
 ```scala
@@ -1004,8 +969,6 @@ Refusals: compile `a member selector must name exactly one direct state field`; 
 ---
 
 ## 19. Channels and inboxes
-
-Defined in `dsl/Channel.scala`.
 
 ```scala
 object wire:
@@ -1050,8 +1013,6 @@ Refusals:
 
 ## 20. Faults, crashes and durability
 
-Defined in `dsl/Action.scala`, `dsl/Machine.scala`, `dsl/Durability.scala` and `dsl/Crash.scala`.
-
 ```scala
 object fault extends Actor:
   val crash = action.crash
@@ -1089,8 +1050,7 @@ only on the record form.
 
 ## 21. Realizations
 
-A realization binds a Machine's classes to commands against a real server. Defined in
-`realize/`.
+A realization binds a Machine's classes to commands against a real server.
 
 Status: no current-form realization exists outside framework tests.
 
@@ -1113,7 +1073,7 @@ Status: no current-form realization exists outside framework tests.
 Generic-conversion refusals (runtime): `<decl>: roles require their owning kit's constructed
 conversion`, and likewise for settings, behavior and server steps.
 
-### Scripts and commands (`realize/Scripts.scala`)
+### Scripts and commands
 
 | Form | Meaning |
 |---|---|
@@ -1189,73 +1149,85 @@ A hole propagates; a branch not taken is not reached.
 
 ### Liftable subset
 
-The typed author lint and the lifter use `framework.inspect.LiftableSubset` for the library
-allowlist. A step, guard or predicate is a pure expression in the rows below. Other Scala tree
+A shared vocabulary in another source file declares `object vocabulary extends Lifted` once.
+The marker covers its member definitions and members of nested containers, stopping at local
+method scopes. `Machine` supplies the marker itself, so an ordinary `object effects:` needs no
+additional declaration. Local defs remain part of their enclosing body's ordinary lifting.
+There is no per-definition lifting annotation.
+
+The plugin stores one `liftedIr` body carrier for a covered member, a definition returning
+`List[Step[S, O, F]]`, or an override of the Machine endpoint contract. Same-file captures prefer
+the tree. A reached helper in another file without stored IR is refused at its capture:
+`<fullName> is reached from another file: define it in an object that extends Lifted`.
+That refusal also applies in a full compile and to a helper compiled without the plugin.
+Realization-mode sample compilation remains the native checkpoint: plain Machine var/Unit body
+lifting and the original six-sample full-mode equivalence proofs remain held for fn-190.9.
+
+The author lint and the lifter accept the library operations below.
+A step, guard or predicate is a pure expression in these rows. Other Scala tree
 forms and library operations are refused at the author's line, naming the construct and this
 table. Declaration computation is a different context: a library operation in a declaration
 does not thereby become legal in its captured function. The table records the currently supported
 source export, including the temporary declaration readers that constructed-value export retires.
-Adding an operation requires a row and its fixture; the fixture names below are functions in
-`framework/export/testdata/lifts/Subset.scala` unless another path is stated.
 
-| Source tree or operation | Context and IR lowering | Fixture |
-| --- | --- | --- |
-| Boolean literal | Body: Boolean `Literal` | `booleanLiteral` |
-| Integer literal | Body: integer `Literal` | `integerLiteral` |
-| String literal | Body: text `Literal` | `textLiteral` |
-| Parameter or local reference | Body: `Var`, or its bound argument | `reference` |
-| Field selection | Body: `Field` | `field` |
-| Source function application | Body: `Call` of the indexed function | `called` |
-| Case-class or enum constructor | Body: `Construct`, fields in declaration order | `constructed` |
-| Typed/type-applied/named/inlined wrappers | Body: underlying expression; type and argument binding retained | `wrapped` |
-| Local immutable `val` block | Body: ordered `Let` | `localValue` |
-| Structural lambda | Callback: `Function`; expression: `Lambda` | `predicate` |
-| Empty draft block | `effect` capture only: unchanged state with the declared ok outcome; Unit is not a body value | `EmptyDraft.effects.keep` |
-| `if` | Body: `If`, only the selected branch is read | `conditional` |
-| `match` and literal, case, bind, wildcard, alternative patterns | Body: `Match` and matching IR patterns; enum wildcard restrictions still apply | `matched` |
-| `List(...)` / `Nil` / repeated arguments | Body: `List` in written order | `listed` |
-| `Some(...)` / `None` | Body: synthetic finite Option enum | `optional` |
-| `Step(...)` | Step body only: core step `Construct` | `stepRecord` |
-| `==` | Body: structural `OP_EQ` | `equal` |
-| `!=` | Body: structural `OP_NE` | `unequal` |
-| `&&` | Body: short-circuit `OP_AND` | `conjoined` |
-| `||` | Body: short-circuit `OP_OR` | `disjoined` |
-| `!` | Body: `OP_NOT` | `negated` |
-| `<` | Body: integer `OP_LT` | `less` |
-| `<=` | Body: integer `OP_LE` | `lessEqual` |
-| `>` | Body: integer `OP_GT` | `greater` |
-| `>=` | Body: integer `OP_GE` | `greaterEqual` |
-| `+` | Body: integer `OP_ADD` | `added` |
-| `-` | Body: integer `OP_SUB` | `subtracted` |
-| `contains` | Body, Scala sequence receiver: list membership `OP_CONTAINS`; String and Java collection receivers are refused | `contained` |
-| `copy` | Body, case-class receiver: `Copy`; default getters preserve unchanged fields | `copied` |
-| `min` | Body, integer receiver: `If` with `OP_LE` | `minimum` |
-| `max` | Body, integer receiver: `If` with `OP_GE` | `maximum` |
-| `++` | Body, Scala sequence receiver: `OP_CONCAT`; unnamed step branching remains refused | `concatenated` |
-| `+:` | Body, Scala sequence receiver: prepend a literal item or `OP_CONCAT` | `prepended` |
-| `toList` | Body, Scala sequence receiver: identity of the already lifted list | `converted` |
-| `forall` | Capability's bound fact-family parameter only: ordered conjunction of the recorded-fact guards; no dynamic collection lowering | `lifts/DeadlineCapabilities.scala`; `lifts/DeadlineCapabilityRejects.scala` |
-| `map` | Declaration sequence reader: substitute each written item into a structural mapper; no body lowering | `LiftableSubsetFixtures` declaration control; body refusal control |
-| `toVector` | Declaration sequence reader: underlying written items; no body lowering | `LiftableSubsetFixtures` declaration control |
-| `find` | Query declaration: `FORM_FIND`; collection `find` has no body lowering | `lifts/Declarations.scala` find Query; `LiftableSubsetFixtures` body refusal control |
-| `require` | Function contract: precondition | `contracted` |
-| `ensuring` | Function contract: body; postcondition is not an IR assertion | `contracted` |
-| Builder `name`/`when`, optional/sequence `isEmpty` | Declaration precondition only: read already-bound core metadata, then check the definition's `require`; no Option body lowering | `DefinitionExpansionTest` restricted helper/core twin; existing `whenStays` refusal |
-| String interpolation | Constant values only: text `Literal` | `interpolated` |
-| Channel `empty` | Channel literal | `lifts/Channels.scala` |
-| Channel `send` | `Inbox` send | `lifts/Channels.scala` |
-| Channel `isEmpty` | `Inbox` empty test | `lifts/Channels.scala` |
-| Channel `isFull` | `Inbox` full test | `lifts/Channels.scala` |
-| Hole `reached` | Body: declared `Hole` read | `lifts/Hints.scala` |
-| Role test through a marked definition | Body: membership in the enum's role cases | `lifts/RolesCompatibility.scala` |
-| `choose` | Core choice naming | `lifts/Choices.scala` |
-| `because` | Core explanation | `lifts/Sugar.scala` |
-| `UpTo` | Bounded integer | `lifts/Inputs.scala` |
-| `through` (retired from the DSL; lifter arm until fn-190.12) | Projected source `Call` | `lifts/Members.scala` |
+| Source tree or operation | Context and IR lowering |
+| --- | --- |
+| Boolean literal | Body: Boolean `Literal` |
+| Integer literal | Body: integer `Literal` |
+| String literal | Body: text `Literal` |
+| Parameter or local reference | Body: `Var`, or its bound argument |
+| Field selection | Body: `Field` |
+| Source function application | Body: `Call` of the indexed function |
+| Case-class or enum constructor | Body: `Construct`, fields in declaration order |
+| Typed/type-applied/named/inlined wrappers | Body: underlying expression; type and argument binding retained |
+| Local immutable `val` block | Body: ordered `Let` |
+| Structural lambda | Callback: `Function`; expression: `Lambda` |
+| Empty draft block | `effect` capture only: unchanged state with the declared ok outcome; Unit is not a body value |
+| `if` | Body: `If`, only the selected branch is read |
+| `match` and literal, case, bind, wildcard, alternative patterns | Body: `Match` and matching IR patterns; enum wildcard restrictions still apply |
+| `List(...)` / `Nil` / repeated arguments | Body: `List` in written order |
+| `Some(...)` / `None` | Body: synthetic finite Option enum |
+| `Step(...)` | Step body only: core step `Construct` |
+| `==` | Body: structural `OP_EQ` |
+| `!=` | Body: structural `OP_NE` |
+| `&&` | Body: short-circuit `OP_AND` |
+| `||` | Body: short-circuit `OP_OR` |
+| `!` | Body: `OP_NOT` |
+| `<` | Body: integer `OP_LT` |
+| `<=` | Body: integer `OP_LE` |
+| `>` | Body: integer `OP_GT` |
+| `>=` | Body: integer `OP_GE` |
+| `+` | Body: integer `OP_ADD` |
+| `-` | Body: integer `OP_SUB` |
+| `contains` | Body, Scala sequence receiver: list membership `OP_CONTAINS`; String and Java collection receivers are refused |
+| `copy` | Body, case-class receiver: `Copy`; default getters preserve unchanged fields |
+| `min` | Body, integer receiver: `If` with `OP_LE` |
+| `max` | Body, integer receiver: `If` with `OP_GE` |
+| `++` | Body, Scala sequence receiver: `OP_CONCAT`; unnamed step branching remains refused |
+| `+:` | Body, Scala sequence receiver: prepend a literal item or `OP_CONCAT` |
+| `toList` | Body, Scala sequence receiver: identity of the already lifted list |
+| `forall` | Capability's bound fact-family parameter only: ordered conjunction of the recorded-fact guards; no dynamic collection lowering |
+| `map` | Declaration sequence reader: substitute each written item into a structural mapper; no body lowering |
+| `toVector` | Declaration sequence reader: underlying written items; no body lowering |
+| `find` | Query declaration: `FORM_FIND`; collection `find` has no body lowering |
+| `require` | Function contract: precondition |
+| `ensuring` | Function contract: body; postcondition is not an IR assertion |
+| Builder `name`/`when`, optional/sequence `isEmpty` | Declaration precondition only: read already-bound core metadata, then check the definition's `require`; no Option body lowering |
+| String interpolation | Constant values only: text `Literal` |
+| Channel `empty` | Channel literal |
+| Channel `send` | `Inbox` send |
+| Channel `isEmpty` | `Inbox` empty test |
+| Channel `isFull` | `Inbox` full test |
+| Hole `reached` | Body: declared `Hole` read |
+| Role test through a marked definition | Body: membership in the enum's role cases |
+| `choose` | Core choice naming |
+| `because` | Core explanation |
+| `UpTo` | Bounded integer |
+| `through` (retired from the DSL; lifter arm until fn-190.12) | Projected source `Call` |
 
 `var`, assignment, loops, `return`, exceptions and comprehensions inside these bodies are outside
 the subset. A declaration may compute its declarations; the functions it hands them remain held
-to this table. The author-time refusal controls are `framework.lint.LiftableSubsetFixtures`.
+to this table.
 
 ---
 
@@ -1264,19 +1236,19 @@ to this table. The author-time refusal controls are `framework.lint.LiftableSubs
 `make lint-model` runs these; the layout rules apply to Temporal features (packages under
 `features`, `foundations` or `actors`), not to `samples`.
 
-| Rule | Text (abridged) | File |
-|---|---|---|
-| declaration layout | `R4.declaration-multiline: <name> starts its body on the definition line: put the body on the next line` | `lint/DeclarationStyle.scala` |
-| effect result | `R4.effect-return-type: <name> declares a return type: let its Unit result be inferred` | `lint/EffectDefinitions.scala` |
-| block form | `block-form rule: use a colon block for \`<name>\`, not optional braces`; the `in` scoping rule | `check/lint/BlockFormRule.scala` |
-| comments | `//` comments only | `check/lint/CommentRule.scala` |
-| sugar | every public definition of a `Syntax.scala` documents its `Core form:`; no core file imports sugar | `check/lint/SyntaxRule.scala` |
-| conventions | `R4.dotted-in`, `R4.enum-wildcard`, `R9.phase-import` | `lint/Conventions.scala` |
-| markers | negative control and failure model rules ([4](#markers)) | `lint/Markers.scala` |
-| levels | `<M> refines <P>, so <feature> has two levels, each in its folder: the Product in product/Product.scala, ...`; `<f> has no machine that refines another of its own, so it has one level, ...: it has no <sub>/ folder` | `lint/Structure.scala` |
-| level names | `<X> is the Product machine in <f>'s product/Product.scala: name it <Feature>Product, ...`; `... is <f>'s Product machine and refines another machine: a Product refines nothing` | `lint/Structure.scala` |
-| files | one machine, composition or derivation per file, named after it; `object exports sits in <path>: a feature's IR file is collected from its package, so nothing names its roots` | `lint/Structure.scala` |
-| facets | `<F> is a facet in <file>: a facet's file is named after it, <F>.scala` | `lint/Structure.scala` |
+| Rule | Text (abridged) |
+|---|---|
+| declaration layout | `R4.declaration-multiline: <name> starts its body on the definition line: put the body on the next line` |
+| effect result | `R4.effect-return-type: <name> declares a return type: let its Unit result be inferred` |
+| block form | `block-form rule: use a colon block for \`<name>\`, not optional braces`; the `in` scoping rule |
+| comments | `//` comments only |
+| sugar | public sugar definitions document their `Core form:`; core definitions do not depend on sugar |
+| conventions | `R4.dotted-in`, `R4.enum-wildcard`, `R9.phase-import` |
+| markers | negative control and failure model rules ([4](#markers)) |
+| levels | A feature with refinement has two levels, each in its own folder; a feature without refinement has one level and no level subfolder |
+| level names | A Product machine is named `<Feature>Product` and refines nothing |
+| files | one machine, composition or derivation per file, named after it; `object exports sits in <path>: a feature's IR file is collected from its package, so nothing names its roots` |
+| facets | A facet's file must be named after the facet |
 
 Level folders are `product`, `protocol` (formerly `system`) and `realization`; form folders are
 `workflow`, `standalone` and `mini`.
@@ -1321,8 +1293,8 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
   spec prototyped; `UpTo` is opaque, not an erasing alias.
 - **Budget configuration.** R14's per-feature gate budget does not exist; checks take
   `defaultBudget` or an explicit `budget`.
-- **Section order.** No lint holds the plain-form order; `lint/Structure.scala` and
-  `lint/Order.scala` still list the old sections (`states`, `rules`, `properties`, ...).
+- **Section order.** No lint holds the plain-form order; the structure and order rules still
+  list the old sections (`states`, `rules`, `properties`, ...).
 - **Capabilities** cannot be authored in the plain form (no public way to write a kind's Properties;
   `bound` needs `Limits`).
 - **Compositions** have no plain-form example and no native check.
@@ -1338,17 +1310,18 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
 ## Public surface not in this reference
 
 Every public top-level definition of `dsl/` and `realize/` (and each public extension method) is
-either written somewhere above as code or listed here, with why it is public. `ReferenceSurfaceTest`
-(`check/lint/ReferenceSurface.test.scala`) checks both directions: a new public definition needs a
-place in this file, and a name listed here must still exist. Making a listed definition
+either written somewhere above as code or listed here, with why it is public. Automated coverage
+checks both directions: a new public definition needs a place in this reference, and a name listed
+here must still exist. Making a listed definition
 `private[framework]` removes it from this list.
 
 ### Types behind current forms
 
 Named in signatures and error messages; an author writes the form, not the type.
 
-`ActionDecl` `RecordAction` `ScalarAction` `ClassExample` `FaultKind` `InputBinding` `InputFields`
-`Choice` `Alternative` `Subject` `QueryForm` `CapabilityOf` `FieldDurability` `Accepting`
+`ActionDecl` `RecordAction` `ScalarAction` `ClassExample` `FaultKind` `InputBinding` `InputField` `InputFields`
+`Choice` `Alternative` `Subject` `Scenario` `ScenarioDecl` `QueryForm` `ClaimQuery` `Monitor`
+`CapabilityOf` `FieldDurability` `Accepting`
 `Refusing` `Recording` `Before` `StepTarget` `StepRecords` `RequirementFacts` `Alternatives`
 `ClaimAlternatives` `InitialAlternatives` `Branching` `ClaimBranch` `Owner` `Declaring` `Declares`
 `DerivedFrom` `Rule` `RuleGroup` `Rebinding` `RuleBook` `MemberSelection` `Composed` `Move`
@@ -1383,5 +1356,5 @@ The records, enums and scopes behind the forms of [Realizations](#21-realization
 Public for the plugin, the exporter or the checker; no author use.
 
 `FacetSource` `FiniteSchema` `IrFile` `IrRoot` `liftedIr` `Reify` `NativeInput` `RuleInput`
-`VarSchema` `StateChoiceProgram` `InputChoiceProgram` `IllustrationKind` `Illustration` `Reference`
+`Vars` `VarSchema` `RuleTable` `ClaimWords` `StateChoiceProgram` `InputChoiceProgram` `IllustrationKind` `Illustration` `Reference`
 `Named`
