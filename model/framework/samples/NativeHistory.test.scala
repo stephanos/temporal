@@ -1,6 +1,7 @@
 package framework.dsl
 
 import samples.{Kettle, TwoLayeredCache}
+import NativeControls.assertRefuted
 
 class NativeHistoryTest extends munit.FunSuite:
   private def run[S, O, F](
@@ -361,3 +362,151 @@ class NativeHistoryTest extends munit.FunSuite:
       run(HeatingOnly, snapshot(100, false, true), user.pressButton()).map(_.state),
       List(snapshot(100, true, false))
     )
+
+  // The default checks (fn-190.4): every claim of a Machine's sections checked over its whole
+  // reachable graph by the native checker, each answer in the spec's result shape.
+  private def complete: Int = NativeCheck.defaultBudget
+
+  test("Kettle's claims are checked by default from both starts, and neverBeeps is refuted"):
+    import Kettle.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model, Seq(Model.init, coldest))
+    assertEquals(
+      report.verdicts,
+      Map(
+        "beepsOnlyWhenOff" -> verified,
+        "neverBeeps" -> refuted,
+        "warmsOnlyWhenOn" -> verified,
+        "failsOverAtBoiling" -> verified
+      )
+    )
+    assertEquals(report.warnings, Vector.empty)
+    // the depth is breadth-first from the nearer start: room temperature boils after a press, 80
+    // heats and the failover, and the coldest start reaches every colder state sooner
+    assertEquals(
+      report.result("beepsOnlyWhenOff").line,
+      s"model.beepsOnlyWhenOff: verified (budget $complete states, 82 steps; exploration complete)"
+    )
+    val never = assertRefuted(Model, Model.invariants.neverBeeps)
+    assertEquals(never.detail.head, "counterexample: pressButton" + ", heat" * 80 + ", failover")
+
+  test("Kettle's queries answer as intended natively: three verified, boiling found"):
+    import NativeCheck.Verdict.*
+    assertEquals(
+      NativeCheck.queries(Kettle.Model).map(r => r.subject -> r.verdict),
+      Vector(
+        "model.beepsOnlyWhenOff" -> verified,
+        "model.warmsOnlyWhenOn" -> verified,
+        "model.failsOverAtBoiling" -> verified,
+        "model.boilsAndBeeps" -> found,
+        "model.refutesNeverBeeps" -> refuted
+      )
+    )
+
+  test("Kettle's boils is verified in HeatingOnly with longest path 81"):
+    import Kettle.*
+    val report = NativeCheck.verifyAll(HeatingOnly)
+    val boils = report.result("boils")
+    assertEquals(boils.verdict, NativeCheck.Verdict.verified)
+    assertEquals(boils.longest, Some(81))
+    assertEquals(
+      boils.line,
+      s"heatingOnly.boils: verified (budget $complete states, 82 steps; exploration complete)"
+    )
+    assertEquals(report.warnings, Vector.empty)
+
+  test("Kettle's boils on the whole Kettle from room temperature reports the press/depress cycle"):
+    import Kettle.*
+    val boils = NativeCheck.progress(HeatingOnly.progress.boils, Model, Seq.empty, complete)
+    assertEquals(boils.verdict, NativeCheck.Verdict.cycle)
+    assertEquals(
+      boils.detail,
+      Vector(
+        "model.boils: cycle depressButton, pressButton: heat stays enabled and is never taken; " +
+          "add fair(heat) to the scenario, or admit fewer actions with only"
+      )
+    )
+
+  test("progress answers a deadlock, a missed deadline, and a fair cycle a fair action leaves"):
+    import Kettle.*
+    import NativeCheck.Verdict.*
+    val boils = HeatingOnly.progress.boils
+    def claim(within: Int, under: Assumption*): Progress[State] =
+      Progress("boils", HeatingOnly, boils.from, boils.to, within, under.toList)
+    // switched on with no heater, the kettle stays on and never beeps
+    val pressOnly = Model.restrict(user.pressButton)
+    val stuck = NativeCheck.progress(claim(81), pressOnly, Seq.empty, complete)
+    assertEquals(stuck.verdict, deadlock)
+    assertEquals(stuck.detail, Vector("deadlock: pressButton ends in " + snapshot(20, true, false)))
+    val late = NativeCheck.progress(claim(80), HeatingOnly, Seq.empty, complete)
+    assertEquals(late.verdict, missedDeadline)
+    assertEquals(late.detail, Vector("heatingOnly.boils: a path of 80 steps reaches no to state"))
+    // pressing and depressing forever is a cycle a fair heat does not leave, since heat is not
+    // enabled once the element is off
+    val unfair = NativeCheck.progress(
+      claim(81, Assumption("heats", Nil).fair(heater.heat)),
+      Model,
+      Seq.empty,
+      complete
+    )
+    assertEquals(unfair.verdict, cycle)
+
+  test("a cut exploration answers unknown, never verified, and a counterexample before it stands"):
+    import Kettle.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model, budget = 10)
+    assertEquals(report.verdicts("beepsOnlyWhenOff"), unknown)
+    assertEquals(
+      report.result("beepsOnlyWhenOff").line,
+      "model.beepsOnlyWhenOff: unknown (budget 10 states, 6 steps; exploration cut)"
+    )
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(NativeCheck.verifyAll(HeatingOnly, budget = 10).verdicts("boils"), unknown)
+    // one state short of the whole graph: the beep is reached, its last state is not
+    val states = NativeCheck.explore(Model, Seq(Model.init)).states.size
+    val short = NativeCheck.verifyAll(Model, budget = states - 1)
+    assertEquals(short.result("neverBeeps").verdict, refuted)
+    assertEquals(short.result("neverBeeps").complete, false)
+    assertEquals(short.result("beepsOnlyWhenOff").verdict, unknown)
+
+  test("vacuity: a postcondition whose action never fires is reported in the spec's shape"):
+    import Kettle.*
+    val switching = Model.restrict(user.pressButton, user.depressButton)
+    val report = NativeCheck.verifyAll(switching, sections = Some(Model))
+    assertEquals(
+      report.warnings,
+      Vector("model.failsOverAtBoiling: failover never fires, the postcondition is vacuous")
+    )
+    assertEquals(report.verdicts("neverBeeps"), NativeCheck.Verdict.verified)
+
+  test("TwoLayeredCache's claims are checked by default; its history monitors need a budget"):
+    import TwoLayeredCache.*
+    import NativeCheck.Verdict.*
+    val report = NativeCheck.verifyAll(Model, budget = 4096)
+    // servedFromL2 is a find's target, not a promise of every read: the find answers found
+    assertEquals(
+      report.verdicts,
+      Map(
+        "readFillsL1" -> verified,
+        "servedFromL2" -> refuted,
+        "agreement" -> verified,
+        "readAfterWrite" -> unknown,
+        "writeAfterWrite" -> unknown
+      )
+    )
+    assertEquals(report.result("agreement").longest, Some(1))
+    // every read appends to the history, so the monitors' states are unbounded and only a budget
+    // ends their exploration
+    assertEquals(report.result("readAfterWrite").complete, false)
+    assertEquals(report.warnings, Vector.empty)
+    assertEquals(
+      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
+      Vector("model.readFillsL1Holds" -> verified, "model.readAfterExpiry" -> found)
+    )
+    assertEquals(
+      NativeCheck.verifyAll(WriteThroughL1).verdicts,
+      Map("buggyWritesRecorded" -> verified)
+    )
+    val stale = assertRefuted(WriteThroughL1, Model.monitors.readAfterWrite)
+    assertEquals(stale.detail, Vector("counterexample: write, l1Expire, read"))
+    assertEquals(stale.subject, "writeThroughL1.readAfterWrite")
