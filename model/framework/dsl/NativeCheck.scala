@@ -367,7 +367,7 @@ private[framework] object NativeCheck:
       finds: Boolean
   ): Result =
     val section = NativeClaims
-      .sectionClass(ref.machine, ref.section)
+      .sectionClass(ref.machine, ref.section, requireStatic = true)
       .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
     val vars = varsOf(graph.machine, s"claim $subject")
     var decisive = Option.empty[Vector[String]]
@@ -869,14 +869,64 @@ private[framework] object NativeCheck:
     def subject(member: String) = s"${machine.name}.$member"
     val claims = Vector("invariants", "postconditions").flatMap: kind =>
       section(owner, kind).map:
-        case (member, p: Property) => (kind, member, p.decl)
+        case (member, p: Property) => (kind, member, p)
         case (member, other)       =>
           throw IllegalArgumentException(
             s"${machine.name}.$kind.$member holds $other: a member of $kind is a claim, a block of " +
               "check, records, if or oneOf, and a requirement block must not be empty or contain " +
               "only helper vals"
           )
-    val (safety, warnings, fired) = blocks(graph, owner, subject, claims)
+    val unscoped = claims.flatMap:
+      case (_, _, _: ScopedClaim) => None
+      case (kind, member, p)      => Some((kind, member, p.decl))
+    val hasBlocks = Vector("invariants", "postconditions").exists(kind =>
+      NativeClaims.sectionClass(owner, kind).exists(cls => NativeClaims.members(cls).nonEmpty)
+    )
+    val (safety, warnings, fired) =
+      if claims.nonEmpty && unscoped.isEmpty && !hasBlocks then
+        (Vector.empty[Result], Vector.empty[String], Set.empty[ActionDecl])
+      else blocks(graph, owner, subject, unscoped)
+    val scoped = claims.collect:
+      case (kind, member, p: ScopedClaim) =>
+        val declared = p.scenario
+        val environment =
+          if declared.decl.machine eq p.decl.machine then
+            Scenario(declared.decl.copy(machine = machine))
+          else declared
+        val scenario = environment.bound(machine, member)
+        val named = subject(member)
+        val from = scenario.start.fold(origins)(s =>
+          Seq(s.asInstanceOf[S]) // scalafix:ok DisableSyntax.asInstanceOf
+        )
+        if scenario.machine ne machine then
+          Report(
+            Vector(
+              Result(
+                named,
+                Verdict.unknown,
+                budget,
+                0,
+                false,
+                Vector(
+                  s"reads ${p.decl.machine.name} through a refinement, which no native check reads"
+                )
+              )
+            ),
+            Vector.empty
+          )
+        else if !scenario.free then
+          pinned(machine, named, ClaimQuery(QueryForm.verify, p.decl, scenario), from, budget)
+        else
+          val search = explore(machine, from, scenario.admits, budget, scenario.admits)
+          val (results, vacuous, taken) =
+            blocks(search, owner, subject, Vector((kind, member, p.decl)), includeSections = false)
+          val idle =
+            if !search.complete then Vector.empty
+            else
+              search.admitted
+                .filterNot(taken)
+                .map(decl => s"$named: ${actionName(decl)} never fires")
+          Report(results, idle ++ vacuous)
     val progressResults = section(owner, "progress").collect:
       case (member, p: Progress[?]) =>
         val claim = p.asInstanceOf[Progress[S]] // scalafix:ok DisableSyntax.asInstanceOf
@@ -900,7 +950,10 @@ private[framework] object NativeCheck:
         graph.admitted
           .filterNot(fired)
           .map(decl => s"${machine.name}: ${actionName(decl)} never fires")
-    Report(safety ++ progressResults ++ monitorResults, idle ++ warnings)
+    Report(
+      safety ++ scoped.flatMap(_.results) ++ progressResults ++ monitorResults,
+      idle ++ warnings ++ scoped.flatMap(_.warnings)
+    )
 
   // The claims of `owner`'s `invariants` and `postconditions` written as blocks of assertions
   // (NativeClaims), each section evaluated once per state, or once per step, of the graph: an
@@ -912,10 +965,12 @@ private[framework] object NativeCheck:
       graph: Search[S, O, F],
       owner: AnyRef,
       subject: String => String,
-      claims: Vector[(String, String, PropertyDecl)]
+      claims: Vector[(String, String, PropertyDecl)],
+      includeSections: Boolean = true
   ): (Vector[Result], Vector[String], Set[ActionDecl]) =
     val sections = for
       kind <- Vector("invariants", "postconditions")
+      if includeSections
       cls <- NativeClaims.sectionClass(owner, kind)
       members = NativeClaims.members(cls) if members.nonEmpty
     yield (
@@ -928,12 +983,13 @@ private[framework] object NativeCheck:
     val failures = mutable.HashMap.empty[Int, Vector[String]]
     val missing = mutable.HashMap.empty[Int, Vector[String]]
     val selected = mutable.HashSet.empty[Int]
+    val targeted = mutable.HashMap.empty[Int, Any]
     val fired = mutable.HashSet.empty[ActionDecl]
     val referenced = claims.zipWithIndex.flatMap:
       case ((_, member, decl), at) =>
         decl.claim.map: ref =>
           val cls = NativeClaims
-            .sectionClass(ref.machine, ref.section)
+            .sectionClass(ref.machine, ref.section, requireStatic = true)
             .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
           (at, ref, cls, varsOf(graph.machine, s"claim ${subject(member)}"))
     def finished: Boolean =
@@ -952,6 +1008,9 @@ private[framework] object NativeCheck:
         if ref.section == kind && !failures.contains(at)
       do
         val evaluated = NativeClaims.evaluate(vars, cls, stateOf(state), context())
+        evaluated.targeted
+          .get(ref.member)
+          .foreach(target => targeted.getOrElseUpdate(at, target): Unit)
         val holes = evaluated.missing(ref.member)
         if holes.nonEmpty then
           missing.getOrElseUpdate(
@@ -1031,14 +1090,23 @@ private[framework] object NativeCheck:
         claims.zipWithIndex.collect:
           case (("postconditions", member, decl), at) if decl.when.nonEmpty && !selected(at) =>
             s"${subject(member)}: ${selector(decl.when)} never fires, the postcondition is vacuous"
+          case (("postconditions", member, _), at) if targeted.contains(at) && !selected(at) =>
+            s"${subject(member)}: ${targetName(targeted(at))} never fires, the postcondition is vacuous"
+          case (("postconditions", member, _), _) if fired.isEmpty =>
+            s"${subject(member)}: no steps fire, the postcondition is vacuous"
     val blockWarnings =
       if !graph.complete then Vector.empty
       else
         sections.flatMap:
-          case (_, _, _, _, outcome) =>
-            outcome.targeted.toVector.collect:
-              case (member, target) if !outcome.triggered(member) =>
-                s"${subject(member)}: ${targetName(target)} never fires, the postcondition is vacuous"
+          case (kind, _, members, _, outcome) =>
+            if kind == "postconditions" && fired.isEmpty then
+              members.map(member =>
+                s"${subject(member)}: no steps fire, the postcondition is vacuous"
+              )
+            else
+              outcome.targeted.toVector.collect:
+                case (member, target) if !outcome.triggered(member) =>
+                  s"${subject(member)}: ${targetName(target)} never fires, the postcondition is vacuous"
     (results ++ blockResults, vacuous ++ blockWarnings, fired.toSet)
 
   // What the evaluations of one section found: each member's first failure, where it was found,
@@ -1158,7 +1226,7 @@ private[framework] object NativeCheck:
           val graph = explore(machine, starts, q.scenario.admits, budget, q.scenario.admits)
           if finds(q) then find(graph, subject, q.property)
           else verify(graph, subject, q.property)
-        else pinned(machine, subject, q, starts, budget)
+        else pinned(machine, subject, q, starts, budget).results.head
       case other =>
         throw IllegalArgumentException(
           s"$subject runs on ${other.name}, which no native check explores"
@@ -1173,7 +1241,7 @@ private[framework] object NativeCheck:
       q: Query,
       starts: Seq[S],
       budget: Int
-  ): Result =
+  ): Report =
     require(budget > 0, "a budget admits at least one state")
     scan(machine)
     val classes = q.scenario.actions.map:
@@ -1195,10 +1263,28 @@ private[framework] object NativeCheck:
       else
         reached += state: Unit
         true
-    var frontier = starts.filter(admit).map(_ -> false).distinct.toVector
-    var depth = 0
-    var witness = false
     var failure = Option.empty[String]
+    val outcome = Evaluated()
+    var frontier = starts
+      .filter(admit)
+      .flatMap: state =>
+        q.property.claim.filter(_.section == "invariants") match
+          case None      => Some(state -> false)
+          case Some(ref) =>
+            try
+              val held = judgeClaim(ref, state, NativeClaims.Context(), outcome)
+              if held.contains(false) && failure.isEmpty then
+                failure = Some("counterexample at initial state")
+              Some(state -> held.contains(true))
+            catch
+              case HoleReached(hole) =>
+                unknown += s"unknown: initial state $state reaches ${holeName(hole)}"
+                None
+      .distinct
+      .toVector
+    var depth = 0
+    var witness = classes.isEmpty && frontier.exists(_._2)
+    var stepped = false
     classes.zipWithIndex.foreach: (cls, i) =>
       val effect = effects
         .find(_._1 eq cls.decl)
@@ -1214,8 +1300,9 @@ private[framework] object NativeCheck:
               unknown += s"unknown: ${shown(cls)} at $before reaches ${holeName(hole)}"
               Nil
         steps.flatMap: step =>
+          stepped = true
           try
-            val holds = judge(q.property, before, cls, step)
+            val holds = judge(q.property, before, cls, step, outcome)
             holds match
               case Some(false) if failure.isEmpty =>
                 failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
@@ -1242,37 +1329,56 @@ private[framework] object NativeCheck:
       else if complete then Verdict.verified
       else Verdict.unknown
     val detail = if finds(q) && witness then Vector.empty else failure.toVector ++ missing
-    Result(subject, verdict, budget, depth, complete, detail)
+    val warnings =
+      if !complete then Vector.empty
+      else if !stepped && q.property.claim.exists(_.section == "postconditions") then
+        Vector(s"$subject: no steps fire, the postcondition is vacuous")
+      else
+        outcome.targeted.toVector.collect:
+          case (member, target)
+              if q.property.claim.exists(_.member == member) && !outcome.triggered(member) =>
+            s"$subject: ${targetName(target)} never fires, the postcondition is vacuous"
+    Report(Vector(Result(subject, verdict, budget, depth, complete, detail)), warnings)
 
   // Whether a Property holds of one step of `cls` from `before`, where it is about that step.
   private def judge[S, O, F](
       decl: PropertyDecl,
       before: S,
       cls: Class,
-      step: Step[S, O, F]
+      step: Step[S, O, F],
+      outcome: Evaluated
   ): Option[Boolean] =
     decl.claim match
       case Some(ref) =>
-        val section = NativeClaims
-          .sectionClass(ref.machine, ref.section)
-          .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
-        val vars = varsOf(
-          ref.machine match
-            case m: RecordMachine[?, ?, ?] => m
-            case other => throw IllegalArgumentException(s"${other.name} declares no vars")
-          ,
-          s"claim $ref"
-        )
         val context =
           if ref.section == "invariants" then NativeClaims.Context()
           else
             NativeClaims.Context(Some(stateOf(before)), Some(cls), Some(step.outcome), step.facts)
-        val evaluated = NativeClaims.evaluate(vars, section, stateOf(step.state), context)
-        if evaluated.applies(ref.member) && evaluated.failure(ref.member).isEmpty then
-          evaluated.missing(ref.member).headOption.foreach(hole => throw HoleReached(hole))
-        if evaluated.applies(ref.member) then Some(evaluated.failure(ref.member).isEmpty) else None
+        judgeClaim(ref, step.state, context, outcome)
       case None =>
         if selects(decl.when, cls) then Some(holds(decl, before, step)) else None
+
+  private def judgeClaim(
+      ref: NativeClaims.Ref,
+      state: Any,
+      context: NativeClaims.Context,
+      outcome: Evaluated
+  ): Option[Boolean] =
+    val section = NativeClaims
+      .sectionClass(ref.machine, ref.section, requireStatic = true)
+      .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
+    val vars = varsOf(
+      ref.machine match
+        case m: RecordMachine[?, ?, ?] => m
+        case other => throw IllegalArgumentException(s"${other.name} declares no vars")
+      ,
+      s"claim $ref"
+    )
+    val evaluated = NativeClaims.evaluate(vars, section, stateOf(state), context)
+    outcome.note(evaluated, Vector.empty, Vector(ref.member))
+    if evaluated.applies(ref.member) && evaluated.failure(ref.member).isEmpty then
+      evaluated.missing(ref.member).headOption.foreach(hole => throw HoleReached(hole))
+    if evaluated.applies(ref.member) then Some(evaluated.failure(ref.member).isEmpty) else None
 
   // Every Query of a Machine's `queries` section, run natively, by the member that declares it.
   def queries(machine: Model, budget: Int = defaultBudget): Vector[Result] =

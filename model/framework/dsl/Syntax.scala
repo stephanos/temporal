@@ -161,6 +161,16 @@ transparent inline def before[S](using context: Before[S]): Any =
 // `condition && remainingRequirements`.
 inline def check(inline condition: Boolean): Unit = ${ ClaimMacros.check('condition) }
 
+// A safety claim with its own environment. Core form:
+// `ScopedClaim(machine, section, member, scenario)(block)`.
+extension (inline block: Unit)
+  inline infix def in(inline scenario: Scenario): ScopedClaim =
+    ${ ClaimMacros.scoped('block, 'scenario) }
+
+  // Refuses a non-scenario environment. Core form: `scala.compiletime.error(...)`.
+  inline infix def in(@scala.annotation.unused other: Any): Nothing =
+    scala.compiletime.error("in takes a scenario: only(...), fair(...), starts(...) or a named one")
+
 // Fact requirements specialized to the current step. Inside a
 // Machine, `records(fact)` asserts the fact in a claim and records it in an effect (ClaimWords).
 // Core form: `s.facts.contains(fact)`.
@@ -357,6 +367,26 @@ private[framework] object ClaimMacros:
   // Whether a block asserts anything: a check, a fact or alternatives.
   private def asserts(using q: Quotes)(block: q.reflect.Term): Boolean =
     calls(block, Set("check", "records", "oneOf")) > 0
+
+  @scala.annotation.publicInBinary
+  private[framework] def scoped(block: Expr[Unit], scenario: Expr[Scenario])(using
+      q: Quotes
+  ): Expr[ScopedClaim] =
+    import q.reflect.*
+    val section = owners
+      .find(s => s.isClassDef && claimSections(s.name))
+      .getOrElse(
+        report.errorAndAbort(
+          "an invariant or postcondition belongs in invariants or postconditions"
+        )
+      )
+    if !asserts(block.asTerm) then report.errorAndAbort(emptyBlock, block.asTerm.pos)
+    val owner = machineRef(
+      machine.getOrElse(
+        report.errorAndAbort("a claim belongs in a Machine")
+      )
+    )
+    '{ ScopedClaim($owner, ${ Expr(section.name.stripSuffix("$")) }, $member, $scenario)($block) }
 
   @scala.annotation.publicInBinary
   private[framework] def check(condition: Expr[Boolean])(using q: Quotes): Expr[Unit] =

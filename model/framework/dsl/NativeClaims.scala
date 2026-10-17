@@ -186,10 +186,18 @@ private[framework] object NativeClaims:
   // The class a claim section of `owner` (a Machine object, or the object its sections are read
   // from) compiles to, where it declares one as a nested object. A section of an instance, such as
   // a facet's, is no static object, and its claims are not evaluated natively.
-  def sectionClass(owner: AnyRef, section: String): Option[java.lang.Class[?]] =
+  def sectionClass(
+      owner: AnyRef,
+      section: String,
+      requireStatic: Boolean = false
+  ): Option[java.lang.Class[?]] =
     scala.util
       .Try(
-        java.lang.Class.forName(owner.getClass.getName + section + "$", false, loaderOf(owner))
+        java.lang.Class.forName(
+          owner.getClass.getName.stripSuffix("$") + "$" + section + "$",
+          false,
+          loaderOf(owner)
+        )
       )
       .toOption
       .map: cls =>
@@ -198,7 +206,7 @@ private[framework] object NativeClaims:
           .toOption
           .exists(f => java.lang.reflect.Modifier.isStatic(f.getModifiers))
         require(
-          static || members(cls).isEmpty,
+          static || (!requireStatic && members(cls).isEmpty),
           s"${cls.getName} is a claim section of an instance, such as a facet's, which no native " +
             "check evaluates: declare the claims in the Machine object's own sections"
         )

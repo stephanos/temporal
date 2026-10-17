@@ -76,9 +76,28 @@ read-only review and re-review found no remaining material issue. Logs are
 `.flow/tmp/progress-monitor-holes-{red,early-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
 The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
 
+Safety claims now carry their own inline or named `in` environment. Default checking and explicit
+`verify`/`find` inherit it, while an explicit query environment overrides it. Exact input-class
+selection, starts, independent unscoped claims, derived bindings, predicate holes and caller budgets
+remain intact. An all-scoped safety section runs no unrestricted search. Native section reloading
+preserves checks preceding the scoped tail; unsupported instance sections refuse evaluation.
+
+Pinned invariants now check initial states, including an empty schedule. Default safety reports
+retain postcondition vacuity for free and pinned environments, including empty and disabled paths;
+zero-step reports warn without evaluating a postcondition on a fabricated step. Warnings remain
+suppressed for incomplete exploration.
+
+All 23 safety-environment controls pass in the 558-test DSL/realize run. The initial surface test
+reproduced accidental Boolean membership; the first runtime run reproduced eight failures. Review
+then reproduced three pinned initial-state/vacuity failures and three zero-step warning failures.
+Eight selected sample suites pass 42 tests, source lint passes 29 tests, and scoped formatting
+passes. A fresh-context same-family read-only review and re-review found no remaining material
+issue. Logs: `.flow/tmp/safety-environments-{surface-red,red,pinned-red,empty-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
+The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
+
 The original native requirements remain open: public legacy vocabulary is still reachable through
-record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
-naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
+record-state compatibility, and naked Scala guards/helper vals after a failed check still require
+a whole-member execution boundary.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 

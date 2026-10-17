@@ -25,6 +25,32 @@ final class PropertyDecl private[framework] (
 class Property private[framework] (val decl: PropertyDecl):
   def name: String = decl.name
 
+final class ScopedClaim private[framework] (
+    decl: PropertyDecl,
+    private[framework] val scenario: Scenario
+) extends Property(decl)
+
+object ScopedClaim:
+  @scala.annotation.publicInBinary
+  private[framework] def apply(
+      machine: Model,
+      section: String,
+      member: String,
+      scenario: Scenario
+  )(body: => Unit): ScopedClaim =
+    if NativeClaims.current.nonEmpty then body
+    new ScopedClaim(
+      PropertyDecl(
+        member,
+        machine,
+        None,
+        None,
+        None,
+        claim = Some(NativeClaims.Ref(machine, section, member))
+      ),
+      scenario
+    )
+
 // Declares a Property on a machine whose steps are `Step[S, O, F]`.
 final class PropertyBuilder[S, O, F] private[framework] (
     private[framework] val name: String,
@@ -379,7 +405,10 @@ object ClaimQuery:
   // A check of a Property, a claim of a Machine written in the retired `property` form.
   @scala.annotation.publicInBinary
   private[framework] def property(form: QueryForm, claim: Property): ClaimQuery =
-    ClaimQuery(form, claim.decl, Scenario.of(None, None).bound(claim.decl.machine, ""))
+    val scenario = claim match
+      case scoped: ScopedClaim => scoped.scenario
+      case _                   => Scenario.of(None, None)
+    ClaimQuery(form, claim.decl, scenario.bound(claim.decl.machine, ""))
 
   // A check of a progress claim, in its own environment unless `in` names another.
   @scala.annotation.publicInBinary
