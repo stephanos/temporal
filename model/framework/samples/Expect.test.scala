@@ -5,41 +5,6 @@ import samples.*
 
 class SampleExpectTest extends munit.FunSuite:
   val _ = () => summon[CanEqual[Bank.Outcome, Bank.Outcome]]
-  private def same[S, O, F](
-      actual: Property,
-      owner: Model,
-      restriction: Option[ClassRef | Composed | String],
-      cases: List[(Step[S, O, F], Boolean)]
-  )(old: Step[S, O, F] => Boolean): Unit =
-    val oracle = Property(PropertyDecl(actual.name, owner, restriction, Some(old), None))
-    assert(actual.decl.machine eq oracle.decl.machine)
-    assertEquals(actual.decl.when, oracle.decl.when)
-    assertEquals(actual.decl.holds2, None)
-    val migrated = actual.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean]
-    val original = oracle.decl.holds.get.asInstanceOf[Step[S, O, F] => Boolean]
-    assertEquals(migrated.asInstanceOf[PredicateBindings].sourceParameters, Vector("after"))
-    cases.foreach: (step, expected) =>
-      assertEquals(original(step), expected)
-      assertEquals(migrated(step), expected)
-
-  private def across[S, O, F](
-      actual: Property,
-      owner: Model,
-      cases: List[(S, Step[S, O, F], Boolean)]
-  )(old: (S, Step[S, O, F]) => Boolean): Unit =
-    val oracle = Property(PropertyDecl(actual.name, owner, None, None, Some(old)))
-    assert(actual.decl.machine eq oracle.decl.machine)
-    assertEquals(actual.decl.when, None)
-    assertEquals(actual.decl.holds, None)
-    val migrated = actual.decl.holds2.get.asInstanceOf[(S, Step[S, O, F]) => Boolean]
-    val original = oracle.decl.holds2.get.asInstanceOf[(S, Step[S, O, F]) => Boolean]
-    assertEquals(
-      migrated.asInstanceOf[PredicateBindings].sourceParameters,
-      Vector("before", "after")
-    )
-    cases.foreach: (before, after, expected) =>
-      assertEquals(original(before, after), expected)
-      assertEquals(migrated(before, after), expected)
 
   test("Bank's four native predicates retain supply, refusal and exact-send requirements"):
     import Bank.*

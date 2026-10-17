@@ -3,37 +3,6 @@ package framework.dsl
 import samples.*
 import NativeControls.{assertRefuted, invariant}
 
-// A claim of a sample's sections judged on one state or step, as the native checker judges it
-// (NativeCheck): the section evaluated on `machine`'s vars holding the state the step reached, with
-// the state it started from, the class it took, its outcome and its facts under evaluation.
-private[dsl] object SampleClaims:
-  // Whether `member` of the section `section` of `owner` holds of `step`: None where it is about the
-  // steps of a target `taken` is not one of.
-  def judged(
-      machine: RecordMachine[?, ?, ?],
-      owner: AnyRef,
-      section: String,
-      member: String,
-      step: Step[State, ?, ?],
-      from: Option[State] = None,
-      taken: Option[Class] = None
-  ): Option[Boolean] =
-    val cls = NativeClaims.sectionClass(owner, section).get
-    val context = NativeClaims.evaluate(
-      machine.stateVars.get,
-      cls,
-      step.state,
-      NativeClaims.Context(from, taken, Some(step.outcome), step.facts)
-    )
-    Option.when(context.applies(member))(context.failure(member).isEmpty)
-
-  // Whether a claim written in a test, `invariant(check(...))`, holds in `state` of `machine`.
-  def holds(machine: RecordMachine[?, ?, ?], claim: NativeClaims.Adhoc, state: State): Boolean =
-    NativeClaims
-      .evaluate(machine.stateVars.get, claim, state, NativeClaims.Context())
-      .checks
-      .forall(_.holds)
-
 class NativeMapsTest extends munit.FunSuite:
   private def run[S, O](
       machine: RecordMachine[S, O, Nothing],

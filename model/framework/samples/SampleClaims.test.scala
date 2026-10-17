@@ -15,6 +15,26 @@ object SampleClaims:
     val evaluated = NativeClaims.evaluate(vars(ref), section(ref), state(after.state), context)
     Option.when(evaluated.applies(ref.member))(evaluated.failure(ref.member).isEmpty)
 
+  // Whether `member` of the section `section` of `owner` holds of `step`: None where it is about the
+  // steps of a target `taken` is not one of.
+  def judged(
+      machine: RecordMachine[?, ?, ?],
+      owner: AnyRef,
+      section: String,
+      member: String,
+      step: Step[State, ?, ?],
+      from: Option[State] = None,
+      taken: Option[Class] = None
+  ): Option[Boolean] =
+    val cls = NativeClaims.sectionClass(owner, section).get
+    val context = NativeClaims.evaluate(
+      machine.stateVars.get,
+      cls,
+      step.state,
+      NativeClaims.Context(from, taken, Some(step.outcome), step.facts)
+    )
+    Option.when(context.applies(member))(context.failure(member).isEmpty)
+
   // Whether an invariant holds in `now`.
   def holds(claim: Query, now: Any): Boolean =
     val ref = claim.property.claim.get
