@@ -805,14 +805,25 @@ Witness, rule and block declaration sugar is still open for fn-141.4 and constru
 
 #### Definition-site function capture (staged)
 
+**The compilation contract.** Every Model and every definition a Model lifts from compile in one
+`scala-cli` compilation of sources under `model/`: the framework DSL and realization core, the
+Temporal kit and the selected features, as the Makefile's `MODEL_SOURCES` already are. The only
+jars on the Models' classpath are the generated IR and API proto jars and the reify plugin; neither
+holds a liftable body. Lifted code outside that one compilation is not supported. The plugin
+therefore reads no TASTy or trees from a jar, checks no artifact identity or source path, and
+treats nothing on the classpath as untrusted. Its carriers are annotations it wrote before pickling
+in the same build, read back under incremental compilation where a file is not in the run; they
+hold data only, with no version, fingerprint or position table. A stored `ir.Model` carries a
+position on its root function only; compile-time refusals are reported at their trees and keep
+their positions.
+
 `framework/reify/body` is the one body engine used by the TASTy exporter and the pinned Scala
 3.9.0 compiler plugin. The plugin stores `@lifted` functions before pickling and captures typed
 arguments before inlining. Its internal carrier contains the root and the complete transitive
 function/type closure as existing IR protobuf, in 24,000-character Base64 chunks. It keeps the
 native callable; `Reify.function` returns an `ir.Function`, not a new author-facing wrapper.
-An external author helper must carry definition-site IR. Unmarked foreign source bodies are not
-read, including other units of the same compiler run. Only jar-origin definitions marked
-`@sugar` (or owned by a marked sugar class) may expand their bodies.
+A helper in another source unit must carry definition-site IR. Unmarked source bodies of other
+units are not read, and a `@sugar` body expands only from the capture's own unit.
 
 Build the independent DSL/realization library without the plugin. Package the plugin with
 `scala-cli --power package --server=false --assembly --preamble=false
@@ -824,11 +835,10 @@ Production Model builds also pass `-P:umpire-reify:mode=realization`: this activ
 provenance, naming and the nonsignature schema transforms constructed realizations need, while the
 endpoint, rule and function-capture phases remain held for their later tasks. Compiler-proven family
 and self-naming results cross compiler runs through framework-private annotation carriers;
-ordinary Model source outside the framework cannot name those carriers. Their trust boundary is build-owned, non-hostile
-compiled dependencies: the metadata validates provenance and shape but is not a signature over
-adversarially forged TASTy. Model source and its authors are trusted too: reserved-literal checks
-catch accidental or direct marker spelling, not a deliberately synthesized equivalent byte string.
-No experimental setting or retained-tree flag is required.
+ordinary Model source outside the framework cannot name those carriers. Model source and its
+authors are trusted: reserved-literal checks catch accidental or direct marker spelling, not a
+deliberately synthesized equivalent byte string. No experimental setting or retained-tree flag is
+required.
 
 Native Model tests compile only their test sources against that packaged Model jar, without the
 plugin; assertion libraries and deliberate anonymous native controls need no family-forwarding
@@ -845,16 +855,9 @@ selector and schema metadata without capturing Machine endpoint/rule bodies. The
 mode still refuses unsupported endpoint bodies at their authored positions. Framework-only replay
 also selects its module policy per lift; production lifts retain the installed system policy.
 
-The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations,
-phase ordering, and the existing loader's `DottyUnpickler.rootTrees`. Scala 3.9.0 does not attach
-that provider to foreign symbols without retained trees. For eligible jar sugar only, the host
-uses the exact `TastyLoader$$anon$2.$outer` field with `trySetAccessible`, then the JVM getter
-`dotty$tools$dotc$core$TastyLoader$$unpickler`. These names and layout are pinned to Scala 3.9.0's
-`SymbolLoaders.scala`; a changed version, layout or denied access refuses clearly. There is no
-loader re-entry, new symbol universe, broad reflection search, or fallback to author trees.
-The cached root list is read once per original unpickler identity: without retained trees a second
-read consumes the same TASTy reader and can return nothing. All provider roots, selected trees and
-definition/recursion caches reset on the actual compiler run identity, including warm compilations.
+The compiler-host API cost is explicit: typed compiler trees/symbols, `QuotesImpl`, annotations
+and phase ordering. Definition and recursion caches reset on the actual compiler run identity,
+including warm compilations.
 
 The existing typed `action ~> callback` overloads capture arities 0, 1, 2, 3, 4 and 6. They retain
 the original native function, constructor, product, equality and unapply shape, attaching internal
@@ -864,8 +867,8 @@ restrict/unmonitored, rebind/extend and `Derived` forwarding. Binding copies kee
 two-field constructor/product/equality/extractor behavior and clear capture metadata; changing
 a callable never copies its previous IR.
 
-`ReifyBoundarySuite` exercises real same-run/jar imports, native typing, chunking and helper-only
-warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and every type of six
+`ReifyBoundarySuite` exercises imports from other source units, native typing, chunking and
+helper-only warm invalidation. `ReifySamplesSuite` compares all 167 old-host functions and every type of six
 samples with pre-port IR, ignoring positions. That extraction guard is not the compile-time
 all-function oracle: DSL constructed-value lowering and the held system integration remain open.
 
