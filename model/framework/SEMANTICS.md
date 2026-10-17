@@ -569,6 +569,11 @@ generated Queries live.
 A native environment may select a whole action or one input class: `only(action)` admits every
 class of that action, while `only(action(input))` admits just that class. Similarly, `fair(action)`
 makes every class weakly fair; `fair(action(input))` makes only the selected class weakly fair.
+A claim takes its own environment with `in`, `check(!active) in off`. `in` scopes only the
+statement it ends, so a claim of several statements is scoped whole, `val both = { check(a);
+check(b) } in off` or `(after(action): ...) in off`; the block-form lint refuses a claim member in
+`invariants`, `postconditions` or `progress` whose block of several statements ends in `... in env`,
+since its earlier statements would stand outside the environment.
 
 **Writing it.** In `object queries`, every Scenario before the Query that uses it:
 

@@ -52,6 +52,69 @@ object BlockFormRule:
               Option.when(after < code.length && code(after) == '(')(lineAt(code, found.start))
       .toVector
 
+  private val claimSection = "^(\\s*)object\\s+(?:invariants|postconditions|progress)\\b.*:\\s*$".r
+  private val blockMember =
+    "^(\\s*)(?:[a-z]+\\s+)*(?:val|def)\\s+([A-Za-z_$][A-Za-z0-9_$]*).*=\\s*$".r
+  // A line that goes on with the statement above it rather than starting one.
+  private val continuing = "^(?:[)\\]}.]|else\\b|then\\b|case\\b|&&|\\|\\|)".r
+  private val keyword = "\\b(?:if|then|else|match|do|while|for|yield)\\b|=>".r
+
+  private def indent(text: String): Int = text.indexWhere(_ != ' ')
+
+  // Whether `statement` applies `in` to all of it at its own top level: `check(x) in env`, not
+  // membership inside it, `check(x in (a, b))`, nor a condition, `if x in (a, b) then ...`.
+  private def scopedTail(statement: String): Boolean =
+    val depths = statement.scanLeft(0): (depth, c) =>
+      if "([{".contains(c) then depth + 1 else if ")]}".contains(c) then depth - 1 else depth
+    "\\bin\\b".r
+      .findAllMatchIn(statement)
+      .filter(found => depths(found.start) == 0)
+      .toVector
+      .lastOption
+      .exists: found =>
+        val env = statement
+          .substring(found.end)
+          .zipWithIndex
+          .filter((_, i) => depths(found.end + i) == 0)
+          .map(_._1)
+          .mkString
+        env.trim.nonEmpty && keyword.findFirstIn(env).isEmpty
+
+  // The claim members of a source, in `invariants`, `postconditions` or `progress`, whose block of
+  // several statements ends in `... in env`: the `in` scopes only that last statement, so the
+  // statements before it are no part of the scoped claim. Each is named with its line.
+  def scopedPrefixes(source: String): Vector[(Int, String)] =
+    val lines = SyntaxRule.code(source).split("\n", -1).toVector
+    def blank(at: Int) = lines(at).trim.isEmpty
+    // The lines below `at` indented deeper than `depth`, blank lines among them.
+    def below(at: Int, depth: Int): Vector[Int] =
+      (at + 1 until lines.size)
+        .takeWhile(i => blank(i) || indent(lines(i)) > depth)
+        .filterNot(blank)
+        .toVector
+    lines.indices.toVector.flatMap: at =>
+      claimSection
+        .findFirstMatchIn(lines(at))
+        .toVector
+        .flatMap: section =>
+          val members = below(at, section.group(1).length)
+          val depth = members.headOption.fold(0)(i => indent(lines(i)))
+          members
+            .filter(i => indent(lines(i)) == depth)
+            .flatMap: member =>
+              blockMember
+                .findFirstMatchIn(lines(member))
+                .flatMap: declared =>
+                  val body = below(member, depth)
+                  val top = body.headOption.fold(0)(i => indent(lines(i)))
+                  val starts = body.filter: i =>
+                    indent(lines(i)) == top && continuing.findFirstIn(lines(i).trim).isEmpty
+                  Option.when(
+                    starts.size > 1 && scopedTail(
+                      (starts.last +: body.filter(_ > starts.last)).map(lines).mkString("\n")
+                    )
+                  )(member + 1 -> declared.group(2))
+
   private def braces(source: String): Vector[(Int, String)] =
     val code = SyntaxRule.code(source)
     val blocks = calls(code).flatMap: found =>
@@ -107,4 +170,7 @@ object BlockFormRule:
           line -> s"$file:$line: block-form rule: use a colon block for `$name`, not optional braces"
         val cases = parenthesized(source).map: line =>
           line -> s"$file:$line: block-form rule: write the cases as `on(...):`, not `on(...)(case)`"
-        (optional ++ cases).sortBy(_._1).map(_._2)
+        val scoped = scopedPrefixes(source).map: (line, name) =>
+          line -> (s"$file:$line: block-form rule: `$name`: `in` scopes only its own statement; " +
+            "scope the whole claim: `{ ... } in env`")
+        (optional ++ cases ++ scoped).sortBy(_._1).map(_._2)

@@ -159,3 +159,81 @@ class BlockFormRuleSuite extends munit.FunSuite:
     val colons = braces.replace(" {", ":\n  ").replace(" }", "")
     corpus("model/framework/samples/Selected.scala" -> colons): root =>
       assertEquals(BlockFormRule.findings(root), Vector.empty)
+
+  test("a claim block of several statements whose last is scoped by in is found at its member"):
+    val source =
+      """object Model extends Machine[Said, Note]:
+        |  object invariants:
+        |    val both =
+        |      check(false)
+        |      check(true) in off
+        |    val guarded =
+        |      val limit = 3
+        |      if presses > limit then check(false)
+        |      check(presses >= 0) in only(hand.press)
+        |        .starts(presses = 0)
+        |  object postconditions:
+        |    def counted(n: Int) =
+        |      // a helper read before the scoped statement
+        |      val before = n
+        |      check(presses == before) in off
+        |  object progress:
+        |    val wears =
+        |      val pressing = only(hand.press)
+        |      leadsTo(from = presses == 0, to = presses == 3, within = 3) in pressing
+        |""".stripMargin
+    assertEquals(
+      BlockFormRule.scopedPrefixes(source),
+      Vector(3 -> "both", 6 -> "guarded", 12 -> "counted", 17 -> "wears")
+    )
+    corpus("model/framework/samples/Scoped.scala" -> source): root =>
+      val findings = BlockFormRule.findings(root)
+      assertEquals(findings.map(_.split(':')(1).toInt), Vector(3, 6, 12, 17))
+      assertEquals(
+        findings.head,
+        "model/framework/samples/Scoped.scala:3: block-form rule: `both`: `in` scopes only its own " +
+          "statement; scope the whole claim: `{ ... } in env`"
+      )
+
+  test("a braced, parenthesized, single or unscoped claim block and other sections are no finding"):
+    val source =
+      """object Model extends Machine[Said, Note]:
+        |  object invariants:
+        |    val both = {
+        |      check(false)
+        |      check(true)
+        |    } in off
+        |    val braced =
+        |      {
+        |        check(false)
+        |        check(true)
+        |      } in off
+        |    val single =
+        |      check(true) in off
+        |    val inline = check(true) in off
+        |    val member =
+        |      check(presses >= 0)
+        |      check(light in (Lit.on, Lit.off))
+        |    val condition =
+        |      check(presses >= 0)
+        |      if light in (Lit.on, Lit.off) then check(presses < 3)
+        |    val branches =
+        |      if lit then check(presses > 0)
+        |      else check(presses == 0) in off
+        |  object postconditions:
+        |    val pressed =
+        |      (after(hand.press):
+        |        check(false)
+        |        check(true)
+        |      ) in off
+        |  object queries:
+        |    val lighting =
+        |      val target = lightsUp
+        |      find(target) in pressing
+        |  // object invariants:
+        |  //   val both =
+        |  //     check(false)
+        |  //     check(true) in off
+        |  val text = "object invariants:\n  val both =\n    check(false)\n    check(true) in off"
+        |""".stripMargin
+    assertEquals(BlockFormRule.scopedPrefixes(source), Vector.empty)

@@ -37,9 +37,10 @@ object SafetyEnvironmentsFixture:
         check(active) in only(worker.set(true)).starts(active = true)
       val losesActive =
         check(active) in only(worker.set).starts(active = true)
-      val both =
+      val both = {
         check(false)
-        check(true) in off
+        check(true)
+      } in off
       val uncertain =
         check(missing.reached) in off
 
@@ -202,7 +203,7 @@ class SafetyEnvironmentsSuite extends munit.FunSuite:
     assertEquals(broken.verdict, refuted)
     assertEquals(broken.detail, Vector("counterexample: set(false)"))
 
-  test("a scoped tail preserves earlier assertions of the same member"):
+  test("a scoped block keeps the assertions before its last statement"):
     val result = NativeCheck.query(verify(Model.invariants.both), "model.both")
     assertEquals(result.verdict, refuted)
     assertEquals(result.detail, Vector("counterexample: "))
