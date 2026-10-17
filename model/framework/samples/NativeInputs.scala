@@ -5,7 +5,8 @@ import framework.dsl.Finite.given
 
 object NativeInputs:
   final case class Request(amount: Int = 0, ceiling: Int = 2)
-  final case class AcceptedState(seen: Set[Int])
+
+  given Ok[Boolean] = Ok(true)
 
   object caller extends Actor:
     val submit = action(this).inputs[Request](
@@ -13,16 +14,15 @@ object NativeInputs:
       inputField[Request](_.ceiling).in(domains.oneOf(1 to 2))
     )
 
-  object Accepted extends RecordMachine[AcceptedState, Boolean, Nothing]:
-    val init = AcceptedState(Set.empty)
-    def end(s: AcceptedState): Boolean = s.seen.nonEmpty
+  object Accepted extends Machine[Boolean, Nothing]:
+    var seen = Set.empty[Int]
+
+    override def end = seen.nonEmpty
 
     object rules extends Rules:
       on(caller.submit):
-        where((s, in) => in.amount <= in.ceiling && !s.seen.contains(in.amount)) ~>
-          ((s: AcceptedState, in: Request) =>
-            List(Step(true, s.copy(seen = s.seen.incl(in.amount))))
-          )
+        where((in: Request) => in.amount <= in.ceiling && !seen.contains(in.amount)) ~>
+          ((in: Request) => seen = seen.incl(in.amount))
 
     object postconditions:
       val zeroWasAccepted = property
@@ -30,6 +30,6 @@ object NativeInputs:
         .expect:
           oneOf:
             branch:
-              check(after.state.seen == Set(0))
+              check(seen == Set(0))
             branch:
-              check(after.state.seen == Set(0, 2))
+              check(seen == Set(0, 2))
