@@ -168,7 +168,7 @@ object TransitionsFixture:
       def applyReset(s: Retry) =
         enter[Retry, Outcome, Nothing](s.copy(phase = Phase.scheduled, retries = UpTo(2)))
 
-    object rules extends Rules:
+    object transitions extends Rules:
       on(activityWorker.respondFailed(Failure.retryable)):
         when(Phase.started).where(states.retriesRemaining) ~> effects.backOff
         when(Phase.cancelRequested) ~> effects.cancel
