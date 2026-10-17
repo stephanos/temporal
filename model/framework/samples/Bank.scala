@@ -80,22 +80,21 @@ object Bank:
       // holds none of `denom` or fewer than `amount`, and where either account would hold more, or
       // owe more, than the type of a balance can.
       def send(in: Send) =
-        val fromBalance = balances(in.fromAddr, in.denom)
-        val toBalance = balances(in.toAddr, in.denom)
+        import in.*, Outcome.*
+        val sender = balances(fromAddr, denom)
+        val receiver = balances(toAddr, denom)
         // Zero is no entry, and the SDK refuses a denomination the sender has no entry for,
         // whatever the amount: so an empty sender's zero send is refused and a funded one's is not.
-        if fromBalance == 0 || fromBalance < in.amount then
-          reject(Outcome.invalidCoinsOrInsufficientFunds)
+        if sender == 0 || sender < amount then reject(invalidCoinsOrInsufficientFunds)
         // The sender can pay, and pays itself: accepted, and nothing changes. Quint checks the
         // overflow first; with a bound as small as the supply, the king's self-send of one banana
         // would then overflow.
-        else if in.fromAddr == in.toAddr then ()
-        else if !fits(fromBalance - in.amount) || !fits(toBalance + in.amount) then
-          reject(Outcome.overflow)
+        else if fromAddr == toAddr then ()
+        else if !fits(sender - amount) || !fits(receiver + amount) then reject(overflow)
         else
           balances = balances
-            .set(in.fromAddr, in.denom, fromBalance - in.amount)
-            .set(in.toAddr, in.denom, toBalance + in.amount)
+            .set(fromAddr, denom, sender - amount)
+            .set(toAddr, denom, receiver + amount)
 
     object invariants:
       val totalSupplyInv =
