@@ -55,7 +55,7 @@ object InputGuardsFixture:
 
   object Restricted extends Derived(Native.restrict(caller.start))
 
-  trait Applying extends Facet[Boolean, Boolean, Boolean]:
+  trait Applying extends RecordFacet[Boolean, Boolean, Boolean]:
 
     object applying:
 

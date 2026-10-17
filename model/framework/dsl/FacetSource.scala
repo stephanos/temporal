@@ -34,7 +34,7 @@ object FacetSource:
       .filter(s => s.isClassDef && s.flags.is(Flags.Module))
       .filter(s =>
         s.owner.isClassDef && s.owner.flags.is(Flags.Trait) &&
-          s.owner.typeRef.derivesFrom(Symbol.requiredClass("framework.dsl.Facet"))
+          s.owner.typeRef.derivesFrom(Symbol.requiredClass("framework.dsl.RecordFacet"))
       )
       .map(_.name.stripSuffix("$"))
     val named =

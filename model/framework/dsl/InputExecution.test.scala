@@ -74,7 +74,7 @@ object InputExecutionFixture:
         always ~> ((s: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, s, List(in._1))))
       on(caller.alternate(Other()), caller.scalar(true), caller.empty):
         always ~> ((s: Boolean) => List(Step(true, !s, List(false))))
-  trait Applying extends Facet[Boolean, Boolean, Boolean]:
+  trait Applying extends RecordFacet[Boolean, Boolean, Boolean]:
 
     object applying:
 

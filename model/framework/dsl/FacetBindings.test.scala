@@ -80,7 +80,7 @@ class FacetBindingsSuite extends munit.FunSuite:
     Base64.getEncoder.encodeToString(value.toByteArray)
 
   // These are runtime metadata controls; author admission is pinned by ConstructedFacetsSuite.
-  private trait Owned extends Facet[Boolean, Boolean, Nothing]:
+  private trait Owned extends RecordFacet[Boolean, Boolean, Nothing]:
 
     object owned:
 

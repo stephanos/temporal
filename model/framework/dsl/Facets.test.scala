@@ -1,8 +1,11 @@
 package framework.dsl
 
-// Facets run as Scala: a machine assembled from facets binds what the same machine written as one
-// object binds, an action bound by two facets is refused, and a facet's self-type makes a machine
-// without the facet it depends on fail to compile.
+import framework.dsl.Finite.given
+
+// Facets run as Scala: a Machine assembled from facets binds what the same Machine written as one
+// object binds, an action bound by two facets is refused, a facet's self-type makes a Machine
+// without the facet it depends on fail to compile, and a var a facet declares that the Machine does
+// not define is Scala's abstract-member error.
 object FacetsFixture:
   enum Lit(val status: Note) extends Recorded[Note]:
     case off extends Lit(Note.dark)
@@ -11,8 +14,6 @@ object FacetsFixture:
 
   enum Note:
     case dark, lit, gone
-
-  final case class Lamp(light: Lit, presses: UpTo[1])
 
   enum Said:
     case ok
@@ -23,122 +24,156 @@ object FacetsFixture:
     val press = action
     val smash = action
 
-  // The facet the others step through: pressing.
-  trait Pressing extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+  // The facet the others step through: pressing. It declares the vars it reads and assigns.
+  trait Pressing extends Facet[Said, Note]:
+    var light: Lit
+    var presses: UpTo[1]
 
     object pressing:
 
-      object effects:
-        def toggle(s: Lamp) = enter[Lamp, Said, Note](
-          s.copy(light = if s.light.in(Lit.on) then Lit.off else Lit.on, presses = UpTo[1](1))
-        )
-
-      object transitions extends Rules:
+      object transitions extends Transitions:
         on(hand.press):
-          when(Lit.off, Lit.on) ~> effects.toggle
+          light match
+            case Lit.off | Lit.on => effects.toggle()
+            case _                => ()
 
-  // A facet that depends on Pressing's step.
-  trait Breaking extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+      object effects:
+        def toggle(): Unit =
+          light = if light == Lit.on then Lit.off else Lit.on
+          presses = UpTo(1)
+
+  // A facet that depends on Pressing's step, and reads the light through it.
+  trait Breaking extends Facet[Said, Note]:
     this: Pressing =>
 
     object breaking:
 
+      object transitions extends Transitions:
+        on(hand.smash):
+          light match
+            case Lit.on  => effects.smash()
+            case Lit.off => effects.breakDown()
+            case _       => ()
+
       object effects:
         val smashed = choice
         val toggled = choice
-        def smash(s: Lamp) =
-          choose(smashed -> enters(Lit.broken)(s), toggled -> pressing.effects.toggle(s))
+        def breakDown(): Unit =
+          light = Lit.broken
+          record(light.status)
+        def smash(): Unit =
+          choose(smashed -> breakDown(), toggled -> pressing.effects.toggle())
 
-      object transitions extends Rules:
-        on(hand.smash):
-          when(Lit.on) ~> effects.smash
-          when(Lit.off) ~> enters(Lit.broken)
+  object Faceted extends Machine[Said, Note], Pressing, Breaking:
+    var light = Lit.off
+    var presses: UpTo[1] = UpTo(0)
 
-  object Faceted
-      extends RecordMachine[Lamp, Said, Note],
-        Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
-        Pressing,
-        Breaking:
-    val init = Lamp(Lit.off, UpTo(0))
+    override def end: Boolean = light.in[Closed]
 
     object transitions extends Facets(pressing.transitions, breaking.transitions)
 
-  object Whole
-      extends RecordMachine[Lamp, Said, Note],
-        Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)):
-    val init = Lamp(Lit.off, UpTo(0))
+  object Whole extends Machine[Said, Note]:
+    var light = Lit.off
+    var presses: UpTo[1] = UpTo(0)
+
+    override def end: Boolean = light.in[Closed]
+
+    object transitions extends Transitions:
+      on(hand.press):
+        light match
+          case Lit.off | Lit.on => effects.toggle()
+          case _                => ()
+      on(hand.smash):
+        light match
+          case Lit.on  => effects.smash()
+          case Lit.off => effects.breakDown()
+          case _       => ()
 
     object effects:
       val smashed = choice
       val toggled = choice
-      def toggle(s: Lamp) = enter[Lamp, Said, Note](
-        s.copy(light = if s.light.in(Lit.on) then Lit.off else Lit.on, presses = UpTo[1](1))
-      )
-      def smash(s: Lamp) = choose(smashed -> enters(Lit.broken)(s), toggled -> toggle(s))
-
-    object transitions extends Rules:
-      on(hand.press):
-        when(Lit.off, Lit.on) ~> effects.toggle
-      on(hand.smash):
-        when(Lit.on) ~> effects.smash
-        when(Lit.off) ~> enters(Lit.broken)
+      def toggle(): Unit =
+        light = if light == Lit.on then Lit.off else Lit.on
+        presses = UpTo(1)
+      def breakDown(): Unit =
+        light = Lit.broken
+        record(light.status)
+      def smash(): Unit = choose(smashed -> breakDown(), toggled -> toggle())
 
   // Two facets that both bind the press.
-  trait Pressing2 extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+  trait Pressing2 extends Facet[Said, Note]:
+    var light: Lit
 
     object pressingAgain:
 
-      object transitions extends Rules:
+      object transitions extends Transitions:
         on(hand.press):
-          when(Lit.broken) ~> enters(Lit.broken)
+          light match
+            case Lit.broken => effects.stayBroken()
+            case _          => ()
 
-  object Twice
-      extends RecordMachine[Lamp, Said, Note],
-        Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
-        Pressing,
-        Pressing2:
-    val init = Lamp(Lit.off, UpTo(0))
+      object effects:
+        def stayBroken(): Unit =
+          light = Lit.broken
+          record(light.status)
+
+  object Twice extends Machine[Said, Note], Pressing, Pressing2:
+    var light = Lit.off
+    var presses: UpTo[1] = UpTo(0)
 
     object transitions extends Facets(pressing.transitions, pressingAgain.transitions)
 
 class FacetsTest extends munit.FunSuite:
   import FacetsFixture.*
 
-  def steps(
-      m: RecordMachine[Lamp, Said, Note]
-  ): List[(String, Lamp, List[Step[Lamp, Said, Note]])] =
+  // Every state of the lamp: each light with each number of presses.
+  private def lamps(m: Machine[Said, Note]): List[State] =
+    for
+      light <- Lit.values.toList
+      presses <- (0 to 1).toList
+    yield m.init.copy(light = light, presses = UpTo[1](presses))
+
+  private def steps(m: Machine[Said, Note]) =
     for
       b <- m.bindings
-      s <- Finite[Lamp].values.toList
+      s <- lamps(m)
+      cls <- inputClassesOf(b.decl)
     yield
-      val f = b.function.asInstanceOf[Lamp => List[
-        Step[Lamp, Said, Note]
-      ]] // scalafix:ok DisableSyntax.asInstanceOf
-      (b.decl.toString, s, f(s))
+      val taken = effectOf[State, Said, Note](b.decl, b.function)(s, cls)
+      (b.decl.toString, s.values, taken.map(step => (step.outcome, step.state.values, step.facts)))
 
-  test("a machine assembled from facets binds what the machine written as one object binds") {
+  test("a Machine assembled from facets binds what the Machine written as one object binds"):
     assertEquals(Faceted.bindings.map(_.decl), Whole.bindings.map(_.decl))
+    assertEquals(Faceted.vars.map(_.toString), Whole.vars.map(_.toString))
     assertEquals(steps(Faceted), steps(Whole))
     assert(steps(Faceted).exists(_._3.nonEmpty))
-  }
+    assert(steps(Faceted).exists(_._3.exists(_._3 == List(Note.gone))))
+    assertEquals(lamps(Faceted).map(Faceted.end), lamps(Whole).map(Whole.end))
+    assertEquals(lamps(Faceted).count(Faceted.end), 2)
 
-  test("an action bound by two facets is refused as the rules construct, naming both") {
+  test("an action bound by two facets is refused as the transitions construct, naming both"):
     val refused = intercept[IllegalArgumentException](Twice.bindings)
     assertEquals(
       refused.getMessage,
       "press is bound by the facets pressing and pressingAgain: an action belongs to one facet, " +
         "which holds all its transitions"
     )
-  }
 
-  test("a machine that mixes in a facet without the facet it depends on does not compile") {
+  test("a Machine that mixes in a facet without the facet it depends on does not compile"):
     val errors = compileErrors(
-      "object Lone extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light), Breaking:\n" +
-        "  val init = Lamp(Lit.off, UpTo(0))\n" +
+      "object Lone extends Machine[Said, Note], Breaking:\n" +
+        "  var light = Lit.off\n" +
         "  object transitions extends Facets(breaking.transitions)"
     )
     assert(errors.contains("Pressing"), errors)
-  }
+
+  test("a var a facet declares that the Machine does not define is Scala's abstract-member error"):
+    val errors = compileErrors(
+      "object Partial extends Machine[Said, Note], Pressing:\n" +
+        "  var light = Lit.off\n" +
+        "  object transitions extends Facets(pressing.transitions)"
+    )
+    assert(errors.contains("presses") && errors.contains("is not defined"), errors)
 
   for kind <- List("ordinary", "timer", "fault", "disabled") do
     test(s"duplicate $kind owners name the actual action and both facets"):
@@ -146,40 +181,54 @@ class FacetsTest extends munit.FunSuite:
         val ordinary = action(Actor("caller"))
         val tick = timer
         val fault = action(Actor("fault")).crash
-      trait First extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+      trait First extends Facet[Said, Note]:
+        var light: Lit
         object first:
-          object transitions extends Rules:
+          object transitions extends Transitions:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
-                  when(Lit.off) ~> enters(Lit.on)
+                  light match
+                    case Lit.off => effects.lightUp()
+                    case _       => ()
               case "timer" =>
                 on(targets.tick):
-                  when(Lit.off) ~> enters(Lit.on)
+                  light match
+                    case Lit.off => effects.lightUp()
+                    case _       => ()
               case "fault" =>
                 on(targets.fault):
-                  when(Lit.off) ~> enters(Lit.on)
+                  light match
+                    case Lit.off => effects.lightUp()
+                    case _       => ()
               case _ => disabled(targets.ordinary)
-      trait Second extends Facet[Lamp, Said, Note], Phased[Lamp, Lit]:
+          object effects:
+            def lightUp(): Unit = light = Lit.on
+      trait Second extends Facet[Said, Note]:
+        var light: Lit
         object second:
-          object transitions extends Rules:
+          object transitions extends Transitions:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
-                  when(Lit.on) ~> enters(Lit.off)
+                  light match
+                    case Lit.on => effects.darken()
+                    case _      => ()
               case "timer" =>
                 on(targets.tick):
-                  when(Lit.on) ~> enters(Lit.off)
+                  light match
+                    case Lit.on => effects.darken()
+                    case _      => ()
               case "fault" =>
                 on(targets.fault):
-                  when(Lit.on) ~> enters(Lit.off)
+                  light match
+                    case Lit.on => effects.darken()
+                    case _      => ()
               case _ => disabled(targets.ordinary)
-      object Duplicate
-          extends RecordMachine[Lamp, Said, Note],
-            Phased[Lamp, Lit](_.light, (s, p) => s.copy(light = p)),
-            First,
-            Second:
-        val init = Lamp(Lit.off, UpTo(0))
+          object effects:
+            def darken(): Unit = light = Lit.off
+      object Duplicate extends Machine[Said, Note], First, Second:
+        var light = Lit.off
         object transitions extends Facets(first.transitions, second.transitions)
       val actionName =
         if kind == "timer" then "tick" else if kind == "fault" then "fault" else "ordinary"
@@ -190,26 +239,31 @@ class FacetsTest extends munit.FunSuite:
       )
 
   for kind <- List("ordinary", "timer", "fault", "disabled") do
-    test(s"Facets refuses unowned $kind rules despite a facet-looking object name"):
+    test(s"Facets refuses unowned $kind transitions despite a facet-looking object name"):
       object targets extends Internal:
         val ordinary = action(Actor("caller"))
         val tick = timer
         val fault = action(Actor("fault")).crash
-      object Unowned extends RecordMachine[Lamp, Said, Note], Phased[Lamp, Lit](_.light):
-        val init = Lamp(Lit.off, UpTo(0))
+      object Unowned extends Machine[Said, Note]:
+        var light = Lit.off
         object pressing:
-          object transitions extends Rules:
+          object transitions extends Transitions:
             kind match
               case "ordinary" =>
                 on(targets.ordinary):
-                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+                  light match
+                    case _ => effects.stay()
               case "timer" =>
                 on(targets.tick):
-                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+                  light match
+                    case _ => effects.stay()
               case "fault" =>
                 on(targets.fault):
-                  always ~> ((s: Lamp) => stay[Lamp, Said, Note](s))
+                  light match
+                    case _ => effects.stay()
               case _ => disabled(targets.ordinary)
+        object effects:
+          def stay(): Unit = ()
         object transitions extends Facets(pressing.transitions)
       val error = intercept[IllegalArgumentException](Unowned.bindings)
       assert(
@@ -223,35 +277,33 @@ class FacetsTest extends munit.FunSuite:
       assert(error.getMessage.contains(s"$expected has no owning facet"), error.getMessage)
 
   test("distinct namespaces may repeat an effect name; a shared exposed namespace collides"):
-    val valid = compileErrors("""trait A extends Facet[Lamp, Said, Note]:
+    val valid = compileErrors("""trait A extends Facet[Said, Note]:
   object a:
     object effects:
-      def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-trait B extends Facet[Lamp, Said, Note]:
+      def settle() = ()
+trait B extends Facet[Said, Note]:
   object b:
     object effects:
-      def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-object Both extends RecordMachine[Lamp, Said, Note], A, B:
-  val init = Lamp(Lit.off, UpTo(0))
-  def end(s: State) = true
+      def settle() = ()
+object Both extends Machine[Said, Note], A, B:
+  var light = Lit.off
   object transitions extends Facets()
-val _ = Both.a.effects.settle(Both.init)
-val _ = Both.b.effects.settle(Both.init)
+val _ = Both.a.effects.settle()
+val _ = Both.b.effects.settle()
 """)
     assertEquals(valid, "")
-    val collided = compileErrors("""trait A extends Facet[Lamp, Said, Note]:
+    val collided = compileErrors("""trait A extends Facet[Said, Note]:
   object shared:
     object effects:
-      def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-trait B extends Facet[Lamp, Said, Note]:
+      def settle() = ()
+trait B extends Facet[Said, Note]:
   object shared:
     object effects:
-      def settle(s: Lamp) = enter[Lamp, Said, Note](s)
-object Both extends RecordMachine[Lamp, Said, Note], A, B:
-  val init = Lamp(Lit.off, UpTo(0))
-  def end(s: State) = true
+      def settle() = ()
+object Both extends Machine[Said, Note], A, B:
+  var light = Lit.off
   object transitions extends Facets()
-val _ = Both.shared.effects.settle(Both.init)
+val _ = Both.shared.effects.settle()
 """)
     assert(
       collided.contains("object shared") && collided.contains(
