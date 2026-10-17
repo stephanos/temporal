@@ -52,10 +52,11 @@ object Assumption:
     case Composed(values: List[framework.dsl.Composed])
 
 // Declares an assumption.
-def assume(name: String): Assumption = Assumption(name, Nil).retainExplicitName(true)
+private[framework] def assume(name: String): Assumption =
+  Assumption(name, Nil).retainExplicitName(true)
 
 // Declares an assumption named after the `val` that declares it.
-inline def assume: Assumption = inferredAssumption(NativeLocation.declaredName)
+private[framework] inline def assume: Assumption = inferredAssumption(NativeLocation.declaredName)
 
 @scala.annotation.publicInBinary
 private[framework] def inferredAssumption(name: Option[String]): Assumption =
@@ -97,7 +98,7 @@ final class Progress[S] private[framework] (
   override def toString: String = s"progress $name"
 
 extension [S, O, F](m: RecordMachine[S, O, F])
-  def leadsTo(
+  private[framework] def leadsTo(
       name: String
   )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =
     Progress(name, m, from, to, within, under.toList)
@@ -106,14 +107,14 @@ extension [S, O, F](m: RecordMachine[S, O, F])
 // the state they are asked of restored into them.
 extension [O, F](m: RecordMachine[State, O, F])
   @scala.annotation.targetName("leadsToVars")
-  def leadsTo(
+  private[framework] def leadsTo(
       name: String
   )(from: => Boolean, to: => Boolean, within: Int, under: Assumption*): Progress[State] =
     val vars = Vars.of(m)
     Progress(name, m, s => vars.at(s)(from), s => vars.at(s)(to), within, under.toList)
 
 extension [S <: Product](c: Composition[S])
-  def leadsTo(
+  private[framework] def leadsTo(
       name: String
   )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =
     Progress(name, c, from, to, within, under.toList)

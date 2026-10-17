@@ -161,8 +161,10 @@ trait Declares[S] extends Model:
   // in its machine's one declared start, or for a composition in its members' starts. Inside a
   // machine or composition object they name it implicitly: `property after(c) expect: ...`,
   // `scenario.actions(...)`.
-  def property: PropertyBuilder[S, Outcome, Fact] = PropertyBuilder("", this, None)
-  def property(name: String): PropertyBuilder[S, Outcome, Fact] = PropertyBuilder(name, this, None)
+  private[framework] def property: PropertyBuilder[S, Outcome, Fact] =
+    PropertyBuilder("", this, None)
+  private[framework] def property(name: String): PropertyBuilder[S, Outcome, Fact] =
+    PropertyBuilder(name, this, None)
   def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
 
@@ -300,7 +302,7 @@ private[framework] enum Bound[S, O, F]:
 // `action ~> stepFunction` receives the action's actual input type.
 extension [I](a: Action[I])
   @scala.annotation.targetName("nativeBinding")
-  infix def ~>[S, O, F](
+  private[framework] infix def ~>[S, O, F](
       @capture("capturedNativeBinding") f: (S, I) => List[Step[S, O, F]]
   ): StepBinding[S, O, F] =
     require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
@@ -314,7 +316,7 @@ extension [I](a: Action[I])
     require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
     StepBinding.linking(a.decl, f, root, chunks)
 
-  infix def ~>[S, O, F](
+  private[framework] infix def ~>[S, O, F](
       @capture("capturedBinding0") f: S => List[Step[S, O, F]]
   )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
     require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
@@ -332,7 +334,7 @@ extension [I](a: Action[I])
   // vars: the action bound to a call of an effect that assigns them, which takes one step, the
   // rejection the effect makes or the accepted outcome into the vars it assigned.
   @scala.annotation.targetName("varBinding")
-  infix def ~>[O, F](effect: => Unit)(using
+  private[framework] infix def ~>[O, F](effect: => Unit)(using
       owner: Owner[State, O, F],
       accepted: Accepting[O],
       @unused empty: I =:= EmptyTuple
@@ -344,7 +346,7 @@ extension [I](a: Action[I])
   // `action ~> effects.sendFromNowhere`: the action bound to an effect of its input that assigns
   // the vars of a Machine.
   @scala.annotation.targetName("varInputBinding")
-  infix def ~>[O, F](effect: I => Unit)(using
+  private[framework] infix def ~>[O, F](effect: I => Unit)(using
       owner: Owner[State, O, F],
       accepted: Accepting[O]
   ): StepBinding[State, O, F] =
@@ -536,7 +538,7 @@ private[framework] def writtenPath(code: String): String =
 // or a `val` written as a block that reads, and in an effect assigns, the state's fields by name
 // (model/framework/dsl/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
 // shipped }`, which records the status the assigned case declares, where its enum declares one.
-abstract class RecordMachine[S, O, F](using
+abstract class RecordMachine[S, O, F] private[framework] (using
     private[framework] val fs: Data[S],
     private[framework] val fo: Finite[O],
     private[framework] val ff: Finite[F]
@@ -912,7 +914,9 @@ abstract class RecordMachine[S, O, F](using
   // A machine that keeps the rows of the named actions and drops the rest, named after the object
   // that declares it, `object M extends Derived(m.restrict(...))`. It keeps the state type, starts
   // and ends, owns its own name and Definition IDs, and does not inherit a refinement.
-  def restrict(keep: Action[?]*): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  private[framework] def restrict(
+      keep: Action[?]*
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val decls = keep.map(_.decl).toSet
     // It keeps its source's monitors and assumptions, which are about the state and the machine.
     lazy val before = DerivationBindings.snapshot(table)
@@ -1056,7 +1060,9 @@ abstract class RecordMachine[S, O, F](using
     )(using fs, fo, ff)(using ss)
 
   // A machine whose checks also make the assumptions named, in their authored order.
-  def assuming(added: Assumption*): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  private[framework] def assuming(
+      added: Assumption*
+  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
     val at = NativeLocation.caller("framework.dsl.RecordMachine")
     built(table, addedAssumptions = added.map(_ -> at).toList)
 
@@ -1100,8 +1106,12 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
 
   final override def initialStates: Seq[State] =
     schema.vars.foldLeft(Vector(init)): (states, variable) =>
-      initialDomains.get(variable.name).fold(states): domain =>
-        states.flatMap(state => domain.map(value => declared.updated(state, Seq(variable.name -> value))))
+      initialDomains
+        .get(variable.name)
+        .fold(states): domain =>
+          states.flatMap(state =>
+            domain.map(value => declared.updated(state, Seq(variable.name -> value)))
+          )
 
   @publicInBinary private[framework] def registerInitial[A](name: String, domain: Vector[A]): A =
     require(domain.nonEmpty, s"$name: oneOf takes a non-empty domain")

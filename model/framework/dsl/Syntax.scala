@@ -29,7 +29,9 @@ object Ok:
 
 // One step with the ok outcome into `state`, recording `facts`. Core form:
 // `List(Step(Outcome.accepted, state, List(facts*)))`.
-@sugar def enter[S, O, F](state: S, facts: F*)(using ok: Ok[O]): List[Step[S, O, F]] =
+@sugar private[framework] def enter[S, O, F](state: S, facts: F*)(using
+    ok: Ok[O]
+): List[Step[S, O, F]] =
   List(Step(ok.outcome, state, facts.toList))
 
 // One step with the ok outcome that keeps the state and records nothing. Core form:
@@ -84,7 +86,7 @@ object outcomes:
 // effect that keeps the state, records nothing and answers `rejected(why)`, and
 // `rejects(why).because("...")` the same effect with the server's explanation. Core form:
 // `reject(Outcome.rejected(Rejection.notFound), s)`.
-def rejects[S](why: outcomes.Rejection)(using
+private[framework] def rejects[S](why: outcomes.Rejection)(using
     @implicitNotFound(
       "rejects answers the shared framework.dsl.outcomes.Outcome, so it is an effect of a rule, in an `on` " +
         "block, of a machine on the shared outcomes: `import framework.dsl.outcomes.{Outcome, Rejection}`"
@@ -394,7 +396,8 @@ private[framework] object ClaimMacros:
     Expr.summon[Expectation[?, ?, ?]] match
       case Some(context) => '{ $context.require($condition) }
       case None          =>
-        if inside(Set("progress$")) then
+        // The retired `properties`, `safety` and `liveness` groups are sections no check reads.
+        if inside(Set("progress$", "properties$", "safety$", "liveness$")) then
           report.errorAndAbort(
             "an invariant or postcondition belongs in invariants or postconditions"
           )
@@ -552,7 +555,7 @@ private[framework] object ClaimMacros:
 
 // An ordinary step predicate with statement requirements. Core form:
 // `(s: Step[S, O, F]) => first(s) && second(s)`.
-object expect:
+private[framework] object expect:
   // Bare fields read the resulting state. Core form: `(s: Step[S, O, F]) => predicate(s)`.
   inline def apply[S, O, F](
       @capture("capturedApply") body: Expectation[S, O, F] ?=> Unit
@@ -1251,7 +1254,7 @@ final class Firing[S, O, F, I] private[framework] (
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
 // Core form: `if condition(s) then e(s) else ...`.
-def where[S, O, F, I](using firing: Firing[S, O, F, I]): GuardCases[S, O, F, I] =
+private[framework] def where[S, O, F, I](using firing: Firing[S, O, F, I]): GuardCases[S, O, F, I] =
   new GuardCases(firing)
 
 // Conditions specialized to an action before typing their callbacks. Core form: `if g(s, in) then e(s, in)`.
@@ -1297,7 +1300,7 @@ private def machineVars(firing: Firing[?, ?, ?, ?]): Vars =
 
 // A case that holds in every state: `always ~> effects.keep`. Core form:
 // `if true then e(s) else ...`.
-def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
+private[framework] def always[S, O, F](using firing: Firing[S, O, F, ?]): Case[S, O, F] =
   val _ = firing
   Case("always", _ => true)
 
@@ -1330,7 +1333,7 @@ private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
 // lifter names it after its `val`, so `scala.compiletime.codeOf` names the action in an overlap
 // message. TASTy is pickled before inlining, so the lifter reads the unexpanded call, and it refuses
 // an expanded one loudly ("not a rule") rather than lift it.
-abstract class Rules[S, O, F](using
+abstract class Rules[S, O, F] private[framework] (using
     owner: Owner[S, O, F],
     source: FacetSource
 ) extends RuleTable[S, O, F]:

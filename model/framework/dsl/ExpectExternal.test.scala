@@ -1,7 +1,7 @@
 package expectauthor
 
-import framework.dsl.*
-
+// The vocabulary an author outside the framework's packages writes a Model in: the plain form
+// (outside.Lamp and the samples) compiles, and every retired word is refused.
 class ExpectExternalTest extends munit.FunSuite:
   test("legacy finishers and private core construction are unavailable to authors"):
     val refusals = List(
@@ -20,92 +20,213 @@ class ExpectExternalTest extends munit.FunSuite:
       Nil
     )
 
-  test("author forwarding preserves tagged facts in same-step and transition claims"):
-    import WitnessFixture.*
-    import ExpectFixture.*
-    val named: Step[Joined, String, JoinedFact] => Boolean = expect:
-      records(JoinedFact.left(WitnessFixture.Fact.completed))
-    def forwarded(step: Step[Joined, String, JoinedFact]): Boolean = named(step)
-    val same = Reordered.property.expect:
-      check(forwarded(after))
-    val transition: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
-      records(JoinedFact.right(Foreign.completed))
-      check(before.left.equals(after.state.left))
-    def across(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
-      transition(before, after)
-    val property = Reordered.property.across.expect:
-      check(across(before, after))
-    assertEquals(same.name, "")
-    assertEquals(property.name, "")
-    val state = Joined(State.open, State.closed)
-    assert(forwarded(Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed)))))
-    assert(!forwarded(Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
-    assert(across(state, Step("accepted", state, List(JoinedFact.right(Foreign.completed)))))
-    assert(!across(state, Step("accepted", state, List(JoinedFact.left(WitnessFixture.Fact.completed)))))
-
-  test("method wrappers refuse predicate dependencies confined to the helper scope"):
-    val refusals = List(
-      compileErrors("""
-        import framework.dsl.WitnessFixture.*
-        import framework.dsl.ExpectFixture.*
-        val named: Step[Joined, String, JoinedFact] => Boolean = expect:
-          records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
-        def forwarded(predicate: Step[Joined, String, JoinedFact] => Boolean,
-            step: Step[Joined, String, JoinedFact]): Boolean = predicate(step)
-        Reordered.property.expect:
-          check(forwarded(named, after))
+  test("the retired vocabulary is unavailable to authors"):
+    val retired = List(
+      "RecordMachine" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends RecordMachine[Boolean, Said, Note]:
+          val init = false
+          def end(s: Boolean) = s
+          object transitions extends Transitions
       """),
-      compileErrors("""
-        import framework.dsl.WitnessFixture.*
-        import framework.dsl.ExpectFixture.*
-        val named: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
-          records(JoinedFact.right(Foreign.completed))
-        def forwarded(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
-          val local = named
-          local(before, after)
-        Reordered.property.across.expect:
-          check(forwarded(before, after))
+      "Rules" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends Machine[Said, Note]:
+          var lit = false
+          object transitions extends Rules
+      """),
+      "property" -> compileErrors("""import framework.dsl.*; outside.Lamp.Model.property"""),
+      "property(name)" -> compileErrors(
+        """import framework.dsl.*; outside.Lamp.Model.property("lit")"""
+      ),
+      "expect" -> compileErrors("""
+        import framework.dsl.*
+        val p: Step[Boolean, String, Nothing] => Boolean = expect:
+          check(true)
+      """),
+      "expect.across" -> compileErrors("""
+        import framework.dsl.*
+        val p: (Boolean, Step[Boolean, String, Nothing]) => Boolean = expect.across:
+          check(true)
+      """),
+      "invariant and transition kind words" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends Machine[Said, Note]:
+          var lit = false
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+          object effects:
+            def press() =
+              lit = !lit
+          object invariants:
+            val any = invariant:
+              check(lit || !lit)
+          object postconditions:
+            val toggles = transition:
+              check(lit != before.lit)
+      """),
+      "properties and safety groups" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends Machine[Said, Note]:
+          var lit = false
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+          object effects:
+            def press() =
+              lit = !lit
+          object properties:
+            object safety:
+              val any = check(lit || !lit)
+      """),
+      "liveness group" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends Machine[Said, Note]:
+          var lit = false
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+          object effects:
+            def press() =
+              lit = !lit
+          object liveness:
+            val lights = leadsTo(from = !lit, to = lit, within = 1)
+      """),
+      "after.state" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object M extends Machine[Said, Note]:
+          var lit = false
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+          object effects:
+            def press() =
+              lit = !lit
+          object postconditions:
+            val toggles = check(after.state != before)
+      """),
+      "~>" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        Model.rebind(hand.press ~> Model.effects.press())
+      """),
+      "always" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        Model.rebind(
+          on(hand.press):
+            always ~> Model.effects.press()
+        )
+      """),
+      "where" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        Model.rebind(
+          on(hand.press):
+            where(Model.lit) ~> Model.effects.press()
+        )
+      """),
+      "rejects" -> compileErrors("""
+        import framework.dsl.*
+        import framework.dsl.outcomes.Outcome
+        import outside.Lamp.hand
+        object M extends Machine[Outcome, Nothing]:
+          var lit = false
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+          object effects:
+            def press() =
+              lit = !lit
+        M.rebind(
+          on(hand.press):
+            rejects(outcomes.Rejection.notFound)
+        )
+      """),
+      "enter" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        enter[Boolean, Said, Note](true)
+      """),
+      "query" -> compileErrors("""import framework.dsl.*; query"""),
+      "query(name)" -> compileErrors("""import framework.dsl.*; query("lighting")"""),
+      "limits" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        verify(Model.invariants.bounded) limits Model.queries.bounding.limits
+      """),
+      "Limits" -> compileErrors(
+        """import framework.dsl.*; Limits(steps = 3, actions = 3, search = 64)"""
+      ),
+      "frameworkReach" -> compileErrors("""import framework.dsl.*; frameworkReach"""),
+      "Witness.limits" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        Model.witness(hand.press).records(Note.lit).limits(Model.queries.bounding.limits)
+      """),
+      "assume" -> compileErrors("""import framework.dsl.*; framework.dsl.assume("lossy")"""),
+      "assume (named after its val)" -> compileErrors(
+        """import framework.dsl.*; val lossy = framework.dsl.assume"""
+      ),
+      "assuming" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        Model.assuming()
+      """),
+      "leadsTo(name)(from, to, within, under*)" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        Model.leadsTo("wearsOut")(Model.presses == 0, Model.presses == 3, 3)
+      """),
+      "restrict" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        Model.restrict(hand.press)
+      """),
+      "internal" -> compileErrors("""import framework.dsl.*; framework.dsl.internal"""),
+      "action(this)" -> compileErrors("""
+        import framework.dsl.*
+        object hand extends Actor:
+          val press = framework.dsl.action(this)
       """)
     )
-    assertEquals(
-      refusals.filterNot(
-        _.contains("expect: a forwarded predicate must be accessible outside its source helper")
-      ),
-      Nil
+    assertEquals(retired.collect { case (word, errors) if errors.isEmpty => word }, Nil)
+    val limits = retired.toMap.apply("limits")
+    assert(limits.contains("a Model declares no Limits"), limits)
+
+  test("the plain form's words compile for authors"):
+    val kept = List(
+      "hole, choose, disabled and crashes" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.{*, given}
+        object fault extends Actor:
+          val drop = action.crash
+        object M extends Machine[Said, Note]:
+          var lit = false
+          durability(durable(lit))
+          val unknown = hole
+          object transitions extends Transitions:
+            on(hand.press):
+              effects.press()
+            disabled(hand.set)
+            crashes(fault.drop, Said.ok)
+          object effects:
+            val on = choice
+            val off = choice
+            def press() =
+              choose(on -> { lit = true }, off -> { lit = false })
+      """),
+      "witness" -> compileErrors("""
+        import framework.dsl.*
+        import outside.Lamp.*
+        Model.witness(hand.press).records(Note.lit)
+      """)
     )
-
-  private case class Job(done: Boolean) derives CanEqual
-  private enum Outcome:
-    case accepted
-  private enum Fact:
-    case completed
-
-  private object Subject extends RecordMachine[Job, Outcome, Fact]:
-    def init: Job = Job(false)
-    def end(state: Job): Boolean = state.done
-
-    object transitions extends Rules
-
-  test("an author outside the framework can build and forward ordinary expectation functions"):
-    val predicate: Step[Job, Outcome, Fact] => Boolean = expect: s ?=>
-      check(s.step.state.done)
-      records(Fact.completed)
-    val transition: (Job, Step[Job, Outcome, Fact]) => Boolean = expect.across: (b, a) ?=>
-      check(!b.state.done)
-      check(a.step.state.done)
-    assert(predicate(Step(Outcome.accepted, Job(true), List(Fact.completed))))
-    assert(!predicate(Step(Outcome.accepted, Job(true))))
-    assert(transition(Job(false), Step(Outcome.accepted, Job(true))))
-    val same = Subject.property.expect:
-      check(predicate(after))
-    val across = Subject.property.across.expect:
-      check(transition(before, after))
-    assertEquals(same.name, "")
-    assertEquals(across.name, "")
-    val member: Step[WitnessFixture.Joined, String, WitnessFixture.JoinedFact] => Boolean = expect:
-      records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
-    val composed = WitnessFixture.Together.property.expect:
-      check(member(after))
-    assertEquals(composed.name, "")
-    val joined = WitnessFixture.Joined(WitnessFixture.State.open, WitnessFixture.State.closed)
-    assert(member(Step("accepted", joined, List(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed)))))
+    assertEquals(kept.filter(_._2.nonEmpty), Nil)

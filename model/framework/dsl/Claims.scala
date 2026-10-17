@@ -261,7 +261,7 @@ final class ScenarioBuilder[S] private[framework] (
 // Bounds a Query: `steps` is the depth bound, `actions` the schedule length, and `search` the
 // number of product states the search may visit before it reports limit-reached. Declared with
 // named arguments and no `name`, the bounds are named after the `val` that declares them.
-final case class Limits(
+final case class Limits private[framework] (
     name: String = "",
     steps: Int,
     actions: Int,
@@ -285,7 +285,8 @@ enum QueryForm:
   // Whether the Property holds on every trace of the Scenario.
   case verify
 
-val frameworkReach: Limits = Limits("frameworkReach", steps = 256, actions = 0, search = 65536)
+private[framework] val frameworkReach: Limits =
+  Limits("frameworkReach", steps = 256, actions = 0, search = 65536)
 
 enum Checker:
   case umpire, apalache, tlc
@@ -467,9 +468,9 @@ final class QueryIn private[framework] (
 ):
   infix def limits(l: Limits): Query = Query(name, form, p, s, l)
 
-def query(name: String): QueryDecl = QueryDecl(name)
+private[framework] def query(name: String): QueryDecl = QueryDecl(name)
 
-def query: QueryDecl = QueryDecl("")
+private[framework] def query: QueryDecl = QueryDecl("")
 
 // The unfinished path claim: it becomes an ordinary find Query only when a fact is stated.
 final class WitnessBuilder[S, O, F] private[framework] (
@@ -536,7 +537,7 @@ final class Witness[S, O, F] private[framework] (
   def ends(predicate: => Boolean)(using reads: S <:< State): Witness[S, O, F] =
     copyWitness(ending = Some(s => reads(s).owner.at(s)(predicate)))
 
-  def limits(bounds: Limits): Witness[S, O, F] =
+  private[framework] def limits(bounds: Limits): Witness[S, O, F] =
     copyWitness(bounds = bounds)
 
   private def copyWitness(
