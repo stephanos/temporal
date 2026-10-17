@@ -33,7 +33,7 @@ class KettleTest extends munit.FunSuite:
     assertEquals(refused.getMessage, "requirement failed: temprature is not a state var of Model")
 
   test("signed cold and room paths preserve press, heat and depress enabledness"):
-    // NativeHistory.test.scala's table, same cases and expected results
+    // Kettle.test.scala's table, same cases and expected results
     List(
       (at(-40, false, false), user.pressButton, List(at(-40, true, false))),
       (at(-40, true, false), heater.heat, List(at(-39, true, false))),

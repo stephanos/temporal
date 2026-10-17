@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2 and fn-193.1 done; fn-189.3 in progress, then fn-189.5; fn-193.2; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3 and fn-193.1 done; fn-189.5 next; fn-193.2; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1026,9 +1026,15 @@ DSL change and no IR change beyond positions. Helper inlining, dropping the comp
 generic-call IR were assessed the same day: inlining is R11 (.12), the composition vocabulary goes under
 fn-190 R17, and the generic-call IR is fn-192.
 
+Fn-189.3's native-source checkpoint is committed (`0c1617af2b`, closure `60d348c3f7`):
+Scala's inliner replaces the deleted expansion engine. Native checks pass 640 tests, framework
+checks 103, inline capture controls five and the cross-source control one; fresh core/plugin builds,
+realization-mode compilation of the six samples, scoped lint and formatting pass. Compiler-generated
+strict arguments retain `Let` nodes. Original R7 full-mode sample/Facets lifting and IR equivalence
+remain Phase 3 obligations; historical exporter checks and the batch review are not credited here.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-189.3 | 🔄 in progress | After .1: sugar as `inline` defs; remove the plugin's expansion engine (R7) |
 | fn-189.5 | ⬜ todo | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
 | fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
@@ -1058,6 +1064,7 @@ with a Kettle prototype and verdict in `model/design`.
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
 | fn-190.15 | ⬜ todo | Carried by fn-196.1: native execution moves out of `framework.dsl` into the product checker module; the DSL executes nothing (R6, DSL half) |
 | fn-190.16 | ⬜ todo | DSL completion, after .15 and fn-193.2: delete the record-state vocabulary (`RecordMachine`, `Rules`/`~>`, `property`/`expect`, `query`/`Limits`, `assume`, ...) from the DSL |
+| fn-190.17 | 🔄 in progress | User follow-up: remove the samples' `Native` filename/model/suite prefix and split History's tests into Kettle and TwoLayeredCache |
 | fn-190.5 | ⬜ todo | Phase 3, after .3: delete the test-support native runtime once the IR evaluator carries the suites (R6) |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.12 | ⬜ todo | Phase 3, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |

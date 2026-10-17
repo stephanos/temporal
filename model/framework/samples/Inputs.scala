@@ -3,7 +3,7 @@ package samples
 import framework.dsl.*
 import framework.dsl.Finite.given
 
-object NativeInputs:
+object Inputs:
   final case class Request(amount: Int = 0, ceiling: Int = 2)
 
   given Ok[Boolean] = Ok(true)

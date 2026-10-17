@@ -133,10 +133,10 @@ that reads it:
 
 | Operation | Native | Liftable today | fn-192 builtin | Used in samples |
 |---|---|---|---|---|
-| `contains` | yes | `List` (`OP_CONTAINS`) | `list`, `set`, `map` | NativeInputs, ReliableBroadcast, TwoPhaseCommit, Voting |
+| `contains` | yes | `List` (`OP_CONTAINS`) | `list`, `set`, `map` | Inputs, ReliableBroadcast, TwoPhaseCommit, Voting |
 | `isEmpty` | yes | — | `list`, `set`, `map`, `option` | Bank, ReliableBroadcast, Voting |
 | `size` | yes | — | `list`, `set`, `map` | ReliableBroadcast |
-| `incl`, `excl` | yes | — | `set` | NativeInputs, TwoPhaseCommit, Voting (`incl`) |
+| `incl`, `excl` | yes | — | `set` | Inputs, TwoPhaseCommit, Voting (`incl`) |
 | `get`, `getOrElse` | yes | — | `map`; `option` (`getOrElse`) | Bank, ReliableBroadcast |
 | `updated`, `removed` | yes | — | `map` | Bank, ReliableBroadcast, TwoPhaseCommit, Voting |
 | `++` | yes | `List` (`OP_CONCAT`) | `list.concat` | — |
@@ -145,7 +145,7 @@ that reads it:
 | `min`, `max` (on `Int`) | yes | yes | `int` | — |
 | `toList` | yes | `List` (identity) | — | ReliableBroadcast |
 | `forall`, `exists` | yes | `forall` only for a capability's fact family | — | Bank, ReliableBroadcast, TwoPhaseCommit, Voting |
-| `map`, `filter`, `sum`, `values`, `toSet`, `head`, `nonEmpty` | yes | — | — | Bank, ReliableBroadcast, NativeInputs, Voting |
+| `map`, `filter`, `sum`, `values`, `toSet`, `head`, `nonEmpty` | yes | — | — | Bank, ReliableBroadcast, Inputs, Voting |
 
 The last two rows are used by the samples, but no body lifts them today and fn-192's initial table
 does not hold them: once plain-form Models are lifted, a sample that keeps them is refused unless

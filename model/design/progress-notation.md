@@ -73,7 +73,7 @@ longest path. Two consequences followed:
   counterexample, which is what `fair` says.
 - **Derived bounds were noise.** Kettle's 141 and ReliableBroadcast's 9 counted the model's steps.
   The checker reports the longest path of a verified claim anyway, and the tests pin it
-  (`samples/NativeHistory.test.scala` asserts Kettle's 141).
+  (`samples/Kettle.test.scala` asserts Kettle's 141).
 
 The unbounded check: verified on a complete exploration with no deadlock and no fair non-progress
 cycle, the longest path reported where no path cycles; a cut exploration answers unknown, as every

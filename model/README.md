@@ -267,8 +267,8 @@ the generic tests run. All original assertions remain. Held suites and ignored c
 credit. The source/build-directive boundary and command regressions run in the same loop.
 
 The core module's tests include the native samples. `model/framework/samples` is a core suite root
-and test input, so each sample's `<Sample>Test` and the `NativeMapsTest`, `NativeVotingTest`
-and `NativeHistoryTest` suites (package `framework.dsl`) run once each with the DSL/realize suites. The reusable library compiled
+and test input, so each sample's `<Sample>Test` and the `InputsTest` and `VotingBehaviorTest`
+suites (package `framework.dsl`) run once each with the DSL/realize suites. The reusable library compiled
 for constructed fixtures stays DSL/realize only. Two `SamplesSuite` cases run the Go toolchain: the
 generated checker's overlap/diagnostics fixture and the real sample-report comparison. In this loop
 they are held by `GoHeld`, which reports `HELD test <name>: <reason>` and ignores them before their

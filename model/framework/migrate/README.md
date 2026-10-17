@@ -127,7 +127,7 @@ arithmetic is no checking oracle; cross-interpreter parity and full R5/R6 remain
    Keep independent expected class values and `Step` results; test public author code against a
    fresh separately compiled framework jar as well as focused native dispatch tests.
 
-[NativeInputs.scala](../samples/NativeInputs.scala) shows the final native surface alongside
+[Inputs.scala](../samples/Inputs.scala) shows the final native surface alongside
 expectation alternatives. This migration needs no source rewrite rule or copied Temporal proof.
 It contributes native R6/R7 only: collection lifting/capture, checked numeric interpretation,
 complete six-sample graph equivalence and backend proofs remain held with the original tasks.

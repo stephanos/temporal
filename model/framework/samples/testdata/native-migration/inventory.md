@@ -192,7 +192,7 @@ and history Limits(9,9,65536) remain as listed below.
 
 fn-190.7 phase 1 (plain form): servedFromL2 moves from postconditions to queries, as a find
 target that is no promise and is not checked by default; refutesWriteThroughL1 leaves the Model
-and is the NativeHistory test's `assertRefuted(WriteThroughL1, Model.monitors.readAfterWrite)`
+and is the TwoLayeredCache test's `assertRefuted(WriteThroughL1, Model.monitors.readAfterWrite)`
 (counterexample write, l1Expire, read); readFillsL1Holds and readAfterExpiry keep their names on
 the default budget, as no Model declares Limits.
 
@@ -213,7 +213,7 @@ Literal cold/room paths and supplied 99->100/failover steps establish those call
 not a 140-step search or any checked-int64 result.
 
 fn-190.7 phase 1 (plain form): neverBeeps leaves the Model's invariants, since every claim is
-checked by default, and refutesNeverBeeps leaves its queries: both are the NativeHistory test's
+checked by default, and refutesNeverBeeps leaves its queries: both are the Kettle test's
 `assertRefuted(Model, invariant(check(!beeping)))`. The other four queries keep their names, with
 fromRoomTemperature and fromAnyTemperature as Machine vals (`starts()`, `starts(temperature =
 -40)`) on the default budget. HeatingOnly is retired: boils is Model's `leadsTo(from = heatingOn,
@@ -236,11 +236,11 @@ monitor states: no blanket product-graph bijection is implied by a projection.
 | Voting | consistencyHolds | verify consistency / Model | anyVote / Model.init; everyBallot | Verified |
 | Voting | invariantHolds | verify invariant / Model | anyVote / Model.init; everyBallot | Verified |
 | Voting | valueChosen | find decides / Model (fn-190.4: decides, a find target, is declared in Model.queries) | anyVote / Model.init; everyBallot | Found |
-| Voting | refutesUnsafeVoting | moved (fn-190.4) to NativeVoting.test as assertRefuted of the consistency invariant on UnsafeVoting NegativeControl, a negative control being a test | Model.init; default budget | Counterexample |
+| Voting | refutesUnsafeVoting | moved (fn-190.4) to VotingBehavior.test as assertRefuted of the consistency invariant on UnsafeVoting NegativeControl, a negative control being a test | Model.init; default budget | Counterexample |
 | ReliableBroadcast | safetyHolds | verify safety / Model | anyRun / Model.init; broadcastLimits (11,11,1048576) | Verified |
 | ReliableBroadcast | reliabilityHolds | verify reliability / Model; across | anyRun / Model.init; broadcastLimits | Verified |
 | ReliableBroadcast | deliveredDespiteCrash | find survivesCrash / Model (fn-190.4: survivesCrash, a find target, is declared in Model.queries) | anyRun / Model.init; broadcastLimits | Found |
-| ReliableBroadcast | refutesNaiveAgreement | moved (fn-190.4) to NativeVoting.test as assertRefuted of Model.monitors.agreement on Naive NegativeControl, a negative control being a test | Model.init; default budget | Counterexample |
+| ReliableBroadcast | refutesNaiveAgreement | moved (fn-190.4) to VotingBehavior.test as assertRefuted of Model.monitors.agreement on Naive NegativeControl, a negative control being a test | Model.init; default budget | Counterexample |
 | TwoLayeredCache | readFillsL1Holds | verify readFillsL1 / Model | anyRun / Model.init; history (9,9,65536) | Verified |
 | TwoLayeredCache | readAfterExpiry | find servedFromL2 / Model | anyRun / Model.init; history | Found |
 | TwoLayeredCache | refutesWriteThroughL1 | verify buggyWritesRecorded / WriteThroughL1 NegativeControl | anyBuggyRun / Model.init; history | Counterexample |

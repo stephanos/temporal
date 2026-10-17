@@ -77,7 +77,7 @@ object SectionClaims extends munit.Assertions:
         expected
       )
 
-class NativeVotingTest extends munit.FunSuite:
+class VotingBehaviorTest extends munit.FunSuite:
   private def run[S, O](
       machine: RecordMachine[S, O, Nothing],
       state: S,

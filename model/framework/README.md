@@ -130,7 +130,7 @@ heterogeneous-target contexts retain state-only guards; unsupported binary guard
 compilation. A scalar `EmptyTuple` still carries an input and supports a binary guard.
 
 Finite-value `domains.oneOf(2, 0)` and expectation `oneOf: branch: ...` have distinct forms; malformed
-expectation branches cannot become finite domains. [NativeInputs.scala](samples/NativeInputs.scala)
+expectation branches cannot become finite domains. [Inputs.scala](samples/Inputs.scala)
 is a small native example. These callbacks prove native authoring and dispatch only. Supported
 operation lifting, interpreted numeric parity and the six samples' reached-graph equivalence remain
 held; successful Scala guards or `Data` evidence establish none of them.

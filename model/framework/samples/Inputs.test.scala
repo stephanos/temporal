@@ -1,8 +1,8 @@
 package framework.dsl
 
-import samples.NativeInputs
+import samples.Inputs
 
-class NativeInputsTest extends munit.FunSuite:
+class InputsTest extends munit.FunSuite:
   private def run[S, O](
       machine: RecordMachine[S, O, Nothing],
       state: S,
@@ -11,8 +11,8 @@ class NativeInputsTest extends munit.FunSuite:
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
 
-  test("NativeInputs accepts an amount within its ceiling once, by an input guard on its vars"):
-    import NativeInputs.*
+  test("Inputs accepts an amount within its ceiling once, by an input guard on its vars"):
+    import Inputs.*
     def accepted(seen: Set[Int]): State = Accepted.init.copy(seen = seen)
     assertEquals(
       run(Accepted, Accepted.init, caller.submit(Request(0, 1))),
@@ -42,8 +42,8 @@ class NativeInputsTest extends munit.FunSuite:
     assert(zero(Step(true, accepted(Set(0, 2)))))
     assert(!zero(Step(true, accepted(Set(2)))))
 
-  test("NativeInputs' postcondition is checked by default over every input class"):
-    import NativeInputs.*
+  test("Inputs' postcondition is checked by default over every input class"):
+    import Inputs.*
     val report = NativeCheck.verifyAll(Accepted)
     assertEquals(report.verdicts, Map("zeroWasAccepted" -> NativeCheck.Verdict.verified))
     assertEquals(report.warnings, Vector.empty)

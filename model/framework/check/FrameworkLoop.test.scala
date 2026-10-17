@@ -50,9 +50,8 @@ class FrameworkLoopSuite extends munit.FunSuite:
         "model/framework/samples/TwoLayeredCache.test.scala" -> "package framework.dsl\nclass TwoLayeredCacheTest extends munit.FunSuite\n",
         "model/framework/samples/TwoPhaseCommit.test.scala" -> "package framework.dsl\nclass TwoPhaseCommitTest extends munit.FunSuite\n",
         "model/framework/samples/Voting.test.scala" -> "package framework.dsl\nclass VotingTest extends munit.FunSuite\n",
-        "model/framework/samples/NativeInputs.test.scala" -> "package framework.dsl\nclass NativeInputsTest extends munit.FunSuite\n",
-        "model/framework/samples/NativeVoting.test.scala" -> "package framework.dsl\nclass NativeVotingTest extends munit.FunSuite\n",
-        "model/framework/samples/NativeHistory.test.scala" -> "package framework.dsl\nclass NativeHistoryTest extends munit.FunSuite\n",
+        "model/framework/samples/Inputs.test.scala" -> "package framework.dsl\nclass InputsTest extends munit.FunSuite\n",
+        "model/framework/samples/VotingBehavior.test.scala" -> "package framework.dsl\nclass VotingBehaviorTest extends munit.FunSuite\n",
         "model/framework/export/Ids.test.scala" -> "package framework.`export`\nclass DerivedIds extends munit.FunSuite\n",
         "model/build/ir-scalapb.jar" -> "existing IR",
         "model/build/api-scalapb.jar" -> "poison API",
@@ -113,9 +112,8 @@ class FrameworkLoopSuite extends munit.FunSuite:
       "framework.dsl.TwoLayeredCacheTest",
       "framework.dsl.TwoPhaseCommitTest",
       "framework.dsl.VotingTest",
-      "framework.dsl.NativeInputsTest",
-      "framework.dsl.NativeVotingTest",
-      "framework.dsl.NativeHistoryTest"
+      "framework.dsl.InputsTest",
+      "framework.dsl.VotingBehaviorTest"
     )
     val selectors = commands.asScala.toVector.flatMap(_.split(" ").toVector)
     for suite <- Seq(
@@ -132,7 +130,7 @@ class FrameworkLoopSuite extends munit.FunSuite:
     assert(Files.isRegularFile(record.resolve("build/framework.jar")))
     assert(Files.isRegularFile(record.resolve("build/reify.jar")))
     val recorded = Files.readString(record.resolve("record.md"))
-    assert(recorded.contains("PASS framework gate: 12 generic suites; 0 held suites"), recorded)
+    assert(recorded.contains("PASS framework gate: 11 generic suites; 0 held suites"), recorded)
     for suite <- samples do
       assert(recorded.contains(s"GENERIC $suite (model/framework/samples/"), recorded)
 
@@ -147,13 +145,12 @@ class FrameworkLoopSuite extends munit.FunSuite:
       samples.map(_.name).sorted,
       Vector(
         "framework.dsl.BankTest",
+        "framework.dsl.InputsTest",
         "framework.dsl.KettleTest",
-        "framework.dsl.NativeHistoryTest",
-        "framework.dsl.NativeInputsTest",
-        "framework.dsl.NativeVotingTest",
         "framework.dsl.ReliableBroadcastTest",
         "framework.dsl.TwoLayeredCacheTest",
         "framework.dsl.TwoPhaseCommitTest",
+        "framework.dsl.VotingBehaviorTest",
         "framework.dsl.VotingTest"
       )
     )

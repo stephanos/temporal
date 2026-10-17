@@ -30,7 +30,7 @@ that a non-exhaustive phase `match` fails the build. Logs land in `logs/`:
 | `dsl/Runtime.scala` | native runtime: snapshot/restore of the vars, steps with choice replay, reachable graph, claim evaluation by class reload, progress |
 | `dsl/Controls.test.scala` | `assertRefuted` for negative controls |
 | `kettle/Kettle.scala` | Kettle in the spec's form (nested `object Kettle`, `object Model extends Machine`) |
-| `kettle/Kettle.test.scala` | NativeHistory's and Expect's Kettle cases, default checks, progress |
+| `kettle/Kettle.test.scala` | Kettle's and Expect's Kettle cases, default checks, progress |
 | `kettle/Refusals.test.scala` | compile-time refusals through `compileErrors` |
 | `kettle/Report.scala` | `proto.report`, what run.sh prints |
 | `toplevel/Kettle.scala` | the same Kettle as top-level definitions in `package samples.kettle`, Machine named `Kettle` |

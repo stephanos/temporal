@@ -299,7 +299,7 @@ What goes: `choice`, the token vals, three recognisers; the duplicate-name check
 ```scala
 // samples/Bank.scala:61
 val send = action.inputs[Send](inputField[Send](_.amount).in(domains.oneOf(0 to 3)))
-// samples/NativeInputs.scala:12-15
+// samples/Inputs.scala:12-15
 val submit = action.inputs[Request](
   inputField[Request](_.amount).in(domains.oneOf(2, 0)),
   inputField[Request](_.ceiling).in(domains.oneOf(1 to 2))
