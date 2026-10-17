@@ -546,3 +546,14 @@ The owner phased the work so the DSL settles before the IR and plugin change onc
 - **Phase 2, IR and plugin, batched:** fn-190.9 (lift vars, effects, transitions and check blocks; State record, schema and init from declarations; facet payloads removed), fn-190.3 (IR evaluator), fn-190.10 (samples lift and model-check, Go budget, oracles, equivalence), fn-190.5 (remove native execution), fn-190.8 with fn-189, fn-191.2/.3, the remaining fn-164.3 lowering and the export/lint re-anchoring. One full framework gate runs at the end.
 
 The plugin and lifter halves of .1, .2, .4, .6 and .7 moved to .9 and .10; each task's description records its phase.
+
+## Decisions from the fn-190.1 prototype (conductor, 2026-10-17)
+
+The prototype (model/design/plain-scala-models-prototype.md, probe in model/design/plain-scala-prototype/) adopts the form natively. Recorded decisions, applied in fn-190.2/.4/.7:
+
+- Outcome and fact types are abstract type members, not members with defaults (Scala cannot override a concrete type member); a Machine that records none leaves them out and is plain `extends Machine`.
+- `neverBeeps` is not an invariant (every claim is checked by default, so it would turn Kettle's own check red); it lives only in the sample test as `assertRefuted`.
+- Kettle's progress claim keeps the fn-191.1 form (a derivation restricted to pressButton/heat/failover, `within = 81`), because `only(heat, failover)` from the single start never heats; the prototype's alternative (`within = 141` from `starts(heatingOn = true)`) is recorded for fn-190.7 to choose with the start list.
+- `scenario` stays a member or val, never a top-level object beside `Scenario` (case-insensitive file systems).
+- Phase-1 native runtime as the prototype recommends: a macro-derived var schema, immutable snapshot records restored before each step or claim and reset to init after, a step context for `before`, `choose` replayed per alternative, and claim sections re-evaluated through a child class loader as a test-only stopgap removed by fn-190.5. One live state per Machine, so evaluations of one Machine are not parallel.
+- Refusing a var read outside a lifted scope needs the plugin: fn-190.9.

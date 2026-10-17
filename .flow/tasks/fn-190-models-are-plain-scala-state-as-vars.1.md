@@ -19,9 +19,10 @@ Throwaway prototype, no production source changed. On a copy of Kettle: state as
 - [ ] TBD
 
 ## Done summary
-TBD
+Phase 1 prototype. The plain-Scala form (state as vars, assignment-block effects, transitions as if/match, claims reading vars by name with `before` as a typed State record, sections without kind words, `only`/`starts`/`oneOf` scenarios, `assertRefuted`, `Internal`/`step`) compiles under the native strict flags and executes natively on copies of Kettle and the Facets fixture, with no plugin: 31 probe tests, run.sh clean, no production source changed (native checks 467/29 green). Verdicts per item, spec problems found and the recommended phase-1 native runtime are in model/design/plain-scala-models-prototype.md; decisions are recorded in the spec's "Decisions from the fn-190.1 prototype". Lifting (IR output, read substitution, State naming, retained-IR comparison) is deferred to fn-190.9.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ddbf3af228
+- Tests: model/design/plain-scala-prototype/run.sh: 31 tests passed, native checks unchanged: compile exit 0, 467 tests, 29 lint
 - PRs:
