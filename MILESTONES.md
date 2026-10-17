@@ -1037,7 +1037,7 @@ remain Phase 3 obligations; historical exporter checks and the batch review are 
 | --- | --- | --- |
 | fn-189.5 | 🔄 in progress | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
 | fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
-| fn-189.7 | ⬜ todo | After .2–.6: counts receipt (R9) |
+| fn-189.7 | ⬜ todo | Phase 3, after fn-190.9 and fixture re-anchoring: retained R2/R7 full-mode effect/incremental and samples/Facets proofs, then counts receipt (R9) |
 | fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
 | fn-189.9 | ⬜ todo | After .1: root-only positions inside the body lifter; the `at`/`pos` threading, `placing` and `argumentAt` go (R5, R10) |
 | fn-189.10 | ⬜ todo | After .3/.9: one tree-normalization pass replaces the per-site `unwrapped` helpers and wrapper arms; `typedRemainder` deleted (R10) |

@@ -51,13 +51,16 @@ call-group proof. A full compile (the Makefile) reads the same annotations it ju
 
 **What is stored, decided at the definition.** The plugin stores IR for a def when, and only when:
 
-- its owner derives from `framework.dsl.Lifted`, a marker trait, or
+- its owner derives from `framework.dsl.Lifted`, a marker trait, or is a nested container
+  within such an owner (without crossing a method/local scope), or
 - its result type is a step list `List[Step[S, O, F]]`, or
 - it overrides `Machine.end` or `Machine.evidence`.
 
-`Machine`'s own `effects` object derives from `Lifted` through the framework, so a Model's effects
-are stored without the author writing anything. A shared vocabulary object in another file writes
-`extends Lifted` once. The per-def `@lifted` annotation is removed from the DSL. A capture that
+`Machine` derives from `Lifted` through the framework, so its authored nested containers, including
+plain `object effects:`, are covered without the author writing anything. Coverage is lexical,
+not recognition of `effects` or `rules` by spelling. A shared vocabulary object in another file
+writes `extends Lifted` once, covering its nested containers too. Local defs belong to their enclosing
+body, not to definition-site storage. The per-def `@lifted` annotation is removed from the DSL. A capture that
 reaches a def in another file that none of the three rules covers is refused at the capture with
 the def's name and "define it in an object that extends Lifted" (R2). In a full compile every tree is
 in the run, so the refusal is reported there as well, with the same text, to keep build and editor
@@ -160,8 +163,9 @@ Compiler refusals, exact texts are the contract:
   source-path identity checks, and no carrier version or fingerprint. The DSL and plugin build
   against the generated proto jars only. Errors: a capture whose reached definition has no tree in
   the run and no `liftedIr` annotation is refused with the R2 text; no other error surface.
-- **R2:** Storage is decided at the definition by the three rules in Architecture: owner derives
-  from `Lifted`, result type is a step list, or override of `Machine.end`/`Machine.evidence`. The
+- **R2:** Storage is decided at the definition by the three rules in Architecture: a `Lifted`
+  container (including its nested containers), result type is a step list, or override of
+  `Machine.end`/`Machine.evidence`. Local defs are not container members. The
   public `@lifted` annotation does not exist in the DSL. A Model with effects in its Machine and a
   helper in a `Lifted` object in another file lifts under a full compile and under a warm Bloop
   session where only the helper's body is edited, and the dependent Model recompiles with the new
@@ -301,12 +305,12 @@ and transitions, which are roots, and the rest move up one level at the sweep.
 | Req | Task(s) | Gap justification |
 | --- | --- | --- |
 | R1 | fn-189.1 | — |
-| R2 | fn-189.5 | — |
+| R2 | fn-189.5, fn-189.7 | .5 is the native-source checkpoint; .7 retains the full plain-Machine effect/incremental proof after fn-190.9 |
 | R3 | fn-189.4 | — |
 | R4 | fn-189.6 | — |
 | R5 | fn-189.1 | — |
 | R6 | fn-189.2 | — |
-| R7 | fn-189.3 | — |
+| R7 | fn-189.3, fn-189.7 | .3 is the native-source checkpoint; .7 retains full-mode samples/Facets lifting and IR-equivalence evidence |
 | R8 | fn-189.8 | after fn-174.8 retires the old reader |
 | R9 | fn-189.7, fn-189.8 | — |
 | R10 | fn-189.9, fn-189.10, fn-189.11 | fn-189.11 waits for fn-174.8 |
