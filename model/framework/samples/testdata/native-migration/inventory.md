@@ -190,6 +190,12 @@ reachable mutant witness. A later good write/read cannot erase an earlier stale 
 All three Property owners/selectors, both free scenarios, three Query forms/names/order
 and history Limits(9,9,65536) remain as listed below.
 
+fn-190.7 phase 1 (plain form): servedFromL2 moves from postconditions to queries, as a find
+target that is no promise and is not checked by default; refutesWriteThroughL1 leaves the Model
+and is the NativeHistory test's `assertRefuted(WriteThroughL1, Model.monitors.readAfterWrite)`
+(counterexample write, l1Expire, read); readFillsL1Holds and readAfterExpiry keep their names on
+the default budget, as no Model declares Limits.
+
 ## Kettle (.15 representation map complete)
 
 Map old Snapshot.reading r to native Celsius r-40, preserving heatingOn/beeping.
@@ -205,6 +211,15 @@ both free scenarios, Limits(144,144,65536), and five Query rows below remain.
 neverBeeps is the negative Property on Model; no separate NegativeControl is added.
 Literal cold/room paths and supplied 99->100/failover steps establish those callbacks,
 not a 140-step search or any checked-int64 result.
+
+fn-190.7 phase 1 (plain form): neverBeeps leaves the Model's invariants, since every claim is
+checked by default, and refutesNeverBeeps leaves its queries: both are the NativeHistory test's
+`assertRefuted(Model, invariant(check(!beeping)))`. The other four queries keep their names, with
+fromRoomTemperature and fromAnyTemperature as Machine vals (`starts()`, `starts(temperature =
+-40)`) on the default budget. HeatingOnly is retired: boils is Model's `leadsTo(from = heatingOn,
+to = beeping, within = 141) in heatingAlone`, `heatingAlone = only(pressButton, heat, failover)`:
+true from every start the Kettle admits (conductor), Verified with longest path 81 from Model.init
+and 141 from Model.init and coldest together (a press at -40, 140 heats and the failover).
 
 ## Complete Query inventory
 
@@ -245,7 +260,7 @@ the retained sources govern any future reconciliation.
 
 Kettle gains (fn-191) the boils Progress, owned by `HeatingOnly`, a `Derived` restriction of
 Model to pressButton, heat and failover: from heatingOn to beeping within 81 (a press at room
-temperature, 80 heats and the failover), with no assumption. depressButton is restricted away,
+temperature, 80 heats and the failover), with no assumption (within 141 since fn-190.7, below). depressButton is restricted away,
 since a user who switches the kettle off before it boils would refute it; pressButton stays,
 since from Model.init nothing heats until the element is on, and without it the claim would hold
 vacuously. Intended Progress answer Verified.

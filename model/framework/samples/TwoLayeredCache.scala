@@ -32,24 +32,6 @@ object TwoLayeredCache:
 
   final case class Observation(event: Event, value: Option[Int])
 
-  // the value a read returned: layer 1's after the read, which a layer-2 hit wrote back
-  def readValue(after: Cache): Option[Int] = after.l1
-
-  def observe(
-      history: List[Observation],
-      after: Step[State, Outcome, Event]
-  ): List[Observation] =
-    val event =
-      if after.records(Event.wrote) then Some(Event.wrote)
-      else
-        after.facts.find(event =>
-          event == Event.readL1 || event == Event.readL2 || event == Event.notFound
-        )
-    event match
-      case Some(event) =>
-        history :+ Observation(event, readValue(Model.at(after.state)(Model.current)))
-      case None => history
-
   def readHistoryBroken(history: List[Observation]): Boolean =
     history
       .foldLeft((Option.empty[Int], false)) { case ((lastWrite, broken), observation) =>
@@ -90,85 +72,81 @@ object TwoLayeredCache:
     // a run stops where the layers agree
     override def end = agreed(current)
 
-    object transitions extends Rules:
+    // What a step showed of the cache: the event it recorded, a write before a read, and the value
+    // a read returned, layer 1's after the step, which a layer-2 hit wrote back.
+    def observe(history: List[Observation]): List[Observation] =
+      val event =
+        if recorded(Event.wrote) then Some(Event.wrote)
+        else
+          facts.find(event =>
+            event == Event.readL1 || event == Event.readL2 || event == Event.notFound
+          )
+      event.fold(history)(event => history :+ Observation(event, l1))
+
+    object transitions extends Transitions:
       on(client.write):
-        where(num < 3) ~> effects.write()
+        if num < 3 then effects.write()
       on(client.read):
-        always ~> effects.read()
+        effects.read()
       on(timers.l1Expire):
-        where(l1 != None) ~> effects.expire()
+        if l1 != None then effects.expire()
 
     object effects:
       def write(): Unit =
         l1 = Some(num)
         l2 = Some(num)
         num = num + 1
-        record(Event.wrote)
+        records(Event.wrote)
       // A buggy write that stores its value in layer 1 only.
       def writeL1Only(): Unit =
         l1 = Some(num)
         num = num + 1
-        record(Event.wrote)
+        records(Event.wrote)
       // If the value is not in layer 1, read it from layer 2 and write it back to layer 1;
       // otherwise it is not found.
       def read(): Unit =
-        if l1 != None then record(Event.readL1)
+        if l1 != None then records(Event.readL1)
         else if l2 != None then
           l1 = l2
-          record(Event.readL2)
-        else record(Event.notFound)
+          records(Event.readL2)
+        else records(Event.notFound)
       def expire(): Unit = l1 = None
 
     object postconditions:
       // after a read, both layers hold what it returned
-      val readFillsL1: Property =
-        property
-          .after(client.read)
-          .expect:
-            check(agreed(current))
-      val servedFromL2: Property =
-        property
-          .after(client.read)
-          .expect:
-            records(Event.readL2)
+      val readFillsL1 = after(client.read):
+        check(agreed(current))
 
     object monitors:
       // read the latest write: no read returns a value older than the last write, and a miss is
       // older than any write
-      val readAfterWrite = monitor[State, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
-        (history, _, after) => observe(history, after)
-      )(readHistoryBroken)
+      val readAfterWrite = monitor(List.empty[Observation])(observe)(readHistoryBroken)
       // a later write stores a greater value
-      val writeAfterWrite = monitor[State, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
-        (history, _, after) => observe(history, after)
-      )(writeHistoryBroken)
+      val writeAfterWrite = monitor(List.empty[Observation])(observe)(writeHistoryBroken)
 
     object progress:
       // all layers contain the same latest written value, one step after they part
-      val agreement: Progress[State] =
-        Model.leadsTo("agreement")(!agreed(current), agreed(current), within = 1)
+      val agreement = leadsTo(from = !agreed(current), to = agreed(current), within = 1)
 
     object queries:
-      val anyRun: Scenario = scenario.starts(init).free
-      // three writes, each expired and read back
-      val history = Limits(steps = 9, actions = 9, search = 65536)
-      val readFillsL1Holds = query verify postconditions.readFillsL1 in anyRun limits history
-      val readAfterExpiry = query find postconditions.servedFromL2 in anyRun limits history
+      // a read served from layer 2: no promise of every read, so a find target here
+      val servedFromL2 = after(client.read):
+        records(Event.readL2)
+      val readFillsL1Holds = verify(postconditions.readFillsL1)
+      val readAfterExpiry = find(servedFromL2)
 
+  // A negative control: writes that store their value in layer 1 only. The readAfterWrite monitor
+  // it keeps from Model is refuted, in the tests.
   object WriteThroughL1
-      extends Derived(Model.rebind(client.write ~> Model.effects.writeL1Only())),
-        NegativeControl:
+      extends Derived(
+        Model.rebind(
+          on(client.write):
+            if Model.num < 3 then Model.effects.writeL1Only()
+        )
+      ):
 
     object postconditions:
       // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
       // monitor, which a read of a value older than the last write breaks.
-      val buggyWritesRecorded: Property =
-        property
-          .after(client.write)
-          .expect:
-            records(Event.wrote)
-
-    object queries:
-      val anyBuggyRun: Scenario = scenario.starts(Model.init).free
-      val refutesWriteThroughL1 =
-        query verify postconditions.buggyWritesRecorded in anyBuggyRun limits Model.queries.history
+      val buggyWritesRecorded = after(client.write):
+        records(Event.wrote)

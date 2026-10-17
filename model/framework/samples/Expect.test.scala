@@ -114,52 +114,74 @@ class SampleExpectTest extends munit.FunSuite:
     import Kettle.*
     import Kettle.Model.{beeping, heatingOn, temperature}
     import framework.dsl.outcomes.Outcome
+    import NativeControls.invariant
+    import SampleClaims.{holds, judged}
     val quiet = Model.init
     val hot = quiet.copy(temperature = 100, heatingOn = false, beeping = true)
     val heating = quiet.copy(heatingOn = true)
-    same(
-      Model.invariants.beepsOnlyWhenOff,
-      Model,
-      None,
+    // each case judged by the claim and by the predicate it was before, on the same state or step
+    def invariantCases(claim: State => Boolean, cases: List[(State, Boolean)])(
+        old: State => Boolean
+    ): Unit =
+      cases.foreach: (state, expected) =>
+        assertEquals(old(state), expected, state)
+        assertEquals(claim(state), expected, state)
+    def stepCases(claim: Query, taken: Class, cases: List[(State, State, Boolean)])(
+        old: (State, State) => Boolean
+    ): Unit =
+      cases.foreach: (before, after, expected) =>
+        assertEquals(old(before, after), expected, (before, after))
+        val step = Step[State, Outcome, Nothing](Outcome.accepted, after)
+        assertEquals(judged(claim, before, taken, step), Some(expected), (before, after))
+    invariantCases(
+      holds(verify(Model.invariants.beepsOnlyWhenOff), _),
       List(
-        (Step(Outcome.accepted, quiet), true),
-        (Step(Outcome.accepted, heating), true),
-        (Step(Outcome.accepted, hot), true),
-        (Step(Outcome.accepted, hot.copy(heatingOn = true)), false)
+        (quiet, true),
+        (heating, true),
+        (hot, true),
+        (hot.copy(heatingOn = true), false)
       )
-    )(after => Model.at(after.state)(!beeping || !heatingOn))
-    across(
-      Model.postconditions.warmsOnlyWhenOn,
-      Model,
+    )(state => Model.at(state)(!beeping || !heatingOn))
+    stepCases(
+      verify(Model.postconditions.warmsOnlyWhenOn),
+      heater.heat(),
       List(
-        (heating, Step(Outcome.accepted, hot), true),
-        (quiet, Step(Outcome.accepted, quiet), true),
-        (quiet, Step(Outcome.accepted, coldest), true),
-        (quiet, Step(Outcome.accepted, hot), false)
+        (heating, hot, true),
+        (quiet, quiet, true),
+        (quiet, coldest, true),
+        (quiet, hot, false)
       )
     )((before, after) =>
-      Model.at(before)(heatingOn) ||
-        Model.at(after.state)(temperature) <= Model.at(before)(temperature)
+      Model.at(before)(heatingOn) || Model.at(after)(temperature) <= Model.at(before)(temperature)
     )
-    same(
-      Model.postconditions.failsOverAtBoiling,
-      Model,
-      Some(heater.failover),
+    // failsOverAtBoiling is about failover's steps alone
+    val failsOver = verify(Model.postconditions.failsOverAtBoiling)
+    stepCases(
+      failsOver,
+      heater.failover(),
       List(
-        (Step(Outcome.accepted, hot), true),
-        (Step(Outcome.accepted, hot.copy(beeping = false)), false),
-        (Step(Outcome.accepted, quiet.copy(beeping = true)), false)
+        (heating, hot, true),
+        (heating, hot.copy(beeping = false), false),
+        (heating, quiet.copy(beeping = true), false)
       )
-    )(after => Model.at(after.state)(temperature == boilingTemperature && beeping))
-    same(
-      Model.invariants.neverBeeps,
-      Model,
-      None,
+    )((_, after) => Model.at(after)(temperature == boilingTemperature && beeping))
+    assertEquals(
+      judged(
+        failsOver,
+        heating,
+        heater.heat(),
+        Step[State, Outcome, Nothing](Outcome.accepted, quiet)
+      ),
+      None
+    )
+    // neverBeeps, the negative control, written in its test
+    invariantCases(
+      holds(Model, invariant(check(!Model.beeping)), _),
       List(
-        (Step(Outcome.accepted, quiet), true),
-        (Step(Outcome.accepted, hot), false)
+        (quiet, true),
+        (hot, false)
       )
-    )(after => Model.at(after.state)(!beeping))
+    )(state => Model.at(state)(!beeping))
 
   test("ReliableBroadcast's four native predicates retain both process implications"):
     import ReliableBroadcast.*
@@ -225,12 +247,27 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("TwoLayeredCache's three native predicates retain state and fact requirements"):
     import TwoLayeredCache.*
+    import SampleClaims.judged
     val initial = Model.init
     val mismatched = initial.copy(l1 = Some(0))
-    same(
-      Model.postconditions.readFillsL1,
-      Model,
-      Some(client.read),
+    // each case judged by the claim and by the predicate it was before, on a step of the action
+    // it is about, and the claim not about the steps of another action
+    def cases(
+        claim: Query,
+        taken: Class,
+        other: Class,
+        steps: List[(Step[State, Outcome, Event], Boolean)]
+    )(
+        old: Step[State, Outcome, Event] => Boolean
+    ): Unit =
+      steps.foreach: (step, expected) =>
+        assertEquals(old(step), expected, step)
+        assertEquals(judged(claim, initial, taken, step), Some(expected), step)
+        assertEquals(judged(claim, initial, other, step), None, step)
+    cases(
+      verify(Model.postconditions.readFillsL1),
+      client.read(),
+      client.write(),
       List(
         (Step(Outcome.accepted, initial, List.empty[Event]), true),
         (Step(Outcome.accepted, mismatched, List.empty[Event]), false)
@@ -241,16 +278,16 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, initial, List(Event.wrote)), true),
       (Step(Outcome.accepted, initial, List(Event.readL2)), false)
     )
-    same(
-      WriteThroughL1.postconditions.buggyWritesRecorded,
-      WriteThroughL1,
-      Some(client.write),
+    cases(
+      verify(WriteThroughL1.postconditions.buggyWritesRecorded),
+      client.write(),
+      client.read(),
       factCases
     )(after => after.records(Event.wrote))
-    same(
-      Model.postconditions.servedFromL2,
-      Model,
-      Some(client.read),
+    cases(
+      verify(Model.queries.servedFromL2),
+      client.read(),
+      client.write(),
       List(
         (Step(Outcome.accepted, initial, List.empty[Event]), false),
         (Step(Outcome.accepted, initial, List(Event.wrote)), false),

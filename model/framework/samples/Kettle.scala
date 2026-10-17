@@ -32,16 +32,25 @@ object Kettle:
     var heatingOn = false
     var beeping = false
 
+    // the kettle from room temperature, and from the coldest start
+    val fromRoomTemperature = starts()
+    val fromAnyTemperature = starts(temperature = -40)
+    // The kettle left to itself once the user switched it on. The user's own actions are restricted
+    // rather than assumed away: a user who switches the kettle off before it boils keeps it from
+    // boiling, which no fairness of the heater excludes. Pressing the button stays, since from room
+    // temperature nothing heats until the user switches the element on.
+    val heatingAlone = only(user.pressButton, heater.heat, heater.failover)
+
     // one step of the state machine: any enabled action
-    object transitions extends Rules:
+    object transitions extends Transitions:
       on(user.pressButton):
-        where(!heatingOn) ~> effects.pressButton()
+        if !heatingOn then effects.pressButton()
       on(heater.failover):
-        where(heatingOn && temperature >= boilingTemperature) ~> effects.failover()
+        if heatingOn && temperature >= boilingTemperature then effects.failover()
       on(heater.heat):
-        where(heatingOn && temperature < boilingTemperature) ~> effects.heat()
+        if heatingOn && temperature < boilingTemperature then effects.heat()
       on(user.depressButton):
-        where(heatingOn) ~> effects.depressButton()
+        if heatingOn then effects.depressButton()
 
     object effects:
       // turn on the heating element
@@ -60,45 +69,23 @@ object Kettle:
         beeping = false
 
     object invariants:
-      val beepsOnlyWhenOff = property.expect:
-        if beeping then check(!heatingOn)
-      val neverBeeps = property.expect:
-        check(!beeping)
+      val beepsOnlyWhenOff = if beeping then check(!heatingOn)
 
     object postconditions:
-      val warmsOnlyWhenOn = property.across.expect:
-        if !before.heatingOn then check(temperature <= before.temperature)
-      val failsOverAtBoiling = property
-        .after(heater.failover)
-        .expect:
-          check(temperature == boilingTemperature)
-          check(beeping)
-
-    object queries:
-      val fromRoomTemperature = scenario.starts(init).free
-      val fromAnyTemperature = scenario.starts(coldest).free
-      // the coldest start boils after a press and 140 heats
-      val toBoiling = Limits(steps = 144, actions = 144, search = 65536)
-      val beepsOnlyWhenOff =
-        query verify invariants.beepsOnlyWhenOff in fromAnyTemperature limits toBoiling
-      val warmsOnlyWhenOn =
-        query verify postconditions.warmsOnlyWhenOn in fromAnyTemperature limits toBoiling
-      val failsOverAtBoiling =
-        query verify postconditions.failsOverAtBoiling in fromAnyTemperature limits toBoiling
-      val boilsAndBeeps =
-        query find postconditions.failsOverAtBoiling in fromRoomTemperature limits toBoiling
-      val refutesNeverBeeps =
-        query verify invariants.neverBeeps in fromRoomTemperature limits toBoiling
-
-  // The kettle left to itself once the user switched it on. The user's own actions are restricted
-  // rather than assumed away: a user who switches the kettle off before it boils keeps it from
-  // boiling, which no fairness of the heater excludes. Pressing the button stays, since from room
-  // temperature nothing heats until the user switches the element on.
-  object HeatingOnly
-      extends Derived(Model.restrict(user.pressButton, heater.heat, heater.failover)):
-    import Model.{beeping, heatingOn}
+      val warmsOnlyWhenOn = if !before.heatingOn then check(temperature <= before.temperature)
+      val failsOverAtBoiling = after(heater.failover):
+        check(temperature == boilingTemperature)
+        check(beeping)
 
     object progress:
-      // switched on, the water boils and the kettle beeps: 80 heats from room temperature and the
-      // failover
-      val boils: Progress[State] = HeatingOnly.leadsTo("boils")(heatingOn, beeping, within = 81)
+      // switched on, the water boils and the kettle beeps from every start it admits: 140 heats
+      // from the coldest start and the failover (80 heats from room temperature)
+      val boils = leadsTo(from = heatingOn, to = beeping, within = 141) in heatingAlone
+
+    object queries:
+      // the claims from the coldest start, which reaches every warmer one
+      val beepsOnlyWhenOff = verify(invariants.beepsOnlyWhenOff) in fromAnyTemperature
+      val warmsOnlyWhenOn = verify(postconditions.warmsOnlyWhenOn) in fromAnyTemperature
+      val failsOverAtBoiling = verify(postconditions.failsOverAtBoiling) in fromAnyTemperature
+      // the room-temperature kettle boils after a press and 80 heats
+      val boilsAndBeeps = find(postconditions.failsOverAtBoiling) in fromRoomTemperature
