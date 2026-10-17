@@ -537,3 +537,12 @@ Order of work: R1, then R2+R9 and R7 in parallel, then R3+R4+R11+R12+R13+R14+R15
 | R14 | fn-190.1, fn-190.4, fn-190.7 | the Go budget argument and result shape land with the sample rewrite in .7 |
 | R15 | fn-190.1, fn-190.4, fn-190.7 | start-list iteration and vacuity reporting in the checker land in .7 |
 | R16 | fn-190.1, fn-190.4 | — |
+
+## Phasing (owner, 2026-10-17)
+
+The owner phased the work so the DSL settles before the IR and plugin change once:
+
+- **Phase 1, DSL only:** fn-191.1, then fn-190.1, .2, .4, .6, .7. Only model/framework/dsl, realize and samples change. The gate is the native checks: dsl/realize/samples compile under the strict flags, their native suites pass, and the block-form lint passes. Until fn-190.3/.5, a native runtime reads and writes a Machine's vars as a snapshot so effects, guards and claims execute as Scala and the sample suites keep their assertions. The framework export gate is expected to be red during phase 1.
+- **Phase 2, IR and plugin, batched:** fn-190.9 (lift vars, effects, transitions and check blocks; State record, schema and init from declarations; facet payloads removed), fn-190.3 (IR evaluator), fn-190.10 (samples lift and model-check, Go budget, oracles, equivalence), fn-190.5 (remove native execution), fn-190.8 with fn-189, fn-191.2/.3, the remaining fn-164.3 lowering and the export/lint re-anchoring. One full framework gate runs at the end.
+
+The plugin and lifter halves of .1, .2, .4, .6 and .7 moved to .9 and .10; each task's description records its phase.

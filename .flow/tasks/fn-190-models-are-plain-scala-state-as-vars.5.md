@@ -6,6 +6,8 @@ satisfies: [R6]
 Touches: model/framework/dsl/Machine.scala, RuleBindings.scala, CoreBindings.scala, DerivationBindings.scala, Budget.scala, Domain.scala, Crash.scala, InputExecution
 
 ## Description
+**Phase 2 (IR and plugin), owner phasing 2026-10-17.** Runs after phase 1 (fn-190.7) against the final DSL, batched with fn-190.9/.10; one full framework gate at the end. Deleting native execution waits until the IR evaluator (fn-190.3) carries the sample suites.
+
 Delete effectOf, guardHolds, the input-effect adapters, Finite enumeration, StateData, the Domain runtime and native budget runtime; a binding holds a reference to its effect for the plugin only; derivations (`rebind`/`extend`) stay declarations that compose at the IR level. Remove the DSL tests that executed effects or enumerated states and replace them with evaluator-backed tests where the assertion still matters.
 
 **Size:** M
@@ -13,7 +15,6 @@ Delete effectOf, guardHolds, the input-effect adapters, Finite enumeration, Stat
 ### Verification
 - No production code in model/framework/dsl invokes an effect or guard callable.
 - Focused dsl and realize suites pass; the evaluator-backed suites pass.
-
 ## Acceptance
 - [ ] TBD
 

@@ -260,3 +260,7 @@ when its prerequisite lands.
 | R7 | fn-189.3 | — |
 | R8 | fn-189.8 | after fn-174.8 retires the old reader |
 | R9 | fn-189.7, fn-189.8 | — |
+
+## Phasing (owner, 2026-10-17)
+
+This spec is phase 2: it runs after fn-190's phase 1 (the DSL in plain-Scala form, samples compiling and passing natively), batched with fn-190.9/.3/.10/.5/.8 so the plugin changes once against the final DSL.
