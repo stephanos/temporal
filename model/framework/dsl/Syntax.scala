@@ -1445,34 +1445,39 @@ object PhasesOf:
 // `rebind(on(clerk.ship): always ~> OrderRecord.effects.send)`, each case `where(g)` or
 // `always`, since a derivation's rules name no phase. Its action is `inline`, as a rule block's is
 // (`Rules`), so that an overlap names it as written. Core form: the step function
-// `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`.
+// `action ~> ((s, i) => if g(s) then e(s, i) else Nil)`. For a Machine that declares its state as
+// vars, the block is plain control flow whose input is its parameter,
+// `rebind(on(client.send): s => Model.effects.sendFromNowhere(s))`.
 inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: Action[I])(
-    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+    inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
 )(using NotGiven[I =:= EmptyTuple]): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derivedInput[S, O, F, I](owner, a.decl, codeOf(a), cases)
 
 // A native scalar action's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
 @targetName("onScalarInput")
 inline def on[S, O, F, I](using
     owner: Owner[S, O, F]
 )(inline a: ScalarAction[I])(
-    cases: Firing[S, O, F, NativeInput[I]] ?=> Unit
+    inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derivedInput[S, O, F, I](owner, a.decl, codeOf(a), cases)
 
-// A state-only action's cases. Core form: `action ~> (s => if g(s) then e(s) else Nil)`.
+// A state-only action's cases. Core form: `action ~> (s => if g(s) then e(s) else Nil)`. For a
+// Machine that declares its state as vars, the block is plain control flow over the vars whose leaves
+// call an effect, reject or are `()`, as a block of `transitions` is,
+// `rebind(on(tm.decideOnCommit): if Model.states.eagerlyCommits then Model.effects.decideOnCommit())`.
 @targetName("onWithoutInput")
 inline def on[S, O, F](using
     owner: Owner[S, O, F]
 )(inline a: Action[EmptyTuple])(
-    cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+    inline cases: Firing[S, O, F, EmptyTuple] ?=> Unit
 ): RuleGroup[S, O, F] =
   RuleSource.qualified(a, "on", "<declarer>")
-  derivedRules(owner, a.decl, codeOf(a))(cases)
+  DerivationMacros.derived[S, O, F](owner, a.decl, codeOf(a), cases)
 
 // A declared EmptyTuple scalar's cases. Core form: `action ~> ((s, in) => if g(s, in) then e(s, in) else Nil)`.
 @targetName("onScalarEmptyTuple")
@@ -1680,6 +1685,196 @@ def reject(why: outcomes.Rejection)(using
         "Machine on the shared outcomes: `import framework.dsl.outcomes.{Outcome, Rejection}`"
     ) refusing: Refusing[outcomes.Outcome]
 ): Unit = refusing.refuse(outcomes.Outcome.rejected(why))
+
+// The compile-time half of a derivation's block: in the rule words it binds those rules, and in
+// plain control flow over a Machine's vars the one rule a transitions block would.
+@scala.annotation.publicInBinary
+private[framework] object DerivationMacros:
+  import scala.quoted.*
+
+  // A derivation's block of a whole action without inputs: written in the rule words, whose cases
+  // read the block's Firing, it binds those rules; written as plain control flow over a Machine's
+  // vars, which reads no Firing, it binds the one rule the block's run gives, as `transitions` does.
+  private[framework] inline def derived[S, O, F](
+      owner: Owner[S, O, F],
+      decl: ActionDecl,
+      code: String,
+      inline cases: Firing[S, O, F, EmptyTuple] ?=> Unit
+  ): RuleGroup[S, O, F] = ${ derivedImpl[S, O, F]('owner, 'decl, 'code, 'cases) }
+
+  private def derivedImpl[S: Type, O: Type, F: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, EmptyTuple] ?=> Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    import quotes.reflect.*
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    def reads(tree: Tree, parameter: Symbol): Boolean =
+      var found = false
+      new TreeTraverser:
+        override def traverseTree(t: Tree)(owner: Symbol): Unit =
+          if t.symbol.equals(parameter) then found = true
+          else super.traverseTree(t)(owner)
+      .traverseTree(tree)(Symbol.spliceOwner)
+      found
+    unwrap(cases.asTerm) match
+      case Lambda(List(parameter), body) if !reads(body, parameter.symbol) =>
+        if !(TypeRepr.of[S] =:= TypeRepr.of[State]) then
+          report.errorAndAbort(
+            "a block of plain control flow binds a Machine that declares its state as vars"
+          )
+        val ok = Expr
+          .summon[Ok[O]]
+          .getOrElse(
+            report.errorAndAbort(
+              s"a block of plain control flow takes its accepted outcome from a given Ok[${Type.show[O]}]"
+            )
+          )
+        val run = TransitionMacros.leaves(body.asExprOf[Unit])
+        '{
+          derivedTransition[O, F](
+            $owner.asInstanceOf[Owner[State, O, F]], // scalafix:ok DisableSyntax.asInstanceOf
+            $ok,
+            $decl,
+            None,
+            $code,
+            () => $run
+          ).asInstanceOf[RuleGroup[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
+        }
+      case _ => '{ derivedRules[S, O, F, EmptyTuple]($owner, $decl, $code)($cases) }
+
+  // A derivation's block of an action with an input: written in the rule words, it binds those
+  // rules; written as plain control flow whose input is the block's parameter, `s => ...`, it binds
+  // the one rule the block's run on the input gives.
+  private[framework] inline def derivedInput[S, O, F, I](
+      owner: Owner[S, O, F],
+      decl: ActionDecl,
+      code: String,
+      inline cases: Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit
+  ): RuleGroup[S, O, F] = ${ derivedInputImpl[S, O, F, I]('owner, 'decl, 'code, 'cases) }
+
+  private def derivedInputImpl[S: Type, O: Type, F: Type, I: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    import quotes.reflect.*
+    def unwrap(t: Term): Term = t match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case Block(Nil, inner)      => unwrap(inner)
+      case other                  => other
+    unwrap(cases.asTerm) match
+      case Lambda(List(_), body) =>
+        unwrap(body) match
+          case function @ Lambda(List(_), _) =>
+            if !(TypeRepr.of[S] =:= TypeRepr.of[State]) then
+              report.errorAndAbort(
+                "a block of plain control flow binds a Machine that declares its state as vars"
+              )
+            val ok = Expr
+              .summon[Ok[O]]
+              .getOrElse(
+                report.errorAndAbort(
+                  "a block of plain control flow takes its accepted outcome from a given " +
+                    s"Ok[${Type.show[O]}]"
+                )
+              )
+            val run = TransitionMacros.inputImpl[I](function.asExprOf[I => Unit])
+            '{
+              derivedInputTransition[O, F, I](
+                $owner.asInstanceOf[Owner[State, O, F]], // scalafix:ok DisableSyntax.asInstanceOf
+                $ok,
+                $decl,
+                $code,
+                $run
+              ).asInstanceOf[RuleGroup[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
+            }
+          case _ => rules(owner, decl, code, cases)
+      case _ => rules(owner, decl, code, cases)
+
+  private def rules[S: Type, O: Type, F: Type, I: Type](
+      owner: Expr[Owner[S, O, F]],
+      decl: Expr[ActionDecl],
+      code: Expr[String],
+      cases: Expr[Firing[S, O, F, NativeInput[I]] ?=> (I => Unit) | Unit]
+  )(using Quotes): Expr[RuleGroup[S, O, F]] =
+    '{
+      derivedRules[S, O, F, NativeInput[I]]($owner, $decl, $code): firing ?=>
+        val _ = $cases(using firing)
+    }
+
+// The one rule a derivation's block of a Machine's vars binds: it holds where the block's run takes
+// a step, as a block of `transitions` does.
+@scala.annotation.publicInBinary
+private[framework] def derivedTransition[O, F](
+    owner: Owner[State, O, F],
+    ok: Ok[O],
+    decl: ActionDecl,
+    values: Option[List[Any]],
+    code: String,
+    body: () => Unit
+): RuleGroup[State, O, F] =
+  derivedRule(
+    owner,
+    decl,
+    values,
+    code,
+    new InputEffect[State, O, F]:
+      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body())
+  )
+
+@scala.annotation.publicInBinary
+private[framework] def derivedInputTransition[O, F, I](
+    owner: Owner[State, O, F],
+    ok: Ok[O],
+    decl: ActionDecl,
+    code: String,
+    body: I => Unit
+): RuleGroup[State, O, F] =
+  val shape = decl.nativeInputs.getOrElse(
+    throw IllegalArgumentException(s"on(${writtenAction(code)}) reads an input it does not declare")
+  )
+  derivedRule(
+    owner,
+    decl,
+    None,
+    code,
+    new InputEffect[State, O, F]:
+      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
+        apply(state, Class(decl, values))
+      override def apply(state: State, cls: Class): List[Step[State, O, F]] =
+        val input = shape.input(cls).asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
+        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body(input))
+  )
+
+private def derivedRule[O, F](
+    owner: Owner[State, O, F],
+    decl: ActionDecl,
+    values: Option[List[Any]],
+    code: String,
+    effect: InputEffect[State, O, F]
+): RuleGroup[State, O, F] =
+  val action = writtenAction(code)
+  require(
+    writtenPath(code).contains('.'),
+    s"on($action) names its action bare: name it through the object that declares it, " +
+      s"`on(<declarer>.$action)`"
+  )
+  val _ = owner
+  val guard = new InputGuard[State]:
+    def apply(state: State, cls: Class): Boolean = effect(state, cls).nonEmpty
+  val rule = Rule[State, O, F](1, "on", action, decl, values, guard, effect)
+  rule.publishCapture(None)
+  val group = RuleGroup(Vector(rule))
+  group.publishOrigin(None)
+  group
 
 // A plain definition expanded from its body where a lifted function calls it. Core form: its `body`.
 final class sugar extends scala.annotation.StaticAnnotation
