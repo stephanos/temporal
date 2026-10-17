@@ -142,23 +142,25 @@ object ReliableBroadcast:
     // a run stops once nothing is in flight and no process is part way through
     override def end = !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
 
-    object transitions extends Rules:
-      on(sender.broadcast):
-        where(origin == Origin.idle) ~> effects.begin
+    val anyRun = starts()
+
+    object transitions extends Transitions:
+      on(sender.broadcast): payload =>
+        if origin == Origin.idle then effects.begin(payload)
       on(sender.send):
-        where(originSending(current) && !network.isFull) ~> effects.sendNext()
+        if originSending(current) && !network.isFull then effects.sendNext()
       on(fault.crash):
-        where(originSending(current)) ~> effects.crash()
-      on(monitors.network.deliver):
-        always ~> effects.receive
+        if originSending(current) then effects.crash()
+      on(monitors.network.deliver): msg =>
+        effects.receive(msg)
       on(process.relay(Proc.p1)):
-        where(relaying(p1) && !network.isFull) ~> effects.relayP1()
+        if relaying(p1) && !network.isFull then effects.relayP1()
       on(process.relay(Proc.p2)):
-        where(relaying(p2) && !network.isFull) ~> effects.relayP2()
+        if relaying(p2) && !network.isFull then effects.relayP2()
       on(process.deliver(Proc.p1)):
-        where(relayed(p1)) ~> effects.deliverP1()
+        if relayed(p1) then effects.deliverP1()
       on(process.deliver(Proc.p2)):
-        where(relayed(p2)) ~> effects.deliverP2()
+        if relayed(p2) then effects.deliverP2()
 
     object effects:
       def begin(payload: Payload): Unit = origin = Origin.sending(payload, Proc.p1)
@@ -207,60 +209,49 @@ object ReliableBroadcast:
         case Proc.p2 => p2 = local
 
     object invariants:
-      val safety: Property = property.expect:
-        check(onlyBroadcast(current))
+      val safety = check(onlyBroadcast(current))
 
     object postconditions:
       // If I deliver a message, I have already forwarded it to all.
-      val reliability: Property = property.across.expect:
+      val reliability =
         if deliveredValue(p1) != None && deliveredValue(before.p1) == None then
           check(relayed(before.p1))
         if deliveredValue(p2) != None && deliveredValue(before.p2) == None then
           check(relayed(before.p2))
-      val survivesCrash: Property = property
-        .after(process.deliver(Proc.p2))
-        .expect:
-          check(everyoneDelivered(current))
-          check(origin == Origin.crashed(Payload.hello))
 
     object monitors:
       val network = wire.network
       // where a run stops, the processes delivered the same messages
-      val agreement = monitor[State, ReliableBroadcast.Outcome, Nothing, Boolean](false)(
-        (_, _, after) => !Model.at(after.state)(agreed(current))
-      )(_ == true).readAtEnds
+      val agreement = monitor(false)(_ => !agreed(current))(identity).readAtEnds
 
     object progress:
       // once one process delivers, every process delivers the same, whatever else happens
       // meanwhile: the origin's sends or crash, four deliveries and the other process's forward and
       // delivery
-      val everyoneDelivers: Progress[State] =
-        Model.leadsTo("everyoneDelivers")(
-          someoneDelivered(current),
-          everyoneDelivered(current),
-          within = 9
-        )
+      val everyoneDelivers =
+        leadsTo(from = someoneDelivered(current), to = everyoneDelivered(current), within = 9)
 
     object queries:
-      val anyRun: Scenario = scenario.starts(init).free
-      val broadcastLimits = Limits(steps = 11, actions = 11, search = 1 << 20)
-      val safetyHolds = query verify invariants.safety in anyRun limits broadcastLimits
-      val reliabilityHolds =
-        query verify postconditions.reliability in anyRun limits broadcastLimits
-      val deliveredDespiteCrash =
-        query find postconditions.survivesCrash in anyRun limits broadcastLimits
+      // a find target: a run need not crash, so it is no promise and not checked by default
+      val survivesCrash = after(process.deliver(Proc.p2)):
+        check(everyoneDelivered(current))
+        check(origin == Origin.crashed(Payload.hello))
+      val safetyHolds = verify(invariants.safety) in anyRun
+      val reliabilityHolds = verify(postconditions.reliability) in anyRun
+      val deliveredDespiteCrash = find(survivesCrash) in anyRun
 
+  // The naive algorithm, which delivers a message on receiving it and forwards nothing: the negative
+  // control of agreement, which the sample tests refute.
   object Naive
-      extends Derived(Model.rebind(Model.monitors.network.deliver ~> Model.effects.receiveNaive)),
+      extends Derived(
+        Model.rebind(
+          on(Model.monitors.network.deliver): msg =>
+            Model.effects.receiveNaive(msg)
+        )
+      ),
         NegativeControl:
 
     object invariants:
       // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
       // monitor, which a run that stops with one process delivered and the other not breaks.
-      val naiveSafety: Property = property.expect:
-        check(onlyBroadcast(Model.current))
-
-    object queries:
-      val anyNaiveRun: Scenario = scenario.starts(Model.init).free
-      val refutesNaiveAgreement =
-        query verify invariants.naiveSafety in anyNaiveRun limits Model.queries.broadcastLimits
+      val naiveSafety = check(onlyBroadcast(Model.current))
