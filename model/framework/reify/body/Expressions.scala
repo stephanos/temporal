@@ -1076,11 +1076,32 @@ private[framework] trait Expressions:
       args.lift(i).map(_ -> (value.pos.sourceFile.path != recv.pos.sourceFile.path))
     }
 
+  // A call of a function of the lifted sources, which takes its arguments in one term parameter
+  // list; a using clause does not count, and a def of more is refused at the call. A using clause's
+  // arguments follow the list's, as its parameters follow the list's in the function.
   def call(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
+    val target = boundFunctions.getOrElse(fn, fn)
+    val clauses = target.paramSymss.filter(clause => clause.isEmpty || clause.head.isTerm)
+    val lists = clauses.count(clause =>
+      clause.isEmpty || !clause.forall(p => p.flags.is(Flags.Given) || p.flags.is(Flags.Implicit))
+    )
+    if lists > 1 then
+      val count = Vector("two", "three", "four", "five", "six", "seven", "eight", "nine")
+        .lift(lists - 2)
+        .getOrElse(lists.toString)
+      val name = target.fullName
+        .split('.')
+        .map(_.stripSuffix("$"))
+        .filterNot(_.endsWith("$package"))
+        .mkString(".")
+      fail(at, s"$name has $count parameter lists: write it with one")
+    val applied = at match
+      case term: Term if clauses.sizeIs > 1 =>
+        ruleCall(term).map(_._2).filter(_.sizeIs == clauses.size).fold(args)(_.flatten)
+      case _ => args
     val name = callee(fn, at)
-    val params = functionParameterTypes(boundFunctions.getOrElse(fn, fn))
-    val value = ir.Call(name, args.zipWithIndex.map((a, i) => lift(a, params.lift(i))))
-    retainCallGroups(fn, at, value)
+    val params = functionParameterTypes(target)
+    val value = ir.Call(name, applied.zipWithIndex.map((a, i) => lift(a, params.lift(i))))
     expr(at)(E.Call(value))
 
   // Steps written out as a list and not explained yet, each with `reason` as its explanation.
@@ -1131,11 +1152,7 @@ private[framework] trait Expressions:
               Some(item.withConstruct(c.withChoice(token.name)))
             case _ => None
         case E.Call(c) =>
-          val named = c.withFunction(namedCopy(c.function, token.name, a))
-          callGroups.toVector.filter(p => p.owner == callOwner && p.call.equals(c)).foreach { proof =>
-            callGroups += proof.copy(call = named, function = functions(named.function))
-          }
-          Some(lifted.withCall(named))
+          Some(lifted.withCall(c.withFunction(namedCopy(c.function, token.name, a))))
         case _ => None
       val one = step.getOrElse(
         fail(
@@ -1165,7 +1182,6 @@ private[framework] trait Expressions:
   // its unnamed steps wherever else it is called.
   def namedCopy(function: String, choice: String, alternative: Tree): String =
     val copy = s"$function$$$choice"
-    val calls = scala.collection.mutable.Map.empty[ir.Call, ir.Call]
     def refuse(at: ir.Expr, what: String): Nothing =
       val line = at.position.fold("")(p => s" at ${p.file}:${p.line}")
       fail(
@@ -1185,23 +1201,12 @@ private[framework] trait Expressions:
           case E.Construct(c) if c.`type` == stepType =>
             e.withList(ir.ListOf(Seq(items.items.head.withConstruct(c.withChoice(choice)))))
           case _ => refuse(e, "a step it does not write out")
-      case E.Call(c) =>
-        val named = c.withFunction(namedCopy(c.function, choice, alternative))
-        calls(c) = named
-        e.withCall(named)
-      case _ => refuse(e, "steps it does not write out")
+      case E.Call(c) => e.withCall(c.withFunction(namedCopy(c.function, choice, alternative)))
+      case _         => refuse(e, "steps it does not write out")
     if !functions.contains(copy) then
       val f = functions(function)
       functions(copy) = f.withName(copy).withBody(steps(f.getBody))
       functionCopies(copy) = function
-      callGroups.toVector.filter(_.owner.contains(function)).foreach { proof =>
-        val call = calls.getOrElse(proof.call, proof.call)
-        callGroups += proof.copy(
-          owner = Some(copy),
-          call = call,
-          function = functions(call.function)
-        )
-      }
     copy
 
   // Whether a type is a list of steps, the results of a step function.

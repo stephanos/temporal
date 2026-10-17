@@ -26,8 +26,7 @@ final private[reify] case class StatusOutcome(
     name: String,
     value: Option[ir.Expr],
     model: Option[ir.Model],
-    refusal: Option[(ir.Position, String)],
-    proofs: Vector[CallGroupEvidence] = Vector.empty
+    refusal: Option[(ir.Position, String)]
 )
 
 // A compiler tree the plugin's own rewrite does not find in the shape it wrote.
@@ -44,8 +43,7 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
     section: quotes.reflect.Symbol => Option[SectionOutcome],
     facet: quotes.reflect.Symbol => Option[FacetOutcome],
     status: quotes.reflect.Symbol => Option[StatusOutcome],
-    outcome: quotes.reflect.Symbol => Option[StatusOutcome],
-    retainedCallGroups: quotes.reflect.Symbol => Vector[CallGroupEvidence]
+    outcome: quotes.reflect.Symbol => Option[StatusOutcome]
 ) extends BodyContext:
   import quotes.reflect.*
   private given CanEqual[ir.Function, ir.Function] = CanEqual.derived
@@ -140,7 +138,7 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
             "mark its definition @lifted so its IR is stored at the definition site"
         )
       )
-      importModel(sym, at, model)
+      importClosure(at, model)
       Some(sym.fullName)
 
   def importedSection(sym: Symbol, at: Tree): Option[String] =
@@ -150,7 +148,7 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
         outcome.refusal.foreach((position, message) =>
           throw SectionRefusal(position, outcome.root, message)
         )
-        importModel(sym, at, outcome.model.get)
+        importClosure(at, outcome.model.get)
         outcome.root
       }
 
@@ -161,7 +159,7 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
         outcome.refusal.foreach((position, message) =>
           throw SectionRefusal(position, outcome.root, message)
         )
-        importModel(sym, at, outcome.model.get)
+        importClosure(at, outcome.model.get)
         contextualSites ++= outcome.sites
         outcome.root
       }
@@ -174,9 +172,6 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
           throw SectionRefusal(position, outcome.root, message)
         )
         importClosure(at, outcome.model.get)
-        callGroups ++= outcome.proofs.map(p =>
-          if p.owner.isEmpty then p.copy(owner = callOwner) else p
-        )
         outcome.value.get -> outcome.name
       }
 
@@ -188,16 +183,9 @@ final private[reify] class PluginContext(using val quotes: Quotes)(
           throw SectionRefusal(position, retained.root, message)
         )
         importClosure(ok, retained.model.get)
-        callGroups ++= retained.proofs.map(p =>
-          if p.owner.isEmpty then p.copy(owner = callOwner) else p
-        )
         retained.value.get
       }
     case _ => None
-
-  private def importModel(sym: Symbol, at: Tree, model: ir.Model): Unit =
-    importClosure(at, model)
-    callGroups ++= retainedCallGroups(sym)
 
   // A stored model keeps a position on its root function only, so the same function can arrive
   // with and without positions; the positioned one is kept.

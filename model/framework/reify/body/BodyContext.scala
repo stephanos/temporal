@@ -4,13 +4,6 @@ import scala.collection.mutable
 import scala.quoted.Quotes
 import io.temporal.server.api.umpire.v1 as ir
 
-final private[framework] case class CallGroupEvidence(
-    owner: Option[String],
-    call: ir.Call,
-    function: ir.Function,
-    groups: Vector[Int]
-)
-
 final private[framework] case class ContextualPhaseSite(
     kind: String,
     owner: Option[String],
@@ -144,7 +137,6 @@ private[framework] trait BodyContext:
 
   val types = mutable.LinkedHashMap.empty[String, ir.Type]
   val functions = mutable.LinkedHashMap.empty[String, ir.Function]
-  val callGroups = mutable.ArrayBuffer.empty[CallGroupEvidence]
   val contextualSites = mutable.ArrayBuffer.empty[ContextualPhaseSite]
   var contextualFacet = Option.empty[Symbol]
   val functionCopies = mutable.Map.empty[String, String]
@@ -163,15 +155,6 @@ private[framework] trait BodyContext:
     roots.foreach(visit)
     fragments.flatMap(retainedCalls).foreach(c => visit(c.function))
     functions.valuesIterator.filter(f => reached(f.name)).toVector
-
-  def retainedGroups(fragments: Seq[ir.Expr], roots: Seq[String] = Nil): Vector[CallGroupEvidence] =
-    val functions = reachableFunctions(fragments, roots)
-    callGroups.toVector.filter { proof =>
-      val calls = proof.owner.fold(fragments.toVector.flatMap(retainedCalls))(owner =>
-        functions.find(_.name == owner).toVector.flatMap(retainedCalls)
-      )
-      calls.exists(_.equals(proof.call))
-    }.distinct
 
   def retainedContextualSites(
       fragments: Seq[ir.Expr] = Nil,

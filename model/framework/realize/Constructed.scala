@@ -39,12 +39,6 @@ trait ConstructedRealization:
   ): String =
     ConstructedRealization.factName(machine, value, context)
 
-  final protected def resolveFamily(
-      value: ir.Realization,
-      context: ConstructedRealization.Context
-  ): ir.Realization =
-    ConstructedRealization.resolveFamily(value, context)
-
   final protected def commandToIR(
       value: Command | Instruction,
       placeholder: Boolean,
@@ -77,12 +71,6 @@ object ConstructedRealization:
 
   object Dependencies:
     val empty: Dependencies = Dependencies(Vector.empty, Vector.empty)
-
-  private[framework] def resolveFamily(
-      value: ir.Realization,
-      context: Context
-  ): ir.Realization =
-    Family.resolve(value, context.declaration, context.sourcePackage)
 
   // The generic Command shell a kit fills with its own instruction variants. A placeholder keeps
   // the command's retained name while generic conversion handles every shared Command field.
