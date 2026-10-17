@@ -1,0 +1,58 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+[[33mhint[0m] ./model/design/plain-scala-prototype/project.scala:7:20
+[[33mhint[0m] "munit is outdated, update to 1.3.6"
+[[33mhint[0m]      munit 1.2.0 -> org.scalameta::munit:1.3.6
+[[33mhint[0m] //> using test.dep org.scalameta::munit:1.2.0
+[[33mhint[0m]                    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+WARNING: A terminally deprecated method in sun.misc.Unsafe has been called
+WARNING: sun.misc.Unsafe::objectFieldOffset has been called by scala.runtime.LazyVals$ (file:/home/agent/.cache/coursier/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-library/3.9.0/scala-library-3.9.0.jar)
+WARNING: Please consider reporting this to the maintainers of class scala.runtime.LazyVals$
+WARNING: sun.misc.Unsafe::objectFieldOffset will be removed in a future release
+[32msamples.kettle.TopLevelKettleTest:[0m
+[32m  + [0m[32mthe top-level form has the nested form's schema, reachable graph and verdicts[0m [90m0.203s[0m
+hand.press
+  light matches (Lit.off | Lit.on) if presses.<(3) => effects.toggle
+  !(light matches (Lit.off | Lit.on) if presses.<(3)) && light matches (_: Terminated) => reject(Said.broken)
+  !(light matches (Lit.off | Lit.on) if presses.<(3)) && !(light matches (_: Terminated)) && light matches _ => disabled
+hand.smash
+  light matches Lit.on => effects.smash
+  !(light matches Lit.on) && light matches Lit.off => effects.breakOff
+  !(light matches Lit.on) && !(light matches Lit.off) && light matches _ => disabled
+hand.fix
+  light matches (_: Terminated) => effects.repair
+  !(light matches (_: Terminated)) && light matches _ => disabled
+[32mproto.LampsTest:[0m
+[32m  + [0m[32ma machine assembled from facets steps as the machine written as one object[0m [90m0.015s[0m
+[32m  + [0m[32mfacet order is the extends clause's: pressing then breaking, or the reverse[0m [90m0.001s[0m
+[32m  + [0m[32man action bound by two facets is refused, naming both[0m [90m0.005s[0m
+[32m  + [0m[32mthe phase table: a | b if g, _: Role with reject, _ => () as disabled[0m [90m0.001s[0m
+[32m  + [0m[32ma choose with blocks gives one step per alternative[0m [90m0.0s[0m
+[32m  + [0m[32msequential reads: a read after a write in one effect sees the write[0m [90m0.001s[0m
+[32m  + [0m[32mUpTo[3] erases to Int in Scala; the schema keeps the bound and the runtime enforces it[0m [90m0.001s[0m
+[32m  + [0m[32mthe if/match transitions' arms, as first-match nested ifs[0m [90m0.002s[0m
+[32m  + [0m[32mthe default checks run on a Machine with a choose[0m [90m0.004s[0m
+[32mproto.KettleTest:[0m
+[32m  + [0m[32mthe State record is the vars in declaration order, typed as declared[0m [90m0.001s[0m
+[32m  + [0m[32moneOf(-40 to 40) gives 81 starts; scenario.starts pins one by a named update[0m [90m0.001s[0m
+[32m  + [0m[32ma scenario update naming no var is refused[0m [90m0.0s[0m
+[32m  + [0m[32msigned cold and room paths preserve press, heat and depress enabledness[0m [90m0.0s[0m
+[32m  + [0m[32mthe 99-to-100 boundary keeps the >= failover guard and the claims' verdicts[0m [90m0.001s[0m
+[32m  + [0m[32mthe four claims keep their truth tables (Expect.test.scala's cases)[0m [90m0.002s[0m
+[32m  + [0m[32mevery claim is checked by default from every start; neverBeeps is the refuted one[0m [90m0.069s[0m
+[32m  + [0m[32mthe negative control is a test: assertRefuted(Model, invariant(check(!beeping)))[0m [90m0.004s[0m
+[32m  + [0m[32mboils as written: vacuous, from never holds under only(heat, failover)[0m [90m0.0s[0m
+[32m  + [0m[32mboils from the whole graph's heating states misses 81: the longest path is 141[0m [90m0.012s[0m
+[32m  + [0m[32mboils with its start in the scenario: 81 from room temperature, 141 from -40[0m [90m0.006s[0m
+[32m  + [0m[32ma cycle without fairness: heat and depress admitted, from heating never needs to beep[0m [90m0.006s[0m
+[32m  + [0m[32mthe singleton is back at its initial state after every operation[0m [90m0.068s[0m
+[32mproto.RefusalsTest:[0m
+[32m  + [0m[32man action outside an Actor object, or a step in one, is refused at the declaration[0m [90m0.002s[0m
+[32m  + [0m[32mbefore outside postconditions is refused[0m [90m0.0s[0m
+[32m  + [0m[32mbefore is the typed State record: a field the Machine does not declare is a type error[0m [90m0.001s[0m
+[32m  + [0m[32man assignment in a transition is refused: the state change belongs in effects[0m [90m0.001s[0m
+[32m  + [0m[32ma transition leaf that is not an effect call, a rejection or () is refused[0m [90m0.0s[0m
+[32m  + [0m[32mon outside a transitions object is refused[0m [90m0.001s[0m
+[32m  + [0m[32ma Machine with no vars is refused where the runtime reads its schema[0m [90m0.001s[0m
+[32m  + [0m[32ma non-exhaustive phase match is the compiler's warning, an error under -Werror[0m [90m0.0s[0m

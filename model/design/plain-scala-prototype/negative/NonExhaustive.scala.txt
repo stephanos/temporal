@@ -1,0 +1,23 @@
+package negative
+
+import plain.*
+
+// Compiled on its own by run.sh with the DSL: a phase match missing a case must fail the build
+// under -Werror ("match may not be exhaustive").
+object hand extends Actor:
+  val press = action
+
+enum Lit derives CanEqual:
+  case off, on
+
+object Lamp extends Machine:
+  var light = Lit.off
+
+  object transitions:
+    on(hand.press):
+      light match
+        case Lit.off => effects.switchOn()
+
+  object effects:
+    def switchOn() =
+      light = Lit.on

@@ -1,0 +1,39 @@
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+Picked up JAVA_TOOL_OPTIONS: -Dhttp.proxyHost=gateway.docker.internal -Dhttp.proxyPort=3128 -Dhttps.proxyHost=gateway.docker.internal -Dhttps.proxyPort=3128 -Dhttp.nonProxyHosts=localhost|127.*|[::1]|gateway.docker.internal
+== Kettle
+State record: State(temperature: Int, heatingOn: Boolean, beeping: Boolean)
+initial state: State(temperature = -40, heatingOn = false, beeping = false)
+starts: 81, reachable states: 283, steps: 424
+transitions:
+  on(user.pressButton): heatingOn.unary_! => effects.pressButton; !(heatingOn.unary_!) => disabled
+  on(heater.failover): heatingOn.&&(temperature.>=(boilingTemperature)) => effects.failover; !(heatingOn.&&(temperature.>=(boilingTemperature))) => disabled
+  on(heater.heat): heatingOn.&&(temperature.<(boilingTemperature)) => effects.heat; !(heatingOn.&&(temperature.<(boilingTemperature))) => disabled
+  on(user.depressButton): heatingOn => effects.depressButton; !(heatingOn) => disabled
+claims, checked by default from every start:
+  invariants.beepsOnlyWhenOff: Verified
+  invariants.neverBeeps: Refuted(line 48: check(!beeping),None,None,State(temperature = 100, heatingOn = false, beeping = true))
+  postconditions.failsOverAtBoiling: Verified
+  postconditions.warmsOnlyWhenOn: Verified
+progress:
+  boils as written (strict environment): Vacuous(boils: from never holds in its environment)
+  boils, from states over the whole graph: MissedDeadline(141,81)
+  boils in only(heat, failover) & starts(temperature = 20, heatingOn = true): Verified(81)
+  boils in only(heat, failover) & starts(heatingOn = true): MissedDeadline(141,81)
+claim evaluation by class reload: ~71 us each (929 per verifyAll)
+== Lamps (the Facets fixture)
+State record: State(light: Lit, presses: UpTo[3])
+bounds: light -> None, presses -> Some(3)
+transitions:
+  on(hand.press):
+    light matches (Lit.off | Lit.on) if presses.<(3) => effects.toggle
+    !(light matches (Lit.off | Lit.on) if presses.<(3)) && light matches (_: Terminated) => reject(Said.broken)
+    !(light matches (Lit.off | Lit.on) if presses.<(3)) && !(light matches (_: Terminated)) && light matches _ => disabled
+  on(hand.smash):
+    light matches Lit.on => effects.smash
+    !(light matches Lit.on) && light matches Lit.off => effects.breakOff
+    !(light matches Lit.on) && !(light matches Lit.off) && light matches _ => disabled
+  on(hand.fix):
+    light matches (_: Terminated) => effects.repair
+    !(light matches (_: Terminated)) && light matches _ => disabled
+Faceted facet order: pressing:hand.press, breaking:hand.smash, breaking:hand.fix
+Reordered facet order: breaking:hand.smash, breaking:hand.fix, pressing:hand.press
