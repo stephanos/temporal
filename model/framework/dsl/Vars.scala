@@ -151,7 +151,6 @@ final class Vars private[framework] (
 ):
   private var depth = 0
   private var captured = Option.empty[State]
-  private var frames = List.empty[Vars.Frame]
   private val accessors = schema.vars.map: v =>
     val methods = machine.getClass.getMethods.toVector
     val getter = methods.find(m => m.getName == v.name && m.getParameterCount == 0)
@@ -200,29 +199,50 @@ final class Vars private[framework] (
       restore(resume)
 
   // The step an effect takes from `state`: the rejection it refused with, from `state`, or the
-  // accepted outcome into the vars it assigned, with the facts it recorded in order.
+  // accepted outcome into the vars it assigned, with the facts it recorded in order; one step for
+  // each path through the choices it makes.
   private[framework] def step[O, F](state: Any, accepted: O)(
       body: => Unit
-  ): List[Step[State, O, F]] =
-    at(state):
-      val start = owned(state)
-      val frame = Vars.Frame()
-      frames = frame :: frames
-      try body
-      finally frames = frames.drop(1)
-      frame.refused match
-        case Some(outcome) =>
-          List(Step(outcome.asInstanceOf[O], start)) // scalafix:ok DisableSyntax.asInstanceOf
-        case None =>
-          val facts = frame.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
-          List(Step(accepted, snapshot(), facts))
+  ): List[Step[State, O, F]] = steps(state, accepted, fires = true)(body)
 
-  private def open(what: String): Vars.Frame = synchronized:
-    frames.headOption.getOrElse(
-      throw IllegalStateException(
-        s"${machine.name}: $what is a statement of an effect, which its transition runs"
+  // The steps a transition takes from `state`, once for each path through the choices its effect
+  // makes (`choose`): the rejection a path refused with, from `state`; the accepted outcome into the
+  // vars it assigned, with the facts it recorded, where it called an effect or `fires`; and no step
+  // where it did neither, which is where the transition is disabled. Each path runs the body again
+  // from `state`, its earlier picks replayed.
+  private[framework] def steps[O, F](state: Any, accepted: O, fires: Boolean)(
+      body: => Unit
+  ): List[Step[State, O, F]] =
+    val start = owned(state)
+    val taken = List.newBuilder[Step[State, O, F]]
+    val pending = scala.collection.mutable.Queue(List.empty[Int])
+    while pending.nonEmpty do
+      val script = pending.dequeue()
+      at(start):
+        val frame = Vars.Frame(this, script)
+        Vars.within(frame)(body)
+        val picks = frame.picks
+        for depth <- script.size until picks.size do
+          val prefix = picks.take(depth).map(_._1).toList
+          for alternative <- 1 until picks(depth)._2 do pending.enqueue(prefix :+ alternative)
+        frame.refused match
+          case Some(outcome) =>
+            val refused = outcome.asInstanceOf[O] // scalafix:ok DisableSyntax.asInstanceOf
+            taken += Step(refused, start): Unit
+          case None if fires || frame.fired =>
+            val facts = frame.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
+            taken += Step(accepted, snapshot(), facts): Unit
+          case None => ()
+    taken.result()
+
+  private def open(what: String): Vars.Frame =
+    Vars.current
+      .filter(_.owner.eq(this))
+      .getOrElse(
+        throw IllegalStateException(
+          s"${machine.name}: $what is a statement of an effect, which its transition runs"
+        )
       )
-    )
 
   private[framework] def refuse(outcome: Any): Unit = open("a rejection").refused = Some(outcome)
 
@@ -268,9 +288,51 @@ final class Vars private[framework] (
       case _                        => restored
 
 object Vars:
-  final private class Frame:
+  // One run of a step's body: what it refused with, recorded and fired, and the alternative it
+  // picked at each `choose`, the first `script.size` of them replayed from an earlier run.
+  final private[framework] class Frame(val owner: Vars, script: List[Int]):
     var refused = Option.empty[Any]
     var facts = List.empty[Any]
+    var fired = false
+    private var replayed = script
+    private val made = Vector.newBuilder[(Int, Int)]
+
+    // The alternative this run takes among `of`, and the picks it made, each with how many there were.
+    def pick(of: Int): Int =
+      val picked = replayed match
+        case head :: tail =>
+          replayed = tail
+          head
+        case Nil => 0
+      made += picked -> of
+      picked
+
+    def picks: Vector[(Int, Int)] = made.result()
+
+  // The runs under way on this thread, innermost first: a step's body runs in one, and the
+  // statements of an effect (a rejection, a fact, a choice, an effect call) reach it.
+  private val running = ThreadLocal.withInitial[List[Frame]](() => Nil)
+
+  private[framework] def current: Option[Frame] = running.get.headOption
+
+  private[framework] def within(frame: Frame)(body: => Unit): Unit =
+    running.set(frame :: running.get)
+    try body
+    finally running.set(running.get.drop(1))
+
+  // A transition leaf called an effect: the run takes a step.
+  private[framework] def fired(): Unit =
+    current
+      .getOrElse(throw IllegalStateException("an effect call is a leaf of a transition"))
+      .fired = true
+
+  // The alternative the run under way takes among `of`.
+  private[framework] def pick(of: Int): Int =
+    current
+      .getOrElse(
+        throw IllegalStateException("choose is a statement of an effect, which its transition runs")
+      )
+      .pick(of)
 
   final private class Bound1[A](restored: A => Boolean, bound: PredicateBindings)
       extends (A => Boolean),

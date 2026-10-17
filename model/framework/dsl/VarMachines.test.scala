@@ -22,6 +22,7 @@ object VarMachinesFixture:
     val smash = action
     val repair = action
     val set = action.input[Lit](name = "light")
+    val flip = action
 
   object Lamp extends Machine[Said, Note]:
     var light = Lit.off
@@ -40,6 +41,8 @@ object VarMachinesFixture:
         where(light == Lit.broken) ~> effects.repair()
       on(hand.set):
         where((to: Lit) => to != light && light != Lit.broken) ~> effects.set
+      on(hand.flip):
+        where(light != Lit.broken) ~> effects.flip()
 
     object effects:
       def press(): Unit =
@@ -57,6 +60,20 @@ object VarMachinesFixture:
         presses = UpTo(0)
         light = if presses == 0 then Lit.off else Lit.on
       def set(to: Lit): Unit = light = to
+      val lit = choice
+      val darkened = choice
+      // either way, recording which
+      def flip(): Unit =
+        choose(
+          lit -> {
+            light = Lit.on
+            record(Note.lit)
+          },
+          darkened -> {
+            light = Lit.off
+            record(Note.darkened)
+          }
+        )
 
     object invariants:
       val brokenStaysUnpressed = property.expect:
@@ -145,6 +162,19 @@ class VarMachinesTest extends munit.FunSuite:
     assertEquals(run(Lamp, off, hand.set(Lit.on)), List(Step(Said.ok, lamp(Lit.on, 0))))
     assertEquals(run(Lamp, off, hand.set(Lit.off)), Nil)
     assertEquals(run(Lamp, lamp(Lit.broken, 0), hand.set(Lit.on)), Nil)
+
+  test("an effect's choose takes one step per alternative, each from the state it started in"):
+    assertEquals(
+      run(Lamp, lamp(Lit.on, 2), hand.flip()),
+      List(
+        Step(Said.ok, lamp(Lit.on, 2), List(Note.lit)),
+        Step(Said.ok, lamp(Lit.off, 2), List(Note.darkened))
+      )
+    )
+    assertEquals(run(Lamp, lamp(Lit.broken, 2), hand.flip()), Nil)
+    assertEquals(Lamp.light, Lit.off)
+    val outside = intercept[IllegalStateException](Lamp.effects.flip())
+    assert(outside.getMessage.contains("choose is a statement of an effect"), outside.getMessage)
 
   test("end reads the vars of the state it is asked of"):
     assert(Lamp.end(lamp(Lit.broken, 1)))

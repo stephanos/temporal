@@ -17,10 +17,35 @@ extension [S, O, F](steps: List[Step[S, O, F]])
 // The name of one alternative of a step that can go more than one way, declared once by the val that
 // names it, `val committed = choice`; the lifter names it after that val. A token is compared by
 // identity, so two declarations are two names.
-final class Choice private[framework] ()
+final class Choice private[framework] ():
+  // `smashed -> { light = Lit.broken }`, an alternative of an effect of a Machine's vars: the block
+  // runs only on the path that takes it.
+  def ->(block: => Unit): Alternative = Alternative(this, () => block)
+
+  // `committed -> enter(...)`, an alternative written as the steps or step function it gives.
+  def ->[A](alternative: A): (Choice, A) = (this, alternative)
+
+// One alternative of a `choose` in an effect of a Machine's vars: its token and its block.
+final class Alternative private[framework] (
+    private[framework] val token: Choice,
+    private[framework] val run: () => Unit
+)
 
 // A new choice token: `val committed = choice`.
 def choice: Choice = Choice()
+
+// `choose(smashed -> { light = Lit.broken }, toggled -> { toggle() })`, in an effect of a Machine
+// that declares its state as vars: the effect goes one way per alternative, in the order written,
+// each a block of its own. The step it is in runs once per alternative, each run from the state the
+// step started in and taking the alternatives it picked before, so each alternative is one step.
+def choose(first: Alternative, second: Alternative, rest: Alternative*): Unit =
+  val alternatives = (first +: second +: rest).toVector
+  for alternative <- alternatives do
+    require(
+      alternatives.count(_.token eq alternative.token) == 1,
+      "a choice names one alternative of a choose"
+    )
+  alternatives(Vars.pick(alternatives.size)).run()
 
 // `choose(committed -> enter(...), redelivered -> stay(s))`: the results of a step that can go more
 // than one way, in the order written, each named by its token. The names are metadata no check reads
