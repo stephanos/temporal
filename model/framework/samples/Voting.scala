@@ -120,13 +120,22 @@ object Voting:
     val init = Decision(chosen = Set.empty)
     def end(decision: Decision) = true
 
+    object rules extends Rules:
+      on(voter.voteFor):
+        where(_.chosen.isEmpty) ~> effects.choose
+
     object effects:
       def choose(decision: Decision, in: VoteFor) =
         enter(decision.copy(chosen = Set(in.v)))
 
-    object rules extends Rules:
-      on(voter.voteFor):
-        where(_.chosen.isEmpty) ~> effects.choose
+    object postconditions:
+      // once a value is chosen, it stays chosen
+      val chosenStays: Property[Decision] = property.once(_.chosen.nonEmpty).keeps(_.chosen)
+
+    object queries:
+      val anyDecision: Scenario[Decision] = scenario.starts(init).free
+      val chosenStaysInConsensus =
+        query verify postconditions.chosenStays in anyDecision limits Model.queries.everyBallot
 
   object Model extends Machine[Votes, Outcome, Nothing]:
     val init = Votes(
@@ -140,6 +149,12 @@ object Voting:
       // a vote that chooses nothing, a refused one and a move to a higher ballot change no decision
       val visibleOutcomes = (_: Voting.Outcome) => false
       val unobservable = List(voter.increaseMaxBal)
+
+    object rules extends Rules:
+      on(voter.increaseMaxBal):
+        always ~> effects.increaseMaxBal
+      on(voter.voteFor):
+        always ~> effects.voteFor
 
     object effects:
       // An acceptor may increase its maxBal to a higher ballot at any time.
@@ -170,43 +185,42 @@ object Voting:
         then enter(cast(votes, in.a, in.b, in.v))
         else reject(Outcome.refused, votes)
 
-    object rules extends Rules:
-      on(voter.increaseMaxBal):
-        always ~> effects.increaseMaxBal
-      on(voter.voteFor):
-        always ~> effects.voteFor
+    object invariants:
+      // at most one value is chosen
+      val consistency: Property[Votes] =
+        property.expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
+          check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
+      val invariant: Property[Votes] = property.expect:
+        (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=> check(inv(after.step.state))
 
+    object postconditions:
+      val decides: Property[Votes] =
+        property
+          .after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1))
+          .expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
+            check(chosen(after.step.state).contains(Value.v1))
+
+    object queries:
+      val anyVote: Scenario[Votes] = scenario.starts(init).free
+      // the longest run: every acceptor moves to and votes in both ballots
+      val everyBallot = Limits(steps = 12, actions = 12, search = 1 << 22)
+      val chosenStaysInVoting =
+        query verify Consensus.postconditions.chosenStays in anyVote limits everyBallot
+      val consistencyHolds = query verify invariants.consistency in anyVote limits everyBallot
+      val invariantHolds = query verify invariants.invariant in anyVote limits everyBallot
+      val valueChosen = query find postconditions.decides in anyVote limits everyBallot
+
+  // A vote that skips the quorum's showing: the negative control of consistency.
   object UnsafeVoting
       extends Derived(Model.unmonitored.rebind(voter.voteFor ~> Model.effects.voteUnsafe)),
-        NegativeControl
+        NegativeControl:
 
-  // once a value is chosen, it stays chosen
-  val chosenStays: Property[Decision] = Consensus.property.once(_.chosen.nonEmpty).keeps(_.chosen)
-  // at most one value is chosen
-  val consistency: Property[Votes] =
-    Model.property.expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
-      check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
-  val unsafeConsistency: Property[Votes] =
-    UnsafeVoting.property.expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
-      check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
-  val invariant: Property[Votes] = Model.property.expect:
-    (after: Expectation[Votes, Outcome, Nothing]) ?=> check(inv(after.step.state))
-  val decides: Property[Votes] =
-    Model.property
-      .after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1))
-      .expect: (after: Expectation[Votes, Outcome, Nothing]) ?=>
-        check(chosen(after.step.state).contains(Value.v1))
+    object invariants:
+      val unsafeConsistency: Property[Votes] =
+        property.expect: (after: Expectation[Votes, Voting.Outcome, Nothing]) ?=>
+          check(!(isChosen(after.step.state, Value.v1) && isChosen(after.step.state, Value.v2)))
 
-  val anyDecision: Scenario[Decision] = Consensus.scenario.starts(Consensus.init).free
-  val anyVote: Scenario[Votes] = Model.scenario.starts(Model.init).free
-  val anyUnsafeVote: Scenario[Votes] = UnsafeVoting.scenario.starts(Model.init).free
-  // the longest run: every acceptor moves to and votes in both ballots
-  val everyBallot = Limits(steps = 12, actions = 12, search = 1 << 22)
-  val queries = Vector(
-    query("chosenStaysInConsensus") verify chosenStays in anyDecision limits everyBallot,
-    query("chosenStaysInVoting") verify chosenStays in anyVote limits everyBallot,
-    query("consistencyHolds") verify consistency in anyVote limits everyBallot,
-    query("invariantHolds") verify invariant in anyVote limits everyBallot,
-    query("valueChosen") find decides in anyVote limits everyBallot,
-    query("refutesUnsafeVoting") verify unsafeConsistency in anyUnsafeVote limits everyBallot
-  )
+    object queries:
+      val anyUnsafeVote: Scenario[Votes] = scenario.starts(Model.init).free
+      val refutesUnsafeVoting =
+        query verify invariants.unsafeConsistency in anyUnsafeVote limits Model.queries.everyBallot

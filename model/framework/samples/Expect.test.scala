@@ -52,10 +52,14 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, paid), true),
       (Step(Outcome.accepted, inflated), false)
     )
-    same(totalSupplyInv, Model, None, supplyCases)(after => totalSupply(after.state))
-    same(leakyTotalSupplyInv, Leaky, None, supplyCases)(after => totalSupply(after.state))
+    same(Model.invariants.totalSupplyInv, Model, None, supplyCases)(after =>
+      totalSupply(after.state)
+    )
+    same(Leaky.invariants.leakyTotalSupplyInv, Leaky, None, supplyCases)(after =>
+      totalSupply(after.state)
+    )
     across(
-      failedSendChangesNothing,
+      Model.postconditions.failedSendChangesNothing,
       Model,
       List(
         (initial, Step(Outcome.accepted, paid), true),
@@ -64,7 +68,7 @@ class SampleExpectTest extends munit.FunSuite:
       )
     )((before, after) => after.outcome == Outcome.accepted || after.state == before)
     same(
-      peachesGetsBananas,
+      Model.postconditions.peachesGetsBananas,
       Model,
       Some(Class(client.send.decl, List(Addr.king, Addr.peaches, Denom.banana, 1))),
       List(
@@ -139,12 +143,14 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, delivered), true),
       (Step(Outcome.accepted, wrong), false)
     )
-    same(safety, Model, None, safetyCases)(after => onlyBroadcast(after.state))
-    same(naiveSafety, Naive, None, safetyCases)(after => onlyBroadcast(after.state))
+    same(Model.invariants.safety, Model, None, safetyCases)(after => onlyBroadcast(after.state))
+    same(Naive.invariants.naiveSafety, Naive, None, safetyCases)(after =>
+      onlyBroadcast(after.state)
+    )
     val forwarded =
       initial.copy(p1 = Local.relayed(Payload.hello), p2 = Local.relayed(Payload.hello))
     across(
-      reliability,
+      Model.postconditions.reliability,
       Model,
       List(
         (initial, Step(Outcome.accepted, initial), true),
@@ -163,7 +169,7 @@ class SampleExpectTest extends munit.FunSuite:
         ))
     )
     same(
-      survivesCrash,
+      Model.postconditions.survivesCrash,
       Model,
       Some(process.deliver(Proc.p2)),
       List(
@@ -181,7 +187,7 @@ class SampleExpectTest extends munit.FunSuite:
     val initial = Model.init
     val mismatched = initial.copy(l1 = Some(0))
     same(
-      readFillsL1,
+      Model.postconditions.readFillsL1,
       Model,
       Some(client.read),
       List(
@@ -194,11 +200,14 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, initial, List(Event.wrote)), true),
       (Step(Outcome.accepted, initial, List(Event.readL2)), false)
     )
-    same(buggyWritesRecorded, WriteThroughL1, Some(client.write), factCases)(after =>
-      after.records(Event.wrote)
-    )
     same(
-      servedFromL2,
+      WriteThroughL1.postconditions.buggyWritesRecorded,
+      WriteThroughL1,
+      Some(client.write),
+      factCases
+    )(after => after.records(Event.wrote))
+    same(
+      Model.postconditions.servedFromL2,
       Model,
       Some(client.read),
       List(
@@ -227,10 +236,14 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, committed), true),
       (Step(Outcome.accepted, split), false)
     )
-    same(consistencyInv, Model, None, consistencyCases)(after => consistent(after.state))
-    same(eagerConsistencyInv, EagerCommit, None, consistencyCases)(after => consistent(after.state))
+    same(Model.invariants.consistencyInv, Model, None, consistencyCases)(after =>
+      consistent(after.state)
+    )
+    same(EagerCommit.invariants.eagerConsistencyInv, EagerCommit, None, consistencyCases)(after =>
+      consistent(after.state)
+    )
     same(
-      everyoneCommits,
+      Model.postconditions.everyoneCommits,
       Model,
       Some(rm.commit(ResourceManager.rm3)),
       List(
@@ -261,14 +274,14 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, chosenV1), true),
       (Step(Outcome.accepted, conflicting), false)
     )
-    same(consistency, Model, None, consistencyCases)(after =>
+    same(Model.invariants.consistency, Model, None, consistencyCases)(after =>
       !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
     )
-    same(unsafeConsistency, UnsafeVoting, None, consistencyCases)(after =>
+    same(UnsafeVoting.invariants.unsafeConsistency, UnsafeVoting, None, consistencyCases)(after =>
       !(isChosen(after.state, Value.v1) && isChosen(after.state, Value.v2))
     )
     same(
-      invariant,
+      Model.invariants.invariant,
       Model,
       None,
       List(
@@ -278,7 +291,7 @@ class SampleExpectTest extends munit.FunSuite:
       )
     )(after => inv(after.state))
     same(
-      decides,
+      Model.postconditions.decides,
       Model,
       Some(Class(voter.voteFor.decl, List(Acceptor.a2, 0, Value.v1))),
       List(

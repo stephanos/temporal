@@ -35,16 +35,6 @@ object Kettle:
     // a run may stop in any state
     def end(state: Snapshot) = true
 
-    object effects:
-      // turn on the heating element
-      def pressButton(s: Snapshot) = enter(s.copy(heatingOn = true, beeping = false))
-      // turn off the kettle when the temperature is too high
-      def failover(s: Snapshot) = enter(s.copy(heatingOn = false, beeping = true))
-      // heat up the water by 1C; on and quiet already hold, since heat only fires while heating
-      def heat(s: Snapshot) = enter(s.copy(temperature = s.temperature + 1))
-      // turn off the heating element
-      def depressButton(s: Snapshot) = enter(s.copy(heatingOn = false, beeping = false))
-
     // one step of the state machine: any enabled action
     object rules extends Rules:
       on(user.pressButton):
@@ -55,6 +45,16 @@ object Kettle:
         where(s => s.heatingOn && s.temperature < boilingTemperature) ~> effects.heat
       on(user.depressButton):
         where(_.heatingOn) ~> effects.depressButton
+
+    object effects:
+      // turn on the heating element
+      def pressButton(s: Snapshot) = enter(s.copy(heatingOn = true, beeping = false))
+      // turn off the kettle when the temperature is too high
+      def failover(s: Snapshot) = enter(s.copy(heatingOn = false, beeping = true))
+      // heat up the water by 1C; on and quiet already hold, since heat only fires while heating
+      def heat(s: Snapshot) = enter(s.copy(temperature = s.temperature + 1))
+      // turn off the heating element
+      def depressButton(s: Snapshot) = enter(s.copy(heatingOn = false, beeping = false))
 
     object invariants:
       val beepsOnlyWhenOff = property.expect:
@@ -86,3 +86,16 @@ object Kettle:
         query find postconditions.failsOverAtBoiling in fromRoomTemperature limits toBoiling
       val refutesNeverBeeps =
         query verify invariants.neverBeeps in fromRoomTemperature limits toBoiling
+
+  // The kettle left to itself once the user switched it on. The user's own actions are restricted
+  // rather than assumed away: a user who switches the kettle off before it boils keeps it from
+  // boiling, which no fairness of the heater excludes. Pressing the button stays, since from room
+  // temperature nothing heats until the user switches the element on.
+  object HeatingOnly
+      extends Derived(Model.restrict(user.pressButton, heater.heat, heater.failover)):
+
+    object progress:
+      // switched on, the water boils and the kettle beeps: 80 heats from room temperature and the
+      // failover
+      val boils: Progress[Snapshot] =
+        HeatingOnly.leadsTo("boils")(_.heatingOn, _.beeping, within = 81)

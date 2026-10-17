@@ -227,3 +227,10 @@ chosenStays and all four native expect Properties; the actual inv guard removals
 are a deliberate reached-invariant premise. Kettle retains its unmodified
 failover selector and neverBeeps negative Property. Exact starts, bounds and associations in
 the retained sources govern any future reconciliation.
+
+Kettle gains (fn-191) the boils Progress, owned by `HeatingOnly`, a `Derived` restriction of
+Model to pressButton, heat and failover: from heatingOn to beeping within 81 (a press at room
+temperature, 80 heats and the failover), with no assumption. depressButton is restricted away,
+since a user who switches the kettle off before it boils would refute it; pressButton stays,
+since from Model.init nothing heats until the element is on, and without it the claim would hold
+vacuously. Intended Progress answer Verified.
