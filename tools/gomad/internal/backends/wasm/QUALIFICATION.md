@@ -240,7 +240,7 @@ while Go reference measurements bind the Go implementation. A success/canary
 qualification report or a unit-test pass alone does not establish these gates.
 
 The cluster speedup comparison requires fresh baseline and candidate release
-measurements on the same real Linux/arm64 host at each measured seed, retaining
+measurements on the same host at each measured seed, retaining
 the fn-172 baseline revision, inputs, identities and rerun commands. Record
 authorization-to-terminal wall, full wall, parent Go self CPU, helper CPU and
 compiler CPU separately. Diagnostic-profile and guest-profile helpers refuse

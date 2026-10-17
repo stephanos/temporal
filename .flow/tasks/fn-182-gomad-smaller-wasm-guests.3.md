@@ -11,7 +11,7 @@ Complete matched measurements and affected qualification for R4/R5, and publish 
 **Touches:** [tools/gomad/internal/backends/wasm/wasi/*test.go, tools/gomad/internal/backends/wasm/qualification/**, tools/gomad/internal/backends/wasm/wasmhost/**, tools/gomad/internal/backends/wasm/CLI.md, tools/gomad/internal/backends/wasm/QUALIFICATION.md, tools/gomad/internal/backends/wasm/README.md]
 
 ### Approach
-- Run baseline and trimmed candidates on the same real Linux/arm64 host using the task .1 collector, workloads, seeds, capacities and repetitions. Report medians/ranges and raw receipts for all R4 metrics; report startup/execution/memory regressions or noise honestly rather than assuming gains from bytes saved.
+- Run baseline and trimmed candidates on the same host using the task .1 collector, workloads, seeds, capacities and repetitions. Report medians/ranges and raw receipts for all R4 metrics; report startup/execution/memory regressions or noise honestly rather than assuming gains from bytes saved.
 - Compare functional success and intentional-failure witnesses across builds; establish repeated execution and fresh exact retained replay within each candidate's own identities. Preserve existing capacity/resource acceptance.
 - Run affected portable default-build controls and actual WASM workload gates; native execution qualification stays deferred.
 - Document the build selection, excluded-provider refusal, measured tradeoffs and new candidate identities together with one retained report and rerun procedure.
@@ -53,7 +53,7 @@ Next implement only bounded exact-byte reuse of recovery commitments in model/in
 ### Quick commands
 `make -C tools/gomad test-wasm GOMAD_STOCK_GO=/absolute/pinned/go1.27.1` and the selected actual qualification/performance drivers with explicit inputs; confirm no acceptance selector skipped. Run helper formatting, tests, clippy, generated/pin validation and source review for the repair before actual requalification. Root serializes heavy host work and owns final review, integration and completion.
 ## Acceptance
-- [ ] Matched Linux/arm64 measurements cover all R4 metrics with identities, repetitions, ranges and rerun commands
+- [ ] Matched same-host measurements cover all R4 metrics with identities, repetitions, ranges and rerun commands
 - [ ] Existing resource budgets pass; measurement spread and regressions are reported explicitly
 - [ ] Success and canary failures remain observable, with repeated execution and fresh retained replay under the new candidate
 - [ ] Build documentation and qualification report reflect actual results and preserve native deferrals

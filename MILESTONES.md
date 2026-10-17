@@ -89,11 +89,9 @@ helper, accepting Go→Rust duplication where it buys performance; embedding Was
 
 <a id="wasm-performance-acceptance-host"></a>
 
-### WASM performance acceptance host (owner decision, 2026-10-14)
+### WASM performance measurement host (owner decision, 2026-10-17)
 
-The owner answered, "Use Linux/arm64 for performance acceptance". Current WASM performance acceptance requires real Linux/arm64 measurements, superseding the earlier Darwin/arm64 requirement and optional-Linux wording. Native execution remains deferred under fn-128 and fn-149; this decision qualifies no native platform.
-
-Retain every existing threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, WASI/network/output equality, identity and resource-budget requirement. Baseline and candidate must be measured on the same real Linux/arm64 host with the specified selections and inputs; retain host CPU evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. An amd64 host, arm64 process emulated on x86, historical Darwin result or stale Linux result supplies no current acceptance pass. Re-measure the relevant pre-change baseline on this host; historical figures remain historical evidence. Unavailable or failing measurements remain open; this amendment records no task completion or performance pass and changes no diagnostic default.
+The owner answered, "since this is WASM, we don't need a particular env. that was for the native backend." WASM performance measurements may run on any host; no host platform qualifies or disqualifies a WASM result. This supersedes the 2026-10-14 Linux/arm64 requirement. Baseline and candidate are still measured on the same host in the same window with the specified selections and inputs, and every threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, identity and resource-budget requirement still applies; retain host evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. Native platform qualification stays deferred under fn-128 and fn-149.
 
 ## Batch-first execution strategy
 
@@ -285,7 +283,7 @@ CI, PR, or push authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
-| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads on Linux/arm64 |
+| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
 <a id="quality-assessment-2026-10-01"></a>
