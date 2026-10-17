@@ -11,18 +11,21 @@ object ReliableBroadcast:
   enum Proc:
     case p1, p2
 
+  // every process, in the order the origin sends to them
+  val procs: List[Proc] = Proc.values.toList
+
   enum Payload:
     case hello, goodbye
 
   // a message in flight: whom it is for and what it says
   final case class Msg(receiver: Proc, payload: Payload)
 
-  // a process: waiting, forwarding what it received, forwarded, or delivered
-  enum Local:
-    case idle
-    case relaying(payload: Payload)
-    case relayed(payload: Payload)
-    case delivered(payload: Payload)
+  // how far a process got with what it received: forwarding it, forwarded, or delivered
+  enum Phase:
+    case relaying, relayed, delivered
+
+  // what a process received and how far it got with it
+  final case class Received(payload: Payload, phase: Phase)
 
   // the origin of the broadcast: before it, sending to `next`, done, or crashed part way through
   enum Origin:
@@ -31,24 +34,24 @@ object ReliableBroadcast:
     case done(payload: Payload)
     case crashed(payload: Payload)
 
-  final case class Broadcast(origin: Origin, p1: Local, p2: Local, network: Inbox[Msg])
+  // the origin, what each process received, and the messages in flight; a process absent from
+  // `received` is idle
+  final case class Broadcast(origin: Origin, received: Map[Proc, Received], network: Inbox[Msg])
 
   // reliable, so that a message sent is a message received; unordered, as the network is
   object wire:
     val network: Channel[Msg] =
       channel[Msg](capacity = 4, order = Order.unordered, loss = Loss.reliable)
 
-  def other(p: Proc): Proc = p match
-    case Proc.p1 => Proc.p2
-    case Proc.p2 => Proc.p1
+  // every process but `p`
+  def others(p: Proc): List[Proc] = procs.filter(_ != p)
 
-  def localOf(state: Broadcast, p: Proc): Local = p match
-    case Proc.p1 => state.p1
-    case Proc.p2 => state.p2
+  // the process the origin sends to after `p`, if any
+  def following(p: Proc): Option[Proc] = procs.lift(p.ordinal + 1)
 
-  def withLocal(state: Broadcast, p: Proc, local: Local): Broadcast = p match
-    case Proc.p1 => state.copy(p1 = local)
-    case Proc.p2 => state.copy(p2 = local)
+  // whether `network` has room for `count` more messages
+  def hasRoom(network: Inbox[Msg], count: Int): Boolean =
+    network.deliveries.size + count <= network.channel.capacity
 
   // the payload the origin broadcast, if it began
   def broadcast(state: Broadcast): Option[Payload] = state.origin match
@@ -57,46 +60,39 @@ object ReliableBroadcast:
     case Origin.done(payload)       => Some(payload)
     case Origin.crashed(payload)    => Some(payload)
 
-  def deliveredValue(local: Local): Option[Payload] = local match
-    case Local.idle               => None
-    case Local.relaying(_)        => None
-    case Local.relayed(_)         => None
-    case Local.delivered(payload) => Some(payload)
+  def sending(origin: Origin): Boolean = origin match
+    case Origin.sending(_, _)                             => true
+    case Origin.idle | Origin.done(_) | Origin.crashed(_) => false
 
-  def relaying(local: Local): Boolean = local match
-    case Local.idle         => false
-    case Local.relaying(_)  => true
-    case Local.relayed(_)   => false
-    case Local.delivered(_) => false
+  // how far `p` got, if it received anything
+  def phaseOf(received: Map[Proc, Received], p: Proc): Option[Phase] =
+    received.get(p).map(_.phase)
 
-  def relayed(local: Local): Boolean = local match
-    case Local.idle         => false
-    case Local.relaying(_)  => false
-    case Local.relayed(_)   => true
-    case Local.delivered(_) => false
+  // `p` forwarded what it received to every other process
+  def forwarded(received: Map[Proc, Received], p: Proc): Boolean =
+    phaseOf(received, p).exists(_ != Phase.relaying)
 
-  def settled(local: Local): Boolean = local == Local.idle || deliveredValue(local) != None
+  // what `p` delivered, if it delivered
+  def deliveredBy(received: Map[Proc, Received], p: Proc): Option[Payload] =
+    received.get(p).filter(_.phase == Phase.delivered).map(_.payload)
 
-  def originSending(state: Broadcast): Boolean = state.origin match
-    case Origin.idle          => false
-    case Origin.sending(_, _) => true
-    case Origin.done(_)       => false
-    case Origin.crashed(_)    => false
+  // the values the processes delivered, None for a process that delivered nothing
+  def deliveredValues(state: Broadcast): Set[Option[Payload]] =
+    procs.map(deliveredBy(state.received, _)).toSet
 
   // no process delivered a value or every process delivered the same one
   def agreed(state: Broadcast): Boolean =
-    deliveredValue(state.p1) == deliveredValue(state.p2)
+    deliveredValues(state).size == 1
 
   def someoneDelivered(state: Broadcast): Boolean =
-    deliveredValue(state.p1) != None || deliveredValue(state.p2) != None
+    deliveredValues(state).exists(_ != None)
 
   def everyoneDelivered(state: Broadcast): Boolean =
-    deliveredValue(state.p1) != None && agreed(state)
+    agreed(state) && someoneDelivered(state)
 
   // I only deliver messages that have been sent
   def onlyBroadcast(state: Broadcast): Boolean =
-    (deliveredValue(state.p1) == None || deliveredValue(state.p1) == broadcast(state)) &&
-      (deliveredValue(state.p2) == None || deliveredValue(state.p2) == broadcast(state))
+    deliveredValues(state).forall(v => v == None || v == broadcast(state))
 
   enum Outcome:
     case accepted
@@ -117,100 +113,69 @@ object ReliableBroadcast:
   object Model extends Machine[Outcome, Nothing], FailureModel:
     // the origin, each process and the messages in flight: nothing broadcast, nothing sent
     var origin = Origin.idle
-    var p1 = Local.idle
-    var p2 = Local.idle
+    var received = Map.empty[Proc, Received]
     var network = wire.network.empty
 
     inbox(network, wire.network)
     durability(
+      // a crash part way through stops the sending, whomever it was to reach next
       inMemory(origin)(
-        Origin.sending(Payload.hello, Proc.p1) -> Origin.crashed(Payload.hello),
-        Origin.sending(Payload.hello, Proc.p2) -> Origin.crashed(Payload.hello),
-        Origin.sending(Payload.goodbye, Proc.p1) -> Origin.crashed(Payload.goodbye),
-        Origin.sending(Payload.goodbye, Proc.p2) -> Origin.crashed(Payload.goodbye)
+        (for payload <- Payload.values.toList; next <- procs
+        yield Origin.sending(payload, next) -> Origin.crashed(payload))*
       ),
-      durable(p1),
-      durable(p2),
+      durable(received),
       durable(network)
     )
 
     // the broadcast as one record, which the predicates above read
     def current: Broadcast =
-      Broadcast(origin, p1, p2, network)
+      Broadcast(origin, received, network)
 
     // a run stops once nothing is in flight and no process is part way through
     override def end =
-      !originSending(current) && network.isEmpty && settled(p1) && settled(p2)
+      !sending(origin) && network.isEmpty && received.values.forall(_.phase == Phase.delivered)
 
     object transitions extends Transitions:
       on(sender.broadcast): payload =>
         if origin == Origin.idle then effects.begin(payload)
       on(sender.send):
-        if originSending(current) && !network.isFull then effects.sendNext()
+        if sending(origin) && !network.isFull then effects.sendNext()
       on(fault.crash):
-        if originSending(current) then effects.crash()
+        if sending(origin) then effects.crash()
       on(monitors.network.deliver): msg =>
         effects.receive(msg)
-      on(process.relay(Proc.p1)):
-        if relaying(p1) && !network.isFull then effects.relayP1()
-      on(process.relay(Proc.p2)):
-        if relaying(p2) && !network.isFull then effects.relayP2()
-      on(process.deliver(Proc.p1)):
-        if relayed(p1) then effects.deliverP1()
-      on(process.deliver(Proc.p2)):
-        if relayed(p2) then effects.deliverP2()
+      on(process.relay): p =>
+        if phaseOf(received, p) == Some(Phase.relaying) && hasRoom(network, others(p).size) then
+          effects.relay(p)
+      on(process.deliver): p =>
+        if phaseOf(received, p) == Some(Phase.relayed) then effects.deliver(p)
 
     object effects:
       def begin(payload: Payload) =
-        origin = Origin.sending(payload, Proc.p1)
+        origin = Origin.sending(payload, procs.head)
       def sendNext() =
         origin match
           case Origin.sending(payload, next) =>
-            origin =
-              if next == Proc.p1 then Origin.sending(payload, Proc.p2) else Origin.done(payload)
+            origin = following(next).fold(Origin.done(payload))(Origin.sending(payload, _))
             network = network.send(Msg(next, payload))
-          case Origin.idle       => ()
-          case Origin.done(_)    => ()
-          case Origin.crashed(_) => ()
+          case Origin.idle | Origin.done(_) | Origin.crashed(_) => ()
       def crash() =
         origin match
-          case Origin.sending(payload, _) => origin = Origin.crashed(payload)
-          case Origin.idle                => ()
-          case Origin.done(_)             => ()
-          case Origin.crashed(_)          => ()
+          case Origin.sending(payload, _)                       => origin = Origin.crashed(payload)
+          case Origin.idle | Origin.done(_) | Origin.crashed(_) => ()
       // On receiving m: forward m to all, then deliver m; a process already busy ignores it.
       def receive(msg: Msg) =
-        if localOf(current, msg.receiver) == Local.idle then
-          setLocal(msg.receiver, Local.relaying(msg.payload))
-      def relayP1() =
-        relayFrom(Proc.p1)
-      def relayP2() =
-        relayFrom(Proc.p2)
-      def deliverP1() =
-        deliverAt(Proc.p1)
-      def deliverP2() =
-        deliverAt(Proc.p2)
+        if !received.contains(msg.receiver) then
+          received = received.updated(msg.receiver, Received(msg.payload, Phase.relaying))
+      def relay(p: Proc) =
+        val payload = received(p).payload
+        network = others(p).foldLeft(network)((sent, q) => sent.send(Msg(q, payload)))
+        advance(p, Phase.relayed)
+      def deliver(p: Proc) =
+        advance(p, Phase.delivered)
 
-      private def relayFrom(p: Proc) =
-        localOf(current, p) match
-          case Local.relaying(payload) =>
-            network = network.send(Msg(other(p), payload))
-            setLocal(p, Local.relayed(payload))
-          case Local.idle         => ()
-          case Local.relayed(_)   => ()
-          case Local.delivered(_) => ()
-
-      private def deliverAt(p: Proc) =
-        localOf(current, p) match
-          case Local.relayed(payload) => setLocal(p, Local.delivered(payload))
-          case Local.idle             => ()
-          case Local.relaying(_)      => ()
-          case Local.delivered(_)     => ()
-
-      private def setLocal(p: Proc, local: Local) =
-        p match
-          case Proc.p1 => p1 = local
-          case Proc.p2 => p2 = local
+      private def advance(p: Proc, phase: Phase) =
+        received = received.updated(p, received(p).copy(phase = phase))
 
     object invariants:
       val safety =
@@ -219,10 +184,7 @@ object ReliableBroadcast:
     object postconditions:
       // If I deliver a message, I have already forwarded it to all.
       val reliability =
-        if deliveredValue(p1) != None && deliveredValue(before.p1) == None then
-          check(relayed(before.p1))
-        if deliveredValue(p2) != None && deliveredValue(before.p2) == None then
-          check(relayed(before.p2))
+        check(procs.forall(p => deliveredBy(received, p) == None || forwarded(before.received, p)))
 
     object monitors:
       val network =
@@ -233,10 +195,10 @@ object ReliableBroadcast:
 
     object progress:
       // once one process delivers, every process delivers the same, whatever else happens
-      // meanwhile: the origin's sends or crash, four deliveries and the other process's forward and
-      // delivery
+      // meanwhile: the origin's sends or crash, and the other process's forward and delivery
       val everyoneDelivers =
-        leadsTo(from = someoneDelivered(current), to = everyoneDelivered(current), within = 9)
+        whenever(someoneDelivered(current)):
+          eventually(everyoneDelivered(current))
 
     object queries:
       // a find target: a run need not crash, so it is no promise and not checked by default

@@ -126,7 +126,8 @@ object TwoLayeredCache:
     object progress:
       // all layers contain the same latest written value, one step after they part
       val agreement =
-        leadsTo(from = !agreed(current), to = agreed(current), within = 1)
+        whenever(!agreed(current)):
+          eventually(agreed(current), within = 1)
 
     object queries:
       // a read served from layer 2: no promise of every read, so a find target here

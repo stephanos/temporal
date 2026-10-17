@@ -34,7 +34,7 @@ Contents:
 8. [Properties](#8-properties): the promises
 9. [Scenarios and Queries](#9-scenarios-and-queries): the bounded questions
 10. [Monitors and assumptions](#10-monitors-and-assumptions)
-11. [Progress](#11-progress): bounded liveness
+11. [Progress](#11-progress): leads-to liveness, bounded where it says so
 12. [Holes](#12-holes): unknown on purpose
 13. [Refinement](#13-refinement): Product and Protocol
 14. [Derivations](#14-derivations): one thing changed
@@ -567,8 +567,10 @@ generation; without it the Query is model-only. Capability expectation bindings 
 generated Queries live.
 
 A native environment may select a whole action or one input class: `only(action)` admits every
-class of that action, while `only(action(input))` admits just that class. Similarly, `fair(action)`
-makes every class weakly fair; `fair(action(input))` makes only the selected class weakly fair.
+class of that action, while `only(action(input))` admits just that class. `without` drops what it
+names and admits the rest, `without(user.depressButton)`; a scenario says `only`, `without` or a
+pinned `actions` list, one of the three. Similarly, `fair(action)` makes every class weakly fair;
+`fair(action(input))` makes only the selected class weakly fair.
 A claim takes its own environment with `in`, `check(!active) in off`. `in` scopes only the
 statement it ends, so a claim of several statements is scoped whole, `val both = { check(a);
 check(b) } in off` or `(after(action): ...) in off`; the block-form lint refuses a claim member in
@@ -684,20 +686,42 @@ member's monitors watch the composition is not defined).
 
 ## 11. Progress
 
-**Meaning.** A progress claim is bounded liveness: from every reachable state `from` accepts, a
-state `to` accepts follows within `within` steps, on every path the named assumptions admit. It is
-violated by a *deadlock* (a state with no row before a `to` state), a *fair non-progress cycle* (a
-reachable cycle avoiding `to` on which every fair class enabled throughout is taken), or a *missed
-deadline* (`within` steps with no `to` state). Each is reported apart. A search cut by a limit
-proves none of them.
+**Meaning.** A progress claim is leads-to liveness: from every reachable state `from` accepts, a
+state `to` accepts follows on every path the scenario admits, and within `within` steps where the
+claim states a bound. It is violated by a *deadlock* (a state with no row before a `to` state), a
+*fair non-progress cycle* (a reachable cycle avoiding `to` on which every fair class enabled
+throughout is taken), or, for a bounded claim, a *missed deadline* (`within` steps with no `to`
+state). Each is reported apart. A verified claim reports the longest path to `to` where no path
+cycles. A search cut by a limit proves none of them: an unbounded claim is verified only on a
+complete exploration, since the graph is finite only there.
 
-Umpire's temporal claims are these, and safety: no unbounded `eventually`. Weak fairness bounds
-nothing by itself: a finite bound holds only where the graph leaves no path that spends its steps
-elsewhere, which is why the dispatch designs *restrict* the actions that could, rather than assume
-them away.
+An unbounded claim is checked under weak fairness: a cycle that avoids `to` is no counterexample
+when a fair class is enabled throughout it and never taken inside it, since a fair path leaves it.
+A bound uses no fairness: any cycle that avoids `to` misses every deadline, so a bounded claim
+holds only where the graph leaves no path that spends its steps elsewhere. That is why the
+dispatch designs *restrict* the actions that could, rather than assume them away, and why a bound
+is stated only where it is the promise ("repaired within one step"), not a count of the model's
+steps.
 
-**Writing it.** In `object properties.liveness`, always named, with an explicit finite bound and
-the assumptions on which the claim relies:
+**Writing it.** In `progress`, named after its `val`; the bound is optional and the environment is
+a Scenario after `in`:
+
+```scala
+object progress:
+  // switched on and left on, the water boils and the kettle beeps
+  val boils =
+    (whenever(heatingOn):
+      eventually(beeping)
+    ) in without(user.depressButton)
+  // every disagreement of the layers is repaired at once
+  val agreement =
+    whenever(!agreed(current)):
+      eventually(agreed(current), within = 1)
+```
+
+`eventually` is written only in a `whenever` block, and `within` is a positive constant: a literal,
+or arithmetic over `inline val`s. `leadsTo(from = p, to = q, within = n)` is the same bounded
+claim. The named form of a Derived machine, below, predates both:
 
 Source: [temporal/features/activity_mini/protocol/DispatchingProgress.scala:12](../temporal/features/activity_mini/protocol/DispatchingProgress.scala#L12).
 
@@ -716,8 +740,8 @@ object DispatchingProgress extends Derived(ActivityProtocol.restrict(activityWor
 
 A safety postcondition such as `Queue.properties.safety.deliveredWasScheduled` assumes no future action: it
 must hold whenever its selected response step occurs, but does not say that response will occur.
-The progress claim is universal over every admitted path from `from`; it states its `within` bound
-and fairness or recovery assumptions separately. A `find` Query supplies one witness path and is
+The progress claim is universal over every admitted path from `from`; it states any `within` bound
+in the claim and its fairness or recovery assumptions in its environment. A `find` Query supplies one witness path and is
 therefore not evidence that this universal progress claim holds.
 
 A composition's claim reads the composed state and counts composed steps, a sync's once. Its

@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T21:20:17.059341Z",
+  "depends_on": [],
+  "id": "fn-194-parametric-models-constants-and-finite.1",
+  "priority": null,
+  "spec": "fn-194-parametric-models-constants-and-finite",
+  "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.1.md",
+  "status": "todo",
+  "title": "DSL completion: prototype a parametric Bank and record the verdict",
+  "updated_at": "2026-10-17T21:20:17.059341Z"
+}

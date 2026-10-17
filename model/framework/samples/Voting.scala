@@ -125,7 +125,8 @@ object Voting:
     object postconditions:
       // once a value is chosen, it stays chosen
       val chosenStays =
-        if before.chosen.nonEmpty then check(chosen == before.chosen)
+        if before.chosen.nonEmpty then
+          check(chosen == before.chosen)
 
   object Model extends Machine[Outcome, Nothing]:
     // each acceptor's votes and the ballot below which it casts no further votes; -1 means none yet

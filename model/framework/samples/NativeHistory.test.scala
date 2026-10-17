@@ -357,13 +357,13 @@ class NativeHistoryTest extends munit.FunSuite:
       Some(false)
     )
 
-  test("Kettle's boils claim runs on the press and the heater alone and beeps within 141 steps"):
+  test("Kettle's boils claim runs on the press and the heater alone and states no bound"):
     import Kettle.*
     val boils = Model.progress.boils
     assert(boils.machine.exists(_ eq Model))
     assertEquals(boils.name, "boils")
-    assertEquals(boils.within, 141)
-    assertEquals(boils.scenario.name, "heatingAlone")
+    assertEquals(boils.within, None)
+    assertEquals(boils.scenario.name, "neverSwitchedOff")
     assertEquals(boils.scenario.decl.fair, Vector.empty)
     val admitted = Model.bindings.map(_.decl).filter(boils.scenario.decl.admits)
     assertEquals(admitted.exists(_ eq user.depressButton.decl), false)
@@ -445,7 +445,7 @@ class NativeHistoryTest extends munit.FunSuite:
     val refutesNeverBeeps = assertRefuted(Model, invariant(check(!Model.beeping)), Seq(room))
     assertEquals(refutesNeverBeeps.verdict, refuted)
 
-  test("Kettle's boils is verified in heatingAlone with longest path 81"):
+  test("Kettle's boils is verified in neverSwitchedOff with longest path 81"):
     import Kettle.*
     val report = NativeCheck.verifyAll(Model, Seq(room))
     val boils = report.result("boils")
@@ -479,7 +479,7 @@ class NativeHistoryTest extends munit.FunSuite:
       NativeCheck.query(verify(boils) in fromRoomTemperature.only(user.pressButton), "model.boils")
     assertEquals(stuck.verdict, deadlock)
     assertEquals(stuck.detail, Vector("deadlock: pressButton ends in " + snapshot(20, true, false)))
-    val sooner = LeadsTo.declared("boils", boils.machine, boils.from, boils.to, 80, boils.scenario)
+    val sooner = LeadsTo.declared("boils", boils.machine, boils.from, boils.to, Some(80), boils.scenario)
     val late =
       NativeCheck.query(verify(sooner) in boils.scenario.starts(temperature = 20), "model.boils")
     assertEquals(late.verdict, missedDeadline)

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T21:20:17.060858Z",
+  "depends_on": [
+    "fn-194-parametric-models-constants-and-finite.3"
+  ],
+  "id": "fn-194-parametric-models-constants-and-finite.4",
+  "priority": null,
+  "spec": "fn-194-parametric-models-constants-and-finite",
+  "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.4.md",
+  "status": "todo",
+  "title": "DSL completion: document parameters in SEMANTICS and the README",
+  "updated_at": "2026-10-17T21:20:17.060858Z"
+}

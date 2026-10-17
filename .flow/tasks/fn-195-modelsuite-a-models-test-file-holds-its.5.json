@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T21:20:21.069870Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.4"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.5",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.5.md",
+  "status": "todo",
+  "title": "DSL completion: the test file in SEMANTICS and the README",
+  "updated_at": "2026-10-17T21:20:21.069870Z"
+}

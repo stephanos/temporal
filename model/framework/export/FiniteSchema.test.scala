@@ -763,7 +763,7 @@ object Probe:
     val schema = machine.headerSchemaKeys.head.flatMap(machine.fs.schemaFor).get
     assert(schema.identity == "samples.ReliableBroadcast.Broadcast")
     val state = schema.types.find(_.name == schema.identity).get
-    assert(state.getRecord.fields.map(_.name) == Seq("origin", "p1", "p2", "network"))
+    assert(state.getRecord.fields.map(_.name) == Seq("origin", "received", "network"))
     assert(schema.types.exists(_.name == "samples.ReliableBroadcast.Msg"))
     assert(schema.unresolvedInboxes.nonEmpty)
 """

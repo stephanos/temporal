@@ -217,9 +217,10 @@ checked by default, and refutesNeverBeeps leaves its queries: both are the Nativ
 `assertRefuted(Model, invariant(check(!beeping)))`. The other four queries keep their names, with
 fromRoomTemperature and fromAnyTemperature as Machine vals (`starts()`, `starts(temperature =
 -40)`) on the default budget. HeatingOnly is retired: boils is Model's `leadsTo(from = heatingOn,
-to = beeping, within = 141) in heatingAlone`, `heatingAlone = only(pressButton, heat, failover)`:
-true from every start the Kettle admits (conductor), Verified with longest path 81 from Model.init
-and 141 from Model.init and coldest together (a press at -40, 140 heats and the failover).
+to = beeping, within = 141) in neverSwitchedOff`, `neverSwitchedOff = only(pressButton, heat,
+failover)`: true from every start the Kettle admits (conductor), Verified with longest path 81 from
+Model.init and 141 from Model.init and coldest together (a press at -40, 140 heats and the
+failover).
 
 ## Complete Query inventory
 

@@ -217,10 +217,8 @@ object TwoPhaseCommit:
     object progress:
       // once the transaction manager commits, every resource manager commits within three steps
       val commitReachesEveryone =
-        leadsTo(
-          from = tmState == TransactionManagerState.committed,
-          to = allCommitted(current),
-          within = 3
+        (whenever(tmState == TransactionManagerState.committed):
+          eventually(allCommitted(current), within = 3)
         ) in fairCommits
 
     object queries:

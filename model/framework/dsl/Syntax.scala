@@ -1808,6 +1808,11 @@ inline def find(inline claim: Any): ClaimQuery = ${ QueryMacros.finding('claim) 
 inline def only(actions: (Action[?] | Class | Composed)*): Scenario =
   Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).only(actions*)
 
+// `without(user.depressButton)`: the scenario that admits every action but these, named after its
+// `val` where it is one. Core form: `scenario.free` restricted to the actions not listed.
+inline def without(actions: (Action[?] | Class | Composed)*): Scenario =
+  Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).without(actions*)
+
 // `fair(rm.commit)`: the scenario that makes these actions weakly fair, an action that stays enabled
 // is eventually taken, and admits every action. Core form: `scenario.free` assuming `fair(actions)`.
 inline def fair(actions: (Action[?] | Class | Composed)*): Scenario =
@@ -1858,10 +1863,57 @@ private[framework] object QueryMacros:
   private[framework] def leadsTo(from: Expr[Boolean], to: Expr[Boolean], within: Expr[Int])(using
       q: Quotes
   ): Expr[LeadsTo] =
+    val named = progressClaim("a progress claim")
+    bound(within)
+    '{
+      LeadsTo.declared(
+        $named,
+        $enclosingImpl,
+        () => $from,
+        () => $to,
+        Some($within),
+        Scenario.of($enclosingImpl, None)
+      )
+    }
+
+  @scala.annotation.publicInBinary
+  private[framework] def whenever(from: Expr[Boolean], deadline: Expr[Whenever ?=> Deadline])(using
+      q: Quotes
+  ): Expr[LeadsTo] =
+    val named = progressClaim("whenever, a progress claim,")
+    '{
+      val promised = $deadline(using Whenever.block)
+      LeadsTo.declared(
+        $named,
+        $enclosingImpl,
+        () => $from,
+        promised.to,
+        promised.within,
+        Scenario.of($enclosingImpl, None)
+      )
+    }
+
+  @scala.annotation.publicInBinary
+  private[framework] def eventually(to: Expr[Boolean], within: Expr[Int])(using
+      q: Quotes
+  ): Expr[Deadline] =
+    bound(within)
+    '{ Deadline.declared(() => $to, Some($within)) }
+
+  // The name of the progress claim being declared, refused outside `progress`.
+  private def progressClaim(what: String)(using q: Quotes): Expr[String] =
     import q.reflect.*
     val owners = Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol).toList
     if !owners.exists(s => s.isClassDef && s.name == "progress$") then
-      report.errorAndAbort("a progress claim belongs in progress")
+      report.errorAndAbort(s"$what belongs in progress")
+    Expr(
+      owners
+        .find(s => s.isValDef && !s.flags.is(Flags.Synthetic) && !s.name.contains("$"))
+        .fold("")(_.name)
+    )
+
+  private def bound(within: Expr[Int])(using q: Quotes): Unit =
+    import q.reflect.*
     within.value match
       case Some(n) if n > 0 => ()
       case _                =>
@@ -1869,21 +1921,6 @@ private[framework] object QueryMacros:
           "within is a positive number of steps, written as a literal",
           within.asTerm.pos
         )
-    val named = Expr(
-      owners
-        .find(s => s.isValDef && !s.flags.is(Flags.Synthetic) && !s.name.contains("$"))
-        .fold("")(_.name)
-    )
-    '{
-      LeadsTo.declared(
-        $named,
-        $enclosingImpl,
-        () => $from,
-        () => $to,
-        $within,
-        Scenario.of($enclosingImpl, None)
-      )
-    }
 
   private def select(claim: Expr[Any], finds: Boolean)(using q: Quotes): Expr[ClaimQuery] =
     import q.reflect.*

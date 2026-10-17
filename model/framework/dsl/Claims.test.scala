@@ -250,7 +250,9 @@ class ClaimsSuite extends munit.FunSuite:
     )
     val notScenario = compileErrors("ClaimsFixture.Kettle.progress.boils in 3")
     assert(
-      notScenario.contains("in takes a scenario: only(...), fair(...), starts(...) or a named one"),
+      notScenario.contains(
+        "in takes a scenario: only(...), without(...), fair(...), starts(...) or a named one"
+      ),
       notScenario
     )
     val found = compileErrors("find(ClaimsFixture.Kettle.progress.boils)")

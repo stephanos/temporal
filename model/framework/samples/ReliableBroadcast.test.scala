@@ -7,68 +7,59 @@ import samples.ReliableBroadcast
 class ReliableBroadcastTest extends munit.FunSuite:
   val _ = () => summon[CanEqual[ReliableBroadcast.Origin, ReliableBroadcast.Origin]]
 
-  test("ReliableBroadcast's four native predicates retain both process implications"):
+  test("ReliableBroadcast's four native claims judge safety, relay-before-deliver and the crash"):
     import ReliableBroadcast.*
-    // the Broadcast record a state holds
-    def carried(state: State): Broadcast = Model.at(state)(Model.current)
+    import SectionClaims.{holds, target}
+    def received(state: State): Map[Proc, Received] = Model.at(state)(Model.current).received
+    // `state` with the processes named having received the payloads given, as far as given
+    def holding(state: State, changes: (Proc, Received)*): State =
+      state.copy(received = received(state) ++ changes)
+    // `state` with `p` idle, having received nothing
+    def idling(state: State, p: Proc): State = state.copy(received = received(state) - p)
     val initial = Model.init
-    val delivered = initial.copy(
-      origin = Origin.crashed(Payload.hello),
-      p1 = Local.delivered(Payload.hello),
-      p2 = Local.delivered(Payload.hello)
+    val delivered = holding(
+      initial.copy(origin = Origin.crashed(Payload.hello)),
+      Proc.p1 -> Received(Payload.hello, Phase.delivered),
+      Proc.p2 -> Received(Payload.hello, Phase.delivered)
     )
-    val wrong = delivered.copy(p2 = Local.delivered(Payload.goodbye))
-    val safetyCases = List(
-      (Step(Outcome.accepted, initial), true),
-      (Step(Outcome.accepted, delivered), true),
-      (Step(Outcome.accepted, wrong), false)
-    )
-    SectionClaims.same(Model, "invariants", "safety", None, safetyCases)(after =>
-      onlyBroadcast(carried(after.state))
-    )
-    SectionClaims.same(Naive, "invariants", "naiveSafety", None, safetyCases)(after =>
-      onlyBroadcast(carried(after.state))
-    )
+    val wrong = holding(delivered, Proc.p2 -> Received(Payload.goodbye, Phase.delivered))
+    for (machine, member) <- List(Model -> "safety", Naive -> "naiveSafety") do
+      List(initial -> true, delivered -> true, wrong -> false).foreach: (state, expected) =>
+        assertEquals(holds(machine, "invariants", member)(state), expected, (member, state))
+    // a process delivers only from relayed, whichever process it is
     val forwarded =
-      initial.copy(p1 = Local.relayed(Payload.hello), p2 = Local.relayed(Payload.hello))
-    SectionClaims.across(
-      Model,
-      "reliability",
-      List(
-        (initial, Step(Outcome.accepted, initial), true),
-        (forwarded, Step(Outcome.accepted, delivered), true),
-        (delivered, Step(Outcome.accepted, delivered), true),
-        (initial, Step(Outcome.accepted, delivered), false),
-        (forwarded.copy(p1 = Local.idle), Step(Outcome.accepted, delivered), false),
-        (forwarded.copy(p2 = Local.idle), Step(Outcome.accepted, delivered), false)
+      holding(
+        initial,
+        Proc.p1 -> Received(Payload.hello, Phase.relayed),
+        Proc.p2 -> Received(Payload.hello, Phase.relayed)
       )
-    )((before, after) =>
-      (deliveredValue(carried(after.state).p1) == None || deliveredValue(
-        carried(before).p1
-      ) != None || relayed(
-        carried(before).p1
-      )) &&
-        (deliveredValue(carried(after.state).p2) == None || deliveredValue(
-          carried(before).p2
-        ) != None || relayed(
-          carried(before).p2
-        ))
-    )
-    SectionClaims.same(
-      Model,
-      "queries",
-      "survivesCrash",
-      Some(process.deliver(Proc.p2)),
-      List(
-        (Step(Outcome.accepted, delivered), true),
-        (Step(Outcome.accepted, delivered.copy(p2 = Local.idle)), false),
-        (Step(Outcome.accepted, delivered.copy(origin = Origin.done(Payload.hello))), false),
-        (Step(Outcome.accepted, wrong), false)
+    assertEquals(target(Model, "postconditions", "reliability"), None)
+    List(
+      (initial, initial, true),
+      (forwarded, delivered, true),
+      (delivered, delivered, true),
+      (initial, delivered, false),
+      (idling(forwarded, Proc.p1), delivered, false),
+      (idling(forwarded, Proc.p2), delivered, false)
+    ).foreach: (before, after, expected) =>
+      assertEquals(
+        holds(Model, "postconditions", "reliability")(after, from = Some(before)),
+        expected,
+        (before, after)
       )
-    )(after =>
-      everyoneDelivered(carried(after.state)) &&
-        carried(after.state).origin == Origin.crashed(Payload.hello)
-    )
+    val crashSurvived = Some(process.deliver(Proc.p2))
+    assertEquals(target(Model, "queries", "survivesCrash"), crashSurvived)
+    List(
+      delivered -> true,
+      idling(delivered, Proc.p2) -> false,
+      delivered.copy(origin = Origin.done(Payload.hello)) -> false,
+      wrong -> false
+    ).foreach: (state, expected) =>
+      assertEquals(
+        holds(Model, "queries", "survivesCrash")(state, taken = crashSurvived),
+        expected,
+        state
+      )
 
 object ReliableBroadcastControls:
   import samples.ReliableBroadcast.*
@@ -76,10 +67,9 @@ object ReliableBroadcastControls:
   object effects:
     // The naive algorithm: deliver m on receiving it, forwarding nothing.
     def receiveNaive(msg: Msg) =
-      if localOf(Model.current, msg.receiver) == Local.idle then
-        msg.receiver match
-          case Proc.p1 => Model.p1 = Local.delivered(msg.payload)
-          case Proc.p2 => Model.p2 = Local.delivered(msg.payload)
+      if !Model.received.contains(msg.receiver) then
+        Model.received =
+          Model.received.updated(msg.receiver, Received(msg.payload, Phase.delivered))
 
   // The naive algorithm, which delivers a message on receiving it and forwards nothing: the negative
   // control of agreement, which the sample tests refute.

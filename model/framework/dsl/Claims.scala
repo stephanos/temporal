@@ -115,9 +115,9 @@ final class PropertyBuilder[S, O, F] private[framework] (
 
 // A Scenario's untyped part: a named action schedule from one start, the path a Query runs. A
 // pinned Scenario lists its actions exactly; a free one lists none and admits any action. The
-// environment of a check is a Scenario too: `only` the actions it admits, `fair` the admitted
-// actions that are weakly fair (one that stays enabled is eventually taken), and `updates` the
-// vars it changes from the Machine's initial state, its start.
+// environment of a check is a Scenario too: `only` the actions it admits, `excluded` the actions it
+// does not, `fair` the admitted actions that are weakly fair (one that stays enabled is eventually
+// taken), and `updates` the vars it changes from the Machine's initial state, its start.
 final class ScenarioDecl private[framework] (
     val name: String,
     val machine: Model,
@@ -127,29 +127,41 @@ final class ScenarioDecl private[framework] (
     val free: Boolean,
     val only: Option[Vector[Action[?] | Class | Composed]] = None,
     val fair: Vector[Action[?] | Class | Composed] = Vector.empty,
-    val updates: Vector[(String, Any)] = Vector.empty
+    val updates: Vector[(String, Any)] = Vector.empty,
+    val excluded: Vector[Action[?] | Class | Composed] = Vector.empty
 ):
   require(
     only.isEmpty || actions.isEmpty,
     "a scenario admits actions with only or pins them with actions, not both"
   )
+  require(
+    excluded.isEmpty || (only.isEmpty && actions.isEmpty),
+    "a scenario admits actions with only, drops them with without or pins them with actions, " +
+      "one of the three"
+  )
 
   // Whether a check of this scenario says more of the environment than a realization can drive:
-  // that it admits only some actions, or assumes some are fair.
-  def modelOnly: Boolean = only.nonEmpty || fair.nonEmpty
+  // that it admits only some actions, drops some, or assumes some are fair.
+  def modelOnly: Boolean = only.nonEmpty || fair.nonEmpty || excluded.nonEmpty
 
-  // Whether it admits an action: every action, unless it says `only`.
+  // Whether it admits an action: every action, unless it says `only` or drops the whole action
+  // with `without`. Dropping one class of it leaves the action's other classes admitted.
   private[framework] def admits(decl: ActionDecl): Boolean =
     only.forall(_.exists:
       case a: Action[?] => a.decl eq decl
       case c: Class     => c.decl eq decl
-      case _            => false)
+      case _            => false) && !excluded.exists:
+      case a: Action[?] => a.decl eq decl
+      case _            => false
 
   private[framework] def admits(cls: Class): Boolean =
     only.forall(_.exists:
       case a: Action[?] => a.decl eq cls.decl
       case c: Class     => c == cls
-      case _            => false)
+      case _            => false) && !excluded.exists:
+      case a: Action[?] => a.decl eq cls.decl
+      case c: Class     => c == cls
+      case _            => false
 
   // The actions it assumes weakly fair: every class of each one named, or the one class named.
   private[framework] def fairActions: Vector[ActionDecl | Class] = fair.collect:
@@ -164,8 +176,10 @@ final class ScenarioDecl private[framework] (
       free: Boolean = free,
       only: Option[Vector[Action[?] | Class | Composed]] = only,
       fair: Vector[Action[?] | Class | Composed] = fair,
-      updates: Vector[(String, Any)] = updates
-  ): ScenarioDecl = ScenarioDecl(name, machine, start, actions, free, only, fair, updates)
+      updates: Vector[(String, Any)] = updates,
+      excluded: Vector[Action[?] | Class | Composed] = excluded
+  ): ScenarioDecl =
+    ScenarioDecl(name, machine, start, actions, free, only, fair, updates, excluded)
 
 // The machine of a Scenario built where no machine is in scope, `only(user.pressButton)` in a test:
 // the claim it is a scenario of names it.
@@ -173,9 +187,9 @@ private[framework] object Unbound extends Model:
   def name: String = ""
 
 // A Scenario over a machine or composition, whatever its state. Built from `only(...)`,
-// `fair(...)`, `starts(x = v)` and `actions(...)`, it composes by chaining them: `only(a, b).fair(a)`,
-// `fair(a).starts(heatingOn = true)`. One that says none of them admits every path from the
-// Machine's starts and assumes nothing.
+// `without(...)`, `fair(...)`, `starts(x = v)` and `actions(...)`, it composes by chaining them:
+// `only(a, b).fair(a)`, `fair(a).starts(heatingOn = true)`. One that says none of them admits every
+// path from the Machine's starts and assumes nothing.
 final class Scenario private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
 
@@ -183,6 +197,10 @@ final class Scenario private[framework] (val decl: ScenarioDecl):
   def only(actions: (Action[?] | Class | Composed)*): Scenario =
     require(decl.only.isEmpty, s"a scenario says only once: ${decl.name}")
     Scenario(decl.copy(only = Some(actions.toVector)))
+
+  // Admits every action but these: a whole action, or one class of it.
+  def without(actions: (Action[?] | Class | Composed)*): Scenario =
+    Scenario(decl.copy(excluded = decl.excluded ++ actions))
 
   // Makes these admitted actions weakly fair: one that stays enabled is eventually taken.
   def fair(actions: (Action[?] | Class | Composed)*): Scenario =

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T21:20:19.440003Z",
+  "depends_on": [
+    "fn-196-the-scala-checker-is-the-oracle.3"
+  ],
+  "id": "fn-196-the-scala-checker-is-the-oracle.4",
+  "priority": null,
+  "spec": "fn-196-the-scala-checker-is-the-oracle",
+  "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.4.md",
+  "status": "todo",
+  "title": "IR and plugin phase: retire the Go check and the IR evaluator, the gate and conformance replay run on the Scala checker",
+  "updated_at": "2026-10-17T21:20:19.440003Z"
+}

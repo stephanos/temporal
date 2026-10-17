@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1 done; fn-189.4/.2/.3, then fn-189.5; fn-193.1/.2; fn-190.15; fn-190.16 | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into a test-support module; the record-state vocabulary deleted. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1 done; fn-189.4/.2/.3, then fn-189.5; fn-193.1/.2; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into a test-support module; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1078,6 +1078,60 @@ with fn-190.12, and the Temporal compositions migrate at the sweep.
 | --- | --- | --- |
 | fn-193.1 | ⬜ todo | Prototype and verdict in `model/design`: members as vals, syncs by reference, claims in sections, a one-member derivation, native sync stepping (R1) |
 | fn-193.2 | ⬜ todo | After .1: plain compositions in the DSL; fixtures, tests, SEMANTICS §17 and README rewritten; nothing needs `RecordMachine` (R2-R5) |
+
+### fn-194: Parametric Models: constants and finite domains as constructor parameters, instantiated by the suite
+
+Captured on 2026-10-17 for the DSL-completion phase. Bank, Voting and TwoPhaseCommit drifted from
+Quint because a Model cannot take a parameter. A Model becomes a class whose type parameters are the
+finite domains it is generic over (`[Addr: Finite]`) and whose value parameters are its constants; the
+suite that tests it supplies the instance, Quint's `const` plus `instance`. A parameterless Model
+stays an object. DSL and native only; lifting an instance is the IR phase.
+[Spec](.flow/specs/fn-194-parametric-models-constants-and-finite.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-194.1 | ⬜ todo | Prototype a parametric Bank (class form, per-instance vars, naming, starts from parameters) and record the verdict in `model/design` (R1-R3) |
+| fn-194.2 | ⬜ todo | After .1: the class form in the DSL, parameter kinds and compile errors, instance naming, lint admits the class form (R1-R4) |
+| fn-194.3 | ⬜ todo | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
+| fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
+
+### fn-195: ModelSuite: a Model's test file holds its examples, explorations and conformance tests
+
+Captured on 2026-10-17 for the DSL-completion phase, after fn-194 and fn-196. The Model states its
+promises; its test file asks every question of it, in three sections of a munit suite over one
+instance: `examples` (pinned paths with `expect:` blocks of bare Booleans), `explorations` (spaces
+with `any`, `find` with a horizon, seeded `sample`, `refuted` negative controls) and `conformance`,
+the only source of Cases, each replayed on the Model first, and `unit` for plain munit tests of
+helpers, with nothing but sections at a suite's top level. `queries`, `Query`, `find`, `verify`,
+`witness`, `.live`, `.explore` and the capability live switch leave the Model; `Realizes` loses
+`runs`. Design note: `model/design/runs-in-tests.md` (its `Runs` object and `.live` are superseded
+by the sections). [Spec](.flow/specs/fn-195-modelsuite-a-models-test-file-holds-its.md). Depends on fn-194 and fn-196.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-195.1 | ⬜ todo | After fn-194.2 and fn-196.2: prototype a ModelSuite on Bank (sections, `test` builder, `expect:` macro, spaces) and revise the design note (R1, R2) |
+| fn-195.2 | ⬜ todo | After .1: ModelSuite, the four sections, `expect:`, spaces, `find`/`sample`/`refuted`, conformance defaults and `through` binding, `satisfied`/`inconclusive`/`conformant` in realize (R1-R4) |
+| fn-195.3 | ⬜ todo | After .2: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; section lint rules; split with fn-190.16 (R5, R7) |
+| fn-195.4 | ⬜ todo | After .3: the six samples' tests as ModelSuites with Quint's runs; intended answers reproduced (R6) |
+| fn-195.5 | ⬜ todo | After .4: SEMANTICS test-file section, §9 and §19 rewritten, README (R8) |
+
+### fn-196: The Scala checker is the oracle
+
+Captured on 2026-10-17. The owner asked for the simplest Scala model checker now and to replace the
+Go one entirely; `NativeCheck` already is that checker. It moves out of `framework.dsl` into a checker
+module as the oracle, gains `replay`, `find` with a horizon, seeded `sample` and `refuted` for
+fn-195, and a measurement note on the largest available graphs decides the deletion of the Go check,
+the IR evaluator (fn-190.3) and the re-cut of fn-190.5, and where Case lowering runs. Testpilot, the
+Driver, the canary and the Quint/TLA export stay over Go and the IR. This reverses the 2026-10-13
+Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-196.1 | ⬜ todo | The native runtime and `NativeCheck` move to a product checker module outside `framework.dsl` with one `Result` shape; carries fn-190.15's move (R1) |
+| fn-196.2 | ⬜ todo | After .1: `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity, the gate's budget with per-suite overrides (R2, R3) |
+| fn-196.3 | ⬜ todo | After .2: measurement note on the largest available graphs; go/no-go on deleting the Go check; lowering location (R4) |
+| fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
+| fn-196.5 | ⬜ todo | After .3: MILESTONES Direction, README and SEMANTICS say the Scala checker is the oracle (R7) |
 
 ### fn-191: Samples follow the machine sections and are linted in the framework check
 

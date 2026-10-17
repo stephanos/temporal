@@ -102,7 +102,8 @@ object Bank:
 
     object postconditions:
       val failedSendChangesNothing =
-        if outcome != Outcome.accepted then check(balances == before.balances)
+        if outcome != Outcome.accepted then
+          check(balances == before.balances)
 
     object queries:
       // a send of one banana from the king to peaches: not every such send pays, so it is a find's

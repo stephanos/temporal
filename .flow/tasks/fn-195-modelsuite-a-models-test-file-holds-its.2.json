@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-17T21:20:21.059682Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.1"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.2",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.2.md",
+  "status": "todo",
+  "title": "DSL completion: ModelSuite, the three sections, expect blocks, spaces and expectations in the DSL",
+  "updated_at": "2026-10-17T21:20:21.059682Z"
+}

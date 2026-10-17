@@ -497,18 +497,19 @@ private[framework] object NativeCheck:
         )
 
   // A progress claim, checked on the graph of its environment: from every reached state `from`
-  // accepts and `to` does not, every admitted path reaches a `to` state within `within` steps. It
-  // is violated by a deadlock (a state with no step before a `to` state), a fair non-progress cycle
-  // (a strongly connected part of the states between that no weakly fair class leaves: none is
-  // enabled at every state of the part and never taken inside it) or a missed deadline (a path of
-  // `within` steps with no `to` state, which any cycle gives). Verified, it reports the longest
-  // path from a `from` state to the first `to` state.
+  // accepts and `to` does not, every admitted path reaches a `to` state, within `within` steps
+  // where it states a bound. It is violated by a deadlock (a state with no step before a `to`
+  // state), a fair non-progress cycle (a strongly connected part of the states between that no
+  // weakly fair class leaves: none is enabled at every state of the part and never taken inside it)
+  // or a missed deadline (a path of `within` steps with no `to` state, which any cycle gives, fair
+  // or not). Verified, it reports the longest path from a `from` state to the first `to` state, or
+  // none where an unbounded claim's paths may cycle before a fair class leaves.
   def progress[S, O, F](
       graph: Search[S, O, F],
       subject: String,
       claim: Progress[S],
       fair: Seq[ActionDecl]
-  ): Result = leading(graph.forCheck, subject, claim.from, claim.to, claim.within, fair)
+  ): Result = leading(graph.forCheck, subject, claim.from, claim.to, Some(claim.within), fair)
 
   // A progress claim of a Machine's vars, `leadsTo(...)`, checked on the graph of its environment,
   // its `from` and `to` read with each state restored into the vars.
@@ -548,7 +549,7 @@ private[framework] object NativeCheck:
       subject: String,
       from: S => Boolean,
       reached: S => Boolean,
-      within: Int,
+      within: Option[Int],
       fair: Seq[ActionDecl | Class]
   ): Result =
     var evaluating = Option.empty[S]
@@ -621,14 +622,17 @@ private[framework] object NativeCheck:
           fairCycle match
             case Some(part) => result(Verdict.cycle, cycleReport(graph, subject, part, inside))
             case None       =>
-              if cyclic.nonEmpty then
+              if cyclic.nonEmpty && within.nonEmpty then
                 result(
                   Verdict.missedDeadline,
                   Vector(s"$subject: a cycle can avoid a to state for any number of steps")
                 )
+              else if cyclic.nonEmpty then
+                if graph.complete then result(Verdict.verified, Vector.empty)
+                else result(Verdict.unknown, Vector.empty)
               else
                 val steps = longest(region.toVector, parts, inside)
-                if steps >= within then
+                if within.exists(steps >= _) then
                   result(
                     Verdict.missedDeadline,
                     Vector(s"$subject: a path of $steps steps reaches no to state")
