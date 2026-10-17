@@ -183,6 +183,21 @@ class FacetsTest extends munit.FunSuite:
     )
     assert(errors.contains("presses") && errors.contains("is not defined"), errors)
 
+  test("a facet declares its vars abstractly: one it defines itself is refused"):
+    val errors = compileErrors(
+      "trait Counting extends Facet[Said, Note]:\n" +
+        "  var count: UpTo[1] = UpTo(0)\n" +
+        "object Counted extends Machine[Said, Note], Counting:\n" +
+        "  var light = Lit.off\n" +
+        "  object transitions extends Facets()"
+    )
+    assert(
+      errors.contains(
+        "count: Counting defines a var, which a facet declares abstractly and the Machine defines"
+      ),
+      errors
+    )
+
   for kind <- List("ordinary", "timer", "fault", "disabled") do
     test(s"duplicate $kind owners name the actual action and both facets"):
       object targets extends Internal:

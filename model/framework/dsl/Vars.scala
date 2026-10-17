@@ -393,6 +393,20 @@ private[framework] object VarSchemaMacro:
     // An error, not an abort: a given whose expansion aborts is no given, and the refusal would read
     // as a missing VarSchema.
     if vars.isEmpty then report.error("a Machine declares at least one state var")
+    // A facet's vars are the Machine's, which defines them: a var a facet trait defines itself
+    // would hold state outside the Machine's vars.
+    for
+      parent <- cls.typeRef.baseClasses
+      if !parent.equals(cls) && parent.flags.is(Flags.Trait)
+      v <- stateVars(parent)
+      if !v.flags.is(Flags.Deferred)
+    do
+      report.error(
+        s"${v.name}: ${parent.name} defines a var, which a facet declares abstractly and the " +
+          s"Machine defines: `var ${v.name}: ${declaredType(cls, v)
+              .show(using Printer.TypeReprShortCode)}`",
+        v.pos.getOrElse(Position.ofMacroExpansion)
+      )
     val entries = vars.map: v =>
       val tpe = declaredType(cls, v)
       val shown = tpe.show(using Printer.TypeReprShortCode)
