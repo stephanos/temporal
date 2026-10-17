@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3 and fn-193.1 done; fn-189.5 in progress; fn-193.2 next; fn-190.15; fn-190.16; fn-194.1-.4, fn-196.1-.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints and fn-193.1 done; fn-193.2 in progress; fn-196.1 next (carries fn-190.15); fn-190.16; fn-194.1-.4; fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1033,9 +1033,18 @@ realization-mode compilation of the six samples, scoped lint and formatting pass
 strict arguments retain `Let` nodes. Original R7 full-mode sample/Facets lifting and IR equivalence
 remain Phase 3 obligations; historical exporter checks and the batch review are not credited here.
 
+Fn-189.5's native-source checkpoint is committed (`025765909c`, closure `4f998dd0e7`):
+`Lifted` covers a shared vocabulary once and Machine's nested containers automatically, with one
+body carrier and no per-def marker or role-specific storage/replay machinery. Exact tree/stored
+agreement includes strict inline temporaries and collisions; unmarked foreign helpers are refused
+even through inline wrappers. Native checks pass 644 tests, storage controls nine (including warm
+Bloop), inline controls five, carrier controls two, compatibility controls six and framework checks
+42 plus four reference cases; lint, formatting and realization-mode compilation of all six samples
+pass. Original R2 plain-Machine effect/incremental and R7 full-mode sample/Facets proofs remain open
+under fn-189.7 after fn-190.9; the scoped record is `.flow/tmp/checks/fn1895/record.md`.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-189.5 | 🔄 in progress | After .1/.3: one lifting rule, `Lifted` container marker and step-list type, no per-def `@lifted`, one carrier (R2) |
 | fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | Phase 3, after fn-190.9 and fixture re-anchoring: retained R2/R7 full-mode effect/incremental and samples/Facets proofs, then counts receipt (R9) |
 | fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
@@ -1086,7 +1095,7 @@ with fn-190.12, and the Temporal compositions migrate at the sweep.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-193.2 | ⬜ todo | After .1: plain compositions in the DSL; fixtures, tests, SEMANTICS §17 and README rewritten; nothing needs `RecordMachine` (R2-R5) |
+| fn-193.2 | 🔄 in progress | After .1: plain compositions in the DSL; fixtures, tests, SEMANTICS §17 and README rewritten; nothing needs `RecordMachine` (R2-R5) |
 
 ### fn-194: Parametric Models: constants and finite domains as constructor parameters, instantiated by the suite
 
