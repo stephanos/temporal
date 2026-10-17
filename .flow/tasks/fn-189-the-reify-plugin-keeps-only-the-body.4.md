@@ -23,9 +23,12 @@ Add `Family` to the DSL with `Family.here`, a small macro that yields the enclos
 - [ ] Definition IDs of the samples and realize fixtures are unchanged; the two error cases behave as specified.
 
 ## Done summary
-TBD
+`15aac500d4`, merged as `b7d4b2bc13`. Authors write `given Family = Family.here` once per feature package, and realize functions that form a Definition ID take `(using f: Family)`. `Family.here` is refused in framework, realization-kit and empty packages; a missing given is the ordinary error. FamilyPhase (421 lines), `realize/Family.scala`, `lazy val family`, `contextualFamily` and the familyFlow carrier/check are deleted. Definition IDs match `export/testdata/constructed/family-original.json` byte for byte (`realize/Family.test.scala`).
 
+Native suites: 639 in the lane, 644 on the merged tree that includes the owner's WIP. The plugin packages and the realization-mode `-Xplugin` sample compile pass, as do lint RuleSuite 31 and Boundary 3. Five ConstructedNamesSuite tests of the deleted family machinery now fail; they are re-anchored or removed in Phase 3. Open: the disabled Temporal kit's ~99 `contextualFamily` calls migrate at the sweep.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 15aac500d4, b7d4b2bc13
+- Tests: mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests, ReifyBoundarySuite (two-parameter-list fixtures), mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.lint.*RuleSuite
 - PRs:
