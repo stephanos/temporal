@@ -110,15 +110,17 @@ class NativeMapsTest extends munit.FunSuite:
       )
     )
     val supply =
-      totalSupplyInv.decl.holds.get.asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
+      Model.invariants.totalSupplyInv.decl.holds.get
+        .asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
     val leaky =
-      leakyTotalSupplyInv.decl.holds.get.asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
+      Leaky.invariants.leakyTotalSupplyInv.decl.holds.get
+        .asInstanceOf[Step[Balances, Outcome, Nothing] => Boolean]
     assertEquals(supply(paid), true)
     assertEquals(supply(inflated), false)
     assertEquals(leaky(paid), true)
     assertEquals(leaky(inflated), false)
-    assert(leakyTotalSupplyInv.decl.machine eq Leaky)
-    val refuses = failedSendChangesNothing.decl.holds2.get
+    assert(Leaky.invariants.leakyTotalSupplyInv.decl.machine eq Leaky)
+    val refuses = Model.postconditions.failedSendChangesNothing.decl.holds2.get
       .asInstanceOf[(Balances, Step[Balances, Outcome, Nothing]) => Boolean]
     assertEquals(refuses(Model.init, Step(Outcome.overflow, Model.init)), true)
     assertEquals(refuses(Model.init, Step(Outcome.overflow, paid.state)), false)
@@ -254,7 +256,8 @@ class NativeMapsTest extends munit.FunSuite:
     assertEquals(Model.end(committed), true)
     assertEquals(run(Model, committed, rm.commit(ResourceManager.rm1)), Nil)
     val everyone =
-      everyoneCommits.decl.holds.get.asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
+      Model.postconditions.everyoneCommits.decl.holds.get
+        .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
     assertEquals(everyone(Step(Outcome.accepted, committed)), true)
     assertEquals(everyone(Step(Outcome.accepted, decided)), false)
 
@@ -330,11 +333,12 @@ class NativeMapsTest extends munit.FunSuite:
     )
     assertEquals(conflict.state.tmPrepared, Set(ResourceManager.rm1))
     val normal =
-      consistencyInv.decl.holds.get.asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
-    val eager = eagerConsistencyInv.decl.holds.get
+      Model.invariants.consistencyInv.decl.holds.get
+        .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
+    val eager = EagerCommit.invariants.eagerConsistencyInv.decl.holds.get
       .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
     assertEquals(normal(Step(Outcome.accepted, Model.init)), true)
     assertEquals(eager(Step(Outcome.accepted, Model.init)), true)
     assertEquals(normal(conflict), false)
     assertEquals(eager(conflict), false)
-    assert(eagerConsistencyInv.decl.machine eq EagerCommit)
+    assert(EagerCommit.invariants.eagerConsistencyInv.decl.machine eq EagerCommit)

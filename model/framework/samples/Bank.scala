@@ -60,6 +60,10 @@ object Bank:
     // an amount is zero up to one more than the supply, so that a send may ask too much
     val send = action(this).inputs[Send](inputField[Send](_.amount).in(domains.oneOf(0 to 3)))
 
+  // the total supply of the network is equal to the sum of all coins from the accounts
+  def totalSupply(balances: Balances): Boolean =
+    sumForDenom(balances, Denom.banana) == supply && sumForDenom(balances, Denom.burger) == supply
+
   object Model extends Machine[Balances, Outcome, Nothing]:
     // the king has it all
     val init = Balances(
@@ -67,6 +71,10 @@ object Bank:
     )
     // a run may stop between any two sends
     def end(balances: Balances) = true
+
+    object rules extends Rules:
+      on(client.send):
+        always ~> effects.send
 
     object effects:
       // Transfers `amount` coins of `denom` from `fromAddr` to `toAddr`. It fails where the sender
@@ -103,47 +111,50 @@ object Bank:
         else if toBalance + in.amount > supply then reject(Outcome.overflow, balances)
         else enter(withBalance(balances, in.toAddr, in.denom, toBalance + in.amount))
 
-    object rules extends Rules:
-      on(client.send):
-        always ~> effects.send
+    object invariants:
+      val totalSupplyInv: Property[Balances] = property.expect:
+        (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
+          check(totalSupply(after.step.state))
 
+    object postconditions:
+      val failedSendChangesNothing: Property[Balances] = property.across.expect:
+        (before: Before[Balances], after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
+          if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
+      val peachesGetsBananas: Property[Balances] =
+        property
+          .after(
+            client.send(
+              fromAddr = Addr.king,
+              toAddr = Addr.peaches,
+              denom = Denom.banana,
+              amount = 1
+            )
+          )
+          .expect: (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
+            check(balanceOf(after.step.state, Addr.king, Denom.banana) == 1)
+            check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)
+
+    object queries:
+      val anySend: Scenario[Balances] = scenario.starts(init).free
+      // every distribution of the supply is at most four sends from the start
+      val short = Limits(steps = 4, actions = 4, search = 65536)
+      val totalSupplyHolds = query verify invariants.totalSupplyInv in anySend limits short
+      val failedSendChangesNothingHolds =
+        query verify postconditions.failedSendChangesNothing in anySend limits short
+      val kingSendsPeachesBananas =
+        query find postconditions.peachesGetsBananas in anySend limits short
+
+  // A send that pays from nowhere: the negative control of the total supply.
   object Leaky
       extends Derived(Model.rebind(client.send ~> Model.effects.sendFromNowhere)),
-        NegativeControl
+        NegativeControl:
 
-  // the total supply of the network is equal to the sum of all coins from the accounts
-  def totalSupply(balances: Balances): Boolean =
-    sumForDenom(balances, Denom.banana) == supply && sumForDenom(balances, Denom.burger) == supply
+    object invariants:
+      val leakyTotalSupplyInv: Property[Balances] = property.expect:
+        (after: Expectation[Balances, Bank.Outcome, Nothing]) ?=>
+          check(totalSupply(after.step.state))
 
-  val totalSupplyInv: Property[Balances] = Model.property.expect:
-    (after: Expectation[Balances, Outcome, Nothing]) ?=> check(totalSupply(after.step.state))
-  val leakyTotalSupplyInv: Property[Balances] =
-    Leaky.property.expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>
-      check(totalSupply(after.step.state))
-  val failedSendChangesNothing: Property[Balances] = Model.property.across.expect:
-    (before: Before[Balances], after: Expectation[Balances, Outcome, Nothing]) ?=>
-      if after.step.outcome != Outcome.accepted then check(after.step.state == before.state)
-  val peachesGetsBananas: Property[Balances] =
-    Model.property
-      .after(
-        client.send(
-          fromAddr = Addr.king,
-          toAddr = Addr.peaches,
-          denom = Denom.banana,
-          amount = 1
-        )
-      )
-      .expect: (after: Expectation[Balances, Outcome, Nothing]) ?=>
-        check(balanceOf(after.step.state, Addr.king, Denom.banana) == 1)
-        check(balanceOf(after.step.state, Addr.peaches, Denom.banana) == 1)
-
-  val anySend: Scenario[Balances] = Model.scenario.starts(Model.init).free
-  val anyLeakySend: Scenario[Balances] = Leaky.scenario.starts(Model.init).free
-  // every distribution of the supply is at most four sends from the start
-  val short = Limits(steps = 4, actions = 4, search = 65536)
-  val queries = Vector(
-    query("totalSupplyHolds") verify totalSupplyInv in anySend limits short,
-    query("failedSendChangesNothingHolds") verify failedSendChangesNothing in anySend limits short,
-    query("kingSendsPeachesBananas") find peachesGetsBananas in anySend limits short,
-    query("refutesLeakyTotalSupply") verify leakyTotalSupplyInv in anyLeakySend limits short
-  )
+    object queries:
+      val anyLeakySend: Scenario[Balances] = scenario.starts(Model.init).free
+      val refutesLeakyTotalSupply =
+        query verify invariants.leakyTotalSupplyInv in anyLeakySend limits Model.queries.short

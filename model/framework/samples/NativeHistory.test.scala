@@ -84,7 +84,9 @@ class NativeHistoryTest extends munit.FunSuite:
     assertEquals(Model.end(expired), false)
     assertEquals(Model.end(filled), true)
     assertEquals(run(Model, expired, timers.l1Expire()), Nil)
-    assert(holds(servedFromL2, Step(Outcome.accepted, filled, List(Event.readL2))))
+    assert(
+      holds(Model.postconditions.servedFromL2, Step(Outcome.accepted, filled, List(Event.readL2)))
+    )
 
   test("three successive writes retain payloads and stop at the original bound in both owners"):
     import TwoLayeredCache.*
@@ -208,7 +210,10 @@ class NativeHistoryTest extends munit.FunSuite:
     )
     assertEquals(WriteThroughL1.end(Cache(None, None, 1)), true)
     assert(
-      holds(buggyWritesRecorded, Step(Outcome.accepted, Cache(Some(0), None, 1), List(Event.wrote)))
+      holds(
+        WriteThroughL1.postconditions.buggyWritesRecorded,
+        Step(Outcome.accepted, Cache(Some(0), None, 1), List(Event.wrote))
+      )
     )
 
   test("supplied seeded mutant state separately pins an older present L2 read"):
@@ -320,3 +325,31 @@ class NativeHistoryTest extends munit.FunSuite:
     val above = Step[Snapshot, Outcome, Nothing](Outcome.accepted, Snapshot(101, false, true))
     assertEquals(run(Model, Snapshot(101, true, false), heater.failover()), List(above))
     assertEquals(holds(Model.postconditions.failsOverAtBoiling, above), false)
+
+  test("Kettle's boils claim runs on the press and the heater alone and beeps within 81 steps"):
+    import Kettle.*
+    val boils = HeatingOnly.progress.boils
+    assert(boils.machine eq HeatingOnly)
+    assertEquals(boils.name, "boils")
+    assertEquals(boils.within, 81)
+    assertEquals(boils.assumptions, Nil)
+    assertEquals(HeatingOnly.bindings.exists(_.decl eq user.depressButton.decl), false)
+    assertEquals(
+      HeatingOnly.bindings.map(_.decl).toSet,
+      Set(user.pressButton.decl, heater.heat.decl, heater.failover.decl)
+    )
+    // from switching on at room temperature, the one enabled step at a time reaches the beep
+    val actions = List(user.pressButton(), heater.heat(), heater.failover())
+    def next(s: Snapshot): List[Snapshot] =
+      actions.flatMap(a => run(HeatingOnly, s, a)).map(_.state)
+    val on = next(HeatingOnly.init)
+    assertEquals(on, List(Snapshot(20, true, false)))
+    assert(boils.from(on.head) && !boils.to(on.head))
+    val path = Iterator.iterate(on)(_.flatMap(next)).drop(1).take(81).toList
+    path.foreach(states => assertEquals(states.size, 1))
+    assertEquals(path.indexWhere(_.exists(boils.to)), 80)
+    assertEquals(path.last, List(Snapshot(100, false, true)))
+    assertEquals(
+      run(HeatingOnly, Snapshot(100, false, true), user.pressButton()).map(_.state),
+      List(Snapshot(100, true, false))
+    )

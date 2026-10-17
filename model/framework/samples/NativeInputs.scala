@@ -24,7 +24,7 @@ object NativeInputs:
             List(Step(true, s.copy(seen = s.seen.incl(in.amount))))
           )
 
-    object properties:
+    object postconditions:
       val zeroWasAccepted = property
         .after(caller.submit(amount = 0))
         .expect:

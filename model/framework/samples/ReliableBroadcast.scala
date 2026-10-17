@@ -155,12 +155,23 @@ object ReliableBroadcast:
     def end(state: Broadcast) =
       !originSending(state) && state.network.isEmpty && settled(state.p1) && settled(state.p2)
 
-    object monitors:
-      val network = wire.network
-      // where a run stops, the processes delivered the same messages
-      val agreement = monitor[Broadcast, ReliableBroadcast.Outcome, Nothing, Boolean](false)(
-        (_, _, after) => !agreed(after.state)
-      )(_ == true).readAtEnds
+    object rules extends Rules:
+      on(sender.broadcast):
+        where(_.origin == Origin.idle) ~> effects.begin
+      on(sender.send):
+        where(s => originSending(s) && !s.network.isFull) ~> effects.sendNext
+      on(fault.crash):
+        where(originSending) ~> effects.crash
+      on(monitors.network.deliver):
+        always ~> effects.receive
+      on(process.relay(Proc.p1)):
+        where(s => relaying(s.p1) && !s.network.isFull) ~> effects.relayP1
+      on(process.relay(Proc.p2)):
+        where(s => relaying(s.p2) && !s.network.isFull) ~> effects.relayP2
+      on(process.deliver(Proc.p1)):
+        where(s => relayed(s.p1)) ~> effects.deliverP1
+      on(process.deliver(Proc.p2)):
+        where(s => relayed(s.p2)) ~> effects.deliverP2
 
     object effects:
       def begin(state: Broadcast, payload: Payload) =
@@ -206,62 +217,63 @@ object ReliableBroadcast:
       def deliverP1(state: Broadcast) = deliverAt(state, Proc.p1)
       def deliverP2(state: Broadcast) = deliverAt(state, Proc.p2)
 
-    object rules extends Rules:
-      on(sender.broadcast):
-        where(_.origin == Origin.idle) ~> effects.begin
-      on(sender.send):
-        where(s => originSending(s) && !s.network.isFull) ~> effects.sendNext
-      on(fault.crash):
-        where(originSending) ~> effects.crash
-      on(monitors.network.deliver):
-        always ~> effects.receive
-      on(process.relay(Proc.p1)):
-        where(s => relaying(s.p1) && !s.network.isFull) ~> effects.relayP1
-      on(process.relay(Proc.p2)):
-        where(s => relaying(s.p2) && !s.network.isFull) ~> effects.relayP2
-      on(process.deliver(Proc.p1)):
-        where(s => relayed(s.p1)) ~> effects.deliverP1
-      on(process.deliver(Proc.p2)):
-        where(s => relayed(s.p2)) ~> effects.deliverP2
+    object invariants:
+      val safety: Property[Broadcast] = property.expect:
+        (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
+          check(onlyBroadcast(after.step.state))
+
+    object postconditions:
+      // If I deliver a message, I have already forwarded it to all.
+      val reliability: Property[Broadcast] = property.across.expect:
+        (
+            before: Before[Broadcast],
+            after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]
+        ) ?=>
+          if deliveredValue(after.step.state.p1) != None && deliveredValue(before.state.p1) == None
+          then check(relayed(before.state.p1))
+          if deliveredValue(after.step.state.p2) != None && deliveredValue(before.state.p2) == None
+          then check(relayed(before.state.p2))
+      val survivesCrash: Property[Broadcast] = property
+        .after(process.deliver(Proc.p2))
+        .expect: (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
+          check(everyoneDelivered(after.step.state))
+          check(after.step.state.origin == Origin.crashed(Payload.hello))
+
+    object monitors:
+      val network = wire.network
+      // where a run stops, the processes delivered the same messages
+      val agreement = monitor[Broadcast, ReliableBroadcast.Outcome, Nothing, Boolean](false)(
+        (_, _, after) => !agreed(after.state)
+      )(_ == true).readAtEnds
+
+    object progress:
+      // once one process delivers, every process delivers the same, whatever else happens
+      // meanwhile: the origin's sends or crash, four deliveries and the other process's forward and
+      // delivery
+      val everyoneDelivers: Progress[Broadcast] =
+        Model.leadsTo("everyoneDelivers")(someoneDelivered, everyoneDelivered, within = 9)
+
+    object queries:
+      val anyRun: Scenario[Broadcast] = scenario.starts(init).free
+      val broadcastLimits = Limits(steps = 11, actions = 11, search = 1 << 20)
+      val safetyHolds = query verify invariants.safety in anyRun limits broadcastLimits
+      val reliabilityHolds =
+        query verify postconditions.reliability in anyRun limits broadcastLimits
+      val deliveredDespiteCrash =
+        query find postconditions.survivesCrash in anyRun limits broadcastLimits
 
   object Naive
       extends Derived(Model.rebind(Model.monitors.network.deliver ~> Model.effects.receiveNaive)),
-        NegativeControl
+        NegativeControl:
 
-  val safety: Property[Broadcast] = Model.property.expect:
-    (after: Expectation[Broadcast, Outcome, Nothing]) ?=> check(onlyBroadcast(after.step.state))
-  // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
-  // monitor, which a run that stops with one process delivered and the other not breaks.
-  val naiveSafety: Property[Broadcast] = Naive.property.expect:
-    (after: Expectation[Broadcast, Outcome, Nothing]) ?=> check(onlyBroadcast(after.step.state))
-  // If I deliver a message, I have already forwarded it to all.
-  val reliability: Property[Broadcast] = Model.property.across.expect:
-    (before: Before[Broadcast], after: Expectation[Broadcast, Outcome, Nothing]) ?=>
-      if deliveredValue(after.step.state.p1) != None && deliveredValue(before.state.p1) == None then
-        check(relayed(before.state.p1))
-      if deliveredValue(after.step.state.p2) != None && deliveredValue(before.state.p2) == None then
-        check(relayed(before.state.p2))
-  val survivesCrash: Property[Broadcast] = Model.property
-    .after(process.deliver(Proc.p2))
-    .expect: (after: Expectation[Broadcast, Outcome, Nothing]) ?=>
-      check(everyoneDelivered(after.step.state))
-      check(after.step.state.origin == Origin.crashed(Payload.hello))
+    object invariants:
+      // The naive algorithm delivers only what was broadcast too: what refutes it is the agreement
+      // monitor, which a run that stops with one process delivered and the other not breaks.
+      val naiveSafety: Property[Broadcast] = property.expect:
+        (after: Expectation[Broadcast, ReliableBroadcast.Outcome, Nothing]) ?=>
+          check(onlyBroadcast(after.step.state))
 
-  // once one process delivers, every process delivers the same, whatever else happens meanwhile:
-  // the origin's sends or crash, four deliveries and the other process's forward and delivery
-  val everyoneDelivers: Progress[Broadcast] =
-    Model.leadsTo("everyoneDelivers")(someoneDelivered, everyoneDelivered, within = 9)
-
-  val anyRun: Scenario[Broadcast] = Model.scenario.starts(Model.init).free
-  val anyNaiveRun: Scenario[Broadcast] = Naive.scenario.starts(Model.init).free
-  val broadcastLimits = Limits(steps = 11, actions = 11, search = 1 << 20)
-  val queries = Vector(
-    query("safetyHolds") verify safety in anyRun limits broadcastLimits,
-    query("reliabilityHolds") verify reliability in anyRun limits broadcastLimits,
-    query(
-      "deliveredDespiteCrash"
-    ) find survivesCrash in anyRun limits broadcastLimits,
-    query(
-      "refutesNaiveAgreement"
-    ) verify naiveSafety in anyNaiveRun limits broadcastLimits
-  )
+    object queries:
+      val anyNaiveRun: Scenario[Broadcast] = scenario.starts(Model.init).free
+      val refutesNaiveAgreement =
+        query verify invariants.naiveSafety in anyNaiveRun limits Model.queries.broadcastLimits

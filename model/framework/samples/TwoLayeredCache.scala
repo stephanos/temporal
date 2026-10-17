@@ -82,16 +82,13 @@ object TwoLayeredCache:
     // a run stops where the layers agree
     def end(cache: Cache) = agreed(cache)
 
-    object monitors:
-      // read the latest write: no read returns a value older than the last write, and a miss is
-      // older than any write
-      val readAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
-        (history, _, after) => observe(history, after)
-      )(readHistoryBroken)
-      // a later write stores a greater value
-      val writeAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
-        (history, _, after) => observe(history, after)
-      )(writeHistoryBroken)
+    object rules extends Rules:
+      on(client.write):
+        where(_.num < 3) ~> effects.write
+      on(client.read):
+        always ~> effects.read
+      on(timers.l1Expire):
+        where(_.l1 != None) ~> effects.expire
 
     object effects:
       def write(cache: Cache) =
@@ -117,47 +114,56 @@ object TwoLayeredCache:
         else enter(cache, Event.notFound)
       def expire(cache: Cache) = enter(cache.copy(l1 = None))
 
-    object rules extends Rules:
-      on(client.write):
-        where(_.num < 3) ~> effects.write
-      on(client.read):
-        always ~> effects.read
-      on(timers.l1Expire):
-        where(_.l1 != None) ~> effects.expire
+    object postconditions:
+      // after a read, both layers hold what it returned
+      val readFillsL1: Property[Cache] =
+        property
+          .after(client.read)
+          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
+            check(agreed(after.step.state))
+      val servedFromL2: Property[Cache] =
+        property
+          .after(client.read)
+          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
+            records(Event.readL2)
+
+    object monitors:
+      // read the latest write: no read returns a value older than the last write, and a miss is
+      // older than any write
+      val readAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+        (history, _, after) => observe(history, after)
+      )(readHistoryBroken)
+      // a later write stores a greater value
+      val writeAfterWrite = monitor[Cache, TwoLayeredCache.Outcome, Event, List[Observation]](Nil)(
+        (history, _, after) => observe(history, after)
+      )(writeHistoryBroken)
+
+    object progress:
+      // all layers contain the same latest written value, one step after they part
+      val agreement: Progress[Cache] =
+        Model.leadsTo("agreement")(cache => !agreed(cache), agreed, within = 1)
+
+    object queries:
+      val anyRun: Scenario[Cache] = scenario.starts(init).free
+      // three writes, each expired and read back
+      val history = Limits(steps = 9, actions = 9, search = 65536)
+      val readFillsL1Holds = query verify postconditions.readFillsL1 in anyRun limits history
+      val readAfterExpiry = query find postconditions.servedFromL2 in anyRun limits history
 
   object WriteThroughL1
       extends Derived(Model.rebind(client.write ~> Model.effects.writeL1Only)),
-        NegativeControl
+        NegativeControl:
 
-  // after a read, both layers hold what it returned
-  val readFillsL1: Property[Cache] =
-    Model.property
-      .after(client.read)
-      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
-        check(agreed(after.step.state))
-  // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
-  // monitor, which a read of a value older than the last write breaks.
-  val buggyWritesRecorded: Property[Cache] =
-    WriteThroughL1.property
-      .after(client.write)
-      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
-        records(Event.wrote)
-  val servedFromL2: Property[Cache] =
-    Model.property
-      .after(client.read)
-      .expect: (after: Expectation[Cache, Outcome, Event]) ?=>
-        records(Event.readL2)
+    object postconditions:
+      // Every write records itself, in the buggy cache too: what refutes it is the readAfterWrite
+      // monitor, which a read of a value older than the last write breaks.
+      val buggyWritesRecorded: Property[Cache] =
+        property
+          .after(client.write)
+          .expect: (after: Expectation[Cache, TwoLayeredCache.Outcome, Event]) ?=>
+            records(Event.wrote)
 
-  // all layers contain the same latest written value, one step after they part
-  val agreement: Progress[Cache] =
-    Model.leadsTo("agreement")(cache => !agreed(cache), agreed, within = 1)
-
-  val anyRun: Scenario[Cache] = Model.scenario.starts(Model.init).free
-  val anyBuggyRun: Scenario[Cache] = WriteThroughL1.scenario.starts(Model.init).free
-  // three writes, each expired and read back
-  val history = Limits(steps = 9, actions = 9, search = 65536)
-  val queries = Vector(
-    query("readFillsL1Holds") verify readFillsL1 in anyRun limits history,
-    query("readAfterExpiry") find servedFromL2 in anyRun limits history,
-    query("refutesWriteThroughL1") verify buggyWritesRecorded in anyBuggyRun limits history
-  )
+    object queries:
+      val anyBuggyRun: Scenario[Cache] = scenario.starts(Model.init).free
+      val refutesWriteThroughL1 =
+        query verify postconditions.buggyWritesRecorded in anyBuggyRun limits Model.queries.history

@@ -175,10 +175,10 @@ class NativeVotingTest extends munit.FunSuite:
       Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> -1)
     )
     assertEquals(Model.refinement.toProduct(conflict), Decision(Set(Value.v1, Value.v2)))
-    assertEquals(holds(decides, conflict, Outcome.accepted), true)
-    assertEquals(holds(consistency, conflict, Outcome.accepted), false)
-    assert(chosenStays.decl.machine eq Consensus)
-    assert(invariant.decl.machine eq Model)
+    assertEquals(holds(Model.postconditions.decides, conflict, Outcome.accepted), true)
+    assertEquals(holds(Model.invariants.consistency, conflict, Outcome.accepted), false)
+    assert(Consensus.postconditions.chosenStays.decl.machine eq Consensus)
+    assert(Model.invariants.invariant.decl.machine eq Model)
     assertEquals(Model.refinement.visibleOutcomes(Outcome.accepted), false)
     assertEquals(Model.refinement.visibleOutcomes(Outcome.refused), false)
     assertEquals(Model.refinement.unobservable, List(voter.increaseMaxBal))
@@ -224,10 +224,10 @@ class NativeVotingTest extends munit.FunSuite:
       List(Step(Outcome.refused, d.state))
     )
     assertEquals(chosen(d.state), Set(Value.v1, Value.v2))
-    assertEquals(holds(unsafeConsistency, d.state, Outcome.accepted), false)
-    assertEquals(holds(invariant, d.state, Outcome.accepted), false)
-    assertEquals(holds(decides, d.state, Outcome.accepted), true)
-    assert(unsafeConsistency.decl.machine eq UnsafeVoting)
+    assertEquals(holds(UnsafeVoting.invariants.unsafeConsistency, d.state, Outcome.accepted), false)
+    assertEquals(holds(Model.invariants.invariant, d.state, Outcome.accepted), false)
+    assertEquals(holds(Model.postconditions.decides, d.state, Outcome.accepted), true)
+    assert(UnsafeVoting.invariants.unsafeConsistency.decl.machine eq UnsafeVoting)
 
   test("Voting classes retain field order and refuse ballots outside zero and one"):
     import Voting.*
@@ -327,7 +327,7 @@ class NativeVotingTest extends munit.FunSuite:
       run(Model, relayed, process.deliver(Proc.p1)),
       List(Step(Outcome.accepted, delivered))
     )
-    val reliable = reliability.decl.holds2.get
+    val reliable = Model.postconditions.reliability.decl.holds2.get
       .asInstanceOf[(Broadcast, Step[Broadcast, Outcome, Nothing]) => Boolean]
     assertEquals(reliable(relayed, Step(Outcome.accepted, delivered)), true)
     assertEquals(reliable(received, Step(Outcome.accepted, delivered)), false)
@@ -348,9 +348,9 @@ class NativeVotingTest extends munit.FunSuite:
     )
     val all = forwarded.copy(p2 = Local.delivered(Payload.hello))
     assertEquals(run(Model, forwarded, process.deliver(Proc.p2)), List(Step(Outcome.accepted, all)))
-    assertEquals(holds(survivesCrash, all, Outcome.accepted), true)
-    assertEquals(survivesCrash.decl.when, Some(process.deliver(Proc.p2)))
-    assertEquals(holds(safety, all, Outcome.accepted), true)
+    assertEquals(holds(Model.postconditions.survivesCrash, all, Outcome.accepted), true)
+    assertEquals(Model.postconditions.survivesCrash.decl.when, Some(process.deliver(Proc.p2)))
+    assertEquals(holds(Model.invariants.safety, all, Outcome.accepted), true)
 
   test("naive callback ends with disagreement and end-only agreement is not sticky"):
     import ReliableBroadcast.*
@@ -363,8 +363,8 @@ class NativeVotingTest extends munit.FunSuite:
     )
     assertEquals(Model.end(naive), true)
     assertEquals(Model.end(supplied.copy(p1 = Local.relaying(Payload.hello))), false)
-    assertEquals(holds(naiveSafety, naive, Outcome.accepted), true)
-    assert(naiveSafety.decl.machine eq Naive)
+    assertEquals(holds(Naive.invariants.naiveSafety, naive, Outcome.accepted), true)
+    assert(Naive.invariants.naiveSafety.decl.machine eq Naive)
     val agreement = Model.monitors.agreement
     val broken = agreement.next(false, supplied, Step(Outcome.accepted, naive))
     assertEquals(broken, true)
@@ -373,8 +373,8 @@ class NativeVotingTest extends munit.FunSuite:
     assertEquals(agreement.next(broken, naive, Step(Outcome.accepted, all)), false)
     assertEquals(agreement.atEnds, true)
     assertEquals(agreement.readAt, None)
-    assert(everyoneDelivers.machine eq Model)
-    assertEquals(everyoneDelivers.within, 9)
+    assert(Model.progress.everyoneDelivers.machine eq Model)
+    assertEquals(Model.progress.everyoneDelivers.within, 9)
 
   test("busy receivers ignore new payloads and full Inbox disables sends and relay"):
     import ReliableBroadcast.*

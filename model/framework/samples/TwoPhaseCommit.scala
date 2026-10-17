@@ -140,6 +140,13 @@ object TwoPhaseCommit:
   ): List[Step[Transaction, Outcome, Nothing]] =
     enter(state.copy(tmPrepared = withMember(state.tmPrepared, rm)))
 
+  // two resource managers have not arrived at conflicting decisions
+  def consistent(state: Transaction): Boolean =
+    !(someAre(state.rmStates, ResourceManagerState.committed) &&
+      someAre(state.rmStates, ResourceManagerState.aborted))
+
+  val fairCommits = assume.fair(rm.commit)
+
   object Model extends Machine[Transaction, Outcome, Nothing]:
     val init = Transaction(
       rmStates = Map(
@@ -160,6 +167,37 @@ object TwoPhaseCommit:
       // the transaction manager has heard from any one resource manager
       def eagerlyCommits(state: Transaction): Boolean =
         state.tmState == TransactionManagerState.init && any(state.tmPrepared)
+
+    object rules extends Rules:
+      on(rm.prepare(ResourceManager.rm1)):
+        where(s => mayPrepare(s, ResourceManager.rm1)) ~> effects.prepareRm1
+      on(rm.prepare(ResourceManager.rm2)):
+        where(s => mayPrepare(s, ResourceManager.rm2)) ~> effects.prepareRm2
+      on(rm.prepare(ResourceManager.rm3)):
+        where(s => mayPrepare(s, ResourceManager.rm3)) ~> effects.prepareRm3
+      on(rm.abort(ResourceManager.rm1)):
+        where(s => mayAbort(s, ResourceManager.rm1)) ~> effects.abortRm1
+      on(rm.abort(ResourceManager.rm2)):
+        where(s => mayAbort(s, ResourceManager.rm2)) ~> effects.abortRm2
+      on(rm.abort(ResourceManager.rm3)):
+        where(s => mayAbort(s, ResourceManager.rm3)) ~> effects.abortRm3
+      on(rm.commit(ResourceManager.rm1)):
+        where(s => mayCommit(s, ResourceManager.rm1)) ~> effects.commitRm1
+      on(rm.commit(ResourceManager.rm2)):
+        where(s => mayCommit(s, ResourceManager.rm2)) ~> effects.commitRm2
+      on(rm.commit(ResourceManager.rm3)):
+        where(s => mayCommit(s, ResourceManager.rm3)) ~> effects.commitRm3
+      on(tm.addPrepared(ResourceManager.rm1)):
+        where(s => mayReceive(s, ResourceManager.rm1)) ~> effects.addPreparedRm1
+      on(tm.addPrepared(ResourceManager.rm2)):
+        where(s => mayReceive(s, ResourceManager.rm2)) ~> effects.addPreparedRm2
+      on(tm.addPrepared(ResourceManager.rm3)):
+        where(s => mayReceive(s, ResourceManager.rm3)) ~> effects.addPreparedRm3
+      on(tm.decideOnCommit):
+        where(s => s.tmState == TransactionManagerState.init && all(s.tmPrepared)) ~>
+          effects.decideOnCommit
+      on(tm.decideOnAbort):
+        where(_.tmState == TransactionManagerState.init) ~> effects.decideOnAbort
 
     object effects:
       def prepareRm1(state: Transaction) = prepared(state, ResourceManager.rm1)
@@ -193,36 +231,34 @@ object TwoPhaseCommit:
           )
         )
 
-    object rules extends Rules:
-      on(rm.prepare(ResourceManager.rm1)):
-        where(s => mayPrepare(s, ResourceManager.rm1)) ~> effects.prepareRm1
-      on(rm.prepare(ResourceManager.rm2)):
-        where(s => mayPrepare(s, ResourceManager.rm2)) ~> effects.prepareRm2
-      on(rm.prepare(ResourceManager.rm3)):
-        where(s => mayPrepare(s, ResourceManager.rm3)) ~> effects.prepareRm3
-      on(rm.abort(ResourceManager.rm1)):
-        where(s => mayAbort(s, ResourceManager.rm1)) ~> effects.abortRm1
-      on(rm.abort(ResourceManager.rm2)):
-        where(s => mayAbort(s, ResourceManager.rm2)) ~> effects.abortRm2
-      on(rm.abort(ResourceManager.rm3)):
-        where(s => mayAbort(s, ResourceManager.rm3)) ~> effects.abortRm3
-      on(rm.commit(ResourceManager.rm1)):
-        where(s => mayCommit(s, ResourceManager.rm1)) ~> effects.commitRm1
-      on(rm.commit(ResourceManager.rm2)):
-        where(s => mayCommit(s, ResourceManager.rm2)) ~> effects.commitRm2
-      on(rm.commit(ResourceManager.rm3)):
-        where(s => mayCommit(s, ResourceManager.rm3)) ~> effects.commitRm3
-      on(tm.addPrepared(ResourceManager.rm1)):
-        where(s => mayReceive(s, ResourceManager.rm1)) ~> effects.addPreparedRm1
-      on(tm.addPrepared(ResourceManager.rm2)):
-        where(s => mayReceive(s, ResourceManager.rm2)) ~> effects.addPreparedRm2
-      on(tm.addPrepared(ResourceManager.rm3)):
-        where(s => mayReceive(s, ResourceManager.rm3)) ~> effects.addPreparedRm3
-      on(tm.decideOnCommit):
-        where(s => s.tmState == TransactionManagerState.init && all(s.tmPrepared)) ~>
-          effects.decideOnCommit
-      on(tm.decideOnAbort):
-        where(_.tmState == TransactionManagerState.init) ~> effects.decideOnAbort
+    object invariants:
+      val consistencyInv: Property[Transaction] =
+        property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
+          check(consistent(after.step.state))
+
+    object postconditions:
+      val everyoneCommits: Property[Transaction] =
+        property
+          .after(rm.commit(ResourceManager.rm3))
+          .expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
+            check(allCommitted(after.step.state))
+
+    object progress:
+      // once the transaction manager commits, every resource manager commits within three steps
+      val commitReachesEveryone: Progress[Transaction] =
+        Model.leadsTo("commitReachesEveryone")(
+          _.tmState == TransactionManagerState.committed,
+          allCommitted,
+          within = 3,
+          fairCommits
+        )
+
+    object queries:
+      val anyRun: Scenario[Transaction] = scenario.starts(init).free
+      // three prepares, three receipts, the decision and three commits
+      val transaction = Limits(steps = 10, actions = 10, search = 1 << 20)
+      val consistencyHolds = query verify invariants.consistencyInv in anyRun limits transaction
+      val successTest = query find postconditions.everyoneCommits in anyRun limits transaction
 
   // A transaction manager that commits once any one resource manager has prepared.
   object EagerCommit
@@ -232,41 +268,14 @@ object TwoPhaseCommit:
             where(Model.states.eagerlyCommits) ~> Model.effects.decideOnCommit
         )
       ),
-        NegativeControl
+        NegativeControl:
 
-  // two resource managers have not arrived at conflicting decisions
-  def consistent(state: Transaction): Boolean =
-    !(someAre(state.rmStates, ResourceManagerState.committed) &&
-      someAre(state.rmStates, ResourceManagerState.aborted))
+    object invariants:
+      val eagerConsistencyInv: Property[Transaction] =
+        property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
+          check(consistent(after.step.state))
 
-  val consistencyInv: Property[Transaction] =
-    Model.property.expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
-      check(consistent(after.step.state))
-  val eagerConsistencyInv: Property[Transaction] =
-    EagerCommit.property.expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
-      check(consistent(after.step.state))
-  val everyoneCommits: Property[Transaction] =
-    Model.property
-      .after(rm.commit(ResourceManager.rm3))
-      .expect: (after: Expectation[Transaction, Outcome, Nothing]) ?=>
-        check(allCommitted(after.step.state))
-
-  val fairCommits = assume.fair(rm.commit)
-  // once the transaction manager commits, every resource manager commits within three steps
-  val commitReachesEveryone: Progress[Transaction] =
-    Model.leadsTo("commitReachesEveryone")(
-      _.tmState == TransactionManagerState.committed,
-      allCommitted,
-      within = 3,
-      fairCommits
-    )
-
-  val anyRun: Scenario[Transaction] = Model.scenario.starts(Model.init).free
-  val anyEagerRun: Scenario[Transaction] = EagerCommit.scenario.starts(Model.init).free
-  // three prepares, three receipts, the decision and three commits
-  val transaction = Limits(steps = 10, actions = 10, search = 1 << 20)
-  val queries = Vector(
-    query("consistencyHolds") verify consistencyInv in anyRun limits transaction,
-    query("successTest") find everyoneCommits in anyRun limits transaction,
-    query("refutesEagerCommit") verify eagerConsistencyInv in anyEagerRun limits transaction
-  )
+    object queries:
+      val anyEagerRun: Scenario[Transaction] = scenario.starts(Model.init).free
+      val refutesEagerCommit =
+        query verify invariants.eagerConsistencyInv in anyEagerRun limits Model.queries.transaction
