@@ -960,6 +960,8 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       budget: Int
   ): Result =
+    require(budget > 0, "a budget admits at least one state")
+    scan(machine)
     val classes = q.scenario.actions.map:
       case c: Class     => c
       case a: Action[?] => Class(a.decl, Nil)
@@ -968,7 +970,19 @@ private[framework] object NativeCheck:
           s"$subject pins $other, a composed step no native check reads"
         )
     val effects = machine.bindings.map(b => b.decl -> effectOf[S, O, F](b.decl, b.function))
-    var frontier = starts.toVector
+    val reached = mutable.HashSet.empty[S]
+    val unknown = Vector.newBuilder[String]
+    var cut = false
+    def admit(state: S): Boolean =
+      if reached.contains(state) then true
+      else if reached.size >= budget then
+        cut = true
+        false
+      else
+        reached += state: Unit
+        true
+    var frontier = starts.filter(admit).map(_ -> false).distinct.toVector
+    var depth = 0
     var witness = false
     var failure = Option.empty[String]
     classes.zipWithIndex.foreach: (cls, i) =>
@@ -978,19 +992,38 @@ private[framework] object NativeCheck:
         .getOrElse(
           throw IllegalArgumentException(s"$subject pins ${shown(cls)}, which no rule binds")
         )
-      frontier = frontier.flatMap: before =>
-        effect(before, cls).map: step =>
-          judge(q.property, before, cls, step) match
-            case Some(true)                     => witness = true
+      frontier = frontier.flatMap { (before, matched) =>
+        val steps =
+          try effect(before, cls)
+          catch
+            case HoleReached(hole) =>
+              unknown += s"unknown: ${shown(cls)} at $before reaches ${hole.name}"
+              Nil
+        steps.flatMap: step =>
+          val holds = judge(q.property, before, cls, step)
+          holds match
             case Some(false) if failure.isEmpty =>
               failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
             case _ => ()
-          step.state
+          val now = matched || holds.contains(true)
+          if i == classes.size - 1 && now then witness = true
+          if admit(step.state) then
+            depth = i + 1
+            Some(step.state -> now)
+          else None
+      }.distinct
+    val missing = unknown.result()
+    val complete = !cut && missing.isEmpty
     val verdict =
-      if finds(q) then if witness then Verdict.found else Verdict.refuted
-      else if failure.isEmpty then Verdict.verified
-      else Verdict.refuted
-    Result(subject, verdict, budget, classes.size, true, failure.toVector)
+      if finds(q) then
+        if witness then Verdict.found
+        else if complete then Verdict.refuted
+        else Verdict.unknown
+      else if failure.nonEmpty then Verdict.refuted
+      else if complete then Verdict.verified
+      else Verdict.unknown
+    val detail = if finds(q) && witness then Vector.empty else failure.toVector ++ missing
+    Result(subject, verdict, budget, depth, complete, detail)
 
   // Whether a Property holds of one step of `cls` from `before`, where it is about that step.
   private def judge[S, O, F](

@@ -26,11 +26,19 @@ skip after a failed requirement, including fact arguments; a reached fact argume
 All five short-circuit regressions pass in the 538-test native run; the lazy fact-argument correction
 is committed as `36f548713d`. This is a source checkpoint, not a task closure.
 
+Pinned queries now share a distinct-state budget across starts and schedule layers, keep matches
+on their own paths and require a complete schedule before finding a witness. Terminal witnesses
+and counterexamples stand at a budget cut; an unproved cut or reached effect hole answers unknown.
+The eight pinned regressions pass in the 488-test DSL/realize run, and all 29 source-lint tests pass.
+Scoped formatting and a fresh read-only review also pass. The broader sample run was stopped during
+Bank graph evaluation and is not counted as passing; its log is
+`.flow/tmp/pinned-queries-native-gate.log`.
+
 The original native requirements remain open: public legacy vocabulary is still reachable through
 record-state compatibility; safety claim blocks do not yet carry their own `in` environment; and
 naked Scala guards/helper vals after a failed check still require a whole-member execution boundary.
 Actually evaluated claim holes currently propagate instead of producing an unknown result. The
-native scenario class-selection and pinned-path budget/completion behavior also need reconciliation.
+native scenario class-selection behavior also needs reconciliation.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 
