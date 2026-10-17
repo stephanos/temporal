@@ -199,7 +199,10 @@ func TestTestSourceChangesInvalidateCompilationCache(t *testing.T) {
 
 func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 	provider := integrationProvider(t)
-	source := t.TempDir()
+	source, err := filepath.EvalSymlinks(t.TempDir())
+	if err != nil {
+		t.Fatal(err)
+	}
 	write := func(name, body string) {
 		t.Helper()
 		path := filepath.Join(source, name)
@@ -950,7 +953,11 @@ func TestIntegratedCooperativeFailureArtifactDetachedReplay(t *testing.T) {
 	options.CacheRoot = filepath.Join(root, "cache")
 	// Renamed away below to prove detached replay, so this test owns a private clone.
 	compilerRoot := stockgo.Clone(t, filepath.Join(root, "go"))
-	options.CompilerPath = filepath.Join(compilerRoot, "bin/go")
+	compilerLink := filepath.Join(root, "compiler-link")
+	if err := os.Symlink(compilerRoot, compilerLink); err != nil {
+		t.Fatal(err)
+	}
+	options.CompilerPath = filepath.Join(compilerLink, "bin/go")
 	options.Config.Profile = wasi.CooperativeProfile
 	options.RuntimeRoot = filepath.Join(root, "runtime-owner")
 	if err := os.MkdirAll(options.RuntimeRoot, 0700); err != nil {
@@ -987,6 +994,42 @@ func TestIntegratedCooperativeFailureArtifactDetachedReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	legacyEnvironment := buildEnvironment()
+	legacyEnvironment = append(legacyEnvironment, "GOROOT="+compilerLink)
+	legacyCompiler, legacyInclude, err := compilerInventory(t.Context(), options.CompilerPath, source, legacyEnvironment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	overlay, _, replacements, err := provider.runtimeOverlay(t.Context(), source, legacyEnvironment, legacyInclude)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyList, err := command(t.Context(), options.CompilerPath, []string{"list", "-mod=readonly", "-pgo=off", "-deps", "-json", "-overlay", overlay, "-tags", "test_dep", "."}, source, legacyEnvironment, 128<<20)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacySources, err := sourceInventory(legacyList, legacyInclude, replacements)
+	if err != nil {
+		t.Fatal(err)
+	}
+	runtimeInputs, err := provider.runtimeInputs(overlay)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyProvenance, err := decodeProvenance(first.BackendPayloads[0].Data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	legacyProvenance.Sources = append(append(legacySources, legacyCompiler...), runtimeInputs...)
+	sort.Slice(legacyProvenance.Sources, func(i, j int) bool { return legacyProvenance.Sources[i].Path < legacyProvenance.Sources[j].Path })
+	legacyKey, err := buildKey(legacyProvenance)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if first.BuildKey == legacyKey {
+		t.Fatal("canonical cooperative preparation reused the uninstrumented alias-path cache identity")
+	}
+	t.Logf("legacy alias build=%s canonical build=%s", legacyKey, first.BuildKey)
 	spec.PreparationRoot = filepath.Join(root, "prepared-second")
 	second, err := provider.Prepare(t.Context(), spec)
 	if err != nil {

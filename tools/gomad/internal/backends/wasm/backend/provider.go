@@ -177,6 +177,15 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 	overlayPath, runtimeIdentity := "", ""
 	var replacements map[string]string
 	if p.options.Config.Profile == wasi.CooperativeProfile {
+		stockRoot, err := filepath.EvalSymlinks(filepath.Dir(filepath.Dir(includeDirectory)))
+		if err != nil {
+			return target.Prepared{}, err
+		}
+		environment = append(environment, "GOROOT="+stockRoot)
+		compilerSources, includeDirectory, err = compilerInventory(ctx, p.options.CompilerPath, dir, environment)
+		if err != nil {
+			return target.Prepared{}, err
+		}
 		overlayPath, runtimeIdentity, replacements, err = p.runtimeOverlay(ctx, dir, environment, includeDirectory)
 		if err != nil {
 			return target.Prepared{}, err

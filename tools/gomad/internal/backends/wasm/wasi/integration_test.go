@@ -9366,6 +9366,204 @@ type warmPreparationSeries struct {
 	ComparisonSHA256                                         string `json:"-"`
 }
 
+type warmPreparationHostWitness struct {
+	KernelOS, Machine, KernelVersion, CPUInfo, Translation string
+}
+
+func warmPreparationHostArch(arch string) string {
+	switch arch {
+	case "arm64":
+		return "aarch64"
+	case "amd64":
+		return "x86_64"
+	default:
+		return arch
+	}
+}
+
+func warmPreparationHostCheck(engine EngineIdentity, cpuinfo string) bool {
+	if len(cpuinfo) == 0 || len(cpuinfo) > diagnosticHostCPUInfoLimit {
+		return false
+	}
+	if engine.HostOS == "linux" && engine.HostArch == "aarch64" && diagnosticPerformanceHost("linux", "arm64", cpuinfo) {
+		return true
+	}
+	var witness warmPreparationHostWitness
+	if json.Unmarshal([]byte(cpuinfo), &witness) != nil || witness.KernelVersion == "" || witness.CPUInfo == "" || (witness.Translation != "" && witness.Translation != "0") || warmPreparationHostArch(witness.Machine) != engine.HostArch || engine.HostArch == "" {
+		return false
+	}
+	os := strings.ToLower(witness.KernelOS)
+	if os == "darwin" {
+		os = "macos"
+	}
+	if os == "" || os != engine.HostOS {
+		return false
+	}
+	switch os {
+	case "linux":
+		switch engine.HostArch {
+		case "aarch64":
+			return diagnosticPerformanceHost("linux", "arm64", witness.CPUInfo)
+		case "x86_64":
+			return strings.Contains(witness.CPUInfo, "vendor_id:") || strings.Contains(witness.CPUInfo, "vendor_id\t:")
+		}
+	case "macos":
+		switch engine.HostArch {
+		case "aarch64":
+			return strings.Contains(witness.CPUInfo, "hw.optional.arm64: 1\n")
+		case "x86_64":
+			return strings.Contains(witness.CPUInfo, "hw.optional.arm64: 0\n")
+		}
+	}
+	return warmPreparationHostArch(strings.TrimSpace(witness.CPUInfo)) == engine.HostArch
+}
+
+func warmPreparationHostCommand(ctx context.Context, command ...string) (string, error) {
+	result, err := hostexec.Run(ctx, hostexec.Request{Command: command, Dir: ".", Timeout: 10 * time.Second, OutputLimit: diagnosticHostCPUInfoLimit})
+	if err != nil {
+		return "", fmt.Errorf("host evidence command %v: %w", command, err)
+	}
+	if result.Termination != hostexec.TerminationExit || result.ExitCode != 0 || result.Cancelled || result.WatchdogTimeout || !result.GroupGone || result.Stdout.TotalBytes > diagnosticHostCPUInfoLimit {
+		return "", fmt.Errorf("host evidence command %v: termination=%s exit=%d cancelled=%t watchdog=%t reaped=%t output_bytes=%d", command, result.Termination, result.ExitCode, result.Cancelled, result.WatchdogTimeout, result.GroupGone, result.Stdout.TotalBytes)
+	}
+	return strings.TrimSpace(string(result.Stdout.RawBytes)), nil
+}
+
+func warmPreparationDarwinAdmitted(stats string, dispatch func() (Result, error)) (Result, error) {
+	header, rest, ok := strings.Cut(stats, "\n")
+	pageSizeText := strings.TrimSuffix(strings.TrimPrefix(header, "Mach Virtual Memory Statistics: (page size of "), " bytes)")
+	pageSize, err := matchedMemoryDecimal(pageSizeText)
+	if len(stats) > diagnosticHostCPUInfoLimit || !ok || !strings.HasPrefix(header, "Mach Virtual Memory Statistics: (page size of ") || !strings.HasSuffix(header, " bytes)") || err != nil || pageSize == 0 {
+		return Result{}, errors.New("vm_stat page size required")
+	}
+	seen := map[string]bool{}
+	var pages uint64
+	for line := range strings.SplitSeq(rest, "\n") {
+		key, value, ok := strings.Cut(line, ":")
+		if key != "Pages free" && key != "Pages inactive" {
+			continue
+		}
+		count, err := matchedMemoryDecimal(strings.TrimSuffix(strings.TrimSpace(value), "."))
+		if !ok || seen[key] || err != nil || count > math.MaxUint64-pages {
+			return Result{}, errors.New("unique nonoverflowing vm_stat available page counts required")
+		}
+		seen[key] = true
+		pages += count
+	}
+	if len(seen) != 2 || pages > math.MaxUint64/pageSize || pages*pageSize < 8<<30 {
+		return Result{}, errors.New("at least 8GiB free plus inactive memory required before matched preparation dispatch")
+	}
+	return dispatch()
+}
+
+func warmPreparationAdmitted(ctx context.Context, dispatch func() (Result, error)) (Result, error) {
+	if runtime.GOOS == "darwin" {
+		stats, err := warmPreparationHostCommand(ctx, "vm_stat")
+		if err != nil {
+			return Result{}, err
+		}
+		return warmPreparationDarwinAdmitted(stats, dispatch)
+	}
+	return matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", "1", dispatch)
+}
+
+func TestWarmPreparationDarwinMemoryAdmission(t *testing.T) {
+	for _, test := range []struct {
+		name, stats string
+		want        bool
+	}{
+		{"at-bound", "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free: 262144.\nPages inactive: 262144.\n", true},
+		{"below-bound", "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free: 262143.\nPages inactive: 262144.\n", false},
+		{"missing-inactive", "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free: 524288.\n", false},
+		{"duplicate-free", "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free: 262144.\nPages free: 262144.\nPages inactive: 262144.\n", false},
+		{"malformed-header", "16384\nPages free: 524288.\nPages inactive: 0.\n", false},
+		{"invalid-page-size", "Mach Virtual Memory Statistics: (page size of 0 bytes)\nPages free: 524288.\nPages inactive: 0.\n", false},
+		{"overflow", "Mach Virtual Memory Statistics: (page size of 16384 bytes)\nPages free: 18446744073709551615.\nPages inactive: 1.\n", false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			called := false
+			_, err := warmPreparationDarwinAdmitted(test.stats, func() (Result, error) {
+				called = true
+				return Result{Termination: "exit"}, nil
+			})
+			if (err == nil) != test.want || called != test.want {
+				t.Fatalf("memory admission=%v dispatched=%t, want %t", err, called, test.want)
+			}
+		})
+	}
+}
+
+func warmPreparationHostEvidence(ctx context.Context) (boot, cpuinfo string, err error) {
+	var witness warmPreparationHostWitness
+	for _, field := range []struct {
+		flag  string
+		value *string
+	}{{"-s", &witness.KernelOS}, {"-m", &witness.Machine}, {"-v", &witness.KernelVersion}} {
+		*field.value, err = warmPreparationHostCommand(ctx, "uname", field.flag)
+		if err != nil {
+			return "", "", err
+		}
+	}
+	switch runtime.GOOS {
+	case "linux":
+		var data []byte
+		data, err = hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
+		boot = strings.TrimSpace(string(data))
+		if err == nil {
+			data, err = hostfs.ReadBounded("/proc/cpuinfo", diagnosticHostCPUInfoLimit)
+			witness.CPUInfo = string(data)
+		}
+	case "darwin":
+		boot, err = warmPreparationHostCommand(ctx, "sysctl", "-n", "kern.boottime")
+		if err == nil {
+			var arm, brand string
+			arm, err = warmPreparationHostCommand(ctx, "sysctl", "-n", "hw.optional.arm64")
+			if err == nil {
+				brand, err = warmPreparationHostCommand(ctx, "sysctl", "-n", "machdep.cpu.brand_string")
+			}
+			witness.CPUInfo = "hw.optional.arm64: " + arm + "\nmachdep.cpu.brand_string: " + brand
+			if err == nil {
+				witness.Translation, err = warmPreparationHostCommand(ctx, "sysctl", "-in", "sysctl.proc_translated")
+			}
+		}
+	default:
+		boot, err = warmPreparationHostCommand(ctx, "sysctl", "-n", "kern.boottime")
+		if err == nil {
+			witness.CPUInfo, err = warmPreparationHostCommand(ctx, "uname", "-p")
+		}
+	}
+	if err != nil {
+		return "", "", err
+	}
+	if runtime.GOOS == "linux" && runtime.GOARCH == "arm64" && diagnosticPerformanceHost("linux", "arm64", witness.CPUInfo) {
+		if boot == "" {
+			return "", "", errors.New("host boot identity absent")
+		}
+		return boot, witness.CPUInfo, nil
+	}
+	data, err := json.Marshal(witness)
+	cpuinfo = string(data)
+	if err != nil || boot == "" || !warmPreparationHostCheck(PinnedEngine(), cpuinfo) {
+		return "", "", fmt.Errorf("host evidence does not bind the current engine host")
+	}
+	return boot, cpuinfo, nil
+}
+
+func TestWarmPreparationCurrentHostEvidence(t *testing.T) {
+	if runtime.GOOS != "linux" && runtime.GOOS != "darwin" {
+		t.Skip("current host collector requires available procfs or sysctl boot/CPU evidence")
+	}
+	boot, cpuinfo, err := warmPreparationHostEvidence(t.Context())
+	if err != nil || boot == "" || !warmPreparationHostCheck(PinnedEngine(), cpuinfo) {
+		t.Fatal("current host evidence did not bind the engine", err)
+	}
+	changed := PinnedEngine()
+	changed.HostArch = "unrelated-architecture"
+	if warmPreparationHostCheck(changed, cpuinfo) {
+		t.Fatal("actual host evidence admitted a different engine architecture")
+	}
+}
+
 func warmPreparationValidate(series warmPreparationSeries, candidate bool) error {
 	role := "baseline"
 	if candidate {
@@ -9374,8 +9572,8 @@ func warmPreparationValidate(series warmPreparationSeries, candidate bool) error
 	if series.Schema != warmPreparationSchema || series.Role != role || len(series.Runs) < 5 || !warmPreparationHex(series.SourceCommit, 40) || !warmPreparationHex(series.DriverSHA256, 64) || series.SourceRoot == "" || len(series.Inputs) == 0 || !warmPreparationHex(series.ModuleSHA256, 64) || !warmPreparationHex(series.HelperSHA256, 64) || !warmPreparationHex(series.ConfigSHA256, 64) || series.RuntimeIdentity == "" || series.ModelSHA256 == "" || series.ArtifactBytes == 0 || series.ArtifactBytes >= series.EnvelopeBytes {
 		return fmt.Errorf("missing source, build, module, artifact or five-run bindings")
 	}
-	if series.HostBootID == "" || series.Engine.Name != "wasmtime" || series.Engine.Version != "47.0.3" || series.Engine.Configuration == "" || !diagnosticPerformanceHost(series.Engine.HostOS, "arm64", series.HostCPUInfo) || series.Engine.HostArch != "aarch64" {
-		return fmt.Errorf("real Linux/arm64 host binding absent")
+	if series.HostBootID == "" || series.Engine.Name != "wasmtime" || series.Engine.Version != "47.0.3" || series.Engine.Configuration == "" || !warmPreparationHostCheck(series.Engine, series.HostCPUInfo) {
+		return fmt.Errorf("real host evidence or engine host binding absent")
 	}
 	var prepare []uint64
 	for i, run := range series.Runs {
@@ -9402,7 +9600,7 @@ func warmPreparationCompare(before, after warmPreparationSeries) error {
 	if err := warmPreparationValidate(after, true); err != nil {
 		return fmt.Errorf("candidate: %w", err)
 	}
-	if before.HostBootID != after.HostBootID || before.HostCPUInfo != after.HostCPUInfo || before.ModuleSHA256 != after.ModuleSHA256 || before.Seed != after.Seed || before.ConfigSHA256 != after.ConfigSHA256 || before.RuntimeIdentity != after.RuntimeIdentity {
+	if before.Engine.HostOS != after.Engine.HostOS || before.Engine.HostArch != after.Engine.HostArch || before.HostBootID != after.HostBootID || before.HostCPUInfo != after.HostCPUInfo || before.ModuleSHA256 != after.ModuleSHA256 || before.Seed != after.Seed || before.ConfigSHA256 != after.ConfigSHA256 || before.RuntimeIdentity != after.RuntimeIdentity {
 		return fmt.Errorf("before/after must share the real host, module, seed, modeled configuration and runtime")
 	}
 	if !warmPreparationHex(before.ComparisonSHA256, 64) || !warmPreparationHex(after.ComparisonSHA256, 64) || before.ComparisonSHA256 != after.ComparisonSHA256 {
@@ -9690,7 +9888,8 @@ func TestWarmPreparationCollectionControls(t *testing.T) {
 }
 
 func warmPreparationFixture() warmPreparationSeries {
-	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: "Features: fp asimd\nCPU architecture: 8\n", ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
+	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: strings.Repeat("a", 40), SourceRoot: "/source", DriverSHA256: strings.Repeat("d", 64), HostBootID: "same-boot", HostCPUInfo: `{"KernelOS":"Darwin","Machine":"arm64","KernelVersion":"Darwin Kernel Version fixture","CPUInfo":"hw.optional.arm64: 1\nmachdep.cpu.brand_string: Apple M2","Translation":"0"}`, ConfigSHA256: strings.Repeat("c", 64), Engine: PinnedEngine(), ModuleSHA256: strings.Repeat("a", 64), HelperSHA256: strings.Repeat("b", 64), RuntimeIdentity: "runtime", ModelSHA256: "model", ArtifactBytes: 100, EnvelopeBytes: 200, Inputs: map[string]string{"/source/driver.go": strings.Repeat("d", 64)}}
+	series.Engine.HostOS, series.Engine.HostArch = "macos", "aarch64"
 	series.ModuleReceipt = "/module-receipt.json"
 	series.ComparisonSHA256 = strings.Repeat("e", 64)
 	series.Inputs[series.ModuleReceipt] = strings.Repeat("a", 64)
@@ -9707,6 +9906,34 @@ func TestWarmPreparationAdmissionControls(t *testing.T) {
 		want   bool
 	}{
 		{"five-warm-at-bound", func(*warmPreparationSeries) {}, true},
+		{"linux-arm64", func(s *warmPreparationSeries) {
+			s.Engine.HostOS, s.Engine.HostArch = "linux", "aarch64"
+			s.HostCPUInfo = "Features: fp asimd\nCPU architecture: 8\n"
+		}, true},
+		{"linux-amd64", func(s *warmPreparationSeries) {
+			s.Engine.HostOS, s.Engine.HostArch = "linux", "x86_64"
+			s.HostCPUInfo = `{"KernelOS":"Linux","Machine":"x86_64","KernelVersion":"Linux fixture","CPUInfo":"vendor_id: GenuineIntel\nflags: fpu sse sse2\n","Translation":"0"}`
+		}, true},
+		{"darwin-amd64", func(s *warmPreparationSeries) {
+			s.Engine.HostArch = "x86_64"
+			s.HostCPUInfo = `{"KernelOS":"Darwin","Machine":"x86_64","KernelVersion":"Darwin fixture","CPUInfo":"hw.optional.arm64: 0\nmachdep.cpu.brand_string: Intel Core i7","Translation":"0"}`
+		}, true},
+		{"other-os-and-architecture", func(s *warmPreparationSeries) {
+			s.Engine.HostOS, s.Engine.HostArch = "freebsd", "riscv64"
+			s.HostCPUInfo = `{"KernelOS":"FreeBSD","Machine":"riscv64","KernelVersion":"FreeBSD fixture","CPUInfo":"riscv64","Translation":"0"}`
+		}, true},
+		{"emulated-linux-host", func(s *warmPreparationSeries) {
+			s.Engine.HostOS, s.Engine.HostArch = "linux", "aarch64"
+			s.HostCPUInfo = `{"KernelOS":"Linux","Machine":"aarch64","KernelVersion":"Linux fixture","CPUInfo":"vendor_id: GenuineIntel\nflags: fpu sse sse2\n","Translation":"0"}`
+		}, false},
+		{"translated-host", func(s *warmPreparationSeries) {
+			s.HostCPUInfo = `{"KernelOS":"Darwin","Machine":"arm64","KernelVersion":"Darwin fixture","CPUInfo":"hw.optional.arm64: 1\nmachdep.cpu.brand_string: Apple M2","Translation":"1"}`
+		}, false},
+		{"wrong-engine-os", func(s *warmPreparationSeries) { s.Engine.HostOS = "linux" }, false},
+		{"wrong-engine-arch", func(s *warmPreparationSeries) { s.Engine.HostArch = "x86_64" }, false},
+		{"missing-cpu-evidence", func(s *warmPreparationSeries) { s.HostCPUInfo = "" }, false},
+		{"invented-cpu-evidence", func(s *warmPreparationSeries) { s.HostCPUInfo = "host" }, false},
+		{"oversized-cpu-evidence", func(s *warmPreparationSeries) { s.HostCPUInfo = strings.Repeat("x", diagnosticHostCPUInfoLimit+1) }, false},
 		{"four-runs", func(s *warmPreparationSeries) { s.Runs = s.Runs[:4] }, false},
 		{"cold-run", func(s *warmPreparationSeries) { s.Runs[2].Telemetry.CacheHit = false }, false},
 		{"compiled-run", func(s *warmPreparationSeries) { s.Runs[2].Telemetry.CompileNanos = 1 }, false},
@@ -9753,6 +9980,10 @@ func TestWarmPreparationComparisonControls(t *testing.T) {
 			s.DriverSHA256 = strings.Repeat("f", 64)
 			s.SourceCommit = strings.Repeat("b", 40)
 		}, true},
+		{"different-host-platform", func(s *warmPreparationSeries) {
+			s.Engine.HostOS, s.Engine.HostArch = "linux", "aarch64"
+			s.HostCPUInfo = "Features: fp asimd\nCPU architecture: 8\n"
+		}, false},
 		{"different-host-boot", func(s *warmPreparationSeries) { s.HostBootID = "other-boot" }, false},
 		{"different-module", func(s *warmPreparationSeries) { s.ModuleSHA256 = strings.Repeat("f", 64) }, false},
 		{"different-seed", func(s *warmPreparationSeries) { s.Seed++ }, false},
@@ -9857,8 +10088,8 @@ func TestWarmPreparationPrimeCache(t *testing.T) {
 			t.Fatal("cache priming requires the same explicit bound inputs as measurement")
 		}
 	}
-	if _, host := diagnosticPerformanceHostEvidence("/proc/cpuinfo"); !host {
-		t.Fatal("real Linux/arm64 host required")
+	if _, _, err := warmPreparationHostEvidence(t.Context()); err != nil {
+		t.Fatal("real host evidence required", err)
 	}
 	evidence, err := diagnosticRunRoot(root, "prime-only-")
 	if err != nil {
@@ -9878,7 +10109,7 @@ func TestWarmPreparationPrimeCache(t *testing.T) {
 	}
 	inputs := terminalExitHelperInputsFeatures(t, os.Getenv("GOMAD_WASM_WARM_HELPER_RECEIPT"), request, crate, []string{"diagnostic-profile"})
 	maps.Copy(inputs, terminalExitModuleInputs(t, os.Getenv("GOMAD_WASM_WARM_MODULE_RECEIPT"), request))
-	result, runErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) { return Run(t.Context(), request) })
+	result, runErr := warmPreparationAdmitted(t.Context(), func() (Result, error) { return Run(t.Context(), request) })
 	persistDiagnosticRawResult(t, evidence, "prime-only", result)
 	temporalWrite(t, filepath.Join(evidence, "prime-only-helper-stderr.txt"), result.helperStderr)
 	temporalJSON(t, filepath.Join(evidence, "prime-only.json"), map[string]any{"accepted": false, "measurement_sample": false, "purpose": "explicit compiled-cache priming outside all warm measurement windows", "inputs": inputs, "telemetry": result.Telemetry})
@@ -10129,13 +10360,9 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 			t.Fatal("explicit absolute warm-preparation input required", name)
 		}
 	}
-	cpuinfo, realHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
-	if !realHost {
-		t.Fatal("real Linux/arm64 performance host required")
-	}
-	boot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
-	if err != nil || strings.TrimSpace(string(boot)) == "" {
-		t.Fatal("host boot identity required", err)
+	boot, cpuinfo, err := warmPreparationHostEvidence(t.Context())
+	if err != nil {
+		t.Fatal("real host evidence required", err)
 	}
 	evidence, err := diagnosticRunRoot(root, "warm-preparation-")
 	if err != nil {
@@ -10177,13 +10404,13 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: commit, SourceRoot: repo, DriverSHA256: fileHash(t, driver), HostBootID: strings.TrimSpace(string(boot)), HostCPUInfo: cpuinfo, ConfigSHA256: digest(configBytes), Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, RuntimeIdentity: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, ModelSHA256: ImplementationSHA256(), Seed: request.Runtime.Seed, ArtifactBytes: artifactBytes, EnvelopeBytes: envelopeBytes, Inputs: inputs, HelperReceipt: paths["helper_receipt"], ModuleReceipt: paths["module_receipt"], DriverPath: driver, ArtifactPath: artifact}
+	series := warmPreparationSeries{Schema: warmPreparationSchema, Role: "candidate", SourceCommit: commit, SourceRoot: repo, DriverSHA256: fileHash(t, driver), HostBootID: boot, HostCPUInfo: cpuinfo, ConfigSHA256: digest(configBytes), Engine: request.Engine, ModuleSHA256: request.ModuleSHA256, HelperSHA256: request.HelperSHA256, RuntimeIdentity: request.Runtime.Choice.ExecutionIdentity.ToolchainBuildKey, ModelSHA256: ImplementationSHA256(), Seed: request.Runtime.Seed, ArtifactBytes: artifactBytes, EnvelopeBytes: envelopeBytes, Inputs: inputs, HelperReceipt: paths["helper_receipt"], ModuleReceipt: paths["module_receipt"], DriverPath: driver, ArtifactPath: artifact}
 	failed := ""
 	var reference Result
 	for i := range 6 {
 		var observation terminalExitObservation
 		started := time.Now()
-		_, admissionErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) {
+		_, admissionErr := warmPreparationAdmitted(t.Context(), func() (Result, error) {
 			observation = measureTerminalExitContext(t, t.Context(), request, false)
 			return observation.Result, nil
 		})
@@ -10201,7 +10428,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 			t.Fatal("every run, including the unmeasured warm-up, must hit the existing cache without compilation")
 		}
 		profile, err := decodeDiagnosticReport(observation.Host.Stderr.RawBytes)
-		if err != nil || profile.HostOS != "linux" || profile.HostArch != "aarch64" {
+		if err != nil || profile.HostOS != request.Engine.HostOS || profile.HostArch != request.Engine.HostArch {
 			t.Fatal("diagnostic phase/host evidence required", err)
 		}
 		if i == 0 {
@@ -10231,7 +10458,7 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	}
 	request.DigestTranscript = false
 	var retained terminalExitObservation
-	_, retainedAdmissionErr := matchedPrepareAdmitted("linux", "/proc/meminfo", "1", func() (Result, error) {
+	_, retainedAdmissionErr := warmPreparationAdmitted(t.Context(), func() (Result, error) {
 		retained = measureTerminalExitContext(t, t.Context(), request, false)
 		return retained.Result, nil
 	})
@@ -10250,9 +10477,8 @@ func TestTemporalWarmPreparationAcceptance(t *testing.T) {
 	if afterCommit != commit {
 		failed = warmPreparationFailure(failed, "source commit changed during collection")
 	}
-	afterBoot, err := hostfs.ReadBounded("/proc/sys/kernel/random/boot_id", 128)
-	afterCPU, afterHost := diagnosticPerformanceHostEvidence("/proc/cpuinfo")
-	if err != nil || !bytes.Equal(boot, afterBoot) || !afterHost || cpuinfo != afterCPU {
+	afterBoot, afterCPU, err := warmPreparationHostEvidence(t.Context())
+	if err != nil || boot != afterBoot || cpuinfo != afterCPU {
 		failed = warmPreparationFailure(failed, "host bindings changed during collection")
 	}
 	if err := warmPreparationValidate(series, true); err != nil {
