@@ -38,6 +38,13 @@ are retained. All Properties use final expect blocks.
 | kingSendsPeachesBananas | find peachesGetsBananas / Model; exact king->peaches banana1 | anySend / Model.init | short | Found |
 | refutesLeakyTotalSupply | verify leakyTotalSupplyInv / Leaky NegativeControl | anyLeakySend / Model.init | short | Counterexample |
 
+Plain form (fn-190.7, phase 1): every claim is checked by default, so `totalSupplyHolds` and
+`failedSendChangesNothingHolds` are gone and their answers are the default checks' verdicts of
+`totalSupplyInv` and `failedSendChangesNothing` (Verified). `peachesGetsBananas` moved from
+`postconditions` to `queries` as a find target, not checked by default; `kingSendsPeachesBananas`
+stays (Found). `refutesLeakyTotalSupply` is the test's `assertRefuted(Leaky,
+leakyTotalSupplyInv)` (Counterexample), and Leaky keeps no sections. No Query names Limits.
+
 ## TwoPhaseCommit (.13 representation map complete)
 
 Map old States.rm1/rm2/rm3 to the corresponding three keys in

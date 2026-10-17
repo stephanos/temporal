@@ -1,7 +1,38 @@
 package framework.dsl
 
 import samples.*
-import NativeControls.assertRefuted
+import NativeControls.{assertRefuted, invariant}
+
+// A claim of a sample's sections judged on one state or step, as the native checker judges it
+// (NativeCheck): the section evaluated on `machine`'s vars holding the state the step reached, with
+// the state it started from, the class it took, its outcome and its facts under evaluation.
+private[dsl] object SampleClaims:
+  // Whether `member` of the section `section` of `owner` holds of `step`: None where it is about the
+  // steps of a target `taken` is not one of.
+  def judged(
+      machine: RecordMachine[?, ?, ?],
+      owner: AnyRef,
+      section: String,
+      member: String,
+      step: Step[State, ?, ?],
+      from: Option[State] = None,
+      taken: Option[Class] = None
+  ): Option[Boolean] =
+    val cls = NativeClaims.sectionClass(owner, section).get
+    val context = NativeClaims.evaluate(
+      machine.stateVars.get,
+      cls,
+      step.state,
+      NativeClaims.Context(from, taken, Some(step.outcome), step.facts)
+    )
+    Option.when(context.applies(member))(context.failure(member).isEmpty)
+
+  // Whether a claim written in a test, `invariant(check(...))`, holds in `state` of `machine`.
+  def holds(machine: RecordMachine[?, ?, ?], claim: NativeClaims.Adhoc, state: State): Boolean =
+    NativeClaims
+      .evaluate(machine.stateVars.get, claim, state, NativeClaims.Context())
+      .checks
+      .forall(_.holds)
 
 class NativeMapsTest extends munit.FunSuite:
   private def run[S, O](
@@ -135,19 +166,27 @@ class NativeMapsTest extends munit.FunSuite:
         )
       )
     )
-    val supply =
-      Model.invariants.totalSupplyInv.decl.holds.get
-        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
-    val leaky =
-      Leaky.invariants.leakyTotalSupplyInv.decl.holds.get
-        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
+    def supply(step: Step[State, Outcome, Nothing]) =
+      SampleClaims.judged(Model, Model, "invariants", "totalSupplyInv", step).get
+    val leakyTotalSupplyInv = invariant(check(totalSupply(Model.balances)))
+    def leaky(step: Step[State, Outcome, Nothing]) =
+      SampleClaims.holds(Leaky, leakyTotalSupplyInv, step.state)
     assertEquals(supply(paid), true)
     assertEquals(supply(inflated), false)
     assertEquals(leaky(paid), true)
     assertEquals(leaky(inflated), false)
-    assert(Leaky.invariants.leakyTotalSupplyInv.decl.machine eq Leaky)
-    val refuses = Model.postconditions.failedSendChangesNothing.decl.holds2.get
-      .asInstanceOf[(State, Step[State, Outcome, Nothing]) => Boolean]
+    def refuses(before: State, step: Step[State, Outcome, Nothing]) =
+      SampleClaims
+        .judged(
+          Model,
+          Model,
+          "postconditions",
+          "failedSendChangesNothing",
+          step,
+          Some(before),
+          Some(cls)
+        )
+        .get
     assertEquals(refuses(Model.init, Step(Outcome.overflow, Model.init)), true)
     assertEquals(refuses(Model.init, Step(Outcome.overflow, paid.state)), false)
 
@@ -407,31 +446,28 @@ class NativeMapsTest extends munit.FunSuite:
     import Bank.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model)
-    // peachesGetsBananas is a find's target, not a promise of every such send: the find answers found
     assertEquals(
       report.verdicts,
-      Map(
-        "totalSupplyInv" -> verified,
-        "failedSendChangesNothing" -> verified,
-        "peachesGetsBananas" -> refuted
-      )
+      Map("totalSupplyInv" -> verified, "failedSendChangesNothing" -> verified)
     )
     assertEquals(report.warnings, Vector.empty)
+    // peachesGetsBananas is a find's target, not a promise of every such send: the find answers
+    // found, and verified as a promise it is refuted
     assertEquals(
       NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector(
-        "model.totalSupplyHolds" -> verified,
-        "model.failedSendChangesNothingHolds" -> verified,
-        "model.kingSendsPeachesBananas" -> found
-      )
+      Vector("model.kingSendsPeachesBananas" -> found)
     )
-    val leak = assertRefuted(Leaky, Leaky.invariants.leakyTotalSupplyInv)
+    assertEquals(
+      NativeCheck
+        .query(verify(Model.queries.peachesGetsBananas), "model.peachesGetsBananas")
+        .verdict,
+      refuted
+    )
+    val leakyTotalSupplyInv = invariant(check(totalSupply(Model.balances)))
+    val leak = assertRefuted(Leaky, leakyTotalSupplyInv)
     assertEquals(leak.subject, "leaky.leakyTotalSupplyInv")
     assertEquals(leak.detail.head, "counterexample: send(king, donkeykong, banana, 1)")
-    assertEquals(
-      NativeCheck.queries(Leaky).map(r => r.subject -> r.verdict),
-      Vector("leaky.refutesLeakyTotalSupply" -> refuted)
-    )
+    assertEquals(NativeCheck.queries(Leaky), Vector.empty)
 
   test("TwoPhaseCommit's claims are checked by default and EagerCommit's consistency is refuted"):
     import TwoPhaseCommit.*

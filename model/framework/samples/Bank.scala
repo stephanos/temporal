@@ -70,9 +70,9 @@ object Bank:
       of = Map(Addr.king -> Map(Denom.banana -> 2, Denom.burger -> 2))
     )
 
-    object transitions extends Rules:
-      on(client.send):
-        always ~> effects.send
+    object transitions extends Transitions:
+      on(client.send): s =>
+        effects.send(s)
 
     object effects:
       // Transfers `amount` coins of `denom` from `fromAddr` to `toAddr`. It fails where the sender
@@ -102,47 +102,28 @@ object Bank:
         else balances = withBalance(balances, in.toAddr, in.denom, toBalance + in.amount)
 
     object invariants:
-      val totalSupplyInv: Property = property.expect:
-        check(totalSupply(balances))
+      val totalSupplyInv = check(totalSupply(balances))
 
     object postconditions:
-      val failedSendChangesNothing: Property = property.across.expect:
-        if after.outcome != Outcome.accepted then check(after.state == before)
-      val peachesGetsBananas: Property =
-        property
-          .after(
-            client.send(
-              fromAddr = Addr.king,
-              toAddr = Addr.peaches,
-              denom = Denom.banana,
-              amount = 1
-            )
-          )
-          .expect:
-            check(balanceOf(balances, Addr.king, Denom.banana) == 1)
-            check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
+      val failedSendChangesNothing =
+        if outcome != Outcome.accepted then check(balances == before.balances)
 
     object queries:
-      val anySend: Scenario = scenario.starts(init).free
-      // every distribution of the supply is at most four sends from the start
-      val short = Limits(steps = 4, actions = 4, search = 65536)
-      val totalSupplyHolds = query verify invariants.totalSupplyInv in anySend limits short
-      val failedSendChangesNothingHolds =
-        query verify postconditions.failedSendChangesNothing in anySend limits short
-      val kingSendsPeachesBananas =
-        query find postconditions.peachesGetsBananas in anySend limits short
+      // a send of one banana from the king to peaches: not every such send pays, so it is a find's
+      // target, not a promise
+      val peachesGetsBananas = after(
+        client.send(fromAddr = Addr.king, toAddr = Addr.peaches, denom = Denom.banana, amount = 1)
+      ):
+        check(balanceOf(balances, Addr.king, Denom.banana) == 1)
+        check(balanceOf(balances, Addr.peaches, Denom.banana) == 1)
+      val kingSendsPeachesBananas = find(peachesGetsBananas)
 
-  // A send that pays from nowhere: the negative control of the total supply.
+  // A send that pays from nowhere: the negative control of the total supply, which its test asserts
+  // refuted.
   object Leaky
-      extends Derived(Model.rebind(client.send ~> Model.effects.sendFromNowhere)),
-        NegativeControl:
-    import Model.balances
-
-    object invariants:
-      val leakyTotalSupplyInv: Property = property.expect:
-        check(totalSupply(balances))
-
-    object queries:
-      val anyLeakySend: Scenario = scenario.starts(Model.init).free
-      val refutesLeakyTotalSupply =
-        query verify invariants.leakyTotalSupplyInv in anyLeakySend limits Model.queries.short
+      extends Derived(
+        Model.rebind(
+          on(client.send): s =>
+            Model.effects.sendFromNowhere(s)
+        )
+      )
