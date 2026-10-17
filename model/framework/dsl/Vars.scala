@@ -68,14 +68,11 @@ trait Recording[-F]:
   private[framework] def add(recorded: Seq[F]): Unit
 
 // One state var of a Machine as the compiler reads its declaration: its name, its declared type as
-// written, aliases intact (`UpTo[3]`), the bound of a bounded type, and how to read and write it
-// on the Machine object and compare its values.
+// written, aliases intact (`UpTo[3]`), the bound of a bounded type, and how to compare its values.
 final class Var private[framework] (
     val name: String,
     val declared: String,
     val bound: Option[Int],
-    private[framework] val read: AnyRef => Any,
-    private[framework] val write: (AnyRef, Any) => Unit,
     private[framework] val accepts: Any => Boolean,
     private[framework] val data: Data[Any]
 ):
@@ -110,8 +107,6 @@ object VarSchema:
       name: String,
       declared: String,
       bound: Option[Int],
-      read: AnyRef => Any,
-      write: (AnyRef, Any) => Unit,
       runtime: java.lang.Class[?],
       data: Data[?]
   ): Var =
@@ -119,8 +114,6 @@ object VarSchema:
       name,
       declared,
       bound,
-      read,
-      write,
       value => boxed(runtime).isInstance(value),
       data.asInstanceOf[Data[Any]] // scalafix:ok DisableSyntax.asInstanceOf
     )
@@ -140,7 +133,10 @@ object VarSchema:
       ).getOrElse(runtime, runtime)
 
 // The native runtime of one Machine's vars until the IR evaluator replaces it (fn-190.3/.5): the
-// Machine object holds one live state, its vars. `at` restores a state into them, evaluates a
+// Machine object holds one live state, its vars, which it reads and writes through their accessors.
+// They are looked up by name: a closure among the arguments of the Machine's parent constructor
+// would be hoisted into the object that encloses the Machine, whose initialization would then run
+// inside the Machine's. `at` restores a state into them, evaluates a
 // step, a guard or a claim on them, and puts back the state it found, which outside every
 // evaluation is the initial state, captured from the vars before the first evaluation. So the
 // Machine object reads as its initial state between evaluations, and evaluations of one Machine
@@ -152,6 +148,13 @@ final class Vars private[framework] (
   private var depth = 0
   private var captured = Option.empty[State]
   private var frames = List.empty[Vars.Frame]
+  private val accessors = schema.vars.map: v =>
+    val methods = machine.getClass.getMethods.toVector
+    val getter = methods.find(m => m.getName == v.name && m.getParameterCount == 0)
+    val setter = methods.find(m => m.getName == s"${v.name}_$$eq" && m.getParameterCount == 1)
+    getter
+      .zip(setter)
+      .getOrElse(throw IllegalStateException(s"${machine.name}: ${v.name} has no public accessors"))
 
   // The state the vars hold before any evaluation: their initialisers.
   def initial: State = synchronized:
@@ -162,10 +165,19 @@ final class Vars private[framework] (
 
   // The vars as they are now.
   private def snapshot(): State =
-    State(this, schema.vars.map(v => v.checked(v.read(machine))))
+    State(
+      this,
+      schema.vars.lazyZip(accessors).map((v, accessor) => v.checked(accessor._1.invoke(machine)))
+    )
 
   private def restore(state: State): Unit =
-    schema.vars.lazyZip(state.values).foreach((v, value) => v.write(machine, value))
+    accessors
+      .lazyZip(state.values)
+      .foreach: (accessor, value) =>
+        val _ = accessor._2.invoke(
+          machine,
+          value.asInstanceOf[AnyRef]
+        ) // scalafix:ok DisableSyntax.asInstanceOf
 
   private[framework] def owned(state: Any): State = state match
     case value: State if value.owner.eq(this) => value
@@ -317,7 +329,6 @@ private[framework] object VarSchemaMacro:
     // An error, not an abort: a given whose expansion aborts is no given, and the refusal would read
     // as a missing VarSchema.
     if vars.isEmpty then report.error("a Machine declares at least one state var")
-    val machineType = cls.typeRef
     val entries = vars.map: v =>
       val tpe = declaredType(cls, v)
       val shown = tpe.show(using Printer.TypeReprShortCode)
@@ -343,20 +354,6 @@ private[framework] object VarSchemaMacro:
                 v.pos.getOrElse(Position.ofMacroExpansion)
               )
               '{ Data.Structural.unschematic[t] }
-          def selected(self: Expr[AnyRef]): Term =
-            Select(
-              TypeApply(Select.unique(self.asTerm, "asInstanceOf"), List(Inferred(machineType))),
-              v
-            )
-          val read = '{ (self: AnyRef) => ${ selected('self).asExprOf[t] } }
-          val write = '{ (self: AnyRef, value: Any) =>
-            ${
-              Assign(
-                selected('self),
-                '{ value.asInstanceOf[t] }.asTerm // scalafix:ok DisableSyntax.asInstanceOf
-              ).asExprOf[Unit]
-            }
-          }
           val runtime = Expr
             .summon[scala.reflect.ClassTag[t]]
             .fold('{ classOf[Any] })(tag => '{ $tag.runtimeClass })
@@ -365,8 +362,6 @@ private[framework] object VarSchemaMacro:
               ${ Expr(v.name) },
               ${ Expr(shown) },
               ${ Expr(bound) },
-              $read,
-              $write,
               $runtime,
               $data
             )
