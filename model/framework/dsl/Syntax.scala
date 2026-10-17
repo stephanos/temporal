@@ -1134,7 +1134,7 @@ object Phased extends Inherited.Unphased:
     Inherited(_.projection, _.end, _.writer)
 
 private[framework] def isDirectRuleBook(book: RuleBook[?, ?, ?]): Boolean =
-  book.isInstanceOf[Rules[?, ?, ?, ?]]
+  book.isInstanceOf[RuleTable[?, ?, ?]]
 
 extension (@unused companion: MemberPath.type)
   private[framework] def field(member: Any): Option[String] = MemberPath.retainedField(member)
@@ -1171,62 +1171,8 @@ abstract class Rules[S, O, F, P](using
     owner: Owner[S, O, F],
     phasing: Phasing[S, ? <: P],
     source: FacetSource
-) extends RuleBook[S, O, F]:
-  private var origin = Option.empty[FacetBindings.Origin]
-  final override private[framework] def facetOrigin: Option[FacetBindings.Origin] = origin
-  @scala.annotation.publicInBinary
-  final private[framework] def retainFacetOrigin(
-      assembly: RecordMachine[?, ?, ?],
-      namespace: AnyRef,
-      traitClass: java.lang.Class[?],
-      traitName: String,
-      namespaceName: String,
-      rulesName: String
-  ): Unit = synchronized {
-    require(assembly.eq(owner.machine), "Machine Facets: foreign RuleBook assembly source")
-    require(
-      source.facet.nonEmpty && traitName.nonEmpty && namespaceName.nonEmpty && rulesName.nonEmpty,
-      "Machine Facets: missing facet definition identity"
-    )
-    require(
-      (traitClass ne null) && traitClass.isInterface && traitClass.isInstance(assembly),
-      "Machine Facets: facet trait token does not own this assembly"
-    )
-    require(
-      assembly.ownsFacetNamespace(namespace, traitName, namespaceName, traitClass),
-      "Machine Facets: foreign or unregistered facet namespace receiver"
-    )
-    val identity =
-      new FacetSource.Identity(assembly, namespace, traitClass, traitName, namespaceName, rulesName)
-    origin match
-      case Some(previous) =>
-        require(
-          previous.source.identity.exists(old =>
-            old.source.eq(assembly) && old.namespace.eq(namespace) && old.traitClass.eq(
-              traitClass
-            ) &&
-              old.traitName == traitName && old.namespaceName == namespaceName && old.rulesName == rulesName
-          ),
-          "Machine Facets: conflicting RuleBook origin"
-        )
-      case None =>
-        val provenance = new FacetSource(source.facet, source.section, Some(identity))
-        origin = Some(new FacetBindings.Origin(this, provenance))
-  }
-  override private[framework] def facetSource: Option[String] = source.facet
-  override private[framework] def sectionName: String = source.section
-  override private[framework] def actionName(decl: ActionDecl): String = names(decl)
+) extends RuleTable[S, O, F]:
   private val phase: S => P = phasing.projection
-  private val names = mutable.Map.empty[ActionDecl, String]
-  private val written = mutable.ArrayBuffer.empty[Rule[S, O, F]]
-  private val never = mutable.ArrayBuffer.empty[ActionDecl]
-  private val capturedDisabled = mutable.Map.empty[ActionDecl, Bound[S, O, F]]
-  private val order = mutable.LinkedHashSet.empty[ActionDecl]
-  private val generatedCrashes = mutable.Set.empty[ActionDecl]
-  private var open: Option[String] = None // scalafix:ok DisableSyntax.var
-  // The `from` the rules are in, if any: its declarer's name and the actions it declares.
-  private var within: Option[(String, Set[ActionDecl])] =
-    None // scalafix:ok DisableSyntax.var
 
   // A generated crash uses the machine's retained field classification. Core form:
   // `on(action) { always ~> generatedReset }`.
@@ -1247,16 +1193,6 @@ abstract class Rules[S, O, F, P](using
       RuleSource.spelling(action)
     )
 
-  private[framework] def registerCrash(binding: StepBinding[S, O, F], spelling: String): Unit =
-    require(
-      !order.contains(binding.decl),
-      s"crashes($spelling) at ${binding.decl.nativeFaultLocation}: duplicate crash binding"
-    )
-    block[EmptyTuple](binding.decl, None, spelling):
-      always ~> binding.function
-        .asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
-    generatedCrashes += binding.decl: Unit
-
   // Runs one block's cases, refusing a block in a block, and in a `from` an action its declarer
   // does not declare.
   private[framework] def block[I](
@@ -1265,63 +1201,19 @@ abstract class Rules[S, O, F, P](using
       code: String,
       budgets: Vector[NativeBudget[?]] = Vector.empty
   )(cases: Firing[S, O, F, I] ?=> Unit): Unit =
-    val action = writtenAction(code)
-    require(
-      !generatedCrashes.contains(decl),
-      s"on($action) at ${decl.nativeFaultLocation}: duplicate crash binding"
-    )
-    names(decl) = action
-    require(
-      writtenPath(code).contains('.'),
-      s"on($action) names its action bare: name it through the object that declares it, " +
-        s"`on(${within.fold("<declarer>")(_._1)}.$action)`"
-    )
-    require(
-      open.isEmpty,
-      s"on($action) sits in on(${open.get}): a block holds cases alone"
-    )
-    require(!never.contains(decl), s"$action is disabled and fired by a rule")
-    for (declarer, declared) <- within do
-      require(
-        declared.contains(decl),
-        s"on($action) sits in from($declarer), and $declarer declares no $action: a from holds " +
-          "the blocks of the actions its declarer declares"
-      )
-    open = Some(action)
-    val firing =
-      Firing[S, O, F, I](
-        decl,
-        values,
-        action,
-        (c, effect, captured) => bind(decl, values, c, effect, code, captured),
-        Some(owner.machine),
-        origin,
-        budgets
-      )
-    try cases(using firing)
-    finally open = None
-
-  // Registers a rule in declaration order.
-  private def bind(
-      decl: ActionDecl,
-      values: Option[List[Any]],
-      c: Case[S, O, F],
-      effect: (S, List[Any]) => List[Step[S, O, F]],
-      code: String,
-      captured: Option[RuleBindings.Registration]
-  ): Unit =
-    val rule = Rule(
-      written.size + 1,
-      c.heading,
-      writtenAction(code),
-      decl,
-      values,
-      c.guard,
-      effect
-    )
-    rule.publishCapture(captured)
-    written += rule
-    order += decl
+    openBlock(decl, code):
+      val firing =
+        Firing[S, O, F, I](
+          decl,
+          values,
+          writtenAction(code),
+          (c, effect, captured) =>
+            bindRule(decl, values, c.heading, c.guard, effect, code, captured),
+          Some(owner.machine),
+          facetOrigin,
+          budgets
+        )
+      cases(using firing)
 
   // The cases of a whole action: `on(clerk.ship): when(Phase.placed) ~> effects.send`. Core form: the
   // action's step function, whose arms are the cases in order.
@@ -1455,61 +1347,17 @@ abstract class Rules[S, O, F, P](using
   // Runs the cases once for each target, as its own block, refusing a target named twice. The
   // cases run once per target, so each binds its own rules.
   private[framework] def each(
-      targets: List[(Action[?] | Class, String)]
+      named: List[(Action[?] | Class, String)]
   )(cases: Firing[S, O, F, EmptyTuple] ?=> Unit): Unit =
-    val named = targets.map:
-      case (a: Action[?], code) => (a.decl, None, code)
-      case (c: Class, code)     => (c.decl, Some(c.values), code)
-    for ((decl, values, code), i) <- named.zipWithIndex do
-      require(
-        !named
-          .take(i)
-          .exists((d, v, _) => d == decl && java.util.Objects.equals(v, values)),
-        s"${writtenAction(code)} is named twice in one on: name each action, or class of it, once"
-      )
-    for (decl, values, code) <- named do block[EmptyTuple](decl, values, code)(cases)
+    for (decl, values, code) <- blockTargets(named) do block[EmptyTuple](decl, values, code)(cases)
 
   // The blocks of the actions `declarer` declares, each naming its action through its declarer as
   // every block does: `from(clerk):` containing `on(clerk.ship):`. It only groups, and brings none of
   // the declarer's members into scope: a block means in a `from` what it means outside one, and the
   // IR generator refuses an `import clerk.*` in it. Core form: the blocks it holds,
   // `on(clerk.ship): ...`.
-  private[framework] def groupName: String = within.fold("<declarer>")(_._1)
-
   inline def from(declarer: AnyRef)(inline body: Unit): Unit =
     grouped(declarer, RuleSource.imports(body))(body)
-
-  private[framework] def grouped(declarer: AnyRef, imported: String)(body: => Unit): Unit =
-    val name = declarer match
-      case a: Actor => a.name
-      case other    => objectName(other)
-    require(
-      imported.isEmpty,
-      s"from($name) imports members at $imported: a from only groups, so drop the import and " +
-        s"name each action through its declarer, `on($name.<action>)`"
-    )
-    require(
-      open.isEmpty,
-      s"from($name) sits in on(${open.get}): a block holds cases alone"
-    )
-    require(
-      within.isEmpty,
-      s"from($name) sits in from(${within.get._1}): a from holds on blocks alone"
-    )
-    within = Some(name -> declaredBy(declarer))
-    try body
-    finally within = None
-
-  // The actions an object declares: the `Action` values among its public vals. An action records
-  // no object that holds it, so the object's members are read.
-  private def declaredBy(declarer: AnyRef): Set[ActionDecl] =
-    declarer.getClass.getMethods.toSet
-      .filter(m =>
-        m.getParameterCount == 0 && classOf[Action[?]]
-          .isAssignableFrom(m.getReturnType)
-      )
-      .map(_.invoke(declarer))
-      .collect { case a: Action[?] => a.decl }
 
   // The retired rule-case spelling is refused where it is written, while `value.in(...)` remains
   // the membership predicate below. Core form: none; write `when(...)` for a rule case.
@@ -1561,19 +1409,10 @@ abstract class Rules[S, O, F, P](using
     disable(RuleSource.disabledLabels(actions), actions*)
 
   private[framework] def capturedDisabledRules(actions: Action[?]*)(data: Seq[String]): Unit =
-    val retained = RuleBindings.retainedDisabled(owner.machine, actions.map(_.decl), data, origin)
+    val retained =
+      RuleBindings.retainedDisabled(owner.machine, actions.map(_.decl), data, facetOrigin)
     disable(retained.map(_._1), actions*)
-    actions.zip(retained).foreach((action, row) => capturedDisabled(action.decl) = row._2)
-
-  private[framework] def disable(labels: Vector[String], actions: Action[?]*): Unit =
-    for (a, label) <- actions.zip(labels) do
-      require(
-        !never.contains(a.decl) && !written.exists(_.decl == a.decl),
-        "an action is disabled twice, or disabled and bound by a rule"
-      )
-      never += a.decl
-      order += a.decl
-      names(a.decl) = label
+    actions.zip(retained).foreach((action, row) => capturedDisabledRows(action.decl) = row._2)
 
   // `phase.in(a, b)` in a condition, as outside the rules. Core form: `List(a, b).contains(phase)`.
   extension [A](value: A)
@@ -1584,12 +1423,6 @@ abstract class Rules[S, O, F, P](using
   extension [A](value: A)
     @sugar def in[R](using role: TypeTest[A, R]): Boolean =
       role.unapply(value).nonEmpty
-
-  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
-    order.toVector.map: decl =>
-      decl -> (if never.contains(decl) then
-                 capturedDisabled.getOrElse(decl, Bound.Disabled[S, O, F]())
-               else Bound.Ruled(written.filter(_.decl == decl).toVector))
 
 // Evidence that a case's phases are of the type the rules' projection reads: the rules of a machine
 // that mixes in `Phased[State, Phase](_.phase)` name phases with `when`, and the rules of
