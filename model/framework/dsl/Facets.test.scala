@@ -151,6 +151,14 @@ class FacetsTest extends munit.FunSuite:
     assertEquals(lamps(Faceted).map(Faceted.end), lamps(Whole).map(Whole.end))
     assertEquals(lamps(Faceted).count(Faceted.end), 2)
 
+  test("assigning a Recorded phase records nothing; record(light.status) records its status"):
+    def taken(action: Action[EmptyTuple]) =
+      val b = Faceted.bindings.find(_.decl eq action.decl).get
+      effectOf[State, Said, Note](b.decl, b.function)(Faceted.init, action())
+        .map(step => (step.state.selectDynamic("light"), step.facts))
+    assertEquals(taken(hand.press), List((Lit.on, Nil)))
+    assertEquals(taken(hand.smash), List((Lit.broken, List(Note.gone))))
+
   test("an action bound by two facets is refused as the transitions construct, naming both"):
     val refused = intercept[IllegalArgumentException](Twice.bindings)
     assertEquals(
