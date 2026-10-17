@@ -15,6 +15,18 @@ class NativeMapsTest extends munit.FunSuite:
   private def bank(balances: Bank.Balances): State = Bank.Model.init.copy(balances = balances)
   private def held(state: State): Bank.Balances = Bank.Model.at(state)(Bank.Model.balances)
 
+  // A TwoPhaseCommit state by its vars, as the Transaction record holds them, and the record a
+  // state holds.
+  private def transaction(record: TwoPhaseCommit.Transaction): State =
+    TwoPhaseCommit.Model.init.copy(
+      rmStates = record.rmStates,
+      tmState = record.tmState,
+      tmPrepared = record.tmPrepared,
+      messages = record.messages
+    )
+  private def recorded(state: State): TwoPhaseCommit.Transaction =
+    TwoPhaseCommit.Model.at(state)(TwoPhaseCommit.Model.current)
+
   test("Bank native balances do not invent a whole-state integer bound"):
     import Bank.*
     val large = withBalance(held(Model.init), Addr.king, Denom.banana, 7)
@@ -174,7 +186,7 @@ class NativeMapsTest extends munit.FunSuite:
     )
     assertEquals(run(Model, received, tm.decideOnCommit()), Nil)
     assertEquals(
-      run(EagerCommit, received, tm.decideOnCommit()).head.state.tmState,
+      recorded(run(EagerCommit, received, tm.decideOnCommit()).head.state).tmState,
       TransactionManagerState.committed
     )
 
@@ -183,41 +195,45 @@ class NativeMapsTest extends munit.FunSuite:
     val initial = Model.init
     assertEquals(
       initial,
-      Transaction(
-        Map(
-          ResourceManager.rm1 -> ResourceManagerState.working,
-          ResourceManager.rm2 -> ResourceManagerState.working,
-          ResourceManager.rm3 -> ResourceManagerState.working
-        ),
-        TransactionManagerState.init,
-        Set.empty,
-        Set.empty
+      transaction(
+        Transaction(
+          Map(
+            ResourceManager.rm1 -> ResourceManagerState.working,
+            ResourceManager.rm2 -> ResourceManagerState.working,
+            ResourceManager.rm3 -> ResourceManagerState.working
+          ),
+          TransactionManagerState.init,
+          Set.empty,
+          Set.empty
+        )
       )
     )
     val prepared = run(Model, initial, rm.prepare(ResourceManager.rm1)).head.state
     assertEquals(
       prepared,
-      Transaction(
-        Map(
-          ResourceManager.rm1 -> ResourceManagerState.prepared,
-          ResourceManager.rm2 -> ResourceManagerState.working,
-          ResourceManager.rm3 -> ResourceManagerState.working
-        ),
-        TransactionManagerState.init,
-        Set.empty,
-        Set(Message.prepared(ResourceManager.rm1))
+      transaction(
+        Transaction(
+          Map(
+            ResourceManager.rm1 -> ResourceManagerState.prepared,
+            ResourceManager.rm2 -> ResourceManagerState.working,
+            ResourceManager.rm3 -> ResourceManagerState.working
+          ),
+          TransactionManagerState.init,
+          Set.empty,
+          Set(Message.prepared(ResourceManager.rm1))
+        )
       )
     )
     assertEquals(run(Model, prepared, rm.prepare(ResourceManager.rm1)), Nil)
     val received = run(Model, prepared, tm.addPrepared(ResourceManager.rm1)).head.state
-    assertEquals(received.tmPrepared, Set(ResourceManager.rm1))
-    assertEquals(received.messages, Set(Message.prepared(ResourceManager.rm1)))
+    assertEquals(recorded(received).tmPrepared, Set(ResourceManager.rm1))
+    assertEquals(recorded(received).messages, Set(Message.prepared(ResourceManager.rm1)))
     assertEquals(
       run(Model, received, tm.addPrepared(ResourceManager.rm1)),
       List(Step(Outcome.accepted, received))
     )
     intercept[NoSuchElementException](
-      mayPrepare(initial.copy(rmStates = Map.empty), ResourceManager.rm1)
+      mayPrepare(recorded(initial.copy(rmStates = Map.empty)), ResourceManager.rm1)
     ): Unit
 
   test("TwoPC all received managers enable commit and every manager follows"):
@@ -233,7 +249,7 @@ class NativeMapsTest extends munit.FunSuite:
       tm.addPrepared(ResourceManager.rm3)
     ).foldLeft(prepared)((s, cls) => run(Model, s, cls).head.state)
     assertEquals(
-      received.tmPrepared,
+      recorded(received).tmPrepared,
       Set(ResourceManager.rm1, ResourceManager.rm2, ResourceManager.rm3)
     )
     val sent = Set(
@@ -241,10 +257,10 @@ class NativeMapsTest extends munit.FunSuite:
       Message.prepared(ResourceManager.rm2),
       Message.prepared(ResourceManager.rm3)
     )
-    assertEquals(received.messages, sent)
+    assertEquals(recorded(received).messages, sent)
     val decided = run(Model, received, tm.decideOnCommit()).head.state
-    assertEquals(decided.tmState, TransactionManagerState.committed)
-    assertEquals(decided.messages, sent.incl(Message.commit))
+    assertEquals(recorded(decided).tmState, TransactionManagerState.committed)
+    assertEquals(recorded(decided).messages, sent.incl(Message.commit))
     assertEquals(Model.end(decided), false)
     assertEquals(run(Model, decided, tm.decideOnAbort()), Nil)
     assertEquals(run(Model, decided, tm.addPrepared(ResourceManager.rm1)), Nil)
@@ -254,7 +270,7 @@ class NativeMapsTest extends munit.FunSuite:
       rm.commit(ResourceManager.rm3)
     ).foldLeft(decided)((s, cls) => run(Model, s, cls).head.state)
     assertEquals(
-      committed.rmStates,
+      recorded(committed).rmStates,
       Map(
         ResourceManager.rm1 -> ResourceManagerState.committed,
         ResourceManager.rm2 -> ResourceManagerState.committed,
@@ -262,15 +278,15 @@ class NativeMapsTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      committed.tmPrepared,
+      recorded(committed).tmPrepared,
       Set(ResourceManager.rm1, ResourceManager.rm2, ResourceManager.rm3)
     )
-    assertEquals(committed.messages, sent.incl(Message.commit))
+    assertEquals(recorded(committed).messages, sent.incl(Message.commit))
     assertEquals(Model.end(committed), true)
     assertEquals(run(Model, committed, rm.commit(ResourceManager.rm1)), Nil)
     val everyone =
       Model.postconditions.everyoneCommits.decl.holds.get
-        .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
+        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
     assertEquals(everyone(Step(Outcome.accepted, committed)), true)
     assertEquals(everyone(Step(Outcome.accepted, decided)), false)
 
@@ -279,36 +295,42 @@ class NativeMapsTest extends munit.FunSuite:
     val initial = Model.init
     val aborted = run(Model, initial, rm.abort(ResourceManager.rm2)).head.state
     assertEquals(
-      aborted.rmStates,
+      recorded(aborted).rmStates,
       Map(
         ResourceManager.rm1 -> ResourceManagerState.working,
         ResourceManager.rm2 -> ResourceManagerState.aborted,
         ResourceManager.rm3 -> ResourceManagerState.working
       )
     )
-    assertEquals(aborted.messages, Set.empty[Message])
+    assertEquals(recorded(aborted).messages, Set.empty[Message])
     val prepared = run(Model, initial, rm.prepare(ResourceManager.rm1)).head.state
     assertEquals(run(Model, prepared, rm.abort(ResourceManager.rm1)), Nil)
     assertEquals(run(Model, prepared, rm.commit(ResourceManager.rm1)), Nil)
     val decision = run(Model, prepared, tm.decideOnAbort()).head.state
-    assertEquals(decision.messages, Set(Message.prepared(ResourceManager.rm1), Message.abort))
+    assertEquals(
+      recorded(decision).messages,
+      Set(Message.prepared(ResourceManager.rm1), Message.abort)
+    )
     val after = run(Model, decision, rm.abort(ResourceManager.rm1)).head.state
     assertEquals(
-      after.rmStates,
+      recorded(after).rmStates,
       Map(
         ResourceManager.rm1 -> ResourceManagerState.aborted,
         ResourceManager.rm2 -> ResourceManagerState.working,
         ResourceManager.rm3 -> ResourceManagerState.working
       )
     )
-    assertEquals(after.messages, Set(Message.prepared(ResourceManager.rm1), Message.abort))
+    assertEquals(
+      recorded(after).messages,
+      Set(Message.prepared(ResourceManager.rm1), Message.abort)
+    )
     assertEquals(
       run(Model, after, rm.abort(ResourceManager.rm1)),
       List(Step(Outcome.accepted, after))
     )
     val commitOnly = initial.copy(messages = Set(Message.commit))
     assertEquals(
-      run(Model, commitOnly, rm.commit(ResourceManager.rm1)).head.state
+      recorded(run(Model, commitOnly, rm.commit(ResourceManager.rm1)).head.state)
         .rmStates(ResourceManager.rm1),
       ResourceManagerState.committed
     )
@@ -320,7 +342,8 @@ class NativeMapsTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      run(Model, both, rm.abort(ResourceManager.rm1)).head.state.rmStates(ResourceManager.rm1),
+      recorded(run(Model, both, rm.abort(ResourceManager.rm1)).head.state)
+        .rmStates(ResourceManager.rm1),
       ResourceManagerState.aborted
     )
 
@@ -333,7 +356,7 @@ class NativeMapsTest extends munit.FunSuite:
     val committed = run(EagerCommit, decided, rm.commit(ResourceManager.rm1)).head.state
     val conflict = run(EagerCommit, committed, rm.abort(ResourceManager.rm2)).head
     assertEquals(
-      conflict.state.rmStates,
+      recorded(conflict.state).rmStates,
       Map(
         ResourceManager.rm1 -> ResourceManagerState.committed,
         ResourceManager.rm2 -> ResourceManagerState.aborted,
@@ -341,15 +364,15 @@ class NativeMapsTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      conflict.state.messages,
+      recorded(conflict.state).messages,
       Set(Message.prepared(ResourceManager.rm1), Message.commit)
     )
-    assertEquals(conflict.state.tmPrepared, Set(ResourceManager.rm1))
+    assertEquals(recorded(conflict.state).tmPrepared, Set(ResourceManager.rm1))
     val normal =
       Model.invariants.consistencyInv.decl.holds.get
-        .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
+        .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
     val eager = EagerCommit.invariants.eagerConsistencyInv.decl.holds.get
-      .asInstanceOf[Step[Transaction, Outcome, Nothing] => Boolean]
+      .asInstanceOf[Step[State, Outcome, Nothing] => Boolean]
     assertEquals(normal(Step(Outcome.accepted, Model.init)), true)
     assertEquals(eager(Step(Outcome.accepted, Model.init)), true)
     assertEquals(normal(conflict), false)

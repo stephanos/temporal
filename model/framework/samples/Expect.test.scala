@@ -228,6 +228,8 @@ class SampleExpectTest extends munit.FunSuite:
 
   test("TwoPhaseCommit's three native predicates retain consistency and exact commit selection"):
     import TwoPhaseCommit.*
+    // the Transaction record a state holds
+    def recorded(state: State): Transaction = Model.at(state)(Model.current)
     val initial = Model.init
     val committed = initial.copy(rmStates =
       Map(
@@ -238,7 +240,7 @@ class SampleExpectTest extends munit.FunSuite:
     )
     val split =
       committed.copy(rmStates =
-        committed.rmStates.updated(ResourceManager.rm2, ResourceManagerState.aborted)
+        recorded(committed).rmStates.updated(ResourceManager.rm2, ResourceManagerState.aborted)
       )
     val consistencyCases = List(
       (Step(Outcome.accepted, initial), true),
@@ -246,10 +248,10 @@ class SampleExpectTest extends munit.FunSuite:
       (Step(Outcome.accepted, split), false)
     )
     same(Model.invariants.consistencyInv, Model, None, consistencyCases)(after =>
-      consistent(after.state)
+      consistent(recorded(after.state))
     )
     same(EagerCommit.invariants.eagerConsistencyInv, EagerCommit, None, consistencyCases)(after =>
-      consistent(after.state)
+      consistent(recorded(after.state))
     )
     same(
       Model.postconditions.everyoneCommits,
@@ -260,7 +262,7 @@ class SampleExpectTest extends munit.FunSuite:
         (Step(Outcome.accepted, initial), false),
         (Step(Outcome.accepted, split), false)
       )
-    )(after => allCommitted(after.state))
+    )(after => allCommitted(recorded(after.state)))
 
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
     import Voting.*

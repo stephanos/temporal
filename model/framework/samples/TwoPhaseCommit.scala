@@ -107,39 +107,6 @@ object TwoPhaseCommit:
     val decideOnCommit = internal
     val decideOnAbort = internal
 
-  // a resource manager prepares and tells the transaction manager
-  def prepared(
-      state: Transaction,
-      rm: ResourceManager
-  ): List[Step[Transaction, Outcome, Nothing]] =
-    enter(
-      state.copy(
-        rmStates = withState(state.rmStates, rm, ResourceManagerState.prepared),
-        messages = state.messages.incl(Message.prepared(rm))
-      )
-    )
-
-  // there is no need to let others know that a resource manager aborted
-  def aborted(
-      state: Transaction,
-      rm: ResourceManager
-  ): List[Step[Transaction, Outcome, Nothing]] =
-    enter(state.copy(rmStates = withState(state.rmStates, rm, ResourceManagerState.aborted)))
-
-  def committed(
-      state: Transaction,
-      rm: ResourceManager
-  ): List[Step[Transaction, Outcome, Nothing]] =
-    enter(
-      state.copy(rmStates = withState(state.rmStates, rm, ResourceManagerState.committed))
-    )
-
-  def received(
-      state: Transaction,
-      rm: ResourceManager
-  ): List[Step[Transaction, Outcome, Nothing]] =
-    enter(state.copy(tmPrepared = withMember(state.tmPrepared, rm)))
-
   // two resource managers have not arrived at conflicting decisions
   def consistent(state: Transaction): Boolean =
     !(someAre(state.rmStates, ResourceManagerState.committed) &&
@@ -147,108 +114,112 @@ object TwoPhaseCommit:
 
   val fairCommits = assume.fair(rm.commit)
 
-  object Model extends RecordMachine[Transaction, Outcome, Nothing]:
-    val init = Transaction(
-      rmStates = Map(
-        ResourceManager.rm1 -> ResourceManagerState.working,
-        ResourceManager.rm2 -> ResourceManagerState.working,
-        ResourceManager.rm3 -> ResourceManagerState.working
-      ),
-      tmState = TransactionManagerState.init,
-      tmPrepared = Set.empty,
-      messages = Set.empty
+  object Model extends Machine[Outcome, Nothing]:
+    var rmStates = Map(
+      ResourceManager.rm1 -> ResourceManagerState.working,
+      ResourceManager.rm2 -> ResourceManagerState.working,
+      ResourceManager.rm3 -> ResourceManagerState.working
     )
+    var tmState = TransactionManagerState.init
+    // the resource managers from which the transaction manager has received RMPrepared
+    var tmPrepared = Set.empty[ResourceManager]
+    var messages = Set.empty[Message]
+
+    // the transaction as one record, which the predicates above read
+    def current: Transaction = Transaction(rmStates, tmState, tmPrepared, messages)
+
     // the transaction is over once it is decided and every resource manager has followed
-    def end(state: Transaction) =
-      state.tmState != TransactionManagerState.init &&
-        resourceManagers.forall(rm => done(stateOf(state.rmStates, rm)))
+    override def end =
+      tmState != TransactionManagerState.init &&
+        resourceManagers.forall(rm => done(stateOf(rmStates, rm)))
 
     object states:
       // the transaction manager has heard from any one resource manager
-      def eagerlyCommits(state: Transaction): Boolean =
-        state.tmState == TransactionManagerState.init && any(state.tmPrepared)
+      def eagerlyCommits: Boolean =
+        tmState == TransactionManagerState.init && any(tmPrepared)
 
     object rules extends Rules:
       on(rm.prepare(ResourceManager.rm1)):
-        where(s => mayPrepare(s, ResourceManager.rm1)) ~> effects.prepareRm1
+        where(mayPrepare(current, ResourceManager.rm1)) ~> effects.prepareRm1()
       on(rm.prepare(ResourceManager.rm2)):
-        where(s => mayPrepare(s, ResourceManager.rm2)) ~> effects.prepareRm2
+        where(mayPrepare(current, ResourceManager.rm2)) ~> effects.prepareRm2()
       on(rm.prepare(ResourceManager.rm3)):
-        where(s => mayPrepare(s, ResourceManager.rm3)) ~> effects.prepareRm3
+        where(mayPrepare(current, ResourceManager.rm3)) ~> effects.prepareRm3()
       on(rm.abort(ResourceManager.rm1)):
-        where(s => mayAbort(s, ResourceManager.rm1)) ~> effects.abortRm1
+        where(mayAbort(current, ResourceManager.rm1)) ~> effects.abortRm1()
       on(rm.abort(ResourceManager.rm2)):
-        where(s => mayAbort(s, ResourceManager.rm2)) ~> effects.abortRm2
+        where(mayAbort(current, ResourceManager.rm2)) ~> effects.abortRm2()
       on(rm.abort(ResourceManager.rm3)):
-        where(s => mayAbort(s, ResourceManager.rm3)) ~> effects.abortRm3
+        where(mayAbort(current, ResourceManager.rm3)) ~> effects.abortRm3()
       on(rm.commit(ResourceManager.rm1)):
-        where(s => mayCommit(s, ResourceManager.rm1)) ~> effects.commitRm1
+        where(mayCommit(current, ResourceManager.rm1)) ~> effects.commitRm1()
       on(rm.commit(ResourceManager.rm2)):
-        where(s => mayCommit(s, ResourceManager.rm2)) ~> effects.commitRm2
+        where(mayCommit(current, ResourceManager.rm2)) ~> effects.commitRm2()
       on(rm.commit(ResourceManager.rm3)):
-        where(s => mayCommit(s, ResourceManager.rm3)) ~> effects.commitRm3
+        where(mayCommit(current, ResourceManager.rm3)) ~> effects.commitRm3()
       on(tm.addPrepared(ResourceManager.rm1)):
-        where(s => mayReceive(s, ResourceManager.rm1)) ~> effects.addPreparedRm1
+        where(mayReceive(current, ResourceManager.rm1)) ~> effects.addPreparedRm1()
       on(tm.addPrepared(ResourceManager.rm2)):
-        where(s => mayReceive(s, ResourceManager.rm2)) ~> effects.addPreparedRm2
+        where(mayReceive(current, ResourceManager.rm2)) ~> effects.addPreparedRm2()
       on(tm.addPrepared(ResourceManager.rm3)):
-        where(s => mayReceive(s, ResourceManager.rm3)) ~> effects.addPreparedRm3
+        where(mayReceive(current, ResourceManager.rm3)) ~> effects.addPreparedRm3()
       on(tm.decideOnCommit):
-        where(s => s.tmState == TransactionManagerState.init && all(s.tmPrepared)) ~>
-          effects.decideOnCommit
+        where(tmState == TransactionManagerState.init && all(tmPrepared)) ~>
+          effects.decideOnCommit()
       on(tm.decideOnAbort):
-        where(_.tmState == TransactionManagerState.init) ~> effects.decideOnAbort
+        where(tmState == TransactionManagerState.init) ~> effects.decideOnAbort()
 
     object effects:
-      def prepareRm1(state: Transaction) = prepared(state, ResourceManager.rm1)
-      def prepareRm2(state: Transaction) = prepared(state, ResourceManager.rm2)
-      def prepareRm3(state: Transaction) = prepared(state, ResourceManager.rm3)
-      def abortRm1(state: Transaction) = aborted(state, ResourceManager.rm1)
-      def abortRm2(state: Transaction) = aborted(state, ResourceManager.rm2)
-      def abortRm3(state: Transaction) = aborted(state, ResourceManager.rm3)
-      def commitRm1(state: Transaction) = committed(state, ResourceManager.rm1)
-      def commitRm2(state: Transaction) = committed(state, ResourceManager.rm2)
-      def commitRm3(state: Transaction) = committed(state, ResourceManager.rm3)
-      def addPreparedRm1(state: Transaction) = received(state, ResourceManager.rm1)
-      def addPreparedRm2(state: Transaction) = received(state, ResourceManager.rm2)
-      def addPreparedRm3(state: Transaction) = received(state, ResourceManager.rm3)
-      def decideOnCommit(
-          state: Transaction
-      ): List[Step[Transaction, TwoPhaseCommit.Outcome, Nothing]] =
-        enter(
-          state.copy(
-            tmState = TransactionManagerState.committed,
-            messages = state.messages.incl(Message.commit)
-          )
-        )
-      def decideOnAbort(
-          state: Transaction
-      ): List[Step[Transaction, TwoPhaseCommit.Outcome, Nothing]] =
-        enter(
-          state.copy(
-            tmState = TransactionManagerState.aborted,
-            messages = state.messages.incl(Message.abort)
-          )
-        )
+      def prepareRm1(): Unit = prepare(ResourceManager.rm1)
+      def prepareRm2(): Unit = prepare(ResourceManager.rm2)
+      def prepareRm3(): Unit = prepare(ResourceManager.rm3)
+      def abortRm1(): Unit = abort(ResourceManager.rm1)
+      def abortRm2(): Unit = abort(ResourceManager.rm2)
+      def abortRm3(): Unit = abort(ResourceManager.rm3)
+      def commitRm1(): Unit = commit(ResourceManager.rm1)
+      def commitRm2(): Unit = commit(ResourceManager.rm2)
+      def commitRm3(): Unit = commit(ResourceManager.rm3)
+      def addPreparedRm1(): Unit = receive(ResourceManager.rm1)
+      def addPreparedRm2(): Unit = receive(ResourceManager.rm2)
+      def addPreparedRm3(): Unit = receive(ResourceManager.rm3)
+      def decideOnCommit(): Unit =
+        tmState = TransactionManagerState.committed
+        messages = messages.incl(Message.commit)
+      def decideOnAbort(): Unit =
+        tmState = TransactionManagerState.aborted
+        messages = messages.incl(Message.abort)
+
+      // a resource manager prepares and tells the transaction manager
+      private def prepare(rm: ResourceManager): Unit =
+        rmStates = withState(rmStates, rm, ResourceManagerState.prepared)
+        messages = messages.incl(Message.prepared(rm))
+
+      // there is no need to let others know that a resource manager aborted
+      private def abort(rm: ResourceManager): Unit =
+        rmStates = withState(rmStates, rm, ResourceManagerState.aborted)
+
+      private def commit(rm: ResourceManager): Unit =
+        rmStates = withState(rmStates, rm, ResourceManagerState.committed)
+
+      private def receive(rm: ResourceManager): Unit = tmPrepared = withMember(tmPrepared, rm)
 
     object invariants:
-      val consistencyInv: Property =
-        property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
-          check(consistent(after.step.state))
+      val consistencyInv: Property = property.expect:
+        check(consistent(current))
 
     object postconditions:
       val everyoneCommits: Property =
         property
           .after(rm.commit(ResourceManager.rm3))
-          .expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
-            check(allCommitted(after.step.state))
+          .expect:
+            check(allCommitted(current))
 
     object progress:
       // once the transaction manager commits, every resource manager commits within three steps
-      val commitReachesEveryone: Progress[Transaction] =
+      val commitReachesEveryone: Progress[State] =
         Model.leadsTo("commitReachesEveryone")(
-          _.tmState == TransactionManagerState.committed,
-          allCommitted,
+          tmState == TransactionManagerState.committed,
+          allCommitted(current),
           within = 3,
           fairCommits
         )
@@ -265,15 +236,15 @@ object TwoPhaseCommit:
       extends Derived(
         Model.rebind(
           on(tm.decideOnCommit):
-            where(Model.states.eagerlyCommits) ~> Model.effects.decideOnCommit
+            where(Model.states.eagerlyCommits) ~> Model.effects.decideOnCommit()
         )
       ),
         NegativeControl:
+    import Model.current
 
     object invariants:
-      val eagerConsistencyInv: Property =
-        property.expect: (after: Expectation[Transaction, TwoPhaseCommit.Outcome, Nothing]) ?=>
-          check(consistent(after.step.state))
+      val eagerConsistencyInv: Property = property.expect:
+        check(consistent(current))
 
     object queries:
       val anyEagerRun: Scenario = scenario.starts(Model.init).free
