@@ -214,6 +214,13 @@ class VarMachinesTest extends munit.FunSuite:
       "object M extends Machine[VarMachinesFixture.Said, Nothing]:\n  var x = 1\n  object postconditions:\n    val a = property.across.expect:\n      check(before.x)\n"
     )
     assert(mistyped.contains("Required: Boolean"), mistyped)
+    val sameStep = compileErrors(
+      "object M extends Machine[VarMachinesFixture.Said, Nothing]:\n  var x = 1\n  object invariants:\n    val a = property.expect:\n      check(before.x == 1)\n"
+    )
+    assert(
+      sameStep.contains("before is the state a step started from; use it in a postcondition"),
+      sameStep
+    )
 
 object Thermometer extends Machine[VarMachinesFixture.Said, Nothing]:
   var temperature = 20

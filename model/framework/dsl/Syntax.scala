@@ -134,6 +134,7 @@ final class Expectation[S, O, F] private[framework] (val step: Step[S, O, F]) ex
 
 // The earlier state, available only in a transition expectation. Core form:
 // `b` in `(b: S, a: Step[S, O, F]) => predicate(b, a)`.
+@implicitNotFound("before is the state a step started from; use it in a postcondition")
 final class Before[S] private[framework] (val state: S)
 
 // The typed step whose requirements an expectation reads. Core form: `s` in `s.facts`.
