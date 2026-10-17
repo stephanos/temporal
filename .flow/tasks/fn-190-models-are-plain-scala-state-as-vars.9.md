@@ -12,6 +12,7 @@ The plugin and lifter half of fn-190.1, .2, .4 and .6, moved here so the IR and 
 - From .6: remove `Phased`, the projection/writer, `$facet-context-v1` placeholders, substitution, FacetOutcome and the three facet payloads from the plugin; the Facets fixture lifts to the same bindings except positions and phase access shape.
 - The prototype's stand-in lifting from .1 becomes the production plugin path here.
 - Re-anchor the framework export/lint suites to the final DSL in this batch (the parked fn-164.3 bridges work, branch `work/fn1643-bridges`, is input).
+- Native `Hole.reached[A]` now carries the expected result type so Scala does not erase later independent declarations after a naked hole. The hole lifter must recognize `TypeApply(Select(hole, "reached"), ...)` as well as the former bare selection; the current `Expressions` matcher still requires that update. Predicate and effect fixtures must retain the same Hole identity and unknown result. Native execution evidence does not establish this lifting behavior.
 
 **Size:** L
 

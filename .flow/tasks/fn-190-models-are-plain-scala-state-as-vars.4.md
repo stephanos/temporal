@@ -95,9 +95,33 @@ passes. A fresh-context same-family read-only review and re-review found no rema
 issue. Logs: `.flow/tmp/safety-environments-{surface-red,red,pinned-red,empty-red,core-gate,samples-gate,lint-gate,fmt-check}.log`.
 The expanded Bank exhaustive proof and all held IR/Go/Temporal gates remain unclaimed.
 
-The original native requirements remain open: public legacy vocabulary is still reachable through
-record-state compatibility, and naked Scala guards/helper vals after a failed check still require
-a whole-member execution boundary.
+Whole Unit-member execution now stops after a false or unknown requirement, including naked guards
+and helper vals. Later members continue independently; branches retain their own stop boundaries,
+and a hole inside an `after` block stops its containing member. Ordinary helper exceptions still
+propagate. Declaration copies skip Unit bodies, and static named scoped query targets resolve
+through those copies while a same-section target keeps direct access to its initialized value.
+
+The isolated native class-file transformer uses getter source lines and full-method local scopes
+to locate initializers. Mutable field writes do not split members; local name shadowing, forward
+field writes and instance-section discovery have regression controls. Ambiguous same-line ranges
+refuse with a declaration diagnostic, including helpers optimized to local slots. Scope comparison
+uses actual bytecode length, so generated scenario locals retain their ordinary lifetimes.
+`Hole.reached[A]` preserves subsequent bytecode while still stopping on a reached hole; its new
+typed-call lifting obligation is explicitly retained in .9.
+
+All 24 short-circuit/declaration controls pass in the 636-test native run. Fresh-context same-family
+read-only review and subsequent re-review found no remaining material issue in this checkpoint.
+The final native log is `.flow/tmp/whole-member-boundary-code-scope-native-gate.log`; failing
+controls and intermediate verification remain under `.flow/tmp/whole-member-boundary-*`.
+Discovery and source lint pass 37 checks (154 production files, no findings), and formatting passes
+all seven changed Scala files. Logs are `.flow/tmp/whole-member-boundary-check-gate.log` and
+`.flow/tmp/whole-member-boundary-fmt-check.log`.
+
+The native task remains open: public legacy vocabulary is still reachable through record-state
+compatibility, and naked helpers before a scoped claim's final `in` expression can still execute
+during metadata discovery. Parenthesizing the whole scoped block already defers it, but that does
+not establish the unparenthesized form. The enclosing val's complete RHS is available to its macro
+(probe `.flow/tmp/claim-scope-probe.log`); full-member capture remains to be implemented and checked.
 Plugin/lifter semantics remain in .9 and the engine/IR proofs remain in .10. No held gate is counted
 as passing.
 

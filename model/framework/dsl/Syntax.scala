@@ -1897,7 +1897,29 @@ private[framework] object QueryMacros:
     val term = unwrap(claim.asTerm)
     val tpe = term.tpe.widen
     if tpe <:< TypeRepr.of[Property] then
-      '{ ClaimQuery.property($form, ${ term.asExprOf[Property] }) }
+      val member = term.symbol
+      val section = if member.exists then member.owner else Symbol.noSymbol
+      val machine = if section.exists then section.owner else Symbol.noSymbol
+      val withinSection = Iterator
+        .iterate(Symbol.spliceOwner)(_.owner)
+        .takeWhile(!_.isNoSymbol)
+        .exists(_.equals(section))
+      val selected =
+        if !withinSection && member.exists && member.isValDef && section.isClassDef &&
+          section.flags.is(Flags.Module) && blockSections(section.name) &&
+          machine.isClassDef && machine.flags.is(Flags.Module) &&
+          machine.typeRef <:< TypeRepr.of[Model]
+        then
+          val owner = Ref(machine.companionModule).asExprOf[Model]
+          '{
+            NativeClaims.property(
+              $owner,
+              ${ Expr(section.name.stripSuffix("$")) },
+              ${ Expr(member.name) }
+            )
+          }
+        else term.asExprOf[Property]
+      '{ ClaimQuery.property($form, $selected) }
     else if tpe <:< TypeRepr.of[LeadsTo] then
       if finds then
         report.errorAndAbort("a progress claim is verified, not found", claim.asTerm.pos)

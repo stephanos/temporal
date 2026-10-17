@@ -11,6 +11,13 @@ import scala.collection.mutable
 // class through its parent, so the members read the live vars. Evaluations of one Machine run one at
 // a time, as its vars are one live state.
 private[framework] object NativeClaims:
+  final private[framework] class Stopped extends scala.util.control.ControlThrowable
+  private val stopped = new Stopped
+
+  def boundary(body: => Unit): Unit =
+    try body
+    catch case _: Stopped => ()
+
   // One assertion a claim made: the member it belongs to, its line and source text, and whether it
   // held.
   final case class Checked(member: String, line: Int, text: String, holds: Boolean)
@@ -47,6 +54,9 @@ private[framework] object NativeClaims:
       collecting.top.exists(c => c.member == member && !c.holds) ||
         uncertain.top.exists(_._1 == member)
 
+    private[NativeClaims] def stop(member: String): Unit =
+      if failed(member) then throw stopped
+
     private[NativeClaims] def attempt(member: String)(body: => Unit): Unit =
       try body
       catch
@@ -80,7 +90,7 @@ private[framework] object NativeClaims:
         uncertain.push(mutable.ArrayBuffer.empty)
         val result =
           try
-            attempt(choosingMembers.top)(body)
+            boundary(attempt(choosingMembers.top)(body))
             (collecting.top.forall(_.holds), uncertain.top.toVector)
           finally
             val _ = collecting.pop()
@@ -110,6 +120,7 @@ private[framework] object NativeClaims:
     current.foreach: c =>
       c.attempt(member):
         if !c.failed(member) then c.add(Checked(member, line, text, condition))
+      c.stop(member)
 
   // A fact: in a claim, an assertion that the step under evaluation recorded it; in an effect, a
   // fact the step records. Outside both, a claim's assertion records nothing, and an effect's fact
@@ -121,6 +132,7 @@ private[framework] object NativeClaims:
           if !c.failed(member) then
             val fact = value
             c.add(Checked(member, line, s"records($fact)", c.recorded.contains(fact)))
+        c.stop(member)
       case None =>
         Vars.current match
           case Some(frame) => frame.facts = frame.facts :+ value
@@ -132,7 +144,12 @@ private[framework] object NativeClaims:
 
   // Alternatives, of which at least one holds: one assertion of the member.
   def alternatives(member: String, line: Int)(body: => Unit): Unit =
-    current.foreach(_.alternatives(member, line)(body))
+    current.foreach: c =>
+      c.alternatives(member, line)(body)
+      c.stop(member)
+
+  def abandon(member: String, reached: HoleReached): Unit =
+    current.foreach(_.attempt(member)(throw reached))
 
   // One alternative: it holds where none of its assertions failed.
   def alternative(body: => Unit): Unit = current.foreach(_.alternative(body))
@@ -145,6 +162,7 @@ private[framework] object NativeClaims:
       if c.taken.exists(selects(target, _)) then
         c.triggered += member: Unit
         c.attempt(member)(block)
+        c.stop(member)
 
   // Whether a step of `cls` is a step of `target`: the class itself, or any class of an action.
   def selects(target: Any, cls: Class): Boolean = target match
@@ -226,29 +244,31 @@ private[framework] object NativeClaims:
 
   // Evaluates a section of `owner` on the vars of `vars` holding `now`, under `context`.
   def evaluate(vars: Vars, section: java.lang.Class[?], now: State, context: Context): Context =
-    try vars.at(now)(within(context)(Reload.initialise(section)))
+    try
+      val _ = vars.at(now)(within(context)(Reload.initialise(section)))
     catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
   // Evaluates an ad-hoc claim on the vars of `vars` holding `now`, under `context`.
   def evaluate(vars: Vars, claim: Adhoc, now: State, context: Context): Context =
-    try vars.at(now)(within(context)(claim.body()))
+    try vars.at(now)(within(context)(boundary(claim.body())))
     catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
   // Reruns a static object's initialiser: defines the class afresh in a child loader that sees every
   // other class through its parent.
   private object Reload:
-    private val bytes = java.util.concurrent.ConcurrentHashMap[java.lang.Class[?], Array[Byte]]()
+    private val bytes =
+      java.util.concurrent.ConcurrentHashMap[(java.lang.Class[?], Boolean), Array[Byte]]()
 
-    def initialise(target: java.lang.Class[?]): Unit =
+    def initialise(target: java.lang.Class[?], declarations: Boolean = false): AnyRef =
       val parent = target.getClassLoader
       val wanted = target.getName
       val code = bytes.computeIfAbsent(
-        target,
+        (target, declarations),
         _ =>
           val stream = parent.getResourceAsStream(wanted.replace('.', '/') + ".class")
-          try stream.readAllBytes()
+          try NativeClaimSections.prepare(target, stream.readAllBytes(), declarations)
           finally stream.close()
       )
       val loader = new ClassLoader(parent):
@@ -257,6 +277,24 @@ private[framework] object NativeClaims:
             Option(findLoadedClass(n)).getOrElse(defineClass(n, code, 0, code.length))
           else super.loadClass(n, resolve)
       try
-        val _ = java.lang.Class.forName(wanted, true, loader)
+        java.lang.Class
+          .forName(wanted, true, loader)
+          .getField("MODULE$")
+          .get(null) // scalafix:ok DisableSyntax.null
       catch
         case failed: ExceptionInInitializerError => throw Option(failed.getCause).getOrElse(failed)
+
+  private val declared = java.util.concurrent.ConcurrentHashMap[java.lang.Class[?], AnyRef]()
+
+  def declarations(section: java.lang.Class[?]): AnyRef =
+    declared.computeIfAbsent(section, _ => Reload.initialise(section, declarations = true))
+
+  def property(machine: Model, section: String, member: String): Property =
+    val cls = sectionClass(machine, section, requireStatic = true).getOrElse(
+      throw IllegalArgumentException(s"${machine.name} has no $section section")
+    )
+    val module = declarations(cls)
+    module.getClass
+      .getMethod(member)
+      .invoke(module)
+      .asInstanceOf[Property] // scalafix:ok DisableSyntax.asInstanceOf

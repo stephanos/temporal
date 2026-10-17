@@ -38,7 +38,7 @@ object ScopedClaim:
       member: String,
       scenario: Scenario
   )(body: => Unit): ScopedClaim =
-    if NativeClaims.current.nonEmpty then body
+    if NativeClaims.current.nonEmpty then NativeClaims.boundary(body)
     new ScopedClaim(
       PropertyDecl(
         member,

@@ -765,12 +765,21 @@ private[framework] object NativeCheck:
     )
 
   private def module(name: String, loader: ClassLoader): Option[AnyRef] =
-    scala.util
-      .Try(
-        java.lang.Class.forName(name, true, loader).getField("MODULE$").get(null)
-      ) // scalafix:ok DisableSyntax.null
-      .toOption
-      .collect { case value: AnyRef => value }
+    val target = scala.util.Try(java.lang.Class.forName(name, false, loader)).toOption
+    target.flatMap: cls =>
+      scala.util
+        .Try(cls.getField("MODULE$"))
+        .toOption
+        .flatMap: field =>
+          if !java.lang.reflect.Modifier.isStatic(field.getModifiers) then None
+          else if Vector("invariants$", "postconditions$", "queries$").exists(name.endsWith) &&
+            NativeClaims.members(cls).nonEmpty
+          then Some(NativeClaims.declarations(cls))
+          else
+            scala.util
+              .Try(field.get(null))
+              .toOption // scalafix:ok DisableSyntax.null
+              .collect { case value: AnyRef => value }
 
   // The vals of an object, by name, in declaration order.
   private def members(section: AnyRef): Vector[(String, Any)] =

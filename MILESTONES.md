@@ -1058,9 +1058,9 @@ with a Kettle prototype and verdict in `model/design`.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.4 | 🔄 in progress | Native effects, transitions, check claims, safety-claim environments and exact-class only/fair scenarios are implemented; finish public vocabulary retirement and whole-member short-circuit coverage. Native claim predicate holes retain unknown evidence; plugin/lifter proofs remain .9 |
+| fn-190.4 | 🔄 in progress | Native effects, transitions, claim environments and whole Unit-member short-circuit boundaries are implemented; 636 native tests pass. Finish public vocabulary retirement and unsafe helpers before scoped `in` metadata; typed Hole-call lifting remains .9 |
 | fn-190.5 | ⬜ todo | After .3/.4: remove in-process execution from the DSL (R6) |
-| fn-190.7 | 🔄 in progress | Six native sample rewrites, witness-only query sections and test-only negative controls; sample tests colocated and all 617 native tests pass. Bank uses step/witness/refutation checks without an exhaustive safety assertion; complete-start-list coverage and IR/Go/oracle/equivalence proofs remain open |
+| fn-190.7 | 🔄 in progress | Six native sample rewrites, witness-only query sections and test-only negative controls; sample tests colocated and all 636 native tests pass. Bank uses step/witness/refutation checks without an exhaustive safety assertion; complete-start-list coverage and IR/Go/oracle/equivalence proofs remain open |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.11 | ⬜ todo | Phase 1, after .4/.6: composition member facts as a per-member case of the composition's fact enum, member reads as plain calls; `through`, member `records`, `MemberPath` retired from the DSL (R17) |
 | fn-190.12 | ⬜ todo | Phase 2, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |

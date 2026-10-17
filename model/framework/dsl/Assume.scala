@@ -70,7 +70,8 @@ final class Hole private[framework] (val name: String) extends RetainedDeclarati
   def toIR: io.temporal.server.api.umpire.v1.Hole = Signature.hole(this)
   // Where a step function reaches the hole. Only the IR interpreter reads holes; a step function
   // run as Scala stops here.
-  def reached: Nothing = throw HoleReached(this)
+  // A contextual result type keeps the compiler from erasing independent declarations after it.
+  def reached[A]: A = throw HoleReached(this)
 
   override def toString: String = s"hole $name"
 
