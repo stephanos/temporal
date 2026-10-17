@@ -8,11 +8,7 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 [GOMAD_NEXT.md](.plans/GOMAD_NEXT.md) remains the capability roadmap across all four tracks.
 
 The WASM backend lives in `tools/gomad/internal/backends/wasm` and shares its
-campaign, artifact, replay, and choice owners. The completed
-[fn-151](.flow/specs/fn-151-wasm-gomad-execution-backend.md) determinism prototype recorded
-**GO** on 2026-10-10 ([report](.flow/artifacts/fn151-prototype-report-2026-10-10.md));
-[fn-156](.flow/specs/fn-156-wasm-gomad-productionization.md) productionized it (completed
-2026-10-13). Read [the WASM README](tools/gomad/internal/backends/wasm/README.md) before working on that
+campaign, artifact, replay, and choice owners. Read [the WASM README](tools/gomad/internal/backends/wasm/README.md) before working on that
 backend; [the WASM section acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)
 lists the gates a shared-owner change must pass.
 
@@ -32,8 +28,7 @@ Both platforms remain unverified for the current candidate until their owners re
 No PR, push or CI action is authorized by the deferral or its revival.
 The [2026-10-14 native hibernation decision](#native-backend-hibernation)
 extends this acceptance deferral to the new shared-owner native execution gates.
-fn-151 migrated from the retired `temporal_wasm` checkout on 2026-10-10 and is complete;
-both backends are developed together here, and `tools/gomad` remains a shared owner.
+Both backends are developed together here, and `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
 remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
@@ -50,9 +45,7 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 <a id="virtual-network-stalling-fn-154"></a>
 <a id="server-consistency-oracles"></a>
 
-Completed specs and their evidence remain in `.flow/` and Git history, including
-[version-pin maintenance](.flow/specs/fn-113-gomad-reduce-version-pin-maintenance.md)
-and [search-path findings](.flow/specs/fn-114-gomad-correct-search-path-defects-and.md).
+Completed specs and their evidence remain in `.flow/` and Git history.
 
 ## Immediate delivery order
 
@@ -70,7 +63,7 @@ The owner asked, "why is there a native gate anyway; we can declare the native b
 
 The original task selectors, requirements and historical receipts remain the deferred execution ledger, including both-backend semantics and fn-154's divided payload replay guarantees. Native owners stay incomplete and deferred until an explicit qualification request, the supported native host/toolchain/profile and a frozen candidate are available. Record failures and unavailable execution as such; stock-Go coverage, cross-builds and historical results supply no native pass. Existing unsupported-platform/configuration refusals, source correctness, native source/tests/fixtures and features remain in place.
 
-Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. This decision originally retained mandatory Darwin measurements for WASM performance specs fn-172–fn-178; the separate [performance host decision](#wasm-performance-acceptance-host) supersedes that host requirement. This decision changes acceptance ownership only and grants no PR, push or CI authority.
+Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. This decision changes acceptance ownership only and grants no PR, push or CI authority.
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
@@ -90,24 +83,17 @@ Preserve prior evidence under its original identities, without claiming it quali
 changed runtime inputs. Native deferrals, qualification resource limits, and PR,
 push and CI restrictions remain in force.
 
-Owner performance decision (2026-10-11): accept the measured 2.911x workflow
-execution speedup for now (final fn-156 matched costs: workflow 3.739x, activity 4.636x); the previous all-workload 5x target no longer blocks
-fn-156 completion. Defer further speedup optimization. Preserve current-source
-cost measurement, correctness/replay, scheduling, source/review and resource gates.
-The measured full-wall ratio was 0.694x, not an end-to-end speedup.
-
-Owner performance decision (2026-10-13): resume WASM execution-speed work in the
-Rust helper, accepting Go→Rust duplication where it buys performance; embedding
-Wasmtime in Go (`wasmtime-go`) is rejected. The work is tracked in the
-[execution performance](#wasm-execution-performance) specs fn-172–fn-178.
+Owner performance decision (2026-10-13): WASM execution-speed work stays in the Rust
+helper, accepting Go→Rust duplication where it buys performance; embedding Wasmtime in Go
+(`wasmtime-go`) is rejected.
 
 <a id="wasm-performance-acceptance-host"></a>
 
 ### WASM performance acceptance host (owner decision, 2026-10-14)
 
-The owner answered, "Use Linux/arm64 for performance acceptance". Current WASM performance acceptance in fn-172–fn-178 requires real Linux/arm64 measurements, superseding the earlier Darwin/arm64 requirement and optional-Linux wording. Native execution remains deferred under fn-128 and fn-149; this decision qualifies no native platform.
+The owner answered, "Use Linux/arm64 for performance acceptance". Current WASM performance acceptance requires real Linux/arm64 measurements, superseding the earlier Darwin/arm64 requirement and optional-Linux wording. Native execution remains deferred under fn-128 and fn-149; this decision qualifies no native platform.
 
-Retain every existing threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, WASI/network/output equality, identity and resource-budget requirement. Baseline and candidate must be measured on the same real Linux/arm64 host with the specified selections and inputs; retain host CPU evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. An amd64 host, arm64 process emulated on x86, historical Darwin result or stale Linux result supplies no current acceptance pass. Re-measure the relevant pre-change baseline on this host; historical figures remain historical evidence. The fn-173 exit ≤ 1 s, CRC ≥ 2 GB/s and warm preparation ≤ 1 s bounds, fn-174 ≥ 80% encoding-plus-hash reduction, fn-175 ≥ 25% per-seed activity reduction, and fn-178 cluster speedup and unchanged R5 memory budgets still apply. Unavailable or failing measurements remain open; this amendment records no task completion or performance pass and changes no diagnostic default.
+Retain every existing threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, WASI/network/output equality, identity and resource-budget requirement. Baseline and candidate must be measured on the same real Linux/arm64 host with the specified selections and inputs; retain host CPU evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. An amd64 host, arm64 process emulated on x86, historical Darwin result or stale Linux result supplies no current acceptance pass. Re-measure the relevant pre-change baseline on this host; historical figures remain historical evidence. Unavailable or failing measurements remain open; this amendment records no task completion or performance pass and changes no diagnostic default.
 
 ## Batch-first execution strategy
 
