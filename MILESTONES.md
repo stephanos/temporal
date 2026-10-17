@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-16.
+As of 2026-10-17.
 
 **Current execution boundary (owner override):** work only on `model/framework`; ignore `model/temporal` entirely. All 222 authored Scala files under `model/temporal` are renamed to `*.scala.disabled`, with their contents preserved, to exclude them from Scala source discovery. Temporal integration, mini-feature compilation/lifting/equivalence, Temporal suites and regeneration are held. Framework checks must run without Temporal source inputs. This supersedes the mini-plus-shared-Temporal execution scope and task order below wherever they require Temporal work. The rename and scope record belong to fn-188.
 
@@ -15,7 +15,7 @@ Select subsequent work only from framework-owned requirements. The earlier fn-16
 
 Flowctl forbids cross-spec task edges. Within each native spec, dependencies enforce the order. Between specs, explicit admission holds name the committed native predecessor; the conductor releases those holds at that checkpoint, without waiting for full IR-bearing spec closure. The former fn-165 -> fn-141 whole-spec edge and fn-123's historical whole-spec Temporal prerequisites are removed from native scheduling; original integration tasks retain those baseline obligations in their text.
 
-**Native gate fn-188.3 is done:** corrected-source verification and formal full-native-batch review satisfy parent R6. The native implementation order above is completed history, not a queue to restart. The parent spec stays open; fn-188.2 remains blocked and separately owner-held after its .3 dependency is satisfied. Fn-174.24 and other IR/exporter/schema/Go/backend tasks require an explicit later admission decision. Currently actionable integration leftovers are held explicitly in Flow; closed-spec historical backlog is untouched. Temporal exclusion remains independent of DSL completion.
+**Native gate fn-188.3 is done:** corrected-source verification and formal full-native-batch review satisfy parent R6. The native implementation order above is completed history, not a queue to restart. Fn-188.2 has since closed with the green framework gate (below), and fn-188 is closed. Fn-174.24 and other IR/exporter/schema/Go/backend tasks require an explicit later admission decision. Currently actionable integration leftovers are held explicitly in Flow; closed-spec historical backlog is untouched. Temporal exclusion remains independent of DSL completion.
 
 **Native follow-up fn-147.5 is done:** three added Duration construction/retention controls and author guidance pass 22 focused construction tests and 29 lint tests, with no runtime source change; formal review SHIP. Evidence is in `.flow/tmp/fn1475-final-summary.md` and `.flow/tmp/fn1475-final-evidence.json`; the prior 463-test native batch is retained evidence, not an expanded full rerun. The audit of all 41 open specs and remaining milestone sections demonstrated no further currently authorized native DSL requirement. Do not invent DSL work, revive deferred proposals, or automatically release integration holds.
 
@@ -177,12 +177,12 @@ facet vocabularies are recorded in fn-161.
 | 5 | fn-188.3 done; native batch SHIP | Five review findings fixed with red-first regressions; 463 native tests, lint/boundary/format and all cache-isolated public recipes pass; formal full-native-batch review SHIP; integration holds remain |
 | 6 | fn-147.5 done; SHIP | Native Duration construction/presence coverage and guidance; 22 focused tests and 29 lint tests pass; no runtime source change or new admission policy |
 | 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
-| 8 | fn-188.2 red, open | Full gate run: boundary, core 466 and check 100 pass; export 179 of 281 fail because fixtures and the lifter predate the native surface. Record `.flow/tmp/fn1882-goal-gate-summary.md` |
+| 8 | fn-188.2 done; fn-188 closed | The framework-only gate is green: boundary, core 466, check 100, export 286; 117 generic suites, 21 held with recorded reasons (record `.flow/tmp/checks/framework.7448953529908255698`). The exporter, lifter, reify plugin and fixtures are re-anchored to the native DSL; the sample lifts are held on fn-173.4's native-collection IR schema |
 | Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Eight tasks planned |
 | Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Eight tasks; starts with a Kettle prototype and verdict |
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
-| 9 | fn-164.3 source half done; capture half held | Expectation blocks lift through the source exporter; ExpectFixtures 9/9; framework fixtures migrated. Gate export 290 run / 88 failures (from 179), all in fn-174/fn-189, fn-173 and fn-174.24 lanes. Record `.flow/tmp/fn1643-progress-summary.md` |
-| Next | Owner decision | fn-189 (plugin diet) is being designed in a parallel session and replaces the capture machinery the remaining Constructed*/ReifyBoundary failures exercise; fn-173 state/collections and schema stay held |
+| 9 | fn-164.3 nearly done | Expectation blocks lift through the source exporter and are captured by the reify plugin, each equal to an independent core twin (ExpectFixtures 9, ExpectCaptureSuite 14). Bridges (`never`, `sticky`, monitors) and exact composed facts are in progress |
+| Next | fn-164.3 bridges, fn-164.9, then fn-189 | In parallel lanes: the remaining fn-164.3 bridges, colon-block style across framework fixtures (fn-164.9), then the plugin diet (fn-189) before more fn-174 work. fn-173 state/collections, schema, Go and Temporal stay held |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
