@@ -14,6 +14,7 @@
     "fn-210-rust-prototype-kettle-on-a-trait-engine.11": 0,
     "fn-210-rust-prototype-kettle-on-a-trait-engine.12": 0,
     "fn-210-rust-prototype-kettle-on-a-trait-engine.13": 0,
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.14": 0,
     "fn-210-rust-prototype-kettle-on-a-trait-engine.2": 0,
     "fn-210-rust-prototype-kettle-on-a-trait-engine.9": 0
   },
@@ -527,6 +528,41 @@
       "task": "fn-210-rust-prototype-kettle-on-a-trait-engine.9",
       "timestamp": "2026-10-18T21:33:34.312721Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "4fe8424c49201e7187a9c735d9a0a5554755198384b5ffe87f454a1a52f26a10",
+      "backend": "codex",
+      "base_sha": "746545cd87df51a46385c0da329070da66d0d863",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e472b47ae0b696aeb8239888aa7a64a91fe1980d",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e084026e5a224da392a9aa2e9d7c9e32",
+      "round_consumed": true,
+      "scope": "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.14",
+      "superseded_by": null,
+      "task": "fn-210-rust-prototype-kettle-on-a-trait-engine.14",
+      "timestamp": "2026-10-18T21:41:12.332358Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -535,6 +571,7 @@
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.11": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.12": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.13": 1,
+    "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.14": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.2": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.9": 1
   },
@@ -546,6 +583,7 @@
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.11": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.12": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.13": 0,
+    "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.14": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.2": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.9": 0
   },
@@ -563,5 +601,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T21:33:34.322637Z"
+  "updated_at": "2026-10-18T21:41:12.339129Z"
 }
