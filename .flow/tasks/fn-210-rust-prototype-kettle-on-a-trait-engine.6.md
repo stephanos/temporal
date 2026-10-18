@@ -1,9 +1,13 @@
 ---
-satisfies: [R6]
+satisfies: [R6, R14]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.6 Kettle in surface C with its test; parity with the Scala suite
 
 ## Description
+**R14 joined integration:** consume the .5 source-order metadata in checker reporting, if the separate registry hooks otherwise group claims by kind. Add a shared Model with interleaved invariant/postcondition/progress declarations and a report golden proving actual order, while keeping manual-world defaults and dynamic effect failures deterministic. This checker integration belongs here after .3/.5, not in the parallel DSL lane.
+
+**Touches:** `model2/umpire/tests/**`, `model2/umpire/checker/src/**`, `model2/umpire/checker/tests/**`, `model2/DESIGN.md`
+
 **Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.
 
 **Location (R29 amended):** there is no `samples` crate; write Kettle in surface C as `umpire/tests/fixtures/kettle/model.rs`, replacing the trait-shaped source there.
@@ -16,7 +20,7 @@ satisfies: [R6]
 
 Write `umpire/tests/fixtures/kettle/model.rs` in surface C (from `options/Kettle.attrs.rs`), and `tests/kettle.rs` asking the Scala suite's questions: explore counts, verify_all verified, `boils` verified, `!beeping` refuted. Record any deliberate deviation from the sketch.
 
-**Files:** model2/umpire/tests/fixtures/kettle/model.rs, model2/umpire/samples/tests/kettle.rs.
+**Files:** model2/umpire/tests/fixtures/kettle/model.rs and shared fixture runner; checker ordering integration; model2/DESIGN.md for deliberate sketch differences. Keep the separate trait Kettle as the WASM/native reference and preserve its goldens.
 
 **Quick commands:** `mise exec -- cargo test --workspace`
 ## Acceptance

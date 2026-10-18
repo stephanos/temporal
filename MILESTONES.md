@@ -91,7 +91,6 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.3 | 🔄 in progress | After .14: progress within a scope, weak fairness on internal steps, lasso and dead-end counterexamples (R3) |
 | fn-210.4 | 🔄 in progress | After .14, beside .3: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
