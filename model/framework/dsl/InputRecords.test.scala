@@ -3,6 +3,100 @@ package framework.dsl
 import framework.checker.Effects.*
 
 class InputRecords extends munit.FunSuite:
+  test("nested record calls retain the selected generic owner and constructor defaults"):
+    assertEquals(
+      compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      import framework.dsl.Finite.given
+      enum Address:
+        case first, second
+      class Model[A: Finite](initial: A):
+        final case class Input(address: A = initial, enabled: Boolean = true)
+        val submit = action(Actor("caller")).inputs[Input]
+      val subject = new Model[Address](Address.first)
+      val named = subject.submit(enabled = false, address = Address.second)
+      val defaulted = subject.submit(enabled = false)
+      val empty = subject.submit()
+      val supplied = subject.submit(subject.Input(Address.second, false))
+      val owner: subject.Input = subject.Input(Address.first)
+      val exact = subject.submit(owner)
+    """),
+      Nil
+    )
+
+  test("nested record refusals retain field diagnostics and call-site coordinates"):
+    val refusals = List(
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        subject.submit(unknown = false)
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        subject.submit(address = false, address = true)
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        subject.submit(address = "wrong")
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        subject.submit(enabled = false)
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        subject.submit()
+      """),
+      compiletime.testing.typeCheckErrors("""
+        import framework.dsl.*
+        import framework.dsl.Finite.given
+        class Model[A: Finite]:
+          final case class Input(address: A, enabled: Boolean = true)
+          val submit = action(Actor("caller")).inputs[Input]
+        val subject = new Model[Boolean]
+        val foreign = new Model[Boolean]
+        subject.submit(foreign.Input(false))
+      """)
+    )
+    val expected = List(
+      "subject.submit(unknown = false)" -> "unknown input unknown",
+      "subject.submit(address = false, address = true)" -> "supplied twice",
+      "subject.submit(address = \"wrong\")" -> "Required: Boolean",
+      "subject.submit(enabled = false)" -> "parameter address",
+      "subject.submit()" -> "parameter address",
+      "subject.submit(foreign.Input(false))" -> "declared input type"
+    )
+    refusals.zip(expected).foreach: (errors, expected) =>
+      val (line, reason) = expected
+      assert(
+        errors.exists(e => e.lineContent.trim == line && e.message.contains(reason)),
+        errors.toString
+      )
+
   test("record declarations preserve their actual input type and named constructor calls"):
     assertEquals(
       compiletime.testing.typeCheckErrors("""
