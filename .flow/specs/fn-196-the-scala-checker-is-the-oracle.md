@@ -73,8 +73,10 @@ whose effect throws is a `refuted` Result carrying the exception's message and t
 
 ## Edge Cases & Constraints
 
-- A cut exploration answers `unknown` for a verify and `notFound` for a find; a counterexample or a
-  witness found before the cut stands (fn-190 R14).
+- A budget-cut exploration answers `unknown` for both verification and finding, as fn-190 R14
+  requires; a counterexample or witness found before the cut stands. `notFound` means the search
+  completed within the requested horizon without reaching the target, not that its budget ran
+  out. This distinguishes a bounded negative answer from an incomplete search. [inferred]
 - Visited states are deduplicated structurally; a Model whose state holds an unordered collection
   compares equal by value, which `Finite`'s structural equality gives.
 - Memory is the risk the measurement exists for; the hash-keyed visited set is the mitigation and is

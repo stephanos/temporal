@@ -3,7 +3,7 @@
 The current state of Umpire work: what is being built, what is left, and what is not being done.
 Flow (`.flow/`, `flowctl`) is the record for specs and tasks; this page is the overview across them.
 
-As of 2026-10-17.
+As of 2026-10-18.
 
 **Current execution boundary (owner override):** work only on `model/framework`; ignore `model/temporal` entirely. All 222 authored Scala files under `model/temporal` are renamed to `*.scala.disabled`, with their contents preserved, to exclude them from Scala source discovery. Temporal integration, mini-feature compilation/lifting/equivalence, Temporal suites and regeneration are held. Framework checks must run without Temporal source inputs. This supersedes the mini-plus-shared-Temporal execution scope and task order below wherever they require Temporal work. The rename and scope record belong to fn-188.
 
@@ -1146,7 +1146,7 @@ Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md
 | Name | Status | What |
 | --- | --- | --- |
 | fn-196.1 | ⬜ todo | The native runtime and `NativeCheck` move to a product checker module outside `framework.dsl` with one `Result` shape; carries fn-190.15's move (R1) |
-| fn-196.2 | ⬜ todo | After .1: `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity, the gate's budget with per-suite overrides (R2, R3) |
+| fn-196.2 | ⬜ todo | After .1: complete R1's question/error contracts with `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity and the gate's budget; a budget-cut find is unknown, not a completed negative search (R1-R3) |
 | fn-196.3 | ⬜ todo | After .2: measurement note on the largest available graphs; go/no-go on deleting the Go check; lowering location (R4) |
 | fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
 | fn-196.5 | ⬜ todo | After .3: MILESTONES Direction, README and SEMANTICS say the Scala checker is the oracle (R7) |

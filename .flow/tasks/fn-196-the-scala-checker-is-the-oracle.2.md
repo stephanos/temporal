@@ -12,6 +12,10 @@ R1 is shared with fn-196.1: the move establishes the checker module and common R
 and this task completes its public questions and error contracts. R1 is not complete at the
 module-move checkpoint alone.
 
+A `find` that exhausts its state budget without a witness answers `unknown`; one that completes
+the requested horizon without a witness answers `notFound`. A witness found before a cut stands.
+Keep a regression for each case so a budget cut cannot be mistaken for a completed negative search.
+
 **Files:** `model/framework/checker/Checker.scala`, `Replay.scala`, `Spaces.scala`, `Sampling.scala`, `Vacuity.scala` (new), the budget configuration reader, tests beside each.
 
 ### Verification
