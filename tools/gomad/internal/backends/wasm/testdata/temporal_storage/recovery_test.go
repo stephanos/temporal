@@ -122,7 +122,8 @@ func TestCommittedWorkflowCrashRecovery(t *testing.T) {
 	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Minute)
 	defer cancel()
 	if initialize {
-		commitWorkflow(t, ctx, c, false)
+		registerRecoveryNamespace(t, ctx, c, false)
+		commitWorkflow(t, ctx, c)
 	}
 	value := observe(t, c)
 	if len(value.Types) != 5 || value.Types[len(value.Types)-1] != enumspb.EVENT_TYPE_WORKFLOW_EXECUTION_COMPLETED.String() {
@@ -138,7 +139,7 @@ func TestCommittedWorkflowCrashRecovery(t *testing.T) {
 	}
 }
 
-func commitWorkflow(t *testing.T, ctx context.Context, c *testcore.TestCluster, global bool) {
+func registerRecoveryNamespace(t *testing.T, ctx context.Context, c *testcore.TestCluster, global bool) {
 	t.Helper()
 	registration := &workflowservice.RegisterNamespaceRequest{Namespace: "recovery", WorkflowExecutionRetentionPeriod: durationpb.New(24 * time.Hour), IsGlobalNamespace: global}
 	if global {
@@ -165,6 +166,10 @@ func commitWorkflow(t *testing.T, ctx context.Context, c *testcore.TestCluster, 
 		case <-time.After(time.Second):
 		}
 	}
+}
+
+func commitWorkflow(t *testing.T, ctx context.Context, c *testcore.TestCluster) {
+	t.Helper()
 	_, err := c.FrontendClient().StartWorkflowExecution(ctx, &workflowservice.StartWorkflowExecutionRequest{
 		Namespace: "recovery", WorkflowId: "committed", WorkflowType: &commonpb.WorkflowType{Name: "Recovery"},
 		TaskQueue: &taskqueuepb.TaskQueue{Name: "recovery"}, RequestId: "start-committed", WorkflowTaskTimeout: durationpb.New(time.Minute),

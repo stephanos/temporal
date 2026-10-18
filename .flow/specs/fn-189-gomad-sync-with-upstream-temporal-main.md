@@ -27,6 +27,21 @@ Integrate upstream with a merge commit of `upstream/main` into `gomad`, not a li
 - Native backend execution stays deferred under fn-128/fn-149.
 - No source translation or test rewriting to absorb upstream changes.
 
+### Approved namespace-readiness exception (2026-10-18)
+
+The owner approved the proposed fixture ordering after reviewing the captured
+namespace/workflow race. The Gomad-owned independent-cluster fixture may register
+the replicated namespace, wait with bounded RPCs until standby exposes the same
+namespace ID and expected active/standby replication configuration, then create
+the workflow. Preserve upstream validation, all existing history and recovery
+assertions, success/canary distinctions and resource/capacity budgets. Do not
+translate upstream test sources, inject namespace/database state, add fixed
+sleeps, select favorable schedules or disable source-cluster validation. The
+scenario qualifies workflow replication after namespace readiness; it does not
+qualify the namespace/workflow arrival race. Add readiness negative controls,
+retain the failed unchanged-fixture evidence, freeze the changed candidate and
+rerun qualification rather than relabeling old results.
+
 ## Decision Context
 
 Ordered after fn-182 (which edits guest provider selection in server code) and fn-184, and before fn-187 and fn-185, so the final host-side cost profile measures the synced candidate.

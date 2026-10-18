@@ -11,16 +11,137 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	namespacepb "go.temporal.io/api/namespace/v1"
+	replicationpb "go.temporal.io/api/replication/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"go.temporal.io/server/api/adminservice/v1"
 	"go.temporal.io/server/api/historyservice/v1"
 	"go.temporal.io/server/common/log"
 	"go.temporal.io/server/common/metrics"
 	"go.temporal.io/server/common/rpc"
+	"go.temporal.io/server/common/testing/await"
 	"go.temporal.io/server/service/history/tasks"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/timestamppb"
 )
+
+func TestReplicatedNamespaceReadiness(t *testing.T) {
+	t.Parallel()
+	ready := &workflowservice.DescribeNamespaceResponse{
+		NamespaceInfo:     &namespacepb.NamespaceInfo{Id: "registered-namespace-id", State: enumspb.NAMESPACE_STATE_REGISTERED},
+		IsGlobalNamespace: true,
+		ReplicationConfig: &replicationpb.NamespaceReplicationConfig{
+			ActiveClusterName: "active",
+			Clusters:          []*replicationpb.ClusterReplicationConfig{{ClusterName: "active"}, {ClusterName: "standby"}},
+		},
+	}
+	for _, test := range []struct {
+		name   string
+		mutate func(*workflowservice.DescribeNamespaceResponse)
+		want   bool
+	}{
+		{name: "registered-global-namespace", want: true},
+		{name: "replica-order-independent", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters[0], s.ReplicationConfig.Clusters[1] = s.ReplicationConfig.Clusters[1], s.ReplicationConfig.Clusters[0]
+		}, want: true},
+		{name: "missing-namespace-info", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.NamespaceInfo = nil }},
+		{name: "missing-namespace-id", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.NamespaceInfo.Id = "" }},
+		{name: "different-namespace-id", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.NamespaceInfo.Id = "another-namespace-id" }},
+		{name: "unspecified-state", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.NamespaceInfo.State = enumspb.NAMESPACE_STATE_UNSPECIFIED
+		}},
+		{name: "deprecated-state", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.NamespaceInfo.State = enumspb.NAMESPACE_STATE_DEPRECATED
+		}},
+		{name: "deleted-state", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.NamespaceInfo.State = enumspb.NAMESPACE_STATE_DELETED
+		}},
+		{name: "local-namespace", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.IsGlobalNamespace = false }},
+		{name: "missing-replication-config", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig = nil }},
+		{name: "missing-active-cluster", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig.ActiveClusterName = "" }},
+		{name: "wrong-active-cluster", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig.ActiveClusterName = "standby" }},
+		{name: "missing-replica-membership", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig.Clusters = nil }},
+		{name: "nil-active-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig.Clusters[0] = nil }},
+		{name: "nil-standby-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) { s.ReplicationConfig.Clusters[1] = nil }},
+		{name: "missing-active-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters = s.ReplicationConfig.Clusters[1:]
+		}},
+		{name: "missing-standby-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters = s.ReplicationConfig.Clusters[:1]
+		}},
+		{name: "wrong-active-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters[0].ClusterName = "other"
+		}},
+		{name: "wrong-standby-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters[1].ClusterName = "other"
+		}},
+		{name: "duplicate-active-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters[1].ClusterName = "active"
+		}},
+		{name: "extra-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters = append(s.ReplicationConfig.Clusters, &replicationpb.ClusterReplicationConfig{ClusterName: "other"})
+		}},
+		{name: "extra-nil-replica", mutate: func(s *workflowservice.DescribeNamespaceResponse) {
+			s.ReplicationConfig.Clusters = append(s.ReplicationConfig.Clusters, nil)
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			response := proto.Clone(ready).(*workflowservice.DescribeNamespaceResponse)
+			if test.mutate != nil {
+				test.mutate(response)
+			}
+			require.Equal(t, test.want, replicatedNamespaceReady(response, "registered-namespace-id", "active", "standby"))
+		})
+	}
+	for _, test := range []struct {
+		name                         string
+		response                     *workflowservice.DescribeNamespaceResponse
+		namespaceID, active, standby string
+	}{
+		{name: "nil-response", namespaceID: "registered-namespace-id", active: "active", standby: "standby"},
+		{name: "empty-response", response: &workflowservice.DescribeNamespaceResponse{}, namespaceID: "registered-namespace-id", active: "active", standby: "standby"},
+		{name: "missing-expected-id", response: ready, active: "active", standby: "standby"},
+		{name: "missing-expected-active", response: ready, namespaceID: "registered-namespace-id", standby: "standby"},
+		{name: "missing-expected-standby", response: ready, namespaceID: "registered-namespace-id", active: "active"},
+		{name: "identical-expected-replicas", response: ready, namespaceID: "registered-namespace-id", active: "active", standby: "active"},
+		{name: "all-zero-values"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			require.False(t, replicatedNamespaceReady(test.response, test.namespaceID, test.active, test.standby))
+		})
+	}
+}
+
+func replicatedNamespaceReady(response *workflowservice.DescribeNamespaceResponse, namespaceID, active, standby string) bool {
+	if namespaceID == "" || active == "" || standby == "" || active == standby ||
+		response.GetNamespaceInfo().GetId() != namespaceID ||
+		response.GetNamespaceInfo().GetState() != enumspb.NAMESPACE_STATE_REGISTERED || !response.GetIsGlobalNamespace() {
+		return false
+	}
+	config := response.GetReplicationConfig()
+	if config.GetActiveClusterName() != active || len(config.GetClusters()) != 2 {
+		return false
+	}
+	first, second := config.Clusters[0].GetClusterName(), config.Clusters[1].GetClusterName()
+	return first == active && second == standby || first == standby && second == active
+}
+
+func waitNamespaceReplicated(t *testing.T, ctx context.Context, active, standby workflowservice.WorkflowServiceClient) {
+	t.Helper()
+	readinessContext, cancel := context.WithTimeout(ctx, 90*time.Second)
+	defer cancel()
+	registered, err := active.DescribeNamespace(readinessContext, &workflowservice.DescribeNamespaceRequest{Namespace: "recovery"})
+	require.NoError(t, err)
+	namespaceID := registered.GetNamespaceInfo().GetId()
+	require.NotEmpty(t, namespaceID)
+	await.Require(readinessContext, t, func(t *await.T) {
+		response, err := standby.DescribeNamespace(t.Context(), &workflowservice.DescribeNamespaceRequest{Namespace: "recovery"})
+		require.NoError(t, err)
+		require.True(t, replicatedNamespaceReady(response, namespaceID, "active", "standby"), "standby namespace is not ready: %v", response)
+	}, 90*time.Second, time.Second)
+}
 
 func TestReplicationReadinessRequiresRemoteAcknowledgment(t *testing.T) {
 	for _, route := range []struct {
@@ -161,7 +282,12 @@ func TestIndependentClusterReplicationRecovery(t *testing.T) {
 		waitReplicationConnected(t, ctx, c.HistoryClient(), name, remote, started)
 		waitReplicationConnected(t, ctx, peerHistory, remote, name, started)
 		if name == "active" {
-			commitWorkflow(t, ctx, c, true)
+			registerRecoveryNamespace(t, ctx, c, true)
+			peerFrontendConnection, err := rpc.Dial(address, nil, log.NewNoopLogger(), metrics.NoopMetricsHandler)
+			require.NoError(t, err)
+			t.Cleanup(func() { require.NoError(t, peerFrontendConnection.Close()) })
+			waitNamespaceReplicated(t, ctx, c.FrontendClient(), workflowservice.NewWorkflowServiceClient(peerFrontendConnection))
+			commitWorkflow(t, ctx, c)
 			recorded := c.GetHistoryTaskRecorder()
 			if recorded == nil {
 				t.Fatal("replication task recorder is required")

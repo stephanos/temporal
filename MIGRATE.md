@@ -18,12 +18,18 @@ Decisions for the executor:
 - Use a pinned Git submodule at `third_party/temporal` initially. An ordinary
   Go dependency alone does not provide all the source trees and modified tests.
 - Keep all Gomad code, including the deferred native backend, in the root project.
-- Keep the old public repository read-only during migration. Publish new snapshots,
-  server dependency commits, recovery material and task branches only privately.
-- Avoid requiring a second new GitHub repository. The default dependency remote
-  is the same private destination, with its Temporal-only tree on
-  `dependencies/temporal`. The submodule pins a commit on that branch. It must
-  not point back to a Gomad-root tree containing itself.
+- Retain patched Temporal in the public `https://github.com/stephanos/temporal`
+  repository on branch `gomad`. Move the standalone Gomad pieces out of its
+  current tree; retain required Temporal-side patches, tests and integration
+  seams there. Future Temporal dependency updates continue on that branch.
+- Point `third_party/temporal` at `https://github.com/stephanos/temporal.git`,
+  with an explicit pinned commit from branch `gomad`. Do not create a
+  `dependencies/temporal` branch in the private Gomad repository or a new
+  Temporal repository. The dependency must not contain the Gomad parent gitlink.
+- Publish standalone Gomad code, Flow state, recovery snapshots and continuation
+  branches only to private `temporalio/gomad`. Publish only separately reviewed
+  Temporal-owned changes and extraction cleanup to the public Temporal branch.
+  Check public commit ancestry as well as its final tree for private material.
 - Use a new, collision-free branch for the standalone root. Prefer `gomad` if
   unoccupied; otherwise use a fresh `standalone-gomad-<date>` name. Make the
   verified branch the destination default. Do not overwrite an existing branch
@@ -142,7 +148,7 @@ gomad/
       wasm/
   testdata/
   third_party/
-    temporal/              # pinned Temporal-only submodule
+    temporal/              # stephanos/temporal, pinned gomad-branch commit
   .flow/
   .github/workflows/
   .plans/                  # retained design material
@@ -172,6 +178,9 @@ A GitHub repository rename alone does not update Go import paths.
 2. Verify access to the exact destination with an authenticated GitHub account.
    Confirm full repository identity, private visibility, archive state,
    administrator permission, existing default branch and ref inventory.
+   Separately verify access to `stephanos/temporal`, its public visibility and
+   existing `gomad` branch tip. These repositories keep distinct owners, remotes
+   and publication inventories.
 3. The originating session could not access GitHub. API returned401, HTTPS Git
    had no credentials, and SSH host verification failed. Supply working
    credentials and verify SSH host keys through trusted GitHub documentation;
@@ -247,35 +256,42 @@ A GitHub repository rename alone does not update Go import paths.
 7. Inspect any additional state store under `<git-common-dir>/flow-next`.
    It was absent in the originating checkout, but the executor must recheck.
 
-### 4. Create the patched Temporal dependency
+### 4. Retain patched Temporal on stephanos/temporal:gomad
 
 1. Freeze the selected server tree from the preserved source candidate. Keep
    all required Temporal-side Gomad seams, `gomad_wasm_slim` providers/refusals,
    `tests/gomadfunctional`, persistence/testcore changes and upstream merge history.
    Do not replace it with pristine upstream `main`.
-2. Create `dependencies/temporal` in the isolated repository, based on that
-   preserved server commit. Remove the extracted `tools/gomad` copy and Gomad
-   project metadata from its current tree after those files are secured on the
-   Gomad branch. Retain upstream Temporal support files and required server tests.
-   Historical commits remain unchanged.
-3. Preserve Temporal's own existing dashboard submodule configuration where
+2. Prepare the Temporal-only continuation in a separate isolated checkout based
+   on the fetched public `stephanos/temporal` branch `gomad`. Keep that existing
+   branch's history and advance it only by fast-forward. Transfer selected
+   Temporal-side changes from the preserved source through a reviewed path/diff
+   inventory. Do not base it on, merge or push private recovery commits merely
+   because the final tree will remove Gomad; their ancestors would become public.
+   Retain the selected public upstream merge ancestry explicitly where required.
+3. Once secured privately, remove the standalone `tools/gomad` copy, project Flow
+   records and Gomad-only root docs/tooling/workflows from the public branch's
+   current tree. Retain upstream Temporal support files, required server tests,
+   `tests/gomadfunctional` and the actual server-side Gomad seams. Split shared
+   root files by ownership rather than deleting them wholesale. Existing public
+   commits and their old Gomad contents remain historical and are not rewritten.
+4. Preserve Temporal's own existing dashboard submodule configuration where
    required. That configuration belongs inside the Temporal dependency, not at
    Gomad's new root. Confirm recursive submodule checkout terminates.
-4. Keep the dependency tree free of the new Gomad parent gitlink. A dependency
+5. Keep the dependency tree free of the new Gomad parent gitlink. A dependency
    pointing to a Gomad-root commit would create a recursive checkout structure.
-5. The default private hosting choice is
-   `https://github.com/temporalio/gomad.git`, branch `dependencies/temporal`.
-   This hosts two distinct current trees in one private repository and avoids
-   publishing new work to the old public fork or creating another repository.
-   Record this topology prominently in README and update instructions.
-6. If an already authorized, independently hosted private Temporal fork is
-   preferred, use its reachable pinned commit instead and record that deviation.
-   Do not create a new external repository without authority.
-7. Keep this preparation local until step9's privacy and Actions safeguards pass.
-   Step9 publishes and verifies the dependency retention ref before the Gomad
-   branch containing its gitlink. CI/build users must have access to the private
-   submodule remote. A recorded local commit with no reachable remote ref is not
-   a usable published dependency.
+6. Record `https://github.com/stephanos/temporal.git`, branch `gomad`, as the
+   canonical dependency remote and update lane. The private repository owns
+   standalone Gomad; the public fork owns patched Temporal. Review the complete
+   public commit range, tree and reachable new objects for private Gomad/Flow,
+   recovery, credentials and machine-local evidence before publication.
+7. Keep preparation local until step9's publication and Actions safeguards pass.
+   Step9 publishes and verifies the public Temporal `gomad` commit before the
+   private Gomad branch containing its gitlink. The pin must be fetchable from
+   that public branch without private recovery refs or local object storage.
+8. Future Temporal updates land on public `stephanos/temporal:gomad`. Gomad then
+   updates its explicit gitlink after verification. Ordinary clone/submodule
+   initialization must use the recorded pin, never silently follow branch HEAD.
 
 ### 5. Relocate Gomad and reconcile root-owned integration
 
@@ -305,8 +321,10 @@ A GitHub repository rename alone does not update Go import paths.
    commit. For prepublication builds, initialize its local checkout from a
    separate local dependency clone, using only a command-scoped local-file
    transport allowance if Git requires one. Set the tracked `.gitmodules` URL
-   to the private destination URL before committing; never commit a workstation
-   path. Publish the dependency ref in step9 before the parent branch. Do not
+   to `https://github.com/stephanos/temporal.git` before committing; record
+   `branch = gomad` as the update lane while retaining the gitlink's exact pin.
+   Never commit a workstation path. Publish the public dependency commit in
+   step9 before the private parent branch. Do not
    vendor another full Temporal working tree into the Gomad tree.
 9. Retain a reviewed path map from each extracted file to its new owner. Verify
    file contents and modes, accounting only for deliberate path/import updates.
@@ -382,7 +400,8 @@ Apply this mapping in current code and build configuration:
    exceptions. Keep Go1.27.1 and existing Rust dependency locks.
 2. Move applicable workflows and root lint/Make integration. Update checkout
    roots, `go-version-file`, cache keys, artifact paths and changed-path selectors.
-   Configure private submodule checkout without embedding credentials in files.
+   Configure the public Temporal submodule checkout and private Gomad checkout
+   without embedding credentials in files.
 3. Update model/helper/runtime/projection identity inputs and admission metadata
    deliberately. Source moves, import changes and compiler changes can rotate
    identities. Capture a reviewed old-to-new identity table.
@@ -403,11 +422,11 @@ Apply this mapping in current code and build configuration:
 2. Unarchive the existing private repository using administrator access. Verify
    it remains private. GitHub makes archived repository content and settings
    read-only until unarchived; see [archival documentation](https://docs.github.com/en/repositories/archiving-a-github-repository/archiving-repositories).
-3. Prevent incidental Actions execution before any import push. Snapshot current
-   Actions settings, then disable Actions for the import window using the
-   authorized repository administration path. Verify the setting. If it cannot
-   be made safe, stop before pushing. Do not restore automatic runs until the
-   owner authorizes them.
+3. Prevent incidental Actions execution before either repository receives a
+   migration push. Snapshot each repository's current Actions settings and use
+   the authorized administration path to make the publication window safe.
+   Verify the settings. If either publication cannot be made safe, stop before
+   its push. Do not restore automatic runs until the owner authorizes them.
 4. Add the destination as a separate remote in the isolated migration repository.
    Do not repoint the original shared repository's `origin` as a first step.
 5. Create an explicit source-ref/object/destination-ref map. Preserve source local
@@ -424,8 +443,12 @@ Apply this mapping in current code and build configuration:
 7. Retain the complete available source graph, including Temporal ancestors,
    merges and task branches. Entire-history preservation implies this history
    remains large and includes old repository layouts.
-8. Publish the dependency branch before the standalone gitlink branch, then
-   publish migrated continuation/recovery branches. Record all resulting tips.
+8. Recheck the public `stephanos/temporal:gomad` tip against the recorded starting
+   tip. If it advanced, stop and reconcile locally; never force it back. Publish
+   only the reviewed Temporal-only continuation by normal fast-forward and
+   verify that exact commit is fetchable from the public branch. Then publish
+   the standalone gitlink branch and all Gomad continuation/recovery branches
+   privately to `temporalio/gomad`. Record both repositories' resulting tips.
 9. Fetch into a fresh verifier repository and prove the expected source objects
    are reachable through the imported refs. Compare the exact ref/object map,
    check representative merge parents and preserved SHAs, and run Git integrity
@@ -433,9 +456,12 @@ Apply this mapping in current code and build configuration:
 10. Set the destination default branch to the verified standalone branch without
     overwriting an unrelated branch. Retain the former default branch unchanged.
     Document the canonical clone URL, default branch and submodule initialization.
-11. The old public remote receives no migration commits, recovery archives or
-    private dependency updates. Keep the originating checkout available until
-    the owner confirms the private clone and handoff work.
+11. The public Temporal remote receives only its reviewed server continuation
+    and extraction cleanup. It receives no standalone Gomad updates, private
+    snapshots, Flow/recovery archives or continuation branches. Keep the
+    originating checkout available until the owner confirms the private clone
+    and handoff work. Do not resume standalone Gomad development in that old
+    mixed-layout checkout or push its old local `gomad` branch by mistake.
 
 ## Verification
 
@@ -452,7 +478,9 @@ without narrowing selectors, timeouts or budgets.
 - The destination remains private and unarchived; old destination refs survive.
 - A fresh private clone with submodules initialized retrieves the exact Temporal
   pin and terminates recursion. It requires no files from the original workspace.
-- The parent gitlink, dependency branch tip and documented pin agree.
+- The parent gitlink and documented pin agree with the verified public
+  `stephanos/temporal:gomad` cutover commit. The public branch has only the
+  reviewed Temporal-owned continuation; private recovery ancestors are absent.
 - Both the Gomad and Temporal checkouts are clean after verification; guest
   preparation writes only into designated output/materialization directories.
 - Effective Flow statuses/evidence match the export, including fn-187/fn-189.
@@ -543,7 +571,8 @@ for their completion.
 ## Deliverables for the executing agent
 
 1. Private standalone Gomad repository with preserved history and destination refs.
-2. Pinned, remotely retrievable patched Temporal source dependency.
+2. Patched Temporal retained on public `stephanos/temporal:gomad`, with standalone
+   pieces removed from its current tree and an exact remotely retrievable pin.
 3. Root-layout sources, modules, tooling, docs and CI definitions.
 4. Portable `.flow/` plus effective lifecycle state and a validated restore path.
 5. Recovery snapshots and a migrated continuation branch for unfinished R3 work.

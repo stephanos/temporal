@@ -5,6 +5,100 @@ not integrated. All qualification budgets and final acceptance gates remain inta
 
 ## Latest continuation checkpoint
 
+### Approved namespace-readiness qualification — current execution
+
+The owner approved register-namespace, verify real standby readiness, then start
+workflow. Flow records the narrow exception; upstream validation, all history,
+durability, canary and capacity/resource assertions remain unchanged. Both
+fixture copies now implement that ordering. The new29-case predicate root and
+existing replication-readiness root pass after intended RED, as recorded below.
+
+Primary HEAD is now `60e4dc6ca1` (an externally created checkpoint, not a commit
+by this continuation). Rehashing the previous5393-file source roster finds
+exactly two source changes, the approved recovery/replication fixture files.
+New manifest is
+`/home/agent/wt/evidence/fn189/namespace-readiness-2026-10-18/qualification/source.sha256`,
+SHA256 `4fb14d40ced978f5dbd046f17a18a6372bce83041990afeeee9b5e2795c2b661`.
+Fresh actual independent-cluster success then canary qualification is live under
+owned session5455, with `run-cluster.sh`, `cluster-success.log` and
+`cluster-canary.log` in that directory. The success cell has now passed in783.99s,
+with its child process terminal exit0 and `cluster-success.exit`0. Its retained
+result is `cluster/wasm-qualifications/v1/result-f4065475a18ae1118fad022c3c0802492160365d36cdbca05531ec2e3c22ed98.json`.
+Qualified/deterministic/target-success are true; both recorded executions have
+attempted exact replays with match=true. All20 samples are present. Budget passes
+with zero violations, helper peak3379494912 bytes and operator peak1143832576,
+below its recommendation. Four pre/post-crash observations and history/convergence
+oracles pass. Actual module is `sha256:b1ac4d230191fa3a52623f05aa165a2625816303d7bc46f76c8402790c5283ba`.
+Canary is now live in a fresh process with the same module and budgets, warm
+preparation2.682811418s. The launcher uses new staged fixture copies,
+unchanged detached request/broker inputs and budgets, the stock standalone Go,
+unchanged3700def4… helper and an8GiB pre-helper safety observation. It is the
+sole compiler/runtime owner. Canary and the complete ten-cell corpus are not
+claimed passed. The earlier failures and diagnostic captures remain intact.
+`complete-workload-corpus.sh` is prepared and syntax checked but unexecuted. It
+requires both zero-exit cluster cells, then runs the other eight exact Makefile
+cells in separate processes on this same freeze and invokes the unchanged
+mandatory ten-cell aggregate. No old-source partial results are imported.
+
+The paired default Rust full-coverage owner61194 is terminal exit0, baseline352
+passed/2ignored and candidate201passed/2ignored. Both strict exports pass with
+inventoried external diagnostics. Remaining arms/comparisons and other feature
+modes still gate R3; no conservation certificate or original deletion is claimed.
+The staged R3 patch is still0a343ce3… and its sources remain unintegrated.
+
+The initial two source-audit dispatches failed before reading a diff because
+their shell ignored `workdir`; neither issued a clean verdict. Fresh-context
+retries used explicit repository paths. Their scoped same-family GPT reports
+follow verbatim; neither supplies final task acceptance or runtime qualification.
+
+### Correctness axis — namespace readiness
+
+## Quality Audit — Correctness axis: namespace readiness delta
+
+- Files changed: 2 · Critical 0 · Should Fix 0 · Consider 1.
+- No blocking correctness finding. Live qualification remains with the conductor.
+
+### Consider
+
+- **tools/gomad/internal/backends/wasm/wasi/integration_test.go:3517** (Conf 100): The recurring source gate selects only the older readiness test, omitting the new 29 namespace controls — extend its `-run` selector to include `TestReplicatedNamespaceReadiness`.
+
+### Evidence
+
+- **Walked:** registration → validated standby frontend `:7233` → same ID/REGISTERED/global/exact replicas → workflow creation. `DescribeNamespace` reads standby persistence without cross-cluster forwarding; RPC/polling contexts share the 90-second bound.
+- **Executed:** scoped diff, copy comparisons and retained-log reads. Both copies match; retained logs show the undefined-predicate failure followed by both readiness tests passing. No builds, tests, runtime operations or writes performed.
+
+### Preservation
+
+- **Walked:** local recovery registration/start ordering and existing five-event, durable-result and observation assertions remain intact. Reopen, oracle, canary and resource-budget callers are unchanged.
+
+### Test Budget
+
+- Approximately 80 control-test lines excluding initial fixture setup versus 43 helper/caller/import lines; below 2:1. Existing assertions were preserved.
+
+Correctness axis:1 Consider; no blocking finding. The recurring selector will be
+expanded after the current source-frozen runtime owner terminates.
+
+### Standards axis — namespace readiness
+
+## Quality Audit — Standards axis: namespace readiness
+
+### Summary
+
+- Files changed: 2 · Should Fix 0 · Consider 0 · Blocking: none possible (standards axis).
+- No actionable standards findings in the diff against `60e4dc6ca1539f78b822ea31ba0dd7c36bef1243`.
+
+### What's Good
+
+- **tools/gomad/internal/backends/wasm/testdata/temporal_broker/replication_test.go:117** — Walked: private predicate and bounded `await.Require` keep readiness checks local; named table cases reuse a cloned response.
+- **tools/gomad/internal/backends/wasm/testdata/temporal_storage/recovery_test.go:142** — Walked: extracting registration creates the required ordering seam without widening public APIs or retaining a second workflow-start path.
+
+### Scope
+
+- Executed: scoped diff and line counts; neither file crosses 1,000 lines.
+- No builds, tests, runtime qualification, or writes performed.
+
+Standards axis:0 findings; no worst tier.
+
 ### Helper publication continuation — current source freeze
 
 This is the current checkpoint; live-handle and paired-phase descriptions below
@@ -85,9 +179,45 @@ polls and456907 polls remain pending, through logical241.830977071s. Shared
 Record duplication is not the dominant size cause. Exact original component
 captures remain in `parts-run3/`, with raw network and stdout in
 `terminal-3900236330/`. Pre/post source-manifest checks pass. A second provisional
-run adds only host-side stdout mirrors for both nodes to distinguish standby
-progress from active waiting. No diagnostic timing or provisional result is
-qualification acceptance; resource execution remains serial.
+run added only host-side stdout mirrors for both nodes to distinguish standby
+progress from active waiting. That run, owned session93293, terminated exit1 in
+187.51s, again with exactly the same component sizes and active observation.
+Both nodes' stdout proves local and peer History readiness at logical32s;
+standby emits no workflow observation before the capacity failure. Pre/post
+source checks pass for all5393 entries, and the helper SHA remains3700def4….
+No diagnostic timing or provisional result is qualification acceptance.
+
+Offline HTTP/2/HPACK and generated-protobuf decoding of the original retained
+operations provides a more specific upstream compatibility finding. All three
+workflow tasks1048581/1048586/1048594 leave active at logical32.000000001s.
+Standby acknowledges low watermark1048595 at32.100000001s. The namespace-create
+message for the same namespace is not sent until32.863623988s. Exact filtered
+evidence is `protocol-order.json`, SHA256
+`fc0b589dc5d9f90196124c67e28ff972e61f7d7cbd05e3fef000a61173a55144`;
+the full decoded packets/messages and diagnostic Go readers are retained beside
+it. No malformed HTTP/2 or HPACK decode was observed; ordinary GOAWAY frames
+remain represented rather than treated as parse errors.
+
+Upstream ancestor `f2b571e2eee8a9143fbc4711f3db8b5a37146b3b` added default-true
+`ValidateReplicationTaskSourceCluster`. At
+`service/history/replication/executable_task.go:890`, a missing namespace now
+returns apply=false without eager namespace synchronization. The versioned
+transition executor treats apply=false as successful skip. This matches the
+observed task acknowledgment before namespace propagation and subsequent absent
+standby history; exact branch execution was not logged because the unchanged
+fixture uses a no-op logger. Namespace/workflow ordering is the leading concrete
+compatibility cause, not proven defective WASM routing or shared-record growth.
+Independent read-only research verified the exact packet order, configuration
+and executor branches, and the upstream
+`TestGetNamespaceInfo_NamespaceNotFoundSkipsRefreshAndProcessing` explicitly
+locks the new behavior. It found no namespace-validation override or eager
+`GetNamespace` request in the retained traffic.
+Disabling this upstream validation, increasing limits, weakening history oracles
+or relabeling provisional output is not acceptable. A proper fixture change
+would require namespace readiness on standby before creating workflow tasks, but
+fn189's explicit no-test-rewriting/unchanged-fixture contract requires owner
+direction before applying that change. No source or acceptance criterion has
+been changed. All compiler/runtime handles are terminal.
 Dedicated extra gates have not started. The selected-SQLite launcher now requires
 the new attempt's zero-exit record and reads its result tree, not the failed
 partial attempt. The launchers
@@ -108,6 +238,33 @@ and `r3-rust199-helper-publication-2026-10-18/default`, source pin
 Previous paired snapshots preserve their pre-fix Make bytes and are historical.
 No new coverage object/profile/certificate exists. Staged R3 patch remains
 `0a343ce3549c1b7ed42146caf23c7800f2cd48f9a60c78ebfd3954036833d299`.
+
+After the namespace-ordering diagnosis, the frozen paired default Rust coverage
+run is live under owned session61194. Both source-only phase verifiers passed
+against their actual roots immediately before launch. The serial launcher is
+`/home/agent/wt/evidence/fn187/r3-current/run-rust199-publication-pair.py`;
+it builds baseline first, runs its complete original test roster and coverage
+export, then builds/runs the candidate. Build JSON/stderr, command/exit records
+and per-arm logs remain inside each phase above. Rust1.99.1, matching LLVM,
+separate raw profiles and the private guarded Cargo target remain mandatory.
+No coverage pass, deletion, integration, commit or task completion is claimed.
+That paired run is now terminal exit0. The baseline full roster passes352 tests
+with2 ignored; candidate passes201 with2 ignored. Both strict coverage exports
+pass with their explicitly inventoried external hash-zero diagnostics. Corpus,
+invariant, Go, cursor and final comparison arms remain required; no conservation
+certificate is claimed. The staged R3 patch remains unchanged.
+
+The owner subsequently approved the narrow namespace-readiness fixture change.
+The exception is recorded through Flow in the fn189 spec. Intended RED is
+retained in `/home/agent/wt/evidence/fn189/namespace-readiness-2026-10-18/readiness-red.log`
+(owned session5080 terminal exit1, undefined readiness predicate only). The
+scoped implementer prepared the registration/workflow split, bounded real
+standby frontend readiness and29 predicate cases in both fixture copies.
+Fresh staged GREEN verification passed under owned session31667, terminal exit0,
+using `readiness-green.log` in that directory. Both the new readiness root and
+existing replication-readiness root pass. No full changed-fixture qualification
+pass is claimed. All owned compiler/runtime handles are terminal; the old cluster
+gate remains red until a newly frozen candidate passes.
 
 ### Correctness axis — helper publication
 
