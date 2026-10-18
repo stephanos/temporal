@@ -11,6 +11,9 @@ pub struct KettleWorld;
 /// Exploration budget used by the sample's full fixture.
 pub const BUDGET: usize = 1 << 20;
 
+#[cfg(test)]
+umpire_testing::fixture!(KettleWorld, BUDGET, Claim::<KettleWorld>::new("never_beeps", |_, state| (!state.beeping).into()));
+
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 /// Kettle's dynamic state.
 pub struct Kettle {

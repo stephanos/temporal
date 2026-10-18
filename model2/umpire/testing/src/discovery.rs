@@ -43,14 +43,14 @@ pub fn discover(root: &Path) -> io::Result<Vec<(String, PathBuf)>> {
 pub fn generate(root: &Path, output: &Path) -> io::Result<()> {
     let fixtures = discover(root)?;
     let mut source = String::new();
-    for (index, (_, path)) in fixtures.iter().enumerate() {
+    for (name, path) in &fixtures {
         let model = fs::canonicalize(path.join("model.rs"))?;
         let model = model.to_str().ok_or_else(|| io::Error::other("invalid fixture path"))?;
-        writeln!(source, "#[allow(unused_imports, missing_docs, unreachable_pub)]\n#[path = {model:?}] mod fixture_{index};").map_err(io::Error::other)?;
+        writeln!(source, "#[allow(unused_imports, missing_docs, unreachable_pub)]\n#[path = {model:?}] mod fixture_{name};").map_err(io::Error::other)?;
     }
     source.push_str("fn registered() -> Vec<umpire_testing::Fixture> { vec![\n");
-    for (index, (name, _)) in fixtures.iter().enumerate() {
-        writeln!(source, "({name:?}, fixture_{index}::run),").map_err(io::Error::other)?;
+    for (name, _) in &fixtures {
+        writeln!(source, "({name:?}, fixture_{name}::run),").map_err(io::Error::other)?;
     }
     source.push_str("] }\n");
     fs::write(output, source)
@@ -59,12 +59,15 @@ pub fn generate(root: &Path, output: &Path) -> io::Result<()> {
 /// Cargo build-script entry point, shared as source to avoid a checker build-dependency cycle.
 #[allow(dead_code, clippy::print_stdout)]
 pub fn build() -> io::Result<()> {
-    println!("cargo:rerun-if-changed=tests/fixtures");
+    build_at("tests/fixtures")
+}
+
+/// Cargo build-script entry point for a crate with an explicit fixture root.
+#[allow(dead_code, clippy::print_stdout)]
+pub fn build_at(relative: &str) -> io::Result<()> {
+    println!("cargo:rerun-if-changed={relative}");
     let manifest = std::env::var_os("CARGO_MANIFEST_DIR")
         .ok_or_else(|| io::Error::other("missing CARGO_MANIFEST_DIR"))?;
     let output = std::env::var_os("OUT_DIR").ok_or_else(|| io::Error::other("missing OUT_DIR"))?;
-    generate(
-        &PathBuf::from(manifest).join("tests/fixtures"),
-        &PathBuf::from(output).join("fixtures.rs"),
-    )
+    generate(&PathBuf::from(manifest).join(relative), &PathBuf::from(output).join("fixtures.rs"))
 }

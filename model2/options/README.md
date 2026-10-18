@@ -1,7 +1,7 @@
 # model2: Kettle design options in Rust
 
 `model2` is the Umpire framework in Rust. Its current scope is exactly what
-[`model/framework/samples/Kettle.scala`](../../../../model/framework/samples/Kettle.scala) uses today:
+[`model/framework/samples/Kettle.scala`](../../model/framework/samples/Kettle.scala) uses today:
 vars with a `oneOf` start, actors with actions and internal steps, transitions with guards and
 effects, invariants, postconditions with `before` and `after(action)`, one scope (`without`), one
 progress claim (`whenever … eventually … in scope`), and the native questions the Scala test asks
@@ -41,5 +41,6 @@ model2/
   umpire/
     dsl/        State, Action, Machine, Claim, Scope, Progress, the macros
     checker/    explore, verify_all, refuted; BFS with a shared visited set
-    samples/    Kettle in the chosen style, with its test
+    tests/      shared Model fixtures and end-to-end goldens
+  options/      authoring-style sketches retained through the design comparison
 ```

@@ -1,10 +1,12 @@
 use std::{
     cell::Cell,
-    collections::BTreeMap,
     hash::{Hash, Hasher},
     rc::Rc,
 };
 
+#[cfg(test)]
+use std::collections::BTreeMap;
+#[cfg(test)]
 use umpire_checker::Checker;
 use umpire_dsl::{Claim, Machine, Spell, Steps, Verdict};
 
@@ -71,6 +73,7 @@ impl Machine for World {
     }
 }
 
+#[cfg(test)]
 pub(crate) fn run() -> umpire_testing::RunResult {
     let world = World(Rc::new(Cell::new(0)));
     let result = Checker::explore(&world, 1001)?;

@@ -17,24 +17,29 @@ pub fn render<M: Machine>(result: &Exploration<M>) -> Result<Files, umpire_check
     }
     files.insert("states.txt".into(), states);
     if result.counts.reached <= 3 {
-        let mut rows = String::new();
-        for (id, _) in result.states() {
-            for edge in result.rows(id)? {
-                write!(rows, "{}: ", id.0).ok();
-                edge.action.spell(&mut rows);
-                write!(rows, " choice={} outcome=", edge.choice).ok();
-                edge.emitted.0.spell(&mut rows);
-                rows.push_str(" facts=");
-                edge.emitted.1.spell(&mut rows);
-                rows.push_str(" -> ");
-                edge.emitted.2.spell(&mut rows);
-                rows.push('\n');
-            }
-        }
-        files.insert("rows.txt".into(), rows);
+        files.insert("rows.txt".into(), render_rows(result)?);
     }
     add_paths(&mut files, report);
     Ok(files)
+}
+
+/// Render emitted rows in discovery, action and choice order for native/host agreement.
+pub fn render_rows<M: Machine>(result: &Exploration<M>) -> Result<String, umpire_checker::Refusal> {
+    let mut rows = String::new();
+    for (id, _) in result.states() {
+        for edge in result.rows(id)? {
+            write!(rows, "{}: ", id.0).ok();
+            edge.action.spell(&mut rows);
+            write!(rows, " choice={} outcome=", edge.choice).ok();
+            edge.emitted.0.spell(&mut rows);
+            rows.push_str(" facts=");
+            edge.emitted.1.spell(&mut rows);
+            rows.push_str(" -> ");
+            edge.emitted.2.spell(&mut rows);
+            rows.push('\n');
+        }
+    }
+    Ok(rows)
 }
 
 /// Add counterexample paths from a report.

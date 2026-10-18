@@ -5,8 +5,8 @@ pub mod discovery;
 mod render;
 mod runner;
 
-pub use render::{add_paths, render};
-pub use runner::run;
+pub use render::{add_paths, render, render_rows};
+pub use runner::{CHECKER, Consumer, run, run_at};
 
 /// Deterministic relative golden paths and their payloads.
 pub type Files = std::collections::BTreeMap<String, String>;

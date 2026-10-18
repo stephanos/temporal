@@ -1419,15 +1419,17 @@ endif
 
 ##### model2: Umpire in Rust (fn-210) #####
 MODEL2_CARGO := cd model2 && mise exec -- cargo
+MODEL2_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model2/scripts/time-gate.sh --step $(1),)
 
 .PHONY: model2-check model2-fmt model2-update model2-time
 model2-check:
 	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
-	@$(MODEL2_CARGO) fmt --all --check
-	@$(MODEL2_CARGO) clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model2 && RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@$(MODEL2_CARGO) test --workspace --quiet
-	@$(MODEL2_CARGO) build --target wasm32-wasip2 -p umpire-dsl -p umpire-checker --quiet
+	@$(call MODEL2_STEP,timing-controls) /bin/bash $(CURDIR)/model2/scripts/test-time-gate.sh
+	@cd model2 && $(call MODEL2_STEP,fmt) mise exec -- cargo fmt --all --check
+	@cd model2 && $(call MODEL2_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
+	@cd model2 && $(call MODEL2_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
+	@cd model2 && $(call MODEL2_STEP,tests) mise exec -- cargo test --workspace --quiet
+	@cd model2 && $(call MODEL2_STEP,wasm32-wasip2) mise exec -- cargo build --target wasm32-wasip2 -p umpire-dsl -p umpire-checker --quiet
 
 model2-fmt:
 	@$(MODEL2_CARGO) fmt --all

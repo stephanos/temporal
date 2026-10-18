@@ -1,10 +1,11 @@
 use umpire_dsl::{Claim, Machine, Progress, Scope, Spell, StepClaim, Steps};
 
-#[allow(clippy::unnecessary_wraps, reason = "fixture producers share a fallible runner signature")]
+#[cfg(test)]
 pub(crate) fn run() -> umpire_testing::RunResult {
-    fn accepts_machine<M: Machine>() {}
-    accepts_machine::<KettleWorld>();
-    Ok(umpire_testing::Files::new())
+    let result = umpire_testing::Checker::explore(&KettleWorld, 1 << 20)?;
+    let mut files = umpire_testing::render(&result)?;
+    files.insert("rows.txt".into(), umpire_testing::render_rows(&result)?);
+    Ok(files)
 }
 
 const BOILING_TEMPERATURE: i32 = 100;

@@ -36,8 +36,6 @@ pub(crate) enum Mode {
     Edges,
     Fails,
     FailsOnEdge,
-    Vacuity,
-    Choices,
     EffectPanic,
     Overflow,
     InvariantPanic,
@@ -77,17 +75,8 @@ impl Machine for Tiny {
                     steps.push((true, vec![], Value(limit + 1)));
                     return steps;
                 }
-                Mode::Choices => {
-                    steps.push((false, vec!["rejected"], Value(2)));
-                    steps.push((true, vec!["accepted"], Value(1)));
-                    steps.push((false, vec!["same_target"], Value(1)));
-                    return steps;
-                }
                 _ => {}
             }
-        }
-        if self.0 == Mode::Choices {
-            return steps;
         }
         let next = match (state.0, action) {
             (0 | 1, Action::Advance) => Some(Value(state.0 + 1)),
@@ -128,11 +117,6 @@ impl Machine for Tiny {
                     (before == after).into()
                 })]
             }
-            Mode::Vacuity => vec![StepClaim::<Self>::after(
-                "unused_claim",
-                Action::Unused,
-                |_, _, _, _, _, _| Verdict::Fails,
-            )],
             Mode::PostconditionPanic => {
                 vec![StepClaim::<Self>::new("panicking_edge", |_, _, _, _, _, _| {
                     panic!("broken postcondition")
@@ -141,15 +125,6 @@ impl Machine for Tiny {
             Mode::Holes => vec![StepClaim::<Self>::new("edge_hole", |_, _, _, _, _, _| {
                 Verdict::Unknown(Hole { reason: "edge unavailable" })
             })],
-            Mode::Choices => {
-                vec![StepClaim::<Self>::new("choice_facts", |_, _, after, _, outcome, facts| {
-                    ((*outcome && after.0 == 1 && facts == ["accepted"])
-                        || (!outcome
-                            && ((after.0 == 2 && facts == ["rejected"])
-                                || (after.0 == 1 && facts == ["same_target"]))))
-                    .into()
-                })]
-            }
             _ => vec![],
         }
     }

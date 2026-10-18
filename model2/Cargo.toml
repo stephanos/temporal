@@ -1,8 +1,8 @@
 # model2: the Umpire framework in Rust. Current scope: what model/framework/samples/Kettle.scala
-# uses today. Layout mirrors model/framework: dsl, checker, samples.
+# uses today. Shared Models and their end-to-end goldens live in umpire/tests.
 [workspace]
 resolver = "3"
-members = ["umpire/dsl", "umpire/dsl/macros", "umpire/checker", "umpire/samples", "umpire/testing"]
+members = ["umpire/dsl", "umpire/dsl/macros", "umpire/checker", "umpire/tests", "umpire/testing"]
 
 [workspace.package]
 version = "0.0.1"

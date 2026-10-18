@@ -1,4 +1,4 @@
-//! An empty compilation fixture must still refuse orphan goldens.
+//! An unregistered expected filename must name the fixture folder.
 
 use std::{error::Error, fs};
 
@@ -9,7 +9,6 @@ fn orphan_control() -> Result<(), Box<dyn Error>> {
     fs::create_dir_all(fixture.join("expected"))?;
     let result = (|| -> Result<(), Box<dyn Error>> {
         fs::write(fixture.join("model.rs"), "")?;
-        fs::write(fixture.join("expected/.gitkeep"), "")?;
         fs::write(fixture.join("expected/orphan.txt"), "orphan\n")?;
         let manifest = root.to_str().ok_or("invalid manifest path")?;
         let error = umpire_testing::run(
@@ -20,6 +19,7 @@ fn orphan_control() -> Result<(), Box<dyn Error>> {
         .ok_or("orphan golden was silently accepted")?;
         let message = error.to_string();
         assert!(message.contains("orphan.txt"), "{message}");
+        assert!(message.contains(&*fixture.to_string_lossy()), "{message}");
         Ok(())
     })();
     fs::remove_dir_all(root)?;

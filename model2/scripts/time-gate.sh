@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Times each step of the model2 gate (fn-210 R30) and warns when the feedback loop exceeds its budget.
+# Times the model2 gate (fn-210 R30) and warns when the feedback loop exceeds its budget.
 # Uses bash's `time` so it works on macOS and Linux alike. It warns rather than fails: timing is
 # machine-dependent, and a breach is fixed or excepted by the owner, not retried until green.
 set -euo pipefail
@@ -12,22 +12,35 @@ TIMEFORMAT=%R
 step() {
   local name=$1; shift
   local secs
-  secs=$({ time "$@" >/dev/null 2>&1; } 2>&1 | tail -n1)
+  secs=$({ time "$@" >/dev/null 2>&1; } 2>&1 | tail -n1) || return $?
   printf '%-32s %6ss\n' "$name" "$secs"
   echo "$secs"
 }
 
-inner_file=umpire/checker/src/lib.rs
-total=0
-printf '%-32s %7s\n' "step (warm)" "time"
-out=$(step "fmt --check" mise exec -- cargo fmt --all --check); echo "${out%$'\n'*}"; total=$(awk -v a="$total" -v b="${out##*$'\n'}" 'BEGIN{print a+b}')
-out=$(step "clippy -D warnings" mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings); echo "${out%$'\n'*}"; total=$(awk -v a="$total" -v b="${out##*$'\n'}" 'BEGIN{print a+b}')
-out=$(step "doc (warnings denied)" env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet); echo "${out%$'\n'*}"; total=$(awk -v a="$total" -v b="${out##*$'\n'}" 'BEGIN{print a+b}')
-out=$(step "test --workspace" mise exec -- cargo test --workspace --quiet); echo "${out%$'\n'*}"; total=$(awk -v a="$total" -v b="${out##*$'\n'}" 'BEGIN{print a+b}')
-out=$(step "wasm32-wasip2 build" mise exec -- cargo build --target wasm32-wasip2 -p umpire-dsl -p umpire-checker --quiet); echo "${out%$'\n'*}"; total=$(awk -v a="$total" -v b="${out##*$'\n'}" 'BEGIN{print a+b}')
+if [ "${1:-}" = --step ]; then
+  shift
+  out=$(step "$@")
+  printf '%s\n' "${out%$'\n'*}"
+  exit 0
+fi
 
+inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
+inner_file=${UMPIRE_INNER_SOURCE:-umpire/checker/src/lib.rs}
+printf '%-32s %7s\n' "step (warm)" "time"
+printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model2-check\n'
+gate_log=$(mktemp)
+trap 'rm -f "$gate_log"' EXIT
+total=$({ time UMPIRE_TIME_STEPS=1 make -C .. model2-check >"$gate_log" 2>&1; } 2>&1) || {
+  rc=$?
+  cat "$gate_log"
+  exit "$rc"
+}
+cat "$gate_log"
+
+test -f "$inner_file"
+printf 'inner source: %s\ninner command: mise exec -- cargo test -p %s --quiet\n' "$inner_file" "$inner_crate"
 touch "$inner_file"
-out=$(step "inner loop (checker edit+test)" mise exec -- cargo test -p umpire-checker --quiet); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
+out=$(step "inner loop (edit+test)" mise exec -- cargo test -p "$inner_crate" --quiet); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
 
 printf '%-32s %6ss  (budget %ss)\n' "gate total" "$total" "$GATE_BUDGET"
 printf '%-32s %6ss  (budget %ss)\n' "inner loop" "$inner" "$INNER_BUDGET"

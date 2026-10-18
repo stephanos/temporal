@@ -491,14 +491,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "samples"
-version = "0.0.1"
-dependencies = [
- "umpire-dsl",
- "umpire-testing",
-]
-
-[[package]]
 name = "serde"
 version = "1.0.229"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -753,6 +745,15 @@ dependencies = [
  "insta",
  "umpire-checker",
  "umpire-dsl",
+]
+
+[[package]]
+name = "umpire-tests"
+version = "0.0.1"
+dependencies = [
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-testing",
 ]
 
 [[package]]
