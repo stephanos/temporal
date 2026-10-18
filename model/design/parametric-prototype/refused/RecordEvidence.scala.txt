@@ -1,0 +1,63 @@
+package parametricprototype
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+
+object Bank:
+  enum Outcome:
+    case accepted, invalidCoinsOrInsufficientFunds, overflow
+
+  given Ok[Outcome] = Ok(Outcome.accepted)
+
+  enum Denom:
+    case banana, burger
+
+  final case class Balances[Addr](of: Map[Addr, Map[Denom, Int]]):
+    def apply(addr: Addr, denom: Denom): Int =
+      of.getOrElse(addr, Map.empty).getOrElse(denom, 0)
+
+    def set(addr: Addr, denom: Denom, amount: Int): Balances[Addr] =
+      val coins = of.getOrElse(addr, Map.empty)
+      val next = if amount == 0 then coins.removed(denom) else coins.updated(denom, amount)
+      Balances(if next.isEmpty then of.removed(addr) else of.updated(addr, next))
+
+  final case class Send[Addr](fromAddr: Addr, toAddr: Addr, denom: Denom, amount: Int)
+
+  class Model[Addr: Finite](holder: Addr, supply: Int)(using
+      StateData[Balances[Addr]],
+      Data[Balances[Addr]],
+      Data.Structural[Send[Addr]]
+  )
+      extends Machine[Outcome, Nothing]:
+    object client extends Actor:
+      val send =
+        action.inputs[Send[Addr]](inputField[Send[Addr]](_.amount).in(domains.oneOf(-1 to supply + 1)))
+
+    var balances = Balances(Map(holder -> Map(Denom.banana -> supply, Denom.burger -> supply)))
+    var opening = oneOf(0 to supply)
+
+    object transitions extends Transitions:
+      on(client.send): in =>
+        effects.send(in)
+
+    object effects:
+      def send(in: Send[Addr]) =
+        import in.*, Outcome.*
+        val sender = balances(fromAddr, denom)
+        val receiver = balances(toAddr, denom)
+        def fits(amount: Int) = -supply <= amount && amount <= supply
+        if sender == 0 || sender < amount then reject(invalidCoinsOrInsufficientFunds)
+        else if fromAddr == toAddr then ()
+        else if !fits(sender - amount) || !fits(receiver + amount) then reject(overflow)
+        else
+          balances = balances
+            .set(fromAddr, denom, sender - amount)
+            .set(toAddr, denom, receiver + amount)
+
+    object invariants:
+      val totalSupply =
+        check(Denom.values.forall(denom => summon[Finite[Addr]].values.map(balances(_, denom)).sum == supply))
+
+    object postconditions:
+      val failedSendChangesNothing =
+        if outcome != Outcome.accepted then check(balances.equals(before.balances))

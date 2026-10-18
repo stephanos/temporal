@@ -1,0 +1,4 @@
+// Replace the final claim in Bank.scala with this expression to reproduce the strict-equality gap:
+// check(balances == before.balances)
+// Scala 3.9.0: Values of types Model.this.Balances and
+// parametricprototype.Bank.Model#Balances cannot be compared with == or !=.
