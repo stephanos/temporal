@@ -71,6 +71,8 @@ What is fixed, all owner decisions of 2026-10-18:
 - **Conventions (R25 to R28).** One `Spell` text form for every value in every output; the
   author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
   API misuse, Model problems as verdicts. A future lifted tree is internal.
+- **Layout (R44).** A `#[machine]` impl lists its parts grouped by kind in the Scala order (transitions, invariants,
+  postconditions, scopes, progress); the attribute rejects any other order at the first out-of-place item.
 - **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
@@ -92,7 +94,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14) |
+| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; `#[machine]` enforces the Scala part order as an error and the approved target surface (actor-level `#[internal]`, optional `before`, `without([..])` scopes, `whenever(..).eventually(..)` progress as per-state booleans); only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14, R44) |
 | fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)

@@ -85,6 +85,8 @@ Before any more of the Scala framework is built out, the owner wants to know whe
 
 - **R43:** (2026-10-18, owner approved) The generic Go wasm host belongs inside Umpire: move `model/hosts/go/` to `model/umpire/hosts/go/`. Update the Rust gate, protobuf generator, host artifact/fixture paths and current docs. Preserve Go module identity, generated message bytes, ABI, schema and behavior; changing the public module path belongs to the separately planned standalone extraction. The move runs alone and the existing full local gate and Go parity pass.
 
+- **R44:** (2026-10-18, owner approved) `#[machine]` enforces the Scala layout of a Model's parts: registered items appear grouped by kind and in this order: `#[on]` handlers (transitions with their effects), `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[progress]`. The check lives in the attribute's registration pass (R36: it reads, never rewrites), is a hard error anchored at the first out-of-place item naming the kind it must follow and precede, and ignores unregistered helper methods. Errors: a trybuild `.stderr` fixture in `dsl/macros/tests/ui/` pins the message. Because a `#[machine]` impl is therefore always grouped, the interleaved-claim proof of R14's declaration-order reporting uses a manual trait world, not the attribute surface.
+
 ## Boundaries
 
 - Only Kettle's constructs; Bank, Voting and the rest are the next decision, not this spec.
@@ -140,3 +142,5 @@ Seven surface options were written for the same Model (`framework/samples/option
 2026-10-18, owner authoring clarification: keep separate User and Heater enums in the attribute Kettle. Canonical goldens may change only the four action spellings from the flat trait catalog; counts, states, ordering, claims, verdicts and counterexample structure stay unchanged. The separate trait Kettle and its WASM/native reference goldens remain unchanged. Task .6 records the exact mapping.
 
 2026-10-18, owner host placement: the Go host is generic Umpire code and moves under model/umpire/hosts/go as a separate checkpoint (R43). Standalone extraction to temporalio/umpire is only planned in MIGRATE.md: relevant history is preserved and local development uses Cargo path dependencies and Go workspaces, without pushing each change. No repository extraction or remote writes are authorized by the planning request.
+
+2026-10-18, owner structural lint: the parts of a `#[machine]` impl must be grouped by kind in the Scala order (transitions, invariants, postconditions, scopes, progress), enforced by the attribute as an error (R44); folded into task .6 rather than a task of its own.
