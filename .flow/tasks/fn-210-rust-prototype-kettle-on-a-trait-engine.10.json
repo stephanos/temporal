@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.10.md",
   "status": "todo",
   "title": "Rename framework to umpire; move fixtures into each owning crate's tests/fixtures; extract umpire-testing",
-  "updated_at": "2026-10-18T20:23:39.856483Z"
+  "updated_at": "2026-10-18T20:25:59.326895Z"
 }

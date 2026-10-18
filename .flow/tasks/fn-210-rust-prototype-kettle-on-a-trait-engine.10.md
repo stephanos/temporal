@@ -1,5 +1,5 @@
 ---
-satisfies: [R21]
+satisfies: [R21, R22, R23]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.10 Rename framework to umpire; move fixtures into each owning crate's tests/fixtures; extract umpire-testing
 

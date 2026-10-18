@@ -73,7 +73,6 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.2 | 🔄 in progress | World-based BFS, panic paths, unknown holes, deterministic goldens, the oracle property test, and the IndexSet visited-state seam (R2, R4, R8, R11, R14, R16, R18) |
 | fn-210.10 | ⬜ todo | After .1/.2: rename `model2/framework/` to `model2/umpire/` and crates to `umpire-*` (R21); move synthetic fixtures to `checker/tests/fixtures/<name>/{model.rs,expected/}`, keep only Kettle's in `samples`, extract the runner into `umpire-testing` (R22, R23); goldens byte-identical |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
