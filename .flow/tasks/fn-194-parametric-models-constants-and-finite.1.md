@@ -24,9 +24,22 @@ satisfies: [R1, R2, R3]
 - [ ] Instance naming by holder demonstrated or an alternative named
 
 ## Done summary
-TBD
+Implemented the fn-194.1 production-free Bank prototype and architecture verdict at model/design/parametric-models.md. The public checker proves independent concrete-schema instances and exact 8/27 reached-state graphs; retained compiler snapshots and expected-refusal tests distinguish that indexed runtime fallback from the unsupported intended direct generic API. The verdict records all eight Architecture bullets and concrete .2 alternatives for schema/before typing, instance claim acquisition, naming and lint, without claiming those gaps fixed.
 
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - skipped(config: REVIEW_MODE=none; owner MILESTONES phase-batch review override)
+
+baseline: green — existing focused native Bank suite, 10 tests, exit 0; baseline.log. No baseline handoff used.
+Verification: final prototype suite 6 tests, exit 0; fresh OwnedVocabulary/FiniteOnly compiler refusals match schema diagnostics (each compiler exit 1, refusal runner exit 0); native framework/checker+samples 600 tests, exit 0; focused lint RuleSuite 31 tests, exit 0. Scala formatting repeated with identical SHA256 bytes; bash -n and git diff --check passed. Gate classifier returned FULL, and native unittest receipt was written at source checkpoint 9648caeb9d. No gate was skipped.
+
+Tests cover parameter-dependent initial balances/starts, separate descriptors/state owners/runtime, exact graph budget boundaries, missing automatic holder names and unheld acceptance, empty oneOf refusal, currently absent constructor restrictions, before path typing refusal, and exact Realization instance binding. Product verifyAll refusal for class-owned claim sections is asserted as a current limitation, not a verified Model promise. Direct Addr-bearing state, instance-nested vocabulary and the requested Finite-only schema spelling remain refuted; the address-index fallback must not migrate into production .2/.3.
+
+Failed experiments: attempt1-compiler.log (before strict equality); attempt2-compiler.log (owned vocabulary/schema/input comparison); attempt3-compiler.log (generic before projection); attempt4-compiler.log (Finite-only generic schema); attempt5/6-compiler.log (leaf evidence ambiguity/schema); attempt7-compiler.log (full-record evidence/schema); attempt8-compiler.log (eager nested actor safe-init); attempt9-test.log (class claim acquisition and an incomplete compile control). Failed snippets were corrected or retained explicitly as refusal fixtures, not left as speculative implementation. Final native/prototype/lint logs and final-commands.md are under .flow/tmp/fn1941/.
+
+Held boundary: make model-check-changed routes to held Temporal work and was not claimed passing. No framework, samples, lint, checker, Go, IR/schema, exporter, generated corpus, Temporal or MILESTONES source was changed. No mapped user feature route changed. Spec remains open. Tracker sync: n/a (bridge inactive). Review remains deferred; no SHIP verdict is claimed.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 9648caeb9d9a74de4ca3de4be31d2b82ca7fc223
+- Tests: baseline: green — focused native Bank 10 tests exit 0, bash model/design/parametric-prototype/run.sh (6 tests, exit 0), bash model/design/parametric-prototype/run.sh refusals (expected compiler exits 1/1; runner exit 0), mise exec -- scala-cli test --server=false model/framework/checker model/framework/samples --require-tests (600 tests, exit 0), UMPIRE_FRAMEWORK_BUILD=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/framework-native mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only framework.check.lint.*RuleSuite (31 tests, exit 0), Scala fmt and unchanged-byte repeat; bash -n; git diff --check (exit 0)
 - PRs:
