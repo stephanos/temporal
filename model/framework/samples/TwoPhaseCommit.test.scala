@@ -27,11 +27,29 @@ object TwoPhaseCommitFixture:
       // last commit need not be rm3's, so it is a find's target, not a promise
       val everyoneCommits =
         after(model.rm.commit(ResourceManager.rm3)):
-          check(model.allCommitted(model.current))
+          check(model.allCommitted)
       val successTest =
         find(everyoneCommits)
 
 class TwoPhaseCommitTest extends munit.FunSuite:
+  test("TwoPC direct predicates read the supplied Model state"):
+    import TwoPhaseCommit.{Model as _, *}
+    val initial = Model.init
+    val committed = initial.copy(
+      rmStates = Map(
+        ResourceManager.rm1 -> ResourceManagerState.committed,
+        ResourceManager.rm2 -> ResourceManagerState.committed,
+        ResourceManager.rm3 -> ResourceManagerState.committed
+      ),
+      tmState = TransactionManagerState.committed,
+      messages = Set(Message.commit)
+    )
+    assertEquals(Model.at(initial)(Model.mayPrepare(ResourceManager.rm1)), true)
+    assertEquals(Model.at(committed)(Model.mayPrepare(ResourceManager.rm1)), false)
+    assertEquals(Model.at(initial)(Model.allCommitted), false)
+    assertEquals(Model.at(committed)(Model.allCommitted), true)
+    assertEquals(Model.at(initial)(Model.mayPrepare(ResourceManager.rm1)), true)
+
   private def run[S, O](
       machine: MachineDeclaration[S, O, Nothing],
       state: S,
@@ -40,22 +58,8 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
 
-  // A TwoPhaseCommit state by its vars, as the Transaction record holds them, and the record a
-  // state holds.
-  private def transaction(record: TwoPhaseCommit.Transaction[ResourceManager]): State =
-    Model.init.copy(
-      rmStates = record.rmStates,
-      tmState = record.tmState,
-      tmPrepared = record.tmPrepared,
-      messages = record.messages
-    )
-  private def recorded(state: State): TwoPhaseCommit.Transaction[ResourceManager] =
-    Model.at(state)(Model.current)
-
   test("TwoPhaseCommit's three native predicates retain consistency and exact commit selection"):
     import TwoPhaseCommit.{Model as _, *}
-    // the Transaction record a state holds
-    def recorded(state: State): Transaction[ResourceManager] = Model.at(state)(Model.current)
     val initial = Model.init
     val committed = initial.copy(rmStates =
       Map(
@@ -66,16 +70,19 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     )
     val split =
       committed.copy(rmStates =
-        recorded(committed).rmStates.updated(ResourceManager.rm2, ResourceManagerState.aborted)
+        Model.at(committed)(Model.rmStates).updated(
+          ResourceManager.rm2,
+          ResourceManagerState.aborted
+        )
       )
     val consistencyCases = List(
       (Step(Outcome.accepted, initial), true),
       (Step(Outcome.accepted, committed), true),
       (Step(Outcome.accepted, split), false)
     )
-    val eagerConsistencyInv = NativeControls.invariant(check(consistent(Model.current)))
+    val eagerConsistencyInv = NativeControls.invariant(check(consistent))
     consistencyCases.foreach: (after, expected) =>
-      assertEquals(consistent(recorded(after.state)), expected)
+      assertEquals(Model.at(after.state)(consistent), expected)
       assertEquals(
         SampleClaims.judged(Model, Model, "invariants", "consistencyInv", after),
         Some(expected)
@@ -97,7 +104,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       (Step(Outcome.accepted, initial), false),
       (Step(Outcome.accepted, split), false)
     ).foreach: (after, expected) =>
-      assertEquals(allCommitted(recorded(after.state)), expected)
+      assertEquals(Model.at(after.state)(allCommitted), expected)
       assertEquals(exact(after, rm.commit(ResourceManager.rm3)), Some(expected))
       assertEquals(exact(after, rm.commit(ResourceManager.rm1)), None)
 
@@ -115,7 +122,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     )
     assertEquals(run(Model, received, tm.decideOnCommit()), Nil)
     assertEquals(
-      recorded(run(EagerCommit, received, tm.decideOnCommit()).head.state).tmState,
+      Model.at(run(EagerCommit, received, tm.decideOnCommit()).head.state)(Model.tmState),
       TransactionManagerState.committed
     )
 
@@ -124,45 +131,41 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     val initial = Model.init
     assertEquals(
       initial,
-      transaction(
-        Transaction(
-          Map(
-            ResourceManager.rm1 -> ResourceManagerState.working,
-            ResourceManager.rm2 -> ResourceManagerState.working,
-            ResourceManager.rm3 -> ResourceManagerState.working
-          ),
-          TransactionManagerState.init,
-          Set.empty,
-          Set.empty
-        )
+      Model.init.copy(
+        rmStates = Map(
+          ResourceManager.rm1 -> ResourceManagerState.working,
+          ResourceManager.rm2 -> ResourceManagerState.working,
+          ResourceManager.rm3 -> ResourceManagerState.working
+        ),
+        tmState = TransactionManagerState.init,
+        tmPrepared = Set.empty,
+        messages = Set.empty
       )
     )
     val prepared = run(Model, initial, rm.prepare(ResourceManager.rm1)).head.state
     assertEquals(
       prepared,
-      transaction(
-        Transaction(
-          Map(
-            ResourceManager.rm1 -> ResourceManagerState.prepared,
-            ResourceManager.rm2 -> ResourceManagerState.working,
-            ResourceManager.rm3 -> ResourceManagerState.working
-          ),
-          TransactionManagerState.init,
-          Set.empty,
-          Set(Message.prepared(ResourceManager.rm1))
-        )
+      Model.init.copy(
+        rmStates = Map(
+          ResourceManager.rm1 -> ResourceManagerState.prepared,
+          ResourceManager.rm2 -> ResourceManagerState.working,
+          ResourceManager.rm3 -> ResourceManagerState.working
+        ),
+        tmState = TransactionManagerState.init,
+        tmPrepared = Set.empty,
+        messages = Set(Message.prepared(ResourceManager.rm1))
       )
     )
     assertEquals(run(Model, prepared, rm.prepare(ResourceManager.rm1)), Nil)
     val received = run(Model, prepared, tm.addPrepared(ResourceManager.rm1)).head.state
-    assertEquals(recorded(received).tmPrepared, Set(ResourceManager.rm1))
-    assertEquals(recorded(received).messages, Set(Message.prepared(ResourceManager.rm1)))
+    assertEquals(Model.at(received)(Model.tmPrepared), Set(ResourceManager.rm1))
+    assertEquals(Model.at(received)(Model.messages), Set(Message.prepared(ResourceManager.rm1)))
     assertEquals(
       run(Model, received, tm.addPrepared(ResourceManager.rm1)),
       List(Step(Outcome.accepted, received))
     )
     intercept[NoSuchElementException](
-      mayPrepare(recorded(initial.copy(rmStates = Map.empty)), ResourceManager.rm1)
+      Model.at(initial.copy(rmStates = Map.empty))(Model.mayPrepare(ResourceManager.rm1))
     ): Unit
 
   test("TwoPC all received managers enable commit and every manager follows"):
@@ -178,7 +181,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       tm.addPrepared(ResourceManager.rm3)
     ).foldLeft(prepared)((s, cls) => run(Model, s, cls).head.state)
     assertEquals(
-      recorded(received).tmPrepared,
+      Model.at(received)(Model.tmPrepared),
       Set(ResourceManager.rm1, ResourceManager.rm2, ResourceManager.rm3)
     )
     val sent = Set(
@@ -186,10 +189,10 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       Message.prepared(ResourceManager.rm2),
       Message.prepared(ResourceManager.rm3)
     )
-    assertEquals(recorded(received).messages, sent)
+    assertEquals(Model.at(received)(Model.messages), sent)
     val decided = run(Model, received, tm.decideOnCommit()).head.state
-    assertEquals(recorded(decided).tmState, TransactionManagerState.committed)
-    assertEquals(recorded(decided).messages, sent.incl(Message.commit))
+    assertEquals(Model.at(decided)(Model.tmState), TransactionManagerState.committed)
+    assertEquals(Model.at(decided)(Model.messages), sent.incl(Message.commit))
     assertEquals(Model.end(decided), false)
     assertEquals(run(Model, decided, tm.decideOnAbort()), Nil)
     assertEquals(run(Model, decided, tm.addPrepared(ResourceManager.rm1)), Nil)
@@ -199,7 +202,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       rm.commit(ResourceManager.rm3)
     ).foldLeft(decided)((s, cls) => run(Model, s, cls).head.state)
     assertEquals(
-      recorded(committed).rmStates,
+      Model.at(committed)(Model.rmStates),
       Map(
         ResourceManager.rm1 -> ResourceManagerState.committed,
         ResourceManager.rm2 -> ResourceManagerState.committed,
@@ -207,10 +210,10 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      recorded(committed).tmPrepared,
+      Model.at(committed)(Model.tmPrepared),
       Set(ResourceManager.rm1, ResourceManager.rm2, ResourceManager.rm3)
     )
-    assertEquals(recorded(committed).messages, sent.incl(Message.commit))
+    assertEquals(Model.at(committed)(Model.messages), sent.incl(Message.commit))
     assertEquals(Model.end(committed), true)
     assertEquals(run(Model, committed, rm.commit(ResourceManager.rm1)), Nil)
     def everyone(step: Step[State, Outcome, Nothing]) =
@@ -233,25 +236,25 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     val initial = Model.init
     val aborted = run(Model, initial, rm.abort(ResourceManager.rm2)).head.state
     assertEquals(
-      recorded(aborted).rmStates,
+      Model.at(aborted)(Model.rmStates),
       Map(
         ResourceManager.rm1 -> ResourceManagerState.working,
         ResourceManager.rm2 -> ResourceManagerState.aborted,
         ResourceManager.rm3 -> ResourceManagerState.working
       )
     )
-    assertEquals(recorded(aborted).messages, Set.empty[Message[ResourceManager]])
+    assertEquals(Model.at(aborted)(Model.messages), Set.empty[Message[ResourceManager]])
     val prepared = run(Model, initial, rm.prepare(ResourceManager.rm1)).head.state
     assertEquals(run(Model, prepared, rm.abort(ResourceManager.rm1)), Nil)
     assertEquals(run(Model, prepared, rm.commit(ResourceManager.rm1)), Nil)
     val decision = run(Model, prepared, tm.decideOnAbort()).head.state
     assertEquals(
-      recorded(decision).messages,
+      Model.at(decision)(Model.messages),
       Set(Message.prepared(ResourceManager.rm1), Message.abort)
     )
     val after = run(Model, decision, rm.abort(ResourceManager.rm1)).head.state
     assertEquals(
-      recorded(after).rmStates,
+      Model.at(after)(Model.rmStates),
       Map(
         ResourceManager.rm1 -> ResourceManagerState.aborted,
         ResourceManager.rm2 -> ResourceManagerState.working,
@@ -259,7 +262,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      recorded(after).messages,
+      Model.at(after)(Model.messages),
       Set(Message.prepared(ResourceManager.rm1), Message.abort)
     )
     assertEquals(
@@ -268,8 +271,11 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     )
     val commitOnly = initial.copy(messages = Set(Message.commit))
     assertEquals(
-      recorded(run(Model, commitOnly, rm.commit(ResourceManager.rm1)).head.state)
-        .rmStates(ResourceManager.rm1),
+      Model.at(run(
+        Model,
+        commitOnly,
+        rm.commit(ResourceManager.rm1)
+      ).head.state)(Model.rmStates(ResourceManager.rm1)),
       ResourceManagerState.committed
     )
     val both = after.copy(rmStates =
@@ -280,8 +286,11 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      recorded(run(Model, both, rm.abort(ResourceManager.rm1)).head.state)
-        .rmStates(ResourceManager.rm1),
+      Model.at(run(
+        Model,
+        both,
+        rm.abort(ResourceManager.rm1)
+      ).head.state)(Model.rmStates(ResourceManager.rm1)),
       ResourceManagerState.aborted
     )
 
@@ -294,7 +303,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     val committed = run(EagerCommit, decided, rm.commit(ResourceManager.rm1)).head.state
     val conflict = run(EagerCommit, committed, rm.abort(ResourceManager.rm2)).head
     assertEquals(
-      recorded(conflict.state).rmStates,
+      Model.at(conflict.state)(Model.rmStates),
       Map(
         ResourceManager.rm1 -> ResourceManagerState.committed,
         ResourceManager.rm2 -> ResourceManagerState.aborted,
@@ -302,13 +311,13 @@ class TwoPhaseCommitTest extends munit.FunSuite:
       )
     )
     assertEquals(
-      recorded(conflict.state).messages,
+      Model.at(conflict.state)(Model.messages),
       Set(Message.prepared(ResourceManager.rm1), Message.commit)
     )
-    assertEquals(recorded(conflict.state).tmPrepared, Set(ResourceManager.rm1))
+    assertEquals(Model.at(conflict.state)(Model.tmPrepared), Set(ResourceManager.rm1))
     def normal(step: Step[State, Outcome, Nothing]) =
       SampleClaims.judged(Model, Model, "invariants", "consistencyInv", step).get
-    val eagerConsistencyInv = invariant(check(consistent(Model.current)))
+    val eagerConsistencyInv = invariant(check(consistent))
     def eager(step: Step[State, Outcome, Nothing]) =
       SampleClaims.holds(EagerCommit, eagerConsistencyInv, step.state)
     assertEquals(normal(Step(Outcome.accepted, Model.init)), true)
@@ -345,7 +354,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
         .verdict,
       refuted
     )
-    val eagerConsistencyInv = invariant(check(consistent(Model.current)))
+    val eagerConsistencyInv = invariant(check(consistent))
     val eager = assertRefuted(EagerCommit, eagerConsistencyInv)
     assertEquals(eager.subject, "eagerCommit.eagerConsistencyInv")
     assertEquals(NativeCheck.queries(EagerCommit), Vector.empty)
@@ -354,7 +363,7 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     import TwoPhaseCommit.{Model as _, *}
     val single = TwoPhaseCommit.Model(Set(false))
     assertEquals(
-      single.at(single.init)(single.current).rmStates,
+      single.at(single.init)(single.rmStates),
       Map(false -> ResourceManagerState.working)
     )
     assertEquals(NativeCheck.classesOf(single.rm.prepare.decl).map(_.values), List(List(false)))
@@ -364,12 +373,12 @@ class TwoPhaseCommitTest extends munit.FunSuite:
     val decided = run(single, received, single.tm.decideOnCommit()).head.state
     val committed = run(single, decided, single.rm.commit(false)).head.state
     assertEquals(
-      single.at(committed)(single.current).rmStates,
+      single.at(committed)(single.rmStates),
       Map(false -> ResourceManagerState.committed)
     )
     assertEquals(single.end(committed), true)
     assertEquals(
-      Model.at(Model.init)(Model.current).rmStates,
+      Model.at(Model.init)(Model.rmStates),
       Map(
         ResourceManager.rm1 -> ResourceManagerState.working,
         ResourceManager.rm2 -> ResourceManagerState.working,

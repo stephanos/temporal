@@ -22,14 +22,6 @@ object TwoPhaseCommit:
     case abort, commit
     case prepared(rm: R)
 
-  final case class Transaction[R](
-      rmStates: Map[R, ResourceManagerState],
-      tmState: TransactionManagerState,
-      // the resource managers from which the transaction manager has received RMPrepared
-      tmPrepared: Set[R],
-      messages: Set[Message[R]]
-  )
-
   def stateOf[R](states: Map[R, ResourceManagerState], rm: R): ResourceManagerState = states(rm)
 
   def withState[R](
@@ -42,27 +34,8 @@ object TwoPhaseCommit:
 
   def withMember[R](members: Set[R], rm: R): Set[R] = members.incl(rm)
 
-  def rmIs[R](state: Transaction[R], rm: R, phase: ResourceManagerState): Boolean =
-    stateOf(state.rmStates, rm) == phase
-
   def done(phase: ResourceManagerState): Boolean =
     phase == ResourceManagerState.committed || phase == ResourceManagerState.aborted
-
-  // A resource manager prepares while it works.
-  def mayPrepare[R](state: Transaction[R], rm: R): Boolean =
-    rmIs(state, rm, ResourceManagerState.working)
-
-  // A resource manager aborts spontaneously while it works, or because of an Abort message.
-  def mayAbort[R](state: Transaction[R], rm: R): Boolean =
-    rmIs(state, rm, ResourceManagerState.working) || state.messages.contains(Message.abort)
-
-  // A resource manager commits because of a Commit message, once.
-  def mayCommit[R](state: Transaction[R], rm: R): Boolean =
-    state.messages.contains(Message.commit) && !rmIs(state, rm, ResourceManagerState.committed)
-
-  // The transaction manager receives an RMPrepared message.
-  def mayReceive[R](state: Transaction[R], rm: R): Boolean =
-    state.tmState == TransactionManagerState.init && state.messages.contains(Message.prepared(rm))
 
   enum Outcome:
     case accepted
@@ -100,17 +73,32 @@ object TwoPhaseCommit:
     def someAre(states: Map[R, ResourceManagerState], phase: ResourceManagerState): Boolean =
       resourceManagers.exists(rm => stateOf(states, rm) == phase)
 
-    def allCommitted(state: Transaction[R]): Boolean =
-      resourceManagers.forall(rm => rmIs(state, rm, ResourceManagerState.committed))
+    def rmIs(rm: R, phase: ResourceManagerState): Boolean =
+      stateOf(rmStates, rm) == phase
+
+    // A resource manager prepares while it works.
+    def mayPrepare(rm: R): Boolean =
+      rmIs(rm, ResourceManagerState.working)
+
+    // A resource manager aborts spontaneously while it works, or because of an Abort message.
+    def mayAbort(rm: R): Boolean =
+      rmIs(rm, ResourceManagerState.working) || messages.contains(Message.abort)
+
+    // A resource manager commits because of a Commit message, once.
+    def mayCommit(rm: R): Boolean =
+      messages.contains(Message.commit) && !rmIs(rm, ResourceManagerState.committed)
+
+    // The transaction manager receives an RMPrepared message.
+    def mayReceive(rm: R): Boolean =
+      tmState == TransactionManagerState.init && messages.contains(Message.prepared(rm))
+
+    def allCommitted: Boolean =
+      resourceManagers.forall(rm => rmIs(rm, ResourceManagerState.committed))
 
     // two resource managers have not arrived at conflicting decisions
-    def consistent(state: Transaction[R]): Boolean =
-      !(someAre(state.rmStates, ResourceManagerState.committed) &&
-        someAre(state.rmStates, ResourceManagerState.aborted))
-
-    // the transaction as one record, which the predicates above read
-    def current: Transaction[R] =
-      Transaction(rmStates, tmState, tmPrepared, messages)
+    def consistent: Boolean =
+      !(someAre(rmStates, ResourceManagerState.committed) &&
+        someAre(rmStates, ResourceManagerState.aborted))
 
     // the transaction is over once it is decided and every resource manager has followed
     override def end =
@@ -119,13 +107,13 @@ object TwoPhaseCommit:
 
     object transitions extends Transitions:
       on(rm.prepare): manager =>
-        if mayPrepare(current, manager) then effects.prepare(manager)
+        if mayPrepare(manager) then effects.prepare(manager)
       on(rm.abort): manager =>
-        if mayAbort(current, manager) then effects.abort(manager)
+        if mayAbort(manager) then effects.abort(manager)
       on(rm.commit): manager =>
-        if mayCommit(current, manager) then effects.commit(manager)
+        if mayCommit(manager) then effects.commit(manager)
       on(tm.addPrepared): manager =>
-        if mayReceive(current, manager) then effects.receive(manager)
+        if mayReceive(manager) then effects.receive(manager)
       on(tm.decideOnCommit):
         if tmState == TransactionManagerState.init && all(tmPrepared) then effects.decideOnCommit()
       on(tm.decideOnAbort):
@@ -157,7 +145,7 @@ object TwoPhaseCommit:
 
     object invariants:
       val consistencyInv =
-        check(consistent(current))
+        check(consistent)
 
     // the commits are weakly fair: a resource manager that may commit eventually does
     lazy val fairCommits =
@@ -167,5 +155,5 @@ object TwoPhaseCommit:
       // once the transaction manager commits, each remaining resource manager takes one step
       val commitReachesEveryone =
         (whenever(tmState == TransactionManagerState.committed):
-          eventually(allCommitted(current), within = resourceManagers.size)
+          eventually(allCommitted, within = resourceManagers.size)
         ) in fairCommits
