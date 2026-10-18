@@ -273,8 +273,8 @@ func withoutKeptRuntimeVocabulary(line string) string {
 func retiredVocabularyMention(rel, line string) bool {
 	line = withoutKeptRuntimeVocabulary(line)
 	return retiredModelVocabulary.MatchString(line) ||
-		(strings.HasPrefix(rel, "model/temporal/") && strings.Contains(line, `scenario("`)) ||
-		((rel == "model/README.md" || rel == "model/framework/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
+		(strings.HasPrefix(rel, scalaRoot+"/temporal/") && strings.Contains(line, `scenario("`)) ||
+		((rel == scalaRoot+"/README.md" || rel == scalaRoot+"/framework/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
 			retiredLevelProse.MatchString(line))
 }
 
