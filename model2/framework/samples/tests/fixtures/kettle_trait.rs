@@ -58,9 +58,11 @@ impl Machine for KettleWorld {
                 next.heating_on = false;
                 next.beeping = false;
             }
-            _ => return Vec::new(),
+            _ => return Steps::new(),
         }
-        vec![((), Vec::new(), next)]
+        let mut steps = Steps::new();
+        steps.push(((), Vec::new(), next));
+        steps
     }
 
     fn invariants(&self) -> Vec<Claim<Self>> {

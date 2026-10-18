@@ -1,5 +1,7 @@
 use std::{fmt::Debug, hash::Hash};
 
+use smallvec::SmallVec;
+
 use crate::{Claim, Progress, StepClaim};
 
 /// A world of constants defining a finite state machine and its named claims.
@@ -48,5 +50,5 @@ pub trait Machine: Sized {
 /// An emitted edge `(outcome, facts, next)`, including an edge with a rejecting outcome.
 pub type Step<S, O, F> = (O, Vec<F>, S);
 
-/// Enabled edges in written order; an empty list disables the action.
-pub type Steps<S, O, F> = Vec<Step<S, O, F>>;
+/// Enabled edges in written order, storing one edge inline; empty disables the action.
+pub type Steps<S, O, F> = SmallVec<[Step<S, O, F>; 1]>;
