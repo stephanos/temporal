@@ -1169,7 +1169,7 @@ by the sections). [Spec](.flow/specs/fn-195-modelsuite-a-models-test-file-holds-
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-195.1 | ⬜ todo | After fn-194.2 and fn-196.2: prototype a ModelSuite on Bank (sections, `test` builder, `expect:` macro, spaces) and revise the design note (R1, R2) |
+| fn-195.1 | 🔄 in progress | After integrated native checkpoints: prototype a ModelSuite on Bank (sections, `test` builder, `expect:` macro, spaces) and revise the design note (R1, R2) |
 | fn-195.2 | ⬜ todo | After .1: ModelSuite, the four sections, `expect:`, spaces, `find`/`sample`/`refuted`, conformance defaults and `through` binding, `satisfied`/`inconclusive`/`conformant` in realize (R1-R4) |
 | fn-195.3 | ⬜ todo | After .2: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; section lint rules; split with fn-190.16 (R5, R7) |
 | fn-195.4 | ⬜ todo | After .3: the six samples' tests as ModelSuites with Quint's runs; intended answers reproduced (R6) |
