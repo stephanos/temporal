@@ -34,8 +34,8 @@ is Rust, with the explicit export-name-only linker step documented in `model2/DE
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.5, then .6, then .7 | Engine, progress, derives, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; the registration attribute, attribute Kettle and full write-up follow |
-| After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| Umpire in Rust (now) | fn-210.5, then the ABI rename .16, the move .15 alone (Scala to `model/archived/`, `model2/` to `model/`), then .6 and .7 | Engine, progress, derives, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; registration, the direct named ABI, attribute Kettle and full write-up follow |
+| After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -92,8 +92,10 @@ What is fixed, all owner decisions of 2026-10-18:
 | Name | Status | What |
 | --- | --- | --- |
 | fn-210.5 | 🔄 in progress | After .4: registration-only `#[machine]`, pass-through impl plus generated `Machine` impl; missing/duplicate `#[on]` and unknown `after` diagnostics (R5, R14, R26, R36) |
-| fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
-| fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+| fn-210.16 | ⬜ todo | After .5, alone: direct `umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call` exports; remove export rewriting and update the Go host (R42) |
+| fn-210.15 | ⬜ todo | After .16, alone: archive the Scala tree under `model/archived/` (history kept), rename `model2/` to `model/`, rename the Rust Make targets to `model-*`, update `AGENTS.md`, docs and open specs (R41) |
+| fn-210.6 | ⬜ todo | After .15: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
+| fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model2)
 

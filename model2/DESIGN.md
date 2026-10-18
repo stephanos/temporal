@@ -1,4 +1,4 @@
-# Rust prototype decision
+# Umpire in Rust: decision
 
 ## Stock-toolchain wasm verdict (fn-210 R24)
 
@@ -7,7 +7,7 @@ Rust 1.99.1 for wasm32-wasip1 and ran in wazero v1.12.0 with Go 1.27.0 and
 `CGO_ENABLED=0`. The generated protobuf Explore report and all ordered Rows matched
 the existing native trait fixture goldens byte-for-byte: 81 starts, 283 reached
 states, 424 emitted rows and depth 62. This is the decisive R20 slice before the
-attribute macros. The remaining prototype tasks continue; this note does not claim
+attribute macros. The remaining fn-210 tasks continue; this note does not claim
 their authoring, liveness or lifting work is finished.
 
 The three application exports are `alloc`, `free` and `call`. Both sides use

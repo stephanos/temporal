@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T22:24:34.887068Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.5"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.16",
+  "priority": 1,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.16.md",
+  "status": "todo",
+  "title": "Name the wasm ABI explicitly and remove export rewriting",
+  "updated_at": "2026-10-18T22:24:34.887068Z"
+}
