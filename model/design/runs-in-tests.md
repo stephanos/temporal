@@ -1,282 +1,130 @@
-# Runs in tests: examples and Cases leave the Model
+# ModelSuite prototype verdict
 
-Status: design, decided with the owner 2026-10-17, then revised the same day into specs fn-194 (parametric Models), fn-195 (ModelSuite) and fn-196 (the Scala checker as the oracle). Where this note and the specs differ, the specs rule: the `Runs` object, `.live` and `.through` became the `examples`/`explorations`/`conformance`/`unit` sections of a `ModelSuite` with `test("..."):`; the Model is a parametric class; the checker is Scala, not Go. No source has been changed. Paths are relative to
-the repository root (`/Users/stephan/Workspace/skunkworks/umpire/temporal`). Line numbers come from
-the tree this was written against, `37e268cf28` plus uncommitted edits to `Kettle.scala`.
+The native prototype under [modelsuite-prototype](modelsuite-prototype/README.md) lets a Model
+author read examples, explorations, conformance declarations and plain unit tests together.
+It adapts the shipped Scala checker. It changes no public DSL, sample, checker, Registry or
+realization implementation. Fn-195.2 owns the public implementation.
 
-## Summary
+These are prototype recommendations from the 2026-10-18 experiment. The owner decisions below
+remain requirements. A working adapter does not establish a production API or liftability.
 
-A Model's test file serves two purposes: it tests the Model, by example, by sampling or by property,
-and it declares the conformance tests that run against the real server. Cases are generated only
-from the test file. The Model keeps what it promises (vars, transitions, effects, invariants,
-postconditions, progress, monitors, capabilities) and loses every question asked of it: `queries`,
-`Query`, `find`, `verify`, `limits`, `.live`, `.explore`, and the capability expectation bindings
-that made generated Queries live.
+## Verdict per current Architecture bullet
 
-The shared kernel is the *pinned run*: a start, a schedule of classes with inputs, and expectations
-along the way. The native checker replays it as an example of the Model; the lowering performs the
-same path against the server as a Case. The first judgment is the second's self-test: a run that
-does not hold on the Model is a wrong Case before any server is involved. Everything else in a test
-file is one-sided. Hand-built states, refuted negative controls and sampled runs are model-only;
-the realization (commands, evidence, waits, roles, cleanup) is server-only and stays where it is.
+| Architecture bullet in fn-195 | Verdict and evidence | Remaining obligation |
+| --- | --- | --- |
+| ModelSuite, builder and four sections | Keep the four objects and `test("name"):` shape. Register sections on first `munitTests()`, before `super.munitTests()`. Concrete eager helpers are then initialized. Lifecycle probes check repeated and concurrent enumeration, order, transforms, setup, filtering, unit-only suites and registration failures. | The literal superclass-constructor touch is unsafe and is rejected as an implementation strategy. Fn-195.2 must adopt a post-construction enumeration seam. Prototype member checks are runtime checks, not the final source lint. |
+| Primary machines use class Model | Keep a fresh stable instance per suite. Bank uses its shipped class and an independent-instance unit control. | Kettle still uses its shipped singleton. Class-only migration and singleton refusal belong to fn-195.6. |
+| Authored paths, named record calls, whole actions, oneOf and expect | Keep the named record fields and positioned Boolean assertions. Bank replays the literal retained Quint sendTest. Kettle executes press, 80 heats and failover. oneOf retains both branches in a native ReplayStep. | Prototype action wrappers explicitly append shipped replay operations. They are not automatic lifting of arbitrary statement bodies. before/outcome use a prototype NativeClaims adapter because the shipped claim macros refuse suite context. Intermediate Contract assertions remain held. |
+| Explorations, spaces, any, find, sample and refuted | Keep spaces as reusable vals, find's named horizon, seeded sampling and an unflipped refuted result. The small Bank checks overflow within four sends, reproducible nonempty six-step walks and the Leaky supply counterexample. | The prototype's any selects a whole action declaration. Arbitrary per-input any syntax and public replacement of NativeControls remain fn-195.2/.3 work. Sampling proves a finite experiment only. |
+| Conformance holds Cases and replays first | Keep conformance beside examples. The prototype replays its authored path and samples through the same native checker. expectation and through are prototype metadata strings that make the opener readable. | This proves a native carrier/replay seam only. It creates no Case, Contract or server Run and validates no realization binding. Typed RunExpectation defaults, unique/multiple realization resolution, capability paths and all binding refusals remain implementation work. |
+| oneOf enumerates, any searches, Case names | Keep oneOf's finite native alternatives and confine any declaration to explorations. Prototype registration rejects duplicate slugs. | Stable emitted Case/sample identities are held with Case production. The prototype prints section/slugs only; those are not Case identities. |
+| Model loses queries and old live switches; expectation constructors move | Keep questions in the test file. The prototype suites author no queries sections. | No public API is removed in this task. Existing queries, NativeControls, witness APIs and realization constructors are unchanged until fn-195.3. |
+| Lifting sections and expectations | Positioned ReplayExpectation values retain a useful future seam. One file is sufficient for this native experiment. | Test-file lifting, plugin/IR changes, Contract lowering, sample Case generation and recorded-Run/server conformance remain held. This prototype earns no lifting verdict. |
 
-This follows fn-190 R14/R15, which retired `limits` and said `queries` keeps only witnesses, pinned
-paths and realization checks, one step further: `queries` leaves the Model entirely.
+The architecture's phrase “three section objects” lists four. This note follows R1 and the owner's
+four-section decision.
 
-## Decisions (owner, 2026-10-17)
+## Registration findings
 
-| # | Question | Decision |
-|---|----------|----------|
-| 1 | Capability expectation bindings also generate live Cases from the Model. | They move into `Runs`. The Model declares the capability only; a Case has one source. |
-| 2 | Which start does a run take when init is a set (`oneOf`)? | `run(from = state):` names one. Without `from`, a single-start init is the start and a set is refused. |
-| 3 | `Exploration` carries `variations`, `runs`, `edits`, `dropPrefix`. | `oneOf` at a step is the only variation; `runs`, `edits`, `dropPrefix` and alternative `priority` are retired. A fixture that needs them is a finding. |
-| 4 | Lifting a `Runs` object from a file that also holds a munit suite may be awkward. | Try one file. The fallback is `Bank.runs.scala` beside `Bank.test.scala`: two files, one declaration. |
-| 5 | Each line of an `expect:` block is a bare Boolean; claim sections require `check(...)`. | Bare Booleans in `expect:` only, for now. Claim sections are revisited after living with it. |
-| 6 | `find(steps = 4)` puts a number back in authored code after R14. | `steps` is the horizon, part of the question ("within four sends"); the search budget stays the gate's. |
-| 7 | Who binds a live run to a realization? | A machine with one realization binds every live run to it. `.through(realization)` is required with several, refused for another machine's. |
+The superclass constructor must not invoke subclass section getters. It would run before eager
+helper vals in the concrete suite have initialized. MUnit 1.2.0's overridable `munitTests()`
+provides the observed boundary after concrete construction and before the inherited snapshot
+and suite transforms. `beforeAll` and fixtures occur after discovery and cannot register tests.
 
-## Shape
+The prototype visits examples, explorations, conformance and unit in that order. It holds a
+per-instance monitor through registration. Registration moves from new to loading, then ready or
+failed. Re-entry while loading fails explicitly. An initializer failure is sticky on later
+enumeration, so a partially appended munit buffer cannot become a successful suite. Registration
+transforms run once; suite transforms retain MUnit's repeated-enumeration behavior.
 
-Two kinds of declaration, in an object the exporter lifts and the suite executes:
+Cross-section initialization that registers a different section early is refused. An eager helper
+that touches a section before enumeration is also refused. Referencing an already initialized
+exploration space from a conformance test body works. The prototype preserves ordinary MUnit
+transforms, filtering, ignore/only and setup ordering.
 
-- `run:` is an **example**: every step and input fixed, replayed by the checker, performed by a Case.
-  `oneOf(a, b)` at a step makes a finite family of fully pinned paths, each replayed and each
-  lowered. Deterministic, so a Case identity is stable.
-- `find:` is a **query**: some path does this, or none does. `any` at an input or an unstated step
-  is a search; the answer depends on the budget and the path found is a byproduct. A `find` never
-  takes `.live`. The checker prints a found witness as a `run:` block, which an author pastes in:
-  the only way a search result becomes a Case is deliberately, as an example the author owns.
+The source Registry has a separate problem. Its pattern recognizes direct FunSuite subclasses.
+The inventory experiment uses the actual unchanged Registry on the prototype directory and
+records which classes it misses. The explicit run script selects ModelSuite subclasses and
+requires tests. Fn-195.2 must fix discovery; passing other native suites does not close that gap.
 
-The rule is one line: `oneOf` enumerates, `any` searches, and only `find` may use `any`.
+## expect is still a production blocker
 
-Sampled or property-based runs are the third kind and stay in the munit suite as plain tests over
-`NativeCheck`. They have no fixed path and nothing to lift.
+The macro retains every Boolean statement independently with its source line and text. The
+deliberately wrong first line followed by a true line is the negative control. The shipped replay
+checker supplies the failed expression, line and concrete state.
 
-### Bank
+Scala 3.9 checks unused statements before this ordinary quoted macro can rewrite them. The
+unannotated experiment produced E176 “unused value of type Boolean” under the unchanged strict
+compiler flags. The prototype suites carry a narrow
+`@nowarn("msg=unused value of type .*Boolean.*")` annotation solely for this experiment.
+The raw refusal is retained in `.flow/tmp/fn1951/prototype-fourth.log`; the annotations are in
+`Bank.test.scala` and `Kettle.test.scala` beside the affected suites.
 
-```scala
-// Bank.scala: no queries section. Addr and Denom stay: they are the state's domains.
-object Model extends Machine[Outcome, Nothing]:
-  var balances = Balances(of = Map(Addr.king -> Map(Denom.banana -> supply, Denom.burger -> supply)))
-  object transitions extends Transitions: ...
-  object effects: ...
-  object invariants:
-    val totalSupplyInv = check(totalSupply(balances))
-  object postconditions:
-    val failedSendChangesNothing =
-      if outcome != Outcome.accepted then check(balances == before.balances)
-```
+This suppression is a prototype-only limitation. Fn-195.2 still owes unannotated authored expect
+blocks with strict flags intact. A different argument shape or compiler phase may be required.
+This prototype does not establish either solution. It also does not provide power-assert
+subexpression rendering or prove the general liftable subset.
 
-```scala
-// Bank.test.scala
-package framework.dsl
+The read-only compiler-source investigation is recorded in
+`.flow/tmp/fn195-prep/expect-warning-seam.md`, against Scala 3.9.0 commit
+`777528f19a58e794c9954a42f433373472ec57f8`. It identifies two unproven seams for fn-195.2.
+A transparent inline expression annotation might register a caller-span suppression while typer
+warnings are buffered, or a bounded transformation could consume the Booleans before typing.
+Changing the argument/result type alone does not change typing of earlier statements. The report
+ran no compiler experiment and authorizes no public plugin changes. Either candidate still needs
+annotation-free source/library controls with all strict flags and unrelated warnings intact.
 
-import samples.Bank
-import samples.Bank.*
+## Repeated steps and trailing parameters
 
-// Pinned runs: plain values the exporter lifts and the suite executes. Each is an example of the
-// Model from its initial state; one with `.live` is also a conformance Case.
-object BankRuns extends Runs(Model):
-  // the king has bananas and sends them: Quint's sendTest
-  val sendTest = run:
-    client.send(Addr.king, Addr.donkeykong, Denom.banana, 1)
-    expect:
-      balances(Addr.king, Denom.banana) == 1
-      balances(Addr.donkeykong, Denom.banana) == 1
-      balances(Addr.king, Denom.burger) == supply
-    // donkeykong has no burgers, so this send fails and changes nothing
-    client.send(Addr.donkeykong, Addr.peaches, Denom.burger, 1)
-    expect:
-      outcome == Outcome.invalidCoinsOrInsufficientFunds
-      balances == before.balances
+Choose `repeat(80)(heater.heat)`. The Kettle example executes that spelling from a named room
+start at 20 degrees, checks 100 degrees after the heats and checks beeping/off after failover.
+The spelling states the count once without implying arithmetic on an action value.
+`heater.heat * 80` is rejected as the recommendation; it is not another supported public spelling.
 
-  // a self-send is accepted and pays nothing
-  val selfSend = run:
-    client.send(Addr.king, Addr.king, Denom.banana, 1)
-    expect:
-      outcome == Outcome.accepted
-      balances == before.balances
+Keep `test("...", from = room, expectation = ...):`. The trailing named parameter sits with
+the other run metadata before the body. It avoids an indentation-sensitive suffix after an
+expect block. The prototype executes this opener. Its string metadata is scaffolding, not the
+settled typed expectation constructors.
 
-  // a negative amount debits the receiver: Quint's robustness case
-  val negativeSend = run:
-    client.send(Addr.king, Addr.mario, Denom.banana, -1)
-    expect:
-      balances(Addr.mario, Denom.banana) == -1
+## Exact retained Quint comparison
 
-  // peaches gets a banana: also a Case, expected satisfied against the server
-  val peachesGetsBananas = run:
-    client.send(Addr.king, Addr.peaches, Denom.banana, 1)
-    expect:
-      balances(Addr.peaches, Denom.banana) == 1
-  .live(satisfied)
+`model/framework/samples/BankTest.qnt.test:100` supplies sendTest. It starts king with 10,000
+bananas and burgers, sends 2,000 bananas to donkeykong and checks king=8,000,
+donkeykong=2,000, unchanged king burgers=10,000 and donkeykong's denomination keys exactly banana.
+It then tries 1,000 burgers from donkeykong to peaches and expects invalid coins or insufficient
+funds. QuintBankTest retains those literal inputs and checks; its unchanged-balances assertion
+after refusal is additional Scala coverage.
 
-  // some send of one banana from the king leaves both holding one
-  val kingCanPayPeaches = find:
-    client.send(Addr.king, Addr.peaches, Denom.banana, amount = any)
-    expect:
-      balances(Addr.king, Denom.banana) == 1
-      balances(Addr.peaches, Denom.banana) == 1
+The separate small Bank has supply 2 and bounded inputs. Its exploration, oneOf and conformance
+examples are prototype-authored coverage, not literal upstream runs. Sparse-zero cleanup and
+self-send ordering remain the intentional differences documented in Bank.scala. Replaying the
+literal sendTest establishes that run, not whole-model Quint equivalence.
 
-  // within four sends of anything, an overflow is reachable
-  val overflowReachable = find(steps = 4):
-    expect:
-      outcome == Outcome.overflow
+The retained TwoPhaseCommit.qnt.test successTest expands to prepare then receive for rm1,
+prepare then receive for rm2, prepare then receive for rm3, TM commit and RM commits rm1/rm2/rm3.
+The current Scala positive test groups prepares before receives. TwoPC is outside this task's
+Bank/Kettle scope and remains an exact-run obligation for fn-195.4. Neither retained Quint file
+was edited.
 
-class BankTest extends munit.FunSuite:
-  // every pinned run holds on the Model, live or not; a stale Case fails here, not on a server
-  BankRuns.all.foreach: pinned =>
-    test(s"run ${pinned.name} holds on the Model"):
-      assertHolds(Model, pinned)
+## Owner decisions retained
 
-  // model-only: a hand-built state the server could never be put in
-  test("the supply invariant refuses an inflated state"):
-    val inflated = Model.init.copy(balances = held(Model.init).set(Addr.peaches, Denom.banana, 1))
-    assertEquals(SampleClaims.holds(Model.invariants.totalSupplyInv, inflated), false)
+These decisions come from the 2026-10-17 owner interview recorded in fn-195. Prototype choices
+above are recommendations and are not new quotations from that interview.
 
-  // model-only: the negative control tests the checker, not the Model
-  test("a leaky bank is refuted on the supply invariant"):
-    assertRefuted(BankControls.Leaky, invariant(check(totalSupply(balances))))
+| Decision | Required direction |
+| --- | --- |
+| Capability expectations | Move expectation bindings into conformance tests; the Model declares the capability. |
+| Multiple starts | Name from when init is a set; use the sole start otherwise. |
+| Variation | oneOf is the only finite variation; retire runs, edits, dropPrefix and priority. |
+| File organization | Try one test file; a separate declarations file is the fallback if lifting requires it. |
+| Boolean expectations | Bare Booleans belong in expect only; claim sections keep check for now. |
+| Find horizon | find(steps = n) is part of the question; the execution budget remains the caller's. |
+| Realizations | Bind automatically with one realization; require through with several and refuse a foreign one. |
 
-  // model-only: sampled runs, with no fixed path to lower
-  test("sampled sends never break the supply"):
-    forAll(sends(steps = 6)): path =>
-      assert(NativeCheck.replay(Model, path).forall(s => totalSupply(held(s))))
-```
+## Remaining proofs
 
-### Kettle
-
-Kettle's init is forty-one starts, so a run names one (decision 2):
-
-```scala
-object KettleRuns extends Runs(Model):
-  val boilsFromRoomTemperature = run(from = room):
-    user.pressButton
-    heater.heat * 80
-    expect:
-      temperature == boilingTemperature
-      heatingOn
-    heater.failover
-    expect:
-      beeping
-      !heatingOn
-```
-
-`heater.heat * 80` is a repeated step; whether it is spelled this way or as `repeat(80)(heater.heat)`
-is a prototype item.
-
-### A Temporal protocol
-
-The former `queries` block of the mini Activity Protocol (`model/framework/SEMANTICS.md:583-592`),
-as runs. The machine has one realization, `MiniActivityRun`, so `.through` is not written
-(decision 7):
-
-```scala
-object ActivityRuns extends Runs(ActivityProtocol):
-  val protocolCompleted = run:
-    client.start()
-    activityWorker.poll
-    activityWorker.respondCompleted
-    expect:
-      records(Fact.statusCompleted)
-  .live(satisfied)
-
-  val retryCompleted = run:
-    client.start(maxAttempts := MaxAttempts.two)
-    activityWorker.poll
-    activityWorker.respondFailed(Failure.retryable)
-    expect:
-      attempts == 1
-    timers.backoff
-    activityWorker.poll
-    activityWorker.respondCompleted
-    expect:
-      records(Fact.statusCompleted)
-      attempts == 2
-  .live(inconclusive(Reason.explanationsDisagree,
-    because = "explaining executions can disagree on the attempt count"))
-
-  // the Nexus deadline exploration (dispatch-original System.scala:428-436) as a family: one
-  // Case per alternative, each fully pinned
-  val nexusDeadlines = run:
-    oneOf(
-      caller.schedule(startToClose := expires),
-      caller.schedule(scheduleToClose := expires))
-    handler.poll
-    expect:
-      records(Fact.timedOut)
-  .live(satisfied)
-```
-
-A capability expectation (decision 1) is a run too: the Model declares the capability, the run
-states what the server is expected to do with it and carries the `.live` expectation.
-
-### Scoping and words
-
-- Inside `expect:`, bare fields read the state after the step just taken; `outcome`, `before` and
-  `records` refer to that step, as in a postcondition. The lifter already provides these.
-- Each statement of an `expect:` block is one assertion (decision 5). The macro lifts the expression
-  tree, as `check` does today, so the native failure can print each subexpression's value
-  (power-assert style) and the lowering has the same tree for the Contract. This departs from
-  `after(...):` blocks, where a bare Boolean is refused.
-- `.live(expectation)` and `.through(realization)` hang off the block with a leading dot at the
-  enclosing indentation. If that reads badly in practice, `run.live(satisfied):` as the opener is
-  the alternative.
-- `expect` was retired as an author word in fn-190.4 (`model/framework/dsl/Syntax.scala:283`
-  still mentions it as "retired `expect`"). Reusing it for the block is deliberate: it now means
-  one thing, the expectation after a step of a run, and only inside `Runs`.
-- A `Runs` object's `all` is the one list the suite iterates and the lowering reads.
-
-## Consequences
-
-**DSL (this phase).** `Runs(machine)`, `run`, `run(from = ...)`, `find`, `find(steps = ...)`,
-`expect:`, `oneOf` at a step, `any` at an input, `.live`, `.through`. Retired from the Model:
-`object queries`, `Query`, `find`, `verify`, `witness`, `.records`, `.ends`, `.limits`, `.explore`,
-`.live`, `scenario`, and the capability expectation binding's live switch. `SampleClaims.judged`
-and `holds` take a claim member directly instead of `verify(member)`.
-
-**Lint.** A run's `expect:` bodies are confined to the liftable subset (`lint/LiftableSubset`,
-`lint/EligibleWitness` are the starting points). A `.live` run whose steps include a class no
-realization performs or waits for is refused. `any` outside `find` is refused. A `find` with
-`.live` is refused. A run without `from` on a machine whose init is a set is refused.
-
-**Exporter and plugin (next phase).** The exporter lifts objects extending `Runs` from test files
-and nothing else in them; munit on the classpath is accepted. If this proves awkward, the fallback
-is `X.runs.scala` beside `X.test.scala` (decision 4). The IR `Query` message becomes a run: a start,
-a schedule with `oneOf` positions, expectation blocks at positions, the live expectation and the
-realization name. `Exploration` and its fields are removed from the IR.
-
-**Go (next phase).** The lowering (`tools/umpire/lower`) performs a run's path and emits a Contract
-with assertions at every `expect:` position, not only the last step. `lower.Realizable` and
-`conformance.realizationOf` resolve the realization by decision 7. The checker gains `find` with a
-horizon and prints a found witness as a `run:` block. Case identity stays the hash of canonical
-bytes; the Case name is `<Model>.<run>`, so renaming a run is a Case change, and the pinned canary
-Case (`tools/canary/casebinding`) is re-pinned once.
-
-## Dropped, and why
-
-- `Exploration.runs`, `edits`, `dropPrefix` and `Alternative.priority`: no shipped Model uses them
-  outside the equivalence fixture copy of the Nexus System; `oneOf` enumerates the alternatives
-  exhaustively, which is what a model check wants (decision 3).
-- `verify` as a Query: fn-190 R15 verifies every claim from every start by default.
-- Hand-written `find`s that only show an action fires: R15's vacuity reporting.
-- `witness(...).records(...).ends(...)`: a `run:` with one `expect:` after its last step.
-
-## Open items for the next phase
-
-- Lifting from a file that also holds a munit suite (decision 4's fallback).
-- Contract assertions at intermediate positions in the lowering.
-- Whether claim sections also accept bare Booleans (decision 5, deferred).
-- The spelling of a repeated step and of `run.live(...)` versus a trailing `.live`.
-- The power-assert failure message for `expect:` lines, in the native checker and in the Go
-  report against a recorded Run.
-- When the Temporal feature Models return to the tree (currently zero `.scala` under
-  `model/temporal`), their `queries` sections are re-homed as `Runs` objects in test files, and
-  `Realizes(machine, runs = Seq(...))` loses its `runs` argument.
-
-## Non-goals
-
-- The realization: commands, evidence, waits, roles, cleanup. `.through` names one; nothing else
-  changes.
-- The model-only test vocabulary (`held`, `bank`, `SampleClaims`, native predicate truth tables).
-- Whether the Go conformance harness runs the IR interpreter instead of its hand-written model
-  (MILESTONES open item).
+Claim-section bare Booleans remain parked pending experience. The one-file native choice does
+not resolve future exporter classpath/lifting. All realization execution, Case generation,
+Contract lowering, IR/export/schema/backend/generated routes and Temporal sources remain held.
+Public DSL dependency placement is fn-195.2 work. The prototype run script supplies MUnit 1.2.0
+as an ordinary dependency only to its own isolated invocation.
