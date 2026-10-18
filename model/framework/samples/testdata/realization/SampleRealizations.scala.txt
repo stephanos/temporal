@@ -3,7 +3,14 @@ package samples.realizationclient
 import framework.dsl.*
 import framework.dsl.Finite.given
 import framework.realize.*
-import samples.{Bank, Kettle, ReliableBroadcast, TwoLayeredCache, TwoPhaseCommit, Voting}
+import samples.{
+  Bank,
+  Kettle,
+  ReliableBroadcast,
+  TwoLayeredCache,
+  TwoPhaseCommit,
+  Voting
+}
 import scala.compiletime.testing.typeChecks
 
 object SampleRealizations:
@@ -30,7 +37,7 @@ object SampleRealizations:
   )
   val commit = new TwoPhaseCommit.Model[Manager](Manager.values.toSet)
 
-  def realize(machine: MachineDeclaration[?, ?, ?]): Realization =
+  def realize(machine: Machine[?, ?]): Realization =
     Realization(
       name = "sample",
       machine = machine,
@@ -43,7 +50,7 @@ object SampleRealizations:
 
   def main(args: Array[String]): Unit =
     val _ = args
-    val machines = Vector[MachineDeclaration[?, ?, ?]](
+    val machines = Vector[Machine[?, ?]](
       bank,
       voting,
       commit,
@@ -61,5 +68,7 @@ object SampleRealizations:
     assert(typeChecks("realize(bank)"))
     assert(!typeChecks("realize(classOf[Bank.Model[Addr]])"))
     assert(
-      !typeChecks("realize((holder: Addr, supply: Int) => new Bank.Model[Addr](holder, supply))")
+      !typeChecks(
+        "realize((holder: Addr, supply: Int) => new Bank.Model[Addr](holder, supply))"
+      )
     )
