@@ -4,6 +4,8 @@ satisfies: [R19, R13, R14]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.8 Slice 1: lift Kettle to TLA+ and agree with TLC
 
 ## Description
+**Layout (R22):** lift cases go in `umpire/lift/cases/<name>/`; Kettle's `Kettle.tla`, `Kettle.cfg` and `tlc-agreement.txt` go in `samples/cases/kettle/expected/`.
+
 New crates `umpire/lift` (tokens recorded by `#[machine]` to a tree for the R13 subset; TLA+ module and config emitter) and `umpire/backends/tlc` (pinned `tla2tools.jar` runner on the mise JDK, `-deadlock` on, `-dump` streamed, `-dumpTrace json` on violation). Agreement test: TLC's reachable set equals the checker's 283 states (decoded through the shared state spelling), invariant and postcondition verdicts agree, `boils` liveness agrees under weak fairness on internal steps. Goldens: `cases/kettle/expected/Kettle.tla`, `Kettle.cfg`, `tlc-agreement.txt`. Record the jar's version and checksum; add `umpire-lift`/`umpire-tlc` to the admitted list only with what they need.
 
 **Files:** model2/umpire/lift/, model2/umpire/backends/tlc/, model2/Cargo.toml (members), model2/umpire/samples/cases/kettle/expected/, Makefile (TLC jar fetch into model2/build/).

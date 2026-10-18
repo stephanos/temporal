@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.3 Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples
 
 ## Description
+**Layout (R22):** progress cases go in `umpire/checker/cases/<name>/{model.rs,expected/}`; Kettle's `boils` result lands in `samples/cases/kettle/expected/report.txt`.
+
 **Deps 2026-10-18 (R18):** build the scoped graph as a `petgraph` `DiGraph` over `StateId`s and use `tarjan_scc`; a fair cycle is a non-trivial SCC inside the scope where every weakly-fair internal step enabled throughout is taken; the lasso is a BFS prefix to the SCC plus a cycle within it.
 
 **Recut 2026-10-18 (R8, golden files):** progress results land in `report.txt` and lasso counterexamples in `paths/<claim>.txt`; the no-heater control Model is a case of its own. Extend the oracle explorer with the same progress check.

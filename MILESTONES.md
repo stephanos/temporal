@@ -66,13 +66,15 @@ recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-1
 the reasons Rust is on the table: Kettle lifted from the macro's tokens to TLA+ and agreeing with TLC
 on all 283 states (R19), and the checker compiled to wasm and driven from a Go host through
 wasmtime-go, matching the Rust goldens byte for byte (R20). Gate: `make model2-check`; update
-goldens with `make model2-update`.
+goldens with `make model2-update`. Test layout (R22): each case lives in the crate whose behaviour it
+pins, as a folder with its `model.rs` and `expected/`; `samples` holds the real Models and their
+end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-210.2 | 🔄 in progress | World-based BFS, panic paths, unknown holes, deterministic goldens, the oracle property test, and the IndexSet visited-state seam (R2, R4, R8, R11, R14, R16, R18) |
-| fn-210.10 | ⬜ todo | After .1/.2: rename `model2/framework/` to `model2/umpire/` and the crates `framework-*` to `umpire-*`; gate passes, goldens unchanged (R21) |
+| fn-210.10 | ⬜ todo | After .1/.2: rename `model2/framework/` to `model2/umpire/` and crates to `umpire-*` (R21); move synthetic cases to `checker/cases/<name>/{model.rs,expected/}`, keep only Kettle in `samples`, extract the runner into `umpire-testing` (R22); goldens byte-identical |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |

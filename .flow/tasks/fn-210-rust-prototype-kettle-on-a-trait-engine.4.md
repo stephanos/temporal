@@ -4,6 +4,8 @@ satisfies: [R5]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.4 umpire-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]
 
 ## Description
+**Layout (R22):** expansion cases go in `umpire/dsl/macros/cases/<name>/`; refusals in `dsl/macros/tests/ui/`.
+
 **Deps 2026-10-18 (R18):** proc-macro crate on `syn` 3, `quote`, `proc-macro2`, `darling` 0.24 (attribute parsing) and `manyhow` (multiple errors with spans). `derive(Action)` may delegate enumeration to `enum-iterator`'s `Sequence` (syn 2 duplicate accepted). Expansion goldens: insta snapshots of the derive's implementation function, formatted by `prettyplease`, not macrotest.
 
 **Note 2026-10-18 (R17):** derive only what Kettle needs (unit variants, `#[starts]` ranges), but keep `derive(Action)` and `derive(State)` shaped so variants with data and a `Finite` domain trait slot in at Bank without breaking Kettle.

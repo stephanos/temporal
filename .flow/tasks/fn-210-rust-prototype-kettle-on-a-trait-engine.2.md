@@ -4,6 +4,8 @@ satisfies: [R2, R4, R8, R11, R14, R16]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.2 framework-checker: BFS explore with budget, invariants per state, postconditions per edge, verify_all, refuted
 
 ## Description
+**Note 2026-10-18 (R22):** cases will move to their owning crates in fn-210.10 (synthetic checker cases to `checker/cases/<name>/{model.rs,expected/}`, the runner to `umpire-testing`). Finish .2 in the current layout; keep each new case's Model in its own module so the move is mechanical.
+
 **Note 2026-10-18 (R21):** the framework is renamed `umpire` (folder `model2/umpire/`, crates `umpire-*`) by fn-210.10 right after this task; keep using the current names until then.
 
 **Deps 2026-10-18 (R18):** visited set = `IndexSet<State, FxBuildHasher>` (`indexmap`, `rustc-hash`): the insertion index is the `StateId`, iteration is discovery order, parents are a `Vec<(StateId, Action)>`; this is the `FullStates` impl of `Visited`. Vacuity tracking uses `fixedbitset`. Dev: `insta`, `proptest`.

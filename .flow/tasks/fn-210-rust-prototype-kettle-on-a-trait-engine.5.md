@@ -4,6 +4,8 @@ satisfies: [R5]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.5 #[machine] attribute: pass-through impl, generated Machine impl from #[on]/#[invariant]/#[postcondition]/#[scope]/#[progress]
 
 ## Description
+**Layout (R22):** expansion cases go in `umpire/dsl/macros/cases/<name>/`; refusals in `dsl/macros/tests/ui/`.
+
 **Deps 2026-10-18 (R18):** same macro stack as .4; the pass-through golden is an insta snapshot of `machine_impl(tokens)` formatted by `prettyplease` (replaces macrotest).
 
 **Recut 2026-10-18 (R13):** `#[machine]` warns on expressions outside the liftable subset (arithmetic, comparisons, boolean logic, field access, enum `match`, `imbl` operations, helpers in the same impl), naming the expression and the reason; pin one warning with a trybuild golden.
