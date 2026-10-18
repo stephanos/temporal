@@ -6,9 +6,9 @@ satisfies: [R1]
 ## Description
 Extend the TLA+ emitter in `umpire-lift` to emit `\* @type: ...;` annotations for every variable, constant and operator, derived from the Model's Rust types (integers, booleans, enums as strings or variants, records, later imbl maps and sets as functions and sets). Re-run TLC on every fixture with a TLC golden and require identical results; update the `.tla` goldens.
 
-**Files:** model2/umpire/lift/src/ (emitter, type mapping), TLA goldens under the fixture folders.
+**Files:** model/umpire/lift/src/ (emitter, type mapping), TLA goldens under the fixture folders.
 
-**Quick commands:** `make model2-check`; `UMPIRE_BACKENDS=require make model2-check`
+**Quick commands:** `make model-check`; `UMPIRE_BACKENDS=require make model-check`
 
 ## Acceptance
 - Every emitted module is fully annotated; TLC results unchanged.

@@ -1,5 +1,9 @@
 # Umpire in Rust: decision
 
+The workspace now lives at `model/`, with the frozen Scala reference under `model/archived/`.
+Run `make model-check` and `make model-time` from the repository root. Measurements below retain
+the command names used when they were recorded, before the workspace move.
+
 ## Stock-toolchain wasm verdict (fn-210 R24)
 
 Recommendation: **Rust**. On 2026-10-18 the trait-shaped Kettle compiled with stock

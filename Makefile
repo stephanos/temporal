@@ -4,7 +4,7 @@ $(error check-framework runs alone, without system build targets)
 endif
 .PHONY: check-framework
 check-framework:
-	@mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/framework/check -M framework.check.checkFramework
+	@mise exec -- scala-cli run --server=false --suppress-outdated-dependency-warning model/archived/framework/check -M framework.check.checkFramework
 else
 ############################# Main targets #############################
 # Install all tools and builds binaries.
@@ -688,10 +688,9 @@ umpire-check-exploration-bridge:
 umpire-check-replay-bridge:
 	@mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-ir-bridge -run '^TestIRBridgeProtocol$$/replay$$'
 
-# Scala model tooling uses explicit source roots so authoring, the IR generator (export) and the check
-# stay separate projects. Each tool's generic half is in model/framework and its Temporal half in
-# model/temporal; the Temporal build of a tool (model/temporal/<tool>) includes the framework's.
-MODEL_ROOT := model
+# Archived Scala targets are unmaintained and are not expected to build. Their explicit source
+# roots keep authoring, the IR generator (export) and the check separate under model/archived.
+MODEL_ROOT := model/archived
 MODEL_CLI := mise exec -- scala-cli
 MODEL_GATE_ARGS ?=
 # Scalafix 0.14.9 reads JDK25's URLClassPath.path; JDK27 renamed that field to searchPath.
@@ -817,7 +816,7 @@ lift-model: $(MODEL_JAR)
 		if [ -z "$$out" ]; then mkdir -p $(MODEL_BUILD)/history; out=$$(mktemp -d $(MODEL_BUILD)/history/lift.XXXXXX); fi; \
 		mkdir -p "$$out"; \
 		$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) --main-class framework.export.lift -- \
-			--ir $(call model_quote,$(CURDIR)/$(MODEL_JAR))=model/ $(MODEL_CLASSPATH) "$$out" $(MODEL_LIFT_NAMES); \
+			--ir $(call model_quote,$(CURDIR)/$(MODEL_JAR))=model/archived/ $(MODEL_CLASSPATH) "$$out" $(MODEL_LIFT_NAMES); \
 		for feature in $(FEATURES); do \
 			name=$$(printf '%s' "$$feature" | tr '/_' '--'); \
 			if cmp -s "$$out/$$name.json" $(MODEL_FEATURE_ROOT)/"$$feature"/generated/ir.json; then state=current; else state='differs from its checked-in IR'; fi; \
@@ -880,7 +879,7 @@ lint-model-conventions: $(MODEL_PROTO_JARS) $(MODEL_JAR)
 	@$(MODEL_CLI) compile --server=false --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_EXPORT) > $(MODEL_BUILD)/irgen-conventions.classpath
 	@$(MODEL_CLI) --power package --suppress-outdated-dependency-warning --library --test $(MODEL_CHECK) -f -o $(MODEL_BUILD)/check-conventions.jar
 	@$(MODEL_CLI) compile --suppress-outdated-dependency-warning --test --print-classpath $(MODEL_CHECK) > $(MODEL_BUILD)/check-conventions.classpath
-	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) -M framework.export.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/,$(MODEL_BUILD)/irgen-conventions.jar=model/framework/export/,$(MODEL_BUILD)/check-conventions.jar=model/framework/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
+	@$(MODEL_CLI) run --server=false --suppress-outdated-dependency-warning $(MODEL_EXPORT) -M framework.export.lintConventions -- $(MODEL_BUILD)/model-conventions.jar=model/archived/,$(MODEL_BUILD)/irgen-conventions.jar=model/archived/framework/export/,$(MODEL_BUILD)/check-conventions.jar=model/archived/framework/check/ $(MODEL_BUILD)/model-conventions.classpath $(MODEL_BUILD)/irgen-conventions.classpath $(MODEL_BUILD)/check-conventions.classpath
 
 lint-model-models: $(MODEL_PROTO_JARS)
 	@printf $(COLOR) "Linting model files..."
@@ -1417,32 +1416,32 @@ ensure-no-changes:
 	@test -z "`git status --porcelain`" || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; git diff HEAD ; exit 1)
 endif
 
-##### model2: Umpire in Rust (fn-210) #####
-MODEL2_CARGO := cd model2 && mise exec -- cargo
-MODEL2_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model2/scripts/time-gate.sh --step $(1),)
+##### model: Umpire in Rust (fn-210) #####
+RUST_MODEL_CARGO := cd model && mise exec -- cargo
+RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/model/scripts/time-gate.sh --step $(1),)
 
-.PHONY: model2-check model2-fmt model2-update model2-time
-model2-check: $(PROTOC_GEN_GO)
-	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
-	@$(call MODEL2_STEP,timing-controls) /bin/bash $(CURDIR)/model2/scripts/test-time-gate.sh
-	@$(call MODEL2_STEP,capability-controls) /bin/bash $(CURDIR)/model2/scripts/test-capabilities.sh
-	@$(call MODEL2_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model2/scripts/proto-go.sh --check
-	@cd model2 && $(call MODEL2_STEP,fmt) mise exec -- cargo fmt --all --check
-	@cd model2 && $(call MODEL2_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
-	@cd model2 && $(call MODEL2_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
-	@cd model2 && $(call MODEL2_STEP,tests) mise exec -- cargo test --workspace --quiet
-	@cd model2 && $(call MODEL2_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
-	@cd model2 && $(call MODEL2_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
-	@cd model2 && $(call MODEL2_STEP,wasm-guest) mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked --quiet
-	@cd model2 && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call MODEL2_STEP,go-host) mise exec -- go -C "$$PWD/hosts/go" test -tags test_dep -count=1 ./...
+.PHONY: model-check model-fmt model-update model-time
+model-check: $(PROTOC_GEN_GO)
+	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
+	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
+	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
+	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh --check
+	@cd model && $(call RUST_MODEL_STEP,fmt) mise exec -- cargo fmt --all --check
+	@cd model && $(call RUST_MODEL_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
+	@cd model && $(call RUST_MODEL_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
+	@cd model && $(call RUST_MODEL_STEP,tests) mise exec -- cargo test --workspace --quiet
+	@cd model && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
+	@cd model && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
+	@cd model && $(call RUST_MODEL_STEP,wasm-guest) mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked --quiet
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/hosts/go" test -tags test_dep -count=1 ./...
 
-model2-fmt:
-	@$(MODEL2_CARGO) fmt --all
+model-fmt:
+	@$(RUST_MODEL_CARGO) fmt --all
 
-model2-update:
-	@printf $(COLOR) "Update model2 golden files (insta, trybuild)..."
-	@cd model2 && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
+model-update:
+	@printf $(COLOR) "Update model golden files (insta, trybuild)..."
+	@cd model && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
 
-model2-time:
-	@printf $(COLOR) "Time the model2 feedback loop (fn-210 R30)..."
-	@$(CURDIR)/model2/scripts/time-gate.sh
+model-time:
+	@printf $(COLOR) "Time the model feedback loop (fn-210 R30)..."
+	@$(CURDIR)/model/scripts/time-gate.sh
