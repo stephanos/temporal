@@ -15,7 +15,10 @@ umpire-dsl.workspace = true
 indexmap.workspace = true
 rustc-hash.workspace = true
 fixedbitset.workspace = true
+petgraph.workspace = true
+thiserror.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+trybuild.workspace = true
 umpire-testing.workspace = true

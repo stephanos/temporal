@@ -2,7 +2,7 @@
 # uses today. Layout mirrors model/framework: dsl, checker, samples.
 [workspace]
 resolver = "3"
-members = ["umpire/dsl", "umpire/checker", "umpire/samples", "umpire/testing"]
+members = ["umpire/dsl", "umpire/dsl/macros", "umpire/checker", "umpire/samples", "umpire/testing"]
 
 [workspace.package]
 version = "0.0.1"
@@ -13,6 +13,7 @@ license = "MIT"
 
 [workspace.dependencies]
 umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
+umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "umpire/checker" }
 umpire-testing = { version = "0.0.1", path = "umpire/testing" }
 

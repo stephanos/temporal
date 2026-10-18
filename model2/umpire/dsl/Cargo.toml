@@ -12,3 +12,9 @@ workspace = true
 
 [dependencies]
 smallvec.workspace = true
+enum-iterator.workspace = true
+umpire-dsl-macros.workspace = true
+
+[dev-dependencies]
+trybuild.workspace = true
+umpire-testing.workspace = true

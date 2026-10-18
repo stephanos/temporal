@@ -33,7 +33,7 @@ Bank and Voting or stopping, and that recommendation decides what is un-deferred
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Rust prototype (now) | fn-210.1 and .2, then the rename .10 and shared Cargo wiring .11, then .3 and .4 → .5 in parallel, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
+| Rust prototype (now) | fn-210.1 and .2, then the rename .10 and shared Cargo wiring .11, then .3 and .4 → .5 in parallel, with the decisive wasm slice .9 right after .10, then .6 and the TLC slice .8, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
 | After the recommendation | decided by fn-210.7 | Either grow the Rust DSL one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through checker, TLA and Case together, with real Testpilot starting on the mini activity; or close fn-210 with its evidence and resume the Scala phases |
 
 ## Specs
@@ -65,7 +65,8 @@ recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-1
 `deny.toml`. Vertical before broad (owner, 2026-10-18): before the write-up, two thin slices test
 the reasons Rust is on the table: Kettle lifted from the macro's tokens to TLA+ and agreeing with TLC
 on all 283 states (R19), and the checker compiled to wasm and driven from a Go host through
-wasmtime-go, matching the Rust goldens byte for byte (R20). Gate: `make model2-check`; update
+wasmtime-go, matching the Rust goldens byte for byte (R20). Verdict rule (R24, owner 2026-10-18): if the wasm slice passes on the stock toolchain, Rust
+wins; every other measure is information. Gate: `make model2-check`; update
 goldens with `make model2-update`. Test layout (R22, R23): each fixture lives in its owning crate's
 `tests/fixtures/<name>/`, with its `model.rs` and `expected/` ("fixture", since Case is Testpilot's term); `samples` holds the real Models and their
 end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
@@ -79,11 +80,10 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface with its test; parity with the Scala suite (R6) |
 | fn-210.8 | ⬜ todo | After .6: slice 1, `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
-| fn-210.9 | ⬜ todo | After .6: slice 2, `umpire-wasm` exports driven by a wasmtime-go host in `model2/hosts/go`; report and rows byte-identical to the goldens; size and latency measured (R20) |
+| fn-210.9 | ⬜ todo | After .2/.10, decisive (R24): the checker as wasm in a wasmtime-go host on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md`: authoring, size, speed, tooling, lifting and hosting comparison and the recommendation; then delete `samples/options/` (R7) |
 
 ## Open for the owner
 
-- The deferral is total by request; if any Scala work should continue in parallel (for example
-  fn-196.8, the checker performance fix, which is needed for a fair speed comparison in fn-210.7),
-  name it and it returns to this page.
+- The deferral is total by request; fn-196.8 (the Scala checker speed fix) stays deferred, since speed
+  no longer decides the verdict. If any other Scala work should continue in parallel, name it.

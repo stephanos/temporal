@@ -1,9 +1,11 @@
 ---
-satisfies: [R20, R15]
+satisfies: [R20, R15, R24]
 ---
-# fn-210-rust-prototype-kettle-on-a-trait-engine.9 Slice 2: the checker as wasm in a Go host (wasmtime-go)
+# fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle
 
 ## Description
+**Recut 2026-10-18 (R24, decisive):** this task decides the prototype. Run it right after .2 and .10 on the trait-shaped Kettle fixture (`samples/tests/fixtures/kettle_trait/`), not the surface-C Kettle; the goldens it must match byte for byte are that fixture's `expected/report.txt` and `rows.txt`. Stock rustc only. Record the result in `model2/DESIGN.md` immediately (a short verdict section), then continue with the remaining tasks.
+
 **Layout (R22):** the wasm host's expected report and rows are Kettle's goldens in `samples/tests/fixtures/kettle/expected/`; the Go host reads them from there.
 
 New crate `umpire/wasm` exporting `explore(budget)` (returns Kettle's report text) and `rows(state_id)` with a pointer-and-length ABI (`alloc`, `free`, result buffers). First finding: whether wasmtime-go can host a `wasm32-wasip2` component; if not, build a `wasm32-wasip1` core module for the host (R15's wasip2 build of dsl and checker stays in the gate). Go module `model2/hosts/go` (Go pinned by mise) loads the module and its `go test` compares the report with `tests/fixtures/kettle/expected/report.txt` byte for byte and `rows` with `tests/fixtures/kettle/expected/rows.txt`. Measure module size, load time and per-call latency (10^5 `rows` calls) for DESIGN.md.
