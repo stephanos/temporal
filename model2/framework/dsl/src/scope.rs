@@ -5,15 +5,15 @@ pub struct Scope<A> {
     pub excluded: Vec<A>,
 }
 
-impl<A: Copy + PartialEq> Scope<A> {
+impl<A: Clone + PartialEq> Scope<A> {
     /// Builds a scope excluding the supplied actions.
     pub fn without(actions: &[A]) -> Self {
         Self { excluded: actions.to_vec() }
     }
 
     /// Reports whether an action is retained by this scope.
-    pub fn allows(&self, action: A) -> bool {
-        !self.excluded.contains(&action)
+    pub fn allows(&self, action: &A) -> bool {
+        !self.excluded.contains(action)
     }
 }
 

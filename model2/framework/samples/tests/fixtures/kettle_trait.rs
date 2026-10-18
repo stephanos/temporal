@@ -1,19 +1,10 @@
-// Option D (custom, no macros): a trait and plain Rust, stateright's shape with Umpire's claims.
-// Hypothetical framework "umpire"; does not compile.
-//
-// Zero macros beyond std derives. The Model is a trait implementation; the action catalog is an
-// explicit enum and an explicit list; claims are plain functions registered by name in one place.
-// This is the floor: what Rust gives with no DSL at all. Everything else is this plus sugar.
-// Lifting cannot be done from the compiler here; it would be a `syn` pass over the source in
-// build.rs, like go/ast.
-
-use umpire::{Checker, Claim, Machine, Outcome, Progress, Scope};
+use framework_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
 
 const BOILING_TEMPERATURE: i32 = 100;
 const COLDEST_TEMPERATURE: i32 = -40;
 
-/// A kettle: a heating element the user switches on and off, which warms the water by one degree
-/// a step and fails over, beeping, once the water boils.
+pub struct KettleWorld;
+
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Kettle {
     temperature: i32,
@@ -29,79 +20,74 @@ pub enum Act {
     HeaterFailover,
 }
 
-impl Machine for Kettle {
+impl Machine for KettleWorld {
+    type State = Kettle;
     type Action = Act;
+    type Outcome = ();
+    type Fact = ();
 
-    fn starts() -> Vec<Self> {
+    fn starts(&self) -> Vec<Kettle> {
         (COLDEST_TEMPERATURE..=40)
             .map(|temperature| Kettle { temperature, heating_on: false, beeping: false })
             .collect()
     }
 
-    fn actions() -> &'static [Act] {
-        &[Act::UserPressButton, Act::UserDepressButton, Act::HeaterHeat, Act::HeaterFailover]
+    fn actions(&self) -> Vec<Act> {
+        vec![Act::UserPressButton, Act::UserDepressButton, Act::HeaterHeat, Act::HeaterFailover]
     }
 
-    fn internal(action: Act) -> bool {
+    fn internal(&self, action: &Act) -> bool {
         matches!(action, Act::HeaterHeat | Act::HeaterFailover)
     }
 
-    /// One step of the state machine: any enabled action. `None` refuses.
-    fn step(&self, action: Act) -> Option<Self> {
-        let mut next = self.clone();
+    fn step(&self, state: &Kettle, action: Act) -> Steps<Kettle, (), ()> {
+        let mut next = state.clone();
         match action {
-            Act::UserPressButton if !self.heating_on => {
+            Act::UserPressButton if !state.heating_on => {
                 next.heating_on = true;
                 next.beeping = false;
             }
-            Act::HeaterFailover if self.heating_on && self.temperature >= BOILING_TEMPERATURE => {
+            Act::HeaterFailover if state.heating_on && state.temperature >= BOILING_TEMPERATURE => {
                 next.heating_on = false;
                 next.beeping = true;
             }
-            Act::HeaterHeat if self.heating_on && self.temperature < BOILING_TEMPERATURE => {
+            Act::HeaterHeat if state.heating_on && state.temperature < BOILING_TEMPERATURE => {
                 next.temperature += 1;
             }
-            Act::UserDepressButton if self.heating_on => {
+            Act::UserDepressButton if state.heating_on => {
                 next.heating_on = false;
                 next.beeping = false;
             }
-            _ => return None,
+            _ => return Vec::new(),
         }
-        Some(next)
+        vec![((), Vec::new(), next)]
     }
 
-    fn invariants() -> Vec<Claim<Self>> {
-        vec![Claim::new("beeps_only_when_off", |k| !k.beeping || !k.heating_on)]
+    fn invariants(&self) -> Vec<Claim<Self>> {
+        vec![Claim::<Self>::new("beeps_only_when_off", |_, k| (!k.beeping || !k.heating_on).into())]
     }
 
-    fn postconditions() -> Vec<StepClaim<Self>> {
+    fn postconditions(&self) -> Vec<StepClaim<Self>> {
         vec![
-            StepClaim::new("warms_only_when_on", |before, after, _| {
-                before.heating_on || after.temperature <= before.temperature
+            StepClaim::<Self>::new("warms_only_when_on", |_, before, after, _, (), _| {
+                (before.heating_on || after.temperature <= before.temperature).into()
             }),
-            StepClaim::after("fails_over_at_boiling", Act::HeaterFailover, |_, after| {
-                after.temperature == BOILING_TEMPERATURE && after.beeping
-            }),
+            StepClaim::<Self>::after(
+                "fails_over_at_boiling",
+                Act::HeaterFailover,
+                |_, _, after, _, (), _| {
+                    (after.temperature == BOILING_TEMPERATURE && after.beeping).into()
+                },
+            ),
         ]
     }
 
-    fn progress() -> Vec<Progress<Self>> {
-        // The user switches the kettle on but never off: one who switches it off keeps it from
-        // boiling, whatever the heater does.
-        let never_switched_off = Scope::without(&[Act::UserDepressButton]);
-        // Every claim above also holds for a kettle that never heats; this one says it boils.
-        // Switched on and left on, the water boils and the kettle beeps.
-        vec![Progress::<Self>::new("boils")
-            .whenever(|k| k.heating_on)
-            .eventually(|k| k.beeping)
-            .within(never_switched_off)]
+    fn progress(&self) -> Vec<Progress<Self>> {
+        vec![
+            Progress::<Self>::new("boils")
+                .whenever(|_, k| k.heating_on.into())
+                .eventually(|_, k| k.beeping.into())
+                .within(Scope::without(&[Act::UserDepressButton])),
+        ]
     }
 }
-
-// tests/kettle.rs
-//   #[test]
-//   fn kettle_claims_hold() {
-//       let result = Checker::explore::<Kettle>(1 << 20);
-//       result.verify_all().assert_verified();
-//       Checker::refuted::<Kettle>(Claim::new("never_beeps", |k| !k.beeping));
-//   }

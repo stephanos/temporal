@@ -7,12 +7,12 @@ mod machine;
 mod progress;
 mod scope;
 
-pub use claim::{Claim, StepClaim};
-pub use machine::Machine;
+pub use claim::{Claim, Hole, StepClaim, StepPredicate, Verdict};
+pub use machine::{Machine, Step, Steps};
 pub use progress::Progress;
 pub use scope::Scope;
 
-/// The verdict for a checked claim, including an incomplete exploration.
+/// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub enum Outcome {
     /// The claim holds throughout the explored machine.
