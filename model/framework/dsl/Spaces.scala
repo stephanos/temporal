@@ -22,11 +22,19 @@ final class SpaceSample[M <: Machine[?, ?]] @scala.annotation.publicInBinary pri
     val position: RunPosition
 )
 
+final class SpaceRefuted[M <: Machine[?, ?]] @scala.annotation.publicInBinary private[framework] (
+    private[framework] val owner: ModelSuite[M],
+    private[framework] val machine: MachineDeclaration[State, ?, ?],
+    private[framework] val claim: ClaimQuery,
+    val position: RunPosition
+)
+
 final class Explore[M <: Machine[?, ?]] @scala.annotation.publicInBinary private[framework] (
     val model: M,
     val steps: Int,
     val position: RunPosition,
-    targets: Vector[Option[RunTarget]]
+    targets: Vector[Option[RunTarget]],
+    private[framework] val owner: ModelSuite[M]
 ) extends ExplorationSpace:
   require(steps >= 1, s"$position: explore requires a positive step bound")
   require(targets.size <= steps, s"$position: exploration selectors exceed the step bound")
@@ -96,6 +104,35 @@ final private[framework] class SpaceInputs(
 
 @scala.annotation.publicInBinary
 private[framework] object SpacesMacros:
+  def refuted[M <: Machine[?, ?]: Type](
+      suite: Expr[ModelSuite[M]],
+      machine: Expr[Model],
+      claim: Expr[Any]
+  )(using q: Quotes): Expr[SpaceRefuted[M]] =
+    import q.reflect.*
+    def unwrap(term: Term): Term = term match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    val selected = unwrap(claim.asTerm)
+    val member = selected.symbol
+    val section = if member.exists then member.owner else Symbol.noSymbol
+    if !member.exists || !member.isValDef || !(selected.tpe.widen =:= TypeRepr.of[Unit]) ||
+      !section.isClassDef || !section.flags.is(Flags.Module) ||
+      !Set("invariants$", "postconditions$").contains(section.name)
+    then
+      report.errorAndAbort(
+        "refuted takes an exact named invariant or postcondition",
+        claim.asTerm.pos
+      )
+    val subject = unwrap(machine.asTerm)
+    if !(subject.tpe <:< TypeRepr.of[MachineDeclaration[State, ?, ?]]) then
+      report.errorAndAbort("refuted takes a native Machine or its derivation", machine.asTerm.pos)
+    val native = subject.asExprOf[MachineDeclaration[State, ?, ?]]
+    val captured = QueryMacros.verifying(claim)
+    val at = RunBodyMacros.position(claim.asTerm)
+    '{ new SpaceRefuted($suite, $native, $captured, $at) }
+
   def pattern(decl: ActionDecl, constraints: Vector[(Int, RunPosition, Any => Boolean)]): Class =
     val cls = Class(decl, Nil)
     cls.supplied = Some(SuppliedInput(new SpaceInputs(constraints)))
@@ -201,7 +238,7 @@ private[framework] object SpacesMacros:
       )
       val scope = new SpaceContext
       val _ = scope
-      new Explore($suite.model, $steps, $at, ${ retain('scope) })
+      new Explore($suite.model, $steps, $at, ${ retain('scope) }, $suite)
     }
 
   def find[M <: Machine[?, ?]: Type](
@@ -211,7 +248,7 @@ private[framework] object SpacesMacros:
   )(using q: Quotes): Expr[SpaceFind[M]] =
     import q.reflect.*
     val captured = RunBodyMacros.capture[M, M]('{ $space.model }, '{ None }, body)
-    val at = RunBodyMacros.position(body.asTerm)
+    val at = RunBodyMacros.position(steps.asTerm)
     '{
       val owner = $space
       val run = $captured

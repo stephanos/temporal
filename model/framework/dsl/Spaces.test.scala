@@ -6,6 +6,45 @@ import framework.dsl.outcomes.Outcome
 import framework.checker.{Checker as NativeChecker, SuiteExecution, Verdict}
 import scala.compiletime.testing.typeCheckErrors
 
+object RefutationFixture:
+  var evaluations = 0
+  def observed: Boolean =
+    evaluations += 1
+    true
+  class Model(multiple: Boolean = false) extends Machine[Outcome, Nothing]:
+    var count = if multiple then oneOf(Vector(0, 1)) else 0
+
+    object client extends Actor:
+      lazy val increment = action
+
+    object transitions extends Transitions:
+      on(client.increment):
+        if count < 1 then effects.increment()
+
+    object effects:
+      def increment(): Unit = count += 1
+      def leak(): Unit = count += 2
+
+    object invariants:
+      val bounded =
+        check(observed && count <= 1)
+  class Suite(instance: Model) extends ModelSuite(instance):
+
+    object changed
+        extends Derived(model.rebind(on(model.client.increment):
+          if model.count < 2 then model.effects.leak()))
+    def request = refuted(changed, model.invariants.bounded)
+    def holding = refuted(model, model.invariants.bounded)
+    def foreignClaim(other: Model) = refuted(changed, other.invariants.bounded)
+    def foreignModel(other: Model) = refuted(other, model.invariants.bounded)
+
+    object explorations:
+      val space = explore(steps = 2):
+        model.client.increment
+    def find = explorations.space.find(steps = 1):
+      expect(model.count == 1)
+    def sample = explorations.space.sample(2, seed = 4L)
+
 object SpacesFixture:
   final case class Input(left: Boolean, right: Boolean)
   var callbacks = Vector.empty[String]
@@ -123,6 +162,85 @@ object SpacesFixture:
         model.client.set(left = any, right = supplied())
 
 class SpacesTest extends munit.FunSuite:
+  test("deferred refutation keeps the derived counterexample and ordinary native verdict"):
+    RefutationFixture.evaluations = 0
+    val model = new RefutationFixture.Model
+    val suite = new RefutationFixture.Suite(model)
+    val request = suite.request
+    assertEquals(RefutationFixture.evaluations, 0)
+    val execution = NativeRuntime.installed.suiteExecution(suite.getClass.getName)
+    val checked = execution.refuted(model, request, None)
+    val result = checked.evidence.asInstanceOf[framework.checker.Result]
+    assert(checked.verified)
+    assert(!checked.inconclusive)
+    assertEquals(result.verdict, Verdict.refuted)
+    assertEquals(result.budget, 8)
+    assertEquals(result.path.states, Vector(model.init, model.init.copy(count = 2)))
+    assert(result.detail.exists(_.startsWith("counterexample:")))
+    assert(checked.diagnostics.contains("refuted"))
+    assert(RefutationFixture.evaluations > 0)
+    assertEquals(model.count, 0)
+
+  test("refutation neighbors preserve ordinary verified unknown and immutable question evidence"):
+    val model = new RefutationFixture.Model
+    val suite = new RefutationFixture.Suite(model)
+    val execution = NativeRuntime.installed.suiteExecution(suite.getClass.getName)
+    val descriptor = suite.explorations.space.acquire(model, None)
+    val selected = descriptor.selectors
+    val held = execution.refuted(model, suite.holding, None)
+    assert(!held.verified)
+    assert(!held.inconclusive)
+    assertEquals(held.evidence.asInstanceOf[framework.checker.Result].verdict, Verdict.verified)
+    val cut = NativeRuntime.installed
+      .suiteExecution("outsiderefuted.RefutationFixture$BudgetSuite")
+      .refuted(model, suite.request, None)
+    assert(!cut.verified)
+    assert(cut.inconclusive)
+    assertEquals(cut.evidence.asInstanceOf[framework.checker.Result].verdict, Verdict.unknown)
+    assertEquals(cut.evidence.asInstanceOf[framework.checker.Result].budget, 1)
+    val sampled = execution.sample(model, suite.sample, None)
+    val evidence = sampled.evidence.asInstanceOf[framework.checker.Result]
+    assert(sampled.verified)
+    assert(execution.find(model, suite.find, None).verified)
+    assert(execution.refuted(model, suite.request, None).verified)
+    assert(execution.sample(model, suite.sample, None).verified)
+    assertEquals(evidence.sampling.get.seed, 4L)
+    assertEquals(evidence.sampling.get.requested, 2)
+    assertEquals(descriptor.selectors, selected)
+    assertEquals(descriptor.starts, Vector(model.init))
+    assertEquals(model.count, 0)
+
+  test(
+    "refutation rejects foreign exact owners and restores surrounding state on success and error"
+  ):
+    val model = new RefutationFixture.Model
+    val other = new RefutationFixture.Model
+    val suite = new RefutationFixture.Suite(model)
+    val execution = NativeRuntime.installed.suiteExecution(suite.getClass.getName)
+    model.at(model.init.copy(count = 7)):
+      assert(execution.refuted(model, suite.request, None).verified)
+      assertEquals(model.count, 7)
+      Vector(suite.foreignClaim(other), suite.foreignModel(other)).foreach: request =>
+        val error = intercept[IllegalArgumentException](execution.refuted(model, request, None))
+        assert(error.getMessage.contains("Spaces.test.scala:"))
+        assert(error.getMessage.contains("another Model instance"))
+        assertEquals(model.count, 7)
+      val start = intercept[IllegalArgumentException](
+        execution.refuted(model, suite.request, Some(other.init))
+      )
+      assert(start.getMessage.contains("Spaces.test.scala:"))
+      assert(start.getMessage.contains("another machine"))
+      assertEquals(model.count, 7)
+    assertEquals(model.count, 0)
+    assertEquals(other.count, 0)
+    val multiple = new RefutationFixture.Model(multiple = true)
+    val starts = new RefutationFixture.Suite(multiple)
+    val missing =
+      intercept[IllegalArgumentException](execution.refuted(multiple, starts.request, None))
+    assert(missing.getMessage.contains("Spaces.test.scala:"))
+    assert(missing.getMessage.contains("several starts requires from"))
+    assert(execution.refuted(multiple, starts.request, Some(multiple.init)).verified)
+
   test("find stabilizes effectful and alternating receivers with their exact target context"):
     val first = new SpacesFixture.Flag
     val second = new SpacesFixture.Flag

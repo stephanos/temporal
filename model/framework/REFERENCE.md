@@ -712,8 +712,8 @@ Checker.progress(instance, claim, starts, budget = Checker.defaultBudget)
 ```
 
 `explore` drains one bounded reachable search. Passing that Result to `verifyAll` reuses it.
-The private NativeCheck query and negative-control helpers are internal test machinery.
-Replay, horizon-bounded finding, sampling and feature-budget configuration remain separate work.
+`Checker.replay`, `Checker.space`, `Checker.find`, `Checker.sample` and `Checker.refuted`
+also answer native questions. The ModelSuite forms below supply their authored test interface.
 
 ### What is checked by default
 
@@ -727,8 +727,8 @@ Replay, horizon-bounded finding, sampling and feature-budget configuration remai
 - **Order of results:** unscoped claims (invariants, then postconditions), scoped claims, progress,
   monitors.
 
-Query execution and negative controls currently use internal helpers; they are not additional
-public Checker operations.
+`Checker.refuted(instance, claim, starts, budget)` retains the ordinary claim verdict and its
+counterexample. It does not invert verified or unknown into a successful refutation.
 
 ### Budget
 
@@ -742,7 +742,7 @@ counterexample found before the cut stands. Refusal: `a budget admits at least o
 | `verified` | `verified` | Complete exploration, no violation |
 | `found` | `found` | A `find` witness |
 | `refuted` | `refuted` | A safety or progress counterexample |
-| `notFound` | `notFound` | Reserved for the forthcoming bounded finding operation |
+| `notFound` | `notFound` | The requested find horizon completed without a witness |
 | `unknown` | `unknown` | A cut or a hole, and nothing decisive |
 
 
@@ -1462,13 +1462,13 @@ level; tests belong inside these optional objects, registered in this order:
 | Section | Test body |
 |---|---|
 | `object examples` | The captured native-body grammar above, replayed against the bound instance |
-| `object explorations` | Reusable `explore` space declarations; exploration tests currently refuse at compile time |
+| `object explorations` | Reusable `explore` space declarations and one `find`, `sample` or `refuted` question per test |
 | `object conformance` | The same captured native-body grammar and native replay as examples |
 | `object unit` | An ordinary MUnit body, with MUnit assertions, return values and asynchronous behavior |
 
 Write `test("name"): ...` or `test(munit.TestOptions("name")): ...` in a section. Both forms keep
 MUnit filtering, ignore/only options, transforms and setup ordering. For an example or conformance
-body, `test("name", from = start): ...` supplies the optional start snapshot; without it the
+or exploration body, `test("name", from = start): ...` supplies the optional start snapshot; without it the
 instance must have exactly one initial state. Action calls, `oneOf`, `repeat`, `expect`, `before`,
 `outcome` and `records` retain the captured-body rules and exact-instance checks above. Unit bodies
 are not captured as replay requests.
@@ -1479,7 +1479,7 @@ lazy. Empty or absent sections and unit-only suites are supported. Tests outside
 cross-section early registration and arbitrary non-test section members refuse with a source
 location; explorations also accepts immutable space vals. Names must yield a
 nonempty slug, unique across all sections and both registration forms. Registered names have
-`examples:`, `conformance:` or `unit:` prefixes. Recursive enumeration during loading refuses;
+`examples:`, `explorations:`, `conformance:` or `unit:` prefixes. Recursive enumeration during loading refuses;
 a failed section initializer remains failed on subsequent enumeration.
 
 Use the framework source gate for source admission. Before suite selection it rejects erased inline
@@ -1494,7 +1494,8 @@ check`; they are never skipped or labelled verified. A counterexample found befo
 cut retains its native refutation.
 
 Native execution resolves the caller's validated budget policy lazily, once for the exact fully
-qualified suite name, and shares that immutable selection between automatic claims and replay.
+qualified suite name, and shares that immutable selection between automatic claims, replay,
+find, sample and refuted.
 Neither a Model field, a horizon nor a sample count replaces this budget. Construction,
 registration and DSL-only loading do not read environment policy or load the checker. Executing
 a native test requires the product checker on the class path and fails explicitly if it is absent.
@@ -1525,10 +1526,42 @@ claims or input expressions. Its first native acquisition evaluates the named co
 in written order, and retains those immutable values across reuse. Constraints are not reevaluated
 at each reached state. Another instance's roots, actions, classes or starts are refused.
 
-`space.find(steps = n): expect: ...` retains every positioned condition in a `SpaceFind` carrier;
-`space.sample(count, seed)` retains a `SpaceSample` with the space's horizon, count and seed.
-These are declaration signatures for the pending question adapter. They do not yet register or
-execute ModelSuite questions, provide conformance binding or produce Cases.
+Write one question as the whole exploration test body, with no preceding executable statements:
+
+```scala
+test("a target is reachable"):
+  sends.find(steps = 2):
+    expect:
+      model.completed
+test("seeded paths hold the claims"):
+  sends.sample(count = 20, seed = 1L)
+test("a changed design breaks its source claim"):
+  refuted(changed, model.invariants.safe)
+```
+
+`space.find(steps = n): expect: ...` retains every positioned condition in a `SpaceFind` carrier.
+Its horizon is within `1..space.steps` and its target contains at least one Boolean. Conditions
+run in authored order, with the reached state and actual preceding step's `before`, `outcome`
+and `records` context. `found` passes with a witness; completed-horizon `notFound` fails, and a
+budget cut or a hole fails as inconclusive. The first failing condition keeps its authored line.
+
+`space.sample(count, seed)` retains a `SpaceSample` with the space's horizon, positive count and
+seed. It checks reproducible finite walks against the Model's claims, monitors and progress.
+Passing samples are finite experiment evidence, not exhaustive verification. Diagnostics retain
+the seed, count, horizon, failing walk index and paths; incomplete experiments remain inconclusive.
+
+`refuted(machine, claim)` retains a `SpaceRefuted`: an exact named Unit-valued invariant or
+postcondition of this Model, checked on this Model or a derivation sharing its exact state owner.
+Capture does not evaluate the claim body. The ordinary native refutation route runs it only when
+the test executes. Only `refuted` with concrete counterexample evidence passes the MUnit test;
+the retained native verdict stays refuted. Verified and unknown answers fail with their evidence
+visible. Foreign Models or claims, computed or aliased Unit claim references and reuse of any
+question by another suite refuse at the authored operation. Model state and native evaluation
+context are restored after execution, including errors.
+
+These forms execute native Model tests. They provide no conformance binding or Case production.
+Complete Registry-selected integration, complete source-corpus admission and retirement of the old
+negative-control helpers remain separate obligations.
 
 The realize expectation forms and shared metadata validator are available independently.
 Connecting that validator to actual retained-value admission remains part of typed conformance

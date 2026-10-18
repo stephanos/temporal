@@ -1,0 +1,259 @@
+package outsiderefuted
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
+
+object RefutationFixture:
+  var calls = Vector.empty[String]
+  def observed(label: String): Boolean =
+    calls :+= label
+    true
+  class Model(multiple: Boolean = false) extends Machine[Outcome, Nothing]:
+    var count = if multiple then oneOf(Vector(0, 1)) else 0
+    object client extends Actor:
+      lazy val increment = action
+    object transitions extends Transitions:
+      on(client.increment):
+        if count < 1 then effects.increment()
+    object effects:
+      def increment(): Unit = count += 1
+      def leak(): Unit = count += 2
+    object invariants:
+      val bounded =
+        check(observed("claim") && count <= 1)
+  val instance = new Model
+  class BudgetSuite(instance: Model) extends ModelSuite(instance):
+    object changed extends Derived(model.rebind(on(model.client.increment):
+      if model.count < 2 then model.effects.leak()
+    ))
+    object examples:
+      test("budgeted replay"):
+        model.client.increment()
+        expect(model.count == 1)
+    object explorations:
+      val space = explore(steps = 2):
+        model.client.increment
+      test("budgeted find"):
+        space.find(steps = 1):
+          expect(model.count == 99)
+      test("budgeted sample"):
+        space.sample(2, seed = 2L)
+      test("budgeted refutation"):
+        refuted(changed, model.invariants.bounded)
+
+class PublicRefutationSuite extends ModelSuite(RefutationFixture.instance):
+  object changed extends Derived(model.rebind(on(model.client.increment):
+    if model.count < 2 then model.effects.leak()
+  ))
+  object examples:
+    test("ordinary example"):
+      model.client.increment()
+      expect(model.count == 1)
+  object explorations:
+    val space = explore(steps = 2):
+      model.client.increment
+    test("find adjacent to refutation"):
+      space.find(steps = 1):
+        expect(model.count == 1)
+    test("sample adjacent to refutation"):
+      space.sample(2, seed = 2L)
+    test(munit.TestOptions("a changed machine breaks the original named claim")):
+      refuted(changed, model.invariants.bounded)
+
+class RefutationClientTest extends munit.FunSuite:
+  private def run(suite: munit.FunSuite): org.junit.runner.Result =
+    new org.junit.runner.JUnitCore().run(
+      org.junit.runner.Request.runner(new munit.MUnitRunner(suite.getClass, suite))
+    )
+
+  test("public refutation registers inertly and executes beside find sample and replay"):
+    RefutationFixture.calls = Vector.empty
+    val suite = new PublicRefutationSuite
+    assertEquals(suite.munitTests().size, 5)
+    assertEquals(suite.munitTests().size, 5)
+    assertEquals(RefutationFixture.calls, Vector.empty)
+    sys.props.get("refuted.library").foreach: library =>
+      val origin = java.nio.file.Path.of(suite.explorations.space.getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+      assertEquals(origin.toRealPath().toString, java.nio.file.Path.of(library).toRealPath().toString)
+    val result = run(suite)
+    assertEquals(result.getRunCount, 5)
+    if sys.props.contains("refuted.declarations-only") then
+      assert(Option(getClass.getClassLoader.getResource("framework/checker/Native$.class")).isEmpty)
+      assertEquals(result.getFailureCount, 5)
+      assert(result.getFailures.toArray.forall(_.toString.contains("native execution requires the product checker module")))
+      assertEquals(RefutationFixture.calls, Vector.empty)
+    else
+      assertEquals(result.getFailureCount, 0, result.getFailures.toString)
+      assert(RefutationFixture.calls.nonEmpty)
+      assertEquals(suite.model.count, 0)
+
+  test("verified and budget unknown cannot satisfy the negative control"):
+    if !sys.props.contains("refuted.declarations-only") then
+      val instance = new RefutationFixture.Model
+      class Holding extends ModelSuite(instance):
+        object explorations:
+          test("holding is no refutation"):
+            refuted(model, model.invariants.bounded)
+      val holding = run(new Holding)
+      assertEquals(holding.getRunCount, 2)
+      assertEquals(holding.getFailureCount, 1)
+      assert(holding.getFailures.toString.contains("verified"))
+      val suite = new RefutationFixture.BudgetSuite(new RefutationFixture.Model)
+      assertEquals(suite.getClass.getName, "outsiderefuted.RefutationFixture$BudgetSuite")
+      val cut = run(suite)
+      assertEquals(cut.getRunCount, 5)
+      assertEquals(cut.getFailureCount, 5)
+      val failures = cut.getFailures.toArray.toVector.map(_.toString)
+      assert(failures.forall(_.contains("unknown")), failures.mkString("\n"))
+      assert(failures.forall(_.contains("budget 1 states")), failures.mkString("\n"))
+      assertEquals(suite.model.count, 0)
+
+  test("all question carriers refuse reuse by another suite even over the same Model"):
+    if !sys.props.contains("refuted.declarations-only") then
+      val source = new PublicRefutationSuite
+      val _ = source.munitTests()
+      class Borrower extends ModelSuite(source.model):
+        object explorations:
+          test("borrowed find"):
+            source.explorations.space.find(steps = 1):
+              expect(true)
+          test("borrowed sample"):
+            source.explorations.space.sample(1, seed = 1L)
+          test("borrowed refutation"):
+            source.refuted(source.changed, source.model.invariants.bounded)
+      val result = run(new Borrower)
+      assertEquals(result.getRunCount, 4)
+      assertEquals(result.getFailureCount, 3)
+      val failures = result.getFailures.toArray.toVector.map(_.toString)
+      assert(failures.forall(_.contains("another ModelSuite instance")), failures.mkString("\n"))
+      assert(failures.forall(_.contains("ExplorationRefusals.test.scala:")))
+      assertEquals(source.model.count, 0)
+
+  test("same-class foreign Models and named claims refuse at their authored operations"):
+    if !sys.props.contains("refuted.declarations-only") then
+      val instance = new RefutationFixture.Model
+      val other = new RefutationFixture.Model
+      class Foreign extends ModelSuite(instance):
+        object explorations:
+          test("foreign Model"):
+            refuted(other, model.invariants.bounded)
+          test("foreign claim"):
+            refuted(model, other.invariants.bounded)
+      val result = run(new Foreign)
+      assertEquals(result.getRunCount, 3)
+      assertEquals(result.getFailureCount, 2)
+      val failures = result.getFailures.toArray.toVector.map(_.toString)
+      assert(failures.forall(_.contains("another Model instance")), failures.mkString("\n"))
+      assert(failures.forall(_.contains("ExplorationRefusals.test.scala:")))
+      assertEquals(instance.count, 0)
+      assertEquals(other.count, 0)
+
+  test("refutation takes a deferred test-level start and refuses a missing multi-start selection"):
+    val instance = new RefutationFixture.Model(multiple = true)
+    class Starts extends ModelSuite(instance):
+      var acquisitions = 0
+      def selected: State =
+        acquisitions += 1
+        model.init.copy(count = 0)
+      object changed extends Derived(model.rebind(on(model.client.increment):
+        if model.count < 2 then model.effects.leak()
+      ))
+      object explorations:
+        test("selected start", from = selected):
+          refuted(changed, model.invariants.bounded)
+        test("missing start"):
+          refuted(changed, model.invariants.bounded)
+    val suite = new Starts
+    assertEquals(suite.munitTests().size, 3)
+    assertEquals(suite.acquisitions, 0)
+    if !sys.props.contains("refuted.declarations-only") then
+      val result = run(suite)
+      assertEquals(result.getRunCount, 3)
+      assertEquals(result.getFailureCount, 1)
+      assert(result.getFailures.toString.contains("a refutation with several starts requires from"))
+      assert(result.getFailures.toString.contains("ExplorationRefusals.test.scala:"))
+      assertEquals(suite.acquisitions, 1)
+      assertEquals(instance.count, 0)
+
+  test("local exploration grammar has located refusals beside the admitted public suite"):
+    import scala.compiletime.testing.typeCheckErrors
+    inline val prefix = """
+      import framework.dsl.*
+      import framework.dsl.Finite.given
+      import outsiderefuted.RefutationFixture.*
+    """
+    val refused = Vector(
+      "any outside" -> typeCheckErrors(prefix + "val bad = any"),
+      "find in examples" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            val space = explore(1) { any }
+          object examples:
+            test("bad") { explorations.space.find(1) { expect(true) } }
+      """),
+      "sample in examples" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            val space = explore(1) { any }
+          object examples:
+            test("bad") { explorations.space.sample(1, seed = 1L) }
+      """),
+      "refuted in examples" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object examples:
+            test("bad") { refuted(model, model.invariants.bounded) }
+      """),
+      "altered claim" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          def bad = refuted(model, { model.invariants.bounded; () })
+      """),
+      "aliased Unit" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          val alias = model.invariants.bounded
+          def bad = refuted(model, alias)
+      """),
+      "Boolean claim" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          def bad = refuted(model, model.count == 0)
+      """),
+      "prefix before refuted" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            test("bad") { model.count = 99; refuted(model, model.invariants.bounded) }
+      """),
+      "missing question" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            test("bad") { expect(true) }
+      """),
+      "empty target" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            val space = explore(1) { any }
+          def bad = explorations.space.find(1) { expect {} }
+      """),
+      "nonBoolean target" -> typeCheckErrors(prefix + """
+        class S extends ModelSuite(instance):
+          object explorations:
+            val space = explore(1) { any }
+          def bad = explorations.space.find(1) { expect(1) }
+      """)
+    )
+    val diagnostics = Map(
+      "any outside" -> "any is only available in an exploration space",
+      "find in examples" -> "find and sample belong in explorations",
+      "sample in examples" -> "find and sample belong in explorations",
+      "refuted in examples" -> "find and sample belong in explorations",
+      "altered claim" -> "refuted takes an exact named invariant or postcondition",
+      "aliased Unit" -> "refuted takes an exact named invariant or postcondition",
+      "Boolean claim" -> "refuted takes an exact named invariant or postcondition",
+      "prefix before refuted" -> "an exploration test requires one find or sample question",
+      "missing question" -> "an exploration test requires one find or sample question",
+      "empty target" -> "expect requires bare Boolean statements",
+      "nonBoolean target" -> "expect requires bare Boolean statements"
+    )
+    refused.foreach: (label, errors) =>
+      assert(errors.exists(_.message.contains(diagnostics(label))), label + errors.toString)
+      assert(errors.forall(_.lineContent.nonEmpty), label + errors.toString)
+      assert(!errors.exists(_.message.contains("Exception occurred while executing macro expansion")), label + errors.toString)

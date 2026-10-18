@@ -70,6 +70,9 @@ abstract class ModelSuite[M <: Machine[?, ?]](val model: M) extends ModelSuiteRe
   final transparent inline def explore(steps: Int)(inline body: SpaceContext ?=> Any): Explore[M] =
     ${ SpacesMacros.capture[M]('this, 'steps, 'body) }
 
+  final transparent inline def refuted(inline machine: Model, inline claim: Any): SpaceRefuted[M] =
+    ${ SpacesMacros.refuted[M]('this, 'machine, 'claim) }
+
   final transparent inline def test(
       name: String
   )(inline body: RunContext[M] ?=> Any)(using
@@ -131,17 +134,26 @@ abstract class ModelSuite[M <: Machine[?, ?]](val model: M) extends ModelSuiteRe
       options: munit.TestOptions,
       owner: AnyRef,
       receiver: Boolean,
-      body: () => SpaceFind[M] | SpaceSample[M],
+      body: () => SpaceFind[M] | SpaceSample[M] | SpaceRefuted[M],
       from: Option[() => State]
   )(using location: munit.Location): Unit =
     val section = admit(options.name, owner, receiver)
     append(options.withName(section + ": " + options.name)):
       val runtime = execution
       val question = body()
+      val (questionOwner, position) = question match
+        case request: SpaceFind[M]    => request.space.owner -> request.position
+        case request: SpaceSample[M]  => request.space.owner -> request.position
+        case request: SpaceRefuted[M] => request.owner -> request.position
+      require(
+        questionOwner.eq(this),
+        s"$position: a question belongs to another ModelSuite instance"
+      )
       val start = from.map(_())
       check(question match
-        case request: SpaceFind[M]   => runtime.find(model, request, start)
-        case request: SpaceSample[M] => runtime.sample(model, request, start))
+        case request: SpaceFind[M]    => runtime.find(model, request, start)
+        case request: SpaceSample[M]  => runtime.sample(model, request, start)
+        case request: SpaceRefuted[M] => runtime.refuted(model, request, start))
 
   private def admit(name: String, owner: AnyRef, receiver: Boolean)(using
       location: munit.Location
@@ -240,14 +252,14 @@ private[framework] object ModelSuiteMacros:
       val expression = unwrap(body.asTerm) match
         case Lambda(List(_), rhs) => authored(rhs)
         case other => report.errorAndAbort("a section test requires a literal body", other.pos)
-      val question = expression.tpe <:< TypeRepr.of[SpaceFind[M] | SpaceSample[M]]
+      val question = expression.tpe <:< TypeRepr.of[SpaceFind[M] | SpaceSample[M] | SpaceRefuted[M]]
       if section.name.stripSuffix("$") == "explorations" then
         val prefix = expression match
           case Block(_, _) => true
           case _           => false
         if !question || prefix then
           report.errorAndAbort(
-            "an exploration test requires one find or sample question",
+            "an exploration test requires one find or sample question, or refuted",
             expression.pos
           )
         '{
@@ -257,13 +269,16 @@ private[framework] object ModelSuiteMacros:
             $receiver,
             () =>
               $body(using new RunContext[M]($suite.model))
-                .asInstanceOf[SpaceFind[M] | SpaceSample[M]],
+                .asInstanceOf[SpaceFind[M] | SpaceSample[M] | SpaceRefuted[M]],
             $from
           )(using $location)
         }
       else
         if question then
-          report.errorAndAbort("find and sample belong in explorations", expression.pos)
+          report.errorAndAbort(
+            "find and sample belong in explorations; refuted does too",
+            expression.pos
+          )
         val captured = RunBodyMacros.capture[M, M]('{ $suite.model }, from, body)
         '{
           $suite.registerRun($options, $owner, $receiver, () => $captured)(using

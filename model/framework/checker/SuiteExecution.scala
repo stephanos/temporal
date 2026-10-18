@@ -101,6 +101,40 @@ object SuiteExecution:
           diagnostics(result)
         )
 
+      def refuted[M <: Machine[?, ?]](
+          model: M,
+          request: SpaceRefuted[M],
+          from: Option[State]
+      ): SuiteCheck =
+        val at = request.position
+        require(
+          request.owner.model.eq(model) &&
+            request.machine.stateVars.exists(vars => model.stateVars.exists(_.eq(vars))),
+          s"$at: a refutation belongs to another Model instance"
+        )
+        require(
+          request.claim.property.claim.exists(ref =>
+            ref.machine.eq(model) || ref.machine.eq(request.machine)
+          ),
+          s"$at: a refutation claim belongs to another Model instance"
+        )
+        val starts = from.fold(request.machine.initialStates.toVector)(Vector(_))
+        require(starts.size == 1, s"$at: a refutation with several starts requires from")
+        starts.foreach: state =>
+          try model.stateVars.foreach(_.owned(state): Unit)
+          catch
+            case scala.util.control.NonFatal(error) =>
+              throw IllegalArgumentException(s"$at: ${error.getMessage}", error)
+        val result = Checker.refutedHeld(request.machine, request.claim, starts, budget)
+        SuiteCheck(
+          result,
+          result.verdict == Verdict.refuted && result.detail.exists(
+            _.startsWith("counterexample:")
+          ),
+          result.verdict == Verdict.unknown,
+          s"$at\n${diagnostics(result)}"
+        )
+
   private def diagnostics(result: Result): String =
     val initial = result.path.initial.map(state => s"initial: $state").toVector
     val steps = result.path.steps.zipWithIndex.map: (step, index) =>
