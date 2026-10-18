@@ -1,8 +1,10 @@
 # Modelling with the Umpire DSL
 
 This is the design guide to the DSL in `model/framework`: how a Model is built, one concept at a
-time, in the order you write it. Each step says what the concept *means* (what the Go reader does
-with it), how it is *written*, and what is *refused* and by whom. The README covers the pipeline,
+time, in the order you write it. Each step says what the concept *means*, how it is *written*,
+and what is *refused* and by whom. The native Scala checker is the oracle for its supported
+questions; retained IR contracts below describe existing consumers and migration obligations.
+The README covers the pipeline,
 the file layout and the commands; this guide covers the language. [REFERENCE.md](REFERENCE.md)
 lists the same language for lookup: every form, where it may be written, and its refusal texts.
 
@@ -10,7 +12,16 @@ lists the same language for lookup: every form, where it may be written, and its
 
 The active Scala surface is the plain form in [REFERENCE.md](REFERENCE.md): `Machine[O, F]`,
 state vars, Unit-valued effects, native `Transitions`, and `invariants`/`postconditions` claims.
-The product `framework.checker` executes it. RecordMachine, Owner/Declaring, Rules and its rule
+The product `framework.checker` executes it directly; IR is the export and lowering format.
+On 2026-10-17 the owner reversed the 2026-10-13 Go-oracle direction because the existing simple
+Scala checker answers native questions without the indirect IR/Go loop. This motivation is not a
+measured speedup. The [measurement decision](../design/scala-checker-measurement.md) remains
+no-go on immediate Go retirement: native refinement/replacement, rule-overlap disposition,
+recorded-Run/backend replay and Case consumer/producer migration are still pending in held Phase 3.
+Scala emitting the Testpilot Case proto is the selected future producer, not a shipped lowerer.
+Testpilot's runtime, Driver and canary stay in Go. ModelSuite adoption is future fn-195 work.
+
+RecordMachine, Owner/Declaring, Rules and its rule
 operators, property/expect/across, authored assume/Assumption, named leadsTo overloads,
 restrict/assuming, query construction and Limits builders are deleted, including record-callback
 choice and effect contexts. No compatibility record engine remains.
@@ -32,7 +43,7 @@ Plain-form body lifting, exporter fixtures, Temporal migration and Go parity rem
 native changes do not release those gates.
 
 A Model is ordinary Scala 3. In the historical IR pipeline, the compiler checks its types, the framework checks its rules as they
-are constructed, the IR generator (`model/framework/export`) reads the compiled trees and refuses what the IR
+were constructed, the IR generator (`model/framework/export`) reads the compiled trees and refuses what the IR
 cannot hold, and the Go reader (`tools/umpire`) derives every table and answers every question. The
 IR carries no Scala: everything a reader knows is in the feature's `generated/ir.json`.
 
@@ -517,6 +528,11 @@ lift at its line. A function may not call itself.
 
 ## 6. Rules
 
+Current native `Transitions` execute the first matching branch. Construction runs no guards or
+effects and supplies no universal rule-disjointness proof. The catalog overlap check described
+below belongs to the historical rules engine; an evidence-backed disposition is still required
+before Go retirement.
+
 **Meaning.** The IR binds each action to one step function. A Model writes *when* an action fires
 and *what* it does apart, and the IR generator lowers the two into that function: the cases of an
 action, in the order written, become `if g1(s) then e1(s, i) else if g2(s) then e2(s, i) else Nil`.
@@ -588,6 +604,12 @@ refuses.
 
 ## 7. The table
 
+The native checker generates successors on demand from starts, deduplicates reachable states
+structurally and keeps predecessor states/steps for evidence. It does not enumerate a whole-state
+catalog or produce the retired Scala step-table seal. A budget cut is unknown unless a witness or
+counterexample already establishes the answer. The catalog/table and lint descriptions below are
+the retained historical IR consumer contract, with its migration proofs still held.
+
 **Meaning.** From a machine's declaration the reader derives:
 
 1. the states: the catalog of the state type; the outcomes and facts: their catalogs;
@@ -637,9 +659,8 @@ untaken-choice, unreachable-value); a chain names its root. A rebound or added a
 the derived machine's own; any other operation leaves the finding unproven and the gap kept.
 Equal bindings alone prove nothing, and no Go finding is suppressed by this stage.
 
-**Design note.** The table is the one artifact everything else reads; the step tables
-(`framework/dsl/StepTables.scala`) dump it from Scala for the equivalence check, so a refactor that
-keeps the Models' meaning can be sealed by comparing tables while the IR is stale.
+**Historical seal.** Scala step-table dumps once supplied the equivalence check while IR was stale.
+That producer is retired; the old seal is unavailable pending consumer reconciliation.
 
 ## 8. Properties
 
@@ -950,6 +971,11 @@ A stuck-state finding is not reported for a state with a hole: the hole already 
 behavior may happen there.
 
 ## 13. Refinement
+
+Native declarations retain refinement metadata, but the native checker does not supply the
+cross-refinement/replacement proof described below. Unsupported native refinement answers stay
+unknown; existing IR consumers retain their checks pending migration. Native oracle status does
+not discharge totality, target membership or role-closedness obligations.
 
 **Meaning.** A feature is read at two levels: the *Product*, what a caller sees, and the *Protocol*,
 how the server gets there, which *refines* the Product. A refinement is a map from the refining
@@ -1265,6 +1291,10 @@ separately models its one outstanding message as an enum.
 
 ## 19. Realizations
 
+The lowering described here is the existing Go/IR consumer. The selected future Scala producer
+will emit the Testpilot Case proto; choosing it implements neither lowering nor recorded-Run
+conformance replay migration. Runtime execution, the Driver and canary remain in Go.
+
 **Meaning.** A realization says how the `find` Queries of one machine run against a real system:
 which command performs each action class, which recorded data is evidence of each fact, and what
 the controller does around them. The lowering (`tools/umpire/lower`) takes a `find` Query's
@@ -1375,6 +1405,50 @@ That source explanation is not assessment output, and no mini live Verdict is cl
 
 ## 20. What the tools answer
 
+### Native questions and results
+
+`Checker.explore(instance, starts, budget)` explores the reachable graph; its `verified` means
+exploration completed, not that every claim passed. `Checker.verifyAll(graph)` or
+`Checker.verifyAll(instance, starts, budget)` checks claims and returns a `Report` with results and
+vacuity warnings for unfired actions and untriggered `after(action)` postconditions.
+`monitor` and `progress` return the same `Result` shape.
+
+`replay(instance, script, budget)` executes a typed `ReplayScript` with positioned expectations;
+disabled steps, thrown effects and failed expectations refute it, retaining path evidence and, for
+an expectation failure, its line, text and state. `space(instance, steps)(select)` defines a bounded
+schedule. `find(space, horizon, budget)(target)` takes an `Expectation`: `found` retains a witness,
+`notFound` means the requested horizon completed without one, and a budget cut is `unknown`.
+`sample(space, count, seed, budget)` checks seeded walks reproducibly; passing samples are finite
+experiment evidence, not an exhaustive proof. `refuted(instance, claim)` returns the claim's
+ordinary result for a negative control, without flipping its verdict.
+
+Every Result carries verdict (`verified`, `refuted`, `found`, `notFound`, `unknown`), budget,
+completion, depth and concrete path evidence where applicable. Budgets below one, a find without
+a target or with horizon outside `1..space.steps`, and a sample count below one refuse.
+Evidence found before a cut stands. Native callback arithmetic uses Scala Int semantics; held signed-64-bit IR parity is
+a separate obligation.
+
+The execution budget belongs to the caller/gate. Its default is `1 << 20`.
+Exploration counts reachable states, find counts state-and-position identities, replay counts
+retained execution nodes, and sampling shares distinct-state admission across its walks.
+`UMPIRE_CHECKER_BUDGETS` accepts newline-separated `default=budget` or exact `suite.name=budget`
+entries; positive Ints only, with duplicate keys and unknown suite overrides refused. The gate
+passes the normalized policy to the suite process. `Checker.forSuite(policy, exactSuiteName)`
+resolves an immutable `Execution` with explicit budget passing. Automatic ModelSuite integration
+is still fn-195 work; the direct native-test route does not validate this policy. Horizon, walk
+count and progress deadline do not replace the execution budget.
+
+Snapshots and discovery metadata live with their owners. A retained State, Result or action may
+legitimately retain its exact Model and stable diagnostic/channel metadata. Once those owners are
+released, discarded initialized and checked Models become collectible without disposal or cache
+clearing. The separate post-repair Voting64 experiment released all constructed, initialized and
+checked owners after one observed collection per batch; original before receipts remain intact.
+Classloader/static caches are excluded. This is reclamation evidence, not a timing or single-graph
+heap improvement; the no-go on Go deletion is unchanged.
+
+The remaining subsections describe existing IR contracts and historical receipt vocabulary, not
+additional native verdicts or currently callable authoring forms.
+
 ### Levels
 
 Every expression sits at one of five levels, by what it is computed from, and the IR generator
@@ -1404,7 +1478,7 @@ declared hole, and the channel operations. A hole propagates; a branch not taken
 
 ### Results
 
-A check gives one of these, kept apart and listed in precedence order where one result is made of
+An IR check gives one of these, kept apart and listed in precedence order where one result is made of
 several:
 
 | Result | Means |
@@ -1422,7 +1496,7 @@ several:
 A result names the table it read (Definition ID and Behavior Fingerprint), the limits, the
 assumptions it relies on and the work it took.
 
-### Who refuses what
+### Historical IR refusal ownership
 
 | Where | What |
 | --- | --- |

@@ -87,8 +87,15 @@ spec's tasks to one worker.
 ## Direction
 
 The Scala model (`model/`) is the model. Lean is the past, and nothing has to look like it.
-Scala declares, a lifter reads the declarations into the Umpire IR, and generic Go consumers check
-that IR, lower it to Testpilot Cases, and run those Cases as functional tests and canary checks. The
+Scala declares and its native checker is the in-process oracle for supported native questions.
+The Umpire IR remains the export and lowering format. On 2026-10-17 the owner reversed the
+2026-10-13 Go-oracle direction: the existing simple Scala checker answers native questions directly,
+avoiding the indirect IR/Go loop. This motivation is not a measured speedup. The
+[measurement decision](model/design/scala-checker-measurement.md) remains no-go on immediate Go
+retirement: existing consumers stay until native refinement/replacement, rule-overlap disposition,
+recorded-Run/backend replay and Case migration have replacements. Scala emitting Testpilot Case
+protos is the selected future producer, not an implemented migration. Testpilot's runtime, Driver
+and canary remain in Go. The
 Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
 [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
 
@@ -179,13 +186,13 @@ facet vocabularies are recorded in fn-161.
 | 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
 | 8 | fn-188.2 done; fn-188 closed | The framework-only gate is green: boundary, core 466, check 100, export 286; 117 generic suites, 21 held with recorded reasons (record `.flow/tmp/checks/framework.7448953529908255698`). The exporter, lifter, reify plugin and fixtures are re-anchored to the native DSL; the sample lifts are held on fn-173.4's native-collection IR schema |
 | Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Twelve tasks planned (R10 body-lifter simplifications and R11 helper inlining added 2026-10-17) |
-| Plain Scala | fn-190 (captured 2026-10-16) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name, `Phased` goes, no in-process execution; the plugin lifts to the existing `field`/`copy` IR and the sample tests run on an IR evaluator. Twelve tasks (R17, composition vocabulary retired, added 2026-10-17); starts with a Kettle prototype and verdict |
+| Plain Scala | fn-190 (captured 2026-10-16; checker direction superseded 2026-10-17 by fn-196) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name; native execution stays in the Scala checker. Plugin lowering remains held Phase 3 work; an IR evaluator and deletion of the native runtime are no longer the chosen direction |
 | Builtins | fn-192 (captured 2026-10-17) | Every value operator a Model may use is a row of one checked-in table, `model/builtins.json`; the lifter emits a generic `BuiltinCall`; the Go interpreter and the Quint exporter hold the semantics; a conformance test holds all three to the list; fn-173.4's `Set`/`Map` operations land as builtins, not a `Collection` node. Not planned yet |
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
 | Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7 (carrying fn-190.15), fn-190.16 and fn-194.1-.5 done; next fn-196.5, fn-195.1-.4/.6/.5, fn-197 native .1-.3, then final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
-| Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
+| Phase 3: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-190.3/.5 await fn-196.4 recut; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production need evidence-backed migration and a new go decision. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
 <details>
@@ -765,7 +772,7 @@ plugin with phases before `pickler` (store a `@lifted` def's IR on its symbol, c
 insert the caller's spelling on values named by reference), not capture macros plus a macro
 annotation; no `-experimental`, no `-Yretain-trees`.
 Owner decisions: byte-for-byte IR identity is not required during the migration (the Go checks'
-receipts, Cases and backend answers are the oracle); declaration positions may be empty; names stay
+receipts, Cases and backend answers were that migration's oracle; current native authority is Scala under fn-196); declaration positions may be empty; names stay
 (reflection already supplies them). Kinds move in fn-141's order, realizations first. After fn-172;
 fn-141.6/.7 are prerequisites and stay in fn-141, whose .5 and .8–.14 are superseded. Order 8.
 [Spec](.flow/specs/fn-174-the-model-constructs-its-own-ir-dsl.md).
@@ -1054,17 +1061,17 @@ under fn-189.7 after fn-190.9; the scoped record is `.flow/tmp/checks/fn1895/rec
 | fn-189.12 | ⬜ todo | After .5/.10: helpers inline at the call site with a `Let` per parameter; roots keep their names; `namedCopy`, the function table and the cardinality proof go; `require` refused in helpers (R11) |
 [Spec](.flow/specs/fn-189-the-reify-plugin-keeps-only-the-body.md).
 
-### fn-190: Models are plain Scala: state as vars, effects as assignments, lifted by the plugin, evaluated on the IR
+### fn-190: Models are plain Scala: state as vars, effects as assignments
 
 Captured on 2026-10-16; the owner is committed to this form. A Model declares its state as `var`s on
 the Machine (`Machine[O, F]`, no state class), an effect is a method whose body assigns to them, a transition (`rules` renamed `transitions`) is
 plain `if`/`match` control flow ending in an effect call, a guard or expectation reads them by name (`before(x)` for the pre-state), a phase is a var a facet
 declares abstractly, claims are `check` blocks in sections named for their kind, `invariants`, `postconditions`, `monitors`, `progress`, with no kind word and `before` as the State record (`property.expect` retired; a Boolean form with `implies` was rejected as too clever); a progress claim is `leadsTo(from, to, within)` and its environment is the Scenario (`only`, `fair`), nothing fair by default; every claim is checked by default from every start (`oneOf` starts), `in only(...)`/`fair(...)` on a claim for its environment, no `Limits` in the model (the budget is the caller's and every result records it), vacuity reported, negative controls as tests, `queries` only for witnesses and realizations; Kettle has no `queries` section; actions are declared in `Actor`/`Internal` containers (`action`, `step`). The plugin synthesises the State
 record, schema and `init` from the declarations and lifts assignment blocks to the existing `copy`
-IR; bounded forms become erasing aliases carrying their bound in the type. Nothing executes an
-effect in Scala any more (the step tables were retired and Go is the oracle), so `effectOf`,
-`Finite` enumeration and the Domain runtime go, and the four native sample suites move to a small
-IR evaluator in `framework/check`. Supersedes fn-189.6 and closes fn-189's facet boundary. Starts
+IR; bounded forms become erasing aliases carrying their bound in the type. The original plan's
+Go-oracle, IR-evaluator and native-runtime-deletion direction was superseded on 2026-10-17 by
+fn-196: the product Scala checker executes native declarations. Plugin lifting remains held.
+Supersedes fn-189.6 and closes fn-189's facet boundary. Starts
 with a Kettle prototype and verdict in `model/design`.
 [Spec](.flow/specs/fn-190-models-are-plain-scala-state-as-vars.md).
 
@@ -1086,8 +1093,8 @@ review remain held; the spec stays open.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.5 | ⬜ todo | Phase 3, after .3: delete the test-support native runtime once the IR evaluator carries the suites (R6) |
+| fn-190.3 | ⏸️ deferred (recut) | Original IR-evaluator direction superseded by fn-196; formal disposition remains held with fn-196.4 |
+| fn-190.5 | ⏸️ deferred (recut) | Native checker stays; Go retirement needs a new go decision and evidence-backed consumer migration under fn-196.4 |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.12 | ⬜ todo | Phase 3, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
 
@@ -1174,10 +1181,10 @@ by the sections). [Spec](.flow/specs/fn-195-modelsuite-a-models-test-file-holds-
 
 Captured on 2026-10-17. The owner asked for the simplest Scala model checker now and to replace the
 Go one entirely; `NativeCheck` already is that checker. It moves out of `framework.dsl` into a checker
-module as the oracle, gains `replay`, `find` with a horizon, seeded `sample` and `refuted` for
-fn-195, and a measurement note on the largest available graphs decides the deletion of the Go check,
-the IR evaluator (fn-190.3) and the re-cut of fn-190.5, and where Case lowering runs. Testpilot, the
-Driver, the canary and the Quint/TLA export stay over Go and the IR. This reverses the 2026-10-13
+module as the oracle and now supplies `replay`, `find` with a horizon, seeded `sample` and `refuted` for
+future fn-195 adoption. The accepted measurement keeps Go retirement at no-go and selects future
+Scala Case production; fn-196.4 and the formal fn-190.3/.5 recut stay held. Testpilot, the
+Driver and canary remain in Go; Quint/TLA export remains over IR. This reverses the 2026-10-13
 Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md).
 
 The product checker move is committed: source `0dd5737301`, receipt `58fa14a205`; carried
@@ -1208,8 +1215,8 @@ All 18 fresh allowed verification stages pass, including native664, class7, rule
 and source/separate-library clients. ModelSuite wiring remains fn-195 work.
 The repeated-instance probe releases all 64 constructed-only Models but retains all 64
 initialized Models through the global var-runtime map and all 64 checked Models through that map
-plus action discovery names. Native follow-ups .6/.7 repair those owner lifetimes before ModelSuite
-adopts fresh instances, preserving live States/results/actions and exact identity. The original
+plus action discovery names. That original finding is repaired by the committed .6/.7 checkpoints
+below, preserving live States/results/actions and exact identity before future ModelSuite adoption. The original
 measurement stays intact; the final repair adds a separate retention receipt. Classloader metadata,
 visited-state optimization and Go deletion remain outside these repairs.
 fn-196.6 is complete: source `f8d0673248`, final formatting `89df25410b`, closure
@@ -1217,7 +1224,7 @@ fn-196.6 is complete: source `f8d0673248`, final formatting `89df25410b`, closur
 checker dependency or lifecycle API. Semantic RED/GREEN controls preserve snapshots, restoration,
 identity and synchronization. All 20 fresh allowed stages pass, including native669, class7,
 rule31, boundary66 and source174. All 64 constructed and all 64 initialized Voting owners release
-under observed collection. Checked-owner release remains unproved until discovery repair .7;
+under observed collection. At the .6 checkpoint, checked-owner release was still unproved pending .7;
 the original measurement receipt stays immutable. Evidence: `.flow/tmp/fn1966/summary.md`.
 fn-196.7 is complete: repair `d92dc7a5e6`, measurement note `33b84f5780`, closure
 `115a1bcf47`. Weak identity names and declaration-owned channels preserve live metadata without

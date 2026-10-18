@@ -4,8 +4,8 @@ This directory holds a description of how Temporal features are expected to beha
 that tools can use it. You describe a feature once, as a small state machine and the promises it
 makes. From that one description you get:
 
-- **A check of the description itself.** The Go evaluator walks every path the state machine allows,
-  within stated limits, and reports any path on which a promise fails.
+- **A check of the description itself.** The native Scala checker explores reachable behavior
+  within a caller's budget and reports failed promises or an unknown answer when work is cut short.
 - **Generated tests.** A path that shows a promise at work becomes a test that runs against a real
   Temporal server. Nobody writes the test by hand.
 - **A judgment of what the server did.** The record of such a test is checked twice: against the
@@ -14,6 +14,11 @@ makes. From that one description you get:
   with ours.
 
 Paths on this page are relative to the repository root.
+
+For current plain-Scala authoring and native checker contracts, start with the
+[framework guide](framework/README.md). The Nexus examples and IR tool descriptions below retain
+their historical export-pipeline scope: Temporal sources are disabled during this DSL phase.
+Their Query/Scenario/Limits spellings and catalog totals are not current native APIs or budgets.
 
 ## The terms, with one example
 
@@ -157,12 +162,24 @@ The remaining terms name what the tools produce:
 
 ## The layers
 
-Scala declares a Model, the IR generator reads its compiled declarations, and Go evaluates the resulting
-IR. The Scala DSL supplies types and step functions for authoring; Go is the single Model evaluator.
+Scala declares a Model and the native Scala checker is the in-process oracle for its supported
+questions. The Umpire IR remains the export and lowering format. On 2026-10-17 the owner reversed
+the 2026-10-13 Go-oracle direction: the existing simple Scala checker can answer native questions
+directly, avoiding the indirect IR/Go loop. This is the reason for the direction, not a measured speedup.
+
+The [measurement decision](design/scala-checker-measurement.md) is **no-go on immediate Go checker
+retirement**. Existing Go consumers remain until native refinement/replacement, rule-overlap,
+recorded-Run/backend replay and Case production obligations have replacements. Future Case
+production is selected to emit the Testpilot Case proto from Scala; it is not implemented.
+Testpilot's runtime, Driver and canary stay in Go. ModelSuite adoption remains fn-195 work.
+
+The diagram shows the current native checker alongside the retained IR consumers. Lifting,
+export, Go checks and consumer migration remain held during the native DSL phase.
 
 ```mermaid
 flowchart TD
     scala["Scala Models<br/>model/temporal, written with model/framework"]
+    native["Native questions and claims<br/>framework.checker.Checker"]
     uir[("Umpire IR<br/>model/temporal/features/<feature>/generated/ir.json")]
     reader["Tables, Query answers, witnesses<br/>tools/umpire/{ir,interp,check,realization}"]
     tir[("Testpilot IR: Cases<br/>model/temporal/features/<feature>/generated/<query>.case.json")]
@@ -170,6 +187,7 @@ flowchart TD
     assessment["Model assessment<br/>tools/umpire/conformance"]
     other["Quint<br/>tools/umpire/export"]
 
+    scala -->|"in-process checking"| native
     scala -->|"lifting: model/framework/export"| uir
     uir -->|"reading and checking"| reader
     reader -->|"lowering: tools/umpire/lower"| tir
@@ -205,12 +223,13 @@ authorization. Historical Case formats and Runs are not relabeled or interpreted
 | Authoring | Models are written in Scala with a small DSL (a library of declarations such as `machine`, `property` and `query`) | DSL `model/framework`, Models `model/temporal` | `make lint-model`, `make fmt-model` |
 | Lifting | The compiled Models are translated to the Umpire IR, built as the ScalaPB classes of its schema and written as ProtoJSON. A construct outside the supported subset is refused at its source line | `model/framework/export`, run by the gate `model/temporal/check` | `make umpire-gen-model` writes `model/temporal/features/<feature>/generated`; `make umpire-check-model` requires it to be current |
 | Umpire IR | The checked-in lifted Models | `model/temporal/features/<feature>/generated`; schema in `api/umpire/v1` | `make protoc` after a schema change |
-| Reading and checking | Go loads and validates the IR, builds each machine's table, and answers every Property, Query and refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` |
+| Native checking | The Scala oracle explores reachable states and answers its supported claims, replay, bounded find and seeded sample questions | `model/framework/checker` | [Native checks](framework/README.md#native-checks) |
+| Existing IR checking (migration pending) | Go loads and validates the IR and retains checks needed by existing consumers, including refinement | `tools/umpire/{ir,interp,check,realization}` | `go test -tags test_dep ./tools/umpire/...` (held) |
 | Lowering | A `find` Query's witness becomes a Case through its realization | `tools/umpire/lower` | `make umpire-gen-cases` writes `model/temporal/features/<feature>/generated`; `make umpire-check-cases` requires it to be current |
 | Testpilot IR | The checked-in Cases, and `manifest.json`, which accounts for every Query | `model/temporal/features/<feature>/generated`; schema in `api/testpilot/v1` | |
 | Running | Testpilot admits a Case, runs its Program through the Temporal Driver, records the Run and evaluates the Contract into a Verdict | `common/testing/testpilot`, `common/testing/testpilot/temporal` | `make umpire-check-live-tests` (in-process server); `make umpire-run` builds `.build/umpire-run` for any deployment |
 | Assessing | The Run's evidence is compared with the whole Model | `tools/umpire/conformance` | part of the live tests above |
-| Export | The IR is written for Quint, and its answers are compared with Go's | `tools/umpire/export` | `make umpire-check-backends` (needs the tools its README names) |
+| Export | Existing IR consumers export to Quint and compare backend answers; native replay migration remains pending | `tools/umpire/export` | `make umpire-check-backends` (held; needs the tools its README names) |
 
 ### Schema ownership
 
@@ -667,16 +686,19 @@ Samples keeps standard output apart from compiler diagnostics and rejects either
 printed compiler errors. Make keeps normal compilation and publishes its temporary jar and classpath
 only after the compiler succeeds.
 
-Sample checks reuse the compiled samples jar and classpath and a packaged batch lifter under
+The historical IR sample-check route reuses the compiled samples jar and classpath and a packaged batch lifter under
 `model/build/sample-check/`, across check output directories. Content stamps cover the source paths
 and bytes, build directives, generated schema jars, tool versions and compiler environment. Missing
 or changed build outputs trigger a rebuild; rejected compilations leave no reusable stamp. Each check
 discovers its roots again, lifts every sample afresh, adapts only its temporary IR and runs the Go
 checker. Removing this cache only makes the next check rebuild it.
 
-Each sample check builds one native Go checker, then checks at most two independent samples at a
+That held IR route builds one Go checker, then checks at most two independent samples at a
 time in that process. It joins every check before returning and prints each sample's diagnostics in
 discovery order; any failed Query or progress claim fails the run.
+
+Current native verification uses the [framework's native checks](framework/README.md#native-checks).
+The older route described here does not make Go the oracle or release the IR/Go execution hold.
 
 The default check of a change is one command:
 
@@ -1981,9 +2003,10 @@ A machine object is the machine: `object ActivityProduct extends Machine[State, 
    that takes arguments beyond the state binds them in place, `~> (effects.timeOut(_,
    system.TimeoutType.scheduleToClose))`. Where no case holds the action is disabled, and
    `disabled(process.stop)` binds an action no state enables. The cases of one action class
-   hold in no common state, whether they sit in the same block or different blocks: the rules object
-   refuses an overlap as it is constructed, over every state and class, naming the machine, the
-   class, both cases and a witness state, and the gate
+   were required to hold in no common state under the historical catalog-based rules contract:
+   that rules object refused an overlap over every state and class, naming the machine, the
+   class, both cases and a witness state. Native transitions now use first-match execution without
+   a universal overlap check; its disposition remains a migration prerequisite. The historical gate
    constructs every IR file's roots (`model/temporal/IrFiles.test.scala`). Each action's cases lower
    to one step function, `<machine>.rules.<action>`;
 7. `object properties`, with actual claims under `object safety` or `object liveness`. `safety`

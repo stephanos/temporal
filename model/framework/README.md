@@ -4,6 +4,14 @@
 as the Scala oracle, and `framework.realize` supplies generic realization values. The framework has no Temporal Model dependency. The wider model pipeline is
 described in [model/README.md](../README.md); the native expectation loop below is narrower.
 
+On 2026-10-17 this reversed the 2026-10-13 Go-oracle direction: use the existing simple compiled
+Scala checker directly instead of routing native questions through IR and Go. The IR remains the
+export and lowering format. The [measurement](../design/scala-checker-measurement.md) keeps
+immediate Go checker retirement at **no-go**: native refinement/replacement, rule-overlap,
+recorded-Run/backend replay and existing Case consumers still need migration. Future Scala
+production of the Testpilot Case proto is selected, not implemented. Testpilot's runtime, Driver
+and canary remain in Go; ModelSuite wiring is still fn-195 work. No speedup follows from this choice.
+
 ## Parametric Models in tests
 
 Give a Model the domains and constants its behavior needs through a class constructor.
@@ -26,6 +34,17 @@ checks retain it. Bind a fresh constructor or factory result to a val before che
 Two instances have independent vars, schemas, starts, selected input catalogs and reachable
 graphs. Var initializers and `oneOf` starts may read the constructor constants. Empty enumerated
 start domains refuse rather than inventing a start.
+
+Runtime snapshots and discovery metadata follow their live owners. Discarded Models can be
+collected after initialization and checking once no Model, State, Result, action or other legitimate
+owner remains. Retained States, and Results retaining States, path evidence or an explored graph,
+keep their exact owner and stable diagnostics; retained scanned actions keep their channel behavior.
+No disposal or cache-clearing call is needed.
+Classloader/static metadata caches are outside this instance-lifetime guarantee. The
+[separate retention rerun](../design/scala-checker-measurement.md#after-the-instance-lifetime-repairs)
+released all 64 constructed, initialized and checked Voting owners in each batch after one observed
+collection; the original retention receipt remains historical evidence. This establishes reclamation,
+not reduced live-graph memory or improved timing, and does not change the no-go decision.
 
 Nested action input records retain the selected instance's exact generic types and defaults.
 For example, `smallVoting.voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)` constructs its
@@ -190,11 +209,12 @@ constraints.
 Constructing a machine or registering declared or derived rules does not enumerate states or run
 guards and effects. This supplies no overlap-safety verdict. Native callbacks use ordinary Scala:
 `m(k)` throws for a missing partial-map key; use `m.get(k)` or `m.getOrElse(k, default)` for safe
-reads. A missing-key exception is not a native checking result or an interpreted hole.
+reads. A missing-key exception in a checked effect produces a refuted Result; it is not an
+interpreted hole. Independent monitor/progress predicate errors propagate.
 
 Author numeric state with Scala `Int`. Direct callbacks have signed 32-bit bounds, wrapping
 arithmetic and Scala/JVM division behavior: division by zero throws, while minimum divided by
-`-1` wraps. Native boundary tests are smoke evidence only. The interpreted contract is checked
+`-1` wraps. These are the native oracle's host semantics. The held interpreted contract is checked
 signed 64-bit arithmetic with overflow holes; fn-173 .4/.5 still owe endpoint, overflow,
 division-by-zero and minimum-divided-by-`-1` proofs, plus preservation or explicit refusal of
 host constant folding and initialized numeric values. Native `Data[Int]` closes neither R5 nor
@@ -240,7 +260,8 @@ map supplies no monitor-product graph bijection; original .6 still owes that rec
 The [retained six-sample inputs](samples/testdata/native-migration/README.md) keep complete
 pre-rewrite source texts at one committed baseline, with explicit representation maps and
 intended Query answers. Native sample tests exercise selected ordinary dispatch and claim
-cases. The full sample lift-and-Go check, complete Query answers and R7 graph proof remain held.
+cases. The full sample lift-and-Go check, IR Query-answer parity and R7 graph proof remain held;
+the supported native questions below are available now.
 
 ## Native faults, budgets and choices
 
@@ -561,8 +582,28 @@ budget)` return the same result shape. Refutations retain a concrete `path` with
 and each action's source state, destination state, outcome and recorded facts. Budgets below one
 are refused. A cut answers unknown unless the check already found a counterexample.
 
-Replay, bounded finding, seeded sampling and the gate's suite budget configuration remain the next
-checker task; this module move does not complete that public contract.
+`Checker.replay(instance, script, budget)` takes a typed `ReplayScript`, including positioned
+expectations. A disabled step or thrown effect refutes the run; a failed expectation retains its
+line, text and state. `Checker.space(instance, steps)(select)` supplies a bounded schedule space.
+`Checker.find(space, horizon, budget)(target)` returns `found` with a witness, `notFound` only
+after completing the requested horizon, or `unknown` on a cut. The target is an `Expectation`,
+not a raw predicate. A missing target or horizon outside `1..space.steps` refuses.
+`Checker.sample(space, count, seed, budget)` runs reproducible seeded walks and checks their claims; passing sampled evidence
+is not exhaustive verification. Counts below one refuse. `Checker.refuted(instance, claim)`
+returns the ordinary claim result for a negative control; it does not invert the verdict.
+
+Budgets are positive Ints, defaulting to `1 << 20`, and every Result records its budget.
+Exploration counts reachable states; find counts state-and-position identities, replay counts
+retained execution nodes, and sampling shares distinct-state admission across its walks.
+They belong to the caller/gate, not the Model. The gate parses `UMPIRE_CHECKER_BUDGETS` as
+newline-separated `default=budget` and exact `suite.name=budget` entries and passes the resolved
+policy to its suite process. `Checker.forSuite(policy, exactSuiteName)` resolves an immutable
+`Execution` whose questions use that budget explicitly. The future ModelSuite adapter will own
+automatic suite-boundary resolution; the direct native-test route does not validate this policy.
+Empty/malformed policies, nonpositive or non-Int budgets, duplicate keys and unknown suite
+overrides refuse. A search horizon, sample count and authored progress deadline are separate bounds.
+`Report` includes claim results and vacuity warnings for unfired actions and untriggered
+`after(action)` claims. Witnesses or counterexamples found before a budget cut stand.
 
 For separate-library public-client checks, use a new Scala CLI `--workspace` directory for each
 complete recipe, across its native package, author package, runtime and refusal stages. Overwriting
