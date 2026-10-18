@@ -83,6 +83,8 @@ Before any more of the Scala framework is built out, the owner wants to know whe
 
 - **R42:** (2026-10-18, owner approved) The core-wasm application exports are `umpire_buffer_alloc(u32) -> u32`, `umpire_buffer_release(u32, u32)` and `umpire_call(u32, u32, u32) -> u64`, replacing R31's unprefixed names. Rust exports these names directly. Remove the intermediate `umpire_free` export, custom linker wrapper and export-table rewriting. Protobuf messages, method IDs, packed result, ownership, allocation limits, typed refusals and trap behavior remain unchanged. Errors: the Go host refuses missing, unexpected or mis-typed application exports; ownership and invalid-range controls still pass. Direct stock-toolchain Cargo builds and the full local gate pass without post-link rewriting.
 
+- **R43:** (2026-10-18, owner approved) The generic Go wasm host belongs inside Umpire: move `model/hosts/go/` to `model/umpire/hosts/go/`. Update the Rust gate, protobuf generator, host artifact/fixture paths and current docs. Preserve Go module identity, generated message bytes, ABI, schema and behavior; changing the public module path belongs to the separately planned standalone extraction. The move runs alone and the existing full local gate and Go parity pass.
+
 ## Boundaries
 
 - Only Kettle's constructs; Bank, Voting and the rest are the next decision, not this spec.
@@ -133,3 +135,8 @@ Seven surface options were written for the same Model (`framework/samples/option
 2026-10-18, home (owner): with the Rust verdict in, the Scala framework is archived rather than deleted, under `model/archived/`, and the Rust workspace takes the `model/` name (R41). Applied by task .15, alone, after .5 completes and before .6.
 
 2026-10-18, ABI names (owner): approved `umpire_buffer_alloc`, `umpire_buffer_release` and `umpire_call` to describe buffer ownership and avoid libc's `free` collision. The three-function byte-transfer boundary and generated protobuf operations stay. Apply this as a separate checkpoint before the workspace move (R42).
+
+
+2026-10-18, owner authoring clarification: keep separate User and Heater enums in the attribute Kettle. Canonical goldens may change only the four action spellings from the flat trait catalog; counts, states, ordering, claims, verdicts and counterexample structure stay unchanged. The separate trait Kettle and its WASM/native reference goldens remain unchanged. Task .6 records the exact mapping.
+
+2026-10-18, owner host placement: the Go host is generic Umpire code and moves under model/umpire/hosts/go as a separate checkpoint (R43). Standalone extraction to temporalio/umpire is only planned in MIGRATE.md: relevant history is preserved and local development uses Cargo path dependencies and Go workspaces, without pushing each change. No repository extraction or remote writes are authorized by the planning request.

@@ -35,7 +35,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.6 and .7 | The Rust workspace occupies `model/` and Scala is archived with its caches preserved; archive review, registration, progress and the direct wasm ABI are complete; attribute Kettle and the final comparison remain |
+| Umpire in Rust (now) | fn-210.17, then .6 and .7 | The archive, registration, progress and direct wasm ABI are complete; move the generic Go host inside Umpire, then finish attribute Kettle and the comparison. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
 | After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
@@ -92,7 +92,8 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.6 | ⬜ todo | After .15: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
+| fn-210.17 | ⬜ todo | Move the generic Go host to `model/umpire/hosts/go`, updating paths without changing its protocol or module identity (R43) |
+| fn-210.6 | ⬜ todo | After .17: attribute Kettle with separate User/Heater enums; only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14) |
 | fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
