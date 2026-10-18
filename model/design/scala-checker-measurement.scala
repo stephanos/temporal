@@ -93,7 +93,13 @@ object ScalaCheckerMeasurement:
       .sum
     (info.getId, bytes, info.getStartTime, info.getEndTime)
 
-  private def heap[S, O, F](m: NativeModel[S, O, F], check: () => Report): Unit =
+  private def heap[S, O, F](
+      m: NativeModel[S, O, F],
+      intervalMillis: Long,
+      check: () => Report
+  ): Unit =
+    require(intervalMillis > 0)
+    println(s"HEAP_INTERVAL_MILLIS\t$intervalMillis")
     val (baselineId, baseline, baselineStart, baselineEnd) = fullGc()
     println(s"HEAP_BASELINE\t$baselineId\t$baseline\t$baselineStart\t$baselineEnd")
     val active = new AtomicBoolean(false)
@@ -117,7 +123,7 @@ object ScalaCheckerMeasurement:
             )
             if accepted then observations += bytes: Unit
             else rejected += 1
-          Thread.sleep(10)
+          Thread.sleep(intervalMillis)
       catch
         case error: Throwable =>
           val _ = errors.addOne(error)
@@ -216,7 +222,7 @@ object ScalaCheckerMeasurement:
     java.lang.ref.Reference.reachabilityFence(held)
 
   def main(args: Array[String]): Unit =
-    require(args.length >= 2, "graph mode [budget] [repetitions]")
+    require(args.length >= 2, "graph mode [budget] [repetitions] [heapIntervalMillis]")
     println(
       s"ENV\t${System.getProperty("java.version")}\t${System.getProperty("java.vm.name")}" +
         s"\t${Runtime.getRuntime.maxMemory()}\t${ManagementFactory.getRuntimeMXBean.getInputArguments}"
@@ -233,7 +239,7 @@ object ScalaCheckerMeasurement:
         )
         args(1) match
           case "stats" => statistics(model, budget)
-          case "heap"  => heap(model, () => verify(budget))
+          case "heap"  => heap(model, args.lift(4).fold(10L)(_.toLong), () => verify(budget))
           case "time"  =>
             (0 until repetitions).foreach: iteration =>
               val start = System.nanoTime()
