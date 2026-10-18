@@ -17,6 +17,7 @@ enum RefusalCode {
   REFUSAL_CODE_STATE = 4;
   REFUSAL_CODE_NOT_EXPLORED = 5;
   REFUSAL_CODE_ALLOCATION = 6;
+  REFUSAL_CODE_SCOPE_ACTION = 7;
 }
 
 message ExploreRequest { uint32 budget = 1; }

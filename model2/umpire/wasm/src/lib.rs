@@ -6,6 +6,9 @@ use std::{cell::RefCell, collections::BTreeMap, fmt::Write};
 use umpire_checker::{Checker, StateId};
 use umpire_dsl::Spell;
 
+mod refusal;
+use refusal::{checker_refusal, refused};
+
 #[path = "../../tests/fixtures/kettle_trait/model.rs"]
 #[allow(missing_docs, unreachable_pub)]
 mod kettle;
@@ -96,18 +99,6 @@ impl Oracle {
 
 fn count(value: usize) -> u32 {
     u32::try_from(value).unwrap_or_else(|_| unreachable!("finite Kettle counts fit u32"))
-}
-
-fn refused(code: protocol::RefusalCode, message: String) -> protocol::response::Outcome {
-    protocol::response::Outcome::Refusal(protocol::Refusal { code: code as i32, message })
-}
-
-fn checker_refusal(error: &umpire_checker::Refusal) -> protocol::response::Outcome {
-    let code = match error {
-        umpire_checker::Refusal::Budget { .. } => protocol::RefusalCode::Budget,
-        umpire_checker::Refusal::State { .. } => protocol::RefusalCode::State,
-    };
-    refused(code, error.to_string())
 }
 
 const MAX_BUFFER: usize = 1 << 20;

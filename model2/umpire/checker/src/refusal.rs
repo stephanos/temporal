@@ -13,4 +13,10 @@ pub enum Refusal {
         /// The state id supplied by the caller.
         given: usize,
     },
+    /// The supplied scope action is not in the Model's action catalog.
+    #[error("unknown scope action: {action}")]
+    ScopeAction {
+        /// The unknown action's canonical spelling.
+        action: String,
+    },
 }

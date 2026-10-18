@@ -80,6 +80,7 @@ const (
 	RefusalCode_REFUSAL_CODE_STATE             RefusalCode = 4
 	RefusalCode_REFUSAL_CODE_NOT_EXPLORED      RefusalCode = 5
 	RefusalCode_REFUSAL_CODE_ALLOCATION        RefusalCode = 6
+	RefusalCode_REFUSAL_CODE_SCOPE_ACTION      RefusalCode = 7
 )
 
 // Enum value maps for RefusalCode.
@@ -92,6 +93,7 @@ var (
 		4: "REFUSAL_CODE_STATE",
 		5: "REFUSAL_CODE_NOT_EXPLORED",
 		6: "REFUSAL_CODE_ALLOCATION",
+		7: "REFUSAL_CODE_SCOPE_ACTION",
 	}
 	RefusalCode_value = map[string]int32{
 		"REFUSAL_CODE_UNSPECIFIED":       0,
@@ -101,6 +103,7 @@ var (
 		"REFUSAL_CODE_STATE":             4,
 		"REFUSAL_CODE_NOT_EXPLORED":      5,
 		"REFUSAL_CODE_ALLOCATION":        6,
+		"REFUSAL_CODE_SCOPE_ACTION":      7,
 	}
 )
 
@@ -544,7 +547,7 @@ const file_umpire_oracle_v1_oracle_proto_rawDesc = "" +
 	"\x06Method\x12\x16\n" +
 	"\x12METHOD_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eMETHOD_EXPLORE\x10\x01\x12\x0f\n" +
-	"\vMETHOD_ROWS\x10\x02*\xdd\x01\n" +
+	"\vMETHOD_ROWS\x10\x02*\xfc\x01\n" +
 	"\vRefusalCode\x12\x1c\n" +
 	"\x18REFUSAL_CODE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bREFUSAL_CODE_UNKNOWN_METHOD\x10\x01\x12\"\n" +
@@ -552,7 +555,8 @@ const file_umpire_oracle_v1_oracle_proto_rawDesc = "" +
 	"\x13REFUSAL_CODE_BUDGET\x10\x03\x12\x16\n" +
 	"\x12REFUSAL_CODE_STATE\x10\x04\x12\x1d\n" +
 	"\x19REFUSAL_CODE_NOT_EXPLORED\x10\x05\x12\x1b\n" +
-	"\x17REFUSAL_CODE_ALLOCATION\x10\x06B/Z-umpire.local/oracle/umpire/oracle/v1;oraclev1b\x06proto3"
+	"\x17REFUSAL_CODE_ALLOCATION\x10\x06\x12\x1d\n" +
+	"\x19REFUSAL_CODE_SCOPE_ACTION\x10\aB/Z-umpire.local/oracle/umpire/oracle/v1;oraclev1b\x06proto3"
 
 var (
 	file_umpire_oracle_v1_oracle_proto_rawDescOnce sync.Once

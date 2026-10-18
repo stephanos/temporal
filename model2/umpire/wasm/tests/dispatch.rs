@@ -6,6 +6,23 @@ use umpire_wasm::{
     protocol::{self, response::Outcome},
 };
 
+#[path = "../src/refusal.rs"]
+mod refusal_mapping;
+
+#[test]
+fn scope_action_refusal_survives_generated_protocol() {
+    let error = umpire_checker::Refusal::ScopeAction { action: "User::Missing".into() };
+    let response = protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };
+    let decoded = protocol::Response::decode(response.encode_to_vec().as_slice())
+        .unwrap_or_else(|error| panic!("generated response must decode: {error}"));
+    let Some(Outcome::Refusal(refusal)) = decoded.outcome else {
+        panic!("expected scope action refusal")
+    };
+    assert_eq!(refusal.code, 7);
+    assert_eq!(refusal.code(), protocol::RefusalCode::ScopeAction);
+    assert_eq!(refusal.message, "unknown scope action: User::Missing");
+}
+
 fn explore(oracle: &mut Oracle, budget: u32) -> protocol::Response {
     oracle.dispatch(1, &protocol::ExploreRequest { budget }.encode_to_vec())
 }
