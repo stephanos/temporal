@@ -1,0 +1,11 @@
+error: #[internal] requires a unit action variant
+ --> tests/ui/non_unit_internal.rs:6:5
+  |
+6 |     Heat(u8),
+  |     ^^^^
+
+error: #[internal] requires a unit action variant
+ --> tests/ui/non_unit_internal.rs:8:5
+  |
+8 |     Failover { reason: bool },
+  |     ^^^^^^^^
