@@ -7,6 +7,7 @@ import framework.dsl.outcomes.Outcome
 class ExpectTest extends munit.FunSuite:
   class Flag extends Machine[Outcome, Nothing]:
     var active = true
+    val gap = hole
 
     object transitions extends Transitions
 
@@ -126,3 +127,34 @@ class ExpectTest extends munit.FunSuite:
       assertEquals(result.expectation.map(_.text), Some("Expect.test.scala: false"))
       assert(result.expectation.exists(_.line > 0))
       assertEquals(later, 0)
+
+  test("an established nested failure stays decisive when an ordinary OR operand reaches a hole"):
+    val model = new Flag
+    var holes = 0
+    var later = 0
+    def reached: Boolean =
+      holes += 1
+      model.gap.reached[Boolean]
+    def observed: Boolean =
+      later += 1
+      true
+    val failed = RunBody.capture(model):
+      expect:
+        { false; true } || reached
+        observed
+    val result = SuiteExecution.run(failed, budget = 4)
+    val position = failed.operations.collect:
+      case checks: RunAssertions => checks.assertions.head.position
+    assertEquals(result.verdict, Verdict.refuted)
+    assertEquals(result.expectation.map(_.text), Some("Expect.test.scala: false"))
+    assertEquals(result.expectation.map(_.line), Some(position.head.line))
+    assertEquals(result.expectation.map(_.state), Some(model.init))
+    assertEquals(holes, 1)
+    assertEquals(later, 0)
+    val unknown = RunBody.capture(model):
+      expect(false || reached)
+    val neighbor = SuiteExecution.run(unknown, budget = 4)
+    assertEquals(neighbor.verdict, Verdict.unknown)
+    assertEquals(neighbor.expectation, None)
+    assertEquals(holes, 2)
+    assertEquals(model.active, true)

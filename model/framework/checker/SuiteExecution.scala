@@ -31,7 +31,9 @@ object SuiteExecution:
         require(count >= 1, s"${step.position}: repeat requires a positive count")
         Vector(
           ReplayRepeatedStep(
-            ReplayDeferredStep[State](() => step.targets.map(_.evaluate()), step.position),
+            ReplayDeferredStep[State](
+              step.targets.map(target => (target.position, () => target.evaluate()))
+            ),
             count
           )
         )
@@ -55,10 +57,12 @@ object SuiteExecution:
                       val holds = condition()
                       if !holds && failed.isEmpty then failed = Some(position)
                       holds
-                evaluation.test(
-                  assertion.position,
-                  () => assertion.evaluate(evaluation)
-                ) && failed.isEmpty
+                try
+                  evaluation.test(
+                    assertion.position,
+                    () => assertion.evaluate(evaluation)
+                  ) && failed.isEmpty
+                catch case _: HoleReached if failed.nonEmpty => false
             )
           )
         )

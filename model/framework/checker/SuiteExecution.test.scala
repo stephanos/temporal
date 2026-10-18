@@ -272,3 +272,57 @@ class SuiteExecutionTest extends munit.FunSuite:
     assert(first.expectation.exists(_.text.endsWith("model.count == 9")))
     assertEquals(model.count, 0)
     assertEquals(inner.count, 0)
+
+  test("an input hole preserves known sibling alternatives and their decisive evidence"):
+    val model = new Counter
+    val start = model.init
+    var inputs = Vector.empty[(String, Int)]
+    def known: Int =
+      inputs = inputs :+ ("known", model.count)
+      model.count
+    def missing: Int =
+      inputs = inputs :+ ("hole", model.count)
+      model.gap.reached[Int]
+    val knownFirst = RunBody.capture(model, from = start):
+      model.client.increment
+      oneOf(model.client.add(amount = known), model.client.add(amount = missing))
+      expect(model.count == 0)
+    val holeFirst = RunBody.capture(model, from = start):
+      model.client.increment
+      oneOf(model.client.add(amount = missing), model.client.add(amount = known))
+      expect(model.count == 0)
+    val passing = RunBody.capture(model, from = start):
+      model.client.increment
+      oneOf(model.client.add(amount = missing), model.client.add(amount = known))
+      expect(model.count == 2)
+    assertEquals(inputs, Vector.empty)
+    val cases = Vector(
+      (knownFirst, Vector("known", "hole"), Verdict.refuted),
+      (holeFirst, Vector("hole", "known"), Verdict.refuted),
+      (passing, Vector("hole", "known"), Verdict.unknown)
+    )
+    val evaluated = cases.map: (body, order, verdict) =>
+      inputs = Vector.empty
+      model.count = 3
+      val result = SuiteExecution.run(body, budget = 8)
+      (body, order, verdict, result, inputs)
+    assertEquals(
+      evaluated.map(_._4.verdict),
+      cases.map(_._3),
+      evaluated.map(value => value._5).toString
+    )
+    evaluated.foreach: (body, order, verdict, result, observed) =>
+      assertEquals(observed, order.map(_ -> 1))
+      assertEquals(result.path.steps.size, 2)
+      assert(result.detail.exists(_.contains("inputs at State(count = 1) reach ")))
+      if verdict == Verdict.refuted then
+        val position = body.operations.collect:
+          case checks: RunAssertions => checks.assertions.head.position
+        assertEquals(result.expectation.map(_.line), Some(position.head.line))
+        assertEquals(
+          result.expectation.map(_.text),
+          Some("SuiteExecution.test.scala: model.count == 0")
+        )
+        assertEquals(result.expectation.map(_.state), Some(model.init.copy(count = 2)))
+      else assertEquals(result.expectation, None)
+      assertEquals(model.count, 0)

@@ -1377,6 +1377,42 @@ destination state, outcome and facts. This is the path the checker took. Progres
 deadlock, cycle and deadline explanations in the result's detail. The DSL holds declarations and
 callable references; the product checker evaluates them.
 
+### Captured native bodies
+
+`RunBody.capture(model): ...` retains a finite authored sequence for one exact `Machine` instance.
+`RunBody.capture(model, from = start): ...` supplies an explicit start snapshot; otherwise execution
+requires the Model to have exactly one initial state. A missing `from` with several starts is
+refused at the captured body's position.
+
+| Form inside capture | Meaning |
+|---|---|
+| `actor.send(field = value)` | One named-input action call; inputs read the restored state at the actual replay step |
+| `actor.tick` | One stable, fieldless whole action |
+| `oneOf(step1, step2, ...)` | One step retaining at least two finite alternatives |
+| `repeat(count)(step)` | One action call or fieldless whole action repeated a positive number of times |
+| `expect: ...` | Bare Boolean assertion statements, including literals, retained in source order |
+
+Capture and declaration loading require no checker and evaluate no action-input or expectation
+callbacks. Expectations run when replay reaches them, against the owning Model's restored state.
+The first false assertion stops later assertions and retains its original file, line, text and
+concrete state; Boolean operands retain ordinary Scala short-circuit behavior. Empty or non-Boolean
+expectations and unsupported sequence statements refuse at compile time. This `expect` belongs to
+captured bodies; the retired `properties.expect` engine remains retired.
+
+Capture supplies the exact-instance context: `before` has the Model's typed vars, `outcome` its
+outcome type, and `records(fact)` accepts only its admitted fact type. These read the actual preceding
+step, including a rejected step with unchanged state. Foreign owner-bound state accesses refuse,
+even for another instance of the same class; compatible shared fact values remain legal. Before
+any step, state-only expectations read the start, `records` sees no facts, and `before` or `outcome`
+refuses rather than inventing a preceding step.
+
+`framework.checker.SuiteExecution.run(body, budget)` executes the captured body through native
+replay and returns the existing `Result`, retaining replay evidence and caller budget cuts. Execution
+requires the checker and a budget of at least one. Compile declarations before authored tests, or
+consume a separately compiled declaration library; joint compilation of macro definitions and
+authored callers as main sources is unsupported. ModelSuite registration, section discovery,
+conformance, search, realization binding and Case production remain separate work.
+
 ## Public surface not in this reference
 
 Every public top-level definition of `dsl/` and `realize/` (and each public extension method) is
@@ -1396,6 +1432,13 @@ Named in signatures and error messages; an author writes the form, not the type.
 `ClaimAlternatives` `InitialAlternatives` `Branching` `ClaimBranch` `Declares`
 `DerivedFrom` `Rule` `RuleGroup` `Rebinding` `RuleBook` `MemberStep` `CompositionTarget` `MemberReplacement` `Sync`
 `Family`
+
+Captured-body signature carriers retain source positions, ordered declarations and typed context.
+Their constructors are internal except `RunPosition`, which is source metadata; authors use the
+capture forms above rather than constructing an execution request from these pieces.
+
+`RunAssertion` `RunPosition` `RunOperation` `RunRecords` `RunAlternatives` `RunAssertions`
+`RunStep` `RunTarget` `RunContext`
 
 ### Retained metadata containers
 
@@ -1419,7 +1462,7 @@ finite walks establish no exhaustive safety or unbounded progress conclusion.
 
 The gate validates a `BudgetPolicy` against discovered suite identities. Its default and overrides
 resolve into an immutable `Execution` boundary that passes the selected budget into every question.
-The future ModelSuite adapter supplies registration, author syntax and suite discovery support.
+The future ModelSuite adapter supplies registration and suite discovery support.
 
 ### Realization building blocks
 

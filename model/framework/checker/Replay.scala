@@ -6,8 +6,7 @@ sealed trait ReplayOperation[S]
 final case class ReplayStep[S](target: Any, alternatives: Any*) extends ReplayOperation[S]
 
 final private[framework] case class ReplayDeferredStep[S](
-    targets: () => Vector[Any],
-    position: RunPosition
+    targets: Vector[(RunPosition, () => Any)]
 ) extends ReplayOperation[S]
 
 final private[framework] case class ReplayRepeatedStep[S](step: ReplayDeferredStep[S], count: Int)
@@ -53,7 +52,7 @@ private[checker] object Replay:
         val location = position.fold("")(value => s"$value: ")
         require(classes.nonEmpty, s"${location}replay pins $target, which no rule binds")
         classes
-    def targets(operation: ReplayDeferredStep[?], before: S, path: Path): Vector[Any] =
+    def target(read: () => Any, before: S, path: Path): Any =
       val last = path.steps.lastOption
       val origin = last.flatMap(_.before match
         case value: State => Some(value)
@@ -64,7 +63,7 @@ private[checker] object Replay:
         last.map(_.outcome),
         last.fold(List.empty[Any])(_.facts)
       )
-      def evaluate = ClaimEvaluation.within(context)(operation.targets())
+      def evaluate = ClaimEvaluation.within(context)(read())
       instance.stateVars.fold(evaluate)(_.at(before)(evaluate))
     val operations = script.operations.iterator.flatMap:
       case repeated: ReplayRepeatedStep[S] =>
@@ -110,19 +109,22 @@ private[checker] object Replay:
               val selected = eager.getOrElse:
                 operation match
                   case step: ReplayDeferredStep[?] =>
-                    val values =
-                      try Some(targets(step, before, path))
-                      catch
-                        case HoleReached(hole) =>
-                          engine.unknown += s"${step.position}: inputs at $before reach ${NativeCheck.holeName(hole)}": Unit
-                          None
-                        case scala.util.control.NonFatal(cause) =>
-                          failure = Some(
-                            Vector(s"${step.position}: inputs at $before: ${cause.getMessage}")
-                          )
-                          evidence = path
-                          None
-                    values.fold(Seq.empty[Class])(select(_, Some(step.position)))
+                    step.targets.iterator
+                      .takeWhile(_ => failure.isEmpty)
+                      .flatMap: (position, read) =>
+                        val value =
+                          try Some(target(read, before, path))
+                          catch
+                            case HoleReached(hole) =>
+                              engine.unknown += s"$position: inputs at $before reach ${NativeCheck.holeName(hole)}": Unit
+                              None
+                            case scala.util.control.NonFatal(cause) =>
+                              failure =
+                                Some(Vector(s"$position: inputs at $before: ${cause.getMessage}"))
+                              evidence = path
+                              None
+                        value.fold(Seq.empty[Class])(value => select(Seq(value), Some(position)))
+                      .toVector
                   case _ => Seq.empty
               selected.iterator
                 .takeWhile(_ => failure.isEmpty && !cut)

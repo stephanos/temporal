@@ -15,7 +15,7 @@ The probe's assertion helper runs immediately. Production expectations must inst
 
 **Files:** `model/framework/dsl/RunBody.scala` and `Expect.scala` with their focused `.test.scala` controls; the minimum scoped context integration in `model/framework/dsl/Syntax.scala`, `ClaimWords.scala` and `NativeRuntime.scala`; `model/framework/checker/Native.scala` as the sole NativeRuntime implementation; `model/framework/checker/SuiteExecution.scala` and `SuiteExecution.test.scala` for translation to existing replay operations. S later extends the same adapter and therefore follows P serially. Edit existing replay internals only if a demonstrated integration defect requires it.
 
-**Touches:** [model/framework/dsl/RunBody.scala, model/framework/dsl/RunBody.test.scala, model/framework/dsl/Expect.scala, model/framework/dsl/Expect.test.scala, model/framework/dsl/Syntax.scala, model/framework/dsl/ClaimWords.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/checker/Replay.scala, model/framework/checker/Questions.test.scala]
+**Touches:** [model/framework/dsl/RunBody.scala, model/framework/dsl/RunBody.test.scala, model/framework/dsl/Expect.scala, model/framework/dsl/Expect.test.scala, model/framework/dsl/Syntax.scala, model/framework/dsl/ClaimWords.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/checker/Replay.scala, model/framework/checker/Questions.test.scala, model/framework/REFERENCE.md]
 
 **Dependencies:** Existing fn-195.1 closure `d0d2efeab0` and the already admitted fn-194/fn-196 native checkpoints. Keep existing `.2 -> .1`. This task produces the body/request seam consumed by S; it does not require whole fn-194/fn-196 completion or their held proofs. Trust the existing prerequisite admission rather than repeating it.
 
@@ -46,6 +46,10 @@ baseline before editing it and retain its behavior controls.
 Declaration carriers, macros and finite execution requests belong to `framework.dsl`. They may reference the existing generic realization declarations within the current DSL/realize module boundary; this task needs no new realization behavior. They import no `framework.checker`, MUnit, export/lifter, gate or system-specific module. Ordinary quoted macros use `scala.quoted` public APIs and the standard annotation type only. Add no `scala3-compiler` dependency or compiler-plugin route.
 
 The product checker translates the DSL-owned request into its existing replay operations and evaluates it. Reuse or narrowly extend `NativeRuntime` rather than adding a second engine or exposing checker implementation types through the DSL. Declaration construction and loading with DSL/realize alone must not execute model callbacks, resolve a checker, search or require a checker class. An actual execution without the checker retains the existing explicit runtime-required failure.
+
+## Public reference coverage
+
+The existing ReferenceSurfaceTest demonstrated that this checkpoint's new public names need reference coverage before the native boundary gate can pass. Add the minimum accurate author-facing explanation of captured native bodies, and identify signature-only declaration carriers in the existing public-surface appendix. Document `repeat`, `RunBody` and the native execution seam without claiming the future ModelSuite facade or conformance is implemented. Keep REFERENCE.md free of Scala-file references; use public forms and behavior, not implementation navigation. This bounded coverage is part of the API change, not the later comprehensive .5 rewrite. Do not weaken or bypass the public-surface gate.
 
 ## Acceptance
 
