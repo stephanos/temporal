@@ -93,6 +93,7 @@ class NativePerformanceSuite extends munit.FunSuite:
     final class NativeKit(val machine: MachineDeclaration[?, ?, ?], performance: Performance)
         extends ConstructedRealization:
       protected def declaredPerformances: Vector[Performance] = Vector(performance)
+      override protected def declaredWaitedClasses: Vector[ClassRef] = Vector.empty
       val runs: Seq[AnyRef] = Seq.empty
       protected def declaredDependencies: ConstructedRealization.Dependencies =
         exposedDependencies += 1
@@ -103,6 +104,7 @@ class NativePerformanceSuite extends munit.FunSuite:
         throw AssertionError("kit conversion evaluated")
     val kit = new NativeKit(machine, selected)
     assert(kit.nativePerformances.head eq selected)
+    kit.nativeCoverage(machine).admit(Vector(Vector(performed)))
     assertEquals(kit.dependencies, ConstructedRealization.Dependencies.empty)
     assertEquals(exposedDependencies, 1)
     for invalid <- Vector(
@@ -115,6 +117,7 @@ class NativePerformanceSuite extends munit.FunSuite:
       val invalidKit = new NativeKit(machine, invalid)
       intercept[IllegalArgumentException](invalidKit.nativePerformances): Unit
       intercept[IllegalArgumentException](invalidKit.dependencies): Unit
+      intercept[IllegalArgumentException](invalidKit.nativeCoverage(machine)): Unit
       assertEquals(exposedDependencies, 1)
     object WrongMachine extends Machine[Boolean, Nothing]:
       var ready = false

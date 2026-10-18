@@ -50,6 +50,8 @@ final case class Realization(
 ) extends ConstructedRealization:
   protected def declaredPerformances: Vector[Performance] =
     scripts.flatMap(_.items).flatMap(_.performs)
+  override protected def declaredWaitedClasses: Vector[ClassRef] =
+    serverSteps.flatMap(_.nativeWaitedClasses)
   val _ = nativePerformances
   val runs: Seq[AnyRef] = Seq.empty
   protected def declaredDependencies: ConstructedRealization.Dependencies =
@@ -75,7 +77,9 @@ trait Behavior
 
 // A step of the machine the realized system takes on its own: no command of a script performs it,
 // and the declaration says what kind of cause it is, so a read that waits for it has a bound.
-trait SystemStep
+trait SystemStep:
+  def nativeWaitedClasses: Vector[ClassRef] =
+    throw UnsupportedOperationException("system step has no native waited-class projection")
 
 // A symbolic participant commands, activations and controls address, named by its `id`. The
 // system's kit declares its roles, with the kinds and the environment bindings its system has.

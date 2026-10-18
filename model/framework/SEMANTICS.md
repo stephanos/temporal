@@ -1291,6 +1291,48 @@ separately models its one outstanding message as an enum.
 
 ## 19. Realizations
 
+### Native performed and waited coverage
+
+For an explicitly supplied realization, framework consumers request
+`nativeCoverage(expectedMachine)`. This private framework boundary requires the exact machine
+instance, validates native declarations and selected choices, and checks ordinary performances
+against that machine's action identities and finite input catalogs before projecting waits.
+Raw `nativePerformances`, realization constructor parameters and Performance construction/copy
+retain their existing contracts. No new wait projection runs during construction.
+
+A native kit overrides protected `declaredWaitedClasses: Vector[ClassRef]`. Its default explicitly
+refuses unsupported projection. A system-specific `SystemStep` overrides public
+`nativeWaitedClasses: Vector[ClassRef]`; its default also refuses. Generic `Realization` flattens
+these projections from its actual `serverSteps`, so an empty vector authoritatively declares no
+waits. A custom kit explicitly declares supported waits or an empty vector. Projection leaves the
+kit's cause, wait bound, roles, cleanup and dependency meanings with their existing owners.
+
+The retained immutable coverage admits explicitly supplied finite alternatives, repeated classes
+and concrete sampled paths only when every class is performed or awaited with those exact input
+values. Whole zero-input actions have their one empty class. Whole-record and composed classes
+use the existing lazy native runtime's class catalog, preserving correlated input domains.
+Foreign or unbound actions, malformed input declarations, out-of-catalog values and unsupported
+classes refuse. Script conditions, evidence confirmations, controls and dependency-only actions
+confer no coverage. At least one alternative is required; an empty path within it is permitted.
+
+The first complete acquisition snapshots the catalogs needed by its performed and awaited classes
+and the projected coverage for that realization. Unrelated action catalogs are not enumerated.
+Repeated requests retain that snapshot despite subsequent changes in a custom projection. Changing
+the exact machine association during projection or before reusing a snapshot refuses. A failed
+acquisition retains its original exception. Reentry fails permanently, even if the kit catches that
+failure; no partial coverage escapes. Finite-catalog inspection executes no guard, effect, command,
+dependency conversion or end predicate in the admitted native fixture catalog. This is no universal
+purity guarantee for arbitrary custom finite catalogs. Declaration compilation/loading remains
+checker-independent; requesting a class catalog without the checker retains the existing explicit
+missing-runtime refusal.
+
+This protocol supplies checked coverage only. Automatic realization discovery, complete candidate
+selection, capability generation, actual P/X consumer integration, exact conformance binding and
+ModelSuite eligibility remain later obligations. Actual system-kit adoption remains held; final
+framework guidance synchronization belongs to fn-195.5.
+
+### Existing IR lowering (held)
+
 The lowering described here is the existing Go/IR consumer. The selected future Scala producer
 will emit the Testpilot Case proto; choosing it implements neither lowering nor recorded-Run
 conformance replay migration. Runtime execution, the Driver and canary remain in Go.
