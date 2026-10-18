@@ -28,33 +28,39 @@ class DerivationBindingsSuite extends munit.FunSuite:
   final private case class Guard(guard: State => Boolean)
   final private class Rows:
     var value = Vector.empty[(ActionDecl, Bound[State, Boolean, Nothing])]
-  private class Input(reads: Reads) extends Machine[Boolean, Nothing]:
-    override private[framework] val fs: Data[State] = new Finite[State]:
-      def values: IndexedSeq[State] =
-        reads.values += 1
-        throw AssertionError("state catalog evaluated")
-    var ready = false
-    private val retainedRows = new Rows
-    def rows = retainedRows.value
-    def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
-      retainedRows.value = value
-    override def end: Boolean =
-      reads.ends += 1
-      ready
+  private class InputFixture(reads: Reads):
+    class Input extends Machine[Boolean, Nothing]:
+      override private[framework] val fs: Data[State] = new Finite[State]:
+        def values: IndexedSeq[State] =
+          reads.values += 1
+          throw AssertionError("state catalog evaluated")
+      var ready = false
+      private val retainedRows = new Rows
+      def rows = retainedRows.value
+      def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+        retainedRows.value = value
+      override def end: Boolean =
+        reads.ends += 1
+        ready
 
-    private object written extends Transitions(using summon, Ok(true), summon):
-      override private[framework] def table = rows
-    def transitions: RuleBook[State, Boolean, Nothing] =
-      reads.books += 1
-      written
-    retainHeaderIdentity("proof", "input")
-    retainHeaderSchema(
-      0,
-      stateName,
-      Seq(encoded(stateRef)),
-      Seq(encoded(ir.Model(types = Seq(stateShape)))),
-      Nil
-    )
+      private object written extends Transitions(using summon, Ok(true), summon):
+        override private[framework] def table = rows
+      def transitions: RuleBook[State, Boolean, Nothing] =
+        reads.books += 1
+        written
+      retainHeaderIdentity("proof", "input")
+      retainHeaderSchema(
+        0,
+        stateName,
+        Seq(encoded(stateRef)),
+        Seq(encoded(ir.Model(types = Seq(stateShape)))),
+        Nil
+      )
+    def make(): Input = new Input
+
+  private type Input = InputFixture#Input
+  private def makeInput(reads: Reads): Input = new InputFixture(reads).make()
+
   private class Published(source: MachineDeclaration[State, Boolean, Nothing])
       extends Derived(source):
     retainHeaderIdentity("proof", "published")
@@ -84,7 +90,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
 
   test("replay preserves source and live adapted evidence without additional native evaluation"):
     val reads = new Reads
-    val input = new Input(reads)
+    val input = makeInput(reads)
     val action = framework.dsl.action("go", Actor("user")).declaredAt("proof.go")
     val c = Guard(_ =>
       reads.guards += 1
@@ -259,7 +265,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
       .input[Boolean](name = "flag")
       .declaredAt("proof.selected")
     selected.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
-    val withInput = new Input(reads)
+    val withInput = makeInput(reads)
     val inputRow = Rule(1, "always", "selected", selected.decl, None, c.guard, effect)
     inputRow.publishCapture(
       Some(
@@ -312,7 +318,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
         )
       ).getMessage.contains("parameter arity/types")
     )
-    val guarded = new Input(reads)
+    val guarded = makeInput(reads)
     val guardedRow = Rule(1, "where", "go", action.decl, None, c.guard, effect)
     guardedRow.publishCapture(
       Some(
@@ -335,7 +341,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     val guardRebound = new Published(guarded.capturedRebind(binding())(operation("rebind", 1)))
     assert(RuleBindings.collect(guardRebound).functions.exists(_.name == helper.name))
     Seq(false, true).foreach { malformedPath =>
-      val fresh = new Input(reads)
+      val fresh = makeInput(reads)
       val row = Rule(1, "always", "go", action.decl, None, c.guard, effect)
       val originalPacket = packet(fresh.getClass.getName, "input")
       row.publishCapture(
@@ -541,27 +547,30 @@ class DerivationBindingsSuite extends munit.FunSuite:
       )
     )
     val nativeWire = framework.dsl.channel[Boolean](1, Order.fifo, Loss.reliable)
-    class InboxSource(selectedWitness: Finite[State]) extends Machine[Boolean, Nothing]:
-      override private[framework] val fs: Data[State] = selectedWitness
-      var messages = nativeWire.empty
-      override def end: Boolean = messages.isEmpty
-      private val retainedRows = new Rows
-      def rows = retainedRows.value
-      def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
-        retainedRows.value = value
-      private object written extends Transitions(using summon, Ok(true), summon):
-        override private[framework] def table = rows
-      def transitions: RuleBook[State, Boolean, Nothing] = written
-      retainHeaderIdentity("proof", "inbox")
-      retainHeaderSchema(
-        0,
-        state,
-        Seq(encoded(root)),
-        Seq(encoded(ir.Model(types = Seq(shape)))),
-        Seq(encoded(ir.Record(Seq(ir.Field(message, Some(bool))))))
-      )
+    class InboxFixture(selectedWitness: Finite[State]):
+      class InboxSource extends Machine[Boolean, Nothing]:
+        override private[framework] val fs: Data[State] = selectedWitness
+        var messages = nativeWire.empty
+        override def end: Boolean = messages.isEmpty
+        private val retainedRows = new Rows
+        def rows = retainedRows.value
+        def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+          retainedRows.value = value
+        private object written extends Transitions(using summon, Ok(true), summon):
+          override private[framework] def table = rows
+        def transitions: RuleBook[State, Boolean, Nothing] = written
+        retainHeaderIdentity("proof", "inbox")
+        retainHeaderSchema(
+          0,
+          state,
+          Seq(encoded(root)),
+          Seq(encoded(ir.Model(types = Seq(shape)))),
+          Seq(encoded(ir.Record(Seq(ir.Field(message, Some(bool))))))
+        )
+    type InboxSource = InboxFixture#InboxSource
     def source(declaration: String): InboxSource =
-      val machine = new InboxSource(witness(declaration = declaration))
+      val fixture = new InboxFixture(witness(declaration = declaration))
+      val machine = new fixture.InboxSource
       val action = framework.dsl.action("go", Actor("user")).declaredAt("proof.inbox.go")
       val c = Guard(_ => true)
       val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] =

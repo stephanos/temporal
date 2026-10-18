@@ -400,6 +400,7 @@ private[framework] object NativeCheck:
       .sectionClass(ref.machine, ref.section, requireStatic = true)
       .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
     val vars = varsOf(graph.machine, s"claim $subject")
+    ClaimEvaluation.requireOwner(vars, ref.machine)
     var decisive = Option.empty[Vector[String]]
     var decisiveTrace = Path.empty
     def judged(context: ClaimEvaluation.Context, path: => Vector[String], trace: => Path): Boolean =
@@ -419,7 +420,13 @@ private[framework] object NativeCheck:
         i =>
           judged(
             ClaimEvaluation
-              .evaluate(vars, section, stateOf(graph.states(i)), ClaimEvaluation.Context()),
+              .evaluate(
+                vars,
+                section,
+                ref.machine,
+                stateOf(graph.states(i)),
+                ClaimEvaluation.Context()
+              ),
             graph.path(i),
             graph.trace(i)
           )
@@ -428,7 +435,8 @@ private[framework] object NativeCheck:
       graph.walk(onEdge =
         e =>
           judged(
-            ClaimEvaluation.evaluate(vars, section, stateOf(e.step.state), stepContext(graph, e)),
+            ClaimEvaluation
+              .evaluate(vars, section, ref.machine, stateOf(e.step.state), stepContext(graph, e)),
             graph.path(e.source) :+ shown(e.cls),
             graph.through(e)
           )
@@ -567,6 +575,7 @@ private[framework] object NativeCheck:
   // its `from` and `to` read with each state restored into the vars.
   def progress[S, O, F](graph: Search[S, O, F], subject: String, claim: LeadsTo): Result =
     val vars = varsOf(graph.machine, s"progress claim $subject")
+    claim.machine.foreach(ClaimEvaluation.requireOwner(vars, _))
     leading(
       graph.forCheck,
       subject,
@@ -586,6 +595,9 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       budget: Int
   ): Result =
+    claim.machine.foreach(
+      ClaimEvaluation.requireOwner(varsOf(machine, s"progress claim $subject"), _)
+    )
     val origins = scenario.start.fold(if starts.isEmpty then machine.initialStates else starts)(s =>
       Seq(s.asInstanceOf[S]) // scalafix:ok DisableSyntax.asInstanceOf
     )
@@ -850,14 +862,22 @@ private[framework] object NativeCheck:
 
   // The object `name` declared in `owner`: a static module of an object, or an instance's member.
   private def nested(owner: AnyRef, name: String): Option[AnyRef] =
-    module(s"${owner.getClass.getName}$name$$", owner.getClass.getClassLoader).orElse(
-      owner.getClass.getMethods
-        .find(m =>
-          m.getName == name && m.getParameterCount == 0 &&
-            m.getReturnType.getName.endsWith("$" + name + "$")
-        )
-        .map(_.invoke(owner))
-    )
+    ClaimEvaluation
+      .sectionClass(owner, name)
+      .filter(_ =>
+        owner.isInstanceOf[Machine[?, ?]] && !owner.getClass.getName.endsWith("$") &&
+          Vector("invariants", "postconditions", "queries").contains(name)
+      )
+      .map(ClaimEvaluation.declarations(_, owner))
+      .orElse(module(s"${owner.getClass.getName}$name$$", owner.getClass.getClassLoader))
+      .orElse(
+        owner.getClass.getMethods
+          .find(m =>
+            m.getName == name && m.getParameterCount == 0 &&
+              m.getReturnType.getName.endsWith("$" + name + "$")
+          )
+          .map(_.invoke(owner))
+      )
 
   private def module(name: String, loader: ClassLoader): Option[AnyRef] =
     val target = scala.util.Try(java.lang.Class.forName(name, false, loader)).toOption
@@ -967,8 +987,9 @@ private[framework] object NativeCheck:
       sections: Option[AnyRef] = None,
       exploration: Option[Search[S, O, F]] = None
   ): Report =
-    val origins = if starts.isEmpty then machine.initialStates else starts
     val owner = sections.getOrElse(machine)
+    ClaimEvaluation.requireOwner(varsOf(machine, s"claims of ${machine.name}"), owner)
+    val origins = if starts.isEmpty then machine.initialStates else starts
     val graph = exploration.fold(explore(machine, origins, budget = budget))(_.forCheck)
     def subject(member: String) = s"${machine.name}.$member"
     val claims = Vector("invariants", "postconditions").flatMap: kind =>
@@ -1088,7 +1109,9 @@ private[framework] object NativeCheck:
           val cls = ClaimEvaluation
             .sectionClass(ref.machine, ref.section, requireStatic = true)
             .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
-          (at, ref, cls, varsOf(graph.machine, s"claim ${subject(member)}"))
+          val vars = varsOf(graph.machine, s"claim ${subject(member)}")
+          ClaimEvaluation.requireOwner(vars, ref.machine)
+          (at, ref, cls, vars)
     def finished: Boolean =
       val hasClaims = claims.nonEmpty || sections.nonEmpty
       val blocksRefuted = sections.forall:
@@ -1105,7 +1128,7 @@ private[framework] object NativeCheck:
         (at, ref, cls, vars) <- referenced
         if ref.section == kind && !failures.contains(at)
       do
-        val evaluated = ClaimEvaluation.evaluate(vars, cls, stateOf(state), context())
+        val evaluated = ClaimEvaluation.evaluate(vars, cls, ref.machine, stateOf(state), context())
         evaluated.targeted
           .get(ref.member)
           .foreach(target => targeted.getOrElseUpdate(at, target): Unit)
@@ -1125,7 +1148,7 @@ private[framework] object NativeCheck:
         for (kind, cls, members, vars, outcome) <- sections if kind == "invariants" do
           outcome.note(
             ClaimEvaluation
-              .evaluate(vars, cls, stateOf(graph.states(i)), ClaimEvaluation.Context()),
+              .evaluate(vars, cls, owner, stateOf(graph.states(i)), ClaimEvaluation.Context()),
             Vector(
               s"counterexample: ${graph.path(i).mkString(", ")}",
               s"in ${graph.states(i)}"
@@ -1162,7 +1185,8 @@ private[framework] object NativeCheck:
                 ): Unit
         for (kind, cls, members, vars, outcome) <- sections if kind == "postconditions" do
           outcome.note(
-            ClaimEvaluation.evaluate(vars, cls, stateOf(e.step.state), stepContext(graph, e)),
+            ClaimEvaluation
+              .evaluate(vars, cls, owner, stateOf(e.step.state), stepContext(graph, e)),
             counterexample(graph, e),
             members,
             graph.through(e)
@@ -1493,7 +1517,7 @@ private[framework] object NativeCheck:
       .sectionClass(ref.machine, ref.section, requireStatic = true)
       .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
     val vars = stateOf(state).owner
-    val evaluated = ClaimEvaluation.evaluate(vars, section, stateOf(state), context)
+    val evaluated = ClaimEvaluation.evaluate(vars, section, ref.machine, stateOf(state), context)
     outcome.note(evaluated, Vector.empty, Vector(ref.member))
     if evaluated.applies(ref.member) && evaluated.failure(ref.member).isEmpty then
       evaluated.missing(ref.member).headOption.foreach(hole => throw HoleReached(hole))

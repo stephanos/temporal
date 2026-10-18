@@ -73,7 +73,9 @@ object Data:
   // structural comparison is being constructed.
   trait Structural[T] extends Data[T]
 
-  object Structural:
+  object Structural extends SelectedStructural:
+    @scala.annotation.publicInBinary
+    private[framework] def selected[T](finite: Finite[T]): Structural[T] = finite.structural
     // The comparison of a state var whose type has no schema, which its Machine refuses at compile
     // time; it stands in only so the refusal is the one reported.
     @scala.annotation.publicInBinary
@@ -131,7 +133,30 @@ object Data:
 )
 sealed trait StateData[T]
 
-object StateData:
+private[dsl] trait SelectedStateData:
+  inline given selectedState[T](using selected: Finite[T]): StateData[T] =
+    ${ SelectedDomain.state[T]('selected) }
+
+private[dsl] trait SelectedCollectionMember:
+  inline given selectedMember[T](using selected: Finite[T]): StateData.CollectionMember[T] =
+    ${ SelectedDomain.member[T]('selected) }
+
+object StateData extends SelectedStateData:
+  @scala.annotation.publicInBinary
+  private[framework] def parameter[T](selected: Finite[T]): StateData[T] =
+    nativeMember(selected.structural)
+    new StateData[T] {}
+
+  private def nativeMember(data: Data[?]): Unit =
+    def supported(data: Data[?]): Boolean = data match
+      case empty if empty eq summon[Data.Structural[Nothing]] => true
+      case native: Data.Native[?]                             =>
+        native.kind != Data.Kind.string && native.fields.forall(supported)
+      case _ => false
+    require(
+      supported(data),
+      "a Model domain used in state collections requires supported native members"
+    )
   given StateData[Boolean] = new StateData[Boolean] {}
   given StateData[Int] = new StateData[Int] {}
   given StateData[Nothing] = new StateData[Nothing] {}
@@ -155,7 +180,11 @@ object StateData:
 
   sealed trait CollectionMember[T]
 
-  object CollectionMember:
+  object CollectionMember extends SelectedCollectionMember:
+    @scala.annotation.publicInBinary
+    private[framework] def parameter[T](selected: Finite[T]): CollectionMember[T] =
+      nativeMember(selected.structural)
+      new CollectionMember[T] {}
     given CollectionMember[Boolean] = new CollectionMember[Boolean] {}
     given CollectionMember[Int] = new CollectionMember[Int] {}
     given CollectionMember[Nothing] = new CollectionMember[Nothing] {}

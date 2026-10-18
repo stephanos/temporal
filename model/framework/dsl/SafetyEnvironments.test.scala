@@ -126,14 +126,17 @@ object SafetyEnvironmentsFixture:
       val unscoped =
         check(!active)
 
-  class Instance extends Machine[Outcome, Nothing]:
-    var active = false
-
-    object transitions extends Transitions
+  trait InstanceClaims extends Facet[outcomes.Outcome, Nothing]:
+    def active: Boolean
 
     object invariants:
       val broken =
         check(active) in starts()
+
+  class Instance extends Machine[outcomes.Outcome, Nothing], InstanceClaims:
+    var active = false
+
+    object transitions extends Transitions
 
 class SafetyEnvironmentsSuite extends munit.FunSuite:
   import SafetyEnvironmentsFixture.*

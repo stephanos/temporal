@@ -23,44 +23,51 @@ class MachineEvidenceSuite extends munit.FunSuite:
 
   private val wire = channel[Boolean](1, Order.fifo, Loss.reliable)
 
-  private class Source(
+  private class SourceFixture(
       val declared: String,
       val reads: Reads,
       state: Finite[State],
       facts: Finite[Boolean]
-  ) extends Machine[Boolean, Boolean](using Finite[Boolean], facts):
-    override private[framework] val fs: Data[State] = state
-    var box = wire.empty
-    override def end: Boolean =
-      reads.end += 1
-      box.isEmpty
-    def evidence: Boolean => String =
-      reads.getter += 1
-      flag =>
-        reads.callback += 1
-        if flag then "yes" else "no"
-    private val book = new RuleBook[State, Boolean, Boolean]:
-      private[framework] def table = Vector.empty
-    def transitions: RuleBook[State, Boolean, Boolean] =
-      reads.rules += 1
-      book
-    override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Boolean])] =
-      reads.table += 1
-      super.table
-    override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
-      reads.refinement += 1
-      None
-    def replacement =
-      reads.replacement
-    def replacement_=(value: Option[MachineEvidence.Retained]): Unit =
-      reads.replacement = value
-    def redirect =
-      reads.redirect
-    def redirect_=(value: Option[MachineDeclaration[?, ?, ?]]): Unit =
-      reads.redirect = value
-    override private[framework] def evidenceSource = redirect.getOrElse(super.evidenceSource)
-    override private[framework] def evidenceMetadata = replacement.orElse(super.evidenceMetadata)
-    def original = super.evidenceMetadata.get
+  ):
+    class Source extends Machine[Boolean, Boolean](using Finite[Boolean], facts):
+      val declared = SourceFixture.this.declared
+      val reads = SourceFixture.this.reads
+      override private[framework] val fs: Data[State] = state
+      var box = wire.empty
+      override def end: Boolean =
+        reads.end += 1
+        box.isEmpty
+      def evidence: Boolean => String =
+        reads.getter += 1
+        flag =>
+          reads.callback += 1
+          if flag then "yes" else "no"
+      private val book = new RuleBook[State, Boolean, Boolean]:
+        private[framework] def table = Vector.empty
+      def transitions: RuleBook[State, Boolean, Boolean] =
+        reads.rules += 1
+        book
+      override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Boolean])] =
+        reads.table += 1
+        super.table
+      override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
+        reads.refinement += 1
+        None
+      def replacement =
+        reads.replacement
+      def replacement_=(value: Option[MachineEvidence.Retained]): Unit =
+        reads.replacement = value
+      def redirect =
+        reads.redirect
+      def redirect_=(value: Option[MachineDeclaration[?, ?, ?]]): Unit =
+        reads.redirect = value
+      override private[framework] def evidenceSource = redirect.getOrElse(super.evidenceSource)
+      override private[framework] def evidenceMetadata = replacement.orElse(super.evidenceMetadata)
+      def original = super.evidenceMetadata.get
+
+    def make(): Source = new Source
+
+  private type Source = SourceFixture#Source
 
   test("reject borrowed declaring sources and unrelated captured declarations") {
     val original = source("original")
@@ -122,7 +129,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
       def values =
         reads.catalog += 1
         Vector(false, true)
-    val value = new Source(name, reads, state, facts)
+    val value = new SourceFixture(name, reads, state, facts).make()
     if headers then
       value.retainHeaderIdentity("fixture", name)
       value.retainHeaderSchema(

@@ -199,9 +199,8 @@ private[framework] object ClaimEvaluation:
         s"${step.state} is no state of a Machine that declares its vars: a monitor of vars watches one"
       )
 
-  // The class a claim section of `owner` (a Machine object, or the object its sections are read
-  // from) compiles to, where it declares one as a nested object. A section of an instance, such as
-  // a facet's, is no static object, and its claims are not evaluated natively.
+  // Finds a section without invoking its getter. An instance section belongs to the exact Machine
+  // class that declares its getter and supplies its constructor's outer receiver, never a facet.
   def sectionClass(
       owner: AnyRef,
       section: String,
@@ -216,17 +215,34 @@ private[framework] object ClaimEvaluation:
         )
       )
       .toOption
+      .orElse(
+        owner.getClass.getMethods
+          .find(m =>
+            m.getName == section && m.getParameterCount == 0 &&
+              m.getReturnType.getName.endsWith("$" + section + "$")
+          )
+          .map(_.getReturnType)
+      )
       .map: cls =>
         val static = scala.util
           .Try(cls.getField("MODULE$"))
           .toOption
           .exists(f => java.lang.reflect.Modifier.isStatic(f.getModifiers))
         require(
-          static || (!requireStatic && members(cls).isEmpty),
+          static || ownedSection(owner, cls, section) ||
+            (!requireStatic && !Vector("invariants", "postconditions", "queries")
+              .contains(section) && members(cls).isEmpty),
           s"${cls.getName} is a claim section of an instance, such as a facet's, which no native " +
             "check evaluates: declare the claims in the Machine object's own sections"
         )
         cls
+
+  private def ownedSection(owner: AnyRef, cls: java.lang.Class[?], section: String): Boolean =
+    owner.isInstanceOf[Machine[?, ?]] && owner.getClass.getDeclaredMethods.exists(m =>
+      m.getName == section && m.getParameterCount == 0 && m.getReturnType.equals(cls)
+    ) && cls.getConstructors.exists(c =>
+      c.getParameterCount == 1 && c.getParameterTypes.head.equals(owner.getClass)
+    )
 
   private def loaderOf(owner: AnyRef): ClassLoader = owner.getClass.getClassLoader
 
@@ -241,9 +257,33 @@ private[framework] object ClaimEvaluation:
       .map(_.getName)
 
   // Evaluates a section of `owner` on the vars of `vars` holding `now`, under `context`.
+  def requireOwner(vars: Vars, owner: AnyRef): Unit = owner match
+    case machine: Machine[?, ?] if !machine.getClass.getName.endsWith("$") =>
+      require(
+        machine eq vars.machine,
+        "a claim of another Model instance cannot read this Model's state"
+      )
+    case _ => ()
+
   def evaluate(vars: Vars, section: java.lang.Class[?], now: State, context: Context): Context =
+    require(
+      section.getFields.exists(f =>
+        f.getName == "MODULE$" && java.lang.reflect.Modifier.isStatic(f.getModifiers)
+      ),
+      s"${section.getName} requires its declaring Model instance"
+    )
+    evaluate(vars, section, vars.machine, now, context)
+
+  def evaluate(
+      vars: Vars,
+      section: java.lang.Class[?],
+      owner: AnyRef,
+      now: State,
+      context: Context
+  ): Context =
+    requireOwner(vars, owner)
     try
-      val _ = vars.at(now)(within(context)(Reload.initialise(section)))
+      val _ = vars.at(now)(within(context)(Reload.initialise(section, owner = Some(owner))))
     catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
@@ -253,13 +293,16 @@ private[framework] object ClaimEvaluation:
     catch case HoleReached(hole) => context.aborted = Some(hole)
     context
 
-  // Reruns a static object's initialiser: defines the class afresh in a child loader that sees every
-  // other class through its parent.
+  // Reruns a section's initializer in a child loader that sees every other class through its parent.
   private object Reload:
     private val bytes =
       java.util.concurrent.ConcurrentHashMap[(java.lang.Class[?], Boolean), Array[Byte]]()
 
-    def initialise(target: java.lang.Class[?], declarations: Boolean = false): AnyRef =
+    def initialise(
+        target: java.lang.Class[?],
+        declarations: Boolean = false,
+        owner: Option[AnyRef] = None
+    ): AnyRef =
       val parent = target.getClassLoader
       val wanted = target.getName
       val code = bytes.computeIfAbsent(
@@ -275,23 +318,34 @@ private[framework] object ClaimEvaluation:
             Option(findLoadedClass(n)).getOrElse(defineClass(n, code, 0, code.length))
           else super.loadClass(n, resolve)
       try
-        java.lang.Class
-          .forName(wanted, true, loader)
-          .getField("MODULE$")
-          .get(null) // scalafix:ok DisableSyntax.null
+        val reloaded = java.lang.Class.forName(wanted, true, loader)
+        scala.util.Try(reloaded.getField("MODULE$")).toOption match
+          case Some(field) => field.get(null) // scalafix:ok DisableSyntax.null
+          case None        =>
+            val instance = owner.getOrElse(
+              throw IllegalArgumentException(s"$wanted requires its Model instance")
+            )
+            reloaded.getConstructor(instance.getClass).newInstance(instance)
       catch
         case failed: ExceptionInInitializerError => throw Option(failed.getCause).getOrElse(failed)
+        case failed: java.lang.reflect.InvocationTargetException =>
+          throw Option(failed.getCause).getOrElse(failed)
 
   private val declared = java.util.concurrent.ConcurrentHashMap[java.lang.Class[?], AnyRef]()
 
   def declarations(section: java.lang.Class[?]): AnyRef =
     declared.computeIfAbsent(section, _ => Reload.initialise(section, declarations = true))
 
+  def declarations(section: java.lang.Class[?], owner: AnyRef): AnyRef =
+    if section.getConstructors.exists(_.getParameterCount == 1) then
+      Reload.initialise(section, declarations = true, owner = Some(owner))
+    else declarations(section)
+
   def property(machine: Model, section: String, member: String): Property =
     val cls = sectionClass(machine, section, requireStatic = true).getOrElse(
       throw IllegalArgumentException(s"${machine.name} has no $section section")
     )
-    val module = declarations(cls)
+    val module = declarations(cls, machine)
     module.getClass
       .getMethod(member)
       .invoke(module)

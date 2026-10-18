@@ -104,23 +104,29 @@ private[framework] object CompositionMacros:
     else cls
 
   def stateType(using q: Quotes)(cls: q.reflect.Symbol): q.reflect.TypeRepr =
+    refinedState(q.reflect.This(cls).tpe)
+
+  private def refinedState(using q: Quotes)(receiver: q.reflect.TypeRepr): q.reflect.TypeRepr =
     import q.reflect.*
+    val cls = receiver.typeSymbol
     val composition = TypeRepr.of[Composition[?]].typeSymbol
-    if cls.typeRef.baseClasses.contains(composition) then
-      members(sourceClass(cls)).foldLeft(TypeRepr.of[State]): (record, member) =>
-        val (v, tpe) = member
-        val declared = if tpe.termSymbol.exists then tpe.termSymbol.moduleClass else tpe.typeSymbol
-        Refinement(record, v.name, stateType(declared))
+    if receiver.baseClasses.contains(composition) then
+      val source = sourceClass(cls)
+      val prefix = if source.equals(cls) then receiver else This(source).tpe
+      members(source).foldLeft(TypeRepr.of[State]): (record, member) =>
+        val (v, _) = member
+        Refinement(record, v.name, refinedState(TermRef(prefix, v.name)))
     else
-      def declaring(tpe: TypeRepr): Symbol =
-        val symbol = if tpe.termSymbol.exists then tpe.termSymbol.moduleClass else tpe.typeSymbol
-        if VarSchemaMacro.stateVars(symbol).nonEmpty then symbol
+      def declaring(tpe: TypeRepr): TypeRepr =
+        val symbol = if tpe.termSymbol.flags.is(Flags.Module) then tpe.termSymbol.moduleClass
+        else tpe.typeSymbol
+        if VarSchemaMacro.stateVars(symbol).nonEmpty then tpe
         else
           tpe.baseType(TypeRepr.of[DerivedFrom[?]].typeSymbol).typeArgs.headOption match
             case Some(source) => declaring(source)
-            case None         => symbol
-      val declared = declaring(cls.typeRef)
+            case None         => tpe
+      val declared = declaring(receiver)
       VarSchemaMacro
-        .stateVars(declared)
+        .stateVars(declared.typeSymbol)
         .foldLeft(TypeRepr.of[State]): (record, variable) =>
-          Refinement(record, variable.name, VarSchemaMacro.declaredType(declared, variable))
+          Refinement(record, variable.name, declared.memberType(variable).widenByName)

@@ -100,13 +100,20 @@ class FacetBindingsSuite extends munit.FunSuite:
 
       object transitions extends Transitions(using summon, Ok(true), summon)
 
-  private class Source(
-      projectionBody: ir.Expr = stateReady("phaseState"),
-      changeContext: Vector[String] => Vector[String] = data => data,
-      nativeTable: Boolean = false
-  ) extends Machine[Boolean, Nothing],
-        Owned:
+  final private class ContextSettings:
+    var projectionBody: ir.Expr = stateReady("phaseState")
+    var changeContext: Vector[String] => Vector[String] = data => data
+
+  private class Source(nativeTable: Boolean = false) extends Machine[Boolean, Nothing], Owned:
     var ready = false
+    private val settings = new ContextSettings
+    def withContext(
+        projectionBody: ir.Expr = stateReady("phaseState"),
+        changeContext: Vector[String] => Vector[String] = data => data
+    ): this.type =
+      settings.projectionBody = projectionBody
+      settings.changeContext = changeContext
+      this
     private val retainedRows = new Rows
     def rows =
       retainedRows.value
@@ -131,10 +138,10 @@ class FacetBindingsSuite extends munit.FunSuite:
       Seq(encoded(ir.Model(types = Seq(stateShape)))),
       Nil
     )
-    val capturedProjection = ir.Function(
+    lazy val capturedProjection = ir.Function(
       s"$$facet-context-v1.${getClass.getName}.projection",
       params = Seq(ir.Param("phaseState", Some(stateRef))),
-      body = Some(projectionBody)
+      body = Some(settings.projectionBody)
     )
     val capturedWriter = ir.Function(
       s"$$facet-context-v1.${getClass.getName}.writer",
@@ -150,7 +157,7 @@ class FacetBindingsSuite extends munit.FunSuite:
         )
       )
     )
-    val contextData = Vector(
+    lazy val contextData = Vector(
       "facet-context-v1",
       getClass.getName,
       "fixture",
@@ -173,7 +180,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       "0"
     )
     def prepareContext(): Unit =
-      retainFacetContext(changeContext(contextData))
+      retainFacetContext(settings.changeContext(contextData))
 
   final private case class Guard(guard: State => Boolean)
 
@@ -299,7 +306,7 @@ class FacetBindingsSuite extends munit.FunSuite:
     "isolated Facets instantiate exact live context without emitting wrapper roots or leaking A/B/A"
   ):
     val a = new Source
-    val b = new Source(literal)
+    val b = new Source().withContext(literal)
     retain(a, template(a)): Unit
     retain(b, template(b)): Unit
     val first = RuleBindings.collect(a)
@@ -498,7 +505,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       _.updated(11, encoded(ir.Model()))
     )
     changes.foreach { change =>
-      val source = new Source(changeContext = change)
+      val source = new Source().withContext(changeContext = change)
       source.prepareContext()
       assertEquals(source.facetContextMetadata.size, 1)
       retain(source, template(source)): Unit
@@ -536,7 +543,7 @@ class FacetBindingsSuite extends munit.FunSuite:
           )
         )
       )
-      val source = new Source(
+      val source = new Source().withContext(
         if repeated then equal(scoped, scoped) else scoped,
         data =>
           val model = ir.Model.parseFrom(Base64.getDecoder.decode(data(11)))

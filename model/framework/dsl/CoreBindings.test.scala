@@ -79,30 +79,40 @@ class CoreBindingsSuite extends munit.FunSuite:
       )
       .retainOrigin("fixture.Source", "source", named)
 
-  private class NativeSource(
+  private class SourceFixture(
       entries: Vector[StepBinding[State, Boolean, Nothing]],
       reads: Reads
-  ) extends Machine[Boolean, Nothing]:
-    var ready = false
-    override def end: Boolean =
-      reads.ends += 1
-      ready
+  ):
+    class NativeSource extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean =
+        reads.ends += 1
+        ready
 
-    object transitions extends Transitions(using summon, Ok(true), summon)
-    override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Nothing])] =
-      reads.tables += 1
-      entries.map(value => value.decl -> Bound.Function(value.function, value.captured))
-    override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
-      reads.refinements += 1
-      None
-    retainHeaderIdentity("fixture", "source")
-    retainHeaderSchema(
-      0,
-      stateName,
-      Vector(Base64.getEncoder.encodeToString(stateRef.toByteArray)),
-      Vector(Base64.getEncoder.encodeToString(ir.Model(types = Vector(stateShape)).toByteArray)),
-      Nil
-    )
+      object transitions extends Transitions(using summon, Ok(true), summon)
+      override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Nothing])] =
+        reads.tables += 1
+        entries.map(value => value.decl -> Bound.Function(value.function, value.captured))
+      override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
+        reads.refinements += 1
+        None
+      retainHeaderIdentity("fixture", "source")
+      retainHeaderSchema(
+        0,
+        stateName,
+        Vector(Base64.getEncoder.encodeToString(stateRef.toByteArray)),
+        Vector(Base64.getEncoder.encodeToString(ir.Model(types = Vector(stateShape)).toByteArray)),
+        Nil
+      )
+
+    def make(): NativeSource = new NativeSource
+
+  private type NativeSource = SourceFixture#NativeSource
+  private def nativeSource(
+      entries: Vector[StepBinding[State, Boolean, Nothing]],
+      reads: Reads
+  ): NativeSource =
+    new SourceFixture(entries, reads).make()
 
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
@@ -185,7 +195,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val run = action("run")
     val reads = new Reads
     val linked = nativeBinding(run, "source.step", reads)
-    val source = new NativeSource(Vector(linked), reads)
+    val source = nativeSource(Vector(linked), reads)
     val f = linked.function
     for selected <- Vector(source, source.unmonitored) do
       val kept = selected.bindings.head
@@ -465,7 +475,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val reads = new Reads
     val first = nativeBinding(run, "first", reads)
     val second = nativeBinding(other, "second", reads)
-    val source = new NativeSource(Vector(first), reads)
+    val source = nativeSource(Vector(first), reads)
     for (derived, reason) <- Vector(
         source.rebind(first, first) -> "twice",
         source.extend(second, second) -> "twice",
@@ -483,7 +493,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val run = action("run")
     val reads = new Reads
     val linked = nativeBinding(run, "step", reads)
-    val source = new NativeSource(Vector(linked), reads)
+    val source = nativeSource(Vector(linked), reads)
     val replacement
         : MachineDeclaration[State, Boolean, Nothing] ?=> Rebinding[State, Boolean, Nothing] =
       reads.operands += 1
@@ -539,7 +549,8 @@ class CoreBindingsSuite extends munit.FunSuite:
         CoreBindings.collectEntries(Vector(run.decl -> bound), "fixture core bindings")
       ): Unit
     for operation <- operations do
-      val source = new NativeSource(Vector.empty, reads):
+      val fixture = new SourceFixture(Vector.empty, reads)
+      val source = new fixture.NativeSource:
         override private[framework] def coreOperations = Vector(operation)
       intercept[IllegalArgumentException](collect(source)): Unit
     assertEquals(guards, 0)
@@ -591,7 +602,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val run = action("run")
     val reads = new Reads
     val linked = nativeBinding(run, "step", reads)
-    val source = new NativeSource(Vector(linked), reads)
+    val source = nativeSource(Vector(linked), reads)
     val added = source.extend(nativeBinding(action("extra"), "extra", reads))
     assertEquals(reads.tables, 0)
     assertEquals(collect(added).steps.size, 2)

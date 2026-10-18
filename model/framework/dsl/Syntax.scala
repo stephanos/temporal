@@ -942,6 +942,17 @@ private[framework] object QueryMacros:
       case other                  => other
     val term = unwrap(claim.asTerm)
     val tpe = term.tpe.widen
+    def selectedOwner(machine: Symbol): Option[Expr[Model]] =
+      if !machine.isClassDef || !(machine.typeRef <:< TypeRepr.of[Model]) then None
+      else if machine.flags.is(Flags.Module) then Some(Ref(machine.companionModule).asExprOf[Model])
+      else
+        term match
+          case Select(section, _) =>
+            unwrap(section) match
+              case Select(receiver, _) if receiver.tpe <:< TypeRepr.of[Model] =>
+                Some(receiver.asExprOf[Model])
+              case _ => None
+          case _ => None
     if tpe <:< TypeRepr.of[Property] then
       val member = term.symbol
       val section = if member.exists then member.owner else Symbol.noSymbol
@@ -953,10 +964,9 @@ private[framework] object QueryMacros:
       val selected =
         if !withinSection && member.exists && member.isValDef && section.isClassDef &&
           section.flags.is(Flags.Module) && blockSections(section.name) &&
-          machine.isClassDef && machine.flags.is(Flags.Module) &&
-          machine.typeRef <:< TypeRepr.of[Model]
+          selectedOwner(machine).nonEmpty
         then
-          val owner = Ref(machine.companionModule).asExprOf[Model]
+          val owner = selectedOwner(machine).get
           '{
             NativeClaims.property(
               $owner,
@@ -977,8 +987,7 @@ private[framework] object QueryMacros:
         !section.isClassDef || !section.flags.is(Flags.Module) || !blockSections(section.name)
       then refused
       val machine = section.owner
-      if !machine.isClassDef || !machine.flags.is(Flags.Module) then refused
-      val owner = Ref(machine.companionModule).asExprOf[Model]
+      val owner = selectedOwner(machine).getOrElse(refused)
       '{
         ClaimQuery.block(
           $form,

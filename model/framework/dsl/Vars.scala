@@ -115,9 +115,13 @@ final class Var private[framework] (
 // The vars of a Machine, in declaration order, which the compiler derives where the Machine object
 // extends `Machine`: `object Model extends Machine[Outcome, Nothing]` with `var temperature = 20`
 // has the one var `temperature: Int`.
-final class VarSchema private[framework] (val vars: Vector[Var]):
+final class VarSchema private[framework] (
+    val vars: Vector[Var],
+    factory: Option[Machine[?, ?] => VarSchema] = None
+):
   private val positions = vars.map(_.name).zipWithIndex.toMap
   private[framework] def indexOf(name: String): Int = positions.getOrElse(name, -1)
+  private[framework] def bind(owner: Machine[?, ?]): VarSchema = factory.fold(this)(_(owner))
 
 object VarSchema:
   // The vars of the Machine object whose `extends Machine[...]` asks for them. A Machine without vars
@@ -126,6 +130,10 @@ object VarSchema:
 
   @scala.annotation.publicInBinary
   private[framework] def of(vars: List[Var]): VarSchema = VarSchema(vars.toVector)
+
+  @scala.annotation.publicInBinary
+  private[framework] def deferred(factory: Machine[?, ?] => VarSchema): VarSchema =
+    VarSchema(Vector.empty, Some(factory))
 
   @scala.annotation.publicInBinary
   private[framework] def variable(
@@ -259,13 +267,14 @@ private[framework] object VarSchemaMacro:
   def declaredType(using
       q: Quotes
   )(cls: q.reflect.Symbol, v: q.reflect.Symbol): q.reflect.TypeRepr =
-    cls.typeRef.memberType(v).widenByName
+    q.reflect.This(cls).tpe.memberType(v).widenByName
 
   def derive(using Quotes): Expr[VarSchema] =
     import quotes.reflect.*
     val cls = enclosingMachine(Symbol.spliceOwner).getOrElse(
       report.errorAndAbort("a Machine's vars are read where its object extends Machine")
     )
+    if !cls.flags.is(Flags.Module) then parameters(cls)
     val vars = stateVars(cls)
     // An error, not an abort: a given whose expansion aborts is no given, and the refusal would read
     // as a missing VarSchema.
@@ -284,49 +293,113 @@ private[framework] object VarSchemaMacro:
               .show(using Printer.TypeReprShortCode)}`",
         v.pos.getOrElse(Position.ofMacroExpansion)
       )
-    val entries = vars.map: v =>
-      val tpe = declaredType(cls, v)
-      val shown = tpe.show(using Printer.TypeReprShortCode)
-      val bound = tpe match
-        case AppliedType(tycon, List(argument)) if tycon.typeSymbol.name == "UpTo" =>
-          argument.dealias match
-            case ConstantType(IntConstant(n)) => Some(n)
-            case _                            =>
-              report.error(
-                s"${v.name}: $shown takes a literal bound, as UpTo[3] does",
-                v.pos.getOrElse(Position.ofMacroExpansion)
+    def schemaFor(receiver: TypeRepr): Expr[VarSchema] =
+      val entries = vars.map: v =>
+        val tpe = receiver.memberType(v).widenByName
+        val shown = tpe.show(using Printer.TypeReprShortCode)
+        val bound = tpe match
+          case AppliedType(tycon, List(argument)) if tycon.typeSymbol.name == "UpTo" =>
+            argument.dealias match
+              case ConstantType(IntConstant(n)) => Some(n)
+              case _                            =>
+                report.error(
+                  s"${v.name}: $shown takes a literal bound, as UpTo[3] does",
+                  v.pos.getOrElse(Position.ofMacroExpansion)
+                )
+                None
+          case _ => None
+        val inbox = tpe.dealias match
+          case AppliedType(tycon, List(message))
+              if tycon.typeSymbol.equals(TypeRepr.of[Inbox[?]].typeSymbol) =>
+            Some(message.dealias.show)
+          case _ => None
+        tpe.asType match
+          case '[t] =>
+            val data = Expr
+              .summon[StateData[t]]
+              .flatMap(admitted => Expr.summon[Data[t]].map(data => '{ val _ = $admitted; $data }))
+              .getOrElse:
+                report.error(
+                  s"${v.name}: $shown has no IR schema; $schemaKinds",
+                  v.pos.getOrElse(Position.ofMacroExpansion)
+                )
+                '{ Data.Structural.unschematic[t] }
+            val runtime = Expr
+              .summon[scala.reflect.ClassTag[t]]
+              .fold('{ classOf[Any] })(tag => '{ $tag.runtimeClass })
+            val structure = StructuralValue.captured[t](false)
+            '{
+              VarSchema.variable(
+                ${ Expr(v.name) },
+                ${ Expr(shown) },
+                ${ Expr(bound) },
+                ${ Expr(inbox) },
+                $runtime,
+                $data,
+                $structure
               )
-              None
-        case _ => None
-      val inbox = tpe.dealias match
-        case AppliedType(tycon, List(message))
-            if tycon.typeSymbol.equals(TypeRepr.of[Inbox[?]].typeSymbol) =>
-          Some(message.dealias.show)
-        case _ => None
-      tpe.asType match
-        case '[t] =>
-          val data = Expr
-            .summon[StateData[t]]
-            .flatMap(_ => Expr.summon[Data[t]])
-            .getOrElse:
-              report.error(
-                s"${v.name}: $shown has no IR schema; $schemaKinds",
-                v.pos.getOrElse(Position.ofMacroExpansion)
-              )
-              '{ Data.Structural.unschematic[t] }
-          val runtime = Expr
-            .summon[scala.reflect.ClassTag[t]]
-            .fold('{ classOf[Any] })(tag => '{ $tag.runtimeClass })
-          val structure = StructuralValue.captured[t](false)
+            }
+      '{ VarSchema.of(${ Expr.ofList(entries) }) }
+
+    if cls.flags.is(Flags.Module) then schemaFor(This(cls).tpe)
+    else
+      This(cls).tpe.widen.asType match
+        case '[owner] =>
           '{
-            VarSchema.variable(
-              ${ Expr(v.name) },
-              ${ Expr(shown) },
-              ${ Expr(bound) },
-              ${ Expr(inbox) },
-              $runtime,
-              $data,
-              $structure
+            VarSchema.deferred((instance: Machine[?, ?]) =>
+              val receiver = instance.asInstanceOf[owner]
+              ${ schemaFor('receiver.asTerm.tpe) }
             )
           }
-    '{ VarSchema.of(${ Expr.ofList(entries) }) }
+
+  private def parameters(using q: Quotes)(cls: q.reflect.Symbol): Unit =
+    import q.reflect.*
+    val finite = TypeRepr.of[Finite[?]].typeSymbol
+    val constructor = cls.primaryConstructor.tree.asInstanceOf[DefDef]
+    val typeParameters = constructor.paramss.collect { case TypeParamClause(parameters) =>
+      parameters.map(_.symbol)
+    }.flatten
+    val declared = constructor.termParamss
+      .flatMap(_.params)
+      .map(parameter => parameter.symbol -> parameter.tpt.tpe)
+    val domains = declared
+      .filter((parameter, _) =>
+        parameter.flags.is(Flags.Given) || parameter.flags.is(Flags.Implicit)
+      )
+      .flatMap: (_, tpe) =>
+        tpe.baseType(finite) match
+          case AppliedType(_, List(domain)) => Some(domain.dealias.typeSymbol)
+          case _                            => None
+    for parameter <- typeParameters do
+      if !domains.contains(parameter) then
+        report.error(
+          s"${parameter.name}: a Model type parameter requires a Finite bound",
+          parameter.pos.getOrElse(Position.ofMacroExpansion)
+        )
+    def liftable(tpe: TypeRepr): Boolean =
+      val shape = tpe.dealias
+      if shape =:= TypeRepr.of[Int] || shape =:= TypeRepr.of[Boolean] then true
+      else if shape.typeSymbol.flags.is(Flags.Param) && domains.contains(shape.typeSymbol) then true
+      else
+        shape match
+          case AppliedType(constructor, List(member))
+              if constructor.typeSymbol.equals(TypeRepr.of[Set[?]].typeSymbol) =>
+            liftable(member)
+          case AppliedType(constructor, List(key, value))
+              if constructor.typeSymbol.equals(TypeRepr.of[Map[?, ?]].typeSymbol) =>
+            liftable(key) && liftable(value)
+          case _ if shape <:< TypeRepr.of[Function[?, ?]] || shape <:< TypeRepr.of[Inbox[?]] =>
+            false
+          case _ =>
+            shape.asType match
+              case '[a] => Expr.summon[Finite[a]].nonEmpty
+    for
+      (parameter, tpe) <- declared
+      if !((parameter.flags.is(Flags.Given) || parameter.flags
+        .is(Flags.Implicit)) && tpe.baseType(finite).typeArgs.nonEmpty)
+      if !liftable(tpe)
+    do
+      report.error(
+        s"${parameter.name}: ${tpe.show(using Printer.TypeReprShortCode)} is not a liftable Model constant; use a Finite domain, Int, Boolean, Set or Map with liftable members",
+        parameter.pos.getOrElse(Position.ofMacroExpansion)
+      )

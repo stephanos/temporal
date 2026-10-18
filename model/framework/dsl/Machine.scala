@@ -752,19 +752,31 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
     extends MachineDeclaration[State, O, F],
       NativeClaimWords[O, F],
       Lifted:
-  private lazy val declared: Vars = Vars(this, schema)
+  private var holderName = Option.empty[String]
+  final private[framework] def checkedHolder(holder: Option[String], location: String): Unit =
+    synchronized:
+      if holderName.isEmpty then holderName = holder
+      require(
+        holderName.nonEmpty,
+        s"$location: ${getClass.getSimpleName}: a checked Model instance needs a stable val holder"
+      )
+
+  override def name: String = holderName.getOrElse(super.name)
+
+  private lazy val instanceSchema = schema.bind(this)
+  private lazy val declared: Vars = Vars(this, instanceSchema)
   private val initialDomains = scala.collection.mutable.LinkedHashMap.empty[String, Vector[Any]]
 
   final override private[framework] def stateVars: Option[Vars] = Some(declared)
 
   // The vars it declares, in declaration order.
-  final def vars: Vector[Var] = schema.vars
+  final def vars: Vector[Var] = instanceSchema.vars
 
   // The state its vars start in: their initialisers.
   final def init: State = declared.initial
 
   final override def initialStates: Seq[State] =
-    schema.vars.foldLeft(Vector(init)): (states, variable) =>
+    instanceSchema.vars.foldLeft(Vector(init)): (states, variable) =>
       initialDomains
         .get(variable.name)
         .fold(states): domain =>

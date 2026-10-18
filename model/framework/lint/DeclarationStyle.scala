@@ -14,6 +14,8 @@ final private[lint] class ModelDeclarations[I <: Index](val index: I):
   private val declaration = Symbol.requiredClass("framework.dsl.MachineDeclaration")
   private val state = Symbol.requiredClass("framework.dsl.State")
   private val facet = Symbol.requiredClass("framework.dsl.Facet")
+  private val actorClass = Symbol.requiredClass("framework.dsl.Actor")
+  private val internalClass = Symbol.requiredClass("framework.dsl.Internal")
 
   def native(owner: Symbol): Boolean =
     !owner.isNoSymbol && owner.isClassDef && (
@@ -34,6 +36,10 @@ final private[lint] class ModelDeclarations[I <: Index](val index: I):
       )
     )
 
+  def signature(owner: Symbol): Boolean =
+    !owner.isNoSymbol && owner.isClassDef &&
+      (owner.typeRef.derivesFrom(actorClass) || owner.typeRef.derivesFrom(internalClass))
+
   def defaultGetter(method: DefDef): Boolean =
     method.name.contains("$default$") && {
       val source = Files.readString(Path.of(file(method)))
@@ -47,7 +53,7 @@ final private[lint] class ModelDeclarations[I <: Index](val index: I):
     def enclosing(owner: Symbol): Boolean =
       native(owner) || (!owner.isNoSymbol && owner.isClassDef &&
         owner.flags.is(Flags.Module) && enclosing(owner.maybeOwner))
-    symbol.maybeOwner.flags.is(Flags.Module) && enclosing(symbol.maybeOwner)
+    enclosing(symbol.maybeOwner)
 
   def file(tree: Tree): String =
     val raw = tree.pos.sourceFile.path

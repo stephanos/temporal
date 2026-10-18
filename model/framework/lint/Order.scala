@@ -71,6 +71,13 @@ final private[framework] class Order(
     // A source is compiled to a tree per top-level type and one for its top-level definitions.
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1)
     sources.foreach((path, trees) => layout(path, trees, sources.map(_._1)))
+    object nativeForms extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case c: ClassDef if model.native(c.symbol) && model.authored(fileOf(c)) => formObject(c)
+          case _                                                                  => ()
+        super.traverseTree(tree)(owner)
+    checked.foreach(nativeForms.traverseTree(_)(Symbol.spliceOwner))
     eligibleWitnesses()
     refused ++= Structure(index).refusals(
       exempt
@@ -325,12 +332,12 @@ final private[framework] class Order(
 
   private val machineClass = Symbol.requiredClass("framework.dsl.Machine")
   private val compositionClass = Symbol.requiredClass("framework.dsl.Composition")
+  private val model = ModelDeclarations[index.type](index)
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
-    isOwner(c) && (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(
-      compositionClass
-    ))
+    model.native(c) || (isOwner(c) &&
+      (c.typeRef.derivesFrom(machineClass) || c.typeRef.derivesFrom(compositionClass)))
 
   // ### (a) and (b): what each owner reads while it initializes
 
@@ -576,8 +583,10 @@ final private[framework] class Order(
             one(Kind.Machine)
           case "framework.dsl.Property"                        => one(Kind.Claim)
           case "framework.dsl.Progress"                        => one(Kind.Progress)
+          case "framework.dsl.LeadsTo"                         => one(Kind.Progress)
           case "framework.dsl.Scenario"                        => one(Kind.Scenario)
           case "framework.dsl.Query" | "framework.dsl.Witness" => one(Kind.Query)
+          case "framework.dsl.ClaimQuery"                      => one(Kind.Query)
           case "framework.dsl.IrFile"                          => one(Kind.File)
           case _ if w.baseClasses.exists(_.fullName == "framework.dsl.CapabilityOf") =>
             one(Kind.Capability)
@@ -633,11 +642,15 @@ final private[framework] class Order(
   // The section of a machine or composition object an object is named as, `syncs` as `rules`.
   private def sectionNamed(o: ClassDef): Option[String] = plain(o.name) match
     case "syncs" => Some("rules")
-    case n       => Option.when(formSections.contains(n))(n)
+    case n       => Option.when((formSections ++ Structure.nativeSections).contains(n))(n)
 
   // A member declaration of an owner: no synthetic one, no object's own val, no constructor.
   private def members(cls: ClassDef): List[Definition] = cls.body.flatMap {
     case v: ValDef if v.symbol.flags.is(Flags.Module) => None
+    case d: Definition
+        if model.native(cls.symbol) &&
+          List(Flags.Param, Flags.ParamAccessor, Flags.FieldAccessor).exists(d.symbol.flags.is) =>
+      None
     case d: Definition
         if !d.symbol.flags.is(
           Flags.Synthetic
@@ -647,8 +660,8 @@ final private[framework] class Order(
   }
 
   private def objectOf(d: Definition): Option[ClassDef] = d match
-    case c: ClassDef if c.symbol.flags.is(Flags.Module) => Some(c)
-    case _                                              => None
+    case c: ClassDef if c.symbol.flags.is(Flags.Module) || model.native(c.symbol) => Some(c)
+    case _                                                                        => None
 
   // Whether a source's package is a Model's, one under `features`, `foundations` or `actors`.
   private def modelPackage(trees: List[Tree]): Boolean =
@@ -833,12 +846,14 @@ final private[framework] class Order(
             s"the section ${plain(c.name)} sits at the top level of a feature file: a machine's " +
               "sections sit directly in its machine or composition object"
           )
-        case Some(c) if objectForm(c.symbol) => formObject(c)
-        case Some(c) if holdsModel(c)        =>
+        case Some(c) if objectForm(c.symbol) =>
+          if !model.native(c.symbol) then formObject(c)
+        case Some(c) if holdsModel(c) =>
           refuse(
             c,
             s"${plain(c.name)} holds a Model declaration and is no machine or composition object: " +
-              "a machine is `object M extends Machine[S, O, F]` or `Derived(...)`, a composition " +
+              "a machine is `object M extends Machine[O, F]`, " +
+              "`class M[D: Finite](constants...) extends Machine[O, F]` or `Derived(...)`, a composition " +
               "`object C extends Composition[S](...)`, and their declarations sit in their sections"
           )
         case Some(c) =>
@@ -899,9 +914,11 @@ final private[framework] class Order(
   // declaration alone, and no step function bound by hand.
   private def formObject(c: ClassDef): Unit =
     val owner = nameOf(c.symbol)
+    val native = model.native(c.symbol)
     val composed = c.symbol.typeRef.derivesFrom(compositionClass)
     val sectionNames =
-      formSections.map(n => if n == "rules" && composed then "syncs" else n)
+      if native then Structure.nativeSections
+      else formSections.map(n => if n == "rules" && composed then "syncs" else n)
     // A machine that refines nothing names its unobservable timers among its header members; one
     // that refines another names them in its `refinement`.
     val refines = members(c)
@@ -918,9 +935,9 @@ final private[framework] class Order(
         "unobservable"
       )
     def rank(d: Definition): Int = objectOf(d) match
-      case Some(o) => sectionNamed(o).fold(-1)(n => formSections.indexOf(n) + 1)
+      case Some(o) => sectionNamed(o).fold(-1)(n => sectionNames.indexOf(n) + 1)
       // Any other member is refused below, at its place.
-      case None => if headed(d) && kindOf(d).isEmpty then 0 else -1
+      case None => if !native && headed(d) && kindOf(d).isEmpty then 0 else -1
     ordered(members(c), rank, "its header" +: sectionNames, s"object $owner")
     def vocabulary(d: Definition): Unit =
       refuse(
@@ -930,11 +947,15 @@ final private[framework] class Order(
       )
     for m <- members(c) do
       objectOf(m) match
-        case Some(s) if sectionNamed(s).nonEmpty => section(c, s)
+        case Some(s) if sectionNamed(s).exists(sectionNames.contains) => section(c, s)
+        case Some(o) if native && o.symbol.companionClass.exists      =>
+          noModelIn(o, s"$owner.${plain(o.name)}, the companion of a type")
+        case Some(o) if native && model.signature(o.symbol) =>
+          noModelIn(o, s"$owner.${plain(o.name)}, an object of the signature")
         // An object of another name is refused once, by the structure lint (Structure.scala), and
         // here only where it holds a Model declaration.
         case Some(o) =>
-          if holdsModelWithin(o) then
+          if native || holdsModelWithin(o) then
             refuse(
               o,
               s"${plain(o.name)} holds a Model declaration in $owner, and is none of its sections, " +
@@ -942,6 +963,23 @@ final private[framework] class Order(
             )
         case None =>
           kindOf(m) match
+            case kind if native && (m match
+                  case v: ValDef =>
+                    ((v.symbol.flags.is(Flags.Mutable) || v.symbol.flags
+                      .is(Flags.Given)) && kind.isEmpty) ||
+                    kind.contains(Kind.Scenario)
+                  case _: DefDef                => kind.isEmpty
+                  case _: ClassDef | _: TypeDef => true
+                  case _ => false) =>
+              ()
+            case _ if native =>
+              refuse(
+                m,
+                s"${plain(m.name)} is declared outside its sections in $owner: " +
+                  "a Model is `object M extends Machine[O, F]` or " +
+                  "`class M[D: Finite](constants...) extends Machine[O, F]`; " +
+                  s"its declarations belong in ${sectionNames.mkString(", ")}"
+              )
             case Some(k) =>
               refuse(
                 m,
@@ -996,10 +1034,14 @@ final private[framework] class Order(
     val name = if propertyGroup then "properties"
     else sectionNamed(s).getOrElse(plain(s.name))
     val owner = nameOf(machineObject.symbol)
+    val native = model.native(machineObject.symbol)
     val allowed: Set[Kind] = name match
-      case "effects"  => Set(Kind.Step)
-      case "monitors" => Set(Kind.Watch)
-      case "rules"    => Set.empty // statements alone, or a composition's syncs
+      case "transitions"                   => Set.empty
+      case "invariants" | "postconditions" => Set(Kind.Claim)
+      case "progress"                      => Set(Kind.Progress)
+      case "effects"                       => Set(Kind.Step)
+      case "monitors"                      => Set(Kind.Watch)
+      case "rules" => Set.empty // statements alone, or a composition's syncs
       case "properties" if propertyGroup && plain(s.name) == "safety" => Set(Kind.Claim)
       case "properties" if propertyGroup                              => Set(Kind.Progress)
       case "properties"                                               => Set.empty
@@ -1092,6 +1134,9 @@ final private[framework] class Order(
         val destination = if crossedMonitor || flatMonitor then groupHome("safety")
         else if name == "properties" && k == Kind.Claim then groupHome("safety")
         else if name == "properties" && k == Kind.Progress then groupHome("liveness")
+        else if native && k == Kind.Claim then
+          "its machine's `invariants` or `postconditions` object"
+        else if native && k == Kind.Progress then "its machine's `progress` object"
         else belongs(k, true)
         val kind = if crossedMonitor || flatMonitor then "a safety monitor reference" else k.written
         val declared =

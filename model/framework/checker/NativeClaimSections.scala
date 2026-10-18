@@ -15,7 +15,9 @@ private[framework] object NativeClaimSections:
     val file = call("ClassFile", None, "of")
     val model = call("ClassFile", Some(file), "parse", bytes)
     val methods = list(call("ClassModel", Some(model), "methods"))
-    methods.find(m => utf(call("MethodModel", Some(m), "methodName")) == "<clinit>") match
+    val initializerName =
+      if target.getDeclaredFields.exists(_.getName == "MODULE$") then "<clinit>" else "<init>"
+    methods.find(m => utf(call("MethodModel", Some(m), "methodName")) == initializerName) match
       case None              => bytes
       case Some(initializer) =>
         val code = call("MethodModel", Some(initializer), "code")
@@ -79,7 +81,7 @@ private[framework] object NativeClaimSections:
                   "instruction.FieldInstruction",
                   Some(element),
                   "opcode"
-                ).toString == "PUTSTATIC" &&
+                ).toString.matches("PUTSTATIC|PUTFIELD") &&
                 utf(
                   call(
                     "constantpool.ClassEntry",
@@ -88,12 +90,22 @@ private[framework] object NativeClaimSections:
                   )
                 ) == owner =>
             End(at + 1, utf(call("instruction.FieldInstruction", Some(element), "name")), None)
-        val moduleEnd = stores
-          .find(_.name == "MODULE$")
-          .getOrElse(
-            throw IllegalArgumentException(s"${target.getName} is no static claim section")
-          )
-          .at
+        val moduleEnd = if initializerName == "<clinit>" then
+          stores
+            .find(_.name == "MODULE$")
+            .getOrElse(
+              throw IllegalArgumentException(s"${target.getName} is no static claim section")
+            )
+            .at
+        else
+          elements.indexWhere(element =>
+            api("instruction.InvokeInstruction").isInstance(element) &&
+              call(
+                "instruction.InvokeInstruction",
+                Some(element),
+                "opcode"
+              ).toString == "INVOKESPECIAL"
+          ) + 1
         val immutable = target.getDeclaredFields.toVector
           .filter(f => Modifier.isFinal(f.getModifiers))
           .map(_.getName)
@@ -232,7 +244,7 @@ private[framework] object NativeClaimSections:
                 case _ => InvocationHandler.invokeDefault(proxy, method, args*)
         )
         val predicate: java.util.function.Predicate[AnyRef] = method =>
-          utf(call("MethodModel", Some(method), "methodName")) == "<clinit>"
+          utf(call("MethodModel", Some(method), "methodName")) == initializerName
         val classTransform =
           call("ClassTransform", None, "transformingMethodBodies", predicate, transform)
         call("ClassFile", Some(file), "transformClass", model, classTransform)

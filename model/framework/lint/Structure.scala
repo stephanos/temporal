@@ -60,10 +60,29 @@ final private[framework] class Structure(index: Index):
   import index.given
 
   private val refused = mutable.ArrayBuffer.empty[(String, Int, LiftError)]
+  private val model = ModelDeclarations[index.type](index)
 
   // Every refusal over the sources the order lint checks, all but `exempt`'s, at its file and line.
   def refusals(exempt: String => Boolean): Seq[(String, Int, LiftError)] =
     val checked = index.trees.filterNot(t => exempt(fileOf(t)))
+    object nativeForms extends TreeTraverser:
+      override def traverseTree(tree: Tree)(owner: Symbol): Unit =
+        tree match
+          case c: ClassDef if model.native(c.symbol) && model.authored(fileOf(c)) =>
+            for
+              o <- nested(c)
+              if !Structure.nativeSections.contains(plain(o.name)) && !model.signature(o.symbol)
+            do
+              refuse(
+                o,
+                s"${plain(o.name)} is an object in ${plain(c.name)} and none of its sections, " +
+                  s"${Structure.nativeSections.mkString(", ")}: a Model is " +
+                  "`object M extends Machine[O, F]` or " +
+                  "`class M[D: Finite](constants...) extends Machine[O, F]`"
+              )
+          case _ => ()
+        super.traverseTree(tree)(owner)
+    checked.foreach(nativeForms.traverseTree(_)(Symbol.spliceOwner))
     val sources = checked.groupBy(fileOf).toSeq.sortBy(_._1).flatMap(source)
     facetFiles(sources)
     layoutFiles(sources)
@@ -783,7 +802,10 @@ final private[framework] class Structure(index: Index):
           )
 
     // (c): a machine's sections are named from a closed set, whatever they extend.
-    for (_, c) <- forms; o <- nested(c) if !Structure.sections.contains(plain(o.name)) do
+    for
+      (_, c) <- forms if !model.native(c.symbol)
+      o <- nested(c) if !Structure.sections.contains(plain(o.name))
+    do
       refuse(
         o,
         s"${plain(o.name)} is an object in ${plain(c.name)} and none of its sections, " +
@@ -804,6 +826,18 @@ final private[framework] class Structure(index: Index):
     yield source -> product
 
 object Structure:
+  val nativeSections = Seq(
+    "refinement",
+    "transitions",
+    "effects",
+    "invariants",
+    "postconditions",
+    "monitors",
+    "progress",
+    "capabilities",
+    "queries"
+  )
+
   val formFolders = Set("workflow", "standalone", "mini")
 
   // A feature's level folders, by audience (fn-126 decision 16).
