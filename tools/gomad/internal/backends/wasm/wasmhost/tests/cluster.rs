@@ -27,7 +27,7 @@ const GUEST: &str = r#"(module
     (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))
     (drop (call $clock (i32.const 0) (i64.const 0) (i32.const 32)))
     (if (i32.lt_s (memory.grow (i32.const 2)) (i32.const 0)) (then unreachable))
-    (local.set $n (i32.const 2000))
+    (local.set $n (i32.const 4000))
     (loop $spin
       (local.set $n (i32.sub (local.get $n) (i32.const 1)))
       (br_if $spin (local.get $n)))))"#;

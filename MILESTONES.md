@@ -234,8 +234,8 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-187.1](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.1.md) | ⬜ Todo | Add the helper transcript corpus and convert the engine scenarios |
-| [fn-187.2](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.2.md) | ⬜ Todo | Move measurement producers out of test files into wasmmeasure |
+| [fn-187.1](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.1.md) | 🚧 In progress | Add the helper transcript corpus and convert the engine scenarios |
+| [fn-187.2](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.2.md) | 🚧 In progress | Move measurement producers out of test files into wasmmeasure |
 | [fn-187.3](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md) | ⬜ Todo | Delete inline tests the corpora already cover after a coverage check |
 | [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | ⬜ Todo | Restructure model, engine, namespace and cluster modules behind the corpus |
 | [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
@@ -244,7 +244,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | ⬜ Todo | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | 🚧 In progress | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 

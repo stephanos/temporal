@@ -6,9 +6,11 @@ satisfies: [R1, R2, R3, R4]
 ## Description
 Fetch github.com/temporalio/temporal main, merge it into gomad while preserving retained evidence history and bounded server seams, reconcile packs/pins, rerun default host gates and the WASM qualification ladder, and retain identities and the handover.
 
-The owner committed the resolved source batch as `0077477965`. The [original checkpoint](../artifacts/fn189-upstream-sync-2026-10-17.md) preserves its passing gates and seven unresolved WASM tests. The owner then explicitly requested fixing those seven failures. Current work is limited to preparation/replay and warm-preparation admission repairs plus their verification; later fn-187/fn-185 milestones and native execution remain paused/deferred. Full fn-189 acceptance still requires all retained R1-R4 gates, including the current-candidate workload ladder and budgets; fixing these seven tests alone does not establish that acceptance.
+The owner committed the resolved source batch as `0077477965` and the seven-test repair as `bad3c401b5`. The [original checkpoint](../artifacts/fn189-upstream-sync-2026-10-17.md) and [repair report](../artifacts/fn189-wasm-gate-fixes-2026-10-17.md) retain historical Darwin evidence; their statements that those changes were uncommitted are historical.
 
-The [seven-test repair report](../artifacts/fn189-wasm-gate-fixes-2026-10-17.md) records the targeted fixes and verification. These changes remain uncommitted.
+The owner resumed the full WASM milestone objective on 2026-10-17. Continue the remaining R1-R4 acceptance on the current candidate, then fn-187 and fn-185 in milestone order. This session executes on Linux/arm64; retained Darwin results do not qualify this host. Native execution remains deferred. Preserve all workload, exact replay, identity and resource-budget gates. Keep commits with the owner as previously requested; no push, PR or CI action is authorized.
+
+Current qualification work and raw logs live under `.flow/tmp/fn189-linux/`; retain one source-bound batch handover when the commands finish. Fn-189 stays open until the complete current-candidate gates are proved.
 ## Acceptance
 R1-R4 of the spec pass on the merged candidate with one handover.
 
