@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:28:08.487331Z",
+  "depends_on": [
+    "fn-209-spike-the-scala-checker-as-a-native.1"
+  ],
+  "id": "fn-209-spike-the-scala-checker-as-a-native.5",
+  "priority": 2,
+  "spec": "fn-209-spike-the-scala-checker-as-a-native",
+  "spec_path": ".flow/tasks/fn-209-spike-the-scala-checker-as-a-native.5.md",
+  "status": "todo",
+  "title": "WebAssembly build of the checker loaded from a Go host",
+  "updated_at": "2026-10-18T17:28:08.487331Z"
+}
