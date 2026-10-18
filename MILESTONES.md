@@ -53,7 +53,7 @@ Kettle itself with its test, then the design note. Gate: `mise exec -- cargo tes
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.1 | ⬜ todo | `framework-dsl`: `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress`, `Outcome`; `Kettle.trait.rs` compiles as a fixture (R1) |
+| fn-210.1 | 🔄 in progress | `framework-dsl`: `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress`, `Outcome`; `Kettle.trait.rs` compiles as a fixture (R1) |
 | fn-210.2 | ⬜ todo | After .1: `framework-checker` BFS explore with budget, invariants per state, postconditions per edge, `verify_all`, `refuted`; Kettle counts match the Scala note (R2, R4) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |

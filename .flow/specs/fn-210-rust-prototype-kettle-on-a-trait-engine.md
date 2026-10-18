@@ -37,7 +37,7 @@ Before any more of the Scala framework is built out, the owner wants to know whe
 
 ## Acceptance Criteria
 
-- **R1:** `framework-dsl` defines `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress` and `Outcome` as contracted, and `Kettle.trait.rs` from `options/` compiles against them unchanged as a test fixture. Errors: none beyond compilation.
+- **R1:** `framework-dsl` defines `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress` and `Outcome` as contracted, and `Kettle.trait.rs` from `options/` compiles against them as a test fixture, with the sole source change `Progress::<Self>::new` explicitly approved by the owner on 2026-10-18 because Rust cannot infer the state type through the builder chain; the original option sketch stays unchanged. Errors: none beyond compilation.
 - **R2:** `Checker::explore` reaches exactly the Scala note's Kettle counts (81 starts, 283 states, depth 62) and `verify_all` reports the two invariant and postcondition claims verified with no vacuity warnings. Errors: a budget below one refuses; a cut yields unknown with the counts so far.
 - **R3:** Progress `boils` within `without(DepressButton)` is verified with weak fairness on internal steps, and a control Model with no heater step is refuted with a lasso path. Errors: a scope naming an unknown action refuses.
 - **R4:** `Checker::refuted` reports `!beeping` refuted with a path from a start to a beeping state. No error surface beyond R2.
