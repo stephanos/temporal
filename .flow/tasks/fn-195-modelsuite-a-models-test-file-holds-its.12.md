@@ -64,9 +64,43 @@ The report supplies exact bounded experimental commands and their recorded termi
 
 
 ## Done summary
-TBD
+Committed `model/design/modelsuite-discovery.md` proves the bounded compiled inventory route for the retained stable-term omission, exact JVM/source/ancestor joins and a source-absent library ancestor. Full production discovery and staged gate integration remain unproved under the current held-export admission; fn-195.8 remains incomplete.
 
+Baseline: green. Pre-edit `git diff --check` passed and the canonical parent CheckerTest Quick command executed four tests, exit 0. Base commit `125ca601644fc728b268c4d04dc152185a592a6f` is persisted in `.flow/tmp/base_commit`.
+
+Tier: session (jev-unavailable(no_key))
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; policy: owner phase-batch formal-review deferral)
+
+The report commit is `41454f742a`. Fresh original source/library runs execute four tests each; the eight-selector matrix source/library runs execute nine each; the separate JVM-public private-class control executes one; the external library client executes two; the source-absent helper-library client executes one. The matrix has nine eligible selectors. Counts remain separate.
+
+Final joined inventories are 2 original, 9 matrix, 1 external and 8 admitted plus 1 skipped in the skip control. `reproduction.log` records a fresh assembled generation at `reproduction.XS6sIs`, terminal exit 0. `source-absent-run.log` records the later independent missing-source proof, terminal exit 0, restored fixture identities and an untouched inspection sentinel followed by successful execution.
+
+`partial-ancestor.sh` is an expected-RED counterexample. It removes only Helpers.Base while retaining the leaf row. Scratch Ownership incorrectly accepts the incomplete chain with raw exit 0; the expected-refusal wrapper exits 1. Production must independently index artifact ownership and compare classfile superclass/interface closure with typed ancestor membership/edges. This RED is retained, not reported as a passing refusal or production repair.
+
+`PolicyDirect.scala` proves the direct proposed BudgetPolicy sequence with actual child counts and a constructor/Model/object/test sentinel. It does not execute FrameworkLoop or ChangeCheck. Older caller labels/constant counters in `policy.log` earn no actual-gate integration credit. Complete held export identities, actual before-Scope.of integration and production publication/concurrency guards remain explicit prerequisites. The source-absent probe proves artifact-local retained declarations/positions; it does not require distributing original author sources.
+
+Verification: canonical parent CheckerTest Quick command passed again with four tests, exit 0. Classifier returned FULL because the design path is unmatched; no docs-only skip is claimed. `git diff --check`, all 14 frozen product source hashes and `proof-artifacts.sha256` pass. Green receipt `.flow/tmp/green-receipts/41454f74-unittest.json`. Exact commands, raw terminal logs, expected names and artifact hashes are task-local under `.flow/tmp/fn19512/` and indexed by the committed report.
+
+The conductor committed prerequisite records in `a4be3da8994fa94a9c493936b8f7bcac9a4781a7`. Task `.13` is the bounded producer M depending on `.12`; `.14` is explicitly blocked conditional full gate integration depending on `.13`; `.8` depends on both and remains blocked. Validation reports 14 tasks and zero errors. These records satisfy the required pre-closure split without declaring production discovery complete.
+
+GATE_SKIPPED:unittest:green-receipt 41454f74 - post-gate pass reused after conductor .flow-only prerequisite commit
+
+The gate check honors that receipt at `a4be3da8`. The full path history since `41454f74` contains only `.flow/` prerequisite records; no further JVM run was needed.
+
+Freeze boundary correction: the first manifest accidentally included conductor-owned planning/audit files. Its 133-row original and exit-1 check remain at `proof-artifacts-v1.sha256` and `proof-artifacts-v1-check.log`; only mutable `plan-input-task8.md` mismatched after the conductor's authorized scope update. The corrected 129-row manifest removes four conductor planning/audit files and preserves every retained original hash unchanged. Its check exits 0. `freeze-boundary.md` records the exact correction. No proof byte was silently rehashed to hide a change.
+
+No production implementation, author restriction, dependency version, actual repository Make/Go/IR/export/schema/Temporal/Testpilot/server operation or policy contract amendment is claimed. Parent spec remains OPEN and formal review remains phase-batch deferred.
+
+Defect route:
+- prior fixes: consumed the retained ff0dcaf55d Registry omission and existing metadata-probe RED; memory search/read covered artifact freshness and independent completeness authority. External PR/issue checks not done because this task delivers an isolated proof and no competing production fix; tracker bridge inactive.
+- diagnosis: compiler classfile/TASTy facts recover both original valid public no-arg leaves; no source parser expansion shipped. The partial-ancestor prototype hole remains an explicit RED.
+- introduced by: not bisected; no known-good discovery revision was supplied, and production repair is outside this task.
+- base: retained Registry names empty while original JUnit executes four tests; head: production behavior unchanged, bounded metadata route recovers exact expected names.
+- live: no interactive application surface; separate native JUnit executions provide bounded runtime evidence.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 41454f742a0add9d8eef35fecb64f73b7df9625c, a4be3da8994fa94a9c493936b8f7bcac9a4781a7
+- Tests: git diff --check, mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only checkercontrol.CheckerTest, bash .flow/tmp/fn19512/reproduce.sh, bash .flow/tmp/fn19512/source-absent.sh, bash .flow/tmp/fn19512/partial-ancestor.sh, sha256sum -c .flow/tmp/fn19512/proof-artifacts.sha256, sha256sum -c .flow/tmp/fn1958/source-freeze-v3.sha256, GATE_SKIPPED:unittest:green-receipt 41454f74 - post-gate pass reused after conductor .flow-only prerequisite commit
 - PRs:
