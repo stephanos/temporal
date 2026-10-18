@@ -1,0 +1,65 @@
+package samples.realizationclient
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.realize.*
+import samples.{Bank, Kettle, ReliableBroadcast, TwoLayeredCache, TwoPhaseCommit, Voting}
+import scala.compiletime.testing.typeChecks
+
+object SampleRealizations:
+  enum Addr:
+    case holder, receiver
+
+  enum Acceptor:
+    case first, second, third
+
+  enum Value:
+    case first, second
+
+  enum Manager:
+    case first, second, third
+
+  val bank = new Bank.Model[Addr](Addr.holder, 2)
+  val voting = new Voting.Model[Acceptor, Value](
+    Value.values.toSet,
+    Set(
+      Set(Acceptor.first, Acceptor.second),
+      Set(Acceptor.first, Acceptor.third),
+      Set(Acceptor.second, Acceptor.third)
+    )
+  )
+  val commit = new TwoPhaseCommit.Model[Manager](Manager.values.toSet)
+
+  def realize(machine: MachineDeclaration[?, ?, ?]): Realization =
+    Realization(
+      name = "sample",
+      machine = machine,
+      producer = "sample-client",
+      producerVersion = "1",
+      roles = Vector.empty,
+      correlation = Correlation("", "", "", "", 1, 1, 1, 1, 1, 1),
+      scripts = Vector.empty
+    )
+
+  def main(args: Array[String]): Unit =
+    val _ = args
+    val machines = Vector[MachineDeclaration[?, ?, ?]](
+      bank,
+      voting,
+      commit,
+      Kettle.Model,
+      ReliableBroadcast.Model,
+      TwoLayeredCache.Model
+    )
+    val roots = machines.map(realize)
+    assert(roots.size == 6)
+    roots
+      .zip(machines)
+      .foreach: (root, machine) =>
+        assert(root.machine eq machine)
+        assert(root.nativePerformances.isEmpty)
+    assert(typeChecks("realize(bank)"))
+    assert(!typeChecks("realize(classOf[Bank.Model[Addr]])"))
+    assert(
+      !typeChecks("realize((holder: Addr, supply: Int) => new Bank.Model[Addr](holder, supply))")
+    )

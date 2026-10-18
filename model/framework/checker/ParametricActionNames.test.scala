@@ -19,11 +19,14 @@ object ParametricActionNamesFixture:
       var value = initial
 
       object user extends Actor:
-        lazy val borrowed = Calls.this.foreign.user.advance
+        lazy val borrowed =
+          Calls.this.foreign.user.advance
 
       object clock extends Internal:
-        lazy val borrowed = Calls.this.foreign.clock.tick
-        lazy val copied = Calls.this.foreign.clock.expire.results("copied")
+        lazy val borrowed =
+          Calls.this.foreign.clock.tick
+        lazy val copied =
+          Calls.this.foreign.clock.expire.results("copied")
 
       object transitions extends Transitions:
         on(user.borrowed):
@@ -34,20 +37,24 @@ object ParametricActionNamesFixture:
           effects.advance()
 
       object effects:
-        def advance(): Unit = value = 1
+        def advance() =
+          value = 1
 
     class Model(initial: Int) extends Machine[Answer, Nothing]:
       var value = initial
 
       object user extends Actor:
-        lazy val advance = action
+        lazy val advance =
+          action
         lazy val unrelated: Boolean =
           Calls.this.getters += 1
           true
 
       object clock extends Internal:
-        lazy val tick = step
-        lazy val expire = timer
+        lazy val tick =
+          step
+        lazy val expire =
+          timer
 
       def unrelated: user.type =
         Calls.this.getters += 1
@@ -66,14 +73,15 @@ object ParametricActionNamesFixture:
           effects.advance()
 
       object effects:
-        def advance(): Unit =
+        def advance() =
           Calls.this.effects += 1
           value = 1
 
       object invariants:
-        val safe = check:
-          Calls.this.claims += 1
-          value == 0
+        val safe =
+          check:
+            Calls.this.claims += 1
+            value == 0
 
 class ParametricActionNamesTest extends munit.FunSuite:
   import ParametricActionNamesFixture.*

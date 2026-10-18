@@ -896,8 +896,7 @@ private[framework] object NativeCheck:
               .toOption // scalafix:ok DisableSyntax.null
               .collect { case value: AnyRef => value }
 
-  // The vals of an object, by name, in declaration order.
-  private def members(section: AnyRef): Vector[(String, Any)] =
+  private def memberMethods(section: AnyRef): Vector[java.lang.reflect.Method] =
     val fields = section.getClass.getDeclaredFields.toVector.map(_.getName)
     def order(member: String): Int =
       val at = fields.indexWhere(f => f == member || f.startsWith(member + "$lzy"))
@@ -908,7 +907,10 @@ private[framework] object NativeCheck:
           order(m.getName) != Int.MaxValue
       )
       .sortBy(m => order(m.getName))
-      .map(m => m.getName -> m.invoke(section))
+
+  // The vals of an object, by name, in declaration order.
+  private def members(section: AnyRef): Vector[(String, Any)] =
+    memberMethods(section).map(m => m.getName -> m.invoke(section))
 
   // The names of actions natively, where only the lifter names them: each action a val of an
   // object of the feature declares, a channel's delivery and loss under the channel's val.
@@ -941,6 +943,37 @@ private[framework] object NativeCheck:
               if !claims.containsKey(claim) then
                 val _ = claims.put(claim, member)
             case _ => ()
+    machine match
+      case derived: DerivedFrom[?] =>
+        derived.source match
+          case source: AnyRef => scan(source)
+          case _              => ()
+      case composition: Composition[?] => composition.members.foreach(scan)
+      case _                           => ()
+    memberMethods(machine)
+      .filter: method =>
+        val cls = method.getReturnType
+        (classOf[Actor].isAssignableFrom(cls) || classOf[Internal].isAssignableFrom(cls)) &&
+        java.lang.reflect.Modifier.isFinal(method.getModifiers) &&
+        cls.getName == s"${machine.getClass.getName.stripSuffix("$")}$$${method.getName}$$" &&
+        cls.getConstructors.exists(c =>
+          c.getParameterCount == 0 ||
+            (c.getParameterCount == 1 && c.getParameterTypes.head.equals(machine.getClass))
+        )
+      .foreach: method =>
+        val owner = method.invoke(machine)
+        memberMethods(owner)
+          .filter(m => classOf[Action[?]].isAssignableFrom(m.getReturnType))
+          .foreach: member =>
+            member.invoke(owner) match
+              case action: Action[?] =>
+                val owned = owner match
+                  case actor: Actor       => action.decl.actor eq actor
+                  case internal: Internal =>
+                    action.decl.internalOwner.exists(_ eq internal.nativeOwner)
+                  case _ => false
+                if owned then spell(action.decl, member.getName)
+              case _ => ()
 
   // The name of the val that declares a claim of a scanned feature, or its declared name.
   def claimName(claim: Property | Monitor[?, ?, ?, ?], machine: AnyRef): String =

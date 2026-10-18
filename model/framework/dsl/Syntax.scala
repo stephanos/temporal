@@ -870,14 +870,14 @@ private[framework] object QueryMacros:
       q: Quotes
   ): Expr[LeadsTo] =
     val named = progressClaim("a progress claim")
-    bound(within)
+    val steps = bound(within)
     '{
       LeadsTo.declared(
         $named,
         $enclosingImpl,
         () => $from,
         () => $to,
-        Some($within),
+        Some($steps),
         Scenario.of($enclosingImpl, None)
       )
     }
@@ -903,8 +903,8 @@ private[framework] object QueryMacros:
   private[framework] def eventually(to: Expr[Boolean], within: Expr[Int])(using
       q: Quotes
   ): Expr[Deadline] =
-    bound(within)
-    '{ Deadline.declared(() => $to, Some($within)) }
+    val steps = bound(within)
+    '{ Deadline.declared(() => $to, Some($steps)) }
 
   // The name of the progress claim being declared, refused outside `progress`.
   private def progressClaim(what: String)(using q: Quotes): Expr[String] =
@@ -918,13 +918,48 @@ private[framework] object QueryMacros:
         .fold("")(_.name)
     )
 
-  private def bound(within: Expr[Int])(using q: Quotes): Unit =
+  private def bound(within: Expr[Int])(using q: Quotes): Expr[Int] =
     import q.reflect.*
+    def unwrap(term: Term): Term = term match
+      case Inlined(_, Nil, inner) => unwrap(inner)
+      case Typed(inner, _)        => unwrap(inner)
+      case other                  => other
+    val classes = Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(!_.isNoSymbol)
+      .filter(s => s.isClassDef && !s.flags.is(Flags.Module))
+      .toList
+    def constructorParameter(term: Term): Boolean =
+      val member = term.symbol
+      classes.exists: cls =>
+        val field = cls.fieldMember(member.name)
+        val immutable = !member.flags.is(Flags.Mutable) &&
+          (!field.exists || !field.flags.is(Flags.Mutable))
+        val parameter =
+          member.flags.is(Flags.ParamAccessor) && member.owner.equals(cls) ||
+            member.flags.is(Flags.Param) && member.owner.equals(cls.primaryConstructor)
+        val own = term match
+          case Select(receiver: This, _) => receiver.symbol.equals(cls)
+          case _: Ident                  => true
+          case _                         => false
+        immutable && parameter && own
+    val constructorSize = unwrap(within.asTerm) match
+      case Select(receiver, "size") =>
+        val parameter = unwrap(receiver)
+        parameter.tpe.widen <:< TypeRepr.of[scala.collection.immutable.Set[?]] &&
+        constructorParameter(parameter)
+      case _ => false
     within.value match
-      case Some(n) if n > 0 => ()
-      case _                =>
+      case Some(n) if n > 0        => within
+      case None if constructorSize =>
+        '{
+          val steps = $within
+          require(steps > 0, "within is a positive number of steps")
+          steps
+        }
+      case _ =>
         report.errorAndAbort(
-          "within is a positive number of steps, written as a literal",
+          "within is a positive number of steps, written as a literal or an immutable constructor Set parameter's size",
           within.asTerm.pos
         )
 

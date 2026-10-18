@@ -223,12 +223,24 @@ private[framework] object InputSource:
       case _ => report.errorAndAbort("input arguments must be explicit", args)
     construct[I](action, supplied)
 
+  private def recordCompanion[I: Type](using quotes: Quotes): quotes.reflect.Term =
+    import quotes.reflect.*
+    val tpe = TypeRepr.of[I].dealias
+    val companion = tpe.typeSymbol.companionModule
+    val constructor = tpe match
+      case AppliedType(constructor, _) => constructor
+      case _                           => tpe
+    constructor match
+      case ref: TypeRef if ref.qualifier.isSingleton =>
+        Ident(TermRef(ref.qualifier, companion.name))
+      case _ => Ref(companion)
+
   private def defaultTerm[I: Type](index: Int)(using quotes: Quotes): Option[quotes.reflect.Term] =
     import quotes.reflect.*
     val companion = TypeRepr.of[I].typeSymbol.companionModule
     (companion.methodMember(s"apply$$default$$${index + 1}") ++
       companion.methodMember(s"$$lessinit$$greater$$default$$${index + 1}")).headOption.map:
-      method => Select(Ref(companion), method)
+      method => Select(recordCompanion[I], method)
 
   private def construct[I: Type](using
       quotes: Quotes
@@ -244,7 +256,7 @@ private[framework] object InputSource:
       if !fields.exists(_.name == name) then report.errorAndAbort(s"unknown input $name", value.pos)
     val arguments = supplied.map((name, value) => NamedArg(name, value))
     val value = Select
-      .overloaded(Ref(tpe.typeSymbol.companionModule), "apply", Nil, arguments, tpe)
+      .overloaded(recordCompanion[I], "apply", Nil, arguments, tpe)
       .asExprOf[I]
     '{
       val receiver = $action

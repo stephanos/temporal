@@ -3,6 +3,36 @@ package framework.dsl
 import framework.checker.Effects.*
 
 class InputRecords extends munit.FunSuite:
+  test("nested generic defaults preserve exact inputs and Scala evaluation order"):
+    import framework.dsl.Finite.given
+    val seen = scala.collection.mutable.ArrayBuffer.empty[String]
+    def mark[A](label: String, value: A): A =
+      seen += label
+      value
+    enum Address:
+      case first, second
+    class Model[A: Finite](initial: A):
+      final case class Input(
+          address: A = initial,
+          first: Boolean = mark("default-first", false),
+          last: Boolean = mark("default-last", false)
+      )
+      val submit = action(Actor("caller")).inputs[Input]
+    val subject = new Model[Address](Address.first)
+    def receiver: RecordAction[subject.Input] =
+      seen += "receiver"
+      subject.submit
+    val named = receiver(last = mark("last", true), address = mark("address", Address.second))
+    assertEquals(seen.toList, List("receiver", "last", "address", "default-first"))
+    assertEquals(named.values, List(Address.second, false, true))
+    assertEquals[Option[Any], Option[Any]](
+      named.supplied.map(_.value),
+      Some(subject.Input(Address.second, false, true))
+    )
+    seen.clear()
+    assertEquals(subject.submit().values, List(Address.first, false, false))
+    assertEquals(seen.toList, List("default-first", "default-last"))
+
   test("nested record calls retain the selected generic owner and constructor defaults"):
     assertEquals(
       compiletime.testing.typeCheckErrors("""
@@ -90,12 +120,14 @@ class InputRecords extends munit.FunSuite:
       "subject.submit()" -> "parameter address",
       "subject.submit(foreign.Input(false))" -> "declared input type"
     )
-    refusals.zip(expected).foreach: (errors, expected) =>
-      val (line, reason) = expected
-      assert(
-        errors.exists(e => e.lineContent.trim == line && e.message.contains(reason)),
-        errors.toString
-      )
+    refusals
+      .zip(expected)
+      .foreach: (errors, expected) =>
+        val (line, reason) = expected
+        assert(
+          errors.exists(e => e.lineContent.trim == line && e.message.contains(reason)),
+          errors.toString
+        )
 
   test("record declarations preserve their actual input type and named constructor calls"):
     assertEquals(

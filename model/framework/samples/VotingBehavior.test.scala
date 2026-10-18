@@ -6,7 +6,7 @@ import framework.checker.Effects.*
 import VotingControls.UnsafeVoting
 import ReliableBroadcastControls.Naive
 
-import samples.{ReliableBroadcast, Voting}
+import samples.ReliableBroadcast
 import NativeControls.{assertRefuted, invariant}
 import SectionClaims.{declares, holds as claimHolds, target}
 
@@ -23,7 +23,7 @@ object SectionClaims extends munit.Assertions:
     val context =
       if section == "invariants" then ClaimEvaluation.Context()
       else ClaimEvaluation.Context(from, taken, outcome)
-    ClaimEvaluation.evaluate(machine.stateVars.get, cls, now, context)
+    ClaimEvaluation.evaluate(machine.stateVars.get, cls, machine, now, context)
 
   // Whether the claim `member` of `machine`'s `section` holds in `now`: a postcondition on the step
   // to `now` from `from`, taking `taken` and answering `outcome`.
@@ -84,22 +84,23 @@ object SectionClaims extends munit.Assertions:
       )
 
 class VotingBehaviorTest extends munit.FunSuite:
-  private def run[S, O](
-      machine: MachineDeclaration[S, O, Nothing],
+  private def run[S, O, F](
+      machine: MachineDeclaration[S, O, F],
       state: S,
       cls: Class
-  ): List[Step[S, O, Nothing]] =
+  ): List[Step[S, O, F]] =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
-    effectOf[S, O, Nothing](binding.decl, binding.function)(state, cls)
+    effectOf[S, O, F](binding.decl, binding.function)(state, cls)
 
   // A Voting state by its vars, as the Votes record holds them, and the record a state holds.
-  private def voting(record: Voting.Votes): State =
-    Voting.Model.init.copy(votes = record.votes, maxBal = record.maxBal)
-  private def recorded(state: State): Voting.Votes = Voting.Model.at(state)(Voting.Model.current)
+  private def voting(record: VotingWorld.Votes): State =
+    VotingWorld.Model.init.copy(votes = record.votes, maxBal = record.maxBal)
+  private def recorded(state: State): VotingWorld.Votes =
+    VotingWorld.Model.at(state)(VotingWorld.Model.current)
 
   // A Consensus state by its one var.
-  private def decision(chosen: Set[Voting.Value]): State =
-    Voting.Consensus.init.copy(chosen = chosen)
+  private def decision(chosen: Set[VotingWorld.Value]): State =
+    VotingWorld.Consensus.init.copy(chosen = chosen)
 
   // A ReliableBroadcast state by its vars, as the Broadcast record holds them, and the record a
   // state holds.
@@ -120,7 +121,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     state.copy(received = carried(state).received ++ changes)
 
   private def inconsistent: State =
-    import Voting.*
+    import VotingWorld.*
     voting(
       Votes(
         Map(
@@ -133,7 +134,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     )
 
   test("normal max-ballot increase accepts the approved supplied invariant violation"):
-    import Voting.*
+    import VotingWorld.*
     val supplied = inconsistent
     assertEquals(inv(recorded(supplied)), false)
     val expected = supplied.copy(maxBal = Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> 0))
@@ -143,7 +144,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     )
 
   test("normal vote accepts the approved supplied invariant violation"):
-    import Voting.*
+    import VotingWorld.*
     val supplied = inconsistent
     assertEquals(inv(recorded(supplied)), false)
     val expected = voting(
@@ -162,7 +163,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     )
 
   test("UnsafeVoting inherits the approved max-ballot delta separately from its unsafe vote"):
-    import Voting.*
+    import VotingWorld.*
     val expected =
       inconsistent.copy(maxBal = Map(Acceptor.a1 -> 1, Acceptor.a2 -> 1, Acceptor.a3 -> 0))
     assertEquals(
@@ -171,7 +172,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     )
 
   test("normal quorum progression preserves refused Steps and remaining vote conditions"):
-    import Voting.*
+    import VotingWorld.*
     val initial = voting(
       Votes(
         Map(Acceptor.a1 -> Set.empty, Acceptor.a2 -> Set.empty, Acceptor.a3 -> Set.empty),
@@ -259,13 +260,17 @@ class VotingBehaviorTest extends munit.FunSuite:
     )
 
   test("all three quorum pairs choose and selected refinement projections retain conflict"):
-    import Voting.*
+    import VotingWorld.*
     val cls = voter.voteFor(VoteFor(Acceptor.a2, 0, Value.v1))
-    assertEquals(
-      run(Consensus, decision(Set.empty), cls),
+    val productVote = Consensus.bindings.head.decl
+    val productClass = Class(productVote, List(Acceptor.a2, 0, Value.v1))
+    assertEquals(classesOf(productVote), classesOf(voter.voteFor.decl))
+    assert(productVote ne voter.voteFor.decl)
+    assertEquals[List[Step[State, ?, ?]], List[Step[State, ?, ?]]](
+      run(Consensus, decision(Set.empty), productClass),
       List(Step(Outcome.accepted, decision(Set(Value.v1))))
     )
-    assertEquals(run(Consensus, decision(Set(Value.v1)), cls), Nil)
+    assertEquals(run(Consensus, decision(Set(Value.v1)), productClass), Nil)
     assertEquals(Model.refinement.image(Model.init), decision(Set.empty))
     for (left, right) <- List(
         (Acceptor.a1, Acceptor.a2),
@@ -288,7 +293,7 @@ class VotingBehaviorTest extends munit.FunSuite:
       )
     )
     assertEquals(Model.refinement.image(conflict), decision(Set(Value.v1, Value.v2)))
-    assertEquals(claimHolds(Model, "queries", "decides")(conflict, taken = Some(cls)), true)
+    assertEquals(claimHolds(Questions, "queries", "decides")(conflict, taken = Some(cls)), true)
     assertEquals(claimHolds(Model, "invariants", "consistency")(conflict), false)
     assert(declares(Consensus, "postconditions", "chosenStays"))
     assert(declares(Model, "invariants", "invariant"))
@@ -297,7 +302,7 @@ class VotingBehaviorTest extends munit.FunSuite:
     assertEquals(Model.refinement.unobservable, List(voter.increaseMaxBal))
 
   test("unsafe votes choose both values while retaining agreement and monotonicity"):
-    import Voting.*
+    import VotingWorld.*
     val skipped =
       Model.init.copy(maxBal = Map(Acceptor.a1 -> 1, Acceptor.a2 -> -1, Acceptor.a3 -> -1))
     assertEquals(
@@ -342,11 +347,11 @@ class VotingBehaviorTest extends munit.FunSuite:
     assertEquals(claimHolds(UnsafeVoting, "invariants", "unsafeConsistency")(d.state), false)
     assertEquals(claimHolds(Model, "invariants", "invariant")(d.state), false)
     val decided = voter.voteFor(VoteFor(Acceptor.a2, 0, Value.v1))
-    assertEquals(claimHolds(Model, "queries", "decides")(d.state, taken = Some(decided)), true)
+    assertEquals(claimHolds(Questions, "queries", "decides")(d.state, taken = Some(decided)), true)
     assert(declares(UnsafeVoting, "invariants", "unsafeConsistency"))
 
   test("Voting classes retain field order and refuse ballots outside zero and one"):
-    import Voting.*
+    import VotingWorld.*
     assertEquals(
       classesOf(voter.increaseMaxBal.decl),
       List(
@@ -591,7 +596,7 @@ class VotingBehaviorTest extends munit.FunSuite:
   // The default checks (fn-190.4): every claim of a Machine's sections checked over its whole
   // reachable graph by the native checker.
   test("Voting's claims are checked by default and UnsafeVoting's consistency is refuted"):
-    import Voting.*
+    import VotingWorld.*
     import NativeCheck.Verdict.*
     val report = NativeCheck.verifyAll(Model)
     // decides is a find's target, in queries, which is not checked by default: one vote chooses
@@ -604,15 +609,16 @@ class VotingBehaviorTest extends munit.FunSuite:
     assertEquals(
       NativeCheck
         .query(
-          verify(Consensus.postconditions.chosenStays) in Scenario.of(Some(Model), None),
+          ClaimQuery.block(QueryForm.verify, Consensus, "postconditions", "chosenStays") in
+            Scenario.of(Some(Model), None),
           "model.chosenStaysInVoting"
         )
         .verdict,
       unknown
     )
     assertEquals(
-      NativeCheck.queries(Model).map(r => r.subject -> r.verdict),
-      Vector("model.valueChosen" -> found)
+      NativeCheck.queries(Questions).map(r => r.subject -> r.verdict),
+      Vector("questions.valueChosen" -> found)
     )
     // the negative control: a vote that skips the quorum's showing chooses both values
     val refutesUnsafeVoting = assertRefuted(

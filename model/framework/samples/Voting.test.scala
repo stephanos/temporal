@@ -1,11 +1,67 @@
 package framework.dsl
 
+import framework.checker.NativeCheck
 import VotingControls.UnsafeVoting
 import samples.Voting
 
+object VotingWorld:
+  import framework.dsl.Finite.given
+  export samples.Voting.{Outcome, given}
+
+  enum Acceptor:
+    case a1, a2, a3
+
+  enum Value:
+    case v1, v2
+
+  val Model: Voting.Model[Acceptor, Value] = new Voting.Model[Acceptor, Value](
+    values = Set(Value.v1, Value.v2),
+    quorums = Set(
+      Set(Acceptor.a1, Acceptor.a2),
+      Set(Acceptor.a1, Acceptor.a3),
+      Set(Acceptor.a2, Acceptor.a3)
+    )
+  )
+  val Consensus = Model.refinement.of
+  export Model.{
+    cast,
+    chosen,
+    chosenAt,
+    chosenBy,
+    didNotVoteAt,
+    inv,
+    isChosen,
+    maxBalAtLeast,
+    maxBalAtMost,
+    noneOtherChoosableAt0,
+    oneValueAt,
+    othersAgree,
+    safeAt1,
+    showsSafeAt,
+    someQuorumShowsSafeAt,
+    votedFor,
+    voter,
+    voteSafe,
+    votesSafe,
+    IncreaseMaxBal,
+    Vote,
+    VoteFor,
+    Votes
+  }
+
+  object Questions extends Derived(Model):
+    import Model.current
+
+    object queries:
+      val decides =
+        after(voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)):
+          check(chosen(current).contains(Value.v1))
+      val valueChosen =
+        find(decides)
+
 class VotingTest extends munit.FunSuite:
   test("Voting's four native predicates retain safety and exact chosen-value selection"):
-    import Voting.*
+    import VotingWorld.*
     // a Voting state by its vars, as the Votes record holds them, and the record a state holds
     def voting(record: Votes): State = Model.init.copy(votes = record.votes, maxBal = record.maxBal)
     def recorded(state: State): Votes = Model.at(state)(Model.current)
@@ -51,7 +107,7 @@ class VotingTest extends munit.FunSuite:
       )
     )(after => inv(recorded(after.state)))
     SectionClaims.same(
-      Model,
+      Questions,
       "queries",
       "decides",
       Some(Class(voter.voteFor.decl, List(Acceptor.a2, 0, Value.v1))),
@@ -62,8 +118,31 @@ class VotingTest extends munit.FunSuite:
       )
     )(after => chosen(recorded(after.state)).contains(Value.v1))
 
+  test("a unanimity quorum changes Voting's reachable graph without sharing its instance"):
+    import VotingWorld.{Acceptor, Value}
+    val unanimity = new Voting.Model[Acceptor, Value](
+      values = Set(Value.v1, Value.v2),
+      quorums = Set(Set(Acceptor.a1, Acceptor.a2, Acceptor.a3))
+    )
+    val original = NativeCheck.explore(VotingWorld.Model, Seq(VotingWorld.Model.init))
+    val alternate = NativeCheck.explore(unanimity, Seq(unanimity.init))
+    original.drain()
+    alternate.drain()
+    assert(!original.cut)
+    assert(!alternate.cut)
+    assertEquals(alternate.states.size, 251)
+    assert(original.states.size > alternate.states.size)
+    assertEquals(
+      NativeCheck.verifyAll(unanimity).verdicts,
+      Map(
+        "consistency" -> NativeCheck.Verdict.verified,
+        "invariant" -> NativeCheck.Verdict.verified
+      )
+    )
+    assert(VotingWorld.Model.voter.voteFor.decl ne unanimity.voter.voteFor.decl)
+
 object VotingControls:
-  import samples.Voting.*
+  import VotingWorld.*
 
   object effects:
     // A vote that skips the quorum's showing that v is safe at b.

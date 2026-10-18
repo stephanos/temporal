@@ -32,6 +32,7 @@ object SampleClaims:
     val context = ClaimEvaluation.evaluate(
       machine.stateVars.get,
       cls,
+      owner,
       step.state,
       ClaimEvaluation.Context(from, taken, Some(step.outcome), step.facts)
     )

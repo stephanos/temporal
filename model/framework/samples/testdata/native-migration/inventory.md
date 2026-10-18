@@ -23,10 +23,10 @@ The normal send preserves refusal for empty/insufficient senders before its self
 then receiver overflow before debit/credit. Funded zero is accepted unchanged; empty zero,
 including self, is refused unchanged. A self-send above balance is refused. Leaky independently
 keeps self first, overflow second, credit without debit third. These are preserved behaviors,
-not the older design illustration's proposed negative amounts or zero refusal.
+as recorded at that representation checkpoint.
 
-The input map changes `Send.amount: UpTo[3]` to Int with explicit ascending domain 0..3;
-field order remains fromAddr, toAddr, denom, amount (amount fastest, 128 classes). Addr and
+That checkpoint changed `Send.amount: UpTo[3]` to Int with explicit ascending domain 0..3;
+field order remained fromAddr, toAddr, denom, amount (amount fastest, 128 classes). Addr and
 Denom declaration order stays fixed. No global Finite[Int] or state catalog is added.
 Model/Leaky, outcome names, facts=Nothing, end=true, default reach and source action identity
 are retained. All Properties use final expect blocks.
@@ -44,6 +44,14 @@ Plain form (fn-190.7, phase 1): every claim is checked by default, so `totalSupp
 `postconditions` to `queries` as a find target, not checked by default; `kingSendsPeachesBananas`
 stays (Found). `refutesLeakyTotalSupply` is the test's `assertRefuted(Leaky,
 leakyTotalSupplyInv)` (Counterexample), and Leaky keeps no sections. No Query names Limits.
+
+Parametric native form (fn-194.3): the test declares Addr and supplies holder king and supply2.
+The committed native amount domain is -1 through supply+1, giving 160 classes for four
+addresses and two denominations; the earlier 0..3/128 paragraph records history, not the
+current input catalog. Negative transfers can pull coins back and leave debts; both resulting
+balances must fit -supply..supply. The existing negative-send and Leaky controls remain.
+The exact king-to-peaches question moves into the test's `Questions extends Derived(model)`:
+its subject becomes `questions.kingSendsPeachesBananas`, with the same Found answer.
 
 ## TwoPhaseCommit (.13 representation map complete)
 
@@ -87,6 +95,12 @@ eagerConsistencyInv)` (Counterexample), and EagerCommit keeps no sections. `fair
 Model's scenario `fair(rm.commit)`, and `commitReachesEveryone` is `leadsTo(from =, to =, within =
 3) in fairCommits` in `progress` (Verified, longest path 3). No Query names Limits.
 
+Parametric native form (fn-194.3): the test supplies the same three resource managers.
+The four input-consuming transitions replace the per-manager wrappers, selecting only the
+supplied set. `commitReachesEveryone` uses that set's size, retaining bound3 and longest3 for
+this world. The rm3 question belongs to test-owned `Questions extends Derived(model)`;
+`questions.successTest` remains Found, while the universal exact-rm3 claim remains refuted.
+
 ## Voting (.14 representation map complete)
 
 Map old Votes.a1/a2/a3 to exact acceptor keys in both native maps. An old Ballots
@@ -119,6 +133,14 @@ chosenStays remains Consensus-owned once(nonempty).keeps(chosen). All ends are t
 all scenarios remain free, default reach and everyBallot remain unchanged, with no
 Progress or authored fairness assumption. The six Query rows below retain intended
 answers; selected projections and callback paths prove no complete refinement.
+
+Parametric native form (fn-194.3): the tests declare the three acceptors, two values and three
+pair quorums. Ballots0/1 and sentinel-1 stay unchanged. Consensus is a sibling generic machine
+with equivalent ordered vote inputs, and the tests hold the exact `model.refinement.of`
+instance for projections. The a2/v1 question moves to test-owned `Questions` and is named
+`questions.valueChosen`, still Found; native cross-refinement checking remains unknown.
+A second world with a sole unanimous quorum has 251 reachable states, fewer than the pair
+world, and both invariants remain verified.
 
 ## ReliableBroadcast (.14 representation map complete)
 

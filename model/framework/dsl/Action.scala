@@ -161,6 +161,7 @@ final case class ActionDecl(
       s"${prefix(modelOnlyReasons.lastOption.fold(at)(_._2))}: modelOnly requires a nonempty reason"
     )
   private[framework] var nativeInputs = Option.empty[ActionInputs[?]]
+  private[framework] var internalOwner = Option.empty[AnyRef]
   private[framework] var composedClasses = Option.empty[List[Class]]
   private[framework] var selectsComposed = Option.empty[(Any, Class) => Boolean]
   private var source = Option.empty[String]
@@ -198,6 +199,7 @@ final case class ActionDecl(
     value.spelling = spelling
     value.channelName = channelName
     value.nativeInputs = nativeInputs
+    value.internalOwner = internalOwner
     declarationName.copyTo(value.declarationName)
     value
   // Equality is by declaration, as Go compares declaration pointers: two actions may share a name
@@ -355,11 +357,13 @@ class Action[I] private[framework] (
 // `object heater extends Internal`, whose members are its steps, `val heat = step`, and its timers,
 // `val expire = timer`, each named after the `val` that declares it.
 abstract class Internal:
+  @publicInBinary private[framework] val nativeOwner: AnyRef = new Object
+
   // Declares a step of the system that is not a timer, such as a dispatch or a commit.
-  protected inline def step: Action[EmptyTuple] = framework.dsl.internal
+  protected inline def step: Action[EmptyTuple] = framework.dsl.internal(nativeOwner)
 
   // Declares a timer, an action with no input that the system performs.
-  protected inline def timer: Action[EmptyTuple] = systemTimer
+  protected inline def timer: Action[EmptyTuple] = systemTimer(nativeOwner)
 
 // Refuses an action outside an `Actor` object; inside one, the inherited `action` declares it.
 inline def action: Action[EmptyTuple] = compiletime.error(
@@ -392,15 +396,17 @@ private[framework] def action(name: String, actor: Actor): Action[EmptyTuple] =
   Action(value)
 
 // Declares a timer. Hidden: an `Internal` object's inherited `timer` calls it.
-@publicInBinary private[framework] def systemTimer: Action[EmptyTuple] =
+@publicInBinary private[framework] def systemTimer(owner: AnyRef): Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, timer = true)
+  value.internalOwner = Some(owner)
   value.declarationName.mark(false, "timer")
   Action(value)
 
 // Declares a step of the system that is not a timer. Hidden: an `Internal` object's inherited
 // `step` calls it.
-@publicInBinary private[framework] def internal: Action[EmptyTuple] =
+@publicInBinary private[framework] def internal(owner: AnyRef): Action[EmptyTuple] =
   val value = ActionDecl("", Actor.system, internal = true)
+  value.internalOwner = Some(owner)
   value.declarationName.mark(false, "internal")
   Action(value)
 
