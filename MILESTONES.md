@@ -17,36 +17,36 @@ As of 2026-10-18.
 ## Direction
 
 On 2026-10-18 the owner paused everything else for one question: should Umpire be built in Rust?
-The Scala framework under `model/` keeps working as it is and is not modified. Every spec other
+The Scala framework is frozen under `model/archived/` for reference and is not expected to build. Every spec other
 than fn-210 and its follow-ups fn-212 and fn-211 is deferred in Flow (each carries a dated Decision Context
 line) and is not listed here; the earlier Scala phases and the one-language series live in those
-specs.
+specs. Those deferred Scala plans retain paths relative to the archived tree.
 
-Umpire in Rust lives in `temporal/model2`, a Cargo workspace pinned through `mise.toml`
-(`rust = "1.99.1"`), with crates under `model2/umpire/`: `dsl` (with `dsl/macros`), `checker`,
+Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
+(`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
 `testing` (the dev-only fixture runner), `tests` (the shared end-to-end fixtures), and `wasm`
 (the generated-protobuf guest); the `samples` crate has been removed. Its current scope is exactly what
-`model/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
+`model/archived/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
 runs as wasm in a Go host through wazero (pure Go, no cgo) on the stock toolchain, with Kettle's report matching
-the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
+the Rust goldens byte for byte, Rust wins. Everything else in `model/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
 deferred, since speed no longer decides. The decisive slice passed in fn-210.9: the recommendation
 is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_release` and
 `umpire_call`, with no custom linker or export rewriting (fn-210.16).
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | The move fn-210.15 alone (Scala to `model/archived/`, `model2/` to `model/`), then .6 and .7 | Engine, progress, derives, registration, conventions, fixtures, direct named host ABI and decisive wasm slice are complete; the archive move, attribute Kettle and full write-up follow |
+| Umpire in Rust (now) | Review fn-210.15, then .6 and .7 | The Rust workspace occupies `model/` and Scala is archived with its caches preserved; registration, progress and the direct wasm ABI are implemented; archive review, attribute Kettle and the final comparison remain |
 | After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
-### fn-210: Rust prototype: Kettle on a trait engine with an attribute surface (model2)
+### fn-210: Rust prototype: Kettle on a trait engine with an attribute surface (model)
 
 Captured on 2026-10-18. Scope is Kettle's constructs only: vars with a `oneOf` start, actors with
 actions and internal steps, guarded transitions with effects, invariants, postconditions with
 `before` and `after`, one `without` scope, one `whenever … eventually … in` progress claim, and the
-questions `explore`, `verifyAll` and `refuted`. Gate: `make model2-check` (local); goldens update
-with `make model2-update`. [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
+questions `explore`, `verifyAll` and `refuted`. Gate: `make model-check` (local); goldens update
+with `make model-update`. [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 What is fixed, all owner decisions of 2026-10-18:
 
@@ -75,13 +75,13 @@ What is fixed, all owner decisions of 2026-10-18:
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
 - **Feedback loop (R30).** The inner loop (edit one crate, rebuild, run its fixtures) stays at 3 s or
-  less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model2-time`
+  less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model-time`
   prints each step and warns over budget; every task reports it when marked done, and a breach is
   fixed in the task or excepted by the owner. Slow tools (JVM, network) run batched or behind
   `UMPIRE_BACKENDS=require`.
-- **Host interface (R31, R32).** The Model talks to any host through protobuf messages over a
-  three-function core-wasm ABI (`alloc`, `free`, `call`), generated on both sides from one schema in
-  `model2/umpire/proto/` (`prost` in Rust, `protoc-gen-go` in Go). The Go host is wazero, so Go
+- **Host interface (R31, R32, R42).** The Model talks to any host through protobuf messages over a
+  three-function core-wasm ABI (`umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call`), generated on both sides from one schema in
+  `model/umpire/proto/` (`prost` in Rust, `protoc-gen-go` in Go). The Go host is wazero, so Go
   stays at `CGO_ENABLED=0`; the module targets `wasm32-wasip1`. wasmtime remains the simulation's
   host; the same module loads in both.
   `oracle.proto` stays minimal (explore, rows, refusal) until the Case slice merges it with
@@ -92,11 +92,11 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.15 | 🔄 in progress | After .16, alone: archive the Scala tree under `model/archived/` (history kept), rename `model2/` to `model/`, rename the Rust Make targets to `model-*`, update `AGENTS.md`, docs and open specs (R41) |
+| fn-210.15 | 🔄 in progress | Canonical directory move and cache preservation verified; reference integration complete; integrated gates and review pending (R41) |
 | fn-210.6 | ⬜ todo | After .15: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
-| fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+| fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
-### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model2)
+### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
 
 After fn-210, first decide whether the independent reading and temporal checks justify the
 lifting subset, emitter and JVM gate. On approval, lift shared Models, run pinned TLC and compare
@@ -108,7 +108,7 @@ reachable states and verdicts through the shared fixture consumer.
 | fn-212.1 | ⬜ todo | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
 | fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
-### fn-211: Apalache backend for Umpire in Rust (model2)
+### fn-211: Apalache backend for Umpire in Rust (model)
 
 Captured on 2026-10-18 as a follow-up, after fn-210 and fn-212 and only if their verdicts are to continue in
 Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
