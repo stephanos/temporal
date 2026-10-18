@@ -1214,7 +1214,7 @@ nested-byte replacement. Evidence: `.flow/tmp/fn19513/summary.md`.
 
 fn-195.14 remains blocked: retained historical export metadata lacks original output binding and
 has stale source/dependency inputs. It supplies no current complete held-suite authority. No fresh
-held export compilation is admitted, and fn-196.2's ordering contract is unchanged. The independent
+held export compilation is admitted, and fn-196.2's ordering contract is unchanged. The separate
 export compile-only approval question remains unanswered. Its proposed bounded metadata probe grants
 no authority until the owner answers.
 
@@ -1238,7 +1238,7 @@ closing feasibility reports alone cannot release it. Evidence: `.flow/tmp/fn1951
 | fn-195.15 | ⬜ todo | After committed .10: bounded finite declaration-owner/exact runtime receiver feasibility, safe complete acquisition and close; negative report may complete while production remains blocked (R4 prerequisite) |
 | fn-195.16 | ⬜ todo | After committed .10: ordinary capability retention/executable expansion, effective waivers/overrides and native bounds through genuine generated replay; no production subsystem estimate before proof (R4 prerequisite) |
 | fn-195.17 | ⬜ todo | After committed .10: framework kit-owned waited-class projection and immutable exact performed/waited coverage; generic/native fixture kits only, actual system-kit adoption held (R4, local R7) |
-| fn-195.18 | ⬜ todo | After committed .10: realize expectation conveniences and one shared conformance validator, preserving raw/copy compatibility and independent fields; C owns actual binding (R4, R5, local R7) |
+| fn-195.18 | 🔄 in progress | After committed .10: realize expectation conveniences and one shared conformance validator, preserving raw/copy compatibility and independent fields; C owns actual binding (R4, R5, local R7) |
 | fn-195.11 | ⏸️ deferred | Explicit hold on integrated complete inventory/capability mechanisms, .17/.18 leaves and .9; .15/.16 report closures alone cannot release typed native conformance integration (R4, R5, local R7) |
 | fn-195.3 | ⬜ todo | After .11: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; final suite source admission including no-test suites; refine retained L scope before admission (R5, R7) |
 | fn-195.4 | ⬜ todo | After .3: the six samples' tests as ModelSuites with Quint's runs; intended answers reproduced (R6) |
