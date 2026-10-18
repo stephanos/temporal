@@ -33,9 +33,8 @@ Run after the prerequisite closure is committed on umpire. Use own focused basel
 ### Quick command
 
 ```sh
-timeout 600 env -u BASH_ENV mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only framework.checker.CheckerTest
+timeout 600 env -u BASH_ENV mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only checkercontrol.CheckerTest
 ```
-
 ## Acceptance
 - [ ] Discovery indexes release discarded declarations and owners while preserving reference identity, stable names and static/derived/composed/channel behavior for legitimate live results/actions/states.
 - [ ] Channel value-to-key backreferences, claim/hole ownership, foreign aliases and equal-but-distinct identity cases have regression controls; classloader metadata remains outside the instance-lifetime guarantee.
