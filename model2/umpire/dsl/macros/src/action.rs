@@ -42,7 +42,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     Ok(quote! {
         #[automatically_derived]
         impl #impl_generics ::core::clone::Clone for #name #type_generics #where_clause {
-            fn clone(&self) -> Self { match self { #(Self::#names => Self::#names),* } }
+            fn clone(&self) -> Self { match *self { #(Self::#names => Self::#names),* } }
         }
         #[automatically_derived]
         impl #impl_generics ::core::cmp::PartialEq for #name #type_generics #where_clause {
@@ -61,7 +61,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         #[automatically_derived]
         impl #impl_generics ::umpire_dsl::Spell for #name #type_generics #where_clause {
             fn spell(&self, out: &mut ::std::string::String) {
-                match self { #(Self::#names => out.push_str(#spellings)),* }
+                match *self { #(Self::#names => out.push_str(#spellings)),* }
             }
         }
         impl #impl_generics #name #type_generics #where_clause {
