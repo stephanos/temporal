@@ -1,0 +1,5 @@
+error: unknown scope unregistered in within
+  --> tests/ui/machine_unknown_scope.rs:12:37
+   |
+12 |     #[umpire_dsl::progress(within = Self::unregistered())]
+   |                                     ^^^^^^^^^^^^^^^^^^^^

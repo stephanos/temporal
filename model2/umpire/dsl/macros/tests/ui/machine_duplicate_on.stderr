@@ -1,0 +1,5 @@
+error: duplicate #[on] for action User::Press
+  --> tests/ui/machine_duplicate_on.rs:12:22
+   |
+12 |     #[umpire_dsl::on(User::Press)]
+   |                      ^^^^^^^^^^^
