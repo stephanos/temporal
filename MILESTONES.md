@@ -1178,7 +1178,7 @@ independent review stays phase-batch deferred, with no Go/IR/Temporal hold relea
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-196.2 | ⬜ todo | After .1: complete R1's question/error contracts with `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity and the gate's budget; a budget-cut find is unknown, not a completed negative search (R1-R3) |
+| fn-196.2 | 🔄 in progress | After .1: complete R1's question/error contracts with `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity and the gate's budget; a budget-cut find is unknown, not a completed negative search (R1-R3) |
 | fn-196.3 | ⬜ todo | After .2: measurement note on the largest available graphs; go/no-go on deleting the Go check; lowering location (R4) |
 | fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
 | fn-196.5 | ⬜ todo | After .3: MILESTONES Direction, README and SEMANTICS say the Scala checker is the oracle (R7) |
