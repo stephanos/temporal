@@ -61,6 +61,63 @@ class PublicRefutationSuite extends ModelSuite(RefutationFixture.instance):
     test(munit.TestOptions("a changed machine breaks the original named claim")):
       refuted(changed, model.invariants.bounded)
 
+object RefutationBranches:
+  class Model extends Machine[Outcome, Nothing]:
+    var count = 0
+    object client extends Actor:
+      lazy val increment = action
+    object transitions extends Transitions:
+      on(client.increment):
+        if count < 1 then effects.increment()
+    object effects:
+      def increment(): Unit = count += 1
+      def leak(): Unit = count += 2
+      def fail(): Unit =
+        count = 99
+        throw IllegalStateException("refutation effect exploded")
+    object postconditions:
+      val incrementsOnce =
+        check(count == before.count + 1)
+
+class RefutationBranchTest extends munit.FunSuite:
+  private def run(suite: munit.FunSuite): org.junit.runner.Result =
+    new org.junit.runner.JUnitCore().run(
+      org.junit.runner.Request.runner(new munit.MUnitRunner(suite.getClass, suite))
+    )
+
+  test("a derived counterexample refutes an exact named postcondition"):
+    val instance = new RefutationBranches.Model
+    class PostconditionSuite extends ModelSuite(instance):
+      object changed extends Derived(model.rebind(on(model.client.increment):
+        if model.count < 1 then model.effects.leak()
+      ))
+      object explorations:
+        test("postcondition counterexample"):
+          refuted(changed, model.postconditions.incrementsOnce)
+    val result = run(new PostconditionSuite)
+    assertEquals(result.getRunCount, 2)
+    assertEquals(result.getFailureCount, 0, result.getFailures.toString)
+    assertEquals(instance.count, 0)
+
+  test("an effect exception is refuted evidence but not a claim counterexample"):
+    val instance = new RefutationBranches.Model
+    class EffectFailureSuite extends ModelSuite(instance):
+      object changed extends Derived(model.rebind(on(model.client.increment):
+        if model.count < 1 then model.effects.fail()
+      ))
+      object explorations:
+        test("effect failure is no counterexample"):
+          refuted(changed, model.postconditions.incrementsOnce)
+    val result = run(new EffectFailureSuite)
+    assertEquals(result.getRunCount, 2)
+    assertEquals(result.getFailureCount, 1)
+    val failure = result.getFailures.toString
+    assert(failure.contains("refuted"), failure)
+    assert(failure.contains("refutation effect exploded"), failure)
+    assert(!failure.contains("counterexample:"), failure)
+    assert(failure.contains("ExplorationRefusals.test.scala:"), failure)
+    assertEquals(instance.count, 0)
+
 class RefutationClientTest extends munit.FunSuite:
   private def run(suite: munit.FunSuite): org.junit.runner.Result =
     new org.junit.runner.JUnitCore().run(
