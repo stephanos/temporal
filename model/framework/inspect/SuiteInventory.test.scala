@@ -540,26 +540,26 @@ class SuiteInventoryTest extends munit.FunSuite:
     val input = request
     val malformed = write("corrupt.jar", "not a jar")
     val cases = Vector(
-      input.copy(candidates = Vector.empty) -> "missing candidate outputs",
+      input.copy(candidates = Vector.empty) -> Vector("missing candidate outputs"),
       input.copy(candidates =
         Vector(SuiteInventory.Artifact(root.resolve("missing.jar"), "absent"))
-      ) -> "missing.jar",
+      ) -> Vector("missing.jar"),
       input.copy(candidates =
         Vector(input.candidates.head.copy(sha256 = "wrong"))
-      ) -> "changed artifact",
-      input.copy(candidates = Vector(artifact(malformed))) -> "zip",
-      input.copy(hierarchy = Vector.empty) -> "inventorylib.Helpers$Base",
-      input.copy(sources = Vector(input.sources.head.copy(sha256 = "wrong"))) -> "changed source",
-      input.copy(sources = input.sources ++ input.sources) -> "conflicting source ownership",
-      input.copy(sources = Vector.empty) -> "source outside explicit manifest",
+      ) -> Vector("changed artifact"),
+      input.copy(candidates = Vector(artifact(malformed))) -> Vector("zip", malformed.toString),
+      input.copy(hierarchy = Vector.empty) -> Vector("inventorylib.Helpers$Base"),
+      input.copy(sources = Vector(input.sources.head.copy(sha256 = "wrong"))) -> Vector("changed source"),
+      input.copy(sources = input.sources ++ input.sources) -> Vector("conflicting source ownership"),
+      input.copy(sources = Vector.empty) -> Vector("source outside explicit manifest"),
       input.copy(sources =
         Vector(SuiteInventory.Source(helperSource, sha(helperSource)))
-      ) -> "source outside explicit manifest",
-      input.copy(compilerFlags = Vector.empty) -> "missing compiler flags",
-      input.copy(toolchain = input.toolchain.copy(scalaVersion = "3.8.0")) -> "incompatible Scala",
-      input.copy(toolchain = input.toolchain.copy(javaVersion = "other")) -> "incompatible Java"
+      ) -> Vector("source outside explicit manifest"),
+      input.copy(compilerFlags = Vector.empty) -> Vector("missing compiler flags"),
+      input.copy(toolchain = input.toolchain.copy(scalaVersion = "3.8.0")) -> Vector("incompatible Scala"),
+      input.copy(toolchain = input.toolchain.copy(javaVersion = "other")) -> Vector("incompatible Java")
     )
-    cases.foreach((value, fragment) => refused(value, fragment))
+    cases.foreach((value, fragments) => refused(value, fragments*))
 
   test("result binding includes module flags source manifest and skipped roots"):
     val original = admitted(request)
