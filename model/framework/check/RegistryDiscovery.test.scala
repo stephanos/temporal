@@ -85,17 +85,23 @@ class RegistryDiscoveryTest extends munit.FunSuite:
   test(
     "method and block local types cannot impersonate addressable helper ancestors"
   ):
-    for declaration <- Vector("def make", "val make") do
+    for (declaration, opening, closing) <- Vector(
+        ("def make", "{", "}"),
+        ("val make", "{", "}"),
+        ("val make", "locally:", ""),
+        ("val make", "List(1).map: value =>", "")
+      )
+    do
       val root = Scratch.directory("registry-local-ancestor")
       write(
         root,
         "helpers/Helpers.scala",
         s"""package fixture
         |object Helpers {
-        |  $declaration = {
+        |  $declaration = $opening
         |    class Base extends munit.FunSuite
         |    new Base
-        |  }
+        |  $closing
         |  class Base
         |  abstract class Actual extends framework.dsl.ModelSuite(instance)
         |}
@@ -128,6 +134,52 @@ class RegistryDiscoveryTest extends munit.FunSuite:
       "package fixture\nimport suites.{Base as _, *}\nimport suites.*\nclass Restored extends Base\n"
     )
     assertEquals(names(root), Vector("fixture.Restored"))
+
+  test("renamed imports remove the original wildcard name while retaining the alias"):
+    for rename <- Vector("as", "=>") do
+      val root = Scratch.directory("registry-import-rename")
+      write(
+        root,
+        "helpers/Suite.scala",
+        "package suites\nabstract class Base extends framework.dsl.ModelSuite(instance)\n"
+      )
+      write(root, "helpers/Plain.scala", "package plain\nclass Base\n")
+      write(
+        root,
+        "tests/Leaf.test.scala",
+        s"package fixture\nimport suites.{Base $rename Bound, *}\nimport plain.*\nclass Leaf extends Base\nclass Renamed extends Bound\n"
+      )
+      val discovered = names(root)
+      assertEquals(discovered, Vector("fixture.Renamed"))
+      Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.Renamed=7"))
+        .withCheckerBudgets(discovered.toSet)
+      write(
+        root,
+        "tests/Leaf.test.scala",
+        s"package fixture\nimport suites.{Base $rename Bound, *}\nimport suites.*\nclass Restored extends Base\nclass Renamed extends Bound\n"
+      )
+      assertEquals(names(root), Vector("fixture.Restored", "fixture.Renamed"))
+
+  test("typed helper expressions retain accessible sibling ancestor declarations"):
+    for
+      declaration <- Vector(
+        "val n: Int = 0",
+        "var n: Int = 0",
+        "def n: Int = 0",
+        "val n:\n    Int = 0",
+        "var n:\n    Int = 0",
+        "def n:\n    Int = 0"
+      )
+      separator <- Vector("; ", "\n  ")
+    do
+      val root = Scratch.directory("registry-typed-helper")
+      write(
+        root,
+        "helpers/Helpers.scala",
+        s"package fixture\nobject Helpers {\n  $declaration${separator}abstract class Base extends framework.dsl.ModelSuite(instance)\n}\n"
+      )
+      write(root, "tests/Leaf.test.scala", "package fixture\nclass Leaf extends Helpers.Base\n")
+      assertEquals(names(root), Vector("fixture.Leaf"))
 
   test(
     "qualified and wildcard parent resolution does not confuse equal short names"

@@ -249,16 +249,36 @@ private object SuiteSources:
           next += 1
         tokens.lift(next - 1).map(_.offset).getOrElse(code.length)
       else
-        tokens
-          .drop(body + 1)
-          .find(t => t.line > tokens(body).line && t.indent <= tokens(at).indent)
-          .map(_.offset)
-          .getOrElse(code.length)
+        var next = body + 1
+        var depth = 0
+        var end = code.length
+        while next < tokens.size && end == code.length do
+          val token = tokens(next)
+          if depth == 0 && (
+              (token.line > tokens(body).line && token.indent <= tokens(at).indent) ||
+                Set(")", "]", "}")(token.text) ||
+                (token.text == ";" && token.line == tokens(body).line)
+            )
+          then end = token.offset
+          else
+            if Set("(", "[", "{")(token.text) then depth += 1
+            if Set(")", "]", "}")(token.text) then depth -= 1
+            next += 1
+        end
     val scopes = scala.collection.mutable.ArrayBuffer.empty[Scope]
     val bodies = scala.collection.mutable.Set.empty[Int]
+    val annotations = scala.collection.mutable.Set.empty[Int]
     val bindings = scala.collection.mutable.ArrayBuffer.empty[Binding]
     val found = scala.collection.mutable.ArrayBuffer.empty[Definition]
     var packageName = ""
+    def blockColon(at: Int): Boolean =
+      !annotations(tokens(at).offset) && (
+        tokens.lift(at + 1).exists(t => t.line > tokens(at).line && t.indent > tokens(at).indent) ||
+          tokens
+            .drop(at + 1)
+            .takeWhile(t => t.line == tokens(at).line && !Set(";", "}")(t.text))
+            .exists(_.text == "=>")
+      )
     def owner(at: Int): String =
       (Vector(packageName).filter(_.nonEmpty) ++ scopes
         .filter(s => s.start < at && at < s.end)
@@ -320,8 +340,9 @@ private object SuiteSources:
                 val name = text(at)
                 val renamed = Set("as", "=>")(text(at + 1))
                 val alias = if renamed then text(at + 2) else name
-                if renamed && alias == "_" then excluded += name
-                else selected += Binding(token.offset, end, s"$base.$name", alias)
+                if renamed then excluded += name
+                if !(renamed && alias == "_") then
+                  selected += Binding(token.offset, end, s"$base.$name", alias)
                 at += (if renamed then 3 else 1)
               else at += 1
             bindings ++= selected.map(_.copy(excluded = excluded))
@@ -342,6 +363,7 @@ private object SuiteSources:
         while at < tokens.size && !(depth == 0 && text(at) == "=") &&
           !(tokens(at).line > token.line && tokens(at).indent <= token.indent)
         do
+          if text(at) == ":" then annotations += tokens(at).offset
           if Set("(", "[")(text(at)) then depth += 1
           if Set(")", "]")(text(at)) then depth -= 1
           at += 1
@@ -350,8 +372,14 @@ private object SuiteSources:
           scopes += Scope(token.offset, scopeEnd(i, body), "", runnable = false)
           bodies += tokens(body).offset
         i += 1
-      else if token.text == "val" then
-        erasedMember(i)
+      else if Set("val", "var")(token.text) then
+        if token.text == "val" then erasedMember(i)
+        var at = i + 1
+        while at < tokens.size && text(at) != "=" &&
+          !(tokens(at).line > token.line && tokens(at).indent <= token.indent)
+        do
+          if text(at) == ":" then annotations += tokens(at).offset
+          at += 1
         i += 1
       else if Set("class", "trait", "object", "type")(token.text) then
         val name = text(i + 1)
@@ -419,7 +447,8 @@ private object SuiteSources:
           )
           bodies += tokens(at).offset
         i = at
-      else if Set("{", ":")(token.text) && !bodies(token.offset) then
+      else if (token.text == "{" || (token.text == ":" && blockColon(i))) && !bodies(token.offset)
+      then
         scopes += Scope(token.offset, scopeEnd(i, i), "", runnable = false)
         i += 1
       else i += 1
