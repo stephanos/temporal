@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T19:34:15.472801Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.4"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.5",
+  "priority": 2,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.5.md",
+  "status": "todo",
+  "title": "#[machine] attribute: pass-through impl, generated Machine impl from #[on]/#[invariant]/#[postcondition]/#[scope]/#[progress]",
+  "updated_at": "2026-10-18T19:34:15.472801Z"
+}

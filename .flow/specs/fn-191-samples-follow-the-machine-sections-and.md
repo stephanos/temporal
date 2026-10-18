@@ -131,6 +131,8 @@ simply never brought under them. Applying the lint in the framework check, rathe
 Model gate, is what keeps the samples honest in the framework-only phase, where the Model gate does
 not run. Kettle goes first because its rewrite was in hand and is the smallest.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Task(s) | Gap justification |

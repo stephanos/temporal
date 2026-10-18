@@ -107,6 +107,8 @@ a second checking algorithm, reconsider the binding approach before extending au
 
 2026-10-18, one-language series: composed progress and fairness are native in fn-199.4 (sync and member-qualified references in `fair`, lasso witnesses on the product graph). R1, R2 and R4 close by reference to fn-199; tasks .1/.2/.4 are closed as obsolete (lane A); .5's gates run on the Scala checker (lane C). This spec closes when fn-199.4 lands.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Decisions (w-fn150 lane, 2026-10-10)
 
 - Authoring: `leadsTo` is overloaded on `Composition[S]`; composed fairness is a second `fair`

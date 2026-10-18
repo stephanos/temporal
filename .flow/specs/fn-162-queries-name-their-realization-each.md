@@ -60,6 +60,8 @@ The user chose the real fix over relaxing the one-machine-per-file rule so a fac
 
 **Decided (owner, 2026-10-10):** realizations name the Queries they run (R8), and unnamed find Queries are model-only. The merged duplicates keep their existing names, one home each: `completes` (Completion), `scheduleToStartFires` and `scheduleToCloseTimesOut` (Timeouts), `cancelRequested` (Cancellation). [user]
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Resolved via Codebase
 <!-- fn-162.1 trace, 2026-10-10. Paths relative to temporal/. [inferred] marks a conclusion not read directly off code. -->
 

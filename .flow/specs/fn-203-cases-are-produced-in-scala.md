@@ -58,3 +58,5 @@ Keeping the Go lowerer would keep the Go checker, because `NewProducer` runs `ch
 
 2026-10-18, target boundary (owner): on the fn-209 go branch the producer emits the Program as data for the Model side to replay and the Case identity; R3 (Property to Contract clauses) closes as unnecessary and the generic Go runtime interprets nothing. On no-go the spec stands as filed.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

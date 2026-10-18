@@ -33,6 +33,8 @@ Task 1, the CLI, is known now; the rest follows the research.
 
 2026-10-18, one-language series: this spec folds into fn-208 (`tools/umpire` becomes `tools/testpilot`). The framework/temporal layout (.2) is fn-202's generic/Temporal runtime split; the engine fold (.3) and the tidy (.4) are moot because the packages are deleted; the doc-drift item goes to fn-208.4. The single-CLI idea (R1) survives only for the five runtime commands and is fn-208.2's call.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Task |

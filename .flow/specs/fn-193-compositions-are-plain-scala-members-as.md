@@ -75,3 +75,7 @@ Direction, to be confirmed or revised by the prototype (task 1):
 | R3 | fn-193.2 | — |
 | R4 | fn-193.2 | — |
 | R5 | fn-193.2 | — |
+
+## Decision Context
+
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.

@@ -91,6 +91,8 @@ Rejected: adding attempt identity to the main activity System's state directly. 
 
 2026-10-18, one-language series: the R6 Case is produced by fn-203's Scala producer.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Whether Nexus matching validates a reply against a retried task's identity the way the activity validates its token; fn-151's reading of matching would settle it.

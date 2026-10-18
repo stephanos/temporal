@@ -90,6 +90,8 @@ Three options were weighed, and the user chose option 1 ("yes option 1"). [user]
 - **Option 2 (rejected):** drop `from` and always qualify. One form and less framework and generator code, but you lose the grouping by actor and its ownership check. [paraphrase]
 - **Option 3 (rejected):** leave it as is. Defensible, since ownership is already enforced, but it leaves the readability problem the user raised. [paraphrase]
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Whether `disabled(...)` targets (such as `disabled(process.stop)`) fall under the same qualification rule. Today they are written qualified, but nothing enforces it. A decision from the user resolves this. [inferred]

@@ -223,6 +223,8 @@ Task fn-123-declare-faults-as-the-environments.3 validates the core approach (Go
 
 **Why storage loss stays authored.** fn-107 says loss of committed storage is a separately authored fault. What a loss leaves (here, the idle queue) is a design decision, not a function of durability. FizzBee lists disk failure as work in progress and leaves duplication and Byzantine faults to manual models, which matches these Boundaries.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Whether `ackLoss` becomes two faults (poll-answer loss and admission response loss). That would change action keys and the composition key `queue_ackLoss`, so the owner decides.

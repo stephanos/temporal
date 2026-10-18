@@ -111,6 +111,8 @@ discovery/export approach before migrating Models.
 - Retain the decision in `.flow/memory/declined/generated-api-drift-verification.md` against broad
   generated-API drift verification and new CI coverage; use focused fixtures and existing gates.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Selected Batch 2 execution
 
 The source order is committed fn-140.10 -> fn-149.1/.2/.6/.7 -> fn-164 expectation/colon migration

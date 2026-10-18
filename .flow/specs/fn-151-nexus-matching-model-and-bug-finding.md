@@ -84,6 +84,8 @@ Use a protocol model plus real-implementation conformance, with independent defe
 
 Keep this work deferred and unplanned for now. [paraphrase] When revived, recheck the current Nexus dispatch semantics, available hooks, and ongoing framework changes before choosing tasks. No delivery estimate or dependency chain is committed by this capture. [inferred]
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Conversation Evidence
 
 - [user] "I see the model has some nice beneifts: shorter, denser, faster, better abstractions"

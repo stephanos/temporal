@@ -163,6 +163,8 @@ payload; a safety half in the same word, which would make `owes` two promises. [
 
 2026-10-18, one-language series: R6 reads `lift` for `export` (fn-201). Conformance of a recorded Run against an `owes` claim is judged from fn-204's descriptor (progress marks and fairness classes), or by the native oracle if fn-209 says go; fn-196's conformance replay no longer exists. No `owes` emission in fn-205/fn-206/fn-207.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

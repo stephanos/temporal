@@ -137,6 +137,8 @@ make umpire-check-cases
 
 - **Unsupported manifest diagnostic refinement.** After the first plan review of the eleven Case leaves, the root separately found that the retained manifest was copied rather than freshly generated. The existing start-to-close timeout refusal cites the moved `attempts` script declaration. The root authorized exactly one additional manifest diagnostic coordinate, with unchanged refusal meaning and all other bytes protected, subject to fresh unchanged-producer located-refusal evidence and final joined reproof. The first SHIP receipt covers the earlier artifact only; this refinement requires its own independent review and grants no fresh canonical-manifest credit until its checks run.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - **fn-129.3 ordering.** Should fn-129.3's open remainder land before this spec touches the reset effects, or re-anchor afterwards as planned? Owner decision.

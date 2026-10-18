@@ -123,6 +123,8 @@ Decision history (2026-10-09, explicit conductor authorization): the original bo
 
 Maintainability (plan review): duplication - none identified; structure - witness folding uses one cohesive helper behind existing claim registration, keeping new construction logic out of the dispatch.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Early proof point
 
 Task fn-140-one-sentence-witness-queries-with.4 proves the first Activity conversion preserves its Scala predicate truth, Query metadata and the retry's full-state condition, while removing only the duplicate terminate source claim. Deferred task .9 retains the original full assessment/retry differential and Case proof. If the source equivalence fails, resolve the witness's state condition and unexplained scratch-lift difference before expanding the migration in task .10; no source result substitutes for .9's assessment evidence.

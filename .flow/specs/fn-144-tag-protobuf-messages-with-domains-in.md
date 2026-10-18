@@ -227,6 +227,8 @@ The report's §10 phasing, with the requirements of each step. Each step leaves 
 
 2026-10-18, one-language series: R12 through R15 are recut: the values module and the lowering checks go to fn-203's Scala producer and Temporal adapter; the Testpilot-side schema goes to fn-202; no Go module is written.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Whether the spec's Abstraction Claim entry ("an author's claim … with the example the functional Case runs") and the Set entry ("using each class's example") need rewording for examples that lowering generates. D16 lists no such edit. It is resolved by the owner at R19's task.

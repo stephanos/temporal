@@ -131,6 +131,8 @@ The independent activity Model preserves retryable cancellation-requested worker
 
 2026-10-18, one-language series: the closure gates (Cases and live proof) run through fn-203's Scala producer; no Go lowering remains.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

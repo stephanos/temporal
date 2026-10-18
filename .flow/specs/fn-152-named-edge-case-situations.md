@@ -103,6 +103,8 @@ The Situation does not prescribe whether the old reply is accepted, rejected, or
 - The one-sentence witness Query work (fn-140) owns witness authoring. This spec adds reusable occurrence definitions to that surface rather than introducing another witness syntax. Fault declarations (fn-123), IR/lifter changes, evidence-schema work (fn-148), and Model views (fn-130) are coordination points, not automatically hard prerequisites. [inferred]
 - The separately deferred Nexus matching model and bug-finding evidence spec may provide the attempt/reply semantics and controls for the example. This spec owns reusable naming and occurrence recognition; it does not duplicate the matching model's broader scope. [inferred]
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Which receiving boundary does the motivating Nexus reply refer to, and what outcomes are allowed for each ordering? Resolve with the owner against the independent Nexus contract before selecting the live proof example. [inferred]

@@ -136,6 +136,8 @@ Maintainability (plan review): duplication - R4/R9 repeated the waiver reason in
 
 2026-10-18, one-language series: R2, R3, R4, R6 and R7 move to fn-200 (Model lint is native; `@gap` is the only acceptance). R9 and R10 stay with the real-feature sweep and run on fn-200's lint instead of the IR and `.lint.json`. Tasks .5 and .6 are closed as obsolete (lane A); .7 is recut by lane C.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Quick commands
 
 Run Scala commands against independently validated existing generated jars; do not regenerate those jars as part of source-only tasks. A held prerequisite is reported, never counted as a pass.

@@ -129,6 +129,8 @@ The decisions settled by the owner on 2026-10-13 (D1–D8) are recorded in `mode
 
 2026-10-18, one-language series: R1's governance amendments go to fn-208.4; the structural fingerprint definition goes to fn-201.4 (hashing `Lifted.canonical`) and fn-203; the orchestration module `tools/umpire/answer` is dropped; R2, R4, R5 and R8 are superseded by reference to fn-199/fn-200/fn-201/fn-206/fn-207. Tasks .2/.3/.4/.7/.8/.9 are closed as obsolete (lane A); .5's lifter part goes to fn-190.9/fn-201 and .6 proves isomorphism on the Scala checker or closes citing fn-195.4 (lane C).
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

@@ -1,0 +1,10 @@
+[package]
+name = "framework-checker"
+description = "Umpire native checker: explore, verify_all, refuted"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+
+[dependencies]
+framework-dsl.workspace = true

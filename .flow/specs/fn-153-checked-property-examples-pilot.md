@@ -132,6 +132,8 @@ At closure, serialize regeneration and full verification under the shared heavy-
 - Keep hypothetical violations visibly separate from found counterexamples. Requiring every negative illustration to replay as legal model behavior would prevent illustrating promises the model actually keeps.
 - Preserve empty-extension canonical bytes, independently validate each illustration and retain exact nested source diagnostics. Local memory and the existing evaluator support these obligations; broad generated-API drift verification remains outside this focused check.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

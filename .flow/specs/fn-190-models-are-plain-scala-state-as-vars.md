@@ -561,6 +561,8 @@ the lifter already handles: a per-member case in the composition's fact enum, an
 the member's state. The text-key encoding of member facts goes with it, which is the one IR-visible
 change; the Go composition lowering follows in phase 2.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Task(s) | Gap justification |

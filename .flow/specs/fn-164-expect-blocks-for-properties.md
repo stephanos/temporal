@@ -118,6 +118,8 @@ Preservation includes Boolean association, conditional shape, eager local-let pl
 - [paraphrase] Umpire's step facts and action-scoped claims are richer than either Quint or FizzBee, which model events as state. `records(fact)` stays first-class in the block for that reason.
 - [inferred] Scheduled in batch S as a meaning-preserving migration, so it runs before the seal's step-table equivalence and the batch G regeneration absorbs the source-position changes.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Early proof point
 
 The first runtime/API task proves requirement short-circuiting, explicit alternative grouping, typed before/after contexts and contextual binding names. The lifting task then proves exact core-IR preservation for heartbeat and reset-shaped paired fixtures, local lets and named predicate forwarding before caller migration. If either proof fails, resolve the API/lowering conflict before migrating or removing the old surface; do not accept a generic equivalence exemption.

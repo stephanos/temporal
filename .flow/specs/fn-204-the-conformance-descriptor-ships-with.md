@@ -59,3 +59,5 @@ The alternatives were to keep a Model reader in Go (what we are retiring), to as
 
 2026-10-18, deterministic simulation (owner): the descriptor is the deterministic runtime's bounded-exploration oracle until fn-209 decides otherwise; it is a table, so it forks with the process and needs no RPC. Keep the descriptor's slice selectable per exploration (per Query start under Limits) so a schedule-exploring runtime can ask for the slice it needs.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

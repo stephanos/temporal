@@ -111,6 +111,8 @@ make umpire-check-cases
 - **Stakeholders.** Model authors get compiler and lint diagnostics, reviewers get discovered law coverage, and the gate's operators keep their current entry points and explicit failure statuses. Runtime behavior and deployment configuration do not change.
 - **Short research scope.** Codebase, dependency, memory and gap analysis ground this plan. External research scouts are skipped at short depth. Implementers consult the compiler and Scalafix's official documentation for the pinned toolchain when testing equality evidence, nulls and capture checking.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

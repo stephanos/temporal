@@ -378,6 +378,8 @@ No source-registration protocol, root-owner restriction or new author annotation
 
 2026-10-18, one-language series: the later lifting phase is fn-203 (Cases are produced in Scala), which reads the `conformance` sections and `expect:` trees natively, with no exporter step; fn-195.11 is fn-203's input and fn-203 depends on this spec. If fn-209 (native checker binary) says go, `expect:` assertions become oracle-sidecar questions instead of Contract clauses.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Parked unknowns
 
 - Whether claim sections also accept bare Booleans; resolved after living with `expect:`.

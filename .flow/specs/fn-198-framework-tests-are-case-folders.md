@@ -196,3 +196,5 @@ fixtures are written once, as cases.
 
 2026-10-18, one-language series: owner decision "recut: ir.json internal, drop waivers". `export/` becomes `lift/` (fn-201), so the unit layout root is `lift/testdata/<unit>/`. `<root>.ir.json` stays as the lift module's internal expectation only. `<root>.waivers.json` is dropped (fn-200). `lint.txt` is the native lint's output (fn-200). The Go-check edge case and boundary are superseded. New expected kinds for Case protos (fn-203), the conformance descriptor (fn-204) and TLA+ text (fn-206) will be added as new R-IDs when those specs land, with this spec's runner discovering them the same way.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

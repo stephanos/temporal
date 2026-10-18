@@ -92,6 +92,8 @@ The owner asked on 2026-10-01 for an example of a Go SDK workflow driven fully e
 
 2026-10-18, one-language series: owner-deferred; at revival, lowering goes through fn-203's Scala producer and Temporal adapter, export through fn-206/fn-207, Model valuations through the Scala checker; nothing here targets `tools/umpire`.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Quick commands
 
 ```bash

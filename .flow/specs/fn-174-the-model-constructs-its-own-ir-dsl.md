@@ -383,6 +383,8 @@ type are short and explicit).
 
 2026-10-18, one-language series: "the driver prints the IR file" becomes an in-process internal tree (fn-201): no checked-in IR, no `generated/ir.json`, no `make umpire-check-backends`. R5's oracle is the Scala checker, fn-203 Cases and the fn-206/fn-207 backends. Tasks .2/.5/.6/.7/.8/.24 are recut by lane C accordingly; `export` reads `lift`.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Quick commands
 
 The framework source lane runs affected suites directly while the owner holds the root gate.

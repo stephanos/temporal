@@ -59,3 +59,5 @@ Porting the Go lint over the IR into Scala would keep the IR as a lint input and
 
 2026-10-18, owner decision (R7): the modality tables and H1, H3 and H5 are dropped; the graph kinds cover the unreachable cases. H2 silent-rejection is decided after the review of the 691 accepted reasons: kept and instrumented alone (the firing rule or its absence per pair, no arm trace) only if accepted H2 findings demonstrably led to Model fixes, otherwise dropped too. A new lint kind, unbounded arithmetic (an arithmetic effect over a var with no bound), is added under R2 per the fn-201 numeric decision.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

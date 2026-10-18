@@ -111,6 +111,8 @@ The feature is built on fn-166's ground: a feature folder, its own `generated/` 
 - One folder, `features/update/`, since the kind has one form; a `<kind>_<form>` split is added when a second form (update-with-start) arrives. [inferred]
 - Deferred by the owner on 2026-10-11, the same day it was captured, listed under "Deferred for now" in `MILESTONES.md`; the placement decision above is taken when it is picked up. [user, "mark as deferred for now"]
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Early proof point
 
 Tasks 1 and 2 together: if the foundation's Product and the update's Product do not compose within `six` with the inventory tests passing, or the update's Product cannot state `rejectedLeavesNoHistory` without a construct the DSL lacks, the construct is a DSL spec of its own before the Protocol level is written.

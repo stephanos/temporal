@@ -173,6 +173,8 @@ None of these items is an R-ID of this spec. Each one that is adopted while this
 11. Required constructor parameters (the `Recorded` pattern) for every "each case must declare X" rule.
 12. A policy: each new lifter refusal ships with a matching compile-time check, or records why none is possible.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

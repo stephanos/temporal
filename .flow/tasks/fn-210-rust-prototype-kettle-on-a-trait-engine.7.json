@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T19:34:15.473373Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.6"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.7",
+  "priority": 4,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.7.md",
+  "status": "todo",
+  "title": "DESIGN.md: authoring, size, speed, tooling comparison and the recommendation",
+  "updated_at": "2026-10-18T19:34:15.473373Z"
+}

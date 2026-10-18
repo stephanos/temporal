@@ -149,6 +149,8 @@ The measurement's repeated-instance controls found 0 of 64 constructed-only Mode
 
 2026-10-18, performance diagnosis (task .8): R4's measurement (Bank 83 s, Voting7 cut) is dominated by one implementation choice, not by the design: `ClaimEvaluation.evaluate` defines a fresh class per claim evaluation (new ClassLoader, defineClass, Class.forName, reflective constructor), about 744k times on Bank, so claim bodies never JIT and metaspace churns. Solving Bank and Voting5 together gives about 108 us per section evaluation versus under 3 us for the rest of a step. Task .8 fixes that first (expected 83 s to 2-4 s), then the smaller per-step costs. The measurement note's conclusions about budgets and the no-go are to be re-read after .8 lands; the fn-209 latency comparisons must use post-.8 numbers.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

@@ -50,3 +50,5 @@ Deleting at the end rather than per spec keeps each earlier spec's gate green an
 
 2026-10-18, owner decision (R4): the SPEC and Vision clause requiring Go replay of backend counterexamples is amended to: a backend counterexample replays through Checker.replay, and TLC's exhaustive reachable set (fn-207 R4) must agree with the native graph on the gate's Models. Independence moves from one replayed path to the whole graph read by a different engine.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

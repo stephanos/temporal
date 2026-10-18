@@ -60,3 +60,5 @@ Leaving the schema under the server's internal protos keeps Testpilot a Temporal
 
 2026-10-18, snapshot and restore (owner): the generic adapter interface carries `snapshot() -> id` and `restore(id)` on the oracle side, over the Model's immutable state, claim and monitor values; a host that can snapshot its own store may ignore them, a host driving a sidecar must use them. This is what lets a native-image oracle serve the deterministic simulation and keeps the interface identical across the wasm and native hostings.
 
+2026-10-18, deferred (owner): all specs other than fn-210 (the Rust prototype of the framework in `temporal/model2`) are deferred until fn-210's write-up recommends whether to extend the Rust prototype or stay on Scala. Flow has no deferred status; this line is the record. MILESTONES.md was reset to the prototype alone and no longer lists this spec. Nothing in this spec changes; resume or close it after that decision.
+

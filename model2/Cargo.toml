@@ -1,0 +1,15 @@
+# model2: the Rust prototype of the Umpire framework. Scope: what model/framework/samples/Kettle.scala
+# uses today. Layout mirrors model/framework: dsl, checker, samples.
+[workspace]
+resolver = "2"
+members = ["framework/dsl", "framework/checker", "framework/samples"]
+
+[workspace.package]
+version = "0.0.1"
+edition = "2024"
+publish = false
+license = "MIT"
+
+[workspace.dependencies]
+framework-dsl = { path = "framework/dsl" }
+framework-checker = { path = "framework/checker" }
