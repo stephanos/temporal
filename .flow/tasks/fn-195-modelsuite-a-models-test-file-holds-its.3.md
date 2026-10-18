@@ -1,5 +1,5 @@
 ---
-satisfies: [R5, R7]
+satisfies: [R3, R5, R7]
 ---
 # fn-195-modelsuite-a-models-test-file-holds-its.3 DSL completion: the Model asks nothing of itself: retire queries, Query, witness, .live, the capability live switch and Realizes.runs
 
@@ -13,7 +13,7 @@ satisfies: [R5, R7]
 ## Required refinement before implementation admission
 
 This retained L-sized retirement/lint task must be refined against the completed public checkpoints
-before it starts. Preserve R5/R7 and split genuine independent mechanisms if needed. It cannot retire
+before it starts. Preserve R3/R5/R7 and split genuine independent mechanisms if needed. It cannot retire
 native realization or capability declarations before their replacement is committed.
 
 The existing Machine source admission excludes `*.test.scala`. Add a bounded typed suite-admission

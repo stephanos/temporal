@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T16:41:40.191389Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.2"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.19",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.19.md",
+  "status": "todo",
+  "title": "Implement immutable native exploration spaces and selectors",
+  "updated_at": "2026-10-18T16:41:40.191389Z"
+}

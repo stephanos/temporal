@@ -76,6 +76,27 @@ are committed; its baseline must be taken after those DSL changes.
 
 ## Architecture & Data Models
 
+### Native exploration checkpoints
+
+Native exploration implementation consumes the committed authored-capture and partial
+suite-lifecycle/runtime checkpoints independently of complete global suite discovery. Three
+bounded leaves deliver immutable spaces/selectors, find/sample adapters and deferred refutation
+with local refusal controls. Their core write surfaces overlap, so their implementation order is
+serial; fixture preparation and independent review can run concurrently.
+
+The original exploration task retains final actual Registry-selected source/library suite
+integration and depends on completed suite discovery plus all three leaves. Direct native suite
+selectors do not close that obligation. Full suite lifecycle/discovery, both actual gate callers,
+complete held/unselected identities, corpus admission and the stronger checker policy-ordering
+contract remain outstanding with their existing owners. Conformance integration stays blocked
+on its actual complete inventory and capability production prerequisites. A retained sample
+declaration and seeded paths supply reusable ingredients only.
+
+Supplied exploration selector constraints evaluate once at deferred space acquisition in authored
+order and remain immutable across questions. Unspecified positions retain existing search
+semantics; declared positions stay within the space bound. Questions retain the test-level
+from/single-start rule. This adds no per-reached-state selector reevaluation or second start API.
+
 <!-- Architecture: 50% [user], 40% [paraphrase], 10% [inferred] -->
 
 - **`ModelSuite(instance)`** is a munit suite over one Model instance (fn-194). It defines
@@ -370,11 +391,11 @@ checks suites without test invocations.
 | --- | --- | --- | --- |
 | R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations`, `conformance` and `unit` sections; `unit` bodies are plain munit; the top level holds only sections and shared helper definitions. Errors: a `test` outside a section, and a section with a non-test member other than a space `val`, are refused naming the member. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
 | R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
-| R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195-modelsuite-a-models-test-file-holds-its.19, fn-195-modelsuite-a-models-test-file-holds-its.20, fn-195-modelsuite-a-models-test-file-holds-its.21, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
 | R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.10, fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.15, fn-195-modelsuite-a-models-test-file-holds-its.16, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18 | — |
 | R5 | The Model has no `queries` section, `Query`, `find`, `verify`, `witness`, `scenario`, `limits`, `.live`, `.explore` or capability live switch; `Realizes` has no `runs`; `satisfied`, `inconclusive` and `conformant` live in the realize package. Errors: the retired names are unreachable by authors (fn-190.16's grep). | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.3 | — |
 | R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195-modelsuite-a-models-test-file-holds-its.4 | — |
-| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.19, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.20, fn-195-modelsuite-a-models-test-file-holds-its.21, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195-modelsuite-a-models-test-file-holds-its.5 | — |
 | R9 | All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. | fn-195-modelsuite-a-models-test-file-holds-its.6 | — |
 | R10 | After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. | fn-195-modelsuite-a-models-test-file-holds-its.7 | — |

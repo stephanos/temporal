@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T16:41:40.191554Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.19"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.20",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.20.md",
+  "status": "todo",
+  "title": "Connect native find and seeded sample questions to ModelSuite",
+  "updated_at": "2026-10-18T16:41:40.191554Z"
+}
