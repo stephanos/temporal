@@ -8,12 +8,16 @@ satisfies: [R29, R30]
 
 Runs alone, after .12 (R29).
 
+Preserve the authoring option sketches until .7: relocate samples/options/ to model2/options/ while removing samples, and update its links. Do not delete this comparison input prematurely.
+
+R30 tooling: audit model2/scripts/time-gate.sh so failed timed commands propagate failure while budget overruns remain warnings. A confirmed command-substitution failure-masking regression has a minimal reproduction in this run's timing-wrapper.md notes; add an executable negative control and keep measured steps aligned with the actual gate.
+
 - Create crate `umpire-tests` at `model2/umpire/tests/` (workspace member, `publish = false`, `autotests = false`, one `[[test]] name = "fixtures" path = "fixtures.rs"`), with a `build.rs` that generates the `#[path]` modules from `fixtures/*/model.rs`, and fixtures directly under `model2/umpire/tests/fixtures/<name>/`.
 - Move `kettle`, `kettle_trait` and `kettle_cut` from `samples/tests/fixtures/`, and `choices`, `deep_chain`, `edge_checks`, `shared_starts`, `vacuity` from `checker/tests/fixtures/`, with their `expected/` byte-identical. Move `samples/src/kettle.rs` into `umpire/tests/fixtures/kettle/model.rs` (the fixture's own Model, not a re-export) and remove the `samples` crate and folder from the workspace.
 - Give `umpire-testing` a consumer registry: each consumer declares the expected file names it owns and renders them; the runner runs a fixture through every consumer whose files it has, fails on an expected file no consumer owns, and on a fixture with none. Register the checker consumer now; TLC (.8) and Apalache (fn-211) register theirs later.
 - Update the README's testing and layout sections.
 
-**Files:** model2/Cargo.toml (members), model2/umpire/tests/{Cargo.toml,build.rs,fixtures.rs,fixtures/}, model2/umpire/samples/ (removed), model2/umpire/checker/tests/fixtures/, model2/umpire/testing/src/, model2/README.md.
+**Files:** Makefile, model2/scripts/, model2/options/ (relocated sketches), model2/Cargo.toml (members), model2/umpire/tests/{Cargo.toml,build.rs,fixtures.rs,fixtures/}, model2/umpire/samples/ (removed), model2/umpire/checker/tests/fixtures/, model2/umpire/testing/src/, model2/README.md.
 
 **Quick commands:** `make model2-check`
 ## Acceptance
