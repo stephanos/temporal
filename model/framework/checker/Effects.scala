@@ -24,12 +24,20 @@ private[framework] object Effects:
   private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
     def run(s: S, cls: Class): List[Step[S, O, F]] = bound match
       case Bound.Ruled(rules) =>
-        rules
-          .find(r => r.fires(cls.values) && guardHolds(r.guard, s, cls))
-          .fold(Nil): rule =>
-            rule.effect match
+        rules.iterator
+          .filter(_.fires(cls.values))
+          .map: rule =>
+            def execute(): List[Step[S, O, F]] = rule.effect match
               case effect: InputEffect[S, O, F] @unchecked => effect(s, cls)
               case effect                                  => effect(s, cls.values)
+            rule.guard match
+              case fires: Programs.Fires[S] @unchecked if fires.effect eq rule.effect =>
+                val steps = execute()
+                Option.when(steps.nonEmpty)(steps)
+              case guard if guardHolds(guard, s, cls) => Some(execute())
+              case _                                  => None
+          .collectFirst { case Some(steps) => steps }
+          .getOrElse(Nil)
       case _ => Nil
     bound match
       case Bound.Function(f, _)            => f
@@ -42,7 +50,7 @@ private[framework] object Effects:
         (s: S) => run(s, Class(decl, Nil))
 
   // One step function per action of a machine: the rules of each, lowered (Rules.lowered).
-  extension [S, O, F](machine: RecordMachine[S, O, F])
+  extension [S, O, F](machine: MachineDeclaration[S, O, F])
     private[framework] def bindings: List[StepBinding[S, O, F]] =
       machine.table.map { (decl, bound) =>
         val captured = bound match
@@ -83,13 +91,27 @@ private[framework] object Effects:
   // The state a crash leaves: the fields its durability keeps, the others reset, and the budget
   // consumed.
   private[framework] def resetAfterCrash[S](
-      machine: RecordMachine[S, ?, ?],
+      machine: MachineDeclaration[S, ?, ?],
       state: S,
       budget: Vector[(List[String], Any)]
   ): S =
     val durability = machine.nativeDurability
-    durability.headOption.fold(state): first =>
-      first.field.rebuild(state, durability.flatMap(_.replacement(state)) ++ budget)
+    val replacements = durability.flatMap(_.replacement(state)) ++ budget
+    state match
+      case _: State =>
+        replacements
+          .groupBy(_._1.head)
+          .toVector
+          .sortBy(_._1)
+          .foldLeft(state):
+            case (current, (root, changes)) =>
+              val selected = durability
+                .find(_.field.path.head == root)
+                .getOrElse(
+                  throw IllegalArgumentException(s"unclassified crash field $root")
+                )
+              selected.field.rebuild(current, changes)
+      case _ => durability.headOption.fold(state)(_.field.rebuild(state, replacements))
 
 // The callables the DSL builds (Programs), run.
 private[framework] object ProgramRuntime:
@@ -175,8 +197,6 @@ private[framework] object ProgramRuntime:
       ) // scalafix:ok DisableSyntax.asInstanceOf
     case sticky: Programs.StickyVar =>
       argument.asInstanceOf[Boolean] || !sticky.promise() // scalafix:ok DisableSyntax.asInstanceOf
-    case condition: Programs.StateCondition[?]  => stateCondition(condition, argument)
-    case effect: Programs.RecordEffect[?, ?, ?] => recordEffect(effect, argument)
     case step: Programs.VarStep[?, ?] => step.vars.step(argument, step.accepted)(step.body())
     case budgeted: Programs.BudgetedState[?, ?, ?] =>
       budgeted.effect.asInstanceOf[Any => Any](argument) // scalafix:ok DisableSyntax.asInstanceOf
@@ -185,13 +205,6 @@ private[framework] object ProgramRuntime:
         (both.left, both.right)
           .asInstanceOf[(Any => Boolean, Any => Boolean)] // scalafix:ok DisableSyntax.asInstanceOf
       left(argument) && right(argument)
-    case choices: StateChoiceProgram[?, ?, ?] =>
-      choices.alternatives.flatMap { (_, arm) =>
-        val steps =
-          arm.asInstanceOf[Any => List[Any]](argument) // scalafix:ok DisableSyntax.asInstanceOf
-        require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
-        steps
-      }.toList
     case crash: NativeCrash[?, ?, ?] => crashed(crash, argument)
     case other => throw IllegalArgumentException(s"$other is no step function the DSL builds")
 
@@ -210,37 +223,13 @@ private[framework] object ProgramRuntime:
     case budgeted: Programs.BudgetedInput[?, ?, ?, ?] =>
       budgeted.effect
         .asInstanceOf[(Any, Any) => Any](first, second) // scalafix:ok DisableSyntax.asInstanceOf
-    case condition: Programs.VarCondition[?]     => varCondition(condition, first, second)
-    case choices: InputChoiceProgram[?, ?, ?, ?] =>
-      choices.alternatives.flatMap { (_, arm) =>
-        val steps =
-          arm.asInstanceOf[(Any, Any) => List[Any]](
-            first,
-            second
-          ) // scalafix:ok DisableSyntax.asInstanceOf
-        require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
-        steps
-      }.toList
+    case condition: Programs.VarCondition[?] => varCondition(condition, first, second)
     case other => throw IllegalArgumentException(s"$other is no step function the DSL builds")
 
   private def varInputStep[I](step: Programs.VarInputStep[I, ?, ?], state: Any, input: Any): Any =
     step.vars.step(state, step.accepted)(
       step.body(input.asInstanceOf[I]) // scalafix:ok DisableSyntax.asInstanceOf
     )
-
-  private def stateCondition[S](program: Programs.StateCondition[S], argument: Any): Boolean =
-    program.body(using
-      new Fixed(argument.asInstanceOf[S])
-    ) // scalafix:ok DisableSyntax.asInstanceOf
-
-  private def recordEffect[S, O, F](
-      program: Programs.RecordEffect[S, O, F],
-      argument: Any
-  ): List[Step[S, O, F]] =
-    val state = argument.asInstanceOf[S] // scalafix:ok DisableSyntax.asInstanceOf
-    val draft = new Draft[S, O, F](state)
-    program.body(using draft)
-    List(draft.step(state, program.accepted))
 
   private def varCondition[A](condition: Programs.VarCondition[A], state: Any, input: Any): Any =
     condition.vars.at(state)(

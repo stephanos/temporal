@@ -12,11 +12,12 @@ package framework.realize {
     def familyVocabulary()(using f: Family): String = f.id + ".vocabulary"
 
   // The machine the fixtures' realizations are of.
-  object FamilySubject extends framework.dsl.RecordMachine[Boolean, Boolean, Boolean]:
-    val init = false
-    def end(s: Boolean): Boolean = s
+  object FamilySubject extends framework.dsl.Machine[Boolean, Boolean]:
+    var ready = false
+    override def end: Boolean = ready
 
-    object transitions extends framework.dsl.Rules
+    object transitions
+        extends framework.dsl.Transitions(using summon, framework.dsl.Ok(true), summon)
 
   class FamilyTest extends munit.FunSuite:
     import scala.compiletime.testing.typeCheckErrors

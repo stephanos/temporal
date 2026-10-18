@@ -31,7 +31,7 @@ private[framework] object RuleBindings:
       guardPlacements: Vector[String] = Vector.empty
   )
   final case class Registration(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       declaration: ActionDecl,
       values: Option[List[Any]],
       cls: Option[Seq[ir.Value]],
@@ -44,7 +44,7 @@ private[framework] object RuleBindings:
   final case class Retained(rule: Rule[?, ?, ?], registration: Registration)
   final case class Disabled(
       bound: Bound[?, ?, ?],
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       declaration: ActionDecl,
       owner: String,
       family: String,
@@ -181,7 +181,7 @@ private[framework] object RuleBindings:
         throw IllegalArgumentException(s"$context: incomplete retained Rule payload", error)
 
   private def checkedSource(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       owner: String,
       family: String,
       machine: String,
@@ -198,7 +198,10 @@ private[framework] object RuleBindings:
       s"$context: pending or stale Rule declaration registration"
     )
 
-  private[framework] def schema(source: RecordMachine[?, ?, ?], context: String): FiniteSchema =
+  private[framework] def schema(
+      source: MachineDeclaration[?, ?, ?],
+      context: String
+  ): FiniteSchema =
     source.headerSchemaKeys.headOption.flatten
       .map(key => FiniteSchema.selected(source.fs, key, context))
       .getOrElse(throw IllegalArgumentException(s"$context: no retained state schema"))
@@ -238,7 +241,7 @@ private[framework] object RuleBindings:
     case _                => true
 
   def registration[S, O, F](
-      source: RecordMachine[S, O, F],
+      source: MachineDeclaration[S, O, F],
       decl: ActionDecl,
       values: Option[List[Any]],
       guard: S => Boolean,
@@ -287,7 +290,7 @@ private[framework] object RuleBindings:
     Registration(source, decl, values, cls, guard, effect, packet, types, facet)
 
   def retainedDisabled[S, O, F](
-      source: RecordMachine[S, O, F],
+      source: MachineDeclaration[S, O, F],
       declarations: Seq[ActionDecl],
       data: Seq[String],
       origin: Option[FacetBindings.Origin] = None
@@ -308,7 +311,7 @@ private[framework] object RuleBindings:
     disabledRows(source, declarations, payload, facet)
 
   private def disabledRows[S, O, F](
-      source: RecordMachine[S, O, F],
+      source: MachineDeclaration[S, O, F],
       declarations: Seq[ActionDecl],
       data: Seq[String],
       facet: Option[(FacetBindings.Origin, FacetBindings.Definition)]
@@ -352,7 +355,7 @@ private[framework] object RuleBindings:
       data(offset + 2 * index) -> bound
     }.toVector
 
-  def collect(machine: RecordMachine[?, ?, ?]): Contribution =
+  def collect(machine: MachineDeclaration[?, ?, ?]): Contribution =
     require(machine ne null, "Machine Rules: declaration is not initialized")
     if machine.derivationParent.nonEmpty then DerivationBindings.collect(machine)
     else
@@ -362,17 +365,13 @@ private[framework] object RuleBindings:
       )
       val table = DerivationBindings.acquiredTable(machine, "Machine Rules")
       val book = machine.acquireRuleBook()
-      book match
-        case _: Bindings[?, ?, ?] =>
-          val result = CoreBindings.collectEntries(table, "Machine core Rules")
-          Contribution(result.steps, result.functions, result.types, result.channels, result.holes)
-        case _ => collectEntries(machine, table, book)
+      collectEntries(machine, table, book)
 
   def collectEntries(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       table: Vector[(ActionDecl, Bound[?, ?, ?])],
       book: RuleBook[?, ?, ?],
-      declaring: Option[RecordMachine[?, ?, ?]] = None,
+      declaring: Option[MachineDeclaration[?, ?, ?]] = None,
       capturedRows: (ActionDecl, Vector[Registration]) => Unit = (_, _) => (),
       capturedProofs: Vector[CoreBindings.CurriedCall] => Unit = _ => ()
   ): Contribution =
@@ -380,13 +379,12 @@ private[framework] object RuleBindings:
     def fail(message: String): Nothing = throw IllegalArgumentException(s"$context: $message")
     if source == null || source.ruleSource.headerIdentity.isEmpty then
       fail("declaration registration is pending or absent")
-    val contributors: Option[Vector[FacetBindings.Origin]] = book match
-      case _: Bindings[?, ?, ?] if declaring.nonEmpty => None
-      case _ => FacetBindings.contributors(source.ruleSource, book)
+    val contributors: Option[Vector[FacetBindings.Origin]] =
+      if declaring.nonEmpty then None else FacetBindings.contributors(source.ruleSource, book)
     if contributors.isEmpty then
       book match
         case rules if isDirectRuleBook(rules) && rules.facetSource.isEmpty => ()
-        case _: Bindings[?, ?, ?] if declaring.nonEmpty                    => ()
+        case _ if declaring.nonEmpty                                       => ()
         case _ => fail("Facets or non-direct Rules contributions are unsupported")
     def checkedFacet(origin: FacetBindings.Origin, definition: FacetBindings.Definition): Unit =
       if !contributors.exists(_.exists(_.eq(origin))) then

@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.dsl.Finite.given
+
 object PropertyIllustrationsFixture:
 
   object Answer:
@@ -17,46 +19,48 @@ object PropertyIllustrationsFixture:
   val foreign = action("plain", Actor("tester"))
   given Finite[NativeState] = new Finite[NativeState]:
     def values = throw AssertionError("state catalog evaluated")
+  given Ok[Boolean] = Ok(true)
+  given Ok[Answer.Value] = Ok(accepted)
+  def guard: Boolean = throw AssertionError("guard evaluated")
 
-  object Native
-      extends RecordMachine[NativeState, Boolean, Boolean](using
-        summon[Data[NativeState]],
-        Finite.of(true),
-        Finite.of(false)
-      ):
-    def init: NativeState = throw AssertionError("init evaluated")
-    def end(state: NativeState): Boolean = throw AssertionError("end evaluated")
+  object Native extends Machine[Boolean, Boolean](using Finite.of(true), Finite.of(false)):
+    var payload = NativeState(0, Nil)
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Rules:
+    object transitions extends Transitions:
       on(PropertyIllustrationsFixture.plain):
-        where((_: NativeState) => throw AssertionError("guard evaluated")) ~>
-          ((_: NativeState) => throw AssertionError("effect evaluated"))
-      on(PropertyIllustrationsFixture.correlated):
-        always ~> ((_: NativeState, _: Input) => throw AssertionError("input effect evaluated"))
+        if guard then effects.fail()
+      on(PropertyIllustrationsFixture.correlated): input =>
+        effects.inputFail(input)
+
+    object effects:
+      def fail(): Unit = throw AssertionError("effect evaluated")
+      def inputFail(input: Input): Unit =
+        val _ = input
+        throw AssertionError("input effect evaluated")
 
   object Opaque
-      extends RecordMachine[Boolean, Answer.Value, Answer.Value](using
-        summon[Data[Boolean]],
-        Finite.of(accepted),
-        Finite.of(accepted)
-      ):
-    def init = false
-    def end(state: Boolean): Boolean = state
+      extends Machine[Answer.Value, Answer.Value](using Finite.of(accepted), Finite.of(accepted)):
+    var ready = false
+    override def end: Boolean = ready
 
-    object transitions
-        extends Bindings(
-          PropertyIllustrationsFixture.plain ~> ((s: Boolean) => List(Step(accepted, s)))
-        )
+    object transitions extends Transitions:
+      on(PropertyIllustrationsFixture.plain):
+        effects.noop()
+
+    object effects:
+      def noop(): Unit = ()
 
 class PropertyIllustrationsSuite extends munit.FunSuite:
   import WitnessFixture.*
 
+  private def opened: State = Subject.init.copy(phase = Phase.open)
+  private def closed: State = Subject.init.copy(phase = Phase.closed)
+
   test("typed completions append ordered illustrations without changing ordinary declarations"):
-    val original: SameStepProperty[State, Outcome, Fact] = Subject
-      .property("completion")
-      .expect:
-        records(Fact.completed)
-    val step = Step(Outcome.accepted, State.closed, List(Fact.completed, Fact.completed))
+    val original: SameStepProperty[State, Outcome, Fact] =
+      WitnessFixture.sameStep("completion")(_.facts.contains(Fact.completed))
+    val step = Step(Outcome.accepted, closed, List(Fact.completed, Fact.completed))
     val first = original.illustrate(
       "  completion  ",
       "  the completion is recorded  ",
@@ -69,13 +73,10 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
       "No completion was recorded",
       IllustrationKind.counterexample,
       start(),
-      Step(Outcome.accepted, State.closed)
+      Step(Outcome.accepted, closed)
     )
     val ordinary: Property = second
-    val q = query
-      .verify(ordinary)
-      .in(Subject.scenario.free)
-      .limits(Limits(steps = 1, actions = 1, search = 8))
+    val q = ClaimQuery.property(QueryForm.verify, ordinary)
     assert(original.illustrations.isEmpty)
     assertEquals(first.illustrations.size, 1)
     assertEquals(second.illustrations.map(_.label), Vector("  completion  ", "missing"))
@@ -98,28 +99,22 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
     assertNotEquals(first.illustrations.head.origin, second.illustrations.last.origin)
 
   test("transition illustrations require and retain their typed hypothetical before state"):
-    val original: TransitionProperty[State, Outcome, Fact] = Subject
-      .property("closed")
-      .across
-      .expect:
-        check(before.equals(after.state))
+    val original: TransitionProperty[State, Outcome, Fact] =
+      WitnessFixture.transition("closed")((before, after) => before.equals(after.state))
     val attached = original.illustrate(
       "hypothetical",
       "The input need not be reachable",
       IllustrationKind.counterexample,
       start(),
-      State.closed,
-      Step(Outcome.accepted, State.open)
+      closed,
+      Step(Outcome.accepted, opened)
     )
-    assertEquals(attached.illustrations.head.before, Some(State.closed))
+    assertEquals(attached.illustrations.head.before, Some(closed))
     assert(attached.decl.holds2 eq original.decl.holds2)
 
   test("metadata validation is located and leaves previous immutable copies intact"):
-    val p = Subject
-      .property("metadata")
-      .expect:
-        check(true)
-    val step = Step[State, Outcome, Fact](Outcome.accepted, State.open)
+    val p = WitnessFixture.sameStep("metadata")(_ => true)
+    val step = Step[State, Outcome, Fact](Outcome.accepted, opened)
     val first = p.illustrate("one", "reason", IllustrationKind.positive, start(), step)
     for (label, because, expected) <- List(
         (" ", "reason", "label"),
@@ -140,12 +135,9 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
     assertEquals(first.illustrations.size, 1)
 
   test("a same-spelled foreign action is refused while a bound unselected action is retained"):
-    val p = Subject
-      .property("unselected")
-      .afterAction("not-start")
-      .expect:
-        check(true)
-    val step = Step[State, Outcome, Fact](Outcome.accepted, State.open)
+    val p = new PropertyBuilder[State, Outcome, Fact]("unselected", Subject, Some("not-start"))
+      .sameStep(_ => true)
+    val step = Step[State, Outcome, Fact](Outcome.accepted, opened)
     assertEquals(
       p.illustrate("allowed", "Unclassified", IllustrationKind.positive, start(), step)
         .illustrations
@@ -158,26 +150,21 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
     assert(error.getMessage.contains("not bound"), error.getMessage)
 
   test("ordinary property predicates remain the independent authority"):
-    val p = Subject
-      .property("independent")
-      .expect:
-        records(Fact.completed)
+    val p = WitnessFixture.sameStep("independent")(_.facts.contains(Fact.completed))
     val predicate = p.decl.holds.get.asInstanceOf[Step[State, Outcome, Fact] => Boolean]
-    assert(predicate(Step(Outcome.accepted, State.open, List(Fact.completed))))
-    assert(!predicate(Step(Outcome.accepted, State.open)))
+    assert(predicate(Step(Outcome.accepted, opened, List(Fact.completed))))
+    assert(!predicate(Step(Outcome.accepted, opened)))
     assert(p.decl.illustrations.isEmpty)
 
   test(
     "admission uses actual selected domains and never reads modeled callbacks or state catalogs"
   ):
     import PropertyIllustrationsFixture.*
-    def claim(read: () => Boolean) = Native
-      .property("native")
-      .after(plain())
-      .expect:
-        check(read())
+    def claim(read: () => Boolean) =
+      new PropertyBuilder[State, Boolean, Boolean]("native", Native, Some(plain()))
+        .sameStep(_ => read())
     val p = claim(() => throw AssertionError("predicate evaluated"))
-    val state = NativeState(Int.MaxValue, List(Int.MinValue, 1000000))
+    val state = Native.init.copy(payload = NativeState(Int.MaxValue, List(Int.MinValue, 1000000)))
     val step = Step(true, state, List(false, false))
     val supplied = correlated(one)
     val originalInput = supplied.supplied.get.value
@@ -212,24 +199,39 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
 
   test("typed attachment refuses wrong step types before state shape and unknown kind"):
     val invalid = List(
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.positive, start(), Step(Outcome.accepted, 1))"
-      ),
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.positive, start(), Step(false, State.open))"
-      ),
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.positive, start(), Step(Outcome.accepted, State.open, List(false)))"
-      ),
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.across.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.positive, start(), Step(Outcome.accepted, State.open))"
-      ),
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.positive, start(), State.open, Step(Outcome.accepted, State.open))"
-      ),
-      compileErrors(
-        "import WitnessFixture.*; Subject.property.expect { check(true) }.illustrate(\"x\", \"why\", IllustrationKind.unspecified, start(), Step(Outcome.accepted, State.open))"
-      )
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.sameStep("typed")(_ => true).illustrate(
+          "x", "why", IllustrationKind.positive, start(), Step(Outcome.accepted, 1))
+      """),
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.sameStep("typed")(_ => true).illustrate(
+          "x", "why", IllustrationKind.positive, start(), Step(false, Subject.init))
+      """),
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.sameStep("typed")(_ => true).illustrate(
+          "x", "why", IllustrationKind.positive, start(),
+          Step(Outcome.accepted, Subject.init, List(false)))
+      """),
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.transition("typed")((_, _) => true).illustrate(
+          "x", "why", IllustrationKind.positive, start(), Step(Outcome.accepted, Subject.init))
+      """),
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.sameStep("typed")(_ => true).illustrate(
+          "x", "why", IllustrationKind.positive, start(), Subject.init,
+          Step(Outcome.accepted, Subject.init))
+      """),
+      compileErrors("""
+        import WitnessFixture.*
+        WitnessFixture.sameStep("typed")(_ => true).illustrate(
+          "x", "why", IllustrationKind.unspecified, start(),
+          Step(Outcome.accepted, Subject.init))
+      """)
     )
     assertEquals(invalid.zipWithIndex.filter((message, _) => message.isEmpty), Nil)
 
@@ -238,34 +240,33 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
     given Finite[Answer.Value] = new Finite[Answer.Value]:
       def values = throw AssertionError("ambient outcome/fact domain evaluated")
     val _ = () => summon[Finite[Answer.Value]]
-    val p = Opaque
-      .property("selectedOpaque")
-      .expect:
-        check(true)
+    val p = new PropertyBuilder[State, Answer.Value, Answer.Value]("selectedOpaque", Opaque, None)
+      .sameStep(_ => true)
     val value = p.illustrate(
       "selected",
       "Owner selected values",
       IllustrationKind.positive,
       plain(),
-      Step(accepted, true, List(accepted))
+      Step(accepted, Opaque.init.copy(ready = true), List(accepted))
     )
     assertEquals(value.illustrations.size, 1)
-    for step <- List(Step(excluded, true, List(accepted)), Step(accepted, true, List(excluded))) do
+    for step <- List(
+        Step(excluded, Opaque.init.copy(ready = true), List(accepted)),
+        Step(accepted, Opaque.init.copy(ready = true), List(excluded))
+      )
+    do
       intercept[IllegalArgumentException]:
         p.illustrate("excluded", "Outside owner domain", IllustrationKind.positive, plain(), step)
 
   test(
-    "composed owners reject attachment but generic and legacy ordinary properties keep no new duty"
+    "composed owners reject attachment but generic ordinary properties keep no new duty"
   ):
-    def generic[S](owner: Declares[S]): Property = owner.property.expect:
-      check(true)
+    def generic[S](owner: Declares[S]): Property =
+      new Property(new PropertyDecl("", owner, None, None, None))
     assert(generic(Together).decl.illustrations.isEmpty)
     assert(generic(Subject).decl.illustrations.isEmpty)
-    assert(
-      Subject.property.never((_: Step[State, Outcome, Fact]) => false).decl.illustrations.isEmpty
-    )
-    val composed = Together.property.expect:
-      check(true)
+    val composed = new PropertyBuilder[State, Any, JoinedFact]("", Together, None)
+      .sameStep(_ => true)
     val error = intercept[IllegalArgumentException]:
       composed.illustrate(
         "unsupported",
@@ -275,13 +276,13 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
         Step[framework.dsl.State, Any, JoinedFact]("accepted", Together.init)
       )
     assert(error.getMessage.contains("composed"), error.getMessage)
-    val derived = DerivedSubject.property.expect:
-      check(true)
+    val derived = new PropertyBuilder[State, Outcome, Fact]("", DerivedSubject, None)
+      .sameStep(_ => true)
     val attached = derived.illustrate(
       "derived",
       "This owner",
       IllustrationKind.positive,
       start(),
-      Step(Outcome.accepted, State.closed)
+      Step(Outcome.accepted, closed)
     )
     assert(attached.decl.machine eq DerivedSubject)

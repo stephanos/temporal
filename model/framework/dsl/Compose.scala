@@ -61,7 +61,7 @@ abstract class Composition[F] private (private[framework] val shape: Composition
     this(Composition.Shape.Declared(schema))
   def this(replacement: MemberReplacement[F]) = this(Composition.Shape.Derived(replacement))
   def name: String = objectName(this)
-  override def reach: Limits = source.fold(super.reach)(_.reach)
+  override def reach: QueryBounds = source.fold(super.reach)(_.reach)
   private[framework] def source: Option[Composition[?]] = shape match
     case Composition.Shape.Derived(replacement) => Some(replacement.source)
     case _                                      => None
@@ -100,7 +100,8 @@ abstract class Composition[F] private (private[framework] val shape: Composition
   def end: Boolean = source.fold(true)(_.end)
   final def end(state: State): Boolean = runtime.vars.at(state)(end)
   final def at[A](state: State)(body: => A): A = runtime.vars.at(state)(body)
-  def assumptions: List[Assumption] = memberTable.flatMap(_._3.assumptions).toList.distinct
+  private[framework] def assumptions: List[EnvironmentAssumption] =
+    memberTable.flatMap(_._3.assumptions).toList.distinct
   final protected inline def sync(
       first: Action[?] | Class | CompositionTarget,
       second: Action[?] | Class | CompositionTarget

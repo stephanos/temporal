@@ -113,23 +113,28 @@ class Inputs extends munit.FunSuite:
       five().values,
       List(Timeout.unset, Timeout.unset, Timeout.unset, false, Answer.completed)
     )
-    object FiveInputs extends RecordMachine[Counted, outcomes.Outcome, Answer]:
-      val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 1
-      object transitions extends Rules:
-        on(caller.five):
-          always ~> ((s: Counted, in: Five) =>
-            enter(
-              s.copy(
-                attempts =
-                  UpTo(if in.enabled && in.scheduleToClose == in.scheduleToStart then 1 else 0),
-                timeout = in.startToClose
-              ),
-              in.answer
-            )
+    object FiveInputs extends Machine[outcomes.Outcome, Answer]:
+      var counted = Counted(UpTo(0), Timeout.unset)
+      override def end: Boolean = counted.attempts == 1
+      object effects:
+        def update(in: Five): Unit =
+          counted = counted.copy(
+            attempts =
+              UpTo(if in.enabled && in.scheduleToClose == in.scheduleToStart then 1 else 0),
+            timeout = in.startToClose
           )
+          record(in.answer)
+      object transitions extends Transitions:
+        on(caller.five): in =>
+          effects.update(in)
     val binding = FiveInputs.bindings.head
-    val after = effectOf(binding.decl, binding.function)(FiveInputs.init, supplied.values).head
+    val native = effectOf[State, outcomes.Outcome, Answer](binding.decl, binding.function)
+    def run(state: Counted, values: List[Any]) =
+      native(FiveInputs.init.copy(counted = state), values).map: step =>
+        step.state.selectDynamic("counted") match
+          case value: Counted => Step(step.outcome, value, step.facts)
+          case other          => fail(s"unexpected native counted value $other")
+    val after = run(Counted(UpTo(0), Timeout.unset), supplied.values).head
     assertEquals(after.state, Counted(UpTo(1), Timeout.expires))
     assertEquals(after.facts, List(Answer.completed))
     for state <- Finite[Counted].values; values <- classesOf(five.decl) do
@@ -145,12 +150,15 @@ class Inputs extends munit.FunSuite:
             ).values,
             List(a, b, c, flag, result)
           )
-          enter(
-            state.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
-            result
+          List(
+            Step(
+              outcomes.Outcome.accepted,
+              state.copy(attempts = UpTo(if flag && a == b then 1 else 0), timeout = c),
+              List(result)
+            )
           )
         case other => fail(s"unexpected five-input class $other")
-      assertEquals(effectOf(binding.decl, binding.function)(state, values), expected)
+      assertEquals(run(state, values), expected)
     assert(
       compiletime.testing
         .typeCheckErrors("""
@@ -228,9 +236,12 @@ class Inputs extends munit.FunSuite:
         result: Answer,
         attempts: UpTo[2]
     ) =>
-      enter(
-        s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c),
-        result
+      List(
+        Step(
+          outcomes.Outcome.accepted,
+          s.copy(attempts = if flag && a == b then attempts else UpTo(0), timeout = c),
+          List(result)
+        )
       )
     val step = (s: Counted, in: Six) =>
       coreStep(
@@ -251,26 +262,29 @@ class Inputs extends munit.FunSuite:
       execute(Counted(UpTo(0), Timeout.unset), supplied.values).head.state,
       Counted(UpTo(2), Timeout.expires)
     )
-    val direct = six ~> step
-    assertEquals(
-      effectOf[Counted, outcomes.Outcome, Answer](direct.decl, direct.function)(
-        Counted(UpTo(0), Timeout.unset),
-        supplied.values
-      ).head.state,
-      Counted(UpTo(2), Timeout.expires)
-    )
-    object SixInputs extends RecordMachine[Counted, outcomes.Outcome, Answer]:
-      val init = Counted(UpTo(0), Timeout.unset)
-      def end(s: Counted): Boolean = s.attempts == 2
-      object transitions extends Rules:
-        on(caller.six):
-          always ~> step
+    object SixInputs extends Machine[outcomes.Outcome, Answer]:
+      var counted = Counted(UpTo(0), Timeout.unset)
+      override def end: Boolean = counted.attempts == 2
+      object effects:
+        def update(in: Six): Unit =
+          counted = counted.copy(
+            attempts =
+              if in.enabled && in.scheduleToClose == in.scheduleToStart then in.count else UpTo(0),
+            timeout = in.startToClose
+          )
+          record(in.answer)
+      object transitions extends Transitions:
+        on(caller.six): in =>
+          effects.update(in)
     val binding = SixInputs.bindings.head
+    val native = effectOf[State, outcomes.Outcome, Answer](binding.decl, binding.function)
+    def run(state: Counted, values: List[Any]) =
+      native(SixInputs.init.copy(counted = state), values).map: step =>
+        step.state.selectDynamic("counted") match
+          case value: Counted => Step(step.outcome, value, step.facts)
+          case other          => fail(s"unexpected native counted value $other")
     assertEquals(
-      effectOf[Counted, outcomes.Outcome, Answer](binding.decl, binding.function)(
-        SixInputs.init,
-        supplied.values
-      ).head.state,
+      run(Counted(UpTo(0), Timeout.unset), supplied.values).head.state,
       Counted(UpTo(2), Timeout.expires)
     )
     val ruled = Bound.Ruled[Counted, outcomes.Outcome, Answer](
@@ -309,11 +323,7 @@ class Inputs extends munit.FunSuite:
           coreStep(state, a, b, c, flag, result, bounded)
         case other => fail(s"unexpected six-input class $other")
       assertEquals(execute(state, values), expected)
-      assertEquals(
-        effectOf[Counted, outcomes.Outcome, Answer](direct.decl, direct.function)(state, values),
-        expected
-      )
-      assertEquals(effectOf(binding.decl, binding.function)(state, values), expected)
+      assertEquals(run(state, values), expected)
       assertEquals(lowered(state, values), expected)
 
   test("a record beyond six inputs executes and lowers without an arity cap"):
@@ -330,9 +340,16 @@ class Inputs extends munit.FunSuite:
     val supplied = seven(Seven(false, false, false, false, false, false, true))
     assertEquals(supplied.values, List(false, false, false, false, false, false, true))
     val step = (s: Counted, in: Seven) =>
-      enter(s.copy(attempts = UpTo(if in.g then 2 else 0)), Answer.completed)
+      List(
+        Step(
+          outcomes.Outcome.accepted,
+          s.copy(attempts = UpTo(if in.g then 2 else 0)),
+          List(Answer.completed)
+        )
+      )
     val execute = effectOf[Counted, outcomes.Outcome, Answer](seven.decl, step)
-    val expected = enter(Counted(UpTo(2), Timeout.unset), Answer.completed)
+    val expected =
+      List(Step(outcomes.Outcome.accepted, Counted(UpTo(2), Timeout.unset), List(Answer.completed)))
     assertEquals(execute(Counted(UpTo(0), Timeout.unset), supplied.values), expected)
     val ruled = Bound.Ruled[Counted, outcomes.Outcome, Answer](
       Vector(Rule(1, "always", "seven", seven.decl, None, _ => true, execute))

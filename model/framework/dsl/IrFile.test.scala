@@ -1,9 +1,10 @@
 package framework.dsl
 
 import framework.checker.Effects.*
+import framework.dsl.Finite.given
 
 object DiscoveryFixtures:
-  enum State:
+  enum Phase:
     case open, closed
   enum Outcome:
     case done
@@ -11,42 +12,47 @@ object DiscoveryFixtures:
   enum RolePhase:
     case pending extends RolePhase, Waiting
     case settled extends RolePhase, Closed
-  import State.*
   val actor = Actor("tester")
   val advance = action("advance", actor)
   val retreat = action("retreat", actor)
   val stayed = choice
   val advanced = choice
 
-  object Original extends RecordMachine[State, Outcome, Nothing]:
-    def init = open
-    def end(s: DiscoveryFixtures.State) = s.equals(closed)
+  object Original extends Machine[Outcome, Nothing]:
+    var phase = Phase.open
+    override def end = phase == Phase.closed
 
-    object transitions
-        extends Bindings(
-          advance ~> ((_: DiscoveryFixtures.State) => List(Step(Outcome.done, closed)))
+    object transitions extends Transitions:
+      on(DiscoveryFixtures.advance):
+        effects.advance()
+
+    object effects:
+      def advance(): Unit =
+        phase = Phase.closed
+      def noop(): Unit =
+        ()
+      def alternatives(): Unit =
+        choose(
+          stayed -> (),
+          advanced -> { phase = Phase.closed }
         )
+      def counted(counter: java.util.concurrent.atomic.AtomicInteger): Unit =
+        if !counter.getAndIncrement().equals(0) then phase = Phase.closed
 
   object Added
       extends Derived(
         Original.rebind(
-          advance ~> ((s: State) =>
-            choose(
-              stayed -> List(Step(Outcome.done, s)),
-              advanced -> List(Step(Outcome.done, closed))
-            )
-          )
+          on(DiscoveryFixtures.advance):
+            Original.effects.alternatives()
         )
       )
 
-  final case class Joined(value: State)
-
   object NativeOriginal extends Machine[Outcome, Nothing]:
-    var phase = State.open
+    var phase = Phase.open
 
     object transitions extends Transitions
 
-  object NativeAdded extends Derived(NativeOriginal.restrict())
+  object NativeAdded extends Derived(NativeOriginal.unmonitored)
 
   object JoinedSource extends Composition[Nothing]:
     val value = NativeAdded
@@ -55,43 +61,59 @@ object DiscoveryFixtures:
 
   object Mapped extends Derived(Added.refining(Original)(identity))
 
-  object capabilityOwner extends RecordMachine[State, Outcome, Nothing]:
-    def init = State.open
-    def end(s: DiscoveryFixtures.State) = s.equals(State.closed)
+  object capabilityOwner extends Machine[Outcome, Nothing]:
+    var phase = Phase.open
+    override def end = phase == Phase.closed
 
-    object transitions
-        extends Bindings(
-          advance ~> ((s: DiscoveryFixtures.State) => List(Step(Outcome.done, s)))
-        )
+    object transitions extends Transitions:
+      on(DiscoveryFixtures.advance):
+        effects.noop()
+
+    object effects:
+      def noop(): Unit =
+        ()
 
     object capabilities extends Capabilities
 
-  object queryOwner extends Derived(Original.restrict(advance))
+  object queryOwner extends Derived(Original.unmonitored)
 
-  object propertyOwner extends Derived(Original.restrict(advance))
+  object propertyOwner extends Derived(Original.unmonitored):
 
-  object RoleSource extends RecordMachine[RolePhase, Outcome, Nothing]:
-    def init = RolePhase.pending
-    def end(s: RolePhase) = s.in[Closed]
+    object invariants:
+      val holds =
+        check(true)
 
-    object transitions
-        extends Bindings(
-          advance ~> ((s: RolePhase) => List(Step(Outcome.done, s)))
-        )
-  lazy val bounded = query("bounded")
-    .verify(
-      propertyOwner
-        .property("holds")
-        .expect:
-          check(true)
-    )
-    .in(queryOwner.scenario("free").free)
-    .limits(Limits(steps = 1, actions = 1, search = 4))
+  object RoleSource extends Machine[Outcome, Nothing]:
+    var phase: RolePhase = RolePhase.pending
+    override def end = phase.in[Closed]
+
+    object transitions extends Transitions:
+      on(DiscoveryFixtures.advance):
+        effects.noop()
+
+    object effects:
+      def noop(): Unit =
+        ()
+
+  lazy val bounded: Query = new Query(
+    "bounded",
+    QueryForm.verify,
+    ClaimQuery.block(QueryForm.verify, propertyOwner, "invariants", "holds").property,
+    Scenario.of(None, None).bound(queryOwner, "free"),
+    QueryBounds(steps = 1, actions = 1, search = 4)
+  )
 
   object queries:
     val one: Query = bounded
     val many: Seq[Query] = Seq(bounded)
-  lazy val progress = Original.leadsTo("reaches")(_ => true, _ => true, 1)
+  lazy val progress = LeadsTo.declared(
+    "reaches",
+    Some(Original),
+    () => true,
+    () => true,
+    Some(1),
+    Scenario.of(None, None)
+  )
   lazy val realization = framework.realize.Realization(
     machine = Added,
     producer = "fixture",
@@ -104,7 +126,48 @@ object DiscoveryFixtures:
 class IrFileDiscoveryTest extends munit.FunSuite:
   import DiscoveryFixtures.*
 
-  test("IR output paths are co-located without changing logical file identities") {
+  private def propertyMetadata(owner: Model, name: String): Property =
+    new Property(new PropertyDecl(name, owner, None, None, None))
+  private def progressMetadata(owner: Model, name: String): LeadsTo =
+    LeadsTo.declared(name, Some(owner), () => true, () => true, Some(1), Scenario.of(None, None))
+
+  test("grouped monitor references preserve lazy attachment and initialize one definition"):
+    val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
+    object Watched extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object monitors:
+        lazy val unchanged =
+          initialized += "monitor": Unit
+          monitor[State, Outcome, Nothing, Boolean]("unchanged", false)((_, before, after) =>
+            before.equals(after.state)
+          )(identity)
+      object transitions extends Transitions:
+        on(DiscoveryFixtures.advance):
+          effects.noop()
+      object effects:
+        def noop(): Unit =
+          ()
+      object properties:
+        object safety:
+          lazy val observed =
+            initialized += "reference": Unit
+            monitors.unchanged
+          lazy val alias = observed
+        object helper:
+          lazy val ignored =
+            initialized += "helper": Unit
+            monitors.unchanged
+    assertEquals(Watched.init, Watched.init.copy(phase = Phase.open))
+    assertEquals(initialized.toList, Nil)
+    val file = IrFile("monitor-reference", Seq(Watched))
+    file.construct(): Unit
+    assertEquals(initialized.toList, List("reference", "monitor"))
+    assert(Watched.properties.safety.observed eq Watched.monitors.unchanged)
+    assert(Watched.properties.safety.alias eq Watched.monitors.unchanged)
+    file.construct(): Unit
+    assertEquals(initialized.toList, List("reference", "monitor"))
+
+  test("IR output paths are co-located without changing logical file identities"):
     val root = java.nio.file.Files.createTempDirectory("ir-output-paths.")
     val features = IrFile.path(root, "uncompiled-feature").getParent.getParent.getParent
     val generated = features.resolve("alpha/standalone/generated")
@@ -120,10 +183,8 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     )
     java.nio.file.Files.writeString(generated.resolve("ir.json"), "{}"): Unit
     java.nio.file.Files.createDirectories(generated.resolve("legacy")): Unit
-    java.nio.file.Files.writeString(
-      generated.resolve("legacy/alpha-standalone-record.json"),
-      "{}"
-    ): Unit
+    java.nio.file.Files
+      .writeString(generated.resolve("legacy/alpha-standalone-record.json"), "{}"): Unit
     java.nio.file.Files.writeString(generated.resolve("ir.lint.json"), "{}"): Unit
     for name <- Vector("manifest.json", "old-query-case.json", "new-query.case.json") do
       java.nio.file.Files.writeString(generated.resolve("legacy").resolve(name), "{}"): Unit
@@ -138,151 +199,98 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       IrFile.path(root, "beta-flat-close"),
       flat.resolve("generated/legacy/beta-flat-close.json")
     )
-    val _ = intercept[IllegalArgumentException](IrFile.path(root, "../escape"))
-  }
+    intercept[IllegalArgumentException](IrFile.path(root, "../escape"))
 
-  test("IR construction initializes only designated property groups once") {
+  test("IR construction initializes only designated property groups once"):
     val initialized = scala.collection.mutable.ArrayBuffer.empty[String]
-    final case class Bundle(progress: Progress[State])
-    object Grouped extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((_: State) => List(Step(Outcome.done, State.closed)))
-          )
+    final case class Bundle(progress: LeadsTo)
+    object Grouped extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      override def end = phase == Phase.closed
+      object transitions extends Transitions:
+        on(DiscoveryFixtures.advance):
+          effects.advance()
+      object effects:
+        def advance(): Unit =
+          phase = Phase.closed
       object properties:
         object safety:
           def helperProperty =
             initialized += "helper-def": Unit
-            property("helperDef").expect:
-              check(false)
+            propertyMetadata(Grouped, "helperDef")
           lazy val finished =
             initialized += "safety": Unit
-            property("finished").expect:
-              check(after.state.equals(State.closed))
+            propertyMetadata(Grouped, "finished")
         object liveness:
           def helperProgress =
             initialized += "progress-def": Unit
-            Grouped.leadsTo("helperProgress")(
-              _.equals(State.open),
-              _.equals(State.closed),
-              1
-            )
+            progressMetadata(Grouped, "helperProgress")
           def helperBundle =
             initialized += "bundle-def": Unit
             Bundle(helperProgress)
           lazy val reaches =
             initialized += "liveness": Unit
-            Grouped.leadsTo("reaches")(
-              _.equals(State.open),
-              _.equals(State.closed),
-              1
-            )
+            progressMetadata(Grouped, "reaches")
         object helper:
           lazy val ignored =
             initialized += "helper": Unit
-            property("ignored").expect:
-              check(false)
-    assertEquals(Grouped.init, State.open)
+            propertyMetadata(Grouped, "ignored")
+    assertEquals(Grouped.init, Grouped.init.copy(phase = Phase.open))
     assertEquals(initialized.toList, Nil)
-    object HelperOwner extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
-          )
+    object HelperOwner extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object transitions extends Transitions
       def properties =
         initialized += "properties-def": Unit
         Grouped.properties
-    object HelperSection extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
-          )
+    object HelperSection extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object transitions extends Transitions
       object properties:
         lazy val safety =
           initialized += "flat-name": Unit
-          property("flatSafety").expect:
-            check(true)
+          propertyMetadata(HelperSection, "flatSafety")
         def liveness =
           initialized += "liveness-def": Unit
           Grouped.properties.liveness
-    object PrivateOwner extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
-          )
+    object PrivateOwner extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object transitions extends Transitions
       private object properties:
         private object safety:
           lazy val finished =
             initialized += "private-safety": Unit
-            property("privateFinished").expect:
-              check(after.state.equals(State.closed))
+            propertyMetadata(PrivateOwner, "privateFinished")
         private object liveness:
           lazy val reaches =
             initialized += "private-liveness": Unit
-            PrivateOwner.leadsTo("privateReaches")(
-              _.equals(State.open),
-              _.equals(State.closed),
-              1
-            )
+            progressMetadata(PrivateOwner, "privateReaches")
         def selected = (safety.finished, liveness.reaches)
       def selected = properties.selected
-    val file = IrFile(
-      "grouped-runtime",
-      Seq(Grouped, HelperOwner, HelperSection, PrivateOwner)
-    )
-    val expectedOwners =
-      Set("grouped", "helperOwner", "helperSection", "privateOwner")
+    val file = IrFile("grouped-runtime", Seq(Grouped, HelperOwner, HelperSection, PrivateOwner))
+    val expectedOwners = Set("grouped", "helperOwner", "helperSection", "privateOwner")
     val expectedInitializations =
-      List(
-        "flat-name",
-        "liveness",
-        "private-liveness",
-        "private-safety",
-        "safety"
-      )
+      List("flat-name", "liveness", "private-liveness", "private-safety", "safety")
     assertEquals(file.construct(), expectedOwners)
     assertEquals(initialized.toList.sorted, expectedInitializations)
     assertEquals(file.construct(), expectedOwners)
     assertEquals(initialized.toList.sorted, expectedInitializations)
     assert(PrivateOwner.selected._1 eq PrivateOwner.selected._1)
     assert(PrivateOwner.selected._2 eq PrivateOwner.selected._2)
-    assert(
-      Grouped.properties.safety.finished eq Grouped.properties.safety.finished
-    )
-    assert(
-      Grouped.properties.liveness.reaches eq Grouped.properties.liveness.reaches
-    )
-  }
+    assert(Grouped.properties.safety.finished eq Grouped.properties.safety.finished)
+    assert(Grouped.properties.liveness.reaches eq Grouped.properties.liveness.reaches)
 
-  // fn-160: an IR file is a feature's, named after its package; nothing lists its roots.
-  test("a package's IR file is its feature's") {
-    assertEquals(
-      IrFile.featureOf("temporal.features.activity.standalone.protocol"),
-      Some("activity-standalone")
-    )
-    assertEquals(
-      IrFile.featureOf("temporal.features.nexus.workflow.realization"),
-      Some("nexus-workflow")
-    )
-    assertEquals(
-      IrFile.featureOf("temporal.features.nexus.shared.product"),
-      Some("nexus")
-    )
-    assertEquals(
-      IrFile.featureOf("temporal.foundations.taskqueue.protocol"),
-      Some("taskqueue")
-    )
-    assertEquals(IrFile.featureOf("temporal.actors.worker"), Some("worker"))
-    assertEquals(IrFile.featureOf("temporal.features.activity.mini.product"), Some("activity-mini"))
-    assertEquals(IrFile.featureOf("examples.features.alpha_mini.product"), Some("alpha-mini"))
+  test("a package's IR file is its feature's"):
+    for (pkg, expected) <- Vector(
+        "temporal.features.activity.standalone.protocol" -> "activity-standalone",
+        "temporal.features.nexus.workflow.realization" -> "nexus-workflow",
+        "temporal.features.nexus.shared.product" -> "nexus",
+        "temporal.foundations.taskqueue.protocol" -> "taskqueue",
+        "temporal.actors.worker" -> "worker",
+        "temporal.features.activity.mini.product" -> "activity-mini",
+        "examples.features.alpha_mini.product" -> "alpha-mini"
+      )
+    do assertEquals(IrFile.featureOf(pkg), Some(expected))
     assertEquals(IrFile.featureOf("framework"), None)
     val subjects = IrFile("discovery", Seq(Added)).subjects()
     assertEquals(
@@ -291,7 +299,7 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     )
     for subject <- subjects do
       subject match
-        case machine: RecordMachine[?, ?, ?] =>
+        case machine: MachineDeclaration[?, ?, ?] =>
           val declarations = machine.bindings.map(_.decl)
           assertEquals(declarations, List(advance.decl))
           assert(declarations.head eq advance.decl)
@@ -301,79 +309,84 @@ class IrFileDiscoveryTest extends munit.FunSuite:
             List("tester.advance")
           )
         case other => fail(other.toString)
-  }
 
-  test("a name collision and a duplicate declaration identity are refused") {
-    def instance = new RecordMachine[State, Outcome, Nothing]:
+  test("a name collision and a duplicate declaration identity are refused"):
+    class Instance extends Machine[Outcome, Nothing]:
       override def name = "duplicate"
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
-          )
-    val a = instance
-    val b = instance
-    val duplicate =
-      intercept[IllegalArgumentException](
-        IrFile("duplicate-fixture", Seq(a, b)).subjects()
-      )
+      var phase = Phase.open
+      object transitions extends Transitions:
+        on(DiscoveryFixtures.advance):
+          effects.noop()
+      object effects:
+        def noop(): Unit =
+          ()
+    val duplicate = intercept[IllegalArgumentException]:
+      IrFile("duplicate-fixture", Seq(new Instance, new Instance)).subjects()
     assert(duplicate.getMessage.contains("repeats declaration identity"))
-    object Collision extends Derived(Original.restrict(advance)):
+    object Collision extends Derived(Original.unmonitored):
       override def name = Original.name
-    val collision = intercept[IllegalArgumentException](
+    val collision = intercept[IllegalArgumentException]:
       IrFile("collision-fixture", Seq(Original, Collision)).subjects()
-    )
     assert(collision.getMessage.contains("colliding model names"))
-  }
 
-  test(
-    "advance returns ordered alternatives and declarations retain order and duplicates"
-  ) {
+  test("advance returns ordered alternatives and declarations retain order and duplicates"):
     val run = effectOf[State, Outcome, Nothing](advance.decl, Added.bindings.head.function)
     assertEquals(
-      run(State.open, Nil),
-      List(Step(Outcome.done, State.open), Step(Outcome.done, State.closed))
+      run(Added.init, Nil),
+      List(
+        Step(Outcome.done, Added.init),
+        Step(Outcome.done, Added.init.copy(phase = Phase.closed))
+      )
     )
     assert(!(stayed eq advanced))
-    given Finite[State] with
-      def values = throw AssertionError("binding inspection enumerated whole-state catalog")
-    object Permuted extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            retreat ~> ((_: State) => throw AssertionError("binding inspection invoked retreat")),
-            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
-          )
+    given Finite[Phase] with
+      def values = throw AssertionError("binding inspection enumerated state field catalog")
+    object Permuted extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object transitions extends Transitions:
+        on(DiscoveryFixtures.retreat):
+          effects.retreat()
+        on(DiscoveryFixtures.advance):
+          effects.advance()
+      object effects:
+        def retreat(): Unit =
+          throw AssertionError("binding inspection invoked retreat")
+        def advance(): Unit =
+          throw AssertionError("binding inspection invoked advance")
     val actual = Permuted.bindings.map(_.decl)
-    val expected = List(advance.decl, retreat.decl)
     assertEquals(actual, List(retreat.decl, advance.decl))
     assert(actual.head eq retreat.decl)
     assert(actual(1) eq advance.decl)
-    assert(!actual.equals(expected))
+    assert(!actual.equals(List(advance.decl, retreat.decl)))
     assertEquals(
       actual.map(decl => s"${decl.actor.name}.${decl.name}"),
       List("tester.retreat", "tester.advance")
     )
-    object DuplicateBinding extends RecordMachine[State, Outcome, Nothing]:
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance")),
-            advance ~> ((_: State) => throw AssertionError("binding inspection invoked advance"))
-          )
+    object DuplicateBinding extends Machine[Outcome, Nothing]:
+      var phase = Phase.open
+      object transitions extends Transitions:
+        on(DiscoveryFixtures.advance):
+          effects.advance()
+        on(DiscoveryFixtures.advance):
+          effects.advance()
+      object effects:
+        def advance(): Unit =
+          throw AssertionError("binding inspection invoked advance")
     val duplicate = DuplicateBinding.bindings.map(_.decl)
-    assertEquals(duplicate, List(advance.decl, advance.decl))
+    assertEquals(duplicate, List(advance.decl))
     assert(duplicate.forall(_ eq advance.decl))
     assertEquals(duplicate.distinct.size, 1)
-    assertEquals(duplicate.size, 2)
-  }
+    DuplicateBinding.table.head._2 match
+      case Bound.Ruled(rules) =>
+        assertEquals(rules.size, 2)
+        assertEquals(rules.map(_.decl), Vector(advance.decl, advance.decl))
+        assert(rules.forall(_.decl eq advance.decl))
+        assertEquals(rules.map(_.index), Vector(1, 2))
+      case other => fail(s"duplicate action is bound to $other")
 
   test(
     "compositions, maps, query sections, progress, capabilities and realizations retain their owners"
-  ) {
+  ):
     val file = IrFile(
       "complete-root-fixture",
       Seq(
@@ -397,95 +410,82 @@ class IrFileDiscoveryTest extends munit.FunSuite:
       propertyOwner,
       capabilityOwner
     )
-    assertEquals(
-      file.subjects().map(IrFile.identity).toSet,
-      expected.map(IrFile.identity).toSet
-    )
+    assertEquals(file.subjects().map(IrFile.identity).toSet, expected.map(IrFile.identity).toSet)
     assertEquals(file.subjects().distinct.size, expected.size)
     val mapped = Mapped.refinementEvidence.get
     assert(mapped.of eq Original)
-    assert(mapped.toProduct(State.closed).equals(State.closed))
+    val closed = Original.init.copy(phase = Phase.closed)
+    assert(mapped.toProduct(closed).equals(closed))
     object ReboundMap
         extends Derived(
-          Mapped.rebind(advance ~> ((s: State) => List(Step(Outcome.done, s))))
+          Mapped.rebind(
+            on(DiscoveryFixtures.advance):
+              Original.effects.noop()
+          )
         )
     val rebound = ReboundMap.refinementEvidence.get
     assert(rebound eq mapped)
     assert(rebound.of eq Original)
-    val run = effectOf[State, Outcome, Nothing](
-      advance.decl,
-      ReboundMap.bindings.head.function
-    )
-    assertEquals(
-      run(State.open, Nil),
-      List(Step(Outcome.done, State.open))
-    )
-    object RestrictedMap extends Derived(Mapped.restrict(advance))
-    assertEquals(RestrictedMap.refinementEvidence, None)
-  }
+    val run = effectOf[State, Outcome, Nothing](advance.decl, ReboundMap.bindings.head.function)
+    assertEquals(run(Original.init, Nil), List(Step(Outcome.done, Original.init)))
+    object UnmonitoredMap extends Derived(Mapped.unmonitored)
+    assertEquals(UnmonitoredMap.refinementEvidence, None)
 
-  test(
-    "refinement maps return authored images and successive callbacks can differ"
-  ) {
-    object Narrow
-        extends RecordMachine[State, Outcome, Nothing](using
-          Finite.of(State.open),
-          Finite[Outcome],
-          Finite[Nothing]
-        ):
-      def init = State.open
-      def end(s: State) = s.equals(State.closed)
-      object transitions
-          extends Bindings(
-            advance ~> ((s: State) => List(Step(Outcome.done, s)))
-          )
-    object BadImage extends Derived(Original.refining(Narrow)(identity))
+  test("refinement maps return authored images and successive callbacks can differ"):
+    object Narrow extends Machine[Outcome, Nothing]:
+      var phase = oneOf(Vector(Phase.open))
+      override def end = phase == Phase.closed
+      object transitions extends Transitions
+    object BadImage
+        extends Derived(
+          Original.refining(Narrow)(s => Narrow.init.copy(phase = s.selectDynamic("phase")))
+        )
     val image = BadImage.refinementEvidence.get
     assert(image.of eq Narrow)
-    assert(image.toProduct(State.closed).equals(State.closed))
-
+    assert(
+      image
+        .toProduct(Original.init.copy(phase = Phase.closed))
+        .equals(Narrow.init.copy(phase = Phase.closed))
+    )
     val counter = java.util.concurrent.atomic.AtomicInteger()
     object Unrepeatable
         extends Derived(
           Original.rebind(
-            advance ~> ((s: State) =>
-              List(
-                Step(
-                  Outcome.done,
-                  if counter.getAndIncrement().equals(0) then s
-                  else State.closed
-                )
-              )
-            )
+            on(DiscoveryFixtures.advance):
+              Original.effects.counted(counter)
           )
         )
-    val run = effectOf[State, Outcome, Nothing](
-      advance.decl,
-      Unrepeatable.bindings.head.function
-    )
+    val run = effectOf[State, Outcome, Nothing](advance.decl, Unrepeatable.bindings.head.function)
     assertEquals(counter.get(), 0)
-    assertEquals(run(State.open, Nil), List(Step(Outcome.done, State.open)))
-    assertEquals(run(State.open, Nil), List(Step(Outcome.done, State.closed)))
+    assertEquals(run(Original.init, Nil), List(Step(Outcome.done, Original.init)))
+    assertEquals(
+      run(Original.init, Nil),
+      List(Step(Outcome.done, Original.init.copy(phase = Phase.closed)))
+    )
     assertEquals(counter.get(), 2)
-  }
 
-  test(
-    "refinement callbacks expose role changes and ordinary partial-map exceptions"
-  ) {
-    object BadClosedness extends Derived(RoleSource.refining(RoleSource)(_ => RolePhase.pending))
+  test("refinement callbacks expose role changes and ordinary partial-map exceptions"):
+    object BadClosedness
+        extends Derived(
+          RoleSource.refining(RoleSource)(_ => RoleSource.init.copy(phase = RolePhase.pending))
+        )
     val closedness = BadClosedness.refinementEvidence.get
     assert(closedness.of eq RoleSource)
-    assert(closedness.toProduct(RolePhase.settled).equals(RolePhase.pending))
+    assert(
+      closedness.toProduct(RoleSource.init.copy(phase = RolePhase.settled)).equals(RoleSource.init)
+    )
     object Partial
         extends Derived(
           Original.refining(Original)(s =>
-            if s.equals(State.closed) then throw IllegalArgumentException("unmapped closed")
+            if s.selectDynamic("phase").equals(Phase.closed) then
+              throw IllegalArgumentException("unmapped closed")
             else s
           )
         )
     val partial = Partial.refinementEvidence.get
     assert(partial.of eq Original)
-    assert(partial.toProduct(State.open).equals(State.open))
-    val failure = intercept[IllegalArgumentException](partial.toProduct(State.closed))
+    assert(partial.toProduct(Original.init).equals(Original.init))
+    val failure = intercept[IllegalArgumentException](
+      partial.toProduct(Original.init.copy(phase = Phase.closed))
+    )
     assertEquals(failure.getMessage, "unmapped closed")
-  }

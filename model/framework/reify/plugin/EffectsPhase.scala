@@ -16,7 +16,7 @@ final private class EffectsPhase extends PluginPhase:
 
   private def native(owner: Symbol)(using Context): Boolean =
     val machine = getClassIfDefined("framework.dsl.Machine")
-    val record = getClassIfDefined("framework.dsl.RecordMachine")
+    val record = getClassIfDefined("framework.dsl.MachineDeclaration")
     val state = getClassIfDefined("framework.dsl.State")
     owner.exists && owner.isClass && (
       (machine.exists && owner.asClass.derivesFrom(machine)) ||

@@ -117,38 +117,96 @@ private[framework] object StateField:
   // State: its path is the var's name.
   inline def captureVar[A](
       inline variable: A,
-      owner: RecordMachine[State, ?, ?]
+      owner: MachineDeclaration[State, ?, ?]
   ): StateField[State, A] = ${ capturedVar[A]('variable, 'owner) }
 
   private[framework] def capturedVar[A: Type](
       variable: Expr[A],
-      owner: Expr[RecordMachine[State, ?, ?]]
+      owner: Expr[MachineDeclaration[State, ?, ?]]
   )(using Quotes): Expr[StateField[State, A]] =
     import quotes.reflect.*
     def unwrap(term: Term): Term = term match
       case Inlined(_, _, body) => unwrap(body)
       case Typed(body, _)      => unwrap(body)
       case other               => other
-    val name = unwrap(variable.asTerm) match
+    def selected(term: Term): (Ref, List[String]) = unwrap(term) match
       case reference: Ref
           if reference.symbol.flags.is(Flags.Mutable) && reference.symbol.owner.isClassDef =>
-        reference.symbol.name
-      case _ =>
-        report.errorAndAbort("a state field names a state var of its Machine", variable)
+        (reference, Nil)
+      case Select(receiver, name)
+          if receiver.tpe.widen.dealias.typeSymbol.flags.is(Flags.Case) &&
+            receiver.tpe.widen.dealias.typeSymbol.caseFields.exists(_.name == name) =>
+        val (root, path) = selected(receiver)
+        (root, path :+ name)
+      case _ => report.errorAndAbort("a state field names a state var of its Machine", variable)
+    val (root, path) = selected(variable.asTerm)
+    val name = root.symbol.name
+    val receiver = root match
+      case Select(value, _) => value.asExprOf[Model]
+      case _                => This(root.symbol.owner).asExprOf[Model]
     val at = Position.ofMacroExpansion
     val location = s"${at.sourceFile.name}:${at.startLine + 1}:${at.startColumn + 1}"
+    val field = if path.isEmpty then
+      '{
+        stateVar[A](
+          $owner,
+          ${ Expr(name) },
+          ${ Expr(TypeRepr.of[A].show) },
+          ${ Expr(location) },
+          ${ validity[A] }
+        )
+      }
+    else
+      root.tpe.widen.asType match
+        case '[r] =>
+          val selector = Lambda(
+            Symbol.spliceOwner,
+            MethodType(List("value"))(_ => List(TypeRepr.of[r]), _ => TypeRepr.of[A]),
+            (_, arguments) =>
+              path.foldLeft(arguments.head.asInstanceOf[Term])((value, name) =>
+                Select.unique(value, name)
+              )
+          ).asExprOf[r => A]
+          '{ nestedVar[r, A]($owner, ${ Expr(name) }, ${ captured[r, A](selector) }) }
     '{
-      stateVar[A](
-        $owner,
-        ${ Expr(name) },
-        ${ Expr(TypeRepr.of[A].show) },
-        ${ Expr(location) },
-        ${ validity[A] }
-      )
+      require(Vars.of($receiver) eq Vars.of($owner), "a state field belongs to another Machine")
+      $field
     }
 
+  def nestedVar[R, A](
+      owner: MachineDeclaration[State, ?, ?],
+      name: String,
+      nested: StateField[R, A]
+  ): StateField[State, A] =
+    val vars = Vars.of(owner)
+    val index = vars.schema.indexOf(name)
+    require(index >= 0, s"$name is not a state var of ${owner.name}")
+    def root(state: State): R =
+      vars.owned(state).values(index).asInstanceOf[R] // scalafix:ok DisableSyntax.asInstanceOf
+    def updated(state: State, replacements: Vector[(List[String], Any)]): State =
+      val changes = replacements.collect {
+        case (head :: tail, value) if head == name => tail -> value
+      }
+      val replacement =
+        changes.find(_._1.isEmpty).map(_._2).getOrElse(nested.rebuild(root(state), changes))
+      vars.updated(state, Vector(name -> replacement))
+    make[State, A](
+      "framework.dsl.State",
+      nested.fieldType,
+      name :: nested.path,
+      nested.location,
+      vars.schema.vars.flatMap(variable =>
+        if variable.name == name then nested.rootFields.map(name :: _)
+        else Vector(List(variable.name))
+      ),
+      nested.valid,
+      state => nested.get(root(state)),
+      (state, value) => updated(state, Vector((name :: nested.path) -> value)),
+      updated
+    )
+
   def stateVar[A](
-      owner: RecordMachine[State, ?, ?],
+      owner: MachineDeclaration[State, ?, ?],
       name: String,
       fieldType: String,
       location: String,

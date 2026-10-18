@@ -78,13 +78,11 @@ final class ReifyPlugin extends StandardPlugin:
         effects,
         new StorePhase(store),
         new EndpointsPhase(store),
-        new RulesPhase(store),
         new CapturePhase(store),
         new NamesPhase,
         new SchemaPhase(store),
         new RuntimeCapturePhase,
         new EndpointsPhase(store, retention = true),
-        new RulesPhase(store, retention = true),
         new SchemaPhase(store, signatures = true)
       )
 
@@ -193,7 +191,7 @@ final private class DefinitionStore:
     val steps = step.exists && list.argInfos.headOption.exists(_.derivesFrom(step))
     owners(sym).exists(derives(_, "framework.dsl.Lifted")) || steps ||
     sym.allOverriddenSymbols.exists(s =>
-      Set("framework.dsl.Machine", "framework.dsl.RecordMachine")(s.owner.fullName.toString) &&
+      Set("framework.dsl.Machine", "framework.dsl.MachineDeclaration")(s.owner.fullName.toString) &&
         Set("end", "evidence")(s.name.toString)
     )
 
@@ -274,15 +272,8 @@ private object EndpointPayload:
 private object EvidencePayload:
   val key = new dotty.tools.dotc.util.Property.StickyKey[List[String]]
 
-private object FacetContextPayload:
-  val key = new dotty.tools.dotc.util.Property.StickyKey[List[String]]
-
 private object FacetNamespacePayload:
   final case class Payload(owner: Symbol, namespace: String)
-  val key = new dotty.tools.dotc.util.Property.StickyKey[Payload]
-
-private object FacetOriginPayload:
-  final case class Payload(owner: Symbol, namespace: Symbol, rules: String)
   val key = new dotty.tools.dotc.util.Property.StickyKey[Payload]
 
 final private class EndpointsPhase(
@@ -326,16 +317,8 @@ final private class EndpointsPhase(
             )
           cpy.Template(evidence)(body = registration :: evidence.body)
         }
-      val context =
-        tree.getAttachment(FacetContextPayload.key).fold(endpoints) { data =>
-          val receiver = This(ctx.owner.asClass).withSpan(tree.span)
-          val registration = receiver
-            .select(receiver.tpe.member(termName("retainFacetContext")).symbol)
-            .appliedToArgs(List(Carrier.literals(data)))
-          cpy.Template(endpoints)(body = registration :: endpoints.body)
-        }
       val namespace =
-        tree.getAttachment(FacetNamespacePayload.key).fold(context) { payload =>
+        tree.getAttachment(FacetNamespacePayload.key).fold(endpoints) { payload =>
           val receiver = This(payload.owner.asClass).withSpan(tree.span)
           val registration = receiver
             .select(
@@ -349,43 +332,14 @@ final private class EndpointsPhase(
                 Literal(Constant(payload.owner.asClass.typeRef))
               )
             )
-          cpy.Template(context)(body = registration :: context.body)
+          cpy.Template(endpoints)(body = registration :: endpoints.body)
         }
-      tree.getAttachment(FacetOriginPayload.key).fold(namespace) { payload =>
-        val receiver = This(ctx.owner.asClass).withSpan(tree.span)
-        val registration = receiver
-          .select(receiver.tpe.member(termName("retainFacetOrigin")).symbol)
-          .appliedToArgs(
-            List(
-              This(payload.owner.asClass),
-              This(payload.namespace.asClass),
-              Literal(Constant(payload.owner.asClass.typeRef)),
-              Literal(Constant(payload.owner.fullName.toString)),
-              Literal(Constant(payload.namespace.fullName.toString)),
-              Literal(Constant(payload.rules))
-            )
-          )
-        cpy.Template(namespace)(body = registration :: namespace.body)
-      }
+      namespace
     else
       if FacetDeclaration.namespace(ctx.owner) then
         tree.putAttachment(
           FacetNamespacePayload.key,
           FacetNamespacePayload.Payload(
-            ctx.owner.owner,
-            ctx.owner.fullName.toString
-          )
-        ): Unit
-        return tree
-      val rules = getClassIfDefined("framework.dsl.Rules")
-      if ctx.owner.isClass && ctx.owner.is(Module) && rules.exists &&
-        ctx.owner.asClass.typeRef.derivesFrom(rules.asClass) &&
-        FacetDeclaration.namespace(ctx.owner.owner)
-      then
-        tree.putAttachment(
-          FacetOriginPayload.key,
-          FacetOriginPayload.Payload(
-            ctx.owner.owner.owner,
             ctx.owner.owner,
             ctx.owner.fullName.toString
           )
@@ -425,62 +379,6 @@ final private class EndpointsPhase(
             members.find(_.name == name)
           e.readFinites()
           val name = e.ctx.objectFormName(cls)
-          if cls.typeRef.derivesFrom(e.ctx.facetClass) then
-            val state = cls.typeRef.baseType(e.ctx.machineClass).typeArgs.head
-            val stateRef = e.typeRef(state, c)
-            val phase = cls.typeRef
-              .baseType(Symbol.requiredClass("framework.dsl.Phased"))
-              .typeArgs
-              .lift(1)
-              .map(e.typeRef(_, c))
-            def captured(
-                form: String,
-                term: Option[Term],
-                arity: Int
-            ): Option[ir.Function] =
-              term.flatMap(e.lambda).collect {
-                case (params, body) if params.size == arity =>
-                  val root = s"$$facet-context-v1.${cls.fullName}.$form"
-                  val lifted = e.function(root, params, body, term.get)
-                  val function = if form == "projection" then
-                    c.body
-                      .collectFirst {
-                        case definition: ClassDef
-                            if definition.symbol.typeRef.derivesFrom(e.ctx.rulesClass) =>
-                          lifted.copy(position = Some(e.ctx.pos(definition)))
-                      }
-                      .getOrElse(lifted)
-                  else lifted
-                  e.ctx.functions(root) = function
-                  function
-              }
-            val projection = captured("projection", e.phaseProjection(cls), 1)
-            val writer = captured("writer", e.phaseWriter(cls, c), 2)
-            val roots = (projection.toList ++ writer.toList).map(_.name)
-            val model = Carrier.chunks(
-              ir.Model(
-                functions = e.ctx.reachableFunctions(Nil, roots),
-                types = e.ctx.types.values.toVector
-              )
-            )
-            val positions = Carrier.chunks(ir.Model())
-            def bytes(value: scalapb.GeneratedMessage): String =
-              Base64.getEncoder.encodeToString(value.toByteArray)
-            val data = List(
-              "facet-context-v1",
-              cls.fullName,
-              e.ctx.familyOf(cls),
-              name,
-              projection.fold("")(_.name),
-              writer.fold("")(_.name),
-              bytes(stateRef),
-              phase.fold("")(bytes),
-              projection.flatMap(_ => phase).fold("")(bytes),
-              writer.fold("")(_ => bytes(stateRef)),
-              model.size.toString
-            ) ++ model ++
-              List(positions.size.toString) ++ positions ++ List("0")
-            tree.putAttachment(FacetContextPayload.key, data): Unit
           if !cls.typeRef.derivesFrom(e.ctx.derivedClass) then
             val fact = cls.typeRef.baseType(e.ctx.machineClass).typeArgs(2)
             val factRef = e.typeRef(fact, c)
@@ -598,320 +496,6 @@ final private class EndpointsPhase(
           case err: CompilerApiError =>
             dotty.tools.dotc.report.error(err.getMessage, tree.srcPos)
             tree
-
-private object RulesPayload:
-  final case class Payload(
-      target: Symbol,
-      data: List[String],
-      disabled: Boolean
-  )
-  val key = new dotty.tools.dotc.util.Property.StickyKey[Payload]
-
-final private class RulesPhase(
-    store: DefinitionStore,
-    retention: Boolean = false
-) extends PluginPhase:
-  val phaseName = if retention then "reifyRuntimeRules" else "reifyRules"
-  override val runsAfter =
-    if retention then Set("reifyRuntimeEndpoints") else Set("reifyEndpoints")
-  override val runsBefore =
-    if retention then Set("reifySignature", "inlining")
-    else Set("reifyCapture", Pickler.name)
-
-  override def transformApply(tree: tpd.Apply)(using ctx: Context): tpd.Tree =
-    if retention then
-      tree.getAttachment(RulesPayload.key).fold(tree) { payload =>
-        def retarget(fun: tpd.Tree): tpd.Tree = fun match
-          case tpd.TypeApply(fn, args)          => retarget(fn).appliedToTypeTrees(args)
-          case tpd.Select(receiver, _)          => receiver.select(payload.target)
-          case _: tpd.Ident if payload.disabled =>
-            This(ctx.owner.enclosingClass.asClass).select(payload.target)
-          case _ =>
-            throw CompilerApiError(
-              "a retained ordinary Rule has no selected receiver"
-            )
-        val applied =
-          retarget(tree.fun).appliedToArgs(if payload.disabled then tree.args
-          else tree.args :+ Carrier.literals(payload.data))
-        (if payload.disabled then applied.appliedToArgs(List(Carrier.literals(payload.data)))
-         else applied)
-          .withSpan(tree.span)
-      }
-    else
-      val caseClass = getClassIfDefined("framework.dsl.Case")
-      val rulesClass = getClassIfDefined("framework.dsl.Rules")
-      val machineClass = getClassIfDefined("framework.dsl.Machine")
-      val rule = caseClass.exists && tree.fun.symbol.owner == caseClass &&
-        tree.fun.symbol.name.toString == "~>" && !tree.fun
-          .isInstanceOf[tpd.Apply]
-      val disabled = rulesClass.exists && tree.fun.symbol.owner == rulesClass &&
-        tree.fun.symbol.name.toString == "disabled"
-      if !rule && !disabled then tree
-      else
-        val section = Iterator
-          .iterate(ctx.owner)(_.owner)
-          .takeWhile(_.exists)
-          .find(s =>
-            s.isClass && s.is(Module) && s.asClass.typeRef
-              .derivesFrom(rulesClass.asClass)
-          )
-        val facet = section.map(_.owner).filter(FacetDeclaration.namespace)
-        val derivedClass = getClassIfDefined("framework.dsl.Derived")
-        val derived = if section.nonEmpty || disabled then None
-        else
-          Iterator
-            .iterate(ctx.owner)(_.owner)
-            .takeWhile(_.exists)
-            .find(s =>
-              s.isClass && s
-                .is(Module) && derivedClass.exists && s.asClass.typeRef
-                .derivesFrom(derivedClass.asClass)
-            )
-        val owner = section
-          .map(_.owner)
-          .filter(s =>
-            s.isClass && s.is(Module) &&
-              machineClass.exists && s.asClass.typeRef
-                .derivesFrom(machineClass.asClass)
-          )
-          .orElse(facet.map(_.owner))
-          .orElse(derived)
-        if owner.isEmpty then tree
-        else
-          val e = store.engine(ctx.compilationUnit.tpdTree)
-          import e.ctx.quotes.reflect.*
-          def method(
-              symbol: dotty.tools.dotc.core.Symbols.Symbol,
-              name: String
-          ) =
-            symbol.info
-              .decl(termName(name))
-              .alternatives
-              .map(_.symbol)
-              .filter(_.is(Method)) match
-              case List(method) => method
-              case _            =>
-                e.ctx.fail(
-                  tree.asInstanceOf[Tree],
-                  s"missing retained Rule implementation $name"
-                )
-          def bytes(value: scalapb.GeneratedMessage): String =
-            Base64.getEncoder.encodeToString(value.toByteArray)
-          try
-            e.readFinites()
-            val cls = owner.get.asInstanceOf[Symbol]
-            val contextual = facet.nonEmpty || derived.nonEmpty
-            if contextual then e.ctx.contextualFacet = Some(cls)
-            val family = e.ctx.familyOf(cls)
-            val machine = e.ctx.objectFormName(cls)
-            val provenance = List(
-              owner.get.fullName.toString,
-              if facet.nonEmpty then "" else family,
-              if facet.nonEmpty then "" else machine
-            )
-            def payload(
-                ordinary: List[String],
-                fragments: Seq[ir.Expr] = Nil
-            ): List[String] =
-              if derived.nonEmpty then
-                val sites = e.ctx.retainedContextualSites(fragments)
-                List("derived-rule-v1", ordinary.size.toString) ++ ordinary ++
-                  List(sites.size.toString) ++ sites.toList.flatMap(
-                    Carrier.siteChunks
-                  )
-              else
-                facet.fold(ordinary) { namespace =>
-                  val sites = e.ctx.retainedContextualSites(fragments)
-                  List(
-                    if disabled then "facet-disabled-v1" else "facet-rule-v1",
-                    owner.get.fullName.toString,
-                    namespace.fullName.toString,
-                    section.get.fullName.toString,
-                    ordinary.size.toString
-                  ) ++ ordinary ++
-                    List(sites.size.toString) ++ sites.toList.flatMap(
-                      Carrier.siteChunks
-                    )
-                }
-            val typePositions = Carrier.chunks(ir.Model())
-            if disabled then
-              val targets =
-                tree.args.flatMap(a => e.varargs(a.asInstanceOf[Term]))
-              val entries = targets.flatMap { target =>
-                e.qualifiedRuleTarget(target, machine, None, "disabled")
-                val name = e
-                  .ruleActionReference(target)
-                  .map(_.symbol.name)
-                  .getOrElse(
-                    e.ctx.fail(target, "disabled names a declared Action")
-                  )
-                List(name, bytes(e.ctx.pos(target)))
-              }
-              tree.putAttachment(
-                RulesPayload.key,
-                RulesPayload.Payload(
-                  method(rulesClass, "capturedDisabledRules"),
-                  payload(
-                    "ordinary-disabled-v1" :: (provenance ++ List(
-                      typePositions.size.toString
-                    ) ++ typePositions ++ entries)
-                  ),
-                  true
-                )
-              ): Unit
-            else
-              def receiver(t: tpd.Tree): tpd.Tree = t match
-                case tpd.TypeApply(fn, _) => receiver(fn)
-                case tpd.Select(value, _) => value
-                case _                    =>
-                  e.ctx.fail(
-                    tree.asInstanceOf[Tree],
-                    "a Rule has no Case receiver"
-                  )
-              val c = receiver(tree.fun).asInstanceOf[Term]
-              val effect = tree.args.head.asInstanceOf[Term]
-              val rules = e.ctx
-                .sourceTree(section.orElse(derived).get.asInstanceOf[Symbol])
-                .collect { case rules: ClassDef => rules }
-                .getOrElse(
-                  e.ctx.fail(c, "ordinary Rules have no local declaration body")
-                )
-              val taken = mutable.Set.from(e.ctx.defs.keys.map(_.name))
-              object bindings extends TreeTraverser:
-                override def traverseTree(t: Tree)(
-                    owner: e.ctx.quotes.reflect.Symbol
-                ): Unit =
-                  t match
-                    case Bind(name, _) => taken += name: Unit
-                    case _             => ()
-                  super.traverseTree(t)(owner)
-              bindings.traverseTree(
-                ctx.compilationUnit.tpdTree.asInstanceOf[Tree]
-              )(
-                e.ctx.quotes.reflect.Symbol.spliceOwner
-              )
-              def unique(base: String): String =
-                (base #:: LazyList.from(2).map(i => s"$base$i"))
-                  .find(n => !taken(n))
-                  .get
-              val stateName = unique("$ruleState")
-              val inputNames = e
-                .lambda(effect)
-                .toList
-                .flatMap(_._1.drop(1))
-                .indices
-                .map(i => unique(s"$$ruleInput$i"))
-                .toList
-              val state = c.tpe.widen
-                .baseType(caseClass.asInstanceOf[Symbol])
-                .typeArgs
-                .head
-              val params = ir.Param(stateName, Some(e.typeRef(state, c))) +:
-                e.lambda(effect)
-                  .toList
-                  .flatMap(_._1.drop(1))
-                  .zip(inputNames)
-                  .map((p, name) => ir.Param(name, Some(e.typeRef(p.tpt.tpe, p))))
-              val heading =
-                e.projectRuleHeading(
-                  e.ruleHeading(c, machine),
-                  e.phaseProjection(cls),
-                  c,
-                  machine
-                )
-              if derived.nonEmpty then
-                heading match
-                  case e.Heading.When(_) | e.Heading.Always => ()
-                  case _                                    =>
-                    e.ctx.fail(
-                      c,
-                      "a derivation's case is where(g) or always; it names no phase"
-                    )
-              val capturedGuard = e.ruleGuard(
-                heading,
-                stateName,
-                tree.asInstanceOf[Tree],
-                _ => Some(e.ctx.pos(rules))
-              )
-              def guardPlacements(
-                  h: e.Heading,
-                  path: String = ""
-              ): List[String] = h match
-                case e.Heading.Always        => List(path)
-                case e.Heading.In(_, _)      => List(path, path + "r")
-                case e.Heading.And(inner, _) =>
-                  path :: guardPlacements(inner, path + "l")
-                case _ => Nil
-              // A native record action's effect reads its one record input, whose fields are
-              // the action's inputs: `in.field` lowers to that input.
-              val recordClass = Symbol.requiredClass("framework.dsl.RecordAction")
-              val recordAction = e
-                .ruleCall(e.ruleBlock(rules, tree.asInstanceOf[Tree]))
-                .toList
-                .flatMap(_._2.flatten)
-                .flatMap(e.ruleActionReference)
-                .headOption
-                .exists(_.tpe.widen.derivesFrom(recordClass))
-              val effectInputs = e.lambda(effect).toList.flatMap(_._1.drop(1)) match
-                case List(in) if recordAction =>
-                  in.tpt.tpe.widen.dealias.typeSymbol.caseFields.map(_.name)
-                case _ => inputNames
-              val capturedResult = e.ruleEffect(
-                effect,
-                stateName,
-                effectInputs,
-                machine,
-                "capture",
-                tree.asInstanceOf[Tree]
-              )
-              val fragments =
-                Carrier.chunks(ir.ListOf(Seq(capturedGuard, capturedResult)).toByteArray)
-              val model = ir.Model(
-                functions = e.ctx.reachableFunctions(Seq(capturedGuard, capturedResult)),
-                types = e.ctx.types.values.toVector
-              )
-              val closure = Carrier.chunks(model)
-              val ordinary = List(
-                "ordinary-rule-v3",
-                e.forwardedDef(effect).fold(effect.show)(_.fullName)
-              ) ++ provenance ++
-                List(
-                  bytes(e.ruleSite(rules, tree.asInstanceOf[Tree])),
-                  bytes(e.ctx.pos(tree.asInstanceOf[Tree])),
-                  params.size.toString
-                ) ++
-                params.map(bytes) ++ List(
-                  fragments.size.toString
-                ) ++ fragments ++
-                List(closure.size.toString) ++ closure ++ List(
-                  typePositions.size.toString
-                ) ++
-                typePositions
-              val placements = guardPlacements(heading)
-              val data = List(
-                "rule-guard-placements-v1",
-                ordinary.size.toString
-              ) ++ ordinary ++
-                List(placements.size.toString) ++ placements
-              tree.putAttachment(
-                RulesPayload.key,
-                RulesPayload.Payload(
-                  method(caseClass, s"capturedRule${params.size - 1}"),
-                  payload(data, Seq(capturedGuard, capturedResult)),
-                  false
-                )
-              ): Unit
-            tree
-          catch
-            case error: LiftError =>
-              dotty.tools.dotc.report
-                .error(
-                  error.message,
-                  e.ctx.refusedAt.asInstanceOf[tpd.Tree].srcPos
-                )
-              tree
-            case error: CompilerApiError =>
-              dotty.tools.dotc.report.error(error.getMessage, tree.srcPos); tree
 
 final private class CapturePhase(store: DefinitionStore) extends PluginPhase:
   val phaseName = "reifyCapture"

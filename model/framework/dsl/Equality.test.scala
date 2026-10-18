@@ -71,10 +71,6 @@ class Equality extends munit.FunSuite:
       """),
       typeCheckErrors(domains + """
         def compare(a: framework.dsl.Order, b: framework.dsl.Loss) = a == b
-      """),
-      typeCheckErrors(domains + """
-        def keeps[S, O, F, V](once: framework.dsl.Once[S, O, F], projection: S => V) =
-          once.keeps(projection)
       """)
     )
     for errors <- failures do

@@ -97,8 +97,7 @@ object TransitionsFixture:
       def flick() =
         light = if light == Lit.on then Lit.off else Lit.on
 
-  // The spec's retry phase table (fn-190, API Contracts), as a `match` over a phase var and in the
-  // hidden `where` form over a phase record, with the same effects.
+  // The spec's retry phase table (fn-190, API Contracts), as a match over a phase var.
   enum Phase:
     case unstarted, scheduled, started, paused
     case cancelRequested, pauseRequested, resetRequested, resetKeepingPause
@@ -152,46 +151,10 @@ object TransitionsFixture:
         phase = Phase.scheduled
         retries = UpTo(2)
 
-  final case class Retry(phase: Phase, retries: UpTo[2])
-
-  object RetryRecord extends RecordMachine[Retry, Outcome, Nothing]:
-    val init = Retry(Phase.unstarted, UpTo(2))
-    def end(s: Retry) = s.phase.in[Closed]
-
-    object states:
-      def retriesRemaining(s: Retry): Boolean = s.retries > 0
-      def exhausted(s: Retry): Boolean = s.retries == 0
-
-    object effects:
-      def backOff(s: Retry) =
-        enter[Retry, Outcome, Nothing](
-          s.copy(phase = Phase.scheduled, retries = UpTo(s.retries - 1))
-        )
-      def cancel(s: Retry) = enter[Retry, Outcome, Nothing](s.copy(phase = Phase.canceled))
-      def backOffPaused(s: Retry) =
-        enter[Retry, Outcome, Nothing](s.copy(phase = Phase.paused, retries = UpTo(s.retries - 1)))
-      def fail(s: Retry) = enter[Retry, Outcome, Nothing](s.copy(phase = Phase.failed))
-      def applyReset(s: Retry) =
-        enter[Retry, Outcome, Nothing](s.copy(phase = Phase.scheduled, retries = UpTo(2)))
-
-    object transitions extends Rules:
-      on(activityWorker.respondFailed(Failure.retryable)):
-        where(_.phase == Phase.started).where(states.retriesRemaining) ~> effects.backOff
-        where(_.phase == Phase.cancelRequested) ~> effects.cancel
-        where(_.phase == Phase.pauseRequested).where(states.retriesRemaining) ~>
-          effects.backOffPaused
-        where(_.phase.in(Phase.started, Phase.pauseRequested)).where(states.exhausted) ~>
-          effects.fail
-      on(completionClient.respondFailedByID):
-        where(_.phase.in(Phase.unstarted, Phase.scheduled, Phase.paused)) ~>
-          rejects(Rejection.notFound)
-        where(_.phase.in[Closed]) ~> rejects(Rejection.notFound)
-        where(_.phase.in(Phase.resetRequested, Phase.resetKeepingPause)) ~> effects.applyReset
-
 class TransitionsTest extends munit.FunSuite:
   import TransitionsFixture.*
 
-  private def run[S, O, F](machine: RecordMachine[S, O, F], state: S, cls: Class) =
+  private def run[S, O, F](machine: MachineDeclaration[S, O, F], state: S, cls: Class) =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[S, O, F](binding.decl, binding.function)(state, cls)
 
@@ -287,7 +250,7 @@ class TransitionsTest extends munit.FunSuite:
         assertEquals(rules.map(_.values), Vector(Some(List(Knob.up)), Some(List(Knob.down))))
       case other => fail(s"turn is bound to $other")
 
-  test("the retry phase table as a match gives the steps of its where form, in every state"):
+  test("the retry phase table matches its expected outcomes and updates in every state"):
     val classes =
       inputClassesOf(activityWorker.respondFailed.decl) ++
         inputClassesOf(completionClient.respondFailedByID.decl)
@@ -304,9 +267,31 @@ class TransitionsTest extends munit.FunSuite:
           step.state.selectDynamic("retries"),
           step.facts
         )
-      val phased = run(RetryRecord, Retry(phase, UpTo(retries)), cls).map: step =>
-        (step.outcome, step.state.phase: Any, step.state.retries: Any, step.facts)
-      assertEquals(matched, phased, s"$phase, $retries retries, $cls")
+      val expected =
+        if cls.decl eq activityWorker.respondFailed.decl then
+          if !cls.values.equals(List(Failure.retryable)) then None
+          else
+            phase match
+              case Phase.started if retries > 0 =>
+                Some((Outcome.accepted, Phase.scheduled, retries - 1))
+              case Phase.cancelRequested => Some((Outcome.accepted, Phase.canceled, retries))
+              case Phase.pauseRequested if retries > 0 =>
+                Some((Outcome.accepted, Phase.paused, retries - 1))
+              case Phase.started | Phase.pauseRequested =>
+                Some((Outcome.accepted, Phase.failed, retries))
+              case _ => None
+        else
+          phase match
+            case Phase.unstarted | Phase.scheduled | Phase.paused =>
+              Some((Outcome.rejected(Rejection.notFound), phase, retries))
+            case _: Closed => Some((Outcome.rejected(Rejection.notFound), phase, retries))
+            case Phase.resetRequested | Phase.resetKeepingPause =>
+              Some((Outcome.accepted, Phase.scheduled, 2))
+            case _ => None
+      val oracle = expected.toList.map((answer, nextPhase, nextRetries) =>
+        (answer, nextPhase: Any, UpTo[2](nextRetries): Any, List.empty[Nothing])
+      )
+      assertEquals(matched, oracle, s"$phase, $retries retries, $cls")
       matched
     // the retryable failure fires in 9 of the 27 states, the failure by id in 24 of them
     assertEquals(compared.count(_.nonEmpty), 33)

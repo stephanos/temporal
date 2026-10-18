@@ -30,12 +30,13 @@ class NativeFaultSuite extends munit.FunSuite:
       assertEquals(copied.decl.modelOnlyReason, a.decl.modelOnlyReason)
 
   test("completed binding acquisition refuses missing duplicate and invalid fault metadata"):
-    def machine(a: Action[EmptyTuple]): RecordMachine[Boolean, Boolean, Nothing] =
-      new RecordMachine[Boolean, Boolean, Nothing]:
-        def init: Boolean = throw AssertionError("init evaluated")
-        def end(s: Boolean): Boolean = throw AssertionError("end evaluated")
-        object transitions
-            extends Bindings(a ~> ((_: Boolean) => throw AssertionError("effect evaluated")))
+    def machine(a: Action[EmptyTuple]): MachineDeclaration[State, Boolean, Nothing] =
+      new Machine[Boolean, Nothing]:
+        @scala.annotation.unused
+        var flag = false
+        override def end: Boolean = throw AssertionError("end evaluated")
+        object transitions extends Transitions(using summon, Ok(true), summon):
+          transition(a.decl, None, "caller.action", () => throw AssertionError("effect evaluated"))
     val ordinary = machine(action("ordinary", caller))
     assertEquals(ordinary.bindings.size, 1)
     val invalid = Vector(
@@ -51,32 +52,3 @@ class NativeFaultSuite extends munit.FunSuite:
       assert(error.getMessage.contains(message), error.getMessage)
       assert(error.getMessage.contains(a.name), error.getMessage)
       assert(error.getMessage.contains("NativeFault.test.scala"), error.getMessage)
-
-  test("native choice programs declare deferred ordered alternatives including Nil"):
-    val first = choice
-    val second = choice
-    var called = Vector.empty[Int]
-    val program = choose[Boolean, Boolean, Nothing](
-      first -> ((s: Boolean) =>
-        called :+= 1; List(Step(true, !s))
-      ),
-      second -> ((_: Boolean) =>
-        called :+= 2; Nil
-      )
-    )
-    assertEquals(called, Vector.empty)
-    assert(program.tokens(0) eq first)
-    assert(program.tokens(1) eq second)
-    assertEquals(program(false), List(Step(true, true)))
-    assertEquals(called, Vector(1, 2))
-    intercept[IllegalArgumentException](
-      choose[Boolean, Boolean, Nothing](
-        first -> ((s: Boolean) => List(Step(true, s))),
-        first -> ((s: Boolean) => List(Step(true, s)))
-      )
-    ): Unit
-    val tooMany = choose[Boolean, Boolean, Nothing](
-      first -> ((s: Boolean) => List(Step(true, s), Step(false, s))),
-      second -> ((_: Boolean) => Nil)
-    )
-    intercept[IllegalArgumentException](tooMany(false))

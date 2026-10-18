@@ -218,9 +218,7 @@ final private class SchemaPhase(
       "framework.dsl.Channel",
       "framework.dsl.Entity",
       "framework.dsl.Observation",
-      "framework.dsl.Assumption",
-      "framework.dsl.Hole",
-      "framework.dsl.Limits"
+      "framework.dsl.Hole"
     )
     if tree.symbol.is(Param) || tree.symbol.is(Synthetic) || !names.exists { name =>
         val cls = getClassIfDefined(name)
@@ -231,8 +229,7 @@ final private class SchemaPhase(
       val reference =
         List(
           "framework.dsl.Entity",
-          "framework.dsl.Observation",
-          "framework.dsl.Limits"
+          "framework.dsl.Observation"
         )
           .exists { name =>
             val cls = getClassIfDefined(name)
@@ -240,7 +237,7 @@ final private class SchemaPhase(
           }
       if reference && tree.symbol.owner.is(Method) then return rhs
       val identityOwner =
-        List("framework.dsl.Assumption", "framework.dsl.Hole").exists { name =>
+        List("framework.dsl.Hole").exists { name =>
           val cls = getClassIfDefined(name)
           cls.exists && tree.tpt.tpe.widen.derivesFrom(cls.asClass)
         }
@@ -654,8 +651,7 @@ final private class SchemaPhase(
     val operation = tree.fun.symbol.name.toString
     if !Set(
         "framework.dsl.Entity",
-        "framework.dsl.Observation",
-        "framework.dsl.Limits"
+        "framework.dsl.Observation"
       )(owner) ||
       !Set("apply", "<init>", "copy")(operation)
     then return tree

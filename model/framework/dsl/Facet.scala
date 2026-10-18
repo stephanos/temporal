@@ -35,31 +35,19 @@ import scala.collection.mutable
 // FacetCapabilities(pausing.capabilities, ...)`. Core form: the Machine whose `transitions` holds
 // every facet's blocks, in facet order, whose `effects` holds every facet's effects, and whose
 // `capabilities` holds every facet's capabilities and waivers.
-trait Facet[O, F] extends Machine[O, F], RecordFacet[State, O, F]
-
-// A facet of a machine over a state record, the hidden form the framework's own fixtures keep
-// until the record machine is retired: the sections of a facet read the owner of the machine that
-// mixes it in. Core form: the machine with the facet's sections as its own.
-private[framework] trait RecordFacet[S, O, F] extends RecordMachine[S, O, F]:
-  // The owner its sections read the machine's types from: the machine that mixes it in. A facet's
-  // sections cannot read the machine's own given, a val of the class `RecordMachine`, from a trait,
-  // and this one, of a subclass of it, is preferred to it in the machine object as well.
-  protected given facetOwner: Owner[S, O, F] = Owner(this)
-
-  // The machine a facet's `capabilities` section declares the capabilities of, read as `facetOwner`
-  // is, from a val of the facet rather than the machine's own.
-  protected given facetDeclaring: Declaring[S, O, F] = Declaring(this)
+trait Facet[O, F] extends Machine[O, F]:
+  protected given facetOwner: MachineDeclaration[State, O, F] = this
 
 // A Machine's transitions assembled from its facets' transitions, in the order listed: each
 // action's blocks are the blocks of the one facet that binds it. An action bound by two facets is
 // refused as the transitions construct, naming the action and both facets. Core form: one `object
 // transitions extends Transitions` holding every facet's blocks in facet order.
 abstract class Facets[S, O, F](using
-    owner: Owner[S, O, F]
+    owner: MachineDeclaration[S, O, F]
 )(
     facets: RuleBook[S, O, F]*
 ) extends RuleBook[S, O, F]:
-  private[framework] val assembly: RecordMachine[S, O, F] = owner.machine
+  private[framework] val assembly: MachineDeclaration[S, O, F] = owner
   private[framework] val contributors: Vector[RuleBook[S, O, F]] = facets.toVector
   private[framework] lazy val table: Vector[(ActionDecl, Bound[S, O, F])] =
     val owners = mutable.LinkedHashMap.empty[ActionDecl, String]
@@ -86,6 +74,6 @@ abstract class Facets[S, O, F](using
 // each facet's vals and waivers are the section's, so the machine's Queries bound them as one
 // section, `capabilities.bound(three)`. Core form: one `object capabilities extends Capabilities`
 // holding every facet's capabilities and waivers in facet order.
-abstract class FacetCapabilities[S, O, F](using Declaring[S, O, F])(
+abstract class FacetCapabilities[S, O, F](using Declares[S] { type Outcome = O; type Fact = F })(
     val facets: Capabilities[S, O, F]*
 ) extends Capabilities[S, O, F]

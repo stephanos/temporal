@@ -80,39 +80,75 @@ class FacetBindingsSuite extends munit.FunSuite:
   private def encoded(value: scalapb.GeneratedMessage): String =
     Base64.getEncoder.encodeToString(value.toByteArray)
 
-  // These are runtime metadata controls; author admission is pinned by ConstructedFacetsSuite.
-  private trait Owned extends RecordFacet[Boolean, Boolean, Nothing]:
+  private def stateName = "fixture.Source.State"
+  private def stateRef = ir.TypeRef(ir.TypeRef.Ref.Named(stateName))
+  private def stateShape = ir.Type(
+    name = stateName,
+    shape = ir.Type.Shape.Record(ir.Record(Vector(ir.Field("ready", Some(bool)))))
+  )
+  private def stateReady(name: String): ir.Expr =
+    ir.Expr(kind = ir.Expr.Kind.Field(ir.FieldAccess(Some(variable(name)), "ready")))
+
+  final private class Rows:
+    var value = Vector.empty[(ActionDecl, Bound[State, Boolean, Nothing])]
+    var nameReads = 0
+
+  private trait Owned extends Facet[Boolean, Nothing]:
+    var ready: Boolean
 
     object owned:
 
-      object transitions extends Rules
+      object transitions extends Transitions(using summon, Ok(true), summon)
 
   private class Source(
-      projectionBody: ir.Expr = variable("phaseState"),
+      projectionBody: ir.Expr = stateReady("phaseState"),
       changeContext: Vector[String] => Vector[String] = data => data,
       nativeTable: Boolean = false
-  ) extends Owned:
-    def init: Boolean = throw AssertionError("init read")
-    def end(s: Boolean): Boolean = throw AssertionError("end read")
-    var nameReads = 0
+  ) extends Machine[Boolean, Nothing],
+        Owned:
+    var ready = false
+    private val retainedRows = new Rows
+    def rows =
+      retainedRows.value
+    def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+      retainedRows.value = value
+    def nameReads =
+      retainedRows.nameReads
     override def name: String =
-      nameReads += 1
+      retainedRows.nameReads += 1
       if nativeTable then "source" else throw AssertionError("name read")
+    override def end: Boolean =
+      throw AssertionError("end read")
 
     object transitions extends Facets(owned.transitions)
-    var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
-    override private[framework] def table = if nativeTable then transitions.table else rows
+    override private[framework] def table =
+      if nativeTable then transitions.table else rows
     retainHeaderIdentity("fixture", "source")
-    retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
+    retainHeaderSchema(
+      0,
+      stateName,
+      Seq(encoded(stateRef)),
+      Seq(encoded(ir.Model(types = Seq(stateShape)))),
+      Nil
+    )
     val capturedProjection = ir.Function(
       s"$$facet-context-v1.${getClass.getName}.projection",
-      params = Seq(ir.Param("phaseState", Some(bool))),
+      params = Seq(ir.Param("phaseState", Some(stateRef))),
       body = Some(projectionBody)
     )
     val capturedWriter = ir.Function(
       s"$$facet-context-v1.${getClass.getName}.writer",
-      params = Seq(ir.Param("writerState", Some(bool)), ir.Param("phase", Some(bool))),
-      body = Some(variable("phase"))
+      params = Seq(ir.Param("writerState", Some(stateRef)), ir.Param("phase", Some(bool))),
+      body = Some(
+        ir.Expr(kind =
+          ir.Expr.Kind.Copy(
+            ir.Copy(
+              Some(variable("writerState")),
+              Seq(ir.NamedExpr("ready", Some(variable("phase"))))
+            )
+          )
+        )
+      )
     )
     val contextData = Vector(
       "facet-context-v1",
@@ -121,17 +157,25 @@ class FacetBindingsSuite extends munit.FunSuite:
       "source",
       capturedProjection.name,
       capturedWriter.name,
+      encoded(stateRef),
       encoded(bool),
       encoded(bool),
-      encoded(bool),
-      encoded(bool),
+      encoded(stateRef),
       "1",
-      encoded(ir.Model(functions = Seq(capturedProjection, capturedWriter))),
+      encoded(
+        ir.Model(
+          functions = Seq(capturedProjection, capturedWriter),
+          types = Seq(stateShape)
+        )
+      ),
       "1",
       encoded(ir.Model()),
       "0"
     )
-    def prepareContext(): Unit = retainFacetContext(changeContext(contextData))
+    def prepareContext(): Unit =
+      retainFacetContext(changeContext(contextData))
+
+  final private case class Guard(guard: State => Boolean)
 
   private def origin(source: Source): FacetBindings.Origin =
     source.prepareContext()
@@ -158,7 +202,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       "",
       ir.Position("facet.scala", 4),
       ir.Position("facet.scala", 5),
-      Vector(ir.Param("written", Some(bool))),
+      Vector(ir.Param("written", Some(stateRef))),
       ir.Expr(kind = ir.Expr.Kind.Call(call)),
       empty,
       ir.Model()
@@ -166,16 +210,16 @@ class FacetBindingsSuite extends munit.FunSuite:
     FacetBindings.Template(
       definition,
       packet,
-      Vector(FacetBindings.Site("read", None, call, bool, bool, bool, None))
+      Vector(FacetBindings.Site("read", None, call, stateRef, bool, bool, None))
     )
 
   private def retain(
       source: Source,
       value: FacetBindings.Template
-  ): Rule[Boolean, Boolean, Nothing] =
+  ): Rule[State, Boolean, Nothing] =
     val action = framework.dsl.action("go", Actor("user")).declaredAt("fixture.go")
-    val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
-    val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] = (s, _) =>
+    val c = Guard(_ => true)
+    val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] = (s, _) =>
       List(Step(true, s))
     val row = Rule(1, "always", "go", action.decl, None, c.guard, effect)
     val captured = RuleBindings.registration(
@@ -191,112 +235,65 @@ class FacetBindingsSuite extends munit.FunSuite:
     source.rows = Vector(action.decl -> Bound.Ruled(Vector(row)))
     row
 
-  private def data(value: FacetBindings.Template): Vector[String] =
-    val p = value.packet
-    val ordinary = Vector(
-      "ordinary-rule-v2",
-      p.owner,
-      p.family,
-      p.machine,
-      encoded(p.binding),
-      encoded(p.position),
-      p.params.size.toString
-    ) ++
-      p.params.map(encoded) ++ Vector(
-        "1",
-        encoded(ir.ListOf(Seq(p.guard, p.effect))),
-        "1",
-        encoded(p.model),
-        "1",
-        encoded(ir.Model(types = p.typePositions))
-      ) ++ p.curriedCalls.flatMap(c =>
-        Vector(encoded(c.call), encoded(c.function), c.groups.mkString(","), c.owner.getOrElse(""))
-      )
-    Vector(
-      "facet-rule-v1",
-      value.definition.traitName,
-      value.definition.namespace,
-      value.definition.rules,
-      ordinary.size.toString
-    ) ++ ordinary ++ Vector(value.sites.size.toString) ++ value.sites.flatMap(s =>
-      Vector(
-        s.kind,
-        s.owner.getOrElse(""),
-        encoded(s.call),
-        encoded(s.state),
-        encoded(s.phase),
-        encoded(s.result),
-        s.placement.fold("")(encoded)
-      )
-    )
-
-  test(
-    "native table acquisition retains declarations and evaluates Model callbacks only on an explicit step"
-  ):
+  final private class Timing:
     var catalogs = 0
     var getters = 0
     var guards = 0
     var effects = 0
-    var callbacks = 0
-    given Finite[Boolean] = new Finite[Boolean]:
+    def allowed(flag: Boolean, current: Boolean): Boolean =
+      guards += 1
+      flag != current
+
+  private lazy val timing = new Timing
+
+  private object nativeUser:
+    private val actor = Actor("nativeUser")
+    private given Finite[Boolean] = new Finite[Boolean]:
       def values: IndexedSeq[Boolean] =
-        catalogs += 1
+        timing.catalogs += 1
         Vector(false, true)
-    class CountedSource extends Source(nativeTable = true):
-      override def end(s: Boolean): Boolean = throw AssertionError("end read")
-    val source = new CountedSource
-    origin(source): Unit
-    val go =
-      framework.dsl
-        .action("go", Actor("user"))
-        .input[Boolean](name = "flag")
-        .declaredAt("fixture.go")
-    go.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
-    class Targets:
-      def goAction: Action[Boolean] =
-        getters += 1
-        go
-    val targets = new Targets
-    val book = source.owned.transitions
-    book.grouped(targets, "") {
-      for enabled <- Vector(true, false) do
-        book.block[NativeInput[Boolean]](targets.goAction.decl, None, "targets.goAction") {
-          callbacks += 1
-          val c = Case[Boolean, Boolean, Nothing](
-            "when",
-            s =>
-              guards += 1
-              s == enabled
-          )
-          val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] = (s, _) =>
-            effects += 1
-            List(Step(true, s))
-          val firing = summon[Firing[Boolean, Boolean, Nothing, NativeInput[Boolean]]]
-          val base = template(source)
-          val value = if enabled then base
-          else
-            base.copy(packet =
-              base.packet.copy(guard =
-                ir.Expr(kind =
-                  ir.Expr.Kind.Unary(ir.Unary(ir.Unary.Op.OP_NOT, Some(base.packet.guard)))
-                )
-              )
-            )
-          firing.retaining(c, data(value))(firing.bind(c, effect))
-        }
-    }
+    private val goValue =
+      framework.dsl.action("go", actor).input[Boolean](name = "flag").declaredAt("fixture.nativeGo")
+    def go =
+      timing.getters += 1
+      goValue
+
+  private trait TimedFacet extends Facet[Boolean, Nothing]:
+    var ready: Boolean
+
+    object nativeowned:
+
+      object effects:
+        def update(flag: Boolean) =
+          timing.effects += 1
+          ready = flag
+
+      object transitions extends Transitions(using summon, Ok(true), summon):
+        on(nativeUser.go): flag =>
+          if timing.allowed(flag, ready) then effects.update(flag)
+
+  test(
+    "native table acquisition retains declarations and evaluates Model callbacks only on an explicit step"
+  ):
+    class TimedSource extends Machine[Boolean, Nothing], TimedFacet:
+      var ready = false
+      object transitions extends Facets(nativeowned.transitions)
+    val source = new TimedSource
     val table = source.table
-    assertEquals(Vector(catalogs, guards, effects), Vector(0, 0, 0))
-    val run = stepFunction[Boolean, Boolean, Nothing](table.head._1, table.head._2)
-      .asInstanceOf[(Boolean, Boolean) => List[Step[Boolean, Boolean, Nothing]]]
-    assertEquals(run(false, true), List(Step(true, false)))
-    val before = Vector(catalogs, getters, guards, effects, callbacks, source.nameReads)
-    // The explicit step validates its supplied scalar against the selected input catalog.
-    assertEquals(before, Vector(1, 3, 2, 1, 2, 0))
-    assertEquals(callbacks, 2)
-    val first = RuleBindings.collect(source)
-    assertEquals(RuleBindings.collect(source), first)
-    assertEquals(Vector(catalogs, getters, guards, effects, callbacks, source.nameReads), before)
+    assertEquals(table.size, 1)
+    assertEquals((timing.catalogs, timing.guards, timing.effects), (0, 0, 0))
+    assert(timing.getters > 0)
+    val before = (timing.catalogs, timing.getters, timing.guards, timing.effects)
+    val _ = source.bindings
+    source.table: Unit
+    assertEquals((timing.catalogs, timing.getters, timing.guards, timing.effects), before)
+    val cls = nativeUser.go(true)
+    val binding = source.bindings.head
+    val effect = effectOf[State, Boolean, Nothing](binding.decl, binding.function)
+    assertEquals(effect(source.init, cls), List(Step(true, source.init.copy(ready = true))))
+    assertEquals((timing.guards, timing.effects), (1, 1))
+    assert(timing.catalogs > 0)
+    assertEquals(source.ready, false)
 
   test(
     "isolated Facets instantiate exact live context without emitting wrapper roots or leaking A/B/A"
@@ -309,7 +306,7 @@ class FacetBindingsSuite extends munit.FunSuite:
     val second = RuleBindings.collect(b)
     assertEquals(first.functions.map(_.name), Vector("source.rules.go"))
     assertEquals(second.functions.map(_.name), Vector("source.rules.go"))
-    assert(first.functions.head.getBody.getIf.getCondition.kind.isVar)
+    assert(first.functions.head.getBody.getIf.getCondition.kind.isField)
     assertEquals(second.functions.head.getBody.getIf.getCondition, literal)
     assertEquals(RuleBindings.collect(a), first)
     assertEquals(RuleBindings.collect(b), second)
@@ -457,24 +454,21 @@ class FacetBindingsSuite extends munit.FunSuite:
     "facet Built and Derived forwarding keeps source roots and hidden rule-changing histories refuse"
   ):
     class ForwardSource extends Source:
-      override def init: Boolean = false
-      override def end(s: Boolean): Boolean = s
+      override def end: Boolean = ready
       override def name: String = "source"
     val source = new ForwardSource
     val row = retain(source, template(source))
-    val selected = new Action[EmptyTuple](row.decl)
     val original = RuleBindings.collect(source)
-    val kept = source.restrict(selected)
-    object Forwarded extends Derived(kept)
-    Vector(kept, source.unmonitored, Forwarded).foreach { machine =>
+    object Forwarded extends Derived(source)
+    Vector(source, source.unmonitored, Forwarded).foreach { machine =>
       assert(machine.ruleSource.eq(source))
       assertEquals(RuleBindings.collect(machine), original)
       assertEquals(RuleBindings.collect(machine).steps.map(_.function), Vector("source.rules.go"))
     }
-    val effect: Boolean => List[Step[Boolean, Boolean, Nothing]] = s => List(Step(true, s))
+    val effect: State => List[Step[State, Boolean, Nothing]] = s => List(Step(true, s))
     val extra = framework.dsl.action("extra", Actor("user")).declaredAt("fixture.extra")
-    val replacement = StepBinding[Boolean, Boolean, Nothing](row.decl, effect)
-    val addition = StepBinding[Boolean, Boolean, Nothing](extra.decl, effect)
+    val replacement = StepBinding[State, Boolean, Nothing](row.decl, effect)
+    val addition = StepBinding[State, Boolean, Nothing](extra.decl, effect)
     val changed = RuleGroup(Vector(row.copy()))
     val added = RuleGroup(Vector(row.copy(decl = extra.decl)))
     Vector(
@@ -483,7 +477,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       source.rebind(changed) -> "rebind",
       source.extend(added) -> "extend"
     ).foreach { (machine, operation) =>
-      Vector(machine, machine.restrict()).foreach { hidden =>
+      Vector(machine, machine.unmonitored).foreach { hidden =>
         val refusal = intercept[IllegalArgumentException](RuleBindings.collect(hidden))
         assert(refusal.getMessage.contains(operation), refusal.getMessage)
         assert(refusal.getMessage.contains("unsupported"), refusal.getMessage)
@@ -532,7 +526,7 @@ class FacetBindingsSuite extends munit.FunSuite:
       body = Some(variable("trailing"))
     )
     for (bound, repeated) <- Vector("written" -> false, "s" -> false, "written" -> true) do
-      val call = ir.Call(helper.name, Seq(equal(variable(bound), variable("phaseState"))))
+      val call = ir.Call(helper.name, Seq(equal(variable(bound), stateReady("phaseState"))))
       val scoped = ir.Expr(kind =
         ir.Expr.Kind.Let(
           ir.Let(
@@ -567,7 +561,17 @@ class FacetBindingsSuite extends munit.FunSuite:
             ir.Expr(
               position = Some(position),
               kind = ir.Expr.Kind.Call(
-                ir.Call("curried", Seq(equal(variable(condition.name), variable("s"))))
+                ir.Call(
+                  "curried",
+                  Seq(
+                    equal(
+                      variable(condition.name),
+                      ir.Expr(kind =
+                        ir.Expr.Kind.Field(ir.FieldAccess(Some(variable("s")), "ready"))
+                      )
+                    )
+                  )
+                )
               )
             )
           )

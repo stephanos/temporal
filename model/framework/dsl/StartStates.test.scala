@@ -55,7 +55,7 @@ class StartStatesTest extends munit.FunSuite:
     assertEquals(graph.states.size, 6)
 
   test("a derived machine keeps its source's alternatives"):
-    val derived = Model.restrict(switches.finish)
+    val derived = Model.unmonitored
     assertEquals(derived.initialStates, Model.initialStates)
     assertEquals(
       NativeCheck.verifyAll(derived, sections = Some(Model)).result("belowTwo").verdict,

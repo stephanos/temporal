@@ -5,90 +5,92 @@ import framework.checker.Effects.*
 class NativeCrashSuite extends munit.FunSuite:
   enum Custody derives CanEqual:
     case idle, buffered, reserved, stored
-  final case class CrashState(
-      kept: Int,
-      pending: Int,
-      custody: Custody,
-      available: Boolean,
-      remaining: Int,
-      bounded: UpTo[2],
-      other: Int
-  )
+
+  given Ok[Boolean] = Ok(true)
 
   object faults:
-    val crash = action("crash", Actor("fault")).crash
-    val second = action("second", Actor("fault")).responseLoss
+    private val actor = Actor("fault")
+    val crash = framework.dsl.action("crash", actor).crash
+    val second = framework.dsl.action("second", actor).responseLoss
+    val authored = framework.dsl.action("authored", actor).responseLoss
+    val extra = framework.dsl.action("extra", actor).responseLoss
 
-  class Subject(mode: Int) extends RecordMachine[CrashState, Boolean, Boolean]:
-    def init: CrashState = CrashState(13, 8, Custody.buffered, true, 2, UpTo(2), 7)
-    def end(s: CrashState): Boolean = false
+  final private class Calls:
+    var resets = 0
+    var callbacks = 0
+    def poison(): Unit =
+      callbacks += 1
+      throw AssertionError("effect evaluated")
+
+  class Subject(mode: Int) extends Machine[Boolean, Boolean]:
+    var kept = 13
+    var pending = 8
+    var custody = Custody.buffered
+    var available = true
+    var remaining = 2
+    var bounded = UpTo[2](2)
+    var other = 7
     durability(
-      durable(_.kept),
-      ephemeral(_.pending, resetTo = 0),
-      inMemory(_.custody)(Custody.buffered -> Custody.idle, Custody.reserved -> Custody.stored),
-      durable(_.available),
-      durable(_.remaining),
-      durable(_.bounded),
-      durable(_.other)
+      durable(kept),
+      ephemeral(pending, 0),
+      inMemory(custody)(Custody.buffered -> Custody.idle, Custody.reserved -> Custody.stored),
+      durable(available),
+      durable(remaining),
+      durable(bounded),
+      durable(other)
     )
 
-    object transitions extends Rules:
+    object transitions extends Transitions:
       mode match
         case 0 => crashes(faults.crash, false, true, false)
-        case 1 => crashes(faults.crash.budgetedBy(_.available), false, true, false)
-        case 2 => crashes(faults.crash.budgetedBy(_.remaining), false, true, false)
-        case _ => crashes(faults.crash.budgetedBy(_.bounded), false, true, false)
-      on(faults.second.budgetedBy(_.other)):
-        always ~> ((s: CrashState) => List(Step(true, s)))
+        case 1 => crashes(faults.crash.budgetedBy(available), false, true, false)
+        case 2 => crashes(faults.crash.budgetedBy(remaining), false, true, false)
+        case _ => crashes(faults.crash.budgetedBy(bounded), false, true, false)
+      on(faults.second.budgetedBy(other)):
+        effects.noop()
 
-  private def run(
-      machine: RecordMachine[CrashState, Boolean, Boolean],
-      state: CrashState
-  ): List[Step[CrashState, Boolean, Boolean]] =
-    val binding = machine.bindings.find(_.decl.eq(faults.crash.decl)).get
-    effectOf[CrashState, Boolean, Boolean](binding.decl, binding.function)(state, Nil)
+    object effects:
+      def noop() =
+        ()
+      def authoredCrash() =
+        remaining -= 1
 
-  private def ordinaryCrash(state: CrashState): List[Step[CrashState, Boolean, Boolean]] =
-    val custody = state.custody match
-      case Custody.idle     => Custody.idle
-      case Custody.buffered => Custody.idle
-      case Custody.reserved => Custody.stored
-      case Custody.stored   => Custody.stored
-    List(Step(false, state.copy(pending = 0, custody = custody), List(true, false)))
+  private def run[O, F](machine: NativeModel[State, O, F], state: State, cls: Class) =
+    machine.nativeEffects.find(_._1 eq cls.decl).get._2(state, cls)
 
   test("a generated crash reconstructs sibling resets as one valid record"):
     final case class Paired(left: Int, right: Int):
       require(left == right)
-    object PairedSubject extends RecordMachine[Paired, Boolean, Boolean]:
-      def init: Paired = Paired(1, 1)
-      def end(state: Paired): Boolean = false
-      durability(ephemeral(_.left, 0), ephemeral(_.right, 0))
-      object transitions extends Bindings(crashes(faults.crash, true))
-    val binding = PairedSubject.bindings.head
-    val result = effectOf[Paired, Boolean, Boolean](binding.decl, binding.function)(
-      Paired(1, 1),
-      Nil
+    object PairedSubject extends Machine[Boolean, Boolean]:
+      var pair = Paired(1, 1)
+      durability(ephemeral(pair.left, 0), ephemeral(pair.right, 0))
+      object transitions extends Transitions:
+        crashes(faults.crash, true)
+    assertEquals(
+      run(PairedSubject, PairedSubject.init, faults.crash()),
+      List(Step(true, PairedSubject.init.copy(pair = Paired(0, 0))))
     )
-    assertEquals(result, List(Step(true, Paired(0, 0))))
 
   test("a budgeted crash reconstructs nested resets and its own budget atomically"):
     final case class Paired(left: Int, right: Int):
       require(left == right)
     final case class Coupled(pair: Paired, remaining: Int):
       require(pair.left == remaining)
-    object CoupledSubject extends RecordMachine[Coupled, Boolean, Boolean]:
-      def init: Coupled = Coupled(Paired(1, 1), 1)
-      def end(state: Coupled): Boolean = false
+    object CoupledSubject extends Machine[Boolean, Boolean]:
+      var coupled = Coupled(Paired(1, 1), 1)
       durability(
-        ephemeral(_.pair.left, 0),
-        ephemeral(_.pair.right, 0),
-        durable(_.remaining)
+        ephemeral(coupled.pair.left, 0),
+        ephemeral(coupled.pair.right, 0),
+        durable(coupled.remaining)
       )
-      object transitions extends Bindings(crashes(faults.crash.budgetedBy(_.remaining), true))
-    val binding = CoupledSubject.bindings.head
-    val execute = effectOf[Coupled, Boolean, Boolean](binding.decl, binding.function)
-    assertEquals(execute(Coupled(Paired(1, 1), 1), Nil), List(Step(true, Coupled(Paired(0, 0), 0))))
-    assertEquals(execute(Coupled(Paired(0, 0), 0), Nil), Nil)
+      object transitions extends Transitions:
+        crashes(faults.crash.budgetedBy(coupled.remaining), true)
+    val exhausted = CoupledSubject.init.copy(coupled = Coupled(Paired(0, 0), 0))
+    assertEquals(
+      run(CoupledSubject, CoupledSubject.init, faults.crash()),
+      List(Step(true, exhausted))
+    )
+    assertEquals(run(CoupledSubject, exhausted, faults.crash()), Nil)
 
   test("derived crash matches ordinary independent field reset including unmapped values"):
     val machine = new Subject(0)
@@ -99,115 +101,95 @@ class NativeCrashSuite extends munit.FunSuite:
         Custody.stored -> Custody.stored
       )
     do
-      val state = CrashState(13, 8, from, true, 2, UpTo(2), 7)
+      val state = machine.init.copy(custody = from)
+      val expected = state.copy(pending = 0, custody = to)
       assertEquals(
-        run(machine, state),
-        List(Step(false, CrashState(13, 0, to, true, 2, UpTo(2), 7), List(true, false)))
+        run(machine, state, faults.crash()),
+        List(Step(false, expected, List(true, false)))
       )
-      assertEquals(run(machine, state), ordinaryCrash(state))
 
   test("generated own budgets consume once preserving every other budget and durable value"):
-    val state = CrashState(13, 8, Custody.reserved, true, 2, UpTo(2), 7)
-    val expected = List(
-      CrashState(13, 0, Custody.stored, false, 2, UpTo(2), 7),
-      CrashState(13, 0, Custody.stored, true, 1, UpTo(2), 7),
-      CrashState(13, 0, Custody.stored, true, 2, UpTo(1), 7)
-    )
-    for (mode, next) <- List(1, 2, 3).zip(expected) do
-      assertEquals(run(new Subject(mode), state), List(Step(false, next, List(true, false))))
+    for mode <- List(1, 2, 3) do
+      val machine = new Subject(mode)
+      val state = machine.init.copy(custody = Custody.reserved)
+      val reset = state.copy(pending = 0, custody = Custody.stored)
+      val expected = mode match
+        case 1 => reset.copy(available = false)
+        case 2 => reset.copy(remaining = 1)
+        case _ => reset.copy(bounded = UpTo[2](1))
       assertEquals(
-        run(new Subject(mode), state.copy(other = -7)),
-        List(Step(false, next.copy(other = -7), List(true, false)))
+        run(machine, state, faults.crash()),
+        List(Step(false, expected, List(true, false)))
       )
-    assertEquals(run(new Subject(1), state.copy(available = false)), Nil)
-    assertEquals(run(new Subject(2), state.copy(remaining = 0)), Nil)
-    assertEquals(run(new Subject(3), state.copy(bounded = UpTo(0))), Nil)
+      assertEquals(
+        run(machine, state.copy(other = -7), faults.crash()),
+        List(Step(false, expected.copy(other = -7), List(true, false)))
+      )
+      val spent = mode match
+        case 1 => state.copy(available = false)
+        case 2 => state.copy(remaining = 0)
+        case _ => state.copy(bounded = UpTo[2](0))
+      assertEquals(run(machine, spent, faults.crash()), Nil)
 
   test(
     "negative own Int refuses with binding location while authored overrides consume themselves"
   ):
     val machine = new Subject(2)
-    val error = intercept[IllegalArgumentException](run(machine, machine.init.copy(remaining = -1)))
+    val negative = machine.init.copy(remaining = -1)
+    val error = intercept[IllegalArgumentException](run(machine, negative, faults.crash()))
     assert(error.getMessage.contains("crash"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
-    val overridden = machine.rebind(
-      faults.crash ~> ((s: CrashState) => List(Step(true, s.copy(remaining = s.remaining - 1))))
+    val overridden = machine.rebind(on(faults.crash):
+      machine.effects.authoredCrash())
+    assertEquals(
+      run(overridden, machine.init, faults.crash()),
+      List(Step(true, machine.init.copy(remaining = 1)))
     )
     assertEquals(
-      run(overridden, machine.init),
-      List(Step(true, CrashState(13, 8, Custody.buffered, true, 1, UpTo(2), 7)))
+      run(overridden, negative, faults.crash()),
+      List(Step(true, negative.copy(remaining = -2)))
     )
-    assertEquals(run(overridden, machine.init.copy(remaining = -1)).head.state.remaining, -2)
-    val binding = machine.bindings.find(_.decl.eq(faults.second.decl)).get
-    val authored = effectOf[CrashState, Boolean, Boolean](binding.decl, binding.function)
     val negativeOther = machine.init.copy(other = -1)
-    assertEquals(authored(negativeOther, Nil), List(Step(true, negativeOther)))
+    assertEquals(run(machine, negativeOther, faults.second()), List(Step(true, negativeOther)))
 
   test("never-invoked crash and orphan classifications refuse at completed acquisition"):
-    class Missing extends RecordMachine[CrashState, Boolean, Nothing]:
-      def init: CrashState = throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Rules:
+    val calls = new Calls
+    class Missing extends Machine[Boolean, Nothing]:
+      var kept = 13
+      override def end: Boolean =
+        calls.poison()
+        false
+      object transitions extends Transitions:
         crashes(faults.crash, true)
-    val missing = new Missing
-    val error = intercept[IllegalArgumentException](missing.bindings)
+    val error = intercept[IllegalArgumentException](new Missing().bindings)
     assert(error.getMessage.contains("classification"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
-    class Orphan extends RecordMachine[CrashState, Boolean, Nothing]:
-      def init: CrashState = throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      durability(durable(_.kept))
-      object transitions extends Bindings()
+    class Orphan extends Machine[Boolean, Nothing]:
+      var kept = 13
+      durability(durable(kept))
+      object transitions extends Transitions
     intercept[IllegalArgumentException](new Orphan().bindings): Unit
+    assertEquals(calls.callbacks, 0)
 
-  test("crash-free restrictions retain valid classification without hiding derived invalid fields"):
-    val restricted = new Subject(0).restrict(faults.second)
-    assertEquals(restricted.bindings.map(_.decl), List(faults.second.decl))
-    object Invalid extends Derived(restricted):
-      durability(ephemeral(_.pending, resetTo = 0))
-    val error = intercept[IllegalArgumentException](Invalid.bindings)
+  test("crash-free native derivations reject newly introduced orphan classifications"):
+    object Plain extends Machine[Boolean, Nothing]:
+      var pending = 8
+      object transitions extends Transitions
+    object NewlyClassified extends Derived(Plain):
+      durability(FieldDurability.durable(this, StateField.captureVar(Plain.pending, this)))
+    val error = intercept[IllegalArgumentException](NewlyClassified.bindings)
     assert(error.getMessage.contains("requires a crash binding"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
-    object Plain extends RecordMachine[CrashState, Boolean, Boolean]:
-      def init: CrashState = throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Bindings()
-    object NewlyClassified extends Derived(Plain):
-      durability(
-        durable(_.kept),
-        durable(_.pending),
-        durable(_.custody),
-        durable(_.available),
-        durable(_.remaining),
-        durable(_.bounded),
-        durable(_.other)
-      )
-    val orphan = intercept[IllegalArgumentException](NewlyClassified.bindings)
-    assert(orphan.getMessage.contains("requires a crash binding"), orphan.getMessage)
-    val authored = action("authored", Actor("fault")).responseLoss
-    val extended = restricted.extend(
-      authored.budgetedBy(_.pending) ~> ((s: CrashState) => List(Step(true, s)))
-    )
-    val binding = extended.bindings.find(_.decl.eq(authored.decl)).get
-    val state = CrashState(13, -4, Custody.buffered, true, 2, UpTo(2), 7)
-    assertEquals(
-      effectOf[CrashState, Boolean, Boolean](binding.decl, binding.function)(state, Nil),
-      List(Step(true, state))
-    )
 
   test("exhausted and negative budgets stop before a poison reset while positives reach it"):
-    final case class PoisonState(
-        available: Boolean,
-        remaining: Int,
-        bounded: UpTo[2],
-        pending: Boolean
-    )
-    class Poison(mode: Int) extends RecordMachine[PoisonState, Boolean, Nothing]:
-      var resets = 0
-      def init: PoisonState = throw AssertionError("init evaluated")
-      def end(s: PoisonState): Boolean = throw AssertionError("end evaluated")
-      private val selected = StateField.capture[PoisonState, Boolean](_.pending)
-      private val poisoned = StateField.make[PoisonState, Boolean](
+    val calls = new Calls
+    class Poison(mode: Int) extends Machine[Boolean, Nothing]:
+      var available = true
+      var remaining = 1
+      var bounded = UpTo[2](1)
+      var pending = true
+      private lazy val selected = StateField.captureVar(pending, this)
+      private lazy val poisoned = StateField.make[State, Boolean](
         selected.ownerType,
         selected.fieldType,
         selected.path,
@@ -215,122 +197,106 @@ class NativeCrashSuite extends munit.FunSuite:
         selected.rootFields,
         selected.valid,
         _ =>
-          resets += 1; throw AssertionError("reset evaluated")
+          calls.resets += 1
+          throw AssertionError("reset evaluated")
         ,
         selected.write,
         selected.rebuild
       )
       durability(
-        durable(_.available),
-        durable(_.remaining),
-        durable(_.bounded),
+        durable(available),
+        durable(remaining),
+        durable(bounded),
         FieldDurability.inMemory(this, poisoned, Vector(true -> false))
       )
-      object transitions extends Rules:
+      object transitions extends Transitions:
         mode match
-          case 1 => crashes(faults.crash.budgetedBy(_.available), true)
-          case 2 => crashes(faults.crash.budgetedBy(_.remaining), true)
-          case _ => crashes(faults.crash.budgetedBy(_.bounded), true)
-    val exhausted = PoisonState(false, 0, UpTo(0), true)
+          case 1 => crashes(faults.crash.budgetedBy(available), true)
+          case 2 => crashes(faults.crash.budgetedBy(remaining), true)
+          case _ => crashes(faults.crash.budgetedBy(bounded), true)
     for mode <- List(1, 2, 3) do
       val subject = new Poison(mode)
-      val binding = subject.bindings.head
-      val effect = effectOf[PoisonState, Boolean, Nothing](binding.decl, binding.function)
-      assertEquals(effect(exhausted, Nil), Nil)
-      assertEquals(subject.resets, 0)
+      val exhausted = subject.init.copy(available = false, remaining = 0, bounded = UpTo[2](0))
+      val before = calls.resets
+      assertEquals(run(subject, exhausted, faults.crash()), Nil)
+      assertEquals(calls.resets, before)
       if mode == 2 then
-        val error = intercept[IllegalArgumentException](effect(exhausted.copy(remaining = -1), Nil))
+        val error = intercept[IllegalArgumentException](
+          run(subject, exhausted.copy(remaining = -1), faults.crash())
+        )
         assert(error.getMessage.contains("negative own budget"), error.getMessage)
-        assertEquals(subject.resets, 0)
-      val positive = PoisonState(true, 1, UpTo(1), true)
-      assertEquals(intercept[AssertionError](effect(positive, Nil)).getMessage, "reset evaluated")
-      assertEquals(subject.resets, 1)
+        assertEquals(calls.resets, before)
+      assertEquals(
+        intercept[AssertionError](run(subject, subject.init, faults.crash())).getMessage,
+        "reset evaluated"
+      )
+      assertEquals(calls.resets, before + 1)
 
   test("completed acquisition refuses duplicate generated crash bindings"):
-    class Duplicate extends RecordMachine[CrashState, Boolean, Boolean]:
-      def init: CrashState = throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      durability(
-        durable(_.kept),
-        durable(_.pending),
-        durable(_.custody),
-        durable(_.available),
-        durable(_.remaining),
-        durable(_.bounded),
-        durable(_.other)
-      )
-      object transitions extends Bindings(crashes(faults.crash, true), crashes(faults.crash, false))
+    class Duplicate extends Machine[Boolean, Boolean]:
+      var kept = 13
+      durability(durable(kept))
+      object transitions extends Transitions:
+        crashes(faults.crash, true)
+        crashes(faults.crash, false)
     val error = intercept[IllegalArgumentException](new Duplicate().bindings)
     assert(error.getMessage.contains("crash"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
 
   test("completed metadata rejects malformed dormant classifications before any callback"):
-    final case class InvalidState(value: UpTo[2], pending: Boolean)
-    class Invalid(mode: Int) extends RecordMachine[InvalidState, Boolean, Nothing]:
-      def init: InvalidState = throw AssertionError("init evaluated")
-      def end(s: InvalidState): Boolean = throw AssertionError("end evaluated")
+    val calls = new Calls
+    class Invalid(mode: Int) extends Machine[Boolean, Nothing]:
+      var value = UpTo[2](2)
+      var pending = true
       mode match
-        case 0 => durability(durable(_.value))
-        case 1 => durability(durable(_.value), durable(_.value), durable(_.pending))
+        case 0 => durability(durable(value))
+        case 1 => durability(durable(value), durable(value), durable(pending))
         case 2 =>
-          durability(
-            ephemeral(_.value, resetTo = 3.asInstanceOf[UpTo[2]]),
-            durable(_.pending)
-          ) // scalafix:ok DisableSyntax.asInstanceOf
+          val forged = 3.asInstanceOf[UpTo[2]] // scalafix:ok DisableSyntax.asInstanceOf
+          durability(ephemeral(value, forged), durable(pending))
         case 3 =>
           durability(
-            inMemory(_.value)(UpTo[2](2) -> UpTo[2](1), UpTo[2](1) -> UpTo[2](0)),
-            durable(_.pending)
+            inMemory(value)(UpTo[2](2) -> UpTo[2](1), UpTo[2](1) -> UpTo[2](0)),
+            durable(pending)
           )
-        case _ => durability(ephemeral(_.value, resetTo = UpTo[2](0)), durable(_.pending))
-      object transitions
-          extends Bindings(
-            faults.crash.budgetedBy(_.value) ~>
-              ((_: InvalidState) => throw AssertionError("effect evaluated"))
-          )
+        case _ => durability(ephemeral(value, UpTo[2](0)), durable(pending))
+      object transitions extends Transitions:
+        on(faults.crash.budgetedBy(value)):
+          effects.poison()
+      object effects:
+        def poison() =
+          calls.poison()
     for mode <- 0 to 4 do
-      val subject = new Invalid(mode)
-      val error = intercept[IllegalArgumentException](subject.nativeBudgets)
+      val error = intercept[IllegalArgumentException](new Invalid(mode).nativeBudgets)
       assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
+    assertEquals(calls.callbacks, 0)
 
   test("nested field resets and own-budget writes compose in the same native transition"):
     final case class Inner(remaining: Int, pending: Boolean)
-    final case class Nested(inner: Inner, kept: Int)
-    object Subject extends RecordMachine[Nested, Boolean, Nothing]:
-      def init: Nested = throw AssertionError("init evaluated")
-      def end(s: Nested): Boolean = throw AssertionError("end evaluated")
-      durability(durable(_.inner.remaining), ephemeral(_.inner.pending, false), durable(_.kept))
-      object transitions extends Rules:
-        crashes(faults.crash.budgetedBy(_.inner.remaining), true)
-    val binding = Subject.bindings.head
-    val result = effectOf[Nested, Boolean, Nothing](binding.decl, binding.function)(
-      Nested(Inner(2, true), 15),
-      Nil
+    object Nested extends Machine[Boolean, Nothing]:
+      var inner = Inner(2, true)
+      var kept = 15
+      durability(durable(inner.remaining), ephemeral(inner.pending, false), durable(kept))
+      object transitions extends Transitions:
+        crashes(faults.crash.budgetedBy(inner.remaining), true)
+    assertEquals(
+      run(Nested, Nested.init, faults.crash()),
+      List(Step(true, Nested.init.copy(inner = Inner(1, false))))
     )
-    assertEquals(result, List(Step(true, Nested(Inner(1, false), 15))))
 
   test("empty custom realization acquisition rejects dormant invalid crashes before dependencies"):
     import framework.realize.{ConstructedRealization, Performance}
-    var callbacks = 0
+    val calls = new Calls
     var exposedDependencies = 0
-    class Admission(valid: Boolean) extends RecordMachine[CrashState, Boolean, Boolean]:
-      def init: CrashState =
-        callbacks += 1; throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean =
-        callbacks += 1; throw AssertionError("end evaluated")
-      if valid then
-        durability(
-          durable(_.kept),
-          durable(_.pending),
-          durable(_.custody),
-          durable(_.available),
-          durable(_.remaining),
-          durable(_.bounded),
-          durable(_.other)
-        )
-      object transitions extends Rules:
+    class Admission(valid: Boolean) extends Machine[Boolean, Boolean]:
+      var kept = 13
+      override def end: Boolean =
+        calls.poison()
+        false
+      if valid then durability(durable(kept))
+      object transitions extends Transitions:
         crashes(faults.crash, true)
-    class Kit(val machine: RecordMachine[?, ?, ?]) extends ConstructedRealization:
+    class Kit(val machine: MachineDeclaration[?, ?, ?]) extends ConstructedRealization:
       val runs: Seq[AnyRef] = Nil
       protected def declaredPerformances: Vector[Performance] = Vector.empty
       protected def declaredDependencies: ConstructedRealization.Dependencies =
@@ -348,44 +314,36 @@ class NativeCrashSuite extends munit.FunSuite:
     intercept[IllegalArgumentException](invalid.nativePerformances): Unit
     intercept[IllegalArgumentException](invalid.dependencies): Unit
     assertEquals(exposedDependencies, 1)
-    assertEquals(callbacks, 0)
+    assertEquals(calls.callbacks, 0)
 
   test("generated own budgets refuse active aliases while authored overrides retain shared paths"):
-    var callbacks = 0
-    class Subject(shared: Boolean) extends RecordMachine[CrashState, Boolean, Boolean]:
-      def init: CrashState = throw AssertionError("init evaluated")
-      def end(s: CrashState): Boolean = throw AssertionError("end evaluated")
-      durability(
-        durable(_.kept),
-        ephemeral(_.pending, 0),
-        durable(_.custody),
-        durable(_.available),
-        durable(_.remaining),
-        durable(_.bounded),
-        durable(_.other)
-      )
-      object transitions
-          extends Bindings(
-            crashes(faults.crash.budgetedBy(_.remaining), false),
-            (if shared then faults.second.budgetedBy(_.remaining)
-             else faults.second.budgetedBy(_.other)) ~>
-              ((_: CrashState) =>
-                callbacks += 1; throw AssertionError("effect evaluated")
-              )
-          )
-    val distinct = new Subject(false)
+    val calls = new Calls
+    class Shared(shared: Boolean) extends Machine[Boolean, Boolean]:
+      var remaining = 2
+      var other = 7
+      var pending = 8
+      durability(durable(remaining), durable(other), ephemeral(pending, 0))
+      object transitions extends Transitions:
+        crashes(faults.crash.budgetedBy(remaining), false)
+        if shared then
+          on(faults.second.budgetedBy(remaining)):
+            effects.poison()
+        else
+          on(faults.second.budgetedBy(other)):
+            effects.poison()
+      object effects:
+        def poison() =
+          calls.poison()
+    val distinct = new Shared(false)
     assertEquals(distinct.nativeBudgets.size, 2)
-    val extra = action("extra", Actor("fault")).responseLoss
     val authored = distinct
-      .rebind(faults.crash ~> ((_: CrashState) =>
-        callbacks += 1; throw AssertionError("override evaluated")
-      ))
-      .extend(extra.budgetedBy(_.remaining) ~> ((_: CrashState) =>
-        callbacks += 1; throw AssertionError("extra evaluated")
-      ))
+      .rebind(on(faults.crash):
+        distinct.effects.poison())
+      .extend(on(faults.extra.budgetedBy(distinct.remaining)):
+        distinct.effects.poison())
     assertEquals(authored.nativeBudgets.size, 3)
-    val error = intercept[IllegalArgumentException](new Subject(true).nativeBudgets)
+    val error = intercept[IllegalArgumentException](new Shared(true).nativeBudgets)
     assert(error.getMessage.contains("aliases another fault budget"), error.getMessage)
     assert(error.getMessage.contains("remaining"), error.getMessage)
     assert(error.getMessage.contains("NativeCrash.test.scala"), error.getMessage)
-    assertEquals(callbacks, 0)
+    assertEquals(calls.callbacks, 0)

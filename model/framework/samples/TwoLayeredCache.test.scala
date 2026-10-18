@@ -60,7 +60,7 @@ class TwoLayeredCacheTest extends munit.FunSuite:
     )(after => after.records(Event.readL2))
 
   private def run[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: MachineDeclaration[S, O, F],
       state: S,
       cls: Class
   ): List[Step[S, O, F]] =
@@ -78,7 +78,7 @@ class TwoLayeredCacheTest extends munit.FunSuite:
     assertEquals(write, List.empty)
 
   private def cachePath(
-      machine: RecordMachine[State, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
+      machine: MachineDeclaration[State, TwoLayeredCache.Outcome, TwoLayeredCache.Event],
       initial: State,
       cases: List[
         (

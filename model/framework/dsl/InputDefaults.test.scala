@@ -170,10 +170,9 @@ class InputDefaults extends munit.FunSuite:
 
   test("machine, Scenario and realization script initialization refuse required scalar omissions"):
     val send = action(Actor("sender")).input[Boolean](name = "requiredAnswer")
-    class Base extends RecordMachine[Boolean, Boolean, Nothing]:
-      val init = false
-      def end(s: State) = true
-      object transitions extends Bindings()
+    class Base extends Machine[Boolean, Nothing]:
+      var ready = false
+      object transitions extends Transitions(using summon, Ok(true), summon)
     val base = new Base
     class MissingMachine extends Base:
       val path = scenario.actions(send())

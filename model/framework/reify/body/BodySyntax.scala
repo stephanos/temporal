@@ -60,9 +60,6 @@ private[framework] trait BodySyntax:
     case TypeApply(fn, _) => sugarCall(fn)
     case r: Ref if r.symbol.maybeOwner.fullName == sugarOwner =>
       Some(r.symbol.name -> Nil)
-    // A guard of a machine's rules reads `phase.in(a, b)` as the rules repeat it.
-    case r: Ref if r.symbol.maybeOwner.fullName == "framework.dsl.Rules" && r.symbol.name == "in" =>
-      Some("in" -> Nil)
     case _ => None
 
   // The type arguments a sugar call is applied to, innermost first.
@@ -166,27 +163,6 @@ private[framework] trait BodySyntax:
       Some(EffectStatement.Record(first :: varargs(rest), c))
     case c @ Apply(Apply(TypeApply(fn, _), List(_)), List(outcome)) if syntaxCall(fn, "reject") =>
       Some(EffectStatement.Reject(outcome, c))
-    case c: Apply if accessor(c.symbol) && getterField(c.symbol).isEmpty =>
-      val fn = c.symbol
-      (setterShape(fn), c) match
-        case (Some((field, false)), Apply(Apply(_, List(value)), List(_)))
-            if value.tpe.widen.derivesFrom(recordedClass) =>
-          fail(
-            c,
-            s"${fn.name}, declared at ${declaredAt(fn)}, assigns $field, whose values declare " +
-              "their status, so it hands the draft the value whose status the step records: " +
-              "`def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = " +
-              "d.set(p)(_.copy(phase = p))`"
-          )
-        case (Some((field, recorded)), Apply(Apply(_, List(value)), List(_))) =>
-          Some(EffectStatement.Assign(field, value, c, recorded))
-        case _ =>
-          fail(
-            c,
-            s"${fn.name}, declared at ${declaredAt(fn)}, takes the state of a block and is no " +
-              "field accessor: a setter replaces one field, " +
-              "`def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`"
-          )
     case _ => None
 
   // An `effect { ... }` block's statements, lifted as the steps of its method form: the
@@ -266,20 +242,6 @@ private[framework] trait BodySyntax:
         a.at,
         s"$block assigns ${a.field} twice, at ${where(first.at)} and here: assign each field once"
       )
-    // A field read after its assignment reads the assigned value at run time, the old one in the IR.
-    for (s, i) <- lifted.zipWithIndex do
-      val assigned = lifted.take(i).collect { case a: Assign => a.field }.toSet
-      object reads extends TreeTraverser:
-        override def traverseTree(tree: Tree)(owner: Symbol): Unit = tree match
-          case Apply(fn, List(_)) if getterField(fn.symbol).exists(assigned) =>
-            val field = getterField(fn.symbol).get
-            fail(
-              tree,
-              s"$block reads $field after it assigns it: the IR's copy of the state has no " +
-                s"statement order, so read $field before its assignment"
-            )
-          case _ => super.traverseTree(tree)(owner)
-      s.values.foreach(v => reads.traverseTree(v)(b.at.symbol))
     val at = b.body
     def state = expr(at)(E.Var("s"))
     lifted match

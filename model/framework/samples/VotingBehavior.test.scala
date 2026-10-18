@@ -13,7 +13,7 @@ import SectionClaims.{declares, holds as claimHolds, target}
 // The claims of a sample's sections, written as blocks of `check` (NativeClaims), evaluated
 // natively on one state or one step, as the default checks evaluate them on each.
 object SectionClaims extends munit.Assertions:
-  private def evaluated(machine: RecordMachine[?, ?, ?], section: String)(
+  private def evaluated(machine: MachineDeclaration[?, ?, ?], section: String)(
       now: State,
       from: Option[State],
       taken: Option[Class],
@@ -27,7 +27,7 @@ object SectionClaims extends munit.Assertions:
 
   // Whether the claim `member` of `machine`'s `section` holds in `now`: a postcondition on the step
   // to `now` from `from`, taking `taken` and answering `outcome`.
-  def holds(machine: RecordMachine[?, ?, ?], section: String, member: String)(
+  def holds(machine: MachineDeclaration[?, ?, ?], section: String, member: String)(
       now: State,
       from: Option[State] = None,
       taken: Option[Class] = None,
@@ -36,7 +36,7 @@ object SectionClaims extends munit.Assertions:
     evaluated(machine, section)(now, from, taken, outcome).failure(member).isEmpty
 
   // The action, or class of it, whose steps the claim `member` is about, if it is about one's.
-  def target(machine: RecordMachine[?, ?, ?], section: String, member: String): Option[Any] =
+  def target(machine: MachineDeclaration[?, ?, ?], section: String, member: String): Option[Any] =
     evaluated(machine, section)(machine.init.asInstanceOf[State], None, None, None).targeted
       .get(member)
 
@@ -50,7 +50,7 @@ object SectionClaims extends munit.Assertions:
   // A claim holds of each case as the predicate it was written as before (fn-190.4) does: in the
   // state a step reached, about the steps of `about` where it names one.
   def same[O, F](
-      machine: RecordMachine[?, ?, ?],
+      machine: MachineDeclaration[?, ?, ?],
       section: String,
       member: String,
       about: Option[Class],
@@ -67,7 +67,7 @@ object SectionClaims extends munit.Assertions:
   // A postcondition holds of each step from the state before as the predicate it was written as
   // before (fn-190.4) does.
   def across[O, F](
-      machine: RecordMachine[?, ?, ?],
+      machine: MachineDeclaration[?, ?, ?],
       member: String,
       cases: List[(State, Step[State, O, F], Boolean)]
   )(old: (State, Step[State, O, F]) => Boolean): Unit =
@@ -85,7 +85,7 @@ object SectionClaims extends munit.Assertions:
 
 class VotingBehaviorTest extends munit.FunSuite:
   private def run[S, O](
-      machine: RecordMachine[S, O, Nothing],
+      machine: MachineDeclaration[S, O, Nothing],
       state: S,
       cls: Class
   ): List[Step[S, O, Nothing]] =
@@ -561,13 +561,13 @@ class VotingBehaviorTest extends munit.FunSuite:
     assertEquals(classesOf(wire.network.lose.decl), expected)
 
   test(
-    "public illustration attachment checks exact Model and actual Derived Naive network ownership"
+    "illustration metadata checks exact Model and actual Derived Naive network ownership"
   ):
     import ReliableBroadcast.*
     val crossed = channel[Msg](capacity = 4, order = Order.unordered, loss = Loss.reliable)
     for owner <- List(Model, Naive) do
-      val property = owner.property.expect:
-        check(onlyBroadcast(Model.current))
+      val property = PropertyBuilder[State, Outcome, Nothing]("", owner, None)
+        .sameStep(_ => onlyBroadcast(Model.current))
       val supplied = Model.init.copy(network = wire.network.empty.send(Msg(Proc.p1, Payload.hello)))
       val attached = property.illustrate(
         "valid",

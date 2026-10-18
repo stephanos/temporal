@@ -15,41 +15,49 @@ class MachineEvidenceSuite extends munit.FunSuite:
     Base64.getEncoder.encodeToString(value.toByteArray)
   private def chunks(value: scalapb.GeneratedMessage) = Seq(bytes(value))
   final private class Reads:
-    var getter, callback, catalog, stateCatalog, init, end, rules, table, refinement, supplier = 0
+    var getter, callback, catalog, stateCatalog, end, rules, table, refinement, supplier = 0
+    var replacement = Option.empty[MachineEvidence.Retained]
+    var redirect = Option.empty[MachineDeclaration[?, ?, ?]]
     def snapshot =
-      Vector(getter, callback, catalog, stateCatalog, init, end, rules, table, refinement, supplier)
-  final case class Cell(box: Inbox[Boolean])
+      Vector(getter, callback, catalog, stateCatalog, end, rules, table, refinement, supplier)
+
   private val wire = channel[Boolean](1, Order.fifo, Loss.reliable)
+
   private class Source(
       val declared: String,
       val reads: Reads,
-      state: Finite[Cell],
+      state: Finite[State],
       facts: Finite[Boolean]
-  ) extends RecordMachine[Cell, Boolean, Boolean](using state, Finite[Boolean], facts):
-    def init: Cell =
-      reads.init += 1
-      Cell(wire.empty)
-    def end(s: Cell): Boolean =
+  ) extends Machine[Boolean, Boolean](using Finite[Boolean], facts):
+    override private[framework] val fs: Data[State] = state
+    var box = wire.empty
+    override def end: Boolean =
       reads.end += 1
-      s.box.isEmpty
+      box.isEmpty
     def evidence: Boolean => String =
       reads.getter += 1
       flag =>
         reads.callback += 1
         if flag then "yes" else "no"
-    private val book = new RuleBook[Cell, Boolean, Boolean]:
+    private val book = new RuleBook[State, Boolean, Boolean]:
       private[framework] def table = Vector.empty
-    def transitions: RuleBook[Cell, Boolean, Boolean] =
+    def transitions: RuleBook[State, Boolean, Boolean] =
       reads.rules += 1
       book
-    override private[framework] def table: Vector[(ActionDecl, Bound[Cell, Boolean, Boolean])] =
+    override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Boolean])] =
       reads.table += 1
       super.table
-    override private[framework] def refinementEvidence: Option[Refinement[Cell, ?]] =
+    override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
       reads.refinement += 1
       None
-    var replacement = Option.empty[MachineEvidence.Retained]
-    var redirect = Option.empty[RecordMachine[?, ?, ?]]
+    def replacement =
+      reads.replacement
+    def replacement_=(value: Option[MachineEvidence.Retained]): Unit =
+      reads.replacement = value
+    def redirect =
+      reads.redirect
+    def redirect_=(value: Option[MachineDeclaration[?, ?, ?]]): Unit =
+      reads.redirect = value
     override private[framework] def evidenceSource = redirect.getOrElse(super.evidenceSource)
     override private[framework] def evidenceMetadata = replacement.orElse(super.evidenceMetadata)
     def original = super.evidenceMetadata.get
@@ -106,10 +114,10 @@ class MachineEvidenceSuite extends munit.FunSuite:
   }
   private def source(name: String = "source", headers: Boolean = true): Source =
     val reads = new Reads
-    val state = new Finite[Cell]:
-      def values =
+    val state = new Finite[State]:
+      def values: IndexedSeq[State] =
         reads.stateCatalog += 1
-        Vector(Cell(wire.empty))
+        throw AssertionError("state catalog evaluated")
     val facts = new Finite[Boolean]:
       def values =
         reads.catalog += 1
@@ -124,23 +132,23 @@ class MachineEvidenceSuite extends munit.FunSuite:
         chunks(ir.Model()),
         chunks(ir.Record())
       )
-      val ref = ir.TypeRef(ir.TypeRef.Ref.Named("fixture.Cell"))
+      val ref = ir.TypeRef(ir.TypeRef.Ref.Named("fixture.EvidenceState"))
       val record = ir.Type(
-        "fixture.Cell",
+        "fixture.EvidenceState",
         shape = ir.Type.Shape.Record(
           ir.Record(Seq(ir.Field("box", Some(ir.TypeRef(ir.TypeRef.Ref.Channel("scala.Boolean"))))))
         )
       )
       value.retainHeaderSchema(
         0,
-        "fixture.Cell",
+        "fixture.EvidenceState",
         chunks(ref),
         chunks(ir.Model(types = Seq(record))),
         chunks(ir.Record(fields = Seq(ir.Field("scala.Boolean", Some(bool)))))
       )
       state.retainInbox(
-        "fixture.Cell",
-        "fixture.Cell",
+        "fixture.EvidenceState",
+        "fixture.EvidenceState",
         "",
         "box",
         "scala.Boolean",
@@ -220,7 +228,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
     assertEquals(MachineEvidence.project(canonical, sourceLast), retained)
     assertEquals(MachineEvidence.project(canonical, missingLast), cleared)
     assertEquals(s.reads.snapshot, reads)
-    val built = s.restrict()
+    val built = s.unmonitored
     val acquired = s.reads.snapshot
     assertEquals(MachineEvidence.project(MachineEvidence.collect(built), sourceLast), canonical)
     assertEquals(MachineEvidence.collect(s), canonical)
@@ -291,7 +299,7 @@ class MachineEvidenceSuite extends munit.FunSuite:
     a.retainEvidence(payload(a, Some(af), ir.Model(functions = Seq(af, helper))))
     assert(a.original.eq(owned), "idempotent retention replaced original publication identity")
     assertEquals(a.evidence(true), "yes")
-    val built = a.restrict()
+    val built = a.unmonitored
     val acquisition = a.reads.snapshot
     val peerAcquisition = b.reads.snapshot
     assertEquals(acquisition.take(2), Vector(1, 1))

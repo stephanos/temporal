@@ -172,39 +172,3 @@ private[reify] class PluginEngine(val ctx: PluginContext) extends BodyEngine:
 
   def phaseProjection(cls: Symbol): Option[Term] = phasedArguments(cls).flatMap(_.headOption)
   def phaseWriter(cls: Symbol, at: Tree): Option[Term] = phasedArguments(cls).flatMap(_.lift(1))
-
-  private def contextualPhase(
-      kind: String,
-      owner: Symbol,
-      args: Seq[ir.Expr],
-      at: Tree,
-      placement: Option[ir.Position]
-  ): ir.Expr =
-    val phased = owner.typeRef.baseType(Symbol.requiredClass("framework.dsl.Phased")).typeArgs
-    if phased.size != 2 then fail(at, s"${owner.fullName} has no typed contextual phase")
-    val state = typeRef(phased.head, at)
-    val phase = typeRef(phased(1), at)
-    val result = if kind == "read" then phase else state
-    val call = ir.Call(s"$$facet-context-v1.${owner.fullName}.$kind", args)
-    contextualSites += ContextualPhaseSite(kind, callOwner, call, state, phase, result, placement)
-    expr(at)(ir.Expr.Kind.Call(call))
-
-  override def contextualPhaseRead(
-      state: ir.Expr,
-      at: Tree,
-      placement: Option[ir.Position],
-      owner: Option[Symbol]
-  ): Option[ir.Expr] = contextualFacet.flatMap { current =>
-    val declared = owner.getOrElse(current)
-    Option.when(facetTrait(declared))(contextualPhase("read", declared, Seq(state), at, placement))
-  }
-
-  override def contextualPhaseWrite(
-      owner: Symbol,
-      state: Either[String, Term],
-      phase: Term,
-      at: Tree
-  ): Option[ir.Expr] = contextualFacet.filter(_ => facetTrait(owner)).map { _ =>
-    val argument = state.fold(name => expr(at)(ir.Expr.Kind.Var(name)), lift(_))
-    contextualPhase("write", owner, Seq(argument, lift(phase)), at, None)
-  }

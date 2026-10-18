@@ -18,7 +18,7 @@ final class Illustration[S, O, F] private[framework] (
 
 final class SameStepProperty[S, O, F] private[framework] (
     declaration: PropertyDecl,
-    individual: () => Option[RecordMachine[S, O, F]],
+    individual: () => Option[MachineDeclaration[S, O, F]],
     val illustrations: Vector[Illustration[S, O, F]]
 ) extends Property(declaration):
   inline def illustrate(
@@ -65,7 +65,7 @@ final class SameStepProperty[S, O, F] private[framework] (
 
 final class TransitionProperty[S, O, F] private[framework] (
     declaration: PropertyDecl,
-    individual: () => Option[RecordMachine[S, O, F]],
+    individual: () => Option[MachineDeclaration[S, O, F]],
     val illustrations: Vector[Illustration[S, O, F]]
 ) extends Property(declaration):
   inline def illustrate(
@@ -121,7 +121,7 @@ private[framework] object IllustrationAdmission:
       decl: PropertyDecl,
       previous: Vector[Illustration[S, O, F]],
       value: Illustration[S, O, F],
-      individual: Option[RecordMachine[S, O, F]],
+      individual: Option[MachineDeclaration[S, O, F]],
       states: StructuralValue[S],
       outcomes: StructuralValue[O],
       facts: StructuralValue[F]

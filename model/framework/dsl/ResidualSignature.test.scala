@@ -19,53 +19,6 @@ class ResidualSignatureSuite extends munit.FunSuite:
     assertEquals(original.toIR.name, "")
     assertEquals(modified.toIR.name, "")
 
-  test("complete ordinary assumptions preserve IDs, ordered duplicates and empty segments"):
-    val first = action("one", Actor("caller")).declaredAt("fixture.one")
-    val second = action("two", Actor("other")).declaredAt("fixture.two")
-    val fair = framework.dsl.assume
-      .fair(first, second, first)
-      .fair()
-      .fair(second)
-      .retainName("fixture.fair", "fair")
-    val result = fair.toIR
-    assertEquals(result.id, "fixture.fair")
-    assertEquals(result.name, "fair")
-    assertEquals(
-      result.fair.toList,
-      List("fixture.one", "fixture.two", "fixture.one", "fixture.two")
-    )
-    assertEquals(result.fairRefs.size, 0)
-    assertEquals(fair.name, "")
-    assertEquals(
-      fair.fairSegments,
-      Vector(
-        Assumption.Fairness.Actions(List(first.decl, second.decl, first.decl)),
-        Assumption.Fairness.Actions(Nil),
-        Assumption.Fairness.Actions(List(second.decl))
-      )
-    )
-
-  test("inferred assumption spelling survives fairness copies without supplying source identity"):
-    val selected = action("selected", Actor("caller")).declaredAt("fixture.selected")
-    val inferred = framework.dsl.assume
-    val empty = inferred.fair()
-    val ordinary = empty.fair(selected)
-    for value <- List(inferred, empty, ordinary) do
-      assertEquals(value.name, "")
-      assertEquals(value.sourceName, "inferred")
-      assertEquals(value.nativeIdentity, None)
-    val mismatched = ordinary.retainName("fixture.wrong", "other")
-    assertEquals(mismatched.sourceName, "inferred")
-    assertEquals(mismatched.nativeIdentity, None)
-    val error = intercept[IllegalArgumentException](mismatched.toIR)
-    assert(error.getMessage.contains("no retained source identity"), error.getMessage)
-    val retained = mismatched.fair().retainName("fixture.inferred", "inferred")
-    assertEquals(retained.nativeIdentity, Some("fixture.inferred"))
-    val result = retained.toIR
-    assertEquals(result.id, "fixture.inferred")
-    assertEquals(result.name, "inferred")
-    assertEquals(result.fair.toList, List("fixture.selected"))
-
   test("Hole conversion preserves reached behavior and local collection deduplicates definitions"):
     val value = hole.retainName("fixture.unknown", "unknown")
     assertEquals(value.toIR.id, "fixture.unknown")
@@ -75,27 +28,9 @@ class ResidualSignatureSuite extends munit.FunSuite:
     val collected = Signature.collect(Nil, Nil, holes = List(value, value))
     assertEquals(collected.holes.size, 1)
 
-  test("each negative Limits bound refuses and zero passes with an exact empty name"):
-    val zero = Limits("", 0, 0, 0).retainExplicitName(true)
-    assertEquals(zero.toIR.name, "")
-    assertEquals(zero.toIR.steps, 0)
-    for (bound, value) <- List(
-        "steps" -> Limits("bounds", -1, 0, 0),
-        "actions" -> Limits("bounds", 0, -1, 0),
-        "search" -> Limits("bounds", 0, 0, -1)
-      )
-    do
-      val error = intercept[IllegalArgumentException](value.toIR)
-      assert(error.getMessage.contains("limits bounds"))
-      assert(error.getMessage.contains(bound))
-    Signature.collect(Nil, Nil, limits = List(zero, zero)): Unit
-    intercept[IllegalArgumentException](
-      Signature.collect(Nil, Nil, limits = List(zero, zero.copy(steps = 1)))
-    ): Unit
-
   test("same-kind residual name conflicts refuse while identical contributions coalesce"):
-    val first = framework.dsl.assume("same").retainName("fixture.first", "first")
-    val second = framework.dsl.assume("same").retainName("fixture.second", "second")
+    val first = new EnvironmentAssumption("same").retainName("fixture.first", "first")
+    val second = new EnvironmentAssumption("same").retainName("fixture.second", "second")
     assertEquals(Signature.collect(Nil, Nil, assumptions = List(first, first)).assumptions.size, 1)
     val error = intercept[IllegalArgumentException](
       Signature.collect(Nil, Nil, assumptions = List(first, second))
@@ -109,17 +44,39 @@ class ResidualSignatureSuite extends munit.FunSuite:
       1
     )
 
-  test("missing, conflicting and anonymous retained metadata refuses contextually"):
-    val missing = intercept[IllegalArgumentException](framework.dsl.assume("opaque").toIR)
-    assert(missing.getMessage.contains("assumption opaque"))
-    intercept[IllegalArgumentException](hole.toIR): Unit
-    intercept[IllegalArgumentException](Limits(steps = 0, actions = 0, search = 0).toIR): Unit
-    val named = Limits(steps = 0, actions = 0, search = 0)
+  test("private Query bounds retain validation names copies and collection conflicts"):
+    val zero = QueryBounds("", 0, 0, 0).retainExplicitName(true)
+    assertEquals(zero.toIR.name, "")
+    assertEquals(zero.toIR.steps, 0)
+    for (bound, value) <- List(
+        "steps" -> QueryBounds("bounds", -1, 0, 0),
+        "actions" -> QueryBounds("bounds", 0, -1, 0),
+        "search" -> QueryBounds("bounds", 0, 0, -1)
+      )
+    do
+      val error = intercept[IllegalArgumentException](value.toIR)
+      assert(error.getMessage.contains("limits bounds"), error.getMessage)
+      assert(error.getMessage.contains(bound), error.getMessage)
+    Signature.collect(Nil, Nil, limits = List(zero, zero)): Unit
+    intercept[IllegalArgumentException](
+      Signature.collect(Nil, Nil, limits = List(zero, zero.copy(steps = 1)))
+    ): Unit
+    intercept[IllegalArgumentException](QueryBounds(steps = 0, actions = 0, search = 0).toIR): Unit
+    val named = QueryBounds(steps = 0, actions = 0, search = 0)
       .retainExplicitName(false)
       .retainName("fixture.bounds", "bounds")
     assertEquals(named.toIR.name, "bounds")
+    val copy = named.copy(steps = 1)
+    assertEquals(copy.toIR.name, "bounds")
+    assertEquals(copy.declarationName.identity("bounds copy"), "fixture.bounds")
     intercept[IllegalArgumentException](named.retainExplicitName(true)): Unit
     intercept[IllegalArgumentException](named.retainName("fixture.bounds", "other")): Unit
+
+  test("missing, conflicting and anonymous retained metadata refuses contextually"):
+    val missing =
+      intercept[IllegalArgumentException](Signature.assumption(new EnvironmentAssumption("opaque")))
+    assert(missing.getMessage.contains("assumption opaque"))
+    intercept[IllegalArgumentException](hole.toIR): Unit
     val anonymous = hole
       .retainName("fixture.given_Hole", "given_Hole")
       .retainAnonymousName("fixture.given_Hole")
@@ -152,24 +109,3 @@ class ResidualSignatureSuite extends munit.FunSuite:
     assertEquals(observationRaw, "")
     assert(observedEntity eq entity)
     assertEquals(observation, Observation(on = entity))
-    val limits = Limits(steps = 0, actions = 0, search = 0)
-      .retainExplicitName(false)
-      .retainName("fixture.zero", "zero")
-    assertEquals(limits.copy(actions = 1).toIR.name, "zero")
-    assertEquals(limits.copy(name = "").retainCopyName(true).toIR.name, "")
-    assertEquals(limits.productArity, 4)
-    val Limits(limitsRaw, steps, actions, search) = limits
-    assertEquals((limitsRaw, steps, actions, search), ("", 0, 0, 0))
-    assertEquals(limits, Limits(steps = 0, actions = 0, search = 0))
-
-  test("ordinary fairness records bare input-taking declarations without reading their catalogs"):
-    given Finite[Boolean] = new Finite[Boolean]:
-      def values = throw AssertionError("fairness enumerated an action catalog")
-    val selected = action("selected", Actor("caller"))
-      .input[Boolean](name = "flag")
-      .declaredAt("fixture.selected")
-    val value = framework.dsl
-      .assume("fairness")
-      .fair(selected)
-      .retainName("fixture.fairness", "fairness")
-    assertEquals(value.toIR.fair.toList, List("fixture.selected"))

@@ -119,13 +119,13 @@ final case class ActionDecl(
   private var faultKinds = Vector.empty[(FaultKind, String)]
   private var modelOnlyReasons = Vector.empty[(String, String)]
   private var assumptionSource: ActionDecl = this
-  private lazy val storageLossIdentity: Assumption =
-    val value = assume(
+  private lazy val storageLossIdentity: EnvironmentAssumption =
+    val value = new EnvironmentAssumption(
       declarationName.effective(name, s"storage-loss fault at $nativeFaultLocation")
     )
     sourceIdentity.foreach(id => value.retainName(s"$id.assumption", value.name))
     value
-  private[framework] def storageLossAssumption: Assumption =
+  private[framework] def storageLossAssumption: EnvironmentAssumption =
     assumptionSource.storageLossIdentity
   @publicInBinary private[framework] def retainFaultName(name: Option[String]): Unit =
     name.foreach: value =>
@@ -231,11 +231,10 @@ class Action[I] private[framework] (
     decl.addModelOnly(because, NativeLocation.here)
     this
 
-  transparent inline def budgetedBy[S, O, F, A <: Boolean | Int](using
-      owner: Owner[S, O, F]
-  )(
-      inline selector: S => A
-  ): BudgetedAction[S, I] = ${ BudgetedAction.capture('this, 'selector, 'owner) }
+  transparent inline def budgetedBy[O, F, A <: Boolean | Int](inline variable: A)(using
+      owner: MachineDeclaration[State, O, F]
+  ): BudgetedAction[State, I] =
+    BudgetedAction.variable(this, StateField.captureVar(variable, owner), owner)
 
   def toIR: io.temporal.server.api.umpire.v1.Action = Signature.action(decl)
 

@@ -70,7 +70,7 @@ object VarDerivationsFixture:
 class VarDerivationsSuite extends munit.FunSuite:
   import VarDerivationsFixture.*
 
-  private def run(machine: RecordMachine[State, Said, Nothing], state: State, cls: Class) =
+  private def run(machine: MachineDeclaration[State, Said, Nothing], state: State, cls: Class) =
     val binding = machine.bindings.find(_.decl eq cls.decl).get
     effectOf[State, Said, Nothing](binding.decl, binding.function)(state, cls)
 

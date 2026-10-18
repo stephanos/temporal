@@ -1,5 +1,11 @@
 package expectauthor
 
+object OpaqueChoiceHelper:
+  var calls = 0
+  def run(): Unit =
+    calls += 1
+    throw AssertionError("choice acquisition invoked an opaque helper")
+
 // The vocabulary an author outside the framework's packages writes a Model in: the plain form
 // (outside.Lamp and the samples) compiles, and every retired word is refused.
 class ExpectExternalTest extends munit.FunSuite:
@@ -12,7 +18,7 @@ class ExpectExternalTest extends munit.FunSuite:
       compileErrors("""framework.dsl.WitnessFixture.Subject.property.sameStep(_ => true)"""),
       compileErrors("""framework.dsl.WitnessFixture.Subject.property.transition((_, _) => true)"""),
       compileErrors(
-        """framework.dsl.WitnessFixture.Subject.property.expect((s: Step[WitnessFixture.State, WitnessFixture.Outcome, WitnessFixture.Fact]) => s.state.equals(s.state))"""
+        """framework.dsl.WitnessFixture.Subject.property.expect((s: framework.dsl.Step[framework.dsl.State, framework.dsl.WitnessFixture.Outcome, framework.dsl.WitnessFixture.Fact]) => s.state.equals(s.state))"""
       )
     )
     assertEquals(

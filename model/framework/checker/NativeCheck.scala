@@ -232,7 +232,7 @@ private[framework] object NativeCheck:
         List(Class(decl, Nil)))
 
   def machineEffects[S, O, F](
-      machine: RecordMachine[S, O, F]
+      machine: MachineDeclaration[S, O, F]
   ): Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] =
     scan(machine)
     machine.bindings.toVector.map: binding =>
@@ -563,13 +563,6 @@ private[framework] object NativeCheck:
   // or a missed deadline (a path of `within` steps with no `to` state, which any cycle gives, fair
   // or not). Verified, it reports the longest path from a `from` state to the first `to` state, or
   // none where an unbounded claim's paths may cycle before a fair class leaves.
-  def progress[S, O, F](
-      graph: Search[S, O, F],
-      subject: String,
-      claim: Progress[S],
-      fair: Seq[ActionDecl]
-  ): Result = leading(graph.forCheck, subject, claim.from, claim.to, Some(claim.within), fair)
-
   // A progress claim of a Machine's vars, `leadsTo(...)`, checked on the graph of its environment,
   // its `from` and `to` read with each state restored into the vars.
   def progress[S, O, F](graph: Search[S, O, F], subject: String, claim: LeadsTo): Result =
@@ -924,17 +917,16 @@ private[framework] object NativeCheck:
               spell(c.lose.decl, s"$member.lose")
               val _ = channels.put(c.deliver.decl, c)
               val _ = channels.put(c.lose.decl, c)
-            case (member, claim: (Property | Progress[?] | Monitor[?, ?, ?, ?] | LeadsTo)) =>
+            case (member, claim: (Property | Monitor[?, ?, ?, ?] | LeadsTo)) =>
               if !claims.containsKey(claim) then
                 val _ = claims.put(claim, member)
             case _ => ()
 
   // The name of the val that declares a claim of a scanned feature, or its declared name.
-  def claimName(claim: Property | Progress[?] | Monitor[?, ?, ?, ?], machine: AnyRef): String =
+  def claimName(claim: Property | Monitor[?, ?, ?, ?], machine: AnyRef): String =
     scan(machine)
     val declared = claim match
       case p: Property            => p.name
-      case p: Progress[?]         => p.name
       case m: Monitor[?, ?, ?, ?] => m.name
     Option(synchronized(claims.get(claim))).getOrElse(declared)
 
@@ -1040,14 +1032,6 @@ private[framework] object NativeCheck:
                 .map(decl => s"$named: ${actionName(decl)} never fires")
           Report(results, idle ++ vacuous)
     val progressResults = section(owner, "progress").collect:
-      case (member, p: Progress[?]) =>
-        val claim = p.asInstanceOf[Progress[S]] // scalafix:ok DisableSyntax.asInstanceOf
-        val environment = p.machine match
-          case m: NativeModel[?, ?, ?] =>
-            m.asInstanceOf[NativeModel[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
-          case _ => machine
-        val search = explore(environment, origins, budget = budget)
-        progress(search, subject(member), claim, fairness(claim, environment))
       case (member, claim: LeadsTo) =>
         val scenario = claim.scenario.bound(machine, member)
         progress(machine, subject(member), claim, scenario, origins, budget)
@@ -1325,25 +1309,6 @@ private[framework] object NativeCheck:
       if failure.nonEmpty then failurePath = graph.trace(i)
       failure.nonEmpty || context.missing.nonEmpty)
     graph.result(subject, failure, path = failurePath)
-
-  // The actions a progress claim assumes weakly fair: its own assumptions' and its Machine's.
-  def fairness[S](claim: Progress[S], machine: NativeModel[?, ?, ?]): Seq[ActionDecl] =
-    (claim.assumptions ++ machine.assumptions).flatMap(_.fairness).distinct
-
-  // A progress claim of a Machine with the same state, checked in that Machine's environment: the
-  // claim's own, or another such as the whole Machine its claim's derivation restricts.
-  def progress[S, O, F](
-      claim: Progress[S],
-      environment: NativeModel[S, O, F],
-      starts: Seq[S],
-      budget: Int
-  ): Result =
-    val graph = explore(
-      environment,
-      if starts.isEmpty then environment.initialStates else starts,
-      budget = budget
-    )
-    progress(graph, s"${environment.name}.${claim.name}", claim, fairness(claim, environment))
 
   // A Query of today's `queries` section, run natively: its Property on its Scenario's Machine from
   // the Scenario's start, over the whole graph of a free Scenario or along a pinned one's classes.

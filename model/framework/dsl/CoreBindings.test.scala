@@ -25,13 +25,85 @@ class CoreBindingsSuite extends munit.FunSuite:
         Vector(Base64.getEncoder.encodeToString(model.toByteArray))
       )
       .retainOrigin("fixture.Source", "source", named)
-  private def machine(
+  private def entries(
       entries: StepBinding[Boolean, Boolean, Nothing]*
-  ): RecordMachine[Boolean, Boolean, Nothing] =
-    new RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = false
-      def end(s: Boolean): Boolean = s
-      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(entries*) {}
+  ): Vector[(ActionDecl, Bound[?, ?, ?])] =
+    entries.toVector.map(value => value.decl -> Bound.Function(value.function, value.captured))
+
+  private def collect(table: Vector[(ActionDecl, Bound[?, ?, ?])]): CoreBindings.Contribution =
+    CoreBindings.collectEntries(table, "fixture core bindings")
+
+  private def collect(
+      machine: MachineDeclaration[State, Boolean, Nothing]
+  ): CoreBindings.Contribution =
+    CoreBindings.collect(machine)
+
+  final private class Reads:
+    var tables = 0
+    var callbacks = 0
+    var ends = 0
+    var refinements = 0
+    var operands = 0
+
+  private val stateName = "fixture.Source.State"
+  private val stateRef = ir.TypeRef(ir.TypeRef.Ref.Named(stateName))
+  private val stateShape = ir.Type(
+    name = stateName,
+    shape = ir.Type.Shape.Record(ir.Record(Vector(ir.Field("ready", Some(bool)))))
+  )
+
+  private def nativeBinding(
+      action: Action[?],
+      root: String,
+      reads: Reads,
+      named: Boolean = true
+  ): StepBinding[State, Boolean, Nothing] =
+    val callable: State => List[Step[State, Boolean, Nothing]] = state =>
+      reads.callbacks += 1
+      List(Step(true, state))
+    val definition = ir.Function(
+      name = root,
+      params = Vector(ir.Param("s", Some(stateRef))),
+      body = Some(ir.Expr(kind = ir.Expr.Kind.List(ir.ListOf())))
+    )
+    StepBinding
+      .linking[State, Boolean, Nothing](
+        action.decl,
+        callable,
+        root,
+        Vector(
+          Base64.getEncoder.encodeToString(
+            ir.Model(functions = Vector(definition), types = Vector(stateShape)).toByteArray
+          )
+        )
+      )
+      .retainOrigin("fixture.Source", "source", named)
+
+  private class NativeSource(
+      entries: Vector[StepBinding[State, Boolean, Nothing]],
+      reads: Reads
+  ) extends Machine[Boolean, Nothing]:
+    var ready = false
+    override def end: Boolean =
+      reads.ends += 1
+      ready
+
+    object transitions extends Transitions(using summon, Ok(true), summon)
+    override private[framework] def table: Vector[(ActionDecl, Bound[State, Boolean, Nothing])] =
+      reads.tables += 1
+      entries.map(value => value.decl -> Bound.Function(value.function, value.captured))
+    override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
+      reads.refinements += 1
+      None
+    retainHeaderIdentity("fixture", "source")
+    retainHeaderSchema(
+      0,
+      stateName,
+      Vector(Base64.getEncoder.encodeToString(stateRef.toByteArray)),
+      Vector(Base64.getEncoder.encodeToString(ir.Model(types = Vector(stateShape)).toByteArray)),
+      Nil
+    )
+
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
 
@@ -110,30 +182,21 @@ class CoreBindingsSuite extends munit.FunSuite:
     )
 
   test("native core tables and pass-through derivations retain their identical captured callable"):
-    val action = framework.dsl.action(Actor("user"))
-    val f: Boolean => List[Step[Boolean, Boolean, Nothing]] = s => List(Step(true, s))
-    val model = ir.Model(functions = Vector(ir.Function(name = "source.step")))
-    val binding = StepBinding.linking[Boolean, Boolean, Nothing](
-      action.decl,
-      f,
-      "source.step",
-      Vector(Base64.getEncoder.encodeToString(model.toByteArray))
-    )
-    object Source extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = false
-      def end(s: Boolean): Boolean = s
-      object transitions extends Bindings(binding)
-    val selected = Vector(Source, Source.restrict(action), Source.unmonitored)
-    selected.foreach { machine =>
-      val kept = machine.bindings.head
+    val run = action("run")
+    val reads = new Reads
+    val linked = nativeBinding(run, "source.step", reads)
+    val source = new NativeSource(Vector(linked), reads)
+    val f = linked.function
+    for selected <- Vector(source, source.unmonitored) do
+      val kept = selected.bindings.head
       assert(kept.function.eq(f))
       assert(kept.captured.nonEmpty, "native table discarded captured function metadata")
       assert(kept.captured.get.callable.eq(f))
       assertEquals(kept.captured.get.root, "source.step")
-    }
-    assertEquals(binding.productArity, 2)
-    assertEquals(binding, StepBinding[Boolean, Boolean, Nothing](action.decl, f))
-    assert(binding.copy(function = (s: Boolean) => List(Step(true, !s))).captured.isEmpty)
+    assertEquals(linked.productArity, 2)
+    assertEquals(linked, StepBinding[State, Boolean, Nothing](run.decl, f))
+    assert(linked.copy(function = (state: State) => List(Step(true, state))).captured.isEmpty)
+    assertEquals(reads.callbacks, 0)
 
   test(
     "compiler origin rebases anonymous roots before merging while named capture suffixes remain exact"
@@ -144,7 +207,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val first = binding(run, source, "api.capture", named = false)
     val second = binding(next, source, "api.capture", named = false)
     val named = binding(run, ir.Model(functions = Vector(function("user.capture"))), "user.capture")
-    val result = CoreBindings.collect(machine(first, second, named))
+    val result = collect(entries(first, second, named))
     assertEquals(result.steps.map(_.function), Vector("source.run", "source.next", "user.capture"))
     assertEquals(result.functions.map(_.name), Vector("source.next", "source.run", "user.capture"))
     assertEquals(first.captured.get.root, "api.capture")
@@ -167,7 +230,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       "api.capture",
       named = false
     )
-    val result = CoreBindings.collect(machine(original, second))
+    val result = collect(entries(original, second))
     assertEquals(result.steps.map(_.function), Vector("source.run", "source.run"))
     assertEquals(result.functions.size, 1)
     assertEquals(result.functions.head.getBody.getLiteral.getBool, false)
@@ -225,7 +288,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       ) -> "type Absent"
     )
     examples.foreach { (value, reason) =>
-      val error = intercept[IllegalArgumentException](CoreBindings.collect(machine(value)))
+      val error = intercept[IllegalArgumentException](collect(entries(value)))
       assert(error.getMessage.contains("core bindings"))
       assert(error.getMessage.contains(reason), error.getMessage)
     }
@@ -234,21 +297,17 @@ class CoreBindingsSuite extends munit.FunSuite:
   test("stale callable or declaration and unrelated conflicting functions or types refuse"):
     val run = action("run")
     val source = binding(run, ir.Model(functions = Vector(function("step"))), "step")
-    def bound(decl: ActionDecl, callable: AnyRef): RecordMachine[Boolean, Boolean, Nothing] =
-      new RecordMachine[Boolean, Boolean, Nothing]:
-        def init: Boolean = false
-        def end(s: Boolean): Boolean = s
-        val transitions: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
-          def table = Vector(decl -> Bound.Function(callable, source.captured))
-    intercept[IllegalArgumentException](CoreBindings.collect(bound(run.decl, new Object()))): Unit
+    def bound(decl: ActionDecl, callable: AnyRef): Vector[(ActionDecl, Bound[?, ?, ?])] =
+      Vector(decl -> Bound.Function[Boolean, Boolean, Nothing](callable, source.captured))
+    intercept[IllegalArgumentException](collect(bound(run.decl, new Object()))): Unit
     intercept[IllegalArgumentException](
-      CoreBindings.collect(bound(action("other").decl, source.function))
+      collect(bound(action("other").decl, source.function))
     ): Unit
     val modified = run.results("different").decl
     assertEquals(modified.sourceIdentity, run.decl.sourceIdentity)
     assert(!modified.eq(run.decl))
     intercept[IllegalArgumentException](
-      CoreBindings.collect(bound(modified, source.function))
+      collect(bound(modified, source.function))
     ): Unit
     val different = binding(
       run,
@@ -257,7 +316,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       ),
       "step"
     )
-    intercept[IllegalArgumentException](CoreBindings.collect(machine(source, different))): Unit
+    intercept[IllegalArgumentException](collect(entries(source, different))): Unit
     val helper = function("helper")
     val first = binding(
       run,
@@ -276,7 +335,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       "api.capture",
       named = false
     )
-    intercept[IllegalArgumentException](CoreBindings.collect(machine(first, second))): Unit
+    intercept[IllegalArgumentException](collect(entries(first, second))): Unit
     val record = ir.Type(name = "Record", shape = ir.Type.Shape.Record(ir.Record()))
     val typeConflict = binding(
       run,
@@ -289,7 +348,7 @@ class CoreBindingsSuite extends munit.FunSuite:
     val typeSource =
       binding(run, ir.Model(functions = Vector(function("step")), types = Vector(record)), "step")
     intercept[IllegalArgumentException](
-      CoreBindings.collect(machine(typeSource, typeConflict))
+      collect(entries(typeSource, typeConflict))
     ): Unit
 
   test(
@@ -331,7 +390,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       ),
       "step"
     )
-    val result = CoreBindings.collect(machine(capture))
+    val result = collect(entries(capture))
     assertEquals(result.functions.map(_.name), Vector("guard", "requires", "step"))
     assertEquals(result.types.map(_.name), Vector("Nested", "Record"))
 
@@ -356,7 +415,7 @@ class CoreBindingsSuite extends munit.FunSuite:
       ),
       "second"
     )
-    val result = CoreBindings.collect(machine(first, second))
+    val result = collect(entries(first, second))
     assertEquals(result.types.head.position, record.position)
     assertEquals(result.types.size, 1)
 
@@ -372,8 +431,8 @@ class CoreBindingsSuite extends munit.FunSuite:
       )
     do
       val error = intercept[IllegalArgumentException](
-        CoreBindings.collect(
-          machine(binding(run, ir.Model(functions = Vector(function("step", body))), "step"))
+        collect(
+          entries(binding(run, ir.Model(functions = Vector(function("step", body))), "step"))
         )
       )
       assert(error.getMessage.contains("core bindings"), error.getMessage)
@@ -395,108 +454,96 @@ class CoreBindingsSuite extends munit.FunSuite:
       Vector(ir.Param("s", Some(ir.TypeRef(ir.TypeRef.Ref.Named("scala.Nothing")))))
     )
     val result =
-      CoreBindings.collect(machine(binding(run, ir.Model(functions = Vector(root)), "step")))
+      collect(entries(binding(run, ir.Model(functions = Vector(root)), "step")))
     assertEquals(result.types.size, 0)
     assertEquals(result.channels, Vector("fixture.wire"))
     assertEquals(result.holes, Vector("fixture.unknown"))
 
-  test(
-    "ordered operations retain duplicate unknown and already-bound refusals after reduction and restriction"
-  ):
+  test("ordered operations retain duplicate unknown and already-bound refusals"):
     val run = action("run")
     val other = action("other")
-    val first = binding(run, ir.Model(functions = Vector(function("first"))), "first")
-    val second = binding(other, ir.Model(functions = Vector(function("second"))), "second")
-    val source = machine(first)
+    val reads = new Reads
+    val first = nativeBinding(run, "first", reads)
+    val second = nativeBinding(other, "second", reads)
+    val source = new NativeSource(Vector(first), reads)
     for (derived, reason) <- Vector(
         source.rebind(first, first) -> "twice",
         source.extend(second, second) -> "twice",
         source.rebind(second) -> "does not bind",
-        source.extend(first) -> "binds already",
-        source.rebind(second).restrict(run) -> "does not bind"
+        source.extend(first) -> "binds already"
       )
     do
-      val error = intercept[IllegalArgumentException](CoreBindings.collect(derived))
+      val error = intercept[IllegalArgumentException](collect(derived))
       assert(error.getMessage.contains(reason), error.getMessage)
+    assertEquals(reads.callbacks, 0)
 
   test(
-    "conversion keeps init lazy and acquires refinement metadata and contextual operands once"
+    "conversion leaves callbacks untouched and acquires refinement metadata and contextual operands once"
   ):
     val run = action("run")
-    var callbacks = 0
-    var starts = 0
-    var refinements = 0
-    var operands = 0
-    val f: Boolean => List[Step[Boolean, Boolean, Nothing]] = s =>
-      callbacks += 1
-      List(Step(true, s))
-    val linked = binding(run, ir.Model(functions = Vector(function("step"))), "step", f = f)
-    val source = new RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean =
-        starts += 1
-        false
-      def end(s: Boolean): Boolean = s
-      override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
-        refinements += 1
-        None
-      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
-    val replacement: Owner[Boolean, Boolean, Nothing] ?=> Rebinding[Boolean, Boolean, Nothing] =
-      operands += 1
+    val reads = new Reads
+    val linked = nativeBinding(run, "step", reads)
+    val source = new NativeSource(Vector(linked), reads)
+    val replacement
+        : MachineDeclaration[State, Boolean, Nothing] ?=> Rebinding[State, Boolean, Nothing] =
+      reads.operands += 1
       linked
     val derived = source.rebind(replacement)
-    assertEquals(starts, 0)
-    assertEquals(refinements, 1)
-    assertEquals(operands, 1)
-    CoreBindings.collect(source): Unit
-    CoreBindings.collect(derived): Unit
-    CoreBindings.collect(derived): Unit
-    assertEquals(callbacks, 0)
-    assertEquals(starts, 0)
-    assertEquals(refinements, 1)
-    assertEquals(operands, 1)
-    assertEquals(derived.init, false)
-    assertEquals(starts, 1)
-    assertEquals(derived.init, false)
-    assertEquals(starts, 1)
-    CoreBindings.collect(derived): Unit
-    assertEquals(callbacks, 0)
-    assertEquals(starts, 1)
-    assertEquals(refinements, 1)
-    assertEquals(operands, 1)
+    assertEquals(reads.refinements, 1)
+    assertEquals(reads.operands, 1)
+    collect(source): Unit
+    collect(derived): Unit
+    collect(derived): Unit
+    assertEquals(reads.callbacks, 0)
+    assertEquals(reads.ends, 0)
+    assertEquals(reads.refinements, 1)
+    assertEquals(reads.operands, 1)
+    assertEquals(derived.init, source.init)
+    assert(derived.init eq derived.init)
+    collect(derived): Unit
+    assertEquals(reads.callbacks, 0)
+    assertEquals(reads.ends, 0)
+    assertEquals(reads.refinements, 1)
+    assertEquals(reads.operands, 1)
 
   test("rules disabled and effect-only rebinding refuse without invoking their guards or effects"):
     val run = action("run")
+    val reads = new Reads
     var guards = 0
-    var effects = 0
-    val rule = Rule[Boolean, Boolean, Nothing](
+    val rule = Rule[State, Boolean, Nothing](
       1,
       "always",
       "run",
       run.decl,
       None,
-      s =>
-        guards += 1; s
+      _ =>
+        guards += 1
+        true
       ,
-      (s, _) =>
-        effects += 1; List(Step(true, s))
+      (state, _) =>
+        reads.callbacks += 1
+        List(Step(true, state))
     )
-    def source(bound: Bound[Boolean, Boolean, Nothing]): RecordMachine[Boolean, Boolean, Nothing] =
-      new RecordMachine[Boolean, Boolean, Nothing]:
-        def init: Boolean = false
-        def end(s: Boolean): Boolean = s
-        val transitions: RuleBook[Boolean, Boolean, Nothing] = new RuleBook:
-          def table = Vector(run.decl -> bound)
-    val ruled = source(Bound.Ruled(Vector(rule)))
-    val captured = binding(run, ir.Model(functions = Vector(function("effect"))), "effect")
-    for value <- Vector(
-        ruled,
-        source(Bound.Disabled()),
-        ruled.rebind(captured),
-        source(Bound.Function(captured.function, captured.captured)).rebind(RuleGroup(Vector(rule)))
-      )
-    do intercept[IllegalArgumentException](CoreBindings.collect(value)): Unit
+    val captured = nativeBinding(run, "effect", reads)
+    val before = Vector(run.decl -> Bound.Ruled(Vector(rule)))
+    val complete = Vector(
+      run.decl -> Bound.Function[State, Boolean, Nothing](captured.function, captured.captured)
+    )
+    val operations = Vector(
+      CoreBindings.operation[State, Boolean, Nothing]("rebind", before, Vector(captured)),
+      CoreBindings
+        .operation[State, Boolean, Nothing]("rebind", complete, Vector(RuleGroup(Vector(rule))))
+    )
+    for bound <- Vector[Bound[State, Boolean, Nothing]](before.head._2, Bound.Disabled()) do
+      intercept[IllegalArgumentException](
+        CoreBindings.collectEntries(Vector(run.decl -> bound), "fixture core bindings")
+      ): Unit
+    for operation <- operations do
+      val source = new NativeSource(Vector.empty, reads):
+        override private[framework] def coreOperations = Vector(operation)
+      intercept[IllegalArgumentException](collect(source)): Unit
     assertEquals(guards, 0)
-    assertEquals(effects, 0)
+    assertEquals(reads.callbacks, 0)
 
   test("binding identity conversion does not enumerate an input or example catalog"):
     var catalogs = 0
@@ -534,37 +581,28 @@ class CoreBindingsSuite extends munit.FunSuite:
         Vector(Base64.getEncoder.encodeToString(ir.Model(functions = Vector(root)).toByteArray))
       )
       .retainOrigin("fixture.Source", "source", true)
-    CoreBindings.collect(machine(linked)): Unit
-    CoreBindings.collect(machine(linked)): Unit
+    collect(entries(linked)): Unit
+    collect(entries(linked)): Unit
     assertEquals(catalogs, 0)
 
   test(
     "retained admission context preserves native lazy table timing during derivation construction"
   ):
     val run = action("run")
-    var tableReads = 0
-    val linked = binding(run, ir.Model(functions = Vector(function("step"))), "step")
-    val source = new RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = false
-      def end(s: Boolean): Boolean = s
-      val transitions: RuleBook[Boolean, Boolean, Nothing] = new Bindings(linked) {}
-      override private[framework] def table
-          : Vector[(ActionDecl, Bound[Boolean, Boolean, Nothing])] =
-        tableReads += 1
-        transitions.table
-    val added = source.extend(
-      binding(action("extra"), ir.Model(functions = Vector(function("extra"))), "extra")
-    )
-    assertEquals(tableReads, 0)
-    assertEquals(CoreBindings.collect(added).steps.size, 2)
-    assertEquals(tableReads, 1)
+    val reads = new Reads
+    val linked = nativeBinding(run, "step", reads)
+    val source = new NativeSource(Vector(linked), reads)
+    val added = source.extend(nativeBinding(action("extra"), "extra", reads))
+    assertEquals(reads.tables, 0)
+    assertEquals(collect(added).steps.size, 2)
+    assertEquals(reads.tables, 1)
     val emptyRebind = source.rebind()
     val emptyExtend = source.extend()
-    assertEquals(tableReads, 1)
-    CoreBindings.collect(emptyRebind): Unit
-    CoreBindings.collect(emptyExtend): Unit
-    assertEquals(tableReads, 3)
+    assertEquals(reads.tables, 1)
+    collect(emptyRebind): Unit
+    collect(emptyExtend): Unit
+    assertEquals(reads.tables, 3)
     val rebound = source.rebind(linked, linked)
-    assertEquals(tableReads, 5)
-    intercept[IllegalArgumentException](CoreBindings.collect(rebound)): Unit
-    assertEquals(tableReads, 6)
+    assertEquals(reads.tables, 5)
+    intercept[IllegalArgumentException](collect(rebound)): Unit
+    assertEquals(reads.tables, 6)

@@ -22,9 +22,6 @@ final class Choice private[framework] ():
   // runs only on the path that takes it.
   def ->(block: => Unit): Alternative = Alternative(this, () => block)
 
-  // `committed -> enter(...)`, an alternative written as the steps or step function it gives.
-  def ->[A](alternative: A): (Choice, A) = (this, alternative)
-
 // One alternative of a `choose` in an effect of a Machine's vars: its token and its block.
 final class Alternative private[framework] (
     private[framework] val token: Choice,
@@ -41,73 +38,7 @@ def choice: Choice = Choice()
 def choose(first: Alternative, second: Alternative, rest: Alternative*): Unit =
   NativeRuntime.installed.choose((first +: second +: rest).toVector)
 
-// `choose(committed -> enter(...), redelivered -> stay(s))`: the results of a step that can go more
-// than one way, in the order written, each named by its token. The names are metadata no check reads
-// (model/framework/SEMANTICS.md, Named choices), so the results are the ones the same steps give written as an
-// unnamed list. Each alternative is one step written out, or a call of a function that gives at most
-// one, such as a step another action shares, and each token names one of them; an alternative whose
-// function gives no step is not taken. A choose of one alternative does not compile, since one result
-// is no choice, and a step function's several results are always a choose: the lifter refuses an
-// unnamed list of several steps.
-def choose[S, O, F](
-    first: (Choice, List[Step[S, O, F]]),
-    second: (Choice, List[Step[S, O, F]]),
-    rest: (Choice, List[Step[S, O, F]])*
-): List[Step[S, O, F]] =
-  val alternatives = first +: second +: rest
-  for (token, steps) <- alternatives do
-    require(
-      alternatives.count(_._1 eq token) == 1,
-      "a choice names one alternative of a choose"
-    )
-    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
-  alternatives.flatMap(_._2).toList
-
-private[framework] trait NativeChoices:
-  def tokens: Vector[Choice]
-
-// A step function's alternatives, each a step function of its own; the native runtime runs them
-// (NativeRuntime).
-final class StateChoiceProgram[S, O, F] private[framework] (
-    private[framework] val alternatives: Vector[(Choice, S => List[Step[S, O, F]])]
-) extends (S => List[Step[S, O, F]]),
-      NativeChoices:
-  val tokens: Vector[Choice] = alternatives.map(_._1)
-  require(
-    tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
-    "a choice names one alternative of a choose"
-  )
-  def apply(state: S): List[Step[S, O, F]] =
-    NativeRuntime.installed.call[List[Step[S, O, F]]](this, state)
-
-final class InputChoiceProgram[S, I, O, F] private[framework] (
-    private[framework] val alternatives: Vector[(Choice, (S, I) => List[Step[S, O, F]])]
-) extends ((S, I) => List[Step[S, O, F]]),
-      NativeChoices:
-  val tokens: Vector[Choice] = alternatives.map(_._1)
-  require(
-    tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
-    "a choice names one alternative of a choose"
-  )
-  def apply(state: S, input: I): List[Step[S, O, F]] =
-    NativeRuntime.installed.call[List[Step[S, O, F]]](this, state, input)
-
-@scala.annotation.targetName("chooseStateProgram")
-def choose[S, O, F](
-    first: (Choice, S => List[Step[S, O, F]]),
-    second: (Choice, S => List[Step[S, O, F]]),
-    rest: (Choice, S => List[Step[S, O, F]])*
-): StateChoiceProgram[S, O, F] = new StateChoiceProgram((first +: second +: rest).toVector)
-
-@scala.annotation.targetName("chooseInputProgram")
-def choose[S, I, O, F](
-    first: (Choice, (S, I) => List[Step[S, O, F]]),
-    second: (Choice, (S, I) => List[Step[S, O, F]]),
-    rest: (Choice, (S, I) => List[Step[S, O, F]])*
-): InputChoiceProgram[S, I, O, F] = new InputChoiceProgram((first +: second +: rest).toVector)
-
 private[framework] def choiceTokens(effect: AnyRef): Option[Vector[Choice]] = effect match
-  case program: NativeChoices  => Some(program.tokens)
   case program: BudgetMetadata => program.nativeChoices
   case _                       => None
 
@@ -133,30 +64,20 @@ trait Declares[S] extends Model:
   type Outcome
   type Fact
 
-  private[framework] def illustrationMachine: Option[RecordMachine[S, Outcome, Fact]] = None
+  private[framework] def illustrationMachine: Option[MachineDeclaration[S, Outcome, Fact]] = None
 
   // The vars its state is declared as, for a Machine and a derivation of one: what its effects,
   // guards and claims are evaluated on natively.
   private[framework] def stateVars: Option[Vars] = None
 
-  def reach: Limits = frameworkReach
+  private[framework] def reach: QueryBounds = frameworkReach
 
   // The state type, which a machine or composition object's members name through it, `def end(s:
-  // State)`, so `extends RecordMachine[S, O, F]` is the one place it is written. The IR generator reads it
+  // State)`, so `extends MachineDeclaration[S, O, F]` is the one place it is written. The IR generator reads it
   // as the type it stands for. Its outcomes and facts are not given names here: inside an object
   // they would hide the feature's own `Outcome` and fact types.
   type State = S
 
-  // A Property or a Scenario is named after the `val` that declares it (`val completes =
-  // orderProduct.property expect: ...`), or by the name it is given where it is declared without
-  // one, such as in a list or inside a function over a machine. A Scenario that names no start starts
-  // in its machine's one declared start, or for a composition in its members' starts. Inside a
-  // machine or composition object they name it implicitly: `property after(c) expect: ...`,
-  // `scenario.actions(...)`.
-  private[framework] def property: PropertyBuilder[S, Outcome, Fact] =
-    PropertyBuilder("", this, None)
-  private[framework] def property(name: String): PropertyBuilder[S, Outcome, Fact] =
-    PropertyBuilder(name, this, None)
   def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
 
@@ -166,11 +87,10 @@ private[framework] trait NativeModel[S, O, F] extends Declares[S]:
   def initialStates: Seq[S]
   def init: S
   def end(state: S): Boolean
-  def assumptions: List[Assumption]
+  private[framework] def assumptions: List[EnvironmentAssumption]
   private[framework] def nativeEffects: Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])]
 
-// What a derivation binds in its source's place: one action's step function, `action ~> f`, or the
-// rules of one action, `on(action) { where(g) ~> effect }` (model/framework/dsl/Syntax.scala).
+// What a derivation binds in its source's place: the native rules of one action.
 sealed trait Rebinding[S, O, F]
 
 // An action bound to its step function.
@@ -300,69 +220,6 @@ private[framework] enum Bound[S, O, F]:
 
   private[framework] var retainedDisabled = Option.empty[RuleBindings.Disabled]
 
-// `action ~> stepFunction` receives the action's actual input type.
-extension [I](a: Action[I])
-  @scala.annotation.targetName("nativeBinding")
-  private[framework] infix def ~>[S, O, F](
-      @capture("capturedNativeBinding") f: (S, I) => List[Step[S, O, F]]
-  ): StepBinding[S, O, F] =
-    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
-    StepBinding(a.decl, f)
-  // The captured form of the input `~>`: the plugin passes the lifted root and its chunks.
-  private[framework] def capturedNativeBinding[S, O, F](
-      f: (S, I) => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  ): StepBinding[S, O, F] =
-    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
-    StepBinding.linking(a.decl, f, root, chunks)
-
-  private[framework] infix def ~>[S, O, F](
-      @capture("capturedBinding0") f: S => List[Step[S, O, F]]
-  )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
-    require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
-    StepBinding(a.decl, f)
-  // The captured form of the state-only `~>`: the plugin passes the lifted root and its chunks,
-  // and the call keeps its evidence clause, which it applies after them.
-  private[framework] def capturedBinding0[S, O, F](
-      f: S => List[Step[S, O, F]],
-      root: String,
-      chunks: Seq[String]
-  )(using @unused empty: I =:= EmptyTuple): StepBinding[S, O, F] =
-    StepBinding.linking(a.decl, f, root, chunks)
-
-  // `action ~> effects.writeL1Only()`, in a derivation of a Machine that declares its state as
-  // vars: the action bound to a call of an effect that assigns them, which takes one step, the
-  // rejection the effect makes or the accepted outcome into the vars it assigned.
-  @scala.annotation.targetName("varBinding")
-  private[framework] infix def ~>[O, F](effect: => Unit)(using
-      owner: Owner[State, O, F],
-      accepted: Accepting[O],
-      @unused empty: I =:= EmptyTuple
-  ): StepBinding[State, O, F] =
-    require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
-    StepBinding(
-      a.decl,
-      Programs.VarStep[O, F](Vars.of(owner.machine), accepted.outcome, () => effect)
-    )
-
-  // `action ~> effects.sendFromNowhere`: the action bound to an effect of its input that assigns
-  // the vars of a Machine.
-  @scala.annotation.targetName("varInputBinding")
-  private[framework] infix def ~>[O, F](effect: I => Unit)(using
-      owner: Owner[State, O, F],
-      accepted: Accepting[O]
-  ): StepBinding[State, O, F] =
-    require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
-    StepBinding(
-      a.decl,
-      Programs.VarInputStep[I, O, F](Vars.of(owner.machine), accepted.outcome, effect)
-    )
-
-// The owner of a machine's sections, which its `transitions` read the machine's types from:
-// `object transitions extends Transitions:` in `object OrderProduct extends Machine[...]`.
-final class Owner[S, O, F] private[framework] (val machine: RecordMachine[S, O, F])
-
 // What a machine a derivation makes is made from: `m.rebind(...)` is made from `m`. Its static type
 // keeps the source's object type.
 trait DerivedFrom[+M]:
@@ -370,7 +227,6 @@ trait DerivedFrom[+M]:
 
 // What a `capabilities` section declares the capabilities of: the machine or
 // composition whose object it sits in, with the outcomes and facts its steps answer and record.
-final class Declaring[S, O, F] private[framework] (val model: Declares[S])
 
 // What a machine binds each action to, in the order the first binding of each names it: a step
 // function, rules, or nothing. A machine's `transitions` (model/framework/dsl/Syntax.scala) is the
@@ -382,17 +238,6 @@ abstract class RuleBook[S, O, F]:
   private[framework] def sectionName: String = "<transitions>"
   private[framework] def actionName(decl: ActionDecl): String = decl.toString
   private[framework] def facetOrigin: Option[FacetBindings.Origin] = None
-
-// A machine's rules in the core: one step function per action, bound by hand,
-// `object transitions extends Bindings(clerk.ship ~> shipStep, courier.strike ~> (_ => Nil))`,
-// which is what `Rules` lower to. It is the spelling of the IR generator's core fixtures, whose
-// step functions are written out; a Model says when each action fires in `Rules`, and the IR
-// generator refuses a hand-bound step function in a Model (fn-126 R17).
-abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
-    bindings: StepBinding[S, O, F]*
-) extends RuleBook[S, O, F]:
-  private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
-    bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function, b.captured))
 
 // A step function's results for the state and one class's declared input: an effect the DSL builds
 // (Programs), which the native runtime runs.
@@ -432,54 +277,23 @@ private[framework] def writtenPath(code: String): String =
     .find(p => p.nonEmpty && p != "framework" && p != "framework.dsl" && p != "apply")
     .getOrElse(code)
 
-// A machine whose state is one record type `S`, threaded through its effects as a parameter and
-// replaced with `copy`: the form before a Machine declared its state as vars (Machine below), kept
-// for the DSL's own fixtures until fn-190.4 rewrites them. A Machine is one with `S` its State.
-//
-// A machine: a transition relation over state data `S` with finite outcomes `O` and facts `F`.
-// Declared as an object that is the machine, named after the object with its first letter lowered:
-//
-// {{{
-// object OrderProduct extends RecordMachine[OrderState, Outcome, OrderFact]:
-//   val init = OrderState(placed)
-//   def end(s: OrderState) = states.terminal(s.phase)
-//   object states: ...
-//   object effects: ...
-//   object transitions extends Rules: ...
-// }}}
-//
-// Its members are its header, the state it starts in, `init`, the states it may end in, `end`, and
-// where it declares them, `entity` and `evidence`; then its sections, objects named after what they
-// hold, in this order: `states`, its vocabulary (the named sets and projections of its states);
-// `refinement`, where it refines another machine (framework.dsl.Refinement); `effects`; `monitors`;
-// `transitions`, which it must declare; `properties`; `capabilities`, its capabilities
-// `framework.dsl.Capabilities`; and `queries`. Its `entity` is the one entity its
-// actions are `on`, or create, unless it names another. The IR generator (model/framework/export) reads them
-// from the source, and names each of its declarations after where it is declared: its package and
-// the objects it sits in. At run time a machine is its init, its end and the step function each
-// action's rules lower to: `transitions` is the one section the machine itself reads, through the
-// member it mixes in, so no section is found by reflection, and a section object, which initializes
-// on its first use, is never read while the machine initializes.
-//
-// A member of `states` or `effects` is a def of the state, `def held(s: OrderState) =
-// s.phase.in(…)`, `def ship(s: OrderState) = enter(s.copy(phase = shipped), Fact.statusShipped)`,
-// or a `val` written as a block that reads, and in an effect assigns, the state's fields by name
-// (model/framework/dsl/Syntax.scala): `val held = is { phase.in(…) }`, `val ship = effect { phase =
-// shipped }`, which records the status the assigned case declares, where its enum declares one.
-abstract class RecordMachine[S, O, F] private[framework] (using
-    private[framework] val fs: Data[S],
+sealed abstract private[framework] class MachineDeclaration[S, O, F] private[framework] (using
+    selectedState: Data[S],
     private[framework] val fo: Finite[O],
     private[framework] val ff: Finite[F]
 )(using private[framework] val ss: StateData[S])
     extends NativeModel[S, O, F]:
 
+  private[framework] val fs: Data[S] = selectedState
+
   final private[framework] def nativeEffects
       : Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] =
     NativeRuntime.installed.machineEffects(this)
 
-  final override private[framework] def illustrationMachine: Option[RecordMachine[S, O, F]] = Some(
-    this
-  )
+  final override private[framework] def illustrationMachine: Option[MachineDeclaration[S, O, F]] =
+    Some(
+      this
+    )
 
   private var declaredInboxes = Vector.empty[InboxOwnership.Native]
   @publicInBinary final private[framework] def retainNativeInbox(
@@ -487,14 +301,6 @@ abstract class RecordMachine[S, O, F] private[framework] (using
   ): Unit =
     declaredInboxes :+= entry
   final private[framework] def nativeInboxes: Vector[InboxOwnership.Native] = declaredInboxes
-
-  final protected inline def inbox[M](inline field: S => Inbox[M], channel: Channel[M]): Unit =
-    ${ InboxAssociation.capture[S, S, M]('this, 'field, 'channel) }
-
-  final protected inline def inboxCase[C <: S, M](
-      inline field: C => Inbox[M],
-      channel: Channel[M]
-  ): Unit = ${ InboxAssociation.capture[S, C, M]('this, 'field, 'channel) }
 
   private val headerMetadata = new MachineHeaders.Metadata
   private val endpointData = new MachineEndpoints.Metadata
@@ -541,14 +347,14 @@ abstract class RecordMachine[S, O, F] private[framework] (using
     facetContextData.value
   @publicInBinary final private[framework] def retainFacetContext(data: Seq[String]): Unit =
     facetContextData.retain(this, data)
-  private[framework] def endpointSource: RecordMachine[?, ?, ?] = this
-  private[framework] def evidenceSource: RecordMachine[?, ?, ?] = this
+  private[framework] def endpointSource: MachineDeclaration[?, ?, ?] = this
+  private[framework] def evidenceSource: MachineDeclaration[?, ?, ?] = this
   private[framework] def evidenceMetadata: Option[MachineEvidence.Retained] = evidenceData.value
   final private[framework] def ownsEvidence(value: MachineEvidence.Retained): Boolean =
     evidenceData.owns(value)
   @publicInBinary final private[framework] def retainEvidence(data: Seq[String]): Unit =
     evidenceData.retain(this, data)
-  private[framework] def ruleSource: RecordMachine[?, ?, ?] = this
+  private[framework] def ruleSource: MachineDeclaration[?, ?, ?] = this
   private[framework] def endpointMetadata: Option[MachineEndpoints.Retained] = endpointData.value
   @publicInBinary final private[framework] def retainEndpoints(
       owner: String,
@@ -589,17 +395,16 @@ abstract class RecordMachine[S, O, F] private[framework] (using
   // Whether the machine may end in `s`.
   def end(s: S): Boolean
 
-  // When each action fires, and what it does then: `object transitions extends Rules`.
+  // When each action fires, and what it does then: `object transitions extends Transitions`.
   def transitions: RuleBook[S, O, F]
 
   // The object's name with its first letter lowered.
   def name: String = objectName(this)
 
   // The owner its `transitions` and other sections read its types from.
-  protected given machineOwner: Owner[S, O, F] = Owner(this)
+  protected given machineOwner: MachineDeclaration[S, O, F] = this
 
   // What its `capabilities` section declares the capabilities of: this machine.
-  protected given declaring: Declaring[S, O, F] = Declaring(this)
 
   private var declaredDurability = Vector.empty[FieldDurability[S]]
   final protected def durability(fields: FieldDurability[S]*): Unit =
@@ -620,40 +425,14 @@ abstract class RecordMachine[S, O, F] private[framework] (using
   ): StepBinding[S, O, F] =
     crashBinding(machineOwner, action.action, action.budgets, outcome, facts, NativeLocation.here)
 
-  private var declaredAssumptions = List.empty[(Assumption, String)]
-  final protected def assumes(values: Assumption*): Unit =
-    val at = NativeLocation.caller("framework.dsl.RecordMachine")
-    declaredAssumptions ++= values.map(_ -> at)
-  private[framework] def authoredAssumptions: List[(Assumption, String)] = declaredAssumptions
-
-  private def generatedAssumptions(
-      entries: Vector[(ActionDecl, Bound[S, O, F])]
-  ): List[Assumption] =
-    entries.iterator
+  final private[framework] def assumptions: List[EnvironmentAssumption] =
+    table
       .collect {
         case (decl, _) if decl.faultKind.contains(FaultKind.storageLoss) =>
           decl.storageLossAssumption
       }
       .toList
       .distinct
-
-  private[framework] def validateNativeAssumptions(
-      entries: Vector[(ActionDecl, Bound[S, O, F])]
-  ): Unit =
-    val generated = generatedAssumptions(entries)
-    for (authored, at) <- authoredAssumptions do
-      require(
-        !generated.exists(derived =>
-          authored.eq(derived) || authored.sourceName == derived.sourceName ||
-            authored.nativeIdentity.exists(id => derived.nativeIdentity.contains(id))
-        ),
-        s"machine $name: authored assumption ${authored.name} at $at duplicates a generated storage-loss assumption"
-      )
-
-  final def assumptions: List[Assumption] =
-    val entries = table
-    validateNativeAssumptions(entries)
-    authoredAssumptions.map(_._1) ++ generatedAssumptions(entries)
 
   // What each action is bound to, in the order its first rule names it.
   private var acquiredBook = Option.empty[RuleBook[S, O, F]]
@@ -670,10 +449,9 @@ abstract class RecordMachine[S, O, F] private[framework] (using
       table: Vector[(ActionDecl, Bound[S, O, F])]
   ): Vector[(ActionDecl, Bound[S, O, F])] =
     validateNativeTable(table)
-    validateNativeAssumptions(table)
     acquiredTable = Some(DerivationBindings.snapshot(table))
     table
-  private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = None
+  private[framework] def derivationParent: Option[MachineDeclaration[?, ?, ?]] = None
   private[framework] def derivationEvent: Option[DerivationBindings.Event] = None
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     val book = transitions
@@ -706,7 +484,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
             rule.copy(effect = Programs.Budgeted(Programs.inputEffect(rule.effect), inherited)))
         case Bound.Disabled() => after
 
-  private def ownsBudget(owner: RecordMachine[?, ?, ?]): Boolean =
+  private def ownsBudget(owner: MachineDeclaration[?, ?, ?]): Boolean =
     this.eq(owner) || derivationParent.exists(_.ownsBudget(owner))
 
   private def validateNativeTable(entries: Vector[(ActionDecl, Bound[S, O, F])]): Unit =
@@ -786,7 +564,8 @@ abstract class RecordMachine[S, O, F] private[framework] (using
       case Bound.Disabled()   => Vector.empty
     require(
       inventories.nonEmpty && inventories.forall(_.nonEmpty),
-      s"$context: no retained native choice program for this class"
+      s"$context: no retained native choice program for this class; compile native declarations " +
+        "with -Yretain-trees and use effects with an available, static choice inventory"
     )
     require(
       selected.forall(token => inventories.exists(_.exists(_.exists(_ eq token)))),
@@ -809,52 +588,31 @@ abstract class RecordMachine[S, O, F] private[framework] (using
       table: => Vector[(ActionDecl, Bound[S, O, F])],
       keepRefinement: Boolean = true,
       operation: => Option[CoreBindings.Operation] = None,
-      trace: => Option[DerivationBindings.Event] = None,
-      addedAssumptions: List[(Assumption, String)] = Nil
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] = // format: off
+      trace: => Option[DerivationBindings.Event] = None
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] = // format: off
     Built[S, O, F, this.type](objectName(this), initialStates.toList, end, table, this, Seq.empty,
-      if keepRefinement then refinementEvidence else None, operation.toVector, trace,
-      authoredAssumptions ++ addedAssumptions)(using // format: on
+      if keepRefinement then refinementEvidence else None, operation.toVector, trace)(using // format: on
       fs,
       fo,
       ff
     )(using ss)
 
-  // A machine that keeps the rows of the named actions and drops the rest, named after the object
-  // that declares it, `object M extends Derived(m.restrict(...))`. It keeps the state type, starts
-  // and ends, owns its own name and Definition IDs, and does not inherit a refinement.
-  private[framework] def restrict(
-      keep: Action[?]*
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
-    val decls = keep.map(_.decl).toSet
-    // It keeps its source's monitors and assumptions, which are about the state and the machine.
-    lazy val before = DerivationBindings.snapshot(table)
-    built(
-      before.table.asInstanceOf[Vector[(ActionDecl, Bound[S, O, F])]].filter((d, _) => decls(d)),
-      keepRefinement = false,
-      trace = Some(DerivationBindings.Restricted(this, before, keep.map(_.decl).toVector))
-    )
-
-  // A machine that binds other step functions or rules to actions this one binds, each in its
-  // place, and keeps everything else this machine declares. `action ~> effect` keeps that action's
-  // rules, each with its guard and class, and replaces their effect, which the lifter refuses where
-  // its whole-action rules have several effects (rules that each fire one class may differ, as the
-  // new effect reads the class's inputs); `on(action) { where(g) ~> effect }` replaces its rules.
-  // The lifter refuses an action this machine does not bind.
+  // Replace the native rules of actions this machine binds, keeping its other declarations.
+  // Each replacement supplies its complete guard and effect block.
   def rebind(
-      replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+      replaced: (MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F])*
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     rebindWith(replaced, None)
 
   @publicInBinary private[framework] def capturedRebind(
-      replaced: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  )(data: Seq[String]): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+      replaced: (MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F])*
+  )(data: Seq[String]): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     rebindWith(replaced, Some(DerivationBindings.operationSite(this, data)))
 
   private def rebindWith(
-      replaced: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
+      replaced: Seq[MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F]],
       site: Option[DerivationBindings.OperationSite]
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     val operands = Vector.newBuilder[Rebinding[S, O, F]]
     val evidence = Vector.newBuilder[DerivationBindings.OperandEvidence]
     val nativeSources = Vector.newBuilder[DerivationBindings.Snapshot]
@@ -904,22 +662,22 @@ abstract class RecordMachine[S, O, F] private[framework] (using
     )
 
   // A machine that also binds actions this one does not, after its own bindings, by rules:
-  // `extend(on(action) { where(g) ~> effect })`. The lifter refuses an action this machine binds
+  // `extend(on(action) { effects.run() })`. The lifter refuses an action this machine binds
   // already, and a bare binding where this machine's actions are bound by rules.
   def extend(
-      added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+      added: (MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F])*
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     extendWith(added, None)
 
   @publicInBinary private[framework] def capturedExtend(
-      added: (Owner[S, O, F] ?=> Rebinding[S, O, F])*
-  )(data: Seq[String]): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+      added: (MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F])*
+  )(data: Seq[String]): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     extendWith(added, Some(DerivationBindings.operationSite(this, data)))
 
   private def extendWith(
-      added: Seq[Owner[S, O, F] ?=> Rebinding[S, O, F]],
+      added: Seq[MachineDeclaration[S, O, F] ?=> Rebinding[S, O, F]],
       site: Option[DerivationBindings.OperationSite]
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     val acquired = added.map { r =>
       val operand = r(using machineOwner)
       operand -> DerivationBindings.operandEvidence(operand)
@@ -952,9 +710,9 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 
   // A machine that refines `product` through `map` in place of the refinement this one declares,
   // and keeps the facts and outcomes that refinement lets the refined machine see.
-  def refining[PS, PO, PF](product: RecordMachine[PS, PO, PF])(
+  def refining[PS, PO, PF](product: MachineDeclaration[PS, PO, PF])(
       map: S => PS
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  ): MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     val refinement = new Refinement[S, PS](using machineOwner)(product):
       def toProduct(s: S): PS = map(s)
     Built[S, O, F, this.type](
@@ -964,20 +722,12 @@ abstract class RecordMachine[S, O, F] private[framework] (using
       table,
       this,
       Seq(product),
-      Some(refinement),
-      authored = authoredAssumptions
+      Some(refinement)
     )(using fs, fo, ff)(using ss)
-
-  // A machine whose checks also make the assumptions named, in their authored order.
-  private[framework] def assuming(
-      added: Assumption*
-  ): RecordMachine[S, O, F] & DerivedFrom[this.type] =
-    val at = NativeLocation.caller("framework.dsl.RecordMachine")
-    built(table, addedAssumptions = added.map(_ -> at).toList)
 
   // A machine without this one's monitors and refinement: the same transitions, for a composition
   // a member's monitors may not watch (model/framework/SEMANTICS.md leaves that undefined).
-  def unmonitored: RecordMachine[S, O, F] & DerivedFrom[this.type] =
+  def unmonitored: MachineDeclaration[S, O, F] & DerivedFrom[this.type] =
     built(table, keepRefinement = false)
 
 // A Machine: a transition relation over state declared as vars, with finite outcomes `O` and facts
@@ -989,7 +739,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 // object Kettle extends Machine[Outcome, Nothing]:
 //   var temperature = 20
 //   var heatingOn = false
-//   object transitions extends Rules: ...
+//   object transitions extends Transitions: ...
 //   object effects: ...
 // }}}
 //
@@ -999,7 +749,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 // guard or claim with its state restored into the vars, and the object reads as its initial state between
 // them.
 abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
-    extends RecordMachine[State, O, F],
+    extends MachineDeclaration[State, O, F],
       NativeClaimWords[O, F],
       Lifted:
   private lazy val declared: Vars = Vars(this, schema)
@@ -1066,27 +816,29 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
 // `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
 // `properties`, `capabilities` and `queries`, and reuses its source's effects by name. Its end is its
 // source's.
-abstract class Derived[S, O, F, M <: RecordMachine[S, O, F]](derivation: M)
-    extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
+abstract class Derived[S, O, F, M <: MachineDeclaration[S, O, F]](derivation: M)
+    extends MachineDeclaration[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
       derivation.ss
     ),
       ClaimWords,
       DerivedFrom[M]:
   final private[framework] def source: M = derivation
-  override def reach: Limits = derivation.reach
+  override private[framework] def reach: QueryBounds = derivation.reach
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] =
     derivation.nativeDurability ++ super.nativeDurability
 
-  final override private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = Some(
-    derivation
-  )
+  final override private[framework] def derivationParent: Option[MachineDeclaration[?, ?, ?]] =
+    Some(
+      derivation
+    )
   final override private[framework] def acquiredRuleTable: Option[DerivationBindings.Snapshot] =
     derivation.acquiredRuleTable
-  final override private[framework] def endpointSource: RecordMachine[?, ?, ?] =
+  final override private[framework] def endpointSource: MachineDeclaration[?, ?, ?] =
     derivation.endpointSource
-  final override private[framework] def evidenceSource: RecordMachine[?, ?, ?] =
+  final override private[framework] def evidenceSource: MachineDeclaration[?, ?, ?] =
     derivation.evidenceSource
-  final override private[framework] def ruleSource: RecordMachine[?, ?, ?] = derivation.ruleSource
+  final override private[framework] def ruleSource: MachineDeclaration[?, ?, ?] =
+    derivation.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] =
     super.headerSchemaKeys
       .zip(derivation.headerSchemaKeys)
@@ -1098,8 +850,6 @@ abstract class Derived[S, O, F, M <: RecordMachine[S, O, F]](derivation: M)
   final override def initialStates: Seq[S] = derivation.initialStates
   final def end(s: S): Boolean = derivation.end(s)
   final def transitions: RuleBook[S, O, F] = derivation.transitions
-  override private[framework] def authoredAssumptions: List[(Assumption, String)] =
-    derivation.authoredAssumptions ++ super.authoredAssumptions
   final override private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     acquireRuleTable(derivation.table)
   final override private[framework] def coreOperations: Vector[CoreBindings.Operation] =
@@ -1122,41 +872,40 @@ final private[framework] class Built[S, O, F, M <: Model](
     also: Seq[Model],
     refinement: Option[Refinement[S, ?]],
     operations: => Vector[CoreBindings.Operation] = Vector.empty,
-    trace: => Option[DerivationBindings.Event] = None,
-    authored: => List[(Assumption, String)] = Nil
+    trace: => Option[DerivationBindings.Event] = None
 )(using Data[S], Finite[O], Finite[F])(using StateData[S])
-    extends RecordMachine[S, O, F],
+    extends MachineDeclaration[S, O, F],
       DerivedFrom[M]:
-  override private[framework] def authoredAssumptions: List[(Assumption, String)] = authored
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] = source match
-    case machine: RecordMachine[S, ?, ?] @unchecked => machine.nativeDurability
-    case _                                          => super.nativeDurability
-  override def reach: Limits = source match
+    case machine: MachineDeclaration[S, ?, ?] @unchecked => machine.nativeDurability
+    case _                                               => super.nativeDurability
+  override private[framework] def reach: QueryBounds = source match
     case owner: Declares[?] => owner.reach
     case _                  => super.reach
 
-  override private[framework] def derivationParent: Option[RecordMachine[?, ?, ?]] = source match
-    case machine: RecordMachine[?, ?, ?] => Some(machine)
-    case _                               => None
+  override private[framework] def derivationParent: Option[MachineDeclaration[?, ?, ?]] =
+    source match
+      case machine: MachineDeclaration[?, ?, ?] => Some(machine)
+      case _                                    => None
   override private[framework] lazy val derivationEvent: Option[DerivationBindings.Event] = trace
-  override private[framework] def endpointSource: RecordMachine[?, ?, ?] = source match
-    case machine: RecordMachine[?, ?, ?] => machine.endpointSource
-    case _                               => super.endpointSource
-  override private[framework] def evidenceSource: RecordMachine[?, ?, ?] = source match
-    case machine: RecordMachine[?, ?, ?] => machine.evidenceSource
-    case _                               => super.evidenceSource
-  override private[framework] def ruleSource: RecordMachine[?, ?, ?] = source match
-    case machine: RecordMachine[?, ?, ?] => machine.ruleSource
-    case _                               => super.ruleSource
+  override private[framework] def endpointSource: MachineDeclaration[?, ?, ?] = source match
+    case machine: MachineDeclaration[?, ?, ?] => machine.endpointSource
+    case _                                    => super.endpointSource
+  override private[framework] def evidenceSource: MachineDeclaration[?, ?, ?] = source match
+    case machine: MachineDeclaration[?, ?, ?] => machine.evidenceSource
+    case _                                    => super.evidenceSource
+  override private[framework] def ruleSource: MachineDeclaration[?, ?, ?] = source match
+    case machine: MachineDeclaration[?, ?, ?] => machine.ruleSource
+    case _                                    => super.ruleSource
   override private[framework] def headerSchemaKeys: Vector[Option[String]] = source match
-    case machine: RecordMachine[?, ?, ?] => machine.headerSchemaKeys
-    case _                               => super.headerSchemaKeys
+    case machine: MachineDeclaration[?, ?, ?] => machine.headerSchemaKeys
+    case _                                    => super.headerSchemaKeys
   override private[framework] def stateVars: Option[Vars] = source match
-    case machine: RecordMachine[?, ?, ?] => machine.stateVars
-    case _                               => None
+    case machine: MachineDeclaration[?, ?, ?] => machine.stateVars
+    case _                                    => None
   override private[framework] def factCases: Vector[(AnyRef, String)] = source match
-    case machine: RecordMachine[?, ?, ?] => super.factCases ++ machine.factCases
-    case _                               => super.factCases
+    case machine: MachineDeclaration[?, ?, ?] => super.factCases ++ machine.factCases
+    case _                                    => super.factCases
   override lazy val initialStates: Seq[S] = starts
   def init: S = initialStates.head
   def end(s: S): Boolean = isEnd(s)
@@ -1167,7 +916,7 @@ final private[framework] class Built[S, O, F, M <: Model](
     acquireRuleTable(bound)
   final override private[framework] lazy val coreOperations: Vector[CoreBindings.Operation] =
     source match
-      case machine: RecordMachine[?, ?, ?] => machine.coreOperations ++ operations
-      case _                               => operations
+      case machine: MachineDeclaration[?, ?, ?] => machine.coreOperations ++ operations
+      case _                                    => operations
   final override private[framework] def reaches: Seq[Model] = source +: also
   final override private[framework] def refinementEvidence: Option[Refinement[S, ?]] = refinement

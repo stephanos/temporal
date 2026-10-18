@@ -5,6 +5,18 @@ package framework.dsl
 // reads, and runs nothing itself. Calling one hands it to the product checker through NativeRuntime;
 // the lifter reads its declaration references.
 private[framework] object Programs:
+  final class NativeBlock(val body: () => Unit, val nativeChoices: Option[Vector[Choice]])
+      extends (() => Unit),
+        BudgetMetadata:
+    val budgets: Vector[NativeBudget[?]] = Vector.empty
+    def apply(): Unit = NativeRuntime.installed.invoke(body)
+
+  final class NativeInputBlock[I](val body: I => Unit, val nativeChoices: Option[Vector[Choice]])
+      extends (I => Unit),
+        BudgetMetadata:
+    val budgets: Vector[NativeBudget[?]] = Vector.empty
+    def apply(input: I): Unit = NativeRuntime.installed.invoke(body, input)
+
   final class WitnessPredicate[S, O, F](
       val recorded: Step[S, O, F] => Boolean,
       val conditional: Vector[Step[S, O, F] => Boolean],
@@ -51,14 +63,7 @@ private[framework] object Programs:
 
   final class StickyVar(val promise: () => Boolean) extends (Boolean => Boolean):
     def apply(broken: Boolean): Boolean = NativeRuntime.installed.call[Boolean](this, broken)
-  final class StateCondition[S](val body: View[S] ?=> Boolean) extends (S => Boolean):
-    def apply(state: S): Boolean = NativeRuntime.installed.call[Boolean](this, state)
-
-  final class RecordEffect[S, O, F](val body: Draft[S, O, F] ?=> Unit, val accepted: O)
-      extends (S => List[Step[S, O, F]]):
-    def apply(state: S): List[Step[S, O, F]] =
-      NativeRuntime.installed.call[List[Step[S, O, F]]](this, state)
-  // The effect `action ~> f` binds, `f` read with the action's declared input.
+  // A retained effect callback read with its action's declared input.
   final class Adapted[S, O, F](val decl: ActionDecl, val function: AnyRef)
       extends InputEffect[S, O, F]:
     require(
@@ -102,6 +107,7 @@ private[framework] object Programs:
   // state, where the run reaches an effect call or a rejection.
   final class Run[O, F](val machine: Model, val accepted: O, val body: () => Unit)
       extends InputEffect[State, O, F]:
+    override val nativeChoices: Option[Vector[Choice]] = choiceTokens(body)
     def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
       NativeRuntime.installed.evaluateEffect(this, state, values)
 
@@ -113,6 +119,7 @@ private[framework] object Programs:
       val accepted: O,
       val body: I => Unit
   ) extends InputEffect[State, O, F]:
+    override val nativeChoices: Option[Vector[Choice]] = choiceTokens(body)
     def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
       NativeRuntime.installed.evaluateEffect(this, state, values)
     override def apply(state: State, cls: Class): List[Step[State, O, F]] =

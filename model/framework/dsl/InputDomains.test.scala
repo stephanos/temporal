@@ -182,7 +182,7 @@ class InputDomains extends munit.FunSuite:
       val _ = required(3)
       ()
 
-  test("domain and expectation oneOf coexist under wildcard imports and refuse malformed forms"):
+  test("domain and claim oneOf coexist under wildcard imports and refuse malformed forms"):
     assertEquals(
       compiletime.testing.typeCheckErrors("""
       import framework.dsl.*
@@ -190,16 +190,20 @@ class InputDomains extends munit.FunSuite:
       val range = domains.oneOf(0 to 2)
       val collection = domains.oneOf(List(2, 0))
       val explicit = domains.oneOf(2, 0)
-      val predicate: Step[Boolean, Boolean, Nothing] => Boolean = expect:
-        oneOf:
-          branch:
-            oneOf:
-              branch:
-                check(true)
-              branch:
-                check(false)
-          branch:
-            check(false)
+      given Ok[Boolean] = Ok(true)
+      object Subject extends Machine[Boolean, Nothing]:
+        var ready = false
+        object transitions extends Transitions
+        object invariants:
+          val predicate = oneOf:
+            branch:
+              oneOf:
+                branch:
+                  check(true)
+                branch:
+                  check(false)
+            branch:
+              check(false)
       val actionWithDomain = action(Actor("caller")).input[Int](name = "count", domain = values)
     """),
       Nil
@@ -215,7 +219,15 @@ class InputDomains extends munit.FunSuite:
       compiletime.testing
         .typeCheckErrors("""
       import framework.dsl.*
-      val predicate: Step[Boolean, Boolean, Nothing] => Boolean = expect:
-        domains.oneOf(2, 0)
+      given Ok[Boolean] = Ok(true)
+      object Subject extends Machine[Boolean, Nothing]:
+        var ready = false
+        object transitions extends Transitions
+        object invariants:
+          val predicate = oneOf:
+            branch:
+              domains.oneOf(2, 0)
+            branch:
+              check(true)
     """).nonEmpty
     )

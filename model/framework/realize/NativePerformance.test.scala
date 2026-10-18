@@ -3,6 +3,7 @@ package framework.realize
 import framework.dsl.*
 
 class NativePerformanceSuite extends munit.FunSuite:
+  given Ok[Boolean] = Ok(true)
   private val instruction = Instruction.AwaitLearned("ready")
   private val command = Command("perform", instruction)
 
@@ -38,14 +39,17 @@ class NativePerformanceSuite extends munit.FunSuite:
     val hidden = action("later-hidden", Actor("fault")).crash
     val performance = Performance(hidden, command)
     val _ = hidden.modelOnly(because = "control withdrawn")
-    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init evaluated")
-      def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Rules
+    object Subject extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object transitions extends Transitions
     val error = intercept[IllegalArgumentException](realization(Subject, performance))
     assert(error.getMessage.contains("control withdrawn"), error.getMessage)
 
-  private def realization(machine: RecordMachine[?, ?, ?], performance: Performance): Realization =
+  private def realization(
+      machine: MachineDeclaration[?, ?, ?],
+      performance: Performance
+  ): Realization =
     Realization(
       name = "native-test",
       machine = machine,
@@ -62,25 +66,31 @@ class NativePerformanceSuite extends munit.FunSuite:
       val sameName = choice
     object foreignTokens:
       val sameName = choice
-    val declared = declaredTokens.sameName
-    val other = choice
     val outsider = foreignTokens.sameName
-    val performed = action("performed", Actor("caller"))
+    object caller:
+      val performed = action("performed", Actor("caller"))
+    val performed = caller.performed
     val foreign = action("performed", Actor("caller"))
-    val program = choose[Boolean, Boolean, Nothing](
-      declared -> ((_: Boolean) => throw AssertionError("choice arm evaluated")),
-      other -> ((_: Boolean) => throw AssertionError("choice arm evaluated"))
-    )
-    class Subject extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init evaluated")
-      def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Bindings(performed ~> program)
+    class Subject extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object effects:
+        val declared = declaredTokens.sameName
+        val other = choice
+        def run(): Unit =
+          choose(
+            declared -> { throw AssertionError("choice arm evaluated") },
+            other -> { throw AssertionError("choice arm evaluated") }
+          )
+      object transitions extends Transitions:
+        on(caller.performed):
+          effects.run()
 
     val machine = new Subject
-    val selected = Performance(performed, command).choosing(declared)
+    val selected = Performance(performed, command).choosing(machine.effects.declared)
     assert(realization(machine, selected).scripts.head.items.head.performs.head eq selected)
     var exposedDependencies = 0
-    final class NativeKit(val machine: RecordMachine[?, ?, ?], performance: Performance)
+    final class NativeKit(val machine: MachineDeclaration[?, ?, ?], performance: Performance)
         extends ConstructedRealization:
       protected def declaredPerformances: Vector[Performance] = Vector(performance)
       val runs: Seq[AnyRef] = Seq.empty
@@ -106,52 +116,57 @@ class NativePerformanceSuite extends munit.FunSuite:
       intercept[IllegalArgumentException](invalidKit.nativePerformances): Unit
       intercept[IllegalArgumentException](invalidKit.dependencies): Unit
       assertEquals(exposedDependencies, 1)
-    object WrongMachine extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init evaluated")
-      def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Rules
+    object WrongMachine extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object transitions extends Transitions
     intercept[IllegalArgumentException](realization(WrongMachine, selected)): Unit
 
   test("choosing membership belongs to the performed class rather than its whole action"):
-    val first = choice
-    val second = choice
-    val otherFirst = choice
-    val otherSecond = choice
     object caller:
       val performed = action("by-input", Actor("caller")).input[Boolean](name = "flag")
-    val offProgram = choose[Boolean, Boolean, Nothing](
-      first -> ((_: Boolean) => throw AssertionError("off arm evaluated")),
-      second -> ((_: Boolean) => throw AssertionError("off arm evaluated"))
-    )
-    val onProgram = choose[Boolean, Boolean, Nothing](
-      otherFirst -> ((_: Boolean) => throw AssertionError("on arm evaluated")),
-      otherSecond -> ((_: Boolean) => throw AssertionError("on arm evaluated"))
-    )
-    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init evaluated")
-      def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Rules:
+    object Subject extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object effects:
+        val first = choice
+        val second = choice
+        val otherFirst = choice
+        val otherSecond = choice
+        def off(): Unit =
+          choose(
+            first -> { throw AssertionError("off arm evaluated") },
+            second -> { throw AssertionError("off arm evaluated") }
+          )
+        def on(): Unit =
+          choose(
+            otherFirst -> { throw AssertionError("on arm evaluated") },
+            otherSecond -> { throw AssertionError("on arm evaluated") }
+          )
+      object transitions extends Transitions:
         on(caller.performed(false)):
-          always ~> offProgram
+          effects.off()
         on(caller.performed(true)):
-          always ~> onProgram
-    val selected = Performance(caller.performed(false), command).choosing(first)
+          effects.on()
+    val selected = Performance(caller.performed(false), command).choosing(Subject.effects.first)
     assert(realization(Subject, selected).scripts.nonEmpty)
     intercept[IllegalArgumentException](
       realization(Subject, selected.copy(step = caller.performed(true)))
     ): Unit
 
-  test("explicit choosing refuses opaque callbacks while omitted selection accepts them"):
-    val performed = action("opaque", Actor("caller"))
+  test("explicit choosing refuses nonbranch tokens while omitted selection accepts plain effects"):
+    object caller:
+      val performed = action("opaque", Actor("caller"))
     val token = choice
-    object Subject extends RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init evaluated")
-      def end(state: Boolean): Boolean = throw AssertionError("end evaluated")
-      object transitions
-          extends Bindings(
-            performed ~> ((_: Boolean) => throw AssertionError("opaque callback evaluated"))
-          )
-    val performance = Performance(performed, command)
+    object Subject extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object effects:
+        def run(): Unit = throw AssertionError("effect evaluated")
+      object transitions extends Transitions:
+        on(caller.performed):
+          effects.run()
+    val performance = Performance(caller.performed, command)
     assertEquals(realization(Subject, performance).machine, Subject)
     val error = intercept[IllegalArgumentException](
       realization(Subject, performance.choosing(token))

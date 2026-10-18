@@ -12,11 +12,12 @@ class RealizationConversionTest extends munit.FunSuite:
   private case class OwnedRecord(flag: Boolean)
   private case class ForeignRecord(flag: Boolean)
 
-  private object FactMachine extends framework.dsl.RecordMachine[Boolean, Boolean, OwnedFact]:
-    val init = false
-    def end(s: Boolean): Boolean = s
+  private object FactMachine extends framework.dsl.Machine[Boolean, OwnedFact]:
+    var ready = false
+    override def end: Boolean = ready
 
-    object transitions extends framework.dsl.Rules
+    object transitions
+        extends framework.dsl.Transitions(using summon, framework.dsl.Ok(true), summon)
 
   final private class ConstructedFactProbe extends ConstructedRealization:
     val machine = FactMachine
@@ -293,11 +294,12 @@ class RealizationConversionTest extends munit.FunSuite:
     assertEquals(result.getHoldDelivery, "fixture.inbox")
     assertEquals(result.role, "worker")
 
-  private object Machine extends framework.dsl.RecordMachine[Boolean, Boolean, Boolean]:
-    val init = false
-    def end(s: Boolean): Boolean = s
+  private object Machine extends framework.dsl.Machine[Boolean, Boolean]:
+    var ready = false
+    override def end: Boolean = ready
 
-    object transitions extends framework.dsl.Rules
+    object transitions
+        extends framework.dsl.Transitions(using summon, framework.dsl.Ok(true), summon)
 
   test("shared framework rejection reasons retain their closed IR codes"):
     import framework.dsl.outcomes.Rejection

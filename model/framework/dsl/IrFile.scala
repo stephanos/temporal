@@ -45,7 +45,7 @@ final class IrFile private[framework] (
           declarations.update(id, m)
         IrFile.propertiesOf(m).foreach(root)
         m match
-          case machine: RecordMachine[?, ?, ?] =>
+          case machine: MachineDeclaration[?, ?, ?] =>
             machine.reaches.foreach(model)
           case c: Composition[?] =>
             c.members.foreach(model)
@@ -54,15 +54,15 @@ final class IrFile private[framework] (
     def query(q: Query): Unit =
       Seq(q.scenario.machine, q.property.machine).foreach(model)
     def root(r: Any): Unit = r match
-      case m: RecordMachine[?, ?, ?] => model(m)
-      case c: Composition[?]         => model(c)
-      case q: Query                  => query(q)
-      case qs: Seq[?]                => qs.foreach { case q: Query => query(q); case _ => () }
-      case p: Progress[?]            => model(p.machine)
-      case p: Property               => model(p.decl.machine)
-      case r: ConstructedRealization => model(r.machine)
-      case c: Capabilities[?, ?, ?]  => model(c.model)
-      case section: AnyRef           =>
+      case m: MachineDeclaration[?, ?, ?] => model(m)
+      case c: Composition[?]              => model(c)
+      case q: Query                       => query(q)
+      case qs: Seq[?]                     => qs.foreach { case q: Query => query(q); case _ => () }
+      case p: LeadsTo                     => p.machine.foreach(model)
+      case p: Property                    => model(p.decl.machine)
+      case r: ConstructedRealization      => model(r.machine)
+      case c: Capabilities[?, ?, ?]       => model(c.model)
+      case section: AnyRef                =>
         scala.util
           .Try(section.getClass.getMethod("machine").invoke(section))
           .toOption
@@ -84,8 +84,8 @@ final class IrFile private[framework] (
   def construct(): Set[String] =
     val declarations = subjects()
     declarations.foreach:
-      case machine: RecordMachine[?, ?, ?] => machine.table: Unit
-      case _                               => ()
+      case machine: MachineDeclaration[?, ?, ?] => machine.table: Unit
+      case _                                    => ()
     declarations.map(_.name).toSet
 
 object IrFile:
@@ -162,7 +162,7 @@ object IrFile:
       module(name).toVector.flatMap {
         case r: ConstructedRealization => Vector(name -> (r, false))
         case m: Model                  =>
-          Vector(name -> (m, false)) ++ IrFile.propertiesOf(m).collect { case p: Progress[?] =>
+          Vector(name -> (m, false)) ++ IrFile.propertiesOf(m).collect { case p: LeadsTo =>
             name -> (p, true)
           }
         case c: Capabilities[?, ?, ?] if section.sizeIs == 2 =>
@@ -239,12 +239,12 @@ object IrFile:
         )
     def claimType(t: java.lang.Class[?]): Boolean =
       classOf[Property].isAssignableFrom(t) ||
-        classOf[Progress[?]].isAssignableFrom(t) ||
+        classOf[LeadsTo].isAssignableFrom(t) ||
         classOf[Monitor[?, ?, ?, ?]].isAssignableFrom(t) ||
         (classOf[Product].isAssignableFrom(t) &&
           t.getDeclaredMethods.exists(f =>
             classOf[Property].isAssignableFrom(f.getReturnType) ||
-              classOf[Progress[?]].isAssignableFrom(f.getReturnType)
+              classOf[LeadsTo].isAssignableFrom(f.getReturnType)
           ))
     def claims(o: AnyRef): Seq[Any] =
       val fields = o.getClass.getDeclaredFields.toSeq
@@ -269,7 +269,7 @@ object IrFile:
       (values ++ stored).flatMap: value =>
         value match
           case p: Property            => Seq(p)
-          case p: Progress[?]         => Seq(p)
+          case p: LeadsTo             => Seq(p)
           case m: Monitor[?, ?, ?, ?] => Seq(m)
           case p: Product             => p.productIterator.toSeq
           case value                  => Seq(value)

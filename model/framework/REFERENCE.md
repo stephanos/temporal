@@ -64,7 +64,7 @@ Contents:
 | One body per line | Every `val`/`def` member of a native Model and its sections starts its body on the next line: `R4.declaration-multiline: <name> starts its body on the definition line: put the body on the next line`. `var`s, givens, locals and test files are exempt | lint |
 | Colon blocks | `on`, `from`, `oneOf`, `branch` and the other block words take a colon block, not braces: `block-form rule: use a colon block for \`<name>\`, not optional braces` | lint |
 | Comments | `//` only | lint |
-| Layout | In `framework/samples` and `temporal/features`, scalafmt keeps the author's line breaks (`newlines.source = keep`, `model/.scalafmt.conf`), so a long `if` may break after `then` | `make fmt-model` |
+| Layout | In `framework/samples` and `temporal/features`, scalafmt keeps the author's line breaks (`newlines.source = keep`), so a long `if` may break after `then` | `make fmt-model` |
 
 Section order inside a Machine, as the samples write it: vars, `refinement`, `transitions`,
 `effects`, `invariants`, `postconditions`, `monitors`, `progress`, `queries`. A named scenario is a
@@ -701,12 +701,23 @@ path with a last-step fact.
 
 ## 12. Checking and results
 
-The checker entry points are currently `private[framework]`; tests in package `framework.dsl`
-call them.
+Import `framework.checker.Checker` alongside the DSL. Its public entry points are:
+
+```scala
+Checker.explore(instance, starts = Seq.empty, budget = Checker.defaultBudget)
+Checker.verifyAll(instance, starts = Seq.empty, budget = Checker.defaultBudget)
+Checker.verifyAll(explorationResult)
+Checker.monitor(instance, watch, starts, budget = Checker.defaultBudget)
+Checker.progress(instance, claim, starts, budget = Checker.defaultBudget)
+```
+
+`explore` drains one bounded reachable search. Passing that Result to `verifyAll` reuses it.
+The private NativeCheck query and negative-control helpers are internal test machinery.
+Replay, horizon-bounded finding, sampling and feature-budget configuration remain separate work.
 
 ### What is checked by default
 
-`NativeCheck.verifyAll(machine, starts = Seq.empty, budget = defaultBudget)`:
+`Checker.verifyAll(machine, starts = Seq.empty, budget = Checker.defaultBudget)`:
 
 - **Starts:** `machine.initialStates`, unless `starts` is given.
 - **Unscoped claims:** `invariants` and `postconditions` share one exploration of every action.
@@ -716,9 +727,8 @@ call them.
 - **Order of results:** unscoped claims (invariants, then postconditions), scoped claims, progress,
   monitors.
 
-Other entry points: `query(q, subject)` checks one Query; `queries(machine)` checks every Query of
-`queries`. Test helpers: `assertRefuted(machine, claim)` and
-`invariant(body)`, the negative-control idiom.
+Query execution and negative controls currently use internal helpers; they are not additional
+public Checker operations.
 
 ### Budget
 
@@ -731,20 +741,25 @@ counterexample found before the cut stands. Refusal: `a budget admits at least o
 |---|---|---|
 | `verified` | `verified` | Complete exploration, no violation |
 | `found` | `found` | A `find` witness |
-| `refuted` | `refuted` | A counterexample; for `find`, a complete search found none |
+| `refuted` | `refuted` | A safety or progress counterexample |
+| `notFound` | `notFound` | Reserved for the forthcoming bounded finding operation |
 | `unknown` | `unknown` | A cut or a hole, and nothing decisive |
-| `deadlock`, `cycle`, `missedDeadline` | `deadlock`, `cycle`, `missed deadline` | Progress only ([9](#9-progress)) |
+
 
 ### `Result` and `Report`
 
-`Result(subject, verdict, budget, depth, complete, detail = Vector.empty, longest = None)`.
+A Result exposes `subject`, `verdict`, `budget`, `depth`, `complete`, `path`, `detail` and `longest`.
+Its constructor is internal. Progress failures use `refuted`, with `reason: deadlock`, `reason: cycle`
+or `reason: missed deadline` in detail.
 
-- **`line`:**
+- **`toString`:**
   `<subject>: <verdict> (budget <budget> states, <depth> steps; exploration <complete|cut>)`, for
   example `model.boils: verified (budget 1048576 states, 82 steps; exploration complete)`. `budget`
   is the cap, `depth` the deepest breadth-first level reached.
 - **`subject`:** `<machine>.<member>`.
 - **`longest`:** set only for a verified progress claim.
+- **`path`:** the initial state and ordered PathStep entries: action, source, destination, outcome
+  and facts. These are stored exploration edges, not a reconstructed guess.
 
 `Report(results, warnings)`; `verdicts` keys by member name; `result(member)` throws `no check named
 <member>`.
@@ -932,10 +947,9 @@ object capabilities extends Capabilities:
 | `val x: Capability = Kind(...)` | Brings the Properties `Kind`'s companion (a `CapabilityKind`) defines |
 | `except(Kind.p, because = ...)` | Waives one brought Property |
 | `overriding(Kind.p -> substitute, because = ...)` | Replaces one |
-| `bound(limits, ...)` | Bounds the generated Queries |
 
 A plain-form Model cannot write a capability kind today: its Properties are written with `property`,
-which is retired, and `bound` needs `Limits`, which a Model no longer declares. The native checker
+which is retired, and the Limits-based capability bound form is removed. The native checker
 ignores capabilities. See [Known gaps](#known-gaps).
 
 ---
@@ -1015,7 +1029,7 @@ object Model extends Machine[Outcome, Nothing]:
 | `Order.fifo`, `Order.unordered` | Delivery order |
 | `Loss.reliable`, `Loss.lossy` | Whether messages may be lost |
 | `ch.empty` | An empty `Inbox[M]` |
-| `inbox(v, ch)` | Associates the var `v` with the channel, in the Machine body |
+| `inbox(v, ch)` | Associates an exact owning var or rooted record/optional/typed sum-case field with the channel; the selector is inspected, not run |
 | `v.send(m)`, `v.isEmpty`, `v.isFull` | Sending to a full inbox leaves it unchanged |
 | `ch.deliver`, `ch.lose` | System actions `<name>Delivery`, `<name>Loss`, bound with `on(ch.deliver): m => ...` |
 
@@ -1030,7 +1044,7 @@ Refusals:
 |---|---|
 | `a channel holds at most <n> messages; a channel holds at least one` | runtime |
 | `a channel delivers a message <d> more times; it cannot deliver fewer than once` | runtime |
-| `an Inbox association names the state var that holds the Inbox` | compile |
+| `an Inbox association requires a rooted state var Inbox field`; `an Inbox association requires this Machine's owning state var` | compile |
 | `<x> holds no channel natively: declare the inbox as a var` | runtime |
 | `channel <id>: messages are Int with no declared bound: write channel[UpTo[N]] or a named opaque range` | export |
 | `<m> holds the lossy channel <c> and binds no <c>Loss step: ...` | export |
@@ -1069,8 +1083,16 @@ Refusals (runtime unless marked):
 | `... reset value outside the field domain`; `duplicate in-memory key`; `in-memory fallback must be durable`; `duplicate or overlapping classification` | durability |
 | `a state field names a state var of its Machine` | compile: a non-var argument |
 
-Legacy: fault budgets (`budgetedBy`) and selector forms of `durable`/`ephemeral`/`inMemory` work
-only on the record form.
+Bind a native fault budget with `fault.a.budgetedBy(remaining)`, using an owning Boolean, Int or
+bounded Int var or rooted immutable record field. The target works in native `on` blocks, including
+record/scalar input blocks, and in `crashes`. Foreign, computed and wrongly typed fields refuse;
+two budgets on one binding refuse. Authored effects control their own budget writes. A generated
+crash disables before reset at zero/false and refuses a negative Int; otherwise it consumes once,
+rebuilding nested reset fields and its own budget atomically per root var. Other budgets remain
+unchanged. Selected reset validity evidence is retained.
+
+Storage-loss assumptions are generated privately per bound fault, shared by declaration copies
+and derivations. There is no public authored `Assumption` or fairness-copy path.
 
 ---
 
@@ -1175,7 +1197,7 @@ A hole propagates; a branch not taken is not reached.
 
 ### Liftable subset
 
-A shared vocabulary in another source file declares `object vocabulary extends Lifted` once.
+A shared vocabulary declares `object vocabulary extends Lifted` once.
 The marker covers its member definitions and members of nested containers, stopping at local
 method scopes. `Machine` supplies the marker itself, so an ordinary `object effects:` needs no
 additional declaration. Local defs remain part of their enclosing body's ordinary lifting.
@@ -1283,7 +1305,8 @@ Level folders are `product`, `protocol` (formerly `system`) and `realization`; f
 
 ## Retired forms
 
-Each was removed or made `private[framework]`; the right column is what to write instead.
+These authoring paths are removed; the right column is what to write instead. Private metadata
+containers retained for existing consumers do not restore the old record-state authoring engine.
 
 | Retired | Write | Retired by |
 |---|---|---|
@@ -1323,7 +1346,7 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
 - **Section order.** No lint holds the plain-form order; the structure and order rules still
   list the old sections (`states`, `rules`, `properties`, ...).
 - **Capabilities** cannot be authored in the plain form (no public way to write a kind's Properties;
-  `bound` needs `Limits`).
+  the Limits-based bound form is removed).
 - **Vacuity.** A claim triggered by an outcome (`if outcome != accepted then ...`) is silently
   vacuous when no step answers that outcome.
 - **`starts(x = v)`** collapses the other vars' `oneOf` starts to their first values.
@@ -1332,6 +1355,13 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
   table holds ([Collection operations](#collection-operations)).
 
 ---
+
+Native choice selection retains immutable tokens per action/class without calling guards or
+effects. Compile native author and effect-library declarations with `-Yretain-trees`; the pinned
+native settings include it. Static transitive and parameterized effect bodies can contribute tokens
+across separate builds. Missing or dynamic inventories refuse explicit selection rather than
+silently claiming no choices. A native rebind replaces the affected inventory; plain effects accept
+no foreign or nonbranch tokens. Step-list and record-callback choice overloads are removed.
 
 ## Native checker
 
@@ -1362,20 +1392,20 @@ Named in signatures and error messages; an author writes the form, not the type.
 `ActionDecl` `RecordAction` `ScalarAction` `ClassExample` `FaultKind` `InputBinding` `InputField` `InputFields`
 `Choice` `Alternative` `Subject` `Scenario` `ScenarioDecl` `QueryForm` `ClaimQuery` `Monitor`
 `CapabilityOf` `FieldDurability` `Accepting`
-`Refusing` `Recording` `Before` `StepTarget` `StepRecords` `RequirementFacts` `Alternatives`
-`ClaimAlternatives` `InitialAlternatives` `Branching` `ClaimBranch` `Owner` `Declaring` `Declares`
+`Refusing` `Recording` `StepTarget` `StepRecords`
+`ClaimAlternatives` `InitialAlternatives` `Branching` `ClaimBranch` `Declares`
 `DerivedFrom` `Rule` `RuleGroup` `Rebinding` `RuleBook` `MemberStep` `CompositionTarget` `MemberReplacement` `Sync`
 `Family`
 
-### Legacy
+### Retained metadata containers
 
-The record form's API, kept public until fn-190.16 deletes it; do not write it in a new Model.
+Existing metadata consumers still use these containers. Their constructors and bounds are internal;
+they do not provide the removed record-state authoring vocabulary. Broader Query/Witness retirement
+is separate work.
 
 `PropertyDecl` `PropertyBuilder` `SameStepProperty` `TransitionProperty` `ScenarioBuilder`
-`QueryDecl` `QueryOn` `QueryIn` `Checker` `WitnessBuilder` `WitnessFacts` `witnessFacts`
-`Expectation` `Expecting` `expectationBuilder` `ExpectedAlternatives` `ExpectedBranch` `Across`
-`afterAction` `Rejects` `Recorded` `keeps` `Once` `Never` `Stays` `Case` `Firing` `GuardCases`
-`Bindings` `StepBinding` `BudgetedAction` `BudgetedScalarAction` `Exploration` `Variation`
+`Checker` `WitnessBuilder` `WitnessFacts` `witnessFacts` `Recorded`
+`StepBinding` `BudgetedAction` `Exploration` `Variation`
 
 ### Realization building blocks
 
@@ -1396,5 +1426,5 @@ The records, enums and scopes behind the forms of [Realizations](#21-realization
 Public for the plugin, the exporter or the checker; no author use.
 
 `FacetSource` `FiniteSchema` `IrFile` `IrRoot` `liftedIr` `Reify` `NativeInput` `RuleInput`
-`Vars` `VarSchema` `RuleTable` `ClaimWords` `CompositionSchema` `CompositionFact` `StateChoiceProgram` `InputChoiceProgram` `IllustrationKind` `Illustration` `Reference`
+`Vars` `VarSchema` `RuleTable` `ClaimWords` `CompositionSchema` `CompositionFact` `IllustrationKind` `Illustration` `Reference`
 `Named`

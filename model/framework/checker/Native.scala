@@ -5,25 +5,7 @@ import framework.dsl.*
 // The native runtime the DSL reaches through its seam (framework/dsl/NativeRuntime.scala), by this
 // object's name: each statement and evaluation the DSL declares, run here.
 private[framework] object Native extends NativeRuntime:
-  def requireExpectation[S, O, F](context: Expectation[S, O, F], condition: Boolean): Unit =
-    if !condition then throw context.failure
-  def attemptAlternative[S, O, F](
-      context: Alternatives[S, O, F],
-      body: Expectation[S, O, F] ?=> Unit
-  ): Unit =
-    if new Expectation(context.step).evaluate(body) then throw context.success
-  def setDraft[S, O, F](context: Draft[S, O, F], update: S => S): Unit = context.current = update(
-    context.current
-  )
-  def draftStep[S, O, F](context: Draft[S, O, F], start: S, accepted: O): Step[S, O, F] =
-    context.rejection match
-      case Some(outcome) => Step(outcome, start)
-      case None          => Step(accepted, context.current, context.facts)
-  def recordDraft[S, O, F](context: Draft[S, O, F], recorded: Seq[F]): Unit = context.facts =
-    context.facts ++ recorded
-  def refuseDraft[S, O, F](context: Draft[S, O, F], outcome: O): Unit = context.rejection = Some(
-    outcome
-  )
+  def invoke(body: () => Unit): Unit = body()
   def stateCompare(vars: Vars, left: State, right: State): Int =
     DomainRuntime.stateCompare(vars, left, right)
   def invoke[A, B, C, D](function: (A, B, C) => D, first: A, second: B, third: C): D =
@@ -57,22 +39,6 @@ private[framework] object Native extends NativeRuntime:
     broken || program.same.exists(f => !f(step)) || program.across.exists(f => !f(before, step))
   def invoke[A, B](function: A => B, argument: A): B = function(argument)
   def invoke[A, B, C](function: (A, B) => C, first: A, second: B): C = function(first, second)
-  def alternatives[S, O, F](
-      context: Alternatives[S, O, F],
-      body: Alternatives[S, O, F] ?=> Unit
-  ): Boolean =
-    try
-      body(using context)
-      false
-    catch case signal: scala.util.control.ControlThrowable if signal eq context.success => true
-  def expectation[S, O, F](
-      context: Expectation[S, O, F],
-      body: Expectation[S, O, F] ?=> Unit
-  ): Boolean =
-    try
-      body(using context)
-      true
-    catch case signal: scala.util.control.ControlThrowable if signal eq context.failure => false
   def monitorNext[M](next: M => M, current: M, before: State, step: Step[State, ?, ?]): M =
     ClaimEvaluation.watching(before, step)(next(current))
   def contents[M](channel: Channel[M]): Finite[Inbox[M]] = DomainRuntime.contents(channel)
@@ -94,7 +60,7 @@ private[framework] object Native extends NativeRuntime:
   def range(high: Int): IndexedSeq[Int] = DomainRuntime.range(high)
   def composition[F](model: Composition[F]): CompositionExecution[F] = new CompositionRuntime(model)
   def machineEffects[S, O, F](
-      model: RecordMachine[S, O, F]
+      model: MachineDeclaration[S, O, F]
   ): Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] = NativeCheck.machineEffects(model)
   def section(owner: AnyRef, name: String): Vector[(String, Any)] = NativeCheck.section(owner, name)
   def classesOf(decl: ActionDecl): List[Class] = NativeCheck.classesOf(decl)

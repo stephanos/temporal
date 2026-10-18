@@ -6,7 +6,30 @@ with it), how it is *written*, and what is *refused* and by whom. The README cov
 the file layout and the commands; this guide covers the language. [REFERENCE.md](REFERENCE.md)
 lists the same language for lookup: every form, where it may be written, and its refusal texts.
 
-A Model is ordinary Scala 3. The compiler checks its types, the framework checks its rules as they
+## Current Scala authoring checkpoint
+
+The active Scala surface is the plain form in [REFERENCE.md](REFERENCE.md): `Machine[O, F]`,
+state vars, Unit-valued effects, native `Transitions`, and `invariants`/`postconditions` claims.
+The product `framework.checker` executes it. RecordMachine, Owner/Declaring, Rules and its rule
+operators, property/expect/across, authored assume/Assumption, named leadsTo overloads,
+restrict/assuming, query construction and Limits builders are deleted, including record-callback
+choice and effect contexts. No compatibility record engine remains.
+
+Native fault budgets select owning vars or rooted immutable-record fields. Generated crashes reset
+siblings and consume their own budget atomically; authored effects control their own writes.
+Storage-loss assumptions remain generated private metadata with declaration identity. Native
+structural admission retains each var's selected recursive evidence and exact Inbox coordinates
+without executing selectors or enumerating whole-state catalogs. Choice selection retains exact
+per-action/class token inventories without executing guards or effects; separate native author and
+effect-library builds require `-Yretain-trees`.
+
+Existing Query/Witness/Property containers remain for metadata consumers pending their separate
+retirement. Their bounds are private; caller budgets belong to the checker. The historical excerpts
+below describe IR contracts and earlier authoring spellings, not currently callable Scala APIs.
+Plain-form body lifting, exporter fixtures, Temporal migration and Go parity remain held; these
+native changes do not release those gates.
+
+A Model is ordinary Scala 3. In the historical IR pipeline, the compiler checks its types, the framework checks its rules as they
 are constructed, the IR generator (`model/framework/export`) reads the compiled trees and refuses what the IR
 cannot hold, and the Go reader (`tools/umpire`) derives every table and answers every question. The
 IR carries no Scala: everything a reader knows is in the feature's `generated/ir.json`.
@@ -18,8 +41,8 @@ Every Scala block below is a cited source excerpt, read in its original package 
 excerpts are not standalone programs. The feature header names its complete hard-instance inventory.
 The shared framework and Closable definition are cited where the mini consumes their contracts.
 
-The mini's `.live` values are authored expectations, not observed Verdicts. Its source compiles
-and lifts; Case lowering and live execution remain held in fn-166.4, the complete Make loop in
+The mini's `.live` values are historical authored expectations, not observed Verdicts. Its current
+Temporal sources are disabled and are not compiled by the native gate. Case lowering and live execution remain held in fn-166.4, the complete Make loop in
 fn-166.5, and production custom-rule loading in fn-166.10. Real features remain behind during the
 Scala DSL batch. [README, Writing a Model](../README.md#writing-a-model) documents the focused route.
 

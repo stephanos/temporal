@@ -1,6 +1,9 @@
 package framework.dsl
 
+import framework.dsl.Finite.given
+
 object IllustrationStateFixture:
+  given Ok[Boolean] = Ok(true)
   final case class Inner(count: UpTo[2], values: List[Int])
   final case class Record(inner: Inner, optional: Option[UpTo[2]], entries: Map[Int, Set[UpTo[2]]])
   enum Variant:
@@ -14,17 +17,17 @@ object IllustrationStateFixture:
   given Finite[Variant] = new Finite[Variant]:
     def values = throw AssertionError("sum state catalog evaluated")
 
-  object Subject extends RecordMachine[Record, Boolean, Nothing]:
-    def init: Record = throw AssertionError("init evaluated")
-    def end(state: Record): Boolean = throw AssertionError("end evaluated")
+  object Subject extends Machine[Boolean, Nothing]:
+    var record = Record(Inner(UpTo[2](0), Nil), None, Map.empty)
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
-  object SumSubject extends RecordMachine[Variant, Boolean, Nothing]:
-    def init: Variant = throw AssertionError("init evaluated")
-    def end(state: Variant): Boolean = throw AssertionError("end evaluated")
+  object SumSubject extends Machine[Boolean, Nothing]:
+    var phase: Variant = Variant.idle
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
   final case class Held(box: Inbox[Boolean])
   final case class Mailbox(direct: Inbox[Boolean], nested: Option[Held])
@@ -45,92 +48,106 @@ object IllustrationStateFixture:
 
   final case class OpaqueRecord(value: Positive.Value)
 
-  object OpaqueOwner extends RecordMachine[OpaqueRecord, Boolean, Nothing]:
-    def init: OpaqueRecord = throw AssertionError("init evaluated")
-    def end(state: OpaqueRecord): Boolean = throw AssertionError("end evaluated")
+  object OpaqueOwner extends Machine[Boolean, Nothing]:
+    var record = OpaqueRecord(Positive(1))
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
-  class MailOwner(mapping: Int) extends RecordMachine[Mailbox, Boolean, Nothing]:
+  class MailOwner(mapping: Int) extends Machine[Boolean, Nothing]:
+    var mailbox = Mailbox(wire.empty, None)
     if mapping != 0 then
-      inbox(_.direct, wire)
-      inbox(_.nested.get.box, if mapping == 3 then wire else other)
-      if mapping == 2 then inbox(_.direct, wire)
-      if mapping == 4 then inbox(_.direct, other)
-    def init: Mailbox = throw AssertionError("init evaluated")
-    def end(state: Mailbox): Boolean = throw AssertionError("end evaluated")
+      inbox(mailbox.direct, wire)
+      inbox(mailbox.nested.get.box, if mapping == 3 then wire else other)
+      if mapping == 2 then inbox(mailbox.direct, wire)
+      if mapping == 4 then inbox(mailbox.direct, other)
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
   enum MailState:
     case idle
     case active(nested: Held)
 
-  object BranchOwner extends RecordMachine[MailState, Boolean, Nothing]:
-    inboxCase[MailState.active, Boolean](_.nested.box, wire)
-    def init: MailState = throw AssertionError("init evaluated")
-    def end(state: MailState): Boolean = throw AssertionError("end evaluated")
+  object BranchOwner extends Machine[Boolean, Nothing]:
+    var phase: MailState = MailState.idle
+    inbox(
+      phase match
+        case active: MailState.active => active.nested.box
+        case _                        => throw AssertionError("selector executed")
+      ,
+      wire
+    )
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
   enum Packet[+A]:
     case empty
     case full(value: A)
 
-  object PacketOwner extends RecordMachine[Packet[UpTo[2]], Boolean, Nothing]:
-    def init: Packet[UpTo[2]] = throw AssertionError("init evaluated")
-    def end(state: Packet[UpTo[2]]): Boolean = false
+  object PacketOwner extends Machine[Boolean, Nothing]:
+    var packet: Packet[UpTo[2]] = Packet.empty
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
-  object PacketMailOwner extends RecordMachine[Packet[Held], Boolean, Nothing]:
-    inboxCase[Packet.full[Held], Boolean](_.value.box, wire)
-    def init: Packet[Held] = throw AssertionError("init evaluated")
-    def end(state: Packet[Held]): Boolean = false
+  object PacketMailOwner extends Machine[Boolean, Nothing]:
+    var packet: Packet[Held] = Packet.empty
+    inbox(
+      packet match
+        case full: Packet.full[Held] => full.value.box
+        case _                       => throw AssertionError("selector executed")
+      ,
+      wire
+    )
+    override def end: Boolean = throw AssertionError("end evaluated")
 
-    object transitions extends Bindings()
+    object transitions extends Transitions
 
 class IllustrationStateSuite extends munit.FunSuite:
-  import IllustrationStateFixture.*
+  import IllustrationStateFixture.{*, given}
 
   private val context = "property sample illustration boundary at Example.scala:17:3"
   private def outside: UpTo[2] = 3.asInstanceOf[UpTo[2]] // scalafix:ok DisableSyntax.asInstanceOf
 
+  private def validate(
+      owner: MachineDeclaration[State, Boolean, Nothing],
+      updates: (String, Any)*
+  ): Unit =
+    val supplied = owner.init.copy.applyDynamicNamed("apply")(updates*)
+    StructuralValue.capture[State].validate(supplied, owner, context)
+
   test("structural state checks ignore whole and nested catalogs and impose no Int or list cap"):
     val value = Record(Inner(UpTo[2](2), List(Int.MinValue, Int.MaxValue)), None, Map.empty)
-    StructuralValue.capture[Record].validate(value, Subject, context)
-    StructuralValue.capture[Variant].validate(Variant.active(value.inner), SumSubject, context)
-    StructuralValue.capture[Variant].validate(Variant.idle, SumSubject, context)
+    validate(Subject, "record" -> value)
+    validate(SumSubject, "phase" -> Variant.active(value.inner))
+    validate(SumSubject, "phase" -> Variant.idle)
 
   test("known bounds are checked throughout records active branches and native containers"):
     val valid = Record(Inner(UpTo[2](0), Nil), None, Map.empty)
     val invalid = Vector(
       valid.copy(inner = Inner(outside, Nil)) -> "inner.count",
+      valid.copy(inner = Option.empty[Inner].orNull) -> "inner",
       valid.copy(optional = Some(outside)) -> "optional",
       valid.copy(entries = Map(7 -> Set(outside))) -> "entries"
     )
     invalid.foreach: (state, field) =>
-      val error = try
-        StructuralValue.capture[Record].validate(state, Subject, context)
-        fail(s"accepted malformed field $field")
-      catch case error: IllegalArgumentException => error
+      val error = intercept[IllegalArgumentException]:
+        validate(Subject, "record" -> state)
       assert(error.getMessage.contains(context), error.getMessage)
       assert(error.getMessage.contains(field), error.getMessage)
     val branch = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[Variant]
-        .validate(Variant.active(Inner(outside, Nil)), SumSubject, context)
+      validate(SumSubject, "phase" -> Variant.active(Inner(outside, Nil)))
     assert(branch.getMessage.contains("active"), branch.getMessage)
 
   test("public direct nested optional and branch Inbox coordinates admit exact receivers"):
     val owner = new MailOwner(1)
     val value = Mailbox(wire.empty.send(false).send(false), Some(Held(other.empty.send(true))))
-    StructuralValue.capture[Mailbox].validate(value, owner, context)
-    StructuralValue.capture[Mailbox].validate(value.copy(nested = None), owner, context)
-    StructuralValue
-      .capture[MailState]
-      .validate(MailState.active(Held(wire.empty)), BranchOwner, context)
-    StructuralValue.capture[MailState].validate(MailState.idle, BranchOwner, context)
+    validate(owner, "mailbox" -> value)
+    validate(owner, "mailbox" -> value.copy(nested = None))
+    validate(BranchOwner, "phase" -> MailState.active(Held(wire.empty)))
+    validate(BranchOwner, "phase" -> MailState.idle)
 
   test("Inbox admission rejects crossed empty receivers malformed bounds messages and order"):
     val owner = new MailOwner(1)
@@ -143,7 +160,7 @@ class IllustrationStateSuite extends munit.FunSuite:
     )
     cases.foreach: supplied =>
       val error = intercept[IllegalArgumentException]:
-        StructuralValue.capture[Mailbox].validate(Mailbox(supplied, None), owner, context)
+        validate(owner, "mailbox" -> Mailbox(supplied, None))
       assert(error.getMessage.contains(context), error.getMessage)
       assert(error.getMessage.contains("direct"), error.getMessage)
 
@@ -152,50 +169,61 @@ class IllustrationStateSuite extends munit.FunSuite:
   ):
     for mapping <- Vector(0, 2, 3, 4) do
       val error = intercept[IllegalArgumentException]:
-        StructuralValue
-          .capture[Mailbox]
-          .validate(Mailbox(wire.empty, None), new MailOwner(mapping), context)
+        validate(new MailOwner(mapping), "mailbox" -> Mailbox(wire.empty, None))
       assert(error.getMessage.contains("direct"), error.getMessage)
       assert(error.getMessage.contains(context), error.getMessage)
       if mapping != 0 then
         assert(error.getMessage.contains("IllustrationState.test.scala"), error.getMessage)
+    object SplitOwner extends Machine[Boolean, Nothing]:
+      var first = wire.empty
+      var second = wire.empty
+      inbox(first, wire)
+      inbox(second, wire)
+      object transitions extends Transitions
+    val duplicate = intercept[IllegalArgumentException]:
+      validate(SplitOwner)
+    assert(
+      duplicate.getMessage.contains("duplicate Inbox storage coordinate"),
+      duplicate.getMessage
+    )
 
-  test("actual Built and Derived lineage retains Inbox declarations without reading init"):
+  test(
+    "actual Built and Derived lineage retains Inbox declarations without evaluating end or catalogs"
+  ):
     val owner = new MailOwner(1)
     val built = owner.unmonitored
     object DerivedOwner extends Derived(built)
     val supplied = Mailbox(wire.empty, Some(Held(other.empty)))
-    StructuralValue.capture[Mailbox].validate(supplied, built, context)
-    StructuralValue.capture[Mailbox].validate(supplied, DerivedOwner, context)
+    validate(built, "mailbox" -> supplied)
+    validate(DerivedOwner, "mailbox" -> supplied)
 
   test("same state type does not borrow another machine's Inbox declarations"):
     val declared = new MailOwner(1)
-    StructuralValue.capture[Mailbox].validate(Mailbox(wire.empty, None), declared, context)
+    validate(declared, "mailbox" -> Mailbox(wire.empty, None))
     val foreign = new MailOwner(0)
     val _ = intercept[IllegalArgumentException]:
-      StructuralValue.capture[Mailbox].validate(Mailbox(wire.empty, None), foreign, context)
+      validate(foreign, "mailbox" -> Mailbox(wire.empty, None))
     foreign.retainNativeInbox(declared.nativeInboxes.head)
     val error = intercept[IllegalArgumentException]:
-      StructuralValue.capture[Mailbox].validate(Mailbox(wire.empty, None), foreign, context)
+      validate(foreign, "mailbox" -> Mailbox(wire.empty, None))
     assert(error.getMessage.contains("foreign Inbox association owner"), error.getMessage)
 
   test("opaque state validity requires selected leaf evidence and enforces its membership"):
     val unsupported = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[OpaqueRecord]
-        .validate(OpaqueRecord(Positive(1)), OpaqueOwner, context)
+      validate(OpaqueOwner, "record" -> OpaqueRecord(Positive(1)))
     assert(unsupported.getMessage.contains("value"), unsupported.getMessage)
     locally:
       given Finite[Positive.Value] = Finite.of(Positive(1))
-      val _ = () => summon[Finite[Positive.Value]]
-      StructuralValue
-        .capture[OpaqueRecord]
-        .validate(OpaqueRecord(Positive(1)), OpaqueOwner, context)
+      class SelectedOwner extends Machine[Boolean, Nothing]:
+        var record = OpaqueRecord(Positive(1))
+        override def end: Boolean = throw AssertionError("end evaluated")
+        object transitions extends Transitions
+      val owner = new SelectedOwner
+      validate(owner, "record" -> OpaqueRecord(Positive(1)))
       val _ = intercept[IllegalArgumentException]:
-        StructuralValue
-          .capture[OpaqueRecord]
-          .validate(OpaqueRecord(Positive(2)), OpaqueOwner, context)
+        validate(owner, "record" -> OpaqueRecord(Positive(2)))
     locally:
+      @scala.annotation.unused
       given scala.deriving.Mirror.SumOf[Positive.Value] = new scala.deriving.Mirror.Sum:
         @scala.annotation.unused
         type MirroredType = Positive.Value
@@ -205,162 +233,131 @@ class IllustrationStateSuite extends munit.FunSuite:
         type MirroredElemTypes = EmptyTuple
         type MirroredElemLabels = EmptyTuple
         def ordinal(value: Positive.Value): Int = 0
-      val _ = summon[scala.deriving.Mirror.SumOf[Positive.Value]]
+      class ForgedOwner extends Machine[Boolean, Nothing]:
+        var record = OpaqueRecord(Positive(1))
+        object transitions extends Transitions
       val error = intercept[IllegalArgumentException]:
-        StructuralValue
-          .capture[OpaqueRecord]
-          .validate(OpaqueRecord(Positive(1)), OpaqueOwner, context)
+        validate(new ForgedOwner, "record" -> OpaqueRecord(Positive(1)))
       assert(error.getMessage.contains("unsupported"), error.getMessage)
 
   test("absent optional Inbox needs no inferred association and present value requires one"):
     final case class OptionalMail(nested: Option[Held])
-    object Owner extends RecordMachine[OptionalMail, Boolean, Nothing]:
-      def init: OptionalMail = throw AssertionError("init evaluated")
-      def end(state: OptionalMail): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Bindings()
-    StructuralValue.capture[OptionalMail].validate(OptionalMail(None), Owner, context)
+    object Owner extends Machine[Boolean, Nothing]:
+      var mailbox = OptionalMail(None)
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object transitions extends Transitions
+    validate(Owner, "mailbox" -> OptionalMail(None))
     intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[OptionalMail]
-        .validate(OptionalMail(Some(Held(wire.empty))), Owner, context)
+      validate(Owner, "mailbox" -> OptionalMail(Some(Held(wire.empty))))
 
   test("Inbox messages use actual selected channel catalog independently of ambient witness"):
     val selected =
       new Channel[Boolean]("selected", 2, Order.fifo, Loss.reliable, 0)(using Finite.of(false))
-    final case class SelectedMail(box: Inbox[Boolean])
-    object Owner extends RecordMachine[SelectedMail, Boolean, Nothing]:
-      inbox(_.box, selected)
-      def init: SelectedMail = throw AssertionError("init evaluated")
-      def end(state: SelectedMail): Boolean = throw AssertionError("end evaluated")
-      object transitions extends Bindings()
-    StructuralValue
-      .capture[SelectedMail]
-      .validate(SelectedMail(selected.empty.send(false)), Owner, context)
+    object Owner extends Machine[Boolean, Nothing]:
+      var box = selected.empty
+      inbox(box, selected)
+      override def end: Boolean = throw AssertionError("end evaluated")
+      object transitions extends Transitions
+    validate(Owner, "box" -> selected.empty.send(false))
     val error = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[SelectedMail]
-        .validate(SelectedMail(selected.empty.send(true)), Owner, context)
+      validate(Owner, "box" -> selected.empty.send(true))
     assert(error.getMessage.contains("selected Channel domain"), error.getMessage)
     val bounded = new Channel[UpTo[2]]("bounded", 1, Order.fifo, Loss.reliable, 0)(using
       Finite.of[UpTo[2]](UpTo[2](0), outside)
     )
-    final case class BoundedMail(box: Inbox[UpTo[2]])
-    object BoundedOwner extends RecordMachine[BoundedMail, Boolean, Nothing]:
-      inbox(_.box, bounded)
-      def init: BoundedMail = throw AssertionError("init evaluated")
-      def end(state: BoundedMail): Boolean = false
-      object transitions extends Bindings()
-    StructuralValue
-      .capture[BoundedMail]
-      .validate(
-        BoundedMail(bounded.empty.send(UpTo[2](0))),
-        BoundedOwner,
-        context
-      )
+    object BoundedOwner extends Machine[Boolean, Nothing]:
+      var box = bounded.empty
+      inbox(box, bounded)
+      object transitions extends Transitions
+    validate(BoundedOwner, "box" -> bounded.empty.send(UpTo[2](0)))
     val malformed = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[BoundedMail]
-        .validate(BoundedMail(bounded.empty.send(outside)), BoundedOwner, context)
+      validate(BoundedOwner, "box" -> bounded.empty.send(outside))
     assert(malformed.getMessage.contains("UpTo bounds"), malformed.getMessage)
     val reversed =
       new Channel[Int]("reversed", 2, Order.unordered, Loss.reliable, 0)(using Finite.of(2, 0))
-    final case class UnorderedMail(box: Inbox[Int])
-    object UnorderedOwner extends RecordMachine[UnorderedMail, Boolean, Nothing]:
-      inbox(_.box, reversed)
-      def init: UnorderedMail = throw AssertionError("init evaluated")
-      def end(state: UnorderedMail): Boolean = false
-      object transitions extends Bindings()
+    object UnorderedOwner extends Machine[Boolean, Nothing]:
+      var box = reversed.empty
+      inbox(box, reversed)
+      object transitions extends Transitions
     for values <- List(List(0, 2), List(0, 0)) do
-      StructuralValue
-        .capture[UnorderedMail]
-        .validate(
-          UnorderedMail(Inbox(reversed, values.map(Delivery(_, 0)))),
-          UnorderedOwner,
-          context
-        )
+      validate(UnorderedOwner, "box" -> Inbox(reversed, values.map(Delivery(_, 0))))
     val unordered = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[UnorderedMail]
-        .validate(
-          UnorderedMail(Inbox(reversed, List(Delivery(2, 0), Delivery(0, 0)))),
-          UnorderedOwner,
-          context
-        )
+      validate(UnorderedOwner, "box" -> Inbox(reversed, List(Delivery(2, 0), Delivery(0, 0))))
     assert(unordered.getMessage.contains("canonical structural order"), unordered.getMessage)
 
   test(
     "nested sum Inbox declarations accept an exact rooted typed branch without selector execution"
   ):
     final case class Envelope(phase: MailState)
-    object Owner extends RecordMachine[Envelope, Boolean, Nothing]:
+    object Owner extends Machine[Boolean, Nothing]:
+      var envelope = Envelope(MailState.idle)
       inbox(
-        (s: Envelope) =>
-          s.phase match
-            case active: MailState.active => active.nested.box
-            case _                        => throw AssertionError("selector executed")
+        envelope.phase match
+          case active: MailState.active => active.nested.box
+          case _                        => throw AssertionError("selector executed")
         ,
         wire
       )
-      def init: Envelope = throw AssertionError("init evaluated")
-      def end(state: Envelope): Boolean = false
-      object transitions extends Bindings()
-    StructuralValue
-      .capture[Envelope]
-      .validate(Envelope(MailState.active(Held(wire.empty))), Owner, context)
-    StructuralValue.capture[Envelope].validate(Envelope(MailState.idle), Owner, context)
+      object transitions extends Transitions
+    validate(Owner, "envelope" -> Envelope(MailState.active(Held(wire.empty))))
+    validate(Owner, "envelope" -> Envelope(MailState.idle))
     val crossed = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[Envelope]
-        .validate(Envelope(MailState.active(Held(other.empty))), Owner, context)
+      validate(Owner, "envelope" -> Envelope(MailState.active(Held(other.empty))))
     assert(crossed.getMessage.contains("phase.<active>.nested.box"), crossed.getMessage)
 
   test("Inbox selectors refuse computed unrooted and ambiguous field coordinates"):
-    assert(compileErrors("""
+    val computed = compileErrors("""
       import framework.dsl.*
+      import framework.dsl.Finite.given
       import framework.dsl.IllustrationStateFixture.*
-      object Owner extends RecordMachine[Mailbox, Boolean, Nothing]:
-        inbox(s => if s.direct.isEmpty then s.direct else s.nested.get.box, wire)
-        def init: Mailbox = throw AssertionError("init evaluated")
-        def end(state: Mailbox): Boolean = false
-        object transitions extends Bindings()
-    """).nonEmpty)
-    assert(compileErrors("""
+      object Owner extends Machine[Boolean, Nothing]:
+        var mailbox = Mailbox(wire.empty, None)
+        inbox(if mailbox.direct.isEmpty then mailbox.direct else mailbox.nested.get.box, wire)
+        object transitions extends Transitions
+    """)
+    assert(computed.contains("Inbox association"), computed)
+    val unrooted = compileErrors("""
       import framework.dsl.*
+      import framework.dsl.Finite.given
       import framework.dsl.IllustrationStateFixture.*
-      object Owner extends RecordMachine[Mailbox, Boolean, Nothing]:
-        inbox(_ => wire.empty, wire)
-        def init: Mailbox = throw AssertionError("init evaluated")
-        def end(state: Mailbox): Boolean = false
-        object transitions extends Bindings()
-    """).nonEmpty)
+      object Owner extends Machine[Boolean, Nothing]:
+        var mailbox = Mailbox(wire.empty, None)
+        inbox(wire.empty, wire)
+        object transitions extends Transitions
+    """)
+    assert(unrooted.contains("Inbox association"), unrooted)
+    val foreign = compileErrors("""
+      import framework.dsl.*
+      import framework.dsl.Finite.given
+      import framework.dsl.IllustrationStateFixture.{*, given}
+      object Foreign extends Machine[Boolean, Nothing]:
+        var box = wire.empty
+        object transitions extends Transitions
+      object Owner extends Machine[Boolean, Nothing]:
+        var box = wire.empty
+        inbox(Foreign.box, wire)
+        object transitions extends Transitions
+    """)
+    assert(foreign.contains("this Machine's owning state var"), foreign)
 
   test("generic sum cases retain concrete nested bounds without consulting their catalogs"):
-    StructuralValue.capture[Packet[UpTo[2]]].validate(Packet.full(UpTo[2](2)), PacketOwner, context)
-    StructuralValue.capture[Packet[UpTo[2]]].validate(Packet.empty, PacketOwner, context)
+    validate(PacketOwner, "packet" -> Packet.full(UpTo[2](2)))
+    validate(PacketOwner, "packet" -> Packet.empty)
     val error = intercept[IllegalArgumentException]:
-      StructuralValue.capture[Packet[UpTo[2]]].validate(Packet.full(outside), PacketOwner, context)
+      validate(PacketOwner, "packet" -> Packet.full(outside))
     assert(error.getMessage.contains("<full>.value"), error.getMessage)
     final case class Envelope(packet: Option[Packet[UpTo[2]]])
-    object Owner extends RecordMachine[Envelope, Boolean, Nothing]:
-      def init: Envelope = throw AssertionError("init evaluated")
-      def end(state: Envelope): Boolean = false
-      object transitions extends Bindings()
-    StructuralValue
-      .capture[Envelope]
-      .validate(Envelope(Some(Packet.full(UpTo[2](2)))), Owner, context)
+    object Owner extends Machine[Boolean, Nothing]:
+      var envelope = Envelope(None)
+      object transitions extends Transitions
+    validate(Owner, "envelope" -> Envelope(Some(Packet.full(UpTo[2](2)))))
     val nested = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[Envelope]
-        .validate(Envelope(Some(Packet.full(outside))), Owner, context)
+      validate(Owner, "envelope" -> Envelope(Some(Packet.full(outside))))
     assert(nested.getMessage.contains("UpTo bounds"), nested.getMessage)
 
   test("generic Inbox branches retain their exact concrete field and Channel association"):
-    StructuralValue
-      .capture[Packet[Held]]
-      .validate(Packet.full(Held(wire.empty)), PacketMailOwner, context)
-    StructuralValue.capture[Packet[Held]].validate(Packet.empty, PacketMailOwner, context)
+    validate(PacketMailOwner, "packet" -> Packet.full(Held(wire.empty)))
+    validate(PacketMailOwner, "packet" -> Packet.empty)
     val error = intercept[IllegalArgumentException]:
-      StructuralValue
-        .capture[Packet[Held]]
-        .validate(Packet.full(Held(other.empty)), PacketMailOwner, context)
+      validate(PacketMailOwner, "packet" -> Packet.full(Held(other.empty)))
     assert(error.getMessage.contains("<full>.value.box"), error.getMessage)

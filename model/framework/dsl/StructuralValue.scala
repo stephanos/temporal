@@ -5,10 +5,10 @@ import scala.quoted.*
 
 final private[framework] class StructuralValue[T](
     root: String,
-    slots: RecordMachine[?, ?, ?] => List[StructuralValue.Slot],
-    check: StructuralValue.Check[T]
+    private[framework] val slots: MachineDeclaration[?, ?, ?] => List[StructuralValue.Slot],
+    private[framework] val check: StructuralValue.Check[T]
 ):
-  def validate(value: T, owner: RecordMachine[?, ?, ?], context: String): Unit =
+  def validate(value: T, owner: MachineDeclaration[?, ?, ?], context: String): Unit =
     val inspection = new StructuralValue.Inspection(
       owner,
       root,
@@ -28,8 +28,7 @@ private[framework] object StructuralValue:
   def make[T](root: String, slots: List[Slot], check: Check[T]): StructuralValue[T] =
     new StructuralValue(root, _ => slots, check)
 
-  // The structure of a Machine's State, read off its vars where it is validated: each var's value
-  // is present, a bounded var's lies in its bound, and an Inbox var holds its channel's messages.
+  // Retained per-var structures share one inspection so Inbox ownership is checked across vars.
   val state: StructuralValue[State] = new StructuralValue(
     "framework.dsl.State",
     owner =>
@@ -38,32 +37,27 @@ private[framework] object StructuralValue:
         .schema
         .vars
         .toList
-        .flatMap(v => v.inbox.map(message => Slot(List(v.name), message))),
+        .flatMap(v => v.structure.slots(owner).map(slot => slot.copy(path = v.name :: slot.path))),
     (state, inspection, path) =>
       val vars = Vars.of(inspection.owner)
       vars.schema.vars
         .lazyZip(vars.owned(state).values)
         .foreach: (v, value) =>
           val at = path :+ v.name
-          inspection.present(value, at)
-          v.bound.foreach(high => inspection.bounded(value, high, at))
-          value match
-            case inbox: Inbox[?] if v.inbox.nonEmpty =>
-              inspection.inbox(inbox, at, (message, check, place) => check.present(message, place))
-            case _ => ()
+          v.structure.check(value, inspection, at)
   )
 
   final class Inspection(
-      val owner: RecordMachine[?, ?, ?],
+      val owner: MachineDeclaration[?, ?, ?],
       root: String,
       slots: List[Slot],
       context: String
   ):
     private val lineage =
       def collect(
-          current: RecordMachine[?, ?, ?],
-          seen: List[RecordMachine[?, ?, ?]]
-      ): List[RecordMachine[?, ?, ?]] =
+          current: MachineDeclaration[?, ?, ?],
+          seen: List[MachineDeclaration[?, ?, ?]]
+      ): List[MachineDeclaration[?, ?, ?]] =
         require(!seen.exists(_.eq(current)), s"$context: cyclic machine Inbox lineage")
         current :: current.derivationParent.toList.flatMap(collect(_, current :: seen))
       if slots.isEmpty then Nil else collect(owner, Nil)
@@ -165,7 +159,9 @@ private[framework] object StructuralValue:
           .forall: (member, child) =>
             if child.isTerm then member =:= child.termRef else member.typeSymbol.equals(child)
 
-  private def captured[T: Type](selectedDomain: Boolean)(using Quotes): Expr[StructuralValue[T]] =
+  private[framework] def captured[T: Type](selectedDomain: Boolean)(using
+      Quotes
+  ): Expr[StructuralValue[T]] =
     import quotes.reflect.*
     val slots = scala.collection.mutable.ArrayBuffer.empty[Expr[Slot]]
 

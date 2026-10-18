@@ -18,7 +18,12 @@ final private[framework] class CompositionRuntime[F](composition: Composition[F]
       None,
       None,
       _.isInstanceOf[State],
-      summon[Data[State]].asInstanceOf[Data[Any]]
+      summon[Data[State]].asInstanceOf[Data[Any]],
+      StructuralValue.make[Any](
+        "framework.dsl.State",
+        Nil,
+        (value, inspection, path) => inspection.present(value, path)
+      )
     ))
   val vars = new Vars(composition, schema, scopes)
   private val memberEffects = members.map((_, _, model) =>

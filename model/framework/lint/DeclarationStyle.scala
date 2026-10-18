@@ -11,13 +11,13 @@ final private[lint] class ModelDeclarations[I <: Index](val index: I):
   import index.given
 
   private val machine = Symbol.requiredClass("framework.dsl.Machine")
-  private val record = Symbol.requiredClass("framework.dsl.RecordMachine")
+  private val declaration = Symbol.requiredClass("framework.dsl.MachineDeclaration")
   private val state = Symbol.requiredClass("framework.dsl.State")
   private val facet = Symbol.requiredClass("framework.dsl.Facet")
 
   def native(owner: Symbol): Boolean =
     !owner.isNoSymbol && owner.isClassDef && (
-      owner.typeRef.derivesFrom(machine) || (owner.typeRef.baseType(record) match
+      owner.typeRef.derivesFrom(machine) || (owner.typeRef.baseType(declaration) match
         case AppliedType(_, first :: _) => first.dealias.typeSymbol == state
         case _                          => false)
     )

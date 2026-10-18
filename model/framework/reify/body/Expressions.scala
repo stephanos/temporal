@@ -584,85 +584,6 @@ private[framework] trait Expressions:
       )
     s"${field}_${valueKey(literalValue(resolve(fact)))}"
 
-  // A call of a field accessor, `phase(using v)` in a block: a read of that field of the state the
-  // block's view stands for. An accessor has one shape,
-  // `def phase(using v: View[State]): Phase = v.get(_.phase)`, and any other is refused, so it reads
-  // the field the IR records.
-  def accessorRead(fn: Symbol, args: List[Term], at: Tree): ir.Expr =
-    val view = args match
-      case List(v) => v
-      case _       => fail(at, s"${fn.name} reads the state of the block it is called in")
-    getterField(fn).fold(
-      fail(
-        at,
-        s"${fn.name}, declared at ${declaredAt(fn)}, takes the state of a " +
-          "block and is no field accessor: an accessor reads one field, " +
-          "`def phase(using v: View[State]): Phase = v.get(_.phase)`"
-      )
-    )(f => expr(at)(E.Field(ir.FieldAccess(Some(lift(view)), f))))
-
-  def declaredAt(fn: Symbol): String = defs.get(fn).fold(fn.fullName)(where)
-
-  // The field a getter of the fixed shape reads, `def phase(using v: View[State]): Phase =
-  // v.get(_.phase)`, or None for a def of any other shape.
-  def getterField(fn: Symbol): Option[String] = defs.get(fn) match
-    case Some(DefDef(_, List(TermParamClause(List(v))), _, Some(rhs)))
-        if v.symbol.flags.is(Flags.Given) && isNamed(v.tpt.tpe, "framework.dsl.View") =>
-      rhs match
-        case Apply(TypeApply(Select(r: Ident, "get"), _), List(selector)) if r.symbol == v.symbol =>
-          lambda(selector).collect { case (List(p), body) => fieldPath(p, body) }.flatten match
-            case Some(List(field)) => Some(field)
-            case _                 => None
-        case _ => None
-    case _ => None
-
-  // The field a setter of the fixed shape replaces with its parameter,
-  // `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`, or None
-  // for a def of any other shape.
-  def setterField(fn: Symbol): Option[String] = setterShape(fn).map(_._1)
-
-  // The field a setter of a fixed shape replaces with its parameter, and whether it is the shape of a
-  // field whose values declare their status, which also hands the draft the value,
-  // `def phase_=(p: Phase)(using d: Draft[State, ?, Fact]): Unit = d.set(p)(_.copy(phase = p))`.
-  // None for a def of any other shape.
-  def setterShape(fn: Symbol): Option[(String, Boolean)] = defs.get(fn) match
-    case Some(DefDef(_, List(TermParamClause(List(p)), TermParamClause(List(d))), _, Some(rhs)))
-        if d.symbol.flags.is(Flags.Given) && isNamed(d.tpt.tpe, "framework.dsl.Draft") =>
-      val (update, recorded) = rhs match
-        case Apply(Select(r: Ident, "set"), List(update)) if r.symbol == d.symbol =>
-          (Some(update), false)
-        case Apply(Apply(Select(r: Ident, "set"), List(v: Ident)), List(update))
-            if r.symbol == d.symbol && v.symbol == p.symbol =>
-          (Some(update), true)
-        case _ => (None, false)
-      update.flatMap { update =>
-        lambda(update).collect { case (List(x), body) => (x, arguments(body)) }.flatMap {
-          case (x, Apply(Select(base: Ident, "copy"), args)) if base.symbol == x.symbol =>
-            val fields = fieldTypes(base.tpe.widen.typeSymbol).map(_._1)
-            val replaced = args.zipWithIndex.flatMap {
-              case (Select(_, g), _) if g.startsWith("copy$default$")               => None
-              case (TypeApply(Select(_, g), _), _) if g.startsWith("copy$default$") => None
-              case (NamedArg(name, value), _)                                       =>
-                Some(name -> value)
-              case (value, i) => Some(fields(i) -> value)
-            }
-            replaced match
-              case List((field, v: Ident)) if v.symbol == p.symbol =>
-                Some(field -> recorded)
-              case _ => None
-          case _ => None
-        }
-      }
-    case _ => None
-
-  // Whether a def takes the state of a block, a `View` (an `effect`'s draft is one too): an accessor.
-  def accessor(fn: Symbol): Boolean = defs.get(fn) match
-    case Some(d: DefDef) =>
-      d.termParamss.flatMap(_.params).exists(_.tpt.tpe.widen.dealias.derivesFrom(viewClass))
-    case _ => false
-
-  private lazy val viewClass = Symbol.requiredClass("framework.dsl.View")
-
   private def defCallee(sym: Symbol, at: Tree): String =
     storedFunction(sym, at) match
       case Some(name) => return name
@@ -983,8 +904,6 @@ private[framework] trait Expressions:
           ir.Construct(`type` = irTypeName(cls), args = lifted)
       expr(t)(E.Construct(c))
 
-    // A field read in a block, by its accessor.
-    case Apply(fn, args) if accessor(fn.symbol) => accessorRead(fn.symbol, args, t)
     // A call of another function of the lifted sources, or of a function-valued parameter bound to
     // one.
     case Apply(Select(f: Ref, "apply"), args) if boundValues.contains(f.symbol) =>

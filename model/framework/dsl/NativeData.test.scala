@@ -18,6 +18,7 @@ object NativeDataFixture:
 
 class NativeDataTest extends munit.FunSuite:
   import NativeDataFixture.*
+  given Ok[Boolean] = Ok(true)
 
   private def ordered[A](values: List[A])(using data: Data[A]): Unit =
     for (left, i) <- values.zipWithIndex; (right, j) <- values.zipWithIndex do
@@ -48,15 +49,16 @@ class NativeDataTest extends munit.FunSuite:
       def values = throw AssertionError("Inbox construction enumerated messages")
     val wire = channel[Flag](2, Order.unordered, Loss.reliable)
     final case class Held(inbox: Inbox[Flag], received: List[Flag])
-    object Native extends RecordMachine[Held, Boolean, Nothing]:
-      val init = Held(wire.empty, Nil)
-      def end(s: Held) = s.inbox.isEmpty
-      object transitions extends Rules:
+    object Native extends Machine[Boolean, Nothing]:
+      var held = Held(wire.empty, Nil)
+      override def end: Boolean = held.inbox.isEmpty
+      object transitions extends Transitions:
         disabled(wire.deliver)
     assertEquals(Native.bindings.size, 1)
-    val sent = Native.init.copy(inbox = wire.empty.send(Flag.second).send(Flag.first))
-    assertEquals(sent.inbox.deliveries.map(_.message), List(Flag.first, Flag.second))
-    assert(Data[Held].equivalent(sent, sent.copy()))
+    val held = Held(wire.empty.send(Flag.second).send(Flag.first), Nil)
+    val sent = Native.init.copy(held = held)
+    assertEquals(held.inbox.deliveries.map(_.message), List(Flag.first, Flag.second))
+    assert(Data[State].equivalent(sent, sent.copy(held = held.copy())))
   }
 
   test("custom finite action order and unordered Inbox type order are independent") {
@@ -66,10 +68,10 @@ class NativeDataTest extends munit.FunSuite:
     assert(Data[Int].compare(0, 2) < 0)
     val data: Data[Int] = Finite[Int]
     assert(data.compare(0, 2) < 0)
-    object NumericOutcome extends RecordMachine[Collections, Int, Nothing]:
-      val init = Collections(Set.empty, Nil, Map.empty)
-      def end(s: Collections) = true
-      object transitions extends Rules:
+    object NumericOutcome extends Machine[Int, Nothing]:
+      var collections = Collections(Set.empty, Nil, Map.empty)
+      override def end: Boolean = true
+      object transitions extends Transitions(using summon, Ok(0), summon):
         disabled(caller.act)
     assertEquals(NumericOutcome.fo.values.toList, List(2, 0))
     assertEquals(NumericOutcome.ff.values.toList, Nil)
@@ -100,31 +102,26 @@ class NativeDataTest extends munit.FunSuite:
   }
 
   test("collection machine state uses native partial Map operations") {
-    object Native extends RecordMachine[Collections, Boolean, Nothing]:
-      val init = Collections(Set.empty, Nil, Map.empty)
-      def end(s: Collections) = s.pending.isEmpty
-      object transitions extends Rules:
+    object Native extends Machine[Boolean, Nothing]:
+      var seen = Set.empty[Int]
+      var pending = List.empty[Int]
+      var counts = Map.empty[Int, Int]
+      override def end: Boolean = pending.isEmpty
+      object effects:
+        def append(): Unit =
+          seen = seen.incl(2)
+          pending = pending :+ 2
+          counts = counts.updated(2, counts.getOrElse(2, 0) + 1)
+      object transitions extends Transitions:
         on(caller.act):
-          always ~> ((s: Collections) =>
-            List(
-              Step(
-                true,
-                s.copy(
-                  seen = s.seen.incl(2),
-                  pending = s.pending :+ 2,
-                  counts = s.counts.updated(2, s.counts.getOrElse(2, 0) + 1)
-                )
-              )
-            )
-          )
+          effects.append()
     val initial = Native.init
-    assertEquals(initial.counts.get(2), None)
-    assertEquals(initial.counts.getOrElse(2, 7), 7)
-    intercept[NoSuchElementException](initial.counts(2)): Unit
-    val run =
-      effectOf[Collections, Boolean, Nothing](caller.act.decl, Native.bindings.head.function)
+    assertEquals(Native.counts.get(2), None)
+    assertEquals(Native.counts.getOrElse(2, 7), 7)
+    intercept[NoSuchElementException](Native.counts(2)): Unit
+    val run = effectOf[State, Boolean, Nothing](caller.act.decl, Native.bindings.head.function)
     val next = run(initial, Nil).head.state
-    assertEquals(next, Collections(Set(2), List(2), Map(2 -> 1)))
+    assertEquals(next, initial.copy(seen = Set(2), pending = List(2), counts = Map(2 -> 1)))
     assertEquals(stuck(initial).states, Seq(initial))
   }
 
@@ -133,35 +130,31 @@ class NativeDataTest extends munit.FunSuite:
     given Finite[Poison] = new Finite[Poison]:
       def values = throw AssertionError("construction enumerated whole-state catalog")
     def guard(s: Poison): Boolean = throw AssertionError("construction invoked guard")
-    def effect(s: Poison): List[Step[Poison, Boolean, Nothing]] =
-      throw AssertionError("construction invoked effect")
-    object Native extends RecordMachine[Poison, Boolean, Nothing]:
-      val init = Poison(Flag.first, false)
-      def end(s: Poison) = false
-      object transitions extends Rules:
+    object Native extends Machine[Boolean, Nothing]:
+      var poison = Poison(Flag.first, false)
+      override def end: Boolean = false
+      object effects:
+        def fail(): Unit = throw AssertionError("construction invoked effect")
+      object transitions extends Transitions:
         on(caller.act):
-          where(guard) ~> effect
-          where(guard) ~> effect
+          if guard(poison) then effects.fail()
+        on(caller.act):
+          if guard(poison) then effects.fail()
     assertEquals(Native.bindings.size, 1)
-    assert(Native.fs eq Finite[Poison])
-    val derived = Native.rebind(
-      on(caller.act):
-        where(guard) ~> effect
-        where(guard) ~> effect
-    )
+    val derived = Native.rebind(on(caller.act):
+      if guard(Native.poison) then Native.effects.fail()
+      else if guard(Native.poison) then Native.effects.fail())
     assertEquals(derived.bindings.size, 1)
     val retained = derived.table.collect { case (_, Bound.Ruled(rules)) => rules }.flatten
-    assertEquals(retained.map(_.index), Vector(1, 2))
+    assertEquals(retained.map(_.index), Vector(1))
     assert(retained.forall(_.decl eq caller.act.decl))
-    val restricted = Native.restrict(caller.act)
-    val extended = Native.extend(
-      on(caller.extra):
-        where(guard) ~> effect
-    )
+    val forwarded = Native.unmonitored
+    val extended = Native.extend(on(caller.extra):
+      if guard(Native.poison) then Native.effects.fail())
     val refined =
       Native.refining(Native)(_ => throw AssertionError("construction invoked refinement"))
     object Copied extends Derived(derived)
-    for machine <- List(derived, restricted, extended, refined, Copied) do
+    for machine <- List(derived, forwarded, extended, refined, Copied) do
       assert(machine.fs eq Native.fs)
       assert(machine.fo eq Native.fo)
       assert(machine.ff eq Native.ff)
@@ -174,7 +167,7 @@ class NativeDataTest extends munit.FunSuite:
     object Right extends Machine[Boolean, Nothing]:
       var ready = false
       object transitions extends Transitions
-    object CopiedLeft extends Derived(Left.restrict())
+    object CopiedLeft extends Derived(Left.unmonitored)
     object Product extends Composition[Nothing]:
       val left = Left
       val right = Right
@@ -245,10 +238,10 @@ class NativeDataTest extends munit.FunSuite:
     assert(compileErrors("""
       import framework.dsl.*
       given Finite[String] = Finite.of("text")
-      object Bad extends RecordMachine[String, Boolean, Nothing]:
-        val init = "text"
-        def end(s: String) = true
-        object transitions extends Rules
+      given Ok[Boolean] = Ok(true)
+      object Bad extends Machine[Boolean, Nothing]:
+        var text = "text"
+        object transitions extends Transitions
     """).nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*
@@ -266,18 +259,17 @@ class NativeDataTest extends munit.FunSuite:
   test("outcomes facts and action inputs still require finite catalogs") {
     assert(compileErrors("""
       import framework.dsl.*
-      object Bad extends RecordMachine[Int, Int, Nothing]:
-        val init = 0
-        def end(s: Int) = true
-        object transitions extends Rules
+      object Bad extends Machine[Int, Nothing]:
+        var count = 0
+        object transitions extends Transitions(using summon, Ok(0), summon)
     """).nonEmpty)
     assert(compileErrors("""summon[framework.dsl.Finite[List[Int]]]""").nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*
-      object Bad extends RecordMachine[Int, Boolean, Int]:
-        val init = 0
-        def end(s: Int) = true
-        object transitions extends Rules
+      given Ok[Boolean] = Ok(true)
+      object Bad extends Machine[Boolean, Int]:
+        var count = 0
+        object transitions extends Transitions
     """).nonEmpty)
     assert(compileErrors("""
       import framework.dsl.*

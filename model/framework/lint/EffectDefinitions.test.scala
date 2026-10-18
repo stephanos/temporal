@@ -49,7 +49,7 @@ class EffectDefinitionsSuite extends munit.FunSuite with RetainedScratch:
     val base = if derived then
       "object Base extends Machine[Boolean, Nothing]:\n  var flag = false\n  object transitions extends Transitions\n"
     else ""
-    val owner = if derived then "object Subject extends Derived(Base.restrict()):"
+    val owner = if derived then "object Subject extends Derived(Base.unmonitored):"
     else if facet then "trait Subject extends Facet[Boolean, Nothing]:"
     else "object Subject extends Machine[Boolean, Nothing]:"
     val section =
@@ -63,7 +63,7 @@ class EffectDefinitionsSuite extends munit.FunSuite with RetainedScratch:
           .mkString("\n") +
         (if !facet && !derived then "\n  object transitions extends Transitions"
          else
-           "") + inside + "\n  def helper: Int =\n    1\nobject Legacy extends RecordMachine[Boolean, Boolean, Nothing]:\n  def init =\n    false\n  def end(state: Boolean) =\n    state\n  object transitions extends Rules\n  object effects:\n    def value: Int =\n      1\nobject Unrelated:\n  object effects:\n    def value: Int =\n      1\n" + extra
+           "") + inside + "\n  def helper: Int =\n    1\nobject Unrelated:\n  object effects:\n    def value: Int =\n      1\n" + extra
     ): Unit
     Files.writeString(
       sources.resolve("project.scala"),

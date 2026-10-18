@@ -42,22 +42,6 @@ class SugarNativeTest extends munit.FunSuite:
       ""
     )
 
-  test("never from retains its named argument and native transition meaning"):
-    object Checked extends RecordMachine[Boolean, Boolean, Nothing]:
-      val init = false
-      def end(s: Boolean) = false
-      object transitions extends Bindings[Boolean, Boolean, Nothing]()
-    val property = Checked.property.never(_.state).from(before = identity)
-    val holds = property.decl.holds2.get.asInstanceOf[
-      (Boolean, Step[Boolean, Boolean, Nothing]) => Boolean
-    ] // scalafix:ok DisableSyntax.asInstanceOf
-    assertEquals(holds(false, Step(true, true)), true)
-    assertEquals(holds(true, Step(true, true)), false)
-    assertEquals(holds(true, Step(true, false)), true)
-    val press = action(Actor("fixture"))
-    val refused = intercept[IllegalArgumentException](Checked.property.when(press).stays(identity))
-    assert(refused.getMessage.contains("takes no when"), refused.getMessage)
-
   test("tagged member facts retain member identity and fact payloads"):
     enum Tagged:
       case left(value: Fact)
@@ -71,7 +55,7 @@ class SugarNativeTest extends munit.FunSuite:
     assert(!repeated.records(Tagged.right(Fact.repeated(2))))
     assert(compileErrors("after.records(Fact.changed)").nonEmpty)
 
-  test("implication keeps its right side lazy and enter keeps fact order"):
+  test("implication keeps its right side lazy and steps keep fact order"):
     var reads = 0 // scalafix:ok DisableSyntax.var
     def reached: Boolean =
       reads += 1
@@ -80,9 +64,8 @@ class SugarNativeTest extends munit.FunSuite:
     assertEquals(reads, 0)
     assert(true implies reached)
     assertEquals(reads, 1)
-    given Ok[Boolean] = Ok(true)
     assertEquals(
-      enter(false, "second", "first", "second").head.facts,
+      Step(true, false, List("second", "first", "second")).facts,
       List("second", "first", "second")
     )
 

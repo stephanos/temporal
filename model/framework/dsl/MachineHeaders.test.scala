@@ -10,22 +10,30 @@ class MachineHeadersSuite extends munit.FunSuite:
   private val emptyField = ir.Field("child", Some(ir.TypeRef()))
   private def witness: Finite[Boolean] = new Finite[Boolean]:
     def values = throw AssertionError("catalog read")
+  private val stateName = "fixture.HeadersState"
+  private val stateRef = ir.TypeRef(ir.TypeRef.Ref.Named(stateName))
+  private val stateShape = ir.Type(
+    name = stateName,
+    shape = ir.Type.Shape.Record(ir.Record(Vector(ir.Field("ready", Some(bool)))))
+  )
+  private def stateWitness: Data[State] = new Data[State]:
+    def compare(left: State, right: State): Int = throw AssertionError("state compared")
   private def machine(
-      state: Data[Boolean] = witness,
+      state: Data[State] = stateWitness,
       outcome: Finite[Boolean] = witness,
       facts: Finite[Nothing] = Finite.of()
-  ): RecordMachine[Boolean, Boolean, Nothing] =
-    new RecordMachine[Boolean, Boolean, Nothing](using state, outcome, facts):
+  ): Machine[Boolean, Nothing] =
+    new Machine[Boolean, Nothing](using outcome, facts):
+      override private[framework] val fs: Data[State] = state
+      @scala.annotation.unused
+      var ready = false
       override def name: String = throw AssertionError("native name getter read")
-      def init: Boolean = throw AssertionError("init read")
-      def end(s: Boolean): Boolean = throw AssertionError("end read")
-      def transitions: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError(
-        "transitions read"
-      )
-      override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
+      override def end: Boolean = throw AssertionError("end read")
+      def transitions: RuleBook[State, Boolean, Nothing] = throw AssertionError("transitions read")
+      override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
         throw AssertionError("refinement read")
   private def retain(
-      value: RecordMachine[?, ?, ?],
+      value: MachineDeclaration[?, ?, ?],
       index: Int,
       key: String,
       root: ir.TypeRef,
@@ -38,21 +46,23 @@ class MachineHeadersSuite extends munit.FunSuite:
       Seq(Base64.getEncoder.encodeToString(ir.Model(types = types).toByteArray)),
       Nil
     )
-  private def scalar(value: RecordMachine[?, ?, ?]): Unit =
-    retain(value, 0, "scala.Boolean", bool)
+  private def scalar(value: MachineDeclaration[?, ?, ?]): Unit =
+    retain(value, 0, stateName, stateRef, Seq(stateShape))
     retain(value, 1, "scala.Boolean", bool)
     retain(value, 2, "scala.Nothing", nothing)
 
-  test("scalar header fields stay blank and an empty family is distinct from missing identity"):
-    val state = new Data[Boolean]:
-      def compare(left: Boolean, right: Boolean): Int = throw AssertionError("state compared")
+  test(
+    "native state headers retain their record while scalar fields stay blank and empty family is distinct"
+  ):
+    val state = new Data[State]:
+      def compare(left: State, right: State): Int = throw AssertionError("state compared")
     val value = machine(state = state)
     assert(value.fs eq state)
     value.retainHeaderIdentity("", "declared")
     scalar(value)
     val actual = MachineHeaders.collect(value)
-    assertEquals(actual.header, MachineHeaders.Header("", "declared", "", "", ""))
-    assertEquals(actual.types, Vector.empty)
+    assertEquals(actual.header, MachineHeaders.Header("", "declared", stateName, "", ""))
+    assertEquals(actual.types, Vector(stateShape))
     assertEquals(MachineHeaders.collect(value), actual)
 
   test("missing declaration and partial selections refuse before getters or catalogs are read"):

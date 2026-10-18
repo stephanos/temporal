@@ -3,15 +3,7 @@ package framework.dsl
 // Declaration operations implemented by the product checker. Keeping the interface here lets the
 // lifter read declarations without loading the checker or evaluating authored callbacks.
 private[framework] trait NativeRuntime:
-  def requireExpectation[S, O, F](context: Expectation[S, O, F], condition: Boolean): Unit
-  def attemptAlternative[S, O, F](
-      context: Alternatives[S, O, F],
-      body: Expectation[S, O, F] ?=> Unit
-  ): Unit
-  def setDraft[S, O, F](context: Draft[S, O, F], update: S => S): Unit
-  def draftStep[S, O, F](context: Draft[S, O, F], start: S, accepted: O): Step[S, O, F]
-  def recordDraft[S, O, F](context: Draft[S, O, F], recorded: Seq[F]): Unit
-  def refuseDraft[S, O, F](context: Draft[S, O, F], outcome: O): Unit
+  def invoke(body: () => Unit): Unit
   def stateCompare(vars: Vars, left: State, right: State): Int
   def invoke[A, B, C, D](function: (A, B, C) => D, first: A, second: B, third: C): D
   def replace[S](state: S, index: Int, value: Any, mirror: scala.deriving.Mirror.ProductOf[S]): S
@@ -35,14 +27,6 @@ private[framework] trait NativeRuntime:
   ): Boolean
   def invoke[A, B](function: A => B, argument: A): B
   def invoke[A, B, C](function: (A, B) => C, first: A, second: B): C
-  def alternatives[S, O, F](
-      context: Alternatives[S, O, F],
-      body: Alternatives[S, O, F] ?=> Unit
-  ): Boolean
-  def expectation[S, O, F](
-      context: Expectation[S, O, F],
-      body: Expectation[S, O, F] ?=> Unit
-  ): Boolean
   def monitorNext[M](next: M => M, current: M, before: State, step: Step[State, ?, ?]): M
   def contents[M](channel: Channel[M]): Finite[Inbox[M]]
   def inboxCompare[M](message: Data.Structural[M], left: Inbox[M], right: Inbox[M]): Int
@@ -60,7 +44,7 @@ private[framework] trait NativeRuntime:
   def range(high: Int): IndexedSeq[Int]
   def composition[F](model: Composition[F]): CompositionExecution[F]
   def machineEffects[S, O, F](
-      model: RecordMachine[S, O, F]
+      model: MachineDeclaration[S, O, F]
   ): Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])]
   def section(owner: AnyRef, name: String): Vector[(String, Any)]
   def classesOf(decl: ActionDecl): List[Class]

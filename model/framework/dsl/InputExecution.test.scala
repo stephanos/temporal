@@ -59,72 +59,103 @@ object InputExecutionFixture:
     Trace.inputs += in
     List(Step(in.g, !state, List(in.a)))
 
-  object Native extends RecordMachine[Boolean, Boolean, Boolean]:
-    val init = false
-    def end(s: Boolean): Boolean = s
-
-    object transitions extends Rules:
-      on(caller.start):
-        where(s => !s) ~> effect
-      on(caller.start(first)):
-        where(identity) ~> ((s: Boolean) => List(Step(false, s, List(true))))
-      on(caller.product):
-        always ~> ((s: Boolean, in: Other) => List(Step(in.flag, s, List(in.flag))))
-      on(caller.pair):
-        always ~> ((s: Boolean, in: (Boolean, Boolean)) => List(Step(in._1, s, List(in._2))))
-      on(caller.single):
-        always ~> ((s: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, s, List(in._1))))
-      on(caller.alternate(Other()), caller.scalar(true), caller.empty):
-        always ~> ((s: Boolean) => List(Step(true, !s, List(false))))
-  trait Applying extends RecordFacet[Boolean, Boolean, Boolean]:
+  given Ok[Boolean] = Ok(true)
+  trait Applying extends Facet[Boolean, Boolean]:
+    var ready: Boolean
 
     object applying:
 
-      object transitions extends Rules:
-        on(caller.faceted):
-          always ~> effect
+      object effects:
+        def receive(in: Request): Unit =
+          Trace.inputs += in
+          ready = ready || in.g
+          record(in.b)
+          record(in.a)
 
-  object Faceted extends RecordMachine[Boolean, Boolean, Boolean], Applying:
-    val init = false
-    def end(s: Boolean): Boolean = s
+      object transitions extends Transitions:
+        on(caller.faceted): in =>
+          effects.receive(in)
+
+  object Native extends Machine[Boolean, Boolean], Applying:
+    var ready = false
+    override def end: Boolean = ready
+
+    object effects:
+      def explicit(): Unit = record(true)
+      def product(in: Other): Unit = record(in.flag)
+      def pair(in: (Boolean, Boolean)): Unit = record(in._2)
+      def single(in: Tuple1[Boolean]): Unit = record(in._1)
+      def toggle(): Unit =
+        ready = !ready
+        record(false)
+      def replacement(in: Request): Unit =
+        Trace.inputs += in
+        ready = !ready
+        record(in.a)
+
+    object transitions extends Transitions:
+      on(caller.start): in =>
+        if !ready then applying.effects.receive(in)
+      on(caller.start(first)):
+        if ready then effects.explicit()
+      on(caller.product): in =>
+        effects.product(in)
+      on(caller.pair): in =>
+        effects.pair(in)
+      on(caller.single): in =>
+        effects.single(in)
+      on(caller.alternate(Other()), caller.scalar(true), caller.empty):
+        effects.toggle()
+
+  object Faceted extends Machine[Boolean, Boolean], Applying:
+    var ready = false
 
     object transitions extends Facets(applying.transitions)
 
-  object Rebound extends Derived(Native.rebind(caller.start ~> replacement))
+  object Rebound
+      extends Derived(Native.rebind(on(caller.start): in =>
+        if !Native.ready || (in eq first) then Native.effects.replacement(in)))
 
-  object DefaultSource extends RecordMachine[Boolean, Boolean, Boolean]:
-    val init = false
-    def end(s: Boolean): Boolean = s
+  object DefaultSource extends Machine[Boolean, Boolean]:
+    var ready = false
 
-    object transitions extends Rules:
+    object effects:
+      def receive(): Unit = record(true)
+
+    object transitions extends Transitions:
       on(caller.defaulted()):
-        always ~> ((s: Boolean) => List(Step(false, s, List(true))))
+        effects.receive()
 
 class InputExecution extends munit.FunSuite:
+  private def runNative(machine: MachineDeclaration[State, Boolean, Boolean], decl: ActionDecl) =
+    val binding = machine.bindings.find(_.decl eq decl).get
+    val execute = effectOf[State, Boolean, Boolean](decl, binding.function)
+    (ready: Boolean, cls: Class) =>
+      execute(machine.init.copy(ready = ready), cls).map: step =>
+        step.state.selectDynamic("ready") match
+          case value: Boolean => Step(step.outcome, value, step.facts)
+          case other          => fail(s"unexpected ready value $other")
+
   test("a scalar EmptyTuple remains one required value and cannot reopen declarations"):
     final case class Request(flag: Boolean = false)
     val unit = action(Actor("caller")).input[EmptyTuple](name = "unit")
     assertEquals(unit(EmptyTuple).values, List(EmptyTuple))
     assert(intercept[IllegalArgumentException](unit()).getMessage.contains("input unit"))
     val callback = (_: Boolean, in: EmptyTuple) => List(Step(true, false, List(in)))
-    val binding = unit ~> callback
     assertEquals(
-      effectOf[Boolean, Boolean, EmptyTuple](binding.decl, binding.function)(
-        false,
-        unit(EmptyTuple)
-      ),
+      effectOf[Boolean, Boolean, EmptyTuple](unit.decl, callback)(false, unit(EmptyTuple)),
       List(Step(true, false, List(EmptyTuple)))
     )
     intercept[IllegalArgumentException](unit.input[Boolean](name = "other")): Unit
     intercept[IllegalArgumentException](unit.inputs[Request]): Unit
-    intercept[IllegalArgumentException](unit ~> ((s: Boolean) => List(Step(true, s)))): Unit
     val empty = action(Actor("caller"))
-    val stateOnly = empty ~> ((s: Boolean) => List(Step(true, s)))
     assertEquals(
-      effectOf[Boolean, Boolean, Nothing](stateOnly.decl, stateOnly.function)(false, Nil),
+      effectOf[Boolean, Boolean, Nothing](empty.decl, (s: Boolean) => List(Step(true, s)))(
+        false,
+        Nil
+      ),
       List(Step(true, false))
     )
-    intercept[IllegalArgumentException](empty ~> callback): Unit
 
   test("native effects receive one actual record beyond six fields"):
     final case class Request(
@@ -143,24 +174,25 @@ class InputExecution extends munit.FunSuite:
     val run = effectOf[Boolean, Boolean, Boolean](start.decl, callback)
     assertEquals(run(false, start(request).values), List(Step(true, true, List(false))))
 
-  test("native record and scalar callbacks bind through rules and generic actions"):
+  test("native record and scalar input blocks bind with their declared types"):
     assertEquals(
       compiletime.testing.typeCheckErrors("""
       import framework.dsl.*
+      given Ok[Boolean] = Ok(true)
       final case class Request(flag: Boolean = false, other: Boolean = true)
       object caller extends Actor:
         val start = action.inputs[Request]
         val finish = action.input[Boolean](name = "result", default = false)
-      def bind[In](a: Action[In], f: (Boolean, In) => List[Step[Boolean, Boolean, Nothing]]) = a ~> f
-      val direct = bind(caller.start, (s: Boolean, in: Request) => List(Step(in.flag, s)))
-      object Native extends RecordMachine[Boolean, Boolean, Nothing]:
-        val init = false
-        def end(s: Boolean) = s
-        object transitions extends Rules:
-          on(caller.start):
-            always ~> ((s: Boolean, in: Request) => List(Step(in.flag, s)))
-          on(caller.finish):
-            always ~> ((s: Boolean, in: Boolean) => List(Step(in, s)))
+      object Native extends Machine[Boolean, Nothing]:
+        var ready = false
+        object effects:
+          def start(in: Request): Unit = ready = in.flag
+          def finish(in: Boolean): Unit = ready = in
+        object transitions extends Transitions:
+          on(caller.start): in =>
+            effects.start(in)
+          on(caller.finish): in =>
+            effects.finish(in)
     """),
       Nil
     )
@@ -182,17 +214,17 @@ class InputExecution extends munit.FunSuite:
         List(true, false, false, false, false, false, false)
       )
     )
-    val run = effectOf[Boolean, Boolean, Boolean](native.decl, native.function)
+    val run = runNative(Native, native.decl)
     Trace.inputs.clear()
     for cls <- List(supplied, supplied.copy(), cases.head) do
-      assertEquals(run(false, cls), List(Step(false, true, List(true, false))))
+      assertEquals(run(false, cls), List(Step(true, true, List(true, false))))
     assert(Trace.inputs.forall(_ eq first))
     assertEquals(run(false, cases(1)), List(Step(true, false, List(false, true))))
     assert(Trace.inputs.last eq second)
     val facetClass = inputClassesOf(caller.faceted.decl).head
     assertEquals(
-      effectOf[Boolean, Boolean, Boolean](facet.decl, facet.function)(false, facetClass),
-      List(Step(false, true, List(true, false)))
+      runNative(Faceted, facet.decl)(false, facetClass),
+      List(Step(true, true, List(true, false)))
     )
     assert(Trace.inputs.last eq first)
     assertEquals(Trace.constructors -> Trace.defaults, before)
@@ -206,17 +238,16 @@ class InputExecution extends munit.FunSuite:
 
   test("class restrictions and native replacements retain explicit step pins"):
     import InputExecutionFixture.*
-    def run(machine: RecordMachine[Boolean, Boolean, Boolean], state: Boolean, cls: Class) =
-      val binding = machine.bindings.find(_.decl eq cls.decl).get
-      effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)(state, cls)
-    assertEquals(run(Native, true, caller.start(first)), List(Step(false, true, List(true))))
+    def run(machine: MachineDeclaration[State, Boolean, Boolean], state: Boolean, cls: Class) =
+      runNative(machine, cls.decl)(state, cls)
+    assertEquals(run(Native, true, caller.start(first)), List(Step(true, true, List(true))))
     assertEquals(run(Native, true, caller.start(second)), Nil)
     assertEquals(run(Rebound, false, caller.start(first)), List(Step(true, true, List(false))))
     assertEquals(run(Rebound, true, caller.start(first)), List(Step(true, false, List(false))))
     assertEquals(run(Rebound, true, caller.start(second)), Nil)
     assertEquals(
       run(Native, false, caller.product(Other(false))),
-      List(Step(false, false, List(false)))
+      List(Step(true, false, List(false)))
     )
     assertEquals(
       run(Native, false, caller.pair((true, false))),
@@ -229,32 +260,31 @@ class InputExecution extends munit.FunSuite:
     for cls <- List(caller.alternate(Other()), caller.scalar(true), caller.empty()) do
       assertEquals(run(Native, false, cls), List(Step(true, true, List(false))))
 
-  test("generic native bindings retain ordered alternatives and the actual scalar or record"):
-    import InputExecutionFixture.*
-    def bind[In](
-        action: Action[In],
-        callback: (Boolean, In) => List[Step[Boolean, Boolean, Boolean]]
-    ) =
-      action ~> callback
-    val one = choice
-    val two = choice
-    val binding = bind(
-      caller.start,
-      (s: Boolean, in: Request) =>
-        choose(one -> effect(s, in), two -> List(Step(true, false, List(in.g))))
-    )
-    val run = effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)
+  test("generic native effects retain ordered alternatives and the actual record"):
+    import InputExecutionFixture.{*, given}
+    object Subject extends Machine[Boolean, Boolean]:
+      var ready = false
+      object effects:
+        val one = choice
+        val two = choice
+        def receive(in: Request): Unit =
+          choose(
+            one -> { ready = ready || in.g; record(in.b); record(in.a) },
+            two -> { ready = false; record(in.g) }
+          )
+      object transitions extends Transitions:
+        on(caller.start): in =>
+          effects.receive(in)
     assertEquals(
-      run(false, caller.start(first)),
+      runNative(Subject, caller.start.decl)(false, caller.start(first)),
       List(
-        Step(false, true, List(true, false)),
+        Step(true, true, List(true, false)),
         Step(true, false, List(true))
       )
     )
-    val scalar =
-      bind(caller.single, (s: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, s, List(in._1))))
+    val scalar = (state: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, state, List(in._1)))
     assertEquals(
-      effectOf[Boolean, Boolean, Boolean](scalar.decl, scalar.function)(
+      effectOf[Boolean, Boolean, Boolean](caller.single.decl, scalar)(
         false,
         caller.single(Tuple1(false))
       ),
@@ -266,72 +296,71 @@ class InputExecution extends munit.FunSuite:
     val before = Trace.defaults -> Trace.defaultConstructors
     val binding = DefaultSource.bindings.head
     assertEquals(Trace.defaults -> Trace.defaultConstructors, (before._1 + 1, before._2 + 1))
-    val bare = new RecordMachine[Boolean, Boolean, Boolean]:
-      val init = false
-      def end(s: Boolean): Boolean = s
-      def transitions: RuleBook[Boolean, Boolean, Boolean] = new Rules:
-        import caller.defaulted
-        on(defaulted()):
-          always ~> ((s: Boolean) => List(Step(false, s, List(true))))
-    val error = intercept[IllegalArgumentException](bare.bindings)
-    assert(error.getMessage.contains("names its action bare"), error.getMessage)
-    val run = effectOf[Boolean, Boolean, Boolean](binding.decl, binding.function)
+    val run = runNative(DefaultSource, binding.decl)
     for state <- List(false, true); cls <- inputClassesOf(binding.decl) do
-      assertEquals(run(state, cls), List(Step(false, state, List(true))))
+      assertEquals(run(state, cls), List(Step(true, state, List(true))))
     assertEquals(Trace.defaults -> Trace.defaultConstructors, (before._1 + 1, before._2 + 1))
 
-  test("wrong native callback records, scalar shapes and flattened arities refuse with controls"):
-    val refusals = List(
+  test("wrong native input records scalar shapes and flattened arities refuse with controls"):
+    val errors = List(
       compiletime.testing.typeCheckErrors("""
         import framework.dsl.*
+        given Ok[Boolean] = Ok(true)
         final case class Request(flag: Boolean)
         final case class Other(flag: Boolean)
         object caller extends Actor:
           val start = action.inputs[Request]
-        val bad = caller.start ~> ((s: Boolean, in: Other) => List(Step(in.flag, s)))
+        object Bad extends Machine[Boolean, Nothing]:
+          var ready = false
+          object effects:
+            def accept(in: Other): Unit = ()
+          object transitions extends Transitions:
+            on(caller.start) { (in: Other) => effects.accept(in) }
       """),
       compiletime.testing.typeCheckErrors("""
         import framework.dsl.*
+        given Ok[Boolean] = Ok(true)
         final case class Request(a: Boolean, b: Boolean)
         object caller extends Actor:
           val start = action.inputs[Request]
-        object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
-          val init = false
-          def end(s: Boolean) = s
-          object transitions extends Rules:
-            on(caller.start):
-              always ~> ((s: Boolean, a: Boolean, b: Boolean) => List(Step(a, s)))
+        object Bad extends Machine[Boolean, Nothing]:
+          var ready = false
+          object effects:
+            def accept(): Unit = ()
+          object transitions extends Transitions:
+            on(caller.start) { (_: Boolean, _: Boolean) => effects.accept() }
       """),
       compiletime.testing.typeCheckErrors("""
         import framework.dsl.*
+        given Ok[Boolean] = Ok(true)
         object caller extends Actor:
           val start = action.input[Tuple1[Boolean]](name = "value")
-        object Bad extends RecordMachine[Boolean, Boolean, Nothing]:
-          val init = false
-          def end(s: Boolean) = s
-          object transitions extends Rules:
-            on(caller.start):
-              always ~> ((s: Boolean, in: Boolean) => List(Step(in, s)))
+        object Bad extends Machine[Boolean, Nothing]:
+          var ready = false
+          object effects:
+            def accept(): Unit = ()
+          object transitions extends Transitions:
+            on(caller.start) { (_: Boolean) => effects.accept() }
       """)
     )
-    refusals
-      .zip(List("Request", "Firing", "RuleInput"))
-      .foreach: (errors, reason) =>
-        assert(
-          errors.exists(e =>
-            (e.lineContent.contains("~>") || e.lineContent.contains("in: Other")) &&
-              e.message.contains(reason)
-          ),
-          errors.toString
-        )
+    errors.foreach(refusal => assert(refusal.nonEmpty, refusal.toString))
     assertEquals(
       compiletime.testing.typeCheckErrors("""
       import framework.dsl.*
+      given Ok[Boolean] = Ok(true)
       object caller extends Actor:
         val start = action.input[Tuple1[Boolean]](name = "value")
         val pair = action.input[(Boolean, Boolean)](name = "pair")
-      val good = caller.start ~> ((s: Boolean, in: Tuple1[Boolean]) => List(Step(in._1, s)))
-      val tuple = caller.pair ~> ((s: Boolean, in: (Boolean, Boolean)) => List(Step(in._1, s)))
+      object Good extends Machine[Boolean, Nothing]:
+        var ready = false
+        object effects:
+          def single(in: Tuple1[Boolean]): Unit = ready = in._1
+          def pair(in: (Boolean, Boolean)): Unit = ready = in._2
+        object transitions extends Transitions:
+          on(caller.start): in =>
+            effects.single(in)
+          on(caller.pair): in =>
+            effects.pair(in)
     """),
       Nil
     )

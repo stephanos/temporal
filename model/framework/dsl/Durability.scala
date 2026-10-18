@@ -3,7 +3,7 @@ package framework.dsl
 import scala.annotation.publicInBinary
 
 sealed abstract class FieldDurability[S] private[framework] (
-    private[framework] val owner: RecordMachine[S, ?, ?],
+    private[framework] val owner: MachineDeclaration[S, ?, ?],
     private[framework] val field: StateField[S, ?],
     private[framework] val durable: Boolean,
     private[framework] val fallback: Option[Any] = None,
@@ -23,18 +23,18 @@ sealed abstract class FieldDurability[S] private[framework] (
 @publicInBinary
 object FieldDurability:
   @publicInBinary private[framework] def durable[S, A](
-      machine: RecordMachine[S, ?, ?],
+      machine: MachineDeclaration[S, ?, ?],
       selected: StateField[S, A]
   ): FieldDurability[S] = new FieldDurability[S](machine, selected, true) {}
 
   @publicInBinary private[framework] def ephemeral[S, A](
-      machine: RecordMachine[S, ?, ?],
+      machine: MachineDeclaration[S, ?, ?],
       selected: StateField[S, A],
       resetTo: A
   ): FieldDurability[S] = new FieldDurability[S](machine, selected, false, Some(resetTo)) {}
 
   @publicInBinary private[framework] def inMemory[S, A](
-      machine: RecordMachine[S, ?, ?],
+      machine: MachineDeclaration[S, ?, ?],
       selected: StateField[S, A],
       entries: Vector[(A, A)]
   )(using data: Data.Structural[A]): FieldDurability[S] =
@@ -47,17 +47,17 @@ object FieldDurability:
     ) {} // scalafix:ok DisableSyntax.asInstanceOf
 
   private[framework] def validate[S](
-      owner: RecordMachine[S, ?, ?],
+      owner: MachineDeclaration[S, ?, ?],
       descriptors: Vector[FieldDurability[S]],
       budgetPaths: Vector[List[String]]
   ): Unit =
     validate(owner, descriptors, budgetPaths, candidate => candidate eq owner)
 
   private[framework] def validate[S](
-      owner: RecordMachine[S, ?, ?],
+      owner: MachineDeclaration[S, ?, ?],
       descriptors: Vector[FieldDurability[S]],
       budgetPaths: Vector[List[String]],
-      ownerAllowed: RecordMachine[?, ?, ?] => Boolean
+      ownerAllowed: MachineDeclaration[?, ?, ?] => Boolean
   ): Unit =
     descriptors.zipWithIndex.foreach: (descriptor, index) =>
       require(
@@ -74,12 +74,15 @@ object FieldDurability:
         s"${descriptor.context}: duplicate or overlapping classification"
       )
       descriptor.check()
+    val paths = descriptors.flatMap(_.field.rootFields).distinct
     descriptors.headOption.foreach: first =>
-      first.field.rootFields.foreach: path =>
-        require(
-          descriptors.exists(d => path.startsWith(d.field.path)),
-          s"durability field ${path.mkString(".")} at ${first.field.location}: unclassified state field"
-        )
+      paths
+        .filterNot(path => paths.exists(other => other != path && other.startsWith(path)))
+        .foreach: path =>
+          require(
+            descriptors.exists(d => path.startsWith(d.field.path)),
+            s"durability field ${path.mkString(".")} at ${first.field.location}: unclassified state field"
+          )
     budgetPaths.foreach: path =>
       val location = descriptors
         .find(d => path.startsWith(d.field.path))
@@ -92,16 +95,16 @@ object FieldDurability:
       )
 
 inline def durable[S, A, O, F](using
-    owner: Owner[S, O, F]
+    owner: MachineDeclaration[S, O, F]
 )(inline selector: S => A): FieldDurability[S] =
-  FieldDurability.durable(owner.machine, StateField.capture(selector))
+  FieldDurability.durable(owner, StateField.capture(selector))
 
 inline def ephemeral[S, A, O, F](using
-    owner: Owner[S, O, F]
+    owner: MachineDeclaration[S, O, F]
 )(inline selector: S => A, resetTo: A): FieldDurability[S] =
-  FieldDurability.ephemeral(owner.machine, StateField.capture(selector), resetTo)
+  FieldDurability.ephemeral(owner, StateField.capture(selector), resetTo)
 
 inline def inMemory[S, A, O, F](using
-    owner: Owner[S, O, F]
+    owner: MachineDeclaration[S, O, F]
 )(inline selector: S => A)(entries: (A, A)*)(using data: Data.Structural[A]): FieldDurability[S] =
-  FieldDurability.inMemory(owner.machine, StateField.capture(selector), entries.toVector)
+  FieldDurability.inMemory(owner, StateField.capture(selector), entries.toVector)

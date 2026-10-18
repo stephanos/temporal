@@ -326,71 +326,6 @@ final private[framework] class Conventions(
       collect.foldTree(found, tree)(Symbol.spliceOwner)
     )
 
-  private val phased = Symbol.requiredClass("framework.dsl.Phased")
-
-  // The phase types of the lifted sources: the `P` of every `Phased[S, P]` an object mixes in. A
-  // derived machine or composition reads its source's, which is among them.
-  private lazy val phaseTypes: Set[Symbol] =
-    object collect extends TreeAccumulator[Set[Symbol]]:
-      def foldTree(found: Set[Symbol], tree: Tree)(owner: Symbol): Set[Symbol] =
-        tree match
-          case c: ClassDef =>
-            val phase = arguments(c.symbol.typeRef, phased).lift(1)
-            foldOverTree(found ++ phase.map(_.widen.dealias.typeSymbol), tree)(
-              owner
-            )
-          case _ => foldOverTree(found, tree)(owner)
-    index.trees.foldLeft(Set.empty[Symbol])((found, tree) =>
-      collect.foldTree(found, tree)(Symbol.spliceOwner)
-    )
-
-  // fn-159.3: every phase is named through its phase type, `Phase.scheduled`, so no source imports
-  // a phase type's members, wildcard or selective, at any level.
-  private def phaseImport(i: Import, owner: Symbol): Unit =
-    val imported = i.expr.symbol
-    val phase =
-      if imported.flags.is(Flags.Module) then imported.companionClass
-      else i.expr.tpe.widen.typeSymbol.companionClass
-    val synthetic = owner == phase && phase.flags.is(Flags.Enum) &&
-      i.expr.pos.start == i.expr.pos.end
-    if phaseTypes(phase) && !synthetic then
-      val sourceProblem = scala.util
-        .Try {
-          val text = textOf(i)
-          require(
-            i.pos.start >= 0 && i.pos.end > i.pos.start && i.pos.end <= text.length
-          )
-          require(
-            "(?s)^import\\s.*".r.matches(
-              text.substring(i.pos.start, i.pos.end).trim
-            ),
-            "the import span no longer names its authored source"
-          )
-        }
-        .failed
-        .toOption
-      val names = i.selectors.map {
-        case SimpleSelector(n)    => if Set("_", "*")(n) then "*" else n
-        case RenameSelector(n, a) => s"$n as $a"
-        case OmitSelector(n)      => s"$n as _"
-        case _: GivenSelector     => "given"
-      }
-      val selected = names match
-        case List(one) => one
-        case several   => several.mkString("{", ", ", "}")
-      refuse(
-        i,
-        "R9.phase-import",
-        sourceProblem.fold(
-          s"import ${i.expr.show}.$selected brings " +
-            s"the cases of the phase type ${phase.name} into scope: drop it and name each phase " +
-            s"through its type, `${phase.name}.<case>`"
-        )(_ =>
-          s"cannot verify the authored import of phase type ${phase.name}: restore its source " +
-            s"and name each phase through `${phase.name}.<case>`"
-        )
-      )
-
   private lazy val finiteTypes: Set[Symbol] = index.defs.values
     .flatMap {
       case v: ValDef => arguments(v.tpt.tpe, finite).headOption
@@ -540,7 +475,6 @@ final private[framework] class Conventions(
         t match
           case i: Import =>
             imports(i, owner)
-            phaseImport(i, owner)
           case _ => super.traverseTree(t)(owner)
     checked.foreach(t => importCheck.traverseTree(t)(Symbol.spliceOwner))
     // fn-160 R9: the recorded status-table seam, independent of a feature's capability kind.
@@ -604,7 +538,7 @@ final private[framework] class Conventions(
               )
           case r: Ref
               if r.symbol.name == "in" &&
-                Set("framework.dsl.Syntax$package$", "framework.dsl.Rules")(
+                Set("framework.dsl.Syntax$package$")(
                   r.symbol.maybeOwner.fullName
                 ) =>
             dotted(r) match

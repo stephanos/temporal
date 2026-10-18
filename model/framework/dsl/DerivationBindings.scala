@@ -5,7 +5,7 @@ import io.temporal.server.api.umpire.v1 as ir
 
 private[framework] object DerivationBindings:
   final case class OperationSite(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       owner: String,
       family: String,
       machine: String,
@@ -13,7 +13,7 @@ private[framework] object DerivationBindings:
       position: ir.Position,
       operands: Int
   )
-  def operationSite(source: RecordMachine[?, ?, ?], data: Seq[String]): OperationSite =
+  def operationSite(source: MachineDeclaration[?, ?, ?], data: Seq[String]): OperationSite =
     try
       require(
         data.size == 7 && data.head == "derivation-operation-v1",
@@ -42,7 +42,7 @@ private[framework] object DerivationBindings:
   )
   final case class GroupOrigin(
       group: RuleGroup[?, ?, ?],
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       declaration: ActionDecl,
       packet: RuleBindings.Packet
   )
@@ -91,7 +91,7 @@ private[framework] object DerivationBindings:
   sealed trait Event
   final case class Applied(operation: CoreBindings.Operation) extends Event
   final case class Restricted(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       before: Snapshot,
       keep: Vector[ActionDecl]
   ) extends Event
@@ -152,7 +152,7 @@ private[framework] object DerivationBindings:
       )
 
   def acquiredTable(
-      machine: RecordMachine[?, ?, ?],
+      machine: MachineDeclaration[?, ?, ?],
       context: String
   ): Vector[(ActionDecl, Bound[?, ?, ?])] =
     val retained = machine.acquiredRuleTable.getOrElse {
@@ -162,13 +162,13 @@ private[framework] object DerivationBindings:
     new Evidence(context).checkedSnapshot(retained)
     retained.table
 
-  def collect(machine: RecordMachine[?, ?, ?]): RuleBindings.Contribution =
+  def collect(machine: MachineDeclaration[?, ?, ?]): RuleBindings.Contribution =
     val context = "Machine derivation Rules"
     val evidence = new Evidence(context)
     def fail(message: String): Nothing = evidence.fail(message)
     def id(decl: ActionDecl): String =
       decl.sourceIdentity.getOrElse(fail("action has no retained identity"))
-    def book(source: RecordMachine[?, ?, ?]): RuleBook[?, ?, ?] =
+    def book(source: MachineDeclaration[?, ?, ?]): RuleBook[?, ?, ?] =
       source.ruleSource.acquireRuleBook()
     def closure(entries: Vector[Entry]): CoreBindings.Dependencies =
       CoreBindings.dependencies(
@@ -194,9 +194,9 @@ private[framework] object DerivationBindings:
       val result = CoreBindings.collectEntries(table, context)
       fromContribution(table, result.steps, result.functions, result.types)
     def ruled(
-        source: RecordMachine[?, ?, ?],
+        source: MachineDeclaration[?, ?, ?],
         table: Vector[(ActionDecl, Bound[?, ?, ?])],
-        declaring: Option[RecordMachine[?, ?, ?]]
+        declaring: Option[MachineDeclaration[?, ?, ?]]
     ): (Vector[Entry], Map[ActionDecl, Vector[RuleBindings.Registration]]) =
       val rows = mutable.Map.empty[ActionDecl, Vector[RuleBindings.Registration]]
       var proofs = Vector.empty[CoreBindings.CurriedCall]
@@ -215,7 +215,7 @@ private[framework] object DerivationBindings:
     def lowered(
         decl: ActionDecl,
         rows: Vector[RuleBindings.Registration],
-        declaring: RecordMachine[?, ?, ?]
+        declaring: MachineDeclaration[?, ?, ?]
     ): Entry =
       val action = Signature.action(decl.boundTo(decl.copy(examples = Nil)))
       val first = rows.headOption.getOrElse(fail(s"action ${action.id} has no captured Rule rows"))
@@ -252,7 +252,7 @@ private[framework] object DerivationBindings:
       )
     def checkedCapture(
         binding: StepBinding[?, ?, ?],
-        declaring: RecordMachine[?, ?, ?]
+        declaring: MachineDeclaration[?, ?, ?]
     ): Captured[AnyRef] =
       val capture =
         binding.captured.getOrElse(fail("rebind unsupported: missing captured function metadata"))
@@ -266,8 +266,8 @@ private[framework] object DerivationBindings:
       capture
     def checkedPacket(
         binding: StepBinding[?, ?, ?],
-        declaring: RecordMachine[?, ?, ?],
-        source: RecordMachine[?, ?, ?]
+        declaring: MachineDeclaration[?, ?, ?],
+        source: MachineDeclaration[?, ?, ?]
     ): RuleBindings.Packet =
       val capture = checkedCapture(binding, declaring)
       val origin = capture.origin.get
@@ -323,8 +323,8 @@ private[framework] object DerivationBindings:
       normalized
     def bare(
         binding: StepBinding[?, ?, ?],
-        source: RecordMachine[?, ?, ?],
-        declaring: RecordMachine[?, ?, ?],
+        source: MachineDeclaration[?, ?, ?],
+        declaring: MachineDeclaration[?, ?, ?],
         originals: Vector[RuleBindings.Registration]
     ): (Entry, Vector[RuleBindings.Registration]) =
       val replacement = checkedPacket(binding, declaring, source)
@@ -384,9 +384,9 @@ private[framework] object DerivationBindings:
       }
       lowered(binding.decl, rows, declaring) -> rows
     def replay(
-        current: RecordMachine[?, ?, ?],
+        current: MachineDeclaration[?, ?, ?],
         observed: Vector[(ActionDecl, Bound[?, ?, ?])],
-        declaring: RecordMachine[?, ?, ?]
+        declaring: MachineDeclaration[?, ?, ?]
     ): Replay =
       current.derivationParent match
         case None =>

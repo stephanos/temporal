@@ -10,7 +10,7 @@ final private[framework] class FacetSource(
 
 object FacetSource:
   final private[framework] case class Identity(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       namespace: AnyRef,
       traitClass: java.lang.Class[?],
       traitName: String,
@@ -34,7 +34,7 @@ object FacetSource:
       .filter(s => s.isClassDef && s.flags.is(Flags.Module))
       .filter(s =>
         s.owner.isClassDef && s.owner.flags.is(Flags.Trait) &&
-          s.owner.typeRef.derivesFrom(Symbol.requiredClass("framework.dsl.RecordFacet"))
+          s.owner.typeRef.derivesFrom(Symbol.requiredClass("framework.dsl.Facet"))
       )
       .map(_.name.stripSuffix("$"))
     val named =

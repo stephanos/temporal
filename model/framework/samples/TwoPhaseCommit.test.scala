@@ -10,7 +10,7 @@ import samples.TwoPhaseCommit
 
 class TwoPhaseCommitTest extends munit.FunSuite:
   private def run[S, O](
-      machine: RecordMachine[S, O, Nothing],
+      machine: MachineDeclaration[S, O, Nothing],
       state: S,
       cls: Class
   ): List[Step[S, O, Nothing]] =

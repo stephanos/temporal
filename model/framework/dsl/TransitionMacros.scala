@@ -21,10 +21,85 @@ private[framework] object TransitionMacros:
   inline def input[I](inline body: I => Unit): I => Unit = ${ inputImpl[I]('body) }
 
   private def blockImpl(body: Expr[Unit])(using Quotes): Expr[() => Unit] =
-    '{ () => ${ leaves(body) } }
+    '{ new Programs.NativeBlock(() => ${ leaves(body) }, ${ choices(body) }) }
 
   private[framework] def inputImpl[I: Type](body: Expr[I => Unit])(using Quotes): Expr[I => Unit] =
-    '{ (in: I) => ${ leaves(Expr.betaReduce('{ $body(in) })) } }
+    '{
+      new Programs.NativeInputBlock[I](
+        (in: I) => ${ leaves(Expr.betaReduce('{ $body(in) })) },
+        ${ choices(body) }
+      )
+    }
+
+  private def choices(body: Expr[?])(using Quotes): Expr[Option[Vector[Choice]]] =
+    import quotes.reflect.*
+    val tokens = scala.collection.mutable.ArrayBuffer.empty[Expr[Choice]]
+    var complete = true
+    def unwrapped(term: Term): Term = term match
+      case Inlined(_, _, value) => unwrapped(value)
+      case Typed(value, _)      => unwrapped(value)
+      case other                => other
+    def invocation(term: Term): (Symbol, Option[Term], List[Term]) = term match
+      case Apply(function, arguments) =>
+        val (symbol, receiver, preceding) = invocation(function)
+        (symbol, receiver, preceding ++ arguments)
+      case TypeApply(function, _)          => invocation(function)
+      case selection @ Select(receiver, _) => (selection.symbol, Some(receiver), Nil)
+      case other                           => (other.symbol, None, Nil)
+    def stable(term: Term): Boolean = unwrapped(term) match
+      case _: This        => true
+      case reference: Ref =>
+        !reference.symbol.flags.is(Flags.Mutable) &&
+        (!reference.symbol.isDefDef || reference.symbol.flags.is(Flags.FieldAccessor) ||
+          reference.symbol.flags.is(Flags.Module)) &&
+        (reference match
+          case Select(receiver, _) => stable(receiver)
+          case _                   => true)
+      case _ => false
+    def inspect(tree: Tree, active: Set[Symbol]): Unit =
+      new TreeTraverser:
+        override def traverseTree(current: Tree)(owner: Symbol): Unit = current match
+          case call: Apply =>
+            val (method, receiver, arguments) = invocation(call)
+            if method.owner.fullName == "framework.dsl.Choice" && method.name == "->" then
+              receiver match
+                case Some(token) if stable(token) => tokens += token.asExprOf[Choice]: Unit
+                case _                            => complete = false
+              arguments.foreach(inspect(_, active))
+            else if method.owner.name == "effects$" then
+              if active(method) then complete = false
+              else
+                scala.util.Try(method.tree).toOption match
+                  case Some(definition: DefDef) if definition.rhs.nonEmpty && receiver.nonEmpty =>
+                    val parameters = definition.termParamss.flatMap(_.params).map(_.symbol)
+                    if parameters.size != arguments.size then complete = false
+                    else
+                      val substitutions = parameters.zip(arguments).toMap
+                      val rewritten = new TreeMap:
+                        override def transformTerm(term: Term)(owner: Symbol): Term = term match
+                          case self: This if self.symbol.equals(method.owner) => receiver.get
+                          case reference: Ref if substitutions.contains(reference.symbol) =>
+                            substitutions(reference.symbol)
+                          case reference: Ident if reference.symbol.owner.equals(method.owner) =>
+                            Select(receiver.get, reference.symbol)
+                          case _ => super.transformTerm(term)(owner)
+                      inspect(
+                        rewritten.transformTerm(definition.rhs.get)(Symbol.spliceOwner),
+                        active + method
+                      )
+                  case _ => complete = false
+            else
+              if call.tpe <:< TypeRepr.of[Unit] && method.exists &&
+                !method.fullName.startsWith("scala.") && !method.fullName.startsWith("java.") &&
+                !method.fullName.startsWith("framework.dsl.") &&
+                !method.name.endsWith("_=") &&
+                !(method.owner.fullName == "<special-ops>" && method.name == "throw")
+              then complete = false
+              super.traverseTree(current)(owner)
+          case _ => super.traverseTree(current)(owner)
+      .traverseTree(tree)(Symbol.spliceOwner)
+    inspect(body.asTerm, Set.empty)
+    if complete then '{ Some(Vector[Choice](${ Varargs(tokens.toSeq) }*).distinct) } else '{ None }
 
   private[framework] def leaves(body: Expr[Unit])(using Quotes): Expr[Unit] =
     import quotes.reflect.*

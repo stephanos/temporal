@@ -98,7 +98,8 @@ final class Var private[framework] (
     val bound: Option[Int],
     val inbox: Option[String],
     private[framework] val accepts: Any => Boolean,
-    private[framework] val data: Data[Any]
+    private[framework] val data: Data[Any],
+    private[framework] val structure: StructuralValue[Any]
 ):
   private[framework] def checked(value: Any): Any =
     for high <- bound do
@@ -133,7 +134,8 @@ object VarSchema:
       bound: Option[Int],
       inbox: Option[String],
       runtime: java.lang.Class[?],
-      data: Data[?]
+      data: Data[?],
+      structure: StructuralValue[?]
   ): Var =
     Var(
       name,
@@ -141,7 +143,8 @@ object VarSchema:
       bound,
       inbox,
       value => boxed(runtime).isInstance(value),
-      data.asInstanceOf[Data[Any]] // scalafix:ok DisableSyntax.asInstanceOf
+      data.asInstanceOf[Data[Any]], // scalafix:ok DisableSyntax.asInstanceOf
+      structure.asInstanceOf[StructuralValue[Any]] // scalafix:ok DisableSyntax.asInstanceOf
     )
 
   private def boxed(runtime: java.lang.Class[?]): java.lang.Class[?] =
@@ -314,6 +317,7 @@ private[framework] object VarSchemaMacro:
           val runtime = Expr
             .summon[scala.reflect.ClassTag[t]]
             .fold('{ classOf[Any] })(tag => '{ $tag.runtimeClass })
+          val structure = StructuralValue.captured[t](false)
           '{
             VarSchema.variable(
               ${ Expr(v.name) },
@@ -321,7 +325,8 @@ private[framework] object VarSchemaMacro:
               ${ Expr(bound) },
               ${ Expr(inbox) },
               $runtime,
-              $data
+              $data,
+              $structure
             )
           }
     '{ VarSchema.of(${ Expr.ofList(entries) }) }

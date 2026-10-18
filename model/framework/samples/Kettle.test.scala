@@ -83,7 +83,7 @@ class KettleTest extends munit.FunSuite:
     )(state => Model.at(state)(!beeping))
 
   private def run[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: MachineDeclaration[S, O, F],
       state: S,
       cls: Class
   ): List[Step[S, O, F]] =
@@ -323,13 +323,14 @@ class KettleTest extends munit.FunSuite:
 
   test("vacuity: a postcondition whose action never fires is reported in the spec's shape"):
     import Kettle.*
-    val switching = Model.restrict(user.pressButton, user.depressButton)
-    val report = NativeCheck.verifyAll(switching, sections = Some(Model))
+    def admitted(action: ActionDecl): Boolean =
+      (action eq user.pressButton.decl) || (action eq user.depressButton.decl)
+    val graph = NativeCheck.explore(Model, Model.initialStates, admit = admitted)
+    val report = NativeCheck.verifyAll(Model, exploration = Some(graph))
     assertEquals(
       report.warnings,
       Vector("model.failsOverAtBoiling: failover never fires, the postcondition is vacuous")
     )
-    val graph = NativeCheck.explore(switching, Seq(switching.init))
     val neverBeeps =
       NativeCheck.verify(graph, "model.neverBeeps", invariant(check(!Model.beeping)))
     assertEquals(neverBeeps.verdict, NativeCheck.Verdict.verified)

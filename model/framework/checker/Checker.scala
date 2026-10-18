@@ -1,6 +1,6 @@
 package framework.checker
 
-import framework.dsl.{LeadsTo, Monitor, NativeModel, Progress}
+import framework.dsl.{LeadsTo, Monitor, NativeModel}
 
 object Checker:
   val defaultBudget: Int = NativeCheck.defaultBudget
@@ -68,13 +68,6 @@ object Checker:
       budget
     )
   )
-
-  def progress[S, O, F](
-      claim: Progress[S],
-      instance: NativeModel[S, O, F],
-      starts: Seq[S],
-      budget: Int
-  ): Result = result(NativeCheck.progress(claim, instance, starts, budget))
 
   private def report(value: NativeCheck.Report): Report =
     Report(value.results.map(result), value.warnings)

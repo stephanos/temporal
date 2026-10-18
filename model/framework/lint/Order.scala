@@ -325,9 +325,6 @@ final private[framework] class Order(
 
   private val machineClass = Symbol.requiredClass("framework.dsl.Machine")
   private val compositionClass = Symbol.requiredClass("framework.dsl.Composition")
-  private val rulesClass = Symbol.requiredClass("framework.dsl.Rules")
-  private val caseClass = Symbol.requiredClass("framework.dsl.Case")
-  private val phasedClass = Symbol.requiredClass("framework.dsl.Phased")
 
   // Whether `c` is an object that is a machine or a composition: `object M extends Machine[...]`.
   private def objectForm(c: Symbol): Boolean =
@@ -388,7 +385,6 @@ final private[framework] class Order(
     // body, statement by statement.
     val inits: List[(Int, Tree)] =
       cls.parents.collect { case t: Term => -1 -> t } ++
-        phaseRead(cls).map(-1 -> _) ++
         inherited(cls).map(-1 -> _) ++
         cls.body.zipWithIndex.flatMap {
           case (v: ValDef, i) if !lazily(v.symbol)        => v.rhs.map(i -> _)
@@ -431,19 +427,6 @@ final private[framework] class Order(
           case l @ Lambda(_, body) =>
             // A context function the DSL applies at once is read now; any other lambda later.
             if l.tpe.isContextFunctionType then traverseTree(body)(o)
-          // A rule heading runs its rules at once, and the disjointness check calls its guard, and
-          // the rules' phase projection, while the rules initialize (framework.dsl.Rules).
-          case Apply(fn, args) if appliesAtOnce(fn.symbol) =>
-            traverseTree(fn)(o)
-            def atOnce(a: Tree): Unit = a match
-              case Lambda(_, body)   => traverseTree(body)(o)
-              case Inlined(_, bs, e) =>
-                bs.foreach(traverseTree(_)(o)); atOnce(e)
-              case Typed(e, _)    => atOnce(e)
-              case Block(Nil, e)  => atOnce(e)
-              case NamedArg(_, e) => atOnce(e)
-              case other          => traverseTree(other)(o)
-            args.foreach(atOnce)
           case Apply(fn, args) =>
             traverseTree(fn)(o)
             val params = fn.tpe.widen match
@@ -459,29 +442,6 @@ final private[framework] class Order(
           case id: Ident => read(id, i)
           case _         => super.traverseTree(t)(o)
       initReads.traverseTree(init)(owner)
-
-  // What a machine's `rules` read of its `Phased[State, Phase](_.phase)` as they initialize: the
-  // projection's body, which the disjointness check calls. The projection itself, an argument of
-  // the machine's constructor, is initialized before the rules.
-  private def phaseRead(cls: ClassDef): List[Tree] =
-    def body(t: Tree): List[Tree] = t match
-      case Lambda(_, b)       => List(b)
-      case Inlined(_, Nil, e) => body(e)
-      case Typed(e, _)        => body(e)
-      case Block(Nil, e)      => body(e)
-      case _                  => Nil
-    if !cls.symbol.typeRef.derivesFrom(rulesClass) then Nil
-    else
-      treeOf(cls.symbol.maybeOwner).toList.flatMap {
-        case machine: ClassDef =>
-          machine.parents.flatMap {
-            case t @ Apply(_, args)
-                if t.symbol.isClassConstructor && t.symbol.maybeOwner == phasedClass =>
-              args.flatMap(body)
-            case _ => Nil
-          }
-        case _ => Nil
-      }
 
   // What constructing `cls` runs of the classes of the lifted sources it extends, outermost last:
   // each one's parents' arguments, its vals' right-hand sides and its statements. A framework class
@@ -503,23 +463,6 @@ final private[framework] class Order(
           case t                                     => Some(t)
         }
       }
-
-  // A call that runs its function arguments while it is made: a rule block, `on(a) { ... }` of
-  // `rules` or of a derivation, or a `from` of them, whose cases run at once; a case, `when(set)`,
-  // `when[R]`, `where(g)` or `.where(g)`, whose condition the disjointness check calls; and the
-  // machine's `Phased` projection, which the conditions of `when` call.
-  private def appliesAtOnce(s: Symbol): Boolean =
-    s.exists && {
-      val owner = s.maybeOwner
-      (owner == rulesClass &&
-        (s.isClassConstructor || Set("on", "when", "from")(s.name))) ||
-      (owner == caseClass && s.name == "where") ||
-      // `where(g)` of the native rules: the action's guard cases applied to a condition.
-      (owner.fullName == "framework.dsl.GuardCases" && s.name == "apply") ||
-      (Set("on", "where")(
-        s.name
-      ) && owner.fullName == "framework.dsl.Syntax$package$")
-    }
 
   // Each cycle of owners, once, at its first read in source order: the owners of one strongly
   // connected part of the reads, written from that read round to where it began.
@@ -627,8 +570,7 @@ final private[framework] class Order(
         def one(k: Kind) = List("" -> k)
         sym.fullName match
           case "framework.dsl.Step" => one(Kind.Step)
-          case "framework.dsl.Monitor" | "framework.dsl.Assumption" | "framework.dsl.Hole" |
-              "framework.dsl.Channel" =>
+          case "framework.dsl.Monitor" | "framework.dsl.Hole" | "framework.dsl.Channel" =>
             one(Kind.Watch)
           case "framework.dsl.Machine" | "framework.dsl.Composition" =>
             one(Kind.Machine)
@@ -901,10 +843,7 @@ final private[framework] class Order(
           )
         case Some(c) =>
           noModelIn(c, s"${plain(c.name)}, an object of the signature")
-        // An assumption no machine makes of its own, which a derivation adds with `assuming` or
-        // a progress claim names with `under`, is the feature's: it sits in the signature.
-        case None if typed(d, Set("framework.dsl.Assumption")) => ()
-        case None                                              =>
+        case None =>
           for k <- kindOf(d) do
             refuse(
               d,

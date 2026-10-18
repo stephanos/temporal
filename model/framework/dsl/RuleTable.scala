@@ -9,21 +9,21 @@ import scala.collection.mutable
 // sections that write blocks extend it and add their words; a block is opened here and its rules
 // bound here.
 abstract class RuleTable[S, O, F] private[framework] (using
-    private[framework] val tableOwner: Owner[S, O, F],
+    private[framework] val tableOwner: MachineDeclaration[S, O, F],
     private[framework] val tableSource: FacetSource
 ) extends RuleBook[S, O, F]:
   private var origin = Option.empty[FacetBindings.Origin]
   final override private[framework] def facetOrigin: Option[FacetBindings.Origin] = origin
   @scala.annotation.publicInBinary
   final private[framework] def retainFacetOrigin(
-      assembly: RecordMachine[?, ?, ?],
+      assembly: MachineDeclaration[?, ?, ?],
       namespace: AnyRef,
       traitClass: java.lang.Class[?],
       traitName: String,
       namespaceName: String,
       rulesName: String
   ): Unit = synchronized {
-    require(assembly.eq(tableOwner.machine), "Machine Facets: foreign RuleBook assembly source")
+    require(assembly.eq(tableOwner), "Machine Facets: foreign RuleBook assembly source")
     require(
       tableSource.facet.nonEmpty && traitName.nonEmpty && namespaceName.nonEmpty &&
         rulesName.nonEmpty,

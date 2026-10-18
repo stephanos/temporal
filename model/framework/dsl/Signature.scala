@@ -209,38 +209,15 @@ private[framework] object Signature:
       case _ =>
         decl.declarationName.effective(decl.name, s"action $id")
 
-  def assumption(value: Assumption): ir.Assumption =
+  private[framework] def assumption(value: EnvironmentAssumption): ir.Assumption =
     val id = value.declarationName.identity(s"assumption ${value.name}")
-    val context = s"assumption $id"
-    val segments = if value.fairSegments.nonEmpty then value.fairSegments
-    else
-      Vector(
-        Assumption.Fairness.Actions(value.fairness),
-        Assumption.Fairness.CompositionTarget(value.composed)
-      )
-    val fair = segments
-      .collect { case Assumption.Fairness.Actions(actions) => actions }
-      .flatten
-      .map(actionId)
-    val refs = segments
-      .collect { case Assumption.Fairness.CompositionTarget(actions) => actions }
-      .flatten
-      .map(_.toIR(context))
-    if fair.nonEmpty && refs.nonEmpty then
-      fail(context, "makes both actions and composed steps fair")
-    val owners = refs.map(_.composition).distinct
-    if owners.size > 1 then
-      fail(
-        context,
-        s"makes steps of ${owners.mkString(" and ")} fair; composed steps are of one composition"
-      )
-    ir.Assumption(id = id, name = value.sourceName, fair = fair, fairRefs = refs)
+    ir.Assumption(id = id, name = value.sourceName)
 
   def hole(value: Hole): ir.Hole =
     val id = value.declarationName.identity(s"hole ${value.name}")
     ir.Hole(id = id, name = value.sourceName)
 
-  def limits(value: Limits): ir.Limits =
+  def limits(value: QueryBounds): ir.Limits =
     val name = value.sourceName
     Seq("steps" -> value.steps, "actions" -> value.actions, "search" -> value.search).foreach {
       (bound, count) =>
@@ -297,9 +274,9 @@ private[framework] object Signature:
   def collect(
       actions: Seq[Action[?]],
       channels: Seq[Channel[?]],
-      assumptions: Seq[Assumption] = Nil,
+      assumptions: Seq[EnvironmentAssumption] = Nil,
       holes: Seq[Hole] = Nil,
-      limits: Seq[Limits] = Nil
+      limits: Seq[QueryBounds] = Nil
   ): ir.Model =
     def unique[A](values: Seq[A], key: A => String): Vector[A] =
       val collected = mutable.LinkedHashMap.empty[String, A]
@@ -326,7 +303,7 @@ private[framework] object Signature:
     ir.Model(
       actions = unique(actions.map(_.toIR), _.id),
       channels = unique(channels.map(_.toIR), _.id),
-      assumptions = named("assumptions", assumptions.map(_.toIR), _.id, _.name),
+      assumptions = named("assumptions", assumptions.map(assumption), _.id, _.name),
       holes = named("holes", holes.map(_.toIR), _.id, _.name),
       types =
         types(actions.flatMap(a => schemas(a.decl)) ++ channels.map(channelSchema), "signature")

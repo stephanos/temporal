@@ -8,8 +8,8 @@ import scala.annotation.unused
 // `visible`, the facts the refined machine sees, `visibleOutcomes`, the outcomes it sees, and
 // `unobservable`, the timers whose step records nothing a Run can read. A machine refines at most
 // one machine. The IR generator reads it from the source.
-abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(
-    val of: RecordMachine[P, ?, ?]
+abstract class Refinement[S, P](using @unused owner: MachineDeclaration[S, ?, ?])(
+    val of: MachineDeclaration[P, ?, ?]
 ):
   // The state of the refined machine a state of this one reads as. Of a Machine that declares its
   // state as vars it reads them by name, `def toProduct(state: State) = Consensus.init.copy(chosen =
@@ -28,7 +28,9 @@ object Refinement:
   // machine need not declare, so the base class names no member for it; it is found as the
   // object's nested module, `<Machine>$refinement$`, which initializes it. The machine's own
   // wiring, its `rules`, reads no section this way.
-  private[framework] def declaredBy(machine: RecordMachine[?, ?, ?]): Option[Refinement[?, ?]] =
+  private[framework] def declaredBy(
+      machine: MachineDeclaration[?, ?, ?]
+  ): Option[Refinement[?, ?]] =
     val declaration =
       try Some(java.lang.Class.forName(machine.getClass.getName + "refinement$"))
       catch case _: ClassNotFoundException => None

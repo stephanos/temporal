@@ -9,17 +9,18 @@ class MachineEndpointsSuite extends munit.FunSuite:
   private val literal = ir.Expr(kind = ir.Expr.Kind.Literal(ir.Value(ir.Value.Kind.Bool(true))))
   private def end(tpe: ir.TypeRef = bool, body: ir.Expr = literal): ir.Expr =
     ir.Expr(kind = ir.Expr.Kind.Lambda(ir.Lambda(Seq(ir.Param("written", Some(tpe))), Some(body))))
-  private def machine: RecordMachine[Boolean, Boolean, Nothing] =
-    new RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = throw AssertionError("init read")
-      def end(s: Boolean): Boolean = throw AssertionError("end read")
-      def transitions: RuleBook[Boolean, Boolean, Nothing] = throw AssertionError(
+  private def machine: MachineDeclaration[State, Boolean, Nothing] =
+    new Machine[Boolean, Nothing]:
+      @scala.annotation.unused
+      var ready = false
+      override def end: Boolean = throw AssertionError("end read")
+      def transitions: RuleBook[State, Boolean, Nothing] = throw AssertionError(
         "transitions read"
       )
       override def name: String = throw AssertionError("public name read")
   private def chunks(bytes: Array[Byte]): Seq[String] = Seq(Base64.getEncoder.encodeToString(bytes))
   private def retained(
-      source: RecordMachine[?, ?, ?],
+      source: MachineDeclaration[?, ?, ?],
       starts: Seq[ir.Expr] = Seq(literal),
       ends: ir.Expr = end(),
       model: ir.Model = ir.Model()
@@ -210,10 +211,11 @@ class MachineEndpointsSuite extends munit.FunSuite:
       )
     ): Unit
     val original = pending.endpointMetadata
-    val stale = new RecordMachine[Boolean, Boolean, Nothing]:
-      def init = false
-      def end(s: Boolean) = s
-      object transitions extends Bindings()
+    val stale = new Machine[Boolean, Nothing]:
+      @scala.annotation.unused
+      var ready = false
+      override def end = ready
+      object transitions extends Transitions(using summon, Ok(true), summon)
       override private[framework] def endpointMetadata = original
     stale.retainHeaderIdentity("fixture", "source")
     assert(

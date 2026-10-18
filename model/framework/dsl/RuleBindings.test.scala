@@ -14,18 +14,41 @@ class RuleBindingsSuite extends munit.FunSuite:
   private def action(name: String): Action[EmptyTuple] =
     framework.dsl.action(name, Actor("user")).declaredAt(s"fixture.$name")
 
-  // Runtime-only metadata controls; compiled author admission is tested by ConstructedRulesSuite.
-  private class Source(facet: Boolean = false) extends RecordMachine[Boolean, Boolean, Nothing]:
-    def init: Boolean = throw AssertionError("init read")
-    def end(s: Boolean): Boolean = throw AssertionError("end read")
-    override def name: String = throw AssertionError("public name read")
+  private val stateName = "fixture.Source.State"
+  private val stateRef = ir.TypeRef(ir.TypeRef.Ref.Named(stateName))
+  private val stateShape = ir.Type(
+    name = stateName,
+    shape = ir.Type.Shape.Record(ir.Record(Vector(ir.Field("ready", Some(bool)))))
+  )
 
-    object transitions extends Rules:
-      override private[framework] def facetSource = if facet then Some("fixture.facet") else None
-    var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
-    override private[framework] def table = rows
+  final private class Rows:
+    var value = Vector.empty[(ActionDecl, Bound[State, Boolean, Nothing])]
+
+  private class Source(facet: Boolean = false) extends Machine[Boolean, Nothing]:
+    var ready = false
+    private val retainedRows = new Rows
+    def rows =
+      retainedRows.value
+    def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+      retainedRows.value = value
+    override def end: Boolean =
+      throw AssertionError("end read")
+    override def name: String =
+      throw AssertionError("public name read")
+
+    object transitions extends Transitions(using summon, Ok(true), summon):
+      override private[framework] def facetSource =
+        if facet then Some("fixture.facet") else None
+    override private[framework] def table =
+      rows
     retainHeaderIdentity("fixture", "source")
-    retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
+    retainHeaderSchema(
+      0,
+      stateName,
+      Seq(encoded(stateRef)),
+      Seq(encoded(ir.Model(types = Seq(stateShape)))),
+      Nil
+    )
 
   private def packet(source: Source): RuleBindings.Packet = RuleBindings.Packet(
     source.getClass.getName,
@@ -33,11 +56,30 @@ class RuleBindingsSuite extends munit.FunSuite:
     "source",
     ir.Position("rules.scala", 5),
     ir.Position("rules.scala", 6),
-    Vector(ir.Param("written", Some(bool))),
+    Vector(ir.Param("written", Some(stateRef))),
     literal,
     list,
-    ir.Model()
+    ir.Model(types = Seq(stateShape))
   )
+
+  private def retained(
+      source: Source,
+      decl: ActionDecl,
+      p: RuleBindings.Packet
+  ): Rule[State, Boolean, Nothing] =
+    val guard: State => Boolean = _ => true
+    val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] =
+      (state, _) => List(Step(true, state))
+    val row = Rule(1, "always", decl.name, decl, None, guard, effect)
+    row.retainedRule = Some(
+      RuleBindings.Retained(
+        row,
+        RuleBindings.registration(source, decl, None, guard, effect, p)
+      )
+    )
+    row
+
+  final private case class Guard(guard: State => Boolean)
 
   private def data(packet: RuleBindings.Packet): Seq[String] =
     Seq(
@@ -59,20 +101,6 @@ class RuleBindingsSuite extends munit.FunSuite:
       ) ++ packet.curriedCalls.flatMap(p =>
         Seq(encoded(p.call), encoded(p.function), p.groups.mkString(","), p.owner.getOrElse(""))
       )
-
-  private def retained(
-      source: Source,
-      decl: ActionDecl,
-      p: RuleBindings.Packet
-  ): Rule[Boolean, Boolean, Nothing] =
-    val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
-    val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
-      (s, _) => List(Step(true, s))
-    val r = Rule(1, "always", decl.name, decl, None, c.guard, effect)
-    r.retainedRule = Some(
-      RuleBindings.Retained(r, RuleBindings.registration(source, decl, None, c.guard, effect, p))
-    )
-    r
 
   test("native rule callback validation accepts one selected record type without catalog reads"):
     final case class Request(first: Boolean, middle: Boolean, last: Boolean)
@@ -102,7 +130,9 @@ class RuleBindingsSuite extends munit.FunSuite:
       val _ = start.retainInputSchema(index, "scala.Boolean", Seq(encoded(bool)), Nil, Nil)
     val source = new Source
     val correct =
-      packet(source).copy(params = Vector(ir.Param("s", Some(bool)), ir.Param("in", Some(record))))
+      packet(source).copy(params =
+        Vector(ir.Param("s", Some(stateRef)), ir.Param("in", Some(record)))
+      )
     assertEquals(
       retained(source, start.decl, correct).retainedRule.get.registration.packet.params.size,
       2
@@ -112,9 +142,9 @@ class RuleBindingsSuite extends munit.FunSuite:
       1
     )
     for params <- Vector(
-        Vector(ir.Param("s", Some(bool)), ir.Param("in", Some(bool))),
+        Vector(ir.Param("s", Some(stateRef)), ir.Param("in", Some(bool))),
         Vector(
-          ir.Param("s", Some(bool)),
+          ir.Param("s", Some(stateRef)),
           ir.Param("a", Some(bool)),
           ir.Param("b", Some(bool)),
           ir.Param("c", Some(bool))
@@ -175,8 +205,10 @@ class RuleBindingsSuite extends munit.FunSuite:
       original.copy(),
       original.copy(decl = action("other").decl),
       original.copy(values = Some(List(true))),
-      original.copy[Boolean, Boolean, Nothing](guard = (s: Boolean) => s),
-      original.copy[Boolean, Boolean, Nothing](effect = (s, _) => List(Step(false, s)))
+      original.copy[State, Boolean, Nothing](guard =
+        (state: State) => source.at(state)(source.ready)
+      ),
+      original.copy[State, Boolean, Nothing](effect = (s, _) => List(Step(false, s)))
     )
     changes.zipWithIndex.foreach { (r, index) =>
       if index > 0 then r.retainedRule = original.retainedRule.map(_.copy(rule = r))
@@ -204,11 +236,13 @@ class RuleBindingsSuite extends munit.FunSuite:
       base.copy(owner = "wrong.Owner") -> "owner",
       base.copy(family = "wrong") -> "registration",
       base.copy(params = Vector.empty) -> "state type",
-      base.copy(params = Vector(ir.Param("s", Some(bool)), ir.Param("i", Some(bool)))) -> "arity",
+      base.copy(params =
+        Vector(ir.Param("s", Some(stateRef)), ir.Param("i", Some(bool)))
+      ) -> "arity",
       base.copy(params =
         Vector(ir.Param("s", Some(ir.TypeRef(ir.TypeRef.Ref.Named("Absent")))))
       ) -> "state type",
-      base.copy(params = Vector(ir.Param("", Some(bool)))) -> "parameters",
+      base.copy(params = Vector(ir.Param("", Some(stateRef)))) -> "parameters",
       base.copy(guard = ir.Expr(kind = ir.Expr.Kind.Var("free"))) -> "binding",
       base.copy(guard = ir.Expr()) -> "expression",
       base.copy(guard =
@@ -277,10 +311,10 @@ class RuleBindingsSuite extends munit.FunSuite:
       val r = retained(source, go.decl, p)
       source.rows = Vector(go.decl -> Bound.Ruled(Vector(r)))
       RuleBindings.collect(source)
-    assertEquals(collect(base).types, Vector(record.copy(position = location.position)))
+    assertEquals(collect(base).types, Vector(record.copy(position = location.position), stateShape))
     assertEquals(
       collect(base.copy(typePositions = Vector(location.withPosition(ir.Position())))).types,
-      Vector(record.withPosition(ir.Position()))
+      Vector(record.withPosition(ir.Position()), stateShape)
     )
     val unknown = base.copy(typePositions = Vector(location.withPosition(ir.Position())))
     assertEquals(
@@ -297,62 +331,13 @@ class RuleBindingsSuite extends munit.FunSuite:
       assert(error.getMessage.contains("position"), error.getMessage)
     }
 
-  test("Firing consumes once and clears pending data after registration and callback exceptions"):
-    val source = new Source
-    val go = action("go")
-    val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
-    val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
-      (s, _) => List(Step(true, s))
-    var captures = Vector.empty[Option[RuleBindings.Registration]]
-    val firing = Firing[Boolean, Boolean, Nothing, EmptyTuple](
-      go.decl,
-      None,
-      "go",
-      (_, _, capture) => captures :+= capture,
-      Some(source)
-    )
-    val payload = data(packet(source))
-    intercept[IllegalArgumentException](firing.retaining(c, payload) {
-      firing.bind(c, effect)
-      firing.bind(c, effect)
-    }): Unit
-    firing.bind(c, effect)
-    assertEquals(captures.map(_.nonEmpty), Vector(true, false))
-    intercept[IllegalStateException](
-      firing.retaining(c, payload)(throw IllegalStateException("body"))
-    ): Unit
-    firing.bind(c, effect)
-    assert(captures.last.isEmpty)
-    intercept[IllegalArgumentException](firing.retaining(c, payload) {}): Unit
-    firing.retaining(c, payload)(firing.bind(c, effect))
-    assert(captures.last.nonEmpty)
-    val broken = Firing[Boolean, Boolean, Nothing, EmptyTuple](
-      go.decl,
-      None,
-      "go",
-      (_, _, _) => throw IllegalStateException("callback"),
-      Some(source)
-    )
-    for _ <- 1 to 2 do
-      assertEquals(
-        intercept[IllegalStateException](
-          broken.retaining(c, payload)(broken.bind(c, effect))
-        ).getMessage,
-        "callback"
-      )
-    intercept[IllegalArgumentException](
-      firing.retaining(c, data(packet(source).copy(owner = "wrong")))(firing.bind(c, effect))
-    ): Unit
-    firing.bind(c, effect)
-    assert(captures.last.isEmpty)
-
   test(
     "pending declarations Facets and invalid retained typed class domains refuse before rows escape"
   ):
-    val pending = new RecordMachine[Boolean, Boolean, Nothing]:
-      def init: Boolean = false
-      def end(s: Boolean): Boolean = s
-      def transitions: RuleBook[Boolean, Boolean, Nothing] =
+    val pending = new Machine[Boolean, Nothing]:
+      @scala.annotation.unused
+      var ready = false
+      def transitions: RuleBook[State, Boolean, Nothing] =
         throw AssertionError("early transitions read")
     assert(
       intercept[IllegalArgumentException](RuleBindings.collect(pending)).getMessage
@@ -365,8 +350,8 @@ class RuleBindingsSuite extends munit.FunSuite:
     val source = new Source
     val go = action("selected").input[Boolean](name = "flag")
     go.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
-    val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
-    val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
+    val c = Guard(_ => true)
+    val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] =
       (s, _) => List(Step(true, s))
     val values = Some(List[Any](true))
     val registration =
@@ -442,8 +427,15 @@ class RuleBindingsSuite extends munit.FunSuite:
     )
     val proof = CoreBindings.CurriedCall(call, helper, Vector(1, 1), Some(wrapper.name))
     val p = packet(source).copy(
-      params = Vector(ir.Param("$ruleState", Some(bool))),
-      guard = ir.Expr(kind = ir.Expr.Kind.Call(ir.Call(wrapper.name, Seq(argument)))),
+      params = Vector(ir.Param("$ruleState", Some(stateRef))),
+      guard = ir.Expr(kind =
+        ir.Expr.Kind.Call(
+          ir.Call(
+            wrapper.name,
+            Seq(ir.Expr(kind = ir.Expr.Kind.Field(ir.FieldAccess(Some(argument), "ready"))))
+          )
+        )
+      ),
       model = ir.Model(functions = Seq(helper, wrapper)),
       curriedCalls = Vector(proof)
     )
@@ -480,7 +472,7 @@ class RuleBindingsSuite extends munit.FunSuite:
       ._2
     source.rows = Vector(go.decl -> disabled)
     assertEquals(RuleBindings.collect(source).steps.map(_.function), Vector("source.rules.go"))
-    val stale = Bound.Disabled[Boolean, Boolean, Nothing]()
+    val stale = Bound.Disabled[State, Boolean, Nothing]()
     stale.retainedDisabled = disabled.retainedDisabled
     source.rows = Vector(go.decl -> stale)
     assert(
@@ -518,114 +510,63 @@ class RuleBindingsSuite extends munit.FunSuite:
   ):
     var catalogs = 0
     var guards = 0
-    var effects = 0
-    var callbacks = 0
+    var effectCalls = 0
     var getters = 0
-    var projections = 0
-    var writers = 0
     var endpoints = 0
     var refinements = 0
     given Finite[Boolean] = new Finite[Boolean]:
       def values: IndexedSeq[Boolean] =
         catalogs += 1
         Vector(false, true)
-    object hand extends Actor:
-      private val firstValue =
-        RuleBindingsSuite.this
-          .action("first")
-          .input[Boolean](name = "flag")
-          .declaredAt("fixture.first")
-      private val secondValue =
-        RuleBindingsSuite.this
-          .action("second")
-          .input[Boolean](name = "flag")
-          .declaredAt("fixture.second")
-      private val offValue = RuleBindingsSuite.this.action("off")
+    object hand:
+      private val actor = Actor("hand")
+      private val firstValue = framework.dsl
+        .action("first", actor)
+        .input[Boolean](name = "flag")
+        .declaredAt("fixture.first")
+      private val secondValue = framework.dsl
+        .action("second", actor)
+        .input[Boolean](name = "flag")
+        .declaredAt("fixture.second")
+      private val offValue = framework.dsl.action("off", actor).declaredAt("fixture.off")
       Seq(firstValue, secondValue).foreach(
         _.retainInputSchema(0, "scala.Boolean", Seq(encoded(bool)), Nil, Nil): Unit
       )
       def first =
-        getters += 1; firstValue
+        getters += 1
+        firstValue
       def second =
-        getters += 1; secondValue
+        getters += 1
+        secondValue
       def off =
-        getters += 1; offValue
-    object Timed extends RecordMachine[Boolean, Boolean, Nothing]:
-      retainHeaderIdentity("fixture", "timed")
-      retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
-      override def name: String = "timed"
-      def init: Boolean =
-        endpoints += 1; false
-      def end(s: Boolean): Boolean =
-        endpoints += 1; s
-      override private[framework] def refinementEvidence: Option[Refinement[Boolean, ?]] =
+        getters += 1
+        offValue
+    object Timed extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean =
+        endpoints += 1
+        ready
+      override private[framework] def refinementEvidence: Option[Refinement[State, ?]] =
         refinements += 1
         None
-      def project(s: Boolean): Boolean =
-        projections += 1; s
-      def write(s: Boolean): Boolean =
-        writers += 1; s
-      def effect(s: Boolean): List[Step[Boolean, Boolean, Nothing]] =
-        effects += 1
-        List(Step(true, write(s)))
-      def payload(guard: ir.Expr): Seq[String] = data(
-        RuleBindings.Packet(
-          getClass.getName,
-          "fixture",
-          "timed",
-          ir.Position("timing.scala", 1),
-          ir.Position("timing.scala", 2),
-          Vector(ir.Param("written", Some(bool))),
-          guard,
-          list,
-          ir.Model()
-        )
-      )
-      object transitions extends Rules:
-        from(hand):
-          on(hand.first, hand.second):
-            callbacks += 1
-            val c = Case[Boolean, Boolean, Nothing](
-              "off",
-              s =>
-                guards += 1; !project(s)
-            )
-            c.capturedRule0(effect, payload(literal))
-          on(hand.first, hand.second):
-            callbacks += 1
-            val c = Case[Boolean, Boolean, Nothing](
-              "on",
-              s =>
-                guards += 1; project(s)
-            )
-            c.capturedRule0(effect, payload(literal))
-          capturedDisabledRules(hand.off)(
-            Seq(
-              "ordinary-disabled-v1",
-              Timed.getClass.getName,
-              "fixture",
-              "timed",
-              "1",
-              encoded(ir.Model()),
-              "off",
-              encoded(ir.Position("timing.scala", 3))
-            )
-          )
+      def enabled(flag: Boolean): Boolean =
+        guards += 1
+        flag != ready
+      object effects:
+        def update(flag: Boolean) =
+          effectCalls += 1
+          ready = flag
+      object transitions extends Transitions(using summon, Ok(true), summon):
+        on(hand.first): flag =>
+          if enabled(flag) then effects.update(flag)
+        on(hand.second): flag =>
+          if enabled(flag) then effects.update(flag)
+        disabled(hand.off)
     val table = Timed.table
     assertEquals(table.size, 3)
-    assertEquals(callbacks, 4)
     assert(getters > 0)
-    assertEquals((catalogs, guards, projections), (0, 0, 0))
-    assertEquals((effects, writers, endpoints, refinements), (0, 0, 0, 0))
-    val first =
-      (catalogs, guards, effects, callbacks, getters, projections, writers, endpoints, refinements)
-    val captured = RuleBindings.collect(Timed)
-    assertEquals(captured.steps.size, 3)
-    assertEquals(RuleBindings.collect(Timed), captured)
+    assertEquals((catalogs, guards, effectCalls, endpoints, refinements), (0, 0, 0, 0, 0))
+    val before = (catalogs, guards, effectCalls, getters, endpoints, refinements)
     val _ = Timed.bindings
     Timed.table: Unit
-    assertEquals(
-      (catalogs, guards, effects, callbacks, getters, projections, writers, endpoints, refinements),
-      first
-    )
-    println(s"rules-native-first-acquisition=$first; collection-delta=0")
+    assertEquals((catalogs, guards, effectCalls, getters, endpoints, refinements), before)

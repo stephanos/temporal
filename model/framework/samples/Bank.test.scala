@@ -11,7 +11,7 @@ class BankTest extends munit.FunSuite:
   val _ = () => summon[CanEqual[Bank.Outcome, Bank.Outcome]]
 
   private def run[S, O](
-      machine: RecordMachine[S, O, Nothing],
+      machine: MachineDeclaration[S, O, Nothing],
       state: S,
       cls: Class
   ): List[Step[S, O, Nothing]] =

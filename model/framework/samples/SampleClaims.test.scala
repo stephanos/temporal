@@ -20,7 +20,7 @@ object SampleClaims:
   // Whether `member` of the section `section` of `owner` holds of `step`: None where it is about the
   // steps of a target `taken` is not one of.
   def judged(
-      machine: RecordMachine[?, ?, ?],
+      machine: MachineDeclaration[?, ?, ?],
       owner: AnyRef,
       section: String,
       member: String,
@@ -46,7 +46,7 @@ object SampleClaims:
     evaluated.failure(ref.member).isEmpty
 
   // Whether a claim written in a test, `invariant(check(!beeping))`, holds in `now` of `machine`.
-  def holds(machine: RecordMachine[?, ?, ?], claim: NativeClaims.Adhoc, now: Any): Boolean =
+  def holds(machine: MachineDeclaration[?, ?, ?], claim: NativeClaims.Adhoc, now: Any): Boolean =
     ClaimEvaluation
       .evaluate(machine.stateVars.get, claim, state(now), ClaimEvaluation.Context())
       .checks
@@ -56,8 +56,8 @@ object SampleClaims:
     ClaimEvaluation.sectionClass(ref.machine, ref.section).get
 
   private def vars(ref: NativeClaims.Ref): Vars = ref.machine match
-    case m: RecordMachine[?, ?, ?] => m.stateVars.get
-    case other                     => throw IllegalArgumentException(s"${other.name} has no vars")
+    case m: MachineDeclaration[?, ?, ?] => m.stateVars.get
+    case other => throw IllegalArgumentException(s"${other.name} has no vars")
 
   private def state(value: Any): State = value match
     case s: State => s

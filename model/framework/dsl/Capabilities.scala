@@ -32,21 +32,23 @@ trait CapabilityKind:
 // A capability kind's companion defines the Properties it brings, each a def that takes the model,
 // then fields of declared capabilities by name; declaring the capabilities whose fields a def reads
 // brings it. The IR generator (model/framework/export/Capabilities.scala) expands each into a Property, a
-// Scenario and a Query named `<machine>.<property>`, the Property with the def as its origin, and
-// bounds the Queries where a `queries` section says, `capabilities.bound(three)`. `Capability` is
+// Scenario and a Query named `<machine>.<property>`, the Property with the def as its origin.
+// These are retained IR metadata, not public Query builders. `Capability` is
 // the machine's own capability type, so a capability of another machine's states, outcomes or
 // facts does not compile, and one whose state type no field names still takes the machine's.
 //
 // A capability set several designs share, waivers included, is written once as a class of its own
-// that extends this one, `abstract class Shared(m: M)(using Declaring[S, O, F])`, which each
-// design's section extends, `object capabilities extends Shared(this)`: its vals and waivers are
+// that extends this one with the same declaration context, which each
+// design's section extends: its vals and waivers are
 // the section's.
-abstract class Capabilities[S, O, F](using declaring: Declaring[S, O, F]):
+abstract class Capabilities[S, O, F](using
+    declaring: Declares[S] { type Outcome = O; type Fact = F }
+):
   // A capability of this machine or composition.
   protected type Capability = CapabilityOf[S, O, F]
 
   // The machine or composition the section declares the capabilities of.
-  private[framework] def model: Declares[S] = declaring.model
+  private[framework] def model: Declares[S] = declaring
 
   // Lifts no Property and no Query for the capability Property `property`, for the reason
   // `because` gives: `except(<Capability>.<property>, because = "…")`.
@@ -74,4 +76,3 @@ abstract class Capabilities[S, O, F](using declaring: Declaring[S, O, F]):
   // Bounds every Query generated from the Properties these capabilities bring under `limits`, and
   // each capability Property `overrides` names under its own: a statement of a `queries` section,
   // `capabilities.bound(three, <Capability>.<property> -> five)`.
-  def bound(@unused limits: Limits, @unused overrides: (AnyRef, Limits)*): Unit = ()

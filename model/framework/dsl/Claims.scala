@@ -276,10 +276,9 @@ final class ScenarioBuilder[S] private[framework] (
     ScenarioDecl(name, m, start, Vector.empty, free = true)
   )
 
-// Bounds a Query: `steps` is the depth bound, `actions` the schedule length, and `search` the
-// number of product states the search may visit before it reports limit-reached. Declared with
-// named arguments and no `name`, the bounds are named after the `val` that declares them.
-final case class Limits private[framework] (
+// Private bounds carried by retained Query containers until their retirement: depth, schedule
+// length and visited-state budget. Native callers configure the checker, not these metadata.
+final private[framework] case class QueryBounds private[framework] (
     name: String = "",
     steps: Int,
     actions: Int,
@@ -291,8 +290,8 @@ final case class Limits private[framework] (
       steps: Int = this.steps,
       actions: Int = this.actions,
       search: Int = this.search
-  ): Limits =
-    val value = Limits(name, steps, actions, search)
+  ): QueryBounds =
+    val value = QueryBounds(name, steps, actions, search)
     declarationName.copyTo(value.declarationName)
     value
 
@@ -303,8 +302,8 @@ enum QueryForm:
   // Whether the Property holds on every trace of the Scenario.
   case verify
 
-private[framework] val frameworkReach: Limits =
-  Limits("frameworkReach", steps = 256, actions = 0, search = 65536)
+private[framework] val frameworkReach: QueryBounds =
+  QueryBounds("frameworkReach", steps = 256, actions = 0, search = 65536)
 
 enum Checker:
   case umpire, apalache, tlc
@@ -335,13 +334,13 @@ final private[framework] case class QueryConfiguration(
     require(!checkers.contains(checker), "confirm must exclude the primary checker")
     copy(confirmations = checkers.toVector)
 
-// A bounded question about a machine: a Property, a Scenario and Limits.
+// A bounded question about a machine: a Property, a Scenario and QueryBounds.
 class Query private[framework] (
     val name: String,
     val form: QueryForm,
     val property: PropertyDecl,
     val scenario: ScenarioDecl,
-    val limits: Limits,
+    private[framework] val limits: QueryBounds,
     private[framework] val configuration: QueryConfiguration = QueryConfiguration()
 ):
   def expectedRun: Option[framework.realize.RunExpectation] = configuration.expectedRun
@@ -350,7 +349,7 @@ class Query private[framework] (
   def checker: Checker = configuration.checker
   def confirmations: Vector[Checker] = configuration.confirmations
 
-  def reach: Limits =
+  private[framework] def reach: QueryBounds =
     val bounds = scenario.machine match
       case owner: Declares[?] => owner.reach
       case _ => throw IllegalArgumentException("Query reach requires a Scenario declaration owner")
@@ -410,7 +409,7 @@ final class ClaimQuery private[framework] (
   inline infix def in(@scala.annotation.unused other: Any): Nothing =
     scala.compiletime.error("in takes a scenario: only(...), fair(...), starts(...) or a named one")
 
-  // A Model declares no Limits: a bound is a promise or the checker's budget.
+  // A Model declares no QueryBounds: a bound is a promise or the checker's budget.
   inline infix def limits(@scala.annotation.unused bounds: Any): Nothing =
     scala.compiletime.error(
       "a bound is a promise (within) or a budget (the checker's configuration); a Model declares " +
@@ -458,38 +457,6 @@ object ClaimQuery:
     )
     ClaimQuery(form, decl, Scenario.of(None, None).bound(machine, ""))
 
-// `val completion = query find completes in completed limits three`, named after its `val`, or
-// `query("syncCompletion") find syncSucceeds in syncReplied limits two`. A Query neither names, such
-// as an item of a list, is named `<machine>.<scenario>.<property>` after its Scenario's machine, its
-// Scenario and its Property.
-final class QueryDecl private[framework] (name: String):
-  infix def find(p: Property): QueryOn =
-    QueryOn(name, QueryForm.find, p)
-  infix def verify(p: Property): QueryOn =
-    QueryOn(name, QueryForm.verify, p)
-
-final class QueryOn private[framework] (
-    name: String,
-    form: QueryForm,
-    p: Property
-):
-  // The Scenario's machine is the Property's, or refines it: a Property of the refined machine is
-  // read through the refinement the Scenario's machine declares. `RecordMachine[S, O, F]` does not carry
-  // the type it refines, so the lifter, not the compiler, refuses a pair of unrelated machines.
-  infix def in(s: Scenario): QueryIn = QueryIn(name, form, p.decl, s.decl)
-
-final class QueryIn private[framework] (
-    name: String,
-    form: QueryForm,
-    p: PropertyDecl,
-    s: ScenarioDecl
-):
-  infix def limits(l: Limits): Query = Query(name, form, p, s, l)
-
-private[framework] def query(name: String): QueryDecl = QueryDecl(name)
-
-private[framework] def query: QueryDecl = QueryDecl("")
-
 // The unfinished path claim: it becomes an ordinary find Query only when a fact is stated.
 object WitnessBuilder:
   def declared[S, O, F](
@@ -514,7 +481,7 @@ final class WitnessBuilder[S, O, F] private[framework] (
       recorded,
       Vector.empty,
       None,
-      Limits(steps = path.size, actions = path.size, search = 512)
+      QueryBounds(steps = path.size, actions = path.size, search = 512)
     )
 
 // A completed path claim, usable at every Query root. Its ordinary core declarations carry the
@@ -526,7 +493,7 @@ final class Witness[S, O, F] private[framework] (
     private[framework] val recorded: Step[S, O, F] => Boolean,
     private[framework] val conditional: Vector[Step[S, O, F] => Boolean],
     private[framework] val ending: Option[S => Boolean],
-    bounds: Limits,
+    bounds: QueryBounds,
     config: QueryConfiguration = QueryConfiguration()
 ) extends Query(
       named,
@@ -559,13 +526,10 @@ final class Witness[S, O, F] private[framework] (
   def ends(predicate: => Boolean)(using reads: S <:< State): Witness[S, O, F] =
     copyWitness(ending = Some(s => reads(s).owner.at(s)(predicate)))
 
-  private[framework] def limits(bounds: Limits): Witness[S, O, F] =
-    copyWitness(bounds = bounds)
-
   private def copyWitness(
       conditional: Vector[Step[S, O, F] => Boolean] = this.conditional,
       ending: Option[S => Boolean] = this.ending,
-      bounds: Limits = limits,
+      bounds: QueryBounds = limits,
       config: QueryConfiguration = configuration
   ): Witness[S, O, F] =
     Witness(

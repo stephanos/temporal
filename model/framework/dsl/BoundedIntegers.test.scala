@@ -7,14 +7,19 @@ object BoundedIntegersFixture:
   object counter extends Actor:
     val tick = action
 
-  // A whole state that is a bounded counter, authored without explicit evidence.
-  object Bounded extends RecordMachine[UpTo[2], Boolean, Nothing]:
-    val init = UpTo[2](0)
-    def end(s: UpTo[2]): Boolean = s == UpTo[2](2)
+  given Ok[Boolean] = Ok(false)
 
-    object transitions extends Rules:
+  object Bounded extends Machine[Boolean, Nothing]:
+    var count: UpTo[2] = UpTo(0)
+    override def end: Boolean = count == 2
+
+    object transitions extends Transitions:
       on(counter.tick):
-        where(s => s < 2) ~> ((s: UpTo[2]) => List(Step(false, UpTo[2](s + 1))))
+        if count < 2 then effects.increment()
+
+    object effects:
+      def increment(): Unit =
+        count = UpTo(count + 1)
 
 class BoundedIntegersSuite extends munit.FunSuite:
   final val one = 1
@@ -33,13 +38,16 @@ class BoundedIntegersSuite extends munit.FunSuite:
     given Finite[Int] = Finite.upTo(2)
     assertEquals(Finite[Int].values.toList, List(0, 1, 2))
 
-  test("a machine whose whole state is UpTo[N] constructs and steps"):
+  test("a machine's UpTo[N] var constructs and steps"):
     import BoundedIntegersFixture.*
     assert(summon[Data[UpTo[2]]].compare(UpTo[2](1), UpTo[2](2)) < 0)
     val binding = Bounded.bindings.find(_.decl eq counter.tick.decl).get
-    val step = effectOf[UpTo[2], Boolean, Nothing](binding.decl, binding.function)
-    assertEquals(Bounded.init: Int, 0)
-    assertEquals(step(UpTo[2](0), Nil).map(_.state: Int), List(1))
-    assertEquals(step(UpTo[2](1), Nil).map(_.state: Int), List(2))
-    assertEquals(step(UpTo[2](2), Nil), Nil)
-    assert(Bounded.end(UpTo[2](2)))
+    val step = effectOf[State, Boolean, Nothing](binding.decl, binding.function)
+    assertEquals(Bounded.init, Bounded.init.copy(count = UpTo[2](0)))
+    assertEquals(step(Bounded.init, Nil).map(_.state), List(Bounded.init.copy(count = UpTo[2](1))))
+    assertEquals(
+      step(Bounded.init.copy(count = UpTo[2](1)), Nil).map(_.state),
+      List(Bounded.init.copy(count = UpTo[2](2)))
+    )
+    assertEquals(step(Bounded.init.copy(count = UpTo[2](2)), Nil), Nil)
+    assert(Bounded.end(Bounded.init.copy(count = UpTo[2](2))))

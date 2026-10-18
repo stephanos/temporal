@@ -25,8 +25,6 @@ private[framework] trait BodyEngine
     case Always
     case And(heading: Heading, guard: Term)
 
-  private lazy val ruleCaseClass = Symbol.requiredClass("framework.dsl.Case")
-
   def ruleCall(t: Term): Option[(String, List[List[Term]])] = t match
     case Apply(fn, args)  => ruleCall(fn).map((n, as) => (n, as :+ args))
     case TypeApply(fn, _) => ruleCall(fn)
@@ -43,7 +41,7 @@ private[framework] trait BodyEngine
         tree match
           case t: Term
               if ruleCall(t).exists { case (name, args) =>
-                name == "on" && ((t.symbol.maybeOwner == rulesClass && args.size == 2) ||
+                name == "on" && ((t.symbol.maybeOwner.fullName == "framework.dsl.Rules" && args.size == 2) ||
                   (t.symbol.maybeOwner.fullName == sugarOwner && args.size == 3))
               } &&
                 t.pos.start <= at.pos.start && t.pos.end >= at.pos.end =>
@@ -105,7 +103,8 @@ private[framework] trait BodyEngine
     t.widen.dealias.baseClasses.exists(_.fullName == "framework.dsl.Action")
 
   def ruleHeading(c: Term, machine: String): Heading = unwrapped(c) match
-    case w @ Apply(Select(inner, "where"), List(g)) if w.symbol.maybeOwner == ruleCaseClass =>
+    case w @ Apply(Select(inner, "where"), List(g))
+        if w.symbol.maybeOwner.fullName == "framework.dsl.Case" =>
       Heading.And(ruleHeading(inner, machine), g)
     // A state condition of the block's action, its guard cases applied to it: `where(g)`.
     case Apply(Select(guards, "apply"), List(g))
@@ -115,15 +114,16 @@ private[framework] trait BodyEngine
       val owner = t.symbol.maybeOwner
       ruleCall(t) match
         // `when[R]`: its role test's type, `TypeTest[P, R]`, names the phase type and the role.
-        case Some(("when", List(List(test, _, _)))) if owner == rulesClass =>
+        case Some(("when", List(List(test, _, _)))) if owner.fullName == "framework.dsl.Rules" =>
           test.tpe.widen.dealias.typeArgs match
             case List(phase, role) => Heading.Role(test, phase, role, t)
             case _                 => fail(t, s"when tests a role, not ${test.show}")
-        case Some(("when", List(List(first, rest), _))) if owner == rulesClass =>
+        case Some(("when", List(List(first, rest), _)))
+            if owner.fullName == "framework.dsl.Rules" =>
           val phases = first :: varargs(rest)
           phases.foreach(qualifiedPhase(_, machine))
           Heading.In(first, phases)
-        case Some(("when", List(List(set), _))) if owner == rulesClass =>
+        case Some(("when", List(List(set), _))) if owner.fullName == "framework.dsl.Rules" =>
           qualifiedPhase(set, machine)
           Heading.InSet(set, set)
         case Some(("where", List(_, List(g)))) if owner.fullName == sugarOwner =>
@@ -452,24 +452,6 @@ private[framework] trait BodyEngine
               binding(Map.empty, Map.empty, Map(parameter.symbol -> args.head))(lift(body))
             case "roleCases" => roleSet(body.tpe, roles.head, projection, Some(reader))
             case _           => fail(t, s"no phase reading $name")
-        }
-        .orElse {
-          contextualFacet.flatMap { _ =>
-            val declared = receiver.tpe match
-              case TermRef(ThisType(self), _) => self.typeSymbol
-              case TermRef(prefix, _)         => prefix.typeSymbol
-              case other                      => other.typeSymbol
-            if !facetTrait(declared) then None
-            else
-              name match
-                case "phase" if args.size == 1 =>
-                  contextualPhaseRead(lift(args.head), t, None, Some(declared))
-                case "roleCases" if roles.nonEmpty =>
-                  val phased =
-                    declared.typeRef.baseType(Symbol.requiredClass("framework.dsl.Phased"))
-                  phased.typeArgs.lift(1).map(phase => roleSet(phase, roles.head, t))
-                case _ => None
-          }
         }
     }
 

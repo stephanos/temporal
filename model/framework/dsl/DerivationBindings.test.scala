@@ -12,40 +12,51 @@ class DerivationBindingsSuite extends munit.FunSuite:
   private def encoded(value: scalapb.GeneratedMessage): String =
     Base64.getEncoder.encodeToString(value.toByteArray)
   final private class Reads:
-    var starts = 0
     var ends = 0
     var books = 0
     var values = 0
     var guards = 0
     var effects = 0
     var operands = 0
-    def snapshot = Vector(starts, ends, books, values, guards, effects, operands)
-  private class Input(reads: Reads)
-      extends RecordMachine[Boolean, Boolean, Nothing](using
-        new Finite[Boolean]:
-          def values =
-            reads.values += 1
-            IndexedSeq(false, true)
-        ,
-        Finite[Boolean],
-        Finite[Nothing]
-      ):
-    var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
-    def init =
-      reads.starts += 1
-      false
-    def end(s: Boolean) =
+    def snapshot = Vector(ends, books, values, guards, effects, operands)
+  private val stateName = "proof.Input.State"
+  private val stateRef = ir.TypeRef(ir.TypeRef.Ref.Named(stateName))
+  private val stateShape = ir.Type(
+    name = stateName,
+    shape = ir.Type.Shape.Record(ir.Record(Vector(ir.Field("ready", Some(bool)))))
+  )
+  final private case class Guard(guard: State => Boolean)
+  final private class Rows:
+    var value = Vector.empty[(ActionDecl, Bound[State, Boolean, Nothing])]
+  private class Input(reads: Reads) extends Machine[Boolean, Nothing]:
+    override private[framework] val fs: Data[State] = new Finite[State]:
+      def values: IndexedSeq[State] =
+        reads.values += 1
+        throw AssertionError("state catalog evaluated")
+    var ready = false
+    private val retainedRows = new Rows
+    def rows = retainedRows.value
+    def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+      retainedRows.value = value
+    override def end: Boolean =
       reads.ends += 1
-      s
+      ready
 
-    private object written extends Rules:
+    private object written extends Transitions(using summon, Ok(true), summon):
       override private[framework] def table = rows
-    def transitions: RuleBook[Boolean, Boolean, Nothing] =
+    def transitions: RuleBook[State, Boolean, Nothing] =
       reads.books += 1
       written
     retainHeaderIdentity("proof", "input")
-    retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
-  private class Published(source: RecordMachine[Boolean, Boolean, Nothing]) extends Derived(source):
+    retainHeaderSchema(
+      0,
+      stateName,
+      Seq(encoded(stateRef)),
+      Seq(encoded(ir.Model(types = Seq(stateShape)))),
+      Nil
+    )
+  private class Published(source: MachineDeclaration[State, Boolean, Nothing])
+      extends Derived(source):
     retainHeaderIdentity("proof", "published")
   private def operation(kind: String, count: Int) = Seq(
     "derivation-operation-v1",
@@ -63,10 +74,10 @@ class DerivationBindingsSuite extends munit.FunSuite:
       machine,
       position,
       position,
-      Vector(ir.Param("written", Some(bool))),
+      Vector(ir.Param("written", Some(stateRef))),
       yes,
       empty,
-      ir.Model(),
+      ir.Model(types = Seq(stateShape)),
       effectIdentity = Some("proof.effect"),
       derived = derived
     )
@@ -75,13 +86,11 @@ class DerivationBindingsSuite extends munit.FunSuite:
     val reads = new Reads
     val input = new Input(reads)
     val action = framework.dsl.action("go", Actor("user")).declaredAt("proof.go")
-    val c = Case[Boolean, Boolean, Nothing](
-      "always",
-      _ =>
-        reads.guards += 1
-        true
+    val c = Guard(_ =>
+      reads.guards += 1
+      true
     )
-    val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] = (s, _) =>
+    val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] = (s, _) =>
       reads.effects += 1
       List(Step(true, s))
     val original = Rule(1, "always", "go", action.decl, None, c.guard, effect)
@@ -102,17 +111,27 @@ class DerivationBindingsSuite extends munit.FunSuite:
     def binding(
         fragment: ir.Expr = empty,
         update: RuleBindings.Packet => RuleBindings.Packet = identity
-    ): StepBinding[Boolean, Boolean, Nothing] =
-      val callable: Boolean => List[Step[Boolean, Boolean, Nothing]] = s =>
+    ): StepBinding[State, Boolean, Nothing] =
+      val callable: State => List[Step[State, Boolean, Nothing]] = s =>
         reads.effects += 1
         List(Step(true, s))
       val function =
-        ir.Function("written", params = Seq(ir.Param("written", Some(bool))), body = Some(empty))
+        ir.Function(
+          "written",
+          params = Seq(ir.Param("written", Some(stateRef))),
+          body = Some(empty)
+        )
       val result = StepBinding
-        .retaining[Boolean, Boolean, Nothing](
+        .retaining[State, Boolean, Nothing](
           action.decl,
           callable,
-          Some(Captured[AnyRef](callable, function.name, ir.Model(functions = Seq(function))))
+          Some(
+            Captured[AnyRef](
+              callable,
+              function.name,
+              ir.Model(functions = Seq(function), types = Seq(stateShape))
+            )
+          )
         )
         .retainOrigin(classOf[Published].getName, "published", false, encoded(position))
       result.publishDerivation(
@@ -120,7 +139,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
       )
       result
     val replacement = binding()
-    def rebound(value: Rebinding[Boolean, Boolean, Nothing]) =
+    def rebound(value: Rebinding[State, Boolean, Nothing]) =
       new Published(input.capturedRebind { reads.operands += 1; value }(operation("rebind", 1)))
     val published = rebound(replacement)
     val acquired = published.table
@@ -161,24 +180,6 @@ class DerivationBindingsSuite extends munit.FunSuite:
     }
     assertEquals(RuleBindings.collect(input), before)
     assertEquals(reads.snapshot, baseline)
-    val restricted = input.restrict(action)
-    val copiedTable = restricted.table.map { (decl, bound) =>
-      val copied = bound match
-        case Bound.Ruled(rows) => Bound.Ruled(rows.map(_.copy()))
-        case other             => other
-      decl -> copied
-    }
-    val forged = new RecordMachine[Boolean, Boolean, Nothing]:
-      val init = false
-      def end(s: Boolean) = s
-      def transitions = input.transitions
-      override private[framework] def table = copiedTable
-      override private[framework] def derivationParent = restricted.derivationParent
-      override private[framework] def derivationEvent = restricted.derivationEvent
-    assert(
-      intercept[IllegalArgumentException](RuleBindings.collect(new Published(forged))).getMessage
-        .contains("restriction native bound/callback identity")
-    )
     assert(
       intercept[IllegalArgumentException](
         RuleBindings.collect(rebound(replacement.copy()))
@@ -212,7 +213,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     val validCurried = binding(update =
       _.copy(
         effect = called,
-        model = ir.Model(functions = Seq(helper)),
+        model = ir.Model(functions = Seq(helper), types = Seq(stateShape)),
         curriedCalls = Vector(proof)
       )
     )
@@ -228,14 +229,17 @@ class DerivationBindingsSuite extends munit.FunSuite:
       ),
       (
         (p: RuleBindings.Packet) =>
-          p.copy(effect = called, model = ir.Model(functions = Seq(helper))),
+          p.copy(
+            effect = called,
+            model = ir.Model(functions = Seq(helper), types = Seq(stateShape))
+          ),
         "argument arity"
       ),
       (
         (p: RuleBindings.Packet) =>
           p.copy(
             effect = called,
-            model = ir.Model(functions = Seq(helper)),
+            model = ir.Model(functions = Seq(helper), types = Seq(stateShape)),
             curriedCalls = Vector(proof.copy(groups = Vector(2)))
           ),
         "curried-call"
@@ -270,18 +274,24 @@ class DerivationBindingsSuite extends munit.FunSuite:
       )
     )
     withInput.rows = Vector(selected.decl -> Bound.Ruled(Vector(inputRow)))
-    val callback: (Boolean, Boolean) => List[Step[Boolean, Boolean, Nothing]] =
+    val callback: (State, Boolean) => List[Step[State, Boolean, Nothing]] =
       (s, flag) => List(Step(flag, s))
     val function = ir.Function(
       "selected",
-      params = Seq(ir.Param("written", Some(bool)), ir.Param("flag", Some(bool))),
+      params = Seq(ir.Param("written", Some(stateRef)), ir.Param("flag", Some(bool))),
       body = Some(empty)
     )
     val wrongInput = StepBinding
-      .retaining[Boolean, Boolean, Nothing](
+      .retaining[State, Boolean, Nothing](
         selected.decl,
         callback,
-        Some(Captured[AnyRef](callback, function.name, ir.Model(functions = Seq(function))))
+        Some(
+          Captured[AnyRef](
+            callback,
+            function.name,
+            ir.Model(functions = Seq(function), types = Seq(stateShape))
+          )
+        )
       )
       .retainOrigin(classOf[Published].getName, "published", false, encoded(position))
     wrongInput.publishDerivation(
@@ -289,7 +299,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
         packet(classOf[Published].getName, "published", true)
           .copy(params =
             Vector(
-              ir.Param("written", Some(bool)),
+              ir.Param("written", Some(stateRef)),
               ir.Param("flag", Some(ir.TypeRef(ir.TypeRef.Ref.Int(Empty()))))
             )
           )
@@ -314,7 +324,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
           effect,
           packet(guarded.getClass.getName, "input").copy(
             guard = called,
-            model = ir.Model(functions = Seq(helper)),
+            model = ir.Model(functions = Seq(helper), types = Seq(stateShape)),
             curriedCalls = Vector(proof)
           )
         )
@@ -324,46 +334,6 @@ class DerivationBindingsSuite extends munit.FunSuite:
     assert(RuleBindings.collect(guarded).functions.exists(_.name == helper.name))
     val guardRebound = new Published(guarded.capturedRebind(binding())(operation("rebind", 1)))
     assert(RuleBindings.collect(guardRebound).functions.exists(_.name == helper.name))
-    val neighbor = framework.dsl.action("neighbor", Actor("user")).declaredAt("proof.neighbor")
-    val neighborRow = Rule(2, "always", "neighbor", neighbor.decl, None, c.guard, effect)
-    val partitioned = new Input(reads)
-    val firstRow = Rule(1, "where", "go", action.decl, None, c.guard, effect)
-    firstRow.publishCapture(
-      Some(
-        RuleBindings.registration(
-          partitioned,
-          action.decl,
-          None,
-          c.guard,
-          effect,
-          packet(partitioned.getClass.getName, "input").copy(
-            guard = called,
-            model = ir.Model(functions = Seq(helper)),
-            curriedCalls = Vector(proof)
-          )
-        )
-      )
-    )
-    neighborRow.publishCapture(
-      Some(
-        RuleBindings.registration(
-          partitioned,
-          neighbor.decl,
-          None,
-          c.guard,
-          effect,
-          packet(partitioned.getClass.getName, "input")
-        )
-      )
-    )
-    partitioned.rows = Vector(
-      action.decl -> Bound.Ruled(Vector(firstRow)),
-      neighbor.decl -> Bound.Ruled(Vector(neighborRow))
-    )
-    assertEquals(
-      RuleBindings.collect(partitioned.restrict(neighbor)).functions.map(_.name),
-      Vector("input.rules.neighbor")
-    )
     Seq(false, true).foreach { malformedPath =>
       val fresh = new Input(reads)
       val row = Rule(1, "always", "go", action.decl, None, c.guard, effect)
@@ -392,12 +362,12 @@ class DerivationBindingsSuite extends munit.FunSuite:
       fresh.rows = Vector(action.decl -> Bound.Ruled(Vector(row)))
       val native = fresh.table
       assertEquals(native.size, 1)
-      val restricted = fresh.restrict()
-      val selectedTable = restricted.table
-      assertEquals(selectedTable.size, 0)
+      val forwarded = fresh.unmonitored
+      val selectedTable = forwarded.table
+      assertEquals(selectedTable.size, 1)
       val beforeCheck = reads.snapshot
       val refused =
-        intercept[IllegalArgumentException](RuleBindings.collect(restricted)).getMessage
+        intercept[IllegalArgumentException](RuleBindings.collect(forwarded)).getMessage
       assert(
         refused.contains(if malformedPath then "guard placement path"
         else "publication provenance"),
@@ -449,28 +419,42 @@ class DerivationBindingsSuite extends munit.FunSuite:
     "complete-function operands retain lexical and typed provenance without forcing unused rule refusals"
   ):
     val action = framework.dsl.action("go", Actor("user")).declaredAt("proof.core.go")
-    def complete(owner: String, machine: String, state: ir.TypeRef = bool) =
-      val callable: Boolean => List[Step[Boolean, Boolean, Nothing]] = s => List(Step(true, s))
+    def complete(owner: String, machine: String, state: ir.TypeRef = stateRef) =
+      val callable: State => List[Step[State, Boolean, Nothing]] = s => List(Step(true, s))
       val function =
         ir.Function("core.function", params = Seq(ir.Param("s", Some(state))), body = Some(empty))
       val result = StepBinding
-        .retaining[Boolean, Boolean, Nothing](
+        .retaining[State, Boolean, Nothing](
           action.decl,
           callable,
-          Some(Captured[AnyRef](callable, function.name, ir.Model(functions = Seq(function))))
+          Some(
+            Captured[AnyRef](
+              callable,
+              function.name,
+              ir.Model(functions = Seq(function), types = Seq(stateShape))
+            )
+          )
         )
         .retainOrigin(owner, machine, false, encoded(position))
       result.publishDerivation(Left("unused rule effect refusal"))
       result
-    class CoreSource extends RecordMachine[Boolean, Boolean, Nothing]:
-      val init = false
-      def end(s: Boolean) = s
-      val transitions: RuleBook[Boolean, Boolean, Nothing] =
-        new Bindings(complete("source", "core")) {}
+    class CoreSource extends Machine[Boolean, Nothing]:
+      var ready = false
+      override def end: Boolean = ready
+      private val linked = complete("source", "core")
+      val transitions: RuleBook[State, Boolean, Nothing] = new RuleBook:
+        private[framework] def table =
+          Vector(linked.decl -> Bound.Function(linked.function, linked.captured))
       retainHeaderIdentity("proof", "core")
-      retainHeaderSchema(0, "scala.Boolean", Seq(encoded(bool)), Seq(encoded(ir.Model())), Nil)
+      retainHeaderSchema(
+        0,
+        stateName,
+        Seq(encoded(stateRef)),
+        Seq(encoded(ir.Model(types = Seq(stateShape)))),
+        Nil
+      )
     val source = new CoreSource
-    def derived(binding: StepBinding[Boolean, Boolean, Nothing]) =
+    def derived(binding: StepBinding[State, Boolean, Nothing]) =
       new Published(source.capturedRebind(binding)(operation("rebind", 1)))
     assertEquals(
       RuleBindings
@@ -515,11 +499,11 @@ class DerivationBindingsSuite extends munit.FunSuite:
         key: String = message,
         declaration: String = channel,
         own: Boolean = true
-    ): Finite[Boolean] =
-      val finite = new Finite[Boolean]:
-        def values =
+    ): Finite[State] =
+      val finite = new Finite[State]:
+        def values: IndexedSeq[State] =
           catalogs += 1
-          IndexedSeq(false, true)
+          throw AssertionError("inbox state catalog evaluated")
       finite.retainSchema(
         state,
         Seq(encoded(root)),
@@ -556,18 +540,18 @@ class DerivationBindingsSuite extends munit.FunSuite:
         ir.Record(Seq(ir.Field("messages", Some(ir.TypeRef(ir.TypeRef.Ref.Channel(channel))))))
       )
     )
-    class InboxSource(selectedWitness: Finite[Boolean])
-        extends RecordMachine[Boolean, Boolean, Nothing](using
-          selectedWitness,
-          Finite[Boolean],
-          Finite[Nothing]
-        ):
-      val init = false
-      def end(s: Boolean) = s
-      var rows = Vector.empty[(ActionDecl, Bound[Boolean, Boolean, Nothing])]
-      private object written extends Rules:
+    val nativeWire = framework.dsl.channel[Boolean](1, Order.fifo, Loss.reliable)
+    class InboxSource(selectedWitness: Finite[State]) extends Machine[Boolean, Nothing]:
+      override private[framework] val fs: Data[State] = selectedWitness
+      var messages = nativeWire.empty
+      override def end: Boolean = messages.isEmpty
+      private val retainedRows = new Rows
+      def rows = retainedRows.value
+      def rows_=(value: Vector[(ActionDecl, Bound[State, Boolean, Nothing])]): Unit =
+        retainedRows.value = value
+      private object written extends Transitions(using summon, Ok(true), summon):
         override private[framework] def table = rows
-      def transitions: RuleBook[Boolean, Boolean, Nothing] = written
+      def transitions: RuleBook[State, Boolean, Nothing] = written
       retainHeaderIdentity("proof", "inbox")
       retainHeaderSchema(
         0,
@@ -579,8 +563,8 @@ class DerivationBindingsSuite extends munit.FunSuite:
     def source(declaration: String): InboxSource =
       val machine = new InboxSource(witness(declaration = declaration))
       val action = framework.dsl.action("go", Actor("user")).declaredAt("proof.inbox.go")
-      val c = Case[Boolean, Boolean, Nothing]("always", _ => true)
-      val effect: (Boolean, List[Any]) => List[Step[Boolean, Boolean, Nothing]] =
+      val c = Guard(_ => true)
+      val effect: (State, List[Any]) => List[Step[State, Boolean, Nothing]] =
         (s, _) => List(Step(true, s))
       val row = Rule(1, "always", "go", action.decl, None, c.guard, effect)
       val captured = packet(machine.getClass.getName, "inbox").copy(
@@ -595,7 +579,7 @@ class DerivationBindingsSuite extends munit.FunSuite:
     assertEquals(RuleBindings.collect(source(channel)).channels, Vector(channel))
     assert(
       intercept[IllegalArgumentException](
-        RuleBindings.collect(source("foreign.wire").restrict())
+        RuleBindings.collect(source("foreign.wire").unmonitored)
       ).getMessage.contains("conflicting retained definitions")
     )
     assertEquals(suppliers, 0)

@@ -5,7 +5,7 @@ import scala.annotation.publicInBinary
 // A generated crash's step function: from any state, the outcome and facts it declares into the
 // state its durability keeps, consuming its budget, which the native runtime takes.
 final private[framework] class NativeCrash[S, O, F](
-    private[framework] val owner: RecordMachine[S, O, F],
+    private[framework] val owner: MachineDeclaration[S, O, F],
     private[framework] val declaration: ActionDecl,
     private[framework] val outcome: O,
     private[framework] val facts: List[F],
@@ -28,7 +28,7 @@ final private[framework] class NativeCrash[S, O, F](
 
 @publicInBinary
 private[framework] def crashBinding[S, O, F](
-    owner: Owner[S, O, F],
+    owner: MachineDeclaration[S, O, F],
     action: Action[EmptyTuple],
     budgets: Vector[NativeBudget[?]],
     outcome: O,
@@ -37,5 +37,5 @@ private[framework] def crashBinding[S, O, F](
 ): StepBinding[S, O, F] =
   StepBinding(
     action.decl,
-    new NativeCrash(owner.machine, action.decl, outcome, facts.toList, budgets, location)
+    new NativeCrash(owner, action.decl, outcome, facts.toList, budgets, location)
   )

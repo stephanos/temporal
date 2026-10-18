@@ -1,65 +1,60 @@
 package framework.dsl
-// Named choices, run as Scala. The IR generator's fixtures (irgen/testdata/lifts/Choices.scala) prove
-// the IR; these pin the framework's own values.
 
 class Choices extends munit.FunSuite:
   enum Outcome:
     case accepted, refused
-
   given Ok[Outcome] = Ok(Outcome.accepted)
+  given Finite[String] = Finite.of("lit")
 
-  type LampStep = Step[Boolean, Outcome, String]
+  object caller:
+    val choosePath = action("choosePath", Actor("caller"))
 
-  private val committed = choice
-  private val redelivered = choice
-  private val held = choice
+  object Subject extends Machine[Outcome, String]:
+    var lit = false
 
-  test("choose gives its alternatives' steps in the order written, as the unnamed list does"):
-    val named: List[LampStep] = choose(
-      committed -> enter(true, "lit"),
-      redelivered -> stay(false),
-      held -> List(Step(Outcome.refused, true)).because("held")
-    )
+    object effects:
+      val committed = choice
+      val redelivered = choice
+      val held = choice
+      def path(): Unit =
+        choose(
+          committed -> { lit = true; record("lit") },
+          redelivered -> (),
+          held -> { lit = true; reject(Outcome.refused) }
+        )
+
+    object transitions extends Transitions:
+      on(caller.choosePath):
+        effects.path()
+
+  test("native choices give ordered alternatives with independent state and facts"):
+    val effect = Subject.nativeEffects.head._2
     assertEquals(
-      named,
+      effect(Subject.init, caller.choosePath()),
       List(
-        Step(Outcome.accepted, true, List("lit")),
-        Step(Outcome.accepted, false),
-        Step(Outcome.refused, true, Nil, "held")
+        Step(Outcome.accepted, Subject.init.copy(lit = true), List("lit")),
+        Step(Outcome.accepted, Subject.init),
+        Step(Outcome.refused, Subject.init)
       )
     )
+    assertEquals(Subject.lit, false)
 
   test("each choice token is a name of its own"):
     assertNotEquals(choice, choice)
-    assertEquals(committed, committed)
+    assertEquals(Subject.effects.committed, Subject.effects.committed)
 
-  test("an alternative whose function gives no step is not taken"):
-    def lit(on: Boolean): List[LampStep] = if on then enter(true, "lit") else disabled
-    assertEquals(
-      choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> stay(true)),
-      List(Step(Outcome.accepted, true))
-    )
-    assertEquals(
-      choose[Boolean, Outcome, String](committed -> lit(false), redelivered -> lit(false)),
-      Nil
-    )
-    for first <- Finite[Boolean].values; second <- Finite[Boolean].values do
-      assertEquals(
-        choose[Boolean, Outcome, String](committed -> lit(first), redelivered -> lit(second)),
-        lit(first) ++ lit(second)
-      )
-
-  test("choose refuses a token named twice and an alternative of more than one step"):
+  test("native choose refuses a token named twice"):
+    object Duplicate extends Machine[Outcome, String]:
+      var lit = false
+      object effects:
+        val repeated = choice
+        def path(): Unit =
+          choose(repeated -> { lit = true }, repeated -> { lit = false })
+      object transitions extends Transitions:
+        on(caller.choosePath):
+          effects.path()
     interceptMessage[IllegalArgumentException](
       "requirement failed: a choice names one alternative of a choose"
     )(
-      choose[Boolean, Outcome, String](committed -> stay(true), committed -> stay(false)): Unit
+      Duplicate.nativeEffects.head._2(Duplicate.init, caller.choosePath()): Unit
     ): Unit
-    val oneStep = "requirement failed: each alternative of a choose is at most one step"
-    interceptMessage[IllegalArgumentException](oneStep)(
-      choose[Boolean, Outcome, String](
-        committed -> stay(true),
-        redelivered -> (stay(true) ++ stay(false)),
-        held -> stay(false)
-      ): Unit
-    )

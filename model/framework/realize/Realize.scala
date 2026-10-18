@@ -22,7 +22,7 @@ import scala.compiletime.error
 import scalapb.{GeneratedEnum, GeneratedMessage, GeneratedMessageCompanion, UnrecognizedEnum}
 import scala.util.NotGiven
 import com.google.protobuf.ByteString
-import framework.dsl.{Action, Channel, Choice, ClassRef, Monitor, RecordMachine}
+import framework.dsl.{Action, Channel, Choice, ClassRef, MachineDeclaration, Monitor}
 
 // The Definition IDs a realization declares hang off its feature's package, the `Family` the
 // feature package supplies once (`given Family = Family.here`); a kit function that forms one takes
@@ -32,7 +32,7 @@ import framework.dsl.{Action, Channel, Choice, ClassRef, Monitor, RecordMachine}
 // `name`, it is named after the `val` that declares it.
 final case class Realization(
     name: String = "",
-    machine: RecordMachine[?, ?, ?],
+    machine: MachineDeclaration[?, ?, ?],
     producer: String,
     producerVersion: String,
     roles: Vector[Addressee],

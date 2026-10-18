@@ -3,85 +3,79 @@ package framework.dsl
 import framework.checker.Effects.*
 
 class BudgetInputShapeSuite extends munit.FunSuite:
-  test("budgeted zero-input targets refuse binary guards and effects"):
-    val refusals = List(
-      compiletime.testing.typeCheckErrors("""
-        import framework.dsl.*
-        case class BudgetState(remaining: Int)
-        object caller:
-          val empty = action("empty", Actor("fault")).responseLoss
-        object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
-          val init = BudgetState(1)
-          def end(s: BudgetState): Boolean = false
-          object transitions extends Rules:
-            on(caller.empty.budgetedBy(_.remaining)):
-              where((s: BudgetState, in: EmptyTuple) => in == EmptyTuple) ~>
-                ((s: BudgetState) => List(Step(true, s)))
-      """),
-      compiletime.testing.typeCheckErrors("""
-        import framework.dsl.*
-        case class BudgetState(remaining: Int)
-        object caller:
-          val empty = action("empty", Actor("fault")).responseLoss
-        object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
-          val init = BudgetState(1)
-          def end(s: BudgetState): Boolean = false
-          object transitions extends Rules:
-            on(caller.empty.budgetedBy(_.remaining)):
-              always ~> ((s: BudgetState, in: EmptyTuple) => List(Step(in == EmptyTuple, s)))
-      """)
-    )
-    refusals.foreach(errors => assert(errors.nonEmpty, errors.toString))
+  given Ok[Boolean] = Ok(true)
 
-  test("widened scalar EmptyTuple targets execute state-only rules safely"):
-    case class BudgetState(remaining: Int)
-    object caller:
-      val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
-    class Subject(budgeted: Boolean) extends RecordMachine[BudgetState, Boolean, Nothing]:
-      val init = BudgetState(1)
-      def end(s: BudgetState): Boolean = false
+  test("budgeted zero-input targets refuse input callbacks"):
+    val errors = compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      given Ok[Boolean] = Ok(true)
+      object fault extends Actor("fault"):
+        val loss = action.responseLoss
+      object Subject extends Machine[Boolean, Nothing]:
+        var remaining = 1
+        object effects:
+          def accept(): Unit = ()
+        object transitions extends Transitions:
+          on(fault.loss.budgetedBy(remaining)) { (_: EmptyTuple) => effects.accept() }
+    """)
+    assert(errors.nonEmpty, errors.toString)
+
+  test("widened scalar EmptyTuple targets execute state-only blocks safely"):
+    object fault:
+      private val actor = Actor("fault")
+      val unit = framework.dsl.action("unit", actor).input[EmptyTuple](name = "unit").responseLoss
+    class Subject(budgeted: Boolean) extends Machine[Boolean, Nothing]:
+      var remaining = 1
       object targets:
-        val plain: Action[EmptyTuple] = caller.unit
-        val selected: BudgetedAction[BudgetState, EmptyTuple] = caller.unit.budgetedBy(_.remaining)
-      object transitions extends Rules:
+        val plain: Action[EmptyTuple] = fault.unit
+        val selected = fault.unit.budgetedBy(remaining)
+      object effects:
+        def accept(): Unit = ()
+      object transitions extends Transitions:
         if budgeted then
           on(targets.selected):
-            always ~> ((s: BudgetState) => List(Step(true, s)))
+            effects.accept()
         else
           on(targets.plain):
-            always ~> ((s: BudgetState) => List(Step(true, s)))
+            effects.accept()
     for budgeted <- List(true, false) do
       val subject = new Subject(budgeted)
       val binding = subject.bindings.head
       assertEquals(
-        effectOf[BudgetState, Boolean, Nothing](binding.decl, binding.function)(
-          BudgetState(1),
-          caller.unit(EmptyTuple)
+        effectOf[State, Boolean, Nothing](binding.decl, binding.function)(
+          subject.init,
+          fault.unit(EmptyTuple)
         ),
-        List(Step(true, BudgetState(1)))
+        List(Step(true, subject.init))
       )
 
-  test("budgeted targets preserve state-only, record and scalar EmptyTuple callbacks"):
-    case class BudgetState(remaining: Int, available: Boolean)
+  test("budgeted targets preserve state-only, record and scalar input blocks"):
     case class Request(flag: Boolean)
-    object caller:
-      val empty = action("empty", Actor("fault")).responseLoss
-      val record = action("record", Actor("fault")).inputs[Request].responseLoss
-      val unit = action("unit", Actor("fault")).input[EmptyTuple](name = "unit").responseLoss
-    object Subject extends RecordMachine[BudgetState, Boolean, Nothing]:
-      val init = BudgetState(1, true)
-      def end(s: BudgetState): Boolean = false
-      object transitions extends Rules:
-        on(caller.empty.budgetedBy(_.remaining)):
-          where(_.remaining > 0) ~> ((s: BudgetState) => List(Step(true, s)))
-        on(caller.record.budgetedBy(_.remaining)):
-          where((s, in) => s.remaining > 0 && in.flag) ~>
-            ((s: BudgetState, in: Request) => List(Step(in.flag, s)))
-        on(caller.unit.budgetedBy(_.remaining)):
-          where((s, in) => s.remaining > 0 && in == EmptyTuple) ~>
-            ((s: BudgetState, in: EmptyTuple) => List(Step(in == EmptyTuple, s)))
-    for cls <- List(caller.empty(), caller.record(Request(true)), caller.unit(EmptyTuple)) do
+    object fault:
+      private val actor = Actor("fault")
+      val empty = framework.dsl.action("empty", actor).responseLoss
+      val request = framework.dsl.action("request", actor).inputs[Request].responseLoss
+      val scalar = framework.dsl.action("scalar", actor).input[Boolean](name = "flag").responseLoss
+    object Subject extends Machine[Boolean, Nothing]:
+      var remaining = 1
+      object effects:
+        def accept(): Unit = ()
+        def answer(flag: Boolean): Unit = reject(flag)
+      object transitions extends Transitions:
+        on(fault.empty.budgetedBy(remaining)):
+          if remaining > 0 then effects.accept()
+        on(fault.request.budgetedBy(remaining)): in =>
+          if remaining > 0 && in.flag then effects.answer(in.flag)
+        on(fault.scalar.budgetedBy(remaining)): in =>
+          if remaining > 0 && in then effects.answer(in)
+    for cls <- List(fault.empty(), fault.request(Request(true)), fault.scalar(true)) do
       val binding = Subject.bindings.find(_.decl eq cls.decl).get
-      val run = effectOf[BudgetState, Boolean, Nothing](binding.decl, binding.function)
-      assertEquals(run(BudgetState(1, true), cls), List(Step(true, BudgetState(1, true))))
-      assertEquals(run(BudgetState(0, true), cls), Nil)
+      val run = effectOf[State, Boolean, Nothing](binding.decl, binding.function)
+      assertEquals(run(Subject.init, cls), List(Step(true, Subject.init)))
+      assertEquals(run(Subject.init.copy(remaining = 0), cls), Nil)
+    for cls <- List(fault.request(Request(false)), fault.scalar(false)) do
+      val binding = Subject.bindings.find(_.decl eq cls.decl).get
+      assertEquals(
+        effectOf[State, Boolean, Nothing](binding.decl, binding.function)(Subject.init, cls),
+        Nil
+      )
