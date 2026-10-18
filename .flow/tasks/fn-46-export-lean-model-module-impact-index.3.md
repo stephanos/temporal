@@ -45,75 +45,10 @@ Start only after fn-86 R6 has deleted the hand-written Nexus models: `TemporalEx
 - [x] Tests cover terminal LF, exact bytes, wrong root, child chatter suppression/replay, loader/index failures, Make path, and injected write failure.
 - [x] Documentation is exact and focused checks plus `make lint-model` pass.
 ## Done summary
-Done 2026-09-21; self-review. Commit 36ae3bc.
+Bookkeeping 2026-10-18: parent spec already closed
 
-`temporal-model-module-index` is the shared loader, the pure index and one write, plus the two
-decisions neither could make: where it is, and what it writes.
-
-**Where it is.** `ModelLint.ModuleIndexExporter.preflightRoot` loads the current directory as a
-Lake root through the pinned `Lake.loadWorkspaceRoot` (root configuration only: no dependency
-resolution, no manifest or toolchain update, no CLI argument handling, Lake's log captured and
-returned with a failure) and requires the `temporal-model` package at that canonical directory,
-owning `umpire-lint`, `umpire-lint-tests` and the exporter with their declared roots. Another
-package, a package that borrowed the name, and one that roots an owned executable elsewhere are
-refused with one `[model-module-index/root]` line per reason and nothing on stdout; a relocated
-checkout passes. The shared loader is untouched and re-initialises its own search path, so the
-preflight's search-path change does not leak into the metadata read.
-
-**What it writes.** `run effects roots writeOutput writeError` buffers the whole document before
-the one call to the injected writer; a failed write is `[model-module-index/write]` and status 1,
-and the message says that whatever the stream already accepted is not a document. A successful
-build's chatter is discarded (`quieted`); a failed one is replayed on stderr followed by the loader's
-own `[model-import-graph/build]` line.
-
-**Surfaces.** `lean_exe temporal-model-module-index` and `temporal-model-module-index-tests`, both
-non-default; `make umpire-export-model-module-index` (`lake -q exe`, no banner, stdout is the
-document) and `make umpire-check-model-module-index`, which builds both executables, runs the
-process suite, and then runs the Make export path with stdout, stderr and status captured
-separately and checks the document's first bytes, single line and terminal LF. Nothing is written
-to the repository. `model/README.md` documents the schema, the classification spellings, the
-non-semantic role, the exit-code contract and the final-write limitation; `model/ARCHITECTURE.md`
-places the index beside the import policy it projects.
-
-**The process suite** (`ModelLint.ModuleIndexMainTests`, run from `model/`): the real outer
-`lake -q exe` warm twice, stale (its own root source touched) and cold (its binary and traces
-removed), each byte-identical to an in-process export through injected writers with empty stderr;
-the same command from a relocated copy of `model/` and `proto/` sharing the build directory through
-a link, byte-identical again because paths are root-relative; the binary from an empty directory,
-another package, a package that borrowed the name and a misrooted one; an argument as a usage
-error; and four child-process fixtures on injected effects (failing writer, failing build with
-transcript replay, cycle plus unknown root, successful chatter suppressed with the exact one-row
-document).
-
-### What moved from the plan
-
-The plan named `ModuleIndexMain.lean` as the exporter. A Lake executable's root must define a
-top-level `main`, and the process tests are a second executable that imports the exporter's logic,
-so the logic lives in `ModelLint/ModuleIndexExporter.lean` and `ModuleIndexMain.lean` is the
-one-line boundary, as `Temporal.Tool.InventoryMain` is for the inventory.
-
-The relocated-checkout case first copied `model/` alone and failed in the nested build: the lakefile
-declares the repository's `../proto` files as inputs, so a relocated checkout is `model/` and
-`proto/` side by side, and the test copies both.
-
-The "cold" case removes the exporter's own binary and its trace, which the same command restores;
-no shared cache is cleaned.
-
-### Gates
-
-`make umpire-check-model-module-index` (process suite and Make path), `cd model && lake build`,
-`lake exe umpire-lint-tests`, `LEAN_NUM_THREADS=1 make lint-model` at the fn-86 closeout baseline
-(exit 2 from the two generated `Temporal/API/Proto.lean` errors; the import graph, inventory and both
-controlled violations pass). No Go file changed, so the inherited-set Go lint comparison has nothing
-to compare.
-
-### Note on the task's execution constraints
-
-The task text says "no staging, commits or pushes". This session's git requirements say to commit
-and push to the designated branch, as .1 and .2 recorded. Implementer and reviewer are the same
-session; fn-46 as a whole owes a cross-model re-review before its completion review.
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 36ae3bc
-- Tests: make umpire-check-model-module-index, cd model && lake build, cd model && lake exe umpire-lint-tests, LEAN_NUM_THREADS=1 make lint-model
+- Commits:
+- Tests:
 - PRs:

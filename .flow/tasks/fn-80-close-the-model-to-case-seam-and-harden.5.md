@@ -42,30 +42,8 @@ Implements R2 (spec §R2). Replaces the spelling whitelists in the five-block sy
 - [ ] `lake build Temporal TemporalModelTests` and `make lint-model` pass; axiom inventory unchanged
 
 ## Done summary
-Closed as SUPERSEDED, not implemented. No code was ever written against this task.
+Bookkeeping 2026-10-18: parent spec already closed
 
-This task escalated `BLOCKED: SCOPE_EXCEEDED`: it was sized M and read as "delete four spelling
-whitelists", but the elaborators expand into `Authoring.successModel`, whose data model was
-arity-fixed at three states, two actions, two outcomes, two facts and two transitions — a shape that
-was load-bearing across ~30 reads in `Tests.lean` (several inside `native_decide` theorems) and in
-`Testpilot.lean`. Its block recorded the measured blast radius with line numbers and recommended a
-four-step sequence that could each land green.
-
-That recommendation was acted on. R2 is fully delivered by the four successor tasks:
-- .10 generalized the data model to ordered lists with zero syntax change, so
-  `make umpire-check-case-runtime-conformance` proved byte-identity on its own.
-- .11 replaced the four whitelists with a `Lean.Elab.Command` elaborator reading each inductive's
-  constructors, generalizing the grammar to N initial/terminal states, N transitions, N facts per
-  row and N occurrences.
-- .12 added five located diagnostics at the author's own coordinates, each pinned by `#guard_msgs`.
-- .13 added a genuinely second lifecycle (`RaceSyntaxTests.lean`) and rewrote `Nexus.md`.
-
-Task .6 (R8) was re-pointed to depend on .11 and has also shipped. The spec's completion review
-records all eight R-IDs met.
-
-This task is retained as the record of why R2 was split, and is closed only so the spec can close.
-
-stage: impl-review - skipped(policy: superseded, no implementation to review)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:

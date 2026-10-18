@@ -4,6 +4,8 @@ satisfies: [R1, R3, R8]
 # fn-119-show-one-go-sdk-workflow-driven-end-to.4 Model the activity workflow example and run its Queries live from the gate
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Author the example Model in the finished DSL and wire it into the model gate and the existing live test job.
 
 **Cross-spec entry gate:** start only after fn-118 and fn-120 are both closed (and therefore fn-112/fn-114): the example uses the final DSL, named choices, Scala-owned roots and declared API behavior, with no proto name as a string and no literal wait.

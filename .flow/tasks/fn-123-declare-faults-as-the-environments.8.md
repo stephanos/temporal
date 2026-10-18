@@ -4,6 +4,8 @@ satisfies: [R10, R13]
 # fn-123-declare-faults-as-the-environments.8 umpire-faults report, docs and closing gates
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The report is a Scala report; no `umpire-lint` or Go gates.
+
 The fault report command (R10), the docs (R13) and the closing gates. `umpire-faults` lists, per IR file, each machine's fault bindings with kind, budget, rows and realization, and each undeclared action performed with a `Fault` command, such as `workerStop`. The docs and the shared close fold into this task. It owns the selected fn-140/fn-149/fn-123 batch's single production regeneration, complete full gates, independent review and required live/replay run; it closes all three specs only after their unchanged acceptance obligations are evidenced.
 
 **Size:** M
@@ -18,7 +20,7 @@ The fault report command (R10), the docs (R13) and the closing gates. `umpire-fa
 - Test over the checked-in IR (`model/ir/activity-standalone-record.json` and `activity-standalone-race.json`), as the spec's example shows.
 - Docs: `model/README.md` explains declaring and budgeting a fault and what a crash keeps, and its marker text follows task 1. `UMPIRE4_SPEC.md:202` ("a fault is an ordinary action of the party that causes it") is revised. `UMPIRE_MODULES.md` lists `umpire-faults` and updates the task-queue row.
 - Preserve the frozen witness, grouping and expectation/colon meaning-preserving seals and their explicit composed identity/provenance mappings, including the actual fn-155 baseline map. Classify the final diff as the separately authorized witness, grouping, expectation/colon and fault deltas; unexplained behavior, rows, predicates, bounds, assumptions, Query/progress receipts, expected/live-replay assessments, identities or Case-byte changes stop the close. Publish production managed IR/Cases, lift goldens and changed functional/canary pins exactly once here; historical recorded Run companions and expected assessments remain untouched.
-- Own the single production `make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks`, then the complete model, Case/fixture, functional/canary, lint and Go checks for all three specs: `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks`, `make umpire-check-cases umpire-check-fixtures canary-check-case`, `make lint-model`, `make lint-code-fast`, and the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` and JSON terminal events plus measured wall time. Include task .7's required `make umpire-check-backends` agreement check and explicit unsupported receipts. Use actual `fcntl`/`flock` on `/tmp/umpire-heavy-gates.lock`; reuse applicable passing evidence only for matching inputs, fixture/assertion populations and environment, repeating invalidated checks only.
+- Own the single production `make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks`, then the complete model, Case/fixture, functional/canary, lint and Scala checker's checks for all three specs: `make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks`, `make umpire-check-cases umpire-check-fixtures canary-check-case`, `make lint-model`, `make lint-code-fast`, and the full Go tooling suite with `-tags test_dep -p 2 -timeout 30m` and JSON terminal events plus measured wall time. Include task .7's required `make umpire-check-backends` agreement check and explicit unsupported receipts. Use actual `fcntl`/`flock` on `/tmp/umpire-heavy-gates.lock`; reuse applicable passing evidence only for matching inputs, fixture/assertion populations and environment, repeating invalidated checks only.
 - Run the required independent review and relevant live/replay checks once at this boundary with unchanged expectations. Link all acceptance evidence back to fn-140.6 and fn-149.5 before their tasks/specs close; neither earlier source seal is passing full-gate evidence.
 - Retain the full native Model/Go/Case generator OOM/ENOSPC RED as fn-157's resource obligation, Quint resource RED as fn-154's, and inherited completion, fatal-failure and pause/resume strict failures as Batch 5 obligations. Preserve the exact original evidence/owners and assertions separately from migration regressions; none receives green credit. More than one hour cumulatively stuck across validation attempts defers that validation unless every other available work path is blocked. Record commands, elapsed attempts, evidence and revisit conditions; deferral is not a pass and never closes an unmet acceptance obligation.
 
@@ -31,7 +33,6 @@ The fault report command (R10), the docs (R13) and the closing gates. `umpire-fa
 **Optional** (reference as needed):
 - `model/README.md:680-770` - faults, markers and the `FaultyLamp` derivation example
 - `.plans/UMPIRE4_SPEC.md:195-210` - the fault sentence to revise
-
 ## Acceptance
 - [ ] `umpire-faults` prints, per IR file, every fault binding with kind, budget, rows and realization, and every undeclared action performed with a `Fault` command. A test runs it over the checked-in IR.
 - [ ] An IR file with no fault bindings reports none; a malformed file fails through the reader, with a test.

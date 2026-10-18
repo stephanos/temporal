@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R5]
 # fn-165-inputs-as-records-named-classes.2 Framework: actions from a record of inputs, (s, in) step functions, structural shared inputs
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 The framework side: an action declared from a record of inputs, called empty, by name or by value, bound to a `(s, in)` step function, with the catalog, class order and `Param` names unchanged (R1, R2, R3, R5). This is the early proof point: if the class order or the `Param` names cannot be made identical to today's, stop here.
 
 **Size:** M
@@ -17,7 +19,6 @@ The framework side: an action declared from a record of inputs, called empty, by
 - Shared inputs: `Inputs.field[In](label)` reads a field by label through the `Mirror`; a structural bound `[In <: { def scheduleToStart: Timeout }]` is what a consumer writes. One framework test shows a law applied to two records with the field and refused for one without.
 - Keep the token form compiling beside the new one until task 6, so Models migrate one at a time.
 - Proof: a test enumerates `Finite[Start].values` and compares, element by element, with the `Class` list the token form produces for the same action.
-
 ## Acceptance
 - [ ] `action(actor).inputs[In]` and `.input[A]` declare actions whose classes are the record's or the value's catalog, in the order the token form produced; a framework test compares the two lists for `start`.
 - [ ] `a()`, `a(field = v)` and `a(In(...))` build classes; a named call that omits a field without a default does not compile.

@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:41.756694Z",
+  "depends_on": [
+    "fn-200-model-lint-is-native-findings-from-the.3",
+    "fn-200-model-lint-is-native-findings-from-the.4",
+    "fn-200-model-lint-is-native-findings-from-the.5"
+  ],
+  "id": "fn-200-model-lint-is-native-findings-from-the.6",
+  "priority": 4,
+  "spec": "fn-200-model-lint-is-native-findings-from-the",
+  "spec_path": ".flow/tasks/fn-200-model-lint-is-native-findings-from-the.6.md",
+  "status": "todo",
+  "title": "Samples lint in the framework check; delete the IR lint and acceptance files",
+  "updated_at": "2026-10-18T17:16:41.756694Z"
+}

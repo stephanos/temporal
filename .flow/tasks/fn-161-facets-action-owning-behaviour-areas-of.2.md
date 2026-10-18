@@ -4,6 +4,8 @@ satisfies: [R5, R9]
 # fn-161-facets-action-owning-behaviour-areas-of.2 Stage 1: standalone activity effects and claims into facets
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Stage 1 for the standalone activity: move its effects and claims into facet files at both levels. Rules stay grouped by actor in each machine. Proposed facets: Dispatch, Completion, RetryFailures, Cancellation, Pausing, Reset, Heartbeat, Timeouts, Lifecycle. Each level gets only the facets that have something there.
 
 **Size:** M

@@ -33,14 +33,10 @@ Create the migration ledger and freeze the complete fn-64/fn-66 compatibility ba
 - [ ] Fn-64/fn-66 ledgers and retained Umpire authoring/generator sources remain unchanged; no implementation or broad drift gate is added.
 
 ## Done summary
-Created the Testpilot migration ledger with a closed ownership inventory, compatibility-class baselines, protocol/generated/corpus hashes, public behavior, package/test counts, selectors, active documentation, and exact inherited command failures. The artifact adds no implementation, scanner, alias, converter, or broad drift gate; the Codex review returned SHIP after directly reviewing the user-owned untracked file.
-
-baseline: red (`go test -count=1 -tags test_dep ./common/testing/testpilot/...` and `./tests/testcore/testpilot/...` fail pre-migration because their task-2/task-6 destinations do not exist; focused Temporal packages also inherit the local missing `stddef.h` toolchain failure); canonical generation, conformance, model, generator, and aggregate regression commands are green.
-
-stage: impl-review - ran [2026-09-06T17:41Z..2026-09-06T17:45:07Z]
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: git diff --check -- .flow/artifacts/fn-69-extract-testpilot-from-umpire/migration-ledger.md, go test -count=1 -tags test_dep ./common/testing/testpilot/... (exit 1 inherited: pre-migration destination absent), go test -count=1 -tags test_dep ./tests/testcore/testpilot/... (exit 1 inherited: pre-migration destination absent), make proto, make umpire-gen-lean-api, make umpire-check-case-runtime-conformance, cd model && mise exec -- lake build Temporal.CaseRuntimeTests, TMPDIR=/private/tmp mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tools/umpire/cmd/umpire-gen-lean-api, TMPDIR=/private/tmp mise exec -- go test -count=1 -tags test_dep ./tools/umpire/temporal/... (exit 1 inherited local toolchain: runtime/cgo cannot find stddef.h; delivery and worker passed), make umpire-check-regression
+- Tests:
 - PRs:

@@ -37,51 +37,10 @@ affected Flow records
 - [ ] Receipt records line-count delta, `du -sh` before/after for `tools/umpire3` and `model/.lake`, and tracked-file counts before/after
 
 ## Done summary
-Reconciled every record that pointed into a deleted tree, then ran the final gate set.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Documentation: historical banners on the four `.plans` documents whose subjects were removed
-and on every tracked `docs/superpowers` design record for a removed
-implementation. The sixteen `tools/agentworkflow` source links in the research landscape are
-unlinked and its "implemented in the current working tree" claim is past-tensed. `AutoClose.lean`
-names the Umpire v2 model as provenance instead of carrying a dangling path. `LEAN_GUIDELINES`
-and `UMPIRE4_COMPONENTS` warn that superseded present-tense package
-references describe deleted trees.
-
-Index: `.plans/index.json` relabels removed-project records with historical lifecycle and authority,
-drops the stale `UMPIRE_DSL_EVOLUTION_SPEC.md` entry, and
-allowlists with reasons the four links into deleted trees that the sweep left dangling.
-
-Roadmap: the fn-81 entry in `.plans/UMPIRE4_ORDER.md` was rewritten from the planned description to
-the landed outcome, including realized line counts, unpredicted consumers, and the gate redesign.
-The concurrent fn-77 move to `## Completed cutovers`
-and the fn-80 re-plan were merged rather than overwritten; only section 2 changed.
-
-Flow records: fn-80 tasks .4 and .8 and its spec no longer assert an unchanged expected-failure
-list, since fn-81 retired it; they now require `make umpire-check-live-tests` to pass. fn-30 task .6
-points at the retained `umpire.yml`. fn-14 gains a closure note that `tools/agentworkflow` is gone,
-so its trials cannot be revived as written. The 2026-09-04 memory entry records the gate redesign
-and the new rule that an empty inherited failure set needs a passing-identity floor.
-
-Gates. `make umpire-check-regression` passes end to end, live gate included. Three gates are
-inherited-red and are recorded as such rather than as green: `make lint-model` is byte-identical to
-its 169-error baseline because fn-81 deleted no Lean; `make lint-code` fell from 1,284 issues to 128
-with none in a file this spec edited; `go run ./tools/planindex` is back to its 44-finding baseline
-after the sweep pushed it to 49, with all five fn-81-owned findings resolved and none added. The
-acceptance lines that read "`make lint-code` ... pass" and "`go run ./tools/planindex` passes" were
-not achievable at any point in this spec, and the ledger recorded that at task .1.
-
-Two findings the review raised are recorded rather than fixed. Ten of the twenty-five
-`docs/superpowers/specs` records — including six the reviewer named — are excluded from this
-repository by the user's global gitignore (`docs/superpowers/**`) and are not tracked, so R7 cannot
-reach them; the annotations were applied locally and cannot be committed. And fn-81 is still
-unregistered in the index's `flowSpecs`, along with roughly thirty other specs; registering them is
-the separate reconciliation the ledger scoped out of this spec's boundaries.
-
-stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 3 rounds: NEEDS_WORK
-on an index entry still claiming architecture authority for a deleted tree, NEEDS_WORK on an
-un-annotated genmodels reference and a premature "all five tasks are done" roadmap claim, then SHIP)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 4e60340045e2ca2d81ea8690d00b25eafe5916a4, 00352315e87c8820c2d082de8f3fb2b2c1489ae0, 04ecff91a8d64f8ef4f69fc40a8e632591d0ceef, e56f9b6f355d0d68828646d70c0baea1aac75ad4
+- Commits:
+- Tests:
 - PRs:
-stage: plan-sync - skipped(config: planSync.enabled != true)

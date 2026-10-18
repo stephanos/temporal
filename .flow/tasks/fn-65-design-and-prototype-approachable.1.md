@@ -10,8 +10,10 @@ Review repository constraints and the current assessment; clarify prototype scop
 - [ ] TBD
 
 ## Done summary
-Reviewed the existing Nexus authoring surface, repository constraints, and assessment. The user selected the current lifecycle followed by a cancellation/completion race. Ordinary author scope includes states/transitions. Text examples suffice for these decisions; no visual companion was needed.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: git diff --check, Python local-link and code-fence validation of model/Temporal/Feature/Nexus2/DESIGN.md
+- Tests:
 - PRs:

@@ -4,6 +4,8 @@ satisfies: [R4, R6]
 # fn-146-adopt-cel-for-runtime-predicates-and.5 Move Contract and correlated verification to CEL
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Move ordinary and correlated Contract predicates, rule instances, capture binding and offline verification to the same CEL environment after the execution proof.
 
 **Size:** M
@@ -27,7 +29,6 @@ Move ordinary and correlated Contract predicates, rule instances, capture bindin
 ```bash
 go test -tags test_dep ./common/testing/testpilot/internal/ir/... ./common/testing/testpilot/internal/verification/...
 ```
-
 ## Acceptance
 - [ ] R4 and R6 use CEL at every successor-format verification site and walker.
 - [ ] Exact capture namespaces, ordinals, occurrence lifetime and expansion ceilings remain pinned.

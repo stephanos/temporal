@@ -42,15 +42,10 @@ Build the early proof point for R1/R2 using existing typed authoring owners.
 - [ ] Focused and aggregate Lean targets pass; audit the new load-bearing definitions against the existing owner trust policy without adding axioms or bypassing checker success.
 
 ## Done summary
-Reimplemented the compact Nexus3 success slice around five near-verbatim command blocks. `Nexus.lean` is 89 lines and contains only vocabulary plus the `model lifecycle`, `property successfulResult`, `behavior successfulCompletion`, `limits shortTrace`, and `query completion` consumer surface. `Syntax.lean` solely owns syntax and expansion; `Authoring.lean` contains only typed construction, checked admission, planning, IDs, and exact capability-contract Known Gaps.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Focused tests cover the exact two-step witness, every required owner-qualified ID, actual-name derivation and optional override forms for model/target, Property, Behavior, and Query, a derived-versus-overridden command-authored collision, malformed override admission, semantic fingerprint stability and sensitivity, Known Gap survival without Property drift, all prior R1 negative cases, source-local unsupported semantics, and trust output. Overrides replace only their declaration key: model members/relations, Property clauses, and Behavior setup/occurrences retain their actual declared owner. TDD RED logs are `/tmp/fn68-red-consumer-syntax.log`, `/tmp/fn68-review-red-identities.log`, and `/tmp/fn68-red-authoring-boundary.log`; final focused, aggregate, and clean serial lint logs are `/tmp/fn68-final-nexus3.log`, `/tmp/fn68-final-modeltests.log`, and `/tmp/fn68-final-lint-model.log`.
-
-Baseline: focused and aggregate builds were green. Concurrent lint attempts hit inherited missing-olean races; after all competing lake/modelLint processes ended, the final serial `make lint-model` passed all 265 targets.
-
-stage: impl-review - SHIP(receipt: /tmp/impl-review-receipt-fn68-syntax-task1.json)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: cd model && mise exec -- lake build Temporal.Feature.Nexus3.Nexus (expected red before syntax implementation; rc=1; /tmp/fn68-red-consumer-syntax.log), cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests (expected red for declaration rename/override contract; rc=1; /tmp/fn68-review-red-identities.log), cd model && mise exec -- lake env lean /tmp/Nexus3AuthoringOnlyProbe.lean (expected red proving Authoring alone exports no commands; rc=1; /tmp/fn68-red-authoring-boundary.log), cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests (rc=0; 37 jobs; /tmp/fn68-final-nexus3.log), cd model && mise exec -- lake build TemporalModelTests (rc=0; 143 jobs; /tmp/fn68-final-modeltests.log), make lint-model (clean serial run after competing processes ended; rc=0; 265 targets; /tmp/fn68-final-lint-model.log)
+- Tests:
 - PRs:

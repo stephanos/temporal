@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-130-model-views",
   "spec_path": ".flow/tasks/fn-130-model-views.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Expose checked state mapping and render refinements",
   "updated_at": "2026-10-10T13:48:28.786927Z"
 }

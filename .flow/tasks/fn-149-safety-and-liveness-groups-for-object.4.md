@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R4, R5]
 # fn-149-safety-and-liveness-groups-for-object.4 Migrate Model claims and capability references with behavior pins
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Go check becomes the Scala checker; the Case and live-replay proof goes to fn-203/fn-204.
+
 Migrate Model claims and capability references with behavior pins. Advances R1, R2, R5 of the parent spec.
 
 **Size:** M
@@ -38,7 +40,6 @@ Selected Batch 2 entry follows the committed fn-140.10 witness seal. Re-anchor t
 ```bash
 go test -tags test_dep ./tools/umpire/check -run 'Test.*(Close|Activity|Capabilities|Declarations|Composed)'
 ```
-
 ## Acceptance
 - [ ] All authored Models and shared law references use the final grouping, with a refusal fixture for the retired flat form.
 - [ ] Complete independent scratch seal preserves tables, predicates, Query/progress verdicts and Case/assessment meaning, including negative controls; seeded semantic/population/artifact deltas fail and publication remains deferred to fn-123.8.

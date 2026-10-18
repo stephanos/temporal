@@ -34,16 +34,10 @@ Build the small public Testpilot boundary over the extracted core, including can
 - [ ] Generic facade/conformance tests and focused package tests pass with frozen Run/Verdict/error behavior and no Umpire, functional harness, SDK, or canary dependency.
 
 ## Done summary
-Published the public Testpilot facade over the refined schema with immutable preparation, public Driver and prepared-plan views that hide private IR/evaluator types, strict canonical Case ingestion, and an external non-functional Driver proof. Focused Testpilot tests and vet pass; the user-owned checkout remains unstaged and uncommitted.
-
-baseline: green (`go test -count=1 -tags test_dep ./common/testing/testpilot/...`)
-
-review: SHIP; receipt `/tmp/impl-review-receipt-fn-69-extract-testpilot-from-umpire.4.json`
-
-stage: impl-review - ran | SHIP
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/..., go vet -tags test_dep ./common/testing/testpilot/..., git diff --check -- common/testing/testpilot .flow/artifacts/fn-69-extract-testpilot-from-umpire/migration-ledger.md, go doc -all go.temporal.io/server/common/testing/testpilot | rg -n 'internal/(ir|execution|verification)|tools/umpire|tests/testcore|temporal/sdk' (no matches)
+- Tests:
 - PRs:

@@ -43,8 +43,10 @@ Move the check context, Target meaning resolution, typed diagnostics, checked ex
 - [ ] `cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests` passes.
 
 ## Done summary
-Moved Observation checking, Target meaning resolution, typed diagnostics, checked contracts, canonical identity, and fingerprint construction intact into Compiler; retained explicit-proof checkedObservation in Language and narrowed Evaluation to Compiler.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: bd4609a34
-- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, git diff --check
+- Commits:
+- Tests:
 - PRs:

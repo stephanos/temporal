@@ -22,8 +22,10 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [x] The workflow is manual, protected, fixed to the trusted ref, least-privilege, bounded, and always reconciles and retains its output.
 
 ## Done summary
-`controller.Reconcile` and `umpire-canary reconcile --output --recovery`: nothing-to-reconcile for no record or a record with no lease (no credential needed); a record not this job's, tampered or loosely permissioned is refused; otherwise, after scope checks, it acts only on the recorded lease run (took at once; found open only past invocation limit + reserve, else `lease-in-use`), verifies or terminates exactly its fenced workflows via `closeFenced` (shared with cleanup), and records the scope reconciled (terminate the open run, or start-and-terminate a fresh run when a closed-otherwise run is still the latest) or reports it uncertain with what an operator must close. The stdout report lists fenced/closed/terminated/unverified, lost iterations (not after a finished run), and on the found path the publication-unknown Runs with the earlier invocation and artifact name. `.github/workflows/umpire-production-canary.yml` is the manual, protected, pinned workflow; `tools/canary/workflow_test.go` pins it. Implementation review: NEEDS_WORK, then SHIP; P3 notes applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: d3f1813f7ee36f44d12e50512dd22f6b126b3bd8, e5d57337dc392d69d1f471e2c90fedaafe796ef1, 12f4bf38ab4b2c157ef2908c6436f1d0df977414
-- Tests: go test -count=1 -race -tags test_dep ./tools/canary/..., go test -count=1 -tags 'test_dep integration' ./tests/ -run '^TestTestpilotCanaryLifecycle$', GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

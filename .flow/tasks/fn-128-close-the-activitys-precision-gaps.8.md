@@ -4,6 +4,8 @@ satisfies: [R8]
 # fn-128-close-the-activitys-precision-gaps.8 Bind a caller-owned bounded Profile for pauseResume evidence
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Profile binding moves to fn-204's descriptor interpretation (or the fn-209 oracle on go).
+
 Implement R8 for exactly `pauseResume` and `heartbeatTimeoutRetriesThenCompletes` through existing caller-owned Profile binding. This correction owns two separate final Case identity/shape authorizations and scoped admission/recording/replay proof; the existing close task owns final generation, live gates and R6 accounting. The task ID, title, priority, dependencies and conductor's post-fn-129.4 parallel correction order remain unchanged.
 
 **Size:** M
@@ -37,7 +39,6 @@ go test -tags test_dep -p 2 -timeout 30m ./common/testing/testpilot/internal/ver
 ```
 
 Run existing generated-caller unit tests without starting the live cluster, and record the actual selector. Serialize heavy commands with the shared flock. Full gates, docs, live and final production-byte matching stay in .6.
-
 ## Acceptance
 - [ ] Two separate closed Case/Program/Contract/Model identity/shape policies cover exactly pauseResume and heartbeatTimeoutRetriesThenCompletes after fn-129.4 and fatal-source integration. Each proves complete projection/ordinary/all-output-obligation stage and total-work bounds within retained hard ceilings; default/pricing/ordinary-caller/unauthorized-Case/canary policy remains unchanged.
 - [ ] Generated preflight, executing binding and replay use the same immutable Profile and matching namespace/environment/resource inputs. Exact identity/snapshot checks and wrong-Case/drift/mismatched-binding/no-I/O admission negatives pass.

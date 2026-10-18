@@ -13,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-174-the-model-constructs-its-own-ir-dsl.8.md",
   "status": "todo",
   "title": "Retire the lifter for IR: driver only, inspector for lints, fixtures in-process, rules of record, counts",
-  "updated_at": "2026-10-13T21:59:07.144131Z"
+  "updated_at": "2026-10-18T17:30:27.998308Z"
 }

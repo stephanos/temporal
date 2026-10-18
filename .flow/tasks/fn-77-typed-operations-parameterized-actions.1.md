@@ -44,17 +44,10 @@ The permanent Lean API gate must execute basic/empty-service generated fixture c
 - [ ] Focused generator and downstream tests pass; intentional generation uses the owner and no test silently rewrites fixtures.
 
 ## Done summary
-Generated operation bindings now preserve the generated owner and payload-indexed witness through checked RPC declarations. Complete schema identity and negative admission controls are covered, including fabricated owners, wrong payload types, and empty services. The permanent make umpire-check-lean-api gate compiles basic, empty-service, and real Temporal fixtures and participates in regression checking.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Follow-up implementation review: SHIP, all three original findings fixed; no remaining findings. All 26 current source hashes match reviewed and tested source. Original pre-task baseline and trust evidence are preserved; retained declarations show no axiom growth. Downstream consumers must preserve generated owner/witness indices.
-
-Focused fixture and downstream Lean gates pass. Nonfixing Go lint remains at the exact inherited 1,284 raw / 825 distinct issues with no additions or removals; separate Make go-vet was not reached. Whole-spec and named live qualification remain in later tasks. No real-checkout commits, staging, or pushes.
-
-Evidence: /tmp/fn77-task1-evidence.json; /tmp/fn77-task1-review-fix-evidence.json; /tmp/fn77-task1-impl-review.json; /tmp/fn77-task1-review-snapshot-round2.json.
-
-stage: impl-review - ran (model: gpt-6-astra at medium)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: mise exec -- lake build Umpire.Operation.Tests Umpire.TargetTests Umpire.Target.ImportTests Temporal.Feature.Nexus3.Tests => exit 0; /tmp/fn77-task1-review-fix-final-quick.log, make lint-code GOLANGCI_LINT_FIX=false => exit 2; /tmp/fn77-task1-review-fix-final-lint.log, make umpire-check-lean-api => exit 0; /tmp/fn77-task1-review-fix-final-fixture-gate.log, python3 /tmp/fn77-task1-review-fix-verify-handover.py => exit 0; /tmp/fn77-task1-review-fix-final-handover-validation.log
+- Tests:
 - PRs:

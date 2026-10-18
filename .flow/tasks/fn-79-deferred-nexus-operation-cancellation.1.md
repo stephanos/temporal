@@ -10,8 +10,9 @@ Deferred scope archive from fn-78.5/.8/.9 and fn-77. No implementation is author
 - [ ] TBD
 
 ## Done summary
-Blocked:
-User explicitly deferred Nexus operation cancellation. Resume only on explicit user request; blanket autonomous delivery approval does not override this decision.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R4]
 # fn-125-represent-dynamic-configuration-in-the.3 Bind settings per Query with under, and key, count and answer one Query per valuation
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Implements R4 (spec Part A). A Query binds settings with `under`: `s := v` fixes one value, `s.each` ranges over the domain. A ranged Query is one Query per valuation, keyed `<query>-<valuation key>` like an action class keyed by its inputs, and checked, answered, counted and lowered on its own.
 
 **Cross-spec entry gate:** fn-114 closed; not concurrent with fn-124.8. Depends on task 2.
@@ -36,7 +38,6 @@ go test -count=1 -tags test_dep ./tools/umpire/...
 
 ### Execution constraints
 - Queries that bind no setting are byte-identical in IR, answers, totals, receipts and Cases.
-
 ## Acceptance
 - [ ] `under` fixes (`:=`) or ranges (`each`) a setting; a ranged Query expands to one Query per valuation keyed `<query>-<valuation key>`, each checked, answered and counted separately; `total` multiplies by the number of valuations.
 - [ ] Results, witnesses and receipts carry the valuation key; SEMANTICS states the rule and the totals multiplier.

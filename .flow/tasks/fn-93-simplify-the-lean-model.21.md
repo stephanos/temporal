@@ -34,8 +34,9 @@ make umpire-check-goldens
 - [ ] Every listed bridge still builds with its prior axiom inventory
 - [ ] Goldens byte-identical
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

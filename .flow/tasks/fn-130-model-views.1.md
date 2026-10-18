@@ -38,8 +38,9 @@ Run the pinned scratch module's full test command and two identical prototype in
 - [ ] All scratch children are terminal and the handover names the minimal production seams without repository source/dependency/lifecycle writes.
 
 ## Done summary
-TBD
+Spec closed by owner 2026-10-18: Go D2 renderer has no home after fn-208; refile over the native graph if wanted
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

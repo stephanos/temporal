@@ -4,6 +4,8 @@ satisfies: [R4, R5, R7]
 # fn-195-modelsuite-a-models-test-file-holds-its.11 DSL completion: typed native conformance declarations and exact binding
 
 ## Description
+**Note 2026-10-18 (one-language series):** The producer-facing native selector this task builds is fn-203's input (Cases produced in Scala).
+
 ### Admission and dependencies
 
 **Initial status:** blocked. The committed `.10` report at `f10ee8b160fdd1c355343ac89e531e6630de2b21` disproves acquired-so-far realization completeness and exposes missing native capability retention/expansion. Its 28 source and 28 packaged controls characterize those gaps. The two semantic completeness oracles still fail in each arrangement. This task remains an integration shell until the conductor admits and integrates the missing mechanisms.
@@ -74,7 +76,6 @@ Run the then-current native verifier stages authorized for the touched roots, re
 ### Requirement handoff
 
 C closes native R4 and supplies realize constructor placement for R5 plus local R7 conformance refusals. `.3` retains old author-word removal and final typed corpus admission, preserving held consumers' private metadata and fn-190.16 ownership/copy/provenance controls.
-
 ## Acceptance
 - [ ] Path and sampled conformance tests register as ordinary MUnit tests, preserve their typed defaults/explicit metadata and replay under S's policy before eligibility is granted.
 - [ ] Automatic one/many selection uses the complete proved universe. Refuse foreign `through` and omitted `through` with several realizations at the authored test. Retain the proof's delayed custom-kit, lazy second candidate, late declaration, repeat acquisition and independent-suite controls as production regressions.

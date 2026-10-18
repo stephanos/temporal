@@ -4,6 +4,8 @@ satisfies: [R7, R9]
 # fn-125-represent-dynamic-configuration-in-the.6 Declare API preconditions, derive each Case's required settings with origin, and build clusters from them
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 **Partly absorbed by fn-144** (2026-10-06): the required-settings part of this task (required settings with relation and origin, the union of origins, and the refusal of conflicting origins) is delivered by fn-144 R17. The API preconditions, the harness and Q1 stay here.
 
 Implements R7, the harness half of R9, and the owner's Q1 decision. A typed method, a performed command kind or a Testpilot fault kind declares its preconditions in the kit, beside fn-118's behavior hints; lowering derives each Case's `Program.required_settings` from what its Program uses, with origin and source; the live harness builds each cluster from exactly those settings.

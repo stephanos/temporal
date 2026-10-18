@@ -24,8 +24,10 @@ Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK 
 - [x] Runtime, monitor, cleanup and Verdict outcomes keep fn-64 precedence and map to the three classes without a fourth.
 - [x] The classifier's value carries the Run's class, the pair's class and the key it compared, and nothing about history replay.
 ## Done summary
-`replay.Rerun(ctx, binder, target)` binds a `Target` (Case, prepared Case, Profile identity, key; `Subject.Target()` gives the subject's own, and task .6 hands a candidate's Case and identity with the subject's key) fresh through a `campaign.Binder` the caller opened after admission, once per attempt (`Attempts` = 2), runs it and releases it before the next attempt binds. Each attempt is classed alone by `ViolatedForm` and `Classify`: in the admissible violated form its key is derived offline through the target's prepared Case (`PreparedCase.Evaluate`, then `KeyOf`) and compared, a Run the offline replay does not reproduce is `indeterminate`, a Run that errs is `indeterminate`; the pair is classed by `ClassifyPair`. A binding under another identity, a failed bind and a failed release are errors, never a class. `Reruns{Key, Attempts, Class}` and `Attempt{Class, Detail, Key, Run, Verdict, Identity}` are listener-free values with no history-replay field, pinned by reflection; a scripted Binder over the conformance corpus drives every class, the precedence, the bind/run/release order, and each refusal.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 5d67de32bfa62e242879ea8468724e08088fff70
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/replay/, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

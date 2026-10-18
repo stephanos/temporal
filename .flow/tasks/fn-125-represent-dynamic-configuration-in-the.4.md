@@ -4,6 +4,8 @@ satisfies: [R5]
 # fn-125-represent-dynamic-configuration-in-the.4 Export settings as Quint constants and P params, or refuse
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Implements R5. The Quint export writes a setting as a `const` bound per instance (one instance per valuation); the P export writes it as a `param` or refuses with `UnsupportedError` at the Scala position.
 
 **Cross-spec entry gate:** fn-114 closed; not concurrent with fn-124.8. Depends on task 3.
@@ -30,7 +32,6 @@ go test -count=1 -tags test_dep ./tools/umpire/export/...
 
 ### Execution constraints
 - Existing exports are unchanged.
-
 ## Acceptance
 - [ ] The Quint export carries settings as constants per valuation, and the agreement check passes on a fixture machine that reads one.
 - [ ] The P export carries them as params or refuses with an `UnsupportedError` naming the Scala position.

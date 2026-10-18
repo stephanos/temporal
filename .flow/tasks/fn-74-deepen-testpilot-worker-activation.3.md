@@ -38,36 +38,10 @@ Expose the existing preparation taxonomy at the public facade (R7, R8) independe
 - [ ] Focused unit/race checks pass. Whichever task completes last also runs combined facade/Driver suites and `make lint-code GOLANGCI_LINT_FIX=false`, reporting exact inherited failures separately.
 
 ## Done summary
-# fn-74-deepen-testpilot-worker-activation.3 handover
+Bookkeeping 2026-10-18: parent spec already closed
 
-Worker handover status was in_progress; conductor completed the mandatory review before recording done.
-
-Implemented the exact public PreparationError category/Path/Detail contract with six categories, errors.As-compatible boundary translation, and retained original causes/messages. NewCatalog and Prepare translate internal typed diagnostics without string parsing. Profile/Catalog preconditions and BindingFingerprint failures use malformed Profile paths; binding rejection ceilings and fingerprints remain unchanged.
-
-External-package tests (no internal imports) cover all six categories, ordinary wrapping, original messages and bounded paths, Catalog graph/intrinsic/unknown/limit failures, Case/Program/Contract rejection, fn78 scoped version/binding/evidence/limit failures, nil Case/Profile/Catalog and all applicable typed-nil Profile kinds, binding failures, successful preparation, and ProtoJSON/runtime exclusions. README includes an errors.As example; model architecture links to canonical facade and Driver ownership contracts. All existing comments and prior dirty source changes are preserved.
-
-Baseline: green. Both exact pre-edit Quick unit/race commands passed. Behavioral red was observed before boundary translation; fixture compile typo and one validator-path expectation were corrected based on existing source.
-Final verification: both task Quick commands and combined facade/Driver unit/race suites passed, including SDK replay and Stop regressions. Every executed suite has one exact command/log/terminal-exit record in /tmp/fn74-task3-evidence.json; none was rerun solely to observe a result.
-
-Full make lint-code GOLANGCI_LINT_FIX=false remains inherited red: 1284 raw findings / 825 normalized distinct. Exact normalized (path, diagnostic text) sets equal /tmp/fn74-task2-conductor-lint.log and /tmp/fn74-task2-lint-verified.log, with no additions or removals. Three introduced NotErrorAs lint findings were fixed and final gates rerun. Makefile's separate go-vet phase was not reached because golangci-lint failed. Comparison: /tmp/fn74-task3-lint-comparison.json.
-
-Task-only delta: /tmp/fn74-task3.patch
-Approved changed paths: /tmp/fn74-task3-paths.txt
-Final frozen hashes: /tmp/fn74-task3-frozen-hashes.json
-The pre-task baseline hashes/copies/base files were not modified. Approved files absent from the Frozen86 copies were clean at baseline, so their task delta uses the pinned base commit. No prior source drift or unexpected source changes were found. Administrative .flow state is conductor-owned and excluded from the task delta.
-
-Base commit: 375abfe180dba72da6dd357e6abe33fa75a292a7
-Commits: [] (no staging, commits, push, or worktrees).
-No review verdict, Flow lifecycle mutation, memory/gate/tracker writes, delegation, or next-task work was performed.
-
-stage: impl-review - ran; SHIP, no findings; receipt /tmp/fn74-task3-impl-review.json (model: gpt-6-astra at medium)
 stage: plan-sync - skipped(config: planSync.enabled != true)
-Tracker sync: n/a (bridge inactive)
-
-Limitations: inherited lint failure and unreached separate go-vet phase; no live-cluster or integration-tag tests requested or run. Runtime/ProtoJSON behavior, activation module, SDK code, IR/evaluator/protocol, and deferred fn79 operation cancellation remain outside this task's changes.
-
-No further edits: source is frozen at the recorded hashes; this worker will make no further source edits after handover.
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) go test -tags test_dep ./common/testing/testpilot ./common/testing/testpilot/internal/ir ./common/testing/testpilot/internal/verification, TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) go test -race -tags test_dep ./common/testing/testpilot, TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) go test -tags test_dep ./common/testing/testpilot -run '^TestPreparationError', TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) go test -tags test_dep ./common/testing/testpilot/temporal/... ./common/testing/testpilot, TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) go test -race -tags test_dep ./common/testing/testpilot/temporal/... ./common/testing/testpilot, TMPDIR=/private/tmp CC=$(xcrun -f clang) SDKROOT=$(xcrun --sdk macosx --show-sdk-path) make lint-code GOLANGCI_LINT_FIX=false
+- Tests:
 - PRs:

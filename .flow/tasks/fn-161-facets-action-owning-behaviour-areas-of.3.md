@@ -4,6 +4,8 @@ satisfies: [R3, R5, R9]
 # fn-161-facets-action-owning-behaviour-areas-of.3 Stage 2: standalone activity rules and capabilities into owning facets
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Stage 2 for the standalone activity: move rules and capability declarations into their owning facets, and turn on the one-owner-per-action check for these machines.
 
 **Size:** M

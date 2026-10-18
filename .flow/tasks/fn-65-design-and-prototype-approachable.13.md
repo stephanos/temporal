@@ -42,16 +42,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [x] Locate actual checked-Property-to-ContractLowering producers and test new-form rejection from those checked inputs. Compiler.lean consumes lowered monitor/unsupported data and is not itself a Property recognizer. Where no generic lowering exists, document that non-consumer boundary; never count hand-authored unsupported fixtures or add an unrelated universal compiler.
 
 ## Done summary
-Property admission now rejects unknown majors before body validation while retaining the supported v1/v2 diagnostic order. Compatibility tests freeze legacy and guarded fingerprints, exercise the real Query-to-Artifact identity projection and strict Go reader, and document every semantic, rejection, fingerprint-only, and non-consumer boundary.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The exact Lean Quick and lint-model gates passed. The tagged Artifact package passed with physical `TMPDIR=/private/tmp/umpire-fn65-task13`; its first run under macOS's symlinked `/var` temp path failed only the pre-existing containment tests, and that log is retained separately. `make lint-code GOLANGCI_LINT_FIX=false` reproduced all 1,316 inherited diagnostics byte-for-byte after normalization (`sha256:aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077`, zero individual diagnostic diff).
-
-No checked-Property-to-ContractLowering producer exists. Case Compiler remains an already-lowered consumer; no generic decoder, Property wire body, universal compiler, or second runtime evaluator was added.
-
-stage: impl-review - ran [2026-09-05T21:31:51Z..2026-09-05T21:33:53Z] SHIP (`codex:gpt-5.6-sol:medium`, session `01a0737c-0040-7433-9bdd-6999cc4c7ad0`)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: tracker integration inactive)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Artifact.Tests.Codecs Umpire.Artifact.Tests.Goldens Umpire.Observation.Tests Umpire.Query.Tests Umpire.CaseTests Umpire.Case.CompilerTests) (98 jobs, green; /tmp/fn65-task13-final-quick.log), make lint-model (272 import/lint jobs and 242 full jobs, green; /tmp/fn65-task13-final-lint-model.log), TMPDIR=/private/tmp/umpire-fn65-task13 go test -tags test_dep ./tools/umpire/artifact (green; /tmp/fn65-task13-final-go-artifact-canonical-tmp.log), go test -tags test_dep ./tools/umpire/artifact -run TestExperimentV2RejectsOneAtATimeMutations (green; /tmp/fn65-task13-go-reader.log), make lint-code GOLANGCI_LINT_FIX=false (inherited red reproduced exactly: 1316 diagnostics, sha256:aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077, zero individual diagnostic diff; /tmp/fn65-task13-final-lint-code.log), lake env lean /tmp/fn65-task13-trust-audit.lean (green; only propext, Classical.choice, Quot.sound; /tmp/fn65-task13-trust-audit.log), git diff --check, git diff --cached --check
+- Tests:
 - PRs:

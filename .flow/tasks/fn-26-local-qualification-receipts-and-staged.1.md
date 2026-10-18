@@ -23,8 +23,10 @@ Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the
 - [x] Every new module is imported by its aggregator and the module-index check passes.
 
 ## Done summary
-`Umpire.Evaluation` declares a checked, Temporal-free Evaluation Profile (name, claim, trust basis, blocking Known Gap kinds as `KnownGapKind`, an ordered reason table over seven status-specific conditions forcing `rejected` or `incomplete`); `Profile.declare` rejects an invalid name, an empty claim, trust or table, an empty or duplicate reason, a repeated condition, a duplicate blocking kind and either half of a contradictory Known Gap policy, each by name. `Temporal.Evaluation.Local` declares `local-ephemeral` with the plan's table; `umpire-evaluation-profiles` renders every declared Profile to compact canonical JSON under `tools/umpire/evaluation/profiles/`, and `umpire-check-evaluation-profiles` (in `umpire-check-regression`) diffs a fresh render. The identity `sha256:2803afa2…174c` is pinned in `Temporal/Evaluation/LocalTests.lean`. Implementation review: SHIP in one round, its two P3 notes applied as polish.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 9d012aff02f21f9bedb5680e07b3456d900071de, 4052acf58138672eef097019fe90d34af9792701
-- Tests: cd model && lake build, make umpire-check-evaluation-profiles, make umpire-check-model-module-index umpire-check-inventory, make umpire-check-retired-vocabulary, LEAN_NUM_THREADS=1 make lint-model (baseline: 163 + 1 errors, none in the new modules)
+- Commits:
+- Tests:
 - PRs:

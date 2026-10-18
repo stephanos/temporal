@@ -22,8 +22,10 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [x] Preflight proves the exact canary scope and claims nothing about the rest of production.
 
 ## Done summary
-`tools/canary/authority` reads `UMPIRE_CANARY_*` coordinates and the credential (a TLS pair, an API key, or both) only through an injected lookup, refuses a half pair, an unreadable pair or no credential by variable name, and builds a TLS-only `Transport` for the Driver's endpoint (with the namespace header) and the SDK client. Its `Redactor` removes every credential and coordinate, including PEM body lines and the target's host, through `Redact`, a bounded line-buffered `Writer`, and an SDK `Logger` at warning level; a test plants each value in every form and finds none. `tools/canary/preflight.Check` refuses by name (`workflow-context`, `policy-unconfigured`, `coordinate-mismatch`, `case-mismatch`, `namespace-missing`, `namespace-unavailable`), deciding every connection-free check first and then making one `DescribeNamespace` read through an interface with no mutating method; every refusal detail is redacted. It returns a `Scope` of the invocation ID, the coordinate digests and the prepared Case. Implementation review: SHIP in one round; its two P3 notes and four FYIs applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 9d7a3ea300ad6db015b1a2d06f425eaf4eb6a7e0, 6aa00cc1a9a7928dfe9ff9b3ef2c9c7e47d04661
-- Tests: go test -count=1 -tags test_dep ./tools/canary/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

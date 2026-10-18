@@ -1,0 +1,28 @@
+{
+  "branch_name": "fn-204-the-conformance-descriptor-ships-with",
+  "created_at": "2026-10-18T17:15:27.760332Z",
+  "depends_on_epics": [
+    "fn-202-testpilot-schema-in-the-framework",
+    "fn-203-cases-are-produced-in-scala",
+    "fn-209-spike-the-scala-checker-as-a-native"
+  ],
+  "id": "fn-204-the-conformance-descriptor-ships-with",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-204-the-conformance-descriptor-ships-with.md",
+  "status": "open",
+  "title": "The conformance descriptor ships with the Case",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:48:13.816660Z"
+}

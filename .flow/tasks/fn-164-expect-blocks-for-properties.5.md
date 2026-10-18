@@ -4,6 +4,8 @@ satisfies: [R2, R4, R5, R6]
 # fn-164-expect-blocks-for-properties.5 Migrate feature and actor Properties with a complete parity inventory
 
 ## Description
+**Note 2026-10-18 (one-language series):** IR parity proofs use the in-process internal IR (fn-201); no checked-in IR.
+
 **Size:** M
 **Files:** feature/actor Property and predicate callers with their adjacent Scala tests.
 **Touches:** [model/temporal/features/**, model/temporal/actors/**]
@@ -30,7 +32,6 @@ make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model
 ```
 
 Scratch lifts and evidence only; no production managed regeneration/full gates/Go/review/live.
-
 ## Acceptance
 - [ ] Every production feature/actor lambda Property and required shared predicate caller migrates, proved by independent complete inventories (R6).
 - [ ] Heartbeat/reset remain readable and preserve exact expression/let/conditional/parameter identity; complete owner scratch lifts differ only at mapped positions (R5).

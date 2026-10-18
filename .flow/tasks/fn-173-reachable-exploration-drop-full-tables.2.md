@@ -72,8 +72,9 @@ parity and consumer/live obligations remain explicit; no mini-only receipt prove
 - [ ] R2: Voting drops `inv` with unchanged expectations; one scoped regeneration is reviewed and leaves real-feature payloads/unselected pins unchanged.
 
 ## Done summary
-Blocked:
-Owner override. Native Umpire framework DSL authoring, typing, runtime, caller/API retirement and native guidance come first. This original mixed/integration task remains open and held while native fn164.2/.10, fn165.7-.9, fn173.10/.11, fn123.9/.10 and fn153.7 complete. Consume native results later without repeating or claiming their deferred IR/Go/backend proofs. Retain all original exact IR, metadata, schema, compatibility, consumer and integration requirements. Full spec closure is not a native prerequisite. Ignore model/temporal entirely; no task resumes Temporal work without new owner authority. After native DSL completion, re-anchor this task to the final API before release. This is a deliberate priority/scope hold, not evidence of completion or a technical failure.
+Superseded by fn-200/fn-203 (one-language series, 2026-10-18): Scala checker explores the graph; open-graph lint native; fingerprint from the lift tree
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R7]
 # fn-165-inputs-as-records-named-classes.3 Lifter: classes from record construction, in.field reads, record refusals and fixtures
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 The lifter side: lower classes from record construction, lift `in.field` in function bodies, and refuse what records allow but the DSL does not (R1, R2, R3, R7).
 
 **Size:** M
@@ -16,7 +18,6 @@ The lifter side: lower classes from record construction, lift `in.field` in func
 - Function bodies: `in.field` lifts as a parameter read, as `s.field` does. Refuse `in.copy`, a pattern match on `In`, and a method call on `In`, with the state's wording.
 - Refuse a positional call with two or more inputs (an argument that is not a `NamedArg`), at the call, naming the action; refuse a computed default at the record, naming the field.
 - Fixtures: a record action, a single-input action and an action with no inputs in one lift fixture; a record whose default is not its domain's first value; a structural-bound consumer; reject fixtures for positional, computed default and `copy` in a body.
-
 ## Acceptance
 - [ ] Empty, named and value classes lower to the same `Class` IR the token form produced; the lift fixture's expected IR is unchanged apart from the new fixtures.
 - [ ] `Param` names and types come from the record; the token-identity sites in the IR generator are deleted.

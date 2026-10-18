@@ -54,6 +54,8 @@ A pattern becomes a named capability even with a single use: the name improves r
 - Bar for naming: one use suffices (owner), replacing the earlier "two uses" rule from TEMPORAL_PATTERNS for capabilities. [user]
 - Level split: system/ vs product/ packages (owner). [user]
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Inventory and decisions (Batch 1d, 2026-10-11; R1, R3, R4)
 
 | Hand-written claim | Where | Capability | Law | IR |

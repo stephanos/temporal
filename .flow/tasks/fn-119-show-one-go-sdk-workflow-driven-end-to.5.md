@@ -4,6 +4,8 @@ satisfies: [R4, R5, R8]
 # fn-119-show-one-go-sdk-workflow-driven-end-to.5 Add the faulty variant and the zero-Go check for the example
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Show failure and enforce the no-manual-Go claim.
 
 **Size:** M

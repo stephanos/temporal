@@ -43,19 +43,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [ ] Keep fn62 deferred and its old seven-task graph non-executable until separate evidence-based residual replan/review. Record prototype rule exceptions and broader adoption/human-usability limits without claiming line-by-line human grammar approval or globally changing Umpire rules.
 
 ## Done summary
-Consolidated the Nexus2 prototype into the established aggregate test gates, published its checked learning path and executable fn-65 evidence inventory, and made the owner-local Query limit vocabulary consistent. Every fn-65 R2-R5/R7/R8 positive and enumerated failure maps to runnable Lean evidence; the established Nexus identities, registrations, fingerprints, bytes, and planner behavior remain unchanged.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The exact fn-62 R1-R9 comparison lives at `model/Temporal/Feature/Nexus2/EVIDENCE.md`: R3 is covered; R1/R2/R4/R5/R8/R9 are partial with explicit contract mismatches; R6/R7 are uncovered. In particular, the prototype adds no Observation authoring, authored Known Gaps, checked-Property-to-Observation compiler, established Nexus migration, or automatic kernel-checked frontend constants. fn-62 and its existing seven deferred tasks remain unchanged and non-executable pending the conductor's separate completion review and residual replan.
-
-Final frozen verification: aggregate Lake build exit 0 (251 jobs), `make umpire-build-model` exit 0 (325 jobs), `make umpire-check-regression` exit 0, and `make lint-model` exit 0 (257 jobs). `make lint-code GOLANGCI_LINT_FIX=false` retained the inherited exit 2: its 1,316 sorted diagnostic headers exactly equal task 18 with SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077` and an empty diff. The full logs and command evidence are recorded in the evidence inventory; the spec validator passed with 19 tasks and no errors or warnings.
-
-Official review verdict: SHIP with zero findings. Receipt `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.19.json`, session `01a07471-2e01-7ec3-863c-efc727d37b38`, reviewed tree `686f5f36eab74106a555c0e96f13e2a24ddd9933`, receipt SHA-256 `84a9291e0842a2a9dc76f26c46816fcd6dfd1168199f4f1dee21d735ed39e5ff`. The reviewed tree exactly matched the full staged tree, and HEAD remained `7774fdc7ac751ac959816c9829516ce54af57194`.
-
-No commit was created because the user retains commit ownership. Tracker sync is inactive.
-
-stage: impl-review - ran [2026-09-06T01:59:27Z..2026-09-06T02:01:01Z] (model: gpt-5.6-sol at medium; verdict: SHIP)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests Temporal.Feature.Nexus2.AuthoringTests UmpireTests TemporalModelTests TemporalExperimentalTests) (exit 0; 251 jobs; /tmp/fn65-task19-final3-aggregate.log), TMPDIR=/private/tmp/taskdir make umpire-build-model (exit 0; 325 jobs; /tmp/fn65-task19-final3-umpire-build-model.log), TMPDIR=/private/tmp/taskdir make umpire-check-regression (exit 0; /tmp/fn65-task19-final3-umpire-check-regression.log), TMPDIR=/private/tmp/taskdir make lint-model (exit 0; 257 jobs; /tmp/fn65-task19-final3-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited exit 2; 1316 sorted diagnostic headers exactly match task 18; SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; diff 0; /tmp/fn65-task19-final3-lint-code.log), flowctl validate --spec fn-65-design-and-prototype-approachable --json (exit 0; 19 tasks; no errors or warnings; /tmp/fn65-task19-final-flow-validate.json), git diff --check (exit 0 for task-owned unstaged diff before final staging), official impl-review (SHIP; zero findings; receipt /tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.19.json; session 01a07471-2e01-7ec3-863c-efc727d37b38; reviewed tree 686f5f36eab74106a555c0e96f13e2a24ddd9933)
+- Tests:
 - PRs:

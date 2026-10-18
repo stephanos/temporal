@@ -4,6 +4,8 @@ satisfies: [R7]
 # fn-128-close-the-activitys-precision-gaps.7 Observe accepted fatal settlement through typed public evidence
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Evidence classification moves to fn-204's descriptor interpretation (or the fn-209 oracle on go).
+
 Implement R7 against the settled activity source. This correction supplies accepted fatal-settlement evidence; the existing close task owns final generation, live gates and R6 accounting.
 
 **Size:** M
@@ -36,7 +38,6 @@ go test -tags test_dep -p 2 -timeout 30m ./tools/umpire/conformance -run 'Fatal|
 ```
 
 Re-anchor the source paths if the scheduled mechanical moves have changed them; record the exact invoked command. Heavy scratch lifts and Go commands use the shared flock. Full suites, production generation, docs, live and final review stay in .6.
-
 ## Acceptance
 - [ ] Focused source row comparison proves that accepted fatal rows alone gain classification; states/actions/guards/outcomes/next states and old fact subsequences stay unchanged. Product refinement and existing failure/timeout occurrence vectors pass.
 - [ ] Typed source recording requires FAILED and the requested present application failure with nonRetryable true. Retryable exhaustion, missing failure/arm/flag, false flag, wrong operation, malformed fields and offered-fatal/server-other races cannot establish classification.

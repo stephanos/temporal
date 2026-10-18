@@ -33,8 +33,9 @@ Re-author `TestNexusOperationSyncCompletion` as a Model file using only the six 
 - [ ] The live test passes under `make umpire-check-live-tests`
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13. The synchronous Nexus completion test is Query 1 (`syncCompletion`) of the Caller Model's functional set, with `COVERAGE.md` mapping every upstream assertion (fn-85 .10); the `nexusOperation ... responds sync` template it was to be written on is gone (fn-85 .11).
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

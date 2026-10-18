@@ -60,8 +60,9 @@ case asyncNexus
 - [ ] `cd model && lake build`, `make umpire-check-case-runtime-conformance` pass
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13. Template arguments are gone with the templates (fn-85 .11): a `case` block names a `Realization` value, whose bindings are keyed by the classed member a Scenario action resolves to and checked at assembly (fn-85 .10), and evidence the Program cannot produce is a rejection at production (`evidence.action-unmapped`, `evidence.action-repeated`).
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

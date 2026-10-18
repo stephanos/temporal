@@ -4,6 +4,8 @@ satisfies: [R5, R6]
 # fn-164-expect-blocks-for-properties.4 Migrate capability and foundation predicates to expectation blocks
 
 ## Description
+**Note 2026-10-18 (one-language series):** IR parity proofs use the in-process internal IR (fn-201); no checked-in IR.
+
 **Size:** M
 **Files:** product/system capability constructors, their focused laws/tests and foundation predicate users.
 **Touches:** [model/temporal/capabilities/**, model/temporal/foundations/**]
@@ -30,7 +32,6 @@ make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model
 ```
 
 Confirm the selected test filter actually executes capability suites; use actual suite names when package filtering selects none. Serialize heavy commands; retain scratch evidence, do not update checked-in IR/Cases.
-
 ## Acceptance
 - [ ] Every reusable capability/foundation lambda Property is migrated with an independent before/after inventory; existing pattern-only laws remain correct (R6).
 - [ ] Frozen scratch lifts prove complete declaration/function parity except mapped source positions, including generated claims/bounds/groups and explicit binding names (R5).

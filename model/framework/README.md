@@ -1,5 +1,9 @@
 # Framework authoring
 
+[VISION.svg](VISION.svg) (source [VISION.d2](VISION.d2), render with `d2 --layout tala VISION.d2 VISION.svg`) is the north star: the
+state after the one-language series fn-199 through fn-209, where Scala declares, checks, lints, emits
+and produces, and Go only executes Cases against a real system and observes.
+
 `framework.dsl` declares machines and their promises; `framework.checker` executes those declarations
 as the Scala oracle, and `framework.realize` supplies generic realization values. The framework has no Temporal Model dependency. The wider model pipeline is
 described in [model/README.md](../README.md); the native expectation loop below is narrower.

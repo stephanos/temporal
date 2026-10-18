@@ -39,8 +39,10 @@ The SDK client does not expose reliable namespace introspection, so construction
 - [ ] The focused integration command with `-tags 'test_dep integration'` and `make umpire-check-live-tests` pass.
 
 ## Done summary
-Extended the live async Nexus regression to decode one Case once, prepare it against two disjoint frozen Profiles, and run each environment twice concurrently through symbolic Drivers and namespace-scoped SDK clients. Assertions prove satisfied identical contracts/source, distinct binding identities and Run IDs, intended endpoint history, opposite-namespace isolation, mutation safety, and existing incomplete/inconclusive behavior for an absent remote endpoint. Final focused integration and repository live-baseline gates passed; independent implementation review returned SHIP. Plan sync was skipped because `planSync.enabled` is false.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase' (36.229s), TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 make umpire-check-live-tests (exit 0; inherited exact failure identities matched), gofmt -d tests/testpilot_async_nexus_case_test.go, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.6.json
+- Tests:
 - PRs:

@@ -13,8 +13,9 @@ Deferred by the owner on 2026-10-09. Review the existing measured dump and reade
 - [ ] R4: Large dumps remain temporary and untracked; document compatibility, implementation and API tradeoffs.
 
 ## Done summary
-Blocked:
-OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
+Superseded by fn-205 (deferred)/fn-208 (one-language series, 2026-10-18): Quint JSON memory moot; Go export deleted
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

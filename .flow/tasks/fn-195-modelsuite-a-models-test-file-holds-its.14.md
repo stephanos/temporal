@@ -4,6 +4,8 @@ satisfies: [R1, R2, R7]
 # fn-195-modelsuite-a-models-test-file-holds-its.14 Integrate complete suite inventory and staged native gate admission
 
 ## Description
+**Note 2026-10-18 (one-language series):** 'Held export' reads 'held lift' after fn-201.
+
 Consume the compiled inventory producer to finish `.8`'s actual discovery and policy integration for R1/R2/local R7. Retain the complete explicit suite universe and both real gate callers. This is a conditional integration shell, with the demonstrated missing admission visible before implementation.
 
 **Size:** conditional, currently L. Registry, transport, two callers, their controls and docs are not one M task. Before implementation the conductor must prove the remaining admitted metadata closure, settle interfaces against the completed producer, and split this shell into cohesive M-sized prerequisites. Do not retain an M label by omitting held suites, ChangeCheck, source admission or publication guards.
@@ -47,7 +49,6 @@ Repeat `.8`'s retained stable-term RED through actual Registry and ordinary nonz
 ### Boundaries
 
 This blocked shell grants no export/IR/schema/Go/backend/generated/lifting/regeneration/Temporal/server/Case authority. It supplies no new author syntax, source-distribution requirement, second runner or checker. Parent specs stay OPEN; `.8` and its consumers remain incomplete until the actual implementation and complete-universe evidence land. Formal review remains phase-batch deferred.
-
 ## Acceptance
 - [ ] Before implementation the conductor records a scope-admitted current compiler-artifact universe for every actual held/unselected suite, then refines/splits this L-sized shell into bounded real producer/caller tasks. A generic-only inventory, source-parser fallback or hold-name list does not satisfy admission; the proposed export compilation remains unauthorized.
 - [ ] Actual Registry consumes one immutable fresh inventory with exact runnable JVM identities, complete source/ancestor provenance, exclusions and duplicate/currentness refusals. The retained two-suite omission is fixed through actual source and separate-library discovery with exact selectors and nonzero execution; no-test and inherited erased-inline admission remains visible before filtering.

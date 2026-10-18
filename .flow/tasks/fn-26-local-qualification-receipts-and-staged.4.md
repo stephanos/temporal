@@ -25,8 +25,10 @@ Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the
 - [x] Same subject/Profile content publishes idempotently; different Profiles yield distinct receipts; an interrupted publication leaves no partial receipt under its final name.
 
 ## Done summary
-`tools/umpire/evaluation/receipt.go`: `Render(subject, profile, decision)` writes one receipt in a fixed key order (format version 1; the Profile's name, identity, claim and trust; the Case identity and IDs; the Run identity, Run ID, recorded Driver identity, disposition and cleanup; the Verdict with each rule's status, terminal state and supporting sequences; the decision, its reasons and unsupported rules; the Known Gaps by kind and code; the admission caps), refusing a Decision made under another Profile or on another subject; over 1 MiB it is the tooling failure `receipt-oversized`. `DecodeReceipt` reads only the canonical rendering of format version 1 back. `ReceiptIdentity` is the bare hex SHA-256. Goldens for an accepted, a rejected and an incomplete Decision produced by `Assess` are pinned under `testdata/receipts/` (`UMPIRE_RECEIPT_GOLDENS=write` rewrites them). `cli.Publish(ctx, root, name, bytes)` writes a synced 0644 dot-prefixed temporary file and hard-links it to the final name; the same bytes are `already-published`, and anything else under the name (other bytes, a symlink, FIFO or directory) is a `ConflictError`, never overwritten; the context is checked immediately before the link. Implementation review: SHIP in one round; its P3 and two FYIs applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 941f2a73e1fee017c996c0574deb59f73e9a8c89, 3b5c8ca93b6839bbea73c124d69330ebd46a076b
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/evaluation/ ./tools/umpire/internal/cli/, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

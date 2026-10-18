@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-125-represent-dynamic-configuration-in-the.2 Declare settings over finite domains in model/umpire, lift them and build one table per valuation
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Implements R3 (spec Part A). Temporal-agnostic framework: a Model setting is a named constant over a `Finite` domain, read by step functions through a given `Valuation`. No Temporal Model reads one yet, so every existing IR file, table and Case stays byte-identical.
 
 **Cross-spec entry gate:** fn-114 closed (paths after fn-114.9 and its Case freeze). Not concurrent with fn-124.8 (the `tools/umpire/model` package split); whichever lands second rebases onto the other's paths. Tasks 2 and 5 both edit `ir.proto`; the second takes the next free field numbers.
@@ -38,7 +40,6 @@ go test -count=1 -tags test_dep ./tools/umpire/model/... ./tools/umpire/checker/
 ### Execution constraints
 - Frozen where unbound: every existing IR file, table, key, total, answer, Definition ID and Case is byte-identical (baseline goldens while they exist, fn-124 R7).
 - No Query binding yet (task 3); no Temporal Model reads a setting.
-
 ## Acceptance
 - [ ] `setting[T]` over a `Finite` domain is declarable in `model/umpire` and readable in step functions, guards, `ends` and starts under a given `Valuation`; a read with no valuation in scope does not compile.
 - [ ] The IR generator records `Setting {id, name, position, domain}` and each read as `setting(id)`; existing IR bytes and fingerprints are unchanged (schema test extended).

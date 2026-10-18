@@ -31,8 +31,10 @@ Add explicit source-to-destination constructors for value and semantic Link mapp
 - [ ] Link checking, known gaps, coverage, witnesses, diagnostics, fingerprints, and composed results are unchanged.
 - [ ] Link import, compilation, Application, fixture, System, and composed tests pass.
 ## Done summary
-Added documented inert `.forward` constructors for value and semantic Implementation Link mappings with direct equivalence/import coverage, then migrated all ordinary production and positive-fixture mapping pairs without changing order or meaning. Deliberate diagnostic, mutation, ambiguity, incompatible, outcome-invention, and known-gap witnesses remain raw.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: b2f93be82b7f939711a7b427637c40caafa06ce2
-- Tests: cd model && mise exec -- lake build Umpire.ImplementationLink.Tests Temporal.System.Nexus.ImplementationLinkTests Temporal.ImplementationLinkTests.Nexus, make umpire-check-regression, make lint-model, make lint-code (inherited 1,379-issue baseline)
+- Commits:
+- Tests:
 - PRs:

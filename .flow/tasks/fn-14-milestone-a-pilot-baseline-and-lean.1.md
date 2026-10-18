@@ -40,8 +40,9 @@ Create the exact versioned pilot contracts and immutable pre-measurement inputs 
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

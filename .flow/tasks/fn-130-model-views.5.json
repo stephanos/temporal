@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-130-model-views",
   "spec_path": ".flow/tasks/fn-130-model-views.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Render inferred derived-design comparisons",
   "updated_at": "2026-10-10T13:48:28.787147Z"
 }

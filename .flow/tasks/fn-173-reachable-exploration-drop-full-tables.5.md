@@ -4,8 +4,9 @@ satisfies: [R6]
 # fn-173-reachable-exploration-drop-full-tables.5 Phase 4: DSL and lifter: native collections and Int in state, oneOf inputs, input-reading guards, Inbox recognized by type
 
 ## Description
-TBD
+**Recut 2026-10-18 (one-language series):** The DSL part is done; the lifter part goes to fn-190.9 and fn-201.
 
+TBD
 ## Acceptance
 - [ ] TBD
 

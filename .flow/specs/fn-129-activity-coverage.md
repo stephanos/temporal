@@ -48,6 +48,8 @@ The final suite compares authored disposition, cleanup, Contract, conformance, P
 - Preserve `nonRetryableFails`, its ordinary no-reset Scenario/pinned FIND and fatal SATISFIED expectation exactly. Separate independent reset-settlement Properties/witnesses cover reset; scoped universal capability overrides cover complete reset/no-reset transitions without vacuity or shared companion changes. The ordinary FIND never claims reset coverage.
 - Broad generated API drift verification and new CI coverage remain declined in `.flow/memory/declined/generated-api-drift-verification.md`. Required focused schema, fixture and identity checks remain in scope.
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Boundaries
 
 - Standalone activity only. Workflow-scheduled activity fn-119, deferred fn-125/fn-130 and captured fn-149/fn-150 remain outside this batch.

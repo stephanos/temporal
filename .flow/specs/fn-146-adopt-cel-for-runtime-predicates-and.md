@@ -73,6 +73,8 @@ Source action items come from both schema research notes and the accepted CEL ru
 
 The completed fn-145 split places symbolic operands in `proto/internal/temporal/server/api/umpire/v1/operand.proto`; `ir.proto` owns the root Model and imports the declaration closure. Testpilot defines the neutral executable environment, then Umpire lowering consumes it. This one-way ownership avoids a circular schema dependency.
 
+2026-10-18, one-language series: owner decision "fn-202 first": this spec now depends on fn-202 (Testpilot schema in the framework), so its proto changes land in the final location. Its lowering half (.6, Umpire operand lowering into CEL) is recut into fn-203's Temporal adapter; fixture regeneration folds into fn-203.4's single regeneration.
+
 ## Execution baseline
 
 The structural prerequisites are integrated: fn-145 split the Umpire schema; fn-142/fn-143 and `fn-151-split-standalone-activity-into-smaller` established the current framework and Activity source layout. Start this batch only from the integrated, committed closure of fn-156 and authoring Batch 2 (fn-140/fn-123, with their shared close at fn-123.8). Before implementation, re-anchor schema fields, Scala declarations, lifter/lint owners, tests and artifact identities against that closed baseline. fn-123's fault metadata and fn-156's compiler checks are still pending at this preparation point; consume their actual committed APIs and pins, without assuming names or results here. Retain the single format 4.0 activation at fn-148.6 and the shared regeneration, full-gate, review and live-run close at fn-148.7.

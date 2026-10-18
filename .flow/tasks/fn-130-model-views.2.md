@@ -42,8 +42,9 @@ mise exec -- go test -tags test_dep ./tools/umpire/ir -run '^(TestLiveModelDepen
 - [ ] Repeated artifacts and escaping/font/empty-input negative cases pass; modeled behavior, IR/Case bytes and identities remain unchanged.
 
 ## Done summary
-TBD
+Spec closed by owner 2026-10-18: Go D2 renderer has no home after fn-208; refile over the native graph if wanted
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

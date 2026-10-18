@@ -4,6 +4,8 @@ satisfies: [R8, R9]
 # fn-148-consolidate-testpilot-evidence-and.7 Complete the successor-format migration and close documentation
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Merged into fn-203.4 per the owner (2026-10-18): the format-4 artifact migration is part of fn-203's single Case regeneration, after fn-202's proto move.
+
 Regenerate the supported artifact surface, compare measurements and behavior, regenerate and replay checked-in companions, and update the rules of record for R8 and R9. This is the shared fn-146/fn-147/fn-148 regeneration, full-gate, review and live-run close. Close none of the three specs until every delta is categorized against this spec or its CEL and Duration predecessors and the shared evidence is linked from fn-146.7 and fn-147.4.
 
 **Size:** M
@@ -41,7 +43,6 @@ make lint-model
 make lint-code-fast
 make umpire-check-live-tests
 ```
-
 ## Acceptance
 - [ ] R8's behavior, measurement, replay and identity evidence is complete.
 - [ ] R9's semantics, module, protocol and milestone updates are current.

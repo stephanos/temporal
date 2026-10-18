@@ -19,8 +19,9 @@ A Scala interpreter over ir.Model/ir.Function/ir values in model/framework/check
 - [ ] TBD
 
 ## Done summary
-TBD
+Superseded by fn-196/fn-201 (one-language series, 2026-10-18): no IR evaluator; the Scala checker is the oracle and the IR is internal
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-146-adopt-cel-for-runtime-predicates-and.3 Build the descriptor-aware CEL value adapter
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Implement R3 independently of evaluator rollout. Convert between admitted Testpilot values, protobuf values and CEL values under the Case's descriptor catalog while retaining model atoms and `ValueType` as separate contracts.
 
 **Size:** M

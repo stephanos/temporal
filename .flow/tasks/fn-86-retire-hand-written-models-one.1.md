@@ -67,83 +67,10 @@ Confirm the spec's "What is hand-written today" table file by file (R1): a commi
 
 
 ## Done summary
+Bookkeeping 2026-10-18: parent spec already closed
 
-Done 2026-09-20; self-review. Commit b7a6509. Nothing moved.
-
-### The tree as fn-85 left it
-
-Re-read at start, as the F5 line asks. `Temporal/Case/Template/**`, the `fixture`-named `case`
-form and `Temporal/Case/Tests/{Template,ProofPoint}.lean` are gone (fn-85 .11); the
-Case-producing command is `case <name> realizes <set> as <realization>` (`Temporal/Case/Syntax.lean`),
-which also admits a canary set (fn-85 .12). `Success/` holds `Model.lean` (the command-authored
-`lifecycle` specimen with no set and no Case; it still imports `Race.Terminal`), `Tests.lean`,
-`RaceSyntaxTests.lean`, `TypedUnary.lean`, `TypedNexus.lean`, `Tests/{TypedUnary,TypedNexus}.lean`,
-`Nexus.md` and `Integration.md`. `register_case` has four lines in `Temporal/Tool/Testpilot.lean`
-(`get-system-info`, `worker-outage`, `typed-unary`, `typed-nexus`) and `Registry.register_case`
-stays until the last of them goes. The typed Nexus example is still the only emitter of
-`StartNexusOperation`, `RespondNexus`, `NexusResponseKind` and the untyped completion result. The
-`model/README.md:37` drift the Key context names is gone (fn-85 .13). The file lists of `.2`, `.3`
-and `.6` are corrected on their records where the tree differs from what they cite.
-
-### The inventory
-
-`model/HANDWRITTEN_INVENTORY.md` follows `tools/umpire/CLEANUP_INVENTORY.md`'s ledger shape:
-task-start commit, the reconciliation rule, four destinations, then four tables. The first is what
-the lint reconciles -- the eleven production modules under the three roots that import an
-authoring owner directly, found by scanning every `import` line under `Temporal/Feature`,
-`Temporal/Testpilot` and `Umpire/Examples`: the two typed examples (migrate, .2 and .3), the
-worker-outage and get-system-info Cases (migrate, .6), `Temporal.Testpilot.CaseSupport` (keep:
-the realization's and the conformance Cases' helpers), `Lifecycle.Model`, the four `Operations`
-modules and `Race.Authoring` (delete, .5, after .4 re-anchors the Implementation Link), each with
-every Lean importer, golden, fixture, Go artifact and live test, tool, compatibility family and
-document that reads it. The second table lists what the spec's table names without an owner
-import of its own (`Observation`: drop, the Umpire evidence tests remain the prover; the three
-`Experimental` modules: delete, inputs to fn-33; `Success.Model`: the command specimen, kept until
-.5 drops its `Race.Terminal` import; `Umpire.Examples.Switch`: migrate, .7, with its eleven
-importers, four goldens, generated view and experiment fixture). The third is what is kept with
-the reason: the Implementation Link with its two Feature imports (`Lifecycle`, `Race.Terminal`),
-the realization, `Conformance`. The fourth is the readers that are not modules: `Goldens`,
-`NexusDiscovery` (delete with Operations), `Inspect` with the `umpire-inspect/list/explain`
-targets and `UMPIRE_REGRESSION_INSPECTOR` (delete with Operations unless the user asks to re-point
-it at the Caller Model: the open question, recorded), the compatibility-family pins, and the six
-documents with their destinations.
-
-### The reconciliation check
-
-`Tools.LeanSourceInventory.InventoryIssue` gains `handwrittenNotInventoried (module imported)`,
-keyed for the sorted output like its siblings. `ModelLint.ImportGraph.Policy` gains
-`handwrittenRoots` (`Temporal.Feature`, `Temporal.Testpilot`, `Umpire.Examples`) and
-`authoringOwners` (the six R7 owners); `Policy.handwrittenImport?` says whether a module record
-is hand-written by that definition (classified, under a root, production by the existing
-`isProductionModule` predicate, importing an owner directly) and `reconcileHandwritten` reports
-each such module the ledger does not list, sorted by name. `inventoriedModules` reads the ledger:
-the first cell of each table row that is exactly a backticked qualified name. `ModelLint`'s
-`lintImportGraph` reads `HANDWRITTEN_INVENTORY.md` from the model root it runs in and appends the
-issues to the reconciliation's, and the Makefile's `lint-model` target tests the file exists before
-building, so the ledger is an input of the gate. `ImportGraphTests.testHandwrittenInventory` pins:
-the parser over a three-row ledger, the planted `Temporal.Feature.Nexus.Planted` importing
-`Umpire.Model.Table` reported with its module and import, a listed module, a `*Tests` module, a
-realization under `Temporal.Case` and a module importing only `Umpire.Command` all clean, and the
-rendered diagnostic. On the real tree the lint is clean with the ledger as written (and, with the `Race.Authoring` row removed for one run, reports `hand-written module not inventoried: Temporal.Feature.Nexus.Race.Authoring imports Umpire.Property.Elab directly and is missing from HANDWRITTEN_INVENTORY.md`, then passes again with the row restored).
-
-### The baseline
-
-`tests/testcore/testpilot/baseline/typed-unary-contract.json` is the `contract` block of
-`typed-unary-case.json` as the generator wrote it, cut out of the fixture and dedented, so it is
-the generator's current output byte for byte (checked: the block re-indented equals the fixture's,
-and both decode to the same value); `baseline/README.md` says it is a scaffold with no generator
-and no reader that task .2 deletes once its comparison has passed. It sits beside `testdata/`
-rather than inside it, as the task's file list had it: `umpire-check-case-runtime-conformance`
-diffs the fixture directory against the generator's output and rejected the subdirectory ("Only
-in testdata: baseline"), so a file the generator does not write cannot live there.
-
-### Gates
-
-`lake exe umpire-lint-tests` passes; `LEAN_NUM_THREADS=1 make lint-model` at the fn-85 baseline: the import-graph and Batteries steps pass with the ledger read, and the `lake lint` step reports the same two generated `Proto.lean` errors and 41 pre-existing warnings, none new;
-`go test ./tests/testcore/testpilot/...` ok; `make umpire-check-regression` exit 0 with
-29 passing live identities.
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: b7a6509
-- Tests: `cd model && lake build umpire-lint-tests umpire-lint && lake exe umpire-lint-tests`; `LEAN_NUM_THREADS=1 make lint-model`; `go test -count=1 -tags test_dep ./tests/testcore/testpilot/...`; `CC=/usr/bin/cc TMPDIR=$(cd /tmp && pwd -P) make umpire-check-regression`
+- Commits:
+- Tests:
 - PRs:

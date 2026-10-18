@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3]
 # fn-148-consolidate-testpilot-evidence-and.2 Unify evidence binding, lowering and policy checks
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The `tools/umpire/lower` half goes to fn-203's Temporal adapter.
+
 Move execution binding and Umpire lowering to the generalized declaration, then retire inline lift fields. Preserve first-match response order, Run Event ambiguity, dense ordinals, causal parents and independent Contract policies for R1 through R3.
 
 **Size:** M

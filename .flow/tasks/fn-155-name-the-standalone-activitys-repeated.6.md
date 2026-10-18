@@ -4,6 +4,8 @@ satisfies: [R7]
 # fn-155-name-the-standalone-activitys-repeated.6 Regenerate, prove the mapping and close fn-155
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Close on the recorded evidence, or re-prove under fn-203's single regeneration; no Go tables and no gen-cases.
+
 Closes the spec: one regeneration, the projection proof, Go test and fixture updates, a docs check, gates and review (spec R7, Decision Context batch nature). It hands the mapping to fn-140.4/.6 and fn-129.3.
 
 **Size:** M

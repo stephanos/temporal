@@ -34,23 +34,10 @@ A future is an SDK handle, not an IR Value. No proto/Lean generation or second e
 - [ ] Concurrent activation lookups cannot mutate prepared data or another activation; false guards and missing guarded results retain existing semantics.
 - [ ] Focused tagged execution/root tests and race tests, make fmt-imports and scoped make lint-code pass; document the worker API handoff.
 ## Done summary
-Exposed shared prepared outcome/value operations through root plan wrappers: bounded validation and independent outcome/declared-field snapshots, cloned declared schemas, cached runtime ceiling and guarded compiled-input evaluation with activation-local lookup. Controller staging delegates the same validator; StartNexusOperation VALUE rejects at preparation while Await and evaluated Finish/RespondNexus results retain their semantics.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Baseline green: focused tagged execution/root tests, make fmt-imports and authorized scoped no-fix lint all exited 0, recorded in `.flow/tmp/fn64-task16-baseline-results.json` and `.flow/tmp/fn64-task16-baseline-style-results.json`. Final normal/race IR/execution/verification/root, formatting and scoped lint all exited 0; exact commands/environments/timestamps/logs are in `.flow/tmp/fn64-task16-final-results.json`. Initial missing-API red, parity failure, static-budget compatibility failure and first final lint failures were corrected before review. No global lint green claim: the inherited mainbase backlog remains outside scope.
-
-Tests: `TestPreparedStartRejectsValue`, `TestPreparedOutcomeParity`, `TestPreparedInputActivationIsolation`, `TestPreparedTerminalResultsAndDeclaredTypes`, and `TestRuntimeSnapshotDeterministicFailureOrder` cover R2/R4/R7/R9 task obligations. They cover controller/worker status/field/error/work parity, missing/malformed/undeclared/oversized values, exact and one-less budgets, repeated tight-budget field/map ordering, false guards, required missing guarded reads, concurrent independent lookups and schema/outcome/field/input ownership. Existing root/import and execution tests remain green. The worker README documents validated immutable activation-local callback inputs and aggregate work ownership; no new evaluator, mutable store, locks, SDK calls, I/O or goroutines were added to the shared operations.
-
-The conductor approved a narrow IR `catalog.go` / `runtime_value_test.go` scope extension after parity tests exposed protobuf Range nondeterminism. Runtime fields/map keys are bounded and ordered before validation/copying; static binding preserves inherited finite accounting units. This is required by deterministic task16 failure precedence, not an added runtime capability. The task scope was re-anchored after its authoritative update.
-
-stage: impl-review - ran (codex:gpt-5.6-sol:high; SHIP first pass; 2026-09-05T02:45:49.533386Z; /tmp/impl-review-receipt-fn-64-umpire-case-runtime.16.json)
 stage: plan-sync - skipped(config: planSync.enabled != true)
-stage: concurrent-wave - skipped(policy: shared checkout; one writer)
-Tracker sync: n/a (bridge inactive).
-
-No review findings or unaddressed requirements. The read-only reviewer attempted a focused Go command but could not create its temporary build directory; the writer's explicit final gate exits above are authoritative. The reviewed owned tree `a6ad409f851c7abfd8ca0dad0fe0a0b628d56400` matches all owned source exactly against start tree `6900676746da4d715a03d2b08948de922255aa09`; comparison exited 0 before lifecycle completion. Start HEAD `0fc128eb50a8c8bdc1db3eb1dfdf1445130910bf`, actual HEAD `0fc128eb50a8c8bdc1db3eb1dfdf1445130910bf`. No commits, pushes or worktrees: user owns commits, evidence commits are empty; all pre-existing staged changes were preserved.
-
-Gate classification FULL. NO_RECEIPT: worktree dirty outside the ignore set (.plans/UMPIRE4_ORDER.md) - receipt not warrantable. No HEAD-based green receipt is claimed for uncommitted source. SDK runtime/carrier delivery/ledger work remains with tasks 17/18/6; no future live integration or cutover gates claimed.
 ## Evidence
 - Commits:
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/internal/ir ./tools/umpire/internal/execution ./tools/umpire/verification ./tools/umpire, go test -count=1 -race -tags test_dep ./tools/umpire/internal/ir ./tools/umpire/internal/execution ./tools/umpire/verification ./tools/umpire, make fmt-imports, make lint-code GOLANGCI_LINT_BASE_REV=4c4e26ebdb15100387107f5d03daf5ce5fc01111 GOLANGCI_LINT_FIX=false, baseline: green (task16 baseline tests/style result files), All final gate command exits, environments, timestamps and logs: .flow/tmp/fn64-task16-final-results.json, Owned source matches reviewed tree: git diff --exit-code a6ad409f851c7abfd8ca0dad0fe0a0b628d56400 -- <owned_paths>; exit 0, NO_RECEIPT: worktree dirty outside the ignore set (.plans/UMPIRE4_ORDER.md) - receipt not warrantable
+- Tests:
 - PRs:

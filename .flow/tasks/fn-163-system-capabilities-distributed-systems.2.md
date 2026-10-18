@@ -4,6 +4,8 @@ satisfies: [R1, R3, R4, R5, R6]
 # fn-163-system-capabilities-distributed-systems.2 Inventory and named system capabilities: Exclusive, Fenced, Idempotent, SingleOutcome
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Inventory the hand-written distributed-systems claims and give each pattern one named definition in capabilities/system: Exclusive (atMostOneActive Property, atMostOneActiveAttempt monitor), Fenced (staleDeliveryRejected), Idempotent (action-targeted: a repeated request answers as the first; closedRejectsOrRepeats, repeatedRequestsAnswer), SingleOutcome (singleOutcome monitor). Laws lower to the existing Property and Monitor IR; Models call them instead of hand-writing.
 
 ### Observable realization evidence (R6)
@@ -25,7 +27,6 @@ original R6 observable-evidence obligation both remain binding.
 This is the existing R6 requirement, not a new capability API or permission to
 run Go, generate managed artifacts, review or execute live Cases. Preserve the
 user-owned SEMANTICS draft when updating final author documentation.
-
 ## Acceptance
 
 - Inventory recorded in the spec (R1)

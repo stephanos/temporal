@@ -4,6 +4,8 @@ satisfies: [R3, R4, R6, R11]
 # fn-123-declare-faults-as-the-environments.4 Task-queue providers converted: derived crash, overriding crashes with fault-overridden lint, derived storage-loss assumption
 
 ## Description
+**Note 2026-10-18 (one-language series):** `.lint.json` acceptances become `@gap` via fn-200.
+
 Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its durability and a derived crash, `crashDetail` goes, `ForgetfulQueue` and `VolatileQueue` rebind authored crashes over the derived one with lint kind `fault-overridden` and accepted reasons, and the storage-loss bindings derive their assumption in place of `storageLossAssumed`. It is one task because these files share one regeneration and one diff classification.
 
 **Size:** M
@@ -34,7 +36,6 @@ Convert the shared task queue (R3, R4, R6, R11): `TaskQueueSystem` declares its 
 ### Key context
 - Memory `joined-composition-keys-must-be-checked-2026-09-28`: the derived row keyed under a composition member must keep the joined keys injective.
 - Memory `behavior-neutral-refactors-must-not-2026-09-04`: the conversion must not tighten validation the Models relied on.
-
 ## Acceptance
 - [ ] `crashDetail` and the authored crash rule are gone from `TaskQueueSystem`, and task 3's table test passes against the regenerated queue. Universal R2 classification is active for every crash binding, existing Disk hole behavior survives, and crash-free inherited restrictions stay valid.
 - [ ] `ForgetfulQueue` and `VolatileQueue` give the same counterexamples. Lint reports `fault-overridden` for each, and the gate fails if either acceptance is removed.

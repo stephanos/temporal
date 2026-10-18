@@ -31,8 +31,10 @@ Introduce and directly test the transparent Core constructor (R1, R5).
 - [ ] Existing Core comments remain intact.
 
 ## Done summary
-Added the documented, inert `ModelValue.named` constructor beside `ModelValue`, with direct equality and invalid-input transparency coverage plus umbrella import visibility. Existing records and validation boundaries remain unchanged.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: bd25d9c7a9935e68cc838abd0fbabb4d7274323b
-- Tests: cd model && mise exec -- lake build Umpire.CoreTests Umpire.ImportTests
+- Commits:
+- Tests:
 - PRs:

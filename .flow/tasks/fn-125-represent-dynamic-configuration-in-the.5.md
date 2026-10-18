@@ -4,6 +4,8 @@ satisfies: [R6]
 # fn-125-represent-dynamic-configuration-in-the.5 Declare each dynamic-config key once in the kit and pin it to the server registry
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 **Absorbed by fn-144** (2026-10-06): fn-144 R17 delivers this task whole: the typed, scoped key declarations in `model/temporal/foundations`, carried in the foundations IR file, and the registry pin test. The keys fn-125's remaining tasks need are declared through that mechanism when those tasks run.
 
 Implements R6 (spec Part B). The Temporal kit declares each dynamic-config key a Model uses once, in `model/temporal/foundations`, typed (bool, int, duration, string) and scoped, with no citation of its server definition; a Temporal-side Go test pins the declarations to the server registry, and that test is the link.

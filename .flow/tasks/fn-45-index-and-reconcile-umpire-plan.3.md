@@ -42,15 +42,10 @@ tools/planindex/check_test.go]
 - [ ] `TestRepositoryPlanLinks` executes against the production root, observes the pre-repair link findings as RED, and cannot pass via `[no tests to run]`.
 - [ ] Focused repository-link tests pass; the full check has zero document/link findings and zero unexpected Flow findings, with any remaining failure limited to the dependency and readiness drift owned by tasks .5 and .6.
 ## Done summary
-Added a production-root repository-link regression, repaired the registered Umpire links, made
-historical missing targets explicit, and reduced `UMPIRE4_ORDER.md` to remaining delivery work.
-
-Verification: the exact focused Quick, all `tools/planindex` tests, package vet, JSON parsing, diff checks, and `flowctl validate --all --json` pass. `make umpire-check-plan-index` retains only task .5 dependency and task .6 readiness drift, with zero document/link or unexpected findings. Task-scoped no-fix lint reports zero golangci issues before the unchanged inherited `tools/umpire/runtime/errors.go:60` errortype finding keeps the wrapper red.
-
-stage: impl-review - ran [SHIP; session 01a05c39-673c-77a1-8e02-71fa4e79740d; zero findings]
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: cd72d474039cf9b553080ee20137ac24ec9d0e58, 7713902833ec83d89d1d9b1b8f6f75f92e706f58, be4941cc7bb2dfbe0cbc85daf3334969f3a82a70, 60cb2be4966088d7e56e1aa5188102eab3182d2c, 5478baf2ba9b8b53e07be2d77ac60b93ddc784e7
-- Tests: baseline: invalid/vacuous — go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$' exited 0 with [no tests to run] before the supported task replan, TDD RED: go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$' (exit 1 after test-only commit 771390283; production link findings observed before document repair), go test -count=1 -tags test_dep ./tools/planindex/... -run '^TestRepositoryPlanLinks$', go test -count=1 -tags test_dep ./tools/planindex/..., go vet -tags test_dep ./tools/planindex/..., jq empty .plans/index.json, flowctl validate --all --json (valid: true), make umpire-check-plan-index (expected exit 2: only task .5 dependency and task .6 readiness drift; zero document/link and unexpected findings), git diff --check, make lint-code GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=1590bf134 (golangci: 0 issues; inherited unchanged tools/umpire/runtime/errors.go:60 errortype finding keeps wrapper red)
+- Commits:
+- Tests:
 - PRs:

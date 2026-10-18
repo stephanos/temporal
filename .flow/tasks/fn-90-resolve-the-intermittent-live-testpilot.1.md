@@ -47,20 +47,10 @@ the live tests to print signatures yet: fn-90.2 adds those in parallel against t
 - [ ] `go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/...` passes; `make lint-code-fast` is clean.
 - [ ] One live smoke: `make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=2 MODE=process` and the same with `MODE=in-process` print two PASS lines and a summary; the output is quoted in the receipt.
 ## Done summary
-Added `umpire-repeat` (tools/umpire/cmd/umpire-repeat) and the `umpire-repeat` / `umpire-repeat-run` make targets. The command builds the live test binary once and runs a selection N times, either one process per iteration or one process with `-test.count=N`. It reads the test2json stream, takes each failing leaf test's signature from its `TESTPILOT-SIGNATURE` line (including the `t.Log`-decorated form), falls back to the first failing assertion, and otherwise reports `unparsed` or `process`. It hashes each signature with iteration-specific values and the source location removed, and appends one record line per finished iteration. The loop stops when the input fingerprint changes, and an interrupt records only the iterations that finished. `summarize` adds up record files that share a fingerprint and prints Clopper-Pearson intervals. Each acceptance case has a canned-stream test in run_test.go or signature_test.go.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Live smoke at c9df050400, run with `make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=2`:
-- MODE=process: `1 PASS`, `2 PASS`, then `TestTestpilotNexusPairCase 0/2 rate 0.00% (95% CI 0.00%-84.19%, rule of three <= 150.00%)`, rc=0
-- MODE=in-process: the same lines, rc=0 (load 4.24 3.59 3.71, 0 other go test processes)
-
-The tree reads as dirty because other sessions have uncommitted edits under tools/umpire. Loops under .3 need a clean tree.
-
-Follow-up for .3: the SELECT in `umpire-repeat-run` is read with `$(value SELECT)`, so a trailing `$` survives make's expansion.
-
-Gates: unit tests and lint-code-fast are green, and go vet of ./tests is green. `make umpire-check-live-tests` was not run (inconclusive: it is a ~30-minute suite, beyond the foreground bound).
-
-stage: impl-review - ran [claude: NEEDS_WORK (1 P1 t.Log signature decoration, 4 P3) -> fixed in c9df050400 -> SHIP]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 5cc298a69b5ef397c96b0089a31f1b11245ee17f, c9df0504000f19bf092de88489a78425d4af6caa
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-repeat/... (green, 16 tests incl. table cases), make lint-code-fast (green), mise exec -- go vet -tags 'test_dep integration' ./tests (green), make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=2 MODE=process (rc=0, 1 PASS, 2 PASS, summary 0/2), make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=2 MODE=in-process (rc=0, 1 PASS, 2 PASS, summary 0/2), baseline: none (the offline Quick command targets the package this task creates; go vet of ./tests was green), INCONCLUSIVE: make umpire-check-live-tests not run - a ~30 min suite beyond the worker's 600s foreground bound; the diff adds a standalone command and two Makefile targets that no live test imports
+- Commits:
+- Tests:
 - PRs:

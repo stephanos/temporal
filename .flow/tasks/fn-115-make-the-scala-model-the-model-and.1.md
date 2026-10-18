@@ -39,19 +39,10 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Fixture migration inventory names supported replacements and explicit missing primitives, with pinned canary and recorded-run implications separated from semantic drift.
 
 ## Done summary
-Recorded the reviewed Umpire module/command map and exhaustive migration audit. The inventory covers 572 package/module rows, 810 source files, 47 Case fixtures, 18 exact source-path and 12 source-label substitutions. All 843 protected originals and the index remain unchanged. No source moves or implementation changes occurred.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Nine legacy execution fixtures have real Scala Query replacements; 22 unsupported/admission-negative fixtures retain explicit exceptions, and two historical companion Case checksums match saved Runs. The map fixes public reader/producer ownership, neutral Testpilot helpers, signature ownership and coherent copy-before-relocation sequencing. Tasks 2–6 incorporate the reviewed test-claim transfers. The synthetic job test fixture has one exact row permutation; production golden ordering stays strict.
-
-Task Quick dependency listing, Flow validation, inventory/preservation verification and diff whitespace checks passed. No code change required model/live tests or broad build/lint here. Codex gpt-6.1-sol high independently returned SHIP on round 3 after five findings were addressed. Review used exact uncommitted artifact hashes because the installed wrapper only scopes committed diffs; same-family independent context, read-only, no cross-family claim. Receipt: .flow/tmp/fn115-1-review/receipt.json. Original handover and all review rounds remain available.
-
-stage: implementation - ran (model: gpt-6-astra); existing agent reused after host thread limit rejected a fresh worker; re-anchored from disk.
-stage: verification - ran (focused audit Quick commands and preservation checks).
-stage: impl-review - ran (model: gpt-6.1-sol); SHIP round 3.
-stage: plan-sync - skipped(config: planSync.enabled != true); required downstream map corrections applied directly through Flow.
-stage: tracker-sync - skipped(bridge inactive).
-stage: commit - skipped(user explicitly reserves commits and staging).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: CC=/usr/bin/clang mise exec -- go list -tags test_dep -deps -test ./model/scalav2/... ./common/testing/testpilot/... ./tools/umpire/... ./tools/canary/..., /Users/stephan/.codex/plugins/cache/flow-next-marketplace/flow-next/4.5.1/scripts/flowctl validate --spec fn-115 --json, CC=/usr/bin/clang mise exec -- go run -tags test_dep .flow/tmp/fn115-1/imports.go, python3 .flow/tmp/fn115-1/verify_audit.py, git diff --check
+- Tests:
 - PRs:

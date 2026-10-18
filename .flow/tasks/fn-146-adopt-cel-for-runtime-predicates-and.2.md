@@ -4,6 +4,8 @@ satisfies: [R2]
 # fn-146-adopt-cel-for-runtime-predicates-and.2 Admit canonical CEL through one restricted environment
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Introduce the canonical CEL AST and the pinned restricted environment for R2. This task owns syntax admission, variable and function authority, source mapping, cost limits and the isolated canonical-to-engine AST bridge.
 
 **Size:** M
@@ -31,7 +33,6 @@ go test -tags test_dep ./common/testing/testpilot/internal/ir/...
 ```
 
 Record a site-specific outcome matrix for missing binding, evaluator error, cancellation and cost exhaustion. Cover nested presence, map misses, mixed wildcard absence, float32 widening, message/Any equality, enum aliases and existential multi-fact matching.
-
 ## Acceptance
 - [ ] R2's canonical schema, restricted environments and error locations are implemented.
 - [ ] Unsupported fields are rejected before canonical-to-engine conversion.

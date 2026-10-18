@@ -37,35 +37,10 @@ Implements R4 and the CI-side half of R3 (spec §Live-test gate, commits 7 and 8
 - [ ] `make lint-code` passes
 
 ## Done summary
-Removed every Makefile variable, target, and `.PHONY` name that served a deleted tree — all
-`UMPIRE3_*` variables, `UMPIRE_GENMODELS`, and 83 targets across the umpire3, genmodels,
-and agentworkflow blocks — plus the `umpire3` and `umpire-model-verification` workflows, the
-CODEOWNERS rows over deleted paths, and the `.gitignore` rows for deleted trees.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The `tools/common/formal` test invocation is preserved as its own `common-formal-test` target.
-
-`umpire-check-live-tests` now runs `go test -v` with the `^TestTestpilot` prefix against an empty
-expected-failure set. The verbose flag is required because `--- PASS:` lines only print under `-v`.
-The whole-set `diff -u` comparison the recorded pitfall requires is kept; the pinned nine identities
-are gone. The empty baseline is paired with a floor requiring at least one passing identity, because
-an empty baseline alone cannot distinguish "everything passed" from "the selector matched nothing" —
-verified by running the gate's shell against a selector that matches nothing, where `go test` exits 0
-with an empty failure set and only the floor catches it. `ci_workflow_test.go` pins the verbose
-command, the selector, the empty baseline, the floor scrape and its message, and asserts the nine
-retired identities no longer appear.
-
-`make lint-code` fell from the 1,284-issue task-start baseline to 128, since 1,156 findings lived in
-the deleted trees. None of the 128 is in a file this spec edited. The gate still exits 2, so it
-remains inherited-red rather than passing; the acceptance line "make lint-code passes" was not
-achievable at any point in this spec.
-
-The `make lint-code` acceptance criterion remained inherited-red as recorded above.
-
-stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 2 rounds: NEEDS_WORK
-on a comment naming deleted paths and on a collapsed blank line inside `define NEWLINE` that the
-block-removal pass had silently changed from a newline to the empty string, then SHIP)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: a64f9b9d69f324a4a642caadefd9487d556d9b06, 24107bbab1118740d58bf6a4968b3e52dad6dae9
+- Commits:
+- Tests:
 - PRs:
-stage: plan-sync - skipped(config: planSync.enabled != true)

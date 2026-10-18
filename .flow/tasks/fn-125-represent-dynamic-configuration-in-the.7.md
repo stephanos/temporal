@@ -4,6 +4,8 @@ satisfies: [R8, R9, R12]
 # fn-125-represent-dynamic-configuration-in-the.7 Encode the Nexus implementation, lower one Case per valuation and retire the switch
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Implements R8, the rest of R9, and the binding half of R12. The caller declares the `implementation` setting, its realization encodes each value as a complete assignment of kit keys, its Queries bind `implementation.each`, and lowering emits one Case per valuation (owner's Q4, decided 2026-10-04). The switch is then deleted: agreement across implementations becomes each Case's own expectation under its own valuation.
 
 **Cross-spec entry gate:** fn-118.5 done (the caller realization migrated to derived waits). Not concurrent with fn-124.8. Depends on task 1 (fixed switch and its evidence), task 3 (`under`) and task 6 (required settings with origins, registry lookup).
@@ -40,7 +42,6 @@ go test -count=1 -tags 'test_dep integration' ./tests -run 'TestTestpilotGenerat
 ### Execution constraints
 - Case-byte changes are only the recorded per-valuation caller Cases and their required settings; non-caller Cases are byte-identical.
 - No Model reads `implementation` here.
-
 ## Acceptance
 - [ ] The caller declares `implementation` and its realization encodes `hsm` and `chasm` as complete, distinct assignments of kit keys matching the upstream suites; a missing encoding, an undeclared key and equal encodings are refused at their line.
 - [ ] The caller Queries bind `implementation.each`; lowering emits one Case per valuation with the valuation in name, manifest entry and provenance and the encoding in its required settings.

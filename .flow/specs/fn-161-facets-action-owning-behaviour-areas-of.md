@@ -92,6 +92,8 @@ Flow CLI refuses cross-spec task edges, so the conductor verifies this prerequis
 in Git before claiming task 1. It does not add a whole-spec dependency on fn-159's held
 real-feature tasks. Task 4 retains its ordinary dependency on task 1.
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Parked unknowns
 
 - Whether an interaction facet is needed for the standalone activity at all. Stage 2's migration resolves this. [inferred]

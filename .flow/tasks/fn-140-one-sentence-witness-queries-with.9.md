@@ -4,6 +4,8 @@ satisfies: [R5, R6]
 # fn-140-one-sentence-witness-queries-with.9 Prove deferred Activity witness assessments and Case equivalence
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Activity Case equivalence is proven under fn-203's single regeneration and fn-204's descriptor.
+
 **Size:** M
 **Touches:** [tools/umpire/check/activity_system_test.go, tools/umpire/lower/activity_cases_test.go, tools/umpire/conformance/played_test.go, model/ir/**, model/cases/**]
 

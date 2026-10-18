@@ -4,6 +4,8 @@ satisfies: [R4, R5, R8]
 # fn-148-consolidate-testpilot-evidence-and.4 Admit and verify normalized correlated tables
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Switch correlated admission and monitoring to the normalized tables for R4 and R5. Preserve continuity, authorization, causal buffering and verdicts while charging expanded work before enumeration.
 
 **Size:** M

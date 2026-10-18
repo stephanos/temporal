@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.353420Z",
+  "depends_on": [
+    "fn-202-testpilot-schema-in-the-framework.3"
+  ],
+  "id": "fn-202-testpilot-schema-in-the-framework.4",
+  "priority": 3,
+  "spec": "fn-202-testpilot-schema-in-the-framework",
+  "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.4.md",
+  "status": "todo",
+  "title": "Rename the package to umpire.testpilot.v1 and the Go package path",
+  "updated_at": "2026-10-18T17:43:06.281324Z"
+}

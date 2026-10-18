@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-123-declare-faults-as-the-environments.3 Go derives the crash row from durability; SEMANTICS Faults section (early proof)
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Go deriving the crash row is obsolete (native fn-123.9/.10 are done); the SEMANTICS Faults section moves to fn-123.8.
+
 The early proof. Go derives the crash row from the durability record (R3), as channel rows are derived today, and `SEMANTICS.md` gains its Faults section. The proof is a Go test over a fixture copy of the queue: the derived table equals `crashDetail`'s table cell by cell. If it does not, stop and list the rows for the owner before task 4.
 
 **Size:** M
@@ -28,7 +30,6 @@ The early proof. Go derives the crash row from the durability record (R3), as ch
 **Optional** (reference as needed):
 - `tools/umpire/internal/engine/table.go:160, 369-430` - `RowsFrom`, `checkSpec`, `checkRows`
 - `model/temporal/foundations/taskqueue/system/System.scala:110-120, 150-153` - `crashDetail` and its rule
-
 ## Acceptance
 - [ ] The proof test shows the derived crash table equal to `crashDetail`'s over every catalog state: outcome `internal`, fact `crashed`, no `because`, the same next state. Or the done summary lists each row that differs, and the task stops for the owner.
 - [ ] Admission refuses a derived crash with no durability record, at the binding, with a test.

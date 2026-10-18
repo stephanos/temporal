@@ -51,27 +51,10 @@ table with 30 states, rows, and result alternatives. A forced interpreted run of
 successful-branch route for the prototype; it does not predict scaling for broader model shapes.
 
 ## Done summary
-Derived `FiniteMachine` enumerators, catalog encoders, row-backed initial/step functions, closure witnesses, and Action-executability evidence entirely from `ValidatedFiniteTable`. Added `FiniteTargetDefinition`, the layered `FiniteTargetAdmissionError`, and total `FiniteTable.checkTarget`, which validates raw data, packages the existing `AuthoredTarget`, and invokes the existing semantic `Umpire.checkTarget`; it never calls the native-default `checkedTarget` or defines an alternate step function.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The intended consumer pattern is `FiniteTable.checkTarget table definition composition`, followed by matching its successful branch to use the sole `CheckedTarget`. `composition` remains explicit: provider selections and their real law witnesses are authored values, and the adapter preserves exact `missingProvider` and `conflictingProviders` Target diagnostics rather than manufacturing a capability label or proof.
-
-The focused extension fixture adds only one state catalog entry and one transition row. Its resulting checked Target test covers every typed domain in authored order, initial states, enabled and disabled pairs, exact `[completeResult, retryResult]` alternative order, planning Action order, and the complete canonical encoded behavior view. Structural rejection and semantic rejection each expose no checked value.
-
-Trust audit: `#print axioms` for `ValidatedFiniteTable.machine`, `.authoredTarget`, and `FiniteTable.checkTarget` reports only `propext`, `Classical.choice`, and `Quot.sound`. There is no `sorry`, `admit`, custom/compiler/native axiom, or native checked-value extraction in load-bearing declarations.
-
-Admission measurement: the reproducible `linearTable`/`linearAdmission` fixture admits both sizes. A forced interpreted run of 20 admissions measured 253 ms for 3 states / 3 rows / 3 result alternatives and 551 ms for 30 / 30 / 30, about 2.18x for this 10x workload. This supports retaining the successful-branch prototype route; it does not predict broader-model scaling. Runner log: `/tmp/fn65-task7-admission-measure.log`.
-
-Baseline and final focused `Umpire.TargetTests` builds passed, including the public `Umpire.Target.ImportTests`; final `make lint-model` passed. `make lint-code GOLANGCI_LINT_FIX=false` remained at its inherited red baseline of exactly 1316 diagnostics, with zero additions and zero removals and no Go file owned by this task. Comparison: `/tmp/fn65-task7-lint-comparison.json`; gate logs: `/tmp/fn65-task7-{baseline,final}-*.log` and `/tmp/fn65-task7-review-fix-*.log`.
-
-No commits, push, worktree, reset, revert, or cache deletion; the user retains commit ownership and prior staged work is preserved.
-
-stage: impl-review - ran [NEEDS_WORK..SHIP] (model: codex:gpt-5.6-sol:medium)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
-
-Review receipt: `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.7.json`
-Reviewed base/staged tree: `7d9040ac4c44769b665ffed88829de8bf3c177d5..f588e6d691e449943a6e901511601e5ae340ca2b`
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.TargetTests) (pass), baseline: make lint-model (pass), baseline: make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics), (cd model && mise exec -- lake build Umpire.TargetTests) (pass), (cd model && mise exec -- lake build Umpire.Target.ImportTests) (pass), make lint-model (pass), make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics; zero added; zero removed), forced interpreted FiniteTable.checkTarget benchmark: 20x 3 states/rows/alternatives = 253 ms; 20x 30 states/rows/alternatives = 551 ms, #print axioms ValidatedFiniteTable.machine/authoredTarget and FiniteTable.checkTarget: propext, Classical.choice, Quot.sound only, impl-review codex:gpt-5.6-sol:medium: SHIP
+- Tests:
 - PRs:

@@ -102,14 +102,14 @@ whose effect throws is a `refuted` Result carrying the exception's message and t
   graphs and a go or no-go on deleting the Go check, with the lowering location decided in the same
   note. Errors: the note is not optional; a no-go keeps the Go check and reopens this spec's
   Boundaries. [user]
-- **R5:** On go, the Go `check` package and the IR evaluator task are retired, fn-190.5 is re-cut to
+- **R5:** *(2026-10-18, one-language series: closed as REPLACED by fn-204, not implemented: the design changed; Scala emits the conformance descriptor (fn-204 R1) and Go judges a recorded Run from it (fn-204 R2); the clause that existing replay, binding and table guarantees remain until replaced now lives on fn-204 R2; the Go check deletion and the sample-check retirement close by reference to fn-208 and fn-201)* On go, the Go `check` package and the IR evaluator task are retired, fn-190.5 is re-cut to
   delete the Go check rather than the Scala runtime, the gate's sample check runs the Scala checker,
   and conformance replay of a recorded Run against the Model runs in Scala. Errors: a Go test that
   only exercised the Go check is deleted with it, one that exercised lowering or export stays.
   [paraphrase]
 - **R6:** The six samples' intended answers on the default budget match the inventory on the Scala
   checker. Errors: a changed answer is a finding to fix. [inferred]
-- **R7:** MILESTONES' Direction, the framework README and SEMANTICS say the Scala checker is the
+- **R7:** *(2026-10-18, one-language series: the IR is no longer the export and lowering format after fn-201; it is an internal lift tree)* MILESTONES' Direction, the framework README and SEMANTICS say the Scala checker is the
   oracle and the IR is the export and lowering format. Errors: none beyond review. [inferred]
 
 - **R8:** Discarded parametric Models and their declarations become collectible after native initialization and checking when no live Model, State, Result, action or other legitimate owner remains. Runtime snapshots and discovery metadata follow those owners' lifetimes. Errors and boundaries include exact foreign-owner refusal, reference-identity lookup, stable retained-result diagnostics, live channel behavior, static/derived/composed owners, nested and exceptional restoration, and concurrent access to one owner's runtime. No disposal API or cache clearing is required. This repairs the instance-retention finding from R4's measurement before ModelSuite adopts fresh instances.
@@ -144,6 +144,8 @@ Rejected: keeping both checkers (two oracles); building the IR evaluator first (
 already answers the samples). [inferred]
 
 The measurement's repeated-instance controls found 0 of 64 constructed-only Models retained, all 64 initialized Models retained by the global var-runtime map, and all 64 checked Models retained by that map plus action discovery names. The native follow-up repairs runtime ownership first and declaration indexes second, then reruns the combined retention control before oracle documentation and ModelSuite admission. Weak keys alone are insufficient when cached values point back to their keys. Classloader-cache redesign, visited-set optimization and a performance target remain outside this repair.
+
+2026-10-18, one-language series: R5 is closed as replaced by fn-204 (owner decision). The Boundaries bullet "the Testpilot runtime, Driver and canary stay in Go and do not change" bounded fn-196's own work; fn-202 is the authorized change to the runtime's layout (protos under the framework, a driver seam for the seven Temporal-typed fields, a generic/Temporal split). The bullet "Quint and TLA export stay over the IR" is superseded: backends are Scala, over an internal lift tree (fn-201); Apalache in fn-206 and TLC in fn-207 on a direct TLA+ emission, Quint in fn-205 (deferred). The opening Boundaries paragraph ("keep existing Go consumers until …") is discharged by fn-199 (refinement, replacement, composed fairness), fn-200 (lint), fn-203 (Cases), fn-204 (recorded-Run assessment) and fn-208 (deletion); fn-196.4 closes by reference to fn-208. The series is fn-199 through fn-209.
 
 ## Requirement coverage
 

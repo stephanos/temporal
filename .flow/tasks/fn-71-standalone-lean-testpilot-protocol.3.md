@@ -35,11 +35,10 @@ Add the small developer-facing module over generated messages and establish the 
 - [ ] Representative values, presence, integer limits, bytes, enums, `Any`, expressions, and monitor rules serialize deterministically and strictly decode in Go.
 - [ ] Resolver, value, and serialization failures propagate without dropping fields, rules, or values.
 ## Done summary
-Added the producer-neutral `Testpilot.Authoring` facade over generated protocol values and the sole typed `Testpilot.ProtoJSON` policy wrapper over `Protobuf.Json`. Colocated Lean coverage proves the complete current vocabulary and recursive context safety, while the focused fixture gate verifies deterministic serialization, typed failures, and strict Go decoding; the user retains ownership of all uncommitted changes.
+Bookkeeping 2026-10-18: parent spec already closed
 
-stage: impl-review - ran [2026-09-07T05:12Z..2026-09-07T05:15Z] (SHIP; `/tmp/fn71-task3-impl-review.json`)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green — make umpire-check-testpilot-protocol, baseline: green — (cd model && mise exec -- lake build Testpilot TestpilotTests), make umpire-check-testpilot-authoring, (cd model && mise exec -- lake build Testpilot TestpilotTests UmpireTests TemporalModelTests temporal-testpilot), (cd model && mise exec -- lake exe modelLintTests), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 TMPDIR=<physical-temp-root> mise exec -- go test -count=1 -p=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/..., make lint-model, gofmt -d tests/testcore/testpilot/protobuf_lean_authoring_test.go, git diff --check -- <task paths>, baseline inherited red: make lint-code GOLANGCI_LINT_FIX=false (1361 pre-existing findings recorded by fn-71.1/.2; not repeated)
+- Tests:
 - PRs:

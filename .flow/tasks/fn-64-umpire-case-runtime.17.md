@@ -36,25 +36,10 @@ A transport carrier carries existing explicit authority; it must never create re
 - [ ] Focused tagged preparation/execution/root tests and race tests, formatting and scoped lint pass; document the immutable carrier topology API.
 
 ## Done summary
-Added frozen declarative reservation-carrier authority to RolePolicy/Profile and compiled an immutable prepared topology with exact declared reservations plus deterministic workflow-source-to-Nexus-handler routes. Prepared and root accessors are O(1), return owned slices, preserve ordinary unreserved unary methods, and let later runtime delivery bind entrypoint ordinals without rescanning source instructions per Run.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Carrier policy validation now requires a unary method in the same endpoint's ordinary Methods set, unique supported workflow/Nexus contexts, positive per-context ceilings, and aggregate bounds before nested cloning. Reservation-bearing InvokeRPC instructions require matching authority; authored reservations remain exact. Preparation rejects missing, ambiguous, crossed, count-mismatched, cardinality, and admission-work overflow cases before Host I/O. Potential guarded StartNexusOperation sources reserve routes deterministically in workflow node order and workflow ordinal order. Generic execution/root code contains no Temporal RPC names and adds no binding-expression, delivery-ledger, header-codec, or SDK-registration behavior.
-
-ProfileSpec.Snapshot and PrepareCase tests cover nested carrier ownership, source mutation isolation, and the existing caller-supplied Profile Identity obligation. Execution tests cover multiple controller starts, repeated workflow/handler ordinals, false guards, isolated repeated preparation, workflow-only reservations, cloned topology slices, strict policy subset/shape/cardinality validation, ordinary zero-reservation behavior, and deterministic missing/ambiguous/crossed/count rejection. The post-review fix replaced repeated handler scans with one ordered service/operation index, charged every reservation/topology record, handler insertion, potential source, emitted route, and final reconciliation, and added a one-unit-short admission-work test.
-
-Baseline green: focused tagged execution/root tests, race tests, `make fmt-imports`, and authorized scoped no-fix lint all exited 0 before edits; logs and rc files use the `.flow/tmp/fn64-task17-baseline-*` prefix. Final post-fix formatting, normal, race, and scoped lint commands all exited 0; exact commands, environments, observations, and logs are in `.flow/tmp/fn64-task17-final-results.json`. No global lint-green claim is made because the inherited mainbase backlog remains outside this task.
-
-stage: impl-review - ran (codex:gpt-5.6-sol:high; NEEDS_WORK then SHIP round 2; 2026-09-05T03:21:46.607421Z; /tmp/impl-review-receipt-fn-64-umpire-case-runtime.17.json)
 stage: plan-sync - skipped(config: planSync.enabled != true)
-stage: concurrent-wave - skipped(policy: shared checkout; one writer)
-Tracker sync: n/a (bridge inactive).
-
-The sole P2 review finding identified uncharged quadratic topology matching. It was fixed with deterministic indexed matching and complete admission-work accounting; re-review reports no introduced/pre-existing findings and no unaddressed requirements. The non-trivial NEEDS_WORK-to-SHIP lesson updated the existing high-overlap memory entry `bug/integration/program-admission-must-validate-2026-09-04` rather than creating a duplicate.
-
-The reviewed owned tree `3c64e49b4c8db63104da760070c117887db13171` matches all task17-owned source exactly against start tree `bac8d6c01c7eba4257029c0660268dfe25c4acc1`; the comparison exited 0 before lifecycle completion. Start HEAD and actual HEAD are both `0fc128eb50a8c8bdc1db3eb1dfdf1445130910bf`. No commits, pushes, worktrees, destructive resets, or external messages were made: the user owns commits, evidence commits are empty, and all earlier staged changes were preserved.
-
-Gate classification FULL. NO_RECEIPT: the task source is intentionally uncommitted in the shared user-owned staging area, so no HEAD-bound green receipt is warrantable. Delivery ledger/header codec/runtime SDK registration remain assigned to tasks 18/6.
 ## Evidence
 - Commits:
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/internal/execution/... ./tools/umpire, go test -count=1 -race -tags test_dep ./tools/umpire/internal/execution/... ./tools/umpire, make fmt-imports, make lint-code GOLANGCI_LINT_BASE_REV=4c4e26ebdb15100387107f5d03daf5ce5fc01111 GOLANGCI_LINT_FIX=false, baseline: green (.flow/tmp/fn64-task17-baseline-{tests,race,format,lint}.{log,rc}), All post-fix final gate command exits, environments, timestamps and logs: .flow/tmp/fn64-task17-final-results.json, Owned source matches reviewed tree 3c64e49b4c8db63104da760070c117887db13171 against start tree bac8d6c01c7eba4257029c0660268dfe25c4acc1; comparison exit 0, GATE_CLASSIFICATION:full - executable Umpire source changed, NO_RECEIPT: user-owned shared staged source is uncommitted; no HEAD-bound receipt is warrantable
+- Tests:
 - PRs:

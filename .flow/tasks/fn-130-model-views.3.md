@@ -32,8 +32,9 @@ mise exec -- go test -count=1 -tags test_dep ./tools/umpire/render -run 'Test(Si
 - [ ] Both D2/SVG families reproduce byte-identically using .2's rendering settings.
 
 ## Done summary
-TBD
+Spec closed by owner 2026-10-18: Go D2 renderer has no home after fn-208; refile over the native graph if wanted
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

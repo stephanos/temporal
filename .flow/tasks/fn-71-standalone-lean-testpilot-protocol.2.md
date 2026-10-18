@@ -34,11 +34,10 @@ Promote the successful prototype into the reproducible Testpilot protocol bounda
 - [ ] ModelLint rejects direct, transitive bridge, and unclassified forbidden dependency paths with deterministic diagnostics while existing legal paths pass.
 - [ ] Generated Program and Contract expression types remain statically distinct before the convenience API is added.
 ## Done summary
-Promoted the exact-schema `#load_proto_file` prototype into the standalone `Testpilot.Protocol` boundary with traced schema invalidation, colocated isolated tests, and closed direct/transitive/unclassified import-policy coverage. Added first-class Lake roots and compile-time checks that generated Program and Contract expressions remain distinct; the user retains ownership of all uncommitted changes.
+Bookkeeping 2026-10-18: parent spec already closed
 
-stage: impl-review - ran (SHIP after stale-artifact fix and colocated-layout re-review)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make umpire-check-testpilot-protocol, schema mutation proof: changing value.proto rebuilt testpilotProtocolSchemas and Testpilot.Protocol; restoration rebuilt both, warm schema build: make umpire-check-testpilot-protocol completed without rebuilding Testpilot.Protocol, (cd model && mise exec -- lake build Testpilot TestpilotTests UmpireTests TemporalModelTests temporal-testpilot), (cd model && mise exec -- lake exe modelLintTests), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 TMPDIR=<physical-temp-root> mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/..., make lint-model, git diff --check -- <task paths>, baseline reused: make lint-code GOLANGCI_LINT_FIX=false inherited red (1361 findings) from task1; task2 changed no Go source
+- Tests:
 - PRs:

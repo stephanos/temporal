@@ -21,8 +21,9 @@ Delete effectOf, guardHolds, the input-effect adapters, Finite enumeration, Stat
 - [ ] TBD
 
 ## Done summary
-TBD
+Superseded by fn-208 (one-language series, 2026-10-18): DSL half done by fn-190.15/fn-196.1; Go check deletion is the rename
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R4, R5, R6, R7]
 # fn-164-expect-blocks-for-properties.6 Remove lambda finishers and seal expectation fixtures and author docs
 
 ## Description
+**Note 2026-10-18 (one-language series):** IR parity proofs use the in-process internal IR (fn-201); no checked-in IR.
+
 **Size:** M
 **Files:** public Property builder finishers, remaining framework/test fixtures and author documentation.
 **Touches:** [model/framework/**, model/irgen/**, model/check/**, model/README.md, model/framework/SEMANTICS.md, model/testdata/equivalence/**]
@@ -32,7 +34,6 @@ make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model
 ```
 
 Run serially; checked-in IR/Cases remain stale under owner mode. Full gate/review/live remain deferred, not passed.
-
 ## Acceptance
 - [ ] Public lambda finishers are gone with no compatibility surface; complete framework/production/template/fixture inventory accounts for every old spelling and preserves internal core predicate storage (R6).
 - [ ] Author docs and all sugar Core forms describe expectation contexts, requirements/branches, field reads and outer temporal forms consistently (R7).

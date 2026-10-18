@@ -45,8 +45,9 @@ Implement fixed-slot graph construction, bounded policy-process evaluation, Clai
 - [ ] ReleaseEvidenceSet publication is closed, immutable, and inspectable for held/rejected/accepted outcomes.
 - [ ] Graph, bridge, compatibility, and atomic-publication tests pass.
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It was re-scoped to the release owner, outside `tools/umpire`, and nothing in this tree depends on it.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

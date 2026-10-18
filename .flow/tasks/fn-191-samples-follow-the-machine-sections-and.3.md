@@ -17,8 +17,9 @@ Lift the hold on the two `GoHeld` cases in model/framework/check/Samples.test.sc
 - [ ] TBD
 
 ## Done summary
-TBD
+Superseded by fn-201 (one-language series, 2026-10-18): no Go sample check; native sample suites are the check
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R3, R4, R6]
 # fn-153-checked-property-examples-pilot.3 Classify illustrations through existing Property reads
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Classify illustrations in the Scala checker (fn-199), not in `tools/umpire/check`.
+
 Bind each illustration's Property directly and return the checked classification or a located error. Prove the vertical path using .2's fixtures and the existing Go predicate implementation.
 
 **Size:** M
@@ -31,7 +33,6 @@ Bind each illustration's Property directly and return the checked classification
 ```bash
 go test -tags test_dep ./tools/umpire/check -run 'Property|Illustration'
 ```
-
 ## Acceptance
 - [ ] The fixture vertical slice uses the production Property selector/predicate without a Query or second evaluator and returns all three classifications.
 - [ ] An unrelated action never invokes Holds, including a predicate that would error; errors and holes never pass a negative expectation.

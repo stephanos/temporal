@@ -128,7 +128,7 @@ the Machine as any state type does.
 - **R5:** SEMANTICS §11, the framework README's progress text and `progress-notation.md`'s "When a
   claim gets a word" table describe the word, its semantics and why it qualifies; the block-form
   lint covers `owes` as it covers `whenever`. Errors: none beyond review. [inferred]
-- **R6:** The export and the IR are unchanged; a Model with an `owes` claim lifts as it did, with the
+- **R6:** *(2026-10-18, one-language series: recut: the lift (fn-201) is unchanged, read `lift` for `export`)* The export and the IR are unchanged; a Model with an `owes` claim lifts as it did, with the
   claim left out as `whenever` is. Errors: a lifter that trips on the new declaration is a finding
   in this spec. [paraphrase]
 
@@ -136,7 +136,7 @@ the Machine as any state type does.
 
 - No IR node, no Quint, TLA or P export of the claim, no Case generation: progress is a model check
   only, as fn-190 R13 and `progress-notation.md` decided. [paraphrase]
-- Conformance of a recorded Run against an `owes` claim waits for fn-196's conformance replay in the
+- *(2026-10-18: waits for fn-204's descriptor, or the fn-209 oracle on go, not fn-196's conformance replay.)* Conformance of a recorded Run against an `owes` claim waits for fn-196's conformance replay in the
   Scala checker; the owed-set semantics are written so that replay needs no new meaning. [inferred]
 - No safety half: an unsolicited or repeated discharge is not refused by `owes`. [paraphrase]
 - No multiplicity: one payload is owed once. [inferred]
@@ -160,6 +160,8 @@ progress checker with fairness can judge; a monitor would see only the path end.
 Rejected: P's full message-queue execution model (fn-190 made one effect one step); a `hot`/`cold`
 state annotation on a phase enum, which keys the obligation to the entity's one phase and not to a
 payload; a safety half in the same word, which would make `owes` two promises. [inferred]
+
+2026-10-18, one-language series: R6 reads `lift` for `export` (fn-201). Conformance of a recorded Run against an `owes` claim is judged from fn-204's descriptor (progress marks and fairness classes), or by the native oracle if fn-209 says go; fn-196's conformance replay no longer exists. No `owes` emission in fn-205/fn-206/fn-207.
 
 ## Requirement coverage
 

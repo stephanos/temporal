@@ -28,12 +28,10 @@ Store the lifter's fixtures as plain `.scala` files and keep `model/lifter/testd
 
 
 ## Done summary
-The lifter's eleven fixtures are plain `.scala` files; `//> using exclude testdata` in `model/lifter/project.scala` keeps them out of the lifter's compile and test (negative proof: removing the directive fails on `Crossed.scala`). The tests copy fixtures to scratch without suffix handling, and the lifter's suffix-only `%s` path substitution is gone. Line 1 of three fixtures now names current paths without moving a line.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The six expected fixture IR files and `rejects.txt` differ from before only by the `.scala.fixture` to `.scala` suffix; `model/ir`, `model/cases` and the 1,411 goldens are unchanged. The golden helper applies the six renames as an exact `source_path_renames` list to the current IR (unit-tested), so the frozen goldens keep their captured spelling. Scalafix runs on `testdata/lifts` as its own root with all rules; the three refusal fixtures stay outside it. `lint-model` and `fix-model` depend on the packaged Model jar through a new Make rule.
-
-Deviation from the owner's request: scalafmt checks nine of the fourteen testdata files. Formatting Admission, Channels, CloseReset, Realizations and Rejects would move recorded positions, which the spec forbids, so they are excluded with the reason in `model/.scalafmt.conf` and fn-113 task 5 formats them once its golden projection compares positions by file. Full model gate, `lint-model`, a no-op `fix-model` and `lint-code-fast` pass. Independent review (Claude Fable, fresh context) returned SHIP in round 1. Handover: .flow/tmp/fn115-14-summary.md; evidence: .flow/tmp/fn115-14-evidence.json; review: .flow/tmp/fn115-14-review/round1-review.md. No agent commits.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make umpire-gen-model MODEL_GATE_ARGS=--skip-go-checks, CC=/usr/bin/clang make umpire-check-model, mise exec -- make lint-model, make fix-model (hash-identical before/after), GOLANGCI_LINT_FIX=false CC=/usr/bin/clang mise exec -- make lint-code-fast, CC=/usr/bin/clang mise exec -- go test -count=1 -tags test_dep ./tools/umpire/internal/golden/ ./tools/umpire/model/ ./tools/umpire/lower/ ./tools/umpire/conformance/, scala-cli compile model/lifter --test (with and without //> using exclude testdata), Independent review round 1 SHIP (claude-fable-5-1); .flow/tmp/fn115-14-review/round1-review.md
+- Tests:
 - PRs:

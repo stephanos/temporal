@@ -22,8 +22,10 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [x] Publishing the same content again is already published; a reporting failure after publication is named and never reruns.
 
 ## Done summary
-The exclusive publisher moved whole into `tools/umpire/publish` (`Publish`, `Publication`, `ConflictError`, the statuses, `Resolve`, `Within`, the no-follow open and its tests), gaining `Check`, a conflict pre-check that writes nothing; `tools/umpire/internal/cli` keeps every name its callers use as an alias or wrapper. `tools/canary/publication.Publish` decodes each item's fn-26 receipt and provenance, requires them to name each other, one Run and the item's decision, and pre-checks both names, so a crossed document or a conflicting, partial, symlinked or directory name changes nothing; it then publishes each receipt unchanged under `<identity>.json` and its provenance under `<identity>.provenance.json`, in order, idempotently. A publication that cannot be recorded is the named `publication-unreported` error and reruns nothing; unconstructible iterations publish nothing and any other non-decision status is refused. Also fixed: `model/AUTHORING.md` quoted the canary case block from before .2's comment change, which the authoring drift test refused. Implementation review: SHIP in one round; four P3 notes applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 0e76be469824802ee6256715b6907929fc8870ab, a8bb474737d34842c97657526c07c13516cdabe0, 77c690287dccea0f136047791e33cffa41a417db
-- Tests: go test -count=1 -tags test_dep ./tools/canary/... ./tools/umpire/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

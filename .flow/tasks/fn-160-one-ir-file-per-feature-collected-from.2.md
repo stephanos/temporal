@@ -4,6 +4,8 @@ satisfies: [R2, R3, R4, R5, R6, R10, R11]
 # fn-160-one-ir-file-per-feature-collected-from.2 Collect one IR file per feature package; remove irFile and exports
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The IR-file aspect is gone (fn-201); per-feature collection of Case trees goes to fn-203.
+
 Replace explicit `irFile` lists with one IR file per feature folder, collected by the IR generator from the feature's package. Then migrate every consumer that fn-160.1 inventoried.
 
 **Size:** L

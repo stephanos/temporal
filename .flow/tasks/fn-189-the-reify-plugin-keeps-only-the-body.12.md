@@ -4,6 +4,8 @@ satisfies: [R11]
 # fn-189-the-reify-plugin-keeps-only-the-body.12 After .5/.10: helpers inline at the call site; roots keep their names; remove namedCopy, the function table and the cardinality proof (R11)
 
 ## Description
+**Recut 2026-10-18 (one-language series):** 'Go reachable graph unchanged' becomes 'the Scala checker's reachable graph unchanged'.
+
 Touches: model/framework/reify/body (Expressions: `callee`, `defCallee`, `call`, `forwardedDef`, `choose`, `namedCopy`, `functionCopies`; BodyContext: `functions`, `reachableFunctions`, `lifting`), model/framework/reify/plugin (store and capture: the stored body and its splice), model/framework/dsl/Reify.scala (`liftedIr` payload), export/testdata reify fixtures, model/README.md plugin section
 
 ### Description
@@ -12,11 +14,10 @@ Phase 2, after .5 (one lifting rule and one carrier) and .10 (the normalization 
 **Size:** M
 
 ### Verification
-- The six samples compile with -Xplugin and lift; the Go reachable graph of each is unchanged from before this task (positions aside).
+- The six samples compile with -Xplugin and lift; the Scala checker's reachable graph of each is unchanged from before this task (positions aside).
 - The warm-Bloop test of R2 still recompiles a dependent Model when only a helper's body changes.
 - A fixture with a helper called from two `choose` alternatives lifts both alternatives' steps named, with no `$choice` function; a fixture with `require` in a helper fails with the R11 text.
 - grep shows no `namedCopy`, `functionCopies` or `reachableFunctions` in model/framework/reify.
-
 ## Acceptance
 - [ ] No `ir.Call` or `ir.Function` is emitted for a non-root helper; roots keep their names and functions.
 - [ ] `namedCopy`, `functionCopies`, `reachableFunctions` and the cardinality proof are gone; a helper called from a choose alternative lifts named steps inline.

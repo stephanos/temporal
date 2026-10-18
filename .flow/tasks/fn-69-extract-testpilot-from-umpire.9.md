@@ -31,13 +31,10 @@ Refine the copied Umpire-compatible protobuf schema into the public Testpilot v1
 - [ ] Generated Testpilot API, descriptors, extracted core, and focused tests use the refined schema without aliases or a runtime translation layer; every intentional incompatibility with the temporary task-.2 descriptor is recorded and tested.
 
 ## Done summary
-Refined the temporary Testpilot descriptor into eight cohesive domain files, regenerated its Go API, and adapted the extracted private core to consume the new schema directly while preserving runtime semantics. Added descriptor invariants and a migration-ledger record for every intentional incompatibility; the user-owned checkout remains unstaged and uncommitted.
-
-baseline: green (`go test -count=1 -tags test_dep ./common/testing/testpilot/...`)
-stage: impl-review - ran | SHIP | receipt `/tmp/impl-review-receipt-fn-69-extract-testpilot-from-umpire.9.json`
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make proto, go test -count=1 -tags test_dep ./common/testing/testpilot/..., git diff --check -- .flow/artifacts/fn-69-extract-testpilot-from-umpire/migration-ledger.md common/testing/testpilot proto/internal/temporal/server/api/testpilot/v1 api/testpilot/v1
+- Tests:
 - PRs:

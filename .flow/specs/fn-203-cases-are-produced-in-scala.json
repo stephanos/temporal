@@ -1,0 +1,29 @@
+{
+  "branch_name": "fn-203-cases-are-produced-in-scala",
+  "created_at": "2026-10-18T17:15:27.166818Z",
+  "depends_on_epics": [
+    "fn-201-the-ir-is-internal-the-lift-module-no",
+    "fn-202-testpilot-schema-in-the-framework",
+    "fn-195-modelsuite-a-models-test-file-holds-its",
+    "fn-209-spike-the-scala-checker-as-a-native"
+  ],
+  "id": "fn-203-cases-are-produced-in-scala",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-203-cases-are-produced-in-scala.md",
+  "status": "open",
+  "title": "Cases are produced in Scala",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:37:15.765191Z"
+}

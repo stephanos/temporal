@@ -4,6 +4,8 @@ satisfies: [R5, R6]
 # fn-146-adopt-cel-for-runtime-predicates-and.6 Lower Umpire runtime predicates into CEL
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Operand lowering into CEL is done by fn-203's Scala producer; conformance reads fn-204's descriptor (or the fn-209 oracle on go).
+
 Implement R5 and the Umpire half of R6. Keep symbolic realization operands in the Umpire IR, then lower their supported runtime subset into Testpilot's CEL environment for execution, replay and conformance.
 
 **Size:** M

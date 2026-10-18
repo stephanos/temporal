@@ -36,17 +36,10 @@ Move the complete Temporal environment implementation and live success consumer 
 - [ ] Focused adapter tests and the real live Testpilot success path pass; Make/workflow selectors include all moved packages/tests and preserve the exact inherited Umpire2/3 failure set without silent coverage loss.
 
 ## Done summary
-Moved the complete functional Temporal Driver, delivery ledger, server/worker authorities, lifecycle tests, READMEs, fixtures, and live success consumer from `tools/umpire/temporal` into `tests/testcore/testpilot`. The former adapter and Umpire fixture copies are absent; task-5 Testpilot fixture hashes remain exact; the live Testpilot path passes while the aggregate selector preserves the inherited Umpire2/Umpire3 failure identities.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Internal-import adapter tests now use public prepared views, while the private async-Nexus correlation mutation and live/offline parity matrix lives under common Testpilot verification. Make and workflow selectors cover `./tools/umpire/...`, `./common/testing/testpilot/...`, and `./tests/testcore/testpilot/...`. The remaining Umpire conformance consumer uses the moved descriptor closure during coexistence without changing task-7 protocol or corpus ownership.
-
-The pre-edit conformance checks were red only for seven generated `NamedType.protobufType` substitutions caused by task 5's shared producer identity cutover: two in cleanup-failure-after-proved-violation and one in each other class. Task 7 explicitly owns regenerating and moving that six-class corpus; the exact diff and ownership are recorded in the migration ledger.
-
-Full `make lint-code` reached analysis without a lint finding but could not complete because transient Go typecheck output exhausted the local disk, including after generated-cache cleanup and a no-fix retry. No tracked formatter mutation occurred, all focused/owner/live gates passed, and `git diff --check` passed.
-
-stage: impl-review - ran | SHIP after two valid P2 fixes
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./common/testing/testpilot/..., GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tests/testcore/testpilot/..., GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire -run '^TestCaseRuntimePublicFacadeConformance$', GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/regression -run '^(TestUmpireCIWorkflowRunsSeparatedUnitAndLiveProofs|TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim)$', GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tests/testcore/testpilot/..., GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp mise exec -- go test -count=1 -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexusCase$', GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp make umpire-check-live-tests, git diff --check, INHERITED_RED: make umpire-check-case-runtime-conformance - seven task-7-owned NamedType namespace substitutions after task-5 producer cutover, TOOLING_RED: GOLANGCI_LINT_FIX=false GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp make lint-code - transient Go typecheck output exhausted local disk after analysis; no lint finding
+- Tests:
 - PRs:

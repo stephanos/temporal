@@ -37,8 +37,9 @@ Final gates run serially under `/tmp/umpire-heavy-gates.lock`: canonical `mise e
 - [ ] Configured independent review and completion review close the unchanged R1-R5 contract; unavailable capacity or failed measurements remain blocking.
 
 ## Done summary
-TBD
+Spec closed by owner 2026-10-18: Go D2 renderer has no home after fn-208; refile over the native graph if wanted
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

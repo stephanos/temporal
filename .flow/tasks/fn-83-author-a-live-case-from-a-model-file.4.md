@@ -35,8 +35,9 @@ Delete the Go generator's functional Case table and its fixed-count guard and dr
 - [ ] `go test -tags test_dep ./tools/umpire/... ./tests/testcore/testpilot/...` and `make umpire-check-live-tests` pass
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13. Its concerns went to fn-85 .7: the generator reads `umpire-case --list`, which enumerates every registered Case (each functional set's Queries and the explicitly registered values); the shared artifact test is table-driven over `testdata` (`fixture_table_test.go`); `bindCase`/`runCase` derive the binding from the Case's own bytes; and the async-Nexus evidence helpers live in `tests/testpilot_live_case_test.go`, where a new live test is one function of Verdict assertions (`tests/testpilot_nexus_caller_case_test.go`).
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

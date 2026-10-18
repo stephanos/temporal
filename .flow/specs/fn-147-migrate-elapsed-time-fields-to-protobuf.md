@@ -59,6 +59,8 @@ Task fn-147-migrate-elapsed-time-fields-to-protobuf.1 validates the conversion a
 
 The seven fields describe one unit family but currently duplicate integer conversion and presence rules. One coordinated breaking migration avoids mixed Cases whose producer and runtime disagree about units. Folding the read policy and scalar presence cleanup into this change removes wrapper APIs that exist only because integer scalars lacked presence.
 
+2026-10-18, one-language series: owner decision "fn-202 first": this spec now depends on fn-202; the Duration schema lands in the framework proto directory. The producer half (.2) is recut into fn-203's Temporal adapter; fixture regeneration folds into fn-203.4.
+
 ## Execution baseline
 
 The structural prerequisites are integrated: fn-145 split the Umpire schema; fn-142/fn-143 and `fn-151-split-standalone-activity-into-smaller` established the current framework and Activity source layout. Start this batch only from the integrated, committed closure of fn-156 and authoring Batch 2 (fn-140/fn-123, with their shared close at fn-123.8). Before implementation, re-anchor schema fields, Scala declarations, lifter/lint owners, tests and artifact identities against that closed baseline. fn-123's fault metadata and fn-156's compiler checks are still pending at this preparation point; consume their actual committed APIs and pins, without assuming names or results here. Retain the single format 4.0 activation at fn-148.6 and the shared regeneration, full-gate, review and live-run close at fn-148.7.

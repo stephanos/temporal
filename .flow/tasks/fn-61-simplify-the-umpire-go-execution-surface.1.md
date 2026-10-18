@@ -42,8 +42,9 @@ Model plans require an independent host-configured provenance verifier; hiding i
 - [ ] Focused direct and tagged gRPC tests retain exact portable behavior.
 
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded by the Case Runtime (fn-64).
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

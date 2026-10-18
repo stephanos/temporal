@@ -36,8 +36,9 @@ Derive a Case's fixture name from its `case` name and remove the `fixture:` slot
 - [ ] `cd model && lake build`, `make umpire-check-case-runtime-conformance` pass
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13. A Case's identity derives from the set's and the Query's names (fn-85 .7): Case ID `temporal.case.<set>.<query>`, fixture `<set>-<query>`, and the `fixture:` slot and the `fixture`-named `case` form are gone (fn-85 .11).
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

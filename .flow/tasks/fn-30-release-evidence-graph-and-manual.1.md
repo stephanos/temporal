@@ -44,8 +44,9 @@ Define the pure release vocabulary, fixed Temporal policy, and the executable po
 - [ ] The first policy and its executable protocol are closed, versioned, canonical, and fully boundary-tested.
 - [ ] Focused Lean builds, protocol fixtures, and purity scans pass.
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It was re-scoped to the release owner, outside `tools/umpire`, and nothing in this tree depends on it.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

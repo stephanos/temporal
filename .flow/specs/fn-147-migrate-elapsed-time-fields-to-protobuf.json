@@ -6,7 +6,9 @@
   "default_impl": null,
   "default_review": null,
   "default_sync": null,
-  "depends_on_epics": [],
+  "depends_on_epics": [
+    "fn-202-testpilot-schema-in-the-framework"
+  ],
   "id": "fn-147-migrate-elapsed-time-fields-to-protobuf",
   "impl_review_rounds": {
     "fn-147-migrate-elapsed-time-fields-to-protobuf.5": 0
@@ -243,5 +245,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T14:35:14.592498Z"
+  "updated_at": "2026-10-18T17:29:26.276773Z"
 }

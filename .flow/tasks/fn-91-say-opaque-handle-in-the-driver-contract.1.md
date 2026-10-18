@@ -59,14 +59,10 @@ Apply every row of the spec's Renames table (R1) to the hand-written Go in one a
 - [ ] TBD
 
 ## Done summary
-Renamed the Driver seam's Go from capability to opaque handle per the spec's Renames table (OpaqueHandle, HandleEffect, HandleBridge, Session.InvokeHandle, worker HandleFactory/NewHandle, server NewHandle, opaqueHandle/handleSlot/handleClaim, handles field), moved server capability.go/capability_test.go to handle.go/handle_test.go, renamed the five server tests, moved handle-sense diagnostics, doc comments and test Slot literals, and re-split "Opaque" + "CapabilityType" in protocol_test.go and check_test.go. The server InvokeHandle binds claimed / opaque / handle; the composite InvokeHandle parameter is handle.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Remaining word-boundary capability/capabilities hits in the touched Go trees are all other-sense: correlated capability comments (dataflow.go:308, ir/expression.go:51, verification/*, tests/testcore/testpilot artifact comments), "unsupported instruction context or Driver capability" (dataflow.go:82, typed_test.go:257, preparation_error_test.go), "controller capability required" (scheduler.go:749), the Opcode case "capability" (prepare_test.go:135). READMEs (temporal/README.md:17 "generic capability factory", worker/README.md:58 `CapabilityFactory`) are left for .2 (R4 prose).
-
-Gates: vet, tests, -race and the protocol/authoring/vocabulary checks green. Inherited reds: (1) tools/umpire/replay/bridge_live_test.go races under -race (exec stderr copier vs the eager stderr.String() argument; untouched file) - follow-up. (2) make umpire-check-case-runtime-conformance is red at HEAD because another session's b90b63e072 (Lean API regeneration) moved two behaviorFingerprint values; this commit changes no Lean, fixture or generated file. That fixture drift needs regenerating by the owner of b90b63e072 before .2's R6 run.
-
-stage: impl-review - ran [claude backend, verdict SHIP on first round]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 61c570fc594f9ed09317225493f9515df91dbeab
-- Tests: baseline: green (CC=/usr/bin/clang; without it cgo fails on stddef.h in agent shells), go vet -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/... ./tools/umpire/replay/... ./tools/canary/..., go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/replay/... ./tools/umpire/internal/retiredvocabulary/..., go test -count=1 -race -tags test_dep ./common/testing/testpilot/... ./tools/umpire/replay/... ./tools/umpire/internal/retiredvocabulary/... (all green except inherited race in untouched tools/umpire/replay/bridge_live_test.go TestLiveReplayBridgeAdmitsTheControlByItsBytes; replay re-run -race with -skip of that test: green), make umpire-check-retired-vocabulary, make umpire-check-testpilot-protocol, make umpire-check-testpilot-authoring, make umpire-check-case-runtime-conformance: RED, inherited from b90b63e072 (Lean API regeneration by another session); only two behaviorFingerprint values move in tests/testcore/testpilot/testdata/{nexusPairTests-bothComplete,workflowStartTests-started}-case.json; 61c570fc59 touches no Lean, fixture or generated file
+- Commits:
+- Tests:
 - PRs:

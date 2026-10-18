@@ -40,13 +40,10 @@ Use the shared bounded traversal extracted by task .14, including its candidate 
 - [x] Temporal obligations retain trigger coordinates/bounds during joint checking; later exceptions cannot remove them. Limits on search and trace horizon remain explicit; exhausted work is Limit Reached rather than exhaustive incompatibility.
 - [x] Deterministic evidence and outcomes are invariant under case/property source reordering. No priority resolution, inferred transitions, live execution, general solver or unbounded claim is introduced.
 ## Done summary
-Implemented finite joint Property analysis with source-linked logical contradiction evidence, exact realized temporal trigger scopes, and exhaustive bounded Target-relative incompatibility evidence. Outcomes keep violations, dead ends, static unsatisfiability, unexercised triggers, exhausted limits, and unsupported formula classes separate; generic and Nexus2 regressions cover multiway constraints, set-valued facts, ordering, frozen exceptions, multiple same-transition occurrences, and absent-trigger continuations.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The Codex review found one trigger-grouping defect; the resumed review confirmed the occurrence-identity fix and returned SHIP with R8 met. Tracker sync is inactive and plan sync is disabled for this spec.
-
-stage: impl-review - ran [2026-09-05T22:44:42Z..2026-09-05T23:00:46Z] (model: gpt-5.6-sol at medium)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus2.Tests) (green, 71 jobs; /tmp/fn65-task15-baseline-quick.log), finding-focused: (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests Umpire.Query.Tests.JointConflicts Umpire.Planning.VisibilityTests Umpire.Property.ImportTests) (green, 48 jobs; /tmp/fn65-task15-review-fix-focused2.log), (cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus2.Tests) (green, 72 jobs; /tmp/fn65-task15-review-fix-final-quick2.log), make lint-model (green, 245 jobs; /tmp/fn65-task15-review-fix-final-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited nonzero only: 1316 diagnostics, symmetric difference 0, normalized SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; /tmp/fn65-task15-review-fix-final-lint-code.log), impl-review codex:gpt-5.6-sol:medium SHIP round 2 (session 01a073be-deb4-7880-b2cc-97bc3491b145; /tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.15.json)
+- Tests:
 - PRs:

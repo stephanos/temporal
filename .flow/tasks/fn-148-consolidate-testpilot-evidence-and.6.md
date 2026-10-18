@@ -4,6 +4,8 @@ satisfies: [R6, R7]
 # fn-148-consolidate-testpilot-evidence-and.6 Simplify instruction references, cardinality and surviving markers
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The `tools/umpire/lower` half goes to fn-203's Temporal adapter.
+
 Complete R6's instruction-side cleanup after the Contract cleanup. Derive response cardinality, shorten references only where entrypoint scope is fixed, and replace surviving empty markers.
 
 **Size:** M

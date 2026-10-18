@@ -4,6 +4,8 @@ satisfies: [R4, R5]
 # fn-147-migrate-elapsed-time-fields-to-protobuf.4 Regenerate artifacts and document Duration contracts
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Classify identity changes from the Duration fields and presence cleanup and update the rules of record for R4 and R5. Regeneration of affected Models, Cases and Run companions, full gates, review and live-run evidence occur once at fn-148.7; fn-147 does not close before that evidence is recorded.
 
 **Size:** M
@@ -39,7 +41,6 @@ make canary-check-case
 make lint-model
 make lint-code-fast
 ```
-
 ## Acceptance
 - [ ] R4 cross-layer behavior passes on generated and hand-authored fixtures, with shared fn-148.7 evidence linked before spec closure.
 - [ ] R5's identity-delta ledger and docs are complete; final identity accounting and milestone/spec closure use fn-148.7's shared evidence.

@@ -37,8 +37,9 @@ The first declaration kind moves. The gate constructs each IR file's roots, an e
 - [ ] The size proof is in the done summary, with the owner's decision if the bound was missed.
 
 ## Done summary
-TBD
+Already superseded by fn-174; status hygiene 2026-10-18
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

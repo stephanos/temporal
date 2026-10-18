@@ -36,8 +36,9 @@ Establish the post-`fn-61` baseline and prove the shared test-only scenario seam
 - [ ] Deterministic outputs are byte-exact; dynamic fields are structurally validated with an explicit stable projection and no generic ignore list; parallel scenarios cannot mutate shared fixtures.
 - [ ] Ordinary focused tests pass with `go test -count=1 -tags test_dep` and invoke neither Lean nor a rewrite path.
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It was built on fn-61 and on the runtime fn-64 removed.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

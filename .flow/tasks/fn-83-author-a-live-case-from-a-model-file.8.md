@@ -36,8 +36,9 @@ Write `model/AUTHORING.md` from the R6 Model file's marked regions with a Go dri
 - [ ] TBD
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13, which wrote `model/AUTHORING.md` over the Caller Model's marked regions with the Go drift test (`tools/umpire/authoring`), the concept entries and the AUT-07a, MOD-02 and AUT-09 drafts under GOV-02, the document sweep and the full gate.
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

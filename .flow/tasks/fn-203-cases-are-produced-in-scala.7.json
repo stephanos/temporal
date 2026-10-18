@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.640339Z",
+  "depends_on": [
+    "fn-203-cases-are-produced-in-scala.4",
+    "fn-203-cases-are-produced-in-scala.5",
+    "fn-203-cases-are-produced-in-scala.6"
+  ],
+  "id": "fn-203-cases-are-produced-in-scala.7",
+  "priority": 4,
+  "spec": "fn-203-cases-are-produced-in-scala",
+  "spec_path": ".flow/tasks/fn-203-cases-are-produced-in-scala.7.md",
+  "status": "todo",
+  "title": "Stop running the Go lowerer, explorer and realization admission in any gate",
+  "updated_at": "2026-10-18T17:16:42.640339Z"
+}

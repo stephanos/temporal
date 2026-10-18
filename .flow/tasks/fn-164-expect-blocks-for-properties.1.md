@@ -4,6 +4,8 @@ satisfies: [R8]
 # fn-164-expect-blocks-for-properties.1 Use colon blocks consistently across the Scala DSL and enforce the style
 
 ## Description
+**Note 2026-10-18 (one-language series):** IR parity proofs use the in-process internal IR (fn-201); no checked-in IR.
+
 Touches: [model/.scalafmt.conf, model/.scalafix.conf, model/framework/, model/temporal/, model/irgen/, model/check/, model/README.md, model/framework/SEMANTICS.md]
 
 Use colon-and-indentation blocks consistently across the Scala DSL after fn-164's `expect` implementation and caller migration, before the pre-fault meaning-preserving seal. Wire the dependency to the final expectation-migration task when the remaining fn-164 tasks are planned; this task alone does not implement or close R1-R7.
@@ -27,7 +29,6 @@ make umpire-check-equivalence BASE=.flow/tmp/fn160/baseline-ae3f36ee51 MAP=model
 ```
 
 Also run the existing Scalafmt `--check` invocation from `lint-model` directly, so this Scala-only task does not invoke deferred consumer work. Compare scratch lifts before/after, allowing source positions only; use source maps for refusal-line changes rather than weakening assertions.
-
 ## Acceptance
 - [ ] Optional DSL blocks consistently use colon indentation across Models, framework examples, lifter/gate fixtures and author documentation; required Scala braces and intentional refusal cases remain correct (R8).
 - [ ] The pinned formatter rewrites representative nested and one-statement blocks idempotently, and the existing formatting/lint workflow rejects reintroduced optional braces; any formatter gap has a focused lint test (R8).

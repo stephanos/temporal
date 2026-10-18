@@ -4,6 +4,8 @@ satisfies: [R12]
 # fn-125-represent-dynamic-configuration-in-the.8 Model the HSM/CHASM attempt semantics the owner chooses for the Nexus caller
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Implements the Model half of R12. Where task 1's runs show the observable differs between HSM and CHASM (CHASM counts `attempt` at schedule, HSM on failure; `.plans/DYNAMIC_CONFIG.md` section 1), the caller Model reads `implementation` or the CHASM Case is recorded as an expected failure, as the owner decides.
 
 **Owner gate:** do not start until the owner has answered Q2 in the spec (open as of 2026-10-04, pending task 1's evidence): is the attempt-counting difference intended and modeled, or a CHASM defect to report with the Model kept on HSM semantics? The conductor records the answer in the spec before claiming this task.
@@ -36,7 +38,6 @@ go test -count=1 -tags 'test_dep integration' ./tests -run TestTestpilotGenerate
 
 ### Execution constraints
 - Case-byte changes only in caller Cases, recorded per valuation.
-
 ## Acceptance
 - [ ] Waits for the owner's answer to Q2 (recorded in the spec); work follows that answer.
 - [ ] Where the observable differs, the caller Model reads `implementation` (or, per the owner, the CHASM Case is an expected failure with an upstream report drafted); every listed divergence has a disposition.

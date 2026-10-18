@@ -43,44 +43,10 @@ Implements R1 (spec §R1). Replaces the hand-written Program-and-monitor Produce
 - [ ] `#print axioms` on changed declarations matches the approved baseline; `make lint-model` passes
 
 ## Done summary
-`produce` replaces `produceCompletionCase`. It lowers one `CheckedModel` and compares nothing
-against an expected one: the Contract carries no monitor rule at all, and its whole content is the
-scoped capability `Umpire.Case.Scoped.lower` certified from the checked Property.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Each `require` clause becomes one operation-scoped bounded-response clause, placed by the Action
-order the Behavior fixes: from the operation's first Action, the required value is due within as
-many semantic transitions as the Behavior puts between them. That placement is what makes the
-derived Contract discriminating. A same-step clause triggered on its own Action would answer
-satisfied for an operation that never reached the Action at all, because nothing triggered; the
-offline artifact test pins that a history with no completion is now inconclusive rather than green.
-The window includes its trigger step, so the converse hole is closed too: a required value the
-selected trace already reaches earlier rejects by clause name, which is what a reordered witness
-now does.
-
-The evidence is lifted out of the same history read the Case already performs, through the
-`ScopedEvidence` projection task .14 added, keyed by the scheduled event a started or completed
-Nexus event names. The live Case is satisfied in both environments, and the live test reads both
-the history event and the ScopedEvidence lifted from it back out of the Run.
-
-Verified for the acceptance's "one edit, one Case" claim: renaming a `require` label, regenerating
-and reverting changed the async-nexus Case bytes and no Lean file under
-`model/Temporal/Feature/Nexus3/` other than `Nexus.lean`.
-
-Two deviations, both argued rather than silent:
-- A changed *witness* no longer produces different Case bytes. The witness is not carried into the
-  Contract; it is the trace the derived window is checked against, so a witness inconsistent with
-  the clause placement rejects instead. A changed Target, Behavior, Query or Property still
-  produces different bytes, and the guards pin that.
-- The whole-Case coverage request is derived from the same clause list that produced the clauses,
-  so no Property edit can make `Coverage.check` reject through `completionCase`. The rejection is
-  reachable through `produce`'s `required` parameter and pinned there; the field-coverage half of
-  R1 is vacuous for this Case, which declares no projected input fields. The general mechanism is
-  pinned in `Umpire.Case.Tests.FieldLowering`.
-
-stage: impl-review - ran [a584f8f7..a37a14dc] SHIP
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 4737e7534c480b2b8d3d737be930499938041adf, 7ea712d1704f2bff44111c05edc1061b3e2de1a2, a37a14dcebc50fb9b3fea0cb430156c29227290a
-- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, unchanged baseline, all in generated Temporal/API; import-graph clean), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., go test -tags 'test_dep integration' ./tests -run '^TestTestpilotAsyncNexus' (satisfied in both environments through the scoped Verdict), make umpire-check-live-tests (empty failure set across 6 passing identities), make umpire-check-regression, make lint-code GOLANGCI_LINT_FIX=false (128: errcheck 1, govet 4, revive 106, staticcheck 17 - unchanged baseline), go vet -tags test_dep ./... (15 pre-existing diagnostics, unchanged), one require label renamed, regenerated, reverted: only Nexus.lean and the Case bytes changed
+- Commits:
+- Tests:
 - PRs:
-stage: plan-sync - skipped(config: planSync.enabled != true)

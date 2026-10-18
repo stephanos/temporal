@@ -90,6 +90,8 @@ The owner asked on 2026-10-01 for an example of a Go SDK workflow driven fully e
 
 **Plan amendment (2026-10-03, task breakdown).** The former Parked unknowns are settled or scheduled. Location: the module map already reserves an `examples` folder for this spec, recorded under Architecture. Whether the lowering can place a workflow's activity attempts with the existing realization declarations is scheduled work for task .3, which records the answer under Architecture. The spec keeps its dependencies on fn-114, fn-118 and fn-120, which gate the example; tasks .1 and .2 (generic Driver primitives) may be claimed explicitly before those close, as Edge Cases allows. Plan review found the timeout path has no mechanism today; the withhold-answer attempt is added as the fourth general primitive, and the Decision Context count is updated. No requirement changed.
 
+2026-10-18, one-language series: owner-deferred; at revival, lowering goes through fn-203's Scala producer and Temporal adapter, export through fn-206/fn-207, Model valuations through the Scala checker; nothing here targets `tools/umpire`.
+
 ## Quick commands
 
 ```bash

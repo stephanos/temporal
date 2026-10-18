@@ -36,8 +36,9 @@ LEAN_NUM_THREADS=1 make lint-model
 - [ ] Gate entries added; `spec_names_test` green; docs that described the chain updated
 - [ ] Every gate in Quick commands green
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

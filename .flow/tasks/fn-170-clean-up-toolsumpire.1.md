@@ -1,6 +1,8 @@
 # fn-170-clean-up-toolsumpire.1 One umpire CLI with subcommands replaces the eight cmd binaries
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Only run, assess, replay, repeat and fuzz remain as subcommands; gen-cases, lint and ir-bridge are gone (fn-203, fn-200, fn-208). fn-208's `tools/testpilot` rename owns the CLI layout; coordinate there.
+
 Replace the eight binaries under `tools/umpire/cmd/` (`umpire-assess`, `-fuzz`, `-gen-cases`, `-ir-bridge`, `-lint`, `-repeat`, `-replay`, `-run`; about 6,800 lines, seven on the standard `flag` package) with one binary and a subcommand each (`umpire run`, `umpire lint`, `umpire gen-cases`, ...).
 
 - Library: urfave/cli v2 (already in `go.mod`, used by `cmd/server`), unless the owner chooses cobra before this starts.

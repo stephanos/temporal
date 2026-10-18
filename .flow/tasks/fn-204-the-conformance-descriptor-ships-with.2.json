@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.953645Z",
+  "depends_on": [
+    "fn-204-the-conformance-descriptor-ships-with.1"
+  ],
+  "id": "fn-204-the-conformance-descriptor-ships-with.2",
+  "priority": 1,
+  "spec": "fn-204-the-conformance-descriptor-ships-with",
+  "spec_path": ".flow/tasks/fn-204-the-conformance-descriptor-ships-with.2.md",
+  "status": "todo",
+  "title": "Go conformance interprets the descriptor; no Model-reading imports",
+  "updated_at": "2026-10-18T17:16:42.953645Z"
+}

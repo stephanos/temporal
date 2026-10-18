@@ -42,7 +42,9 @@ Add the minimal generic per-operation cancellation instruction and capability re
 
 
 ## Done summary
-Administrative scope transfer only: cancellation requirements deferred to fn-79 by explicit user decision. No cancellation implementation is claimed complete. Original requirements retained in fn-79; generic syntax/qualification from task 8 retained in fn-78.10. Existing unfinished source edits preserved and worker stopped. This task closes only the scope transfer so generic fn-78 and fn-70 can proceed.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

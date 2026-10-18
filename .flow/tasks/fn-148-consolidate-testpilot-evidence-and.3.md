@@ -4,6 +4,8 @@ satisfies: [R4, R8]
 # fn-148-consolidate-testpilot-evidence-and.3 Introduce complete-state and result tables in lowering
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The `tools/umpire/lower` half goes to fn-203's Temporal adapter.
+
 Add the normalized schema and producer representation for R4, then measure compact artifact size before runtime admission switches. Use pre-change fixture projections for the behavior comparison, not a retained runtime representation.
 
 **Size:** M

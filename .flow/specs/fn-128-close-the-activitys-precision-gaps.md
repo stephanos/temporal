@@ -55,6 +55,8 @@ Heartbeat exhaustion in fn-129.1 keeps its original same-step Property and pinne
 
 Rejected global default increases, evaluator Query-ID switches and generic budget frameworks. Existing caller-owned Profile authorization is sufficient. Broad generated API drift verification and new CI coverage remain declined under the existing decision in `.flow/memory/declined/generated-api-drift-verification.md`.
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Early proof point
 
 The fatal correction's focused recording and replay prove that accepted server classification satisfies the unchanged fatal Property. If it fails, revisit the typed public observation before the shared close. The budget correction independently proves admission and actual charged-stage bounds for each of the two final supported Case shapes.

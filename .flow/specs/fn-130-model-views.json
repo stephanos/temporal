@@ -133,7 +133,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-130-model-views.md",
-  "status": "open",
+  "status": "done",
   "title": "Model views",
   "tracker": {
     "baseHashFlow": null,
@@ -146,5 +146,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T19:30:39.668308Z"
+  "updated_at": "2026-10-18T17:28:00.607248Z"
 }

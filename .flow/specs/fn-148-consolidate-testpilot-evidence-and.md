@@ -72,6 +72,8 @@ The existing inline and declaration-backed lift forms bind the same concepts thr
 
 State and result tables follow identities the runtime already checks. A full transition row cannot stand in for a result because one result may be authorized from several prior states. Interning the complete atom-plus-fields state retains predicate behavior and continuity without introducing a repository-wide value table.
 
+2026-10-18, one-language series: owner decision "fn-202 first; merge fn-148.7 into fn-203.4": this spec now depends on fn-202. The lowering halves (.2/.3/.5/.6, evidence and state tables in `tools/umpire/lower`) are recut into fn-203's Temporal adapter, and the format-4 artifact migration (.7) is merged into fn-203.4 so the series has one regeneration.
+
 ## Execution baseline
 
 The structural prerequisites are integrated: fn-145 split the Umpire schema; fn-142/fn-143 and `fn-151-split-standalone-activity-into-smaller` established the current framework and Activity source layout. Start this batch only from the integrated, committed closure of fn-156 and authoring Batch 2 (fn-140/fn-123, with their shared close at fn-123.8). Before implementation, re-anchor schema fields, Scala declarations, lifter/lint owners, tests and artifact identities against that closed baseline. fn-123's fault metadata and fn-156's compiler checks are still pending at this preparation point; consume their actual committed APIs and pins, without assuming names or results here. Retain the single format 4.0 activation at fn-148.6 and the shared regeneration, full-gate, review and live-run close at fn-148.7.

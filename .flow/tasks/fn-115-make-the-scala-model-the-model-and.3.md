@@ -39,19 +39,10 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Native Scala evaluator and focused semantic tests remain, and the complete golden verification passes.
 
 ## Done summary
-Transferred retired handwritten Model and optional dump comparisons to immutable evidence with explicit surviving-claim mappings. Reader test closure has zero Testpilot or handwritten Model dependencies; complete reader/lowerer closure has zero handwritten Model dependencies. The generic checker/producer stay until their task-5 copy. All original typed/keyed Nexus Case/table/Query values now reproduce through admitted IR and a narrow test-only lowerer bridge. Exact paired five-kind comparative realization adjustments are documented; no broad normalization. Full original/mapped/oracle verification, all five off-path activity mutants, source/declaration/specimen checks and complete capture entrypoints remain.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The durable .plans/umpire-migration-claims.json preserves claim coverage and 33 retired/revised commentary groups verbatim with original source attribution. All1411 compressed goldens,843 protected originals and index are unchanged. No production code, Scala, runtime fixture or source location changed. Generic job admitted-IR conversion remains task5 scope.
-
-Focused goir/... tests passed (reader150.657s lowerer213.675s), required dependency listing and lint0issues passed; targeted red/green and preservation evidence is in .flow/tmp/fn115-3-evidence.json. Independent read-only Codex gpt-6.1-sol high returned SHIP in round1, verifying snapshots/originals/comments/index; receipt .flow/tmp/fn115-3-review/receipt.json. Exact uncommitted scope adaptation preserves user no-commit constraints; independent context, same family.
-
-stage: implementation - ran (model: gpt-6-astra); existing agent reused under host thread limit with disk re-anchor.
-stage: verification - ran (focused Quick gates, dependency boundaries and preservation).
-stage: impl-review - ran (model: gpt-6.1-sol); SHIP round1.
-stage: plan-sync - skipped(config: planSync.enabled != true); bounded fixture decisions recorded in map and task brief.
-stage: tracker-sync - skipped(bridge inactive).
-stage: commit - skipped(user reserves commits and staging).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir -run '^TestReaderAndLowererDoNotImportHandwrittenOracles$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^TestOriginalNexusFixturesThroughAdmittedIR$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^TestOriginalNexusFixturesThroughAdmittedIR$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir -run '^(TestActivityEveryClaimDeclarationIsLifted|TestActivityPropertiesAgreeOnEveryRow)$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^(TestOriginalNexusFixturesThroughAdmittedIR|TestALoweredCaseIsTheComparativeGoModelsCase)$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir -run '^(TestReaderAndLowererDoNotImportHandwrittenOracles|TestActivityEveryClaimDeclarationIsLifted|TestActivityTablesAccountForEveryPair|TestMigrationRefinedPropertiesCoverEveryProductPropertyRow)$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/..., CC=/usr/bin/clang mise exec -- go list -tags test_dep -deps -test ./model/scalav2/goir/..., CC=/usr/bin/clang mise exec -- go list -tags test_dep -deps -test ./model/scalav2/goir, make lint-code-fast
+- Tests:
 - PRs:

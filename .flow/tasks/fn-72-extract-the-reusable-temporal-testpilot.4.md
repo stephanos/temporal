@@ -38,13 +38,10 @@ Update current ownership records and every exact package selector, then run the 
 - [ ] Historical review, migration, task, and cleanup evidence remains unchanged.
 
 ## Done summary
-Aligned MOD-13 and active ownership documentation with the shared `common/testing/temporaltestpilot` Driver tree, restored fixture-focused documentation at the retained test path, and extended Make, CI, regression, and retired-vocabulary selectors without weakening the full live selector or inherited failure baseline. Updated the fn-70 reference through Flow state and reconciled the completed fn-71/fn-72 cutovers in the delivery order while preserving historical evidence files.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The focused package and architecture suites, complete serial Umpire Go package gate, exact live Make target, diff check, and Go formatting check passed. `make lint-code` was invoked once and stopped when free disk fell to 121 MiB; this is recorded as an explicit resource-blocked verification step. The task-scoped implementation review reached SHIP after the recorded verification evidence was made visible. No staging or commit was performed by user instruction.
-
-stage: impl-review - ran (model: gpt-5.6-sol medium, SHIP)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green (TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot), baseline: green (TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|UmpireCIWorkflowRunsSeparatedUnitAndLiveProofs)'), TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot, TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|TestpilotDependencyBoundaryRejectsForbiddenEdges|UmpireCIWorkflowRunsSeparatedUnitAndLiveProofs|UmpireDocumentationStatesAttachedOwnershipAndBoundedClaim)', TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/..., TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 make umpire-check-live-tests, git diff --check, gofmt -d tools/umpire/regression/ci_workflow_test.go tools/umpire/internal/retiredvocabulary/check.go, BLOCKED: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 make lint-code (stopped after one invocation when free disk reached 121 MiB), impl-review: SHIP (codex:gpt-5.6-sol:medium; /tmp/impl-review-receipt-fn-72.4.json)
+- Tests:
 - PRs:

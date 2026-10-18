@@ -19,8 +19,9 @@ Create the domain-neutral `Umpire.Formal` vertical module and facade. Define the
 Canonical fixtures pin every field, enum spelling, order, null, source Generated View, typed Limit, and identity formula. Tests reject caller-supplied or crossed outcome/trust/digest/identity, duplicate/unknown/oversized evidence/reasons/Known Gaps, noncanonical setup/trace/evaluation ordering, malformed hashes/sources, and every identity-bearing single-field mutation; diagnostics-only mutations preserve receipt identity. Reusable sources contain no Temporal/Workflow/Nexus/Veil/runtime/promotion vocabulary or dependency.
 
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

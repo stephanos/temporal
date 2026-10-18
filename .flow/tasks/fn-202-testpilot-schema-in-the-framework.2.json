@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.353242Z",
+  "depends_on": [
+    "fn-202-testpilot-schema-in-the-framework.1"
+  ],
+  "id": "fn-202-testpilot-schema-in-the-framework.2",
+  "priority": 1,
+  "spec": "fn-202-testpilot-schema-in-the-framework",
+  "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.2.md",
+  "status": "todo",
+  "title": "Owner decision and implementation of the driver seam for the seven Temporal-typed fields",
+  "updated_at": "2026-10-18T17:43:05.968453Z"
+}

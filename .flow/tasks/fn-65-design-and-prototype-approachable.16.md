@@ -43,16 +43,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [ ] Audit exported checked values and their proof dependencies, measure admission/elaboration and one ordinary state/transition edit. No hidden native_decide fallback; report unsuccessful or unmeasured ergonomics honestly.
 
 ## Done summary
-Added narrow owner-local checked constructors for stable family identities, value-aware Property patterns and predicates, exact Behavior sequences, and explicitly bounded Queries. Nexus2 fixtures admit and execute all three baseline operations plus guarded race cases through the existing checkers, preserve fixed identities/fingerprints, expose alternatives/providers/forms/bounds/policies, and retain typed negative diagnostics and missing-replacement analysis evidence.
+Bookkeeping 2026-10-18: parent spec already closed
 
-The actual finite-table transition edit readmitted successfully and changed the Target fingerprint. Single-run direct elaboration measured 2.04s for admission/equivalence and 0.53s for the edit probe; repeated-run variance, scaling, editor behavior, product-owner readability, and human usability remain unmeasured. Exported admission dependencies are limited to propext, Classical.choice, and Quot.sound; no native_decide, checkedTarget native default, sorry/admit, or custom trust was added.
-
-No commits, push, worktree, reset, revert, or cache deletion were performed; HEAD remains 7774fdc7ac751ac959816c9829516ce54af57194 and the user retains commit ownership. Go lint remains the inherited 1,316-diagnostic baseline with exact normalized SHA256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077 and zero diff from task 15.
-
-stage: impl-review - ran [2026-09-05T23:40:00Z..2026-09-05T23:44:49Z] NEEDS_WORK..SHIP (model: codex:gpt-5.6-sol:medium; session: 01a073e2-1420-7e23-8021-5c2dd13dfd07)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Temporal.Feature.Nexus2.Tests) (pass; 68 jobs), (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Behavior.Tests Umpire.Query.Tests Temporal.Feature.Nexus2.Tests Temporal.Feature.Nexus2.AuthoringTests Temporal.Feature.Nexus2.AuthoringEditProbe) (pass; 75 jobs), make lint-model (pass), make lint-code GOLANGCI_LINT_FIX=false (inherited exit 2; 1316 diagnostics; normalized SHA256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; zero diff vs task 15), direct lake env lean Temporal.Feature.Nexus2.AuthoringTests elaboration/admission: 2.04s single local run, direct lake env lean Temporal.Feature.Nexus2.AuthoringEditProbe actual finite-transition edit: 0.53s single local run, #print axioms constructor admissions: propext, Classical.choice, Quot.sound only; QuerySpec fixture has none, impl-review codex:gpt-5.6-sol:medium: SHIP (session 01a073e2-1420-7e23-8021-5c2dd13dfd07)
+- Tests:
 - PRs:

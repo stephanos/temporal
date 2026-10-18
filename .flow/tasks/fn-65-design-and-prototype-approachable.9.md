@@ -40,22 +40,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [ ] Tests and scope text name omitted completion-before-request, late events, repeated requests, retries, caller closure and multiple operations; unsupported inputs reject instead of inventing transitions.
 
 ## Done summary
-Implemented the separate Nexus2 cancellation race as a validated typed finite Target: requestCancel records a nonterminal cancelRequested result, while abstract resolve owns canceled and succeeded terminal alternatives with distinct outcomes, lifecycle facts, and terminal=true. The independently authored exact Behavior and bounded Queries verify the inclusive one-transition response, witness both outcomes, and select succeeded as the counterexample to cancellation always winning.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Executable evidence distinguishes the finite request-only violation, vacuous no-trigger verification, unsatisfiable setup, exhaustive no-counterexample, and inconclusive Limit Reached outcomes. Candidate budget 32 completed exhaustively after four enumerated traces and required no adjustment; budget 1 reached its Limit. Scope text and tests reject or omit completion before request, late events, repeated requests, retries, caller closure, and multiple operations without adding fairness, runtime-delivery, or runtime-timeout claims.
-
-The focused 69-job suite and 239-job model lint passed. Go lint retained exactly the inherited 1,316 diagnostics: normalized individual diagnostic identities have matching sorted SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077` and symmetric difference zero. The race law and declarations have no axioms; Target admission and checkRace use only propext, Classical.choice, and Quot.sound.
-
-No commits, push, worktree, reset, revert, or cache deletion; the user retains commit ownership and prior staged changes remain preserved.
-
-stage: impl-review - ran [SHIP] (model: codex:gpt-5.6-sol:medium; session: 01a072d4-ac43-7b63-b725-4aa54d1979a2)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
-
-Review receipt: `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.9.json`
-Review log: `/tmp/fn65-task9-review.log`
-Reviewed base/staged tree: `1a1b451650e4568130fb87794732ecedb01cff97..7fed593b127ce3c9419fea28de57e516f3a45052`
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests Umpire.Query.Tests Umpire.Planning.Tests) (pass; 68 jobs), baseline: make lint-model reused from task8 reviewed model tree 7de76f50a364f81bbe62c70b7d41ecdd86339343 (pass; 239 jobs), baseline: make lint-code GOLANGCI_LINT_FIX=false reused from task8 (inherited red; 1316 diagnostics), TDD red: (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests) (failed on missing Temporal.Feature.Nexus2.Race as expected), (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests Umpire.Query.Tests Umpire.Planning.Tests) (pass; 69 jobs), make lint-model (pass; 239 jobs), make lint-code GOLANGCI_LINT_FIX=false (inherited exit 2; 1316 diagnostics; normalized identity symmetric difference 0), task8/task9 normalized Go diagnostic headers: 1316 each; matching sorted SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077, #print axioms Race.satisfiesRaceRequirement/raceLawProof/property/Behavior declarations: none; targetResult/checkRace: propext, Classical.choice, Quot.sound only, impl-review codex:gpt-5.6-sol:medium: SHIP
+- Tests:
 - PRs:

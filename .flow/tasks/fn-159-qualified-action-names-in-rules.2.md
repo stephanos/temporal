@@ -4,6 +4,8 @@ satisfies: [R8]
 # fn-159-qualified-action-names-in-rules.2 Rename the By-ID actor service to completionClient
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Rename the standalone activity's By-ID actor from `service` to `completionClient`, after the Java SDK's `ActivityCompletionClient`. `service` reads as if the Temporal server itself were settling the activity. In fact the caller is any client that completes an activity asynchronously by its id, without the task token (Go SDK `client.CompleteActivityByID`), and it is independent of the worker process.
 
 **Size:** S
@@ -30,7 +32,6 @@ make umpire-gen-model
 make umpire-check-model
 make umpire-check-lint
 ```
-
 ## Acceptance
 - [ ] The By-ID actor is `completionClient`, with a comment saying who it is; no `service.respond…ByID` reference or "service" naming of this actor remains in the standalone activity models, tests or comments.
 - [ ] The regenerated activity-standalone IR differs from the previous IR only in the actor name and the qualified action ids.

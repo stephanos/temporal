@@ -36,16 +36,10 @@ Relocate the composite Driver, catalog helpers, server, worker, private delivery
 - [ ] No comments are dropped during relocation and no new dependency or runtime behavior is introduced.
 
 ## Done summary
-Relocated the composite Temporal Testpilot Driver, catalog, server, worker, private delivery implementation, focused tests, and owner READMEs to `common/testing/temporaltestpilot`. Retained fixture-only tests and fixtures under `tests/testcore/testpilot`, updating the fixture test to use the shared Catalog helper; the move is uncommitted per user instruction.
-
-baseline: red (`mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot` failed before edits because the destination package did not yet exist); focused regression baseline passed; live baseline was stopped at conductor direction.
-
-stage: impl-review - ran (model: gpt-5.6-sol medium, SHIP)
-
-Review: SHIP after correcting the moved root package comment to name `temporal`; receipt `/tmp/impl-review-receipt-fn-72.1-synthetic-correct.json`.
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: red (mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot failed pre-edit: destination package did not exist), TMPDIR=/private/tmp CGO_ENABLED=0 mise exec -- go test -p=1 -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|UmpireCIWorkflowRunsSeparatedUnitAndLiveProofs)' (baseline pass), TMPDIR=/private/tmp CGO_ENABLED=0 mise exec -- go test -p=1 -count=1 -tags test_dep ./common/testing/temporaltestpilot/... (pass after review fix), impl-review SHIP: /tmp/impl-review-receipt-fn-72.1-synthetic-correct.json
+- Tests:
 - PRs:

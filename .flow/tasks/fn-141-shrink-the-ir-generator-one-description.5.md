@@ -44,8 +44,9 @@ Part B's early proof. The framework learns to record where a declaration is writ
 - [ ] A fresh terminal `timeout 1200s make model-check-changed BASE=<original-task-base>` passes, including all samples, mini step-table equivalence and selected suites. Frozen fixture IR, names, positions and refusals are unchanged. Preserve unrelated owner edits; diagnose any inherited out-of-scope failure separately. Strict generated IR/full/Go gates remain held for propagation, with no regeneration here.
 
 ## Done summary
-Blocked:
-OWNER HOLD (2026-10-16): Umpire framework DSL is the top priority. This integration task is not admitted while fn-188.3 completes final native public-client verification and formal batch review. Preserve its existing source checkpoints, evidence, dependencies and unfinished acceptance obligations; this scheduling hold claims no implementation or proof completion. Completion of fn-188.3 does not automatically release this task: select later IR/exporter/schema/Go/backend work explicitly. Any model/temporal work remains independently excluded entirely, including disabled source contents, until the owner restores that scope.
+Already superseded by fn-174; status hygiene 2026-10-18
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

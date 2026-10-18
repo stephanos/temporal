@@ -44,8 +44,10 @@ Keep plan construction as the sole descriptor-normalization interface while movi
 - [ ] `go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api` passes.
 
 ## Done summary
-Separated deterministic Lean name allocation into a private sibling module, made plan validation structural, and expanded planner-only coverage for normalized data, diagnostics, and failure precedence without changing generated output.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 762224bdb
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-lean-api, cd model && mise exec -- lake build Temporal.API, env CC=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang CXX=/Applications/Xcode.app/Contents/Developer/Toolchains/XcodeDefault.xctoolchain/usr/bin/clang++ SDKROOT=/Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk .bin/golangci-lint-v2.13.1 run --build-tags disable_grpc_modules,test_dep,integration --timeout 10m --fix=false --new-from-rev=b75931433 --config=.github/.golangci.yml ./tools/umpire/cmd/umpire-gen-lean-api/...
+- Commits:
+- Tests:
 - PRs:

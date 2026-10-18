@@ -4,6 +4,8 @@ satisfies: [R5, R11, R12]
 # fn-123-declare-faults-as-the-environments.5 Budgets: budgetedBy, the four table rules in Go, LostStartAnswer bound to lossAvailable
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Go budget-table rules are obsolete (native budgets done); LostStartAnswer stays with the Temporal sweep.
+
 Budgets (R5, R12): `f.budgetedBy(_.b)` on a binding, recorded in the IR, the four table rules of spec Part C checked in Go, the durable-budget rule in the lifter, and `LostStartAnswer` converted to name its existing `lossAvailable` field. Nothing in its step functions changes.
 
 **Size:** M
@@ -28,7 +30,6 @@ Budgets (R5, R12): `f.budgetedBy(_.b)` on a binding, recorded in the IR, the fou
 **Optional** (reference as needed):
 - `tools/umpire/ir/validate.go:733` - step admission
 - `model/ir/activity-standalone-race.json` - where `LostStartAnswer` lifts
-
 ## Acceptance
 - [ ] `budgetedBy` lifts onto the binding. Refusal fixtures cover the wrong type, a second budget and a non-durable budget field on a crashing machine.
 - [ ] Go refuses each broken budget rule at the binding with the offending state and action (one test each). A guard and an `end` that read the field pass.

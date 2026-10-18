@@ -83,11 +83,11 @@ export/testdata/<unit>/
   project.scala
   <Sources>.scala
   expected/
-    <root>.ir.json                the IR the lifter writes for <root>
-    <root>.waivers.json           the waivers a capabilities section writes beside its IR
+    <root>.ir.json                the lifted tree for <root>; from fn-201 an internal expectation of the lift module only, read by nothing else
+    <root>.waivers.json           (dropped 2026-10-18: waivers are a `@gap` kind under fn-200; no file is written)
     refusals.txt                  every `lift:` line, sorted; the lift exits 1 and writes no IR
     compile.txt                   the plugin's diagnostics, sorted; the package does not build
-    lint.txt                      every finding the framework lint reports, sorted
+    lint.txt                      every finding the framework lint reports, sorted; from fn-200 the native lint's findings and coverage
     inspect.txt                   what inspect prints for the unit
     identity.json                 the identity contract the runner checks against <root>.ir.json
 ```
@@ -124,7 +124,7 @@ actual with repository-relative paths, and the command that produced the actual 
   keep that diff readable. No tool-side protection beyond these.
 - **Partial runs.** A single case can be selected with munit's filter as today; update is refused
   under a filter.
-- **Held tools.** A tool held for the sweep (the Go check) has no expected file kind in this spec.
+- **Held tools.** (superseded 2026-10-18: the Go check is retired by fn-201/fn-208; no held-tool kind is needed.) A tool held for the sweep (the Go check) has no expected file kind in this spec.
   Adding one later is a new R-ID.
 
 ## Acceptance Criteria
@@ -167,7 +167,7 @@ actual with repository-relative paths, and the command that produced the actual 
   unchanged and held for the sweep. [inferred]
 - Tool output formats do not change except to make them deterministic. [inferred]
 - No new DSL word, no change to what a Model author writes. [inferred]
-- No case kind for the Go check; a held tool gets one by a later R-ID. [inferred]
+- No case kind for the Go check; a held tool gets one by a later R-ID. [inferred] (superseded 2026-10-18: no Go check remains; Case, descriptor and TLA emission kinds are added as new R-IDs when fn-203, fn-204 and fn-206 land.)
 
 ## Decision Context
 
@@ -193,3 +193,6 @@ formats in the tool rather than the runner: a sorted runner hides a nondetermini
 Phasing is the owner's call. My reading of the 2026-10-17 batch order: this spec opens Phase 3's
 export and lint re-anchoring, after fn-190.9/.12 land the final lifting, so the re-anchored
 fixtures are written once, as cases.
+
+2026-10-18, one-language series: owner decision "recut: ir.json internal, drop waivers". `export/` becomes `lift/` (fn-201), so the unit layout root is `lift/testdata/<unit>/`. `<root>.ir.json` stays as the lift module's internal expectation only. `<root>.waivers.json` is dropped (fn-200). `lint.txt` is the native lint's output (fn-200). The Go-check edge case and boundary are superseded. New expected kinds for Case protos (fn-203), the conformance descriptor (fn-204) and TLA+ text (fn-206) will be added as new R-IDs when those specs land, with this spec's runner discovering them the same way.
+

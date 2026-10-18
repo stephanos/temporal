@@ -34,8 +34,9 @@ The builder chains already build these values. Export them, and delete the lifte
 - [ ] `make umpire-gen-model` leaves `model/ir`, `model/cases` and the lifter fixtures' expected IR byte-identical (R11); any difference stops the task until it is traced.
 
 ## Done summary
-TBD
+Already superseded by fn-174; status hygiene 2026-10-18
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

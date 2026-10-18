@@ -35,11 +35,10 @@ Prototype the approved `Lean-zh/protobuf` package against the repository's exact
 - [ ] Unknown `Any` type URLs and malformed payloads return errors; no field or value is silently omitted.
 - [ ] Cold/warm build time and executable-size deltas are recorded, with an explicit adopt or re-plan result.
 ## Done summary
-ADOPT the pinned Lean-zh/protobuf prototype: it builds the exact Testpilot closure on Lean 4.33.1/libprotoc 29.5, emits deterministic ProtoJSON that strictly decodes in Go, and fails closed for invalid Any values. The isolated cold build took 127.63s, the warm build 0.59s, and the executable grew by 3,439,376 bytes (3.30%); the user retains ownership of the uncommitted changes.
+Bookkeeping 2026-10-18: parent spec already closed
 
-stage: impl-review - ran [2026-09-07T04:00:40Z..2026-09-07T04:04:53Z]
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make umpire-check-lean-protobuf-prototype, (cd model && mise exec -- lake build Testpilot TestpilotTests UmpireTests TemporalModelTests temporal-testpilot), (cd model && mise exec -- lake exe modelLintTests), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 TMPDIR=<physical-temp-root> mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tests/testcore/testpilot/..., make lint-model, gofmt -d tests/testcore/testpilot/protobuf_lean_interop_test.go, git diff --check -- <task paths>, baseline: make lint-code GOLANGCI_LINT_FIX=false inherited red (1361 findings); not repeated
+- Tests:
 - PRs:

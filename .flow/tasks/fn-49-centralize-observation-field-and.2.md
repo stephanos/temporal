@@ -30,8 +30,10 @@ Use field specifications in the shared test fixture and both ordinary Temporal O
 - [ ] Focused Umpire and Temporal Observation tests pass.
 
 ## Done summary
-Migrated shared Observation fixtures and Feature/System Nexus mappings to named ObservationFieldSpec values as the sole kind/field/type authority while preserving explicit lists, public identity projections, source locations, comments, field order, checked plans, canonical fingerprints, generated artifacts, and independent expected traces. Migrated the one portable-evaluation fixture consumer found by the full regression gate.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 8baafcebc, 3ef68b3b9
-- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests Temporal.System.Nexus.ObservationFaultTests, cd model && mise exec -- lake build UmpireTests TemporalModelTests, make umpire-check-regression, make lint-model, make lint-code (exact inherited 1,379-finding baseline)
+- Commits:
+- Tests:
 - PRs:

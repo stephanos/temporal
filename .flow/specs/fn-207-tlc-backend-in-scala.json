@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-207-tlc-backend-in-scala",
+  "created_at": "2026-10-18T17:15:29.554879Z",
+  "depends_on_epics": [
+    "fn-201-the-ir-is-internal-the-lift-module-no",
+    "fn-203-cases-are-produced-in-scala"
+  ],
+  "id": "fn-207-tlc-backend-in-scala",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-207-tlc-backend-in-scala.md",
+  "status": "open",
+  "title": "TLC backend in Scala",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:37:16.930928Z"
+}

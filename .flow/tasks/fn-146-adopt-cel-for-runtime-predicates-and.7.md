@@ -4,6 +4,8 @@ satisfies: [R1, R4, R5, R6, R7]
 # fn-146-adopt-cel-for-runtime-predicates-and.7 Retire duplicate predicate machinery and close the CEL migration
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Remove superseded expression machinery after its callers migrate, categorize CEL identity deltas, and update the ownership and semantics records for R1 through R7. Managed companion regeneration, full gates, review and live-run evidence belong to the shared fn-148.7 close; fn-146 does not close before that evidence is recorded.
 
 **Size:** M

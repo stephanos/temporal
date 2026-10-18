@@ -39,8 +39,10 @@ Identity mismatch must skip Validate. Validate failure returns no Run or Verdict
 - [ ] Existing typed-nil and external-facade behavior remains covered.
 - [ ] Focused `go test -count=1 -tags test_dep` suites for affected packages pass.
 ## Done summary
-Added copied prepared-role access, binding fingerprints to Driver identity, mandatory static Validate, and preflight ordering from context through identity and validation before monitor creation and Open. Migrated all in-scope Drivers and test doubles, added ordering/immutability/failure regressions, and made zero-value PreparedProgram snapshots nil-safe. Independent implementation review returned SHIP after fixing empty-facade panics in server and worker Validate. Plan sync was skipped because `planSync.enabled` is false.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/..., gofmt -d on task-changed files, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.3.json
+- Tests:
 - PRs:

@@ -40,52 +40,10 @@ column of R8. This is the spec's early proof point.
 - [ ] Each of (1), (2) and (3) has an explicit reproduced / not-reproduced verdict, and every reproduced signature has a class.
 - [ ] If a signature cannot be classified from its fields, the receipt says which field was missing (feeds back to fn-90.2's helper) instead of guessing a cause.
 ## Done summary
-Baseline re-measurement (R2) at `b9bb1a58adf931e0830bcb5917849ae4f1ea894f` (contains fn-90.1 and fn-90.2, no fix from fn-90.4 to .6). The loops ran in the measurement clone with a clean tree, which the harness recorded as `dirty:false` on every record line. All six loops met their R2 counts with zero failures, so none needed the early stop. None of the three failures reproduced on today's identities.
+Bookkeeping 2026-10-18: parent spec already closed
 
-| # | Identity | Mode | Iterations | Failures | 95% CI (Clopper-Pearson) | Signatures | Load at start -> end (1/5/15 min), other go test procs |
-|---|---|---|---|---|---|---|---|
-| 1 | TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint | process | 50 | 0 | 0.00%-7.11% | none | 20.51 19.06 17.49 -> 5.12 5.01 6.58, 0 |
-| 2 | TestTestpilotNexusPairCase | process | 200 | 0 | 0.00%-1.83% | none | 5.12 5.01 6.58 -> 4.76 5.06 6.22, 0 |
-| 3 | TestTestpilotNexusCallerAsyncCompletion | process | 200 | 0 | 0.00%-1.83% | none | 4.76 5.06 6.22 -> 5.38 5.17 5.91, 0 |
-| 4 | TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone | process | 200 | 0 | 0.00%-1.83% | none | 5.27 5.15 5.90 -> 5.71 5.27 5.80, 0 |
-| 5 | TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone | process | 200 | 0 | 0.00%-1.83% | none | 5.42 5.22 5.78 -> 5.60 11.36 9.14 (25.23 at harness start), 0 |
-| 6 | NexusCallerAsyncCompletion + NexusCallerCaseRunsFromItsFixtureNameAlone | in-process, COUNT=4 x 13 processes, merged with `summarize` | 52 each | 0 / 0 | 0.00%-6.85% each | none | 5.31 11.20 9.10 -> 5.15 6.88 8.02 (peak 15.90), 0 |
-
-Wall clock: 03:10Z to 04:20Z on 2026-09-27. Loop 1 took about 41 s per iteration, consistent with the stuck 30 s namespace-delete teardown that R4 removes. The driver log gives the other loops' wall clock, harness build included: loop 2 took 4 min, loop 3 5 min, loop 4 3 min and loop 5 4 min, each for 200 iterations, which is about 1 to 1.5 s per iteration. Loop 6 took 17 min for 13 processes. The Run captures below confirm that every iteration really ran its Runs.
-
-Verdicts:
-- (1) Namespace-delete timeout: not reproduced in 50 process-mode iterations of TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint, and no kind-(3) failure appeared in that loop either. R4 is unconditional, so fn-90.4 proceeds.
-- (2) Evidence-ordering mismatch: not reproduced on the successor. Retired identity TestTestpilotTypedNexusOperationsCase, successor TestTestpilotNexusPairCase, 0/200. That is 400 Runs, two sequential Runs per iteration on one cluster in its default configuration. The test sets no Nexus implementation switch, so only the default switch value was covered, not hsm and chasm separately.
-- (3) Async-Nexus Run not SATISFIED: not reproduced on the successors. Retired TestTestpilotAsyncNexusCase is now TestTestpilotNexusCallerAsyncCompletion: 0/200 in process mode and 0/52 in process with -count=4. Retired TestTestpilotAsyncNexusCaseRunsFromItsFixtureNameAlone is now TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone: 0/200 and 0/52. TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone (unchanged identity): 0/200. The umpire-run test: 0/50. Only TestTestpilotNexusCallerAsyncCompletion runs under both switch values (hsm and chasm, 4 Runs each). The other three identities run under the default configuration only.
-
-Classification: no signature was observed, so nothing needed a class and no class is guessed. All 3118 captured Runs closed RUN_DISPOSITION_COMPLETED with VERDICT_STATUS_SATISFIED. By loop:
-- loop 1: 50
-- loop 2: 400
-- loop 3: 1600
-- loop 4: 200
-- loop 5: 400
-- loop 6: 468
-
-Latency for path (3a), which fn-90.6 uses. Samples are controller-side `RunEvent` elapsed times, all from passing Runs because no failing Run occurred. The sample is the 2718 captured Runs of the async-caller fixture and the worker-outage test; the pair Case has other steps. The 2518 async-caller Runs carry these steps, including the 200 plain peer Runs of the worker-outage test; the 200 outage Runs do not.
-- await-scheduled (covers the workflow's start-nexus-operation): p50 263 ms, p99 279 ms, max 303 ms. hsm p99 280, chasm p99 281.
-- await-completion-authority: p50 0, p99 1, max 4 ms.
-- complete-nexus-operation: p50 1, p99 6, max 22 ms.
-- await-close (covers finish-workflow after the completion): p50 6, p99 15, max 24 ms. hsm p99 14, chasm p99 16.
-- Whole Run (RUN_CLOSED elapsed): p50 283, p99 317, max 345 ms.
-
-Missing field, fed back to fn-90.2's Run capture: the two 5000 ms bounded steps, `finish-workflow` (workflow entrypoint) and `respond-async` (handler entrypoint), emit no RUN_EVENT_KIND_INSTRUCTION_STARTED or _COMPLETED events. A recorded Run holds controller-activation events only, so the bounded steps' own latency cannot be read from Run capture. The controller-side windows that enclose them stay under 350 ms, far below the 5000 ms bound, at host loads of about 5 to 25. `finish-workflow` falls inside await-close. `respond-async` falls inside await-scheduled plus await-completion-authority, because the controller's completion authority exists only after the handler has responded asynchronously. The Case program records that ordering through its causal structure, not through an explicit dependency field. A bounded-step p99 for fn-90.6 therefore needs Run capture to record workflow and handler instruction events, or a Driver-side timing field.
-
-Caveat for fn-90.4 to .6, a condition and not a cause: the original failures fired in whole-suite gate runs (`^TestTestpilot`, about 30 min). These loops ran one identity per process, with no other go test process on the host. Under that isolation, the rates are below the upper bounds above.
-
-Record files are in `/private/tmp/fn-90/`: loop1..5.jsonl, loop6-01..13.jsonl, the matching `*.runs/` Run captures, `*.out` harness output, and `driver.log` with load at each loop's start and end. The driver is `driver.sh` and the latency extractor is `latency.sh`.
-
-Baseline: green. In the clone, `go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/...` passed and `go vet -tags 'test_dep integration' ./tests` passed. No source change (Touches: []).
-
-GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree
-GATE_SKIPPED:live:not-applicable - measurement-only task, no source change
-
-stage: impl-review - ran [claude: NEEDS_WORK (P2 pair switch-coverage wording, P3 capture total) -> fixed in 376943907d -> SHIP]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 71559d5f45290e4e7ef6659f33ef32206d0f8414, 376943907d726ca70bd5b714e859e546a62795ea
-- Tests: measured commit b9bb1a58adf931e0830bcb5917849ae4f1ea894f (clone umpire-fn90-measure, clean tree), make umpire-repeat-run SELECT='^TestTestpilotUmpireRunRunsACheckedInCaseAgainstAnyEndpoint$' COUNT=50 MODE=process -> 0/50, make umpire-repeat-run SELECT='^TestTestpilotNexusPairCase$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotNexusCallerAsyncCompletion$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^TestTestpilotWorkerOutageCaseLeavesAnotherQueueAlone$' COUNT=200 MODE=process -> 0/200, make umpire-repeat-run SELECT='^(TestTestpilotNexusCallerAsyncCompletion|TestTestpilotNexusCallerCaseRunsFromItsFixtureNameAlone)$' COUNT=4 MODE=in-process x13 + umpire-repeat summarize -> 0/52 each, baseline: green (go test -tags test_dep ./tools/umpire/cmd/umpire-repeat/... ; go vet -tags 'test_dep integration' ./tests, in the clone at b9bb1a58ad), GATE_SKIPPED:unittest:docs-only - task commits touch only the task .md receipt; gate classify reported FULL solely from another session's uncommitted Makefile edit in the shared tree, GATE_SKIPPED:live:not-applicable - measurement-only task, no source change (Touches: [])
+- Commits:
+- Tests:
 - PRs:

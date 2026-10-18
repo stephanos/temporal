@@ -35,12 +35,10 @@ make lint-code-fast
 
 
 ## Done summary
-New package `common/testing/testpilot/temporal/internal/primitive` holds the one definition of `NilValue` (the UnsafePointer-aware version), `ContextError` and the context-aware `Mutex` (both take the caller's sentinel), `CloneEffectResult`, `NexusHeaderBytes`, `MethodPath`, `StartWorkflowPath` and `HasWorkerEntrypoint`. delivery, server, worker and the composite Driver dropped their copies, including the worker's `contextMutex`, `cloneOutcome`/`values.go` and delivery_test's clone. The worker's hand-written helpers became `slices.Contains`, `slices.DeleteFunc`, `slices.AppendSeq(make(...), maps.Keys(...))` (this keeps non-nil empty results, pinned by `TestNexusCandidatesWithoutRouteIsEmptyNotNil`) and `cmp.Or`.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Deviations: the package is named `primitive`, not `runtime`, because revive rejects a package that shadows stdlib `runtime`. `server/handle.go` and `delivery/delivery_test.go` were edited outside the declared Touches because they call the removed copies. `cmp.Or[error]` trips staticcheck SA4023 (a false positive), so it carries two reasoned nolints. `execution/evidence.go` cannot import `temporal/internal` because of Go's internal-package rule, so it is unchanged. The route and catalog goldens are unchanged and pass.
-
-stage: impl-review - ran [round 1 fan-out NEEDS_WORK (2 findings fixed)..round 2 SHIP]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 5ac32da7360c5ca29a1914f68573e502831c4494, fc979ab84168c244cd262c324a911d1423af3cbe
-- Tests: baseline: green (go test -race -tags test_dep ./common/testing/testpilot/temporal/...), go test -race -tags test_dep ./common/testing/testpilot/temporal/..., make lint-code-fast GOLANGCI_LINT_BASE_REV=944c6a4d4b5927deee64da32428789be28e7ad10
+- Commits:
+- Tests:
 - PRs:

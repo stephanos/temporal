@@ -41,8 +41,10 @@ The fingerprint covers every validated Profile binding, including unused entries
 - [ ] Focused `go test -count=1 -tags test_dep` suites for `common/testing/testpilot/...` pass without target I/O.
 
 ## Done summary
-Implemented immutable Profile environment snapshots, canonical domain-separated binding fingerprints, exact Case 1.0/1.1 admission, direct singular-text environment resolution, and private resolved role metadata. Added malformed/limit/version/closure, fixed-vector, mutation, concurrency, and request-materialization coverage. Independent implementation review returned SHIP after fixing negative-minor admission; public Driver identity propagation remains intentionally assigned to task 3. Plan sync was skipped because `planSync.enabled` is false.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/..., TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=10 -tags test_dep ./common/testing/testpilot/... (focused concurrency/fingerprint selection), git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.2.json
+- Tests:
 - PRs:

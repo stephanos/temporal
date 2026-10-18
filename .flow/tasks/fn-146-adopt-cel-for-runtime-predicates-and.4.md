@@ -4,6 +4,8 @@ satisfies: [R2, R4]
 # fn-146-adopt-cel-for-runtime-predicates-and.4 Move Testpilot execution bindings to native CEL
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Move instruction inputs, execution guards and evidence guards to the admitted CEL environment for R4. Prove descriptor-backed execution against offline kernel evaluation before verification rollout. Keep capture lifetimes, descriptor reads and correlated occurrence selection as domain bindings.
 
 **Size:** M

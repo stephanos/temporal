@@ -4,6 +4,8 @@ satisfies: [R9]
 # fn-123-declare-faults-as-the-environments.6 Choice-level fault performance and lowering refusals for model-only faults and unperformed choices
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Lowering refusals for model-only faults go to fn-203's Temporal adapter.
+
 Choice-level fault performance (R9). A performance may name the fn-120.1 choices it performs with `choosing(…)`, and the others stay model-only for that realization. Performing a `modelOnly` fault is refused. Lowering refuses a witness that takes a model-only fault or an unperformed choice, at its step, with the reason and position, and the manifest standing names it. `LostStartAnswer`'s realization performs only `committedThenLost`.
 
 **Size:** M
@@ -28,7 +30,6 @@ Choice-level fault performance (R9). A performance may name the fn-120.1 choices
 **Optional** (reference as needed):
 - `tools/umpire/lower/generated.go:49, 113` - manifest standing
 - `model/temporal/realize/Realize.scala:61-74` - `FaultKind`, `Fault`
-
 ## Acceptance
 - [ ] `choosing(…)` lifts onto the performance. The lost-admission realization performs only `committedThenLost`.
 - [ ] Performing a `modelOnly` fault is refused at the performance, with a fixture.

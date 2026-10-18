@@ -34,13 +34,10 @@ Retarget Umpire-owned Case generation, conformance, fixtures, Lean descriptor pr
 - [ ] Focused generator/schema/conformance tests and existing generation checks pass, with no new drift system and no stale active Umpire proto import outside the final temporary runtime owner.
 
 ## Done summary
-Retargeted the Umpire-owned generic Case renderer and generator to Testpilot ingestion, regenerated and moved the deterministic six-class corpus to common Testpilot, moved conformance ownership without a functional-adapter dependency, migrated Lean schema checks and selectors, removed caseartifact after caller closure, and recorded every refined-schema and namespace-derived identity change in the migration ledger.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Verification passed for focused generator/schema/conformance tests, all common Testpilot packages, all functional Testpilot packages, all remaining Umpire packages, proto and Lean API generation, Temporal.CaseRuntimeTests, the deterministic conformance check, the 325-target aggregate regression gate, import closure, and git diff checks. Baseline generation was red only for the seven task-owned NamedType substitutions; an unmodified-CGO baseline also could not find stddef.h, while the required serial CGO-disabled selectors passed. The task-scoped no-fix golangci run stayed within 657 MiB but exited 1 on inherited importas/revive/staticcheck findings already present in the dependency snapshot; it made no changes.
-
-stage: impl-review - ran | SHIP after one valid P2 dependency-direction fix
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance, GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tools/umpire/cmd/umpire-gen-lean-api, GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./common/testing/testpilot/..., GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tests/testcore/testpilot/..., GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go test -count=1 -tags test_dep ./tools/umpire/..., TMPDIR=/private/tmp make proto, TMPDIR=/private/tmp make umpire-gen-lean-api, cd model && TMPDIR=/private/tmp mise exec -- lake build Temporal.CaseRuntimeTests, GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp make umpire-check-case-runtime-conformance, GOFLAGS='-p=1' GOLANGCI_LINT_FIX=false CGO_ENABLED=0 TMPDIR=/private/tmp make umpire-check-regression, GOFLAGS='-p=1' CGO_ENABLED=0 TMPDIR=/private/tmp go list -tags test_dep -deps -test ./common/testing/testpilot (no tests/testcore/testpilot dependency), git diff --check, SCOPED_LINT_FAILED: GOLANGCI_LINT_FIX=false task-package invocation exited 1 on inherited importas/revive/staticcheck findings; no auto-fix, max memory 657 MiB
+- Tests:
 - PRs:

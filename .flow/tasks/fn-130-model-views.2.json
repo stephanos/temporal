@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-130-model-views",
   "spec_path": ".flow/tasks/fn-130-model-views.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Build the pinned phase renderer and its live command foundation",
   "updated_at": "2026-10-10T13:58:37.688527Z"
 }

@@ -219,7 +219,7 @@ are empty unless the construction site has one at no cost. Go already accepts an
   from constructed values. Function IR keeps positions. Declaration positions may be empty. Go's
   readers, the Cases generator and the Quint and TLA+ exports accept the output unchanged. Errors: a
   name that differs from today's is a defect of the step.
-- **R5:** The oracle for each step is the Go checks, not IR bytes: the six samples' receipts, each
+- **R5:** *(2026-10-18, one-language series: recut: the oracle is the Scala checker's answers (fn-196), fn-203's Cases and the fn-206/fn-207 backends; `make umpire-check-backends` and the Go checks are retired)* The oracle for each step is the Go checks, not IR bytes: the six samples' receipts, each
   feature's Cases and the answers of `make umpire-check-backends` are unchanged after regenerating
   the IR, apart from positions. IR diffs are reviewed in the task's done summary, not forbidden.
   Errors: a changed receipt, Case identity or backend answer stops the step until traced.
@@ -380,6 +380,8 @@ values complete and they hold no functions, so .2 proves the driver before funct
 guard (manages the defect rather than removing it), deriving conversions with `Mirror` (the DSL's 80
 types and the IR's 120 messages do not line up field for field; hand-written conversions beside each
 type are short and explicit).
+
+2026-10-18, one-language series: "the driver prints the IR file" becomes an in-process internal tree (fn-201): no checked-in IR, no `generated/ir.json`, no `make umpire-check-backends`. R5's oracle is the Scala checker, fn-203 Cases and the fn-206/fn-207 backends. Tasks .2/.5/.6/.7/.8/.24 are recut by lane C accordingly; `export` reads `lift`.
 
 ## Quick commands
 

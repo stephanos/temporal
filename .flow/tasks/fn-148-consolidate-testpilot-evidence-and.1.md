@@ -4,6 +4,8 @@ satisfies: [R1, R2, R7]
 # fn-148-consolidate-testpilot-evidence-and.1 Generalize evidence declarations and extract evidence.proto
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Define the one declaration shape for R1, R2 and R7 before either existing lift representation is removed. Move evidence identity, value and lifting declarations to a leaf schema while preserving the current inline and referenced forms during this task.
 
 **Size:** M

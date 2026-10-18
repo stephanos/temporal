@@ -34,16 +34,10 @@ Replace the old path-based architecture check with direct and transitive depende
 - [ ] Table-driven negative inputs prove each forbidden edge, malformed Go input, and inspection failure is detected rather than omitted.
 - [ ] The real shared and generic package trees pass the focused regression gate.
 ## Done summary
-Replaced the old path-only Testpilot architecture scan with a reusable source and `go list -deps -test` closure checker for the shared Temporal Driver while preserving the generic Testpilot dependency prohibitions. Added table-driven negative coverage for every forbidden dependency direction and fail-closed malformed or unreadable source inspection.
-
-baseline: green (`TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'TestTestpilotOwnsCaseProtocolAndRuntime'`)
-
-stage: impl-review - ran (model: gpt-5.6-sol medium, SHIP)
-
-Review: SHIP with no findings after restoring the generic Testpilot gate's full Umpire-tooling prohibition; receipt `/tmp/impl-review-receipt-fn-72.3.json`.
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./tools/umpire/regression -run 'Test(TestpilotOwnsCaseProtocolAndRuntime|TestpilotDependencyBoundaryRejectsForbiddenEdges)' (pass after generic-gate preservation fix), gofmt -d tools/umpire/regression/ci_workflow_test.go (clean), git diff --check -- tools/umpire/regression/ci_workflow_test.go, impl-review SHIP: /tmp/impl-review-receipt-fn-72.3.json
+- Tests:
 - PRs:

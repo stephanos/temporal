@@ -88,25 +88,30 @@ spec's tasks to one worker.
 
 The Scala model (`model/`) is the model. Lean is the past, and nothing has to look like it.
 Scala declares and its native checker is the in-process oracle for supported native questions.
-The Umpire IR remains the export and lowering format. On 2026-10-17 the owner reversed the
-2026-10-13 Go-oracle direction: the existing simple Scala checker answers native questions directly,
-avoiding the indirect IR/Go loop. This motivation is not a measured speedup. The
-[measurement decision](model/design/scala-checker-measurement.md) remains no-go on immediate Go
-retirement: existing consumers stay until native refinement/replacement, rule-overlap disposition,
-recorded-Run/backend replay and Case migration have replacements. Scala emitting Testpilot Case
-protos is the selected future producer, not an implemented migration. Testpilot's runtime, Driver
-and canary remain in Go. The
-Umpire IR and the Testpilot IR are what connect the parts. See [SCALA.md](.plans/SCALA.md) and
-[UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md).
+On 2026-10-17 the owner reversed the 2026-10-13 Go-oracle direction: the existing simple Scala
+checker answers native questions directly, avoiding the indirect IR/Go loop. On 2026-10-18 the owner
+filed the one-language series (fn-199 through fn-209, Phase 5 below): every capability that reads a
+Model leaves `tools/umpire` for `model/framework`. The Umpire IR becomes an internal lift tree that
+only the Scala emitters read (fn-201); nothing is checked in and no Go reads it. The Testpilot
+schema moves into the framework and becomes Temporal-agnostic (fn-202); Cases are produced in Scala
+(fn-203) and carry a conformance descriptor the Go runtime judges without a Model (fn-204), unless
+the portable-binary spike (fn-209) makes the Model itself the oracle. Apalache and TLC run from
+Scala over a direct TLA+ emission (fn-206, fn-207); Quint is deferred (fn-205). What remains in Go is
+the Testpilot runtime, Driver, canary and live commands, renamed `tools/testpilot` (fn-208). The
+[measurement decision](model/design/scala-checker-measurement.md)'s no-go on immediate Go retirement
+stands until fn-199 (native refinement, replacement, composed fairness) closes its obligations; the
+remaining obligations are discharged by the series rather than by a single go decision. See
+[SCALA.md](.plans/SCALA.md) and [UMPIRE4_SPEC.md](.plans/UMPIRE4_SPEC.md); fn-208 amends their
+Go-replay clauses.
 
 The framework (`model/framework`) is self-contained and Temporal-free, reusable for other systems
 (owner, 2026-10-12, fn-169): it holds the DSL, the generic realization core, the lifter, the checks and the
 migration harness, and compiles with no Temporal API or `temporal.*` source on its classpath. Temporal's
 capability vocabulary, Properties, realization kit, lifter plug-in, gate and migration rules live under
 `model/temporal/`. This supersedes the earlier position that the lifter is Temporal's driver tooling by
-design (fn-114.12, fn-122.8); the Go consumers' Temporal adapter and the IR namespace follow at the sweep.
+design (fn-114.12, fn-122.8); the IR namespace moves with fn-201 and the Temporal adapter is fn-203's.
 
-Now, complete the framework-native DSL. Then re-anchor framework IR and Go consumers against that final surface. Temporal sources and historical payloads stay excluded.
+Now, complete the framework-native DSL. Then the Temporal Models are migrated and checked natively against that surface (Phase 3), the lift module and the Scala emitters re-anchor against it (Phase 4), and the one-language series replaces the Go consumers (Phase 5). Temporal sources and historical payloads stay excluded.
 
 ## Open: Scala DSL work
 
@@ -175,56 +180,13 @@ qualified like `on`; the System level is named Protocol; a form's file is `<Form
 two forms share live under the kind's `shared/`; a form's main realization is `<Form><Kind>Run`;
 facet vocabularies are recorded in fn-161.
 
-| Order | Native checkpoint | Scope |
+| Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| 1 | fn-123.9/.10 done | Native faults/modelOnly/budgets/choices, durability/crashes, authored overrides and storage-loss assumptions committed; integration proofs remain held |
-| 2 | fn-153.7 done | Typed Property illustrations, structural-only one-value admission and typed Inbox field/channel ownership committed; classifier/transport/pilot proofs remain held |
-| 3 | fn-173.13-.15 done | All six sample representations committed with retained old texts and explicit maps/deltas/intended-answer inventory, without graph proof claims |
-| 4 | fn-173.16 done | Native StepTables producer/CLI and catalog refinement/law walks retired; concrete structural controls retained and replacement proofs held |
-| 5 | fn-188.3 done; native batch SHIP | Five review findings fixed with red-first regressions; 463 native tests, lint/boundary/format and all cache-isolated public recipes pass; formal full-native-batch review SHIP; integration holds remain |
-| 6 | fn-147.5 done; SHIP | Native Duration construction/presence coverage and guidance; 22 focused tests and 29 lint tests pass; no runtime source change or new admission policy |
-| 7 | fn-188.4 done | Native sample suites run in the core module; the two real-Go cases are held; full gate still open |
-| 8 | fn-188.2 done; fn-188 closed | The framework-only gate is green: boundary, core 466, check 100, export 286; 117 generic suites, 21 held with recorded reasons (record `.flow/tmp/checks/framework.7448953529908255698`). The exporter, lifter, reify plugin and fixtures are re-anchored to the native DSL; the sample lifts are held on fn-173.4's native-collection IR schema |
-| Plugin diet | fn-189 (captured 2026-10-16) | The reify plugin keeps only the body lifter: single `model/` compilation, one `liftedIr` carrier, `given Family`, `Lifted` container marker (no per-def `@lifted`), Machine endpoints as abstract members, root-only positions, uncurried lifted helpers, `inline` sugar; `Captured[F]` arguments wait for fn-174.8. Twelve tasks planned (R10 body-lifter simplifications and R11 helper inlining added 2026-10-17) |
-| Plain Scala | fn-190 (captured 2026-10-16; checker direction superseded 2026-10-17 by fn-196) | Models as plain Scala: state as `var`s on the Machine, effects as assignment blocks, guards and expectations read vars by name; native execution stays in the Scala checker. Plugin lowering remains held Phase 3 work; an IR evaluator and deletion of the native runtime are no longer the chosen direction |
-| Builtins | fn-192 (captured 2026-10-17) | Every value operator a Model may use is a row of one checked-in table, `model/builtins.json`; the lifter emits a generic `BuiltinCall`; the Go interpreter and the Quint exporter hold the semantics; a conformance test holds all three to the list; fn-173.4's `Set`/`Map` operations land as builtins, not a `Collection` node. Not planned yet |
-| Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
-| 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
-| Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.10/.12-.13/.15-.18 done; native exploration .19 → .20 → .21 next, with .14/.8 and .11 integration blocked; then full .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
-| Phase 3: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-190.3/.5 await fn-196.4 recut; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production need evidence-backed migration and a new go decision. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
-| Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.10/.12-.13/.15-.19 done; native exploration .20 → .21 next, with .14/.8 and .11 integration blocked; then full .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 3: Temporal Models native (owner, 2026-10-18) | fn-166 (mini first), then fn-128/fn-129 and fn-160/fn-161/fn-163/fn-165 (standalone activity, layout, facets, sweep proofs restated as native checks), then the Nexus Models; fn-197's Temporal examples | Re-enable `model/temporal` against the final DSL and get the Temporal Models right before any IR, emitter or Case work: migrate the disabled sources to plain-Scala Models, mini then activity then Nexus, and run every Temporal Model through the native checker and ModelSuite under the budget policy. Gate: native checks and ModelSuite green on the Temporal Models; no IR, no Go. Realizations compile against the realize kits; Cases wait for fn-203. State-space size (Nexus close policies, activity record compositions) is the risk and the first real workout of budgets and owner-side cuts |
+| Phase 4: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production are Phase 4 (fn-199..209); fn-190.3/.5 and fn-196.4 closed by reference on 2026-10-18. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
+| Phase 5: one language (filed 2026-10-18) | fn-199 → fn-200 → fn-201 → fn-209 spike → fn-203 and fn-206/fn-207 in parallel lanes → fn-204 → fn-208; fn-202 in its own lane whenever Go work is released; fn-205 deferred | Every Model-reading capability leaves `tools/umpire` for `model/framework`: native refinement and composed fairness, native lint with `@gap`, the IR as an internal lift tree, the Testpilot schema in the framework and Temporal-agnostic, Cases and the conformance descriptor produced in Scala, Apalache and TLC over a direct TLA+ emission, then the rename to `tools/testpilot`. Owner decisions settled 2026-10-18: modality tables dropped with H2 pending the reasons review (fn-200.5), `Any` seam and package rename (fn-202.2/.4), host `Int` numerics (fn-201.5), native replay plus TLC set agreement replaces Go replay (fn-208.4); the portable-binary spike's go/no-go (fn-209.4) decides between the descriptor and an embedded or sidecar Model oracle. Nothing here touches the DSL or the Temporal Models; the series starts only after Phase 4's gate. The earlier "Later" holds (framework build/export, IR/schema/Go/backends) are discharged by these specs or closed by reference |
 
-<details>
-<summary>Superseded mini/IR-first schedule (historical)</summary>
-
-| Old order | Spec | Historical Scala scope |
-| --- | --- | --- |
-| 0 | fn-166 | the feature as the unit (`FEATURES`, discovered by default), the mini feature `activity_mini`, `make model-mini`; the batch below changes only it and ships each change's migration as a rule the sweep runs on the real features |
-| 1 | fn-159 | qualified names, renames, `enters` (source integrated; proof/closure open) |
-| 2 | fn-161 | facets |
-| 3 | fn-162 | realizations name their Queries; claim containers removed |
-| 4 | fn-160 | layout and realization layer (.3/.4, done) |
-| 5 | fn-166.11-.14 (done) | the change-scoped model loop (.13 done: `make model-check-changed` is the default per-change check, a mini change 463 s, a lifter change 798 s; .14 done: fixtures build in-process once per run, full irgen 672 s to 425 s, lifter-change check 798 s to 506 s, 5-minute target missed; .15 after fn-141 shares the TASTy read; .11 done: the full lifter suite is green on the mini scope, 274/0 with 6 sweep-held skips, 972 s to 755 s; .12 done: model Make targets run on cached API jars, opt-in `make gen-model-api`, mini loop about 52 s with held Go stages skipped by name): lifter suites scoped to what they lift, Make without held API generation, one diff-scoped check with an evidence record (owner, 2026-10-12) |
-| 6 | fn-169.1/.5/.6 (done) | the Temporal-free framework: the DSL and generic export/check/migrate moved into `model/framework`, the one-file samples (Kettle, Bank, TwoPhaseCommit) are checked, and the interpreter-table comparator is Scala; Temporal parts are in `model/temporal`, build boundary enforced (owner, 2026-10-12) |
-| 7 | fn-172 | faster model feedback loop: warm compile server, one compile and one lift run for the samples, a prebuilt parallel Go checker (.6 done); independent of the redesign, so it goes first (owner, 2026-10-13) |
-| — | fn-173.1 (done) | governance for the redesign (GOV-02: finite inputs/native state, structural Behavior Fingerprint, selected backends and the planned answer module); docs closed locally, implementation remains open |
-| 8 | fn-141.6/.7, then fn-174 | the Model constructs its own IR (owner, 2026-10-13): fn-141's Part B mechanism is replaced by conversions on the DSL types and compile-time capture in a compiler plugin (host amended 2026-10-14 after the prototype in `model/design/compiler-plugin-prototype.md`), byte identity is no longer required, and fn-141's .5 and .8–.14 are superseded; fn-169.2's plug-in seam follows fn-174.2 |
-| 9 | fn-173.2/.3 | reachable exploration Phases 1–2: the reachable graph becomes the only table (Voting drops `inv`), Scala step tables and Query totals retire, Go static checks on the IR; a Go exception to the Scala-first rule, mini-scoped (owner, 2026-10-13) |
-| 10 | fn-160 | Protocol level, flat `features/`, per-feature collection (.6/.7/.2) |
-| 11 | fn-163 | system/product capabilities, named system capabilities |
-| 12 | fn-147 | Duration-typed elapsed-time authoring (source integrated; proof/closure open) |
-| — | fn-140 | witness Queries and `.live` (source done; Go proofs held) |
-| — | fn-149 | safety and liveness groups (source done; Go proofs held) |
-| 13 | fn-164 | `expect:` blocks for Properties and consistent colon style |
-| — | seal | ⏸️ superseded by fn-173: the Scala step-table equivalence retires; evidence becomes fresh-lift IR identity (owner, 2026-10-13) |
-| 14 | fn-123 | fault declarations, durability, `crashes(...)` |
-| 15 | fn-153 | Property illustrations in the DSL |
-| 16 | fn-165 | inputs as records: named classes, declared defaults, `:=` removed from classes (after fn-141) |
-| 17 | fn-173.4–.6 | native collections: IR and interpreter `Set`/`Map`/`List`/checked `Int`, then DSL and lifter, then the six samples rewritten |
-| 18 | fn-173.7–.9 | backends that decide: export coverage, `checkedBy`, the TLA+/TLC route |
-
-</details>
 
 fn-128 and fn-129, the remaining standalone activity edits, are about a real feature only and moved
 to [Deferred for now](#deferred-for-now).
@@ -259,7 +221,6 @@ Lint checks and manual acceptance work are set aside for this run at the owner's
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-166.6 | ⏸️ deferred | Path-only Case subtree move to `generated/cases/`, preserving historical Cases; owner-held Go/tooling sweep |
 | fn-166.4 | ⏸️ deferred | Case lowering and one recorded live verdict after source task 8 and Case-layout task 6 |
 | fn-166.10 | ⏸️ deferred | Runnable custom-rule loading/Make integration and mini worked application; separate infrastructure producer for fn-167.7 |
 | fn-166.5 | ⏸️ deferred | Three canonical warm loops under 90 s and authorized consumer/full-set closure; source docs and rules are tasks 8/9 |
@@ -291,8 +252,6 @@ open after the Scala groundwork.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-167.5 | ⏸️ deferred | Shared proto/ScalaPB/Go transport and independent metadata identity exclusions; owner sweep |
-| fn-167.6 | ⏸️ deferred | Gap-aware lint, proven inherited duplicates, stale/expiry errors and legacy compatibility; owner sweep |
 | fn-167.7 | ⏸️ deferred | Runnable migration adapter, actual mini proof and real-feature acceptance retirement/counts; owner sweep |
 
 ### fn-159: Qualified action names in rules
@@ -351,7 +310,6 @@ declared once in its facet, under its existing name, so the copies go. Query ans
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-162.4 | ⏸️ deferred (Go) | Go consumers read the realization binding: regenerate the Go API, `lower.Realizable`, `conformance.realizationOf` and model lint; split from .2 |
 
 ### fn-160: One IR file per feature, collected from the feature's package
 
@@ -403,7 +361,6 @@ Ten lifter/two export managed comparisons remain held; this releases fn-149 sour
 | Name | Status | What |
 | --- | --- | --- |
 | fn-140.6 | ⏸️ deferred | Full consumer/regeneration/equivalence closure after .7/.8/.9/.10; links the shared fn-123.8 sweep |
-| fn-140.7 | ⏸️ deferred (Go) | Exact-composed selector admission/check/lint/export proof, split from .2 without relaxing its obligations |
 | fn-140.8 | ⏸️ deferred (Go) | Live/model-only Case generation switch and complete manifest/membership proof, split from .3 |
 | fn-140.9 | ⏸️ deferred (Go) | Original first-Activity assessment/retry differential, Query receipts and Case/regeneration proof, split from .4 |
 
@@ -440,7 +397,6 @@ shared gate/review/live proofs at fn-123.8; source results substitute for none o
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-149.3 | ⏸️ deferred (Go) | Reporting checkpoint integrated; focused classification, distinct bounds and safety/progress coexistence checks pass; full gates/review held |
 | fn-149.4 | ⏸️ deferred (Go) | Original complete consumer behavior, Query/progress receipt, Case and expected/live-replay assessment proof; consumes .6 |
 | fn-149.5 | ⏸️ deferred | Consumer reporting docs and original integrated regeneration/gates/review/live closure; consumes .4/.7 at fn-123.8 |
 
@@ -474,7 +430,6 @@ seal, using the pinned formatter's built-in rewrite where possible and focused l
 | Name | Status | What |
 | --- | --- | --- |
 | fn-164.3 | ⏸️ deferred (IR) | Exact core-IR lifting, predicate bridges, source diagnostics and parity |
-| fn-164.7-.9 | ⏸️ deferred (IR) | Consume .10 native results; finish exporter/template migration and full positioned IR proofs |
 | fn-164.1/.4-.6 | ⏸️ deferred (integration) | Original broader caller/Temporal migration and full source-seal obligations |
 
 ### fn-123: Declare faults as the environment's actions
@@ -522,7 +477,7 @@ temporal-sequence examples and a repository-wide rollout are outside the pilot.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-153.1/.2 | ⏸️ deferred (IR) | Consume .7 native attachment; finish schema/IR transport, positions and compatibility pins |
+| fn-153.2 | ⏸️ deferred (lift) | Lift typed Property illustrations through the lift module; transport proofs with fn-201 (recut 2026-10-18) |
 | fn-153.3 | ⏸️ deferred (Go) | Existing Property selector/predicate classifier, errors and local mutation controls |
 | fn-153.4-.6 | ⏸️ deferred (integration/Temporal) | Generated checked document/freshness, mini pilot, assessment and complete compatibility proofs |
 
@@ -556,8 +511,6 @@ is deleted once applied; the harness in `framework/migrate` is permanent (owner,
 | Name | Status | What |
 | --- | --- | --- |
 | fn-169.2 | ⬜ todo | Plug-in seam: layout conventions and API descriptors supplied by `temporal/export`; generic proto support with a registered API (proto lint, gate proto stage); realization lifting leaves the seam, since under fn-174 the kit's types convert themselves; after fn-174.2 |
-| fn-169.3 | ⏸️ deferred (sweep) | A Temporal-free Umpire IR with no extension schema: Umpire namespace, generic realization layer, Temporal vocabulary as data validated against descriptors and Driver capabilities (owner, 2026-10-13) |
-| fn-169.4 | ⏸️ deferred (Go) | Go consumers follow the `framework.dsl` IR type names (Testpilot separation moved to fn-171, `tools/umpire` layout to fn-170.2) |
 
 ### fn-141: Shrink the IR generator: one description of each DSL construct
 
@@ -618,7 +571,6 @@ half of the realization lifter's lines net of what it adds.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-141.5, .8–.14 | ⏸️ superseded | by fn-174.1–.8 (owner, 2026-10-13); the `Bindings` retirement and the unused-spelling audit move to fn-174.4 and .8 |
 
 The refusal ledger (.6) is committed and closed locally at `4363a3f509`.
 [Ledger](.plans/REFUSAL_LEDGER.md) accounts for all 617 direct production sites in 61 kinds:
@@ -752,9 +704,7 @@ backend execution, bound adequacy or full IR retirement follows from this native
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-173.2-.4 | ⏸️ deferred (IR/Go) | Reachable engine, catalog retirement, static checks, interpreter collections and checked-int64 contract |
 | fn-173.5/.6 | ⏸️ deferred (IR/integration) | Consume native .10-.16; complete operation lifting and full six-sample graph/answer proofs, reconciling Cache history scope and Voting deltas |
-| fn-173.7-.9 | ⏸️ deferred (backends) | Export coverage, deciding backends and TLC route |
 
 ### fn-174: The Model constructs its own IR: DSL types build `ir` messages, capture points lift function bodies, the lifter retires
 
@@ -1052,7 +1002,6 @@ under fn-189.7 after fn-190.9; the scoped record is `.flow/tmp/checks/fn1895/rec
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-189.6 | ⏸️ superseded by fn-190.2 | Machine shape: the State record, schema and `init` come from the var declarations in the plugin under fn-190; `end`/`evidence` as members stay in fn-190.2 |
 | fn-189.7 | ⬜ todo | Phase 3, after fn-190.9 and fixture re-anchoring: retained R2/R7 full-mode effect/incremental and samples/Facets proofs, then counts receipt (R9) |
 | fn-189.8 | ⬜ todo | After .6 and fn-174.8: `Captured[F]` capture arguments; remove post-pickler retargeting and per-arity overloads (R8, R9) |
 | fn-189.9 | ⬜ todo | After .1: root-only positions inside the body lifter; the `at`/`pos` threading, `placing` and `argumentAt` go (R5, R10) |
@@ -1093,8 +1042,6 @@ review remain held; the spec stays open.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-190.3 | ⏸️ deferred (recut) | Original IR-evaluator direction superseded by fn-196; formal disposition remains held with fn-196.4 |
-| fn-190.5 | ⏸️ deferred (recut) | Native checker stays; Go retirement needs a new go decision and evidence-backed consumer migration under fn-196.4 |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.12 | ⬜ todo | Phase 3, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
 
@@ -1284,12 +1231,25 @@ requirements with zero errors/warnings; this is planning evidence, with no new c
 execution. The metadata approval remains unanswered, and .8/.14/.11 plus fn-196.2 ordering
 remain unchanged. Planning evidence is under `.flow/tmp/fn195-native-x-plan/`.
 
+fn-195.19 is complete at source/test checkpoint `254116aba7`, closure `4c540b75e7`.
+Reusable spaces retain exact owners, native finite domains/order/correlations, positioned selectors
+and once-only constraints with immutable first-success/failure acquisition. Source and separate
+library clients each pass 8 tests; checker-absent loading passes 1 per route, existing controls21,
+ReferenceSurface4, direct refusals14 and strict-warning controls4 pass. Canonical Quick4 passed at
+`650a5044a4`; after the user's repository IR-cache removal, the final scratch Quick4 uses the
+previously retained checksum-verified dependency and supplies no new canonical receipt. The
+receiver double-evaluation review hypothesis was refuted by executed source/library target-context
+controls; both quality axes have zero outstanding findings. Root verified all 3,680 v2 artifact
+bindings and committed done status. User design renames, concurrent specs and dependency removal
+remain untouched. Evidence is under `.flow/tmp/fn19519/`, including all four verbatim quality
+reports. Actual question execution remains .20, refutation .21 and Registry integration original .9.
+
 | Name | Status | What |
 | --- | --- | --- |
 | fn-195.14 | ⏸️ deferred | Explicitly blocked after .13 until the complete held-suite metadata route is admitted and Registry/Tools/both actual gate integrations are split into bounded tasks; fn-196.2 ordering remains unchanged |
 | fn-195.8 | ⏸️ blocked | Lifecycle/native execution checkpoint `ff0dcaf55d` passes native719 and all20 admitted stages, but actual Registry omits two runnable stable-term suites; .13 leaf is done, full .14 production integration remains required (R1, R2, local R7) |
-| fn-195.19 | ⬜ ready | Immutable reusable native spaces and whole-action/per-input `any` selectors; consumes .2 and committed partial .8 runtime, without claiming discovery completion (R3, local R7) |
-| fn-195.20 | ⬜ todo | After .19: find/sample suite adapters, every positioned target, seeded paths and one exact-suite budget (R3, local R7) |
+| fn-195.19 | ✅ done | Immutable reusable native spaces and whole-action/per-input `any` selectors; source/test `254116aba7`, closure `4c540b75e7`; native source/library8 each, no complete discovery credit (R3, local R7) |
+| fn-195.20 | ⬜ ready | After committed .19: find/sample suite adapters, every positioned target, seeded paths and one exact-suite budget (R3, local R7) |
 | fn-195.21 | ⬜ todo | After .20: deferred native refutation, complete local refusal matrix and minimum public reference coverage (R3, local R7) |
 | fn-195.9 | ⬜ todo | After full .8 and .19-.21: actual Registry-selected public exploration source/library integration; all original obligations retained (R3, local R7) |
 | fn-195.11 | ⏸️ deferred | Explicit hold on integrated complete inventory/capability mechanisms, .17/.18 leaves and .9; .15/.16 report closures alone cannot release typed native conformance integration (R4, R5, local R7) |
@@ -1305,8 +1265,8 @@ Captured on 2026-10-17. The owner asked for the simplest Scala model checker now
 Go one entirely; `NativeCheck` already is that checker. It moves out of `framework.dsl` into a checker
 module as the oracle and now supplies `replay`, `find` with a horizon, seeded `sample` and `refuted` for
 future fn-195 adoption. The accepted measurement keeps Go retirement at no-go and selects future
-Scala Case production; fn-196.4 and the formal fn-190.3/.5 recut stay held. Testpilot, the
-Driver and canary remain in Go; Quint/TLA export remains over IR. This reverses the 2026-10-13
+Scala Case production, now fn-203; fn-196.4 and fn-190.3/.5 closed by reference on 2026-10-18 (fn-208 amends the Go-replay clauses). Testpilot, the
+Driver and canary remain in Go (fn-202 reshapes them; fn-209's go branch reduces Go to an act-and-observe adapter); backends run in Scala (fn-206/207, fn-205 deferred). This reverses the 2026-10-13
 Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md).
 
 The product checker move is committed: source `0dd5737301`, receipt `58fa14a205`; carried
@@ -1365,7 +1325,6 @@ Review remains deferred, the parent spec stays open, and Phase 3 holds remain in
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-196.4 | ⏸️ deferred | Explicit no-go/Phase3 hold; retirement needs evidence-backed native replacements, a new go decision and release of the IR/Go execution boundary (R5, R6) |
 
 ### fn-197: Correlated obligations: `owes(fact).until(fact)`
 
@@ -1406,7 +1365,6 @@ comparing every answer with the inventory.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-191.2 | ⬜ todo | After .1: samples lint stage in `checkFramework` with a focused test (R3) |
-| fn-191.3 | ⬜ todo | After .1: samples model-check stage in `checkFramework`; the two `GoHeld` cases run and compare answers with the inventory (R4) |
 
 ### fn-192: Builtins: one table of operators, a generic call in the IR, semantics in the back ends
 
@@ -1439,15 +1397,201 @@ re-anchoring (my reading, for the owner to confirm): the fixtures are rewritten 
 are written once, as cases. Not planned into tasks yet.
 [Spec](.flow/specs/fn-198-framework-tests-are-case-folders.md).
 
+### fn-199: Native refinement, replacement and composed fairness
+
+Captured on 2026-10-18 as the first spec of the one-language series (fn-199 through fn-208), which
+moves every Model-reading capability out of `tools/umpire` into `model/framework`. This spec closes
+the obligations the measurement note names as blockers of Go retirement, in the checker only:
+refinement simulation over two reachable graphs, Queries and claims read through a refinement, the
+replacement-composition proof, composed fairness and ceilings, and the verdict kinds the moved
+consumers read. Rule disjointness is recorded as an owner decision, not implemented. Phase 5, strictly
+after the DSL and Temporal-Model phases (owner, 2026-10-18): it touches no DSL surface and no IR. [Spec](.flow/specs/fn-199-native-refinement-replacement-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-199.1 | ⬜ todo | Refinement simulation over two reachable graphs (R1) |
+| fn-199.2 | ⬜ todo | After .1: Queries and claims through a refinement, cross-owner claims (R2) |
+| fn-199.3 | ⬜ todo | After .1: replacement composition proof (R3) |
+| fn-199.4 | ⬜ todo | Composed fairness, composition ceilings and `end` (R4, R5) |
+| fn-199.5 | ⬜ todo | After .1/.3/.4: verdict kinds and Report coverage (R6) |
+| fn-199.6 | ⬜ todo | After .5: docs and the rule-disjointness disposition (R7) |
+
+### fn-200: Model lint is native: findings from the graph, acceptances in source
+
+Captured on 2026-10-18. Every surviving Go lint kind is computed from DSL declarations or the native
+`Search`; `@gap` is the only acceptance; `.lint.json`, `umpire-lint` and the IR lint are deleted.
+The modality tables and hole kinds H1/H2/H3/H5 need a decision trace native closures do not produce;
+their disposition is the owner's and is recorded before anything is built or deleted. Phase 5.
+[Spec](.flow/specs/fn-200-model-lint-is-native-findings-from-the.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-200.1 | ⬜ todo | Static kinds over DSL declarations (R1) |
+| fn-200.2 | ⬜ todo | After .1: graph kinds from `Search`; choice token on `Step` (R2) |
+| fn-200.3 | ⬜ todo | After .1/.2: `@gap` judge and coverage tally (R3, R5) |
+| fn-200.4 | ⬜ todo | After .3: API-value kind over ScalaPB descriptors (R4) |
+| fn-200.5 | ⬜ todo | Decided 2026-10-18: tables, H1, H3, H5 dropped; this task reviews the 691 accepted reasons and settles H2 (R7) |
+| fn-200.7 | ⬜ todo | After .2: unbounded-arithmetic lint kind, per the fn-201.5 numeric decision (R2) |
+| fn-200.6 | ⬜ todo | After .3/.4/.5: samples lint in the framework check; delete the IR lint and acceptance files (R6) |
+
+### fn-201: The IR is internal: the lift module, no checked-in IR
+
+Captured on 2026-10-18. The exporter becomes `framework.lift`, an in-memory tree only the Scala
+emitters read; the checked-in IR, the lift-and-settle loop, the equivalence dumper and the Go sample
+check are deleted; the IR proto moves under the framework; fingerprints derive from the lifted tree's
+canonical bytes (one Case regeneration follows in fn-203); the numeric contract is decided; fn-192 is
+recut so builtin semantics live in the checker and the Scala emitters. Phase 5, after Phase 4's lifting
+tasks. [Spec](.flow/specs/fn-201-the-ir-is-internal-the-lift-module-no.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-201.1 | ⬜ todo | `framework/export` becomes `framework/lift`; no file written by default (R1) |
+| fn-201.2 | ⬜ todo | After .1: delete checked-in IR, lift-and-settle, equivalence dumper and the Go sample check (R2) |
+| fn-201.3 | ⬜ todo | IR proto under `model/framework/proto`; ScalaPB jar from there (R3) |
+| fn-201.4 | ⬜ todo | After .1: fingerprints from `Lifted.canonical`; record first values (R4) |
+| fn-201.5 | ⬜ todo | Numeric contract: host `Int`, documented; int64 wording retired (decided 2026-10-18) (R5) |
+| fn-201.6 | ⬜ todo | After .5: fn-192 recut (R6) |
+
+### fn-202: Testpilot schema in the framework, Temporal-agnostic
+
+Captured on 2026-10-18 from the owner's direction that Testpilot becomes part of the framework and
+Temporal-agnostic, as P's harness interprets shipped spec artifacts. The eleven Case protos move under
+the framework; the seven Temporal-typed instruction fields go behind a driver seam (owner picks
+`Any` registry or `oneof` wrapper); the Go runtime splits into generic packages and the Temporal
+driver; the package is renamed; a generic `ConformanceDescriptor` message is added for fn-204.
+Independent of the DSL phases; Go work, so held until the owner releases it.
+[Spec](.flow/specs/fn-202-testpilot-schema-in-the-framework.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-202.1 | ⬜ todo | Move the protos; generate Go and Scala from the framework path (R1) |
+| fn-202.2 | ⬜ todo | After .1: driver seam as `google.protobuf.Any` with a registry (decided 2026-10-18) (R2) |
+| fn-202.3 | ⬜ todo | After .2: generic/Temporal runtime split with a boundary test (R3) |
+| fn-202.4 | ⬜ todo | With .2: package rename `umpire.testpilot.v1` (decided 2026-10-18) (R4) |
+| fn-202.5 | ⬜ todo | After .1: `ConformanceDescriptor` proto (R5) |
+
+### fn-203: Cases are produced in Scala
+
+Captured on 2026-10-18; the measurement note already selected Scala emitting the Case proto. The
+generic producer lives in the framework (rows and IDs from the checker, Program, Contract clauses by
+finite enumeration, fingerprints, managed trees, candidate enumeration and the bridge server); the
+Temporal adapter lives in `model/temporal`. Byte equality against the Go-produced Cases gates the
+switch before the one-time recut. Phase 5, after the fn-209 spike (on go, .3 closes as unnecessary). Absorbs fn-148.7's format-4 migration into .4 and the lowering halves of fn-146.6, fn-147.2 and fn-148.2/.3/.5/.6 into .5 (owner, 2026-10-18).
+[Spec](.flow/specs/fn-203-cases-are-produced-in-scala.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-203.1 | ⬜ todo | Public rows and Definition IDs from the checker (R1) |
+| fn-203.2 | ⬜ todo | After .1: generic producer: Program, correlated Contract, localized IDs, fingerprints (R2) |
+| fn-203.3 | ⬜ todo | After .2: Property to Contract clauses by finite enumeration (R3) |
+| fn-203.4 | ⬜ todo | After .2/.3: managed Case trees and the byte-equality gate (R4) |
+| fn-203.5 | ⬜ todo | After .2: Temporal adapter (R5) |
+| fn-203.6 | ⬜ todo | After .4: candidate enumeration, reduction and the NDJSON bridge server (R6) |
+| fn-203.7 | ⬜ todo | After .4/.5/.6: stop running the Go producers in any gate (R7) |
+
+### fn-204: The conformance descriptor ships with the Case
+
+Captured on 2026-10-18 from the owner's point that Cases are self-contained exports. The second
+judgment (is the server's behaviour explained by the Model, and what do the claims say on the
+executions that explain it) becomes an artifact the Scala producer emits beside the Program and
+Contract: the reachable slice as rows with claim bits folded in, monitors as automata. The Go
+runtime interprets it with no Model. Active and bounded passive conformance then run without a JVM;
+unbounded passive observation needs the Model itself, which is fn-209's question; on a go there the descriptor is replaced by an embedded or sidecar oracle. After fn-203 and fn-209. Replaces fn-196 R5's recorded-Run transfer (owner, 2026-10-18).
+[Spec](.flow/specs/fn-204-the-conformance-descriptor-ships-with.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-204.1 | ⬜ todo | Scala emits the descriptor from the native graph (R1) |
+| fn-204.2 | ⬜ todo | After .1: Go conformance interprets the descriptor; no Model-reading imports (R2) |
+| fn-204.3 | ⬜ todo | After .2: live tests, run and assess take the descriptor; pinned runs re-recorded (R3) |
+| fn-204.4 | ⬜ todo | After .2: bounded passive observation and monitor-only unbounded checks (R4, R5) |
+
+### fn-209: Spike: the Scala checker as a portable binary (GraalVM native-image, Scala Native, WebAssembly)
+
+Captured on 2026-10-18 from the owner's question whether a native Model would make any verification
+content in the Case unnecessary. If the checker runs as a binary beside the Driver (sidecar) or as a
+WebAssembly module the Go runtime embeds, the Case keeps only its Program and execution-control
+predicates: no Contract clauses lowered from Properties (fn-203.3), no descriptor (fn-204), no bound
+on passive observation. The spike tries three targets that fail on different things: native-image on
+load-time bytecode rewriting and reflection, Scala Native on the absence of bytecode, WebAssembly
+(Scala.js backend, WasmGC) on the Go host's GC support and the host shim; the shared question is
+whether the claim-section rewriter can become compile-time. The deterministic simulation itself runs as WebAssembly on wasmtime (owner, 2026-10-18), so wasm is
+the required target and runs first: the Model must load, snapshot and be called in the same wasmtime store as
+the simulated system; native-image and Scala Native are fallbacks for the live-deployment sidecar only. On
+go the end state is Go as an act-and-observe adapter and Scala as decide-and-judge, the bridge as an in-host
+interface in the simulation and NDJSON for the live runtime. Placed before fn-203 so the decision precedes the hard work.
+[Spec](.flow/specs/fn-209-spike-the-scala-checker-as-a-native.md).
+
+Owner admission, 2026-10-18: run fn-209 in an isolated parallel lane while the current native DSL work continues. Task .1 starts with the scratch compile-time claim-rewriter proof; compiler runs remain coordinated. This early spike admission does not release the remaining series or Temporal work.
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-209.1 | 🔄 in progress | Can the claim-section rewriter become a compile-time macro or plugin phase? (R1) |
+| fn-209.2 | ⬜ todo | After .5: GraalVM native-image, live-sidecar fallback only (R2) |
+| fn-209.3 | ⬜ todo | After .5: Scala Native, live-sidecar fallback only (R3) |
+| fn-209.5 | ⬜ todo | After .1: WebAssembly build in wasmtime beside a second module, snapshot/restore, call latency (R3a, R3b); the required target |
+| fn-209.4 | ⬜ todo | After .5 (.2/.3 reported, not deciding): go/no-go on the wasm result, fn-203.3 and fn-204 recut on go (R4) |
+
+### fn-206: Apalache backend in Scala
+
+Captured on 2026-10-18; one spec per backend at the owner's request, each standing alone on a direct
+TLA+ emission. A TLA+ emitter over the lifted tree with finite monitor automata (shared with fn-207;
+whichever lands first owns it), a spike on Apalache as a Maven artifact or managed server, bounded
+verdicts per monitor confirmed through `Checker.replay`, and `checkedBy(Checker.apalache)` given
+meaning. After fn-201. [Spec](.flow/specs/fn-206-apalache-backend-in-scala.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-206.1 | ⬜ todo | TLA+ emitter over the lifted tree with finite monitor automata (R1) |
+| fn-206.2 | ⬜ todo | Spike: Apalache as a Maven artifact and in-process run (R2) |
+| fn-206.3 | ⬜ todo | After .1/.2: runner with pinned artifact and deterministic lifecycle (R3) |
+| fn-206.4 | ⬜ todo | After .3: bounded verdicts, counterexample replay and receipts (R4) |
+| fn-206.5 | ⬜ todo | After .4: `checkedBy`/`confirm` selection and the opt-in backend stage (R5, R6) |
+
+### fn-207: TLC backend in Scala
+
+Captured on 2026-10-18. The shared TLA+ emitter gains fairness, liveness and deadlock sections; TLC
+runs from `tla2tools` on the framework classpath with the deadlock check on; its state dump is held
+to the native graph as the exhaustive agreement, its liveness verdicts to the native progress
+verdicts, and counterexamples replay natively. After fn-201 and fn-203.1.
+[Spec](.flow/specs/fn-207-tlc-backend-in-scala.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-207.1 | ⬜ todo | TLA+ emitter: fairness, liveness and deadlock sections (R1) |
+| fn-207.2 | ⬜ todo | Spike: in-process TLC versus a child JVM (R2) |
+| fn-207.3 | ⬜ todo | After .1/.2: TLC runner with state dump and JSON trace (R3) |
+| fn-207.4 | ⬜ todo | After .3: agreement on the reachable set, invariant verdicts and replay (R4) |
+| fn-207.5 | ⬜ todo | After .4: liveness agreement and `checkedBy(Checker.tlc)` selection (R5, R6) |
+
+### fn-208: `tools/umpire` becomes `tools/testpilot`
+
+Captured on 2026-10-18 as the last spec of the series. Deletes every Model-reading Go package and
+command, moves the surviving runtime commands under `tools/testpilot`, adds boundary tests, amends
+the SPEC and Vision clauses that required Go replay, and closes fn-196.4 and fn-196 R5 by reference.
+After fn-200, fn-203, fn-204, fn-206 and fn-207.
+[Spec](.flow/specs/fn-208-toolsumpire-becomes-toolstestpilot.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-208.1 | ⬜ todo | Delete the Model-reading Go packages and commands (R1) |
+| fn-208.2 | ⬜ todo | After .1: move surviving commands and rename Make targets (R2) |
+| fn-208.3 | ⬜ todo | After .2: boundary tests (R3) |
+| fn-208.4 | ⬜ todo | After .3: amend SPEC, Vision (Go replay → native replay plus TLC set agreement, decided 2026-10-18), docs and MILESTONES; close fn-196.4/R5 by reference (R4) |
+
 ## Deferred for now
 
-Deferred by the owner on 2026-10-11 until the Scala DSL work is done. Then, in one sweep: the Go halves
-of the open specs above, one regeneration of IR, Cases, lint acceptances and fixtures, the IR
-equivalence under the batch map (`make umpire-check-equivalence` with `DUMPER=`), the full Go gate,
-one review and one live run. That sweep also closes the source-complete specs below. It first brings
-the real features forward: it runs each DSL change's scalafix rule on them, does the rows marked
-"⏸️ deferred (sweep)" above, and proves their equivalence against the batch-1d baseline.
+Deferred by the owner on 2026-10-11 until the Scala DSL work is done. Recut 2026-10-18 by the
+one-language series: the sweep no longer regenerates IR, lint acceptances or the IR equivalence
+(`umpire-check-equivalence`, `DUMPER=`) and runs no Go gate. What remains for the sweep is bringing
+the real features forward (each DSL change's scalafix rule on them, the rows marked "⏸️ deferred
+(sweep)" above), one regeneration of Cases under fn-203.4, the Scala gate, one review and one live
+run through `tools/testpilot`. The source-complete specs below close with it.
 
+- **fn-205: Quint backend in Scala** (captured and deferred 2026-10-18): the owner chose direct
+  TLA+ routes for Apalache (fn-206) and TLC (fn-207); Quint would add a translation hop and a second
+  tool pin, and its one-step dump comparison is replaced by TLC's state dump. Filed so the design is
+  on record; in no phase. [Spec](.flow/specs/fn-205-quint-backend-in-scala.md).
 - **Test speed** (branch `w-perf`, 11 commits, parked): Producer and lint check through their
   Realizer's interpretation (two builds instead of three, replay stays independent), `Row.Results`
   aliasing fixed, per-Model sharing in check/lint/conformance tests, streaming fingerprints (one full
@@ -1458,20 +1602,16 @@ the real features forward: it runs each DSL change's scalafix rule on them, does
 
 ### fn-170: Clean up tools/umpire
 
-Captured on 2026-10-12 at the owner's request. It runs in the Go propagation phase after the Scala
-source batch. Earlier Go cleanups (fn-124, fn-84, fn-61, fn-66) are done. A read-only research pass (2026-10-12)
-found layering good and most packages deep, with Temporal code inside four generic packages, two
-alias facades and some drift; its findings are tasks .2-.4. Once it lands, the `tools/umpire`
-items of fn-169.4 have moved here (fn-170.2), and `tools/umpire` mirrors `model/`: a Temporal-free
-`framework/` and a `temporal/` adapter (owner, 2026-10-12).
+Captured on 2026-10-12 at the owner's request. Recut 2026-10-18 by the one-language series: fn-208
+deletes every Model-reading package and renames the rest `tools/testpilot`, so the layering, alias
+and tidy tasks (.2/.3/.4) are closed by reference to fn-202/fn-208. What remains is the single
+CLI idea (.1), which now covers only the runtime commands (run, assess, replay, repeat, fuzz); it
+is folded into fn-208's command move and the spec closes with it.
 [Spec](.flow/specs/fn-170-clean-up-toolsumpire.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-170.3 | ⏸️ deferred (Go) | Fold `internal/engine` into `interp` and `check`; remove the 56 alias re-exports (research, 2026-10-12); waits for fn-173.2 (owner, 2026-10-13) |
-| fn-170.4 | ⏸️ deferred (Go) | Tidy: fold `ir/paths`, one duration conversion, `export` package name, over-exports, README/module-map drift |
-| fn-170.2 | ⏸️ deferred (Go) | After .3/.4: layout mirroring `model/`: Temporal-free `tools/umpire/framework/` (incl. `export/quint`) and the `tools/umpire/temporal/` adapter; boundary test; outputs byte-identical (owner, 2026-10-12); waits for fn-173.2 (owner, 2026-10-13) |
-| fn-170.1 | ⏸️ deferred (Go) | After .2: one `umpire` CLI with subcommands replaces the eight `cmd/umpire-*` binaries; the generic CLI is Temporal-free (API descriptors as a descriptor-set file, a target interface), its `main` in the Temporal adapter wires the Driver, SDK and test cluster; urfave/cli v2 unless the owner picks cobra; Make target names kept |
+| fn-170.1 | ⏸️ deferred (fn-208) | One `testpilot` CLI with subcommands for the five runtime commands; folded into fn-208.2 |
 
 ### fn-171: Clean up Testpilot
 
@@ -1659,10 +1799,7 @@ generation for compositions is outside this spec.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-150.1 | ⏸️ deferred | Quick rerun no longer OOMs (23.8 s, 5.75 GB free); exits 1 only on stale `model/ir` loads; green after the deferred regeneration; waits for fn-173.2 (owner, 2026-10-13) |
-| fn-150.2 | 🔄 in progress | Structured fairness references end to end (Scala schema, lifter, Go admission/binding; engine 101 tests); full gates at the deferred sweep |
 | fn-150.3 | 🔄 in progress | Composition `leadsTo` and composed `fair` authoring/lifting with located refusals (lifter 111/0, framework 60/0); gates at the deferred sweep |
-| fn-150.4 | 🔄 in progress | Boundary, replay and fairness checkpoints plus lifted-fixture admission test; full gates/review at the deferred sweep |
 | fn-150.5 | 🔄 in progress | `ServedDispatch`/`UnservedDispatch` example (passes / deadlock witness) and docs merged (`d6428e905b`); gates at the deferred sweep |
 
 Integration order: `.1` then `.2`; `.3` and `.4` join before `.5`. Source work may overlap
@@ -1727,7 +1864,7 @@ The host reports 16,593,792 KiB RAM, no swap and no cgroup memory maximum. Initi
 separate overlay inode shortage from available host scratch; .1 must measure actual demand
 and allocation ownership. Victim RSS and later free-space snapshots are not those measurements.
 Preserve every table, Query, receipt, replay identity, strict assertion and canonical `-p 2`
-concurrency. Full restored gates remain required; Quint JSON work stays with fn-154, strict
+concurrency. Full restored gates remain required; Quint JSON work closed with fn-154 (fn-205 deferred), strict
 Activity semantic debt with Batch 5, and Canary failures retain their separate attribution.
 
 Retained fn-151 RED commands and input pins remain in its task3 proof archive. Fn-155's later
@@ -1780,7 +1917,7 @@ Parallel read-only audits confirmed the checked integrity and identified five re
 Case/replay/isolation controls on the other three small Models. Those controls are resumed;
 task-local parallel lanes must use disjoint evidence directories and serialize heavy commands.
 The repeated-caller RED is retained baseline evidence, not a demand for repair before measurement;
-external Quint execution remains fn-154 work and is not an added fn-157 measurement gate.
+external Quint execution was fn-154 work, now closed (fn-205 deferred), and is not an added fn-157 measurement gate.
 No repair, review, gate-fit or closure credit follows from these successful capture commands.
 The first continuation's handover accounts for the original 34 surfaces as sixteen captured,
 twelve partial, five missing and one RED. Its 47 probes used 150.591 measured wall seconds;
@@ -1815,11 +1952,7 @@ Resume from the preserved deferral handover and seals, without rerunning or chan
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-157.1 | ⏸️ superseded | By fn-173: the memory it bounds comes from eager full-table interpretations, which fn-173 Phase 1 removes (owner, 2026-10-13) |
-| fn-157.2 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
-| fn-157.3 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
 | fn-157.4 | ⬜ todo | Repair owned gate/lift scratch lifetimes or establish provisioned capacity with ordinary overlap |
-| fn-157.5 | ⏸️ superseded | By fn-173 Phase 1 (eager full tables removed) |
 
 ### Deferred by the owner earlier
 
@@ -1854,32 +1987,6 @@ Deferred 2026-10-05. Evidence: `.plans/DYNAMIC_CONFIG.md`.
 | fn-125.10 | ⏸️ deferred | Disposition for every implicit assumption |
 | fn-125.11 | ⏸️ deferred | Docs; close |
 
-### fn-130: Model views
-
-Execution remains owner-deferred from 2026-10-05. Preparation now has seven tasks covering the
-original R1-R5; independent plan review returned SHIP after fixing nested phase/queue projection
-coverage and enabled-guard retention from lint's existing evaluation. Fn-126's committed closure satisfies the
-sole feature dependency. The proposed delivery placement is after Batch 5, with actual admission
-and baseline re-anchor still conductor-owned. Preparation grants no production gate credit.
-Evidence: `.plans/MODEL_VISUALIZATION.md`.
-
-Rendered views per Model (signature, phase diagram, refinement, compositions, derived-design diff, witness paths), checked in as `.d2` plus `.svg` under `model/views/` and gated; D2 as a Go library with ELK; no DSL declaration.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-130.1 | ⬜ todo | Disposable renderer/projection proof and full-workload added-cost feasibility; no production rollout on a failed proof |
-| fn-130.2 | ⬜ todo | Pinned phase renderer, nested/queue projections, retained enabled guards and live command/ownership foundation |
-| fn-130.3 | ⬜ todo | Signature and composition/sync views with actual actor/substitution/source metadata |
-| fn-130.4 | ⬜ todo | Existing checked state-map public seam and refinement/carrier/stutter views |
-| fn-130.5 | ⬜ todo | Inferred comparison bases, truthful ties/identical siblings and full concrete-result diffs |
-| fn-130.6 | ⬜ todo | Actual replay-validated expecting-find witnesses and complete per-IR overviews |
-| fn-130.7 | ⬜ todo | Safe complete-tree freshness/publication, foreground reuse, docs and original full gates/cost/preservation proof |
-
-The historical research names a retired reader package. Tasks use the current public reader and
-lint owners; they add no alternate evaluator or IR view declarations. The original few-seconds
-added gate target, all seven view families, complete inventories and independent replay remain
-required. Native repair/oracle holds, owner deferrals and the delivery chain are unchanged.
-
 ### fn-151: Nexus matching model and bug-finding evidence
 
 ⏸️ Deferred 2026-10-08 before task planning; the spec has no tasks and is not ready for execution. [Spec](.flow/specs/fn-151-nexus-matching-model-and-bug-finding.md).
@@ -1899,24 +2006,6 @@ reply-order variants. Resolve the receiving boundary and allowed Nexus outcomes 
 Coordinate with fn-140's witness authoring and the deferred Nexus matching model; automatic discovery
 and campaign-wide coverage are outside the proposed initial scope.
 
-### fn-154: Bound memory for exhaustive Quint JSON agreement
-
-⏸️ Deferred by the owner on 2026-10-09; not ready for execution.
-[Spec](.flow/specs/fn-154-bound-memory-for-exhaustive-quint-json.md).
-
-Generate and consume Quint ITF JSON incrementally instead of retaining a complete multi-gigabyte
-document. Keep JSON at the external protocol boundary and native Go tables or existing protobuf
-data internally. Preserve exhaustive states/actions, claims, products, ordered receipts, replay
-witnesses and JSON refusal behavior. Assess generation and consumption together, including the
-real Quint file path and API compatibility. Large generated dumps remain temporary and out of git.
-This records the deferred check and resource work, not a passing result or an Activity failure waiver.
-
-The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...`: exit 1, 49 packages passed, three had no tests and conformance was OOM-killed after completion failed. Export passed all four faithful fixtures. Evidence remains under `/tmp/umpire-fn1454.aTUadX/.flow/tmp/fn1454/go-full-raw-reader-canonical.*` and in Flow's structural completion receipts. Revisit concurrent memory fit after incremental generation and consumption preserve the complete JSON/native/receipt/replay contracts; the inherited Activity assertions remain separate Batch 5 obligations.
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-154.1 | ⏸️ deferred | Incremental JSON generation and consumption, preserved full coverage and measured concurrent memory fit before restoring the deferred gate |
-
 ### Other deferred items
 
 - fn-122.7 (the Pausable capability Property on fn-119's example) waits for fn-119.
@@ -1924,12 +2013,12 @@ The last canonical command was `mise exec -- go test -tags test_dep -p 2 -timeou
 
 ## Open for the owner
 
-- 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first.
+- 691 lint findings accepted with reasons in `model/ir/*.lint.json` (fn-120.3); review the H2 reasons first. These are the input to fn-200.5, the decision on modality tables and hole kinds; the files themselves go with fn-200.6.
 - Behavior-freeze follow-ups from fn-112: the witness-only Properties `terminated` and
   `cancelRequestedWhileStarted`, and seven pause/unpause rows the server rejects. fn-140 deletes
   `terminated` with its Query (R6) and turns `cancelRequestedWhileStarted` into a witness (R5).
 - Whether HSM and CHASM may count Nexus `attempt` differently; no current Query shows a difference (fn-125, deferred).
-- Whether upstream's Go conformance harness (`tests/activity_driver.go`) should run our IR through the Go interpreter instead of its hand-written model, making one Model drive both (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
+- Whether upstream's Go conformance harness (`tests/activity_driver.go`) should be driven by our Model (`.plans/ACTIVITY_MODEL_COMPARISON.md` P3-12); the Go-interpreter route is obsolete under fn-201/fn-208, the alternatives are fn-203 Cases or the fn-209 oracle; needs the owning team. A workflow-scheduled activity realization (P3-11) overlaps the deferred fn-119.
 - The canary policy's `workflowPath` names the deleted production-canary workflow, so production dispatch
   fails closed.
 - The three by-ID witnesses (`ByIDCompletion`, `ByIDFailure`, `ByIDCancellation`) expect

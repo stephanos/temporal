@@ -4,6 +4,8 @@ satisfies: [R1, R5]
 # fn-157-bound-native-verification-memory-and.4 Bound owned scratch lifetimes and establish full gate capacity
 
 ## Description
+**Note 2026-10-18 (one-language series):** Gate scratch lifetimes are re-anchored after fn-208.
+
 Implement task .1's measured scratch ownership remedy or provisioned-capacity contract (R1,R5). This lane can run beside .2/.3 because it owns Scala gate/lift scratch, not Go interpretation.
 
 **Size:** M

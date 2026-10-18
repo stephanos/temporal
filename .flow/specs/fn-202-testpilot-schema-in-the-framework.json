@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-202-testpilot-schema-in-the-framework",
+  "created_at": "2026-10-18T17:15:26.559256Z",
+  "depends_on_epics": [],
+  "id": "fn-202-testpilot-schema-in-the-framework",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-202-testpilot-schema-in-the-framework.md",
+  "status": "open",
+  "title": "Testpilot schema in the framework, Temporal-agnostic",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:54:36.714673Z"
+}

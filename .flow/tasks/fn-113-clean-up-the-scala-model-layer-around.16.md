@@ -42,53 +42,9 @@ No staging, commits, worktrees or recursive deletion: move a removed file to `.f
 
 
 ## Done summary
-# fn-113.16 final validation handover
+Bookkeeping 2026-10-18: parent spec already closed
 
-All required closure coverage passed. No source fix was needed, and this task made no code or shared-document edit. Baseline: green via applicable task 13/15/17 handoffs; the owner’s MILESTONES rule avoids repeating their full suites. `make umpire-check-backends` remains deferred by the owner. No staging, commit, push, worktree, tracker action, review verdict, or `flowctl done` was performed.
-
-### Gate evidence
-
-| Check | Result and wall time | Evidence |
-| --- | --- | --- |
-| Remaining 13 `./tools/umpire/...` packages; `CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 <go-packages-remaining.txt>` | pass, 38s; 795 passing test events | `fn113-16/go-remaining.jsonl`, `go-remaining-result.json` |
-| Reused `./tools/umpire/model` full package, same serial flags | pass, 104.219s; 802/802 test events | `../fn113-17/go-model-full.jsonl`, `go-model-full-result.json` |
-| Reused `./tools/umpire/lower` and `./tools/umpire/export` full packages, same serial flags | pass, 235s/69s; 402/83 passing test events | `../fn113-13/go-{lower,export}-full.jsonl`, corresponding result JSON |
-| `CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go vet -tags test_dep -p 1 ./tools/umpire/...` | pass, 12s | `fn113-16/go-vet.log`, `go-vet-result.json` |
-| `CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks` | pass, 64s; check-mode regeneration and fixture comparisons | `fn113-16/check-model.log`, `check-model-result.json` |
-| `mise exec -- make lint-model` | exit 0, 8s | `fn113-16/lint-model.log`, `lint-model-result.json` |
-| Reused `mise exec -- make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main lint-code-fast` | exit 0, zero issues, 20.158s | `../fn113-17/lint-code-fast-result.json`, log in same directory |
-| `GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main CC=/usr/bin/clang mise exec -- make lint-code` | exit 0, zero issues, 121s | `fn113-16/lint-code.log`, `lint-code-result.json` |
-| `CC=/usr/bin/clang GOMEMLIMIT=4500MiB make umpire-check-cases umpire-check-fixtures canary-check-case` | pass, 36s | `fn113-16/cases-fixtures-canary.log`, result JSON |
-| `git diff --check` | pass | `fn113-16/diff-check.log` |
-
-The package inventory is `fn113-16/coverage.json` and `go-packages-all.txt`: all 16 packages have pass completion events and no failures. The split runs total 2,082 passing test events; **do not sum package durations as wall time**. Task 17 changed only the model package’s private checking/binding seam after task 13; its full current-source package run covers that change, while public `Check` and replay behavior stay pinned by its strict goldens and tests. Task 13’s lower/export source, their focused golden helper tests, the golden configuration and 32 artifact hashes remain applicable; task 15 changed prose/comments, and task 17’s 123 source/fixture/dependency hashes still match current bytes. The exact current hash map is `fn113-16/current-hashes.json`. The generated IR, Cases and expected fixtures match the task 13/17 recorded hashes after the fresh check-mode gate. `common/testing/testpilot/...`, `tools/canary/...` and functional compile were not run because no file those packages import changed. Model lint has the inherited Scalafix `NoSuchFieldException: path` trace even at exit 0, as task 15 recorded; scalafmt completed, and the project’s separate syntax probe is in `fn113-8-review/lint-probe-forbidden.log`.
-
-### Counts and library weighing
-
-Measured current tree (`fn113-16/counts.json`): non-test `model/umpire` **1,191** (target ≤1,300); non-test `model/temporal` **5,299**; authoring tests under `model/{umpire,temporal}/test` **12** lines; all tests under `model/`, including lifter and gate, **900** lines. The 2026-10-02 planning tree (`1f16ef5272`) measured **2,415 / 5,496 / 961** for the first three matching scopes and **1,719** all-test lines. The older spec figures **2,873 / 5,062 / 982** predate fn-115.7; they are recorded as historical estimates, not a matching-scope reduction. Task 8’s own measured before/after was **2,224→1,206** DSL, **5,414→5,414** Temporal, **908→12** authoring tests. Later Part D and prelude edits yield the final 1,191/5,299. The checker’s production code is **4,161→4,064** lines (current 4,064); nine typed test-support files totaling **1,342** lines left, with **29** lines of key helpers retained.
-
-| Task | Existing/generic path vs library | Decision |
-| --- | --- | --- |
-| 3, lifter | Ten source files **2,107→1,911**; plus 16-line project file, **2,123→1,927** (−196). About 227 builder lines removed for about 31 ScalaPB wiring/printing lines; 113 actual `newBuilder` calls removed (plan estimated 108); one exhaustive `TypeRef.Ref` oneof match. | Adopted ScalaPB runtime/ProtoJSON printer. Subsequent tasks added code; current ten files are 1,981 lines plus project 16 = **1,997**. |
-| 8, `Finite` | Existing Mirror derivation **38** lines; Magnolia join/split about **20** plus dependency and field-name error code; shapeless-3 K0 about **15** plus dependency and same error-code issue. `Finite.upTo` is one line with its bounded given; Iron adds refined field types, Model/lifter changes and dependency. | Kept Mirror and existing bound; R3 bars adding a Model-visible dependency here. |
-| 13, Nexus/projection | Ordinary Scala and existing protobuf reflection; old Nexus 336 + Actions 72 + Prelude 15 = **423**, new Nexus **328** (−95). Golden helper grew from 580 to about 640 lines for exact substitutions, without a new library. | Reused standard Scala and existing reflection; no new dependency. |
-
-`model/project.scala` is unchanged from the planning tree and has no new `using dep`; its only dependency directive is the existing munit `test.dep`. Imports under `model/temporal` are `umpire.*`, sibling Model packages and local names. See `fn113-16/project-dependencies.diff` and `temporal-imports.txt`.
-
-### Completion-review follow-up
-
-Task 3's R9 refusal fixtures add 24 lifter-test lines, so the current all-Model-test count is
-**924**; the table above records task 16's original 900-line measurement. DSL and Temporal counts
-remain 1,191 and 5,299. Its full 17-test lifter run, check-mode model gate and model lint passed,
-with no change to production sources or 30 checked-in IR/Case/expected artifacts; evidence is
-under `.flow/tmp/fn113-3-completion-fix/`. Task 16's Go, vet, Go lint and Case results remain applicable.
-
-Task 14's R25 comparison now weighs Scalameta traversal against its 64 net compiler-reflection
-lines. Direct integration removes no `quotes.reflect` symbol/owner/rename logic and adds at least
-two dependency/import lines (64 versus at least 66, an explicit lower bound rather than a measured
-replacement). The maintained compiler `TreeAccumulator` remains; no library is added. The exact
-comparison and primary-source references are in task 14's handover.
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Shared-document facts for conductor
 
 - **MILESTONES.md:** mark task 16 complete after host review, record all 16 package passes, whole-tools vet, Scala check-mode gate plus separate Go verification, model/fast/full lint and Cases/fixtures/canary. Keep backend comparison deferred. Parts A–D are already accurately summarized there, including task 17’s one-run timing (89.203→79.528s focused; no statistical speedup claim). Current counts above replace the still-pending closure entry.
@@ -103,5 +59,5 @@ stage: plan-sync - skipped(policy: planSync.enabled=false)
 stage: tracker-sync - skipped(policy: sync inactive)
 ## Evidence
 - Commits:
-- Tests: baseline: green via handoff (task13 lower/export JSON and task17 model JSON; current hash checks in .flow/tmp/fn113-16/current-hashes.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 <.flow/tmp/fn113-16/go-packages-remaining.txt> (exit 0; 13 packages; .flow/tmp/fn113-16/go-remaining-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 ./tools/umpire/model (reused; exit 0; .flow/tmp/fn113-17/go-model-full-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 ./tools/umpire/lower (reused; exit 0; .flow/tmp/fn113-13/go-lower-full-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 ./tools/umpire/export (reused; exit 0; .flow/tmp/fn113-13/go-export-full-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go vet -tags test_dep -p 1 ./tools/umpire/... (exit 0; .flow/tmp/fn113-16/go-vet-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- make umpire-check-model MODEL_GATE_ARGS=--skip-go-checks (exit 0; separate Go coverage complete; .flow/tmp/fn113-16/check-model-result.json), mise exec -- make lint-model (exit 0; inherited Scalafix path exception; .flow/tmp/fn113-16/lint-model-result.json), mise exec -- make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main lint-code-fast (reused; exit 0; zero issues; .flow/tmp/fn113-17/lint-code-fast-result.json), GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main CC=/usr/bin/clang mise exec -- make lint-code (exit 0; zero issues; .flow/tmp/fn113-16/lint-code-result.json), CC=/usr/bin/clang GOMEMLIMIT=4500MiB make umpire-check-cases umpire-check-fixtures canary-check-case (exit 0; .flow/tmp/fn113-16/cases-fixtures-canary-result.json), git diff --check (exit 0; .flow/tmp/fn113-16/diff-check.log), make umpire-check-backends (deferred by owner; not run)
+- Tests:
 - PRs:

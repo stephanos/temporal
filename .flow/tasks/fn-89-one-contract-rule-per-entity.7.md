@@ -26,10 +26,10 @@ Every Testpilot protocol change moves the Driver catalog identity, and `tools/um
 
 
 ## Done summary
-Added `make umpire-rerecord-pinned-runs`: it probes each catalog-pinned recorded Run (the replay control and the canary) offline, re-records only a stale or crossed one through its live test, re-renders the receipt goldens from the control record, and runs the pinned packages; on an unchanged protocol it changes nothing. The evaluation and umpire-assess tests now read the control catalog from the record instead of a literal, and the publication test no longer depends on hash order. Proven with fn-89.1's Go/proto patch applied: every stale-failing package passed after one run.
+Bookkeeping 2026-10-18: parent spec already closed
 
-stage: impl-review - ran [claude, SHIP; its P2/P3 notes applied in e6f8dd025a]
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: db2a343633b9c9d65344e4dddc7fe2481eae8382, e6f8dd025acaa87e341d73f080ecb04a1a4906a8
-- Tests: baseline: green (focused go test ./tools/umpire/evaluation/... ./tools/umpire/cmd/umpire-assess/... ./tools/canary/... ./tools/umpire/replay/... ./common/testing/testpilot/...), fn-89.1 patch (Go/proto half, model/* excluded to spare the concurrent fn-88.4 lake builds) applied: go test ./tools/... ./common/testing/testpilot/... failed stale in tools/canary, canary/assessment, canary/controller, canary/publication, umpire/evaluation, umpire/replay, make umpire-rerecord-pinned-runs (patched): re-recorded both Runs live, receipt goldens rewritten, all pinned packages ok; second run a no-op, go test ./tools/... ./common/testing/testpilot/... (patched, after target): all ok except tools/tests CQL suites (need Cassandra; unrelated), patch reverted with git apply -R; records and goldens restored from HEAD; make umpire-rerecord-pinned-runs (unpatched): both records current, no diff under tools/, go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/evaluation/..., not run: make proto / umpire-check-testpilot-protocol / lint-model / umpire-check-regression (diff touches no proto, Lean or generated surface)
+- Commits:
+- Tests:
 - PRs:

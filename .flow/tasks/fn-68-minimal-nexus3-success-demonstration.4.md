@@ -28,15 +28,10 @@ This task runs after Task 1 and before Tasks 2 and 3. Task 2 must consume the fi
 - [ ] Run focused Nexus3 tests and applicable existing model/lint gates. Document any explicit identity/version input retained because of an actual consumer dependency.
 
 ## Done summary
-Nexus3 now derives declaration IDs, owned member/relation/setup/occurrence identities, provider meanings, and checker metadata from macro-captured declaration names and typed model catalogs. User identity overrides, pinned-ID expectations, the parallel definitions registry, and redundant per-declaration `/v1` labels are removed while the exact witness, Known Gaps, semantic admission failures, syntax boundary, and 89-line consumer remain intact.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Tests add deterministic metadata derivation, declaration-order and documentation stability, rename coherence, semantic fingerprint sensitivity, and malformed, duplicate, wrong-kind, and conflicting definition rejection. Nexus3 documentation now states the rename/regeneration policy and identifies Umpire's required `DefinitionMetadata.version` field as the only retained version dependency; authors provide no identity or version input.
-
-Baseline: focused Lean green; Go Testpilot inherited red because the local C toolchain cannot find `stddef.h`.
-
-stage: impl-review - SHIP(receipt: /tmp/impl-review-receipt-fn68-task4.json)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: BASELINE_GREEN:(cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-testpilot), BASELINE_RED:mise exec -- go test -count=1 -tags test_dep ./tests/testcore/testpilot/... (inherited toolchain failure: stddef.h not found), RED:(cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests) -> /tmp/fn68-task4-red-derived-metadata.log, (cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-testpilot), (cd model && mise exec -- lake build TemporalModelTests), make lint-model, git diff --check -- model/Temporal/Feature/Nexus3/Authoring.lean model/Temporal/Feature/Nexus3/Syntax.lean model/Temporal/Feature/Nexus3/Nexus.lean model/Temporal/Feature/Nexus3/Tests.lean model/Temporal/Feature/Nexus3/Nexus.md model/Temporal/Feature/Nexus3/Integration.md
+- Tests:
 - PRs:

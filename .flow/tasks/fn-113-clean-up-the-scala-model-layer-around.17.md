@@ -21,22 +21,10 @@ Before changing code, inspect task .13's final full model package JSON and wall-
 
 
 ## Done summary
-# fn-113.17 handover
+Bookkeeping 2026-10-18: parent spec already closed
 
-Migration receipts now check a separate binding over the same interpreted machines used for that comparison's reader snapshots. Its claim caches are reset; original, mapped, and current comparisons each still bind independently, and witness replay still calls `checker.again()` for a fresh interpretation. Public `Check` and the strict migration assertions are unchanged. Task-only diff: `.flow/tmp/fn113-17/task-only.diff` (SHA-256 `a13350c4bb5be68cc194e786aa2ca4d18c472bf0fdee80eab746b3d9d005a99a`). The task 13 `TypesRenamed` additions already present in `migration_golden_test.go` are excluded from that diff.
-
-Baseline reuse: task 13's full model command, CC, memory limit, fixtures and environment apply (`.flow/tmp/fn113-13/go-model-full-result.json`, exit 0, 151s wall, 802/802 test events passed). Task 15 changed documentation and comments only. Because task 13's later golden helper changed the Golden test's inputs after that full run, a current-source focused baseline was recorded before editing. All 32 task 13 artifact hashes still match; `.flow/tmp/fn113-17/before-source-fixture-hashes.json` and `after-source-fixture-hashes.json` cover 123 source/fixture/dependency files, with only the three task source files changed during this work. Model/Scala sources, IR, Cases, expected fixtures, and dependencies were not edited.
-
-Equivalent focused command, pre/post: exit 0 both; wall 89.203s → 79.528s; `TestMigrationGoldens` 20.85s → 17.83s; `TestMigrationProjectionPreservesSemantics` 65.62s → 57.03s, including `ir/nexus-close.json` 60.16s → 52.30s. These are single runs, so the measured reduction is not a statistical speedup claim. The required full model package run passed in 104.219s wall with 802/802 identical test names and no failures; `TestCheckedOnceIsCheck` and the migration goldens passed. `mise exec -- make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main lint-code-fast` passed with zero issues; `git diff --check` passed. Commands, JSON event logs, results, hashes, and timing comparison: `.flow/tmp/fn113-17/`. The closing task can reuse the passing full package result while these inputs remain unchanged. No lower/export/Scala gate was repeated because their inputs were unchanged.
-
-No staging, commit, push, worktree, review, or Flow completion was performed. Task remains `in_progress` for conductor review.
-
-stage: impl-review - ran (model: gpt-6-sol; receipt: .flow/tmp/fn113-17-review/receipt.json; verdict: SHIP; task-only source pinned by snapshot.diff/source-hashes.json)
-
-stage: wave-dispatch - ran (model: gpt-6-sol; sequential worker in current checkout)
 stage: plan-sync - skipped(config: planSync.enabled != true)
-Tracker sync: n/a (bridge inactive).
 ## Evidence
 - Commits:
-- Tests: baseline: green via handoff (.flow/tmp/fn113-13/go-model-full-result.json; 151s; 802/802 test events passed), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 -run "^(TestMigrationGoldens|TestMigrationProjectionPreservesSemantics)$" ./tools/umpire/model (pre-edit: exit 0, 89.203s wall), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 -run "^(TestMigrationGoldens|TestMigrationProjectionPreservesSemantics)$" ./tools/umpire/model (post-edit: exit 0, 79.528s wall), CC=/usr/bin/clang GOMEMLIMIT=4500MiB mise exec -- go test -json -count=1 -tags test_dep -p 1 -parallel 1 ./tools/umpire/model (exit 0, 104.219s wall; 802/802 test events passed), mise exec -- make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=origin/main lint-code-fast (exit 0, zero issues), git diff --check (exit 0), Independent codex:gpt-6-sol:high implementation review SHIP; reviewed source identity verified
+- Tests:
 - PRs:

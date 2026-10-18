@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-154-bound-memory-for-exhaustive-quint-json",
   "spec_path": ".flow/tasks/fn-154-bound-memory-for-exhaustive-quint-json.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Generate and consume Quint JSON incrementally",
   "updated_at": "2026-10-09T18:21:29.306560Z"
 }

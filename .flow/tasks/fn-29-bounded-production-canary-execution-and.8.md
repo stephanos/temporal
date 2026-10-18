@@ -22,8 +22,10 @@ Rewritten on fn-85 (the canary set), fn-83 (provisioning), fn-22 (the recorded R
 - [x] No arbitrary Case, target, Driver, checker, retry, executable, endpoint, credential or release option exists.
 
 ## Done summary
-`tools/canary/controller/controller.go`: `Invoke` takes three seams (policy with its Evaluation Profile, authority, phase hook; untagged `ProductionSeams` = embedded policy and Profile, `authority.Load`, no hook) and composes preflight over a lazily dialed client, the recovery record, the lease and serial iterations decided in memory with fn-26, the cleanup attempt, and publication under its own context whatever the cleanup outcome. It returns a bounded JSON `Summary` and the exit by precedence 3 > 2 > 1 > 0 with named statuses (preflight refusals, `authority-unavailable`, `policy-unavailable`, `tooling-failure`, `interrupted`, `unconstructible`, `no-iteration`, `publication-conflict`/`-unreported`/`-failed`; `lease-unreconciled`, `cleanup-uncertain`; rejected/incomplete; accepted). `tools/canary/cmd/umpire-canary` has the closed `run --output --recovery` mode and refuses every other option; the untagged build's seams file is `!canary_harness`. `make canary-build` builds it. Tests cover every status through a fake server and the recorded Run, and the command line's refusals. Implementation review: NEEDS_WORK, then SHIP; P3 notes applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 5cd2698eebfaf909ce9b1d688ab48909cac6a3d6, c69ccc0ca2c75a273daf8357cf77548a18e24e7c, 721a2fc5c1201971b53a8d4cfe048d349b4c15b6, 9925b1a5b7009c794911c7133824cb5f9e9aba46
-- Tests: go test -count=1 -race -tags test_dep ./tools/canary/..., go test -count=1 -tags 'test_dep integration' ./tests/ -run '^TestTestpilotCanaryLifecycle$', make canary-build, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

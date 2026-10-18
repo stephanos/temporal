@@ -22,7 +22,7 @@ Task 1, the CLI, is known now; the rest follows the research.
 
 ## Acceptance Criteria
 
-- **R1:** One `umpire` binary with subcommands replaces the eight `tools/umpire/cmd/umpire-*` binaries. Flags, exit codes and outputs are unchanged per subcommand. Shared flags and usage are declared once. Make targets keep their names.
+- **R1:** *(2026-10-18, one-language series: folded into fn-208: only run, assess, replay, repeat and fuzz remain, under `tools/testpilot/cmd`; gen-cases, lint and ir-bridge are deleted)* One `umpire` binary with subcommands replaces the eight `tools/umpire/cmd/umpire-*` binaries. Flags, exit codes and outputs are unchanged per subcommand. Shared flags and usage are declared once. Make targets keep their names.
 - **R2+:** from the research pass.
 
 ## Decision Context
@@ -30,6 +30,8 @@ Task 1, the CLI, is known now; the rest follows the research.
 - 2026-10-12, owner: `tools/umpire` mirrors `model/`: generic code under `tools/umpire/framework/`, the Temporal adapter under `tools/umpire/temporal/` (.2); fn-169.4's `tools/umpire` items moved here.
 - 2026-10-12, owner: the generic CLI is Temporal-free; API descriptors arrive as data; the binary's `main` in the Temporal adapter wires the Temporal target (Driver, SDK, in-process cluster). A large single binary is fine.
 - 2026-10-12, owner: consolidate the commands into a single CLI. Library: urfave/cli v2, already a dependency the server uses, unless the owner chooses cobra. AGENTS.md admits a new third-party library only when specifically requested.
+
+2026-10-18, one-language series: this spec folds into fn-208 (`tools/umpire` becomes `tools/testpilot`). The framework/temporal layout (.2) is fn-202's generic/Temporal runtime split; the engine fold (.3) and the tidy (.4) are moot because the packages are deleted; the doc-drift item goes to fn-208.4. The single-CLI idea (R1) survives only for the five runtime commands and is fn-208.2's call.
 
 ## Requirement coverage
 

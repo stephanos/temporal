@@ -41,8 +41,10 @@ Do not redesign worker activation lifecycle owned by fn-74 or introduce a compet
 - [ ] `go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/...` passes.
 
 ## Done summary
-Implemented strict symbolic and legacy Temporal worker modes. Symbolic construction freezes Profile bindings and rejects legacy resource options; Validate and Open share pure prepared-role resolution for namespace, task queue, and Nexus routes, enforce the exact StartWorkflow/GetHistory/StartNexus binding-ID matrix, and preserve the legacy 1.0 carrier path. Tests cover equal-value/different-ID rejection, unsupported endpoint roles, frozen configuration, cross-mode rejection, and zero registry side effects. Independent implementation review returned SHIP. Plan sync was skipped because `planSync.enabled` is false.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/temporaltestpilot/..., targeted symbolic validation tests with -count=10, gofmt -d on task-changed files, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.4.json
+- Tests:
 - PRs:

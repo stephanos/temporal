@@ -1,0 +1,30 @@
+{
+  "branch_name": "fn-208-toolsumpire-becomes-toolstestpilot",
+  "created_at": "2026-10-18T17:15:30.149420Z",
+  "depends_on_epics": [
+    "fn-200-model-lint-is-native-findings-from-the",
+    "fn-203-cases-are-produced-in-scala",
+    "fn-204-the-conformance-descriptor-ships-with",
+    "fn-206-apalache-backend-in-scala",
+    "fn-207-tlc-backend-in-scala"
+  ],
+  "id": "fn-208-toolsumpire-becomes-toolstestpilot",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-208-toolsumpire-becomes-toolstestpilot.md",
+  "status": "open",
+  "title": "tools/umpire becomes tools/testpilot",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:43:05.305221Z"
+}

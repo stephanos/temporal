@@ -129,6 +129,8 @@ Each worker runs focused verification and may update scoped lifter fixture golde
 
 The independent activity Model preserves retryable cancellation-requested worker failure as Canceled. The comparator's Failed response is a known disagreement requiring human judgment if live conformance exposes it. Neither capability adoption nor a regenerated artifact may silently reconcile it.
 
+2026-10-18, one-language series: the closure gates (Cases and live proof) run through fn-203's Scala producer; no Go lowering remains.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |

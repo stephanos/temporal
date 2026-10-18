@@ -32,16 +32,10 @@ Add the Testpilot-owned proto source and generated Go package beside the old pac
 - [ ] Old and new packages coexist without aliases, converters, registries, fallback, or active consumer migration; the ledger marks the old package temporary and task 8-owned.
 
 ## Done summary
-Added the five Testpilot protobuf sources and canonical generated Go package alongside Umpire, with a full descriptor-structure compatibility test and migration-ledger hashes/allowlist. The old package remains temporary through consumer reconciliation, with no aliases, converters, registries, fallbacks, or consumer migration.
-
-baseline: red (`go test -count=1 -tags test_dep ./common/testing/testpilot/...` failed before implementation because the task-2 destination did not exist); `make proto` passed before implementation and generated no drift.
-
-verification: `make proto`, `go test -count=1 -tags test_dep ./common/testing/testpilot/...`, `make lint-protos`, and `make lint-api` passed. Final gate classification was forced full by the user's pre-existing `.plans/UMPIRE4_ORDER.md` change; task-scoped focused gates remained green and no unrelated broad suite was rerun.
-
-stage: impl-review - ran [2026-09-06T17:50Z..2026-09-06T17:56:28Z]
+Bookkeeping 2026-10-18: parent spec already closed
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: make proto, go test -count=1 -tags test_dep ./common/testing/testpilot/..., make lint-protos, make lint-api
+- Tests:
 - PRs:

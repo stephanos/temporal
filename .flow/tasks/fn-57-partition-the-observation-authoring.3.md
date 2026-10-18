@@ -40,10 +40,10 @@ Update internal architecture navigation to name Declaration and Compiler while c
 - [ ] `make lint-code` is run without exceeding the inherited exact 1,374-finding baseline, and diff-scoped Go lint reports zero findings.
 
 ## Done summary
-Updated architecture navigation to name Observation Declaration and Compiler ownership while keeping ordinary authors on `Umpire.Observation`, repaired the aggregate documentation gate so it checks enduring component architecture instead of the open-only roadmap, and corrected Declaration's module description.
+Bookkeeping 2026-10-18: parent spec already closed
 
-stage: impl-review - skipped(policy: host-deferred - conductor owns the gate)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: d617d016b741403246eec8fb9c737e9320bd3563, 8d966c7c8
-- Tests: cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests UmpireTests TemporalModelTests, cd model && mise exec -- lake build Umpire.Observation.Tests Umpire.Observation.ImportTests Temporal.Feature.Nexus.ObservationTests Temporal.System.Nexus.Tests, cd model && mise exec -- lake build Umpire.Observation.Declaration Umpire.Observation.Tests.Compilation, make umpire-build-model, go test -count=1 -tags test_dep ./tools/umpire/regression/... -run '^TestUmpireDocumentationStatesAttachedOwnershipAndBoundedClaim$', make umpire-check-regression, make lint-model, make lint-code (inherited exact baseline: exit 2, 1374 issues before and after), .bin/golangci-lint-v2.13.1 run --build-tags 'disable_grpc_modules,test_dep,integration' --timeout 10m --fix=false --new-from-rev=aceb103bdeea1e49fe42dede99cd49a376b1ca03 --config=.github/.golangci.yml ./tools/umpire/regression/... (0 issues)
+- Commits:
+- Tests:
 - PRs:

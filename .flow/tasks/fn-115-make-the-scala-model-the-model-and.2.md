@@ -39,19 +39,10 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Two explicit captures are byte-identical and the pre-move baseline is preserved for subsequent tasks.
 
 ## Done summary
-Captured immutable semantic and artifact evidence for all twelve checked/fixture IR inputs: 48 reader snapshots and 1,363 artifact snapshots. Coverage includes complete ordered tables and evidence, refinements, every-row and refined Properties, declaration IDs/fingerprints, every Query standing, generated manifests and Cases, separate Program/Contract files, exploration reductions and identities, and original seven typed/keyed producer pairs plus synthetic job claims. Both approved source variants are frozen; opt-in capture rejects existing directories and ordinary tests never rewrite snapshots.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Ordinary verification strictly matches current inputs and regenerates both complete original/mapped variants and original-oracle artifacts. A review-discovered inactive-variant gap was fixed, with sixteen shared-path regression cases covering inactive Contract/proposal/identity/manifest/HTML and missing/extra/unknown inventory. All 1,411 snapshots and 843 protected originals remain unchanged; the index is unchanged and all added files are Git-visible. The module map records test-only support ownership, precise external lowerer integration-test edges and capture/inspection commands; task 3/12 briefs carry those constraints.
-
-Full focused goir/... tests passed (reader155.163s, lowerer205.133s), final shared-comparator regression passed0.615s, make lint-code-fast reported0issues, and diff whitespace/preservation checks passed. Codex gpt-6.1-sol high returned SHIP in round2. Review receipt: .flow/tmp/fn115-2-review/receipt.json. Review used exact uncommitted hashes because the installed wrapper excludes this scope; read-only independent context, same family. No staging or commits.
-
-stage: implementation - ran (model: gpt-6-astra); existing agent reused after host thread limit prevented fresh worker; disk re-anchor.
-stage: verification - ran (focused Quick commands, mutation tests, deterministic captures and preservation checks).
-stage: impl-review - ran (model: gpt-6.1-sol); SHIP round2 after one P2 fix.
-stage: plan-sync - skipped(config: planSync.enabled != true); necessary downstream amendments applied through Flow.
-stage: tracker-sync - skipped(bridge inactive).
-stage: commit - skipped(user reserves commits and staging).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/..., make lint-code-fast, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^TestMigrationArtifactProjectionIsClosed$' -count=1, mise exec -- go list -tags test_dep -deps -test ./model/scalav2/goir, CC=/usr/bin/clang mise exec -- go test -tags test_dep ./model/scalav2/goir/testpilot -run '^TestMigrationArtifactInventoryRejectsInactiveChanges$' -count=1
+- Tests:
 - PRs:

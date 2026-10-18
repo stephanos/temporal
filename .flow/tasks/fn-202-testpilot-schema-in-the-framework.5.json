@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.353557Z",
+  "depends_on": [
+    "fn-202-testpilot-schema-in-the-framework.1"
+  ],
+  "id": "fn-202-testpilot-schema-in-the-framework.5",
+  "priority": 2,
+  "spec": "fn-202-testpilot-schema-in-the-framework",
+  "spec_path": ".flow/tasks/fn-202-testpilot-schema-in-the-framework.5.md",
+  "status": "todo",
+  "title": "ConformanceDescriptor proto",
+  "updated_at": "2026-10-18T17:16:42.353557Z"
+}

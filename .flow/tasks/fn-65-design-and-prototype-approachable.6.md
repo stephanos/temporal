@@ -42,25 +42,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 
 Catalogs define the modeled domains, not every inhabitant of their Lean carrier types. Unused carrier values need not be modeled; no second universe or inferred domain is required.
 ## Done summary
-Implemented ordered typed catalogs, setup and transition rows, stable key encoding, and total typed structural validation through the Umpire.Target facade. Successful validation retains exact data plus kernel-checked catalog/closure/executability facts; it does not produce a FiniteMachine or checked Target, and leaves provider/capability-law validation with Target.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Catalogs define modeled domains, not every Lean carrier inhabitant (task acceptance clarified with conductor agreement). Missing references fail; isolated states and executable rows unreachable from setups are permitted. Encoding collisions are exactly duplicate stable keys. The 25-case negative fixture covers typed malformed/duplicate keys, duplicate values/pairs/setups, missing setup rows, empty alternatives, unexecutable Actions, and all domain references. Order/encoding/empty-domain/proof-projection fixtures are imported by Umpire.TargetTests.
-
-Baseline: focused model build and make lint-model green; make lint-code GOLANGCI_LINT_FIX=false red pre-edit with 1316 inherited diagnostics. Logs: /tmp/fn65-task6-baseline-{build,lint-model,lint-code}.log. No Go file is owned or changed by this task.
-
-Trust: #print axioms Umpire.FiniteTable.validate reports only propext, Classical.choice, Quot.sound; Umpire.FiniteCatalog.encode? is axiom-free. All new test proofs use kernel decide/direct terms; no native/custom axioms or placeholders. Full-carrier enumeration, semantic admission, planner adaptation and performance measurements remain task7+ work.
-
-No commits, push, reset, reverts or worktrees; user commits externally. Prior staged changes preserved. Task base HEAD/tree are recorded in evidence and .flow/tmp/fn65-task6-review-snapshot.json.
-
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
-
-Verification: Umpire.TargetTests and make lint-model passed; final Go lint remained red with exactly 1316 identical diagnostics (zero additions/removals; /tmp/fn65-task6-lint-comparison.json). Flow validation passed for 19 tasks. Final logs: /tmp/fn65-task6-final-{build,lint-model,lint-code}.log. Generic gate classification was FULL due inherited paths, and the actual task gates were run without skips.
-
-stage: impl-review - ran (SHIP first pass; codex:gpt-6-astra:medium; started before user's routing update to gpt-5.6-sol medium)
-Review receipt: /tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.6.json
-Reviewed base/staged tree: c5feadd86e21ea22345b580858d502a4994c1a44..3759030ec7d92d409282cce2a7fdff6e30154f6f
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green model build and lint-model; red make lint-code GOLANGCI_LINT_FIX=false (1316 inherited diagnostics), (cd model && SDKROOT="$(xcrun --show-sdk-path)" mise exec -- lake build Umpire.TargetTests) — passed; includes new Umpire.Target.Tests.FiniteTable, make lint-model — passed, make lint-code GOLANGCI_LINT_FIX=false — inherited red: 1316 diagnostics, zero additions/removals versus pre-edit baseline, flowctl validate --spec fn-65-design-and-prototype-approachable --json — valid, 19 tasks, no warnings, git diff --cached --check — passed, #print axioms Umpire.FiniteTable.validate — standard propext/Classical.choice/Quot.sound only; encode? axiom-free
+- Tests:
 - PRs:

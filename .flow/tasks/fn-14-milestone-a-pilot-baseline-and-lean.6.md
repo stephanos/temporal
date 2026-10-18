@@ -45,8 +45,9 @@ Run the frozen protocol once, retain the full v1 evidence bundle and narrative r
 
 
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded as a roadmap gate, and fn-81 deleted the Agentworkflow tooling it needs.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

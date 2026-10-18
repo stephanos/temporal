@@ -40,21 +40,10 @@ Preserve the authorized uncommitted baseline and comments except the explicit R2
 - [ ] Passive evaluation, recorded identity, exclusive publication, preflight and affected consumers pass along with the semantic goldens.
 
 ## Done summary
-Promoted recordedrun, casefile, evaluation, publish, campaign, replay and temporal/binding into Testpilot and switched live canary, functional and Scala consumers. Existing exclusive writers, passive assessment, serialized identities, cancellation/teardown and signature behavior are preserved. Replay uses recordedrun directly and a local line reporter; publication owns the generic proposal writer. The signature implementation/tests are package-line-only copies; original functional definitions and command parser check remain until task6 switches the copied command. All frozen original tools remain executable and byte-identical.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Copy evidence covers51 Go files,6 exact non-Go copies and extracted writer/reporter/boundary files;98 task paths changed. Neutral fixtures are Git-visible. Two Model-specific bridge-live tests remain only in frozen originals with explicit task6 claim transfers. All1411 goldens,843 protected originals and index remain unchanged.
-
-Original full Quick failed only the obsolete frozen TestTestpilotOwnsCaseProtocolAndRuntime, whose old boundary rejects six map-approved Driver edges. Its meaningful restrictions were ported to live ownership tests with19 original negative cases and17 narrow helper cases. Revised full Quick passed with exactly -skip '^TestTestpilotOwnsCaseProtocolAndRuntime$'; all other old tests execute. Task6 removes this temporary exclusion when archived regression leaves the main module. Tagged compile-only functional wiring and lint-code-fast/vet phase passed. Complete goldens passed reader213.173s/lowerer261.128s. Saved runtime/canary graph checks show no forbidden Model/Umpire/archive/functional dependencies.
-
-Independent read-only Codex gpt-6.1-sol high returned SHIP in round1, checking copy fidelity, writers, compatibility, ownership and preservation. Receipt .flow/tmp/fn115-4-review/receipt.json; detailed evidence .flow/tmp/fn115-4-evidence.json. Exact uncommitted scope adaptation preserves user no-commit constraints; independent context, same family.
-
-stage: implementation - ran (model: gpt-6-astra); existing agent reused under host thread limit with disk re-anchor.
-stage: verification - ran (amended broad Quick, complete goldens, tagged functional compilation, lint and preservation).
-stage: impl-review - ran (model: gpt-6.1-sol); SHIP round1.
-stage: plan-sync - skipped(config: planSync.enabled != true); required transition/bridge details recorded in map and tasks4/6.
-stage: tracker-sync - skipped(bridge inactive).
-stage: commit - skipped(user reserves commits and staging).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: CC=/usr/bin/clang mise exec -- go test -tags test_dep ./common/testing/testpilot/... ./tools/canary/... ./tools/umpire/... ./model/scalav2/..., CC=/usr/bin/clang mise exec -- go test -tags test_dep ./common/testing/testpilot -run '^(TestTestpilotDependencyBoundary|TestTestpilotDependencyBoundaryRejectsForbiddenEdges|TestTestpilotHelperDriverBoundary|TestRuntimeHelpersDoNotImportModelTooling)$' -count=1, CC=/usr/bin/clang mise exec -- go test -tags test_dep -skip '^TestTestpilotOwnsCaseProtocolAndRuntime$' ./common/testing/testpilot/... ./tools/canary/... ./tools/umpire/... ./model/scalav2/..., CC=/usr/bin/clang mise exec -- go test -tags 'test_dep integration canary_harness' ./tests ./tests/testcore/testpilot ./tools/canary/testharness -run '^$', GOLANGCI_LINT_FIX=false CC=/usr/bin/clang mise exec -- make lint-code-fast, CC=/usr/bin/clang mise exec -- go list -tags test_dep -deps -test -json ./common/testing/testpilot/..., CC=/usr/bin/clang mise exec -- go list -tags test_dep -deps -json ./tools/canary/...
+- Tests:
 - PRs:

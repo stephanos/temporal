@@ -4,6 +4,8 @@ satisfies: [R10]
 # fn-159-qualified-action-names-in-rules.4 Remove disabled(process.stop) from the activity product
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Remove `disabled(process.stop)` from the standalone activity's product machine. It binds the worker process's stop without ever enabling it, and the System's stop row (`always ~> effects.keep`) is a stutter, which the refinement check accepts without any product row. An experiment on 2026-10-10 found nothing that needs the binding: with the line and its `import actors.worker.worker as process` removed, the models compile and package, and every model and framework test passes except one pin test that lists the product's bindings. The lift could not be run then, because the tree's in-flight IR `Duration` change broke the lifter's build. Confirming the lift is part of this task.
 
 **Size:** S
@@ -27,7 +29,6 @@ Remove `disabled(process.stop)` from the standalone activity's product machine. 
 make umpire-check-model
 make umpire-check-lint
 ```
-
 ## Acceptance
 - [ ] The standalone activity product no longer binds `process.stop` and no longer imports the worker actor; the pin test expects the product's bindings without it and the System's with it.
 - [ ] `make umpire-check-model` and `make umpire-check-lint` pass; any activity-standalone IR change is limited to the product's `process.stop` binding and is stated in the done summary.

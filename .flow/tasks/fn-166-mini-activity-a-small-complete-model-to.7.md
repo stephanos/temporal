@@ -4,6 +4,8 @@ satisfies: [R10]
 # fn-166-mini-activity-a-small-complete-model-to.7 Rename the model-side Make targets out of the umpire- family
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Several targets disappear (`umpire-check-lint`, `umpire-check-equivalence`, `umpire-gen-cases`); coordinate the renames with fn-208.
+
 Rename the model-side Make targets out of the `umpire-` family and into the repo's verb-noun convention, leaving the runtime family alone (R10). The prefix is the Go binary's name, not what the target does; the model workflow now has three naming styles (`umpire-<verb>-<noun>`, `<verb>-model`, `model`/`model-mini`), and the owner asked for `model` to be the clear one (2026-10-11).
 
 **Size:** S
@@ -14,7 +16,6 @@ Rename the model-side Make targets out of the `umpire-` family and into the repo
 - No aliases: an old name is removed, not kept, as the owner rejected special casing in this spec. One `sed` over the live references, then a grep for the old model-side names outside `.flow/` (Makefile, `*.md`, `*.go`, `*.scala`, `*.yml`) must be empty. The gate's own messages (`rerun with --update (make umpire-gen-model)`) are references too.
 - `.PHONY` and the Makefile comments follow. Flow's tasks and handoffs are history and are not rewritten.
 - After task 1, since task 1 edits the same targets for `FEATURES`; a Makefile and tooling change, so it lands in the owner's sweep with the rest of the non-Scala work.
-
 ## Acceptance
 - [ ] The model-side targets exist under their new names and `make` fails naming an old one.
 - [ ] The runtime targets (`umpire-run`, `umpire-fuzz`, `umpire-repeat`, `umpire-replay`, `umpire-assess`, backends, live tests, scratch) are unchanged.

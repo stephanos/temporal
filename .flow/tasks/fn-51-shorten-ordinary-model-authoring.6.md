@@ -30,8 +30,10 @@ Update public convenience guidance and run complete identity/quality gates (R5, 
 - [ ] Focused and aggregate builds, exact regression, import/trust checks, and `make lint-model` pass with no identity or byte drift; literal repository lint reproduces only its documented inherited baseline and its no-fix golangci phase scoped from the spec base reports zero findings.
 
 ## Done summary
-Documented all ten ordinary authoring constructors as inert additive shorthand over existing records and checker authority. The repository-wide audit found no unexplained eligible raw call sites; retained literals are equivalence/representation witnesses, negative or mutation inputs, runtime/compiler/generated values, explicit non-default records, or non-target record types. Full focused, aggregate, regression, trust, and index gates pass; repository lint reproduces only its inherited baseline, with zero golangci findings scoped from the spec base and no task Go paths.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: f5a79965a2003d2a994cd4732b4648a65f2fdd74
-- Tests: cd model && mise exec -- lake build Umpire.CoreTests Umpire.Query.Tests Umpire.Space.Tests.Compilation Umpire.Space.Tests.Determinism Umpire.Space.Tests.Intent Umpire.Space.Tests.Metadata Umpire.Space.Tests.Validation Umpire.ImplementationLink.Tests, cd model && mise exec -- lake build UmpireTests TemporalModelTests TemporalExperimentalTests, make umpire-check-regression, make lint-model, make lint-code (inherited 1,379 golangci findings plus tools/umpire/runtime/errors.go:60:9 errortype finding; no task Go paths), GOLANGCI_LINT_BASE_REV=7d777dbdc8930d36a453bd3ed515e7d0a0ede77d GOLANGCI_LINT_FIX=false make lint-code (golangci phase: 0 findings; wrapper stops only on the inherited errortype finding), constructor facade import/trust probe, make umpire-check-plan-index, git diff --check
+- Commits:
+- Tests:
 - PRs:

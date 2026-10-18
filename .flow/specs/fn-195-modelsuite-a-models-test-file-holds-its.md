@@ -125,7 +125,7 @@ from/single-start rule. This adds no per-reached-state selector reevaluation or 
   `.live`, `.explore`, `.records`/`.ends`, and the capability binding's live switch.
   `Realizes(machine, runs = ...)` loses `runs`. `satisfied`, `inconclusive(reason, because)` and
   `conformant` are constructors in the realize package.
-- **Lifting (later phase).** The exporter lifts the three declaration sections, excluding `unit`, of a `ModelSuite` subclass from a
+- **Lifting (later phase).** *(2026-10-18: superseded; fn-203's Scala producer reads the `conformance` declarations directly, `expect:` trees become Contract assertions in fn-203, or oracle-sidecar questions on an fn-209 go; there is no exporter step.)* The exporter lifts the three declaration sections, excluding `unit`, of a `ModelSuite` subclass from a
   test file and nothing else in it; the `expect:` trees become Contract assertions at their
   positions. Fallback if lifting from a test file is awkward: `X.runs.scala` beside `X.test.scala`.
 
@@ -277,7 +277,7 @@ names, positive executed counts and refusals. All commands exclude held Temporal
 
 ## Boundaries
 
-- Lifting the sections from test files, Contract assertions at intermediate `expect:` positions, and
+- *(2026-10-18: the IR phase here is fn-203, Cases produced in Scala; fn-195.11's producer-facing native selector is fn-203's input.)* Lifting the sections from test files, Contract assertions at intermediate `expect:` positions, and
   Case generation from a `sample` are the IR phase; this spec ends at declarations that replay on the
   Scala checker. [paraphrase]
 - The realization (commands, evidence, waits, roles, cleanup) does not change. [paraphrase]
@@ -350,6 +350,8 @@ Two independent native implementation leaves are ready. A kit-owned waited-class
 The future path default is fully satisfied. The sample default expects conformant conformance, an inconclusive singular Property with `neverEvaluated`, a satisfied Contract, completed disposition, succeeded cleanup, no monitor assertions and the explanation `A sampled path selects no individual Property`. The explicit Property-only inconclusive shorthand accepts `explanationsDisagree`, `neverEvaluated` and `unreadable`; other combinations require a full independent expectation. At conformance admission, the shared reason is absent exactly when both Property and Contract are satisfied. Explanation text is empty in that case and otherwise nonblank. Conformance and each monitor retain their own independent reason-presence rules. C resolves exact monitor ownership and duplicate assertions.
 
 Authors keep the existing ordinary declarations. No candidate lists, registration calls, relocation rules, arbitrary classpath scanning or process-global strong registry replace automatic selection. Actual system-kit adoption and all current held integration surfaces stay held. The final documentation task reconciles the independent leaves with the completed suite interfaces.
+
+2026-10-18, one-language series: the later lifting phase is fn-203 (Cases are produced in Scala), which reads the `conformance` sections and `expect:` trees natively, with no exporter step; fn-195.11 is fn-203's input and fn-203 depends on this spec. If fn-209 (native checker binary) says go, `expect:` assertions become oracle-sidecar questions instead of Contract clauses.
 
 ## Parked unknowns
 

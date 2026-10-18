@@ -40,8 +40,9 @@ Paths are pre-fn-82; `Umpire.Space` is `Umpire.Variations` afterwards.
 - [ ] `make umpire-check-regression` passes
 
 ## Done summary
-Closed as superseded 2026-09-20 by fn-85 .13. The `fault:` grammar against template hooks is not built: fn-85 models a fault as an ordinary action of a declared party (`transportFault`, `workerStop` in the Caller Model), realized as an `ActionBinding` whose node injects the fault (`.11`); the worker-outage Model and the outage-order rule go to fn-86 R4 (fn-86 .6 derives the rule from fault actions on the path).
+Bookkeeping 2026-10-18: parent spec already closed
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -44,8 +44,9 @@ The goal is that the first three categories are essentially gone. Anything left 
 
 - Before/after lifter line counts by category recorded; residual declaration/sugar/kit matching listed with reasons.
 ## Done summary
-TBD
+Already superseded by fn-174; status hygiene 2026-10-18
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

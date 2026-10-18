@@ -105,6 +105,8 @@ a second checking algorithm, reconsider the binding approach before extending au
   contract. Keep the approved delivery chain unchanged and re-anchor task paths before execution.
 - Retain the existing decision against broad generated-API drift verification and new CI coverage.
 
+2026-10-18, one-language series: composed progress and fairness are native in fn-199.4 (sync and member-qualified references in `fair`, lasso witnesses on the product graph). R1, R2 and R4 close by reference to fn-199; tasks .1/.2/.4 are closed as obsolete (lane A); .5's gates run on the Scala checker (lane C). This spec closes when fn-199.4 lands.
+
 ## Decisions (w-fn150 lane, 2026-10-10)
 
 - Authoring: `leadsTo` is overloaded on `Composition[S]`; composed fairness is a second `fair`

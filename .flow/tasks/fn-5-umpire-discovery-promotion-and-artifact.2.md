@@ -46,13 +46,10 @@ existing inspector executable.
 - [ ] Existing comments in touched files are preserved.
 
 ## Done summary
-Added the deterministic `umpire-nexus-discovery/v1` list projection over the checked Nexus inventory and routed only the exact `umpire-inspect list` argument through it. Each canonical row exposes the checked Property, Behavior, and Query declaration identity, kind, source, and fingerprint plus the planned Plan format and checksum. The existing positional inspector runner and its success and failure bytes remain unchanged.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Focused tests pin canonical field and row order, permutation stability, invalid-inventory failure with no partial stdout, exact LF/stderr/status behavior, rejection of alternate list arguments, and compatibility of the existing positional path. The exact task suite, real executable invocation, full Lean model lint, and diff check pass.
-
-stage: impl-review - ran (Codex SHIP; 0 introduced and 0 pre-existing findings)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 34e8e56192e18951ed9e29fb13c7f0a5946112fa
-- Tests: BASELINE_GREEN: cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests umpire-inspect, cd model && mise exec -- lake build Temporal.Tool.NexusDiscoveryTests Temporal.Tool.InspectTests umpire-inspect (95 jobs), cd model && mise exec -- lake -q exe umpire-inspect list (status 0; one LF-terminated v1 JSON line; four entries; empty stderr), make lint-model (234 build jobs plus 205 lint jobs), git diff --check, flowctl codex impl-review fn-5-umpire-discovery-promotion-and-artifact.2 --base 8d6176bc5 --receipt /tmp/impl-review-receipt-fn-5-umpire-discovery-promotion-and-artifact.2.json (SHIP)
+- Commits:
+- Tests:
 - PRs:

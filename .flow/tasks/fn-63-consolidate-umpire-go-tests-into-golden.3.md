@@ -39,8 +39,9 @@ Reuse the shared scenario contract for complete admitted-set-to-Result behavior 
 - [ ] Repeated set-loading and result-assertion code is removed, with every removed test mapped in the task summary.
 
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It was built on fn-61 and on the runtime fn-64 removed.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

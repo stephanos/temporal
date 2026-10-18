@@ -43,8 +43,9 @@ The external authority remains caller-owned: Umpire may create and stop run-owne
 - [ ] Cluster ownership, isolation, eventual closure, and cleanup contracts remain exact.
 
 ## Done summary
-Blocked:
-Won't do: the spec was cancelled and closed on 2026-10-01. It is superseded by the Case Runtime (fn-64).
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R3, R6, R8]
 # fn-165-inputs-as-records-named-classes.6 Remove the token form and := on classes; document the record form
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Remove the token form and document the record form (R3, R6, R8).
 
 **Size:** S
@@ -14,7 +16,6 @@ Remove the token form and document the record form (R3, R6, R8).
 - Delete `input[T]`, `Input`, `Slot`, `Assigned`, `:=` on classes, the `InputAt` overloads, `ActionDecl.tokens`, and any remaining arity-typed `~>`; a Model that writes a token form must fail to compile.
 - Docs: inputs are a record; a class is empty, named or a value; a single-input action takes its value; a step reads `in.field`; a shared input is a structural bound; the DSL's symbols are `~>` and `->`.
 - Run the step-table equivalence once more and the syntax lint.
-
 ## Acceptance
 - [ ] The token form is gone from the framework; a fixture that writes `input[T]` or `:=` on a class fails to compile.
 - [ ] README and SEMANTICS describe the record form and list two DSL symbols.

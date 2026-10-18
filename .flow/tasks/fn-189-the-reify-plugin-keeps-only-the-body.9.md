@@ -4,6 +4,8 @@ satisfies: [R5, R10]
 # fn-189-the-reify-plugin-keeps-only-the-body.9 After .1: root-only positions inside the body lifter; drop the at/pos threading (R5, R10)
 
 ## Description
+**Note 2026-10-18 (one-language series):** `export` callers become `lift` callers (fn-201).
+
 Touches: model/framework/reify/body (Expressions, BodyEngine, BodySyntax, BodyContext, Types, Roles), model/framework/reify/plugin, model/framework/export (callers of the shared engine)
 
 ### Description
@@ -15,7 +17,6 @@ Finish R5 inside the body lifter. Once a stored `ir.Model` carries a position on
 - The six samples compile with -Xplugin and lift; stored IR differs from before only in `ir.Expr.position` fields, which are now absent.
 - Compile-time refusal fixtures report at the same positions as before.
 - grep shows no `position = Some(pos(` on an `ir.Expr` in `reify/body` and no `placedAt`/`placing`/`argumentAt`.
-
 ## Acceptance
 - [ ] No `ir.Expr` built in `reify/body` carries a position; only `ir.Function.position` is written.
 - [ ] The `at: Tree` parameter exists only where a refusal needs it; `placing`, `unplacing`, `argumentAt` and `boundValuePositions` are gone.

@@ -4,6 +4,8 @@ satisfies: [R7, R8]
 # fn-123-declare-faults-as-the-environments.7 Trace output and Quint export of derived crashes and budget fields
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Traces come from the Scala checker; export goes to fn-206/207 (fn-205 deferred).
+
 Trace output and the Quint export read the fault metadata (R7, R8). Traces mark each budget field with its fault and show, for a derived crash, each changed field with its classification. Quint writes the derived crash as an action that applies the field map and keeps the budget field in its state variable. No IR change, so this runs beside task 6.
 
 **Size:** M
@@ -25,7 +27,6 @@ Trace output and the Quint export read the fault metadata (R7, R8). Traces mark 
 **Optional** (reference as needed):
 - `tools/umpire/export/agreement.go:26` - `QuintAgreement`
 - `tools/umpire/export/README.md` - refusal list
-
 ## Acceptance
 - [ ] A trace through a budgeted fault marks the budget field with its fault; a trace through a derived crash lists each changed field and its classification. The trace golden test covers both through the checked-model-witness path, including a converted model-only queue crash without a fabricated Case; executable traces retain their exact identity guards.
 - [ ] The Quint export of the converted queue and `LostStartAnswer` carries the derived crash and the budget field. An unsupported fault construct is an `UnsupportedError` with its Scala position, with a test.

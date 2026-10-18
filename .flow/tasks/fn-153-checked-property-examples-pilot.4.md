@@ -4,6 +4,8 @@ satisfies: [R1, R4, R5]
 # fn-153-checked-property-examples-pilot.4 Generate compact checked documentation through the model gate
 
 ## Description
+**Recut 2026-10-18 (one-language series):** `umpire-illustrations` becomes a Scala doc generator; no Go command.
+
 Render checked inputs and explanations as one compact Markdown document. Wire its freshness and classification checks into the existing gate. The production pilot declarations arrive in .5.
 
 **Size:** M

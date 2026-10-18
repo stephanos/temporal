@@ -4,6 +4,8 @@ satisfies: [R2, R9]
 # fn-119-show-one-go-sdk-workflow-driven-end-to.3 Express workflow-scheduled activities and awaited outcomes in the realization DSL, lifter and lowering
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 Give realizations the generic way to say "the workflow schedules this activity, awaits it and finishes with its outcome", lift it and lower it to the instructions of tasks 1-2, including the withhold-answer attempt. Answers the question formerly parked in the spec: can the lowering place a workflow's activity attempts with the existing realization declarations, or does it need a new one?
 
 **Cross-spec entry gate:** start after fn-114 and fn-118 are closed: the realization DSL, lifter, IR schema and `tools/umpire/lower/realization.go` stop moving, and the new lowering must sit under fn-118's read-after-write visibility refusal. Does not need fn-120.

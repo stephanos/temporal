@@ -10,8 +10,10 @@ Check internal consistency, scope, unsupported semantics, links, illustrative-co
 - [ ] TBD
 
 ## Done summary
-Self-reviewed design consistency and corrected stable occurrence naming, inclusive progress bounds, race abstraction scope, plain-record versus semantic-admission claims, and action-executability scope. Document links resolve, code fences balance, and git diff --check passed. No Lean prototype is claimed or implemented.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: git diff --check, Python local-link and code-fence validation of model/Temporal/Feature/Nexus2/DESIGN.md
+- Tests:
 - PRs:

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:42.640001Z",
+  "depends_on": [
+    "fn-203-cases-are-produced-in-scala.2"
+  ],
+  "id": "fn-203-cases-are-produced-in-scala.3",
+  "priority": 2,
+  "spec": "fn-203-cases-are-produced-in-scala",
+  "spec_path": ".flow/tasks/fn-203-cases-are-produced-in-scala.3.md",
+  "status": "todo",
+  "title": "Property to Contract clauses by finite enumeration",
+  "updated_at": "2026-10-18T17:16:42.640001Z"
+}

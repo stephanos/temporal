@@ -31,21 +31,10 @@ and package-set subset. The Umpire trees, tests, and genmodels were removed in t
 - [ ] `go vet -tags test_dep ./...` passes; `CGO_ENABLED=0 go test -tags test_dep ./tools/... ./common/testing/testpilot/... ./tests/testcore/...` passes
 
 ## Done summary
-Deleted `tools/agentworkflow`; the tagged build remained green. The ledger records each dropped
-module, the deleted root that owned it, and its zero count in the retained closure. The acceptance
-criterion as written compared against `deps-before.txt`, which was captured over the whole
-pre-deletion tree and therefore still contains the deleted roots' dependencies; the substantive R2
-check is against `deps-after.txt`, the retained closure, and the ledger states that basis explicitly.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Two test packages are red and both are inherited, verified against the task .1 baselines:
-`tools/planindex` on the pre-existing `.plans` registration drift, and `tools/tests` on an absent
-local Cassandra. The planindex finding count rose from 45 to 50 because four `.plans` documents now
-carry dangling local links into deleted trees; those are R7's work and are listed for task .5.
-
-stage: impl-review - ran (backend claude, model claude-fable-5-1, effort high, 1 round: SHIP with a
-P2 on the missing tidy table and a P3 on the glossary term, both fixed in 268fbdb9d)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: e5fd1750a420ee323d5059a605041ca36819be86, edf4f86ec1fbc6929bcac49f2bf20d15ce8d19ef, 268fbdb9dda8cc98ffec50b129527bab5fa29ae6
+- Commits:
+- Tests:
 - PRs:
-stage: plan-sync - skipped(config: planSync.enabled != true)

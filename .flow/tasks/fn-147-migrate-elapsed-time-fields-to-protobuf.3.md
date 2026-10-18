@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R4]
 # fn-147-migrate-elapsed-time-fields-to-protobuf.3 Migrate Testpilot duration consumers and read presence
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Migrate admission, execution, verification and Run recording to the checked Duration fields for the shared format 4.0 contract; public format activation remains fn-148.6. Apply the defined one-read/poll policy and scalar singleton presence cleanup.
 
 **Size:** M

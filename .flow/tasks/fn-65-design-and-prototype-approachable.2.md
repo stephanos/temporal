@@ -10,8 +10,10 @@ Compare ordinary typed constructors, focused syntax, and finite-model authoring.
 - [ ] TBD
 
 ## Done summary
-Compared three independent interface designs and recorded the proposed Nexus2 design in model/Temporal/Feature/Nexus2/DESIGN.md. The design covers typed finite tables, separate existing declaration languages, alternative admission approaches, explicit race scope, diagnostic and trust constraints, and prototype evaluation. Candidate syntax is illustrative and pending user review.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: git diff --check, Python local-link and code-fence validation of model/Temporal/Feature/Nexus2/DESIGN.md
+- Tests:
 - PRs:

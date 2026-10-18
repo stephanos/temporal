@@ -4,6 +4,8 @@ satisfies: [R2]
 # fn-123-declare-faults-as-the-environments.2 Durability classification and the crashes binding in the DSL and lifter (fixtures only)
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Only if the Scala emitters (fn-206/207) need the lifted fault in the internal IR (fn-201); otherwise nothing to do.
+
 The durability classification and the `crashes(…)` binding in the DSL, the lifter and the IR (R2), proved on lifter fixtures. It is split from the Go derivation (task 3) so the Scala surface and its refusals land and are reviewed on their own. No production Model changes here. Existing crash-bearing lift fixtures are classified here; universal enforcement over production authored crashes activates atomically with task .4's conversion, not before it.
 
 **Size:** M
@@ -30,7 +32,6 @@ The durability classification and the `crashes(…)` binding in the DSL, the lif
 **Optional** (reference as needed):
 - `model/temporal/foundations/taskqueue/system/System.scala:110-120` - `crashDetail`, the target the fixture mirrors
 - `model/framework/Rules.test.scala:94` - munit pattern for rule books
-
 ## Acceptance
 - [ ] A fixture machine with all three forms lifts, and its golden shows the durability record and the derived-crash binding.
 - [ ] A munit test steps the Scala crash row of that fixture and gets the classification's result.

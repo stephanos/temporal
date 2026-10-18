@@ -4,6 +4,8 @@ satisfies: [R1, R2]
 # fn-147-migrate-elapsed-time-fields-to-protobuf.1 Pin checked Duration conversion and presence semantics
 
 ## Description
+**Note 2026-10-18 (one-language series):** Depends on fn-202 (Testpilot protos move under the framework) and then fn-203's single Case regeneration.
+
 Define and test the shared conversion contract for R1 and R2 before any schema field changes. Inventory all elapsed-time producers and consumers, then pin exact milliseconds, signs, overflow, absent values, explicit zero and monotonic Run coordinates.
 
 **Size:** M
@@ -30,7 +32,6 @@ Define and test the shared conversion contract for R1 and R2 before any schema f
 ```bash
 go test -tags test_dep ./common/testing/testpilot/internal/ir/... ./tools/umpire/lower/...
 ```
-
 ## Acceptance
 - [ ] R1 and R2 conversion policies are executable before schema migration.
 - [ ] Boundary tests cover extrema, one-outside values and unsupported precision.

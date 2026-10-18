@@ -4,6 +4,8 @@ satisfies: [R1]
 # fn-123-declare-faults-as-the-environments.1 Fault kinds and modelOnly declared on the fault actor's actions, lifted to an IR Fault record
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Only if the Scala emitters (fn-206/207) need the Fault record in the internal IR (fn-201); otherwise nothing to do.
+
 Fault declarations (R1): a kind (`crash`, `responseLoss`, `storageLoss`) and an optional `modelOnly(because = …)` on each action of the `fault` actor, an IR `Fault` record on `Action`, the Go reader's admission of it, and the conversion of every `fault` action the Models and lifter fixtures declare. It goes first because every later task reads the kind. It also settles the spellings for the whole spec and records them in the spec's API Contracts.
 
 **Size:** M
@@ -35,7 +37,6 @@ Fault declarations (R1): a kind (`crash`, `responseLoss`, `storageLoss`) and an 
 ### Key context
 - Memory `channel-catalogs-and-visible-results-2026-09-30`: an unrecognized expression must be refused at lifting, never defaulted. Apply it to an unknown fault kind.
 - The Nexus `network.fault` actions and `worker.stop`/`resume` are out of scope (spec Boundaries). They are other actors, so the R1 refusal does not reach them.
-
 ## Acceptance
 - [ ] The spec's API Contracts records the settled spellings for fault kinds, `modelOnly`, durability forms, `crashes(…)`, `budgetedBy` and `choosing`, in the current object-and-`rules` style.
 - [ ] `crash`, `ackLoss` and `storageLoss` in the shared task queue, and the crashes in `Declarations.scala` and `Captured.scala`, carry a kind. Their action Definition IDs and the composition keys `queue_crash` and `queue_ackLoss` are unchanged.

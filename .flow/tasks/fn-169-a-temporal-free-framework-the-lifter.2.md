@@ -4,15 +4,17 @@ satisfies: [R3]
 # fn-169-a-temporal-free-framework-the-lifter.2 Plug-in seam: layout conventions and registered API descriptors (after fn-174.2)
 
 ## Description
+**Recut 2026-10-18 (one-language series):** `framework/export` is `framework/lift` (fn-201); proto registration moves to `model/framework/proto` (fn-201.3, fn-202.1).
+
 Runs after the committed local closure of fn-174.2, the approved successor of superseded fn-141.8.
 Realization types now own conversion beside their definitions; this task does not restore a
 tree-side registered kit or duplicate that producer.
 
-1. **Plug-in seam.** The generic `framework/export` receives Temporal specifics only from `temporal/export`: layout conventions (where features, foundations, actors and capabilities live) as configuration, and the target API's descriptors. The Temporal kit supplies its constructed realization messages through the fn-174.2 conversion boundary, not source-tree recognition.
+1. **Plug-in seam.** The generic `framework/lift` receives Temporal specifics only from `temporal/export`: layout conventions (where features, foundations, actors and capabilities live) as configuration, and the target API's descriptors. The Temporal kit supplies its constructed realization messages through the fn-174.2 conversion boundary, not source-tree recognition.
 2. **Generic proto support (owner, 2026-10-12).** A system registers its API proto roots and descriptor sets once. The proto-name lint, gate proto stage and constructed realization conversion consume that registration. Temporal supplies its `temporal.api.*` roots/descriptors through its own modules. Re-anchor the current locations and configuration after .2 rather than treating historical hard-coded lists as the final interface.
 3. Prove it: a fixture system with its own small proto package and no Temporal API builds, lints and exports through the framework alone; the mini lift is byte-identical relative to this seam's immediate predecessor (apart from explicitly permitted recorded source paths), and mini equivalence holds.
 
-**Touches:** model/framework/export/**, model/framework/check/**, model/framework/realize/**, model/temporal/export/**, model/temporal/check/**, model/temporal/realize/**, model/project.scala, Makefile, model/README.md, .plans/UMPIRE_MODULES.md
+**Touches:** model/framework/lift/**, model/framework/check/**, model/framework/realize/**, model/temporal/export/**, model/temporal/check/**, model/temporal/realize/**, model/project.scala, Makefile, model/README.md, .plans/UMPIRE_MODULES.md
 **Scope:** generic layout/API registration and its Temporal configuration, exercised by `activity_mini`, the six samples and a small non-Temporal synthetic proto fixture. No real-feature source/payload, IR namespace/schema, Go consumer or checked-in regeneration is selected. The framework remains compilable without Temporal API jars or `temporal.*` source. The constructor conversion is a prerequisite, not an invitation to recreate a lifter or change Model spellings.
 
 ### Re-anchor and verification
@@ -35,7 +37,6 @@ tree-side registered kit or duplicate that producer.
   BASE=<committed predecessor>` with the mini comparison. Reuse the preceding task's record,
   explicitly recording any necessary Go memory budget. Broad/full Scala validation, independent
   review and held consumer/sweep work retain the owner's source-batch cadence.
-
 ## Acceptance
 - [ ] R3: layout conventions and API descriptors reach the framework only through registered generic configuration; Temporal supplies its own configuration.
 - [ ] R3: proto-name lint, proto build stage and constructed realization conversion use the same registered API roots/descriptors, including freshness and explicit missing/unknown-name errors.

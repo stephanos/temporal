@@ -22,8 +22,10 @@ Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the
 - [x] Publication is contained, atomic by hard link, idempotent for identical bytes, and never partial.
 
 ## Done summary
-`umpire-assess run --case --run --profile --receipt-root [--model-root]` (`tools/umpire/cmd/umpire-assess`): refuses the command line before reading anything (a receipt root that is missing or under the model, a positional, Driver or policy flag; an unknown Profile name with its own `unknown-profile` status), reads each input through a reader capped one byte past its admission cap, admits against the tree's static catalog, assesses, renders, re-reads the receipt, and publishes it once under `<identity>.json` inside a one-minute `cli.Interruptible` context. Exit 0 accepted, 1 rejected, 2 incomplete, 3 otherwise, each with a named summary status (`rejected-subject` with its class, `unknown-profile`, `profile-unreadable`, `unreadable-input`, `catalog-unavailable`, `receipt-oversized`, `receipt-unreadable`, `publication-conflict`, `publication-failed`, `interrupted`, `publication-unreported`, `internal-error`), each pinned by a test. `make umpire-assess` and `make umpire-assess-run` wrap it; run end to end on the control record it rejects the control against the tree's catalog. Implementation review: round one NEEDS_WORK (one P2, three P3), all applied; round two SHIP (after a transport timeout was re-dispatched), its three P3 notes applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 013a921571a845d951108c708e53e9f3baddb3ea, a6cd1d5b84c8e8991554bf18918b75fa2749b724, 9dae4c2884f99ad74e771209baa2dc20dc72b2ac
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-assess/ ./tools/umpire/evaluation/, make umpire-assess-run CASE=... RUN=... PROFILE=local-ephemeral RECEIPT_ROOT=..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

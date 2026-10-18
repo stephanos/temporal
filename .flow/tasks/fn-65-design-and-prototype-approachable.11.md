@@ -44,14 +44,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [x] Locate actual checked-Property-to-ContractLowering producers and test new-form rejection from those checked inputs. Compiler.lean consumes lowered monitor/unsupported data and is not itself a Property recognizer. Where no generic lowering exists, document that non-consumer boundary; never count hand-authored unsupported fixtures or add an unrelated universal compiler.
 
 ## Done summary
-Admitted version-2 same-step guarded cases with checked parent/case exceptions, complete/exclusive obligations, conjunctive evaluation, stable canonical identities, and generic evaluator-denotation agreement. Updated Planning and Observation consumers atomically, documented the true Case lowering boundary, and retained full nested diagnostic provenance while preserving legacy encodings.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Review fixed nested source-coordinate loss and duplicate attribution; same-session round 2 returned SHIP with no surviving findings. No checked Property-to-ContractLowering producer exists in the repository.
-
-stage: impl-review - ran through 2026-09-05T20:09:21Z (codex:gpt-5.6-sol:medium; NEEDS_WORK round 1, SHIP round 2)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-Tracker sync: n/a (bridge inactive).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green (focused 86 jobs; /tmp/fn65-task11-baseline-focused.log), (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tests Umpire.Query.Tests Umpire.CaseTests Umpire.Case.CompilerTests) (green, 87 jobs; /tmp/fn65-task11-review-fix-quick-model.log), (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests) (green, 41 jobs; /tmp/fn65-task11-nexus2-guarded2.log), make lint-model (green; /tmp/fn65-task11-review-fix-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics, exact normalized baseline match sha256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; /tmp/fn65-task11-final-lint-code.log), (cd model && mise exec -- lake env lean /tmp/Fn65Task11Trust.lean) (green; approved axioms only; /tmp/fn65-task11-trust.log), git diff --cached --check (green), GATE_CLASSIFICATION:full, NO_RECEIPT:user-owned uncommitted staged tree
+- Tests:
 - PRs:

@@ -41,8 +41,10 @@ The exact new 1.1 fixture must be reused across environments in task 6. The whol
 - [ ] The transactional fixture check, relevant Lean Nexus3/Testpilot builds, and focused Go tests with `-tags test_dep` pass.
 
 ## Done summary
-Migrated the checked Nexus3 producer to symbolic Case 1.1 with stable authored namespace, task-queue and Nexus-endpoint binding IDs and direct request EnvironmentRefs. Regenerated only the owner-managed async fixture, centralized reusable Profile construction, and added two-Profile plus missing/inconsistent pre-dispatch coverage. Contract/provenance JSON stayed identical and every other managed fixture stayed byte-identical. Repository checks, Lean builds, focused Go tests, and independent implementation review all passed; review verdict SHIP. Plan sync was skipped because `planSync.enabled` is false.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp make umpire-gen-case-runtime-conformance, TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 make umpire-check-case-runtime-conformance umpire-check-testpilot-protocol umpire-check-testpilot-authoring, (cd model && mise exec -- lake build Testpilot TestpilotTests Temporal.Feature.Nexus3.Tests temporal-testpilot), TMPDIR=/private/tmp CGO_ENABLED=0 GOFLAGS=-p=1 mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/... ./common/testing/temporaltestpilot/... ./tests/testcore/testpilot/..., gofmt -d on task-changed Go files, git diff --check, implementation review SHIP: /tmp/impl-review-receipt-fn-73-explicit-environment-binding-for.5.json, semantic comparison: Contract/provenance equal; non-async managed fixtures byte-identical
+- Tests:
 - PRs:

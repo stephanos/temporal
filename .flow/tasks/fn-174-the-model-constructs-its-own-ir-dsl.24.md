@@ -5,13 +5,14 @@ satisfies: [R3, R4, R6]
 # fn-174-the-model-constructs-its-own-ir-dsl.24 Reconcile framework Class/default IR before deferred exact-IR baseline
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The exact-IR baseline is taken in-process (fn-201); no checked-in IR and no Go reading of it.
 
 **Held framework IR checkpoint, not native DSL work.** Resolve the qualified old-reader/native Class/default discrepancy carried by fn-174.11 and .3 before the later fn-165 exact-IR preservation proof freezes its baseline. Native record-input authoring and its batch gate are already complete; this task never precedes or reopens them. Priority-0 fn-147.5 and any demonstrated unmet native DSL requirement come first. This is not the full signature switch or completion of .3, fn-141, or fn-174.
 
 **Admission:** committed fn-188.4 fresh-artifact/discovery/boundary checkpoint; fn-174.10/.11/.13/.14 source checkpoints and committed receipts; final native expect/API surface fn-164.2/.11/.10 and fn-188.3 plus fn-147.5 closures. This replaces the circular requirement for full fn-188.2 successful-gate closure with its actual artifact prerequisite; fn-164's held IR/lowering proofs remain separate unfinished obligations, not missing native API work. Cross-spec task admissions are conductor-checked. This task remains independently held after .4 and requires a deliberate later admission; do not resume fn-174.2 or system checks.
 
 **Size:** M
-**Touches:** [model/framework/dsl/Signature.scala, model/framework/dsl/InputSource.scala, model/framework/export/Claims.scala, model/framework/export/Syntax.scala, model/framework/export/Declarations.scala, model/framework/export/Constants.scala, model/framework/export/ConstructedSignature.test.scala, model/framework/export/InputDefaults.test.scala, model/framework/export/testdata/constructedSignature/**, model/framework/export/testdata/inputDefaults/**]. Change only the owning conversion and reached regressions; this is not authority to activate all signature/Machine producers or redesign input authoring.
+**Touches:** [model/framework/dsl/Signature.scala, model/framework/dsl/InputSource.scala, model/framework/lift/Claims.scala, model/framework/lift/Syntax.scala, model/framework/lift/Declarations.scala, model/framework/lift/Constants.scala, model/framework/lift/ConstructedSignature.test.scala, model/framework/lift/InputDefaults.test.scala, model/framework/lift/testdata/constructedSignature/**, model/framework/lift/testdata/inputDefaults/**]. Change only the owning conversion and reached regressions; this is not authority to activate all signature/Machine producers or redesign input authoring.
 
 Read `.flow/tmp/fn165-framework-prerequisite-decisions.md`, the fn-174.11 receipt and its repaired source `26c7d076fa`, the qualification in fn-174.3, and `ConstructedSignature.test.scala`'s nested-default control. Native `Some(None)` and the historical reader output are explicitly not equal. Source presence and isolated Signature support do not resolve that qualification.
 
@@ -26,7 +27,6 @@ Never read, restore, compile, lift or migrate `model/temporal`. Do not use `mode
 ### Verification
 
 Run focused `framework.export.ConstructedSignatureSuite` and `framework.export.InputDefaultsTest` with JUnitCore under the explicit fresh build environment. Run relevant native `framework.dsl.SignatureTest`, `InputDefaults` and selected-witness regressions if their seams change. Record actual commands, exits and positive executed counts. Source/capture/core comparison and two-JVM assertions belong in the normal focused test suites. Keep Scala builds serialized. The full `make check-framework` and independent review run at framework source-batch end; no system gate is credited.
-
 ## Acceptance
 
 - [ ] Current discrepancy is reproduced and all three baseline forms (live reader, native, frozen historical output) are accurately distinguished; historical bytes and provenance remain unchanged.

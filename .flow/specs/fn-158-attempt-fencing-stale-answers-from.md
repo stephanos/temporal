@@ -89,6 +89,8 @@ Momentum beats breadth: drawing in workflows or schedules would be too large, so
 
 Rejected: adding attempt identity to the main activity System's state directly. It would grow every Query's state space and repeat for each feature, where a composed unit is written once. [inferred]
 
+2026-10-18, one-language series: the R6 Case is produced by fn-203's Scala producer.
+
 ## Parked unknowns
 
 - Whether Nexus matching validates a reply against a retried task's identity the way the activity validates its token; fn-151's reading of matching would settle it.

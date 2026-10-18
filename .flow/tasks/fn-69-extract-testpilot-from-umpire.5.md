@@ -33,13 +33,10 @@ Cut over the generated Lean API, Umpire Producer's embedded protocol identities,
 - [ ] Lean/API generation, generated-schema tests, model build/lint, focused fixture-generator tests for atomic publication/stale-file rejection, and deterministic functional fixture regeneration pass before task 6 moves and verifies the adapter.
 
 ## Done summary
-Implemented the producer-side Testpilot cutover for the two functional Case Runtime fixtures. The generated Lean API now carries refined Testpilot descriptor identities; a dedicated typed Lean ProtoJSON serializer lowers the authored Umpire Case model directly into Testpilot data because recursive generated fields are descriptor-only `MessageRef`s, while the six legacy conformance fixtures and old Umpire adapter fixtures remain byte-identical. The functional generator now requires explicit `--mode functional`, validates every artifact through top-level Testpilot decode/pack, publishes the exact two-file transactional set under `tests/testcore/testpilot/testdata`, and records the migration evidence in the ledger.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Verification was green for Lean API generation, the focused generator packages, the Testpilot model package, the Case Runtime Lean build/tests, deterministic repeated functional fixture generation, `make lint-model` (261-target inventory), and `git diff --check`. The shared checkout remains uncommitted and unstaged at the user's request; evidence therefore records an empty commit list.
-
-stage: impl-review - ran; synthetic Codex review verdict SHIP with zero findings; receipt `/tmp/impl-review-receipt-fn-69-extract-testpilot-from-umpire.5.json`
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: TMPDIR=/private/tmp mise exec -- go test -count=1 -tags test_dep ./tools/umpire/cmd/umpire-gen-case-runtime-conformance ./tools/umpire/cmd/umpire-gen-lean-api, make umpire-gen-lean-api, TMPDIR=/private/tmp mise exec -- go test -count=1 -tags test_dep ./common/testing/testpilot/..., cd model && mise exec -- lake build Temporal.CaseRuntimeTests temporal-case-runtime, deterministic functional fixture generation repeated twice with top-level Testpilot DecodeCaseProtoJSON and PackCaseProtoJSON validation, make lint-model, git diff --check
+- Tests:
 - PRs:

@@ -4,6 +4,8 @@ satisfies: [R9, R10]
 # fn-165-inputs-as-records-named-classes.1 Inventory the input surface and freeze field order, defaults and action shapes
 
 ## Description
+**Note 2026-10-18 (one-language series):** Sweep proofs use the in-process IR (fn-201), fn-200's native lint and fn-203's Cases, not `model/ir` or `.lint.json`.
+
 Freeze what the migration must preserve before any framework change (R9, R10).
 
 **Size:** S
@@ -16,7 +18,6 @@ Freeze what the migration must preserve before any framework change (R9, R10).
 - List every step function that takes inputs (bound through the arity-typed `~>`), with its parameter list.
 - List every consumer of token identity: the realization's `deadlines` and class presets (`irgen/Realizations.scala` around `inputTokens` / `tokens.indexOf`), `Syntax.scala`'s `Assigned` matcher, capability laws that name an input, `.example` uses.
 - Decide and record: which actions are single-input (value shape) and which take a record; whether fn-159.10 lands first and is superseded, or is skipped in favour of this spec (R10), and write the decision on fn-159.10 too.
-
 ## Acceptance
 - [ ] The spec's Execution section holds the inventory: per action its record field order and defaults; every class call by form and file; every input-reading step function; every consumer of token identity.
 - [ ] The single-input/record decision per action and the fn-159.10 decision are recorded on this spec and on fn-159.10.

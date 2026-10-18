@@ -33,8 +33,9 @@ mise exec -- go test -count=1 -tags test_dep ./tools/umpire/render -run 'TestDer
 - [ ] Identical siblings, zero overlap and ambiguous bases have truthful output and stable bytes.
 
 ## Done summary
-TBD
+Spec closed by owner 2026-10-18: Go D2 renderer has no home after fn-208; refile over the native graph if wanted
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

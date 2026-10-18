@@ -64,43 +64,10 @@ on the same physical queue keeps polling through the outage.
 - [ ] `make umpire-check-live-tests` passes
 
 ## Done summary
-A Producer-neutral functional Case now asks the Driver for one real outage and requires the work to
-survive it. Its controller stops the SDK worker of its own activation queue, starts the workflow
-while nothing is polling that queue, resumes the worker, and long-polls for the closing history
-event. Two rules sit on that Run: a bounded-liveness rule over the recorded `FAULT_INJECTED` events
-that reaches its satisfied state only on a stop followed by a resume on this Case's task-queue role,
-carrying the checked-in `rule_events` horizon; and a safety rule over the completed workflow, which
-can only have been dispatched after the resume. Both are satisfied live.
+Bookkeeping 2026-10-18: parent spec already closed
 
-`FaultIntentDeclaration.lower` resolves the task's open signature question. The declaration decides
-the *outage*: a closed version-one vocabulary maps the capability a fault intent targets onto a
-`FaultKind`, and a capability outside it rejects by name. It cannot decide the *placement* -- the
-Space language has no Program to name an instruction, a role or a bound in -- so placement arrives as
-a separate `FaultRealization` argument. The shipped Case's stop instruction is the lowered intent
-itself, pinned by a `#guard` on the consumer's side of the Umpire/Temporal import boundary.
-
-Constraints the earlier tasks discovered, applied:
-- The fault Case owns its own queue resource binding, and the "concurrent plain Run unaffected"
-  assertion puts the plain Nexus Case on a *different* queue. A pooled peer worker on the same
-  physical queue keeps polling through the outage, so a same-queue assertion would be asserting the
-  outage is not real. The task's acceptance text says "same queue"; this is the deviation.
-- The functional manifest's exact count moves from five to six, with its stale-file test.
-
-Deferred, with a trace beside the tests: the live resume-timeout case. This Case always resumes and
-the Driver exposes no seam for making a live resume fail, so reaching it live would need a second
-fixture that stops and never resumes -- a Case whose own Contract could not be satisfied. The two
-halves are pinned where they are reachable: `TestSessionCloseResumesAndAlwaysReleasesTheHold` (task
-.3) for the Driver surfacing a failed resume, and the `cleanup-failure-after-proved-violation`
-conformance class for a failed cleanup leaving the Verdict alone. A Driver test seam is the follow-up.
-
-`PreparedContract.Evaluate` is internal, so no test under `tests/` can call it. The online/offline
-agreement for this Case is instead pinned in `internal/verification` over the shipped Contract and a
-recorded outage Run, including the outage that never ends and expires on the count.
-
-stage: impl-review - ran [8a251dbf..966bf310] SHIP
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: c43161b503c3baee028c9b6b8c404671228faa12, 1197d567ac7e29b9423fa03524b92755f81bb269, c26d67874216c7249505f06322d6d0745eccd0ae, 966bf3101fe8b6e24973a53b9342ce08829f1c23
-- Tests: cd model && lake build Temporal TemporalModelTests UmpireTests TestpilotTests, make lint-model (169 errors, unchanged baseline, all in generated Temporal/API; import-graph clean), make umpire-check-case-runtime-conformance, CGO_ENABLED=0 go test -tags test_dep ./common/testing/testpilot/... ./tests/testcore/testpilot/..., go test -tags 'test_dep integration' ./tests -run '^TestTestpilotWorkerOutage' (both live outage tests pass), make umpire-check-live-tests (empty failure set across 6 passing identities, up from 4), make umpire-check-regression, make lint-code GOLANGCI_LINT_FIX=false (128: errcheck 1, govet 4, revive 106, staticcheck 17 - unchanged baseline), go vet -tags test_dep ./... (15 pre-existing diagnostics, unchanged)
+- Commits:
+- Tests:
 - PRs:
-stage: plan-sync - skipped(config: planSync.enabled != true)

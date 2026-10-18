@@ -41,16 +41,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [ ] Add focused positive/negative and same-context tests, public semantic docstrings and axiom audits; no new admitted external clause exists until the case-integration task.
 
 ## Done summary
-Implemented the typed portable Boolean Property kernel with pure-data atoms, nonempty Boolean operators, same-field one-of, explicit guard/expectation contexts, eager fail-closed checking, dependent checked inputs, and a kernel-checked evaluator/denotation agreement theorem. Raw semantics are private; focused facade tests reject unchecked evaluation and forged or cross-predicate checked inputs, while existing single-pattern semantics remain unchanged.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Verification: focused Property build passed 21 jobs; expanded Property/facade build passed 22 jobs after the review fix; model lint passed 240 jobs. Go lint retained the inherited 1,316 findings with normalized SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077` and zero individual diagnostic delta. Public agreement depends only on `propext`, `Classical.choice`, and `Quot.sound`; no production admission or native trust was added.
-
-No commits, pushes, worktrees, resets, or reverts were performed per user instruction. Base commit `7774fdc7ac751ac959816c9829516ce54af57194`; task-start tree `a5c973a79fa76a359b2b9bf4c617841e2bcf7c87`; reviewed owned tree `ef5946418565105f27a08ef16b312f0464875add`. Review receipt: `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.10.json`; review log: `/tmp/fn65-task10-review.log`; captured memory: `bug/integration/keep-raw-semantics-behind-checked-input-2026-09-05`.
-
-stage: impl-review - ran [2026-09-05T19:03:10.992375Z..2026-09-05T19:12:00.769606Z] (model: gpt-5.6-sol, effort: medium; NEEDS_WORK -> SHIP)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.Property.Tests) (passed), (cd model && mise exec -- lake build Umpire.Property.Tests) (passed, 21 jobs), (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Property.ImportTests) (passed, 22 jobs after review fix), make lint-model (passed, 240 jobs after review fix), make lint-code GOLANGCI_LINT_FIX=false (inherited nonzero: 1,316 diagnostics; normalized SHA-256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; zero diagnostic delta), #print axioms Umpire.evaluatePropertyPredicate_agrees (propext, Classical.choice, Quot.sound only), git diff --cached --check (passed), official staged impl-review codex:gpt-5.6-sol:medium (NEEDS_WORK -> SHIP)
+- Tests:
 - PRs:

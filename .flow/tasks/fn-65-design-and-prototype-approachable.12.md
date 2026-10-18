@@ -42,15 +42,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [x] Reject future/result-state guard reads, dynamic/until exceptions, unknown input through negation and compound temporal responses. New temporal forms receive canonical/version discrimination and typed unsupported handling at actual downstream lowering/evaluation boundaries from their first admission; checked-input tests prove no condition is dropped.
 - [x] Preserve parent/case/exception/clause IDs and source diagnostics in temporal failures. Wire focused regressions immediately into Umpire.Property.Tests and affected consumer test roots.
 ## Done summary
-Implemented trigger-frozen guarded bounded obligations directly and inside named cases, preserving parent/case/exception/clause provenance, original inclusive coordinates and resolved Limits. Extended checked admission, canonical forms, evaluator/denotation agreement, Planning support, and fail-closed Observation/Case boundaries without changing legacy meanings.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Review round 1 found that an unused default-empty temporal case field changed existing same-step canonical identities. The field is now omitted when empty, and an independently rebuilt task-start snapshot plus a checked-in golden regression freeze the exact legacy fingerprint.
-
-Baseline was green at 87 jobs. Final exact Quick and lint-model gates are green; the repository Go lint remains the inherited 1316-diagnostic baseline with byte-identical normalized identities.
-stage: impl-review - ran through 2026-09-05T21:06:22Z (codex:gpt-5.6-sol:medium; NEEDS_WORK round 1, SHIP round 2)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-Tracker sync: n/a (bridge inactive).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: green ((cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tests Umpire.Query.Tests Umpire.CaseTests Umpire.Case.CompilerTests), 87 jobs; /tmp/fn65-task12-baseline-quick-model.log), TDD red: guarded temporal admission/evaluation regressions failed before implementation as expected (/tmp/fn65-task12-tdd-red.log), (cd model && mise exec -- lake build Umpire.Property.Tests.GuardedCases Umpire.Property.Tests.GuardedTemporal) (green, 17 jobs; /tmp/fn65-task12-review-fix-focused.log), (cd model && mise exec -- lake build Umpire.Property.Tests Umpire.Observation.Tests Umpire.Query.Tests Umpire.CaseTests Umpire.Case.CompilerTests) (green, 88 jobs; /tmp/fn65-task12-review-fix-quick-model.log), make lint-model (green, 272 lint/import jobs plus 242 full-model jobs; /tmp/fn65-task12-review-fix-final-lint-model.log), make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics; exact sorted individual identities match task .11, sha256 aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077; /tmp/fn65-task12-final-lint-code.log), persisted task-start tree legacy fingerprint build (green; exact sha256:692aeccb2cfe68380842e8cddcf0e2f7b98c2827a42660e4ab8b1fcdb4eab1cf; /tmp/fn65-task12-prior-base-fingerprint.log), kernel trust audit (green; evaluatePropertyClause_agrees and evaluateProperty_agrees use only propext, Classical.choice, Quot.sound; /tmp/fn65-task12-trust-audit.log), git diff --cached --check (green), GATE_CLASSIFICATION:full (inherited unmatched .plans/UMPIRE4_ORDER.md), NO_RECEIPT:user-owned uncommitted staged tree
+- Tests:
 - PRs:

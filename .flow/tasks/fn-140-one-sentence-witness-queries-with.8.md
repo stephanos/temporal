@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-140-one-sentence-witness-queries-with.8 Validate live Case generation and complete model-only Query standings
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The live Case switch goes to fn-203 (fn-195.3 also retires `.live`).
+
 **Size:** M
 **Files:** `tools/umpire/lower/generated.go`, its regression tests and existing manifest assertions.
 **Touches:** [tools/umpire/lower/generated.go, tools/umpire/lower/generated_test.go]
@@ -26,7 +28,6 @@ mise exec -- go test -tags test_dep ./tools/umpire/lower
 ```
 
 Full production regeneration/model/Case gates/review/live remain at the shared fn-123.8 boundary.
-
 ## Acceptance
 - [ ] Paired otherwise-lowerable live/no-live witness and triple regressions generate exactly the live Cases and account for every Query/standing in the complete manifest (R3).
 - [ ] Capability Cases remain selected, absent expectation is distinguished from malformed/incomplete declared expectation, and existing admission/refusal errors are retained.

@@ -42,7 +42,9 @@ Expose D5's readable bounded temporal syntax over the checked scoped clause and 
 - [ ] `make umpire-build-model`, `make umpire-check-regression`, `make lint-model`, `make lint-code`, generated staleness checks, focused Go tests with `-tags test_dep`, and the scoped integration test with `test_dep integration` pass with evidence recorded.
 - [ ] Umpire and model architecture docs describe the final ownership and syntax; `model/Temporal/Feature/Nexus/Success/Integration.md` no longer claims cancellation lowering is unsupported.
 ## Done summary
-Administrative scope transfer only: cancellation requirements deferred to fn-79 by explicit user decision. No cancellation implementation is claimed complete. Original requirements retained in fn-79; generic syntax/qualification from task 8 retained in fn-78.10. Existing unfinished source edits preserved and worker stopped. This task closes only the scope transfer so generic fn-78 and fn-70 can proceed.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

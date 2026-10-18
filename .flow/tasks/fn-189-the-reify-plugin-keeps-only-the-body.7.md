@@ -6,6 +6,8 @@ satisfies: [R2, R7, R9]
 Touches: model/README.md, .flow/tmp
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The R2/R7 full-mode proofs and the IR-equivalence obligation are proved on the in-process internal IR (fn-201): no dumper, no checked-in IR.
+
 **Phase 3 admission:** run after fn-190.9 supplies plain-Machine var/effect lowering and the framework export fixtures are re-anchored to the final DSL. This task also seals the full-mode proofs retained by the native-source checkpoints fn-189.3 and fn-189.5. Those checkpoint closures do not satisfy the full parent R2 or R7 obligations.
 
 Retained R2 proof: a Model with effects in its Machine and a helper in a Lifted object in another file lifts in a full compile and a warm Bloop session; changing only the helper body recompiles the dependent Model and changes its IR. Retain the exact refusal for an uncovered cross-file helper and a marked helper compiled without the plugin. Compile and lift all six samples, not only realization-mode headers or pure-helper fixtures.
@@ -20,7 +22,6 @@ Record in the task receipt and in model/README.md's plugin section: plugin phase
 - Full-mode R2 Model-with-effects compile, warm helper edit, dependent IR change and refusal controls pass on the final plain-Machine lifter.
 - R7 full-mode samples/Facets and equivalent final-DSL historical exporter controls pass, with the original equivalence obligation accounted for.
 - The counts are reproducible from the recorded command on the committed source.
-
 ## Acceptance
 - [ ] Parent R2's full plain-Machine effect/incremental proof is verified, beyond the native-source checkpoint.
 - [ ] Parent R7's full sample/Facets lifting, diagnostics and equivalence proofs are verified, beyond the native-source checkpoint.

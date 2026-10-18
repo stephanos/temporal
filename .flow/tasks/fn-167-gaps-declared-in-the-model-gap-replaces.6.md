@@ -35,8 +35,9 @@ Use paired base/derived fixtures per supported kind; compare raw finding sets be
 - [ ] Authoritative Flow lookup is tested and the staged waiver copy/file seam is retired safely.
 
 ## Done summary
-TBD
+Superseded by fn-200 (one-language series, 2026-10-18): native lint judges @gap
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

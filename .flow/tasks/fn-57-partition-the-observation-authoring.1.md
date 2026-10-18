@@ -42,8 +42,10 @@ Move the authored value types, profiles, bounds, expressions, dispositions, bind
 - [ ] `cd model && mise exec -- lake build Umpire.Artifact.PortableEvaluationContract Umpire.Observation.Tests.Compilation` passes.
 
 ## Done summary
-Extracted the inert Observation vocabulary and field projections byte-for-byte into a low-dependency Declaration module, kept Language as the public facade, and narrowed Portable Evaluation Contract to the declaration-only import.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 381232756
-- Tests: cd model && mise exec -- lake build Umpire.Artifact.PortableEvaluationContract Umpire.Observation.Tests.Compilation, cd model && mise exec -- lake build Umpire.Artifact.Tests.PortableEvaluationContract, git diff --check
+- Commits:
+- Tests:
 - PRs:

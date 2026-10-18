@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:41.396732Z",
+  "depends_on": [
+    "fn-199-native-refinement-replacement-and.5"
+  ],
+  "id": "fn-199-native-refinement-replacement-and.6",
+  "priority": 4,
+  "spec": "fn-199-native-refinement-replacement-and",
+  "spec_path": ".flow/tasks/fn-199-native-refinement-replacement-and.6.md",
+  "status": "todo",
+  "title": "Docs: README, SEMANTICS and the measurement note; rule-disjointness disposition recorded",
+  "updated_at": "2026-10-18T17:16:41.396732Z"
+}

@@ -1,0 +1,29 @@
+{
+  "branch_name": "fn-201-the-ir-is-internal-the-lift-module-no",
+  "created_at": "2026-10-18T17:15:25.918966Z",
+  "depends_on_epics": [
+    "fn-199-native-refinement-replacement-and",
+    "fn-200-model-lint-is-native-findings-from-the",
+    "fn-198-framework-tests-are-case-folders",
+    "fn-190-models-are-plain-scala-state-as-vars"
+  ],
+  "id": "fn-201-the-ir-is-internal-the-lift-module-no",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-201-the-ir-is-internal-the-lift-module-no.md",
+  "status": "open",
+  "title": "The IR is internal: the lift module, no checked-in IR",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-18T17:48:14.112732Z"
+}

@@ -4,6 +4,8 @@ satisfies: [R5, R7]
 # fn-140-one-sentence-witness-queries-with.6 Close deferred witness consumer and regeneration proof
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Witness closure is proven on the new toolchain: the Scala checker and fn-203 Cases.
+
 **Size:** M
 **Touches:** [.plans/UMPIRE_MODULES.md, model/ir/**, model/cases/**, model/irgen/testdata/lifts/expected/**, tools/umpire/check/*test.go, tools/umpire/lower/*test.go, tools/umpire/conformance/*test.go, tests/testcore/testpilot/testdata/generated/**, tools/canary/casebinding/testdata/**]
 
@@ -45,7 +47,6 @@ make umpire-check-cases umpire-check-fixtures canary-check-case
 make lint-model
 go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...
 ```
-
 ## Acceptance
 - [ ] Every remaining eligible Model triple is converted and each retained form has a concrete R5/Boundaries justification; source lint diagnoses only eligible triples.
 - [ ] Refusal fixtures pin source ownership, eligible/shared/monitor/verify cases and repeated input-bearing tail identities without changing existing refusal classes.

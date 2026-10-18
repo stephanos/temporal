@@ -25,8 +25,10 @@ Rewritten on fn-85, fn-86, fn-87 and fn-33 after the first plan's MAJOR_RETHINK 
 - [x] Per-Run identities, sequences, times, instruction ids and the Verdict's accumulated support do not change the key; a different violated rule set, terminal state or violating evidence does; a Case-local renaming does not; the Case identity is reported beside the key and is not in it.
 - [x] `PreparedCase.Evaluate` reproduces a recorded Run's Verdict offline and names each violated rule's violating evidence; it is the only semantic-replay path; `umpire-run --record` and `umpire-fuzz --record-root` write the recorded Run shape; no bundle, digest, trust store or reader is introduced.
 ## Done summary
-tools/umpire/replay admits a violated Run as a subject (canonical Case via tools/umpire/internal/casefile, recorded Run with its Profile identity, admissible violated form, stale by fingerprint, offline replay) and derives the Contract-relative violation key in Definition IDs from the violating evidence the evaluator now records; PreparedCase.Evaluate exports the offline replay; binding.Prepare prepares without a deployment; umpire-run --record and umpire-fuzz --record-root write recorded Runs through campaign.DriveRecording.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: 1ffec036fdbfd0ed7799b56c216f4af14822b4e4, eccb7d805c8716b9d84ebc01eec0f6821721c5c7, bef9bcd8fc60ad940e28ee79bacb4edc9902b674
-- Tests: go test -count=1 -tags test_dep ./common/testing/testpilot/... ./tools/umpire/..., GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

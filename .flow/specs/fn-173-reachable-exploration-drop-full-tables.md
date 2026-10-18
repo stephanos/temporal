@@ -86,16 +86,16 @@ This spec drops full tables entirely. The only table is the graph reachable from
 
 ## Acceptance Criteria
 
-- **R1:** Governance amendments are approved under GOV-02 before the phases that need them:
+- **R1:** *(2026-10-18, one-language series: governance: the SPEC/Vision amendments move to fn-208.4)* Governance amendments are approved under GOV-02 before the phases that need them:
   - the SPEC's "finite types" wording (`.plans/UMPIRE4_SPEC.md:42`);
   - the Behavior Fingerprint's definition (structural hash; every front end must lift identical IR);
   - VISION's "second opinion, never decide" (`.plans/UMPIRE4_VISION.md:101-102`);
   - the module map's new orchestration module.
-- **R2:** The reachable graph is the only table. On-demand rows, roots, the reach bound, closed/open, the `open-graph` lint with `.open(because = ...)` acceptance (D1), and receipt fields `Reached`, `Closed` and `Checker`.
+- **R2:** *(2026-10-18, one-language series: superseded by reference: the reachable graph is the Scala checker's (fn-196); the open-graph lint is fn-200; the fingerprint is fn-201.4/fn-203)* The reachable graph is the only table. On-demand rows, roots, the reach bound, closed/open, the `open-graph` lint with `.open(because = ...)` acceptance (D1), and receipt fields `Reached`, `Closed` and `Checker`.
   - The IR structural fingerprint replaces the full-table hash (D2), with one regeneration of every IR, Case and fixture.
   - A parity test against the old eager tables proves answers unchanged on every existing Model, and Case bytes unchanged apart from fingerprints.
   - Voting drops `inv`.
-- **R3:** Scala-side catalog machinery retires (D4):
+- **R3:** *(2026-10-18, one-language series: retained; done natively under fn-173.16)* Scala-side catalog machinery retires (D4):
   - the rule-overlap walk at construction;
   - `StepTables`, `Equivalence`, `StepLedger` and `InterpreterTables`;
   - the `Coverage.scala` baseline;
@@ -103,11 +103,11 @@ This spec drops full tables entirely. The only table is the graph reachable from
   - "Sealing a batch" while the IR is stale.
 
   Query totals retire everywhere (D8): `total` in the DSL and lifter, `ir/totals.go`, and the README's "Counting a Query's total".
-- **R4:** The static Go checks of design §5 are implemented, each with tests, and SEMANTICS §6, §7, §9, §13 and §20 describe them.
-- **R5:** The IR and interpreter carry `Set`, `Map` (partial; a missing key is a hole, D5a), `List`, and checked `int64` `Int` (overflow is a hole, D6). The four split-on-`-` key sites become structured lookups (D5c). Type order equals today's catalog order on finite types.
+- **R4:** *(2026-10-18, one-language series: superseded by reference: refinement invariant to fn-199, overlap/coverage/growth lint to fn-200, totals deleted by fn-208)* The static Go checks of design §5 are implemented, each with tests, and SEMANTICS §6, §7, §9, §13 and §20 describe them.
+- **R5:** *(2026-10-18, one-language series: superseded by reference: collections are native (fn-173.14/.15); the checked int64 contract is decided in fn-201.5)* The IR and interpreter carry `Set`, `Map` (partial; a missing key is a hole, D5a), `List`, and checked `int64` `Int` (overflow is a hole, D6). The four split-on-`-` key sites become structured lookups (D5c). Type order equals today's catalog order on finite types.
 - **R6:** The DSL and lifter admit native collections and `Int` in state, `oneOf` input domains, input-reading guards `where((s, i) => ...)` (from bounded-collections §3.4), and the liftable operations of design §6.5. `Inbox` channels are kept (D5b), recognized by type, with no hand-written `given Finite`.
 - **R7:** The six framework samples are rewritten natively. Their expectations are unchanged, and a reachable-graph isomorphism test maps each old encoding onto the new one.
-- **R8:** Backends decide (D3):
+- **R8:** *(2026-10-18, one-language series: superseded by reference: backends decide in fn-206 (Apalache) and fn-207 (TLC) over a direct TLA+ emission, replay through `Checker.replay`; no `tools/umpire/answer` module; fn-205 (Quint) is deferred)* Backends decide (D3):
   - export coverage first (refinement, progress, Queries, channels or the channel library, collections);
   - then `checkedBy`/`confirm`, admission of coverage, Go replay of traces, cross-checker agreement and the orchestration module;
   - then the TLA+/TLC route chosen under the design's open question.
@@ -126,6 +126,8 @@ The decisions settled by the owner on 2026-10-13 (D1–D8) are recorded in `mode
 - `model/design/bounded-collections.md`: its input-reading guards and collection operations survive; `Total`, `ListUpTo` and the catalog ceilings do not.
 - `model/design/ir-simplification.md`.
 - `model/design/samples-vs-quint.md`: its findings #4 and #6 are resolved here.
+
+2026-10-18, one-language series: R1's governance amendments go to fn-208.4; the structural fingerprint definition goes to fn-201.4 (hashing `Lifted.canonical`) and fn-203; the orchestration module `tools/umpire/answer` is dropped; R2, R4, R5 and R8 are superseded by reference to fn-199/fn-200/fn-201/fn-206/fn-207. Tasks .2/.3/.4/.7/.8/.9 are closed as obsolete (lane A); .5's lifter part goes to fn-190.9/fn-201 and .6 proves isomorphism on the Scala checker or closes citing fn-195.4 (lane C).
 
 ## Requirement coverage
 

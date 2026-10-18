@@ -86,6 +86,8 @@ The user asked for a single file per feature where only the root of the graph is
 
 - **Run names (conductor, 2026-10-11, under the owner's recommendation mandate):** a form's main realization is `<Form><Kind>Run` (`StandaloneActivityRun`, `StandaloneNexusRun`, `WorkflowNexusRun`), matching the form's file, because both Nexus forms' subject is `NexusProtocol` and `<Subject>Run` would collide; any further realization is `<Subject>Run`.
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Parked unknowns
 
 - Whether any consumer relies on today's file boundaries in a way one file per feature can't serve. The exploration and race checkers are the suspects, from the race file's comment "so the history record's Queries are the ones its checkers were given". R1's investigation resolves this. [inferred]

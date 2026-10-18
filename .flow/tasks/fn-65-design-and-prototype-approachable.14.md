@@ -43,20 +43,10 @@ Extract a narrow shared bounded traversal seam from Planning.Engine: its existin
 - [ ] Completeness/exclusivity failures remain obligations, distinct from ordinary per-Property results and from model transition availability. Reuse authoritative evaluator applicability; add focused executable Nexus2 and generic tests.
 - [ ] Shared bounded traversal is consumed by both ordinary planning and analysis with identical candidate order, admitted-Behavior filtering, budget accounting and completion evidence; unchanged Query regressions prove the extraction preserves existing first-result behavior. Task .15 reuses this seam for exhaustive continuation analysis.
 ## Done summary
-Implemented finite guarded-case coverage behind `Umpire.Planning`: ordinary planning and analysis now share one bounded candidate traversal with identical order, Behavior admission, budget accounting, and completion evidence. Analysis consumes checked Query and evaluator-owned Property applicability, retains exact scope and typed clause/guard/exception witnesses, and keeps coverage, completeness/exclusivity obligations, ordinary Property truth, transition availability, and inconclusive search states separate.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Added generic and Nexus2 executable regressions for normal/special cases, compatible and exclusive overlap, reachable uncovered completeness, parent/case exclusions, missing replacement (including non-complete groups), unreachable/unexercised guards, malformed input, target mismatch, partial budget witnesses, declaration-order invariance, shared traversal order/accounting, first-result planning compatibility, facade visibility, and the Query import boundary.
-
-Touches: `model/Umpire/Planning/Engine.lean`, `model/Umpire/Planning/CaseAnalysis.lean`, `model/Umpire/Planning.lean`, `model/Umpire/Property/Evaluation.lean`, `model/Umpire/Planning/Tests.lean`, `model/Umpire/Planning/Tests/CaseAnalysis.lean`, `model/Umpire/Planning/Tests/Enumeration.lean`, `model/Umpire/Planning/VisibilityTests.lean`, `model/Umpire/Query/Tests/Visibility.lean`, `model/Temporal/Feature/Nexus2/Tests.lean`.
-
-Baseline: green, 69 jobs (`/tmp/fn65-task14-baseline-quick.log`). Final exact Quick: green, 71 jobs (`/tmp/fn65-task14-final2-quick.log`). Final model lint: green, 244 jobs (`/tmp/fn65-task14-final2-lint-model.log`). Final Go lint retained exactly the inherited 1,316 diagnostics: normalized SHA-256 `aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077`, individual comparison `cmp=0` (`/tmp/fn65-task14-final2-lint-code.log`). No commit was created under the user's standing commit policy; HEAD remains `7774fdc7ac751ac959816c9829516ce54af57194`.
-
-Review: SHIP on round 2, receipt `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.14.json`, session `01a07398-7e02-7aa2-9ab6-ce702479caad`. Reviewed owned tree `85bbdaca7e56cde66b2886b5d894b195c6025222` exactly equals the final owned source snapshot over task-start tree `70ebf4c8e2a73e3f6c9bf06e4af30413f5c1c26a`. Review lifecycle tracker state is intentionally outside that owned source snapshot.
-
-Tracker sync skipped because the tracker is inactive. Plan sync skipped because `planSync` is false.
-
-stage: impl-review - ran [2026-09-05T15:02:47-0700..2026-09-05T15:12:49-0700] (NEEDS_WORK -> SHIP, same receipt/session)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus2.Tests) (green, 69 jobs), cd model && mise exec -- lake build Umpire.Planning.Tests.CaseAnalysis (green, 30 jobs), (cd model && mise exec -- lake build Umpire.Query.Tests Umpire.Planning.Tests Temporal.Feature.Nexus2.Tests) (green, 71 jobs), make lint-model (green, 244 jobs), make lint-code GOLANGCI_LINT_FIX=false (inherited nonzero only; 1316 individual diagnostics exactly match task13, cmp=0, sha256=aee7770bec1fe01dab8826427cc89e9ffa7e764fbac25ce6b68bf5f2e3c0b077), source equality: reviewed owned tree 85bbdaca7e56cde66b2886b5d894b195c6025222 equals final owned source tree
+- Tests:
 - PRs:

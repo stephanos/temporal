@@ -4,6 +4,8 @@ satisfies: [R6, R7, R9]
 # fn-119-show-one-go-sdk-workflow-driven-end-to.6 Write the walkthrough, the one-command entry point and the fn-119 done summary
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 The newcomer-facing page and the single command, verified by a fresh reader, plus closing gates and the findings summary.
 
 **Size:** M

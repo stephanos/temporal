@@ -50,28 +50,10 @@ Export reusable APIs through their existing owning facades and add the correspon
 - [ ] Add runnable Nexus2 Tests and preserve all existing baseline regressions and trust boundaries; ordinary author examples contain no encoded-value assembly, proof editing or support-code changes for a state/transition extension.
 
 ## Done summary
-Implemented the independent Nexus2 baseline as typed finite catalogs with 4 states, 3 actions, 2 setups, and 3 transitions; explicit stable identity/setup mappings lower validated values through the Target owner. Start, cancel, and success each follow the successful Target → Property → Behavior → Query → generic finite planner journey with explicit forms, unit-bearing limits, shortest strategy, seed 17, and DefinitionId tie-breaking.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Target now owns validated typed-to-ModelValue admission, including setup membership checks, while Planning owns typed Target-mismatch, missing-completeness, and noncanonical-order failures. The compatibility `ofCheckedQuery?` API remains available, and the separate canonical finite adapter preserves total ordering laws without author equality transport. Invariant action sorting is hoisted; setup and step ordering remain pull-local because finite completeness does not constrain arbitrary out-of-domain selectors.
-
-The dedicated `Temporal.Feature.Nexus2.Tests` gate compares the exact complete ordered catalogs, setup-to-initial-state relation, 12 state/action transition space, and three bounded traces against established Nexus through explicit fail-closed identity normalization. Mutation fixtures reject unknown result states, unknown facts, extra transitions, extra initial alternatives, and changed cancellation/success semantics. Checker-specific negatives cover malformed catalogs, undeclared setups, provider selection, Property references/capabilities, contradictory Behavior, Query limit values/units, omitted units/limits, unsatisfiable planner status, Target mismatch, missing completeness, and noncanonical action/result order.
-
-The capability law states the three required source/action/result meanings independently through pair-specific row lookup; unrelated extensions do not require changing the law. `#print axioms` reports only `propext`, `Classical.choice`, and `Quot.sound` for public admission/planning/checkBaseline declarations, while `lifecycleLawProof` has no axioms. `native_decide` executes closed test fixtures only and no such theorem feeds production admission, provider laws, declarations, or checked values.
-
-Dedicated-root direct elaboration measured 3.07s, 3.06s, and 3.06s without deleting caches. Final focused Nexus2 build and `make lint-model` passed. `make lint-code GOLANGCI_LINT_FIX=false` retained the inherited exit 2 with exactly 1,316 diagnostics before and after this Lean-only task: errcheck 220, exhaustive 6, forbidigo 209, goimports 1, govet 5, revive 735, staticcheck 139, testifylint 1 (+0/-0).
-
-Task 9 can consume `Temporal.Feature.Nexus2.Lifecycle.table`, `identity`, `targetResult`, and `Temporal.Feature.Nexus2.Cancellation.checkBaseline`; race behavior should extend typed rows/declarations and retain the same exact fail-closed comparison style. Existing Nexus imports and registrations were not migrated.
-
-No commits, push, worktree, reset, revert, or cache deletion; the user retains commit ownership and prior staged work is preserved.
-
-stage: impl-review - ran [NEEDS_WORK..SHIP] (model: codex:gpt-5.6-sol:medium; session: 01a072b8-dab1-7663-91d1-a495c0b415d4)
-stage: plan-sync - skipped(config: planSync.enabled=false)
-stage: tracker-sync - skipped(config: bridge inactive)
-
-Review receipt: `/tmp/impl-review-receipt-fn-65-design-and-prototype-approachable.8.json`
-Review log: `/tmp/fn65-task8-review-resume.log`
-Reviewed base/staged tree: `2d4ab82eaffa1f87d402b9a2b4f65230d7fe9c77..7de76f50a364f81bbe62c70b7d41ecdd86339343`
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: baseline: (cd model && mise exec -- lake build Umpire.Planning.Tests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests) (pass; 65 jobs), baseline: make lint-model (pass; 239 jobs), baseline: make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics), (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests Umpire.Planning.Tests) (pass; 61 jobs), (cd model && mise exec -- lake build Umpire.Planning.Tests Temporal.Feature.Nexus.LifecycleTests Temporal.Feature.Nexus.OperationsTests Temporal.Feature.Nexus2.Tests) (pass; 69 jobs), (cd model && mise exec -- lake build Temporal.Feature.Nexus2.Tests) (post-review-fix pass; 40 jobs), make lint-model (post-review-fix pass; 239 jobs), make lint-code GOLANGCI_LINT_FIX=false (inherited red: 1316 diagnostics; zero added; zero removed), direct lake env lean Temporal.Feature.Nexus2.Tests elaboration: 3.07s, 3.06s, 3.06s without cache deletion, #print axioms FiniteTable.checkModelTarget, IncrementalPlannerKernel.ofCheckedQuery, and Cancellation.checkBaseline: propext, Classical.choice, Quot.sound only; Lifecycle.lifecycleLawProof: no axioms, impl-review codex:gpt-5.6-sol:medium: SHIP
+- Tests:
 - PRs:

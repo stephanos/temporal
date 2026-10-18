@@ -150,6 +150,8 @@ flowctl records no spec-level dependency, so task 1 can run now; the conductor h
 
 **Deviations from the proposed direction (2026-10-04).** Item 3: required settings come from three sources, not only from the Query's valuation, because feature flags are API facts. Item 1: a Query may also bind a setting its machine does not read, which keeps the switch's claim that the behavior holds under each implementation. Item 4: inequalities are checked against what the Profile states, and the local harness sets the declared value. The race item: not a modeled fault (research option 2), for the reason in the table.
 
+2026-10-18, one-language series: owner-deferred; at revival, lowering goes through fn-203, export through fn-206/fn-207 (Quint and P export are not Scala backends; fn-205 is deferred), Model valuations through the Scala checker.
+
 ## Open questions for the owner
 
 1. **ShutdownWorker race. Decided 2026-10-04: both.** Report upstream (#9424: the early return when the root partition is not loaded) and meanwhile declare `frontend.enableMatchingFanOutForPollCancellation=false` as a `workerStop` precondition with that reason (task 6). The precondition makes fn-121.3's CI green, is visible in every Case it affects, and is removed when the server fix lands. Never a Profile value.

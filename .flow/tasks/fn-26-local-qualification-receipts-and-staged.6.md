@@ -23,8 +23,10 @@ Rewritten on fn-85 and fn-22 (the recorded subject, the canonical Case form, the
 
 
 ## Done summary
-Live proof in `tests/testpilot_assess_test.go`: the caller Model's asyncCompletion Case is recorded with `umpire-run --record` against the test cluster and assessed twice by `umpire-assess run` under `local-ephemeral` (accepted, one receipt, the second `already-published`, the recorded Run byte-identical after), and the negative control's pinned record is rejected (`verdict-violated`, `monitor-stopped`); neither assessment is given an address. `tools/umpire/evaluation/caps_test.go` admits at N and rejects at N+1 for the Case bytes, the recorded Run bytes and the Run events (the receipt cap's N/N+1 is in the receipt tests). The remaining matrices (every Profile load rejection, subject rejection classes, reasons, multiplicity, the test-only Profile's distinct receipt, publication conflicts, output statuses) are the tests tasks .2 to .5 delivered. `model/README.md`, `.plans/UMPIRE4_SPEC.md` (Claim Assessment concept, QLF-03 amendment) and `.plans/UMPIRE4_COMPONENTS.md` state the environment-scoped claim, the asserted trust, the lack of self-authentication, the hard-link requirement, the Verdict/assessment separation and the retained exclusions. `make umpire-check-live-tests` passes with 32 identities. Implementation review: SHIP in one round, its two P3 notes applied.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: ba56f66ecf1b2f5005084c66143d0028286a7a4b, 8bb9eeb37ddb543ff451c55921a590e99820cdb8
-- Tests: go test -count=1 -tags test_dep ./tools/umpire/..., make umpire-check-live-tests (32 passing identities), make umpire-check-retired-vocabulary umpire-check-evaluation-profiles, GOLANGCI_LINT_BASE_REV=HEAD make lint-code-fast
+- Commits:
+- Tests:
 - PRs:

@@ -38,8 +38,9 @@ Define and validate the explicit depth-four current-model selection policy over 
 - [ ] The policy annotates the complete catalog without modifying or pruning generated declarations.
 
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

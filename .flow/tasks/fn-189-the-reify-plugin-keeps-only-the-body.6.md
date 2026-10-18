@@ -21,8 +21,9 @@ Machine declares `def init: S`, `def end(state: S): Boolean = true` and `def evi
 - [ ] Samples match retained output except positions; the two error cases behave as specified.
 
 ## Done summary
-TBD
+Already superseded by fn-190.2; status hygiene 2026-10-18
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -42,15 +42,10 @@ Implement the single checked lowering in R3. Keep Nexus-specific execution/evide
 - [ ] Focused Lean tests and existing TestpilotTests pass; other existing Case producers retain their semantics.
 
 ## Done summary
-Implemented checked Nexus3 completion lowering in `Temporal.Feature.Nexus3.Testpilot`: the Producer validates the exact checked Target, Property, Behavior, Query, and optional selected witness, binds their IDs and fingerprints, converts the two authored Known Gaps once, and emits the existing async Program with a Property-derived, no-horizon correlated success monitor. Generic Case mechanics, get-system-info, and six conformance Producers now have separate Nexus-free modules; the top-level facade is import-only, the renderer calls Nexus3 directly, and `Temporal.Testpilot.asyncNexusCase` is removed.
+Bookkeeping 2026-10-18: parent spec already closed
 
-Focused tests cover checked provenance and Known Gaps, same-ID Property mutation, Behavior/action mutation, unsupported Query form, wrong Target, absent/mismatched witness, exact correlation requirements, and the lack of a semantic time horizon. Get-system-info and all six conformance renderings remain byte-identical to their checked-in fixtures.
-
-Baseline: green (`cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-testpilot`; `cd model && mise exec -- lake build TemporalModelTests`). TDD RED: `/tmp/fn68-task2-red.log` records the missing Nexus3 Testpilot module before production edits.
-
-stage: impl-review - SHIP(receipt: /tmp/impl-review-receipt-fn68-task2.json)
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
-- Tests: cd model && mise exec -- lake build Temporal.Feature.Nexus3.Tests temporal-testpilot, cd model && mise exec -- lake build Temporal.TestpilotTests, cd model && mise exec -- lake build TemporalModelTests, make lint-model, model/.lake/build/bin/temporal-testpilot async-nexus > /tmp/fn68-task2-async-nexus.json, cmp rendered get-system-info and all six conformance Cases with checked-in fixtures, git diff --check, trust audit: no axiom/unsafe/#eval/sorry/admit in task files, import audit: generic Temporal/Testpilot modules contain no Nexus3 imports, alias audit: no Temporal.Testpilot.asyncNexusCase remains
+- Tests:
 - PRs:

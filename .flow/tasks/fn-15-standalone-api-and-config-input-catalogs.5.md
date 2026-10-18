@@ -36,8 +36,9 @@ Add checked type-erasable owner definitions for the existing four Callback plus 
 - [ ] Owner validation proves the six keys are distinct and an unrelated unclassified generated setting remains valid without invented meaning; aggregate list/explain behavior belongs to Task 6.
 
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

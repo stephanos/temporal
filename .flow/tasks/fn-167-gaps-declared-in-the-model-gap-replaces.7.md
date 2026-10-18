@@ -4,6 +4,8 @@ satisfies: [R9, R10]
 # fn-167-gaps-declared-in-the-model-gap-replaces.7 Held sweep: runnable migration, mini proof and real-feature retirement
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The acceptance file is deleted by fn-200.6. This task's R9/R10 real-feature migration uses fn-200's native lint and `@gap`, not the IR plus `.lint.json`.
+
 Held sweep: integrate the migration adapter and execute mini/real-feature migration with count evidence (R9, R10). This is the actual IR/acceptance-backed proof, not another hand-written acceptance update.
 
 **Size:** M

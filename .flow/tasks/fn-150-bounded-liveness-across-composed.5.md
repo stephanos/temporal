@@ -4,6 +4,8 @@ satisfies: [R1, R2, R3, R4, R5]
 # fn-150-bounded-liveness-across-composed.5 Demonstrate Temporal composition progress and close gates
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Gates run on the Scala checker; the composed progress example verifies natively (fn-199).
+
 Demonstrate Temporal composition progress and close gates. Advances R1, R2, R3, R4, R5 of the parent spec.
 
 **Size:** M
@@ -37,7 +39,6 @@ make lint-model
 make lint-code-fast
 go test -tags test_dep -p 2 -timeout 30m -json ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...
 ```
-
 ## Acceptance
 - [ ] A concrete Temporal example exercises both member predicates, passes under an explained structural bound and fails under its deliberate negative variant.
 - [ ] Docs and receipts explain exact assumptions, composed steps, unsupported monitor/runtime cases and vacuity.

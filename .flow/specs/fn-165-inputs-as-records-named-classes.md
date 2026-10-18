@@ -133,6 +133,8 @@ Five ways to keep "one input across several actions" a fact the framework knows 
 
 The record form was itself weighed against keeping tokens and making them read better (fn-159.10). Records won on symmetry with the state: one mechanism for "a step reads two records", one lifting rule, one catalog derivation, and parameter names and defaults that Scala already documents.
 
+2026-10-18, phase placement (owner): this spec's remaining work moves into Phase 3 "Temporal Models native", between DSL completion and the IR batch: re-enable `model/temporal` against the final DSL (mini first, then standalone activity, then Nexus) and prove each Model through the native checker and ModelSuite under the budget policy. Its IR-equivalence, lint-acceptance and Case proof obligations are restated as native checks here; lifting, Cases and descriptors wait for Phase 4 (IR batch) and Phase 5 (fn-201/fn-203/fn-204).
+
 ## Early proof point
 
 Task 2 (framework) is the proof: an action declared from a record, called empty and by name, bound to a `(s, in)` step function, with `Finite[In]` enumerating the same classes in the same order as today's `Class` list for `start`. If the catalog order or the `Param` names cannot be made identical, the migration stops before any Model changes.

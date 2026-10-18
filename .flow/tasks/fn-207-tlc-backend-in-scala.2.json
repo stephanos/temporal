@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T17:16:43.531966Z",
+  "depends_on": [],
+  "id": "fn-207-tlc-backend-in-scala.2",
+  "priority": 1,
+  "spec": "fn-207-tlc-backend-in-scala",
+  "spec_path": ".flow/tasks/fn-207-tlc-backend-in-scala.2.md",
+  "status": "todo",
+  "title": "Spike: in-process TLC versus a child JVM",
+  "updated_at": "2026-10-18T17:16:43.531966Z"
+}

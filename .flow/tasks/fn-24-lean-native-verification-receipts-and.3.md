@@ -14,8 +14,9 @@ Implement the generic `Umpire.Formal.Replay` fail-fast gate. Recompute candidate
 The unchanged caller-closure force-close trace reaches `property-satisfied` through a Temporal-owned consumer of the generic API without any Temporal branch in reusable Umpire. Each exact replay status and replay-identity preimage is independently covered; target/query/Property/kernel/Limits/setup/initial/action/outcome/state/observation/order/reason/behavior mutations and forged status/identity/context pairings fail closed. Only a matched replay paired with its originating opaque native context exposes the violated-receipt factory, preserves exact diagnostics, and emits exact counterexample/evidence/identity bytes; non-matched results cannot become violated or promotion input.
 
 ## Done summary
-Blocked:
-Won't do (2026-10-01): the Lean model is retired in favour of the Scala front end (model/scalav2), and the Lean toolchain is removed. Spec closed as won't-do by the owner.
+Bookkeeping 2026-10-18: parent spec already closed
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -4,6 +4,8 @@ satisfies: [R10]
 # fn-125-represent-dynamic-configuration-in-the.9 Declare bound assumptions on server durations and check them at preparation
 
 ## Description
+**Recut 2026-10-18 (one-language series):** Owner-deferred. At revival: lowering goes to fn-203, export to fn-206/207 (fn-205 deferred), Go model valuations to the Scala checker.
+
 **Partly absorbed by fn-144** (2026-10-06): the relation and preparation-check part of this task, for relations that Tag bounds use (`atMost`/`atLeast` checked against the Profile, fail closed), is delivered by fn-144 R17. The bound assumptions on server durations, the harness's declared values and the scale-factor check stay here.
 
 Implements R10 (spec Part D). A wait bound or kit deadline that rests on a server duration declares an `atMost` / `atLeast` assumption beside fn-118's bound; lowering adds it to the Case's required settings with its relation and origin; preparation checks the relation against the Profile; the functional harness runs the key at its declared value. The Model holds no duration.

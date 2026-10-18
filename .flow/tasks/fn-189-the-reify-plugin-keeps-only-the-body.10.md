@@ -4,6 +4,8 @@ satisfies: [R10]
 # fn-189-the-reify-plugin-keeps-only-the-body.10 After .3/.9: one tree-normalization pass; delete typedRemainder (R10)
 
 ## Description
+**Recut 2026-10-18 (one-language series):** 'Go evaluates a role pattern the same way' becomes: the Scala checker and the Scala emitters (fn-206/207) evaluate it the same way.
+
 Touches: model/framework/reify/body/Expressions.scala, BodyEngine.scala, BodySyntax.scala, BodyContext.scala, Constants.scala
 
 ### Description
@@ -17,7 +19,6 @@ Do this after .3 (the expansion engine is the largest consumer of the wrapper ar
 - The six samples and the framework fixtures lift to the same IR as before this task (positions aside, per .9), including a Model whose match ends in `case _: Closed`.
 - Refusal texts and positions of the existing refusal fixtures are unchanged, except the three `typedRemainder` refusals, whose fixtures are retired.
 - grep shows one definition of the wrapper-stripping pass in `reify/body` and no `typedRemainder`.
-
 ## Acceptance
 - [ ] One normalization pass strips wrappers, synthetic argument vals and default getters; no other `unwrapped`-style helper remains in `reify/body`.
 - [ ] Sugar refusals still name the sugar from its call site.

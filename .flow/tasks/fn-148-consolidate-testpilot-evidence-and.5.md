@@ -4,6 +4,8 @@ satisfies: [R6, R7]
 # fn-148-consolidate-testpilot-evidence-and.5 Remove derived Contract fields and preserve support presence
 
 ## Description
+**Recut 2026-10-18 (one-language series):** The `tools/umpire/lower` half goes to fn-203's Temporal adapter.
+
 Derive Contract rule kind from deadline and remove the fixed correlated clock for R6. Convert independent support inclusion to an explicitly present Boolean. Keep absent versus present-empty dependencies and all source coordinates whose meaning is not derivable.
 
 **Size:** M

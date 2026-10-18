@@ -141,11 +141,11 @@ IR validator refusals, exact texts:
   `BuiltinCall(name, args)` and has no other code that recognises a builtin; `LiftableSubset.permitted`
   is the table lookup. Errors: a library call with no row is refused with `outside the liftable
   subset: <call>` at the call, as today.
-- **R4:** The Go interpreter evaluates every builtin of the table; the validator and lint refuse an
+- **R4:** *(2026-10-18, one-language series: recut by fn-201.6: the Go interpreter row is deleted; R4 becomes emitter coverage, every builtin of the table has a translation in each Scala emitter (TLA in fn-206/fn-207; Quint in deferred fn-205) and the checker executes it as Scala)* The Go interpreter evaluates every builtin of the table; the validator and lint refuse an
   unknown name, a wrong arity and a wrong argument type with the exact texts in API Contracts; the
   Quint exporter maps every builtin. Errors: the conformance test fails for any name lacking an
   interpreter or exporter case.
-- **R5:** fn-173.4's native `Set` and `Map` operations are the `set` and `map` families of the table
+- **R5:** *(2026-10-18, one-language series: recut: the answers are the Scala checker's, not the Go checks'; the retained oracles are the native sample suites)* fn-173.4's native `Set` and `Map` operations are the `set` and `map` families of the table
   and nothing else; the six samples (Bank's sparse maps, TwoPhaseCommit's and Voting's sets) lift,
   validate, interpret and export through builtins, and their Query answers through the Go checks are
   unchanged from the retained oracles. Errors: a changed answer is a finding, not a regeneration.
@@ -181,6 +181,8 @@ no operator a sample or a Temporal Model does not use today.
 Sequencing: phase 2 of the owner's phasing (2026-10-17), batched with fn-173.4 (whose `Set`/`Map`
 operations land here as builtins), after fn-189.10 (the normalization pass the arity match relies on)
 and alongside fn-190.9/.10. Nothing in phase 1 depends on it.
+
+2026-10-18, one-language series: the Go interpreter and the Quint exporter no longer hold the semantics; fn-201.6 recuts this spec so the builtins table, the checker's execution and each Scala emitter's translation are held to the list by one Scala conformance test. The standing decision "the Go checks' answers are the oracle" (Goal & Context, Edge Cases) is withdrawn: the native checker is the oracle (fn-196). Whether `model/builtins.json` stays checked-in data or becomes a Scala table is decided in fn-201.6.
 
 ## Requirement coverage
 
