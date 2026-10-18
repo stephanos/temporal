@@ -55,7 +55,7 @@ func TestWASMArchitecture(t *testing.T) {
 }
 
 func TestWASMArchitectureRejectsHostImports(t *testing.T) {
-	for _, filename := range []string{"clock.go", "debug_output.go", "process.go", "cluster.go", "moved_process.go"} {
+	for _, filename := range []string{"clock.go", "debug_output.go", "measurement.go", "process.go", "cluster.go", "moved_process.go"} {
 		t.Run(filename, func(t *testing.T) {
 			root := t.TempDir()
 			for name, source := range map[string]string{

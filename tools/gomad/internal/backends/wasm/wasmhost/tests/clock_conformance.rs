@@ -61,6 +61,10 @@ fn response(label: &str, result: &Result<clock::TimeResponse, String>) -> Value 
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scenario retains its complete ordered setup and contract assertions."
+)]
 fn replay(name: &str, corpus: &Value) -> Result<(), String> {
     let mut clock = match (
         corpus["clock"]["kind"].as_str(),
@@ -115,7 +119,7 @@ fn replay(name: &str, corpus: &Value) -> Result<(), String> {
                     generation: field("generation"),
                     current: signed("current"),
                     deadline: signed("deadline"),
-                    arrivals: field("arrivals") as u32,
+                    arrivals: u32::try_from(field("arrivals")).unwrap(),
                 };
                 match clock.quiesce(handle, request) {
                     Ok(Quiesced::Answered(answer)) => responses.push(response(label, &Ok(answer))),
@@ -133,7 +137,7 @@ fn replay(name: &str, corpus: &Value) -> Result<(), String> {
             }
             op => {
                 let request = field("request");
-                let arrivals = field("arrivals") as u32;
+                let arrivals = u32::try_from(field("arrivals")).unwrap();
                 let event = match op {
                     "accepted" => Event::Accepted {
                         participant: handle,

@@ -9,7 +9,7 @@
 pub const HEADER: usize = 64;
 pub const MAXIMUM_CHUNK_BYTES: usize = 64 << 10;
 /// Go `netmodel.StreamStallTimeout`: above the WASI errno range.
-pub const STREAM_STALL_TIMEOUT: u32 = 1 << 16 | 22;
+pub const STREAM_STALL_TIMEOUT: u32 = 1 << 16 | 0x16;
 
 pub const OPERATIONS: [&str; 14] = [
     "query",

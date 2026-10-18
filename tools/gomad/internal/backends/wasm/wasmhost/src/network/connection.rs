@@ -6,6 +6,10 @@ pub(super) struct Chunk {
 }
 
 #[derive(Default)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Read closure, write closure, close calls and stalls are independent connection state"
+)]
 pub(super) struct State {
     pub incoming: VecDeque<Chunk>,
     pub received: VecDeque<u8>,

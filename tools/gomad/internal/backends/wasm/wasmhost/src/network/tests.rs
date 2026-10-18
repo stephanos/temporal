@@ -46,7 +46,7 @@ fn record_hashes_only_the_final_canonical_history_and_snapshot() {
     };
     history::DIGEST_COUNTS.with(|count| count.set((0, 0)));
     assert_eq!(model.record().unwrap(), expected);
-    assert_eq!(history::DIGEST_COUNTS.with(|count| count.get()), (1, 1));
+    assert_eq!(history::DIGEST_COUNTS.with(std::cell::Cell::get), (1, 1));
 }
 
 #[test]

@@ -17,6 +17,10 @@ pub const SCHEMA_VERSION: u32 = 1;
 pub const INITIAL_TIME: i64 = 946_684_800_000_000_000;
 
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[expect(
+    clippy::struct_field_names,
+    reason = "Field names mirror the Go World limits contract"
+)]
 pub struct Limits {
     pub max_requests: u64,
     pub max_events: u64,
@@ -456,7 +460,7 @@ impl Model {
             queue: BTreeSet::new(),
             history: Vec::new(),
             transcript: digest::empty_digest(),
-            transition_frames: Default::default(),
+            transition_frames: std::cell::RefCell::default(),
         })
     }
 

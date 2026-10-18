@@ -96,6 +96,10 @@ pub enum Snapshot {
 }
 
 impl State {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The snapshot keeps storage, network and World commitments at one ordered boundary."
+    )]
     pub fn inspection_snapshot(&mut self, at: Snapshot) {
         use crate::model::inspection::{NetworkState, StorageEvidence, StorageState};
         #[cfg(test)]
@@ -125,19 +129,18 @@ impl State {
                 // An unchanged namespace yields identical material, whose
                 // encoding already succeeded.
                 Some(evidence) if evidence.revision == current && evidence.handle == cut.handle => {
-                    unchanged = Some(evidence.clone())
+                    unchanged = Some(evidence.clone());
                 }
-                _ => match namespace.inspection_material() {
-                    Ok((state, recovery, log)) => {
+                _ => {
+                    if let Ok((state, recovery, log)) = namespace.inspection_material() {
                         cut.storage_state = state;
                         cut.recovery_state = recovery;
                         storage = log;
-                    }
-                    Err(_) => {
+                    } else {
                         model.inspection.lock().exhausted = true;
                         return;
                     }
-                },
+                }
             }
         }
         let mut network = None;
@@ -152,15 +155,12 @@ impl State {
                     .inspection_network(crate::model::inspection::network_commitment)
                     .map(|(digest, bytes)| (Some(digest), bytes))
             };
-            match observed {
-                Ok((digest, bytes)) => {
-                    network = Some(digest);
-                    network_bytes = bytes;
-                }
-                Err(_) => {
-                    model.inspection.lock().exhausted = true;
-                    return;
-                }
+            if let Ok((digest, bytes)) = observed {
+                network = Some(digest);
+                network_bytes = bytes;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
             }
         }
         let network_state = match network {
@@ -212,12 +212,11 @@ impl State {
                             Err(error) => Err(error),
                         };
                     }
-                    match world {
-                        Ok(Some(digest)) => digest.to_vec(),
-                        _ => {
-                            model.inspection.lock().exhausted = true;
-                            return;
-                        }
+                    if let Ok(Some(digest)) = world {
+                        digest.to_vec()
+                    } else {
+                        model.inspection.lock().exhausted = true;
+                        return;
                     }
                 }
                 None => crate::model::inspection::commitment("world", &[]),
@@ -244,28 +243,24 @@ impl State {
         let mut cut = model.inspection_cut();
         let mut storage = Vec::new();
         if let Some(namespace) = &self.namespace {
-            match namespace.inspection_material() {
-                Ok((state, recovery, log)) => {
-                    cut.storage_state = state;
-                    cut.recovery_state = recovery;
-                    storage = log;
-                }
-                Err(_) => {
-                    model.inspection.lock().exhausted = true;
-                    return;
-                }
+            if let Ok((state, recovery, log)) = namespace.inspection_material() {
+                cut.storage_state = state;
+                cut.recovery_state = recovery;
+                storage = log;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
             }
         }
         let mut network = Vec::new();
         if let Some(member) = &self.broker
             && let Some(endpoint) = &member.network
         {
-            match endpoint.evidence() {
-                Ok(bytes) => network = bytes,
-                Err(_) => {
-                    model.inspection.lock().exhausted = true;
-                    return;
-                }
+            if let Ok(bytes) = endpoint.evidence() {
+                network = bytes;
+            } else {
+                model.inspection.lock().exhausted = true;
+                return;
             }
         }
         if model
@@ -278,19 +273,20 @@ impl State {
         }
         if boundary {
             model.inspection.world_commitment = match &self.broker {
-                Some(member) => match member.broker.world_wire() {
-                    Ok(wire) => match &member.network {
-                        Some(_) => crate::model::inspection::commitment_parts(
-                            "world",
-                            &[&wire, &(network.len() as u64).to_le_bytes(), &network],
-                        ),
-                        None => crate::model::inspection::commitment("world", &wire),
-                    },
-                    Err(_) => {
+                Some(member) => {
+                    if let Ok(wire) = member.broker.world_wire() {
+                        match &member.network {
+                            Some(_) => crate::model::inspection::commitment_parts(
+                                "world",
+                                &[&wire, &(network.len() as u64).to_le_bytes(), &network],
+                            ),
+                            None => crate::model::inspection::commitment("world", &wire),
+                        }
+                    } else {
                         model.inspection.lock().exhausted = true;
                         return;
                     }
-                },
+                }
                 None => crate::model::inspection::commitment("world", &[]),
             };
         }
@@ -473,7 +469,7 @@ impl State {
         self.model_call(|model, id| model.random(id, length))
     }
     pub fn yield_call(&mut self) -> Result<()> {
-        self.model_call(|model, id| model.yield_call(id))
+        self.model_call(super::model::Model::yield_call)
     }
     pub fn poll_call(
         &mut self,
@@ -497,6 +493,13 @@ impl State {
     /// reply, confirms with Go that no broker revocation crossed it and
     /// adopts the broker clock, as the Go-owned path does at its next call.
     fn sync_revocation(&mut self) -> Result<()> {
+        #[derive(serde::Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Continue {
+            #[serde(rename = "type")]
+            kind: String,
+            now: u64,
+        }
         if !self.model.as_ref().is_some_and(|model| model.sync_pending) {
             return Ok(());
         }
@@ -514,13 +517,6 @@ impl State {
                     serde_json::from_slice(&bytes).map_err(Error::new)?;
                 interrupt.validate()?;
                 return Err(Error::new(interrupt));
-            }
-            #[derive(serde::Deserialize)]
-            #[serde(deny_unknown_fields)]
-            struct Continue {
-                #[serde(rename = "type")]
-                kind: String,
-                now: u64,
             }
             let resumed: Continue = serde_json::from_slice(&bytes).map_err(Error::new)?;
             let model = self.model.as_mut().unwrap();
@@ -582,6 +578,14 @@ impl State {
     pub fn runtime(&mut self, op: &str, bytes: Vec<u8>) -> Result<Vec<u8>> {
         self.model_call(|model, _| model.runtime(op, bytes))
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Callback admission, execution and terminal classification remain in wire order."
+    )]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "The callback descriptor is a short-lived request view consumed at this boundary."
+    )]
     pub fn callback_input(&mut self, input: protocol::CallbackInput<'_>) -> Result<Reply> {
         self.check_broker()?;
         let op = input.op();
@@ -589,7 +593,7 @@ impl State {
             >= self
                 .model
                 .as_ref()
-                .map_or(MAX_CALLBACKS, |model| model.call_limit())
+                .map_or(MAX_CALLBACKS, super::model::Model::call_limit)
         {
             return Err(self.fail(
                 "capacity",
@@ -752,6 +756,10 @@ impl State {
             Err(error) => Err(self.fail(protocol::classification(&error), error.to_string())),
         }
     }
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "The ABI transfers ownership of its constructed JSON request to this callback."
+    )]
     pub fn callback_typed(&mut self, operation: abi::Operation, input: Value) -> Result<Reply> {
         self.callback_input(protocol::CallbackInput::Typed {
             operation,
@@ -759,6 +767,10 @@ impl State {
         })
     }
     #[cfg(test)]
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "The fixture transfers its constructed request into the callback boundary."
+    )]
     pub fn callback(&mut self, op: &str, input: Value) -> Result<Reply> {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
@@ -773,6 +785,10 @@ pub(crate) const CONFIGURATION_REVISION: &str = match (
     (true, true) => "cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off",
 };
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The entry point preserves admission, store lifetime, terminal evidence and cleanup order."
+)]
 pub fn execute() -> Result<()> {
     let mut input: Box<dyn BufRead + Send> = Box::new(BufReader::new(std::io::stdin()));
     let mut output: Box<dyn Write + Send> = Box::new(std::io::stdout());
@@ -962,7 +978,7 @@ pub(crate) fn new_state(
         input,
         output,
         limits: Limits {
-            max: memory_bytes as usize,
+            max: usize::try_from(memory_bytes).unwrap(),
             peak: 0,
             failure: None,
         },
@@ -1013,6 +1029,13 @@ pub(crate) fn authorize(input: &mut dyn BufRead, module_sha256: &str) -> Result<
 }
 
 /// The store's terminal outcome with fuel, guest memory peak and output bytes.
+#[cfg_attr(
+    feature = "diagnostic-fuel-off",
+    expect(
+        clippy::unnecessary_wraps,
+        reason = "The shared terminal API propagates Wasmtime fuel-read failures when fuel accounting is enabled."
+    )
+)]
 pub(crate) fn terminal_outcome(
     store: &mut Store<State>,
     executed: Result<()>,
@@ -1233,7 +1256,7 @@ pub(crate) fn prepare_module(
             }
             ExternType::Table(_) => "table",
             ExternType::Global(_) => "global",
-            _ => "other",
+            ExternType::Tag(_) => "other",
         };
         exports.push(json!({"name":export.name(),"kind":kind}));
     }
@@ -1271,6 +1294,10 @@ pub(crate) fn compile(
     result
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Wasmtime type iterators yield owned ValType values directly to this mapper."
+)]
 fn type_name(ty: ValType) -> &'static str {
     match ty {
         ValType::I32 => "i32",
@@ -1278,10 +1305,14 @@ fn type_name(ty: ValType) -> &'static str {
         ValType::F32 => "f32",
         ValType::F64 => "f64",
         ValType::V128 => "v128",
-        _ => "ref",
+        ValType::Ref(_) => "ref",
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Terminal error classification consumes the failed execution error."
+)]
 pub(crate) fn execution_failure(error: Error, limiter_failure: Option<&'static str>) -> Outcome {
     let classification = limiter_failure.unwrap_or_else(|| match error.downcast_ref::<Trap>() {
         Some(Trap::OutOfFuel) => "capacity",
@@ -1291,11 +1322,15 @@ pub(crate) fn execution_failure(error: Error, limiter_failure: Option<&'static s
     Outcome::new(classification, format!("{error:#}"))
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Result::map_err transfers ownership of the compilation error to this classifier."
+)]
 fn compilation_failure(error: Error) -> Outcome {
     let cause = error.root_cause().to_string();
     let message = error
         .downcast_ref::<wasmtime::wasmparser::BinaryReaderError>()
-        .map(|error| error.message())
+        .map(wasmtime::wasmparser::BinaryReaderError::message)
         .or_else(|| {
             // Function translation wraps parser errors in an unexported WasmError.
             let (offset, message) = cause
@@ -1448,11 +1483,11 @@ mod tests {
                     .call(
                         &mut self.store,
                         (
-                            fd as i32,
-                            pointer as i32,
-                            count as i32,
-                            offset as i64,
-                            output as i32,
+                            fd.cast_signed(),
+                            pointer.cast_signed(),
+                            count.cast_signed(),
+                            offset.cast_signed(),
+                            output.cast_signed(),
                         ),
                     )
             } else {
@@ -1461,7 +1496,12 @@ mod tests {
                     .unwrap()
                     .call(
                         &mut self.store,
-                        (fd as i32, pointer as i32, count as i32, output as i32),
+                        (
+                            fd.cast_signed(),
+                            pointer.cast_signed(),
+                            count.cast_signed(),
+                            output.cast_signed(),
+                        ),
                     )
             }
         }
@@ -1494,6 +1534,10 @@ mod tests {
             u32::from_le_bytes(bytes)
         }
     }
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "The fixture transfers its constructed output into the serialized reply."
+    )]
     fn write_abi_reply(id: u64, errno: u32, output: Value, modeled: bool) -> Vec<u8> {
         let mut reply = json!({"type":"reply","id":id,"errno":errno,"output":output});
         if modeled {
@@ -1594,7 +1638,7 @@ mod tests {
                 "guest memory range out of bounds",
             ),
             (
-                vec![(u32::MAX, protocol::BUFFER_LIMIT as u32 + 1)],
+                vec![(u32::MAX, u32::try_from(protocol::BUFFER_LIMIT).unwrap() + 1)],
                 16,
                 1,
                 u32::MAX,
@@ -1640,7 +1684,10 @@ mod tests {
             fixture.restored();
         }
         let mut fixture = WriteAbiFixture::new(65, true, Vec::new());
-        fixture.descriptors(&[(4096, protocol::BUFFER_LIMIT as u32), (4096, 1)]);
+        fixture.descriptors(&[
+            (4096, u32::try_from(protocol::BUFFER_LIMIT).unwrap()),
+            (4096, 1),
+        ]);
         assert!(fixture.invoke(true, 13, 16, 2, 0, 0).is_err());
         assert_eq!(
             fixture.store.data().terminal.as_ref().unwrap().message,
@@ -1668,10 +1715,13 @@ mod tests {
             true,
             write_abi_reply(1, 0, json!({"written":protocol::BUFFER_LIMIT}), true),
         );
-        fixture.descriptors(&[(4096, protocol::BUFFER_LIMIT as u32)]);
+        fixture.descriptors(&[(4096, u32::try_from(protocol::BUFFER_LIMIT).unwrap())]);
         fixture.memory().data_mut(&mut fixture.store)[4096..4096 + protocol::BUFFER_LIMIT].fill(42);
         assert_eq!(fixture.invoke(true, 13, 16, 1, u64::MAX, 0).unwrap(), 0);
-        assert_eq!(fixture.output_count(), protocol::BUFFER_LIMIT as u32);
+        assert_eq!(
+            fixture.output_count(),
+            u32::try_from(protocol::BUFFER_LIMIT).unwrap()
+        );
         let frame: Value = serde_json::from_slice(&fixture.capture.0.lock().unwrap()).unwrap();
         assert_eq!(
             frame["input"],
@@ -1745,7 +1795,10 @@ mod tests {
                     .write(&mut fixture.store, 256, &[7; 32])
                     .unwrap();
                 fixture.descriptors(&[(256, 32)]);
-                assert_eq!(fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(), errno as i32);
+                assert_eq!(
+                    fixture.invoke(false, 1, 16, 1, 0, 0).unwrap(),
+                    errno.cast_signed()
+                );
                 assert_eq!(
                     fixture.output_count(),
                     if errno == 0 { 16 } else { u32::MAX }
@@ -1769,7 +1822,39 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The test preserves the ordered complete reply and transport restoration matrix."
+    )]
     fn typed_write_abi_reply_errors_chunks_interrupts_and_transport_restore_buffers() {
+        struct ShortOutput {
+            bytes: WriteCapture,
+            fail_after_prefix: bool,
+            sent: usize,
+        }
+        impl Write for ShortOutput {
+            fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+                if self.fail_after_prefix && self.sent != 0 {
+                    return Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe));
+                }
+                let count = bytes.len().min(3);
+                self.bytes.write_all(&bytes[..count])?;
+                self.sent += count;
+                Ok(count)
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                self.bytes.flush()
+            }
+        }
+        struct Broken;
+        impl Write for Broken {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                unreachable!()
+            }
+        }
         let mut unsupported: Value =
             serde_json::from_slice(&write_abi_reply(1, 0, json!({}), true)).unwrap();
         unsupported["unsupported"] = json!(true);
@@ -1869,15 +1954,6 @@ mod tests {
             2
         );
         fixture.restored();
-        struct Broken;
-        impl Write for Broken {
-            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
-                Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe))
-            }
-            fn flush(&mut self) -> std::io::Result<()> {
-                unreachable!()
-            }
-        }
         let mut fixture = WriteAbiFixture::new(2, true, Vec::new());
         fixture.descriptors(&[(256, 32)]);
         fixture.store.data_mut().output = Box::new(Broken);
@@ -1897,25 +1973,6 @@ mod tests {
         assert_eq!(fixture.origins(), origins);
         fixture.restored();
 
-        struct ShortOutput {
-            bytes: WriteCapture,
-            fail_after_prefix: bool,
-            sent: usize,
-        }
-        impl Write for ShortOutput {
-            fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
-                if self.fail_after_prefix && self.sent != 0 {
-                    return Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe));
-                }
-                let count = bytes.len().min(3);
-                self.bytes.write_all(&bytes[..count])?;
-                self.sent += count;
-                Ok(count)
-            }
-            fn flush(&mut self) -> std::io::Result<()> {
-                self.bytes.flush()
-            }
-        }
         for fail_after_prefix in [false, true] {
             let mut fixture =
                 WriteAbiFixture::new(2, true, write_abi_reply(1, 0, json!({"written":32}), true));
@@ -2092,7 +2149,7 @@ mod tests {
             ));
                 let reply = if typed {
                     let data_base64 = input["data_base64"].as_str().unwrap();
-                    let fd = input["fd"].as_u64().unwrap() as u32;
+                    let fd = u32::try_from(input["fd"].as_u64().unwrap()).unwrap();
                     let callback = if op == "fd_pwrite" {
                         protocol::CallbackInput::PWrite {
                             fd,
@@ -2168,7 +2225,7 @@ mod tests {
                     )
                     .unwrap();
                     assert_eq!(actual, reference);
-                    assert!(scratch.is_empty());
+                    assert_eq!(scratch, [] as [u8; 0]);
                     assert!(scratch.capacity() <= protocol::FRAME_LIMIT);
                 }
             }
@@ -2189,8 +2246,8 @@ mod tests {
         )
         .unwrap_err();
         assert_eq!(protocol::classification(&error), "capacity");
-        assert!(output.is_empty());
-        assert!(scratch.is_empty());
+        assert_eq!(output, [] as [u8; 0]);
+        assert_eq!(scratch, [] as [u8; 0]);
         assert!(scratch.capacity() <= protocol::FRAME_LIMIT);
         let mut oversized = Vec::with_capacity(protocol::FRAME_LIMIT + 1);
         protocol::send_callback(
@@ -2209,6 +2266,15 @@ mod tests {
 
     #[test]
     fn typed_write_shared_decoder_chunks_interrupts_and_transport_restore_scratch() {
+        struct Broken;
+        impl Write for Broken {
+            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
+                Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe))
+            }
+            fn flush(&mut self) -> std::io::Result<()> {
+                unreachable!()
+            }
+        }
         for (reply, termination, completed) in [
             (
                 "{\"type\":\"remote_transcript\",\"data_base64\":\"AQI=\"}\n{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":{\"written\":2},\"local_state\":{\"now\":7,\"advances\":3},\"transcript_base64\":\"\"}\n",
@@ -2247,21 +2313,12 @@ mod tests {
             );
             assert_eq!((state.calls, state.completed_calls), (1, completed));
             assert_eq!(state.request_scratch.as_ptr(), origin);
-            assert!(state.request_scratch.is_empty());
+            assert_eq!(state.request_scratch, [] as [u8; 0]);
             if termination.is_none() {
                 assert_eq!(
                     state.model.as_ref().unwrap().state(),
                     json!({"now":7,"advances":3,"transcript_bytes":2})
                 );
-            }
-        }
-        struct Broken;
-        impl Write for Broken {
-            fn write(&mut self, _: &[u8]) -> std::io::Result<usize> {
-                Err(std::io::Error::from(std::io::ErrorKind::BrokenPipe))
-            }
-            fn flush(&mut self) -> std::io::Result<()> {
-                unreachable!()
             }
         }
         let mut state = clock_state(4, 65536, 1);
@@ -2281,7 +2338,7 @@ mod tests {
             "infrastructure"
         );
         assert_eq!(state.request_scratch.as_ptr(), origin);
-        assert!(state.request_scratch.is_empty());
+        assert_eq!(state.request_scratch, [] as [u8; 0]);
         assert_eq!((state.calls, state.completed_calls), (1, 0));
     }
 
@@ -2383,9 +2440,9 @@ mod tests {
     fn inspection_state() -> State {
         use crate::{broker, model::inspection, network::cluster as net};
         let ids = ["a".to_owned()];
-        let network_config: net::Config = serde_json::from_value(json!({"model":{"profile":net::PROFILE,"limits":{"listeners":16,"connections":16,"bytes":1048576,"connection_bytes":65536,"stall_nanos":1000000,"transitions":4096}}})).unwrap();
+        let network_config: net::Config = serde_json::from_value(json!({"model":{"profile":net::PROFILE,"limits":{"listeners":16,"connections":16,"bytes":1_048_576,"connection_bytes":65536,"stall_nanos":1_000_000,"transitions":4096}}})).unwrap();
         let network = Arc::new(Mutex::new(net::Shared::new(&network_config, &ids).unwrap()));
-        let broker_config: broker::Config = serde_json::from_value(json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,"max_transitions":40000,"max_payload_bytes":33554432,"max_string_bytes":1024}})).unwrap();
+        let broker_config: broker::Config = serde_json::from_value(json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,"max_transitions":40000,"max_payload_bytes":33_554_432,"max_string_bytes":1024}})).unwrap();
         let owner = Arc::new(
             broker::Broker::new(&broker_config, &ids, Some(network.clone()), None).unwrap(),
         );
@@ -2645,7 +2702,7 @@ mod tests {
             state.output = Box::new(capture.clone());
             for index in 0..4096 {
                 let clock_id = index % 2;
-                let precision = index as u64 * 17;
+                let precision = u64::from(index) * 17;
                 let timestamp = if typed {
                     state.clock_time_get(clock_id, precision).unwrap()
                 } else {
@@ -2661,7 +2718,7 @@ mod tests {
                 };
                 assert_eq!(
                     timestamp,
-                    index as u64 * 3 + 1 + if clock_id == 0 { 1000 } else { 0 }
+                    u64::from(index) * 3 + 1 + if clock_id == 0 { 1000 } else { 0 }
                 );
                 if index == 2048 {
                     assert!(

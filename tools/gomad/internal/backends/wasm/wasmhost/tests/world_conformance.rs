@@ -64,7 +64,7 @@ fn config(value: &Value) -> world::Config {
             max_queued_events: value["max_queued_events"].as_u64().unwrap(),
             max_transitions: value["max_transitions"].as_u64().unwrap(),
             max_payload_bytes: value["max_payload_bytes"].as_u64().unwrap(),
-            max_string_bytes: value["max_string_bytes"].as_u64().unwrap() as u32,
+            max_string_bytes: u32::try_from(value["max_string_bytes"].as_u64().unwrap()).unwrap(),
         },
     }
 }
@@ -132,7 +132,7 @@ fn replay(name: &str, corpus: &Value) -> Result<Option<world::Model>, String> {
                             kind: text(&request["resource_kind"]),
                             key: text(&request["key"]),
                         },
-                        priority: request["priority"].as_u64().unwrap() as u16,
+                        priority: u16::try_from(request["priority"].as_u64().unwrap()).unwrap(),
                         payload: bytes(&request["payload_base64"]),
                     })
                     .map(|id| ("request_id", Value::from(id)))

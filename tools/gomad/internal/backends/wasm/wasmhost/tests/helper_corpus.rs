@@ -98,7 +98,9 @@ fn guest_bytes(guest: &Value) -> Result<Vec<u8>, String> {
                 let piece = repeat["text"]
                     .as_str()
                     .ok_or("repeat text must be a string")?;
-                text.push_str(&piece.repeat(count as usize));
+                text.push_str(&piece.repeat(
+                    usize::try_from(count).map_err(|_| "repeat count exceeds host width")?,
+                ));
             }
             _ => return Err(format!("invalid guest part {part}")),
         }
@@ -400,9 +402,8 @@ fn project_profile(value: &Value) -> Value {
             let mut out = Map::new();
             for (key, item) in fields {
                 let projected = match (key.as_str(), item.as_u64()) {
-                    ("residual", _) => json!("measured"),
+                    ("residual", _) | ("peak_rss_bytes_high_water", Some(_)) => json!("measured"),
                     ("host_os" | "host_arch", _) => json!(format!("${key}")),
-                    ("peak_rss_bytes_high_water", Some(_)) => json!("measured"),
                     (name, Some(_)) if name.ends_with("_nanos") => json!("measured"),
                     _ => project_profile(item),
                 };
@@ -487,7 +488,7 @@ fn stable_expected(
 }
 
 fn first_difference(left: &Value, right: &Value) -> String {
-    fn walk(path: String, left: &Value, right: &Value) -> Option<String> {
+    fn walk(path: &str, left: &Value, right: &Value) -> Option<String> {
         match (left, right) {
             (Value::Object(a), Value::Object(b)) => {
                 for key in a.keys().chain(b.keys()) {
@@ -496,7 +497,7 @@ fn first_difference(left: &Value, right: &Value) -> String {
                         b.get(key).unwrap_or(&Value::Null),
                     );
                     if x != y {
-                        return walk(format!("{path}.{key}"), x, y);
+                        return walk(&format!("{path}.{key}"), x, y);
                     }
                 }
                 None
@@ -506,7 +507,7 @@ fn first_difference(left: &Value, right: &Value) -> String {
                 .zip(b)
                 .enumerate()
                 .find(|(_, (x, y))| x != y)
-                .and_then(|(index, (x, y))| walk(format!("{path}[{index}]"), x, y)),
+                .and_then(|(index, (x, y))| walk(&format!("{path}[{index}]"), x, y)),
             _ if left != right => {
                 let clip = |value: &Value| value.to_string().chars().take(400).collect::<String>();
                 Some(format!("{path}: {} != {}", clip(left), clip(right)))
@@ -514,7 +515,7 @@ fn first_difference(left: &Value, right: &Value) -> String {
             _ => None,
         }
     }
-    walk(String::new(), left, right).unwrap_or_default()
+    walk("", left, right).unwrap_or_default()
 }
 
 fn validate(case: &Value) -> Result<(), String> {
@@ -760,7 +761,8 @@ fn crash_context(state: &[u8]) -> Result<Value, String> {
         if word(offset) != Some(tag) {
             return Err(format!("storage state section {tag} missing"));
         }
-        let length = long(offset + 4).ok_or("storage state truncated")? as usize;
+        let length = usize::try_from(long(offset + 4).ok_or("storage state truncated")?)
+            .map_err(|_| "storage state length exceeds host width")?;
         offset += 12;
         let body = state
             .get(offset..offset + length)
@@ -863,7 +865,7 @@ fn loader_refuses_output_that_varies_across_runs() {
 fn loader_refuses_unscripted_requests_and_unused_replies() {
     let mut case = json!({"schema":SCHEMA,"intent":"self-test",
         "guest":{"wat":"(module (import \"wasi_snapshot_preview1\" \"sched_yield\" (func $y (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") call $y drop))"},
-        "request":{"schema":"gomad.wasm-host/v1","type":"execute","module_path":"$guest_path","module_sha256":"$guest_sha256","memory_bytes":131072,"fuel":1000000,"output_bytes":1024},
+        "request":{"schema":"gomad.wasm-host/v1","type":"execute","module_path":"$guest_path","module_sha256":"$guest_sha256","memory_bytes":131_072,"fuel":1_000_000,"output_bytes":1024},
         "replies":[{"after":{"type":"started"},"send":[{"type":"authorize","module_sha256":"$trigger.module_sha256","configuration":"$trigger.engine.configuration"}]}]});
     validate(&case).unwrap();
     let error = run_case(&case).unwrap_err();
@@ -915,6 +917,7 @@ fn derived_inputs_follow_their_producer() {
 /// asserted, checked over the expected blocks without running the helper.
 #[test]
 fn committed_cases_keep_their_cross_case_relations() {
+    const DURABLE: &[u8] = br#""Path":"/db""#;
     let stream = |case: &str, name: &str| producer_stream(case, name).unwrap();
     // Split revocation preserves the same storage whether the revoked call
     // was replied to or completed by the interrupt (split_revocation_*).
@@ -946,7 +949,6 @@ fn committed_cases_keep_their_cross_case_relations() {
         "storage state does not bind the image identity"
     );
     // Recovery from that image starts with the durable file.
-    const DURABLE: &[u8] = br#""Path":"/db""#;
     let recovered = stream("storage_recovery_from_returned_image", "storage_state");
     assert!(
         recovered

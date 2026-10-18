@@ -88,7 +88,7 @@ fn json_string(out: &mut Vec<u8>, value: &str) {
             '\u{8}' => out.extend_from_slice(b"\\b"),
             '\u{c}' => out.extend_from_slice(b"\\f"),
             '<' | '>' | '&' | '\u{2028}' | '\u{2029}' => {
-                out.extend_from_slice(format!("\\u{:04x}", u32::from(character)).as_bytes())
+                out.extend_from_slice(format!("\\u{:04x}", u32::from(character)).as_bytes());
             }
             character if (character as u32) < 0x20 => {
                 let value = character as u32;
@@ -114,7 +114,7 @@ fn json_field(out: &mut Vec<u8>, first: &mut bool, key: &str) {
     out.push(b':');
 }
 
-fn json_number(out: &mut Vec<u8>, first: &mut bool, key: &str, value: impl ToString) {
+fn json_number(out: &mut Vec<u8>, first: &mut bool, key: &str, value: impl ToString + Copy) {
     json_field(out, first, key);
     out.extend_from_slice(value.to_string().as_bytes());
 }
@@ -200,7 +200,7 @@ fn request_binary(out: &mut Vec<u8>, request: &Request) {
     text(out, &request.op);
     varint(out, request.handle);
     text(out, &request.host);
-    varint(out, request.port as u64);
+    varint(out, request.port.cast_unsigned());
     bytes(out, &request.bytes);
     varint(out, u64::from(request.count));
     varint(out, request.deadline);
@@ -296,13 +296,13 @@ pub fn quiescence_entry(quiescence: &world::Quiescence) -> (Vec<u8>, Vec<u8>) {
     json.push(b'}');
     let mut binary = vec![3];
     text(&mut binary, quiescence.kind.as_str());
-    varint(&mut binary, quiescence.before as u64);
-    varint(&mut binary, quiescence.after as u64);
+    varint(&mut binary, quiescence.before.cast_unsigned());
+    varint(&mut binary, quiescence.after.cast_unsigned());
     varint(&mut binary, quiescence.deliveries.len() as u64);
     for delivery in &quiescence.deliveries {
         varint(&mut binary, delivery.request_id);
         varint(&mut binary, delivery.event_id);
-        varint(&mut binary, delivery.at as u64);
+        varint(&mut binary, delivery.at.cast_unsigned());
         text(&mut binary, &delivery.kind);
         bytes(&mut binary, &delivery.payload);
     }

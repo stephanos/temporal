@@ -2,6 +2,10 @@ use crate::namespace::{Boundary, Image, ImageEntry, Limits};
 use std::collections::{BTreeMap, BTreeSet};
 use std::io::{ErrorKind, Read};
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The image decoder validates wire lengths, topology, and descriptor limits before returning an image."
+)]
 pub fn decode(
     reader: &mut impl Read,
     expected_files: u64,
@@ -87,7 +91,7 @@ pub fn decode(
     loop {
         match reader.read(&mut trailing) {
             Ok(0) => break,
-            Err(error) if error.kind() == ErrorKind::Interrupted => continue,
+            Err(error) if error.kind() == ErrorKind::Interrupted => (),
             _ => return Err(invalid()),
         }
     }
@@ -176,7 +180,9 @@ fn read_blob(reader: &mut impl Read, limit: u64) -> Result<Vec<u8>, Boundary> {
     let mut bytes = Vec::new();
     let mut chunk = [0; 4096];
     while remaining > 0 {
-        let length = remaining.min(chunk.len() as u64) as usize;
+        let length = chunk
+            .len()
+            .min(usize::try_from(remaining).unwrap_or(usize::MAX));
         reader
             .read_exact(&mut chunk[..length])
             .map_err(|_| invalid())?;
@@ -254,8 +260,8 @@ mod tests {
     fn decodes_hand_checked_root_image() {
         let image = decode(&mut &ROOT_IMAGE[..], 1, 3, 4).unwrap();
         assert!(image.entries.is_empty());
-        assert!(image.preopens.is_empty());
-        assert!(image.writable_directories.is_empty());
+        assert_eq!(image.preopens, [] as [std::vec::Vec<u8>; 0]);
+        assert_eq!(image.writable_directories, [] as [std::vec::Vec<u8>; 0]);
         assert_eq!(image.working_directory, b"/");
         assert_eq!(image.stdin, b"x");
         assert_eq!(image.limits.files, 1);

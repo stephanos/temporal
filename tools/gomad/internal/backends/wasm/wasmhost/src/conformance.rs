@@ -170,7 +170,7 @@ fn binary_output_reservation(op: &str, fields: &Fields) -> Result<u64> {
     Ok(match op {
         "clock_time_get" => 4 + "CPU clocks outside stock WASI profile".len() as u64,
         "fd_read" | "fd_pread" | "fd_prestat_dir_name" | "fd_readdir" | "path_readlink" => {
-            4 + field::<u32>(fields, "length")? as u64
+            4 + u64::from(field::<u32>(fields, "length")?)
         }
         "fd_write" | "fd_pwrite" | "fd_prestat_get" | "path_open" => 4,
         "fd_filestat_get" | "path_filestat_get" => 57,
@@ -298,6 +298,10 @@ struct Session {
 }
 
 impl Session {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The strict corpus record constructor validates related model configuration fields together."
+    )]
     fn new(record: &str) -> Result<Self> {
         check_json(record, 0)?;
         let request: SessionRequest =
@@ -372,7 +376,8 @@ impl Session {
             epoch_nanos: request.epoch_nanos,
         };
         let mut volume = None;
-        let mut namespace = Namespace::new(image.clone()).map_err(boundary_name)?;
+        let mut namespace =
+            Namespace::new(image.clone()).map_err(|boundary| boundary_name(&boundary))?;
         if let Some(storage) = storage {
             let model: Option<volume::StorageModel> = serde_json::from_str(storage.get())
                 .map_err(|_| "invalid:storage model".to_string())?;
@@ -389,8 +394,9 @@ impl Session {
                 limits.output_bytes,
                 request.epoch_nanos,
             )
-            .map_err(boundary_name)?;
-            let production = Namespace::new(decoded).map_err(boundary_name)?;
+            .map_err(|boundary| boundary_name(&boundary))?;
+            let production =
+                Namespace::new(decoded).map_err(|boundary| boundary_name(&boundary))?;
             if production.canonical_state() != namespace.canonical_state() {
                 return Err("invalid:binary namespace image mismatch".into());
             }
@@ -432,6 +438,10 @@ impl Session {
         self.call(&op, fields["input"].get())
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The reference corpus dispatch keeps operation-specific wire outputs together."
+    )]
     fn call(&mut self, op: &str, input: &str) -> Result<String> {
         let op = op.to_string();
         if op == "digest" {
@@ -522,7 +532,7 @@ impl Session {
                 self.limits.transcript_bytes,
                 false,
             )
-            .map_err(boundary_name)?;
+            .map_err(|boundary| boundary_name(&boundary))?;
         } else {
             let reservation = if binary.clock.is_some_and(|(clock_id, _)| clock_id <= 1) {
                 if folded {
@@ -532,7 +542,7 @@ impl Session {
                 }
             } else if let Some(subscriptions) = &subscriptions {
                 namespace_call::admit_poll_frames(self.next_call, subscriptions)
-                    .map_err(boundary_name)?;
+                    .map_err(|boundary| boundary_name(&boundary))?;
                 header + transcript::poll_reservation(subscriptions)
             } else {
                 header
@@ -650,7 +660,7 @@ impl Session {
             Some(&self.namespace),
         )
         .map_err(|error| match error {
-            local_model::PollError::Capacity(boundary) => boundary_name(boundary),
+            local_model::PollError::Capacity(boundary) => boundary_name(&boundary),
             local_model::PollError::Descriptor => "invalid:local descriptor poll".to_string(),
         })?;
         self.now = poll.now;
@@ -739,14 +749,17 @@ fn namespace_reply(reply: &namespace::Reply) -> String {
         reply
             .output
             .as_ref()
-            .map(encode_output)
-            .unwrap_or_else(|| "{}".into())
+            .map_or_else(|| "{}".into(), encode_output)
     } else {
         "{}".into()
     };
     encode_reply(reply.errno, &output, reply.unsupported.as_deref())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Each namespace operation decodes its complete strict field set in one match."
+)]
 fn decode_operation(op: &str, fields: &Fields) -> Result<Operation> {
     let keys: &[&str] = match op {
         "fd_prestat_get" | "fd_fdstat_get" | "fd_filestat_get" | "fd_close" | "fd_sync" => &["fd"],
@@ -1077,7 +1090,7 @@ fn compact_json(value: &str) -> String {
     output
 }
 
-fn boundary_name(boundary: namespace::Boundary) -> String {
+fn boundary_name(boundary: &namespace::Boundary) -> String {
     format!("{}:{}", boundary.kind, boundary.dimension)
 }
 /// Boundaries keep the `kind:dimension` error form; storage crashes and Go
@@ -1085,7 +1098,7 @@ fn boundary_name(boundary: namespace::Boundary) -> String {
 /// `{`), as the Go volume harness reports them.
 fn stop_name(stop: namespace::Stop) -> String {
     match stop {
-        namespace::Stop::Boundary(boundary) => boundary_name(boundary),
+        namespace::Stop::Boundary(boundary) => boundary_name(&boundary),
         namespace::Stop::StorageCrash(fault) => {
             format!(r#"{{"storage_crash":{}}}"#, go_json(&fault))
         }
@@ -1228,8 +1241,8 @@ mod tests {
             bytes.extend(value);
         };
         let mut sorted = writable.to_vec();
-        sorted.sort();
-        for value in [100, 64, 8388608, 1048576, 946684800000000000] {
+        sorted.sort_unstable();
+        for value in [100, 64, 8_388_608, 1_048_576, 946_684_800_000_000_000] {
             number(&mut bytes, value);
         }
         for count in [writable.len(), writable.len(), 0, writable.len()] {
@@ -1689,7 +1702,8 @@ impl VolumeSession {
     /// Go `NewEnvironment` (fresh) or `NewRecoveredEnvironment` (recovery
     /// image): a namespace with the validated storage model attached.
     fn namespace(&self, recovery: Option<&volume::Image>) -> Result<Namespace> {
-        let mut namespace = Namespace::new(self.image.clone()).map_err(boundary_name)?;
+        let mut namespace =
+            Namespace::new(self.image.clone()).map_err(|boundary| boundary_name(&boundary))?;
         self.model
             .validate(&self.writable, self.image.limits.filesystem_bytes)
             .map_err(|dimension| format!("invalid:{dimension}"))?;
@@ -1732,6 +1746,10 @@ impl Session {
     }
 
     /// One Go `volumeConformanceObservation` for an `{op,input,now}` record.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The corpus volume scenario keeps each operation and its serialized outcome together."
+    )]
     fn volume_step(&mut self, record: &str) -> Result<String> {
         let fields = object_fields(record)?;
         if fields.len() != 3
@@ -1827,8 +1845,11 @@ impl Session {
                     let page = state.pages.get(&input.page);
                     let states = page.and_then(|page| page.states.as_ref());
                     let crash = states
-                        .filter(|states| input.state >= 0 && (input.state as usize) < states.len())
-                        .map(|states| &states[input.state as usize])
+                        .and_then(|states| {
+                            usize::try_from(input.state)
+                                .ok()
+                                .and_then(|index| states.get(index))
+                        })
                         .ok_or_else(|| "invalid:conformance page state".to_string())?;
                     selected = Some(BTreeMap::from([(
                         crash.volume.clone(),
@@ -1845,7 +1866,7 @@ impl Session {
                 match self.namespace.crash_storage(&plain, maximum) {
                     Ok(image) => {
                         let state = self.volume.as_mut().unwrap();
-                        state.image_digest = image.digest.clone();
+                        state.image_digest.clone_from(&image.digest);
                         state.image_data = Some(image.bytes.clone());
                         state.images.insert(input.image, image);
                         "{}".to_string()
@@ -1919,7 +1940,6 @@ impl Session {
     fn storage_log(&self) -> &[u8] {
         self.namespace
             .storage()
-            .map(|storage| storage.log.as_slice())
-            .unwrap_or(&[])
+            .map_or(&[][..], |storage| storage.log.as_slice())
     }
 }

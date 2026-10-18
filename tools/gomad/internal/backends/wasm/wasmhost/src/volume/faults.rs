@@ -6,6 +6,7 @@ use super::crash::{CrashEnumeration, CrashEnumerationLimits, CrashExploration};
 use super::image::{RecoveryImage, image_digest};
 use super::state::{Error, Fs, Handle, OpenFlags, Operation, VolumeSnapshot};
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 
 /// Why a storage-routed operation stops the run instead of answering it.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -97,7 +98,7 @@ impl Storage {
         mut count: u64,
         now: u64,
     ) -> Decision {
-        self.clock = now as i64;
+        self.clock = now.cast_signed();
         let key = format!("{resource}\0{operation}");
         let occurrence = {
             let entry = self.occurrences.entry(key).or_default();
@@ -193,6 +194,10 @@ impl Storage {
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
 fn image_refusal(error: Error) -> Stop {
     match error {
         Error::Capacity { .. } => Stop::Boundary("capacity", "storage-image-bytes"),
@@ -221,7 +226,7 @@ pub(crate) fn event_line(
     go_string(&mut line, resource);
     line.push_str(",\"operation\":");
     go_string(&mut line, operation);
-    line.push_str(&format!(",\"occurrence\":{occurrence}"));
+    write!(line, ",\"occurrence\":{occurrence}").unwrap();
     if let Some(fault) = fault.filter(|fault| !fault.is_empty()) {
         line.push_str(",\"fault\":");
         go_string(&mut line, fault);
@@ -229,7 +234,7 @@ pub(crate) fn event_line(
     line.push_str(",\"action\":");
     go_string(&mut line, action);
     if bytes != 0 {
-        line.push_str(&format!(",\"bytes\":{bytes}"));
+        write!(line, ",\"bytes\":{bytes}").unwrap();
     }
     line.push('}');
     line
@@ -251,7 +256,6 @@ pub(crate) fn errno(error: &Error) -> u16 {
             "exists" => 20,
             "file-too-large" => 22,
             "invalid" => 28,
-            "io" => 29,
             "is-directory" => 31,
             "too-many-files" => 33,
             "no-entry" => 44,
@@ -361,7 +365,7 @@ mod tests {
             Err(Stop::Crash("b".into()))
         );
         assert_eq!(storage.clock, 9);
-        assert_eq!(storage.log.iter().filter(|b| **b == b'\n').count(), 4);
+        assert_eq!(storage.log.split(|byte| *byte == b'\n').count() - 1, 4);
         assert_eq!(storage.occurrences["/workspace/db\0write"], 2);
     }
 
@@ -378,13 +382,13 @@ mod tests {
                 "storage write fault must shorten the matched write"
             ))
         );
-        assert!(storage.log.is_empty());
+        assert_eq!(storage.log.len(), 0);
         let mut small = storage_with_limit();
         assert_eq!(
             small.decision("/workspace/db", "open", 0, 1),
             Err(Stop::Boundary("capacity", "storage-transcript"))
         );
-        assert!(small.log.is_empty());
+        assert_eq!(small.log.len(), 0);
     }
 
     fn storage_with_limit() -> Storage {

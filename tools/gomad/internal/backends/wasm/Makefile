@@ -1,38 +1,47 @@
-.PHONY: helper conformance-helper test test-helper test-conformance test-go test-model qualify-runtime qualify-workloads prototype lint-code
+.PHONY: helper conformance-helper test test-helper test-conformance test-go test-model qualify-runtime qualify-workloads prototype lint-code lint-rust fmt fmt-check
 
 GOMAD_WASM_STOCK_GO ?= $(GOMAD_STOCK_GO)
 
-lint-code:
+fmt:
+	cargo +1.99.1 fmt --manifest-path wasmhost/Cargo.toml
+
+fmt-check:
+	cargo +1.99.1 fmt --manifest-path wasmhost/Cargo.toml -- --check
+
+lint-rust: fmt-check
+	@for features in '' conformance diagnostic-profile diagnostic-fuel-off guest-profile guest-profile,diagnostic-fuel-off; do \
+		CARGO_BUILD_WARNINGS=deny cargo +1.99.1 clippy --manifest-path wasmhost/Cargo.toml --release --locked \
+			--all-targets --no-deps --features "$$features" -- -D warnings || exit $$?; \
+	done
+
+lint-code: lint-rust
 	$(MAKE) -C ../../../../.. lint-code-gomad-wasm
 
 helper:
-	cargo +1.94.1 build --manifest-path wasmhost/Cargo.toml --release --locked
-	@if test -n "$$CARGO_TARGET_DIR"; then \
+	cargo +1.99.1 build --manifest-path wasmhost/Cargo.toml --release --locked
+	@helper_source="$${CARGO_TARGET_DIR:-wasmhost/target}/release/gomad-wasmhost"; \
 		mkdir -p wasmhost/target/release && \
-		if ! cmp -s "$$CARGO_TARGET_DIR/release/gomad-wasmhost" wasmhost/target/release/gomad-wasmhost; then \
-			helper_tmp="$$(mktemp wasmhost/target/release/gomad-wasmhost.XXXXXX)" && \
-			cp "$$CARGO_TARGET_DIR/release/gomad-wasmhost" "$$helper_tmp" && \
-			chmod 755 "$$helper_tmp" && \
-			cmp "$$CARGO_TARGET_DIR/release/gomad-wasmhost" "$$helper_tmp" && \
-			mv -f "$$helper_tmp" wasmhost/target/release/gomad-wasmhost; \
-		fi; \
-	fi
+		helper_tmp="$$(mktemp wasmhost/target/release/gomad-wasmhost.XXXXXX)" && \
+		cp "$$helper_source" "$$helper_tmp" && \
+		chmod 755 "$$helper_tmp" && \
+		cmp "$$helper_source" "$$helper_tmp" && \
+		mv -f "$$helper_tmp" wasmhost/target/release/gomad-wasmhost
 
 test: helper test-helper test-go
 
 # The helper transcript corpus also runs on the diagnostic builds (fn-187); they
 # change the helper binary, so they build in their own target directory.
 test-helper:
-	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked
-	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
 		--features diagnostic-profile --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
-	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
 		--features diagnostic-fuel-off --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
-	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
 		--features guest-profile --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
 
 conformance-helper:
-	cargo +1.94.1 build --manifest-path wasmhost/Cargo.toml --release --locked \
+	cargo +1.99.1 build --manifest-path wasmhost/Cargo.toml --release --locked \
 		--features conformance --target-dir '$(CURDIR)/wasmhost/target-conformance'
 
 test-conformance:

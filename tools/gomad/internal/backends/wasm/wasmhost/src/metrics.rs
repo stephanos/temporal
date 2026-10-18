@@ -102,10 +102,12 @@ mod usage {
     }
     pub fn sample() -> Option<(u64, u64, u64)> {
         let mut usage = std::mem::MaybeUninit::<Rusage>::zeroed();
-        // RUSAGE_SELF writes the platform's complete 64-bit rusage layout.
+        // SAFETY: the supported platform ABI writes the complete Rusage layout
+        // to this aligned, writable allocation; who=0 selects RUSAGE_SELF.
         if unsafe { getrusage(0, usage.as_mut_ptr()) } != 0 {
             return None;
         }
+        // SAFETY: successful getrusage initialized the complete Rusage value.
         let usage = unsafe { usage.assume_init() };
         let rusage_peak = rss_bytes(usage.counters[0])?;
         #[cfg(target_os = "linux")]
@@ -117,10 +119,10 @@ mod usage {
         let peak = rusage_peak;
         Some((nanos(&usage.user)?, nanos(&usage.system)?, peak))
     }
-    /// Linux ru_maxrss (RUSAGE_SELF and wait4) also folds in the high-water RSS
+    /// Linux `ru_maxrss` (`RUSAGE_SELF` and wait4) also folds in the high-water RSS
     /// of the address space replaced by execve. Go spawns helpers with
-    /// CLONE_VM|CLONE_VFORK, so that is the operator's lifetime peak, not the
-    /// helper's. VmHWM is the high-water mark of this process image only.
+    /// `CLONE_VM|CLONE_VFORK`, so that is the operator's lifetime peak, not the
+    /// helper's. `VmHWM` is the high-water mark of this process image only.
     #[cfg(any(target_os = "linux", test))]
     fn own_peak_rss(status: &str) -> Option<u64> {
         let line = status.lines().find(|line| line.starts_with("VmHWM:"))?;
@@ -204,7 +206,9 @@ mod usage {
             if std::env::var_os("GOMAD_WASMHOST_PEAK_CHILD").is_some() {
                 let (_, _, rss) = sample().unwrap();
                 let mut usage = std::mem::MaybeUninit::<Rusage>::zeroed();
+                // SAFETY: usage is writable and aligned for the supported ABI.
                 assert_eq!(unsafe { getrusage(0, usage.as_mut_ptr()) }, 0);
+                // SAFETY: getrusage succeeded and initialized the complete value.
                 let inherited = rss_bytes(unsafe { usage.assume_init() }.counters[0]).unwrap();
                 println!("child-peak={rss}\nchild-rusage={inherited}");
                 return;

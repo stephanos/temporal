@@ -298,12 +298,11 @@ fn read_chunks(
     maximum: u64,
     stream: &ChunkedStream,
 ) -> Result<Vec<u8>> {
-    let label = stream.label;
-    if declared.bytes > maximum {
-        return Err(Error::new(crate::namespace::Boundary {
-            kind: stream.oversize_kind,
-            dimension: stream.oversize_dimension,
-        }));
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct End {
+        #[serde(rename = "type")]
+        kind: String,
     }
     #[derive(Deserialize)]
     #[serde(deny_unknown_fields)]
@@ -312,6 +311,13 @@ fn read_chunks(
         kind: String,
         sequence: u64,
         data_base64: String,
+    }
+    let label = stream.label;
+    if declared.bytes > maximum {
+        return Err(Error::new(crate::namespace::Boundary {
+            kind: stream.oversize_kind,
+            dimension: stream.oversize_dimension,
+        }));
     }
     let mut bytes = Vec::new();
     for sequence in 0..declared.chunks {
@@ -328,12 +334,6 @@ fn read_chunks(
             return Err(Error::msg(format!("invalid {label} chunk length")));
         }
         bytes.extend(data);
-    }
-    #[derive(Deserialize)]
-    #[serde(deny_unknown_fields)]
-    struct End {
-        #[serde(rename = "type")]
-        kind: String,
     }
     let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
     if end.kind != stream.end_kind {
@@ -365,6 +365,10 @@ pub fn recovery_evidence(namespace: &mut Namespace, descriptor: &StorageDescript
     collect(namespace, descriptor, true)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+)]
 fn collect(
     namespace: &mut Namespace,
     descriptor: &StorageDescriptor,
@@ -551,7 +555,7 @@ fn encode_state_sections(
     .iter()
     .enumerate()
     {
-        bytes.extend_from_slice(&(tag as u32 + 1).to_le_bytes());
+        bytes.extend_from_slice(&(u32::try_from(tag).unwrap() + 1).to_le_bytes());
         bytes.extend_from_slice(&(section.len() as u64).to_le_bytes());
         bytes.extend_from_slice(section);
     }
@@ -631,14 +635,14 @@ mod tests {
         let mut descriptor: StorageDescriptor = serde_json::from_value(serde_json::json!({
             "model":serde_json::from_str::<serde_json::Value>(&model.go_json()).unwrap(),
             "model_identity":model.identity(),"return_image":false,"crash_context":{
-                "chunks":bytes.len().div_ceil(CHUNK as usize),"bytes":bytes.len(),
+                "chunks":bytes.len().div_ceil(usize::try_from(CHUNK).unwrap()),"bytes":bytes.len(),
                 "sha256":format!("{:x}", Sha256::digest(&bytes))
             }
         }))
         .unwrap();
         descriptor.validate().unwrap();
         let mut framed = Vec::new();
-        for (sequence, chunk) in bytes.chunks(CHUNK as usize).enumerate() {
+        for (sequence, chunk) in bytes.chunks(usize::try_from(CHUNK).unwrap()).enumerate() {
             serde_json::to_writer(
                 &mut framed,
                 &serde_json::json!({"type":"storage_context_input",

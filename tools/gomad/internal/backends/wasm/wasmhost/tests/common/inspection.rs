@@ -70,10 +70,10 @@ pub fn boundaries(evidence: &Value) -> Vec<Value> {
             cut["witness"] = witness(&mut frame);
             cuts.push(cut);
         }
-        assert!(frame.is_empty());
+        assert_eq!(frame, [] as [u8; 0]);
         boundary["cuts"] = json!(cuts);
         boundaries.push(boundary);
     }
-    assert!(input.is_empty());
+    assert_eq!(input, [] as [u8; 0]);
     boundaries
 }

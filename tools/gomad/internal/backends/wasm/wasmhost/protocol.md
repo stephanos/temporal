@@ -1,7 +1,7 @@
 # Isolated WASM engine protocol
 
-Build and test with `cargo +1.94.1 build --release --locked` and `cargo +1.94.1 test --locked`
-in this directory. Rust 1.94.1 and Wasmtime 47.0.3 are pinned locally. No WASI
+Build and test with `cargo +1.99.1 build --release --locked` and `cargo +1.99.1 test --locked`
+in this directory. Rust 1.99.1 and Wasmtime 47.0.3 are pinned locally. No WASI
 implementation or engine cache is linked. A helper handles one `execute` and exits,
 or hosts a `cluster_execute` session until its explicit `finish` control.
 
@@ -33,7 +33,7 @@ stale copies and rebuilds them on regeneration. A Rust test checks the
 relations between committed cases that single cases cannot state (equal
 split-revocation storage, the image identity bound in storage state, the
 recovered `/db`, the namespace transcript records). After a reviewed behavior
-change, rerun `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.94.1 test --release
+change, rerun `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.99.1 test --release
 --locked --test helper_corpus`, and the same with `--features diagnostic-profile`,
 `--features diagnostic-fuel-off` and `--features guest-profile` in a separate
 target directory; the corpus diff is the approval.
@@ -926,7 +926,7 @@ hash each actual artifact rather than assuming historical byte identity.
 
 `guest-profile` implies `diagnostic-profile` and enables Wasmtime's pinned
 `profiling` and `call-hook` features only in that diagnostic build. Build it with
-`cargo +1.94.1 build --release --locked --features guest-profile --target-dir /tmp/gomad-wasmhost-guestprof`.
+`cargo +1.99.1 build --release --locked --features guest-profile --target-dir /tmp/gomad-wasmhost-guestprof`.
 It adds the optional execute field
 `"guest_profile":{"path":"/absolute/profile.json","interval_micros":1000,"max_samples":10000}`.
 The interval must be 1–1,000,000 microseconds and the sample bound 1–100,000.

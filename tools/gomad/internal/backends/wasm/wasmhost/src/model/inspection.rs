@@ -66,7 +66,7 @@ impl Witness {
             return Err(Error::msg("invalid compulsory runtime witness"));
         }
         let u64_at = |at| u64::from_be_bytes(bytes[at..at + 8].try_into().unwrap());
-        let u32_at = |at| u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap()) as u64;
+        let u32_at = |at| u64::from(u32::from_be_bytes(bytes[at..at + 4].try_into().unwrap()));
         let mut counters = [0; 7];
         for (index, counter) in counters.iter_mut().enumerate() {
             *counter = u64_at(40 + index * 8);
@@ -80,7 +80,7 @@ impl Witness {
             allocations: u64_at(16),
             allocated_bytes: u64_at(96),
             gc_cycles: u32_at(24),
-            gc_phase: bytes[28] as u64,
+            gc_phase: u64::from(bytes[28]),
             goroutines: u64_at(112),
             run_queue: u32_at(32),
             global_run_queue: u64_at(120),
@@ -193,6 +193,7 @@ pub struct Evidence {
     pub boundaries: Vec<Boundary>,
 }
 /// The network commitment input of [`Recorder::snapshot_with`].
+#[derive(Clone, Copy)]
 pub enum NetworkState<'a> {
     /// The instance's current network evidence bytes.
     Bytes(&'a [u8]),
@@ -203,6 +204,7 @@ pub enum NetworkState<'a> {
 }
 
 /// The storage commitment input of [`Recorder::snapshot_with`].
+#[derive(Clone, Copy)]
 pub enum StorageState<'a> {
     /// Fresh material: the cut carries the raw state and recovery bytes.
     Fresh { log: &'a [u8] },
@@ -483,15 +485,12 @@ impl Recorder {
             NetworkState::Digest(digest) => Some(digest),
             NetworkState::Pending => None,
         };
-        match network {
-            Some(digest) => {
-                cut.network_state = digest.to_vec();
-                self.supersede_network(&handle);
-            }
-            None => {
-                cut.network_state = Vec::new();
-                self.pending_network.insert(handle.clone());
-            }
+        if let Some(digest) = network {
+            cut.network_state = digest.to_vec();
+            self.supersede_network(&handle);
+        } else {
+            cut.network_state = Vec::new();
+            self.pending_network.insert(handle.clone());
         }
         let streams = &self.owner(&handle).streams;
         cut.choice_records = streams.choice.len() as u64 / 96;
@@ -510,6 +509,10 @@ impl Recorder {
             log_bytes,
         })
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The boundary count is rejected at 65536 before encoding its increment."
+    )]
     pub fn boundary(
         &mut self,
         handle: &Handle,
@@ -536,7 +539,7 @@ impl Recorder {
             network_state: commitment("network", &[]),
             ..Default::default()
         });
-        cut.witness = witness.clone();
+        cut.witness = witness;
         cut.clock_run = clock;
         if self.evidence.boundaries.len() >= 65536 {
             self.exhausted = true;
@@ -547,8 +550,8 @@ impl Recorder {
         }
         let boundary = Boundary {
             handle: handle.clone(),
-            decision: witness.choices,
-            trace: witness.choices + witness.observations,
+            decision: cut.witness.choices,
+            trace: cut.witness.choices + cut.witness.observations,
             order,
             time_nanos: time,
             world_bytes: (self.evidence.world.len() + 8 + world.len()) as u64,
@@ -606,12 +609,12 @@ impl Recorder {
         }
     }
     #[cfg(test)]
-    pub fn network_snapshot(&mut self, handle: &Handle, bytes: Vec<u8>) {
+    pub fn network_snapshot(&mut self, handle: &Handle, bytes: &[u8]) {
         if self.sealed || self.exhausted {
             return;
         }
         if let Some(cut) = self.cuts.get_mut(handle) {
-            cut.network_state = commitment("network", &bytes);
+            cut.network_state = commitment("network", bytes);
             self.supersede_network(handle);
         }
     }
@@ -785,8 +788,14 @@ impl Transport {
         Ok(())
     }
     pub fn lock(&self) -> std::sync::MutexGuard<'_, Recorder> {
-        self.recorder.lock().unwrap_or_else(|e| e.into_inner())
+        self.recorder
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The output-capacity check bounds payload length below MAX_OUTPUT."
+    )]
     pub fn frame(&mut self, op: u32, payload: &[u8]) {
         if self.output.len() + 32 + payload.len() > MAX_OUTPUT - 64 {
             self.truncated = true;
@@ -912,11 +921,8 @@ pub fn validate_pending(data: &[u8]) -> Result<Vec<[u8; 32]>> {
     {
         return Err(Error::msg("invalid debug pending decision"));
     }
-    let mut identities: Vec<[u8; 32]> = data[32..]
-        .chunks_exact(32)
-        .map(|bytes| bytes.try_into().unwrap())
-        .collect();
-    identities.sort();
+    let mut identities = data[32..].as_chunks::<32>().0.to_vec();
+    identities.sort_unstable();
     if identities.contains(&[0u8; 32]) || identities.windows(2).any(|pair| pair[0] == pair[1]) {
         return Err(Error::msg("invalid debug pending alternative identities"));
     }
@@ -934,6 +940,10 @@ fn base64_len(length: usize) -> usize {
 fn encoded_growth(prior: usize, extra: usize) -> usize {
     base64_len(prior + extra) - base64_len(prior)
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Handle node names are checked against 1024 bytes before encoding."
+)]
 fn put_handle(bytes: &mut Vec<u8>, handle: &Handle, controller: bool) -> Result<()> {
     if handle.node.is_empty()
         || handle.node.len() > 1024
@@ -951,6 +961,10 @@ fn put_handle(bytes: &mut Vec<u8>, handle: &Handle, controller: bool) -> Result<
     bytes.extend_from_slice(&handle.incarnation.to_le_bytes());
     Ok(())
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Cut counts are at most 65536, clock runs at most 1024 bytes, and the final frame is checked against MAX_METADATA."
+)]
 fn boundary_frame(boundary: &Boundary) -> Result<Vec<u8>> {
     let mut bytes = vec![0; 4];
     put_handle(&mut bytes, &boundary.handle, false)?;
@@ -1152,7 +1166,7 @@ mod tests {
                             recovery_state: material.clone(),
                             storage_state: vec![ordinal],
                             clock_run: vec![ordinal],
-                            witness: witness_at(ordinal as u64),
+                            witness: witness_at(u64::from(ordinal)),
                             ..Default::default()
                         },
                         &[ordinal],
@@ -1162,10 +1176,14 @@ mod tests {
             );
             assert_eq!(recorder.cuts[&handle].recovery_state, expected);
         }
-        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 2);
+        assert_eq!(RECOVERY_HASHES.with(std::cell::Cell::get), 2);
     }
 
     #[test]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The fixture enumerates eight snapshots, so ordinals fit u8 and usize."
+    )]
     fn recovery_cache_preserves_uncached_snapshot_and_evidence_bytes() {
         let mut cached = Recorder::default();
         let mut reference = Recorder::default();
@@ -1230,7 +1248,7 @@ mod tests {
             }
             assert_recovery_cache_bound(&cached);
         }
-        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 5);
+        assert_eq!(RECOVERY_HASHES.with(std::cell::Cell::get), 5);
         let handle = Handle {
             node: "a".into(),
             incarnation: 2,
@@ -1238,7 +1256,7 @@ mod tests {
         for recorder in [&mut cached, &mut reference] {
             recorder.terminal(&handle, true);
             recorder.terminal_network(&handle, b"terminal-network".to_vec());
-            recorder.network_snapshot(&handle, b"fresh-terminal-cut".to_vec());
+            recorder.network_snapshot(&handle, b"fresh-terminal-cut");
         }
         assert_eq!(cached.bytes(true).unwrap(), reference.bytes(true).unwrap());
     }
@@ -1302,7 +1320,7 @@ mod tests {
             );
             assert_eq!(recorder.recovery.bytes, 0);
         }
-        assert_eq!(RECOVERY_HASHES.with(|count| count.get()), 2);
+        assert_eq!(RECOVERY_HASHES.with(std::cell::Cell::get), 2);
         recorder = Recorder::default();
         for incarnation in 1..=MAX_RECOVERY_CACHE_ENTRIES as u64 + 1 {
             let mut material = Vec::with_capacity(1 << 20);
@@ -1352,7 +1370,7 @@ mod tests {
                 snapshot_uncached(&mut reference, cut.clone(), b"network", b"log")
             );
             let retained = cached.recovery.bytes;
-            let hashes = RECOVERY_HASHES.with(|count| count.get());
+            let hashes = RECOVERY_HASHES.with(std::cell::Cell::get);
             for recorder in [&mut cached, &mut reference] {
                 match refusal {
                     "sealed" => recorder.sealed = true,
@@ -1370,7 +1388,7 @@ mod tests {
                 snapshot_uncached(&mut reference, cut, b"new-network", b"longer-storage-log")
             );
             assert_eq!(
-                RECOVERY_HASHES.with(|count| count.get()),
+                RECOVERY_HASHES.with(std::cell::Cell::get),
                 hashes,
                 "{refusal}"
             );
@@ -1443,7 +1461,11 @@ mod tests {
     #[test]
     fn state_commitments_bind_domains_lengths_and_last_bytes() {
         let storage = commitment("storage", b"abc");
-        let hex: String = storage.iter().map(|b| format!("{b:02x}")).collect();
+        let hex = storage.iter().fold(String::new(), |mut hex, byte| {
+            use std::fmt::Write as _;
+            write!(&mut hex, "{byte:02x}").unwrap();
+            hex
+        });
         assert_eq!(
             hex,
             "bc21ac8235dac2e82b5ff9401aec3720cbe19d167569211b906be2b290c51b7a"
@@ -1543,6 +1565,10 @@ mod tests {
     /// Supplied commitments and deferred network writes record exactly what
     /// fresh material and evidence bytes record.
     #[test]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The fixture iterates ordinals from zero through five."
+    )]
     fn snapshot_with_supplied_and_deferred_commitments_matches_fresh_snapshots() {
         let mut fresh = Recorder::default();
         let mut supplied = Recorder::default();
@@ -1631,7 +1657,7 @@ mod tests {
             incarnation: 1,
         };
         let cut = Cut {
-            handle: handle.clone(),
+            handle,
             witness: witness_at(0),
             ..Default::default()
         };

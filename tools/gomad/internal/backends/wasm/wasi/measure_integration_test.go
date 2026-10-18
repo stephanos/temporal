@@ -1997,7 +1997,7 @@ func terminalExitBuildInputsFeatures(t *testing.T, receipt string, request Reque
 	if err := json.Unmarshal(data, &build); err != nil {
 		t.Fatal(err)
 	}
-	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
+	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.99.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.99.1 ") {
 		t.Fatal("helper receipt does not bind the pinned release build and measured executable")
 	}
 	if !terminalExitCompilerEnvironment(build) {

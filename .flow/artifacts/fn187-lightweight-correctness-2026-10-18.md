@@ -5,12 +5,157 @@ a source freeze, coverage certificate, performance result or task completion.
 The consolidated R3 source remains in `/home/agent/wt/wasm-fn187-functional`;
 R3 source has not been integrated into the primary checkout.
 
-Latest status: 405 helper inputs and 42 additions remain after the rejected
-stale-reply experiment was archived. Following the diagnostic control correction,
-two guarded default regenerations are byte-identical, all 18 Rust helper tests
-pass, and the real Go consumer passes all 405 cases plus four guard roots with
-zero skips. The public stale-refusal replacement is still unresolved; its
-original test remains.
+Current execution checkpoint: the resource hold is lifted and all three exact
+original resource tests passed before the subsequent Rust 1.99.1 upgrade.
+Primary and R3 formatting and strict six-configuration Clippy now pass;
+fresh test/coverage verification remains open. The full WASM gate's
+architecture failure has a focused red-to-green fix, not a full qualification
+pass. See [the current hygiene checkpoint](rust-hygiene-2026-10-18.md).
+
+Last measured Rust functional/corpus/invariant inventories are 198/28/134;
+Go inventories are 63/27/9. Two public Rust originals remain intact. The
+pre-extraction frozen default checkpoint passes
+Rust 196/28/134 and Go 63/27/9 permitted roots. A subsequent test-only loader
+extraction passes its fresh 21-root helper suite; coverage has not been refrozen
+for that source. The Go serialized volume transport migration and
+affected-package lint pass. Final full/feature coverage, independent review,
+integration and fn-189 qualification remain open. The sections below retain
+the chronological evidence, including superseded counts and failed attempts.
+
+## Verified helper loader extraction
+
+Subsequent execution authorization: the owner requests "run the
+resource-senitive checks now". The previous WASM resource-execution hold is
+lifted. The runtime owner resumes serial exact original oversized-input,
+large-context and RSS checks first, then applicable full/resource qualification
+with unchanged budgets. Native execution, fn-185 profiling, ignored benchmark
+roots and publishing remain excluded. Results are not yet implied; earlier
+held/stopped descriptions below remain historical.
+
+The first resumed batch passes each of the three exact originals: oversized
+tagged-frame capacity, pending context larger than one MiB and exec RSS accounting.
+Each log reports one passed, zero failed/ignored and 139 filtered; all commands
+and the pinned build exit 0, with zero compiler warnings and no source/index drift.
+The conductor inspected all three terminal logs and results. Receipt
+`/home/agent/wt/evidence/fn187/r3-current/resource-originals-2026-10-18/receipt.json`
+has SHA256 `854d662e6f1465c74e03b914482d22c2c55ff9c071e9a10fa3cdb24fb766c8db`.
+These exact checks do not establish full coverage, final budgets or fn-189
+qualification. The primary candidate's canonical full WASM and runtime gates
+are next, with distinct candidate/evidence binding.
+
+The bounded standards cleanup moved 19 function bodies exactly into cohesive
+model, admission, write and derived-input common modules, with residual selection
+joining its existing module. Eight thin wrappers preserve root test names. The
+remaining 32 root functions retain tokens except reviewed qualifications and
+formatter commas. The loader falls from 3101 to 1084 lines after formatting.
+The coherent boundary addresses the maintainability finding without imposing
+the reviewer's non-repo 1000-line cap.
+
+The fresh pinned serial build exits 0 with zero warnings in Cargo JSON and
+stderr. The actual 21-name executable roster matches the prior roster byte for
+byte. Its unfiltered run exits 0 with 21 passed, zero failed, ignored or filtered,
+including the 407-case corpus. The conductor inspected terminal records, output,
+warning records, source SHA and preserved staged-index SHA independently.
+
+Evidence lives at
+`/home/agent/wt/evidence/fn187/r3-current/helper-loader-extraction-2026-10-18/evidence.json`.
+The current manifest SHA256 is
+`a10f5b9f8e4f2d4c825ac4b5bcff5a3589bd00c820e6006453e9232d300ccd33`,
+with 53 source bindings. Selectors, tools and 142 private bindings are unchanged.
+All original contracts, current fixture bytes and the staged index are preserved.
+No production source changed. The preceding frozen coverage checkpoint remains
+before-move evidence only; no current-source coverage/full certificate is claimed.
+No held gate, generation, broad matrix, integration, staging or commit ran.
+All runtime handles are terminal; the previously listed worktrees remain retained.
+
+## Consolidated permitted default checkpoint
+
+The pre-extraction source pin is
+`b2b6531ce942f06c358eeb55aeb671b3e1c0e02b65f89930b7b2f01d681949dd`.
+The receipt at
+`/home/agent/wt/evidence/fn187/r3-current/r3-checkpoint-default-correctness-allowed196-2026-10-18/receipt.json`
+has SHA256 `8ee102cd98a98fb443c3435535ec6b57f1f1adf278981d02ea5d593be46514af`.
+Its manifest SHA256 is
+`12891a2c9b8f41da9c6b0077807c0d6c14ad4e763566735a97ffb377ac8f419d`.
+The source freeze binds 2090 inputs, 1712 immutable JSON copies and nine actual
+objects with hashes and build IDs. The accepted staged diff remains unchanged.
+
+All six permitted arms pass. Rust functional execution uses an explicit 196-root
+selector derived from the unchanged canonical 198-root inventory. The oversized
+tagged-frame and greater-than-one-MiB context originals remain whole and unrun,
+as do the RSS original and ignored timing/throughput roots. All 407 helper cases
+replay in each relevant Rust and Go arm. This is not an actual-full run.
+
+Rust current functional coverage has 15698 positive production lines, all in the
+corpus-plus-invariant union. Go baseline and current functional/union gaps are
+zero. The raw Rust baseline diagnostic still reports one unmapped `None` cursor
+expression. A separate exact-input, exact-output default-cursor equivalence
+proof validates that identity without rewriting the raw report. Its receipt is
+`/home/agent/wt/evidence/fn187/r3-current/current-default-cursor-proof-allowed196-2026-10-18/receipt.json`,
+SHA256 `8ea93ecfb0e0c31fbac7d92c0792f6c2498ca4a69a1b693f494f02085b50037c`.
+Mapped baseline union losses are zero. These diagnostics do not replace final
+full/configuration conservation gates.
+
+The preceding consolidated attempt built successfully but stopped before tests
+on three unused test-code warnings. Removing an unused fixture field, two unused
+test-only namespace getters and an unused test constant resolved them. All 142
+retained test bodies and private classification reasons remain unchanged.
+Earlier zero-warning claims based only on stderr were too broad. The fresh
+checkpoint has zero compiler warnings in both Cargo JSON and stderr. Its strict
+coverage exports retain 256/233/101 exact registry-only diagnostic records;
+there are no admitted in-crate mismatches or unexpected diagnostics, but this
+must not be described as zero profile diagnostics. Historical logs remain intact.
+
+## Periodic source audits of the permitted checkpoint
+
+Fresh-context same-family reviewers ran as gpt-6.1-sol at high effort. The
+correctness review was dispatched first; standards followed while correctness
+was running. They were not dispatched in the same message as the workflow
+requests. Neither review supplies final acceptance.
+
+### Correctness axis
+
+## Quality Audit — Correctness axis: fn-187.3 periodic checkpoint
+
+No new correctness finding reached confidence 75. No shipping or task-completion verdict.
+
+- **Walked:** deleted assertions against storage vector, default-cut, transport trace/EOF, typed-write callback/refusal/raw-byte, and Go volume transport replacements. No concrete missing predicate or weakened oracle found in these paths.
+- **Walked:** retained private conditions and separate host-concurrency classification; coverage comparison requires actual full arms before issuing a certificate.
+- **Executed:** read-only hashes matched the dispatched default checkpoint, cursor-proof receipt, and inventory manifest.
+
+Limits: this pass independently traced source but did not rerun tests or recompute conservation. Retained evidence covers the allowed default checkpoint only. Full/features, held resource gates, qualification, and integration remain open as already recorded.
+
+Working tree and staged index untouched. No builds, tests, LLVM, or guest processes run.
+
+### Standards axis
+
+## Quality Audit — Standards axis: R3 checkpoint
+
+- Delta: 165 tracked files plus 25 untracked source files. Bounded harness review and file-size scan. Should Fix 1 · Consider 0.
+
+### Should Fix
+
+- **/home/agent/wt/wasm-fn187-functional/tools/gomad/internal/backends/wasm/wasmhost/tests/helper_corpus.rs:1111** (Conf 100): R3 crosses the 1,000-line threshold, growing this loader from 972 to 3,101 lines. Model/admission/write literal validators now dominate it. Extract validators and their mutation guards into `tests/common/`, following the existing namespace/residual modules, and keep the loader below the threshold.
+
+### Evidence and limits
+
+- **Executed:** accepted-tree numstat and current line counts establish the crossing. **Cited:** loader and new volume harness source inspected.
+- No builds, tests, LLVM commands or writes performed. This checkpoint supplies no final acceptance or held-lane qualification.
+
+### What’s good
+
+- The volume corpus reuses the existing subprocess transport and compares complete typed observations plus exact initial bytes.
+- New negative controls exercise comparator rejection without introducing production configuration.
+
+Correctness axis: 0 findings, no worst tier.
+Standards axis: 1 finding, worst tier Should Fix.
+
+Conductor decision: retain loader extraction as cleanup before final R3 acceptance.
+The source growth and common-module pattern support it; the checked repo guidance
+does not establish a hard 1000-line cap. Do not start another implementation/build
+cycle during this safe stop. Reviewers and runtime owner are terminal. The 22
+worktrees were relisted and remain retained under the recorded ownership/evidence
+reasons. No commits, integration, deletion, staging or publishing occurred.
 
 ## Independently checked inputs
 
@@ -1538,3 +1683,451 @@ and ABI fixture gaps are now filled; next is their coverage/assertion-safe
 deletion proof alongside remaining public assertion dispositions. Fn187.3 and
 fn189 stay in_progress. All22 listed worktrees remain retained unchanged; the
 list was rechecked. Evidence directories remain durable, not disposable scratch.
+
+## Coverage-backed epoch and ABI test removal
+
+Focused proof reused the exact current ABI raw profiles and ran5 additional
+exact roots on the same two frozen test objects, then made4 separate single-
+object original/corpus exports. All5 passed; all4 strict diagnostic inventories
+were empty. Corpus coverage reaches all829 original production-line identities
+(3379 positive corpus identities). Root independently reproduced zero union loss
+from raw LCOV and the source-bound production-only mapping. Main-only20 missing
+line keys and14 missing symbols, plus11 network missing symbols, remain recorded.
+Three production function differences have actual positive network-corpus hits
+at the identical Model::heal/attempt_inner source definitions and types. The
+remaining22 function records and244 excluded line hits belong to cfg(test)
+bodies/helpers. No mangled-name stripping or synthetic counts were used.
+An analysis-only first report rejected extra corpus World coverage; the corrected
+report retains it and checks unexpected sources in original arms, which reach
+only network. No tests, exports or strict parser were changed for that correction.
+
+Focused final receipt `epoch-wire-focused-conservation-2026-10-18/evidence-final.json`
+SHA256 `9b26e4976a39a385fc4f1e65f8b86f638822b6a3e7dea921dc80069b26806e97`.
+Root read the assertion maps, complete86-line deletion patch and all function
+owner bindings, verified every focused artifact hash and approved exactly three
+original bodies plus the unused ABI-local helper/test module. No production
+prefix, fixture or corpus consumer changed. Old source bodies remain recoverable
+from the preserved proposal/preimages.
+
+Imported posts: stall d67903e7ff72b5aa942fa2583e4280422a1a9b5dec3c995488e4e2cd608a4e39;
+streamABI 6bbf74d866a8c1dd4859f349bde9ab4500d635b815893e1456dd56d80057d1b5.
+Build99321,7 post-removal replacement runs9035 and preservation8511 exited0.
+Main3 roots each1PASS/144filtered; network4 each1PASS/22filtered. Actual rosters
+145/23 remove only the three expected names per target. Root checked all7 logs,
+actual SHA/buildID/link-count1 objects and all runtime artifact hashes. Main
+ad64f8cda2ca3b9d26873d8ad96af8eab363a6b1b973d553f97ad76a0a36cec7,
+ID dee095aff0efb3c105d7f6546417caed55c1dc82; network
+4a369b2d4167cbaa40b43a48f5fb112a2d88bcee8f5b9a872b89986101a4b308,
+ID786f873d661a5d4fafe1891d92509ea05f796bfa.
+Runtime receipt `epoch-wire-post-removal-proof-2026-10-18/evidence.json`
+SHA256 `12ea041974839efcf290b0b0d70468b8cfd2eee6f1442ced7a663b2abfb1ce81`.
+
+Source-only inventory receipt SHA256
+`193d99368210bd1a2caaff1492523f395049fc6f72670649fa37612e636203a8`;
+current manifest `5ec3c6bdc465f723e17b2c6c2ce2e4249702a6d601b13fb0ee7d23018c3d2ae9`.
+Exactly6 executable entries leave functional/public selectors: Rust213/27/134,
+public20, machinery32, diagnostic25; Go62/26/9 unchanged. Root checked all15
+selector/15 tool/38 source bindings and unchanged142 private bindings c292.
+Preservation183networkJSON/526contracts/215helperbytes/407helpers/CLOSED42/index
+passes. No live handles, extra LLVM/full/features/resource/performance run,
+review, primary source integration, commit or task completion is claimed.
+
+Next source-only batch audits all5 remaining stall roots together against
+existing fixtures, including complete replay Snapshot equality, forged tape,
+unused limit headroom and terminal request-ID equivalence. No new runtime or
+deletion for that batch is authorized. Fn189 remains in_progress because current
+WASM requalification is incomplete; its milestone entry is retained.
+
+### Remaining five stall tests, source audit accepted
+
+Root reviewed all five original bodies and the complete assertion/equivalence
+audit, and checked every bound source and six fixture hashes against the worker
+worktree. The audit preserves the exact eight-event boundary, both equal-time
+orders, ready-list ordering, full pre/post replay snapshots and the complete
+forged replay tape. It also accounts for unused capacity headroom and the
+terminal request-ID differences using the actual dispatch branches.
+
+The source audit is retained at
+`remaining-five-stall-source-audit-2026-10-18/audit.md`, SHA256
+`2ae98ce1a70880ee27d0937ac8665f2e227539f6c2006414b05980423f343afd`.
+Its manifest SHA256 is
+`eb2b7f4a69542dc1aae8f8168417e1263fb081273daab97b4e1b7498f2c9b029`.
+
+Root authorized the existing sole owner to execute coverage plan
+`d62ecc8a3ed1194a78e146f7e6ba42ba033dca8d08145e0edf12752cf06bb419`.
+The finite scope is ten serial exact original runs on the two current frozen
+objects, reuse of five same-object genuine corpus profiles, and four strict
+single-object exports. Guard profiles are excluded. No build, helper replay,
+Go run, performance/resource measurement or source deletion is authorized.
+Actual coverage results remain required before a deletion proposal. The current
+inventory manifest remains `5ec3c6bdc465f723e17b2c6c2ce2e4249702a6d601b13fb0ee7d23018c3d2ae9`
+and the accepted index remains `0a343ce3549c1b7ed42146caf23c7800f2cd48f9a60c78ebfd3954036833d299`.
+
+Root accepted the subsequent focused coverage proof. All ten exact originals
+passed, all four strict exports had empty diagnostic inventories, and the
+production union covers all 1,208 original positive identities with 3,379 corpus
+identities and zero loss. Root independently reproduced the union from the four
+actual LCOV files with normalized paths. Main-only losses of 154 line identities
+and eleven production functions have positive network-corpus coverage. Root
+checked all eleven exact definition-line/function matches against actual FNDA
+counts and source. Twelve other function differences and 216 excluded positive
+line identities per target belong to the original cfg(test) module.
+
+Receipt `five-stall-focused-conservation-2026-10-18/evidence.json` has SHA256
+`622a3a3afcb6d68cf97d0e0ae9ac2cebc59389e1cbcd50ec1062fa755d3f451a`.
+Root read the complete deletion-only patch and approved its exact 265-line
+test-module removal, patch SHA256
+`7844e9e97bb9d18df1e1ffb890dce7067e799276b4ab7131c54ab88129673f42`.
+The resulting file must equal the original 54-line production prefix, SHA256
+`b4ebb33ba732fb8b8b6b04b5d30fb250041171f615149f1acbd5a1c21a30ac1e`.
+The sole owner is authorized to apply that patch, perform one cached two-target
+build, and run five genuine replacement roots. Inventory refresh is conditional
+on all five checks and preservation passing, with only the expected ten-entry
+removal. No full certificate, task completion or primary source integration is
+claimed. Performance/resource runs remain held.
+
+The approved five-test removal is now verified in the worker worktree.
+Build/run52795 exited0; the five exact replacement runs each passed with zero
+failures/ignores and 139 main or 17 network filtered tests. Root read all five
+logs and verified actual object SHA256, ELF build IDs, single-link isolation and
+exact roster deltas. Main145 to140 and network23 to18 remove exactly the five
+expected stall names per target with no additions. The new frozen main object
+is b60b01773b4bcb4e30e1bd094330043161751f611e850c927e403eae1db36bc5,
+build ID7720afab87703f05b0214c31e4b19a21b96dddbb; network is
+3981dd3a53db48e522716c015659f890c9fbddee52de6c3a6c7bc5c5bb184745,
+build ID2669f61241c63286b97bd64af4c4c992f0c43d0a.
+
+Post-removal runtime receipt SHA256 is
+`4a3aae31815b1ed8e06ca0aa955e2418fa23e6b7fb084ac1e123b19b1cbb76ae`.
+The source-only inventory receipt is
+`47e58b816dd8b4917613d5fa07e24d8590e060c1dd2a21255c2e3cd4ca5b8314`;
+current manifest is
+`d5304a927864ded4ac2286afbae327b77879bb770500ab50ba8ee4675521c381`.
+Root verified every runtime/inventory artifact hash, all15 selector/15 tool/38
+source bindings, unchanged142 private bindings, and the exact ten-entry removal.
+Current Rust functional203/corpus27/invariants134/public10/machinery32/diagnostic25;
+Go62/26/9 unchanged. The inventory checks include44 Python checks. Preservation
+reports zero526-contract changes, zero215-helper byte changes, 183 network JSON,
+407 helper JSON and unchanged CLOSED42/index. All handles are reaped.
+
+This batch removes five unique test bodies and their local helpers, with
+production/fixtures unchanged. The fourteen recent unique removals across
+the four latest removal batches are thirteen Rust bodies and one Go root.
+Final full/feature conservation, independent source review, integration and
+qualification remain open. The22 existing worktrees remain retained under the
+ownership/evidence reasons above; no new worktree or scratch checkout was made.
+
+### Remaining Rust and Go assertion work
+
+Root revalidated manifest d530 and Flow fn187.3 in_progress. The existing sole
+owner is auditing all ten remaining public Rust bodies together, without
+execution or source changes. The set contains five cluster tests, one engine
+test and four main-target transport/storage tests. The original private and
+host-concurrency classifications remain unchanged.
+
+Root separately read the current Go volume transport path. In volume_test.go
+172–200, TestVolumeConformance builds each Go reference, starts the real
+conformance helper through namespaceConformanceTransport, compares raw initial
+reply bytes and every complete typed observation, and closes/waits for the child
+with profile-stderr validation. Rust conformance.rs1570–1619 reads the serialized
+volume cases but calls Session::new and Session::handle directly. Matching the
+same115 case names therefore leaves a concrete live transport assertion gap.
+The original Go root stays. A faithful next change would make the actual Go
+transport consume the committed session/operation/observation records before
+removing the redundant live-reference wrapper. No such change is applied here.
+
+Root also read VolumeCoreAPIContracts and VolumeConformanceMigrationContracts.
+They assert independent literal reference facts, snapshot preservation and a
+negative full-import-transcript comparator control. Serialized loader coverage
+does not replace those oracle checks. Both stay intact, without a new private
+classification. Current source bindings are volume_test.go
+5fe8be6b5045b371894a192b876c730ed64987275faf740d63dbbf609d894048,
+namespace_test.go160679f6a6d2106dfde24a5ffb44ccc6891c714c30535aca48fa4bf2d4319e55,
+volume_conformance_cases_test.go
+ea74b65f29e9cd46d4ed26739c70261c64fb3582d4eae5823ae6f5a745dfd02c,
+and volume_conformance_core_test.go
+992eca54c42de2f155c6d7cacd274c4d5da6987b8dfb2a9e6d97ced663156465.
+
+The current Go selector difference is27 roots, consisting of26 WASI roots and
+one model-network guard, after subtracting26 corpus and9 private roots from62
+functional roots. Names alone confer no invariant or machinery waiver. No
+source, selector, fixture, helper, test execution or index change follows from
+this read-only audit.
+
+The ten-body Rust assertion audit is complete at
+`last-ten-public-source-audit-2026-10-18/audit.md`, SHA256
+`91498e826c2c2bf38bb136612db04800ced792286a62663e9ae382a2cc3eb6d7`.
+Its minimal manifest SHA256 is
+`dad72a5ae68bc8a4805e07f154dee16a933a7c37864c6b635350ec7ccf211ce7`.
+Root read the full table and inspected the live cross-case guard and input
+preparation. Healthy cluster constructors and the manual delayed fixture's exact
+sixteen finish refusals (IDs6 through21) have named source/consumer routes.
+Pending-peer guest wire-segment equivalence and engine stricter-errno program
+equivalence remain explicit review items. Engine input is240 bytes with header224;
+the earlier informal224-byte description referred to the declared payload size.
+
+The network-bound fixture has log1527/document2725 and correct limit2126.
+The existing live cross-case guard checks actual log<document but omits the
+relation between the actual midpoint and the bounded request. Root requested a
+minimal test-only patch proposal for that relation and an independent wrong-limit
+negative probe. No implementation or runtime was authorized in that request.
+The actual bounded request must be the same prepared input sent to the helper;
+reading a newly recomputed producer value alone cannot establish that relation.
+
+Exact storage envelope/descriptor inputs, direct context maximum1, observed
+context count400, and oversized same-shared-reader draining remain unproved.
+The larger-context and oversized-frame proof runs stay held. No original is
+deleted or reclassified by this audit, and final full/feature gates remain open.
+
+Root subsequently closed the pending-peer guest setup gap by read-only byte
+reconstruction. It rebuilt all eight original scenario steps and sixteen data
+segments, resolving handle bytes16–23 and port bytes48–51 from the recorded Go
+outputs, plus exact headers/payloads/idle deadlines, comparison loop, seed dispatch
+and final a trap. The complete original-builder WAT equals the committed
+closed_cluster_trap_pending_peer guest byte-for-byte, ending at offset4952.
+WAT SHA256 is9f198a2098538fecb74d1ed1ec677f1f2e75dcca28b77a8ec243d088d40b0890.
+Bound source SHA256 is cluster.rs
+fe562ac76930a75b730bcbf44e71da3469f4d715ddb6c4ea2d57a883c209fe36;
+scenario b65e208fc3169eb98d076045fc865a8deb5aa7365849bfa7f1a2b1e78d3e6eff;
+fixture a821c49e9e5876e1eb21907e0f9cd16da31582febdef395aa99a5d0eb111fcba.
+This supersedes that one unresolved setup item in the immutable audit. Original
+test bodies remain until separate actual coverage and deletion proof.
+
+Root reviewed the complete midpoint RED/GREEN patches and preparation lineage,
+then authorized packet18436edca09e1e5d11a61d0ecebc777424c1f6920dc47ff1ebbbe5250a61e059
+and finite planccf6aa4d2a35b30cd82f6a09d9b73bc95dc58d0e34d659fa57e851919748a673.
+One pure negative test must fail with only midpoint equality omitted, followed
+by exact GREEN restoration, the new guard, existing live cross-case consumer
+and UNFILTERED407 canonical consumer. Actual ordinary-helper identity/mode and
+new-inode restoration remain mandatory. No Go, LLVM export, original removal,
+golden change, full/matrix or resource qualification is authorized. Conditional
+inventory refresh may add only the one test-machinery root after all checks pass.
+
+Midpoint implementation is now verified in the worker worktree. The new guard
+failed as intended with equality omitted (exit101, one failure/20filtered,
+`changed actual network midpoint limit accepted`). Root read the actual RED
+log. Exact GREEN source86614bdf27513e265ec9149b02ddf2916b709a8949eac8e0e32742929254b9bd
+was restored before the next build. The new guard, existing live cross-case
+consumer and UNFILTERED407 canonical consumer each passed with one selected
+test/20filtered. Sessions50634 and37305 are terminal; all handles reaped.
+
+Root read all three GREEN logs and independently checked actual frozen objects,
+ELF build IDs, mode0755/link1 and ordinary-helper mode before/after. Main remains
+b60b01773b4bcb4e30e1bd094330043161751f611e850c927e403eae1db36bc5,
+ID7720afab87703f05b0214c31e4b19a21b96dddbb, roster140. Ordinary helper is
+c5a582c5554d9867604a6e2c07b06e340d9d3121fe24d1a0707f5800c6ab60fc,
+ID5b0eb7d7babbbb1b8214b55faf780824a3b28957; helper-test is
+ffcbc76d9be107f2e6bf7f9e088d846a98ab95aaf48eef15d5bc6cccb3b2b926,
+IDd78b7bf6bb96c36c5425c6107b887ad40547e686, roster21. Embedded ordinary
+helper restoration used the required new inode and retained exact identity.
+
+Runtime receipt SHA256 is
+`c0f88c296c8dcba5ec8a703ec1ba2b9648d00293c50e491136e1fad89c84585b`;
+inventory receipt is
+`a415f4cb883867a31df44a680a8b10d41b294c9bbea7e28984f859201971fd26`;
+current manifest is
+`1bfd8bb438983926c05b39a03306aee6fcf867b7514ff999eb938771d46fd259`.
+Root checked all runtime artifact hashes,15selectors/15tools/39source hashes,
+unchanged142 private bindings and actual44 Python checks. Only one machinery
+root enters selectors, giving Rust204/corpus27/invariants134/public10/machinery33;
+Go62/26/9 unchanged. Preservation526/215/407/183/CLOSED42/index passes.
+
+All ten originals remain. The five cluster roots now have complete assertion
+routes, subject to focused original-versus-corpus production conservation and
+post-removal verification before deletion. Engine program equivalence and the
+exact storage vectors remain next source work; oversized/large-context runs and
+performance/resource acceptance remain held. No final full/feature certificate,
+primary source integration, commit or task completion follows from this batch.
+
+Root closed the engine guest errno-equivalence item with actual ABI source.
+For modeled ClockTimeGet, abi.rs435–444 traps on range/model/write errors and
+sets results[0] to I32(0) on the sole successful return. DebugExchange dispatches
+to invoke_debug at385–386; invoke_debug1191–1209 likewise propagates bound,
+model/debug and write failures as traps, returning I32(0) only on success.
+State::debug_exchange298–345 propagates inspected_prefix and error terminals
+instead of returning a nonzero guest errno. Consequently the fixture's added
+`if errno !=0: unreachable` branches cannot execute after a normally returning
+clock/first-debug import. The original drop and fixture checks have the same
+host-call/error behavior. Extra guest instructions affect unasserted fuel use;
+the original root asserts no fuel count. Exact input/model/tape/control routes
+remain those in the ten-body audit, not inferred from line coverage.
+
+Source SHA256 bindings are abi.rs
+daa9ad7b79dc6d078def475b3c4f42392a9f0c3dd9b28378896b1c5112b7f789,
+production engine.rs
+816c6d690559c7e313b2df7d755e8f15f1f5b59ea84045d7f1ba686a81fd08ed,
+and tests/engine.rs
+a9afbbbbde88648a3c478fed242ae6c52c67a6b3414bb69bd875eb8c9ce6d8e7.
+Root requested that the next source-only coverage plan consolidate this engine
+root with the five cluster roots. No runtime, source deletion or new fixture is
+authorized by that request. Storage/oversized gaps and final acceptance stay open.
+
+### Six cluster/engine originals, focused conservation accepted
+
+Root read plan0b300737ae8982ad21fafbd6603d6f54d10beb97fcd62f1bc7278eeece64395e
+and bindings882b7122123aa432f2358f976bbdf102a52700f2b8295c587c829fc701e41286,
+then verified actual archived cluster/engine executables, all six current and
+archived driver/build files, default Cargo features/release profile and explicit
+Rust1.94.1 flags. Drivers26b0f76d.../10266a3a... use the current ordinary helper
+c5a582c5..., never an archived helper. Root also verified all four admitted
+positive corpus raw profiles from the actual midpoint cross-case/canonical runs.
+
+All six exact originals passed with one selected test/7filtered. The first
+empty-profile export stopped because one-off argv used grouped-j1. Root read
+that failure and the existing working exporter, then approved only separate
+`-j`, `1` and distinct corrected output paths. No tests/helpers were rerun.
+The corrected empty mapping and five strict single-object exports exited0 with
+empty diagnostic inventories. Root independently parsed the actual mapping and
+LCOV files, reproducing production DA6021 versus corpus11228 with zero loss,
+and exact same-object positive functions575 versus1057 with zero loss. All three
+driver exports have zero in-crate production source line/function owners.
+
+Focused receipt SHA256 is
+`19394697ce26ab1db2ddba89ad1238bd8f3a41cb875ee30622aa036a808798bc`.
+Root checked all artifact hashes and read the complete724-line deletion patch
+7867c275270fefd79691d5e698addc1f5e05fb4ed121ca69a00fd33faa62f636,
+caller proof and finite post-plan. The exact six originals and solely unused
+local helper chain were removed; retained concurrency/broker/cache helpers and
+shared files stay intact. No production source or fixture changed.
+
+Initial post-build12716 compiled successfully but stopped before any test runs
+on a default unused-base64 import. Root verified the two surviving callers are
+diagnostic-profile-gated and guest/fuel-off features imply that feature, then
+added only the matching cfg on the import. Root also removed one EOF blank line
+flagged by git diff --check. Both corrections used apply_patch after the lane
+was terminal. Current cluster source is
+fa7576e14c432d556ef4ca8af270e344c0d611ffb9511459d16ea51fc62166ec;
+engine source is4a29b7bfb5867a9eac313b01744926666ef1292f20b1156bb1aaba88a59e5fe5.
+Whitespace checks pass. The sole owner is running the same approved three-target
+build and three replacement roots in a fresh retry directory; original warning
+and export-failure evidence remains untouched. Post-removal runtime/inventory
+acceptance is pending, with no final full/feature certificate or task completion.
+
+Retry83037 is now terminal0 with no compiler warnings. Root read all three exact
+replacement logs, checked actual four objects/ELF build IDs/mode0755/link1 and
+ordinary-helper before/after probes. Helper live cross-case and UNFILTERED407
+each pass1/20filtered; the retained broker corpus passes1/2filtered and covers
+six eligible scripts. Current cluster/engine/helper rosters are3/7/21 with only
+the six expected original names removed and no additions. The ordinary helper
+c5a582c5... and helper-test ffcbc76d... remain unchanged; new cluster-test is
+5117fb076de7b5db15727a46e4c9c6952d983839ef30f53471007870cf824e87,
+IDe01f70fe8a3df216f6cde88d3d480decfbd4cc2f; engine-test is
+dab1eb06bc798f2c10840f9e7a02a0a992c4f1a3cad7924aec45c5f034f95834,
+IDb8399cdcbfaa12889eef0734151007afb2dfbb57.
+
+Runtime receipt SHA256 is
+`44c8e97e1d6d1d81301bf541af2acd315f5454269ac8c8015ce06ba95fc95d82`;
+inventory receipt is
+`da7a5a0348d305088b66421921becad25903ca81405acebf020cb826b023078f`;
+current manifest is
+`5cbeed31cd9ecae360312d4d18b1b40583810ac6f52fc8fd34e4ebf18f4e4934`.
+Root verified all runtime artifacts and15selector/15tool/41source hashes. Only
+functional/public selectors lose six names. Six engine private bindings change
+only line/sha256, and the separate host-concurrency binding changes only
+line/source_sha256. Names, source paths, reasons and classifications remain
+identical. Root independently compared all seven surviving function bodies to
+the archived source and found them byte-identical.
+
+Current Rust functional198/corpus27/invariants134/public4/machinery33/diagnostic25;
+Go62/26/9 unchanged. Private142 binding SHA256 is
+8b65e2bd04105bbce54e69e98c42134dfb5112ac7b5e30498781e803cffebd51;
+host-concurrency binding is
+3067f2b20831b3121907219d5202de24eb8f698aa80b3992eba6ffe56926561e.
+Actual44 Python checks pass. Preservation526/215/407/183/CLOSED42/index and
+whitespace checks pass; all handles reaped. Twenty recent unique originals
+(nineteen Rust and one Go) are removed across the latest five removal batches,
+all in the worker worktree. Remaining public originals are the oversized shared
+reader, exact descriptor, large context and v1 state envelope. No full/feature
+certificate, source integration, commit or task completion is claimed.
+
+### Tiny storage envelope and descriptor migration
+
+The worker replaced two more inline originals with one strict serialized corpus
+and a negative comparator guard. The corpus preserves the exact original v1
+envelope tuple and all five ordered descriptor inputs. Its model identity and
+228-byte envelope expectations come from independent literal wire calculations.
+The intended weakened-comparator RED failed at the changed-message assertion.
+After restoring GREEN, the new guard, corpus and both originals each passed.
+
+Root independently compared the actual same-main LCOV exports with the reviewed
+ordinary-helper production mapping. Both arms cover 142 production lines and
+13 exact same-main production functions, with zero original losses. Root checked
+all 56 preexisting source bindings and the complete old storage-file prefix
+before admitting that production mapping. The new child is test-only.
+
+Only the two superseded functions were removed. The retained large-context body
+is byte-identical. Final storage source SHA256 is
+`3930b5a0f1cde0d08c41f9d02321772f1806a07ad836131578058f3e5e8eaa46`.
+The post-removal build has no warnings; the new guard and corpus each pass
+one exact test with 139 filtered out. Root checked the actual executable SHA256
+`ffb457ea3dea4444bc1a5a53556d68637807e74169f00745ff934e568e5bb9d1`,
+build ID `33499cd2934a301cefca60e6a6c9025654969ce4`, mode 0755 and link count 1.
+
+Receipts under `/home/agent/wt/evidence/fn187/r3-current/` are
+`storage-tiny-two-post-removal-proof-2026-10-18/evidence.json`
+(SHA256 `72a2076994c0d1d3b79f9ae4dc113fd030fadc824cc6e82e80462c5d503c4ccb`)
+and `storage-tiny-two-post-removal-inventory-2026-10-18/evidence.json`
+(SHA256 `8fa8b8093381a682cf925634771f8dba7297d83b6dd77279038079670d379bb5`).
+Current inventory manifest SHA256 is
+`bb74e0297d93bb3cb90bb957f8714cc384e772c4e86930780820582c3d536a27`.
+Root verified all runtime artifact hashes, 15 selectors, 15 tools, 43 source
+bindings and the exact five-selector delta. Private bindings and all Go selectors
+are byte-unchanged. Rust now has functional 198, corpus 28, invariants 134,
+public 2, machinery 34 and diagnostic corpus 26. Python's 44 checks pass.
+Root also independently checked all 1687 captured testdata JSON hashes unchanged;
+the 526-contract and 215-helper preservation reports have zero changes.
+
+All owned handles are terminal. Twenty-two recent unique originals have now
+been removed across these migration batches, twenty-one Rust and one Go.
+The oversized shared-reader and large-context originals remain intact and held.
+Go live-volume transport parity, final full/feature gates, review, integration
+and fn-189 qualification remain open. Resource-sensitive execution stays held.
+No commits, publishing or task completion occurred. The primary owner advanced
+HEAD to `bcb72b2bc7bce461dfcb38344be7c2b54153ad81`; the worker remains at
+`95eed5c83a26eb1e93f2b1ba2f971e33bc1d51bc`. Both are preserved without integration.
+The 22 worktrees and their previously recorded retention reasons are unchanged.
+
+### Go volume transport batch and affected lint
+
+The new Go transport corpus replays all 115 committed volume cases and 779
+operations through the original subprocess transport. Its comparator retains
+exact initial reply bytes and complete typed observations. The independent Go
+reference corpus, import-transcript checks and CoreAPI/Migration guards remain.
+An actual helper response proves the comparison guard rejects changed bytes
+and observation count. The intended initial-reply RED failed, then all controls
+passed after restoring the comparator.
+
+Covered original and reference-plus-transport runs pass the same 115 names.
+Root independently parsed the Go event logs and reproduced 1158 positive
+production blocks in each arm, zero losses across 5758 identical block keys.
+Only the original wrapper and its sole helper were removed; every other byte
+of volume_test.go is unchanged by that deletion. Post-removal verification
+passes all three retained roots and 235 children without failures or skips.
+Runtime receipt is `volume-transport-migration-runtime-2026-10-18/evidence.json`
+under the existing external evidence root, SHA256
+`6586d85a06345c151316b362a531210a8bbae0b40a58683cdb2f8bb365552b15`.
+The matching inventory receipt is
+`volume-transport-migration-inventory-2026-10-18/evidence.json`.
+
+Canonical affected-package lint initially found four existing corpus-code
+issues. The worker corrected logging, an equivalent ASCII predicate and import
+grouping, and retained the fault reply's exact byte comparison using bytes.Equal.
+The first retry still triggered testifylint on an Equal byte-slice conversion;
+both failures remain recorded. The final unchanged make lint-code gate passes
+golangci-lint and errortype. Three affected roots and 77 children pass, as does
+the single selected pending-peer helper case with real asset materialization.
+This selected case does not claim a fresh 407-case replay. Root read the actual
+logs, complete four-file diff and ordinary-helper mode checks.
+
+Lint followup receipt is
+`volume-transport-affected-lint-2026-10-18/evidence.json`, SHA256
+`c9159e442e5f4b396addf1ba95f967bfb1f38018b6e91d984057cb5b74227bff`.
+Current manifest SHA256 is
+`a8febd4a5d33698475736783aaa0a9b2773835fa88e6570e87ef227c5cd7b67c`.
+Root verified 15 selectors, 15 tools, 48 source bindings, 32 runtime artifact
+hashes and 24 lint artifact hashes. Two private Go bindings changed only source
+SHA/line after the wrapper removal, with byte-identical bodies and unchanged
+reasons. Rust selectors and all private classifications remain unchanged.
+Python44 passes; production Go, fixtures and the accepted index remain intact.
+All owned handles are terminal. The same 22 worktrees remain retained for the
+previously recorded ownership/evidence reasons. No commits or integration occurred.

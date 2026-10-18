@@ -39,7 +39,7 @@ fn storage_full(error: &std::io::Error) -> bool {
     )
 }
 /// A collision-proof staging name: process ID, a per-process counter and
-/// fresh random bytes; the caller creates it with O_EXCL.
+/// fresh random bytes; the caller creates it with `O_EXCL`.
 fn staging_name(name: &str) -> String {
     use std::sync::atomic::{AtomicU64, Ordering};
     static COUNTER: AtomicU64 = AtomicU64::new(0);
@@ -48,6 +48,10 @@ fn staging_name(name: &str) -> String {
         .and_then(|mut file| file.read_exact(&mut random))
         .is_err()
     {
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "Only the low 64 timestamp bits seed the fallback staging suffix."
+        )]
         let nanos = std::time::SystemTime::now()
             .duration_since(std::time::UNIX_EPOCH)
             .map_or(0, |elapsed| elapsed.as_nanos() as u64);
@@ -69,6 +73,10 @@ impl From<Outcome> for Publication {
         Self::Outcome(outcome)
     }
 }
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "This adapter consumes errors passed by Result::map_err."
+)]
 fn io(error: std::io::Error) -> Outcome {
     Outcome::new("infrastructure", format!("compile cache: {error}"))
 }
@@ -110,6 +118,10 @@ fn identity(engine: &Engine, module_sha256: &str) -> Result<Vec<u8>, Outcome> {
     let mut helper = File::open(std::env::current_exe().map_err(io)?).map_err(io)?;
     let before = helper.metadata().map_err(io)?;
     let mut hash = Sha256::new();
+    #[expect(
+        clippy::large_stack_arrays,
+        reason = "The executable hash uses one fixed, bounded 64 KiB streaming buffer."
+    )]
     let mut buffer = [0u8; 65536];
     loop {
         let size = helper.read(&mut buffer).map_err(io)?;
@@ -158,7 +170,7 @@ fn same_file(a: &std::fs::Metadata, b: &std::fs::Metadata) -> bool {
     any(target_os = "linux", target_os = "macos")
 ))]
 mod private {
-    use super::*;
+    use super::{File, Outcome, corrupt, host, io};
     use rustix::{
         fs::{AtFlags, Mode, OFlags, open, openat, renameat, unlinkat},
         process::geteuid,
@@ -238,6 +250,10 @@ mod private {
     any(target_arch = "x86_64", target_arch = "aarch64"),
     any(target_os = "linux", target_os = "macos")
 ))]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The ordered cache transaction keeps trust checks and publication cleanup together."
+)]
 pub fn module(
     engine: &Engine,
     load: impl FnOnce() -> Result<Vec<u8>, Outcome>,
@@ -299,6 +315,10 @@ pub fn module(
                 if manifest_len > MAX_MANIFEST || artifact_len > MAX_ARTIFACT as u64 {
                     return Err(corrupt(&entry, "envelope length exceeds limit"));
                 }
+                #[expect(
+                    clippy::cast_possible_truncation,
+                    reason = "This implementation is restricted to 64-bit hosts; artifact_len is also bounded by MAX_ARTIFACT above."
+                )]
                 if HEADER + manifest_len + artifact_len as usize != size
                     || envelope[HEADER..HEADER + manifest_len] != manifest
                 {
@@ -364,6 +384,7 @@ pub fn module(
                 Err(error) => return Err(io(error)),
             }
         };
+        let manifest_len = u32::try_from(manifest.len()).map_err(|_| capacity())?;
         let result = (|| {
             private::validate(&file, &root.join(&staging))?;
             #[cfg(test)]
@@ -371,13 +392,13 @@ pub fn module(
                 return Err(Publication::Io(std::io::Error::from(kind)));
             }
             file.write_all(MAGIC)
-                .and_then(|_| file.write_all(&(manifest.len() as u32).to_le_bytes()))
-                .and_then(|_| file.write_all(&(artifact.len() as u64).to_le_bytes()))
-                .and_then(|_| file.write_all(&crc32fast::hash(&artifact).to_le_bytes()))
-                .and_then(|_| file.write_all(&manifest))
-                .and_then(|_| file.write_all(&artifact))
-                .and_then(|_| file.sync_all())
-                .and_then(|_| directory.publish(&staging, &name))
+                .and_then(|()| file.write_all(&manifest_len.to_le_bytes()))
+                .and_then(|()| file.write_all(&(artifact.len() as u64).to_le_bytes()))
+                .and_then(|()| file.write_all(&crc32fast::hash(&artifact).to_le_bytes()))
+                .and_then(|()| file.write_all(&manifest))
+                .and_then(|()| file.write_all(&artifact))
+                .and_then(|()| file.sync_all())
+                .and_then(|()| directory.publish(&staging, &name))
                 .map_err(Publication::Io)
         })();
         if let Err(failure) = result {
@@ -426,6 +447,10 @@ mod tests {
         }
         let seconds = started.elapsed().as_secs_f64();
         let total = bytes.len() as u64 * 64;
+        #[expect(
+            clippy::cast_precision_loss,
+            reason = "Throughput is an approximate diagnostic rate, not a protocol value."
+        )]
         let gb_per_second = total as f64 / seconds / 1e9;
         println!(
             "CRC-32: host={}/{} bytes={} seconds={seconds:.6} GB/s={gb_per_second:.3}",
@@ -634,7 +659,9 @@ mod tests {
                         file.write_all(b"!").unwrap();
                     }
                     "manifest" => {
-                        envelope[8..12].copy_from_slice(&((MAX_MANIFEST + 1) as u32).to_le_bytes());
+                        envelope[8..12].copy_from_slice(
+                            &u32::try_from(MAX_MANIFEST + 1).unwrap().to_le_bytes(),
+                        );
                         std::fs::write(&entry, &envelope).unwrap();
                     }
                     "artifact" => {
@@ -707,7 +734,7 @@ mod tests {
                 .directory
                 .join(format!("{:x}.gomad-cache-v2", Sha256::digest(&manifest)));
             let mut previous = b"GOMADC02".to_vec();
-            previous.extend_from_slice(&(manifest.len() as u32).to_le_bytes());
+            previous.extend_from_slice(&u32::try_from(manifest.len()).unwrap().to_le_bytes());
             previous.extend_from_slice(&(artifact.len() as u64).to_le_bytes());
             previous.extend_from_slice(&Sha256::digest(artifact));
             previous.extend_from_slice(&manifest);
@@ -768,7 +795,11 @@ mod tests {
                 let leftovers: Vec<_> = std::fs::read_dir(&fixture.directory)
                     .unwrap()
                     .map(|e| e.unwrap().file_name().into_string().unwrap())
-                    .filter(|name| name.ends_with(".tmp"))
+                    .filter(|name| {
+                        std::path::Path::new(name)
+                            .extension()
+                            .is_some_and(|extension| extension == "tmp")
+                    })
                     .collect();
                 assert!(leftovers.is_empty(), "{leftovers:?}");
                 // A later run with space publishes normally.

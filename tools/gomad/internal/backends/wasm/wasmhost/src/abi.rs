@@ -190,7 +190,7 @@ fn memory(caller: &mut Caller<'_, State>) -> Result<Memory> {
     }
     let memory = caller
         .get_export("memory")
-        .and_then(|export| export.into_memory())
+        .and_then(wasmtime::Extern::into_memory)
         .ok_or_else(|| Error::msg("missing guest memory"))?;
     caller.data_mut().memory = Some(memory);
     Ok(memory)
@@ -212,7 +212,7 @@ impl Guest<'_, '_> {
         self.range(output, count * 32)?;
         self.range(events, 4)?;
         let mut subscriptions = Vec::with_capacity(count);
-        for raw in bytes.chunks_exact(48) {
+        for raw in bytes.as_chunks::<48>().0 {
             let kind = raw[8];
             if kind > 2 {
                 return Err(Error::msg("invalid subscription type"));
@@ -293,7 +293,7 @@ impl Guest<'_, '_> {
         let descriptors = self.bytes(pointer, count as usize * 8)?;
         let mut total = 0usize;
         let mut result = Vec::new();
-        for descriptor in descriptors.chunks_exact(8) {
+        for descriptor in descriptors.as_chunks::<8>().0 {
             let pointer = u32::from_le_bytes(descriptor[..4].try_into().unwrap());
             let length = u32::from_le_bytes(descriptor[4..].try_into().unwrap()) as usize;
             self.range(pointer, length)?;
@@ -369,13 +369,25 @@ fn stat(value: &Value) -> Result<Vec<u8>> {
             number(
                 value,
                 name,
-                if width == 1 { u8::MAX as u64 } else { u64::MAX },
+                if width == 1 {
+                    u64::from(u8::MAX)
+                } else {
+                    u64::MAX
+                },
             )?,
             width,
         );
     }
     Ok(bytes)
 }
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep ABI admission, dispatch, and reply encoding together so their order remains explicit."
+)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Guest buffers and iovec totals are capped by BUFFER_LIMIT; reply integers and subscription counts are checked before encoding."
+)]
 pub fn invoke(
     mut caller: Caller<'_, State>,
     op: Operation,
@@ -404,7 +416,7 @@ pub fn invoke(
     }
     if op == Operation::ProcExit {
         let mut outcome = Outcome::new("exit", "");
-        outcome.exit_code = Some(params[0].i32().unwrap() as u32);
+        outcome.exit_code = Some(params[0].i32().unwrap().cast_unsigned());
         caller.data_mut().terminal = Some(outcome);
         return Err(Error::msg("guest proc_exit"));
     }
@@ -413,8 +425,8 @@ pub fn invoke(
         caller: &mut caller,
         memory,
     };
-    let get = |n: usize| params[n].i32().unwrap() as u32;
-    let wide = |n: usize| params[n].i64().unwrap() as u64;
+    let get = |n: usize| params[n].i32().unwrap().cast_unsigned();
+    let wide = |n: usize| params[n].i64().unwrap().cast_unsigned();
     let split = guest
         .caller
         .data()
@@ -469,16 +481,16 @@ pub fn invoke(
                 || guest.caller.data().namespace.is_some()
             {
                 let reply = guest.caller.data_mut().poll_call(&subscriptions)?;
-                results[0] = Val::I32(reply.errno as i32);
+                results[0] = Val::I32(i32::from(reply.errno));
                 if reply.errno == 0 {
                     let mut bytes = vec![0; reply.events.len() * 32];
                     for (index, event) in reply.events.iter().enumerate() {
                         let raw = &mut bytes[index * 32..(index + 1) * 32];
                         put(raw, 0, event.userdata, 8);
-                        put(raw, 8, event.errno as u64, 2);
-                        put(raw, 10, event.kind as u64, 1);
+                        put(raw, 8, u64::from(event.errno), 2);
+                        put(raw, 10, u64::from(event.kind), 1);
                         put(raw, 16, event.nbytes, 8);
-                        put(raw, 24, event.flags as u64, 2);
+                        put(raw, 24, u64::from(event.flags), 2);
                     }
                     guest.write(get(1), &bytes)?;
                     guest.put32(get(3), reply.events.len() as u32)?;
@@ -618,7 +630,7 @@ pub fn invoke(
             Operation::FdClose | Operation::FdSync => fd(),
             Operation::FdFilestatSetSize => json!({"fd":get(0),"size":wide(1)}),
             Operation::FdFdstatSetFlags => {
-                if get(1) > u16::MAX as u32 {
+                if get(1) > u32::from(u16::MAX) {
                     return Err(Error::msg("invalid fd flags"));
                 }
                 json!({"fd":get(0),"flags":get(1)})
@@ -660,7 +672,7 @@ pub fn invoke(
             }
             Operation::PathOpen => {
                 guest.range(get(8), 4)?;
-                if get(4) > u16::MAX as u32 || get(7) > u16::MAX as u32 {
+                if get(4) > u32::from(u16::MAX) || get(7) > u32::from(u16::MAX) {
                     return Err(Error::msg("invalid path flags"));
                 }
                 json!({"fd":get(0),"dirflags":get(1),"path_base64":guest.base64(get(2),get(3))?,"oflags":get(4),"rights_base":wide(5),"rights_inheriting":wide(6),"fdflags":get(7)})
@@ -680,7 +692,7 @@ pub fn invoke(
             }
             Operation::SockAccept => {
                 guest.range(get(2), 4)?;
-                if get(1) > u16::MAX as u32 {
+                if get(1) > u32::from(u16::MAX) {
                     return Err(Error::msg("invalid socket flags"));
                 }
                 json!({"fd":get(0),"flags":get(1)})
@@ -758,7 +770,7 @@ pub fn invoke(
     }
     let reply = reply?;
     if reply.errno != 0 {
-        results[0] = Val::I32(reply.errno as i32);
+        results[0] = Val::I32(i32::from(reply.errno));
         return Ok(());
     }
     let output = &reply.output;
@@ -856,8 +868,8 @@ pub fn invoke(
                 )?;
                 let mut bytes = vec![0; 24];
                 for (name, offset, width, max) in [
-                    ("filetype", 0, 1, u8::MAX as u64),
-                    ("flags", 2, 2, u16::MAX as u64),
+                    ("filetype", 0, 1, u64::from(u8::MAX)),
+                    ("flags", 2, 2, u64::from(u16::MAX)),
                     ("rights_base", 8, 8, u64::MAX),
                     ("rights_inheriting", 16, 8, u64::MAX),
                 ] {
@@ -877,7 +889,7 @@ pub fn invoke(
                 guest.write(get(1), &bytes)?;
             }
             Operation::FdPrestatDirName => {
-                guest.write(get(1), &data(output, get(2) as usize, true)?)?
+                guest.write(get(1), &data(output, get(2) as usize, true)?)?;
             }
             Operation::FdReaddir => {
                 let bytes = data(output, get(2) as usize, false)?;
@@ -893,7 +905,7 @@ pub fn invoke(
                 fields(output, &["fd"])?;
                 guest.put32(
                     get(if op == Operation::PathOpen { 8 } else { 2 }),
-                    number(output, "fd", u32::MAX as u64)? as u32,
+                    number(output, "fd", u64::from(u32::MAX))? as u32,
                 )?;
             }
             Operation::PollOneoff => {
@@ -910,10 +922,10 @@ pub fn invoke(
                     let raw = &mut bytes[index * 32..(index + 1) * 32];
                     for (name, offset, width, max) in [
                         ("userdata", 0, 8, u64::MAX),
-                        ("errno", 8, 2, u16::MAX as u64),
+                        ("errno", 8, 2, u64::from(u16::MAX)),
                         ("type", 10, 1, 2),
                         ("nbytes", 16, 8, u64::MAX),
-                        ("flags", 24, 2, u16::MAX as u64),
+                        ("flags", 24, 2, u64::from(u16::MAX)),
                     ] {
                         put(raw, offset, number(event, name, max)?, width);
                     }
@@ -932,6 +944,14 @@ pub fn invoke(
     Ok(())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Keep namespace import decoding and matching reply encoding in one ABI dispatch."
+)]
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Iovec totals and reply bytes are buffer-bounded; flags and whence are range-checked before narrowing."
+)]
 fn invoke_namespace(
     guest: &mut Guest<'_, '_>,
     op: Operation,
@@ -939,8 +959,8 @@ fn invoke_namespace(
     results: &mut [Val],
 ) -> Result<()> {
     use crate::namespace::{Operation as NsOperation, Output};
-    let get = |n: usize| params[n].i32().unwrap() as u32;
-    let wide = |n: usize| params[n].i64().unwrap() as u64;
+    let get = |n: usize| params[n].i32().unwrap().cast_unsigned();
+    let wide = |n: usize| params[n].i64().unwrap().cast_unsigned();
     let mut iovecs = Vec::new();
     let decoded = (|| -> Result<NsOperation> {
         Ok(match op {
@@ -999,7 +1019,7 @@ fn invoke_namespace(
                 size: wide(1),
             },
             Operation::FdFdstatSetFlags => {
-                if get(1) > u16::MAX as u32 {
+                if get(1) > u32::from(u16::MAX) {
                     return Err(Error::msg("invalid fd flags"));
                 }
                 NsOperation::SetFlags {
@@ -1067,7 +1087,7 @@ fn invoke_namespace(
             }
             Operation::PathOpen => {
                 guest.range(get(8), 4)?;
-                if get(4) > u16::MAX as u32 || get(7) > u16::MAX as u32 {
+                if get(4) > u32::from(u16::MAX) || get(7) > u32::from(u16::MAX) {
                     return Err(Error::msg("invalid path flags"));
                 }
                 NsOperation::Open(crate::namespace::Open {
@@ -1118,26 +1138,26 @@ fn invoke_namespace(
         .caller
         .data_mut()
         .namespace_call(crate::namespace_call::Call::new(operation))?;
-    results[0] = Val::I32(reply.errno as i32);
+    results[0] = Val::I32(i32::from(reply.errno));
     if reply.errno != 0 {
         return Ok(());
     }
     match reply.output.unwrap() {
         Output::Empty => (),
         Output::Written(count) => {
-            guest.put32(get(if op == Operation::FdPwrite { 4 } else { 3 }), count)?
+            guest.put32(get(if op == Operation::FdPwrite { 4 } else { 3 }), count)?;
         }
         Output::Offset(offset) => guest.put64(get(3), offset)?,
         Output::Fd(fd) => guest.put32(get(8), fd)?,
         Output::Prestat(length) => {
             let mut bytes = [0; 8];
-            put(&mut bytes, 4, length as u64, 4);
+            put(&mut bytes, 4, u64::from(length), 4);
             guest.write(get(1), &bytes)?;
         }
         Output::Fdstat(stat) => {
             let mut bytes = [0; 24];
-            put(&mut bytes, 0, stat.filetype as u64, 1);
-            put(&mut bytes, 2, stat.flags as u64, 2);
+            put(&mut bytes, 0, u64::from(stat.filetype), 1);
+            put(&mut bytes, 2, u64::from(stat.flags), 2);
             put(&mut bytes, 8, stat.base, 8);
             put(&mut bytes, 16, stat.inheriting, 8);
             guest.write(get(1), &bytes)?;
@@ -1147,7 +1167,7 @@ fn invoke_namespace(
             for (offset, width, n) in [
                 (0, 8, stat.dev),
                 (8, 8, stat.ino),
-                (16, 1, stat.filetype as u64),
+                (16, 1, u64::from(stat.filetype)),
                 (24, 8, stat.nlink),
                 (32, 8, stat.size),
                 (40, 8, stat.atim),
@@ -1194,8 +1214,8 @@ fn invoke_debug(mut caller: Caller<'_, State>, params: &[Val], results: &mut [Va
         caller: &mut caller,
         memory,
     };
-    let pointer = params[0].i32().unwrap() as u32;
-    let length = params[1].i32().unwrap() as u32 as usize;
+    let pointer = params[0].i32().unwrap().cast_unsigned();
+    let length = params[1].i32().unwrap().cast_unsigned() as usize;
     if !(16..=crate::model::inspection::MAX_FRAME).contains(&length) {
         return Err(guest
             .caller
@@ -1209,6 +1229,10 @@ fn invoke_debug(mut caller: Caller<'_, State>, params: &[Val], results: &mut [Va
     Ok(())
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Runtime ABI admission precedes dispatch and reply validation in one ordered boundary."
+)]
 fn invoke_runtime(
     mut caller: Caller<'_, State>,
     op: Operation,
@@ -1220,8 +1244,8 @@ fn invoke_runtime(
         caller: &mut caller,
         memory,
     };
-    let pointer = params[0].i32().unwrap() as u32;
-    let length = params[1].i32().unwrap() as u32 as usize;
+    let pointer = params[0].i32().unwrap().cast_unsigned();
+    let length = params[1].i32().unwrap().cast_unsigned() as usize;
     #[cfg(feature = "diagnostic-profile")]
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input = (|| -> Result<Vec<u8>> {
@@ -1305,7 +1329,7 @@ fn invoke_runtime(
         .data_mut()
         .callback_typed(op, json!({"data_base64":STANDARD.encode(input)}))?;
     if reply.errno != 0 {
-        results[0] = Val::I32(reply.errno as i32);
+        results[0] = Val::I32(i32::from(reply.errno));
         return Ok(());
     }
     let written = (|| -> Result<()> {

@@ -446,7 +446,13 @@ mod tests {
         profile.write_report(&mut output).unwrap();
         assert!(output.len() < 16 * 1024);
         assert!(output.starts_with(b"gomad-wasm-profile-v1 "));
-        assert_eq!(output.iter().filter(|&&byte| byte == b'\n').count(), 1);
+        #[expect(
+            clippy::naive_bytecount,
+            reason = "The test counts line delimiters in one small diagnostic frame; no bytecount dependency is needed."
+        )]
+        {
+            assert_eq!(output.iter().filter(|&&byte| byte == b'\n').count(), 1);
+        }
         let decoded: serde_json::Value =
             serde_json::from_slice(&output[b"gomad-wasm-profile-v1 ".len()..]).unwrap();
         assert_eq!(decoded, report);

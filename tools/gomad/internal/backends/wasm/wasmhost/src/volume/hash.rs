@@ -108,12 +108,12 @@ mod tests {
         CONTENT_HASHES.with(|count| count.set(0));
         let mut copy = bytes.clone();
         assert_eq!(copy.digest(), abc);
-        assert_eq!(CONTENT_HASHES.with(|count| count.get()), 0);
+        assert_eq!(CONTENT_HASHES.with(std::cell::Cell::get), 0);
         let raw: &mut Vec<u8> = &mut copy;
         raw[0] = b'z';
         assert_ne!(copy.digest(), abc);
         assert_eq!(bytes.digest(), abc);
-        assert_eq!(CONTENT_HASHES.with(|count| count.get()), 1);
+        assert_eq!(CONTENT_HASHES.with(std::cell::Cell::get), 1);
         bytes.clear();
         assert_eq!(bytes.digest(), bytes_digest(b""));
         bytes.extend_from_slice(b"abc");

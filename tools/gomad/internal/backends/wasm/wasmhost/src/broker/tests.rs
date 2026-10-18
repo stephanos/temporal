@@ -150,7 +150,7 @@ fn inspection_wire_reuses_transitions_and_refuses_at_the_generated_bound() {
                             key: format!("key-{step}"),
                         },
                         priority: 0,
-                        payload: vec![step as u8; (step % 7) as usize * 40],
+                        payload: vec![step.to_le_bytes()[0]; (step % 7) as usize * 40],
                     })
                     .unwrap(),
             ),
@@ -158,7 +158,7 @@ fn inspection_wire_reuses_transitions_and_refuses_at_the_generated_bound() {
                 let id = ids[ids.len() / 2];
                 let _ = inner.world.ready(world::Readiness {
                     request_id: id,
-                    at: world::INITIAL_TIME + step as i64,
+                    at: world::INITIAL_TIME + step.cast_signed(),
                     kind: "timer".into(),
                     payload: vec![1; 9],
                     equivalence_class: String::new(),
@@ -476,7 +476,7 @@ fn step_data(step: &Value, outputs: &Outputs) -> Vec<u8> {
             return 0;
         };
         let node = reference["node"].as_str().unwrap();
-        let index = reference["step"].as_u64().unwrap() as usize;
+        let index = usize::try_from(reference["step"].as_u64().unwrap()).unwrap();
         let data = STANDARD
             .decode(outputs[node][index]["data_base64"].as_str().unwrap())
             .unwrap();
@@ -486,8 +486,8 @@ fn step_data(step: &Value, outputs: &Outputs) -> Vec<u8> {
             u64::from(u32::from_be_bytes(data[at..at + 4].try_into().unwrap()))
         }
     };
-    let code = field("code") as u32;
-    let count = field("count") as u32;
+    let code = u32::try_from(field("code")).unwrap();
+    let count = u32::try_from(field("count")).unwrap();
     let mut payload = step["payload"].as_str().unwrap_or("").as_bytes().to_vec();
     if code == 4 || code == 12 {
         payload = vec![0; count as usize];
@@ -497,11 +497,11 @@ fn step_data(step: &Value, outputs: &Outputs) -> Vec<u8> {
     data[4..8].copy_from_slice(&code.to_be_bytes());
     data[8..16].copy_from_slice(&field("id").to_be_bytes());
     data[16..24].copy_from_slice(&resolve("handle", 16, 8).to_be_bytes());
-    data[32..36].copy_from_slice(&(resolve("port", 48, 4) as u32).to_be_bytes());
+    data[32..36].copy_from_slice(&(u32::try_from(resolve("port", 48, 4)).unwrap()).to_be_bytes());
     let header_count = if code == 12 { 0 } else { count };
     data[36..40].copy_from_slice(&header_count.to_be_bytes());
     for (index, byte) in step["address"].as_array().unwrap().iter().enumerate() {
-        data[56 + index] = byte.as_u64().unwrap() as u8;
+        data[56 + index] = u8::try_from(byte.as_u64().unwrap()).unwrap();
     }
     data.extend(payload);
     data
@@ -629,7 +629,7 @@ fn replay(scenario: &Value) -> Replayed {
                     };
                     match result {
                         Ok(()) => {
-                            record(serde_json::json!({"data_base64": STANDARD.encode(&data)}))
+                            record(serde_json::json!({"data_base64": STANDARD.encode(&data)}));
                         }
                         Err(failure) => {
                             record(serde_json::json!({"error": failure.message()}));
@@ -813,7 +813,7 @@ fn broker_replays_recorded_go_orders() {
         for (node, want) in &expected {
             let got = outputs.get(node).cloned().unwrap_or_default();
             for (index, (got, want)) in got.iter().zip(want).enumerate() {
-                let want = if want.as_object().is_some_and(|object| object.is_empty()) {
+                let want = if want.as_object().is_some_and(serde_json::Map::is_empty) {
                     serde_json::json!({})
                 } else {
                     want.clone()
@@ -843,6 +843,10 @@ fn broker_replays_recorded_go_orders() {
 }
 
 #[test]
+#[expect(
+    clippy::items_after_statements,
+    reason = "The local output capture type belongs to this paused control scenario"
+)]
 fn broker_pauses_at_clock_advances_for_live_link_changes() {
     use std::io::Cursor;
     let ids = vec!["a".to_owned(), "b".to_owned()];
@@ -1015,7 +1019,7 @@ mod inspection_differential {
     fn storage_model() -> Value {
         serde_json::json!({
             "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
-            "limits":{"PendingOperations":1000,"Transitions":100000}
+            "limits":{"PendingOperations":1000,"Transitions":100_000}
         })
     }
 
@@ -1066,7 +1070,7 @@ mod inspection_differential {
             &handle,
             witness(*ordinal),
             model.now,
-            vec![*ordinal as u8; (*ordinal % 3) as usize],
+            vec![ordinal.to_le_bytes()[0]; (*ordinal % 3) as usize],
             &model.inspection.world_commitment,
         );
         log.push(match result {
@@ -1117,7 +1121,7 @@ mod inspection_differential {
                     state,
                     Operation::Write {
                         fd,
-                        data: vec![step as u8; 5 + step % 7],
+                        data: vec![step.to_le_bytes()[0]; 5 + step % 7],
                         offset: None,
                     },
                 );
@@ -1130,7 +1134,7 @@ mod inspection_differential {
                     state,
                     Operation::Write {
                         fd,
-                        data: vec![!(step as u8); 5],
+                        data: vec![!(step.to_le_bytes()[0]); 5],
                         offset: Some(0),
                     },
                 );
@@ -1209,6 +1213,10 @@ mod inspection_differential {
     /// boundary result and every broker call's output, per node.
     type Run = (Vec<u8>, BTreeMap<String, Vec<String>>);
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The scenario retains the complete ordered Go conformance sequence"
+    )]
     fn run(scenario: &Value, variant: Variant, eager: bool) -> Run {
         let ids: Vec<String> = scenario["nodes"]
             .as_array()
@@ -1315,9 +1323,9 @@ mod inspection_differential {
                             decide(&mut state, &mut ordinal, &mut log);
                         }
                         terminate(&mut state, failed);
-                        lock(&logs).insert(handle.node.clone() + "/1", log);
+                        lock(&logs).insert(handle.node + "/1", log);
                         broker.finish(index);
-                    })
+                    });
                 })
             })
             .collect();
@@ -1365,7 +1373,7 @@ mod inspection_differential {
                         assert!(broker.acquire(index));
                         observe(&state);
                         for round in 0..4u64 {
-                            mutate(&mut state, round as usize + index);
+                            mutate(&mut state, usize::try_from(round).unwrap() + index);
                             decide(&mut state, &mut ordinal, &mut log);
                             let mut data = vec![0u8; 16];
                             data[..4].copy_from_slice(&1u32.to_be_bytes());
@@ -1380,9 +1388,9 @@ mod inspection_differential {
                             decide(&mut state, &mut ordinal, &mut log);
                         }
                         terminate(&mut state, false);
-                        lock(&logs).insert(handle.node.clone() + "/2", log);
+                        lock(&logs).insert(handle.node + "/2", log);
                         broker.finish(index);
-                    })
+                    });
                 })
             })
             .collect();
@@ -1488,6 +1496,10 @@ mod inspection_differential {
     /// with an infrastructure failure. Returns each node's (idle, terminal).
     /// A panicking node aborts the broker, so a regression fails instead of
     /// leaving a peer parked.
+    #[expect(
+        clippy::needless_collect,
+        reason = "All worker threads must spawn before the broker starts and before any join"
+    )]
     fn deferred_handoffs(missed: bool) -> Vec<(Result<(), Failure>, Result<(), String>)> {
         let scenario = scenarios().into_iter().next().unwrap();
         let ids: Vec<String> = scenario["nodes"]

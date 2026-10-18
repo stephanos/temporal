@@ -1,10 +1,23 @@
-use super::*;
+use super::transport::{Broken, SharedInput, SharedOutput, TaggedInput, TaggedOutput, lock};
+use super::{
+    ClusterExecute, ClusterResult, Coordinator, InstanceConfig, InstanceSummary, Report,
+    STORE_THREAD_STACK, read_instance_tape, refuse_instance, run_instance, validate_model,
+};
+use crate::engine::State;
+use crate::network::cluster::{Endpoint, Failure};
+use crate::protocol::{self, Outcome};
 use base64::{Engine as _, engine::general_purpose::STANDARD};
+use serde::Deserialize;
 use serde_json::{Value, json};
 use std::collections::BTreeMap;
+use std::collections::BTreeSet;
+use std::panic::{AssertUnwindSafe, catch_unwind};
+use std::sync::Arc;
 use std::thread::JoinHandle;
+use std::time::Instant;
+use wasmtime::{Error, InstancePre, Result};
 
-fn include_module_metrics(cluster: &mut crate::metrics::Metrics, module: crate::metrics::Metrics) {
+fn include_module_metrics(cluster: &mut crate::metrics::Metrics, module: &crate::metrics::Metrics) {
     cluster.cache_hit &= module.cache_hit;
     cluster.compile_nanos += module.compile_nanos;
     cluster.cache_load_nanos += module.cache_load_nanos;
@@ -22,7 +35,7 @@ mod tests {
         };
         super::include_module_metrics(
             &mut cluster,
-            crate::metrics::Metrics {
+            &crate::metrics::Metrics {
                 compile_nanos: 17,
                 cache_write_nanos: 23,
                 ..Default::default()
@@ -30,7 +43,7 @@ mod tests {
         );
         super::include_module_metrics(
             &mut cluster,
-            crate::metrics::Metrics {
+            &crate::metrics::Metrics {
                 cache_hit: true,
                 cache_load_nanos: 29,
                 ..Default::default()
@@ -108,9 +121,9 @@ pub(super) fn validate(request: &ClusterExecute) -> Result<()> {
     }
     for instance in request.instances.iter().chain(&request.boots) {
         let mut single = request.single(instance);
-        single.local_model = instance.local_model.clone();
-        single.namespace = instance.namespace.clone();
-        single.storage = instance.storage.clone();
+        single.local_model.clone_from(&instance.local_model);
+        single.namespace.clone_from(&instance.namespace);
+        single.storage.clone_from(&instance.storage);
         single.validate()?;
         if request.manual_start {
             let Some(model) = &instance.local_model else {
@@ -246,12 +259,20 @@ fn join(
     Ok(())
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Execution owns transport handles for the full incarnation lifecycle"
+)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+)]
 pub(super) fn execute(
     mut request: ClusterExecute,
     input: SharedInput,
     output: SharedOutput,
 ) -> Result<()> {
-    let broken = Broken::default();
+    let transport_failure = Broken::default();
     let mut metrics = crate::metrics::Metrics::default();
     let mut summaries = Vec::new();
     let mut execution_metrics = crate::broker::Metrics::default();
@@ -266,7 +287,7 @@ pub(super) fn execute(
         configurations.extend(std::mem::take(&mut request.boots));
         let mut sealed = Vec::new();
         for mut config in configurations {
-            let mut tagged = TaggedInput::new(input.clone(), &config.id, broken.clone());
+            let mut tagged = TaggedInput::new(input.clone(), &config.id, transport_failure.clone());
             if let Some(model) = &mut config.local_model {
                 model.read_inputs(&mut tagged).map_err(|error| {
                     Outcome::new(protocol::classification(&error), error.to_string())
@@ -320,7 +341,7 @@ pub(super) fn execute(
                 let mut module_metrics = crate::metrics::Metrics::default();
                 let (module, started) =
                     crate::engine::prepare_module(&single, &engine, &mut module_metrics)?;
-                include_module_metrics(&mut metrics, module_metrics);
+                include_module_metrics(&mut metrics, &module_metrics);
                 let pre = crate::engine::linker(&engine, &module)
                     .and_then(|linker| linker.instantiate_pre(&module))
                     .map_err(|error| Outcome::new("infrastructure", error.to_string()))?;
@@ -448,10 +469,9 @@ pub(super) fn execute(
                 Some(index) => broker.run(index, control.incarnation),
                 None => Err(Failure::Invalid("unknown cluster node")),
             };
-            let (termination, message) = changed
-                .err()
-                .map(|failure| (failure.termination(), failure.message()))
-                .unwrap_or(("", String::new()));
+            let (termination, message) = changed.err().map_or(("", String::new()), |failure| {
+                (failure.termination(), failure.message())
+            });
             protocol::send_frame(
                 &mut **wire,
                 &json!({"type":"control_result","id":control.id,"termination":termination,"message":message}),
@@ -488,7 +508,7 @@ pub(super) fn execute(
                 break;
             }
             let mut config = boot.config.clone();
-            config.id = ids[index].clone();
+            config.id.clone_from(&ids[index]);
             if let Some(runtime) = control.runtime {
                 let Some(model) = &mut config.local_model else {
                     ack(Some(("invalid", "cluster runtime without model".into())))?;
@@ -508,10 +528,10 @@ pub(super) fn execute(
                     input.clone(),
                     &config.id,
                     control.incarnation,
-                    broken.clone(),
+                    transport_failure.clone(),
                 );
-                let read = read_instance_tape(model, &mut tagged, &broken);
-                if let Some(message) = broken.get() {
+                let read = read_instance_tape(model, &mut tagged, &transport_failure);
+                if let Some(message) = transport_failure.get() {
                     result = ClusterResult::new("invalid", message);
                     break;
                 }
@@ -567,18 +587,18 @@ pub(super) fn execute(
             }
             ack(None)?;
             node.incarnation = control.incarnation;
-            let (engine, pre, coordinator, network, broken) = (
+            let (engine, pre, coordinator, network, transport_failure) = (
                 engine.clone(),
                 boot.pre.clone(),
                 coordinator.clone(),
                 request.shared.clone(),
-                broken.clone(),
+                transport_failure.clone(),
             );
             let tagged_input = TaggedInput::incarnation(
                 input.clone(),
                 &config.id,
                 control.incarnation,
-                broken.clone(),
+                transport_failure.clone(),
             );
             let tagged_output =
                 TaggedOutput::incarnation(output.clone(), &config.id, control.incarnation);
@@ -607,7 +627,7 @@ pub(super) fn execute(
                             &coordinator,
                             tagged_input,
                             tagged_output,
-                            &broken,
+                            &transport_failure,
                             incarnation,
                             slot,
                             namespace,

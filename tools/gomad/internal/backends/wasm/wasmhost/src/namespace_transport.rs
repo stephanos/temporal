@@ -58,6 +58,12 @@ pub(crate) fn read_image(
     expected_epoch: u64,
     working_directory_sha256: &str,
 ) -> Result<crate::namespace::Image> {
+    #[derive(Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct End {
+        #[serde(rename = "type")]
+        kind: String,
+    }
     descriptor.validate()?;
     if !valid_sha256(working_directory_sha256) {
         return Err(Error::msg("invalid namespace working directory digest"));
@@ -85,12 +91,6 @@ pub(crate) fn read_image(
     {
         return Err(Error::msg("invalid namespace image digest or length"));
     }
-    #[derive(Deserialize)]
-    #[serde(deny_unknown_fields)]
-    struct End {
-        #[serde(rename = "type")]
-        kind: String,
-    }
     let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
     if end.kind != "namespace_inputs_end" {
         return Err(Error::msg("invalid namespace inputs end"));
@@ -117,20 +117,20 @@ struct ImageFrames<'a> {
 
 impl Read for ImageFrames<'_> {
     fn read(&mut self, buffer: &mut [u8]) -> io::Result<usize> {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Chunk {
+            #[serde(rename = "type")]
+            kind: String,
+            sequence: u64,
+            data_base64: String,
+        }
         if buffer.is_empty() {
             return Ok(0);
         }
         if self.offset == self.chunk.len() {
             if self.sequence == self.descriptor.chunks {
                 return Ok(0);
-            }
-            #[derive(Deserialize)]
-            #[serde(deny_unknown_fields)]
-            struct Chunk {
-                #[serde(rename = "type")]
-                kind: String,
-                sequence: u64,
-                data_base64: String,
             }
             let invalid =
                 || io::Error::new(io::ErrorKind::InvalidData, "invalid namespace input chunk");
@@ -336,6 +336,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The fixture's input data spans two 64 KiB chunks."
+    )]
     fn streams_multiple_chunks_and_rejects_short_nonfinal_chunk() {
         let data = vec![7; 2 * 65536 + 3];
         let mut bytes = ROOT_IMAGE[..89].to_vec();

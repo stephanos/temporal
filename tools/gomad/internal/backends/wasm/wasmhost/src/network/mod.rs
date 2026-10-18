@@ -6,8 +6,9 @@ pub mod stream_abi;
 #[cfg(test)]
 mod tests;
 
+use history::Endpoint;
 use serde::{Deserialize, Serialize};
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet, VecDeque};
 
 #[derive(Clone, Debug, Deserialize, Eq, PartialEq, Serialize)]
 pub struct Domain {
@@ -53,6 +54,10 @@ pub struct Address {
 }
 
 #[derive(Clone, Debug, Deserialize)]
+#[expect(
+    clippy::struct_field_names,
+    reason = "Field names mirror the Go network request contract"
+)]
 pub struct Request {
     pub domain: Domain,
     pub op: String,
@@ -583,6 +588,10 @@ impl Model {
             .min()
             .unwrap_or_default()
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub fn change_group(
         &mut self,
         left: &[String],
@@ -800,7 +809,10 @@ impl Model {
                 if pending.request.op == "write" {
                     let accepted = result.count;
                     pending.accepted += accepted;
-                    pending.request.bytes.drain(..accepted as usize);
+                    pending.request.bytes.drain(
+                        ..usize::try_from(accepted)
+                            .expect("accepted bytes are bounded by the request buffer"),
+                    );
                     result.count = pending.accepted;
                 }
                 Self::wait_deadline(&pending.request, self.now, &mut result);
@@ -904,7 +916,10 @@ impl Model {
         if result.state == "pending" {
             let mut retained = request;
             if retained.op == "write" {
-                retained.bytes.drain(..result.count as usize);
+                retained.bytes.drain(
+                    ..usize::try_from(result.count)
+                        .expect("accepted bytes are bounded by the request buffer"),
+                );
             }
             let source = self.wait_source(&retained);
             let generation = self.generation(source);
@@ -1090,6 +1105,10 @@ impl Model {
         outcome
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     fn attempt_inner(
         &mut self,
         request: &Request,
@@ -1104,7 +1123,7 @@ impl Model {
                 {
                     return Err("unsupported Gomad network operation".into());
                 }
-                let mut port = request.port as u64;
+                let mut port = request.port.cast_unsigned();
                 if port == 0 {
                     port = self.nodes[&request.domain.node].next_listener_port;
                     while port <= 65535
@@ -1125,7 +1144,7 @@ impl Model {
                             port: 0,
                             ..endpoint
                         },
-                        Default::default(),
+                        Endpoint::default(),
                         "capacity",
                         "network resources exhausted",
                     );
@@ -1138,7 +1157,7 @@ impl Model {
                     return self.failure(
                         "listen",
                         endpoint,
-                        Default::default(),
+                        Endpoint::default(),
                         "closed",
                         "address already in use",
                     );
@@ -1147,7 +1166,7 @@ impl Model {
                     return self.failure(
                         "listen",
                         endpoint,
-                        Default::default(),
+                        Endpoint::default(),
                         "capacity",
                         "network resources exhausted",
                     );
@@ -1168,7 +1187,7 @@ impl Model {
                 self.listeners.push(Listener {
                     endpoint,
                     closed: false,
-                    pending: Default::default(),
+                    pending: VecDeque::default(),
                     deadline: 0,
                     generation: 0,
                 });
@@ -1196,7 +1215,7 @@ impl Model {
                 let source = Self::endpoint(&request.domain, 0);
                 let mut destination = history::Endpoint {
                     address: request.host.clone(),
-                    port: request.port as u64,
+                    port: request.port.cast_unsigned(),
                     ..Default::default()
                 };
                 let target = self
@@ -1241,7 +1260,7 @@ impl Model {
                         "connection refused",
                     );
                 };
-                destination.node = target.node.clone();
+                destination.node.clone_from(&target.node);
                 if request.domain.node == target.node {
                     return Err("unsupported Gomad network operation".into());
                 }
@@ -1294,7 +1313,7 @@ impl Model {
                 let listener_index = self.listeners.iter().position(|listener| {
                     !listener.closed
                         && listener.endpoint.address == request.host
-                        && listener.endpoint.port == request.port as u64
+                        && listener.endpoint.port == request.port.cast_unsigned()
                 });
                 let Some(listener_index) = listener_index else {
                     return self.dial_failure(
@@ -1365,7 +1384,7 @@ impl Model {
                 };
                 result.remote = Address {
                     ip: request.host.clone(),
-                    port: request.port as u64,
+                    port: request.port.cast_unsigned(),
                 };
             }
             "accept" => {
@@ -1456,9 +1475,9 @@ impl Model {
                 let enabled = link.as_ref().is_some_and(|link| link.enabled);
                 let delay = link.as_ref().map_or(0, |link| link.delay_nanos);
                 let retained = self.states[&(identity, !client)].retained_bytes;
-                let length = bytes
-                    .len()
-                    .min((self.limits.connection_bytes - retained) as usize);
+                let length = bytes.len().min(
+                    usize::try_from(self.limits.connection_bytes - retained).unwrap_or(usize::MAX),
+                );
                 if length == 0 {
                     let deadline = self.states[&(identity, client)].write_deadline;
                     if deadline != 0 && deadline <= self.now {
@@ -1720,6 +1739,10 @@ impl Model {
         }
         Ok(())
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub fn new(run: u64, config: Config) -> Result<Self, String> {
         let limits = &config.limits;
         if run == 0
@@ -1772,7 +1795,7 @@ impl Model {
             {
                 return Err("simulation network nodes are invalid or unordered".into());
             }
-            previous = node.node.clone();
+            previous.clone_from(&node.node);
             nodes.insert(
                 node.node.clone(),
                 history::NodeSnapshot {
@@ -1795,7 +1818,7 @@ impl Model {
             {
                 return Err("simulation network links are invalid or unordered".into());
             }
-            previous = key.clone();
+            previous.clone_from(&key);
             links.insert(key, link);
         }
         let mut replay_lanes: BTreeMap<String, Vec<history::Transition>> = BTreeMap::new();
@@ -1817,7 +1840,7 @@ impl Model {
             listeners: Vec::new(),
             connections: BTreeMap::new(),
             states: BTreeMap::new(),
-            reservations: Default::default(),
+            reservations: BTreeSet::default(),
             history_reserved: 0,
             pending_bytes: 0,
             now: 0,

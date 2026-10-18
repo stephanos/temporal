@@ -8,6 +8,7 @@ on:
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
+      - "tools/gomad/mise.toml"
       - "go.mod"
       - "go.sum"
       - "tools/gomad/**"
@@ -21,6 +22,7 @@ on:
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
+      - "tools/gomad/mise.toml"
       - "go.mod"
       - "go.sum"
       - "tools/gomad/**"
@@ -71,7 +73,7 @@ jobs:
                 runtime=tools/gomad/internal/backends/native/toolchain/runtime
                 while IFS= read -r -d '' path; do
                   case "$path" in
-                    tools/gomad/internal/backends/wasm/*) wasm=true ;;
+                    tools/gomad/internal/backends/wasm/*|tools/gomad/mise.toml) wasm=true ;;
                     tools/gomad/internal/backends/native/*)
                       native=true
                       # These native sources also feed the WASM runtime and projected models.
@@ -123,7 +125,7 @@ jobs:
           cache-dependency-path: tools/gomad/go.sum
 
       - name: Install pinned Rust toolchain
-        run: rustup toolchain install 1.94.1 --profile minimal
+        run: rustup toolchain install 1.99.1 --profile minimal --component rustfmt --component clippy
 
       - name: Restore WASM helper build cache
         id: helper-cache
@@ -133,12 +135,15 @@ jobs:
             ~/.cargo/registry
             ~/.cargo/git
             tools/gomad/internal/backends/wasm/wasmhost/target
-          key: gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-${{ hashFiles('tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock', 'tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml', 'tools/gomad/internal/backends/wasm/wasmhost/src/**') }}
+          key: gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.99.1-${{ hashFiles('tools/gomad/internal/backends/wasm/wasmhost/Cargo.lock', 'tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml', 'tools/gomad/internal/backends/wasm/wasmhost/src/**') }}
           restore-keys: |
-            gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.94.1-
+            gomad-wasm-${{ runner.os }}-${{ runner.arch }}-rust1.99.1-
+
+      - name: Check Rust formatting and Clippy
+        run: make -C tools/gomad/internal/backends/wasm lint-rust
 
       - name: Build pinned WASM helper
-        run: cargo +1.94.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
+        run: cargo +1.99.1 build --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked
 
       - name: Test slim guest refusals with stock Go
         # go test -tags gomad_wasm_slim,test_dep -run <refusal tests> ./common/archiver/provider ./temporal ./tests/testcore

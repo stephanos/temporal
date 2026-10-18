@@ -961,7 +961,7 @@ func TestDiagnosticAdmissionHelperEvidence(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, mutation := range []string{"valid", "cluster-valid", "cluster-extra-feature", "artifact", "helper", "source", "compiler", "receipt", "wrapper", "wrong-compiler", "missing-feature", "extra-feature", "raw-command"} {
+	for _, mutation := range []string{"valid", "cluster-valid", "cluster-extra-feature", "artifact", "helper", "source", "compiler", "receipt", "wrapper", "wrong-compiler", "old-toolchain", "missing-feature", "extra-feature", "raw-command"} {
 		t.Run(mutation, func(t *testing.T) {
 			root := t.TempDir()
 			crate := filepath.Join(root, "tools/gomad/internal/backends/wasm/wasmhost")
@@ -1000,13 +1000,17 @@ func TestDiagnosticAdmissionHelperEvidence(t *testing.T) {
 				Command  []string
 				ExitCode int
 			}{rawCommand, 0})
-			testTemporalWrite(t, filepath.Join(root, "rustc-version.stdout"), []byte("rustc 1.94.1 fixture"))
-			testTemporalWrite(t, filepath.Join(root, "cargo-version.stdout"), []byte("cargo 1.94.1 fixture"))
+			rustcVersion, cargoVersion := "rustc 1.99.1 fixture", "cargo 1.99.1 fixture"
+			if mutation == "old-toolchain" {
+				rustcVersion, cargoVersion = "rustc 1.94.1 fixture", "cargo 1.94.1 fixture"
+			}
+			testTemporalWrite(t, filepath.Join(root, "rustc-version.stdout"), []byte(rustcVersion))
+			testTemporalWrite(t, filepath.Join(root, "cargo-version.stdout"), []byte(cargoVersion))
 			inputs := testTerminalExitRustInputs(t, crate)
 			for _, path := range []string{rustc, cargo, filepath.Join(root, "cargo-build.stdout"), filepath.Join(root, "cargo-build.json"), filepath.Join(root, "rustc-version.stdout"), filepath.Join(root, "cargo-version.stdout")} {
 				inputs[path] = testFileHash(t, path)
 			}
-			build := terminalExitHelperBuild{Crate: crate, Helper: artifact, HelperSHA256: testFileHash(t, artifact), RustcPath: rustc, Inputs: inputs, Command: command, Environment: []string{"RUSTC=" + rustc, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, Features: features, RustcVersion: "rustc 1.94.1 fixture", CargoVersion: "cargo 1.94.1 fixture"}
+			build := terminalExitHelperBuild{Crate: crate, Helper: artifact, HelperSHA256: testFileHash(t, artifact), RustcPath: rustc, Inputs: inputs, Command: command, Environment: []string{"RUSTC=" + rustc, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER="}, Features: features, RustcVersion: rustcVersion, CargoVersion: cargoVersion}
 			switch mutation {
 			case "wrapper":
 				build.Environment[1] = "RUSTC_WRAPPER=/wrong"
@@ -1581,6 +1585,41 @@ func TestWarmPreparationHistoricalTranscriptOwnerProjection(t *testing.T) {
 	}
 	if _, err := wasi.DecodeTranscript(legacy); err == nil {
 		t.Fatal("production decoder must not accept historical JSONL")
+	}
+}
+
+func TestWarmPreparationHistoricalTranscriptPreservesEmptyShape(t *testing.T) {
+	for _, test := range []struct {
+		name   string
+		args   []string
+		output string
+		valid  bool
+	}{
+		{"empty-list", []string{}, `{"values":[]}`, true},
+		{"null-list", []string{}, `{"values":null}`, false},
+		{"missing-list", []string{}, `{}`, false},
+		{"empty-bytes", []string{""}, `{"values":[""]}`, true},
+		{"null-bytes", []string{""}, `{"values":[null]}`, false},
+		{"unknown-field", []string{}, `{"values":[],"extra":0}`, false},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			config := standaloneConfig()
+			config.Args = test.args
+			legacy := []byte("{\"type\":\"call\",\"id\":1,\"op\":\"args_get\",\"input\":{}}\n" +
+				"{\"type\":\"reply\",\"id\":1,\"errno\":0,\"output\":" + test.output + "}\n")
+			converted, err := warmPreparationLegacyTranscript(legacy, config)
+			if !test.valid {
+				if err == nil {
+					t.Fatal("historical output shape or unknown field accepted")
+				}
+				return
+			}
+			environment := newTestEnvironment(t, config)
+			testCall(t, environment, 1, "args_get", `{}`)
+			if err != nil || !bytes.Equal(converted, environment.Transcript()) {
+				t.Fatal("historical output differs from the typed owner", err)
+			}
+		})
 	}
 }
 

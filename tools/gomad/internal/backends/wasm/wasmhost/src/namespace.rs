@@ -306,6 +306,10 @@ pub struct Namespace {
 /// Process-unique namespace identities for inspection revisions.
 static NAMESPACE_IDENTITIES: std::sync::atomic::AtomicU64 = std::sync::atomic::AtomicU64::new(1);
 impl Namespace {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Namespace construction validates image topology and admits resources before publishing descriptors."
+    )]
     pub fn new(image: Image) -> std::result::Result<Self, Boundary> {
         let mut ns = Self {
             nodes: BTreeMap::new(),
@@ -695,7 +699,7 @@ impl Namespace {
             let size = entry.data.len() as u64;
             let node = self.nodes.get_mut(&child).unwrap();
             node.storage_path = path;
-            node.modified = entry.mod_time.max(0) as u64;
+            node.modified = entry.mod_time.max(0).cast_unsigned();
             node.storage_size = size;
             self.bytes += size;
             self.nodes
@@ -729,6 +733,10 @@ impl Namespace {
     }
     /// Go `storageWrite`: returns the written count and the errno to report
     /// after the node refresh, or a stop that skips the refresh.
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Storage decisions return a prefix of the BUFFER_LIMIT-bounded input, and writes return a count within that prefix."
+    )]
     fn storage_write(
         &mut self,
         fd: u32,
@@ -752,7 +760,7 @@ impl Namespace {
         let clock = storage.clock;
         match storage.fs.handle_write_at(
             &self.handles[&fd],
-            offset as i64,
+            offset.cast_signed(),
             &input[..count as usize],
             clock,
         ) {
@@ -785,12 +793,12 @@ impl Namespace {
         let node = self.nodes.get_mut(&ino).unwrap();
         self.bytes = self.bytes - node.storage_size + size;
         node.storage_size = size;
-        node.modified = mod_time.max(0) as u64;
+        node.modified = mod_time.max(0).cast_unsigned();
         Ok(())
     }
-    fn relocate_storage_node(&mut self, ino: u64, name: String) {
+    fn relocate_storage_node(&mut self, ino: u64, name: &str) {
         let node = self.nodes.get_mut(&ino).unwrap();
-        node.storage_path = name.clone();
+        name.clone_into(&mut node.storage_path);
         let children: Vec<(Vec<u8>, u64)> = node
             .children
             .iter()
@@ -799,7 +807,7 @@ impl Namespace {
         for (child, child_ino) in children {
             self.relocate_storage_node(
                 child_ino,
-                format!("{name}/{}", String::from_utf8_lossy(&child)),
+                &format!("{name}/{}", String::from_utf8_lossy(&child)),
             );
         }
     }
@@ -853,6 +861,14 @@ impl Namespace {
             Err(Failure::Storage(StorageStop::Fatal(message))) => Err(Stop::Fatal(message)),
         }
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Keep namespace operation dispatch and its admission-before-mutation ordering explicit."
+    )]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Validated image paths and guest path buffers fit within the WASI u32 length field."
+    )]
     fn execute_inner(&mut self, op: Operation, now: u64) -> Result<Output> {
         match op {
             Operation::Readlink { .. } => Err(Failure::Unsupported(READLINK_UNSUPPORTED.into())),
@@ -954,7 +970,7 @@ impl Namespace {
                     let clock = storage.clock;
                     storage
                         .fs
-                        .handle_resize(&self.handles[&fd], size as i64, clock)
+                        .handle_resize(&self.handles[&fd], size.cast_signed(), clock)
                         .map_err(|error| storage_failure(&error))?;
                     self.refresh_storage_node(fd)?;
                     return Ok(Output::Empty);
@@ -965,7 +981,7 @@ impl Namespace {
             }
             Operation::Seek { fd, offset, whence } => self.seek(fd, offset, whence),
             Operation::Readdir { fd, length, cookie } => self.readdir(fd, length, cookie),
-            Operation::Open(input) => self.open(input, now),
+            Operation::Open(input) => self.open(&input, now),
             Operation::CreateDirectory { fd, path } => {
                 self.path_operation(fd, &path, 0, CREATE_DIRECTORY, now)
             }
@@ -988,6 +1004,10 @@ impl Namespace {
             ))),
         }
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The slice offset is below the existing Vec length and its endpoint is capped by that length."
+    )]
     fn read(&mut self, fd: u32, length: u32, positional: Option<u64>, now: u64) -> Result<Output> {
         let d = self.get_fd(fd, READ | if positional.is_some() { SEEK } else { 0 })?;
         let n = &self.nodes[&d.node];
@@ -1007,7 +1027,7 @@ impl Namespace {
             }
             let data = storage
                 .fs
-                .handle_read_at(&self.handles[&fd], offset as i64, length as usize)
+                .handle_read_at(&self.handles[&fd], offset.cast_signed(), length as usize)
                 .map_err(|error| storage_failure(&error))?;
             if positional.is_none() {
                 self.descriptors.get_mut(&fd).unwrap().offset += data.len() as u64;
@@ -1015,7 +1035,7 @@ impl Namespace {
             return Ok(Output::Bytes(data));
         }
         let data = if offset < n.data.len() as u64 {
-            n.data[offset as usize..(n.data.len() as u64).min(offset + length as u64) as usize]
+            n.data[offset as usize..(n.data.len() as u64).min(offset + u64::from(length)) as usize]
                 .to_vec()
         } else {
             Vec::new()
@@ -1025,6 +1045,10 @@ impl Namespace {
         }
         Ok(Output::Bytes(data))
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Write buffers are capped at BUFFER_LIMIT and resize admits the backing Vec before offset indexing."
+    )]
     fn write(&mut self, fd: u32, data: &[u8], positional: Option<u64>, now: u64) -> Result<Output> {
         if data.len() > BUFFER_LIMIT {
             return Err(Failure::Boundary(capacity("write-buffer")));
@@ -1113,10 +1137,10 @@ impl Namespace {
             _ => return Err(Failure::Errno(INVAL)),
         };
         let position = if offset >= 0 {
-            if base > i64::MAX as u64 - offset as u64 {
+            if base > i64::MAX as u64 - offset.cast_unsigned() {
                 return Err(Failure::Errno(INVAL));
             }
-            base + offset as u64
+            base + offset.cast_unsigned()
         } else {
             base.checked_sub(offset.unsigned_abs())
                 .ok_or(Failure::Errno(INVAL))?
@@ -1124,6 +1148,10 @@ impl Namespace {
         self.descriptors.get_mut(&fd).unwrap().offset = position;
         Ok(Output::Offset(position))
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Cookies are checked against the child count, and names come from bounded image or guest paths."
+    )]
     fn readdir(&self, fd: u32, length: u32, cookie: u64) -> Result<Output> {
         let d = self.get_fd(fd, READDIR)?;
         let n = &self.nodes[&d.node];
@@ -1149,7 +1177,11 @@ impl Namespace {
         }
         Ok(Output::Bytes(data))
     }
-    fn open(&mut self, input: Open, now: u64) -> Result<Output> {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Path opening preserves the Go model\'s ordered permission, capacity and storage checks."
+    )]
+    fn open(&mut self, input: &Open, now: u64) -> Result<Output> {
         let d = self.get_fd(input.fd, PATH_OPEN)?;
         if input.dirflags & !1 != 0
             || input.oflags & !15 != 0
@@ -1227,20 +1259,19 @@ impl Namespace {
                     .map_err(|error| storage_failure(&error))?,
             );
         }
-        let ino = match node {
-            Some(ino) => ino,
-            None => {
-                let ino = self.new_node(false, false);
-                let created = self.nodes.get_mut(&ino).unwrap();
-                created.modified = now;
-                created.storage_path = resource;
-                self.nodes
-                    .get_mut(&parent)
-                    .unwrap()
-                    .children
-                    .insert(name, ino);
-                ino
-            }
+        let ino = if let Some(ino) = node {
+            ino
+        } else {
+            let ino = self.new_node(false, false);
+            let created = self.nodes.get_mut(&ino).unwrap();
+            created.modified = now;
+            created.storage_path = resource;
+            self.nodes
+                .get_mut(&parent)
+                .unwrap()
+                .children
+                .insert(name, ino);
+            ino
         };
         if input.oflags & 8 != 0 && handle.is_none() {
             self.resize(ino, 0)?;
@@ -1406,7 +1437,7 @@ impl Namespace {
                 .fs
                 .rename(&source, &resource, clock)
                 .map_err(|error| storage_failure(&error))?;
-            self.relocate_storage_node(ino, resource);
+            self.relocate_storage_node(ino, &resource);
         }
         self.nodes.get_mut(&parent).unwrap().children.remove(&name);
         self.nodes
@@ -1468,21 +1499,21 @@ impl Namespace {
         for (fd, d) in &self.descriptors {
             bytes.push(b'D');
             for number in [
-                *fd as u64,
+                u64::from(*fd),
                 d.node,
                 d.offset,
                 d.rights,
                 d.inheriting,
-                d.flags as u64,
+                u64::from(d.flags),
             ] {
                 put_u64(&mut bytes, number);
             }
             put_bytes(&mut bytes, &d.preopen);
-            put_u64(&mut bytes, d.std as u64);
+            put_u64(&mut bytes, u64::from(d.std));
         }
         bytes.push(b'S');
         for number in [
-            self.next_fd as u64,
+            u64::from(self.next_fd),
             self.next_inode,
             self.files,
             self.bytes,
@@ -1521,7 +1552,7 @@ impl Namespace {
                 storage.clock,
             ))
             .map_err(wasmtime::Error::new)?;
-            if storage_state.len() > MAXIMUM as usize {
+            if storage_state.len() as u64 > MAXIMUM {
                 return Err(wasmtime::Error::msg("inspection volume state capacity"));
             }
             put_bytes(&mut state, &storage_state);
@@ -1534,7 +1565,7 @@ impl Namespace {
             .map_err(|error| {
                 wasmtime::Error::msg(format!("inspection recovery state: {error:?}"))
             })?;
-            log = storage.log.clone();
+            log.clone_from(&storage.log);
         }
         Ok((state, recovery, log))
     }
@@ -1563,8 +1594,8 @@ impl Namespace {
     fn encode_node(&self, ino: u64, bytes: &mut Vec<u8>) {
         let n = &self.nodes[&ino];
         put_u64(bytes, n.ino);
-        bytes.push(n.directory as u8);
-        bytes.push(n.readonly as u8);
+        bytes.push(u8::from(n.directory));
+        bytes.push(u8::from(n.readonly));
         put_u64(bytes, node_size(n));
         put_bytes(bytes, &n.data);
         put_u64(bytes, n.modified);
@@ -1777,9 +1808,8 @@ mod tests {
         );
         input.flags = 0;
         assert_eq!(run(&mut n, Operation::Open(input)).errno, INVAL);
-        let dir = match run(&mut n, open(3, b".", 2, PATH_OPEN)).output.unwrap() {
-            Output::Fd(fd) => fd,
-            _ => unreachable!(),
+        let Output::Fd(dir) = run(&mut n, open(3, b".", 2, PATH_OPEN)).output.unwrap() else {
+            unreachable!()
         };
         assert_eq!(run(&mut n, open(dir, b"x", 1, READ)).errno, NOTCAPABLE);
         assert_eq!(run(&mut n, open(3, b"missing/", 1, READ)).errno, NOTDIR);
@@ -1854,7 +1884,7 @@ mod tests {
             BADF
         );
         assert_eq!(n.offered_output(), 2);
-        assert!(n.stdout().is_empty());
+        assert_eq!(n.stdout(), [] as [u8; 0]);
         assert_eq!(
             n.execute(
                 Operation::Write {
@@ -1884,7 +1914,7 @@ mod tests {
             NOTCAPABLE
         );
         assert_eq!(n.offered_output(), 1);
-        assert!(n.stderr().is_empty());
+        assert_eq!(n.stderr(), [] as [u8; 0]);
         assert_eq!(
             run(
                 &mut n,
@@ -1900,6 +1930,10 @@ mod tests {
         assert_eq!(n.stdout(), b"ok");
     }
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "This ordered filesystem scenario checks offset, append, zero-fill, and timestamp parity after each mutation."
+    )]
     fn data_offsets_append_zero_fill_and_times_match_reference() {
         let mut n = ns();
         let fd = opened(&mut n, b"file");
@@ -1977,9 +2011,8 @@ mod tests {
             .output,
             Some(Output::Offset(3))
         );
-        let stat = match run(&mut n, Operation::FilestatGet(fd)).output.unwrap() {
-            Output::Filestat(s) => s,
-            _ => unreachable!(),
+        let Output::Filestat(stat) = run(&mut n, Operation::FilestatGet(fd)).output.unwrap() else {
+            unreachable!()
         };
         assert_eq!(
             (stat.size, stat.atim, stat.mtim, stat.ctim),
@@ -2212,12 +2245,11 @@ mod tests {
             .errno,
             ROFS
         );
-        let fd = match run(&mut n, open(3, b"file", 0, READ | SEEK | SET_SIZE))
+        let Output::Fd(fd) = run(&mut n, open(3, b"file", 0, READ | SEEK | SET_SIZE))
             .output
             .unwrap()
-        {
-            Output::Fd(fd) => fd,
-            _ => unreachable!(),
+        else {
+            unreachable!()
         };
         assert_eq!(
             run(&mut n, Operation::SetSize { fd, size: u64::MAX }).errno,
@@ -2365,6 +2397,29 @@ mod tests {
     }
     #[test]
     fn canonical_digest_includes_detached_directory_children_and_unopened_descendants() {
+        fn node(data: &[u8], at: &mut usize) -> u64 {
+            let ino = number(data, at);
+            *at += 2;
+            number(data, at);
+            raw(data, at);
+            number(data, at);
+            ino
+        }
+        #[expect(
+            clippy::cast_possible_truncation,
+            reason = "The test decodes only length fields emitted from this fixture's in-memory byte vectors."
+        )]
+        fn raw<'a>(data: &'a [u8], at: &mut usize) -> &'a [u8] {
+            let size = number(data, at) as usize;
+            let value = &data[*at..*at + size];
+            *at += size;
+            value
+        }
+        fn number(data: &[u8], at: &mut usize) -> u64 {
+            let n = u64::from_le_bytes(data[*at..*at + 8].try_into().unwrap());
+            *at += 8;
+            n
+        }
         let mut n = ns();
         run(
             &mut n,
@@ -2373,7 +2428,7 @@ mod tests {
                 path: b"d".to_vec(),
             },
         );
-        let fd = match run(
+        let Output::Fd(fd) = run(
             &mut n,
             Operation::Open(Open {
                 fd: 3,
@@ -2386,10 +2441,8 @@ mod tests {
             }),
         )
         .output
-        .unwrap()
-        {
-            Output::Fd(fd) => fd,
-            _ => unreachable!(),
+        .unwrap() else {
+            unreachable!()
         };
         run(
             &mut n,
@@ -2407,25 +2460,6 @@ mod tests {
         );
         let data = n.canonical_state();
         let mut at = b"gomad.namespace-conformance/v1\0".len();
-        fn number(data: &[u8], at: &mut usize) -> u64 {
-            let n = u64::from_le_bytes(data[*at..*at + 8].try_into().unwrap());
-            *at += 8;
-            n
-        }
-        fn raw<'a>(data: &'a [u8], at: &mut usize) -> &'a [u8] {
-            let size = number(data, at) as usize;
-            let value = &data[*at..*at + size];
-            *at += size;
-            value
-        }
-        fn node(data: &[u8], at: &mut usize) -> u64 {
-            let ino = number(data, at);
-            *at += 2;
-            number(data, at);
-            raw(data, at);
-            number(data, at);
-            ino
-        }
         for path in [b"/".as_slice(), b"/tmp"] {
             assert_eq!(data[at], b'N');
             at += 1;
@@ -2436,7 +2470,7 @@ mod tests {
             assert_eq!(data[at], b'O');
             at += 1;
             assert_eq!(node(&data, &mut at), ino);
-            assert_eq!(number(&data, &mut at), if ino == 6 { 1 } else { 0 });
+            assert_eq!(number(&data, &mut at), u64::from(ino == 6));
             if ino == 6 {
                 assert_eq!(raw(&data, &mut at), b"child");
                 assert_eq!(number(&data, &mut at), 7);
@@ -2463,7 +2497,7 @@ mod tests {
         let material = n.inspection_material().unwrap();
         n.canonical_state();
         advanced(&n, false);
-        assert!(n.take_output() == (Vec::new(), Vec::new()));
+        assert_eq!(n.take_output(), (Vec::new(), Vec::new()));
         advanced(&n, false);
         n.adopt_offered_output(n.offered_output());
         advanced(&n, false);
@@ -2511,7 +2545,7 @@ mod tests {
         };
         let model: crate::volume::StorageModel = serde_json::from_value(serde_json::json!({
             "volumes":[{"ID":"data","Path":"/workspace","CapacityBytes":1 << 20}],
-            "limits":{"PendingOperations":1000,"Transitions":100000}
+            "limits":{"PendingOperations":1000,"Transitions":100_000}
         }))
         .unwrap();
         n.attach_storage(crate::volume::Storage::new(model, 1 << 24).unwrap())

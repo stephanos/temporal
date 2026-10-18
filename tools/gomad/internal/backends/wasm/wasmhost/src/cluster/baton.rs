@@ -79,7 +79,7 @@ impl Baton {
         while state.active != Some(me) && !state.aborted {
             state = self.wake[me]
                 .wait(state)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         !state.aborted
     }
@@ -112,7 +112,7 @@ impl Baton {
             state = self
                 .idle
                 .wait(state)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         !state.aborted
             && state

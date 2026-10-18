@@ -96,7 +96,7 @@ impl Fs {
             exploration.validate(id, &pending, volume.pending.len())?;
             cursor = exploration.cursor.clone().unwrap_or_default();
             seen.extend(exploration.seen.iter().cloned());
-            seen_order = exploration.seen.clone();
+            seen_order.clone_from(&exploration.seen);
         }
         if volume.pending.len() as u64 > limits.operations {
             return Ok(volume.capacity_page(&pending, cursor, seen_order, "operations"));
@@ -398,7 +398,7 @@ impl CrashState {
             hasher.string(&entry.path);
             hasher.u64(u64::from(entry.mode));
             hasher.u64(entry.kind);
-            hasher.u64(entry.mod_time as u64);
+            hasher.u64(entry.mod_time.cast_unsigned());
             hasher.bytes(entry.data.as_deref().unwrap_or(&[]));
         }
         hasher.finish()
@@ -436,7 +436,12 @@ pub(super) fn valid_digest(value: &str) -> bool {
 }
 
 mod optional_bytes {
-    use super::*;
+    use base64::{Engine as _, engine::general_purpose::STANDARD};
+    use serde::{Deserialize, Serialize};
+    #[expect(
+        clippy::ref_option,
+        reason = "Serde serializes the optional field through a shared reference"
+    )]
     pub fn serialize<S: serde::Serializer>(
         value: &Option<Vec<u8>>,
         serializer: S,
@@ -456,7 +461,7 @@ mod optional_bytes {
 }
 
 mod nullable_strings {
-    use super::*;
+    use serde::{Deserialize, Serialize};
     pub fn serialize<S: serde::Serializer>(
         value: &[String],
         serializer: S,

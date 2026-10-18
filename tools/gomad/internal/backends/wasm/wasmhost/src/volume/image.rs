@@ -64,12 +64,19 @@ impl RecoveryImage {
             .iter()
             .enumerate()
         {
-            result.raw(&(index as u32 + 1).to_le_bytes())?;
+            result.raw(
+                &(u32::try_from(index).expect("the image contains three sections") + 1)
+                    .to_le_bytes(),
+            )?;
             result.blob(section)?;
         }
         Ok(result.data)
     }
 
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub(crate) fn decode(
         bytes: &[u8],
         digest: &str,
@@ -439,7 +446,7 @@ impl Writer {
         self.number(object.inode)?;
         self.number(u64::from(object.mode))?;
         self.number(object.kind as u64)?;
-        self.number(object.mod_time as u64)?;
+        self.number(object.mod_time.cast_unsigned())?;
         self.blob(&object.data)
     }
     fn operations(&mut self, operations: &[PersistenceOperation]) -> Result<()> {
@@ -460,7 +467,7 @@ impl Writer {
             self.number(effect.offset)?;
             self.number(effect.size)?;
             self.number(u64::from(effect.mode))?;
-            self.number(effect.mod_time as u64)?;
+            self.number(effect.mod_time.cast_unsigned())?;
             self.blob(&effect.data)?;
             self.number(u64::from(effect.object.is_some()))?;
             if let Some(object) = &effect.object {
@@ -536,7 +543,7 @@ impl<'a> Reader<'a> {
             2 => Kind::Directory,
             _ => return Err(Error::Invalid("recovery object kind")),
         };
-        let mod_time = self.number()? as i64;
+        let mod_time = (self.number()?).cast_signed();
         let data = self.blob()?.to_vec();
         if inode == 0
             || data.len() as u64 > super::state::MAXIMUM_FILE_BYTES
@@ -569,7 +576,7 @@ impl<'a> Reader<'a> {
             let size = self.number()?;
             let mode = u32::try_from(self.number()?)
                 .map_err(|_| Error::Invalid("recovery effect mode"))?;
-            let mod_time = self.number()? as i64;
+            let mod_time = (self.number()?).cast_signed();
             let data = self.blob()?.to_vec();
             let object = match self.number()? {
                 0 => None,
@@ -757,7 +764,7 @@ mod tests {
         reader.take(16).unwrap();
         for tag in 1..=3 {
             assert_eq!(reader.small_number().unwrap(), tag);
-            let length = reader.number().unwrap() as usize;
+            let length = usize::try_from(reader.number().unwrap()).unwrap();
             if tag == 3 {
                 let mut changed = bytes.to_vec();
                 changed[reader.offset..reader.offset + 8]
@@ -1048,7 +1055,7 @@ mod tests {
         let mut impossible_length = bytes.clone();
         impossible_length[20..28].copy_from_slice(&u64::MAX.to_le_bytes());
         cases.push(impossible_length);
-        let mut trailing = bytes.clone();
+        let mut trailing = bytes;
         trailing.push(0);
         cases.push(trailing);
         for invalid in cases {

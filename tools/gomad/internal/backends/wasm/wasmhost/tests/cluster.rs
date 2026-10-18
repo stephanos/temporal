@@ -6,6 +6,7 @@ use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -14,7 +15,7 @@ use std::sync::atomic::{AtomicU64, Ordering};
 mod inspection;
 
 /// One module for every instance; behavior differs by configuration and by the
-/// test's replies: write "hello\n" (remote fd_write), read the local clock,
+/// test's replies: write "hello\n" (remote `fd_write`), read the local clock,
 /// trap on a nonzero write errno, grow memory to three pages, then spin.
 const GUEST: &str = r#"(module
   (import "wasi_snapshot_preview1" "fd_write" (func $write (param i32 i32 i32 i32) (result i32)))
@@ -34,6 +35,10 @@ const GUEST: &str = r#"(module
 
 #[test]
 #[cfg(not(feature = "diagnostic-profile"))]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scenario retains its complete ordered setup and contract assertions."
+)]
 fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
     let mut pending = vec![0u8; 240];
     for (offset, value) in [(0, 1u32), (4, 1), (12, 224)] {
@@ -46,7 +51,10 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
     pending[48..80].fill(2);
     pending[80..112].fill(1);
     pending[224..232].copy_from_slice(&1u64.to_be_bytes());
-    let data: String = pending.iter().map(|b| format!("\\{b:02x}")).collect();
+    let data: String = pending.iter().fold(String::new(), |mut text, byte| {
+        write!(text, "\\{byte:02x}").unwrap();
+        text
+    });
     let guest = format!(
         r#"(module
       (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
@@ -65,9 +73,9 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
     let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute",
       "module_path":path,"module_sha256":format!("{:x}",Sha256::digest(guest.as_bytes())),
       "manual_start":true,"broker":broker_config(),"instances":[
-        {"id":"a","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()},
-        {"id":"b","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()},
-        {"id":"c","memory_bytes":65536,"fuel":1000000,"output_bytes":1024,"local_model":model()}]});
+        {"id":"a","memory_bytes":65536,"fuel":1_000_000,"output_bytes":1024,"local_model":model()},
+        {"id":"b","memory_bytes":65536,"fuel":1_000_000,"output_bytes":1024,"local_model":model()},
+        {"id":"c","memory_bytes":65536,"fuel":1_000_000,"output_bytes":1024,"local_model":model()}]});
     let execute = |control: Option<Value>| {
         let inspecting = control.is_some();
         let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
@@ -186,14 +194,16 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
         let bytes = decode(&evidence["incarnations"][0]["streams"][name]);
         hashes.insert(
             name.into(),
-            json!(hash(&bytes[..cut[size].as_u64().unwrap() as usize])),
+            json!(hash(
+                &bytes[..usize::try_from(cut[size].as_u64().unwrap()).unwrap()]
+            )),
         );
     }
     let world = decode(&evidence["world"]);
     let lifecycle = decode(&evidence["lifecycle"]);
     let control = json!({"target":{"node":"a","incarnation":1},"decision":0,"expected":boundary,
-      "world_sha256":hash(&world[..boundary["world_bytes"].as_u64().unwrap() as usize]),
-      "lifecycle_sha256":hash(&lifecycle[..boundary["lifecycle_bytes"].as_u64().unwrap() as usize]),
+      "world_sha256":hash(&world[..usize::try_from(boundary["world_bytes"].as_u64().unwrap()).unwrap()]),
+      "lifecycle_sha256":hash(&lifecycle[..usize::try_from(boundary["lifecycle_bytes"].as_u64().unwrap()).unwrap()]),
       "stream_sha256":[hashes],"probes":[],"commands":[],"registries":[evidence["incarnations"][0]["registry"]]});
     let inspected = execute(Some(control));
     let result = inspected.last().unwrap();
@@ -212,6 +222,10 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
 
 #[test]
 #[cfg(not(feature = "diagnostic-profile"))]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scenario retains its complete ordered setup and contract assertions."
+)]
 fn manual_controller_turn_binds_delayed_restart_before_self_timer() {
     let initial = write_module("manual-turn-initial", IDLE_GUEST);
     let recovery_guest = IDLE_GUEST
@@ -335,7 +349,7 @@ fn manual_controller_turn_binds_delayed_restart_before_self_timer() {
             .filter(|frame| frame["stream"] == "world")
             .cloned()
             .collect();
-        assert!(!world.is_empty());
+        assert_ne!(world, [] as [serde_json::Value; 0]);
         (network, world)
     };
     assert_eq!(execute(false), execute(true));
@@ -394,7 +408,7 @@ fn module() -> (std::path::PathBuf, String) {
     (path, format!("{:x}", Sha256::digest(GUEST.as_bytes())))
 }
 
-/// The reply a test host gives an instance's fd_write; `errno` steers traps.
+/// The reply a test host gives an instance's `fd_write`; `errno` steers traps.
 fn reply(call: &Value, errno: u16) -> Value {
     let mut reply = json!({"type":"reply","id":call["id"],"errno":errno,"output":{}});
     if errno == 0 {
@@ -418,6 +432,10 @@ fn drive(
 }
 
 /// As `drive`, also returning each frame's exact line.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The fixture transfers its constructed request to the process driver."
+)]
 fn drive_raw(
     request: Value,
     mut answer: impl FnMut(Option<&str>, &Value) -> Value,
@@ -564,25 +582,25 @@ fn failing() -> Vec<Instance> {
     vec![
         Instance {
             id: "0-trap",
-            memory_bytes: 262144,
+            memory_bytes: 262_144,
             fuel: 1_000_000,
             errno: 8,
         },
         Instance {
             id: "1-memory",
-            memory_bytes: 131072,
+            memory_bytes: 131_072,
             fuel: 1_000_000,
             errno: 0,
         },
         Instance {
             id: "2-fuel",
-            memory_bytes: 262144,
+            memory_bytes: 262_144,
             fuel: 20_000,
             errno: 0,
         },
         Instance {
             id: "3-exit",
-            memory_bytes: 262144,
+            memory_bytes: 262_144,
             fuel: 1_000_000,
             errno: 0,
         },
@@ -594,11 +612,11 @@ fn failing() -> Vec<Instance> {
 fn cluster_instances_match_their_single_runs_and_isolate_failures() {
     let instances = failing();
     let (frames, split, raw) = cluster_raw(&instances);
-    let started: Vec<_> = frames
+    let started = frames
         .iter()
         .filter(|frame| frame["type"] == "started")
-        .collect();
-    assert_eq!(started.len(), 1, "one compilation and one started frame");
+        .count();
+    assert_eq!(started, 1, "one compilation and one started frame");
     let last = frames.last().unwrap();
     assert_eq!(last["type"], "cluster_result", "{last}");
     assert_eq!(last["termination"], "exit", "{last}");
@@ -629,7 +647,7 @@ fn cluster_instances_match_their_single_runs_and_isolate_failures() {
             .filter(|line| !line.starts_with("{\"type\":\"result\""))
             .collect();
         assert_eq!(cluster_lines, single_lines, "{} line bytes", instance.id);
-        assert!(!single_lines.is_empty());
+        assert_ne!(single_lines, [] as [&std::string::String; 0]);
     }
     let memory = split["1-memory"].last().unwrap();
     // The limiter refused growth past memory_bytes; the peak stays at the
@@ -641,7 +659,10 @@ fn cluster_instances_match_their_single_runs_and_isolate_failures() {
             .unwrap()
             .contains("guest linear memory capacity")
     );
-    assert_eq!(split["3-exit"].last().unwrap()["peak_memory_bytes"], 196608);
+    assert_eq!(
+        split["3-exit"].last().unwrap()["peak_memory_bytes"],
+        196_608
+    );
     assert!(
         split["2-fuel"].last().unwrap()["message"]
             .as_str()
@@ -656,7 +677,7 @@ fn cluster_survivor_evidence_is_unaffected_by_failing_neighbors() {
     let healthy: Vec<Instance> = failing()
         .into_iter()
         .map(|mut instance| {
-            instance.memory_bytes = 262144;
+            instance.memory_bytes = 262_144;
             instance.fuel = 1_000_000;
             instance.errno = 0;
             instance
@@ -681,7 +702,7 @@ fn cluster_survivor_evidence_is_unaffected_by_failing_neighbors() {
 fn diagnostic_builds_refuse_cluster_execution() {
     let (path, digest) = module();
     let request = json!({"schema":"gomad.wasm-host/v1","type":"cluster_execute","module_path":path,
-        "module_sha256":digest,"instances":[{"id":"a","memory_bytes":131072,"fuel":1000,"output_bytes":1024}]});
+        "module_sha256":digest,"instances":[{"id":"a","memory_bytes":131_072,"fuel":1000,"output_bytes":1024}]});
     let frames = drive(request, |_, _| unreachable!(), true);
     assert_eq!(frames.len(), 1);
     assert_eq!(frames[0]["termination"], "unsupported");
@@ -749,12 +770,12 @@ fn network_guest(tail: &str) -> String {
 /// Go `brokerTestConfig`'s World.
 fn broker_config() -> Value {
     json!({"seed":7,"limits":{"max_requests":10000,"max_events":10000,"max_queued_events":1000,
-        "max_transitions":40000,"max_payload_bytes":33554432,"max_string_bytes":1024}})
+        "max_transitions":40000,"max_payload_bytes":33_554_432,"max_string_bytes":1024}})
 }
 
 fn network_limits() -> Value {
-    json!({"listeners":128,"connections":128,"bytes":8388608,"connection_bytes":4194304,
-        "stall_nanos":10000000000u64,"transitions":8192})
+    json!({"listeners":128,"connections":128,"bytes":8_388_608,"connection_bytes":4_194_304,
+        "stall_nanos":10_000_000_000u64,"transitions":8192})
 }
 
 fn network_instance(id: &str, memory_bytes: u64, fuel: u64, transcript: u64) -> Value {
@@ -764,6 +785,10 @@ fn network_instance(id: &str, memory_bytes: u64, fuel: u64, transcript: u64) -> 
         "network_v2":{"profile":"gomad.simulation-network-stream/v3","limits":network_limits()}})
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The fixture transfers its constructed instance list to the process driver."
+)]
 fn network_cluster(module: &str, instances: Value) -> Vec<Value> {
     static NEXT: AtomicU64 = AtomicU64::new(0);
     let path = std::env::temp_dir().join(format!(
@@ -825,7 +850,7 @@ fn log_json_bytes(evidence: &[u8]) -> u64 {
     assert_eq!(&evidence[..8], b"GMNETEV1");
     let mut at = 8;
     assert_eq!(read_varint(evidence, &mut at), 1);
-    let profile = read_varint(evidence, &mut at) as usize;
+    let profile = usize::try_from(read_varint(evidence, &mut at)).unwrap();
     at += profile;
     read_varint(evidence, &mut at)
 }
@@ -860,7 +885,7 @@ fn cluster_network_evidence_bound_is_capacity_without_touching_neighbors() {
         "log {log} document {}",
         document.len()
     );
-    let bounded = three((log + document.len() as u64) / 2);
+    let bounded = three(u64::midpoint(log, document.len() as u64));
     let result = result_of(&bounded, "1-bound");
     assert_eq!(result["termination"], "capacity", "{result}");
     assert_eq!(
@@ -868,7 +893,7 @@ fn cluster_network_evidence_bound_is_capacity_without_touching_neighbors() {
         "WASI capacity: network-v2-evidence-bytes"
     );
     assert!(result.get("exit_code").is_none());
-    assert!(network_evidence(&bounded, "1-bound").is_empty());
+    assert_eq!(network_evidence(&bounded, "1-bound"), [] as [u8; 0]);
     assert_eq!(
         network_evidence(&bounded, "2-free"),
         network_evidence(&free, "2-free")
@@ -903,6 +928,10 @@ fn order_guest(scenario: &Value) -> String {
     order_guest_terminal(scenario, None)
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scenario retains its complete ordered setup and contract assertions."
+)]
 fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
     let outputs = &scenario["outputs"];
     let output = |node: &str, step: usize| -> Vec<u8> {
@@ -915,13 +944,17 @@ fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
             None => vec![0; width],
             Some(reference) => output(
                 reference["node"].as_str().unwrap(),
-                reference["step"].as_u64().unwrap() as usize,
+                usize::try_from(reference["step"].as_u64().unwrap()).unwrap(),
             )[at..at + width]
                 .to_vec(),
         }
     };
-    let bytes =
-        |data: &[u8]| -> String { data.iter().map(|byte| format!("\\{byte:02x}")).collect() };
+    let bytes = |data: &[u8]| -> String {
+        data.iter().fold(String::new(), |mut text, byte| {
+            write!(text, "\\{byte:02x}").unwrap();
+            text
+        })
+    };
     let mut segments = String::new();
     let mut functions = String::new();
     let mut dispatch = String::new();
@@ -942,7 +975,10 @@ fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
                 data[8..].copy_from_slice(&field("deadline").to_be_bytes());
                 (data, "$idle")
             } else {
-                let (code, count) = (field("code") as u32, field("count") as u32);
+                let (code, count) = (
+                    u32::try_from(field("code")).unwrap(),
+                    u32::try_from(field("count")).unwrap(),
+                );
                 let mut data = vec![0u8; 64];
                 data[..4].copy_from_slice(&2u32.to_be_bytes());
                 data[4..8].copy_from_slice(&code.to_be_bytes());
@@ -952,7 +988,7 @@ fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
                 let header = if code == 12 { 0 } else { count };
                 data[36..40].copy_from_slice(&header.to_be_bytes());
                 for (offset, byte) in step["address"].as_array().unwrap().iter().enumerate() {
-                    data[56 + offset] = byte.as_u64().unwrap() as u8;
+                    data[56 + offset] = u8::try_from(byte.as_u64().unwrap()).unwrap();
                 }
                 match step["payload"].as_str() {
                     Some(payload) if code == 5 => data.extend(payload.as_bytes()),
@@ -964,24 +1000,26 @@ fn order_guest_terminal(scenario: &Value, trapped: Option<&str>) -> String {
             assert_eq!(want.len(), data.len(), "{node} step {at}");
             let (input, expected) = (next, next + data.len());
             next = expected + want.len();
-            segments.push_str(&format!(
+            write!(
+                segments,
                 "  (data (i32.const {input}) \"{}\")\n  (data (i32.const {expected}) \"{}\")\n",
                 bytes(&data),
                 bytes(&want)
-            ));
-            body.push_str(&format!(
+            )
+            .unwrap();
+            write!(body,
                 "    (memory.copy (i32.const 0) (i32.const {input}) (i32.const {len}))\n    (if (call {import} (i32.const 0) (i32.const {len})) (then unreachable))\n    (call $same (i32.const {expected}) (i32.const {len}))\n",
                 len = data.len()
-            ));
+            ).unwrap();
         }
         if trapped == Some(node) {
             body.push_str("    unreachable\n");
         }
-        functions.push_str(&format!("  (func $node{index}\n{body}  )\n"));
-        dispatch.push_str(&format!(
-            "    (if (i32.eq (local.get $seed) (i32.const {})) (then (call $node{index}) (return)))\n",
+        writeln!(functions, "  (func $node{index}\n{body}  )").unwrap();
+        writeln!(dispatch,
+            "    (if (i32.eq (local.get $seed) (i32.const {})) (then (call $node{index}) (return)))",
             index + 1
-        ));
+        ).unwrap();
     }
     assert!(next < 65536, "recorded order exceeds one page");
     format!(

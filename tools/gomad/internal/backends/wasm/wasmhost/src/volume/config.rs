@@ -4,6 +4,7 @@
 use super::state::{VolumeConfig, VolumeLimits};
 use serde::Deserialize;
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 
 pub(crate) const MAXIMUM_PATH_BYTES: usize = 4096;
 const BUFFER_LIMIT: u64 = 4 << 20;
@@ -58,15 +59,17 @@ impl StorageModel {
                     go_string(&mut out, &volume.id);
                     out.push_str(",\"Path\":");
                     go_string(&mut out, &volume.mount);
-                    out.push_str(&format!(",\"CapacityBytes\":{}}}", volume.capacity_bytes));
+                    write!(out, ",\"CapacityBytes\":{}}}", volume.capacity_bytes).unwrap();
                 }
                 out.push(']');
             }
         }
-        out.push_str(&format!(
+        write!(
+            out,
             ",\"limits\":{{\"PendingOperations\":{},\"Transitions\":{}}}",
             self.limits.pending_operations, self.limits.transitions
-        ));
+        )
+        .unwrap();
         if !self.faults().is_empty() {
             out.push_str(",\"faults\":[");
             for (index, fault) in self.faults().iter().enumerate() {
@@ -79,10 +82,10 @@ impl StorageModel {
                 go_string(&mut out, &fault.resource);
                 out.push_str(",\"operation\":");
                 go_string(&mut out, &fault.operation);
-                out.push_str(&format!(",\"occurrence\":{},\"action\":", fault.occurrence));
+                write!(out, ",\"occurrence\":{},\"action\":", fault.occurrence).unwrap();
                 go_string(&mut out, &fault.action);
                 if fault.bytes != 0 {
-                    out.push_str(&format!(",\"bytes\":{}", fault.bytes));
+                    write!(out, ",\"bytes\":{}", fault.bytes).unwrap();
                 }
                 out.push('}');
             }
@@ -118,6 +121,10 @@ impl StorageModel {
 
     /// Go's `validateStorageModel`, in its rule order. Every refusal is an
     /// `invalid` boundary with Go's dimension text.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub(crate) fn validate(
         &self,
         writable_directories: &[Vec<u8>],
@@ -305,6 +312,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The scenario retains the complete ordered Go conformance sequence"
+    )]
     fn validation_mirrors_every_go_rule_including_crash_after() {
         assert_eq!(model("").validate(&writable(), 8 << 20), Ok(()));
         for (operation, action, bytes, expected) in [

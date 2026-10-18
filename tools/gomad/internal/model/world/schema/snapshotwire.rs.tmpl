@@ -77,7 +77,7 @@ impl Writer<'_> {
 {{- if eq . "request-id"}}
         self.uint64(readiness.request_id)?;
 {{- else if eq . "at"}}
-        self.uint64(readiness.at as u64)?;
+        self.uint64(readiness.at.cast_unsigned())?;
 {{- else if eq . "kind"}}
         self.text(&readiness.kind)?;
 {{- else if eq . "payload"}}
@@ -156,9 +156,9 @@ impl Writer<'_> {
 {{- if eq . "kind"}}
                 self.text(result.kind.as_str())?;
 {{- else if eq . "before"}}
-                self.uint64(result.before as u64)?;
+                self.uint64(result.before.cast_unsigned())?;
 {{- else if eq . "after"}}
-                self.uint64(result.after as u64)?;
+                self.uint64(result.after.cast_unsigned())?;
 {{- else if eq . "deliveries"}}
                 self.uint64(result.deliveries.len() as u64)?;
                 for delivery in &result.deliveries {
@@ -168,7 +168,7 @@ impl Writer<'_> {
 {{- else if eq . "event-id"}}
                     self.uint64(delivery.event_id)?;
 {{- else if eq . "at"}}
-                    self.uint64(delivery.at as u64)?;
+                    self.uint64(delivery.at.cast_unsigned())?;
 {{- else if eq . "kind"}}
                     self.text(&delivery.kind)?;
 {{- else if eq . "payload"}}
@@ -235,7 +235,7 @@ pub fn write_snapshot_head(model: &Model, output: &mut dyn Write) -> Result<()> 
 {{- else if eq . "config.max-string-bytes"}}
     w.uint32(config.limits.max_string_bytes)?;
 {{- else if eq . "now"}}
-    w.uint64(model.now() as u64)?;
+    w.uint64(model.now().cast_unsigned())?;
 {{- else if eq . "next-request-id"}}
     w.uint64(next_request_id)?;
 {{- else if eq . "next-event-id"}}

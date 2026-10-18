@@ -209,6 +209,10 @@ struct InstanceSummary {
     termination: &'static str,
 }
 
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "Serde skip_serializing_if passes fields by reference"
+)]
 fn first_incarnation(incarnation: &u64) -> bool {
     *incarnation == 1
 }
@@ -255,7 +259,7 @@ pub fn requested(frame: &[u8]) -> bool {
 fn read_instance_tape(
     model: &mut crate::model::Config,
     tagged: &mut TaggedInput,
-    broken: &Broken,
+    transport_failure: &Broken,
 ) -> Result<()> {
     let chunks = model.tape_chunks;
     model.tape_chunks = u64::from(chunks != 0);
@@ -268,7 +272,7 @@ fn read_instance_tape(
         match protocol::read_frame(tagged) {
             Ok(frame) if read.is_ok() => read = model.read_tape(&mut Cursor::new(frame)),
             Ok(_) => {}
-            Err(_) if broken.get().is_some() => break,
+            Err(_) if transport_failure.get().is_some() => break,
             Err(error) => {
                 if read.is_ok() {
                     read = Err(error);
@@ -300,6 +304,10 @@ fn fail(failure: &RunFailure, termination: &'static str, message: String) {
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+)]
 pub fn execute(
     frame: &[u8],
     input: Box<dyn BufRead + Send>,
@@ -332,12 +340,13 @@ pub fn execute(
     // Each cooperative instance's model inputs (arguments, environment) follow
     // the execute frame as tagged frames in instance order, before compilation,
     // as in a single execution; any failure is a pre-start refusal.
-    let broken = Broken::default();
+    let transport_failure = Broken::default();
     for instance in &mut request.instances {
         if let Some(model) = &mut instance.local_model {
-            let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
+            let mut tagged =
+                TaggedInput::new(input.clone(), &instance.id, transport_failure.clone());
             if let Err(error) = model.read_inputs(&mut tagged) {
-                let termination = if broken.get().is_some() {
+                let termination = if transport_failure.get().is_some() {
                     "invalid"
                 } else {
                     protocol::classification(&error)
@@ -395,9 +404,10 @@ pub fn execute(
     for instance in &mut request.instances {
         let mut outcome = None;
         if let Some(model) = &mut instance.local_model {
-            let mut tagged = TaggedInput::new(input.clone(), &instance.id, broken.clone());
-            let read = read_instance_tape(model, &mut tagged, &broken);
-            if let Some(message) = broken.get() {
+            let mut tagged =
+                TaggedInput::new(input.clone(), &instance.id, transport_failure.clone());
+            let read = read_instance_tape(model, &mut tagged, &transport_failure);
+            if let Some(message) = transport_failure.get() {
                 return finish(
                     ClusterResult::new("invalid", format!("instance {}: {message}", instance.id)),
                     metrics,
@@ -443,15 +453,15 @@ pub fn execute(
     let mut threads = Vec::new();
     for (index, (instance, refused)) in request.instances.into_iter().zip(refused).enumerate() {
         let network = shared.clone();
-        let (engine, pre, own_coordinator, own_failure, reports, broken) = (
+        let (engine, pre, own_coordinator, own_failure, reports, transport_failure) = (
             engine.clone(),
             pre.clone(),
             coordinator.clone(),
             failure.clone(),
             reports.clone(),
-            broken.clone(),
+            transport_failure.clone(),
         );
-        let input = TaggedInput::new(input.clone(), &instance.id, broken.clone());
+        let input = TaggedInput::new(input.clone(), &instance.id, transport_failure.clone());
         let output = TaggedOutput::new(output.clone(), &instance.id);
         let thread = std::thread::Builder::new()
             .name(format!("instance-{index}"))
@@ -482,7 +492,7 @@ pub fn execute(
                         &coordinator,
                         input,
                         output,
-                        &broken,
+                        &transport_failure,
                         1,
                         index as u64 + 1,
                         None,
@@ -594,6 +604,14 @@ fn inspection_evidence(broker: &crate::broker::Broker, output: &SharedOutput) ->
 /// Runs one instance's store to its terminal and streams its tagged result.
 /// `Err` is a whole-run outcome: the instance's result is withheld.
 #[allow(clippy::too_many_arguments)]
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The worker owns its network and storage descriptors for the full store lifetime"
+)]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+)]
 fn run_instance(
     engine: &Engine,
     pre: &InstancePre<State>,
@@ -603,7 +621,7 @@ fn run_instance(
     coordinator: &Coordinator,
     input: TaggedInput,
     output: TaggedOutput,
-    broken: &Broken,
+    transport_failure: &Broken,
     incarnation: u64,
     slot: u64,
     namespace: Option<crate::namespace::Namespace>,
@@ -680,7 +698,7 @@ fn run_instance(
     });
     let mut outcome =
         crate::engine::terminal_outcome(&mut store, executed, instance.fuel).map_err(whole)?;
-    if let Some(message) = broken.get() {
+    if let Some(message) = transport_failure.get() {
         return Err(("invalid", message));
     }
     if matches!(
@@ -748,7 +766,7 @@ pub(crate) fn record_terminal(
         let mut evidence = crate::storage_transport::recovery_evidence(namespace, descriptor);
         image = evidence.image.take();
         if descriptor.return_image {
-            evidence.image = image.clone();
+            evidence.image.clone_from(&image);
         }
         if let Some((kind, message)) = evidence.failure.take() {
             outcome.termination = kind;
@@ -790,6 +808,10 @@ pub(crate) fn record_terminal(
 
 /// An instance refused before its store existed (an invalid tape): its result
 /// is streamed at its turn, like any terminal.
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Refusal consumes the worker output handle after sending its terminal result"
+)]
 fn refuse_instance(
     outcome: Outcome,
     mut output: TaggedOutput,

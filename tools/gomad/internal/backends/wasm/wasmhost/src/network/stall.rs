@@ -58,6 +58,10 @@ mod tests {
     use super::super::{Config, Domain, Model, OperationResult, Request, history};
     use serde_json::{Value, json};
 
+    #[expect(
+        clippy::needless_pass_by_value,
+        reason = "Fixture configuration owns the optional replay record for serde_json"
+    )]
     fn config(replay: Option<history::Record>, transitions: u64) -> Config {
         serde_json::from_value(json!({
             "nodes": [{"node": "a", "address": "a"}, {"node": "b", "address": "b"}],
@@ -222,7 +226,7 @@ mod tests {
         assert_eq!(writer.error, "connection timed out");
         let reader = dispatch(&mut model, "b", 5, json!({"op": "poll"}));
         assert_eq!(reader.error, "connection timed out");
-        assert!(reader.bytes.is_empty());
+        assert_eq!(reader.bytes.len(), 0);
     }
 
     #[test]

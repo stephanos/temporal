@@ -132,6 +132,7 @@ impl Session {
     }
 
     pub fn finish(mut self) -> Result<()> {
+        use std::io::Write;
         self.stop();
         let sampling = self.sampling.lock().unwrap().take().unwrap();
         let mut bytes = Vec::new();
@@ -153,7 +154,6 @@ impl Session {
         }
         let mut file = options.open(&self.config.path)?;
         serde_json::to_writer(&mut file, &profile)?;
-        use std::io::Write;
         file.flush()?;
         Ok(())
     }

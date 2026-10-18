@@ -60,8 +60,8 @@ Task .1 converts five existing `tests/engine.rs` scenarios (fresh-instance execu
 ## Quick commands
 
 ```sh
-cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --test helper_corpus
-GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.94.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --test helper_corpus
+cargo +1.99.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --test helper_corpus
+GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.99.1 test --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --release --locked --test helper_corpus
 cd tools/gomad && go test -tags test_dep ./internal/backends/wasm/wasi -run HelperCorpus -count=1
 ```
 

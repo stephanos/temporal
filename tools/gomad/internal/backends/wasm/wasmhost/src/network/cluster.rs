@@ -205,7 +205,9 @@ pub fn clock_ceiling(epoch: u64) -> Result<u64, Failure> {
     if epoch >= i64::MAX as u64 {
         return Err(Failure::Invalid("network v2 clock epoch"));
     }
-    Ok((i64::MAX - world::INITIAL_TIME).min(i64::MAX - epoch as i64) as u64)
+    Ok((i64::MAX - world::INITIAL_TIME)
+        .min(i64::MAX - epoch.cast_signed())
+        .cast_unsigned())
 }
 
 /// The shared owner and the broker's network configuration.
@@ -257,6 +259,10 @@ fn joined(results: [Result<(), String>; 2]) -> Result<(), String> {
 impl Shared {
     /// Go `newBrokerNetwork` for the cluster's instances (sorted ids, all at
     /// incarnation 1), then the broker's initial advance to time 1.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub fn new(config: &Config, ids: &[String]) -> Result<Self, Failure> {
         validate_model(&config.model)?;
         if !config.model.faults.is_empty() {
@@ -524,7 +530,7 @@ pub struct Endpoint {
 fn lock(shared: &Mutex<Shared>) -> std::sync::MutexGuard<'_, Shared> {
     shared
         .lock()
-        .unwrap_or_else(|poisoned| poisoned.into_inner())
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
 }
 
 impl Endpoint {
@@ -608,8 +614,8 @@ impl Endpoint {
         self.advance(&mut shared, now)
     }
 
-    fn append(&mut self, json: Vec<u8>, binary: Vec<u8>) -> Result<(), Failure> {
-        let length = json.len() as u64 + 1;
+    fn append(&mut self, json: impl AsRef<[u8]>, binary: Vec<u8>) -> Result<(), Failure> {
+        let length = json.as_ref().len() as u64 + 1;
         if self.log_json_bytes.saturating_add(length) > self.transcript_limit {
             return Err(Failure::Capacity("network-v2-transcript-bytes"));
         }
@@ -640,7 +646,7 @@ impl Endpoint {
             self.world
                 .ready(world::Readiness {
                     request_id: request,
-                    at: world::INITIAL_TIME + now as i64,
+                    at: world::INITIAL_TIME + now.cast_signed(),
                     kind: "network".into(),
                     payload: Vec::new(),
                     equivalence_class: String::new(),
@@ -654,7 +660,7 @@ impl Endpoint {
                 .world
                 .quiesce()
                 .map_err(|error| infrastructure(error.to_string()))?;
-            if quiescence.after != world::INITIAL_TIME + now as i64 {
+            if quiescence.after != world::INITIAL_TIME + now.cast_signed() {
                 return Err(Failure::Invalid("network readiness advanced outside idle"));
             }
             let (json, binary) = evidence::quiescence_entry(&quiescence);
@@ -666,6 +672,10 @@ impl Endpoint {
     /// Go `runtimeNetworkStream`: serves one `net_stream` buffer in place.
     /// `now` is the instance's modeled clock; `runtime` is whether its
     /// cooperative runtime is configured and not finished.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub fn serve(&mut self, data: &mut [u8], now: u64, runtime: bool) -> Result<(), Failure> {
         self.revision += 1;
         // The broker attaches before the environment sees the buffer.
@@ -801,10 +811,22 @@ impl Endpoint {
             self.world_requests.remove(&call.id);
             self.world_ready.remove(&call.id);
             stream_abi::set_u64(data, 16, result.handle);
-            stream_abi::set_u32(data, 36, result.count as u32);
+            stream_abi::set_u32(
+                data,
+                36,
+                u32::try_from(result.count).expect("network count is bounded by the u32 request"),
+            );
             stream_abi::set_u32(data, 44, stream_abi::errno(&result.error));
-            stream_abi::set_u32(data, 48, result.local.port as u32);
-            stream_abi::set_u32(data, 52, result.remote.port as u32);
+            stream_abi::set_u32(
+                data,
+                48,
+                u32::try_from(result.local.port).expect("network ports are bounded by 65535"),
+            );
+            stream_abi::set_u32(
+                data,
+                52,
+                u32::try_from(result.remote.port).expect("network ports are bounded by 65535"),
+            );
             if call.op == 4 || call.op == 12 {
                 data[HEADER..HEADER + result.bytes.len()].copy_from_slice(&result.bytes);
             }

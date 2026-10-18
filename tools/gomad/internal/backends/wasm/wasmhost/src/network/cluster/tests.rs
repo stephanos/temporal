@@ -227,7 +227,7 @@ fn buffer(op: u32, id: u64, handle: u64, port: u32, payload: &[u8]) -> Vec<u8> {
     set_u64(&mut data, 8, id);
     set_u64(&mut data, 16, handle);
     set_u32(&mut data, 32, port);
-    set_u32(&mut data, 36, payload.len() as u32);
+    set_u32(&mut data, 36, u32::try_from(payload.len()).unwrap());
     data.extend_from_slice(payload);
     data
 }
@@ -356,7 +356,7 @@ fn cluster_network_revocation_retires_both_domains() {
                 .map(|transition| (transition.kind, transition.outcome))
                 .collect()
         };
-        assert!(revocations(&guard).is_empty());
+        assert_eq!(revocations(&guard).len(), 0);
         guard.revoke("b", 1, graceful).unwrap();
         let added = revocations(&guard);
         let expected = if graceful {
@@ -364,7 +364,7 @@ fn cluster_network_revocation_retires_both_domains() {
         } else {
             ("crash", "reset")
         };
-        assert!(!added.is_empty());
+        assert_ne!(added.len(), 0);
         assert!(
             added
                 .iter()

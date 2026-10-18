@@ -1,6 +1,7 @@
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
@@ -23,6 +24,10 @@ fn run_authorized(
 ) -> Vec<Value> {
     run_captured(wat, change, reply, mismatch).0
 }
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "The fixture transfers its constructed request overrides to the process driver."
+)]
 fn run_captured(
     wat: &str,
     change: Value,
@@ -37,7 +42,7 @@ fn run_captured(
         NEXT.fetch_add(1, Ordering::Relaxed)
     ));
     std::fs::write(&path, wat).unwrap();
-    let mut request = json!({"schema":"gomad.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131072, "fuel":1000000, "output_bytes":1024});
+    let mut request = json!({"schema":"gomad.wasm-host/v1", "type":"execute", "module_path":path, "module_sha256":format!("{:x}",Sha256::digest(wat.as_bytes())), "memory_bytes":131_072, "fuel":1_000_000, "output_bytes":1024});
     for (key, value) in change.as_object().unwrap() {
         if key == "fixture_model_inputs" || key == "fixture_namespace_inputs" {
             continue;
@@ -127,7 +132,10 @@ fn dedicated_debug_import_seals_open_clock_prefix_without_finishing_runtime_tape
     pending[48..80].fill(2);
     pending[80..112].fill(1);
     pending[224..232].copy_from_slice(&1u64.to_be_bytes());
-    let data: String = pending.iter().map(|b| format!("\\{b:02x}")).collect();
+    let data: String = pending.iter().fold(String::new(), |mut text, byte| {
+        write!(text, "\\{byte:02x}").unwrap();
+        text
+    });
     let guest = format!(
         r#"(module
       (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
@@ -166,14 +174,16 @@ fn dedicated_debug_import_seals_open_clock_prefix_without_finishing_runtime_tape
         let bytes = decode(&evidence["incarnations"][0]["streams"][name]);
         streams.insert(
             name.into(),
-            json!(hash(&bytes[..cut[size].as_u64().unwrap() as usize])),
+            json!(hash(
+                &bytes[..usize::try_from(cut[size].as_u64().unwrap()).unwrap()]
+            )),
         );
     }
     let world = decode(&evidence["world"]);
     let lifecycle = decode(&evidence["lifecycle"]);
     let control = json!({"target":{"node":"guest","incarnation":1},"decision":0,"expected":boundary,
-      "world_sha256":hash(&world[..boundary["world_bytes"].as_u64().unwrap() as usize]),
-      "lifecycle_sha256":hash(&lifecycle[..boundary["lifecycle_bytes"].as_u64().unwrap() as usize]),
+      "world_sha256":hash(&world[..usize::try_from(boundary["world_bytes"].as_u64().unwrap()).unwrap()]),
+      "lifecycle_sha256":hash(&lifecycle[..usize::try_from(boundary["lifecycle_bytes"].as_u64().unwrap()).unwrap()]),
       "stream_sha256":[streams],"probes":[],"commands":[],"registries":[evidence["incarnations"][0]["registry"]]});
     let mut alternative_hash = Sha256::new();
     alternative_hash.update(b"gomad-choice-alternative-set/v1\0");
@@ -231,15 +241,19 @@ fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure()
     decision[20..24].copy_from_slice(&2u32.to_be_bytes());
     decision[32..64].fill(1);
     decision[64..96].fill(2);
-    let literal: String = decision
-        .iter()
-        .map(|byte| format!("\\{byte:02x}"))
-        .collect();
+    let literal: String = decision.iter().fold(String::new(), |mut text, byte| {
+        write!(text, "\\{byte:02x}").unwrap();
+        text
+    });
     let guest = format!(
         "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func $hot (local $n i32) i32.const 10000000 local.set $n (loop $work local.get $n i32.const 1 i32.sub local.tee $n br_if $work)) (func (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop call $hot))"
     );
     let model = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":true,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
-    let baseline = run(&guest, json!({"fuel":1000000000,"local_model":model}), deny);
+    let baseline = run(
+        &guest,
+        json!({"fuel":1_000_000_000,"local_model":model}),
+        deny,
+    );
     assert!(
         baseline
             .iter()
@@ -253,7 +267,7 @@ fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure()
     let config = json!({"path":path,"interval_micros":1,"max_samples":1});
     let sampled = run(
         &guest,
-        json!({"fuel":1000000000,"local_model":model,"guest_profile":config}),
+        json!({"fuel":1_000_000_000,"local_model":model,"guest_profile":config}),
         deny,
     );
     assert_eq!(termination(&sampled), "exit");
@@ -279,7 +293,7 @@ fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure()
     // Existing files must not be overwritten, even though profiling succeeds.
     let (failed, stderr) = run_captured(
         &guest,
-        json!({"fuel":1000000000,"local_model":model,"guest_profile":config}),
+        json!({"fuel":1_000_000_000,"local_model":model,"guest_profile":config}),
         deny,
         AuthorizationMismatch::None,
     );
@@ -328,8 +342,8 @@ fn guest_profile_rejects_invalid_bounds_and_unknown_fields() {
     for config in [
         json!({"path":"relative","interval_micros":1000,"max_samples":1}),
         json!({"path":"/tmp/profile.json","interval_micros":0,"max_samples":1}),
-        json!({"path":"/tmp/profile.json","interval_micros":1000001,"max_samples":1}),
-        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":100001}),
+        json!({"path":"/tmp/profile.json","interval_micros":1_000_001,"max_samples":1}),
+        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":100_001}),
         json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":0}),
         json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":1,"unknown":true}),
     ] {
@@ -354,7 +368,7 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
         .unwrap();
     let mut input = child.stdin.take().unwrap();
     writeln!(input, "{}", json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":path,
-        "module_sha256":hash,"memory_bytes":131072,"fuel":1000000,"output_bytes":1024,"local_model":config})).unwrap();
+        "module_sha256":hash,"memory_bytes":131_072,"fuel":1_000_000,"output_bytes":1024,"local_model":config})).unwrap();
     writeln!(
         input,
         "{}",
@@ -391,7 +405,13 @@ fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
         "{}",
         String::from_utf8_lossy(&stderr)
     );
-    assert_eq!(stderr.iter().filter(|&&byte| byte == b'\n').count(), 1);
+    #[expect(
+        clippy::naive_bytecount,
+        reason = "The test counts line delimiters in one small diagnostic frame; no bytecount dependency is needed."
+    )]
+    {
+        assert_eq!(stderr.iter().filter(|&&byte| byte == b'\n').count(), 1);
+    }
     assert!(stderr.starts_with(b"gomad-wasm-profile-v1 "));
     let profile = serde_json::from_slice(&stderr[b"gomad-wasm-profile-v1 ".len()..]).unwrap();
     (frames, profile)
@@ -576,7 +596,7 @@ fn cache_hit_ignores_missing_or_replaced_module_bytes() {
             assert_eq!(profile["phases"]["module_hash"]["count"], 0);
         }
         #[cfg(not(feature = "diagnostic-profile"))]
-        assert!(stderr.is_empty());
+        assert_eq!(stderr, "");
     }
     std::fs::remove_dir_all(cache).unwrap();
 }
@@ -617,6 +637,10 @@ fn cache_miss_verifies_module_before_compilation_or_publication() {
 }
 #[cfg(unix)]
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The scenario retains its complete ordered setup and contract assertions."
+)]
 fn cache_rejects_poison_stale_links_and_permissive_storage() {
     use std::os::unix::fs::{PermissionsExt, symlink};
     static NEXT: AtomicU64 = AtomicU64::new(0);
@@ -689,11 +713,11 @@ fn cache_rejects_poison_stale_links_and_permissive_storage() {
                 symlink(&other, &entry).unwrap();
             }
             "permissive" => {
-                std::fs::set_permissions(&entry, std::fs::Permissions::from_mode(0o666)).unwrap()
+                std::fs::set_permissions(&entry, std::fs::Permissions::from_mode(0o666)).unwrap();
             }
             "hardlink" => std::fs::hard_link(&entry, &other).unwrap(),
             "directory_mode" => {
-                std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o777)).unwrap()
+                std::fs::set_permissions(&cache, std::fs::Permissions::from_mode(0o777)).unwrap();
             }
             "directory_link" => {
                 symlink(&cache, &other).unwrap();
@@ -754,6 +778,10 @@ fn cache_serializes_parallel_publication_without_preserving_guest_heap() {
         Sha256::digest(guest.as_bytes())
     ));
     std::fs::write(&old, b"legacy poison never deserialized").unwrap();
+    #[expect(
+        clippy::needless_collect,
+        reason = "All publishers must start before any thread is joined."
+    )]
     let threads: Vec<_> = (0..8)
         .map(|_| {
             let cache = cache.clone();

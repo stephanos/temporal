@@ -11,11 +11,15 @@ pub struct Call {
     output_reservation: u64,
 }
 impl Call {
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Each namespace operation keeps its complete canonical field order in one dispatch."
+    )]
     pub fn new(operation: Operation) -> Self {
         let mut fields = Fields::default();
         let (tag, name, length, output_reservation) = match &operation {
             Operation::Write { fd, data, offset } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.bytes("data_base64", data);
                 if let Some(offset) = offset {
                     fields.number("offset", *offset, 8);
@@ -25,13 +29,13 @@ impl Call {
                 }
             }
             Operation::Read { fd, length, offset } => {
-                fields.number("fd", *fd as u64, 4);
-                fields.number("length", *length as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("length", u64::from(*length), 4);
                 if let Some(offset) = offset {
                     fields.number("offset", *offset, 8);
-                    (11, "fd_pread", *length as u64, *length as u64 + 4)
+                    (11, "fd_pread", u64::from(*length), u64::from(*length) + 4)
                 } else {
-                    (10, "fd_read", *length as u64, *length as u64 + 4)
+                    (10, "fd_read", u64::from(*length), u64::from(*length) + 4)
                 }
             }
             Operation::Close(fd)
@@ -39,7 +43,7 @@ impl Call {
             | Operation::FilestatGet(fd)
             | Operation::FdstatGet(fd)
             | Operation::PrestatGet(fd) => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 match &operation {
                     Operation::Close(_) => (12, "fd_close", 0, 0),
                     Operation::Sync(_) => (13, "fd_sync", 0, 0),
@@ -49,18 +53,18 @@ impl Call {
                 }
             }
             Operation::PrestatDirName { fd, length } => {
-                fields.number("fd", *fd as u64, 4);
-                fields.number("length", *length as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("length", u64::from(*length), 4);
                 (
                     17,
                     "fd_prestat_dir_name",
-                    *length as u64,
-                    *length as u64 + 4,
+                    u64::from(*length),
+                    u64::from(*length) + 4,
                 )
             }
             Operation::SetFlags { fd, flags } => {
-                fields.number("fd", *fd as u64, 4);
-                fields.number("flags", *flags as u64, 2);
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("flags", u64::from(*flags), 2);
                 (
                     18,
                     "fd_fdstat_set_flags",
@@ -69,26 +73,26 @@ impl Call {
                 )
             }
             Operation::SetSize { fd, size } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.number("size", *size, 8);
                 (19, "fd_filestat_set_size", 0, 0)
             }
             Operation::Seek { fd, offset, whence } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.signed("offset", *offset);
-                fields.number("whence", *whence as u64, 1);
+                fields.number("whence", u64::from(*whence), 1);
                 (20, "fd_seek", 0, 8)
             }
             Operation::Readdir { fd, length, cookie } => {
-                fields.number("fd", *fd as u64, 4);
-                fields.number("length", *length as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("length", u64::from(*length), 4);
                 fields.number("cookie", *cookie, 8);
-                (21, "fd_readdir", *length as u64, *length as u64 + 4)
+                (21, "fd_readdir", u64::from(*length), u64::from(*length) + 4)
             }
             Operation::CreateDirectory { fd, path }
             | Operation::RemoveDirectory { fd, path }
             | Operation::UnlinkFile { fd, path } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.bytes("path_base64", path);
                 match &operation {
                     Operation::CreateDirectory { .. } => (22, "path_create_directory", 0, 0),
@@ -97,19 +101,19 @@ impl Call {
                 }
             }
             Operation::PathStat { fd, path, flags } => {
-                fields.number("fd", *fd as u64, 4);
-                fields.number("flags", *flags as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
+                fields.number("flags", u64::from(*flags), 4);
                 fields.bytes("path_base64", path);
                 (25, "path_filestat_get", 0, 57)
             }
             Operation::Open(open) => {
-                fields.number("fd", open.fd as u64, 4);
-                fields.number("dirflags", open.dirflags as u64, 4);
+                fields.number("fd", u64::from(open.fd), 4);
+                fields.number("dirflags", u64::from(open.dirflags), 4);
                 fields.bytes("path_base64", &open.path);
-                fields.number("oflags", open.oflags as u64, 2);
+                fields.number("oflags", u64::from(open.oflags), 2);
                 fields.number("rights_base", open.base, 8);
                 fields.number("rights_inheriting", open.inheriting, 8);
-                fields.number("fdflags", open.flags as u64, 2);
+                fields.number("fdflags", u64::from(open.flags), 2);
                 (
                     26,
                     "path_open",
@@ -118,14 +122,14 @@ impl Call {
                 )
             }
             Operation::Readlink { fd, path, length } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.bytes("path_base64", path);
-                fields.number("length", *length as u64, 4);
+                fields.number("length", u64::from(*length), 4);
                 (
                     27,
                     "path_readlink",
-                    *length as u64,
-                    (*length as u64 + 4)
+                    u64::from(*length),
+                    (u64::from(*length) + 4)
                         .max(4 + crate::namespace::READLINK_UNSUPPORTED.len() as u64),
                 )
             }
@@ -135,9 +139,9 @@ impl Call {
                 new_fd,
                 new_path,
             } => {
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.bytes("path_base64", path);
-                fields.number("new_fd", *new_fd as u64, 4);
+                fields.number("new_fd", u64::from(*new_fd), 4);
                 fields.bytes("new_path_base64", new_path);
                 (
                     28,
@@ -148,7 +152,7 @@ impl Call {
             }
             Operation::Symlink { old_path, fd, path } => {
                 fields.bytes("old_path_base64", old_path);
-                fields.number("fd", *fd as u64, 4);
+                fields.number("fd", u64::from(*fd), 4);
                 fields.bytes("path_base64", path);
                 (
                     29,
@@ -219,7 +223,7 @@ fn digits(value: u64) -> u64 {
     if value == 0 {
         1
     } else {
-        value.ilog10() as u64 + 1
+        u64::from(value.ilog10()) + 1
     }
 }
 #[derive(Default)]
@@ -245,6 +249,10 @@ impl Fields {
         self.field(name, digits(value.unsigned_abs()) + u64::from(value < 0));
         self.binary.extend_from_slice(&value.to_le_bytes());
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Namespace call byte fields come from validated WASI paths or BUFFER_LIMIT-bounded writes."
+    )]
     fn bytes(&mut self, name: &str, value: &[u8]) {
         self.field(name, 2 + (value.len() as u64).div_ceil(3) * 4);
         self.max_buffer = self.max_buffer.max(value.len() as u64);
@@ -263,14 +271,14 @@ pub fn admit_poll_frames(
     for (index, sub) in subscriptions.iter().enumerate() {
         let mut fields = Fields::default();
         fields.number("userdata", sub.userdata, 8);
-        fields.number("type", sub.kind as u64, 1);
+        fields.number("type", u64::from(sub.kind), 1);
         if sub.kind == 0 {
-            fields.number("clock_id", sub.clock_id as u64, 4);
+            fields.number("clock_id", u64::from(sub.clock_id), 4);
             fields.number("timeout", sub.timeout, 8);
             fields.number("precision", sub.precision, 8);
-            fields.number("flags", sub.flags as u64, 2);
+            fields.number("flags", u64::from(sub.flags), 2);
         } else {
-            fields.number("fd", sub.fd as u64, 4);
+            fields.number("fd", u64::from(sub.fd), 4);
         }
         input_bytes += fields.json_size() + u64::from(index != 0);
     }
@@ -290,12 +298,16 @@ pub fn admit_poll_frames(
     }
     Ok(())
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Namespace output bytes are bounded by admitted WASI buffers."
+)]
 pub fn output_bytes(output: Option<&Output>) -> Vec<u8> {
     let mut bytes = Vec::new();
     match output {
         None | Some(Output::Empty) => (),
         Some(Output::Prestat(n) | Output::Fd(n) | Output::Written(n)) => {
-            bytes.extend_from_slice(&n.to_le_bytes())
+            bytes.extend_from_slice(&n.to_le_bytes());
         }
         Some(Output::Offset(n)) => bytes.extend_from_slice(&n.to_le_bytes()),
         Some(Output::Bytes(data)) => {

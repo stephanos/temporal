@@ -376,6 +376,10 @@ fn network_held_fifo_effective_heal_resets_delay_and_redundant_heal_preserves_it
     }
 }
 
+#[expect(
+    clippy::too_many_lines,
+    reason = "Replay checks preserve the complete ordered corpus observation sequence."
+)]
 fn replay_corpus(name: &str, corpus: &Value, complete: bool) -> Result<(), String> {
     let config =
         serde_json::from_value(corpus["config"].clone()).map_err(|error| error.to_string())?;
@@ -680,7 +684,7 @@ fn one_pair(
 ) -> (u64, u64, u64) {
     let listener = model.dispatch(request(b, "listen", 1, 0));
     let mut dial = request(a, "dial", 2, 0);
-    dial.host = b.address.clone();
+    dial.host.clone_from(&b.address);
     dial.port = 20000;
     let client = model.dispatch(dial);
     let server = model.dispatch(request(b, "accept", 3, listener.handle));
@@ -892,7 +896,7 @@ fn network_replay_preflight_rejects_resealed_invalid_snapshot_shapes() {
             |record| {
                 record.snapshot.connections.as_mut().unwrap()[0]
                     .client
-                    .incarnation = 0
+                    .incarnation = 0;
             },
             "simulation network replay connection snapshot is invalid or unordered",
         ),
@@ -1177,13 +1181,13 @@ fn fill_listener_backlog(
     let listener = model.dispatch(request(b, "listen", 1, 0));
     for id in 100..164 {
         let mut dial = request(a, "dial", id, 0);
-        dial.host = b.address.clone();
+        dial.host.clone_from(&b.address);
         dial.port = 20000;
         assert_eq!(model.dispatch(dial).error, "");
     }
     let server = model.dispatch(request(b, "accept", 2, listener.handle));
     let mut extra = request(a, "dial", 164, 0);
-    extra.host = b.address.clone();
+    extra.host.clone_from(&b.address);
     extra.port = 20000;
     assert_eq!(model.dispatch(extra).error, "");
     server.handle
@@ -1638,7 +1642,7 @@ fn partial_expiry_revoke_reuse(divergent: bool) {
         for id in [10, 11] {
             let mut dial = request(&domains[0], "dial", id, 0);
             dial.host = "b".into();
-            dial.port = 20000 + (id - 10) as i64;
+            dial.port = 20000 + i64::try_from(id - 10).unwrap();
             assert_eq!(model.dispatch(dial).state, "pending");
         }
     };

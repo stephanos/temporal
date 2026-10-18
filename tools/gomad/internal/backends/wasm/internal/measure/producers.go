@@ -4917,7 +4917,7 @@ func decodeClusterDiagnosticPair(requests []wasi.Request, results []wasi.Result)
 	return pair, nil
 }
 
-var diagnosticClusterCollectorSources = []string{"../cmd/wasmmeasure/main.go", "../internal/measure/run.go", "../internal/measure/producers.go", "../internal/measure/cluster_candidate.go", "../internal/measure/support_process.go", "../internal/measure/support_environment.go", "../internal/measure/terminal_bytes.go", "../internal/measure/profile_stdlib.go", "../internal/measurement/measurement.go", "measurement.go"}
+var diagnosticClusterCollectorSources = []string{"../cmd/wasmmeasure/main.go", "../internal/measure/run.go", "../internal/measure/producers.go", "../internal/measure/cluster_candidate.go", "../internal/measure/support_process.go", "../internal/measure/support_environment.go", "../internal/measure/terminal_bytes.go", "../internal/measure/profile_stdlib.go", "../internal/measurement/measurement.go", "measurement.go", "process.go"}
 
 const warmPreparationDriverSource = "tools/gomad/internal/backends/wasm/internal/measure/producers.go"
 
@@ -5938,13 +5938,13 @@ func terminalExitBuildHelper(runCtx context.Context, root string, features []str
 		}
 	}
 	environment = append(environment, "CARGO_TARGET_DIR="+filepath.Join(evidence, "target"))
-	command2, commandErr := temporalCommand(runCtx, evidence, "rustc-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "rustc"})
+	command2, commandErr := temporalCommand(runCtx, evidence, "rustc-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.99.1", "rustc"})
 	if commandErr != nil {
 		measureErr = commandErr
 		return
 	}
 	rustcPath := strings.TrimSpace(string(command2.Stdout.RawBytes))
-	command3, commandErr2 := temporalCommand(runCtx, evidence, "cargo-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.94.1", "cargo"})
+	command3, commandErr2 := temporalCommand(runCtx, evidence, "cargo-path", crate, environment, []string{"rustup", "which", "--toolchain", "1.99.1", "cargo"})
 	if commandErr2 != nil {
 		measureErr = commandErr2
 		return
@@ -5971,8 +5971,8 @@ func terminalExitBuildHelper(runCtx context.Context, root string, features []str
 		measureErr = commandErr4
 		return
 	}
-	if !strings.HasPrefix(string(rustcVersion.Stdout.RawBytes), "rustc 1.94.1 ") || !strings.HasPrefix(string(cargoVersion.Stdout.RawBytes), "cargo 1.94.1 ") {
-		measureErr = errutil.New("release helper requires pinned Rust/Cargo 1.94.1")
+	if !strings.HasPrefix(string(rustcVersion.Stdout.RawBytes), "rustc 1.99.1 ") || !strings.HasPrefix(string(cargoVersion.Stdout.RawBytes), "cargo 1.99.1 ") {
+		measureErr = errutil.New("release helper requires pinned Rust/Cargo 1.99.1")
 		return
 	}
 	environment = append(environment, "RUSTC="+rustcPath, "RUSTC_WRAPPER=", "RUSTC_WORKSPACE_WRAPPER=")
@@ -6100,7 +6100,7 @@ func terminalExitBuildInputsFeatures(runCtx context.Context, receipt string, req
 		measureErr = err
 		return
 	}
-	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.94.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.94.1 ") {
+	if build.Crate != crate || build.Helper != request.HelperPath || build.HelperSHA256 != request.HelperSHA256 || build.Features == nil || !slices.Equal(build.Features, features) || !slices.Contains(build.Command, "--release") || !slices.Contains(build.Command, "--locked") || !slices.Contains(build.Command, "--no-default-features") || !strings.HasPrefix(build.RustcVersion, "rustc 1.99.1 ") || !strings.HasPrefix(build.CargoVersion, "cargo 1.99.1 ") {
 		measureErr = errutil.New("helper receipt does not bind the pinned release build and measured executable")
 		return
 	}

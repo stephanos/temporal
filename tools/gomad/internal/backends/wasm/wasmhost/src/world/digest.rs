@@ -60,7 +60,7 @@ pub fn append_request(data: &mut Vec<u8>, request: &Request) {
 
 pub fn append_readiness(data: &mut Vec<u8>, readiness: &Readiness) {
     append_u64(data, readiness.request_id);
-    append_u64(data, readiness.at as u64);
+    append_u64(data, readiness.at.cast_unsigned());
     append_bytes(data, readiness.kind.as_bytes());
     append_bytes(data, &readiness.payload);
     append_bytes(data, readiness.equivalence_class.as_bytes());
@@ -68,13 +68,13 @@ pub fn append_readiness(data: &mut Vec<u8>, readiness: &Readiness) {
 
 pub fn append_quiescence(data: &mut Vec<u8>, quiescence: &Quiescence) {
     append_bytes(data, quiescence.kind.as_str().as_bytes());
-    append_u64(data, quiescence.before as u64);
-    append_u64(data, quiescence.after as u64);
+    append_u64(data, quiescence.before.cast_unsigned());
+    append_u64(data, quiescence.after.cast_unsigned());
     append_u64(data, quiescence.deliveries.len() as u64);
     for delivery in &quiescence.deliveries {
         append_u64(data, delivery.request_id);
         append_u64(data, delivery.event_id);
-        append_u64(data, delivery.at as u64);
+        append_u64(data, delivery.at.cast_unsigned());
         append_bytes(data, delivery.kind.as_bytes());
         append_bytes(data, &delivery.payload);
     }
@@ -171,13 +171,13 @@ pub fn append_transition_frame(data: &mut Vec<u8>, transition: &Transition) {
 pub fn state_digest_framed<'a, R, E>(
     input: StateInput<'a, R, E>,
     frames: &[u8],
-    framed: usize,
+    framed_count: usize,
 ) -> [u8; 32]
 where
     R: ExactSizeIterator<Item = (u64, &'a RequestEntry)>,
     E: ExactSizeIterator<Item = (u64, &'a Event)>,
 {
-    let rest = &input.transitions[framed..];
+    let rest = &input.transitions[framed_count..];
     state_digest_with(input, |hasher, data| {
         hasher.update(frames);
         for transition in rest {
@@ -198,7 +198,7 @@ where
     let mut data = b"gomad/world/state/v1\0".to_vec();
     append_u32(&mut data, SCHEMA_VERSION);
     append_config(&mut data, input.config);
-    append_u64(&mut data, input.now as u64);
+    append_u64(&mut data, input.now.cast_unsigned());
     append_u64(&mut data, input.next_request_id);
     append_u64(&mut data, input.next_event_id);
     append_u64(&mut data, input.next_transition);

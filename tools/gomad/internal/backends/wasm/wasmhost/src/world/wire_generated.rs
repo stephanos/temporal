@@ -65,7 +65,7 @@ impl Writer<'_> {
 
     fn readiness(&mut self, readiness: &Readiness) -> Result<()> {
         self.uint64(readiness.request_id)?;
-        self.uint64(readiness.at as u64)?;
+        self.uint64(readiness.at.cast_unsigned())?;
         self.text(&readiness.kind)?;
         self.bytes(&readiness.payload)?;
         self.text(&readiness.equivalence_class)?;
@@ -106,13 +106,13 @@ impl Writer<'_> {
             TransitionBody::Quiesce { result } => {
                 self.uint8(4)?;
                 self.text(result.kind.as_str())?;
-                self.uint64(result.before as u64)?;
-                self.uint64(result.after as u64)?;
+                self.uint64(result.before.cast_unsigned())?;
+                self.uint64(result.after.cast_unsigned())?;
                 self.uint64(result.deliveries.len() as u64)?;
                 for delivery in &result.deliveries {
                     self.uint64(delivery.request_id)?;
                     self.uint64(delivery.event_id)?;
-                    self.uint64(delivery.at as u64)?;
+                    self.uint64(delivery.at.cast_unsigned())?;
                     self.text(&delivery.kind)?;
                     self.bytes(&delivery.payload)?;
                 }
@@ -158,7 +158,7 @@ pub fn write_snapshot_head(model: &Model, output: &mut dyn Write) -> Result<()> 
     w.uint64(config.limits.max_transitions)?;
     w.uint64(config.limits.max_payload_bytes)?;
     w.uint32(config.limits.max_string_bytes)?;
-    w.uint64(model.now() as u64)?;
+    w.uint64(model.now().cast_unsigned())?;
     w.uint64(next_request_id)?;
     w.uint64(next_event_id)?;
     w.uint64(next_transition)?;

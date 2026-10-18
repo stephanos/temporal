@@ -30,8 +30,13 @@ guest semantics.
 | `toolchain/` | Content-addressed Go 1.27.1 cooperative runtime overlay |
 | `testdata/` | Guest fixtures |
 
-The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.94.1 and Wasmtime
+The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.99.1 and Wasmtime
 47.0.3, with locked dependencies and an explicit engine configuration.
+
+The Gomad module's `tools/gomad/mise.toml` selects the same Rust toolchain with rustfmt and
+Clippy. Run `mise install rust` from `tools/gomad` to install it, and
+`mise exec -- rustc --version` to check the selected compiler. The crate's
+`rust-toolchain.toml` also pins it for direct Cargo use.
 
 The merged module carries the Temporal guest fixture dependency through one
 local `go.temporal.io/server => ../..` replacement; shared core imports remain
@@ -74,15 +79,26 @@ Run from this repository checkout:
 ```sh
 make -C tools/gomad wasm-helper
 make -C tools/gomad wasm-test-helper
+make -C tools/gomad/internal/backends/wasm fmt-check
+make -C tools/gomad/internal/backends/wasm lint-rust
 make -C tools/gomad/internal/backends/wasm test-model
 make -C tools/gomad test-wasm GOMAD_STOCK_GO=/absolute/stock/go1.27.1
 ```
+
+`fmt` applies the pinned rustfmt defaults; `fmt-check` checks without writing.
+`lint-rust` checks formatting and runs Clippy with warnings denied for all targets
+in the default, conformance and supported diagnostic/profile feature modes. The
+manifest enables `all` and `pedantic`, plus selected nursery/restriction checks
+for fallible conversions, needless collection, redundant clones, debug/TODO macros
+and undocumented unsafe blocks.
+`lint-code` includes these Rust checks before Go lint. The WASM CI job runs the
+same Rust gate before building and testing the helper.
 
 `test-helper` runs the Rust engine tests and the shared helper transcript corpus.
 The Rust loader in `wasmhost/tests/helper_corpus.rs` and Go's `TestHelperCorpus`
 consume `wasmhost/tests/testdata/helper_transcript`; each case records complete
 projected replies, terminal outcome and evidence. Regenerate reviewed expectations
-with `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.94.1 test --release --locked
+with `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.99.1 test --release --locked
 --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --test
 helper_corpus` from the repository root. Regeneration checks repeated executions
 for equality; a second regeneration must leave the corpus byte-identical.

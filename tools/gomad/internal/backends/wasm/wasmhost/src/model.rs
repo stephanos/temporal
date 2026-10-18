@@ -61,6 +61,10 @@ impl StringDeclaration {
             && self.count <= self.bytes
             && self.chunks == self.bytes.div_ceil(CHUNK)
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Validated string declarations cap packed bytes and offsets at four MiB."
+    )]
     fn read(&mut self, input: &mut dyn BufRead, stream: &str) -> Result<()> {
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
@@ -201,14 +205,14 @@ impl Config {
         Ok(())
     }
     pub fn read_inputs(&mut self, input: &mut dyn BufRead) -> Result<()> {
-        self.arguments.read(input, "arguments")?;
-        self.environment.read(input, "environment")?;
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
         struct End {
             #[serde(rename = "type")]
             kind: String,
         }
+        self.arguments.read(input, "arguments")?;
+        self.environment.read(input, "environment")?;
         let end: End = serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
         if end.kind != "model_inputs_end" {
             return Err(Error::msg("invalid local model input end"));
@@ -242,15 +246,15 @@ impl Config {
         Ok(())
     }
     pub fn read_tape(&mut self, input: &mut dyn BufRead) -> Result<()> {
-        if self.mode != 1 && self.tape.is_none() {
-            self.tape = Some(Vec::new());
-        }
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
         struct Tape {
             #[serde(rename = "type")]
             kind: String,
             decisions: Vec<Decision>,
+        }
+        if self.mode != 1 && self.tape.is_none() {
+            self.tape = Some(Vec::new());
         }
         for _ in 0..self.tape_chunks {
             let chunk: Tape =
@@ -273,7 +277,7 @@ impl Model {
         // local call, as the Go-owned path raises `now` at its first call.
         let sync_pending = config.split;
         let mut inspection = inspection::Transport::default();
-        inspection.request = config.inspection.clone();
+        inspection.request.clone_from(&config.inspection);
         Self {
             now: config.now,
             config,
@@ -579,6 +583,10 @@ impl Model {
         };
         Ok((values.packed.clone(), values.offsets.clone()))
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The entropy request length is checked against four MiB before transcript encoding."
+    )]
     pub fn random(&mut self, id: u64, length: usize) -> Result<Vec<u8>> {
         if length > 4 * 1024 * 1024 || self.entropy_offset.checked_add(length as u64).is_none() {
             return Err(Error::msg("WASI capacity: entropy-bytes"));
@@ -666,6 +674,10 @@ impl Model {
         self.handle_input(id, &protocol::CallbackInput::Json { op, input })
     }
     #[cfg(test)]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The JSON reference preserves WASI clock-id conversion to its low 32 bits."
+    )]
     pub fn handle_input(
         &mut self,
         id: u64,
@@ -688,7 +700,7 @@ impl Model {
         let mut unsupported = "";
         let output = match operation {
             Operation::RandomGet => {
-                json!({"data_base64":STANDARD.encode(self.random(id,input["length"].as_u64().unwrap() as usize)?)})
+                json!({"data_base64":STANDARD.encode(self.random(id, usize::try_from(input["length"].as_u64().unwrap()).map_err(|_| Error::msg("WASI capacity: entropy-bytes"))?)?)})
             }
             Operation::ArgsSizesGet
             | Operation::EnvironSizesGet
@@ -707,7 +719,7 @@ impl Model {
             Operation::ClockTimeGet => {
                 let timestamp = self.clock_read(
                     id,
-                    input["clock_id"].as_u64().unwrap_or(u32::MAX as u64) as u32,
+                    input["clock_id"].as_u64().unwrap_or(u64::from(u32::MAX)) as u32,
                     input["precision"].as_u64().unwrap(),
                 )?;
                 if timestamp.is_none() {
@@ -769,6 +781,14 @@ impl Model {
         .ok_or_else(|| Error::msg("unsupported runtime operation"))?;
         self.runtime_typed(operation, data)
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Keep runtime lifetime checks, decision validation, tape matching, and mutation in their protocol order."
+    )]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "Decision kinds are 1 or 2 and validated alternative counts and selected indices are at most 256."
+    )]
     pub fn runtime_typed(&mut self, op: Operation, mut data: Vec<u8>) -> Result<Vec<u8>> {
         self.close_clock_run();
         if op == Operation::RuntimeConfig {
@@ -776,7 +796,7 @@ impl Model {
                 return Err(Error::msg("WASI invalid: runtime bootstrap"));
             }
             set32(&mut data, 0, 1);
-            set32(&mut data, 4, self.config.diagnostics as u32);
+            set32(&mut data, 4, u32::from(self.config.diagnostics));
             set64(&mut data, 8, self.config.seed);
             self.configured = true;
             return Ok(data);
@@ -805,12 +825,9 @@ impl Model {
                         "WASI invalid: runtime decision alternatives or layout",
                     ));
                 }
-                let alternatives: Vec<[u8; 32]> = data[32..32 + count * 32]
-                    .chunks_exact(32)
-                    .map(|b| b.try_into().unwrap())
-                    .collect();
+                let alternatives = data[32..32 + count * 32].as_chunks::<32>().0.to_vec();
                 let mut ordered = alternatives.clone();
-                ordered.sort();
+                ordered.sort_unstable();
                 if ordered.contains(&[0; 32])
                     || ordered.windows(2).any(|v| v[0] == v[1])
                     || flags != 0 && get64(&data, 8) != 0
@@ -914,7 +931,7 @@ impl Model {
                     || get32(&data, 16) >= count
                     || data[9] & 4 != 0 && get64(&data, 24) != 0
                     || readiness & 1 == 0
-                    || (readiness >> 6) as u32 > count - u32::from(readiness & 2 != 0)
+                    || u32::from(readiness >> 6) > count - u32::from(readiness & 2 != 0)
                     || get64(&data, 32) > self.records
                     || data[40..96].iter().any(|b| *b != 0)
                 {
@@ -940,7 +957,7 @@ impl Model {
                 }
                 self.peak = get32(&data, 4);
                 self.elapsed = get64(&data, 8);
-                self.terminal = data.clone();
+                self.terminal.clone_from(&data);
                 self.finished = true;
             }
             Operation::RuntimeIdle => {
@@ -961,6 +978,10 @@ impl Model {
         }
         Ok(data)
     }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The debug protocol keeps each opcode and its lifetime checks in one dispatch."
+    )]
     pub fn debug_exchange(&mut self, frame: &mut [u8]) -> Result<()> {
         use inspection::{Witness, le32};
         let op = inspection::validate_frame(frame)?;
@@ -1114,6 +1135,10 @@ impl Model {
         }
         Ok(())
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "validate_pending bounds alternative counts to 256 and seeded and selected indices below that count."
+    )]
     fn validate_debug_decision(&self, data: &[u8]) -> Result<u32> {
         let ordered = inspection::validate_pending(data)?;
         let count = get32(data, 20) as usize;
@@ -1121,10 +1146,7 @@ impl Model {
         if self.inspection.request.is_none() {
             return Ok(seeded as u32);
         }
-        let alternatives: Vec<[u8; 32]> = data[32..]
-            .chunks_exact(32)
-            .map(|bytes| bytes.try_into().unwrap())
-            .collect();
+        let alternatives = data[32..].as_chunks::<32>().0.to_vec();
         let mut hash = Sha256::new();
         hash.update(b"gomad-choice-alternative-set/v1\0");
         hash.update((count as u64).to_be_bytes());
@@ -1143,7 +1165,7 @@ impl Model {
                 .unwrap_or(&[])
                 .get(self.cursor)
                 .ok_or_else(|| Error::msg("instrumentation divergence: pending tape exhausted"))?;
-            if expected.kind as u32 != get32(data, 4)
+            if u32::from(expected.kind) != get32(data, 4)
                 || expected.site_offset != get64(data, 8)
                 || expected.site_missing != (get32(data, 16) != 0)
                 || expected.alternatives as usize != count
@@ -1348,7 +1370,7 @@ mod tests {
                 files: 10,
                 descriptors: 10,
                 filesystem_bytes: 1024,
-                output_bytes: 100000,
+                output_bytes: 100_000,
             },
             epoch_nanos: 1000,
         })
@@ -1404,7 +1426,7 @@ mod tests {
         let mut output = Vec::new();
         m.namespace_output(&vec![b'x'; CHUNK - 1], b"err");
         m.flush(&mut output, false).unwrap();
-        assert!(output.is_empty());
+        assert_eq!(output, [] as [u8; 0]);
         m.namespace_output(b"yz", b"");
         m.flush(&mut output, false).unwrap();
         let lines: Vec<Value> = output
@@ -1444,7 +1466,7 @@ mod tests {
         );
         output.clear();
         m.flush(&mut output, true).unwrap();
-        assert!(output.is_empty());
+        assert_eq!(output, [] as [u8; 0]);
     }
     #[test]
     fn namespace_capacity_refuses_before_mutation_and_preserves_completed_evidence() {
@@ -1598,7 +1620,7 @@ mod tests {
     fn fragmented_inputs_accept_full_domain_and_reject_malformed_carriage() {
         let mut m = model();
         let argument = vec![1u8; 4 * 1024 * 1024 - 1];
-        let mut packed = argument.clone();
+        let mut packed = argument;
         packed.push(0);
         m.config.arguments.bytes = packed.len();
         m.config.arguments.count = 1;
@@ -1640,7 +1662,7 @@ mod tests {
             String::from_utf8(literal.to_vec())
                 .unwrap()
                 .replace("UFdEPS8A", "UFdEPWEA"),
-            "".to_string(),
+            String::new(),
         ] {
             assert!(
                 model()
@@ -1666,7 +1688,13 @@ mod tests {
         ] {
             bad = model().config;
             bad.environment.bytes = packed.len();
-            bad.environment.count = packed.iter().filter(|byte| **byte == 0).count();
+            #[expect(
+                clippy::naive_bytecount,
+                reason = "These malformed environment fixtures contain fewer than ten bytes; no bytecount dependency is needed."
+            )]
+            {
+                bad.environment.count = packed.iter().filter(|byte| **byte == 0).count();
+            }
             let mut wire = Vec::new();
             protocol::send_frame(&mut wire,&json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":STANDARD.encode(packed)})).unwrap();
             wire.extend_from_slice(b"{\"type\":\"model_inputs_end\"}\n");
@@ -1690,7 +1718,7 @@ mod tests {
         m.entropy_offset = u64::MAX;
         assert!(m.random(2, 1).is_err());
         assert_eq!(m.entropy_offset, u64::MAX);
-        assert!(m.random(2, 0).unwrap().is_empty());
+        assert_eq!(m.random(2, 0).unwrap(), [] as [u8; 0]);
         m = model();
         m.config.limits.transcript_bytes = 35;
         assert!(m.random(1, 1).is_err());
@@ -1735,7 +1763,7 @@ mod tests {
                 0x5e, 0xbf, 0x0c, 0x9a
             ]
         );
-        assert!(m.random(3, 0).unwrap().is_empty());
+        assert_eq!(m.random(3, 0).unwrap(), [] as [u8; 0]);
         assert_eq!(m.entropy_offset, 64);
     }
     #[test]
@@ -1846,6 +1874,10 @@ mod tests {
         reference.clock_read(2, 1, 0).unwrap();
         assert_eq!(model.metadata(2), reference.metadata(2));
     }
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "This fixture contains a 96-byte decision and a 128-byte witness."
+    )]
     fn debug_predecision() -> Vec<u8> {
         let pending = decision();
         let mut frame = vec![0; 16 + pending.len() + 128];
@@ -1878,13 +1910,13 @@ mod tests {
         recorded.debug_exchange(&mut debug_predecision()).unwrap();
         let boundary = recorded.inspection.lock().evidence.boundaries[0].clone();
         let request = {
-            let recorder = recorded.inspection.lock();
+            let capture = recorded.inspection.lock();
             inspection::Request {
                 target: recorded.inspection.handle.clone(),
                 decision: 0,
                 expected: boundary,
-                world_sha256: inspection::digest(&recorder.evidence.world),
-                lifecycle_sha256: inspection::digest(&recorder.evidence.lifecycle),
+                world_sha256: inspection::digest(&capture.evidence.world),
+                lifecycle_sha256: inspection::digest(&capture.evidence.lifecycle),
                 stream_sha256: vec![
                     ["choice", "wasi", "network", "storage", "stdout", "stderr"]
                         .into_iter()
@@ -2058,7 +2090,7 @@ mod tests {
             ),
             (
                 json!({"clock_id":u32::MAX,"precision":0}),
-                Some(u32::MAX as u64),
+                Some(u64::from(u32::MAX)),
                 None,
                 "{\"clock_id\":4294967295,\"precision\":0}",
             ),
@@ -2097,7 +2129,7 @@ mod tests {
             let mut literal = b"GMWT\x01\0\0\0".to_vec();
             literal.extend_from_slice(&[
                 if timestamp.is_some() { 33 } else { 1 },
-                timestamp.is_none() as u8,
+                u8::from(timestamp.is_none()),
                 0,
                 0,
                 7,
@@ -2112,7 +2144,11 @@ mod tests {
             literal.extend_from_slice(
                 &(if timestamp.is_some() { 28_u32 } else { 53_u32 }).to_le_bytes(),
             );
-            literal.extend_from_slice(&(clock_id.unwrap_or(u32::MAX as u64) as u32).to_le_bytes());
+            literal.extend_from_slice(
+                &u32::try_from(clock_id.unwrap_or(u64::from(u32::MAX)))
+                    .unwrap()
+                    .to_le_bytes(),
+            );
             literal.extend_from_slice(&input["precision"].as_u64().unwrap().to_le_bytes());
             if timestamp.is_some() {
                 literal.extend_from_slice(b"\x01\0\0\0\0\0\0\0\x01\0\0\0\0\0\0\0");
@@ -2171,6 +2207,14 @@ mod tests {
     }
     #[test]
     #[ignore = "diagnostic profiling only; not a qualification or performance gate"]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The profiling test compares all import stages using one shared measurement setup."
+    )]
+    #[expect(
+        clippy::cast_possible_truncation,
+        reason = "The fixture's alternative counts are 2 or 32, with indices bounded by those counts."
+    )]
     fn profile_local_import_stages_against_json_reference() {
         use crate::engine::{Limits, State};
         use std::{
@@ -2220,7 +2264,9 @@ mod tests {
             set32(&mut request, 20, alternatives as u32);
             set32(&mut request, 24, alternatives as u32 - 1);
             for (index, identity) in request[32..32 + alternatives * 32]
-                .chunks_exact_mut(32)
+                .as_chunks_mut::<32>()
+                .0
+                .iter_mut()
                 .enumerate()
             {
                 identity.fill((alternatives - index) as u8);
@@ -2254,13 +2300,12 @@ mod tests {
             );
             let clone_sort_nanos = timed(
                 |_| {
-                    let alternatives: Vec<[u8; 32]> = black_box(&request)
-                        [32..32 + alternatives * 32]
-                        .chunks_exact(32)
-                        .map(|identity| identity.try_into().unwrap())
-                        .collect();
+                    let alternatives = black_box(&request)[32..32 + alternatives * 32]
+                        .as_chunks::<32>()
+                        .0
+                        .to_vec();
                     let mut ordered = alternatives.clone();
-                    ordered.sort();
+                    ordered.sort_unstable();
                     assert!(
                         !ordered.contains(&[0; 32])
                             && !ordered.windows(2).any(|pair| pair[0] == pair[1])

@@ -558,6 +558,6 @@ pub fn send_frame(output: &mut dyn Write, frame: &impl Serialize) -> Result<()> 
     let _write = crate::diagnostic::WallSpan::remote_write();
     output
         .write_all(&bytes)
-        .and_then(|_| output.flush())
+        .and_then(|()| output.flush())
         .map_err(Error::new)
 }

@@ -75,6 +75,10 @@ pub struct Config {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
+#[expect(
+    clippy::struct_field_names,
+    reason = "Field names are the serialized broker limits contract"
+)]
 pub struct WorldLimits {
     pub max_requests: u64,
     pub max_events: u64,
@@ -280,7 +284,7 @@ impl Broker {
 
     /// Go `Broker.Current`: relative virtual time.
     pub fn current(&self) -> u64 {
-        (lock(&self.inner).clock.current() - INITIAL_TIME) as u64
+        (lock(&self.inner).clock.current() - INITIAL_TIME).cast_unsigned()
     }
 
     pub fn check(&self, me: usize, incarnation: u64) -> Result<(), Failure> {
@@ -660,7 +664,7 @@ impl Broker {
         {
             inner = self.wake[me]
                 .wait(inner)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         if inner.active == Some(me)
             && inner.sessions[me].revoked.is_none()
@@ -743,7 +747,7 @@ impl Broker {
             inner = self
                 .idle
                 .wait(inner)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
     }
 
@@ -783,7 +787,7 @@ impl Broker {
             self.idle.notify_all();
             return;
         }
-        let current = (inner.clock.current() - INITIAL_TIME) as u64;
+        let current = (inner.clock.current() - INITIAL_TIME).cast_unsigned();
         if let Some(network) = &inner.network {
             let advanced = lock(network).advance(current);
             if let Err(failure) = advanced {
@@ -798,7 +802,7 @@ impl Broker {
         // due faults are applied, so link changes take effect at this time.
         if inner.pause.is_some() && current > inner.paused_at {
             inner.paused_at = current;
-            if let Err((termination, message)) = self.pause(inner, current) {
+            if let Err((termination, message)) = Self::pause(inner, current) {
                 self.raise(inner, termination, message);
                 return;
             }
@@ -848,7 +852,7 @@ impl Broker {
 
     /// Opt-in live control at a clock advance (fn-178.1: commands are read
     /// only at deterministic pause points). Every other instance is idle.
-    fn pause(&self, inner: &mut Inner, at: u64) -> Result<(), (&'static str, String)> {
+    fn pause(inner: &mut Inner, at: u64) -> Result<(), (&'static str, String)> {
         let Some((input, output)) = inner.pause.clone() else {
             return Ok(());
         };
@@ -956,7 +960,7 @@ impl Broker {
         if inner.active != Some(me) {
             return Err(invalid("broker continuation"));
         }
-        let current = (inner.clock.current() - INITIAL_TIME) as u64;
+        let current = (inner.clock.current() - INITIAL_TIME).cast_unsigned();
         if let Some(network) = inner.network.clone() {
             let mut network = lock(&network);
             let next = network.deadline();
@@ -971,8 +975,8 @@ impl Broker {
         session.generation += 1;
         let request = TimeRequest {
             generation: session.generation,
-            current: INITIAL_TIME + current as i64,
-            deadline: INITIAL_TIME + deadline as i64,
+            current: INITIAL_TIME + current.cast_signed(),
+            deadline: INITIAL_TIME + deadline.cast_signed(),
             arrivals: 0,
         };
         let handle = session.handle;
@@ -995,7 +999,7 @@ impl Broker {
         {
             inner = self.wake[me]
                 .wait(inner)
-                .unwrap_or_else(|poisoned| poisoned.into_inner());
+                .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
         if let Some((_, message)) = inner.aborted.clone() {
             // The coordinator reports the run's own classification.
@@ -1016,7 +1020,7 @@ impl Broker {
                 "WASM broker global deadlock".into(),
             ));
         }
-        Ok((response.time - INITIAL_TIME) as u64)
+        Ok((response.time - INITIAL_TIME).cast_unsigned())
     }
 
     /// Go `BrokerSession.Finished` (after the instance's evidence): cancel a
@@ -1130,6 +1134,13 @@ impl Broker {
     /// The current World's expanded wire as its generated head followed by
     /// the retained transition encodings, extended by the new transitions:
     /// the same bytes [`Self::world_wire`] writes, refused at the same bound.
+    #[cfg_attr(
+        not(test),
+        expect(
+            clippy::unused_self,
+            reason = "Tests count World materializations per broker instance"
+        )
+    )]
     fn inspection_wire_locked(
         &self,
         inner: &mut Inner,
@@ -1175,6 +1186,13 @@ impl Broker {
         })
     }
 
+    #[cfg_attr(
+        not(test),
+        expect(
+            clippy::unused_self,
+            reason = "Tests count World materializations per broker instance"
+        )
+    )]
     fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
         #[cfg(test)]
         self.world_materializations
@@ -1188,6 +1206,10 @@ impl Broker {
     }
 }
 
+#[expect(
+    clippy::needless_pass_by_value,
+    reason = "Error classification is passed directly to Result::map_err"
+)]
 fn world_wire_failure(error: std::io::Error) -> Failure {
     if error.kind() == std::io::ErrorKind::FileTooLarge {
         Failure::Capacity("compressed-snapshot-expanded-bytes")
@@ -1326,7 +1348,7 @@ impl Member {
                     node,
                     incarnation: self.incarnation,
                 },
-                bytes,
+                &bytes,
             ),
             Err(_) => recorder.exhausted = true,
         }

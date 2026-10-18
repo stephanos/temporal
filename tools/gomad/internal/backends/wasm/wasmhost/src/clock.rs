@@ -11,6 +11,7 @@
 //! an answer or `Parked`, and answers produced for parked participants by later
 //! calls are queued until `take_answers`.
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 
 pub const INITIAL_TIME: i64 = 946_684_800_000_000_000;
 
@@ -162,10 +163,10 @@ fn quote(name: &str) -> String {
             '\u{c}' => quoted.push_str("\\f"),
             '\u{b}' => quoted.push_str("\\v"),
             character if u32::from(character) < 0x80 && character.is_control() => {
-                quoted.push_str(&format!("\\x{:02x}", u32::from(character)))
+                write!(quoted, "\\x{:02x}", u32::from(character)).unwrap();
             }
             character if character.is_control() => {
-                quoted.push_str(&format!("\\u{:04x}", u32::from(character)))
+                write!(quoted, "\\u{:04x}", u32::from(character)).unwrap();
             }
             character => quoted.push(character),
         }
@@ -497,6 +498,10 @@ impl Clock {
     }
 
     /// Go `simulationProgress.apply`: validate, mutate, then settle.
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The ordered model transition preserves Go admission, mutation and refusal order"
+    )]
     pub fn apply(&mut self, event: Event) -> Result<(), String> {
         match event {
             Event::Accepted {
@@ -800,14 +805,14 @@ mod tests {
             arrivals: 0,
         };
         assert_eq!(clock.quiesce(Some(a), request), Ok(Quiesced::Parked));
-        assert!(clock.take_answers().is_empty());
+        assert_eq!(clock.take_answers().len(), 0);
         let restarted = clock.register("b/2").unwrap();
         clock
             .apply(Event::Remove {
                 participant: Some(hold),
             })
             .unwrap();
-        assert!(clock.take_answers().is_empty());
+        assert_eq!(clock.take_answers().len(), 0);
         assert_eq!(
             clock.quiesce(Some(restarted), request),
             Ok(Quiesced::Answered(TimeResponse {

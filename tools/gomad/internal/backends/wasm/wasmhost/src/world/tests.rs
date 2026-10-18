@@ -240,15 +240,15 @@ fn cached_state_digest_matches_uncached_after_every_mutation() {
                         ids.push(id);
                     }),
                 1 => ids
-                    .get((step as usize / 5) % ids.len().max(1))
+                    .get((usize::try_from(step).unwrap() / 5) % ids.len().max(1))
                     .copied()
                     .map_or(Ok(()), |id| {
                         model
                             .ready(Readiness {
                                 request_id: id,
-                                at: INITIAL_TIME + step as i64,
+                                at: INITIAL_TIME + step.cast_signed(),
                                 kind: "timer".into(),
-                                payload: vec![step as u8; (step % 4) as usize],
+                                payload: vec![step.to_le_bytes()[0]; (step % 4) as usize],
                                 equivalence_class: String::new(),
                             })
                             .map(|_| ())

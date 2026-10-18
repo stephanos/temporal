@@ -183,6 +183,10 @@ pub(crate) struct Node {
 }
 
 #[derive(Clone, Copy, Debug, Default)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Flags mirror independent Go filesystem open bits"
+)]
 pub(crate) struct OpenFlags {
     pub(crate) read: bool,
     pub(crate) write: bool,
@@ -193,6 +197,10 @@ pub(crate) struct OpenFlags {
 }
 
 #[derive(Debug)]
+#[expect(
+    clippy::struct_excessive_bools,
+    reason = "Read, write, append and close flags are independent handle state"
+)]
 pub(crate) struct Handle {
     pub(crate) inode: u64,
     pub(crate) name: String,
@@ -261,14 +269,16 @@ impl Fs {
         self.check_handle(handle)?;
         let next = match whence {
             0 => offset,
-            1 => (handle.offset as i64).wrapping_add(offset),
-            2 => (self.node(handle.inode)?.data.len() as i64).wrapping_add(offset),
+            1 => handle.offset.cast_signed().wrapping_add(offset),
+            2 => (i64::try_from(self.node(handle.inode)?.data.len())
+                .expect("file length is at most 256 MiB"))
+            .wrapping_add(offset),
             _ => return Err(Error::Errno("invalid")),
         };
         if next < 0 {
             return Err(Error::Errno("invalid"));
         }
-        handle.offset = next as u64;
+        handle.offset = next.cast_unsigned();
         Ok(handle.offset)
     }
 
@@ -299,7 +309,7 @@ impl Fs {
             .checked_sub(handle.directory_offset)
             .ok_or(Error::Errno("invalid"))?;
         let take = if count > 0 {
-            remaining.min(count as usize)
+            remaining.min(usize::try_from(count).unwrap_or(usize::MAX))
         } else {
             remaining
         };
@@ -344,7 +354,7 @@ impl Fs {
         if handle.append || offset < 0 {
             return Err(Error::Errno("invalid"));
         }
-        self.write_at(handle.inode, offset as u64, data, now)
+        self.write_at(handle.inode, offset.cast_unsigned(), data, now)
     }
 
     pub(crate) fn handle_read(&self, handle: &mut Handle, length: usize) -> Result<Vec<u8>> {
@@ -371,7 +381,7 @@ impl Fs {
         if offset < 0 {
             return Err(Error::Errno("invalid"));
         }
-        self.read_at(handle.inode, offset as u64, length)
+        self.read_at(handle.inode, offset.cast_unsigned(), length)
     }
 
     /// Go `Handle.Metadata`: modification time and size without data.
@@ -392,7 +402,7 @@ impl Fs {
         if size < 0 {
             return Err(Error::Errno("invalid"));
         }
-        self.resize(handle.inode, size as u64, now)
+        self.resize(handle.inode, size.cast_unsigned(), now)
     }
 
     pub(crate) fn handle_sync(&mut self, handle: &Handle) -> Result<Vec<u64>> {
@@ -825,7 +835,7 @@ impl Fs {
         if offset >= node.data.len() as u64 {
             return Ok(Vec::new());
         }
-        let start = offset as usize;
+        let start = usize::try_from(offset).expect("offset is bounded by the file length");
         let end = start.saturating_add(length).min(node.data.len());
         Ok(node.data[start..end].to_vec())
     }
@@ -967,7 +977,7 @@ impl Fs {
                 }
                 let mut node = Node::new(self.allocate_inode()?, 0o755, Kind::Directory, now, "");
                 if current == config.mount {
-                    node.volume = config.id.clone();
+                    node.volume.clone_from(&config.id);
                     node.mount_root = true;
                 }
                 self.nodes.insert(current.clone(), node);
@@ -1206,9 +1216,14 @@ impl Fs {
         self.used_bytes += growth;
         let node = self.node_mut(inode)?;
         if end > node.data.len() as u64 {
-            node.data.resize(end as usize, 0);
+            node.data.resize(
+                usize::try_from(end).expect("file length is at most 256 MiB"),
+                0,
+            );
         }
-        node.data[offset as usize..end as usize].copy_from_slice(data);
+        node.data[usize::try_from(offset).expect("offset is bounded by the file length")
+            ..usize::try_from(end).expect("file length is at most 256 MiB")]
+            .copy_from_slice(data);
         node.mod_time = now;
         Ok(data.len())
     }
@@ -1235,7 +1250,10 @@ impl Fs {
         }
         self.used_bytes = self.used_bytes - previous + size;
         let node = self.node_mut(inode)?;
-        node.data.resize(size as usize, 0);
+        node.data.resize(
+            usize::try_from(size).expect("file length is at most 256 MiB"),
+            0,
+        );
         node.mod_time = now;
         Ok(())
     }
@@ -1624,7 +1642,10 @@ pub(super) fn apply_persistence_effect(state: &mut DiskState, effect: &Effect) -
             if object.kind != Kind::File || effect.size > MAXIMUM_FILE_BYTES {
                 return Err(Error::Invalid("invalid durable resize effect"));
             }
-            object.data.resize(effect.size as usize, 0);
+            object.data.resize(
+                usize::try_from(effect.size).expect("file length is at most 256 MiB"),
+                0,
+            );
             object.mod_time = effect.mod_time;
         }
         "write" => {
@@ -1639,7 +1660,10 @@ pub(super) fn apply_persistence_effect(state: &mut DiskState, effect: &Effect) -
             if object.kind != Kind::File {
                 return Err(Error::Invalid("invalid durable write effect"));
             }
-            object.data[effect.offset as usize..end as usize].copy_from_slice(&effect.data);
+            object.data[usize::try_from(effect.offset)
+                .expect("offset is bounded by the file length")
+                ..usize::try_from(end).expect("file length is at most 256 MiB")]
+                .copy_from_slice(&effect.data);
             object.mod_time = effect.mod_time;
         }
         "metadata" => {
@@ -1755,9 +1779,9 @@ pub(super) fn write_snapshot_entries(hasher: &mut Hasher, entries: &[SnapshotEnt
     hasher.u64(entries.len() as u64);
     for entry in entries {
         hasher.string(&entry.path);
-        hasher.u64(entry.mode as u64);
+        hasher.u64(u64::from(entry.mode));
         hasher.string(&entry.kind);
-        hasher.u64(entry.mod_time as u64);
+        hasher.u64(entry.mod_time.cast_unsigned());
         hasher.u64(entry.size);
         hasher.string(&entry.data_sha256);
     }
@@ -1793,14 +1817,14 @@ pub(super) fn write_effect_hash(hasher: &mut Hasher, effect: &Effect) {
     }
     hasher.u64(effect.offset);
     hasher.u64(effect.size);
-    hasher.u64(effect.mode as u64);
-    hasher.u64(effect.mod_time as u64);
+    hasher.u64(u64::from(effect.mode));
+    hasher.u64(effect.mod_time.cast_unsigned());
     hasher.bytes(&effect.data);
     if let Some(object) = &effect.object {
         hasher.u64(object.inode);
-        hasher.u64(object.mode as u64);
+        hasher.u64(u64::from(object.mode));
         hasher.u64(object.kind as u64);
-        hasher.u64(object.mod_time as u64);
+        hasher.u64(object.mod_time.cast_unsigned());
         hasher.bytes(&object.data);
     }
     for part in &effect.namespace {
@@ -1842,7 +1866,7 @@ mod tests {
         fs.sync_node(3).unwrap();
         CONTENT_HASHES.with(|count| count.set(0));
         let first = fs.volume_snapshots();
-        let hashed = CONTENT_HASHES.with(|count| count.get());
+        let hashed = CONTENT_HASHES.with(std::cell::Cell::get);
         assert_eq!(
             hashed, 2,
             "volatile and persisted byte owners each hash once"
@@ -1850,12 +1874,12 @@ mod tests {
         for _ in 0..3 {
             assert_eq!(fs.volume_snapshots(), first);
         }
-        assert_eq!(CONTENT_HASHES.with(|count| count.get()), hashed);
+        assert_eq!(CONTENT_HASHES.with(std::cell::Cell::get), hashed);
         fs.chmod("/data/file", 0o640, 3).unwrap();
         let changed = fs.volume_snapshots();
         assert_ne!(changed, first);
         assert_eq!(changed[0].volatile[1].mode, 0o640);
-        assert_eq!(CONTENT_HASHES.with(|count| count.get()), hashed);
+        assert_eq!(CONTENT_HASHES.with(std::cell::Cell::get), hashed);
     }
 
     fn assert_uncached_volume_observation(fs: &Fs) {
@@ -2160,7 +2184,7 @@ mod tests {
         );
         assert_eq!(fs.next_inode, 6);
         assert!(!fs.nodes.contains_key("/data/a"));
-        assert!(fs.volumes["db"].history.is_empty());
+        assert_eq!(fs.volumes["db"].history.len(), 0);
     }
 
     #[test]
@@ -2400,6 +2424,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The scenario retains the complete ordered Go conformance sequence"
+    )]
     fn pure_core_matches_every_go_metadata_namespace_and_lifecycle_step() {
         let vectors: serde_json::Value = serde_json::from_str(include_str!(
             "../../../wasi/testdata/volume-conformance/vectors/core.json"
@@ -2436,7 +2464,7 @@ mod tests {
                                     exclusive: flag("Exclusive"),
                                     truncate: flag("Truncate"),
                                 },
-                                integer("mode") as u32,
+                                u32::try_from(integer("mode")).unwrap(),
                                 now,
                             )
                             .unwrap();
@@ -2454,11 +2482,15 @@ mod tests {
                             .unwrap();
                         assert_eq!(written, data.len());
                     }
-                    "chmod" => fs.chmod(text("path"), integer("mode") as u32, now).unwrap(),
+                    "chmod" => fs
+                        .chmod(text("path"), u32::try_from(integer("mode")).unwrap(), now)
+                        .unwrap(),
                     "chtimes" => fs.chtimes(text("path"), integer("mod_time")).unwrap(),
-                    "mkdir" => fs.mkdir(text("path"), integer("mode") as u32, now).unwrap(),
+                    "mkdir" => fs
+                        .mkdir(text("path"), u32::try_from(integer("mode")).unwrap(), now)
+                        .unwrap(),
                     "mkdir-all" => fs
-                        .mkdir_all(text("path"), integer("mode") as u32, now)
+                        .mkdir_all(text("path"), u32::try_from(integer("mode")).unwrap(), now)
                         .unwrap(),
                     "rename" => fs.rename(text("path"), text("destination"), now).unwrap(),
                     "select" => assert_eq!(
@@ -2533,7 +2565,8 @@ mod tests {
                 if let Some(image) = step["image_base64"].as_str() {
                     let expected = STANDARD.decode(image).unwrap();
                     let model_length =
-                        u64::from_le_bytes(expected[28..36].try_into().unwrap()) as usize;
+                        usize::try_from(u64::from_le_bytes(expected[28..36].try_into().unwrap()))
+                            .unwrap();
                     let model = std::str::from_utf8(&expected[36..36 + model_length]).unwrap();
                     let got = super::super::image::RecoveryImage::encode(
                         &fs,

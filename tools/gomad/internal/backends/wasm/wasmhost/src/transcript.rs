@@ -99,6 +99,10 @@ pub struct Event {
     pub nbytes: u64,
     pub flags: u16,
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Transcript lengths retain the protocol's low 32 bits after caller admission"
+)]
 pub fn record(
     tag: u8,
     id: u64,
@@ -114,7 +118,7 @@ pub fn record(
         input.extend_from_slice(output);
     }
     let mut bytes = Vec::with_capacity(16 + input.len());
-    bytes.extend_from_slice(&[tag, (!unsupported.is_empty()) as u8]);
+    bytes.extend_from_slice(&[tag, u8::from(!unsupported.is_empty())]);
     bytes.extend_from_slice(&errno.to_le_bytes());
     bytes.extend_from_slice(&id.to_le_bytes());
     bytes.extend_from_slice(&(input.len() as u32).to_le_bytes());
@@ -153,6 +157,10 @@ pub fn entropy_record(id: u64, length: u32, offset: u64) -> Vec<u8> {
     payload.extend(offset.to_le_bytes());
     record(7, id, payload, &[], 0, "")
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Subscription counts are admitted against the u32 WASI request count"
+)]
 pub fn poll_input(subscriptions: &[Subscription]) -> Vec<u8> {
     let mut input = Vec::with_capacity(4 + subscriptions.len() * 35);
     input.extend_from_slice(&(subscriptions.len() as u32).to_le_bytes());
@@ -181,6 +189,10 @@ pub fn poll_reservation(subscriptions: &[Subscription]) -> u64 {
         + poll_input_len(subscriptions)
         + (4 + subscriptions.len() as u64 * 23).max(4 + CPU_POLL.len() as u64)
 }
+#[expect(
+    clippy::cast_possible_truncation,
+    reason = "Event counts are bounded by the admitted u32 subscription count"
+)]
 pub fn poll_record(
     id: u64,
     subscriptions: &[Subscription],

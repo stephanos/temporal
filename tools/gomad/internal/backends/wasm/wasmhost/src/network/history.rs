@@ -1,6 +1,10 @@
 use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
+#[expect(
+    clippy::trivially_copy_pass_by_ref,
+    reason = "Serde skip_serializing_if passes fields by reference"
+)]
 pub(crate) fn zero(value: &u64) -> bool {
     *value == 0
 }
