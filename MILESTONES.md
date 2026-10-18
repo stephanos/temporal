@@ -1123,7 +1123,7 @@ success claims. Six probe tests and both fresh compiler-refusal checks pass; the
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.2 | ⬜ todo | After .1: the class form in the DSL, parameter kinds and compile errors, instance naming, lint admits the class form (R1-R4) |
+| fn-194.2 | 🔄 in progress | After .1: the class form in the DSL, parameter kinds and compile errors, instance naming, lint admits the class form (R1-R4) |
 | fn-194.3 | ⬜ todo | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
 | fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
 
