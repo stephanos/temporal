@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.2.md",
   "status": "todo",
   "title": "framework-checker: BFS explore with budget, invariants per state, postconditions per edge, verify_all, refuted",
-  "updated_at": "2026-10-18T19:42:59.301139Z"
+  "updated_at": "2026-10-18T19:52:01.509858Z"
 }

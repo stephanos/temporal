@@ -1427,6 +1427,7 @@ model2-check:
 	@$(MODEL2_CARGO) clippy --workspace --all-targets --all-features -- -D warnings
 	@cd model2 && RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
 	@$(MODEL2_CARGO) test --workspace --quiet
+	@$(MODEL2_CARGO) build --target wasm32-wasip2 -p framework-dsl -p framework-checker --quiet
 
 model2-fmt:
 	@$(MODEL2_CARGO) fmt --all

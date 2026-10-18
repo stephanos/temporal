@@ -4,6 +4,8 @@ satisfies: [R1]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.1 framework-dsl: Machine trait, Claim, StepClaim, Scope, Progress, Outcome; Kettle.trait.rs compiles as a fixture
 
 ## Description
+**Recut 2026-10-18 (R9, R10, R12, in progress):** the trait shape changed. A world value implements `Machine` with associated `State` and `Action`; `starts(&self) -> Vec<State>`; `step(&self, &State, Action) -> Steps<State, Outcome, Fact>` with `Steps` an ordered list of `(outcome, facts, next)`, empty = disabled; claims return `Verdict { Holds, Fails, Unknown(Hole) }` with `From<bool>`. Adapt `tests/trait_fixture.rs` to this shape (an empty `KettleWorld` struct); R1's 'compiles unchanged' is superseded by R9.
+
 **Note 2026-10-18 (R8, golden files):** keep the fixture minimal: it proves the vocabulary compiles. Behaviour assertions belong in goldens from .2 on; do not add unit tests here beyond what compilation needs.
 
 Define the vocabulary in `framework/dsl/src`: `Machine { type Action; starts(); actions(); internal(a); step(&self, a) -> Option<Self> }` with `Self: Clone + Eq + Hash`; `Claim<S>` and `StepClaim<S>` as named predicates with `StepClaim::after(action, f)`; `Scope<A>::without(&[A])`; `Progress<S>` builder (`whenever`, `eventually`, `within`); `Outcome`. Copy `options/Kettle.trait.rs` into `framework/samples/tests/fixtures/kettle_trait.rs` (or a test module) and make it compile with the sole owner-approved `Progress::<Self>::new` inference annotation.
@@ -26,6 +28,6 @@ stage: plan-sync - skipped(config: planSync.enabled=false)
 Review receipt: /tmp/impl-review-receipt-8f37faba39e2-fn-210-rust-prototype-kettle-on-a-trait-engine.1.json
 Memory capture: skipped; review fix mechanically relocated coverage under the newly added testing policy.
 ## Evidence
-- Commits: 16191c45933c3d2bd768dd3b54bc979ee6f59767, a351c56426ce6dca843219d46b1e1f0d0e3ceb88, 3f64b4cb5093bca117910094770ef50bd6c36d40
-- Tests: mise exec -- cargo build --workspace, mise exec -- cargo test -p samples, mise exec -- cargo test --workspace, mise exec -- cargo doc --workspace --no-deps, make model2-check, git diff --check
+- Commits:
+- Tests:
 - PRs:

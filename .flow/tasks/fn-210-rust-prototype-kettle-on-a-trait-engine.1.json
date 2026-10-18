@@ -1,7 +1,4 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-18T19:34:15.471132Z",
   "depends_on": [],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.1",
@@ -10,5 +7,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.1.md",
   "status": "todo",
   "title": "framework-dsl: Machine trait, Claim, StepClaim, Scope, Progress, Outcome; Kettle.trait.rs compiles as a fixture",
-  "updated_at": "2026-10-18T19:42:58.663154Z"
+  "updated_at": "2026-10-18T19:53:16.741122Z"
 }

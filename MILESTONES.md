@@ -51,13 +51,19 @@ impl collecting `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[prog
 Kettle itself with its test, then the design note. Testing is end to end by golden files (R8,
 owner 2026-10-18): `insta` snapshots of each Model's report and counterexample paths, `trybuild`
 refusals, `macrotest` expansions, one brute-force oracle property test, no unit tests by default.
-Gate: `make model2-check`; update goldens with `make model2-update`.
+Architecture fixed before the checker (R9 to R17, owner 2026-10-18): a world value implements
+`Machine` with associated `State` and `Action` (constants and compositions live on the world);
+`step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
+in every profile and a panicking effect refutes its step; tri-state verdicts with holes; a
+liftable subset warned on now; structural determinism; a `wasm32-wasip2` build of dsl and checker
+in the gate; a `Visited` seam over full states; `imbl` collections and `Finite`-derived inputs
+recorded for Bank. Gate: `make model2-check`; update goldens with `make model2-update`.
 [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.1 | 🔄 in progress | `framework-dsl`: `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress`, `Outcome`; `Kettle.trait.rs` compiles as a fixture (R1) |
-| fn-210.2 | ⬜ todo | After .1: `framework-checker` BFS explore, claims, `verify_all`, `refuted`; the insta behaviour runner (`cases/kettle/expected/report.txt` with the Scala note's counts) and the brute-force oracle property test (R2, R4, R8) |
+| fn-210.1 | 🔄 in progress | Reopened for R9–R12: world-based `Machine`, associated state/actions, ordered `Steps`, and tri-state claims; adapt the compilation fixture |
+| fn-210.2 | 🔄 in progress | Checker work preserved while .1 adapts; then BFS, panic paths, unknown holes, deterministic goldens, the oracle property test, and the visited-state seam (R2, R4, R8, R11, R14, R16) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
