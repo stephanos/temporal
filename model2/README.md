@@ -30,6 +30,21 @@ make model2-fmt     # rustfmt the workspace
 make model2-time    # time the actual gate; warns over the 3 s inner-loop and 30 s gate budgets (fn-210 R30)
 ```
 
+The gate also checks resolved core capability restrictions and their negative controls,
+protobuf freshness, the wasm32-wasip1 core and guest builds, and CGO-disabled Go host parity.
+It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
+target on first use; warm runs need no network. Rust generation uses prost-build and
+the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, run
+`bash model2/scripts/proto-go.sh` from the repository root.
+
+The guest's three application exports are `alloc`, `free` and `call`; see
+`umpire/proto/README.md` for ownership and refusal contracts, and `hosts/go/README.md`
+for reproduction and measurements. Stock WASI libc owns the internal `free` symbol.
+The target linker wrapper changes the guest's distinct `umpire_free` export name to
+`free` without changing code or other sections; its regression controls run in the gate.
+The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
+exceptions only on the three named export attributes. DSL/checker retain `forbid`.
+
 From inside `model2/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
 `model2-time` measures the actual `make model2-check`, including every current gate step. Its inner
 loop defaults to touching `umpire/checker/src/lib.rs` and testing `umpire-checker`; select another

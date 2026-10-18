@@ -18,7 +18,7 @@ Measure real module size, load time and per-call latency over 100,000 Rows calls
 
 **Parallel implementation:** after fixing the schema/ABI contract, use isolated Rust guest and Go host subagent lanes with disjoint ownership. One lead owns schema, shared manifests/lockfiles/Makefile/tooling, integration, final gates, review and task completion. Do not concurrently mutate one checkout.
 
-**Touches:** `model2/umpire/proto/**`, `model2/umpire/wasm/**`, `model2/hosts/go/**`, `model2/Cargo.toml`, `model2/Cargo.lock`, `model2/rust-toolchain.toml`, `model2/clippy.toml`, `model2/deny.toml`, `model2/README.md`, `model2/DESIGN.md`, `model2/scripts/**`, `model2/umpire/dsl/clippy.toml`, `model2/umpire/checker/clippy.toml`, `model2/umpire/dsl/tests/**`, `model2/umpire/checker/tests/**`, `Makefile`
+**Touches:** `model2/umpire/proto/**`, `model2/umpire/wasm/**`, `model2/hosts/go/**`, `model2/.cargo/config.toml`, `model2/Cargo.toml`, `model2/Cargo.lock`, `model2/rust-toolchain.toml`, `model2/clippy.toml`, `model2/deny.toml`, `model2/README.md`, `model2/DESIGN.md`, `model2/scripts/**`, `model2/umpire/dsl/clippy.toml`, `model2/umpire/dsl/build.rs`, `model2/umpire/checker/clippy.toml`, `model2/umpire/checker/build.rs`, `model2/umpire/dsl/tests/**`, `model2/umpire/checker/tests/**`, `Makefile`
 
 **Quick commands:** from model2, `mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked`; from model2/hosts/go, `CGO_ENABLED=0 mise exec -- go test -count=1 ./...`; from repository root, `make model2-check` and `make model2-time`.
 ## Acceptance
