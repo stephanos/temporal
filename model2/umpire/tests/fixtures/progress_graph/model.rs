@@ -91,9 +91,8 @@ impl Machine for Graph {
                 (2, Right, 0),
             ],
             Mode::Prefix => &[(0, Enter, 1), (1, Left, 1)],
-            Mode::MultipleStarts => &[(0, Left, 0)],
+            Mode::MultipleStarts | Mode::SelfLoop => &[(0, Left, 0)],
             Mode::TargetBarrier => &[(0, Enter, 9), (9, Left, 1), (1, Right, 1)],
-            Mode::SelfLoop => &[(0, Left, 0)],
             Mode::Fulfilled => &[],
             Mode::TriggerStops => &[(0, Enter, 1), (1, Left, 9)],
         };

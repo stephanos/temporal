@@ -10,4 +10,5 @@ claim beeps_only_when_off: Outcome::Verified
 claim never_beeps: Outcome::Refuted
 claim warms_only_when_on: Outcome::Verified
 claim fails_over_at_boiling: Outcome::Verified
+claim boils: Outcome::Verified
 vacuity: none

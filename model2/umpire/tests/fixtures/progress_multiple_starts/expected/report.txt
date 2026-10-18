@@ -1,1 +1,1 @@
-progress fixture pending implementation
+report.snap.txt

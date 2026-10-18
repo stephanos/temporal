@@ -66,9 +66,7 @@ impl Machine for Graph {
     }
 
     fn step(&self, state: &State, action: Action) -> Steps<State, (), ()> {
-        if matches!(self.0, Mode::EffectPanic) && action == Action::Advance {
-            panic!("broken progress effect");
-        }
+        assert!(!(matches!(self.0, Mode::EffectPanic) && action == Action::Advance), "broken progress effect");
         let mut steps = Steps::new();
         match self.0 {
             Mode::ExternalCycleCut | Mode::InternalCycleCut
@@ -77,7 +75,7 @@ impl Machine for Graph {
                 steps.push(((), vec![], state.clone()));
                 steps.push(((), vec![], State(1)));
             }
-            Mode::Unknown | Mode::IndependentFailure if state.0 == 1 && action == Action::Loop => {
+            Mode::Unknown | Mode::IndependentFailure | Mode::RefutedCut if state.0 == 1 && action == Action::Loop => {
                 steps.push(((), vec![], state.clone()));
             }
             Mode::ChoicesCut if state.0 == 0 && action == Action::Advance => {
@@ -86,9 +84,6 @@ impl Machine for Graph {
             }
             Mode::QueuedCut | Mode::RefutedCut if state.0 == 0 => {
                 steps.push(((), vec![], State(if action == Action::Advance { 1 } else { 2 })));
-            }
-            Mode::RefutedCut if state.0 == 1 && action == Action::Loop => {
-                steps.push(((), vec![], state.clone()));
             }
             Mode::RefutedCut if state.0 == 2 && action == Action::Advance => {
                 steps.push(((), vec![], State(3)));
@@ -124,17 +119,15 @@ impl Machine for Graph {
                     }),
                 Progress::<Self>::new("trigger_panic")
                     .whenever(|_, state| {
-                        if state.0 == 0 {
-                            panic!("broken progress trigger")
-                        } else {
-                            Verdict::Fails
-                        }
+                        assert!(state.0 != 0, "broken progress trigger");
+                        Verdict::Fails
                     })
                     .eventually(|_, _| Verdict::Fails),
                 Progress::<Self>::new("target_panic")
                     .whenever(|_, state| (state.0 == 0).into())
                     .eventually(|_, state| {
-                        if state.0 == 0 { panic!("broken progress target") } else { Verdict::Fails }
+                        assert!(state.0 != 0, "broken progress target");
+                        Verdict::Fails
                     }),
                 Progress::<Self>::new("independent_failure")
                     .whenever(|world, _| matches!(world.0, Mode::IndependentFailure).into())

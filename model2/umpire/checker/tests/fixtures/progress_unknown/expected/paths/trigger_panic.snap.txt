@@ -1,0 +1,2 @@
+start: State { 0: 0 }
+failure: claim trigger_panic panicked: broken progress trigger

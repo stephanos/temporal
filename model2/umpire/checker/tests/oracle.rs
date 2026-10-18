@@ -95,8 +95,8 @@ impl Machine for World {
     fn progress(&self) -> Vec<Progress<Self>> {
         vec![
             Progress::<Self>::new("eventually_target")
-                .whenever(|world, state| member(world.trigger, state).into())
-                .eventually(|world, state| member(world.target, state).into())
+                .whenever(|world, state| member(world.trigger, *state).into())
+                .eventually(|world, state| member(world.target, *state).into())
                 .within(Scope::without(
                     &(0..self.actions.len())
                         .filter(|action| self.excluded & (1 << action) != 0)
@@ -107,7 +107,7 @@ impl Machine for World {
     }
 }
 
-fn member(set: u32, state: &[u8; 3]) -> bool {
+fn member(set: u32, state: [u8; 3]) -> bool {
     set & (1 << (state[0] + 3 * state[1] + 9 * state[2])) != 0
 }
 
@@ -177,14 +177,14 @@ fn progress_fails(world: &World, reached: &BTreeSet<[u8; 3]>, edges: &[Edge]) ->
         edges.iter().filter(|(_, action, _, _)| world.excluded & (1 << action) == 0).collect();
     let mut pending: BTreeSet<_> = reached
         .iter()
-        .filter(|state| member(world.trigger, state) && !member(world.target, state))
+        .filter(|state| member(world.trigger, **state) && !member(world.target, **state))
         .copied()
         .collect();
     loop {
         let additions: Vec<_> = scoped
             .iter()
             .filter(|(before, _, _, after)| {
-                pending.contains(before) && !member(world.target, after)
+                pending.contains(before) && !member(world.target, *after)
             })
             .map(|(_, _, _, after)| *after)
             .collect();
@@ -217,7 +217,7 @@ fn progress_fails(world: &World, reached: &BTreeSet<[u8; 3]>, edges: &[Edge]) ->
         while let Some((state, mask)) = queue.pop_front() {
             for (_, action, _, after) in scoped
                 .iter()
-                .filter(|(before, _, _, after)| *before == state && !member(world.target, after))
+                .filter(|(before, _, _, after)| *before == state && !member(world.target, *after))
             {
                 let next_mask = mask | disabled(after) | (required & (1 << action));
                 if *after == entry && next_mask == required {
@@ -340,11 +340,11 @@ proptest! {
                     let suffix_end = path.cycle_start.unwrap_or(path.steps.len());
                     prop_assert!(suffix_end <= path.steps.len());
                     prop_assert!((0..=suffix_end).any(|trigger| {
-                        member(world.trigger, &states[trigger])
-                            && states[trigger..].iter().all(|state| !member(world.target, state))
+                        member(world.trigger, states[trigger])
+                            && states[trigger..].iter().all(|state| !member(world.target, *state))
                             && path.steps[trigger..].iter()
                                 .all(|step| world.excluded & (1 << step.action.0) == 0)
-                    }));
+                    }), "progress witness contains a trigger and scoped target-avoiding suffix");
                     if let Some(cycle) = path.cycle_start {
                         prop_assert!(cycle < path.steps.len());
                         prop_assert_eq!(before, states[cycle]);
@@ -356,13 +356,13 @@ proptest! {
                                         !expected.edges.iter().any(|(source, candidate, _, _)| {
                                             source == state && *candidate == action
                                         })
-                                    }));
+                                }), "cycle satisfies each internal action's weak fairness");
                             }
                         }
                     } else {
                         prop_assert!(!expected.edges.iter().any(|(source, action, _, _)| {
                             *source == before && world.excluded & (1 << action) == 0
-                        }));
+                        }), "finite progress witness ends at a scoped dead end");
                     }
                 }
             }

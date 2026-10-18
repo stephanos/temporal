@@ -1,0 +1,10 @@
+starts: 1
+reached: 3
+emitted: 4
+evaluated: 5
+refused: 1
+depth: 1
+cut: true
+outcome: Outcome::Refuted
+claim reaches_target: Outcome::Refuted
+vacuity: none

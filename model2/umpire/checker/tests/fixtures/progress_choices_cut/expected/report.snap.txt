@@ -1,0 +1,10 @@
+starts: 1
+reached: 2
+emitted: 2
+evaluated: 1
+refused: 0
+depth: 1
+cut: true
+outcome: Outcome::Unknown
+claim reaches_target: Outcome::Unknown
+vacuity: action Action::Loop never fired

@@ -1,0 +1,5 @@
+---
+source: umpire/testing/src/runner.rs
+extension: txt
+snapshot_kind: binary
+---

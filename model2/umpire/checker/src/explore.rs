@@ -4,7 +4,7 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use umpire_dsl::{Claim, Machine, Outcome, Spell, Step, StepClaim, Verdict};
+use umpire_dsl::{Claim, Machine, Outcome, Progress, Spell, Step, StepClaim, Verdict};
 
 use crate::{
     ClaimResult, FullStates, Path, PathStep, Refusal, Report, StateId, Visited, report::aggregate,
@@ -46,15 +46,16 @@ pub struct Transition<M: Machine> {
 /// Entry points for world exploration and negative-control claims.
 pub struct Checker;
 
-/// A bounded graph with safety verdicts, ordered rows and predecessor paths.
+/// A bounded graph with claim verdicts, ordered rows and predecessor paths.
 pub struct Result<M: Machine> {
     /// Statistics for the work actually performed.
     pub counts: Counts,
-    visited: FullStates<M::State>,
+    pub(crate) visited: FullStates<M::State>,
     parents: Vec<Option<(StateId, M::Action, usize)>>,
     depths: Vec<usize>,
-    transitions: Vec<Transition<M>>,
-    claims: Vec<ClaimResult<M::State, M::Action>>,
+    pub(crate) transitions: Vec<Transition<M>>,
+    pub(crate) completed: Vec<Vec<bool>>,
+    pub(crate) claims: Vec<ClaimResult<M::State, M::Action>>,
     warnings: Vec<String>,
 }
 
@@ -89,25 +90,16 @@ impl Checker {
         }
         let postconditions = world.postconditions();
         let actions = world.actions();
-        let mut result = Result {
-            counts: Counts::default(),
-            visited: FullStates::default(),
-            parents: Vec::new(),
-            depths: Vec::new(),
-            transitions: Vec::new(),
-            claims: invariants
-                .iter()
-                .map(|claim| unchecked(claim.name))
-                .chain(postconditions.iter().map(|claim| unchecked(claim.name)))
-                .collect(),
-            warnings: Vec::new(),
-        };
+        let progress = world.progress();
+        crate::progress::validate_scopes(&progress, &actions)?;
+        let mut result = Result::new(invariants, &postconditions, &progress);
         result.seed(world, budget, invariants);
         let mut fired = FixedBitSet::with_capacity(actions.len());
         let mut triggered = FixedBitSet::with_capacity(postconditions.len());
         let mut cursor = 0;
         'search: while !result.counts.cut && cursor < result.visited.len() {
             let source = StateId(cursor);
+            result.completed.resize(result.visited.len(), vec![false; actions.len()]);
             let Some(before) = result.visited.get(source).cloned() else {
                 unreachable!("BFS cursor has an admitted state")
             };
@@ -173,8 +165,18 @@ impl Checker {
                         break 'search;
                     }
                 }
+                result.completed[cursor][action_index] = true;
             }
             cursor += 1;
+        }
+        result.completed.resize(result.visited.len(), vec![false; actions.len()]);
+        for (index, claim) in progress.iter().enumerate() {
+            result.check_progress(
+                world,
+                claim,
+                invariants.len() + postconditions.len() + index,
+                &actions,
+            );
         }
         result.finish(&actions, &postconditions, &fired, &triggered);
         Ok(result)
@@ -185,7 +187,7 @@ fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
     ClaimResult { name: name.into(), outcome: Outcome::Verified, path: None, holes: Vec::new() }
 }
 
-fn panic_message(error: &(dyn Any + Send)) -> &str {
+pub(crate) fn panic_message(error: &(dyn Any + Send)) -> &str {
     error
         .downcast_ref::<&str>()
         .copied()
@@ -194,6 +196,27 @@ fn panic_message(error: &(dyn Any + Send)) -> &str {
 }
 
 impl<M: Machine> Result<M> {
+    fn new(
+        invariants: &[Claim<M>],
+        postconditions: &[StepClaim<M>],
+        progress: &[Progress<M>],
+    ) -> Self {
+        Self {
+            counts: Counts::default(),
+            visited: FullStates::default(),
+            parents: Vec::new(),
+            depths: Vec::new(),
+            transitions: Vec::new(),
+            completed: Vec::new(),
+            claims: invariants
+                .iter()
+                .map(|claim| unchecked(claim.name))
+                .chain(postconditions.iter().map(|claim| unchecked(claim.name)))
+                .chain(progress.iter().map(|claim| unchecked(claim.name)))
+                .collect(),
+            warnings: Vec::new(),
+        }
+    }
     fn seed(&mut self, world: &M, budget: usize, invariants: &[Claim<M>]) {
         for start in world.starts() {
             if self.visited.find(&start).is_some() {
@@ -255,7 +278,7 @@ impl<M: Machine> Result<M> {
         Ok(self.transitions.iter().filter(move |edge| edge.source == state))
     }
 
-    /// Returns safety/step claims and diagnostics without re-running model code.
+    /// Returns claim results and diagnostics without re-running model code.
     pub fn verify_all(&self) -> std::result::Result<Report<M>, Refusal> {
         Ok(Report {
             counts: self.counts,
@@ -264,19 +287,19 @@ impl<M: Machine> Result<M> {
         })
     }
 
-    /// The aggregate safety verdict for this exploration.
+    /// The aggregate claim verdict for this exploration.
     pub fn outcome(&self) -> Outcome {
         aggregate(self.counts.cut, &self.claims)
     }
 
-    fn state(&self, id: StateId) -> &M::State {
+    pub(crate) fn state(&self, id: StateId) -> &M::State {
         match self.visited.get(id) {
             Some(state) => state,
             None => unreachable!("path ids are admitted states"),
         }
     }
 
-    fn path(&self, mut id: StateId) -> Path<M::State, M::Action> {
+    pub(crate) fn path(&self, mut id: StateId) -> Path<M::State, M::Action> {
         let mut steps = Vec::new();
         while let Some((parent, action, choice)) = &self.parents[id.0] {
             steps.push(PathStep {
@@ -287,7 +310,7 @@ impl<M: Machine> Result<M> {
             id = *parent;
         }
         steps.reverse();
-        Path { start: self.state(id).clone(), steps, failure: None }
+        Path { start: self.state(id).clone(), steps, cycle_start: None, failure: None }
     }
 
     fn check_state(&mut self, world: &M, state: StateId, invariants: &[Claim<M>]) {

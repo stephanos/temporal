@@ -1,0 +1,10 @@
+starts: 1
+reached: 1
+emitted: 2
+evaluated: 1
+refused: 0
+depth: 0
+cut: true
+outcome: Outcome::Refuted
+claim reaches_target: Outcome::Refuted
+vacuity: action Action::Loop never fired

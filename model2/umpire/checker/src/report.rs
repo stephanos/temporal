@@ -22,21 +22,32 @@ pub struct Path<S, A> {
     pub start: S,
     /// Emitted choices in execution order.
     pub steps: Vec<PathStep<S, A>>,
+    /// Index of the first edge in a repeating closed walk, when this is a lasso.
+    pub cycle_start: Option<usize>,
     /// A caught effect or predicate panic following the trace, if any.
     pub failure: Option<String>,
 }
 
 impl<S: Spell, A: Spell> Spell for Path<S, A> {
     fn spell(&self, out: &mut String) {
+        if self.cycle_start.is_some() {
+            out.push_str("prefix:\n");
+        }
         out.push_str("start: ");
         self.start.spell(out);
         out.push('\n');
         for (index, step) in self.steps.iter().enumerate() {
+            if self.cycle_start == Some(index) {
+                out.push_str("cycle:\n");
+            }
             write!(out, "{}: ", index + 1).ok();
             step.action.spell(out);
             write!(out, " choice={} -> ", step.choice).ok();
             step.after.spell(out);
             out.push('\n');
+        }
+        if self.cycle_start.is_some() {
+            out.push_str("repeat cycle\n");
         }
         if let Some(failure) = &self.failure {
             writeln!(out, "failure: {failure}").ok();
@@ -57,7 +68,7 @@ pub struct ClaimResult<S, A> {
     pub holes: Vec<&'static str>,
 }
 
-/// Safety/step results and vacuity diagnostics for an exploration.
+/// Claim results and vacuity diagnostics for an exploration.
 pub struct Report<M: Machine> {
     /// Graph statistics shared with the exploration result.
     pub counts: Counts,

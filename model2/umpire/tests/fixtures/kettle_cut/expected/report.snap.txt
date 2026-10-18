@@ -9,6 +9,7 @@ outcome: Outcome::Unknown
 claim beeps_only_when_off: Outcome::Unknown
 claim warms_only_when_on: Outcome::Unknown
 claim fails_over_at_boiling: Outcome::Unknown
+claim boils: Outcome::Unknown
 vacuity: action Act::UserDepressButton never fired
 vacuity: action Act::HeaterHeat never fired
 vacuity: action Act::HeaterFailover never fired
