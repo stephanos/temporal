@@ -20,49 +20,73 @@ Write `umpire/tests/fixtures/kettle/model.rs` in surface C from `options/Kettle.
 
 **Quick commands:** `cd model && mise exec -- cargo test --workspace`
 
-**Structural lint (R44, owner 2026-10-18):** `#[machine]` rejects a Model whose registered items are not grouped by kind in the order `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[progress]`; one ordering table in `dsl/macros/src/machine.rs`, error at the first out-of-place item, helper methods without an attribute ignored, pinned by a trybuild `.stderr` fixture (`machine_out_of_order`). Reorder the existing `machine` macro fixture to comply. The R14 interleaved-claim fixture must be a manual trait world, since the attribute surface can no longer interleave kinds.
-
-**Target surface (owner approved 2026-10-18; supersedes the sketch where they differ):** three cuts to `options/Kettle.attrs.rs`, each keeping every item a plain Rust function with full editor support. `#[scope]` stays. The `Machine` trait, checker, goldens and wasm host do not move; `Scope` and `Progress` become plain non-generic values that `#[machine]` wraps into the trait's `Scope<KettleAction>` and fn-pointer predicates.
-
-1. Actor-level `#[internal]` only (as Scala's `extends Internal`); drop per-variant `#[internal]`.
+**Target surface (owner approved 2026-10-18, nested form; R44, supersedes the sketch where they differ):** the Model is one inline `#[machine] pub mod kettle { .. }` with one `impl Kettle` per part kind, in this order and each at most once: `#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[scopes]`, `#[progress]`. The block is the group: no `#[invariant]`/`#[postcondition]`/`#[progress]` per item; only the per-claim qualifiers `#[on(..)]`, `#[after(..)]`, `#[within(..)]`. `#[machine]` takes no arguments; catalog order is the `#[derive(Action)]` enums' declaration order. `#[machine]` registers from the module's items (R36), errors at the first out-of-place or duplicated group, ignores unmarked impls and helpers; trybuild `.stderr` fixtures `machine_out_of_order` and `machine_duplicate_group` pin the messages. Rewrite the `machine` macro fixture to this form. The R14 interleaved-claim fixture must be a manual trait world, since the attribute surface cannot interleave kinds.
 
 ```rust
-#[derive(Action)]
-#[internal]
-pub enum Heater {
-    Heat,
-    Failover,
+#[machine]
+pub mod kettle {
+    #[derive(State)]
+    pub struct Kettle {
+        #[starts(COLDEST_TEMPERATURE..=40)]
+        temperature: i32,
+        heating_on: bool,
+        beeping: bool,
+    }
+
+    #[derive(Action)]
+    pub enum User { PressButton, DepressButton }
+
+    #[derive(Action)]
+    #[internal]
+    pub enum Heater { Heat, Failover }
+
+    #[transitions]
+    impl Kettle {
+        #[on(User::PressButton)]
+        fn press_button(&mut self) -> Option<()> { (!self.heating_on).then(|| { self.heating_on = true; self.beeping = false; }) }
+        #[on(Heater::Failover)]
+        fn failover(&mut self) -> Option<()> { .. }
+        #[on(Heater::Heat)]
+        fn heat(&mut self) -> Option<()> { .. }
+        #[on(User::DepressButton)]
+        fn depress_button(&mut self) -> Option<()> { .. }
+    }
+
+    #[invariants]
+    impl Kettle {
+        fn beeps_only_when_off(&self) -> bool { !self.beeping || !self.heating_on }
+    }
+
+    #[postconditions]
+    impl Kettle {
+        fn warms_only_when_on(&self, before: &Self) -> bool { before.heating_on || self.temperature <= before.temperature }
+        #[after(Heater::Failover)]
+        fn fails_over_at_boiling(&self) -> bool { self.temperature == BOILING_TEMPERATURE && self.beeping }
+    }
+
+    #[scopes]
+    impl Kettle {
+        /// The user switches the kettle on but never off.
+        fn never_switched_off() -> Scope { without([User::DepressButton]) }
+    }
+
+    #[progress]
+    impl Kettle {
+        /// Switched on and left on, the water boils and the kettle beeps.
+        #[within(Self::never_switched_off)]
+        fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }
+    }
 }
 ```
 
-2. `before` is optional: the macro reads the arity, so `fails_over_at_boiling(&self) -> bool` compiles; `warms_only_when_on(&self, before: &Self) -> bool` is unchanged.
-
-3. Scope and progress as the Scala line, no closures, no generated type names, doc comments on the items:
-
-```rust
-/// The user switches the kettle on but never off.
-#[scope]
-fn never_switched_off() -> Scope {
-    without([User::DepressButton])
-}
-
-/// Switched on and left on, the water boils and the kettle beeps.
-#[progress(within = Self::never_switched_off)]
-fn boils(&self) -> Progress {
-    whenever(self.heating_on).eventually(self.beeping)
-}
-```
-
-`Progress` is `{ trigger: bool, target: bool }` evaluated per state; the expansion is `|_, s| s.boils().trigger` and `.target`. `Scope` holds actor-level action values; the expansion maps them into `KettleAction`. Rejected today's `fn never_reset() -> Scope<CounterAction>` / `Progress::<CounterWorld>::new("..").whenever(|_, s| ..)` spelling; rewrite the `machine` macro fixture to the target surface.
-
-Unchanged: the `State` struct with `#[starts]`, `#[machine(actions = (User, Heater))]` (the only line fixing catalog order), the `#[on]` handlers returning `Option<()>`, `#[invariant]`. Record any remaining difference from the sketch in DESIGN.md, one sentence each.
+Details fixed with it: actor-level `#[internal]` only (as Scala's `extends Internal`), no per-variant form; `before` optional in postconditions (macro reads the arity); `Scope` and `Progress` are plain non-generic values, `Progress` = `{ trigger: bool, target: bool }` evaluated per state, expanded as `|_, s| s.boils().trigger` / `.target`, `Scope` holds actor-level action values mapped into `KettleAction` by the expansion; the author never names the generated `KettleWorld`/`KettleAction`. Kept: `#[on]` handlers returning `Option<()>` (empty-vs-enabled-no-op matters for liveness) and named `#[scopes]`. The `Machine` trait, checker, goldens and wasm host do not move; consumers (shared fixture runner, `umpire-wasm`'s `#[path]` include) refer to `kettle::Kettle` and the `pub` items. Record any remaining difference from the sketch in DESIGN.md, one sentence each.
 ## Acceptance
 - The canonical Kettle uses the attribute surface with separate `User` and `Heater` enums; its fixture asks all Scala-suite questions.
 - Canonical expected payloads differ from the previous trait-shaped Kettle only by the four owner-approved action-name substitutions; report counts/verdicts, states, catalog/discovery order and counterexample structure remain identical.
 - The separate `kettle_trait` source and all its expected files remain unchanged and its native/WASM consumers still pass.
-- `#[machine]` rejects an impl whose registered parts are not grouped in the order on, invariant, postcondition, scope, progress, with an error at the first out-of-place item; a trybuild `.stderr` fixture pins the message and every attribute fixture complies (R44).
+- `#[machine]` on the Model module rejects a duplicated or out-of-order group impl (`#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[scopes]`, `#[progress]`) with an error at the first offending block; trybuild `.stderr` fixtures pin both messages and every attribute fixture complies (R44).
 - A shared interleaved invariant/postcondition/progress fixture on a manual trait world proves actual checker report declaration order; manual-world defaults and dynamic effect-failure ordering remain deterministic.
-- Kettle is written in the approved target surface: actor-level `#[internal]`, optional `before`, `fn never_switched_off() -> Scope { without([User::DepressButton]) }` and `fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }`, with no generated world or action type named by the author; remaining differences from the sketch are recorded in DESIGN.md.
+- Kettle is written in the approved nested surface: a `#[machine] pub mod kettle` with one impl per part kind, actor-level `#[internal]`, optional `before`, `#[after(..)]`/`#[within(..)]` qualifiers, `fn never_switched_off() -> Scope { without([User::DepressButton]) }` and `fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }`, with no generated world or action type named by the author; remaining differences from the sketch are recorded in DESIGN.md.
 - The workspace test command and full local gate pass; actual warm model-time output satisfies R30 or records an owner-approved exception.
 ## Done summary
 TBD
