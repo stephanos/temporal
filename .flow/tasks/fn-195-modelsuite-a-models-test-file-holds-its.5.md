@@ -8,9 +8,13 @@ satisfies: [R8]
 
 After fn-195.6, show primary machines as `class Model`, including parameterless models, and bind a fresh stable-named instance in each suite. Document that singleton primary Machine declarations are no longer supported; shared constants, actors and namespaces remain objects. Keep the user-facing reference consistent without references to Scala source files.
 
-**Size:** S
+Consume the committed native waited-class/checked-coverage interface and the expectation convenience/admission validator. Reconcile the interim SEMANTICS and REFERENCE sections with the final ModelSuite integration. Explain unsupported-kit refusal, performed versus awaited exact input coverage, independent nine-field defaults and raw/copied expectation validation at conformance admission. Keep incomplete capability/discovery and held system-kit limitations visible until their actual integration proves them. No Scala source-file references belong in REFERENCE.
+
+**Size:** M, three documentation files and their final cross-guide consistency checks.
 
 **Files:** `model/framework/SEMANTICS.md`, `model/framework/README.md`, `model/framework/REFERENCE.md` (primary-class convention and suite-facing reference).
+
+**Touches:** [model/framework/SEMANTICS.md, model/framework/README.md, model/framework/REFERENCE.md]
 
 ### Verification
 - Docs match the DSL as landed; SEMANTICS source links point at a sample suite.

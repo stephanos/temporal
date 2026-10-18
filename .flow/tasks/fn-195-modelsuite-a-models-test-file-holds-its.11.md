@@ -6,11 +6,13 @@ satisfies: [R4, R5, R7]
 ## Description
 ### Admission and dependencies
 
-**Initial status:** blocked on the integrated C proof gate and the conductor's resulting implementation scope/size decision. This draft is a contract shell, not authorization to implement an unresolved registry, construction system or capability framework.
+**Initial status:** blocked. The committed `.10` report at `f10ee8b160fdd1c355343ac89e531e6630de2b21` disproves acquired-so-far realization completeness and exposes missing native capability retention/expansion. Its 28 source and 28 packaged controls characterize those gaps. The two semantic completeness oracles still fail in each arrangement. This task remains an integration shell until the conductor admits and integrates the missing mechanisms.
 
 **Size:** conditional. Mark M only after the proof identifies a bounded complete candidate contract, native waited-class projection and capability path acquisition that this integration can consume. If any requires its own implementation mechanism, create that concrete prerequisite and keep C blocked until it is integrated. Do not preserve an M label by dropping native conformance clauses.
 
 Depends on P authored capture/replay, S public suite/policy/identity, X exploration/sample declarations and the committed C proof closure. Consume the chosen proof's exact interface/default decisions and prospective Touches. `.3` depends on this completed native conformance slice before retiring old realization/query/capability bridges. Existing `.4 -> .6 -> .5 -> blocked .7` sequencing stays intact.
+
+The bounded realization-owner `.15` and native capability `.16` feasibility follow-ons must produce either a minimal counterexample or proved interfaces and an honest production decomposition. Closing those reports alone cannot satisfy this task's implementation admission. Add the resulting concrete production dependencies before releasing this hold. Consume performed/waited coverage from `.17` and expectation validation from `.18` instead of reimplementing their APIs. Actual system-kit adoption remains held separately. The existing `.9` dependency remains necessary for sampled conformance.
 
 ### Description
 
@@ -20,15 +22,15 @@ The declaration selector returns only conformance declarations. A capability exp
 
 ### Files and Touches
 
-**Files:** `model/framework/dsl/Sections.scala`, `model/framework/dsl/ModelSuite.scala`, `model/framework/dsl/ModelSuiteMacros.scala`, `model/framework/dsl/NativeRuntime.scala`, `model/framework/checker/Native.scala`, `model/framework/checker/SuiteExecution.scala`, `model/framework/realize/Expectations.scala`.
+**Files:** conditional integration owners are `model/framework/dsl/Sections.scala`, `model/framework/dsl/ModelSuite.scala`, `model/framework/dsl/ModelSuiteMacros.scala`, `model/framework/dsl/NativeRuntime.scala`, `model/framework/checker/Native.scala` and `model/framework/checker/SuiteExecution.scala`. Refine and split this retained shell before implementation.
 
-**Touches:** [model/framework/dsl/Sections.scala, model/framework/dsl/ModelSuite.scala, model/framework/dsl/ModelSuiteMacros.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/realize/Expectations.scala, model/framework/realize/Expectations.test.scala, model/framework/dsl/Conformance.test.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/dsl/testdata/modelsuite/ConformanceClient.scala.txt, model/framework/dsl/testdata/modelsuite/ConformanceRefusals.scala.txt, model/framework/dsl/Machine.scala, model/framework/realize/Constructed.scala, model/framework/realize/Realize.scala, model/framework/dsl/Capabilities.scala]
+**Touches:** [model/framework/dsl/Sections.scala, model/framework/dsl/ModelSuite.scala, model/framework/dsl/ModelSuiteMacros.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/dsl/Conformance.test.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/dsl/testdata/modelsuite/ConformanceClient.scala.txt, model/framework/dsl/testdata/modelsuite/ConformanceRefusals.scala.txt]
 
 - `model/framework/dsl/Sections.scala`, `ModelSuite.scala`, `ModelSuiteMacros.scala`. Retain immutable conformance declarations, selected exact owner, optional through, defaults, source locations and producer eligibility; consume P/X capture.
 - `model/framework/dsl/NativeRuntime.scala`, `model/framework/checker/Native.scala`, `model/framework/checker/SuiteExecution.scala`. Add only the native conformance operations required to validate and replay through S's resolved budget.
-- `model/framework/realize/Expectations.scala` (new). Own `satisfied`, `inconclusive(reason, because)` and `conformant` conveniences using existing `RunExpectation`; do not copy a second expectation hierarchy.
-- `model/framework/realize/Expectations.test.scala`, `model/framework/dsl/Conformance.test.scala`, `model/framework/checker/SuiteExecution.test.scala`, and focused outside-package source/library/refusal fixtures under `model/framework/dsl/testdata/modelsuite/`.
-- Conditional exact files from the accepted proof may include `model/framework/dsl/Machine.scala`, `model/framework/realize/Constructed.scala`, `Realize.scala` and one narrow realization-binding owner, plus a capability declaration/native projection owner in `model/framework/dsl/Capabilities.scala`. List the selected files and signatures in the admitted task before start. Remove unchosen alternatives rather than leaving broad directory-level Touches.
+- Consume `model/framework/realize/Expectations.scala` and the shared `validateConformanceExpectation` admission boundary from the separate expectation leaf. Do not duplicate convenience constructors, alter raw carrier/copy compatibility or add a second expectation hierarchy.
+- `model/framework/dsl/Conformance.test.scala`, `model/framework/checker/SuiteExecution.test.scala`, and focused outside-package source/library/refusal fixtures under `model/framework/dsl/testdata/modelsuite/` own the real consumer regressions.
+- Consume the separate native checked-coverage leaf and the later proved realization/capability implementations. Their implementation files are not speculative Touches for C. Before start, list actual selected integration signatures and split the remaining integration into one-iteration tasks if necessary.
 
 Keep DSL declaration ownership and checker execution ownership, and compile DSL/realize without checker implementation classes. C remains blocked until the conditional projection Touches are exact.
 
@@ -51,6 +53,8 @@ Validate all selected authored finite alternatives and all selected sampled path
 Acquire a capability-generated native path through the accepted native projection, retaining its exact Model/capability claim, applicable waivers/overrides and bounds. Bind its RunExpectation in the conformance test. Preserve existing capability declarations and their non-conformance claims; `.3` later retires only obsolete expectation/live/query author bridges after their native replacements exist.
 
 Preserve the proof's complete RunExpectation tuples for path/sample defaults and explicit constructors, including independent model conformance, property and Contract outcomes, disposition, cleanup, reasons and monitors. Meaningful because text is required for applicable non-satisfied outcomes and refused for satisfied outcomes under the existing contract. Preserve full-value and monitor construction/copy bypass controls. Authored expectations do not assert an observed server verdict.
+
+Invoke the single shared conformance validator on every retained value, including raw apply/copy values. Resolve monitor names/references against the exact selected Model and refuse duplicates, unknown names and foreign monitor owners here. The expectation leaf validates monitor outcome/reason/text shape only. Keep located conformance diagnostics at this actual admission boundary. The leaf's passing tests cannot replace these consumer bypass and identity regressions.
 
 Model-first replay uses P for authored paths and X's selected seeded walks for samples, under S's exact resolved budget. Fail the MUnit conformance test on disabled steps, thrown effects or failed positioned expectations and retain concrete evidence. Preserve unknown/cut semantics and decisive evidence found before a cut. A failed/unknown self-test cannot silently become producer-eligible. Only eligible conformance declarations reach the future producer selector.
 
@@ -83,13 +87,7 @@ C closes native R4 and supplies realize constructor placement for R5 plus local 
 
 ## Done summary
 Blocked:
-Native conformance integration awaits the committed bounded proof checkpoint for complete
-exact-instance realization inventory, native waited/performed classes and capability-generated
-paths. Before releasing this hold, record the integrated proof source/closure, select its mechanisms,
-refine the implementation task to an honest one-iteration size and split any demonstrated independent
-infrastructure prerequisite. A partial initialized-so-far inventory or explicit-through-only route
-does not close R4. Repeated known acquisition, distinct late candidates, source/library ownership and
-collectibility must have evidence. Existing Phase 3 and Temporal holds remain unchanged.
+The committed proof report `f10ee8b160fdd1c355343ac89e531e6630de2b21` retains failed complete-inventory and executable-capability requirements. The conductor scheduled bounded feasibility prerequisites and independent waited-class/expectation leaves. Keep this task blocked until proved production owner/receiver and capability mechanisms are implemented and integrated, alongside the coverage/expectation leaves and `.9`. A feasibility report closure, initialized-so-far inventory or explicit-through-only route does not close R4. Refine the remaining integration to an honest one-iteration size before start. Repeated acquisition, untouched lazy/external owners, complete selection, retained source/library identity, monitor binding and collectibility still require actual consumer evidence. Existing Phase 3 and Temporal holds remain unchanged.
 ## Evidence
 - Commits:
 - Tests:
