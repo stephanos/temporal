@@ -78,9 +78,44 @@ This checkpoint implements R2's authored body/start behavior and local R7 refusa
 Parent holds remain unchanged. Native positioned declarations earn no actual lift, Contract, emitted Case or server/recorded-Run proof; mixed parents remain OPEN and review deferred.
 
 ## Done summary
-TBD
+# fn-195.2 handover
 
+Implemented finite DSL-owned authored bodies, strict deferred Boolean assertions and exact-owner typed step context through the existing lazy NativeRuntime and native Replay engine. Native replay now evaluates named inputs once under each restored frontier, retains every finite alternative, preserves decisive failures through subsequent holes and keeps the original eager ReplayStep API.
+
+Baseline: green, canonical Quick executed 4 tests before edits; base `16c863d897f4bce7b163efe6b535e1d2ba6578f9`. Source checkpoints: `455f2ecc39c9360e6ef377f95193b70377c1fa05` and `b17ac345454b23a25b6f3efdb8bd33c86c70e0d2`.
+
+Tier: session (jev-unavailable(no_key))
+
+stage: impl-review - skipped(config: REVIEW_MODE=none; policy: owner phase-batch review deferral)
+stage: plan-sync - skipped(config: planSync=false)
+
+### Acceptance evidence
+
+- Grammar, exact resolved combinator admission, inherited/qualified/aliased words, positive parameter repetition, typed refused outcome/facts, compatible shared facts and foreign-owner refusals: six `RunBodyTest` controls. Arbitrary carrier/helper statements do not enter capture.
+- Deferred Boolean semantics and original nested failure positions: four `ExpectTest` controls cover literals, first/middle failures, nested blocks, conditional/match/try/catch/finally/operand forms, guards and ordinary short circuit. Late hole precedence has executed RED `hole-decisive-red.log` and GREEN `hole-focused-green.log`, with explicit source-line rerun `hole-line-source-green.log` and packaged rerun `hole-line-jar-green.log`.
+- Restored inputs, per-frontier branching, starts/zero-step, long-repeat cuts, lazy/eager disabled/effect/throw/hole comparison, nested/exceptional restoration and second-instance retained evidence: ten `SuiteExecutionTest` controls. Mixed input-hole siblings execute known-first/hole-first/pass-plus-hole rows; `alternatives-hole-red.log` records the intended failure, `alternatives-hole-green.log` passes the final 97-test focused suite, including existing eager `QuestionsTest` and existing claim/context suites.
+- Legal public source-test and fresh separate-library strict matrix: `clients-run-v3.log` plus `clients-v3/jar-refusals/evidence.md` record loading 11, absent-checker 4 and shadowing 3 controls in each route, plus seven intended strict refusals per route (14 total). Outside discarded Booleans, deprecated Boolean calls, empty/non-Boolean bodies, one-alternative declarations and helper bypasses retain their actual compiler failures. These DSL controls are reused, not claimed as a fresh final generation: all 69 DSL/realize main source hashes match checkpoint455 and the declaration jar is unchanged.
+- Final repair generation: `repair-run-v2.log` records actual exit0 for canonical Quick4, ReferenceSurface4, fresh native package, packaged public20 and jar identity verification. `repair-v2/unchanged-declaration-sources.log` and `unchanged-declaration-jars.sha256` record the exact scope and identities.
+- Public reference coverage was added only after the existing ReferenceSurface gate failed: original `final-run.log` stopped at boundary-loop (65/66 passing); its raw failure is retained. REFERENCE documents current capture/native forms and signature carriers without claiming future ModelSuite/conformance integration.
+- Final committed snapshot `b17ac34545`: `final-run-v2.log` is terminal exit0 with exactly 20 stage exits, all0. The fresh native recipe passes declarations/core/plugin, native-full693, Quick4, class admission7, rule suites31, boundary-loop66, source lint178 classified, sample source/client, unchanged realization fixture comparison, native realization source/library, sample library, questions source/library/client2, voting lifetime and final diff-check. Voting lifetime runs 64 instances uninitialized plus64 initialized (128 total), one round each, zero survivors; it is native lifetime evidence, not system execution. The disposable FrameworkLoop fixture retains its explicit held cases.
+- `final-artifacts.sha256` binds command scripts, logs and generated jars; `final-source.sha256` binds all changed source/test/reference/task paths. The source was clean and matched b17 after all gates. Canonical Quick green receipt: `../green-receipts/b17ac345-unittest.json`. No gate was skipped or weakened. `ac-evidence-gaps.md` maps all six ACs plus bounded reference coverage; its final-verification pending statements are superseded by this terminal observation.
+
+### Artifact identities
+
+- Unchanged declaration jar: `clients-v3/declarations.jar`, SHA256 `6ce808fe1dac873ef85d1269492c784b6f94fdff8abeaadb541f9d6c91c4dbee`.
+- Final repaired native jar: `repair-v2/native.jar`, SHA256 `9d21138d14cf087e901cafa57ec8fe9d3ac58bf51304e23023dea49dfd336863`.
+- Existing unchanged IR dependency: SHA256 `b9e0538afffad2b33b9fc8fc9eb2a3f4e63b10928fa38506b585747535e85c92`.
+
+### Quality and boundaries
+
+Original independent-axis reports are preserved in `quality-reports.md`, `correctness-review.md` and `standards-review.md`; the mixed-alternative follow-up remains separate. The two correctness hole-precedence findings were reproduced before their minimal fixes; standards reported no findings. Both narrow rechecks of `455f2ecc39..b17ac34545` report no remaining actionable findings: `correctness-final-review.md`, `standards-final-review.md`, aggregated verbatim in `quality-final-reports.md`. These read-only audits inspected executed evidence and are not formal SHIP reviews.
+
+The public Block.copy mechanism uses no compiler dependency/plugin or authored suppression and no weakened strict flags. The original joint-main macro/caller route remains unsupported with its failing evidence at `../fn1952-plan/expect-probe/public-final-joint-main.log`; legal source-test and separate-library routes are the supported proofs. Initial state acquisition remains lazily based on live fields; mutation tests explicitly retain init0 before mutation. No instance identity is invented for transferable state or compatible facts.
+
+No MUnit facade, ModelSuite registration, exploration/conformance/Case, actual lift/export/IR regeneration, Go/system execution, held corpus access or actual repository Make execution was added. The authorized final native recipe retains its existing native plugin admission stages and disposable FrameworkLoop Make-n fixture only. Parent remains OPEN and formal review deferred.
+
+Failed/compiler-crash/configuration attempts remain raw logs, not green receipts. The unconfigured final fmt attempt selected the wrong formatter configuration; `format-check-final-configured.log` checks all 11 touched Scala files with `model/.scalafmt.conf` and passes without source changes.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 455f2ecc39c9360e6ef377f95193b70377c1fa05, b17ac345454b23a25b6f3efdb8bd33c86c70e0d2
+- Tests: timeout 600 env -u BASH_ENV mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only checkercontrol.CheckerTest, timeout 600 env -u BASH_ENV mise exec -- scala-cli run --test --server=false --workspace .flow/tmp/fn1952/alternatives-green-workspace model/framework/checker --main-class org.junit.runner.JUnitCore -- framework.checker.SuiteExecutionTest framework.dsl.ExpectTest bodycontrol.RunBodyTest checkercontrol.QuestionsTest framework.dsl.VarMachinesTest framework.dsl.ClaimShortCircuitSuite framework.dsl.NativeClaimHolesSuite framework.dsl.ParametricMachinesTest, env -u BASH_ENV bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn1952/clients.sh, env -u BASH_ENV bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn1952/reverify.sh, env -u BASH_ENV bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn1952/verify.sh, timeout 600 env -u BASH_ENV mise exec -- scala-cli fmt --check --scalafmt-conf model/.scalafmt.conf model/framework/dsl/RunBody.scala model/framework/dsl/RunBody.test.scala model/framework/dsl/Expect.scala model/framework/dsl/Expect.test.scala model/framework/dsl/Syntax.scala model/framework/dsl/ClaimWords.scala model/framework/dsl/NativeRuntime.scala model/framework/checker/Native.scala model/framework/checker/Replay.scala model/framework/checker/SuiteExecution.scala model/framework/checker/SuiteExecution.test.scala, sha256sum --check .flow/tmp/fn1952/final-artifacts.sha256, sha256sum --check .flow/tmp/fn1952/final-source.sha256, git diff --check
 - PRs:
