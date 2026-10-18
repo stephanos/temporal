@@ -1,15 +1,42 @@
 package framework.dsl
 
+final private[framework] case class SuiteCheck(
+    evidence: Any,
+    verified: Boolean,
+    inconclusive: Boolean,
+    diagnostics: String
+)
+
+private[framework] trait NativeSuiteExecution:
+  def budget: Int
+  def claims[M <: Machine[?, ?]](model: M): SuiteCheck
+  def replay[M <: Machine[?, ?]](body: RunBody[M]): SuiteCheck
+
 // Declaration operations implemented by the product checker. Keeping the interface here lets the
 // lifter read declarations without loading the checker or evaluating authored callbacks.
 private[framework] trait NativeRuntime:
+  def suiteExecution(exactName: String): NativeSuiteExecution
   def runBody[M <: Machine[?, ?]](body: RunBody[M], budget: Int): Any
   def invoke(body: () => Unit): Unit
   def stateCompare(vars: Vars, left: State, right: State): Int
-  def invoke[A, B, C, D](function: (A, B, C) => D, first: A, second: B, third: C): D
-  def replace[S](state: S, index: Int, value: Any, mirror: scala.deriving.Mirror.ProductOf[S]): S
+  def invoke[A, B, C, D](
+      function: (A, B, C) => D,
+      first: A,
+      second: B,
+      third: C
+  ): D
+  def replace[S](
+      state: S,
+      index: Int,
+      value: Any,
+      mirror: scala.deriving.Mirror.ProductOf[S]
+  ): S
   def entries[M](channel: Channel[M]): Vector[Delivery[M]]
-  def deliveryCompare[M](channel: Channel[M], left: Delivery[M], right: Delivery[M]): Int
+  def deliveryCompare[M](
+      channel: Channel[M],
+      left: Delivery[M],
+      right: Delivery[M]
+  ): Int
   def send[M](inbox: Inbox[M], message: M): Inbox[M]
   def equivalent[T](data: Data[T], left: T, right: T): Boolean
   def compareData[T](data: Data[T], left: T, right: T): Int
@@ -28,9 +55,18 @@ private[framework] trait NativeRuntime:
   ): Boolean
   def invoke[A, B](function: A => B, argument: A): B
   def invoke[A, B, C](function: (A, B) => C, first: A, second: B): C
-  def monitorNext[M](next: M => M, current: M, before: State, step: Step[State, ?, ?]): M
+  def monitorNext[M](
+      next: M => M,
+      current: M,
+      before: State,
+      step: Step[State, ?, ?]
+  ): M
   def contents[M](channel: Channel[M]): Finite[Inbox[M]]
-  def inboxCompare[M](message: Data.Structural[M], left: Inbox[M], right: Inbox[M]): Int
+  def inboxCompare[M](
+      message: Data.Structural[M],
+      left: Inbox[M],
+      right: Inbox[M]
+  ): Int
   def sameStep[O, F](
       vars: Vars,
       predicate: Step[State, O, F] => Boolean
@@ -40,7 +76,10 @@ private[framework] trait NativeRuntime:
       predicate: (State, Step[State, O, F]) => Boolean
   ): (State, Step[State, O, F]) => Boolean
   def compare[T](program: Data.Native[T], left: T, right: T): Int
-  def catalog[T](mirror: scala.deriving.Mirror.Of[T], fields: List[Finite[?]]): IndexedSeq[T]
+  def catalog[T](
+      mirror: scala.deriving.Mirror.Of[T],
+      fields: List[Finite[?]]
+  ): IndexedSeq[T]
   def optional[A](domain: Finite[A]): IndexedSeq[Option[A]]
   def range(high: Int): IndexedSeq[Int]
   def composition[F](model: Composition[F]): CompositionExecution[F]
@@ -57,7 +96,11 @@ private[framework] trait NativeRuntime:
       state: S,
       values: List[Any]
   ): List[Step[S, O, F]]
-  def effectOn[S, O, F](program: InputEffect[S, O, F], state: S, cls: Class): List[Step[S, O, F]]
+  def effectOn[S, O, F](
+      program: InputEffect[S, O, F],
+      state: S,
+      cls: Class
+  ): List[Step[S, O, F]]
   def holds[S](program: InputGuard[S], state: S, cls: Class): Boolean
   def call[R](program: AnyRef, argument: Any): R
   def call[R](program: AnyRef, first: Any, second: Any): R
@@ -79,12 +122,27 @@ private[framework] trait NativeRuntime:
   def choose(alternatives: Vector[Alternative]): Unit
 
   // The claim statements (NativeClaims).
-  def assertion(condition: () => Boolean, member: String, line: Int, text: String): Unit
-  def recordFact(value: () => Any, member: String, line: Int, claim: Boolean): Unit
+  def assertion(
+      condition: () => Boolean,
+      member: String,
+      line: Int,
+      text: String
+  ): Unit
+  def recordFact(
+      value: () => Any,
+      member: String,
+      line: Int,
+      claim: Boolean
+  ): Unit
   def alternatives(member: String, line: Int, body: () => Unit): Unit
   def alternative(body: () => Unit): Unit
   def abandon(member: String, reached: HoleReached): Unit
-  def targeting(target: Any, member: String, location: String, block: () => Unit): Unit
+  def targeting(
+      target: Any,
+      member: String,
+      location: String,
+      block: () => Unit
+  ): Unit
   def start(fallback: () => State): State
   def answer(fallback: () => Any): Any
   def facts: List[Any]

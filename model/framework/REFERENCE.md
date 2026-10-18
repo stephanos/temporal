@@ -1410,8 +1410,57 @@ refuses rather than inventing a preceding step.
 replay and returns the existing `Result`, retaining replay evidence and caller budget cuts. Execution
 requires the checker and a budget of at least one. Compile declarations before authored tests, or
 consume a separately compiled declaration library; joint compilation of macro definitions and
-authored callers as main sources is unsupported. ModelSuite registration, section discovery,
-conformance, search, realization binding and Case production remain separate work.
+authored callers as main sources is unsupported.
+
+### ModelSuite
+
+`class ModelTests extends ModelSuite(instance)` binds an ordinary MUnit suite to one exact
+`Machine` instance. Import it through `framework.dsl.*`. Shared helpers belong at the suite top
+level; tests belong inside these optional objects, registered in this order:
+
+| Section | Test body |
+|---|---|
+| `object examples` | The captured native-body grammar above, replayed against the bound instance |
+| `object explorations` | Container reserved for the pending exploration grammar (X); exploration tests currently refuse at compile time |
+| `object conformance` | The same captured native-body grammar and native replay as examples |
+| `object unit` | An ordinary MUnit body, with MUnit assertions, return values and asynchronous behavior |
+
+Write `test("name"): ...` or `test(munit.TestOptions("name")): ...` in a section. Both forms keep
+MUnit filtering, ignore/only options, transforms and setup ordering. For an example or conformance
+body, `test("name", from = start): ...` supplies the optional start snapshot; without it the
+instance must have exactly one initial state. Action calls, `oneOf`, `repeat`, `expect`, `before`,
+`outcome` and `records` retain the captured-body rules and exact-instance checks above. Unit bodies
+are not captured as replay requests.
+
+Registration happens once, at the first `munitTests` enumeration, after concrete eager helpers
+initialize and before MUnit snapshots the test list or runs setup. Unrelated lazy helpers stay
+lazy. Empty or absent sections and unit-only suites are supported. Tests outside sections,
+cross-section early registration and arbitrary non-test section members refuse with a source
+location; the exploration container reserves space-valued members for X. Names must yield a
+nonempty slug, unique across all sections and both registration forms. Registered names have
+`examples:`, `conformance:` or `unit:` prefixes. Recursive enumeration during loading refuses;
+a failed section initializer remains failed on subsequent enumeration.
+
+Use the framework source gate for source admission. Before suite selection it rejects erased inline
+section members on every discovered runnable `ModelSuite` and its indexed source ancestors,
+including suites with no authored tests. Plain MUnit enumeration cannot inspect erased declarations.
+
+Every suite also registers `claims: <fully qualified suite name>`, including suites with only
+examples or unit tests. It checks the bound instance's ordinary claims, retaining native results,
+counterexample paths, completion flags and vacuity warnings in the diagnostics. Refuted results
+fail the MUnit test. Unknown or cut checks also fail, explicitly labelled `inconclusive native
+check`; they are never skipped or labelled verified. A counterexample found before an unrelated
+cut retains its native refutation.
+
+Native execution resolves the caller's validated budget policy lazily, once for the exact fully
+qualified suite name, and shares that immutable selection between automatic claims and replay.
+Neither a Model field, a horizon nor a sample count replaces this budget. Construction,
+registration and DSL-only loading do not read environment policy or load the checker. Executing
+a native test requires the product checker on the class path and fails explicitly if it is absent.
+
+Conformance bodies here establish native replay evidence only. Typed conformance metadata (C),
+realization/capability binding and Case production remain pending; the section name does not
+establish any of them.
 
 ## Public surface not in this reference
 
@@ -1462,7 +1511,8 @@ finite walks establish no exhaustive safety or unbounded progress conclusion.
 
 The gate validates a `BudgetPolicy` against discovered suite identities. Its default and overrides
 resolve into an immutable `Execution` boundary that passes the selected budget into every question.
-The future ModelSuite adapter supplies registration and suite discovery support.
+ModelSuite supplies registration and discovery under each concrete suite's exact fully qualified
+name; its native checks share that suite's immutable execution selection.
 
 ### Realization building blocks
 

@@ -1,12 +1,55 @@
 package framework.checker
 
-import framework.dsl.*
+import framework.dsl.{Checker as _, *}
 
 object SuiteExecution:
+  private[framework] def forSuite(exactName: String): NativeSuiteExecution =
+    forSuite(exactName, BudgetPolicy.fromEnvironment(sys.env))
+
+  private[checker] def forSuite(
+      exactName: String,
+      policy: BudgetPolicy
+  ): NativeSuiteExecution =
+    val execution = Checker.forSuite(policy, exactName)
+    new NativeSuiteExecution:
+      val budget: Int = execution.budget
+
+      def claims[M <: Machine[?, ?]](model: M): SuiteCheck =
+        val report = Checker.verifyHeld(model, Seq.empty, budget)
+        SuiteCheck(
+          report,
+          report.results.forall(_.verdict == Verdict.verified),
+          report.results.exists(_.verdict == Verdict.unknown),
+          (report.results.map(diagnostics) ++ report.warnings).mkString("\n")
+        )
+
+      def replay[M <: Machine[?, ?]](body: RunBody[M]): SuiteCheck =
+        val result = evaluate(body, budget)
+        SuiteCheck(
+          result,
+          result.verdict == Verdict.verified,
+          result.verdict == Verdict.unknown,
+          diagnostics(result)
+        )
+
+  private def diagnostics(result: Result): String =
+    val initial = result.path.initial.map(state => s"initial: $state").toVector
+    val steps = result.path.steps.zipWithIndex.map: (step, index) =>
+      s"step ${index + 1}: ${NativeCheck.shown(step.action)} from ${step.before} to ${step.after}, outcome ${step.outcome}, facts ${step.facts.mkString("[", ", ", "]")}"
+    val expectation = result.expectation
+      .map(failure =>
+        s"expectation at line ${failure.line}: ${failure.text}, state ${failure.state}"
+      )
+      .toVector
+    (Vector(result.toString) ++ initial ++ steps ++ expectation).mkString("\n")
+
   def run[M <: Machine[?, ?]](body: RunBody[M], budget: Int): Result =
     NativeRuntime.installed.runBody(body, budget).asInstanceOf[Result]
 
-  private[framework] def evaluate[M <: Machine[?, ?]](body: RunBody[M], budget: Int): Result =
+  private[framework] def evaluate[M <: Machine[?, ?]](
+      body: RunBody[M],
+      budget: Int
+  ): Result =
     require(budget >= 1, "a budget admits at least one state")
     val model = body.model
     var failed = Option.empty[RunPosition]
@@ -28,11 +71,16 @@ object SuiteExecution:
               s"$position: an input of another Model instance cannot read this Model's state"
             )
         val count = step.count()
-        require(count >= 1, s"${step.position}: repeat requires a positive count")
+        require(
+          count >= 1,
+          s"${step.position}: repeat requires a positive count"
+        )
         Vector(
           ReplayRepeatedStep(
             ReplayDeferredStep[State](
-              step.targets.map(target => (target.position, () => target.evaluate()))
+              step.targets.map(target =>
+                (target.position, () => target.evaluate())
+              )
             ),
             count
           )
@@ -51,7 +99,10 @@ object SuiteExecution:
                     s"$position: an expectation of another Model instance cannot read this Model's state"
                   )
                 val evaluation = new RunAssertionEvaluation:
-                  def test(position: RunPosition, condition: () => Boolean): Boolean =
+                  def test(
+                      position: RunPosition,
+                      condition: () => Boolean
+                  ): Boolean =
                     if failed.nonEmpty then false
                     else
                       val holds = condition()
@@ -80,7 +131,8 @@ object SuiteExecution:
           result.complete,
           result.path,
           result.detail.map(detail =>
-            if detail.startsWith("fails at line ") then s"fails at line ${position.line}: $text"
+            if detail.startsWith("fails at line ") then
+              s"fails at line ${position.line}: $text"
             else detail
           ),
           result.longest,

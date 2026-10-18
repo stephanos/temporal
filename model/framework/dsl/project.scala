@@ -8,4 +8,4 @@
 //> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns -Yretain-trees -language:strictEquality
 //> using dep com.thesamet.scalapb::scalapb-runtime-grpc:0.11.20
 //> using jar ../../build/ir-scalapb.jar
-//> using test.dep org.scalameta::munit:1.2.0
+//> using dep org.scalameta::munit:1.2.0

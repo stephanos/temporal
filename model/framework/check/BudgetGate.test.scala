@@ -6,13 +6,19 @@ class BudgetGateTest extends munit.FunSuite:
   private def suite(root: Path, name: String): Path =
     val path = root.resolve(s"model/framework/dsl/$name.test.scala")
     Files.createDirectories(path.getParent): Unit
-    Files.writeString(path, s"package fixture\nclass $name extends munit.FunSuite\n"): Unit
+    Files.writeString(
+      path,
+      s"package fixture\nclass $name extends munit.FunSuite\n"
+    ): Unit
     path
 
-  test("gate policy validation follows source discovery, including unselected suites"):
+  test(
+    "gate policy validation follows source discovery, including unselected suites"
+  ):
     val root = Scratch.directory("budget-discovery")
     val source = suite(root, "NewSuite")
-    val tools = Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.NewSuite=7"))
+    val tools =
+      Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.NewSuite=7"))
     tools.withCheckerBudgets(FrameworkSuites.declared(root).map(_.name).toSet)
     Files.delete(source)
     val error = intercept[GateError]:
@@ -20,14 +26,56 @@ class BudgetGateTest extends munit.FunSuite:
     assert(error.getMessage.contains("fixture.NewSuite"))
     assert(error.getMessage.contains("UMPIRE_CHECKER_BUDGETS"))
 
-  test("a default-package source-discovered suite accepts its exact override name"):
+  test(
+    "a default-package source-discovered suite accepts its exact override name"
+  ):
     val root = Scratch.directory("budget-default-package")
     val source = suite(root, "SimpleSuite")
     Files.writeString(source, "class SimpleSuite extends munit.FunSuite\n")
     val tools = Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "SimpleSuite=7"))
     tools.withCheckerBudgets(FrameworkSuites.declared(root).map(_.name).toSet)
 
-  test("validated normalized policy reaches child tools through their existing environment"):
+  test(
+    "indirect ModelSuite policy identities follow concrete source names rather than helpers"
+  ):
+    val root = Scratch.directory("budget-modelsuite-discovery")
+    val base = root.resolve("model/framework/dsl/Base.scala")
+    Files.createDirectories(base.getParent): Unit
+    Files.writeString(
+      base,
+      "package fixture\nabstract class Base extends framework.dsl.ModelSuite(instance)\n"
+    ): Unit
+    val source = suite(root, "IndirectSuite")
+    Files.writeString(
+      source,
+      "package fixture\nclass IndirectSuite extends Base\n"
+    ): Unit
+    val tools =
+      Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.IndirectSuite=7"))
+    tools.withCheckerBudgets(FrameworkSuites.declared(root).map(_.name).toSet)
+    val helpers = Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.Base=7"))
+    assert(
+      intercept[GateError](
+        helpers.withCheckerBudgets(
+          FrameworkSuites.declared(root).map(_.name).toSet
+        )
+      ).getMessage.contains("fixture.Base")
+    )
+    Files.writeString(
+      source,
+      "package fixture\nclass RenamedSuite extends Base\n"
+    ): Unit
+    assert(
+      intercept[GateError](
+        tools.withCheckerBudgets(
+          FrameworkSuites.declared(root).map(_.name).toSet
+        )
+      ).getMessage.contains("fixture.IndirectSuite")
+    )
+
+  test(
+    "validated normalized policy reaches child tools through their existing environment"
+  ):
     val root = Scratch.directory("budget-transport")
     val stubs = Stubs(Scratch.directory("budget-tools"))
       .tool("scala-cli", "printf '%s' \"$UMPIRE_CHECKER_BUDGETS\"")
@@ -35,21 +83,26 @@ class BudgetGateTest extends munit.FunSuite:
       root,
       "UMPIRE_CHECKER_BUDGETS" -> "fixture.SecondSuite=19\ndefault=31\nfixture.FirstSuite=7"
     )
-    val testing = tools.withCheckerBudgets(Set("fixture.FirstSuite", "fixture.SecondSuite"))
+    val testing =
+      tools.withCheckerBudgets(Set("fixture.FirstSuite", "fixture.SecondSuite"))
     assertEquals(
       testing.scalaCli(Seq("run")).orFail().output,
       "default=31\nfixture.FirstSuite=7\nfixture.SecondSuite=19"
     )
 
-  test("framework and change gates reject unknown policy before their first command"):
+  test(
+    "framework and change gates reject unknown policy before their first command"
+  ):
     val root = Scratch.directory("budget-before-command")
     suite(root, "KnownSuite")
     val stubs = Stubs(Scratch.directory("budget-refusal-tools"))
       .tool("scala-cli", s"printf called > '$root/calls'")
-    val tools = stubs.tools(root, "UMPIRE_CHECKER_BUDGETS" -> "fixture.UnknownSuite=7")
+    val tools =
+      stubs.tools(root, "UMPIRE_CHECKER_BUDGETS" -> "fixture.UnknownSuite=7")
     val record = Files.createDirectory(root.resolve("record"))
     val out = new java.io.PrintStream(java.io.OutputStream.nullOutputStream())
-    val generic = intercept[GateError](FrameworkLoop(tools, out, record).check())
+    val generic =
+      intercept[GateError](FrameworkLoop(tools, out, record).check())
     assert(generic.getMessage.contains("fixture.UnknownSuite"))
     val scope = Scope(
       Vector.empty,
@@ -60,11 +113,15 @@ class BudgetGateTest extends munit.FunSuite:
       Vector.empty,
       Set.empty
     )
-    val changed = intercept[GateError](ChangeCheck(tools, out, record, FrameworkSuites).run(scope))
+    val changed = intercept[GateError](
+      ChangeCheck(tools, out, record, FrameworkSuites).run(scope)
+    )
     assert(changed.getMessage.contains("fixture.UnknownSuite"))
     assert(!Files.exists(root.resolve("calls")))
 
-  test("every framework module receives the normalized policy including a known held override"):
+  test(
+    "every framework module receives the normalized policy including a known held override"
+  ):
     val root = Scratch.directory("budget-framework")
     suite(root, "NewSuite")
     for (file, source) <- Vector(
@@ -96,9 +153,14 @@ class BudgetGateTest extends munit.FunSuite:
       "UMPIRE_CHECKER_BUDGETS" -> "framework.check.lint.GuideSourcesTest=5\nfixture.NewSuite=7\ndefault=31"
     )
     val record = Files.createDirectory(root.resolve("record"))
-    FrameworkLoop(tools, new java.io.PrintStream(java.io.OutputStream.nullOutputStream()), record)
+    FrameworkLoop(
+      tools,
+      new java.io.PrintStream(java.io.OutputStream.nullOutputStream()),
+      record
+    )
       .check()
-    val policies = Files.readString(root.resolve("policies")).split("---\n").toVector
+    val policies =
+      Files.readString(root.resolve("policies")).split("---\n").toVector
     assertEquals(policies.size, 3)
     assert(
       policies.forall(
