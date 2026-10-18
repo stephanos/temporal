@@ -1126,7 +1126,7 @@ deferred; sample migration and documentation are next, with IR/Go/Temporal holds
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.3 | ⬜ todo | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
+| fn-194.3 | 🔄 in progress | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
 | fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
 
 ### fn-195: ModelSuite: a Model's test file holds its examples, explorations and conformance tests
