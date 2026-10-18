@@ -544,20 +544,28 @@ class SuiteInventoryTest extends munit.FunSuite:
       input.copy(candidates =
         Vector(SuiteInventory.Artifact(root.resolve("missing.jar"), "absent"))
       ) -> Vector("missing.jar"),
-      input.copy(candidates =
-        Vector(input.candidates.head.copy(sha256 = "wrong"))
-      ) -> Vector("changed artifact"),
+      input.copy(candidates = Vector(input.candidates.head.copy(sha256 = "wrong"))) -> Vector(
+        "changed artifact"
+      ),
       input.copy(candidates = Vector(artifact(malformed))) -> Vector("zip", malformed.toString),
       input.copy(hierarchy = Vector.empty) -> Vector("inventorylib.Helpers$Base"),
-      input.copy(sources = Vector(input.sources.head.copy(sha256 = "wrong"))) -> Vector("changed source"),
-      input.copy(sources = input.sources ++ input.sources) -> Vector("conflicting source ownership"),
+      input.copy(sources = Vector(input.sources.head.copy(sha256 = "wrong"))) -> Vector(
+        "changed source"
+      ),
+      input.copy(sources = input.sources ++ input.sources) -> Vector(
+        "conflicting source ownership"
+      ),
       input.copy(sources = Vector.empty) -> Vector("source outside explicit manifest"),
       input.copy(sources =
         Vector(SuiteInventory.Source(helperSource, sha(helperSource)))
       ) -> Vector("source outside explicit manifest"),
       input.copy(compilerFlags = Vector.empty) -> Vector("missing compiler flags"),
-      input.copy(toolchain = input.toolchain.copy(scalaVersion = "3.8.0")) -> Vector("incompatible Scala"),
-      input.copy(toolchain = input.toolchain.copy(javaVersion = "other")) -> Vector("incompatible Java")
+      input.copy(toolchain = input.toolchain.copy(scalaVersion = "3.8.0")) -> Vector(
+        "incompatible Scala"
+      ),
+      input.copy(toolchain = input.toolchain.copy(javaVersion = "other")) -> Vector(
+        "incompatible Java"
+      )
     )
     cases.foreach((value, fragments) => refused(value, fragments*))
 

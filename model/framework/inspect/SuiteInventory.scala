@@ -71,6 +71,10 @@ private[framework] object SuiteInventory:
     MessageDigest.getInstance("SHA-256").digest(bytes).map(b => f"${b & 0xff}%02x").mkString
 
   private def readArtifact(path: Path): (Map[String, Array[Byte]], String) =
+    try decodeArtifact(path)
+    catch case NonFatal(error) => fail(path.toString, s"cannot read artifact: ${error.getMessage}")
+
+  private def decodeArtifact(path: Path): (Map[String, Array[Byte]], String) =
     val contents = if Files.isDirectory(path) then
       val stream = Files.walk(path)
       try
