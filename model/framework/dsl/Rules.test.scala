@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 // The object forms' runtime wiring, run as Scala: a machine object is the machine, its `rules` the
 // one section it reads, lowered to one step function per action, preserving declaration order.
@@ -376,7 +377,7 @@ class RulesTest extends munit.FunSuite:
       !Trace.initialized.contains("Switch.transitions"),
       Trace.initialized.toString
     )
-    Switch.bindings: Unit
+    val _ = Switch.bindings
     assertEquals(
       Trace.initialized.toList.filter(_.startsWith("Switch")).take(2),
       List("Switch", "Switch.transitions")
@@ -610,7 +611,7 @@ class RulesTest extends munit.FunSuite:
   // An error in an object's initializer is fatal to munit's `intercept`, so it is caught here.
   def refusal(m: => RecordMachine[Lamp, Said, Nothing]): String =
     try
-      m.bindings: Unit
+      val _ = m.bindings
       fail("the rules constructed")
     catch case e: ExceptionInInitializerError => e.getCause.getMessage
 
@@ -627,7 +628,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare at Rules.test.scala:625:12: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:626:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }

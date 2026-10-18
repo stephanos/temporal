@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.*
+
 object PinnedQueriesFixture:
   given Ok[Boolean] = Ok(true)
 

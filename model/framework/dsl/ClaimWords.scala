@@ -22,7 +22,7 @@ private[framework] trait NativeClaimWords[O, F] extends ClaimWords:
       next: M => M
   )(violated: M => Boolean)(using Data[M])(using StateData[M]): Monitor[State, O, F, M] =
     framework.dsl.monitor[State, O, F, M](initial)((m, before, step) =>
-      NativeClaims.watching(before, step)(next(m))
+      NativeRuntime.installed.monitorNext(next, m, before, step)
     )(violated)
 
   final def monitor[S, MO, MF, M](initial: M)(next: (M, S, Step[S, MO, MF]) => M)(
@@ -36,7 +36,7 @@ private[framework] trait NativeClaimWords[O, F] extends ClaimWords:
     framework.dsl.monitor[S, MO, MF, M](name, initial)(next)(violated)
 
   final def sticky(promise: => Boolean): Monitor[State, O, F, Boolean] =
-    monitor(false)(broken => broken || !promise)(identity)
+    monitor(false)(Programs.StickyVar(() => promise))(identity)
 
   final def facts: List[F] = NativeClaims.facts.asInstanceOf[List[F]]
   final def recorded(fact: F): Boolean = NativeClaims.facts.contains(fact)

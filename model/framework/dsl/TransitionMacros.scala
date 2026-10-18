@@ -3,9 +3,9 @@ package framework.dsl
 import scala.quoted.*
 
 // The compile-time half of a transition block: it checks the block's leaves and marks each effect
-// call so the native runtime (Vars) sees that the block fired. A leaf is a call of a method of an
-// `effects` object, the framework's `reject` or `()`, reached through `if`, `match`, blocks that
-// open with vals and type ascriptions; Scala's own control flow then gives first match. An
+// call so the native runtime (NativeRuntime) sees that the block fired. A leaf is a call of a method
+// of an `effects` object, the framework's `reject` or `()`, reached through `if`, `match`, blocks
+// that open with vals and type ascriptions; Scala's own control flow then gives first match. An
 // assignment to a var of a Machine anywhere in the block is refused: the effect assigns.
 //
 // Symbols are recognised by their names and owners, never by reference to the words that

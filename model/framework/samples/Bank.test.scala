@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
 import BankControls.Leaky
 import NativeControls.{assertRefuted, invariant}
 import framework.dsl.Finite.given

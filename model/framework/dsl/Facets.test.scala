@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 
 // Facets run as Scala: a Machine assembled from facets binds what the same Machine written as one

@@ -34,7 +34,6 @@ final class Channel[M] private[framework] (
     val duplicates: Int
 )(using val messages: Finite[M]):
   private[framework] val comparisonIdentity: Long = Channel.nextIdentity.getAndIncrement()
-  private given Data.Structural[M] = messages.structural
   private var source = Option.empty[String]
   private[framework] var schemaKey = Option.empty[String]
   private[framework] var spelling = Option.empty[String]
@@ -89,26 +88,16 @@ final class Channel[M] private[framework] (
     this
   // Every entry a channel can hold, messages in catalog order and each one's redeliveries within.
   private[framework] lazy val entries: Vector[Delivery[M]] =
-    for m <- messages.values.toVector; r <- (0 to duplicates).toVector yield Delivery(m, r)
+    NativeRuntime.installed.entries(this)
 
   // Everything the channel can hold, for the state field that holds it: no message, then every
   // sequence of one entry, of two, up to the capacity, the last entry varying fastest. Unordered
   // contents are the sequences whose entries are in structural order, one per multiset.
   lazy val contents: Finite[Inbox[M]] =
-    val ordered =
-      if order == Order.fifo then entries else entries.sortWith(compareDelivery(_, _) < 0)
-    val sequences = (0 to capacity).toList.flatMap { n =>
-      (1 to n).foldLeft(List(List.empty[Delivery[M]])) { (prefixes, _) =>
-        for prefix <- prefixes; e <- ordered.toList yield prefix :+ e
-      }
-    }
-    val held = if order == Order.fifo then sequences
-    else sequences.filter(s => s.zip(s.drop(1)).forall((a, b) => compareDelivery(a, b) <= 0))
-    Finite.of(held.map(Inbox(this, _))*)
+    NativeRuntime.installed.contents(this)
 
   private[framework] def compareDelivery(left: Delivery[M], right: Delivery[M]): Int =
-    val message = messages.compare(left.message, right.message)
-    if message != 0 then message else Integer.compare(left.redeliveries, right.redeliveries)
+    NativeRuntime.installed.deliveryCompare(this, left, right)
 
   // The channel holding nothing.
   val empty: Inbox[M] = Inbox(this, Nil)
@@ -169,11 +158,7 @@ final case class Inbox[M] private[framework] (channel: Channel[M], deliveries: L
   // The contents with `m` added: at the end, or at its structural position for an unordered channel.
   // Sending to a full channel leaves the channel's contents, so the step lands outside the domain.
   def send(m: M): Inbox[M] =
-    val d = Delivery(m, 0)
-    if channel.order == Order.fifo then copy(deliveries = deliveries :+ d)
-    else
-      val (before, after) = deliveries.span(e => channel.compareDelivery(e, d) <= 0)
-      copy(deliveries = before ++ (d :: after))
+    NativeRuntime.installed.send(this, m)
 
   def isEmpty: Boolean = deliveries.isEmpty
 
@@ -184,16 +169,4 @@ object Inbox:
   private[framework] def structural[M](message: Data.Structural[M]): Data.Structural[Inbox[M]] =
     new Data.Structural[Inbox[M]]:
       def compare(left: Inbox[M], right: Inbox[M]): Int =
-        val owner =
-          java.lang.Long.compare(left.channel.comparisonIdentity, right.channel.comparisonIdentity)
-        if owner != 0 then owner
-        else
-          val a = left.deliveries.iterator
-          val b = right.deliveries.iterator
-          var result = 0
-          while result == 0 && a.hasNext && b.hasNext do
-            val x = a.next()
-            val y = b.next()
-            result = message.compare(x.message, y.message)
-            if result == 0 then result = Integer.compare(x.redeliveries, y.redeliveries)
-          if result != 0 then result else java.lang.Boolean.compare(a.hasNext, b.hasNext)
+        NativeRuntime.installed.inboxCompare(message, left, right)

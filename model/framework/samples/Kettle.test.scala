@@ -1,5 +1,8 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
+
 import KettleControls.{coldest, fromRoomTemperature, room}
 import NativeControls.{assertRefuted, invariant}
 import SampleClaims.{holds as invariantHolds, judged}

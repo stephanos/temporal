@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class NativeChoiceExecutionSuite extends munit.FunSuite:
   private def run(
       machine: RecordMachine[Boolean, Boolean, Boolean],

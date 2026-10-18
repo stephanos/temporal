@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class InputRecords extends munit.FunSuite:
   test("record declarations preserve their actual input type and named constructor calls"):
     assertEquals(

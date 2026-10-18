@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class NativeAssumptionsSuite extends munit.FunSuite:
   private val fault = Actor("fault")
   private val tick = action("tick", Actor("caller"))

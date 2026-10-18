@@ -1,7 +1,7 @@
 # Framework authoring
 
-`framework.dsl` declares machines and their promises; `framework.realize` supplies generic
-realization values. The framework has no Temporal Model dependency. The wider model pipeline is
+`framework.dsl` declares machines and their promises; `framework.checker` executes those declarations
+as the Scala oracle, and `framework.realize` supplies generic realization values. The framework has no Temporal Model dependency. The wider model pipeline is
 described in [model/README.md](../README.md); the native expectation loop below is narrower.
 
 ## Inputs
@@ -616,14 +616,26 @@ Run from the repository root, serially, using the pinned tools and existing
 `model/project.scala`:
 
 ```sh
-mise exec -- scala-cli compile --server=false model/framework/dsl model/framework/realize model/framework/samples
-mise exec -- scala-cli test --server=false model/framework/dsl model/framework/realize model/framework/samples --require-tests
-mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite'
+mise exec -- scala-cli compile --server=false model/framework/checker model/framework/samples
+mise exec -- scala-cli test --server=false model/framework/checker model/framework/samples --require-tests
+UMPIRE_FRAMEWORK_BUILD="$PWD/.flow/tmp/framework-native" mise exec -- scala-cli test --server=false model/framework/check --require-tests --test-only 'framework.check.lint.*RuleSuite'
 ```
 
 Require nonzero executed tests and retain the output and exit status. Format touched Scala sources
 with `mise exec -- scala-cli fmt --scalafmt-conf model/.scalafmt.conf <paths>`; repeat the formatter
 and require unchanged bytes. The block-form lint must scan a nonzero real native corpus.
+
+The checker is a production module. The DSL retains callable references and schemas; its runtime
+seam refuses execution when the checker is absent. Import `framework.checker.Checker` explicitly
+alongside DSL imports. `Checker.explore(instance)` returns a `Result` with verdict, budget and
+completion; pass it to `Checker.verifyAll` for a `Report` of claim results and vacuity warnings.
+`Checker.monitor(instance, watch, starts, budget)` and `Checker.progress(instance, claim, starts,
+budget)` return the same result shape. Refutations retain a concrete `path` with the initial state
+and each action's source state, destination state, outcome and recorded facts. Budgets below one
+are refused. A cut answers unknown unless the check already found a counterexample.
+
+Replay, bounded finding, seeded sampling and the gate's suite budget configuration remain the next
+checker task; this module move does not complete that public contract.
 
 For separate-library public-client checks, use a new Scala CLI `--workspace` directory for each
 complete recipe, across its native package, author package, runtime and refusal stages. Overwriting

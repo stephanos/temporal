@@ -1,5 +1,8 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
+
 import samples.Inputs
 
 class InputsTest extends munit.FunSuite:

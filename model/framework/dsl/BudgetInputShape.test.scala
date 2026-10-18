@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class BudgetInputShapeSuite extends munit.FunSuite:
   test("budgeted zero-input targets refuse binary guards and effects"):
     val refusals = List(

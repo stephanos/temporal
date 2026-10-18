@@ -19,8 +19,8 @@ abstract class Refinement[S, P](using @unused owner: Owner[S, ?, ?])(
   // The image of `s` in the refined machine: `toProduct` evaluated with `s` restored into the vars
   // of a Machine that declares them.
   final def image(s: S): P = s match
-    case state: State => state.owner.at(state)(toProduct(s))
-    case _            => toProduct(s)
+    case state: State => state.owner.at(state)(NativeRuntime.installed.invoke(toProduct, s))
+    case _            => NativeRuntime.installed.invoke(toProduct, s)
 
 object Refinement:
   // The machine `machine`'s `object refinement` refines, where it declares one, for the gate's

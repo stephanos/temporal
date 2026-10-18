@@ -603,7 +603,7 @@ extension (value: Realization)
         Some(value.machine.ff.values),
         value.machine.factCases
       )
-    value.machine.bindings: Unit
+    value.machine.table: Unit
     require(
       value.roles.isEmpty,
       s"$declaration: roles require their owning kit's constructed conversion"

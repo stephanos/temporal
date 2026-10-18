@@ -1,5 +1,8 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
+
 import TwoLayeredCacheControls.WriteThroughL1
 import samples.TwoLayeredCache
 import NativeControls.assertRefuted

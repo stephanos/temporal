@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.realize.*
 
 class InputDefaults extends munit.FunSuite:

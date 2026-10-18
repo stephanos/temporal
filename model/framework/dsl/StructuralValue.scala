@@ -9,8 +9,13 @@ final private[framework] class StructuralValue[T](
     check: StructuralValue.Check[T]
 ):
   def validate(value: T, owner: RecordMachine[?, ?, ?], context: String): Unit =
-    val inspection = new StructuralValue.Inspection(owner, root, slots(owner), context)
-    check(value, inspection, Nil)
+    val inspection = new StructuralValue.Inspection(
+      owner,
+      root,
+      NativeRuntime.installed.invoke(slots, owner),
+      context
+    )
+    NativeRuntime.installed.invoke(check, value, inspection, Nil)
 
 @scala.annotation.publicInBinary
 private[framework] object StructuralValue:
@@ -114,7 +119,7 @@ private[framework] object StructuralValue:
           path,
           "Inbox redeliveries outside declared bounds"
         )
-        checkMessage(delivery.message, this, path :+ "message")
+        NativeRuntime.installed.invoke(checkMessage, delivery.message, this, path :+ "message")
         requireValue(
           value.channel.messages.values
             .exists(value.channel.messages.equivalent(_, delivery.message)),

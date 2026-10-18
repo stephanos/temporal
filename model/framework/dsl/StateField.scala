@@ -14,11 +14,12 @@ final private[framework] class StateField[S, A](
     writer: (S, A) => S,
     rebuilder: (S, Vector[(List[String], Any)]) => S
 ):
-  def get(state: S): A = getter(state)
-  def write(state: S, value: A): S = writer(state, value)
+  def get(state: S): A = NativeRuntime.installed.invoke(getter, state)
+  def write(state: S, value: A): S = NativeRuntime.installed.invoke(writer, state, value)
   def rebuild(state: S, replacements: Vector[(List[String], Any)]): S =
-    if replacements.isEmpty then state else rebuilder(state, replacements)
-  def valid(value: A): Option[Boolean] = validity(value)
+    if replacements.isEmpty then state
+    else NativeRuntime.installed.invoke(rebuilder, state, replacements)
+  def valid(value: A): Option[Boolean] = NativeRuntime.installed.invoke(validity, value)
 
 @scala.annotation.publicInBinary
 private[framework] object StateField:
@@ -48,10 +49,7 @@ private[framework] object StateField:
     )
 
   def replace[S](state: S, index: Int, value: Any)(using mirror: Mirror.ProductOf[S]): S =
-    val fields =
-      state.asInstanceOf[Product].productIterator.toArray // scalafix:ok DisableSyntax.asInstanceOf
-    fields(index) = value
-    mirror.fromProduct(Tuple.fromArray(fields))
+    NativeRuntime.installed.replace(state, index, value, mirror)
 
   private def validator[T: Type](using Quotes): Option[Expr[T => Boolean]] =
     import quotes.reflect.*

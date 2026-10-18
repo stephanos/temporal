@@ -185,14 +185,19 @@ object ModelSources:
     )
 
   // The build settings and the framework's sources the Models compile against: the DSL and the
-  // generic realization core, not the tools beside them (export, reify, check, migrate).
+  // checker and generic realization core, not the tools beside them (export, reify, check, migrate).
   val framework: Seq[String] =
-    Seq("model/project.scala", "model/framework/dsl", "model/framework/realize")
+    Seq(
+      "model/project.scala",
+      "model/framework/dsl",
+      "model/framework/checker",
+      "model/framework/realize"
+    )
 
   // The framework's core, which builds on its own (framework/dsl/project.scala), with no system's
   // API or Models on its classpath.
   val frameworkCore: Seq[String] =
-    Seq("model/framework/dsl", "model/framework/realize")
+    Seq("model/framework/dsl", "model/framework/checker", "model/framework/realize")
 
 // `selectedSources <feature>...`: the sources the selected features compile from, one a line, as the
 // change-scoped check selects them (the migration harness copies them, framework/migrate/prove.sh).

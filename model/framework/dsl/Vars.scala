@@ -31,7 +31,7 @@ private[framework] object StartStatesMacro:
 // through the record type `before` gives it; a test builds one from another by named updates,
 // `Model.init.copy(heatingOn = true)`, which are checked against the Machine's vars when they run.
 //
-// Until the IR evaluator replaces native execution (fn-190.3/.5), the native runtime (Vars) restores
+// The checker restores
 // a State into the Machine's vars before it runs a step or a claim and reads the vars back after.
 final class State private[framework] (
     private[framework] val owner: Vars,
@@ -158,54 +158,15 @@ object VarSchema:
         java.lang.Float.TYPE -> classOf[java.lang.Float]
       ).getOrElse(runtime, runtime)
 
-// The native runtime of one Machine's vars until the IR evaluator replaces it (fn-190.3/.5): the
-// Machine object holds one live state, its vars. `at` restores a state into them, evaluates a step,
-// a guard or a claim on them, and puts back the state it found, which outside every evaluation is
-// the initial state, captured from the vars before the first evaluation. So the Machine object
-// reads as its initial state between evaluations, and evaluations of one Machine run one at a time.
-//
-// The vars are read and written through their accessors, looked up by name: a closure among the
-// arguments of the Machine's parent constructor would be hoisted into the object that encloses the
-// Machine, whose initialization would then run inside the Machine's.
+// A Machine's var schema and value operations; the checker owns live snapshots and evaluation.
 final class Vars private[framework] (
     private[framework] val machine: Model,
     private[framework] val schema: VarSchema,
     private[framework] val children: Vector[Vars] = Vector.empty
 ):
-  private var depth = 0
-  private var captured = Option.empty[State]
   private[framework] def leaves: Vector[Vars] =
     if children.isEmpty then Vector(this) else children.flatMap(_.leaves)
-  private val accessors = (if children.isEmpty then schema.vars else Vector.empty).map: v =>
-    val methods = machine.getClass.getMethods.toVector
-    val getter = methods.find(m => m.getName == v.name && m.getParameterCount == 0)
-    val setter = methods.find(m => m.getName == s"${v.name}_$$eq" && m.getParameterCount == 1)
-    getter
-      .zip(setter)
-      .getOrElse(throw IllegalStateException(s"${machine.name}: ${v.name} has no public accessors"))
-
-  // The state the vars hold before any evaluation: their initialisers.
-  def initial: State = synchronized:
-    captured.getOrElse:
-      val start = snapshot()
-      captured = Some(start)
-      start
-
-  // The vars as they are now.
-  private def snapshot(): State =
-    if children.nonEmpty then State(this, children.map(_.initial))
-    else
-      State(
-        this,
-        schema.vars.lazyZip(accessors).map((v, accessor) => v.checked(accessor._1.invoke(machine)))
-      )
-
-  private def restore(state: State): Unit =
-    accessors
-      .lazyZip(state.values)
-      .foreach: (accessor, value) =>
-        val boxed = value.asInstanceOf[AnyRef] // scalafix:ok DisableSyntax.asInstanceOf
-        val _ = accessor._2.invoke(machine, boxed)
+  def initial: State = NativeRuntime.installed.initial(this)
 
   private[framework] def owned(state: Any): State = state match
     case value: State if value.owner.eq(this) => value
@@ -215,20 +176,7 @@ final class Vars private[framework] (
       throw IllegalArgumentException(s"$other is not a state of ${machine.name}")
 
   // Evaluates `evaluate` on the vars as they are in `state`.
-  def at[A](state: Any)(evaluate: => A): A = synchronized:
-    val target = owned(state)
-    if children.nonEmpty then
-      children.indices.foldRight(() => evaluate)((i, inner) =>
-        () => children(i).at(target.values(i))(inner())
-      )()
-    else
-      val resume = if depth == 0 then initial else snapshot()
-      depth += 1
-      restore(target)
-      try evaluate
-      finally
-        depth -= 1
-        restore(resume)
+  def at[A](state: Any)(evaluate: => A): A = NativeRuntime.installed.at(this, state, () => evaluate)
 
   // The step an effect takes from `state`: the rejection it refused with, from `state`, or the
   // accepted outcome into the vars it assigned, with the facts it recorded in order; one step for
@@ -245,42 +193,10 @@ final class Vars private[framework] (
   private[framework] def steps[O, F](state: Any, accepted: O, fires: Boolean)(
       body: => Unit
   ): List[Step[State, O, F]] =
-    val start = owned(state)
-    val taken = List.newBuilder[Step[State, O, F]]
-    val pending = scala.collection.mutable.Queue(List.empty[Int])
-    while pending.nonEmpty do
-      val script = pending.dequeue()
-      at(start):
-        val frame = Vars.Frame(this, script)
-        Vars.within(frame)(body)
-        val picks = frame.picks
-        for depth <- script.size until picks.size do
-          val prefix = picks.take(depth).map(_._1).toList
-          for alternative <- 1 until picks(depth)._2 do pending.enqueue(prefix :+ alternative)
-        frame.refused match
-          case Some(outcome) =>
-            val refused = outcome.asInstanceOf[O] // scalafix:ok DisableSyntax.asInstanceOf
-            taken += Step(refused, start): Unit
-          case None if fires || frame.fired =>
-            val facts = frame.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
-            taken += Step(accepted, snapshot(), facts): Unit
-          case None => ()
-    taken.result()
+    NativeRuntime.installed.steps[O, F](this, state, accepted, fires, () => body)
 
-  private def open(what: String): Vars.Frame =
-    Vars.current
-      .filter(_.owner.eq(this))
-      .getOrElse(
-        throw IllegalStateException(
-          s"${machine.name}: $what is a statement of an effect, which its transition runs"
-        )
-      )
-
-  private[framework] def refuse(outcome: Any): Unit = open("a rejection").refused = Some(outcome)
-
-  private[framework] def add(recorded: Seq[Any]): Unit =
-    val frame = open("a recorded fact")
-    frame.facts = frame.facts ++ recorded
+  private[framework] def refuse(outcome: Any): Unit = NativeRuntime.installed.refuse(this, outcome)
+  private[framework] def add(recorded: Seq[Any]): Unit = NativeRuntime.installed.add(this, recorded)
 
   private[framework] def updated(state: State, updates: Seq[(String, Any)]): State =
     val start = owned(state)
@@ -294,93 +210,19 @@ final class Vars private[framework] (
     State(this, values)
 
   private[framework] def compare(left: State, right: State): Int =
-    val (x, y) = (owned(left), owned(right))
-    schema.vars.indices.iterator
-      .map(i => schema.vars(i).data.compare(x.values(i), y.values(i)))
-      .find(_ != 0)
-      .getOrElse(0)
+    NativeRuntime.installed.stateCompare(this, left, right)
 
-  // A same-step predicate of this Machine, read with the step's state restored into the vars.
   private[framework] def sameStep[O, F](
       predicate: Step[State, O, F] => Boolean
   ): Step[State, O, F] => Boolean =
-    val restored = (step: Step[State, O, F]) => at(step.state)(predicate(step))
-    predicate match
-      case bound: PredicateBindings => Vars.Bound1(restored, bound)
-      case _                        => restored
-
-  // A transition predicate of this Machine, read with the state a step went to restored into the
-  // vars; the state it started from is its first argument.
+    NativeRuntime.installed.sameStep(this, predicate)
   private[framework] def transition[O, F](
       predicate: (State, Step[State, O, F]) => Boolean
   ): (State, Step[State, O, F]) => Boolean =
-    val restored = (start: State, step: Step[State, O, F]) => at(step.state)(predicate(start, step))
-    predicate match
-      case bound: PredicateBindings => Vars.Bound2(restored, bound)
-      case _                        => restored
+    NativeRuntime.installed.transition(this, predicate)
 
 object Vars:
-  // One run of a step's body: what it refused with, recorded and fired, and the alternative it
-  // picked at each `choose`, the first `script.size` of them replayed from an earlier run.
-  final private[framework] class Frame(val owner: Vars, script: List[Int]):
-    var refused = Option.empty[Any]
-    var facts = List.empty[Any]
-    var fired = false
-    private var replayed = script
-    private val made = Vector.newBuilder[(Int, Int)]
-
-    // The alternative this run takes among `of`, and the picks it made, each with how many there were.
-    def pick(of: Int): Int =
-      val picked = replayed match
-        case head :: tail =>
-          replayed = tail
-          head
-        case Nil => 0
-      made += picked -> of
-      picked
-
-    def picks: Vector[(Int, Int)] = made.result()
-
-  // The runs under way on this thread, innermost first: a step's body runs in one, and the
-  // statements of an effect (a rejection, a fact, a choice, an effect call) reach it.
-  private val running = ThreadLocal.withInitial[List[Frame]](() => Nil)
-
-  private[framework] def current: Option[Frame] = running.get.headOption
-
-  private[framework] def within(frame: Frame)(body: => Unit): Unit =
-    running.set(frame :: running.get)
-    try body
-    finally running.set(running.get.drop(1))
-
-  // A transition leaf called an effect: the run takes a step.
-  private[framework] def fired(): Unit =
-    current
-      .getOrElse(throw IllegalStateException("an effect call is a leaf of a transition"))
-      .fired = true
-
-  // The alternative the run under way takes among `of`.
-  private[framework] def pick(of: Int): Int =
-    current
-      .getOrElse(
-        throw IllegalStateException("choose is a statement of an effect, which its transition runs")
-      )
-      .pick(of)
-
-  final private class Bound1[A](restored: A => Boolean, bound: PredicateBindings)
-      extends (A => Boolean),
-        PredicateBindings:
-    def apply(value: A): Boolean = restored(value)
-    def validate(owner: Model): Unit = bound.validate(owner)
-    def sourceParameters: Vector[String] = bound.sourceParameters
-    override def captured: Option[Captured[AnyRef]] = bound.captured
-
-  final private class Bound2[A, B](restored: (A, B) => Boolean, bound: PredicateBindings)
-      extends ((A, B) => Boolean),
-        PredicateBindings:
-    def apply(first: A, second: B): Boolean = restored(first, second)
-    def validate(owner: Model): Unit = bound.validate(owner)
-    def sourceParameters: Vector[String] = bound.sourceParameters
-    override def captured: Option[Captured[AnyRef]] = bound.captured
+  private[framework] def fired(): Unit = NativeRuntime.installed.fired()
 
   // The vars a declaration of `owner` reads: its own, or for a derivation its source's.
   private[framework] def of(owner: Model): Vars = owner match

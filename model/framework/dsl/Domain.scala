@@ -12,7 +12,8 @@ import scala.deriving.Mirror
 )
 trait Data[T]:
   def compare(left: T, right: T): Int
-  final def equivalent(left: T, right: T): Boolean = compare(left, right) == 0
+  final def equivalent(left: T, right: T): Boolean =
+    NativeRuntime.installed.equivalent(this, left, right)
   @volatile private var retained = Map.empty[String, FiniteSchema]
   @volatile private var inboxes = Map.empty[String, Map[InboxOwnership.Field, InboxOwnership.Entry]]
   final def schema: Option[FiniteSchema] =
@@ -80,67 +81,40 @@ object Data:
       def compare(left: T, right: T): Int =
         throw IllegalStateException("a state var without a schema is refused at compile time")
 
-    private def ordered[T](ordering: Ordering[T]): Structural[T] = new Structural[T]:
-      def compare(left: T, right: T): Int = ordering.compare(left, right)
+    private def ordered[T](ordering: Ordering[T]): Structural[T] =
+      Native(Kind.ordered, ordering = Some(ordering))
 
     given Structural[Boolean] = ordered(Ordering.Boolean)
     given Structural[Int] = ordered(Ordering.Int)
-    given [N <: Int]: Structural[UpTo[N]] with
-      def compare(left: UpTo[N], right: UpTo[N]): Int = Integer.compare(left, right)
+    given [N <: Int]: Structural[UpTo[N]] = ordered(Ordering.Int.on[UpTo[N]](identity))
     given [M](using message: Structural[M]): Structural[Inbox[M]] = Inbox.structural(message)
-    given Structural[String] with
-      def compare(left: String, right: String): Int =
-        val bytes = java.util.Arrays.compareUnsigned(
-          left.getBytes(java.nio.charset.StandardCharsets.UTF_8),
-          right.getBytes(java.nio.charset.StandardCharsets.UTF_8)
-        )
-        if bytes != 0 then bytes else left.compareTo(right)
+    given Structural[String] = Native(Kind.string)
     given Structural[Nothing] with
       def compare(left: Nothing, right: Nothing): Int = left
-
-    given [A](using a: Structural[A]): Structural[Option[A]] with
-      def compare(left: Option[A], right: Option[A]): Int = (left, right) match
-        case (None, None)       => 0
-        case (None, Some(_))    => -1
-        case (Some(_), None)    => 1
-        case (Some(x), Some(y)) => a.compare(x, y)
-
-    given [A](using a: Structural[A]): Structural[List[A]] with
-      def compare(left: List[A], right: List[A]): Int = sequence(left, right, a.compare)
-
-    given [A](using a: Structural[A]): Structural[Set[A]] with
-      private val ordering = Ordering.fromLessThan[A]((x, y) => a.compare(x, y) < 0)
-      def compare(left: Set[A], right: Set[A]): Int =
-        sequence(left.toList.sorted(using ordering), right.toList.sorted(using ordering), a.compare)
-
-    given [K, V](using k: Structural[K], v: Structural[V]): Structural[Map[K, V]] with
-      private val ordering = Ordering.fromLessThan[(K, V)]((x, y) => k.compare(x._1, y._1) < 0)
-      def compare(left: Map[K, V], right: Map[K, V]): Int =
-        sequence(
-          left.toList.sorted(using ordering),
-          right.toList.sorted(using ordering),
-          (x, y) =>
-            val key = k.compare(x._1, y._1)
-            if key != 0 then key else v.compare(x._2, y._2)
-        )
-
+    given [A](using a: Structural[A]): Structural[Option[A]] = Native(Kind.option, fields(a))
+    given [A](using a: Structural[A]): Structural[List[A]] = Native(Kind.list, fields(a))
+    given [A](using a: Structural[A]): Structural[Set[A]] = Native(Kind.set, fields(a))
+    given [K, V](using k: Structural[K], v: Structural[V]): Structural[Map[K, V]] =
+      Native(Kind.map, fields(k, v))
     given [T](using m: Mirror.Of[T], members: Members[m.MirroredElemTypes]): Structural[T] =
       derived[T]
 
+  private[framework] enum Kind:
+    case ordered, string, option, list, set, map, mirrored
+
+  final private[framework] class Native[T](
+      val kind: Kind,
+      val fields: List[Data[Any]] = Nil,
+      val mirror: Option[Mirror.Of[T]] = None,
+      val ordering: Option[Ordering[T]] = None
+  ) extends Structural[T]:
+    def compare(left: T, right: T): Int = NativeRuntime.installed.compare(this, left, right)
+
+  private def fields(values: Data[?]*): List[Data[Any]] =
+    values.toList.asInstanceOf[List[Data[Any]]] // scalafix:ok DisableSyntax.asInstanceOf
+
   def derived[T](using m: Mirror.Of[T], members: Members[m.MirroredElemTypes]): Structural[T] =
-    new Structural[T]:
-      def compare(left: T, right: T): Int = m match
-        case sum: Mirror.SumOf[T] =>
-          val index = sum.ordinal(left)
-          val tag = Integer.compare(index, sum.ordinal(right))
-          if tag != 0 then tag else members.elements(index).compare(left, right)
-        case _: Mirror.ProductOf[T] =>
-          val x = left.asInstanceOf[Product] // scalafix:ok DisableSyntax.asInstanceOf
-          val y = right.asInstanceOf[Product] // scalafix:ok DisableSyntax.asInstanceOf
-          members.elements.iterator.zipWithIndex
-            .map((field, index) => field.compare(x.productElement(index), y.productElement(index)))
-            .find(_ != 0)
-            .getOrElse(0)
+    Native(Kind.mirrored, members.elements, Some(m))
 
   trait Members[Ts <: Tuple]:
     def elements: List[Data[Any]]
@@ -151,13 +125,6 @@ object Data:
     given [H, T <: Tuple](using h: Structural[H], t: Members[T]): Members[H *: T] with
       def elements: List[Data[Any]] =
         h.asInstanceOf[Data[Any]] :: t.elements // scalafix:ok DisableSyntax.asInstanceOf
-
-  private def sequence[A](left: List[A], right: List[A], compare: (A, A) => Int): Int =
-    val x = left.iterator
-    val y = right.iterator
-    var result = 0
-    while result == 0 && x.hasNext && y.hasNext do result = compare(x.next(), y.next())
-    if result != 0 then result else java.lang.Boolean.compare(x.hasNext, y.hasNext)
 
 @annotation.implicitNotFound(
   "${T} is not supported native state data; use enums, records, Boolean, Int, UpTo, Option, Set, Map, List or Inbox with supported members"
@@ -218,7 +185,8 @@ object StateData:
     "finite domains, Boolean, Option of a finite domain or UpTo[N]."
 )
 trait Finite[T](using private[framework] val structural: Data.Structural[T]) extends Data[T]:
-  final def compare(left: T, right: T): Int = structural.compare(left, right)
+  final def compare(left: T, right: T): Int =
+    NativeRuntime.installed.compareData(structural, left, right)
   def values: IndexedSeq[T]
 
 object Finite:
@@ -233,7 +201,8 @@ object Finite:
 
   // `0..hi`, a scalar catalog also used by named opaque integer types. Model fields and messages
   // declare their bounds with UpTo[N].
-  def upTo(hi: Int): Finite[Int] = of((0 to hi)*)
+  def upTo(hi: Int): Finite[Int] = new Finite[Int]:
+    lazy val values: IndexedSeq[Int] = NativeRuntime.installed.range(hi)
 
   // False before true, the order the Go reader lists a Boolean's values in.
   given Finite[Boolean] = of(false, true)
@@ -245,12 +214,14 @@ object Finite:
   // the implicit scope of `Data[UpTo[N]]`: there it would compete with Data's structural comparison
   // and make a machine whose whole state is an `UpTo[N]` ambiguous.
   given [N <: Int](using bound: ValueOf[N]): Finite[UpTo[N]] =
-    of((0 to bound.value).map(UpTo[N](_))*)
+    new Finite[UpTo[N]]:
+      lazy val values: IndexedSeq[UpTo[N]] =
+        NativeRuntime.installed.range(bound.value).map(UpTo[N](_))
 
   // An optional value: absent, then present with each member of `A` in its catalog order.
   given [A](using a: Finite[A], structural: Data.Structural[A]): Finite[Option[A]] =
     new Finite[Option[A]]:
-      lazy val values: IndexedSeq[Option[A]] = None +: a.values.map(Some(_))
+      lazy val values: IndexedSeq[Option[A]] = NativeRuntime.installed.optional(a)
 
   // Every enum and case class is a domain without a `derives Finite` clause: its catalog is derived
   // here, from its `Mirror`, where a `Finite` is first needed. A more specific given wins over this
@@ -271,13 +242,7 @@ object Finite:
       m: Mirror.Of[T]
   )(using members: Members[m.MirroredElemTypes], structural: Data.Structural[T]): Finite[T] =
     new Finite[T]:
-      lazy val values: IndexedSeq[T] = m match
-        case _: Mirror.Sum =>
-          val cases = members.catalogs.flatMap(_.values)
-          cases.asInstanceOf[List[T]].toIndexedSeq // scalafix:ok DisableSyntax.asInstanceOf
-        case p: Mirror.Product =>
-          val rows = product(members.catalogs).map(vs => p.fromProduct(Tuple.fromArray(vs.toArray)))
-          rows.asInstanceOf[List[T]].toIndexedSeq // scalafix:ok DisableSyntax.asInstanceOf
+      lazy val values: IndexedSeq[T] = NativeRuntime.installed.catalog(m, members.catalogs)
 
   // The catalogs of a Mirror's element types, a sum's cases or a product's fields, in declaration
   // order. A singleton or parametrised enum case has no given of its own; the fallback above derives
@@ -290,11 +255,6 @@ object Finite:
       def catalogs: List[Finite[?]] = Nil
     given [H, T <: Tuple](using h: Finite[H], t: Members[T]): Members[H *: T] with
       def catalogs: List[Finite[?]] = h :: t.catalogs
-
-  private def product(fields: List[Finite[?]]): List[List[Any]] =
-    fields.foldLeft(List(List.empty[Any])) { (prefixes, f) =>
-      for prefix <- prefixes; v <- f.values.toList yield prefix :+ v
-    }
 
 // A counter of `0..N`, bounded where its field is declared: `attempts: UpTo[2]` has the values 0, 1
 // and 2, in that order. It reads as an Int; a step writes one with `UpTo(n)`, which the lifter lifts as

@@ -1,4 +1,6 @@
-package framework.dsl
+package framework.checker
+
+import framework.dsl.*
 
 import java.lang.constant.{ClassDesc, ConstantDescs, MethodTypeDesc}
 import java.lang.reflect.{InvocationHandler, InvocationTargetException, Method, Modifier, Proxy}
@@ -187,7 +189,7 @@ private[framework] object NativeClaimSections:
                         boundary.begin,
                         boundary.end,
                         boundary.stopped,
-                        ClassDesc.of(classOf[NativeClaims.Stopped].getName)
+                        ClassDesc.of(classOf[ClaimEvaluation.Stopped].getName)
                       )
                       emit(
                         builder,

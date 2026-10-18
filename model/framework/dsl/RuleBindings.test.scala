@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import java.util.Base64
 import com.google.protobuf.empty.Empty
 import io.temporal.server.api.umpire.v1 as ir
@@ -621,7 +622,7 @@ class RuleBindingsSuite extends munit.FunSuite:
     val captured = RuleBindings.collect(Timed)
     assertEquals(captured.steps.size, 3)
     assertEquals(RuleBindings.collect(Timed), captured)
-    Timed.bindings: Unit
+    val _ = Timed.bindings
     Timed.table: Unit
     assertEquals(
       (catalogs, guards, effects, callbacks, getters, projections, writers, endpoints, refinements),

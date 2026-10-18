@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 
 import TwoPhaseCommitControls.EagerCommit

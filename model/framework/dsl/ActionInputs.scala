@@ -6,77 +6,43 @@ final private[framework] case class SuppliedInput[I](value: I)
 
 sealed private[framework] trait ActionInputs[I]:
   def domain: Finite[I]
-  def values(value: I): List[Any]
-  def fromValues(values: List[Any]): I
-  def defaultAt(index: Int): Option[Any]
-  def omitted(decl: ActionDecl): Class
-  protected def validFields(value: I): Boolean = true
-  protected def contains(value: I): Boolean = domain.values.exists(_.equals(value))
-  private def validate(value: I): Unit =
-    require(validFields(value) && contains(value), "input value is outside its declared domain")
-  final def classes: List[List[Any]] = domain.values.toList.map: value =>
-    require(validFields(value), "input value is outside its declared field domains")
-    values(value)
+  final def values(value: I): List[Any] = NativeRuntime.installed.inputs.values(this, value)
+  final def fromValues(values: List[Any]): I =
+    NativeRuntime.installed.inputs.fromValues(this, values)
+  final def defaultAt(index: Int): Option[Any] =
+    NativeRuntime.installed.inputs.defaultAt(this, index)
+  final def omitted(decl: ActionDecl): Class = NativeRuntime.installed.inputs.omitted(this, decl)
+  final def classes: List[List[Any]] = NativeRuntime.installed.inputs.classes(this)
   final def inputClasses(decl: ActionDecl): List[Class] =
-    domain.values.toList.map(classOf(decl, _))
-  final def input(cls: Class): I =
-    require(cls.decl.nativeInputs.exists(_ eq this), "input class belongs to another action shape")
-    val value = cls.supplied.fold(fromValues(cls.values))(
-      _.value.asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
-    )
-    validate(value)
-    if cls.supplied.isEmpty then cls.supplied = Some(SuppliedInput(value))
-    value
+    NativeRuntime.installed.inputs.inputClasses(this, decl)
+  final def input(cls: Class): I = NativeRuntime.installed.inputs.input(this, cls)
   final def retained(decl: ActionDecl, value: I): Class =
-    val result = Class(decl, values(value))
-    result.supplied = Some(SuppliedInput(value))
-    result
+    NativeRuntime.installed.inputs.retained(this, decl, value)
   final def classOf(decl: ActionDecl, value: I): Class =
-    require(
-      validFields(value) && contains(value),
-      s"input value of ${decl.name} is outside its declared domain"
-    )
-    retained(decl, value)
+    NativeRuntime.installed.inputs.classOf(this, decl, value)
 
 private[framework] object ActionInputs:
-  final class Scalar[I](val domain: Finite[I], default: Option[I]) extends ActionInputs[I]:
-    def values(value: I): List[Any] = List(value)
-    def fromValues(values: List[Any]): I =
-      require(values.size == 1, "a scalar input has exactly one value")
-      values.head.asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
-    def defaultAt(index: Int): Option[Any] = if index == 0 then default else None
-    def omitted(decl: ActionDecl): Class = classOf(
-      decl,
-      default.getOrElse(
-        throw IllegalArgumentException(
-          s"input ${decl.inputs.head} of ${decl.name} has no default: supply it"
-        )
-      )
-    )
+  final class Scalar[I](val domain: Finite[I], private[framework] val default: Option[I])
+      extends ActionInputs[I]
 
   final class Record[I <: Product](
       val domain: Finite[I],
-      defaults: List[() => Option[Any]],
-      fields: List[Finite[?]],
-      fieldSelection: Boolean = false
-  )(using mirror: scala.deriving.Mirror.ProductOf[I])
-      extends ActionInputs[I]:
-    override protected def validFields(value: I): Boolean =
-      value.productArity == fields.size && fields
-        .zip(value.productIterator.toList)
-        .forall: (domain, field) =>
-          domain.values.exists(_.equals(field))
-    override protected def contains(value: I): Boolean =
-      fieldSelection || super.contains(value)
-    def values(value: I): List[Any] = value.productIterator.toList
-    def fromValues(values: List[Any]): I = mirror.fromProduct(Tuple.fromArray(values.toArray))
-    def defaultAt(index: Int): Option[Any] = defaults.lift(index).flatMap(_())
-    def omitted(decl: ActionDecl): Class =
-      val fields = defaults.zipWithIndex.map: (default, index) =>
-        default().getOrElse(
-          throw IllegalArgumentException(s"input ${decl.inputs(index)} has no default: supply it")
-        )
-      classOf(decl, mirror.fromProduct(Tuple.fromArray(fields.toArray)))
+      private[framework] val defaults: List[() => Option[Any]],
+      private[framework] val fields: List[Finite[?]],
+      private[framework] val fieldSelection: Boolean = false
+  )(using private[framework] val mirror: scala.deriving.Mirror.ProductOf[I])
+      extends ActionInputs[I]
+
+private[framework] trait InputEvaluation:
+  def values[I](shape: ActionInputs[I], value: I): List[Any]
+  def fromValues[I](shape: ActionInputs[I], values: List[Any]): I
+  def defaultAt[I](shape: ActionInputs[I], index: Int): Option[Any]
+  def omitted[I](shape: ActionInputs[I], decl: ActionDecl): Class
+  def classes[I](shape: ActionInputs[I]): List[List[Any]]
+  def inputClasses[I](shape: ActionInputs[I], decl: ActionDecl): List[Class]
+  def input[I](shape: ActionInputs[I], cls: Class): I
+  def retained[I](shape: ActionInputs[I], decl: ActionDecl, value: I): Class
+  def classOf[I](shape: ActionInputs[I], decl: ActionDecl, value: I): Class
 
 final class RecordAction[I <: Product] private[framework] (
     declaration: ActionDecl,

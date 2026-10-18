@@ -4,12 +4,19 @@ import scala.annotation.publicInBinary
 
 sealed abstract class FieldDurability[S] private[framework] (
     private[framework] val owner: RecordMachine[S, ?, ?],
-    private[framework] val field: StateField[S, ?]
+    private[framework] val field: StateField[S, ?],
+    private[framework] val durable: Boolean,
+    private[framework] val fallback: Option[Any] = None,
+    private[framework] val entries: Vector[(Any, Any)] = Vector.empty,
+    private[framework] val data: Option[Data[Any]] = None
 ):
-  private[framework] def check(): Unit
-  private[framework] def reset(state: S): S
-  private[framework] def replacement(state: S): Option[(List[String], Any)]
-  private[framework] def isDurable(path: List[String]): Boolean = false
+  final private[framework] def check(): Unit = NativeRuntime.installed.checkDurability(this)
+  final private[framework] def reset(state: S): S =
+    NativeRuntime.installed.resetDurability(this, state)
+  final private[framework] def replacement(state: S): Option[(List[String], Any)] =
+    NativeRuntime.installed.durabilityReplacement(this, state)
+  final private[framework] def isDurable(path: List[String]): Boolean =
+    durable && path.startsWith(field.path)
   final private[framework] def context: String =
     s"durability field ${field.path.mkString(".")} at ${field.location}"
 
@@ -18,61 +25,26 @@ object FieldDurability:
   @publicInBinary private[framework] def durable[S, A](
       machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A]
-  ): FieldDurability[S] =
-    new FieldDurability[S](machine, selected):
-      def check(): Unit = ()
-      def reset(state: S): S = state
-      def replacement(state: S): Option[(List[String], Any)] = None
-      override def isDurable(path: List[String]): Boolean = path.startsWith(selected.path)
-
-  private def checkValue[S, A](field: StateField[S, A], value: A): Unit =
-    val context = s"durability field ${field.path.mkString(".")} at ${field.location}"
-    require(
-      field
-        .valid(value)
-        .getOrElse(
-          throw IllegalArgumentException(s"$context: unsupported reset validity evidence")
-        ),
-      s"$context: reset value outside the field domain"
-    )
+  ): FieldDurability[S] = new FieldDurability[S](machine, selected, true) {}
 
   @publicInBinary private[framework] def ephemeral[S, A](
       machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A],
       resetTo: A
-  ): FieldDurability[S] =
-    new FieldDurability[S](machine, selected):
-      def check(): Unit = checkValue(selected, resetTo)
-      def reset(state: S): S = selected.write(state, resetTo)
-      def replacement(state: S): Option[(List[String], Any)] = Some(selected.path -> resetTo)
+  ): FieldDurability[S] = new FieldDurability[S](machine, selected, false, Some(resetTo)) {}
 
   @publicInBinary private[framework] def inMemory[S, A](
       machine: RecordMachine[S, ?, ?],
       selected: StateField[S, A],
       entries: Vector[(A, A)]
   )(using data: Data.Structural[A]): FieldDurability[S] =
-    new FieldDurability[S](machine, selected):
-      def check(): Unit =
-        entries.zipWithIndex.foreach: (entry, index) =>
-          val (key, fallback) = entry
-          checkValue(selected, key)
-          checkValue(selected, fallback)
-          require(
-            !entries.take(index).exists(other => data.equivalent(key, other._1)),
-            s"$context: duplicate in-memory key"
-          )
-          require(
-            !entries.exists(other => data.equivalent(fallback, other._1)),
-            s"$context: in-memory fallback must be durable"
-          )
-      def reset(state: S): S =
-        entries.find(entry => data.equivalent(selected.get(state), entry._1)) match
-          case Some((_, fallback)) => selected.write(state, fallback)
-          case None                => state
-      def replacement(state: S): Option[(List[String], Any)] =
-        entries
-          .find(entry => data.equivalent(selected.get(state), entry._1))
-          .map((_, fallback) => selected.path -> fallback)
+    new FieldDurability[S](
+      machine,
+      selected,
+      false,
+      entries = entries,
+      data = Some(data.asInstanceOf[Data[Any]])
+    ) {} // scalafix:ok DisableSyntax.asInstanceOf
 
   private[framework] def validate[S](
       owner: RecordMachine[S, ?, ?],

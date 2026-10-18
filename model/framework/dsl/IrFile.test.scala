@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 object DiscoveryFixtures:
   enum State:
     case open, closed

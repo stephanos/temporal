@@ -1333,6 +1333,20 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
 
 ---
 
+## Native checker
+
+Import `framework.checker.Checker` explicitly alongside the DSL's declarations. `Checker.explore`
+returns a `Result`; `Checker.verifyAll` accepts it and returns a `Report` with claim results and
+warnings. `Checker.monitor` and `Checker.progress` return the same `Result` shape. Its `Verdict` is
+`verified`, `refuted`, `found`, `notFound` or `unknown`, with the caller's budget and completion flag.
+Budgets below one are refused. An incomplete search answers unknown unless a counterexample was
+already found.
+
+A result's `Path` retains its initial state and ordered `PathStep` values: action, source state,
+destination state, outcome and facts. This is the path the checker took. Progress refutations keep
+deadlock, cycle and deadline explanations in the result's detail. The DSL holds declarations and
+callable references; the product checker evaluates them.
+
 ## Public surface not in this reference
 
 Every public top-level definition of `dsl/` and `realize/` (and each public extension method) is

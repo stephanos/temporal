@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 object InputGuardsFixture:
   final case class Request(flag: Boolean)
   val first = Request(false)

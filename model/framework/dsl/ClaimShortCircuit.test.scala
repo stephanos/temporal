@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.*
 import framework.dsl.Finite.given
 import framework.dsl.outcomes.Outcome
 
@@ -333,8 +334,8 @@ class ClaimShortCircuitSuite extends munit.FunSuite:
     def fact =
       evaluated += 1
       true
-    val context = NativeClaims.Context(recorded = List(true))
-    NativeClaims.within(context):
+    val context = ClaimEvaluation.Context(recorded = List(true))
+    ClaimEvaluation.within(context):
       NativeClaims.recordFact(fact, "recorded", 1, true)
     assertEquals(evaluated, 1)
     assertEquals(context.checks.map(_.holds), Vector(true))

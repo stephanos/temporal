@@ -64,7 +64,7 @@ private[framework] object MemberSelector:
         case (_, selected: (Class | Action[?])) => selected
       .orElse(action.map(_()))
     def apply(state: S): M =
-      val value = run(state)
+      val value = NativeRuntime.installed.invoke(run, state)
       evaluated = Some(value)
       value
     def value(state: => S): M = evaluated.getOrElse(apply(state))
@@ -92,5 +92,4 @@ private[framework] object MemberSelector:
 
   def value[S, M](member: S => M, state: => S): M = member match
     case retained: Retained[S, M] @unchecked => retained.value(state)
-    case _                                   => member(state)
-
+    case _                                   => NativeRuntime.installed.invoke(member, state)

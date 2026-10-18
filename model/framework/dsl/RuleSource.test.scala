@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import RulesFixture.*
 
 class RuleSourceTest extends munit.FunSuite:

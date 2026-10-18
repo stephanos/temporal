@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class NativeCrashSuite extends munit.FunSuite:
   enum Custody derives CanEqual:
     case idle, buffered, reserved, stored

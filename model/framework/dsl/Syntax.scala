@@ -106,39 +106,6 @@ final class Rejects[S] private[framework] (why: outcomes.Rejection)
   def because(reason: String): S => List[Step[S, outcomes.Outcome, Nothing]] =
     s => List(Step(outcomes.Outcome.rejected(why), s, Nil, reason))
 
-// The state an `is`, `effect` or `expect` block reads its fields of, by the accessors its state type
-// declares, each of one shape: `def phase(using v: View[State]): Phase = v.get(_.phase)`.
-// Core form: the state parameter of the predicate or step function, `s` in `s.phase`.
-@implicitNotFound(
-  "the fields of ${S} are read inside `is`, `effect` or `expect` blocks, which give the state they read: " +
-    "outside a block, take the state as a parameter, `def f(s: State) = s.phase`"
-)
-sealed trait View[S]:
-  private[framework] def state: S
-
-  // The value of one field of the state: `v.get(_.phase)`. Core form: `s.phase`.
-  def get[A](field: S => A): A = field(state)
-
-// The view an `is:` block reads: the state it is asked of. Core form: the predicate's parameter.
-final private class Fixed[S](private[framework] val state: S) extends View[S]
-
-// The step an expectation checks; bare fields read its resulting state. Core form:
-// the parameter `s` of `(s: Step[S, O, F]) => predicate(s)`.
-final class Expectation[S, O, F] private[framework] (val step: Step[S, O, F]) extends View[S]:
-  private[framework] def state: S = step.state
-  private val failure = new scala.util.control.ControlThrowable {}
-  private[framework] def require(condition: Boolean): Unit = if !condition then throw failure
-  private[framework] def evaluate(body: Expectation[S, O, F] ?=> Unit): Boolean =
-    try
-      body(using this)
-      true
-    catch case signal: scala.util.control.ControlThrowable if signal eq failure => false
-
-// The earlier state, available only in a transition expectation. Core form:
-// `b` in `(b: S, a: Step[S, O, F]) => predicate(b, a)`.
-@implicitNotFound("before is the state a step started from; use it in a postcondition")
-final class Before[S] private[framework] (val state: S)
-
 // The typed step whose requirements an expectation reads. Inside a Machine, `after(action):` is
 // the word of a postcondition (ClaimWords). Core form: `s` in `s.facts`.
 def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context.step
@@ -196,17 +163,6 @@ final class RequirementFacts[S, O, F] private[framework] (
 ):
   // A fact of this step's own machine. Core form: `s.facts.contains(fact)`.
   def apply(fact: F): Unit = context.require(context.step.facts.contains(fact))
-
-// Explicit alternatives of one requirement. Core form: `first || second || rest`.
-final class Alternatives[S, O, F] private[framework] (private[framework] val step: Step[S, O, F]):
-  private val success = new scala.util.control.ControlThrowable {}
-  private[framework] def attempt(body: Expectation[S, O, F] ?=> Unit): Unit =
-    if new Expectation(step).evaluate(body) then throw success
-  private[framework] def evaluate(body: Alternatives[S, O, F] ?=> Unit): Boolean =
-    try
-      body(using this)
-      false
-    catch case signal: scala.util.control.ControlThrowable if signal eq success => true
 
 // At least one explicit branch must hold; later branches are skipped after success. Inside a
 // Machine, the alternatives of a claim (ClaimWords). Core form:
@@ -776,42 +732,12 @@ extension [S, O, F](builder: PropertyBuilder[S, O, F])
 trait Recorded[F]:
   def status: F
 
-// What an `effect:` block makes of one step while it runs: the state it enters, which each field
-// assignment replaces with a copy, by the setters its state type declares, each of one shape:
-// `def phase_=(p: Phase)(using d: Draft[State, ?, ?]): Unit = d.set(_.copy(phase = p))`; the facts
-// it records; and the outcome it rejects with, if any. Each call of the effect makes a fresh draft,
-// which never leaves the block. Core form: the arguments of the step the step function returns,
-// `Step(outcome, s.copy(phase = p), List(facts*))`.
-@implicitNotFound(
-  "this assigns a field of ${S}, records a fact or rejects, which only an `effect:` block does: " +
-    "outside one, return the steps, `enter(s.copy(...), fact)` or `reject(outcome, s)`"
-)
-final class Draft[S, O, F] private[framework] (start: S) extends View[S], Refusing[O], Recording[F]:
-  private var current: S = start // scalafix:ok DisableSyntax.var
-  private var facts: List[F] = Nil // scalafix:ok DisableSyntax.var
-  private var rejection: Option[O] = None // scalafix:ok DisableSyntax.var
-
-  private[framework] def state: S = current
-
-  // The state with one field replaced: `d.set(_.copy(phase = p))`. Core form: `s.copy(phase = p)`.
-  def set(update: S => S): Unit = current = update(current)
-
-  // The step the block made, from the state `s` it started in: the rejection with `s`, or the ok
-  // outcome with the state assigned and the facts in the order recorded.
-  private[framework] def step(s: S, ok: Ok[O]): Step[S, O, F] = rejection match
-    case Some(outcome) => Step(outcome, s)
-    case None          => Step(ok.outcome, current, facts)
-
-  private[framework] def add(recorded: Seq[F]): Unit = facts = facts ++ recorded
-
-  private[framework] def refuse(outcome: O): Unit = rejection = Some(outcome)
-
 // `val held = is: phase == Phase.held`: a predicate of the machine's state, its fields read by
 // name. Core form: `def held(s: State) = s.phase == Phase.held`.
 def is[S, O, F](using
     @unused owner: Owner[S, O, F]
 )(body: View[S] ?=> Boolean): S => Boolean =
-  s => body(using Fixed(s))
+  Programs.StateCondition(body)
 
 // `val pause = effect:` with `phase = Phase.paused` and `record(statusPaused)`: a step function of the
 // machine's state alone, its fields assigned by name, and its facts recorded, or its outcome
@@ -824,10 +750,7 @@ def effect[S, O, F](using
 )(
     body: Draft[S, O, F] ?=> Unit
 ): S => List[Step[S, O, F]] =
-  s =>
-    val draft = Draft[S, O, F](s)
-    body(using draft)
-    List(draft.step(s, ok))
+  Programs.RecordEffect(body, ok.outcome)
 
 // `record(statusPaused)`, in an `effect:` block or an effect of a Machine that declares its state
 // as vars: the step records these facts, after those an earlier `record` of the block recorded.
@@ -1002,31 +925,31 @@ final class Once[S, O, F] private[framework] (
   // `_.order.phase`. Core form:
   // `b.transition((before, after) => !over(before) || after.state.phase == before.phase)`.
   def keeps[V](projection: S => V)(using CanEqual[V, V]): Property =
-    b.transition((before, after) => !over(before) || projection(after.state) == projection(before))
+    b.transition(Programs.Keeps(over, projection, (left: V, right: V) => left == right))
 
 // `never(to)`, a same-step Property, which `from` turns into a transition one. Core form:
 // `b.sameStep(after => !to(after))`.
 final class Never[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     to: Step[S, O, F] => Boolean
-) extends Property(b.sameStep(after => !to(after)).decl):
+) extends Property(b.sameStep(Programs.Never(to)).decl):
   // No step from a state `before` holds of is one `to` holds of. Core form:
   // `b.transition((before, after) => !origin(before) || !to(after))`.
   def from(before: S => Boolean): Property =
     val origin = before
-    b.transition((before, after) => !origin(before) || !to(after))
+    b.transition(Programs.NeverFrom(origin, to))
 
 // `stays(p)`, a transition Property, which `unless` releases. Core form:
 // `b.transition((before, after) => !p(before) || p(after.state))`.
 final class Stays[S, O, F] private[framework] (
     b: PropertyBuilder[S, O, F],
     p: S => Boolean
-) extends Property(b.transition((before, after) => !p(before) || p(after.state)).decl):
+) extends Property(b.transition(Programs.Stays(p, None)).decl):
   // A step `release` holds of may leave `p`. Core form:
   // `b.transition((before, after) => !p(before) || p(after.state) || release(after))`.
   def unless(release: Step[S, O, F] => Boolean): Property =
     PredicateBindings.validate(release, b.m)
-    b.transition((before, after) => !p(before) || p(after.state) || release(after))
+    b.transition(Programs.Stays(p, Some(release)))
 
 // Concrete input-field evidence before a selector is typed. Core form: `new InputFields[In]`.
 def inputField[In <: Product]: InputFields[In] = new InputFields[In]
@@ -1066,13 +989,10 @@ extension (a: Action[EmptyTuple])
 // once a step breaks it, stays broken, named after its `val`. Its verdict is read after every step.
 // Core form:
 // `monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken => broken)`.
-@scala.annotation.nowarn("msg=unused explicit parameter")
 def sticky[S, O, F](
     promise: Step[S, O, F] => Boolean
 ): Monitor[S, O, F, Boolean] =
-  monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(after))(broken =>
-    broken
-  )
+  monitor[S, O, F, Boolean](false)(Programs.Sticky(Some(promise), None))(identity)
 
 // `val ownerAcknowledgment = stickyAcross(ackOnlyWhenKept)`: `sticky` of a promise about the state
 // before a step and the step. Core form:
@@ -1080,9 +1000,7 @@ def sticky[S, O, F](
 def stickyAcross[S, O, F](
     promise: (S, Step[S, O, F]) => Boolean
 ): Monitor[S, O, F, Boolean] =
-  monitor[S, O, F, Boolean](false)((broken, before, after) => broken || !promise(before, after))(
-    broken => broken
-  )
+  monitor[S, O, F, Boolean](false)(Programs.Sticky(None, Some(promise)))(identity)
 
 // A case of an `on` block: where in the state space its action fires, `where(g)`, `always` or
 // `where(g).where(h)`, and through `~>` the effect it has there, `where(placed) ~> effects.ship`.
@@ -1096,10 +1014,8 @@ final class Case[S, O, F] private[framework] (
   def where(condition: S => Boolean): Case[S, O, F] =
     guard match
       case input: InputGuard[S] @unchecked =>
-        val combined = new InputGuard[S]:
-          def apply(s: S, cls: Class): Boolean = input(s, cls) && condition(s)
-        Case(s"$heading.where", combined)
-      case _ => Case(s"$heading.where", s => guard(s) && condition(s))
+        Case(s"$heading.where", Programs.BothOnInput(input, condition))
+      case _ => Case(s"$heading.where", Programs.Both(guard, condition))
 
   // A condition over this action's retained input. Core form: `guard(s, in) && condition(s, in)`.
   def where[I](using
@@ -1107,10 +1023,7 @@ final class Case[S, O, F] private[framework] (
   )(
       condition: (S, I) => Boolean
   ): Case[S, O, F] =
-    val input = firing.inputGuard(condition)
-    val combined = new InputGuard[S]:
-      def apply(s: S, cls: Class): Boolean = guardHolds(guard, s, cls) && input(s, cls)
-    Case(s"$heading.where", combined)
+    Case(s"$heading.where", Programs.BothOnInput(guard, firing.inputGuard(condition)))
 
   // The effect of the block's action where this case holds, read of the state alone:
   // `where(placed) ~> effects.ship`. Core form: the arm `if g(s) then ship(s)` of the action's step
@@ -1118,7 +1031,7 @@ final class Case[S, O, F] private[framework] (
   infix def ~>(effect: S => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, ?]
   ): Unit =
-    firing.bind(this, stateEffect(effect))
+    firing.bind(this, Programs.OfState(effect))
 
   // The effect of the block's action, of one input, where this case holds, read of the state and
   // the input: `where(open) ~> effects.change`. Core form: the arm `if g(s) then change(s, c)`.
@@ -1126,7 +1039,7 @@ final class Case[S, O, F] private[framework] (
   infix def ~>[I, A](effect: (S, A) => List[Step[S, O, F]])(using
       firing: Firing[S, O, F, I],
       @unused input: RuleInput[I, A]
-  ): Unit = firing.bind(this, effectOf(firing.decl, effect))
+  ): Unit = firing.bind(this, Programs.Adapted(firing.decl, effect))
 
   private[framework] def capturedRule0(
       effect: S => List[Step[S, O, F]],
@@ -1153,8 +1066,10 @@ object Case:
     // `where(!heatingOn) ~> effects.pressButton()`. Core form: the arm `if g(s) then pressButton(s)`.
     @targetName("varEffect")
     infix def ~>(effect: => Unit)(using firing: Firing[State, O, F, ?], ok: Ok[O]): Unit =
-      val vars = machineVars(firing)
-      firing.bind(arm, stateEffect((s: State) => vars.step[O, F](s, ok.outcome)(effect)))
+      firing.bind(
+        arm,
+        Programs.OfState(Programs.VarStep[O, F](machineVars(firing), ok.outcome, () => effect))
+      )
 
     // `always ~> effects.send`, an effect of the action's one input. Core form: the arm
     // `if g(s) then send(s, in)`.
@@ -1164,10 +1079,12 @@ object Case:
         @unused input: RuleInput[I, A],
         ok: Ok[O]
     ): Unit =
-      val vars = machineVars(firing)
       firing.bind(
         arm,
-        effectOf(firing.decl, (s: State, value: A) => vars.step[O, F](s, ok.outcome)(effect(value)))
+        Programs.Adapted(
+          firing.decl,
+          Programs.VarInputStep[A, O, F](machineVars(firing), ok.outcome, effect)
+        )
       )
 
 // The action, or the one class of it, an `on` block fires, and where its cases go, given to the
@@ -1196,9 +1113,7 @@ final class Firing[S, O, F, I] private[framework] (
     val shape = decl.nativeInputs.getOrElse(
       throw IllegalArgumentException("an input-reading guard requires a declared native input")
     )
-    new InputGuard[S]:
-      def apply(s: S, cls: Class): Boolean =
-        condition(s, shape.input(cls).asInstanceOf[A]) // scalafix:ok DisableSyntax.asInstanceOf
+    Programs.OnInput(shape, condition)
 
   private[framework] def retaining(c: Case[S, O, F], data: Seq[String])(body: => Unit): Unit =
     require(!capturing, s"Rule $action: capture is already pending on this Firing")
@@ -1241,14 +1156,8 @@ final class Firing[S, O, F, I] private[framework] (
         )
       )
     }
-    val native = if budgets.isEmpty then effect
-    else
-      val adapted = effect match
-        case value: InputEffect[S, O, F] @unchecked => value
-        case value                                  =>
-          new InputEffect[S, O, F]:
-            def apply(state: S, values: List[Any]): List[Step[S, O, F]] = value(state, values)
-      budgetEffect(adapted, budgets)
+    val native =
+      if budgets.isEmpty then effect else Programs.Budgeted(Programs.inputEffect(effect), budgets)
     add(c, native, captured)
 
 // A case that holds where `condition` holds of the state: `where(states.held) ~> effects.settle`.
@@ -1281,10 +1190,9 @@ extension [O, F, I](cases: GuardCases[State, O, F, I])
   // Core form: `if condition(s, in) then e(s, in)`.
   @targetName("varInputCondition")
   def apply[A](using input: RuleInput[I, A])(condition: A => Boolean): Case[State, O, F] =
-    val vars = machineVars(cases.firing)
     Case(
       "where",
-      cases.firing.inputGuard((s: State, value: A) => vars.at(s)(condition(value)))(using
+      cases.firing.inputGuard(Programs.VarCondition(machineVars(cases.firing), condition))(using
         input.native
       )
     )
@@ -1748,11 +1656,7 @@ abstract class Transitions[O, F](using
       code: String,
       body: () => Unit
   ): Unit =
-    register(decl, values, code)(
-      new InputEffect[State, O, F]:
-        def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
-          Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body())
-    )
+    register(decl, values, code)(Programs.Run[O, F](owner.machine, ok.outcome, body))
 
   @scala.annotation.publicInBinary
   private[framework] def inputTransition[I](decl: ActionDecl, code: String, body: I => Unit): Unit =
@@ -1762,21 +1666,14 @@ abstract class Transitions[O, F](using
       )
     )
     register(decl, None, code)(
-      new InputEffect[State, O, F]:
-        def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
-          apply(state, Class(decl, values))
-        override def apply(state: State, cls: Class): List[Step[State, O, F]] =
-          val input = shape.input(cls).asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
-          Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body(input))
+      Programs.InputRun[O, F, I](decl, shape, owner.machine, ok.outcome, body)
     )
 
   private def register(decl: ActionDecl, values: Option[List[Any]], code: String)(
       effect: InputEffect[State, O, F]
   ): Unit =
-    val guard = new InputGuard[State]:
-      def apply(state: State, cls: Class): Boolean = effect(state, cls).nonEmpty
     openBlock(decl, code):
-      bindRule(decl, values, "on", guard, effect, code, None)
+      bindRule(decl, values, "on", Programs.Fires(effect), effect, code, None)
 
 // `reject(Rejection.notFound)`, in a transition or an effect of a Machine on the shared outcomes:
 // the step answers `rejected(why)` and keeps the state it started from. Core form:
@@ -2143,9 +2040,7 @@ private[framework] def derivedTransition[O, F](
     decl,
     values,
     code,
-    new InputEffect[State, O, F]:
-      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
-        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body())
+    Programs.Run[O, F](owner.machine, ok.outcome, body)
   )
 
 @scala.annotation.publicInBinary
@@ -2164,12 +2059,7 @@ private[framework] def derivedInputTransition[O, F, I](
     decl,
     None,
     code,
-    new InputEffect[State, O, F]:
-      def apply(state: State, values: List[Any]): List[Step[State, O, F]] =
-        apply(state, Class(decl, values))
-      override def apply(state: State, cls: Class): List[Step[State, O, F]] =
-        val input = shape.input(cls).asInstanceOf[I] // scalafix:ok DisableSyntax.asInstanceOf
-        Vars.of(owner.machine).steps[O, F](state, ok.outcome, fires = false)(body(input))
+    Programs.InputRun[O, F, I](decl, shape, owner.machine, ok.outcome, body)
   )
 
 private def derivedRule[O, F](
@@ -2186,9 +2076,7 @@ private def derivedRule[O, F](
       s"`on(<declarer>.$action)`"
   )
   val _ = owner
-  val guard = new InputGuard[State]:
-    def apply(state: State, cls: Class): Boolean = effect(state, cls).nonEmpty
-  val rule = Rule[State, O, F](1, "on", action, decl, values, guard, effect)
+  val rule = Rule[State, O, F](1, "on", action, decl, values, Programs.Fires(effect), effect)
   rule.publishCapture(None)
   val group = RuleGroup(Vector(rule))
   group.publishOrigin(None)

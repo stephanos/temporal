@@ -6,7 +6,7 @@ final class InputField[In, A] private[framework] (
     val label: String,
     getter: In => A
 ):
-  def get(input: In): A = getter(input)
+  def get(input: In): A = NativeRuntime.installed.invoke(getter, input)
 
 final class InputBinding[In] private[framework] (
     private[framework] val label: String,

@@ -134,11 +134,15 @@ class FrameworkLoopSuite extends munit.FunSuite:
     for suite <- samples do
       assert(recorded.contains(s"GENERIC $suite (model/framework/samples/"), recorded)
 
-  test("the native samples are core suites; the reusable library stays DSL/realize only"):
+  test("the native samples are core suites; the reusable library includes the product checker"):
     val core = FrameworkSuites.modules.find(_.name == "core").get
     assert(core.suiteRoots.contains("model/framework/samples"))
     assert(core.inputs.contains("model/framework/samples"))
-    assertEquals(ModelSources.frameworkCore, Seq("model/framework/dsl", "model/framework/realize"))
+    assert(core.inputs.contains("model/framework/checker"))
+    assertEquals(
+      ModelSources.frameworkCore,
+      Seq("model/framework/dsl", "model/framework/checker", "model/framework/realize")
+    )
     val declared = FrameworkSuites.declared(Tools.here.directory)
     val samples = declared.filter(_.file.startsWith("model/framework/samples/"))
     assertEquals(

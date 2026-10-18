@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 
 // A derivation of a Machine that declares its state as vars binds blocks written as its

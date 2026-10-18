@@ -84,7 +84,7 @@ final class IrFile private[framework] (
   def construct(): Set[String] =
     val declarations = subjects()
     declarations.foreach:
-      case machine: RecordMachine[?, ?, ?] => machine.bindings: Unit
+      case machine: RecordMachine[?, ?, ?] => machine.table: Unit
       case _                               => ()
     declarations.map(_.name).toSet
 

@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class NativeBudgetSuite extends munit.FunSuite:
   final case class BudgetState(available: Boolean, remaining: Int, bounded: UpTo[2], other: Boolean)
   private val loss = action("loss", Actor("fault")).responseLoss

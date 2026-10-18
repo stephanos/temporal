@@ -2,13 +2,15 @@ package framework.dsl
 
 import scala.annotation.publicInBinary
 
+// A generated crash's step function: from any state, the outcome and facts it declares into the
+// state its durability keeps, consuming its budget, which the native runtime takes.
 final private[framework] class NativeCrash[S, O, F](
-    owner: RecordMachine[S, O, F],
-    declaration: ActionDecl,
-    outcome: O,
-    facts: List[F],
+    private[framework] val owner: RecordMachine[S, O, F],
+    private[framework] val declaration: ActionDecl,
+    private[framework] val outcome: O,
+    private[framework] val facts: List[F],
     val budgets: Vector[NativeBudget[?]],
-    location: String
+    private[framework] val location: String
 ) extends (S => List[Step[S, O, F]]),
       BudgetMetadata:
   val nativeChoices: Option[Vector[Choice]] = None
@@ -22,13 +24,7 @@ final private[framework] class NativeCrash[S, O, F](
     s"crashes at $location requires a crash fault"
   )
   def apply(state: S): List[Step[S, O, F]] =
-    val consume = budgets.headOption.fold(Option(Vector.empty[(List[String], Any)])): budget =>
-      budget
-        .asInstanceOf[NativeBudget[S]]
-        .consumption(state, location)
-        .map(Vector(_)) // scalafix:ok DisableSyntax.asInstanceOf
-    consume.fold(Nil): replacements =>
-      List(Step(outcome, owner.resetAfterCrash(state, replacements), facts))
+    NativeRuntime.installed.call[List[Step[S, O, F]]](this, state)
 
 @publicInBinary
 private[framework] def crashBinding[S, O, F](

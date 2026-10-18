@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import com.google.protobuf.empty.Empty
 import java.util.Base64
 import io.temporal.server.api.umpire.v1 as ir

@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 import framework.dsl.outcomes.{Outcome, Rejection}
 

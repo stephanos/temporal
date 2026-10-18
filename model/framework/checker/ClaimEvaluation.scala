@@ -1,16 +1,17 @@
-package framework.dsl
+package framework.checker
+
+import framework.dsl.*
 
 import scala.collection.mutable
 
-// The native evaluation of a Machine's claim sections in phase 1 (fn-190.4), until the IR evaluator
-// replaces it (fn-190.3/.5). A member of `invariants` or `postconditions` is a `Unit` val whose block
+// The native evaluation of a Machine's claim sections. A member of `invariants` or `postconditions` is a `Unit` val whose block
 // asserts as it runs: each assertion records its member, line, source text and result under the
 // evaluation under way, and outside an evaluation records nothing. A section is evaluated on one
 // state, or one step, by restoring the state into the Machine's vars and running the section
 // object's initialiser again, from its class's bytes in a child class loader that sees every other
 // class through its parent, so the members read the live vars. Evaluations of one Machine run one at
 // a time, as its vars are one live state.
-private[framework] object NativeClaims:
+private[framework] object ClaimEvaluation:
   final private[framework] class Stopped extends scala.util.control.ControlThrowable
   private val stopped = new Stopped
 
@@ -36,7 +37,7 @@ private[framework] object NativeClaims:
     private val choosing =
       mutable.Stack.empty[mutable.ArrayBuffer[(Boolean, Vector[(String, Hole)])]]
     private val choosingMembers = mutable.Stack.empty[String]
-    private[NativeClaims] var aborted = Option.empty[Hole]
+    private[ClaimEvaluation] var aborted = Option.empty[Hole]
     def checks: Vector[Checked] = collecting.last.toVector
     def missing(member: String): Vector[Hole] =
       aborted.toVector ++ uncertain.last.collect { case (`member`, hole) => hole }
@@ -46,25 +47,25 @@ private[framework] object NativeClaims:
     val triggered: mutable.LinkedHashSet[String] = mutable.LinkedHashSet.empty
     val seen: mutable.LinkedHashSet[String] = mutable.LinkedHashSet.empty
 
-    private[NativeClaims] def add(checked: Checked): Unit =
+    private[ClaimEvaluation] def add(checked: Checked): Unit =
       seen += checked.member: Unit
       collecting.top += checked: Unit
 
-    private[NativeClaims] def failed(member: String): Boolean =
+    private[ClaimEvaluation] def failed(member: String): Boolean =
       collecting.top.exists(c => c.member == member && !c.holds) ||
         uncertain.top.exists(_._1 == member)
 
-    private[NativeClaims] def stop(member: String): Unit =
+    private[ClaimEvaluation] def stop(member: String): Unit =
       if failed(member) then throw stopped
 
-    private[NativeClaims] def attempt(member: String)(body: => Unit): Unit =
+    private[ClaimEvaluation] def attempt(member: String)(body: => Unit): Unit =
       try body
       catch
         case HoleReached(hole) =>
           seen += member: Unit
           uncertain.top += ((member, hole)): Unit
 
-    private[NativeClaims] def alternatives(member: String, line: Int)(body: => Unit): Unit =
+    private[ClaimEvaluation] def alternatives(member: String, line: Int)(body: => Unit): Unit =
       if !failed(member) then
         seen += member: Unit
         choosing.push(mutable.ArrayBuffer.empty)
@@ -83,7 +84,7 @@ private[framework] object NativeClaims:
           if holes.nonEmpty then uncertain.top ++= holes: Unit
           else add(Checked(member, line, "oneOf", false))
 
-    private[NativeClaims] def alternative(body: => Unit): Unit =
+    private[ClaimEvaluation] def alternative(body: => Unit): Unit =
       require(choosing.nonEmpty, "a branch is an alternative of a oneOf, written inside it")
       if !choosing.top.exists((held, holes) => held && holes.isEmpty) then
         collecting.push(mutable.ArrayBuffer.empty)
@@ -134,7 +135,7 @@ private[framework] object NativeClaims:
             c.add(Checked(member, line, s"records($fact)", c.recorded.contains(fact)))
         c.stop(member)
       case None =>
-        Vars.current match
+        VarRuntime.current match
           case Some(frame) => frame.facts = frame.facts :+ value
           case None        =>
             if !claim then
@@ -198,17 +199,6 @@ private[framework] object NativeClaims:
         s"${step.state} is no state of a Machine that declares its vars: a monitor of vars watches one"
       )
 
-  // A claim written where it is checked rather than in a section, such as a negative control's in a
-  // test, `invariant(check(!beeping))`: its block, run in each evaluation.
-  final class Adhoc @scala.annotation.publicInBinary private[framework] (
-      val name: String,
-      val body: () => Unit
-  )
-
-  // A member of a claim section of `machine`, as `verify` and `find` name it.
-  final class Ref private[framework] (val machine: Model, val section: String, val member: String):
-    override def toString: String = s"${machine.name}.$section.$member"
-
   // The class a claim section of `owner` (a Machine object, or the object its sections are read
   // from) compiles to, where it declares one as a nested object. A section of an instance, such as
   // a facet's, is no static object, and its claims are not evaluated natively.
@@ -258,7 +248,7 @@ private[framework] object NativeClaims:
     context
 
   // Evaluates an ad-hoc claim on the vars of `vars` holding `now`, under `context`.
-  def evaluate(vars: Vars, claim: Adhoc, now: State, context: Context): Context =
+  def evaluate(vars: Vars, claim: NativeClaims.Adhoc, now: State, context: Context): Context =
     try vars.at(now)(within(context)(boundary(claim.body())))
     catch case HoleReached(hole) => context.aborted = Some(hole)
     context

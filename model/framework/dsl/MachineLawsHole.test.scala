@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 object NativeHoleCallbackFixture:
   enum State derives CanEqual:
     case beforeHole, known, invalid

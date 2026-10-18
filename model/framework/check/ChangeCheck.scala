@@ -354,6 +354,7 @@ final class ChangeCheck(
             "test",
             "--server=false",
             "model/framework/dsl",
+            "model/framework/checker",
             "model/framework/realize",
             "--test-only",
             suite

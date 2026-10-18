@@ -205,6 +205,7 @@ final private class DefinitionStore:
       !sym.is(dotty.tools.dotc.core.Flags.Inline) && sym.name.toString != "<init>" &&
       !sym.name.toString.contains("$default$") &&
       !sym.fullName.toString.startsWith("framework.dsl.") &&
+      !sym.fullName.toString.startsWith("framework.checker.") &&
       !sym.fullName.toString.startsWith("framework.realize.") && covered(sym)
 
   def engine(root: tpd.Tree, storing: Boolean = false)(using ctx: Context): PluginEngine =

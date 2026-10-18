@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 // The block forms run as Scala: an `effect:` block yields the steps of its method form, and an
 // `is:` block answers as its predicate. Field assignments, `record` and the one-argument

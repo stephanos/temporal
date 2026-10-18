@@ -38,7 +38,7 @@ object ScopedClaim:
       member: String,
       scenario: Scenario
   )(body: => Unit): ScopedClaim =
-    if NativeClaims.current.nonEmpty then NativeClaims.boundary(body)
+    NativeClaims.scoped(body)
     new ScopedClaim(
       PropertyDecl(
         member,
@@ -146,7 +146,7 @@ final class ScenarioDecl private[framework] (
   // Whether it admits an action: every action, unless it says `only` or drops the whole action
   // with `without`. Dropping one class of it leaves the action's other classes admitted.
   private[framework] def admits(decl: ActionDecl): Boolean =
-    NativeCheck.classesOf(decl).exists(admits)
+    NativeRuntime.installed.classesOf(decl).exists(admits)
 
   private[framework] def admits(cls: Class): Boolean =
     only.forall(_.exists(NativeClaims.selects(_, cls))) &&
@@ -156,7 +156,7 @@ final class ScenarioDecl private[framework] (
   private[framework] def fairActions: Vector[ActionDecl | Class] = machine match
     case composition: Composition[?] =>
       composition.nativeEffects
-        .flatMap((decl, _) => NativeCheck.classesOf(decl))
+        .flatMap((decl, _) => NativeRuntime.installed.classesOf(decl))
         .filter(cls => fair.exists(NativeClaims.selects(_, cls)))
     case _ =>
       fair.collect:
@@ -535,11 +535,7 @@ final class Witness[S, O, F] private[framework] (
         named,
         owner,
         path.lastOption,
-        Some((step: Step[S, O, F]) =>
-          recorded(step) && conditional.forall(_(step)) && ending.forall(
-            _(step.state)
-          )
-        ),
+        Some(Programs.WitnessPredicate(recorded, conditional, ending)),
         None
       ),
       ScenarioDecl(named, owner, None, path, free = false),
@@ -550,7 +546,7 @@ final class Witness[S, O, F] private[framework] (
       condition: S => Boolean,
       fact: Step[S, O, F] => Boolean
   ): Witness[S, O, F] =
-    requiring(step => !condition(step.state) || fact(step))
+    requiring(Programs.ConditionalFact(condition, fact))
 
   private[framework] def requiring(clause: Step[S, O, F] => Boolean): Witness[S, O, F] =
     copyWitness(conditional = conditional :+ clause)

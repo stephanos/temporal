@@ -1,5 +1,7 @@
 package framework.dsl
 
+import framework.checker.Effects.*
+
 class InputDomains extends munit.FunSuite:
   test("explicit field domains precede finite lookup and vary the last field fastest"):
     final case class Start(first: Int = 0, last: Int = 3, enabled: Boolean = false)

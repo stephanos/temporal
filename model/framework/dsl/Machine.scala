@@ -39,13 +39,7 @@ def choice: Choice = Choice()
 // each a block of its own. The step it is in runs once per alternative, each run from the state the
 // step started in and taking the alternatives it picked before, so each alternative is one step.
 def choose(first: Alternative, second: Alternative, rest: Alternative*): Unit =
-  val alternatives = (first +: second +: rest).toVector
-  for alternative <- alternatives do
-    require(
-      alternatives.count(_.token eq alternative.token) == 1,
-      "a choice names one alternative of a choose"
-    )
-  alternatives(Vars.pick(alternatives.size)).run()
+  NativeRuntime.installed.choose((first +: second +: rest).toVector)
 
 // `choose(committed -> enter(...), redelivered -> stay(s))`: the results of a step that can go more
 // than one way, in the order written, each named by its token. The names are metadata no check reads
@@ -72,8 +66,10 @@ def choose[S, O, F](
 private[framework] trait NativeChoices:
   def tokens: Vector[Choice]
 
+// A step function's alternatives, each a step function of its own; the native runtime runs them
+// (NativeRuntime).
 final class StateChoiceProgram[S, O, F] private[framework] (
-    alternatives: Vector[(Choice, S => List[Step[S, O, F]])]
+    private[framework] val alternatives: Vector[(Choice, S => List[Step[S, O, F]])]
 ) extends (S => List[Step[S, O, F]]),
       NativeChoices:
   val tokens: Vector[Choice] = alternatives.map(_._1)
@@ -81,14 +77,11 @@ final class StateChoiceProgram[S, O, F] private[framework] (
     tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
     "a choice names one alternative of a choose"
   )
-  def apply(state: S): List[Step[S, O, F]] = alternatives.flatMap { (_, arm) =>
-    val steps = arm(state)
-    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
-    steps
-  }.toList
+  def apply(state: S): List[Step[S, O, F]] =
+    NativeRuntime.installed.call[List[Step[S, O, F]]](this, state)
 
 final class InputChoiceProgram[S, I, O, F] private[framework] (
-    alternatives: Vector[(Choice, (S, I) => List[Step[S, O, F]])]
+    private[framework] val alternatives: Vector[(Choice, (S, I) => List[Step[S, O, F]])]
 ) extends ((S, I) => List[Step[S, O, F]]),
       NativeChoices:
   val tokens: Vector[Choice] = alternatives.map(_._1)
@@ -96,11 +89,8 @@ final class InputChoiceProgram[S, I, O, F] private[framework] (
     tokens.indices.forall(i => !tokens.take(i).exists(_ eq tokens(i))),
     "a choice names one alternative of a choose"
   )
-  def apply(state: S, input: I): List[Step[S, O, F]] = alternatives.flatMap { (_, arm) =>
-    val steps = arm(state, input)
-    require(steps.sizeIs <= 1, "each alternative of a choose is at most one step")
-    steps
-  }.toList
+  def apply(state: S, input: I): List[Step[S, O, F]] =
+    NativeRuntime.installed.call[List[Step[S, O, F]]](this, state, input)
 
 @scala.annotation.targetName("chooseStateProgram")
 def choose[S, O, F](
@@ -351,8 +341,10 @@ extension [I](a: Action[I])
       @unused empty: I =:= EmptyTuple
   ): StepBinding[State, O, F] =
     require(a.decl.nativeInputs.isEmpty, "a state-only binding requires an action without inputs")
-    val vars = Vars.of(owner.machine)
-    StepBinding(a.decl, (s: State) => vars.step[O, F](s, accepted.outcome)(effect))
+    StepBinding(
+      a.decl,
+      Programs.VarStep[O, F](Vars.of(owner.machine), accepted.outcome, () => effect)
+    )
 
   // `action ~> effects.sendFromNowhere`: the action bound to an effect of its input that assigns
   // the vars of a Machine.
@@ -362,10 +354,9 @@ extension [I](a: Action[I])
       accepted: Accepting[O]
   ): StepBinding[State, O, F] =
     require(a.decl.nativeInputs.nonEmpty, "an input binding requires a declared input")
-    val vars = Vars.of(owner.machine)
     StepBinding(
       a.decl,
-      (s: State, value: I) => vars.step[O, F](s, accepted.outcome)(effect(value))
+      Programs.VarInputStep[I, O, F](Vars.of(owner.machine), accepted.outcome, effect)
     )
 
 // The owner of a machine's sections, which its `transitions` read the machine's types from:
@@ -403,7 +394,8 @@ abstract class Bindings[S, O, F](using @unused owner: Owner[S, O, F])(
   private[framework] def table: Vector[(ActionDecl, Bound[S, O, F])] =
     bindings.toVector.map(b => b.decl -> Bound.Function[S, O, F](b.function, b.captured))
 
-// A step function's results for the state and one class's declared input.
+// A step function's results for the state and one class's declared input: an effect the DSL builds
+// (Programs), which the native runtime runs.
 private[framework] trait InputEffect[S, O, F]
     extends ((S, List[Any]) => List[Step[S, O, F]])
     with BudgetMetadata:
@@ -411,86 +403,11 @@ private[framework] trait InputEffect[S, O, F]
   def nativeChoices: Option[Vector[Choice]] = None
   def apply(state: S, cls: Class): List[Step[S, O, F]] = apply(state, cls.values)
 
+// A guard that reads its action's input as well as the state (Programs).
 private[framework] trait InputGuard[S] extends (S => Boolean):
   final def apply(@unused state: S): Boolean =
     throw IllegalArgumentException("an input-reading guard requires its action input")
   def apply(state: S, cls: Class): Boolean
-
-private[framework] def guardHolds[S](guard: S => Boolean, state: S, cls: Class): Boolean =
-  guard match
-    case input: InputGuard[S] @unchecked => input(state, cls)
-    case _                               => guard(state)
-
-private[framework] def effectOf[S, O, F](
-    decl: ActionDecl,
-    f: AnyRef
-): InputEffect[S, O, F] =
-  decl.nativeInputs match
-    case Some(shape) => nativeEffect(decl, shape, f)
-    case None        =>
-      require(decl.inputs.isEmpty, s"action ${decl.name} has no declared input shape")
-      val callback =
-        f.asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
-      new InputEffect[S, O, F]:
-        override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
-        override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
-        override def generatedCrash: Boolean = generatedCrashOf(f)
-        def apply(state: S, values: List[Any]): List[Step[S, O, F]] = callback(state)
-
-private[framework] def stateEffect[S, O, F](f: S => List[Step[S, O, F]]): InputEffect[S, O, F] =
-  new InputEffect[S, O, F]:
-    override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
-    override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
-    override def generatedCrash: Boolean = generatedCrashOf(f)
-    def apply(state: S, values: List[Any]): List[Step[S, O, F]] = f(state)
-
-private[framework] def nativeEffect[S, O, F, I](
-    decl: ActionDecl,
-    shape: ActionInputs[I],
-    f: AnyRef
-): InputEffect[S, O, F] =
-  val callback =
-    f.asInstanceOf[(S, I) => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
-  new InputEffect[S, O, F]:
-    override def budgets: Vector[NativeBudget[?]] = budgetsOf(f)
-    override def nativeChoices: Option[Vector[Choice]] = choiceTokens(f)
-    override def generatedCrash: Boolean = generatedCrashOf(f)
-    def apply(state: S, values: List[Any]): List[Step[S, O, F]] = apply(state, Class(decl, values))
-    override def apply(state: S, cls: Class): List[Step[S, O, F]] =
-      callback(state, shape.input(cls))
-
-// The step function an action's binding lowers to: its own, or for rules the
-// effect of the first rule that fires, as `if g1(s) then e1(s) else if g2(s) then e2(s) else Nil`
-// lifts, or none where it is disabled.
-private[framework] def stepFunction[S, O, F](decl: ActionDecl, bound: Bound[S, O, F]): AnyRef =
-  def run(s: S, cls: Class): List[Step[S, O, F]] = bound match
-    case Bound.Ruled(rules) =>
-      rules
-        .find(r => r.fires(cls.values) && guardHolds(r.guard, s, cls))
-        .fold(Nil): rule =>
-          rule.effect match
-            case effect: InputEffect[S, O, F] @unchecked => effect(s, cls)
-            case effect                                  => effect(s, cls.values)
-    case _ => Nil
-  bound match
-    case Bound.Function(f, _)            => f
-    case _ if decl.nativeInputs.nonEmpty =>
-      def adapted[I](shape: ActionInputs[I]): (S, I) => List[Step[S, O, F]] =
-        (state, input) => run(state, shape.classOf(decl, input))
-      adapted(decl.nativeInputs.get)
-    case _ =>
-      require(decl.inputs.isEmpty, s"action ${decl.name} has no declared input shape")
-      (s: S) => run(s, Class(decl, Nil))
-
-// Every class of an action: each assignment of its inputs, in catalog order.
-private[framework] def classesOf(decl: ActionDecl): List[List[Any]] =
-  decl.nativeInputs.fold(
-    decl.domains.foldLeft(List(List.empty[Any])): (prefixes, domain) =>
-      for prefix <- prefixes; v <- domain.values.toList yield prefix :+ v
-  )(_.classes)
-
-private[framework] def inputClassesOf(decl: ActionDecl): List[Class] =
-  decl.nativeInputs.fold(classesOf(decl).map(Class(decl, _)))(_.inputClasses(decl))
 
 // A value as Umpire keys it in a class: a case by its name, followed by its fields, joined by `-`.
 private[framework] def valueKey(v: Any): String = v match
@@ -558,7 +475,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 
   final private[framework] def nativeEffects
       : Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] =
-    NativeCheck.machineEffects(this)
+    NativeRuntime.installed.machineEffects(this)
 
   final override private[framework] def illustrationMachine: Option[RecordMachine[S, O, F]] = Some(
     this
@@ -703,13 +620,6 @@ abstract class RecordMachine[S, O, F] private[framework] (using
   ): StepBinding[S, O, F] =
     crashBinding(machineOwner, action.action, action.budgets, outcome, facts, NativeLocation.here)
 
-  final private[framework] def resetAfterCrash(
-      state: S,
-      budget: Vector[(List[String], Any)]
-  ): S =
-    nativeDurability.headOption.fold(state): first =>
-      first.field.rebuild(state, nativeDurability.flatMap(_.replacement(state)) ++ budget)
-
   private var declaredAssumptions = List.empty[(Assumption, String)]
   final protected def assumes(values: Assumption*): Unit =
     val at = NativeLocation.caller("framework.dsl.RecordMachine")
@@ -790,15 +700,10 @@ abstract class RecordMachine[S, O, F] private[framework] (using
     else
       after match
         case Bound.Function(effect, captured) =>
-          Bound.Function(budgetedFunction[S, O, F](decl, effect, inherited), captured)
+          Bound.Function(Programs.budgeted[S, O, F](decl, effect, inherited), captured)
         case Bound.Ruled(rules) =>
           Bound.Ruled(rules.map: rule =>
-            val adapted = rule.effect match
-              case value: InputEffect[S, O, F] @unchecked => value
-              case value                                  =>
-                new InputEffect[S, O, F]:
-                  def apply(state: S, values: List[Any]): List[Step[S, O, F]] = value(state, values)
-            rule.copy(effect = budgetEffect(adapted, inherited)))
+            rule.copy(effect = Programs.Budgeted(Programs.inputEffect(rule.effect), inherited)))
         case Bound.Disabled() => after
 
   private def ownsBudget(owner: RecordMachine[?, ?, ?]): Boolean =
@@ -898,15 +803,6 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 
   private[framework] def reaches: Seq[Model] = refinementEvidence.toSeq.map(_.of)
 
-  // One step function per action: the rules of each, lowered (Rules.lowered).
-  private[framework] def bindings: List[StepBinding[S, O, F]] =
-    table.map { (decl, bound) =>
-      val captured = bound match
-        case Bound.Function(_, captured) => captured
-        case _                           => None
-      StepBinding.retaining[S, O, F](decl, stepFunction(decl, bound), captured)
-    }.toList
-
   private[framework] def coreOperations: Vector[CoreBindings.Operation] = Vector.empty
 
   private def built(
@@ -977,7 +873,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
             decl,
             kept.fold(Bound.Function[S, O, F](f, binding.captured))(rs =>
               Bound.Ruled(rs.map { original =>
-                val callback = effectOf[S, O, F](decl, f)
+                val callback = Programs.Adapted[S, O, F](decl, f)
                 val adapted = original.copy(effect = callback)
                 adapted.adaptedRule =
                   Some(DerivationBindings.Adaptation(adapted, original, binding, callback))
@@ -1099,9 +995,8 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 //
 // The compiler reads the vars where the object extends Machine (VarSchema): a Machine without vars,
 // and a var whose type has no schema, do not compile. Its effects assign the vars, its guards and
-// claims read them by name, and `end`, where it may stop, reads them too. Until the IR evaluator
-// replaces native execution (fn-190.3/.5), a step, a guard or a claim runs on the vars with the
-// state it is about restored into them (Vars), and the object reads as its initial state between
+// claims read them by name, and `end`, where it may stop, reads them too. The checker runs a step,
+// guard or claim with its state restored into the vars, and the object reads as its initial state between
 // them.
 abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
     extends RecordMachine[State, O, F],

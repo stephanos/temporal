@@ -4,6 +4,8 @@ package framework.dsl
 // refuted here, by the native checker (NativeCheck), rather than declared as a Query of the Model.
 // A suite imports them, `import NativeControls.assertRefuted`; each returns the result, whose
 // counterexample a test may pin further.
+import framework.checker.*
+
 object NativeControls:
   // Asserts that an invariant or postcondition is refuted on `machine` from `starts` (its initial
   // state unless named): `assertRefuted(Bank.Leaky, Bank.Leaky.invariants.leakyTotalSupplyInv)`.

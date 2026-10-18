@@ -1,5 +1,6 @@
 package framework.dsl
 
+import framework.checker.Effects.*
 import framework.dsl.Finite.given
 
 // A lamp whose state is two vars: its light and how often it was pressed. Its effects assign them,

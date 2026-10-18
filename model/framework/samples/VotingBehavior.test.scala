@@ -1,5 +1,8 @@
 package framework.dsl
 
+import framework.checker.*
+import framework.checker.Effects.*
+
 import VotingControls.UnsafeVoting
 import ReliableBroadcastControls.Naive
 
@@ -15,12 +18,12 @@ object SectionClaims extends munit.Assertions:
       from: Option[State],
       taken: Option[Class],
       outcome: Option[Any]
-  ): NativeClaims.Context =
-    val cls = NativeClaims.sectionClass(machine, section).get
+  ): ClaimEvaluation.Context =
+    val cls = ClaimEvaluation.sectionClass(machine, section).get
     val context =
-      if section == "invariants" then NativeClaims.Context()
-      else NativeClaims.Context(from, taken, outcome)
-    NativeClaims.evaluate(machine.stateVars.get, cls, now, context)
+      if section == "invariants" then ClaimEvaluation.Context()
+      else ClaimEvaluation.Context(from, taken, outcome)
+    ClaimEvaluation.evaluate(machine.stateVars.get, cls, now, context)
 
   // Whether the claim `member` of `machine`'s `section` holds in `now`: a postcondition on the step
   // to `now` from `from`, taking `taken` and answering `outcome`.
@@ -39,7 +42,10 @@ object SectionClaims extends munit.Assertions:
 
   // Whether `machine`'s own `section` declares the claim `member`.
   def declares(machine: Model, section: String, member: String): Boolean =
-    NativeClaims.sectionClass(machine, section).exists(NativeClaims.members(_).contains(member))
+    ClaimEvaluation.sectionClass(
+      machine,
+      section
+    ).exists(ClaimEvaluation.members(_).contains(member))
 
   // A claim holds of each case as the predicate it was written as before (fn-190.4) does: in the
   // state a step reached, about the steps of `about` where it names one.

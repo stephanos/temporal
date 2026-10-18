@@ -59,7 +59,7 @@ class ReferenceSurfaceTest extends munit.FunSuite:
   private val framework = Path.of("model/framework")
 
   private def sources: Vector[Path] =
-    Vector("dsl", "realize").flatMap: directory =>
+    Vector("dsl", "checker", "realize").flatMap: directory =>
       Files
         .list(framework.resolve(directory))
         .iterator()

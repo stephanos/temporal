@@ -78,7 +78,7 @@ abstract class RuleTable[S, O, F] private[framework] (using
       binding.function
         .asInstanceOf[S => List[Step[S, O, F]]] // scalafix:ok DisableSyntax.asInstanceOf
     openBlock(binding.decl, spelling):
-      bindRule(binding.decl, None, "always", _ => true, stateEffect(reset), spelling, None)
+      bindRule(binding.decl, None, "always", _ => true, Programs.OfState(reset), spelling, None)
     generatedCrashes += binding.decl: Unit
 
   // Runs one block, refusing a block in a block, a bare target, and in a `from` an action its

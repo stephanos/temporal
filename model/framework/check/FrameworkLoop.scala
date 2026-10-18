@@ -12,17 +12,28 @@ object FrameworkSuites extends Registry:
   val selectsEveryFeature: Set[Area] = Set.empty
   val rules = Seq(
     "model/framework/dsl/**" -> Area.Framework,
+    "model/framework/checker/**" -> Area.Framework,
     "model/framework/realize/**" -> Area.Framework,
     "model/framework/check/**" -> Area.Check,
     "model/framework/**" -> Area.Lifter
   )
   val modules = Seq(
     // The core's tests include the native samples' suites (package framework.dsl); the reusable
-    // library compiled for constructed fixtures stays DSL/realize only (ModelSources.frameworkCore).
+    // library compiled for constructed fixtures includes the checker (ModelSources.frameworkCore).
     Module(
       "core",
-      Seq("model/framework/dsl", "model/framework/realize", "model/framework/samples"),
-      Seq("model/framework/dsl", "model/framework/realize", "model/framework/samples")
+      Seq(
+        "model/framework/dsl",
+        "model/framework/checker",
+        "model/framework/realize",
+        "model/framework/samples"
+      ),
+      Seq(
+        "model/framework/dsl",
+        "model/framework/checker",
+        "model/framework/realize",
+        "model/framework/samples"
+      )
     ),
     Module("check", Seq("model/framework/check"), Seq("model/framework/check")),
     Module(

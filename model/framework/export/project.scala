@@ -11,6 +11,7 @@
 //> using file ../inspect
 //> using file ../reify/body
 //> using file ../dsl
+//> using file ../checker
 //> using file ../realize
 //> using file ../check/lint/Literals.scala
 //> using options -Werror -deprecation -feature -unchecked -Wunused:all -Wvalue-discard -Wnonunit-statement -Wsafe-init -Wimplausible-patterns -language:strictEquality
