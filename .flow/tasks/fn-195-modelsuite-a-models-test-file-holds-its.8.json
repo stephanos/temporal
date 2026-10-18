@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-18T08:27:47.339573Z",
   "depends_on": [
-    "fn-195-modelsuite-a-models-test-file-holds-its.2"
+    "fn-195-modelsuite-a-models-test-file-holds-its.2",
+    "fn-195-modelsuite-a-models-test-file-holds-its.12"
   ],
   "id": "fn-195-modelsuite-a-models-test-file-holds-its.8",
   "priority": null,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.8.md",
   "status": "todo",
   "title": "DSL completion: ModelSuite lifecycle, discovery and suite execution policy",
-  "updated_at": "2026-10-18T11:30:04.856760Z"
+  "updated_at": "2026-10-18T12:12:01.343729Z"
 }

@@ -288,6 +288,28 @@ decisions in Conversation Evidence stand as written. [user] A fourth section `un
 (too large a liftable subset); a separate `Runs` object (an extra container the sections make
 unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred]
 
+### Suite discovery prerequisite (2026-10-18)
+
+The lifecycle/native execution checkpoint passes its admitted checks but omits valid runnable
+suites whose superclass uses a stable-term path. Keep S incomplete until bounded compiler
+metadata supplies the actual eligible suite identities. Preserve ordinary Scala authoring,
+exact source/module ownership and no-test suite admission. Source parser special cases and
+initialized-so-far runtime discovery do not establish this inventory.
+
+Task fn-195.12 proves the metadata route and its held-suite universe before production work.
+The chosen direction is explicit staged preflight. Syntax, duplicate keys and positive Int
+ranges refuse before child commands; exact unknown-suite validation follows admitted inert
+metadata compilation and precedes suite construction or execution. The proof must reconcile
+the existing stronger policy ordering and recognize held/unselected identities without
+compiling owner-held inputs. Production integration requires an explicit contract amendment
+after the proof, plus honestly sized producer and gate-caller prerequisites before S resumes.
+No historical receipt or current production behavior is relabeled by this decision.
+
+Rejected source term/type parsing because it duplicates Scala compiler semantics. Rejected
+outer-bootstrap compilation because it hides the same ordering change and adds another
+artifact lifecycle. Reuse the typed foundation needed by final suite admission; realization
+candidate completeness remains a separate proof. All current owner holds remain unchanged.
+
 ## Parked unknowns
 
 - Whether claim sections also accept bare Booleans; resolved after living with `expect:`.
@@ -297,7 +319,8 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 | Task | Mechanism | Admission |
 | --- | --- | --- |
 | fn-195.2 | Authored action/expect capture, exact-instance context and native replay adaptation | After committed .1 |
-| fn-195.8 | Four-section lifecycle, real discovery, stable identity and immutable suite policy | After .2 |
+| fn-195.12 | Bounded compiled suite inventory and staged-policy proof | After .2; exact held-suite universe and honest production split required |
+| fn-195.8 | Four-section lifecycle, real discovery, stable identity and immutable suite policy | Blocked on .12 and its demonstrated production prerequisites; committed lifecycle checkpoint is incomplete |
 | fn-195.9 | Reusable exploration spaces and find/sample/refuted adaptation | After .8 |
 | fn-195.10 | Bounded native realization/wait/capability proof and expectation contract | After .1; parallel candidate with .2 |
 | fn-195.11 | Typed native conformance declarations, complete binding and model-first replay | Explicitly blocked until .10 proves mechanisms and honest implementation size; also after .9 |
@@ -319,13 +342,13 @@ checks suites without test invocations.
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations`, `conformance` and `unit` sections; `unit` bodies are plain munit; the top level holds only sections and shared helper definitions. Errors: a `test` outside a section, and a section with a non-test member other than a space `val`, are refused naming the member. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
+| R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations`, `conformance` and `unit` sections; `unit` bodies are plain munit; the top level holds only sections and shared helper definitions. Errors: a `test` outside a section, and a section with a non-test member other than a space `val`, are refused naming the member. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
 | R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
 | R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
 | R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.10, fn-195-modelsuite-a-models-test-file-holds-its.11 | — |
 | R5 | The Model has no `queries` section, `Query`, `find`, `verify`, `witness`, `scenario`, `limits`, `.live`, `.explore` or capability live switch; `Realizes` has no `runs`; `satisfied`, `inconclusive` and `conformant` live in the realize package. Errors: the retired names are unreachable by authors (fn-190.16's grep). | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.3 | — |
 | R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195-modelsuite-a-models-test-file-holds-its.4 | — |
-| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195-modelsuite-a-models-test-file-holds-its.5 | — |
 | R9 | All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. | fn-195-modelsuite-a-models-test-file-holds-its.6 | — |
 | R10 | After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. | fn-195-modelsuite-a-models-test-file-holds-its.7 | — |
