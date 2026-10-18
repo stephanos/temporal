@@ -1145,7 +1145,7 @@ primary declaration policy belongs to fn-195.6.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.5 | ⬜ todo | TwoPhaseCommit direct Model predicates, no Transaction/current adapter; Model.at-based tests with unchanged graph, fairness/progress and negative controls (R8) |
+| fn-194.5 | 🔄 in progress | TwoPhaseCommit direct Model predicates, no Transaction/current adapter; Model.at-based tests with unchanged graph, fairness/progress and negative controls (R8) |
 
 ### fn-195: ModelSuite: a Model's test file holds its examples, explorations and conformance tests
 
