@@ -67,7 +67,7 @@ The original fn-194.2/fn-196.2 API prerequisites remain included.
 | fn-196-the-scala-checker-is-the-oracle.6 | `89df25410b813ffcac67c553ff3e7a4e0106ba3b` | `c449a15a0b4d91bc4af237ba4a7dfc75feaaa4c9` |
 | fn-196-the-scala-checker-is-the-oracle.7 | `33b84f57806f4cd1e6b7132831b8d48f007a894d` | `115a1bcf47a9697780fe670dc73bb8d909b19b7c` |
 
-Fn-196.4 stays explicitly blocked on the measured no-go and Phase 3 migration boundary.
+The old fn-196.4 retirement route was subsequently closed by replacement in the one-language roadmap; its historical no-go and unmigrated runtime obligations are not completed implementation. None is released by this native conformance plan.
 Go/IR/export/lifting/schema/backend/generated/regeneration and all Temporal work remain held;
 no publishing or review verdict is authorized. Spec admission is local committed-checkpoint
 admission, not a forced task start or remote-branch fallback. The public implementation task chain is refined below; the downstream native holds remain
@@ -144,6 +144,10 @@ from/single-start rule. This adds no per-reached-state selector reevaluation or 
   late candidates have deterministic semantics. An initialized-so-far list does not establish
   uniqueness. Native performed/waited-class and capability-path projections precede retirement
   of their current declarations. Candidate discovery stays owner-local and collectible.
+  An explicitly supplied, fully constructed realization instead binds by exact Model reference
+  after checked coverage, full expectation/monitor admission and successful native replay. This
+  explicit branch asserts no inventory membership or cardinality; other candidates cannot revoke
+  it. Omitted `through` still requires the complete universe and refuses while discovery is incomplete.
 
 ## API Contracts
 
@@ -193,7 +197,7 @@ Errors, each a compile error or a located lint refusal at the test: a `test` out
 `conformance` outside the liftable subset; `any` outside `explorations`; a `find` or `sample` in
 `examples`; a test without `from` on an instance whose init is a set; a conformance test whose steps
 include a class no realization performs or waits for; `through` naming another Model's realization,
-or omitted with several; an `expect:` statement that is not Boolean; an `expect:` block with no
+or omitted with several or an incomplete candidate universe; an `expect:` statement that is not Boolean; an `expect:` block with no
 statements; a test name that slugs to an existing name in the same suite; `oneOf` with one
 alternative; a `sample` count of zero.
 
@@ -264,6 +268,9 @@ The committed prototype proves post-construction registration, replay adapters a
 spelling. The strict compiler experiment proves legal test-source and library warning behavior.
 The authored-capture checkpoint must prove deferred typed replay before the public suite consumes it.
 The committed conformance proof records a failed complete-inventory oracle and a failed executable-capability oracle in both source and library arrangements. Conformance integration remains blocked until bounded follow-on feasibility selects complete mechanisms and their production implementations integrate. The independent native wait and expectation leaves can proceed without claiming that integration.
+The authored-explicit prerequisites separately prove exact admission, coverage during complete
+finite replay and public eligible-only selection. Failure in one keeps that prerequisite open;
+success does not establish automatic discovery, capability paths, sampled conformance or Registry integration.
 
 ## Quick commands
 
@@ -351,6 +358,24 @@ The future path default is fully satisfied. The sample default expects conforman
 
 Authors keep the existing ordinary declarations. No candidate lists, registration calls, relocation rules, arbitrary classpath scanning or process-global strong registry replace automatic selection. Actual system-kit adoption and all current held integration surfaces stay held. The final documentation task reconciles the independent leaves with the completed suite interfaces.
 
+Prospective explicit-selection decision (2026-10-18): separate exact-reference admission from
+automatic complete-universe selection. Earlier feasibility reports investigated the stronger
+inventory-membership rule even for explicit selection; their failures remain historical evidence,
+not passing production proof. The explicit branch validates the supplied constructed realization
+against the exact Model without enumerating unrelated owners. It preserves full expectation values,
+canonical exact-monitor membership and checked performed/waited coverage. Deferred action inputs
+are resolved only in restored replay state, never in a coverage prewalk. Eligibility requires
+complete verified replay of the entire finite authored family: a verified prefix, disabled step,
+failed assertion/effect, hole or cut grants none. A new execution attempt invalidates prior
+publication until successful completion; idempotent MUnit enumeration does not rerun inputs or
+revoke a valid declaration. Eligibility is an opaque successful-result authority, not a copyable
+metadata flag. Declaration loading remains checker-independent and owner-local results remain collectible.
+
+The three concrete production prerequisites implement only this authored-explicit branch.
+Full native conformance remains blocked on complete automatic selection, generated capability
+paths with effective directives/bounds, sampled conformance and actual Registry integration.
+No source-registration protocol, root-owner restriction or new author annotation is introduced.
+
 2026-10-18, one-language series: the later lifting phase is fn-203 (Cases are produced in Scala), which reads the `conformance` sections and `expect:` trees natively, with no exporter step; fn-195.11 is fn-203's input and fn-203 depends on this spec. If fn-209 (native checker binary) says go, `expect:` assertions become oracle-sidecar questions instead of Contract clauses.
 
 ## Parked unknowns
@@ -372,6 +397,9 @@ Authors keep the existing ordinary declarations. No candidate lists, registratio
 | fn-195.16 | Ordinary native capability retention, executable expansion and effective directives/bounds feasibility | After committed .10; bounded empirical report, production mechanism remains unadmitted |
 | fn-195.17 | Framework waited-class projection and immutable performed/waited coverage | After committed .10; generic protocol and native fixture kits only, actual system-kit adoption held |
 | fn-195.18 | Realize expectation conveniences and shared conformance admission validation | After committed .10; raw constructor/copy compatibility preserved |
+| fn-195.22 | Exact explicit realization, full expectation and canonical monitor admission | After committed .2/.17/.18; no inventory, replay or eligibility credit |
+| fn-195.23 | Actual selected-class replay coverage and opaque complete-verified eligibility | After committed .22 and .21; existing native adapter, no prewalk |
+| fn-195.24 | Typed public authored-explicit conformance and eligible-only native selector | After committed .23; source/library and checker-independent declaration controls |
 | fn-195.11 | Typed native conformance declarations, complete binding and model-first replay | Explicitly blocked on proved and integrated realization/capability mechanisms, checked-coverage and expectation leaves; also after .9 |
 | fn-195.3 | Author vocabulary retirement and final typed suite source admission | After .11; refine retained L scope before implementation |
 | fn-195.4, .6, .5 | Six-sample migration, class-only primary declarations, final docs | Existing dependency order preserved |
@@ -394,10 +422,12 @@ checks suites without test invocations.
 | R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations`, `conformance` and `unit` sections; `unit` bodies are plain munit; the top level holds only sections and shared helper definitions. Errors: a `test` outside a section, and a section with a non-test member other than a space `val`, are refused naming the member. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
 | R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
 | R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195-modelsuite-a-models-test-file-holds-its.19, fn-195-modelsuite-a-models-test-file-holds-its.20, fn-195-modelsuite-a-models-test-file-holds-its.21, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
-| R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.10, fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.15, fn-195-modelsuite-a-models-test-file-holds-its.16, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18 | — |
+| R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.10, fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.15, fn-195-modelsuite-a-models-test-file-holds-its.16, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.22, fn-195-modelsuite-a-models-test-file-holds-its.23, fn-195-modelsuite-a-models-test-file-holds-its.24 | — |
 | R5 | The Model has no `queries` section, `Query`, `find`, `verify`, `witness`, `scenario`, `limits`, `.live`, `.explore` or capability live switch; `Realizes` has no `runs`; `satisfied`, `inconclusive` and `conformant` live in the realize package. Errors: the retired names are unreachable by authors (fn-190.16's grep). | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.3 | — |
 | R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195-modelsuite-a-models-test-file-holds-its.4 | — |
-| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.19, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.20, fn-195-modelsuite-a-models-test-file-holds-its.21, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.12, fn-195-modelsuite-a-models-test-file-holds-its.13, fn-195-modelsuite-a-models-test-file-holds-its.14, fn-195-modelsuite-a-models-test-file-holds-its.17, fn-195-modelsuite-a-models-test-file-holds-its.18, fn-195-modelsuite-a-models-test-file-holds-its.19, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.20, fn-195-modelsuite-a-models-test-file-holds-its.21, fn-195-modelsuite-a-models-test-file-holds-its.22, fn-195-modelsuite-a-models-test-file-holds-its.23, fn-195-modelsuite-a-models-test-file-holds-its.24, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195-modelsuite-a-models-test-file-holds-its.5 | — |
 | R9 | All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. | fn-195-modelsuite-a-models-test-file-holds-its.6 | — |
 | R10 | After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. | fn-195-modelsuite-a-models-test-file-holds-its.7 | — |
+
+Coverage maps ownership, not completion: .22/.23/.24 are authored-explicit prerequisites only. Full automatic inventory, sampled/capability conformance and actual Registry integration remain blocked under .11; .3 retains its dependency on full .11.

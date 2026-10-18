@@ -9,7 +9,10 @@
     "fn-195-modelsuite-a-models-test-file-holds-its.15",
     "fn-195-modelsuite-a-models-test-file-holds-its.16",
     "fn-195-modelsuite-a-models-test-file-holds-its.17",
-    "fn-195-modelsuite-a-models-test-file-holds-its.18"
+    "fn-195-modelsuite-a-models-test-file-holds-its.18",
+    "fn-195-modelsuite-a-models-test-file-holds-its.22",
+    "fn-195-modelsuite-a-models-test-file-holds-its.23",
+    "fn-195-modelsuite-a-models-test-file-holds-its.24"
   ],
   "id": "fn-195-modelsuite-a-models-test-file-holds-its.11",
   "priority": null,
@@ -17,5 +20,5 @@
   "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.11.md",
   "status": "todo",
   "title": "DSL completion: typed native conformance declarations and exact binding",
-  "updated_at": "2026-10-18T17:30:48.620230Z"
+  "updated_at": "2026-10-18T18:30:13.933925Z"
 }

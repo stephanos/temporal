@@ -1,0 +1,18 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T18:27:26.145757Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.2",
+    "fn-195-modelsuite-a-models-test-file-holds-its.17",
+    "fn-195-modelsuite-a-models-test-file-holds-its.18"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.22",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.22.md",
+  "status": "todo",
+  "title": "Native explicit conformance admission: exact binding and complete expectation/monitor validation",
+  "updated_at": "2026-10-18T18:27:26.145757Z"
+}
