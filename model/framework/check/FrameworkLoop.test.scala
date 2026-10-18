@@ -35,7 +35,9 @@ class FrameworkLoopSuite extends munit.FunSuite:
     val module = FrameworkSuites.modules.find(_.name == "export").get
     for (file, suite) <- Seq(
         "model/framework/export/Expect.test.scala" -> "framework.export.ExpectFixtures",
-        "model/framework/export/ExpectCapture.test.scala" -> "framework.export.ExpectCaptureSuite"
+        "model/framework/export/ExpectCapture.test.scala" -> "framework.export.ExpectCaptureSuite",
+        "model/framework/lint/NativeClassForms.test.scala" -> "framework.lint.NativeClassFormsTest",
+        "model/framework/lint/NativeClassAdmissionControls.test.scala" -> "framework.lint.NativeClassAdmissionControlsTest"
       )
     do assertEquals(FrameworkSuites.held(Declared(module, file, suite)), None)
 

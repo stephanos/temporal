@@ -84,6 +84,8 @@ object FrameworkSuites extends Registry:
     "PropertyGroupsFixtures",
     "QualifiedPhasesTest",
     "OrderFixtures",
+    "NativeClassFormsTest",
+    "NativeClassAdmissionControlsTest",
     "SourcePositionsFixtures",
     "LiftableSubsetFixtures",
     "StructureFixtures",
