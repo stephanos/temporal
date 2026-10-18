@@ -116,6 +116,8 @@ whose effect throws is a `refuted` Result carrying the exception's message and t
 
 ## Boundaries
 
+The accepted measurement decision is no-go on immediate Go check package retirement. Keep existing Go consumers until native refinement/replacement obligations, the rule-disjointness disposition, recorded-Run/backend replay contracts and Case production dependencies have evidence-backed replacements. The selected future producer emits Testpilot Cases in Scala; choosing its location does not implement it or release Phase 3. Runtime and discovery lifetime repairs remain native follow-ups before ModelSuite adoption.
+
 - The Testpilot runtime, Driver and canary stay in Go and do not change. [paraphrase]
 - Quint and TLA export stay over the IR. [paraphrase]
 - The lowering of conformance tests to Cases is not moved by this spec; the measurement note decides

@@ -21,8 +21,8 @@ satisfies: [R5, R6]
 - [ ] Intended answers match the inventory
 
 ## Done summary
-TBD
-
+Blocked:
+The committed fn-196.3 measurement decision is no-go on immediate Go check/interpreter retirement. Its source checkpoints45000a5680/b1ea944f7d/2319050f0f and closure946b550a6d retain native refinement/replacement, rule-disjointness, recorded-Run/backend replay, lowering and consumer migration obligations. This task is also in the explicitly held Phase3 IR/Go lane. Do not start or force it merely because the task dependency on .3 is done. Release only after the native prerequisites have evidence, a new go decision is recorded, and the owner-authorized Phase3 scope permits execution. No deletion or runtime migration is complete.
 ## Evidence
 - Commits:
 - Tests:
