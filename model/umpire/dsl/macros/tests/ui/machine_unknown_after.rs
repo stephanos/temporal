@@ -1,16 +1,23 @@
-use umpire_dsl::{Action, State, machine};
+use umpire_dsl::machine;
 
-#[derive(State)]
-struct Model {}
-#[derive(Action)]
-enum User { Press }
+#[machine]
+mod model {
+    use umpire_dsl::{Action, State};
+    #[derive(State)]
+    struct Model {}
+    #[derive(Action)]
+    enum User { Press }
 
-#[machine(actions = (User,))]
-impl Model {
-    #[umpire_dsl::on(User::Press)]
-    fn press(&mut self) -> Option<()> { Some(()) }
-    #[umpire_dsl::postcondition(after = User::Missing)]
-    fn claim(&self, _before: &Self) -> bool { true }
+    #[transitions]
+    impl Model {
+        #[on(User::Press)]
+        fn press(&mut self) -> Option<()> { Some(()) }
+    }
+    #[postconditions]
+    impl Model {
+        #[after(User::Missing)]
+        fn claim(&self) -> bool { true }
+    }
 }
 
 fn main() {}

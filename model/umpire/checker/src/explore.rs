@@ -67,7 +67,7 @@ impl Checker {
         world: &M,
         budget: usize,
     ) -> std::result::Result<Result<M>, Refusal> {
-        Self::explore_claims(world, budget, &world.invariants())
+        Self::explore_claims(world, budget, &world.invariants(), None)
     }
 
     /// Checks an additional state predicate with the default million-state budget.
@@ -76,14 +76,16 @@ impl Checker {
         claim: Claim<M>,
     ) -> std::result::Result<Result<M>, Refusal> {
         let mut invariants = world.invariants();
+        let supplemental = invariants.len();
         invariants.push(claim);
-        Self::explore_claims(world, 1 << 20, &invariants)
+        Self::explore_claims(world, 1 << 20, &invariants, Some(supplemental))
     }
 
     fn explore_claims<M: Machine>(
         world: &M,
         budget: usize,
         invariants: &[Claim<M>],
+        supplemental: Option<usize>,
     ) -> std::result::Result<Result<M>, Refusal> {
         if budget == 0 {
             return Err(Refusal::Budget { given: budget });
@@ -179,6 +181,11 @@ impl Checker {
             );
         }
         result.finish(&actions, &postconditions, &fired, &triggered);
+        result.order_claims(
+            &world.claim_order(),
+            invariants.len() + postconditions.len() + progress.len(),
+            supplemental,
+        );
         Ok(result)
     }
 }
@@ -196,6 +203,28 @@ pub(crate) fn panic_message(error: &(dyn Any + Send)) -> &str {
 }
 
 impl<M: Machine> Result<M> {
+    fn order_claims(&mut self, claim_order: &[&str], declared: usize, supplemental: Option<usize>) {
+        let slots: Vec<_> = self.claims[..declared]
+            .iter()
+            .enumerate()
+            .filter_map(|(index, claim)| {
+                (Some(index) != supplemental && claim_order.contains(&claim.name.as_str()))
+                    .then_some(index)
+            })
+            .collect();
+        for end in 1..slots.len() {
+            for cursor in (1..=end).rev() {
+                let rank = |index: usize| {
+                    claim_order.iter().position(|name| *name == self.claims[index].name)
+                };
+                if rank(slots[cursor - 1]) <= rank(slots[cursor]) {
+                    break;
+                }
+                self.claims.swap(slots[cursor - 1], slots[cursor]);
+            }
+        }
+    }
+
     fn new(
         invariants: &[Claim<M>],
         postconditions: &[StepClaim<M>],

@@ -1,0 +1,5 @@
+error: duplicate #[invariants] group; each machine group may appear only once
+  --> tests/ui/machine_duplicate_group.rs:13:5
+   |
+13 |     #[invariants]
+   |     ^^^^^^^^^^^^^

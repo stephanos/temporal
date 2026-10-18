@@ -1,2 +1,2 @@
-start: Kettle { temperature: 20, heating_on: false, beeping: false }
-1: Act::UserPressButton choice=0 -> Kettle { temperature: 20, heating_on: true, beeping: false }
+start: Model { temperature: 20, heating_on: false, beeping: false }
+1: User::PressButton choice=0 -> Model { temperature: 20, heating_on: true, beeping: false }

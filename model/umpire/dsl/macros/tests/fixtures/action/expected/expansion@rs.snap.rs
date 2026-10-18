@@ -37,6 +37,6 @@ impl Heater {
     }
     /// Identifies actions marked internal for weak fairness.
     pub fn internal(&self) -> bool {
-        ::core::matches!(self, Self::Failover)
+        true
     }
 }

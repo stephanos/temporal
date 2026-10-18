@@ -48,6 +48,62 @@ instance; host errors name the logical method and failing ABI function. Native
 checker catch_unwind behavior and panic/overflow fixtures remain unchanged.
 Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
+## Attribute Kettle and the authoring sketch (fn-210.6)
+
+The canonical `umpire/tests/fixtures/kettle/model.rs` uses the owner-approved
+R44 nested surface derived from `options/Kettle.attrs.rs`, retaining its separate
+`User` and `Heater` enums, transition bodies and claim predicates.
+
+Remaining differences from the hypothetical sketch are deliberate:
+
+- Imports name the actual `umpire_dsl` crate instead of a hypothetical prelude.
+- `#[machine]` registers one inline public `kettle` module, with one impl per
+  part kind in transitions, invariants, postconditions, scopes and progress
+  order, instead of one annotated impl with per-method kind markers.
+- The state is named `Model` to match Scala's `object Model`, replacing the
+  sketch's `Kettle` name while leaving its fields and predicates unchanged.
+- The module discovers action enums in declaration order rather than taking
+  an actor tuple, preserving press, depress, heat, failover catalog order.
+- Actor-level `#[internal]` replaces the hypothetical `Internal` derive.
+- `State` supplies clone, equality, hashing, canonical `Spell` and ordered
+  starts with defaults for unannotated booleans; `Action` supplies clone,
+  equality, hashing, spelling and ordered enumeration.
+- `#[after(Heater::Failover)]` replaces the postcondition's `after` argument,
+  and its unused `before` parameter is omitted while the warming claim keeps it.
+- The named scope is a static function returning a module-local `Scope`
+  value through `without([User::DepressButton])`, replacing the associated
+  constant and hiding action adaptation.
+- `#[within(Self::never_switched_off)]` names that scope function, and
+  `whenever(self.heating_on).eventually(self.beeping)` builds a plain
+  module-local `Progress` value with boolean trigger and target.
+- Private generated world/action adapters implement the existing `Machine`
+  protocol; the public `world()` function returns an opaque machine exposing
+  its state and actor conversions without exposing generated type names.
+- Each transition runs on a clone, with `Some(())` emitting one successor
+  with unit outcome and no facts and `None` emitting none, while boolean
+  claims and progress values adapt to the protocol's verdict predicates.
+- State fields are public so fixture controls can construct their own starts;
+  full and cut producers sit outside the public Model module and use `world()`.
+- The existing no-heat control is generic over that public machine interface,
+  using `From<User>` and `From<Heater>` for actions while preserving its
+  single 20-degree start, disabled heat step and scoped progress claim.
+- The shared fixture runner replaces the sketch's hypothetical test APIs,
+  verifying all claims including `boils` and rendering the `never_beeps`
+  refutation of the sketch's `!beeping` predicate.
+- Registration retains no syntax tokens and performs no lifting or subset
+  analysis, following R36 rather than the sketch's lifting comment.
+
+The owner approved exactly five canonical payload substitutions on 2026-10-18:
+`Act::UserPressButton` → `User::PressButton`, `Act::UserDepressButton` →
+`User::DepressButton`, `Act::HeaterHeat` → `Heater::Heat`, and
+`Act::HeaterFailover` → `Heater::Failover`, and state prefix `Kettle { ` →
+`Model { `. This includes dependent `kettle_cut`
+vacuity output and `kettle_no_heat` rows and progress counterexample. Counts,
+state values, catalog and discovery order, claims,
+verdicts and counterexample structure stay unchanged. Snapshot metadata and
+symlink targets stay unchanged too. The separate `kettle_trait` fixture and
+its native/WASM reference payloads remain byte-identical.
+
 ## Measurements
 
 The direct-export guest built for fn-210.16 on 2026-10-18 is 3,370,765 bytes,

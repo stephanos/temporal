@@ -7,5 +7,5 @@ depth: 1
 cut: false
 outcome: Outcome::Refuted
 claim boils: Outcome::Refuted
-vacuity: action Act::HeaterHeat never fired
-vacuity: action Act::HeaterFailover never fired
+vacuity: action Heater::Heat never fired
+vacuity: action Heater::Failover never fired

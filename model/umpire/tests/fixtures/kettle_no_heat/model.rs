@@ -1,28 +1,36 @@
-use crate::fixture_kettle::{Act, Kettle, KettleWorld};
+use crate::fixture_kettle::kettle::{self, Heater, Model, User};
 use umpire_dsl::{Machine, Progress, Scope, Steps};
 
-pub struct NoHeat;
+struct NoHeat<M>(M);
 
-impl Machine for NoHeat {
-    type State = Kettle;
-    type Action = Act;
+impl<M> Machine for NoHeat<M>
+where
+    M: Machine<State = Model, Outcome = (), Fact = ()>,
+    M::Action: From<User> + From<Heater>,
+{
+    type State = Model;
+    type Action = M::Action;
     type Outcome = ();
     type Fact = ();
 
-    fn starts(&self) -> Vec<Kettle> {
-        vec![Kettle { temperature: 20, heating_on: false, beeping: false }]
+    fn starts(&self) -> Vec<Model> {
+        vec![Model { temperature: 20, heating_on: false, beeping: false }]
     }
 
-    fn actions(&self) -> Vec<Act> {
-        KettleWorld.actions()
+    fn actions(&self) -> Vec<M::Action> {
+        self.0.actions()
     }
 
-    fn internal(&self, action: &Act) -> bool {
-        KettleWorld.internal(action)
+    fn internal(&self, action: &M::Action) -> bool {
+        self.0.internal(action)
     }
 
-    fn step(&self, state: &Kettle, action: Act) -> Steps<Kettle, (), ()> {
-        if action == Act::HeaterHeat { Steps::new() } else { KettleWorld.step(state, action) }
+    fn step(&self, state: &Model, action: M::Action) -> Steps<Model, (), ()> {
+        if action == M::Action::from(Heater::Heat) {
+            Steps::new()
+        } else {
+            self.0.step(state, action)
+        }
     }
 
     fn progress(&self) -> Vec<Progress<Self>> {
@@ -30,10 +38,9 @@ impl Machine for NoHeat {
             Progress::<Self>::new("boils")
                 .whenever(|_, state| state.heating_on.into())
                 .eventually(|_, state| state.beeping.into())
-                .within(Scope::without(&[Act::UserDepressButton])),
+                .within(Scope::without(&[M::Action::from(User::DepressButton)])),
         ]
     }
 }
 
-#[cfg(test)]
-umpire_testing::fixture!(NoHeat, 16);
+umpire_testing::fixture!(NoHeat(kettle::world()), 16);

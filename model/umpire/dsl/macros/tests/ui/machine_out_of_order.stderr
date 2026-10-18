@@ -1,0 +1,5 @@
+error: out-of-order #[invariants] group; must precede #[progress]
+  --> tests/ui/machine_out_of_order.rs:13:5
+   |
+13 |     #[invariants]
+   |     ^^^^^^^^^^^^^

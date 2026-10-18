@@ -40,10 +40,9 @@ enum User {
 }
 
 #[derive(Action)]
+#[internal]
 enum Heater {
-    #[internal]
     Heat,
-    #[internal]
     Failover,
 }
 

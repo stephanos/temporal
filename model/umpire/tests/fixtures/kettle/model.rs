@@ -1,136 +1,115 @@
-//! Kettle's plain-trait world and state.
+//! Model authored with the attribute surface.
 
-use umpire_dsl::{Claim, Machine, Progress, Scope, Spell, StepClaim, Steps};
+use umpire_dsl::{Claim, machine};
 
-const BOILING_TEMPERATURE: i32 = 100;
-const COLDEST_TEMPERATURE: i32 = -40;
+/// A kettle controlled by its user and heating element.
+#[machine]
+pub mod kettle {
+    use umpire_dsl::{Action, State};
 
-/// Kettle's constant-free world.
-pub struct KettleWorld;
+    const BOILING_TEMPERATURE: i32 = 100;
+    const COLDEST_TEMPERATURE: i32 = -40;
 
-/// Exploration budget used by the sample's full fixture.
-pub const BUDGET: usize = 1 << 20;
-
-#[cfg(test)]
-umpire_testing::fixture!(KettleWorld, BUDGET, Claim::<KettleWorld>::new("never_beeps", |_, state| (!state.beeping).into()));
-
-#[derive(Clone, PartialEq, Eq, Hash, Debug)]
-/// Kettle's dynamic state.
-pub struct Kettle {
-    /// Current temperature.
-    pub temperature: i32,
-    /// Whether heating is enabled.
-    pub heating_on: bool,
-    /// Whether the kettle beeps.
-    pub beeping: bool,
-}
-
-#[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]
-/// Kettle's ordered action catalog.
-pub enum Act {
-    /// Enable heating.
-    UserPressButton,
-    /// Disable heating.
-    UserDepressButton,
-    /// Raise the temperature.
-    HeaterHeat,
-    /// Stop heating and beep at boiling.
-    HeaterFailover,
-}
-
-impl Machine for KettleWorld {
-    type State = Kettle;
-    type Action = Act;
-    type Outcome = ();
-    type Fact = ();
-
-    fn starts(&self) -> Vec<Kettle> {
-        (COLDEST_TEMPERATURE..=40)
-            .map(|temperature| Kettle { temperature, heating_on: false, beeping: false })
-            .collect()
+    /// Model's dynamic state.
+    #[derive(State)]
+    pub struct Model {
+        /// Current temperature.
+        #[starts(COLDEST_TEMPERATURE..=40)]
+        pub temperature: i32,
+        /// Whether heating is enabled.
+        pub heating_on: bool,
+        /// Whether the kettle beeps.
+        pub beeping: bool,
     }
 
-    fn actions(&self) -> Vec<Act> {
-        vec![Act::UserPressButton, Act::UserDepressButton, Act::HeaterHeat, Act::HeaterFailover]
+    /// Actions controlled by the user.
+    #[derive(Action)]
+    pub enum User {
+        /// Enable heating.
+        PressButton,
+        /// Disable heating.
+        DepressButton,
     }
 
-    fn internal(&self, action: &Act) -> bool {
-        matches!(action, Act::HeaterHeat | Act::HeaterFailover)
+    /// Actions controlled by the heating element.
+    #[derive(Action)]
+    #[internal]
+    pub enum Heater {
+        /// Raise the temperature.
+        Heat,
+        /// Stop heating and beep at boiling.
+        Failover,
     }
 
-    fn step(&self, state: &Kettle, action: Act) -> Steps<Kettle, (), ()> {
-        let mut next = state.clone();
-        match action {
-            Act::UserPressButton if !state.heating_on => {
-                next.heating_on = true;
-                next.beeping = false;
-            }
-            Act::HeaterFailover if state.heating_on && state.temperature >= BOILING_TEMPERATURE => {
-                next.heating_on = false;
-                next.beeping = true;
-            }
-            Act::HeaterHeat if state.heating_on && state.temperature < BOILING_TEMPERATURE => {
-                next.temperature += 1;
-            }
-            Act::UserDepressButton if state.heating_on => {
-                next.heating_on = false;
-                next.beeping = false;
-            }
-            _ => return Steps::new(),
+    #[transitions]
+    impl Model {
+        #[on(User::PressButton)]
+        fn press_button(&mut self) -> Option<()> {
+            (!self.heating_on).then(|| {
+                self.heating_on = true;
+                self.beeping = false;
+            })
         }
-        let mut steps = Steps::new();
-        steps.push(((), Vec::new(), next));
-        steps
+
+        #[on(Heater::Failover)]
+        fn failover(&mut self) -> Option<()> {
+            (self.heating_on && self.temperature >= BOILING_TEMPERATURE).then(|| {
+                self.heating_on = false;
+                self.beeping = true;
+            })
+        }
+
+        #[on(Heater::Heat)]
+        fn heat(&mut self) -> Option<()> {
+            (self.heating_on && self.temperature < BOILING_TEMPERATURE).then(|| {
+                self.temperature += 1;
+            })
+        }
+
+        #[on(User::DepressButton)]
+        fn depress_button(&mut self) -> Option<()> {
+            self.heating_on.then(|| {
+                self.heating_on = false;
+                self.beeping = false;
+            })
+        }
     }
 
-    fn invariants(&self) -> Vec<Claim<Self>> {
-        vec![Claim::<Self>::new("beeps_only_when_off", |_, k| (!k.beeping || !k.heating_on).into())]
+    #[invariants]
+    impl Model {
+        fn beeps_only_when_off(&self) -> bool {
+            !self.beeping || !self.heating_on
+        }
     }
 
-    fn postconditions(&self) -> Vec<StepClaim<Self>> {
-        vec![
-            StepClaim::<Self>::new("warms_only_when_on", |_, before, after, _, (), _| {
-                (before.heating_on || after.temperature <= before.temperature).into()
-            }),
-            StepClaim::<Self>::after(
-                "fails_over_at_boiling",
-                Act::HeaterFailover,
-                |_, _, after, _, (), _| {
-                    (after.temperature == BOILING_TEMPERATURE && after.beeping).into()
-                },
-            ),
-        ]
+    #[postconditions]
+    impl Model {
+        fn warms_only_when_on(&self, before: &Self) -> bool {
+            before.heating_on || self.temperature <= before.temperature
+        }
+
+        #[after(Heater::Failover)]
+        fn fails_over_at_boiling(&self) -> bool {
+            self.temperature == BOILING_TEMPERATURE && self.beeping
+        }
     }
 
-    fn progress(&self) -> Vec<Progress<Self>> {
-        vec![
-            Progress::<Self>::new("boils")
-                .whenever(|_, k| k.heating_on.into())
-                .eventually(|_, k| k.beeping.into())
-                .within(Scope::without(&[Act::UserDepressButton])),
-        ]
+    #[scopes]
+    impl Model {
+        /// The user switches the kettle on but never off.
+        fn never_switched_off() -> Scope {
+            without([User::DepressButton])
+        }
+    }
+
+    #[progress]
+    impl Model {
+        /// Switched on and left on, the water boils and the kettle beeps.
+        #[within(Self::never_switched_off)]
+        fn boils(&self) -> Progress {
+            whenever(self.heating_on).eventually(self.beeping)
+        }
     }
 }
 
-impl Spell for Kettle {
-    fn spell(&self, out: &mut String) {
-        out.push_str("Kettle { temperature: ");
-        self.temperature.spell(out);
-        out.push_str(", heating_on: ");
-        self.heating_on.spell(out);
-        out.push_str(", beeping: ");
-        self.beeping.spell(out);
-        out.push_str(" }");
-    }
-}
-
-impl Spell for Act {
-    fn spell(&self, out: &mut String) {
-        out.push_str(match self {
-            Self::UserPressButton => "Act::UserPressButton",
-            Self::UserDepressButton => "Act::UserDepressButton",
-            Self::HeaterHeat => "Act::HeaterHeat",
-            Self::HeaterFailover => "Act::HeaterFailover",
-        });
-    }
-}
+umpire_testing::fixture!(kettle::world(), 1 << 20, Claim::new("never_beeps", |_, state: &kettle::Model| (!state.beeping).into()));

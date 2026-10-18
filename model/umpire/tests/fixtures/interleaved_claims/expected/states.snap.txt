@@ -1,0 +1,2 @@
+0: Counter { value: 0 }
+1: Counter { value: 1 }

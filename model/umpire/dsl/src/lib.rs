@@ -13,9 +13,7 @@ pub use machine::{Machine, Step, Steps};
 pub use progress::Progress;
 pub use scope::Scope;
 pub use spell::Spell;
-pub use umpire_dsl_macros::{
-    Action, State, invariant, machine, on, postcondition, progress, scope,
-};
+pub use umpire_dsl_macros::{Action, State, machine};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

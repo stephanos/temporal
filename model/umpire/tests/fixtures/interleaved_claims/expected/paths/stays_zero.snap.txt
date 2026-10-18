@@ -1,0 +1,2 @@
+start: Counter { value: 0 }
+1: User::Advance choice=0 -> Counter { value: 1 }

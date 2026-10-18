@@ -1,54 +1,75 @@
 use std::fmt::Write;
 
-use umpire_dsl::{Action, Machine, Outcome, Progress, Scope, Spell, State, Verdict, invariant, machine, on, postcondition, progress, scope};
+use umpire_dsl::{Machine, Outcome, Spell, Verdict, machine};
+
+#[machine]
+mod counter {
+use umpire_dsl::{Action, State};
 
 #[derive(State)]
-struct Counter {
+pub struct Counter {
     #[starts(0..=1)]
-    value: u8,
+    pub value: u8,
 }
 
 #[derive(Action)]
-enum User { Increment, Reset }
+pub enum User { Increment, Reset }
 
 #[derive(Action)]
-enum Clock { #[internal] Tick }
+#[internal]
+pub enum Clock { Tick }
 
-#[machine(actions = (User, Clock))]
+#[transitions]
 impl Counter {
     #[on(Clock::Tick)]
     fn tick(&mut self) -> Option<()> { self.value += 1; None }
-
-    #[postcondition(after = User::Reset)]
-    fn reset_clears(&self, _before: &Self) -> bool { self.value == 0 }
 
     #[on(User::Reset)]
     #[allow(clippy::unnecessary_wraps, reason = "transition handlers return Option even when always enabled")]
     fn reset(&mut self) -> Option<()> { self.value = 0; Some(()) }
 
-    #[invariant]
-    fn bounded(&self) -> bool { self.value <= 2 }
-
-    #[scope]
-    fn never_reset() -> Scope<CounterAction> {
-        Scope::without(&[CounterAction::User(User::Reset)])
-    }
-
-    #[progress(within = Self::never_reset())]
-    fn reaches_two() -> Progress<CounterWorld> {
-        Progress::<CounterWorld>::new("replaced_name")
-            .whenever(|_, s| (s.value == 1).into())
-            .eventually(|_, s| (s.value == 2).into())
-    }
-
-    #[postcondition]
-    fn grows_at_most_one(&self, before: &Self) -> bool { self.value <= before.value + 1 }
-
     #[on(User::Increment)]
-    fn increment(&mut self) -> Option<()> {
+    pub fn increment(&mut self) -> Option<()> {
         (self.value < 2).then(|| { self.value += 1; })
     }
+
+    fn helper(&self) -> bool { self.value <= 2 }
 }
+
+#[invariants]
+impl Counter {
+    fn bounded(&self) -> bool { self.helper() }
+}
+
+#[postconditions]
+impl Counter {
+    #[after(User::Reset)]
+    fn reset_clears(&self) -> bool { self.value == 0 }
+
+    fn grows_at_most_one(&self, before: &Self) -> bool { self.value <= before.value + 1 }
+}
+
+#[scopes]
+impl Counter {
+    fn never_reset() -> Scope {
+        without([User::Reset])
+    }
+}
+
+#[progress]
+impl Counter {
+    #[within(Self::never_reset)]
+    fn reaches_two(&self) -> Progress {
+        whenever(self.value == 1).eventually(self.value == 2)
+    }
+}
+
+impl Counter {
+    pub fn unregistered(&self) -> bool { self.helper() }
+}
+}
+
+use counter::{Counter, User};
 
 fn spelled(value: &impl Spell) -> String {
     let mut out = String::new();
@@ -64,8 +85,9 @@ fn judgment(verdict: Verdict) -> String {
     })
 }
 
+#[machine]
 mod public_state {
-    use umpire_dsl::{Action, Machine, State, machine};
+    use umpire_dsl::{Action, State};
 
     #[derive(State)]
     pub struct Public {}
@@ -73,17 +95,14 @@ mod public_state {
     #[derive(Action)]
     pub enum Nobody {}
 
-    #[machine(actions = (Nobody,))]
-    impl Public {}
-
-    pub(super) fn starts() -> usize { PublicWorld.starts().len() }
 }
 
 pub(crate) fn run() -> umpire_testing::RunResult {
-    let world = CounterWorld;
+    let world = counter::world();
     let mut output = String::new();
-    writeln!(output, "public state starts: {}", public_state::starts())?;
+    writeln!(output, "public state starts: {}", public_state::world().starts().len())?;
     let mut direct = Counter { value: 0 };
+    assert!(direct.unregistered());
     let enabled = direct.increment().is_some();
     writeln!(output, "direct transition: {enabled} {}", spelled(&direct))?;
     for state in world.starts() {
@@ -106,7 +125,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         }
     }
     let state = Counter { value: 2 };
-    writeln!(output, "disabled increment: {}", world.step(&state, CounterAction::User(User::Increment)).len())?;
+    writeln!(output, "disabled increment: {}", world.step(&state, User::Increment.into()).len())?;
     writeln!(output, "original state: {}", spelled(&state))?;
     writeln!(output, "order: {}", world.claim_order().join(", "))?;
     for claim in world.invariants() {

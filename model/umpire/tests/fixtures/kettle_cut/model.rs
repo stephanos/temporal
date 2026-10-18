@@ -1,3 +1,3 @@
-use crate::fixture_kettle as kettle;
+use crate::fixture_kettle::kettle;
 
-umpire_testing::fixture!(kettle::KettleWorld, 82);
+umpire_testing::fixture!(kettle::world(), 82);

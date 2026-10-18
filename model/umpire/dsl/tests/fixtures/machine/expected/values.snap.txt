@@ -10,7 +10,7 @@ User::Reset internal: false edges: 1 next: Counter { value: 0 } outcome: () fact
 Clock::Tick internal: true edges: 0
 disabled increment: 0
 original state: Counter { value: 2 }
-order: reset_clears, bounded, reaches_two, grows_at_most_one
+order: bounded, reset_clears, grows_at_most_one, reaches_two
 bounded: Outcome::Verified
 scope never_reset: User::Reset
 progress reaches_two: Outcome::Verified -> Outcome::Verified; without User::Reset
