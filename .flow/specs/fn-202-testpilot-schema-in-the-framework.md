@@ -56,3 +56,7 @@ Leaving the schema under the server's internal protos keeps Testpilot a Temporal
 
 2026-10-18, the simulation is WebAssembly on wasmtime (owner): the generic adapter interface of R3 must be expressible both as the NDJSON bridge (live Testpilot runtime) and as an in-host interface (wasmtime host functions or a component-model world) for the simulation. Define the interface once as data types in the framework proto and derive both transports from it; no transport-specific types in the generic packages.
 
+2026-10-18, target boundary (owner): the generic Go packages of R3 are the host loop and the driver interface, not a runtime with a Program interpreter. On the fn-209 go branch, Program sequencing, Contract evaluation, evidence policies and assessment leave Go; the driver interface has three implementations (real Temporal, simulated Temporal in wasm, recorded Run), and the read-until predicate on an instruction is the only execution-control logic a driver evaluates. The schema keeps Program as data the Model side consumes; nothing in the generic Go packages interprets it.
+
+2026-10-18, snapshot and restore (owner): the generic adapter interface carries `snapshot() -> id` and `restore(id)` on the oracle side, over the Model's immutable state, claim and monitor values; a host that can snapshot its own store may ignore them, a host driving a sidecar must use them. This is what lets a native-image oracle serve the deterministic simulation and keeps the interface identical across the wasm and native hostings.
+

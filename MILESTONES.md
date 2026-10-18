@@ -182,7 +182,7 @@ facet vocabularies are recorded in fn-161.
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.10/.12-.13/.15-.19 done; native exploration .20 → .21 next, with .14/.8 and .11 integration blocked; then full .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.10/.12-.13/.15-.20 done; native refutation .21 in progress, with .14/.8 and .11 integration blocked; then full .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: Temporal Models native (owner, 2026-10-18) | fn-166 (mini first), then fn-128/fn-129 and fn-160/fn-161/fn-163/fn-165 (standalone activity, layout, facets, sweep proofs restated as native checks), then the Nexus Models; fn-197's Temporal examples | Re-enable `model/temporal` against the final DSL and get the Temporal Models right before any IR, emitter or Case work: migrate the disabled sources to plain-Scala Models, mini then activity then Nexus, and run every Temporal Model through the native checker and ModelSuite under the budget policy. Gate: native checks and ModelSuite green on the Temporal Models; no IR, no Go. Realizations compile against the realize kits; Cases wait for fn-203. State-space size (Nexus close policies, activity record compositions) is the risk and the first real workout of budgets and owner-side cuts |
 | Phase 4: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production are Phase 4 (fn-199..209); fn-190.3/.5 and fn-196.4 closed by reference on 2026-10-18. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
 | Phase 5: one language (filed 2026-10-18) | fn-199 → fn-200 → fn-201 → fn-209 spike → fn-203 and fn-206/fn-207 in parallel lanes → fn-204 → fn-208; fn-202 in its own lane whenever Go work is released; fn-205 deferred | Every Model-reading capability leaves `tools/umpire` for `model/framework`: native refinement and composed fairness, native lint with `@gap`, the IR as an internal lift tree, the Testpilot schema in the framework and Temporal-agnostic, Cases and the conformance descriptor produced in Scala, Apalache and TLC over a direct TLA+ emission, then the rename to `tools/testpilot`. Owner decisions settled 2026-10-18: modality tables dropped with H2 pending the reasons review (fn-200.5), `Any` seam and package rename (fn-202.2/.4), host `Int` numerics (fn-201.5), native replay plus TLC set agreement replaces Go replay (fn-208.4); the portable-binary spike's go/no-go (fn-209.4) decides between the descriptor and an embedded or sidecar Model oracle. Nothing here touches the DSL or the Temporal Models; the series starts only after Phase 4's gate. The earlier "Later" holds (framework build/export, IR/schema/Go/backends) are discharged by these specs or closed by reference |
@@ -1242,15 +1242,41 @@ receiver double-evaluation review hypothesis was refuted by executed source/libr
 controls; both quality axes have zero outstanding findings. Root verified all 3,680 v2 artifact
 bindings and committed done status. User design renames, concurrent specs and dependency removal
 remain untouched. Evidence is under `.flow/tmp/fn19519/`, including all four verbatim quality
-reports. Actual question execution remains .20, refutation .21 and Registry integration original .9.
+reports. Its question-execution consumer is completed .20 below; refutation remains .21 and
+Registry integration original .9.
+
+fn-195.20 is complete at corrected source `ad087b4e70`, closure `7766877ad3`.
+Native find/sample registration reuses the exact suite's immutable execution budget, preserves
+every positioned target and native evidence, and retains seeded paths without conformance or
+Case eligibility. The final matrix passes native20, public harness5 and direct suite4 in both
+source/library arrangements, ingredient28 and scratch Quick4; twelve direct grammar refusals
+and four strict-warning controls are validated separately. Checker-absent loading/registration
+is also proved, without counting inactive harness branches as semantic execution. Review probes
+reproduced and corrected executable-prefix state contamination and nested failure-position
+overwrite; both supplemental quality axes have zero outstanding findings. Root independently
+verified the final source/artifact bindings and committed done status. Evidence is under
+`.flow/tmp/fn19520/`. No canonical Quick receipt, actual Registry selection, held integration or
+formal phase-batch review credit is claimed. Refutation .21 consumes this integrated closure.
+
+fn-195.21 is complete: product source `240dbebb07`, public branch controls `0c345ea44a`,
+closure `3534d19636`. Deferred named Unit-claim capture preserves native counterexample evidence
+and accepts only genuine refutation as a passing negative MUnit test. Source/library checks cover
+the exact suite budget, receiver identity, located refusals, checker-free declarations and inert
+claim capture. Dedicated public controls verify named postcondition counterexamples and reject
+effect exceptions as negative-test success. The inherited secondary macro crash is corrected;
+both original and supplemental quality axes have no outstanding findings. Native exploration
+consumers are complete, but original .9 still owns actual Registry-selected integration and .3
+still owns retirement/full corpus admission. No canonical or formal batch gate credit is claimed.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-195.14 | ⏸️ deferred | Explicitly blocked after .13 until the complete held-suite metadata route is admitted and Registry/Tools/both actual gate integrations are split into bounded tasks; fn-196.2 ordering remains unchanged |
 | fn-195.8 | ⏸️ blocked | Lifecycle/native execution checkpoint `ff0dcaf55d` passes native719 and all20 admitted stages, but actual Registry omits two runnable stable-term suites; .13 leaf is done, full .14 production integration remains required (R1, R2, local R7) |
 | fn-195.19 | ✅ done | Immutable reusable native spaces and whole-action/per-input `any` selectors; source/test `254116aba7`, closure `4c540b75e7`; native source/library8 each, no complete discovery credit (R3, local R7) |
-| fn-195.20 | ⬜ ready | After committed .19: find/sample suite adapters, every positioned target, seeded paths and one exact-suite budget (R3, local R7) |
-| fn-195.21 | ⬜ todo | After .20: deferred native refutation, complete local refusal matrix and minimum public reference coverage (R3, local R7) |
+| fn-195.20 | ✅ done | Native find/sample suite adapters; corrected source `ad087b4e70`, closure `7766877ad3`; native20, public source/library harness5 and direct4 each, shared exact-suite budget (R3, local R7) |
+| fn-195.22 | 🔄 in progress | Explicit exact-realization admission and full expectation/canonical-monitor validation; isolated four-file prerequisite after .2/.17/.18, no automatic inventory or eligibility credit |
+| fn-195.23 | ⬜ todo | After .22/.21: actual selected-class coverage during complete finite replay and opaque verified eligibility, no deferred-input prewalk |
+| fn-195.24 | ⬜ todo | After .23: public authored-explicit conformance registration and eligible-only selector; full automatic/sample/capability/Registry integration stays in .11 |
 | fn-195.9 | ⬜ todo | After full .8 and .19-.21: actual Registry-selected public exploration source/library integration; all original obligations retained (R3, local R7) |
 | fn-195.11 | ⏸️ deferred | Explicit hold on integrated complete inventory/capability mechanisms, .17/.18 leaves and .9; .15/.16 report closures alone cannot release typed native conformance integration (R4, R5, local R7) |
 | fn-195.3 | ⬜ todo | After .11: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; final suite source admission including no-test suites; refine retained L scope before admission (R5, R7) |
@@ -1325,6 +1351,10 @@ Review remains deferred, the parent spec stays open, and Phase 3 holds remain in
 
 | Name | Status | What |
 | --- | --- | --- |
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-196.8 | ⬜ todo | Checker performance: define each claim section class once (Bank 83 s is ~97% per-evaluation class loading), then memoized postconditions, reflection-free var access, single input validation, cheaper dedup; Bank under 5 s, same verdicts (R4) |
 
 ### fn-197: Correlated obligations: `owes(fact).until(fact)`
 
@@ -1515,22 +1545,26 @@ predicates: no Contract clauses lowered from Properties (fn-203.3), no descripto
 on passive observation. The spike tries three targets that fail on different things: native-image on
 load-time bytecode rewriting and reflection, Scala Native on the absence of bytecode, WebAssembly
 (Scala.js backend, WasmGC) on the Go host's GC support and the host shim; the shared question is
-whether the claim-section rewriter can become compile-time. The deterministic simulation itself runs as WebAssembly on wasmtime (owner, 2026-10-18), so wasm is
-the required target and runs first: the Model must load, snapshot and be called in the same wasmtime store as
-the simulated system; native-image and Scala Native are fallbacks for the live-deployment sidecar only. On
-go the end state is Go as an act-and-observe adapter and Scala as decide-and-judge, the bridge as an in-host
-interface in the simulation and NDJSON for the live runtime. Placed before fn-203 so the decision precedes the hard work.
+whether the claim-section rewriter can become compile-time. The deterministic simulation itself runs as WebAssembly on wasmtime (owner, 2026-10-18). Both sides are
+deterministic, so the Model need not share the store: it restores by its own snapshot ids over immutable state
+values (or by prefix replay). Wasm is therefore preferred for the simulation on per-step latency and packaging,
+GraalVM native-image is the live-deployment oracle and a viable synchronous sidecar for the simulation, Scala
+Native a fallback; the simulation does not hinge on the experimental scala-wasm fork. On
+go the end state is one rule and one loop (owner, 2026-10-18): Go executes one instruction against a system and
+reports what it observed; the Model decides what to do and what it means. Frozen Cases, live exploration and
+offline assessment are the same loop with different drivers (real Temporal, simulated Temporal in wasm, recorded
+Run); Go keeps the wasmtime host, the loop, the recorder, the coordinator and the drivers. Placed before fn-203
+so the decision precedes the hard work.
 [Spec](.flow/specs/fn-209-spike-the-scala-checker-as-a-native.md).
 
-Owner admission, 2026-10-18: run fn-209 in an isolated parallel lane while the current native DSL work continues. Task .1 starts with the scratch compile-time claim-rewriter proof; compiler runs remain coordinated. This early spike admission does not release the remaining series or Temporal work.
+Owner admission, 2026-10-18: run fn-209 in isolated parallel lanes while the current native DSL work continues; compiler runs remain coordinated. This early spike admission does not release the remaining series or Temporal work. Task .1 is complete: source note `7fed852f2a`, local integration `9343d9b44a`, closure `83183abd1d`. The unchanged Bank tests plus two semantic controls pass 13/13 from source and a separately packaged library with runtime rewriting disabled. Both independent quality axes accepted this bounded proof. The original broad scratch baseline remains red (760 passes, 13 inherited discovery errors); no canonical full gate or WASM success is claimed. Its frozen evidence is preserved outside the removed spike worktree at `.flow/tmp/fn209-proof-v1/`.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-209.1 | 🔄 in progress | Can the claim-section rewriter become a compile-time macro or plugin phase? (R1) |
-| fn-209.2 | ⬜ todo | After .5: GraalVM native-image, live-sidecar fallback only (R2) |
-| fn-209.3 | ⬜ todo | After .5: Scala Native, live-sidecar fallback only (R3) |
-| fn-209.5 | ⬜ todo | After .1: WebAssembly build in wasmtime beside a second module, snapshot/restore, call latency (R3a, R3b); the required target |
-| fn-209.4 | ⬜ todo | After .5 (.2/.3 reported, not deciding): go/no-go on the wasm result, fn-203.3 and fn-204 recut on go (R4) |
+| fn-209.2 | 🔄 in progress | Isolated native-image live oracle and synchronous simulation-sidecar probe; snapshot/restore and per-step round trips (R2, R3c); preparation while .21 owns compilation |
+| fn-209.3 | ⬜ todo | After .2/.5 evidence: record conditional Scala Native fallback disposition, probe only if needed; not a mandatory third target build (R3) |
+| fn-209.5 | 🔄 in progress | Isolated standalone WASM/wasmtime-go probe, same-store second module, call latency and owner-approved restore mechanism (R3a, R3b, R3c); preparation while .21 owns compilation |
+| fn-209.4 | ⬜ todo | After .2/.5: go/no-go by measured per-step cost and packaging (wasm in-host, else native sidecar); fn-203.3 and fn-204 recut on go (R4) |
 
 ### fn-206: Apalache backend in Scala
 

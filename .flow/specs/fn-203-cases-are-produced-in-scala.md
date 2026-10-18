@@ -56,3 +56,5 @@ Keeping the Go lowerer would keep the Go checker, because `NewProducer` runs `ch
 
 2026-10-18, one-language series: absorbs by reference: fn-160 R15 (drop `scala.` from Case identities, in the one-time identity recut), fn-166.6's Case-tree layout under `generated/cases/`, fn-148.7's format-4 artifact migration (merged into .4), fn-123.6 and fn-129.3-.5 lowering refusals (Temporal adapter, .5), and the lowering halves fn-146.6, fn-147.2, fn-148.2/.3/.5/.6 (Temporal adapter, .5). fn-195.11's producer-facing native selector is .1's input.
 
+2026-10-18, target boundary (owner): on the fn-209 go branch the producer emits the Program as data for the Model side to replay and the Case identity; R3 (Property to Contract clauses) closes as unnecessary and the generic Go runtime interprets nothing. On no-go the spec stands as filed.
+

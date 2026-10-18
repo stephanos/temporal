@@ -147,6 +147,8 @@ The measurement's repeated-instance controls found 0 of 64 constructed-only Mode
 
 2026-10-18, one-language series: R5 is closed as replaced by fn-204 (owner decision). The Boundaries bullet "the Testpilot runtime, Driver and canary stay in Go and do not change" bounded fn-196's own work; fn-202 is the authorized change to the runtime's layout (protos under the framework, a driver seam for the seven Temporal-typed fields, a generic/Temporal split). The bullet "Quint and TLA export stay over the IR" is superseded: backends are Scala, over an internal lift tree (fn-201); Apalache in fn-206 and TLC in fn-207 on a direct TLA+ emission, Quint in fn-205 (deferred). The opening Boundaries paragraph ("keep existing Go consumers until …") is discharged by fn-199 (refinement, replacement, composed fairness), fn-200 (lint), fn-203 (Cases), fn-204 (recorded-Run assessment) and fn-208 (deletion); fn-196.4 closes by reference to fn-208. The series is fn-199 through fn-209.
 
+2026-10-18, performance diagnosis (task .8): R4's measurement (Bank 83 s, Voting7 cut) is dominated by one implementation choice, not by the design: `ClaimEvaluation.evaluate` defines a fresh class per claim evaluation (new ClassLoader, defineClass, Class.forName, reflective constructor), about 744k times on Bank, so claim bodies never JIT and metaspace churns. Solving Bank and Voting5 together gives about 108 us per section evaluation versus under 3 us for the rest of a step. Task .8 fixes that first (expected 83 s to 2-4 s), then the smaller per-step costs. The measurement note's conclusions about budgets and the no-go are to be re-read after .8 lands; the fn-209 latency comparisons must use post-.8 numbers.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
