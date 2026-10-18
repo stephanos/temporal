@@ -18,13 +18,16 @@ import (
 
 const frameworkRoot = modelRoot + "/framework"
 
-// TestFrameworkLayout keeps the generic framework's source path and Scala namespace distinct from
-// the Umpire product and its tooling namespaces. Production IR and Cases are intentionally omitted:
-// the batch seal regenerates those once all structural renames have landed.
-func TestFrameworkLayout(t *testing.T) {
-	require.DirExists(t, filepath.Join(repoRoot, frameworkRoot))
-	require.NoDirExists(t, filepath.Join(repoRoot, modelRoot, "umpire"))
+func TestModelWorkspaceLayout(t *testing.T) {
+	require.DirExists(t, filepath.Join(repoRoot, scalaRoot, "framework"))
+	require.NoDirExists(t, filepath.Join(repoRoot, scalaRoot, "umpire"))
+	require.DirExists(t, filepath.Join(repoRoot, modelRoot, "umpire"))
+}
 
+// TestFrameworkLayout keeps the generic framework's Scala namespace distinct from the Umpire product
+// and its tooling namespaces. Production IR and Cases are intentionally omitted: the batch seal
+// regenerates those once all structural renames have landed.
+func TestFrameworkLayout(t *testing.T) {
 	var mentions []string
 	require.NoError(t, modelFiles(func(rel, content string) {
 		if strings.HasPrefix(rel, modelRoot+"/ir/") || strings.HasPrefix(rel, modelRoot+"/cases/") {
