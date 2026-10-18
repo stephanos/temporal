@@ -88,8 +88,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.13 | 🔄 in progress | After .12, alone: `umpire-tests` crate with the shared fixtures in `umpire/tests/fixtures/`, consumers selected by expected files; Kettle's source moves into its fixture and `samples` is removed (R29) |
-| fn-210.9 | ⬜ todo | After .13, decisive: the checker as wasm in a wazero Go host, generated protobuf interface (R31, R32), on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
+| fn-210.9 | 🔄 in progress | After .13, decisive: the checker as wasm in a wazero Go host, generated protobuf interface (R31, R32), on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
 | fn-210.3 | ⬜ todo | After .13: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .13: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |

@@ -4,25 +4,23 @@ satisfies: [R20, R15, R24, R31, R32]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a wazero Go host, generated protobuf interface, on the trait Kettle
 
 ## Description
-**Recut 2026-10-18 (R31, R32):** the host is wazero, not wasmtime-go, and the interface is generated protobuf, not a hand ABI. Add `model2/umpire/proto/umpire/oracle/v1/oracle.proto` (Explore, Rows, Refusal); `umpire-wasm` builds it with `prost-build` and exports only `alloc`, `free` and `call(method, ptr, len) -> u64` for target `wasm32-wasip1`; `model2/hosts/go` generates Go types with `protoc-gen-go` and loads the module with wazero v1.12 under `CGO_ENABLED=0`. Ignore the wasmtime-go and component-target instructions below; the report string in `ExploreResponse` is what is compared byte for byte with the golden.
+**Current owner recut (R31, R32):** build the decisive stock-rustc slice using generated protobuf over a three-function core-wasm ABI, hosted by wazero v1.12 with `CGO_ENABLED=0`. This supersedes all former wasmtime-go/component instructions. The hosted module and dsl/checker portability gate target `wasm32-wasip1`.
 
-**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner. The Go host test belongs in the gate only if it stays within budget warm (wasmtime-go's first build is excluded).
+One schema at `model2/umpire/proto/umpire/oracle/v1/oracle.proto` (package `umpire.oracle.v1`) defines Explore, Rows and Refusal messages. Generate Rust with admitted `prost`/`prost-build` 0.14 and mise-pinned protoc; generate Go with the repository's pinned `protoc-gen-go`. Only application exports are `alloc(len) -> ptr`, `free(ptr, len)` and `call(method, ptr, len) -> u64` (packed response pointer/length). Unknown methods and undecodable requests return generated Refusal messages; API misuse crosses as a code plus message and becomes a Go error. Unexpected traps become host errors naming the method. No handwritten message structs or extra operation exports.
 
-**Location (R29 amended):** there is no `samples` library; `umpire-wasm` includes `umpire/tests/fixtures/kettle_trait/model.rs` by `#[path]`.
+`umpire-wasm` includes the production-includable trait Kettle source `umpire/tests/fixtures/kettle_trait/model.rs` by `#[path]`; there is no samples crate. Compare `ExploreResponse.report` byte-for-byte with that fixture's `expected/report.txt` and ordered Rows output with its `expected/rows.txt`. Preserve canonical Spell text and author Rust names. This task precedes the macro surface (R24).
 
-**Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
+R15 requires more than compilation: a dependency on threads, filesystem or clock in core dsl/checker fails the gate. Host build-script filesystem access is permitted. Use complementary resolved-API and real-artifact checks, with regression controls and documented scope; never weaken core unsafe policy for the narrowly justified ABI export attributes.
 
-**Conventions 2026-10-18 (R25, R27):** the wasm report is the `Spell`-based report text, so byte equality with the golden follows; a `Refusal` crosses the ABI as an error code plus its message, and the Go host turns it into a Go error.
+Measure real module size, load time and per-call latency over 100,000 Rows calls. Record the stock-toolchain result immediately in `model2/DESIGN.md`: R20 passing means Rust; otherwise record the precise blocker and Scala recommendation. Continue the remaining tasks regardless. No Temporal/Testpilot integration or Scala source changes.
 
-**Recut 2026-10-18 (R24, decisive):** this task decides the prototype. Run it right after .2 and .10 on the trait-shaped Kettle fixture (`umpire/tests/fixtures/kettle_trait/`), not the surface-C Kettle; the goldens it must match byte for byte are that fixture's `expected/report.txt` and `rows.txt`. Stock rustc only. Record the result in `model2/DESIGN.md` immediately (a short verdict section), then continue with the remaining tasks.
+**Feedback loop (R30):** warm inner loop <=3s and `make model2-check` <=30s. Record actual `make model2-time` output; fix breaches here or obtain owner exception. Include CGO-disabled Go parity tests and wasm builds in the default gate within budget; preserve real failure propagation and per-step timing.
 
-**Layout (R22):** the wasm host's expected report and rows are Kettle's goldens in `umpire/tests/fixtures/kettle/expected/`; the Go host reads them from there.
+**Parallel implementation:** after fixing the schema/ABI contract, use isolated Rust guest and Go host subagent lanes with disjoint ownership. One lead owns schema, shared manifests/lockfiles/Makefile/tooling, integration, final gates, review and task completion. Do not concurrently mutate one checkout.
 
-New crate `umpire/wasm` exporting `explore(budget)` (returns Kettle's report text) and `rows(state_id)` with a pointer-and-length ABI (`alloc`, `free`, result buffers). First finding: whether wasmtime-go can host a `wasm32-wasip2` component; if not, build a `wasm32-wasip1` core module for the host (R15's wasip2 build of dsl and checker stays in the gate). Go module `model2/hosts/go` (Go pinned by mise) loads the module and its `go test` compares the report with `tests/fixtures/kettle/expected/report.txt` byte for byte and `rows` with `tests/fixtures/kettle/expected/rows.txt`. Measure module size, load time and per-call latency (10^5 `rows` calls) for DESIGN.md.
+**Touches:** `model2/umpire/proto/**`, `model2/umpire/wasm/**`, `model2/hosts/go/**`, `model2/Cargo.toml`, `model2/Cargo.lock`, `model2/rust-toolchain.toml`, `model2/clippy.toml`, `model2/deny.toml`, `model2/README.md`, `model2/DESIGN.md`, `model2/scripts/**`, `model2/umpire/dsl/clippy.toml`, `model2/umpire/checker/clippy.toml`, `model2/umpire/dsl/tests/**`, `model2/umpire/checker/tests/**`, `Makefile`
 
-**Files:** model2/umpire/wasm/, model2/hosts/go/{go.mod,host.go,host_test.go}, model2/umpire/tests/fixtures/kettle/expected/rows.txt, Makefile (`model2-check` runs the Go host test).
-
-**Quick commands:** `mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release`; `cd model2/hosts/go && mise exec -- go test ./...`
+**Quick commands:** from model2, `mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked`; from model2/hosts/go, `CGO_ENABLED=0 mise exec -- go test -count=1 ./...`; from repository root, `make model2-check` and `make model2-time`.
 ## Acceptance
 - The Go host test passes under `CGO_ENABLED=0` with wazero: `ExploreResponse.report` and `RowsResponse` match the trait Kettle's goldens byte for byte.
 - Both sides are generated from `oracle.proto`; no hand-written message structs.
