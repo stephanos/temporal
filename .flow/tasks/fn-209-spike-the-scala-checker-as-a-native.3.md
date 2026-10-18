@@ -4,32 +4,20 @@ satisfies: [R3]
 # fn-209-spike-the-scala-checker-as-a-native.3 Scala Native build of the checker with one sample
 
 ## Description
-**Owner 2026-10-18:** fallback for the live-deployment sidecar only; it no longer gates the go/no-go. Run after .5 and only if the sidecar path is wanted.
+Scala Native is a conditional live-sidecar fallback under the owner's two-oracle decision, not a required simulation target. After .2 and .5 return evidence, record whether a fallback probe is needed. If native-image supplies the live target and no fallback is needed, record that conditional disposition explicitly; it is not a Scala Native portability success. This reporting dependency does not require a third target to build before deciding the two required targets.
 
----
-satisfies: [R3]
----
-# fn-209-spike-the-scala-checker-as-a-native.3 Scala Native build of the checker with one sample
+**Size:** M if a probe is required; bounded disposition otherwise.
+**Files:** `.flow/tmp/fn209-native/` and `model/framework/design/native-checker-native-spike.md` (companion note).
+**Touches:** [model/framework/design/native-checker-native-spike.md, .flow/tmp/fn209-native/**]
 
-### Description
-Cross-build the checker and one sample with Scala Native and ScalaPB's native runtime, replacing any reflection or bytecode dependency found by task 1; run verifyAll, compare verdicts, record size, startup and Bank wall time, or record the blocking failure.
+If required, cross-build the actual checker/unchanged Bank with pinned Scala Native and ScalaPB native artifacts using .1's proved compile-time mechanism. Replace or evidence reflection/bytecode incompatibilities without a toy checker. Compare verifyAll verdicts and record binary size/startup/wall time against matched JVM world/options and the distinct historical 83-second reference, or preserve the exact blocking failure and upstream status. Use fresh task-owned recipes, strict flags, immutable bindings and joined handles. No user-home downloads. Acquire the coordinated compiler lane before tools run.
 
-**Files:** .flow/tmp/fn209/native/, model/design/native-checker-spike.md.
+**Quick commands:** complete versioned recipe recorded in the note if admitted; otherwise verify and cite the integrated .2/.5 outcomes supporting the conditional no-probe disposition.
 
-**Quick commands:** per the recipe recorded in the note
+No production code/target, actual repository Make/Go/Temporal/export/lifting/IR/schema/backend/generated/regeneration/server/Case or dependent implementation is admitted. Conductor owns integration, fresh quality acceptance and Flow completion.
 
-### Acceptance
-- Note section with measurements or the blocker.
-
-### Done summary
-TBD
-
-### Evidence
-- Commits:
-- Tests:
-- PRs:
 ## Acceptance
-- Note section with measurements or the blocker.
+- [ ] Record why the fallback is needed or not under integrated .2/.5 outcomes. If needed, preserve an actual native checker/Bank parity and measurements recipe or evidenced blocking failure; if not needed, explicitly mark it untested, not a successful target. Simulation remains decided by .5, live native-image by .2.
 
 ## Done summary
 TBD
