@@ -1,3 +1,7 @@
+# ModelSuite holds each Model's examples, explorations and conformance tests
+
+> Local HTML render lens: `.flow/artifacts/fn-195-modelsuite-a-models-test-file-holds-its/spec.html`. Open locally; regenerable, markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-17): "the test files for a model serve two purposes: (1) test the model (example based or sampled based or property based) but we also (2) need to find a deisgn where they are translated (or only the ones we can actually translate) into conformance tests. meaning we move that repsonsibility out of the mdoel and into the test file. and the Cases are then only created from the test spec."
@@ -66,7 +70,7 @@ The original fn-194.2/fn-196.2 API prerequisites remain included.
 Fn-196.4 stays explicitly blocked on the measured no-go and Phase 3 migration boundary.
 Go/IR/export/lifting/schema/backend/generated/regeneration and all Temporal work remain held;
 no publishing or review verdict is authorized. Spec admission is local committed-checkpoint
-admission, not a forced task start or remote-branch fallback. The within-spec task chain is
+admission, not a forced task start or remote-branch fallback. The public implementation task chain is refined below; the downstream native holds remain
 unchanged. Final fn-195.7 remains blocked until fn-195.5 and the later fn-197 native checkpoints
 are committed; its baseline must be taken after those DSL changes.
 
@@ -76,7 +80,7 @@ are committed; its baseline must be taken after those DSL changes.
 
 - **`ModelSuite(instance)`** is a munit suite over one Model instance (fn-194). It defines
   `test(name, from = <start>, expectation = <RunExpectation>, through = <realization>)` returning a
-  builder whose block body is the test, shadowing munit's `test`, and three section objects the suite
+  builder whose block body is the test, shadowing munit's `test`, and four section objects the suite
   registers: `examples`, `explorations`, `conformance` and `unit`. A `unit` body is plain munit, for tests of pure helpers. A suite's top level holds only its sections and shared helper definitions; a `test` outside a section is refused, the rule the Model's lint applies to a machine object.
 - **Primary machines** use `class Model`, including parameterless declarations. Each ModelSuite binds a fresh stable-named instance. Singleton primary Machine declarations are no longer supported, regardless of object name. Active native fixtures migrate with the samples. Objects remain available for namespaces, constants, actors and shared declarations. The six-sample migration is followed by fn-195.6, before the final documentation task.
 - **A body in `examples` or `conformance`** is a sequence of statements: an action call by its
@@ -100,9 +104,25 @@ are committed; its baseline must be taken after those DSL changes.
   `.live`, `.explore`, `.records`/`.ends`, and the capability binding's live switch.
   `Realizes(machine, runs = ...)` loses `runs`. `satisfied`, `inconclusive(reason, because)` and
   `conformant` are constructors in the realize package.
-- **Lifting (later phase).** The exporter lifts the three sections of a `ModelSuite` subclass from a
+- **Lifting (later phase).** The exporter lifts the three declaration sections, excluding `unit`, of a `ModelSuite` subclass from a
   test file and nothing else in it; the `expect:` trees become Contract assertions at their
   positions. Fallback if lifting from a test file is awkward: `X.runs.scala` beside `X.test.scala`.
+
+- **Ownership and execution.** Suite declarations and finite carriers belong to the DSL/realization
+  module. They have no checker implementation types in public signatures. The existing lazy native
+  runtime interface delegates execution to one checker adapter over the existing replay, exploration
+  and sampling engines. MUnit uses its existing pinned version as an ordinary dependency for the
+  public suite. Declaration compilation and loading remain possible without the checker.
+- **Suite policy.** The framework discovers concrete suites, preserves stable instance identity and
+  resolves one immutable execution budget for the exact concrete suite and passes it to every
+  question, including automatic claim checking.
+  Horizons and sample counts remain separate bounds. Cuts retain native unknown evidence and a
+  visible inconclusive/failure disposition; they never count as verified claims.
+- **Native conformance admission.** Automatic realization selection requires a complete finite
+  candidate universe for the exact instance. Safe initialization, repeated acquisition and distinct
+  late candidates have deterministic semantics. An initialized-so-far list does not establish
+  uniqueness. Native performed/waited-class and capability-path projections precede retirement
+  of their current declarations. Candidate discovery stays owner-local and collectible.
 
 ## API Contracts
 
@@ -162,11 +182,24 @@ alternative; a `sample` count of zero.
   satisfied ones refuse it.
 - A conformance test replays on the Model first; a Model replay failure is reported as that test's
   failure and the Case is not generated.
-- Repeated steps: the spelling (`heater.heat * 80` or `repeat(80)(heater.heat)`) is a prototype item
-  recorded in Parked unknowns.
-- The sections are objects nested in a class; `ModelSuite` touches them at construction so munit
-  registers their tests. Section lookup by name is the mechanism the claim sections use.
+- Repeated steps use `repeat(80)(heater.heat)`, the spelling established by the committed prototype.
+  Repetition preserves ordinary action admission, execution order and per-step context.
+- The sections are objects nested in a class. Registration runs after concrete suite construction
+  and before MUnit snapshots tests, in fixed section order on the same receiver. Eager concrete
+  helper fields initialize first. Repeated enumeration does not register duplicates; registration
+  re-entry and partial initialization failures refuse consistently. Both String and TestOptions entry points use the
+  same placement, naming and duplicate admission.
 - Bare Booleans are accepted in `expect:` only; claim sections keep `check(...)`.
+
+- Strict `expect` admission uses typed capture without author warning annotations or weaker
+  compiler flags. Each condition retains its own source location, evaluation count and order.
+  Ordinary discarded Booleans outside the block and unrelated warnings inside it remain errors.
+  The proved source route compiles the macro before its legal test-source caller, or consumes a
+  separately packaged macro library. Joint main-source macro/caller compilation is unproved.
+  The probe admits a flat sequence and refuses nested blocks, local definitions and direct
+  control-flow terms. Those are experimental bounds, not additional settled public restrictions.
+  Deferred replay, the full Boolean-expression grammar and typed instance context still require
+  production proof. No capture may silently discard a condition.
 
 ## Acceptance Criteria
 
@@ -195,14 +228,32 @@ alternative; a `sample` count of zero.
   their negative controls as `refuted`, and pass on the Scala checker with intended answers
   unchanged. Errors: a changed answer is a finding to fix. [paraphrase]
 - **R7:** The lint applies the section rules in API Contracts, each refusal located at the test.
-  Errors: as listed. [inferred]
+  Errors: as listed. Source admission must examine a suite with no test calls too.
 - **R8:** SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules),
   §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's
-  test guidance follows. Errors: none beyond review. [inferred]
+  test guidance follows. Errors: none beyond review.
 
 - **R9:** All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. [user]
 
 - **R10:** After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. [user]
+
+## Early proof point
+
+The committed prototype proves post-construction registration, replay adapters and the repeat
+spelling. The strict compiler experiment proves legal test-source and library warning behavior.
+The authored-capture checkpoint must prove deferred typed replay before the public suite consumes it.
+Conformance integration remains blocked until a bounded candidate/wait/capability proof fixes its
+mechanisms and honest implementation size.
+
+## Quick commands
+
+```sh
+mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only checkercontrol.CheckerTest
+```
+
+Run the native-only focused recipes for each task's named suites, then the changed-scope framework
+gate against its recorded source baseline. The task receipts record exact commands, selected suite
+names, positive executed counts and refusals. All commands exclude held Temporal and export roots.
 
 ## Boundaries
 
@@ -216,6 +267,10 @@ alternative; a `sample` count of zero.
   return to the tree, by recipe, not here. [inferred]
 
 ## Decision Context
+
+Planning confirmed the capture's R7/R8 inferences against the existing public refusal contract and
+framework documentation responsibilities. Their meanings and downstream owners remain unchanged;
+they are source-grounded planning requirements, rather than additional owner quotations.
 
 Sections over a per-test `.live` switch or an annotation: an annotation attaches to a definition,
 not a statement, so it would force the per-definition marker the owner rejected for `@lifted`;
@@ -235,21 +290,42 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 
 ## Parked unknowns
 
-- The spelling of a repeated step in a body (`heater.heat * 80` or `repeat(80)(heater.heat)`);
-  resolved by the first Kettle example written.
 - Whether claim sections also accept bare Booleans; resolved after living with `expect:`.
+
+## Public implementation checkpoints
+
+| Task | Mechanism | Admission |
+| --- | --- | --- |
+| fn-195.2 | Authored action/expect capture, exact-instance context and native replay adaptation | After committed .1 |
+| fn-195.8 | Four-section lifecycle, real discovery, stable identity and immutable suite policy | After .2 |
+| fn-195.9 | Reusable exploration spaces and find/sample/refuted adaptation | After .8 |
+| fn-195.10 | Bounded native realization/wait/capability proof and expectation contract | After .1; parallel candidate with .2 |
+| fn-195.11 | Typed native conformance declarations, complete binding and model-first replay | Explicitly blocked until .10 proves mechanisms and honest implementation size; also after .9 |
+| fn-195.3 | Author vocabulary retirement and final typed suite source admission | After .11; refine retained L scope before implementation |
+| fn-195.4, .6, .5 | Six-sample migration, class-only primary declarations, final docs | Existing dependency order preserved |
+| fn-195.7 | Final per-sample simplification with fresh behavior baselines | Existing .5 and fn-197 native admission hold preserved |
+
+Each newly admitted implementation checkpoint is bounded to one mechanism group. The conformance
+integration remains a conditional shell until the proof identifies its concrete prerequisites.
+The existing L-sized retirement, class-only and final-polish tasks require refinement at their own
+admission boundaries. No task size is reduced by dropping behavior.
+
+The proof and authored work have disjoint write surfaces. The conductor coordinates compiler/build
+access and integrates each source checkpoint and Flow closure before dependent admission. All
+native source/library and refusal proofs remain task-local. The final source-admission task also
+checks suites without test invocations.
 
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | `ModelSuite(instance)` registers munit tests from `examples`, `explorations`, `conformance` and `unit`; `unit` holds plain munit tests and top-level tests are refused. Errors: section/test placement and non-test members follow the current Architecture and API Contracts. | fn-195.1, fn-195.2 | — |
-| R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195.1, fn-195.2 | — |
-| R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195.2 | — |
-| R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195.2 | — |
-| R5 | The Model has no `queries` section, `Query`, `find`, `verify`, `witness`, `scenario`, `limits`, `.live`, `.explore` or capability live switch; `Realizes` has no `runs`; `satisfied`, `inconclusive` and `conformant` live in the realize package. Errors: the retired names are unreachable by authors (fn-190.16's grep). | fn-195.3 | — |
-| R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195.4 | — |
-| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. | fn-195.3 | — |
-| R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195.5 | — |
-| R9 | Primary machines use class Model with independent suite instances; singleton primary Machine support is removed and active native fixtures migrate, preserving behavior and ownership. | fn-195.6 | — |
-| R10 | Final per-sample idiomatic simplification after the DSL settles, with behavior and verification evidence preserved. | fn-195.7 | — |
+| R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations`, `conformance` and `unit` sections; `unit` bodies are plain munit; the top level holds only sections and shared helper definitions. Errors: a `test` outside a section, and a section with a non-test member other than a space `val`, are refused naming the member. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
+| R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.1, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.8 | — |
+| R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195-modelsuite-a-models-test-file-holds-its.10, fn-195-modelsuite-a-models-test-file-holds-its.11 | — |
+| R5 | The Model has no `queries` section, `Query`, `find`, `verify`, `witness`, `scenario`, `limits`, `.live`, `.explore` or capability live switch; `Realizes` has no `runs`; `satisfied`, `inconclusive` and `conformant` live in the realize package. Errors: the retired names are unreachable by authors (fn-190.16's grep). | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.3 | — |
+| R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195-modelsuite-a-models-test-file-holds-its.4 | — |
+| R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. Source admission must examine a suite with no test calls too. | fn-195-modelsuite-a-models-test-file-holds-its.11, fn-195-modelsuite-a-models-test-file-holds-its.2, fn-195-modelsuite-a-models-test-file-holds-its.3, fn-195-modelsuite-a-models-test-file-holds-its.8, fn-195-modelsuite-a-models-test-file-holds-its.9 | — |
+| R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195-modelsuite-a-models-test-file-holds-its.5 | — |
+| R9 | All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. | fn-195-modelsuite-a-models-test-file-holds-its.6 | — |
+| R10 | After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. | fn-195-modelsuite-a-models-test-file-holds-its.7 | — |

@@ -10,6 +10,22 @@ satisfies: [R5, R7]
 
 **Files:** `model/framework/dsl/Claims.scala`, `Syntax.scala`, `Capabilities.scala`, `model/framework/realize/Realize.scala`, `Exploration.scala` (deleted), `model/framework/lint/*` (new section rules), DSL tests that exercised the retired forms (rewritten or deleted), `SampleClaims.test.scala` and `NativeControls.test.scala` (deleted).
 
+## Required refinement before implementation admission
+
+This retained L-sized retirement/lint task must be refined against the completed public checkpoints
+before it starts. Preserve R5/R7 and split genuine independent mechanisms if needed. It cannot retire
+native realization or capability declarations before their replacement is committed.
+
+The existing Machine source admission excludes `*.test.scala`. Add a bounded typed suite-admission
+pass and wire its actual native caller so a malformed suite with no test invocations still refuses.
+Keep per-mechanism public source/library and macro refusals from the earlier checkpoints; they do
+not replace this complete corpus admission. Preserve direct suites and held-source exclusions.
+Replace the checker-internal author-word dependency in `checker/Execution.scala` when retiring
+`verify`. Still-used private metadata for held consumers remains until its own replacement, with
+existing ownership/copy/provenance controls intact.
+
+**Touches:** [model/framework/dsl/**, model/framework/realize/Realize.scala, model/framework/realize/Exploration.scala, model/framework/lint/**, model/framework/check/**, model/framework/checker/Execution.scala]
+
 ### Verification
 - A grep shows none of the retired names reachable outside `framework`; the lint suite covers each new rule with a refused and an admitted case.
 - Quick: the dsl and lint native suites.

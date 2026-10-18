@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T08:27:47.340510Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.1"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.10",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.10.md",
+  "status": "todo",
+  "title": "Prove bounded native realization, wait and capability admission",
+  "updated_at": "2026-10-18T08:27:47.340510Z"
+}

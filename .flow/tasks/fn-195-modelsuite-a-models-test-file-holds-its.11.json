@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T08:27:47.341223Z",
+  "depends_on": [
+    "fn-195-modelsuite-a-models-test-file-holds-its.9",
+    "fn-195-modelsuite-a-models-test-file-holds-its.10"
+  ],
+  "id": "fn-195-modelsuite-a-models-test-file-holds-its.11",
+  "priority": null,
+  "spec": "fn-195-modelsuite-a-models-test-file-holds-its",
+  "spec_path": ".flow/tasks/fn-195-modelsuite-a-models-test-file-holds-its.11.md",
+  "status": "todo",
+  "title": "DSL completion: typed native conformance declarations and exact binding",
+  "updated_at": "2026-10-18T08:27:47.341223Z"
+}
