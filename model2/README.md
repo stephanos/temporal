@@ -33,10 +33,11 @@ From inside `model2/`, `cargo check-all` and `cargo doc-all` are aliases for the
 
 ## Testing
 
-End to end, by golden files (fn-210 R8). A test is a case plus the output it produces, checked in
-beside it:
+End to end, by golden files (fn-210 R8, R22, R23). A test is a fixture, an input plus the output it
+produces, in its owning crate's `tests/fixtures/<name>/` (`model.rs` and `expected/`). "Fixture", not
+"case": Case is Testpilot's term.
 
-- behaviour: every sample Model's `cases/<model>/expected/report.txt` and `paths/<claim>.txt`
+- behaviour: each fixture's `expected/report.txt`, `states.txt`, `rows.txt` and `paths/<claim>.txt`
   (`insta`; review with `cargo insta review`);
 - refusals: `trybuild` `.rs` + `.stderr` under `framework/dsl/tests/ui/`;
 - expansion: insta snapshots of each macro's implementation function, formatted by
@@ -45,7 +46,7 @@ beside it:
   rather than merely stable.
 
 Goldens are deterministic, human-readable and timing-free. `make model2-update` rewrites them; a
-golden with no case, or a case with no golden, fails. Unit tests only when a defect cannot be
+fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
 written as a case.
 
 Behaviour goldens use insta binary snapshots with text payloads. Each `report.txt`, `states.txt`,
