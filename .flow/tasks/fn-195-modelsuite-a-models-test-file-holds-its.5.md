@@ -6,13 +6,14 @@ satisfies: [R8]
 ## Description
 **DSL completion phase (owner, 2026-10-17).** Add a SEMANTICS section for the test file: the five-kind table (examples, claims, explorations; conformance, sampled conformance), the three sections, the `test` builder, `expect:`, spaces, `oneOf` enumerates and `any` searches, Case names, the defaults and refusals. Rewrite §9 Scenarios and Queries to say the Model asks nothing of itself and point at the new section; update §19 Realizations for `Realizes` without `runs` and the binding rule. Update the README's test guidance. Note that lifting the sections and intermediate Contract assertions are the IR phase.
 
+After fn-195.6, show primary machines as `class Model`, including parameterless models, and bind a fresh stable-named instance in each suite. Document that singleton primary Machine declarations are no longer supported; shared constants, actors and namespaces remain objects. Keep the user-facing reference consistent without references to Scala source files.
+
 **Size:** S
 
-**Files:** `model/framework/SEMANTICS.md`, `model/framework/README.md`.
+**Files:** `model/framework/SEMANTICS.md`, `model/framework/README.md`, `model/framework/REFERENCE.md` (primary-class convention and suite-facing reference).
 
 ### Verification
 - Docs match the DSL as landed; SEMANTICS source links point at a sample suite.
-
 ## Acceptance
 - [ ] SEMANTICS test-file section with the five-kind table; §9 and §19 rewritten
 - [ ] README test guidance updated

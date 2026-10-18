@@ -10,6 +10,9 @@
 > user: "> client.send(Addr.king, Addr.donkeykong, Denom.banana, 1) why is that not using Send? and named params? it's hard to read what it does"
 > owner decisions (AskUserQuestion, 2026-10-17): capability expectation bindings move into the test file; a run names its start when init is a set, default otherwise; `oneOf` is the only variation, `Exploration`'s `runs`/`edits`/`dropPrefix` retire; one file, fallback a separate declarations file; bare Booleans in `expect:` only; `find(steps = n)` is the horizon, part of the question; a machine with one realization binds every conformance test to it.
 
+> user (2026-10-18): "let's file a task for standardize primary machine declarations on class Model".
+> user (2026-10-18): "we should also remove support for object Model entirely for consitency".
+
 ## Goal & Context
 
 <!-- Goal & Context: 60% [user], 40% [paraphrase] -->
@@ -44,6 +47,7 @@ failing `expect:` line fails the test. Phase 2, DSL completion; the lowering cha
   `test(name, from = <start>, expectation = <RunExpectation>, through = <realization>)` returning a
   builder whose block body is the test, shadowing munit's `test`, and three section objects the suite
   registers: `examples`, `explorations`, `conformance` and `unit`. A `unit` body is plain munit, for tests of pure helpers. A suite's top level holds only its sections and shared helper definitions; a `test` outside a section is refused, the rule the Model's lint applies to a machine object.
+- **Primary machines** use `class Model`, including parameterless declarations. Each ModelSuite binds a fresh stable-named instance. Singleton primary Machine declarations are no longer supported, regardless of object name. Active native fixtures migrate with the samples. Objects remain available for namespaces, constants, actors and shared declarations. The six-sample migration is followed by fn-195.6, before the final documentation task.
 - **A body in `examples` or `conformance`** is a sequence of statements: an action call by its
   record's named constructor (`client.send(fromAddr = Addr.king, toAddr = Addr.peaches, denom =
   Denom.banana, amount = 1)`), a whole action with no fields (`heater.heat`), `oneOf(step, step)` for
@@ -165,6 +169,8 @@ alternative; a `sample` count of zero.
   §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's
   test guidance follows. Errors: none beyond review. [inferred]
 
+- **R9:** All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. [user]
+
 ## Boundaries
 
 - Lifting the sections from test files, Contract assertions at intermediate `expect:` positions, and
@@ -212,3 +218,6 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 | R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195.4 | — |
 | R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. | fn-195.3 | — |
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195.5 | — |
+
+| R9 | Primary machines use class Model with independent suite instances; singleton primary Machine support is removed and active native fixtures migrate, preserving behavior and ownership. | fn-195.6 | — |
+
