@@ -14,7 +14,7 @@ Run the bound instance's claims automatically through the existing checker and p
 
 **Files:** `model/framework/dsl/ModelSuite.scala`, `Sections.scala` and focused registration/lifecycle `.test.scala` controls; `model/framework/dsl/project.scala` for the existing MUnit version's ordinary dependency; the finite-request extension of `model/framework/dsl/NativeRuntime.scala` and its sole implementation `model/framework/checker/Native.scala`; one `model/framework/checker/SuiteExecution.scala` adapter with focused tests; `model/framework/check/Registry.scala`, new `RegistryDiscovery.test.scala` and existing `BudgetGate.test.scala` for generic discovery/budget controls. Reuse `model/framework/checker/Execution.scala`, `BudgetPolicy.scala` and `model/framework/check/Tools.scala` unless a demonstrated integration gap requires a narrow edit. The existing disposable FrameworkLoop Make dry-run fixture remains admitted; actual repository Make execution stays held.
 
-**Touches:** [model/framework/dsl/ModelSuite.scala, model/framework/dsl/ModelSuite.test.scala, model/framework/dsl/Sections.scala, model/framework/dsl/Sections.test.scala, model/framework/dsl/project.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/check/Registry.scala, model/framework/check/RegistryDiscovery.test.scala, model/framework/check/BudgetGate.test.scala]
+**Touches:** [model/framework/dsl/ModelSuite.scala, model/framework/dsl/ModelSuite.test.scala, model/framework/dsl/Sections.scala, model/framework/dsl/Sections.test.scala, model/framework/dsl/project.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/check/Registry.scala, model/framework/check/RegistryDiscovery.test.scala, model/framework/check/BudgetGate.test.scala, model/framework/REFERENCE.md]
 
 **Dependencies:** Consume the committed existing `.2` P checkpoint and fn-195.1's recorded lifecycle findings. This new task depends on `.2` using Flow's same-spec dependency mechanism. X consumes S's section and immutable execution boundary; C follows the declared P/S/X carrier dependencies. Existing .3 must wait until the complete replacement surface, including C, is committed. Preserve all existing task IDs and the `.4 -> .6 -> .5` sequence.
 
@@ -36,6 +36,10 @@ Use the existing lazy `NativeRuntime` boundary and one checker-owned `SuiteExecu
 
 The framework gate already validates and normalizes caller policy in `Tools.withCheckerBudgets`. Keep that contract and repair the actual generic Registry discovery needed to supply its suite names. The checker adapter resolves the exact suite's immutable execution from the supplied normalized policy. Model construction and DSL-only class loading do not parse environment policy, execute claims or load the checker. Runtime execution may require the checker and must fail explicitly if it is absent.
 
+
+### Public reference coverage
+
+Maintain the existing ReferenceSurface gate as this public API lands. Add minimum accurate user-facing coverage of ModelSuite registration, section forms, execution policy and any new public signature carriers in `model/framework/REFERENCE.md`. Keep that reference free of Scala-file references and distinguish native replay registration from the still-pending exploration/conformance/Case checkpoints. This is API coverage required by the existing gate, not the comprehensive .5 rewrite; do not weaken or bypass the gate.
 
 ### Verification
 

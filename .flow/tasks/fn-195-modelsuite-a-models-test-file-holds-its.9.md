@@ -22,7 +22,7 @@ Conformance C consumes the reusable sample descriptor and selected seeded paths 
 
 **Files:** `model/framework/dsl/Spaces.scala`, `model/framework/dsl/ModelSuite.scala`, `model/framework/dsl/Sections.scala`, `model/framework/dsl/ModelSuiteMacros.scala`, `model/framework/dsl/NativeRuntime.scala`, `model/framework/checker/Native.scala`, `model/framework/checker/SuiteExecution.scala`.
 
-**Touches:** [model/framework/dsl/Spaces.scala, model/framework/dsl/ModelSuite.scala, model/framework/dsl/Sections.scala, model/framework/dsl/ModelSuiteMacros.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/dsl/Spaces.test.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/dsl/testdata/modelsuite/ExplorationClient.scala.txt, model/framework/dsl/testdata/modelsuite/ExplorationRefusals.scala.txt, model/framework/dsl/ClaimStatements.scala, model/framework/dsl/Syntax.scala, model/framework/checker/Checker.scala, model/framework/checker/Execution.scala]
+**Touches:** [model/framework/dsl/Spaces.scala, model/framework/dsl/ModelSuite.scala, model/framework/dsl/Sections.scala, model/framework/dsl/ModelSuiteMacros.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/dsl/Spaces.test.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/dsl/testdata/modelsuite/ExplorationClient.scala.txt, model/framework/dsl/testdata/modelsuite/ExplorationRefusals.scala.txt, model/framework/dsl/ClaimStatements.scala, model/framework/dsl/Syntax.scala, model/framework/checker/Checker.scala, model/framework/checker/Execution.scala, model/framework/REFERENCE.md]
 
 Paths are relative to the repository root. Reuse P/S files where they already exist.
 
@@ -55,6 +55,10 @@ Sampling preserves seed, requested count, walk horizon, retained paths and faili
 
 Capture negative-control claims by owner/section/member or the existing typed native claim reference. Collection must not execute a Unit-valued claim body. Return the ordinary checker refutation result to the suite adapter; MUnit expects a refutation while the retained result continues to say `refuted`. A verified or unknown ordinary result must not masquerade as a successful negative control.
 
+
+### Public reference coverage
+
+Maintain the existing ReferenceSurface gate for the new exploration forms and public signature carriers. Add minimum accurate user-facing coverage to `model/framework/REFERENCE.md`, keeping it free of Scala-file references and explicit about finite search/sample answers and still-pending conformance/Case work. The comprehensive .5 rewrite remains downstream; do not weaken or bypass the gate.
 
 ### Verification
 
