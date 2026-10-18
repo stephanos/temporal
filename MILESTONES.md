@@ -1135,7 +1135,7 @@ pass. Review remains deferred; documentation is next, with IR/Go/Temporal holds 
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
+| fn-194.4 | 🔄 in progress | After .3: SEMANTICS and README (R7) |
 
 ### fn-195: ModelSuite: a Model's test file holds its examples, explorations and conformance tests
 
