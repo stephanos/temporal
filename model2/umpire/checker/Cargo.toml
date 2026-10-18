@@ -1,5 +1,5 @@
 [package]
-name = "framework-checker"
+name = "umpire-checker"
 description = "Umpire native checker: explore, verify_all, refuted"
 version.workspace = true
 edition.workspace = true
@@ -11,7 +11,7 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
-framework-dsl.workspace = true
+umpire-dsl.workspace = true
 indexmap.workspace = true
 rustc-hash.workspace = true
 fixedbitset.workspace = true

@@ -1,7 +1,7 @@
 # model2: the Rust prototype
 
 A Cargo workspace mirroring `model/framework`'s layout. Scope is only what
-`model/framework/samples/Kettle.scala` uses today; see `framework/samples/options/README.md` for the
+`model/umpire/samples/Kettle.scala` uses today; see `umpire/samples/options/README.md` for the
 authoring-surface options under discussion.
 
 The toolchain is pinned in the repository's `mise.toml` (`rust = "1.99.1"`); run through mise:
@@ -39,7 +39,7 @@ produces, in its owning crate's `tests/fixtures/<name>/` (`model.rs` and `expect
 
 - behaviour: each fixture's `expected/report.txt`, `states.txt`, `rows.txt` and `paths/<claim>.txt`
   (`insta`; review with `cargo insta review`);
-- refusals: `trybuild` `.rs` + `.stderr` under `framework/dsl/tests/ui/`;
+- refusals: `trybuild` `.rs` + `.stderr` under `umpire/dsl/tests/ui/`;
 - expansion: insta snapshots of each macro's implementation function, formatted by
   `prettyplease`;
 - one property test against a brute-force reference explorer, the check that goldens are right

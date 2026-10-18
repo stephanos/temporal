@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T20:27:04.101588Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.10"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.11",
+  "priority": 1,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.11.md",
+  "status": "todo",
+  "title": "Prepare shared Cargo wiring for parallel progress and derive lanes",
+  "updated_at": "2026-10-18T20:27:04.101588Z"
+}

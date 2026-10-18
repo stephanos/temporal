@@ -1,5 +1,5 @@
 [package]
-name = "framework-dsl"
+name = "umpire-dsl"
 description = "Umpire DSL: State, Action, Machine, Claim, Scope, Progress"
 version.workspace = true
 edition.workspace = true

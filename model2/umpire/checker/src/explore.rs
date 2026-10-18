@@ -4,7 +4,7 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use framework_dsl::{Claim, Machine, Outcome, Step, StepClaim, Verdict};
+use umpire_dsl::{Claim, Machine, Outcome, Step, StepClaim, Verdict};
 
 use crate::{ClaimResult, FullStates, Path, PathStep, Report, StateId, Visited, report::aggregate};
 

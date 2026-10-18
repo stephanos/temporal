@@ -1,6 +1,6 @@
 use std::fmt;
 
-use framework_dsl::{Machine, Outcome};
+use umpire_dsl::{Machine, Outcome};
 
 use crate::Counts;
 

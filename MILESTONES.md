@@ -33,7 +33,7 @@ Bank and Voting or stopping, and that recommendation decides what is un-deferred
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Rust prototype (now) | fn-210.1 and .2, then the rename .10, then .3 and .4 → .5 in parallel, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
+| Rust prototype (now) | fn-210.1 and .2, then the rename .10 and shared Cargo wiring .11, then .3 and .4 → .5 in parallel, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
 | After the recommendation | decided by fn-210.7 | Either grow the Rust DSL one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through checker, TLA and Case together, with real Testpilot starting on the mini activity; or close fn-210 with its evidence and resume the Scala phases |
 
 ## Specs
@@ -73,7 +73,8 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.10 | ⬜ todo | After .1/.2: rename `model2/framework/` to `model2/umpire/` and crates to `umpire-*` (R21); move synthetic fixtures to `checker/tests/fixtures/<name>/{model.rs,expected/}`, keep only Kettle's in `samples`, extract the runner into `umpire-testing` (R22, R23); goldens byte-identical |
+| fn-210.10 | 🔄 in progress | After .1/.2: rename `model2/framework/` to `model2/umpire/` and crates to `umpire-*` (R21); move synthetic fixtures to `checker/tests/fixtures/<name>/{model.rs,expected/}`, keep only Kettle's in `samples`, extract the runner into `umpire-testing` (R22, R23); goldens byte-identical |
+| fn-210.11 | ⬜ todo | After .10: checkpoint shared Cargo dependencies and the empty macro crate, enabling disjoint progress and derive implementation lanes without concurrent lockfile edits (R18) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |

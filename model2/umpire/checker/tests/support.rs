@@ -5,8 +5,8 @@ use std::{
     panic,
 };
 
-use framework_checker::{Checker, Result as Exploration};
-use framework_dsl::{Claim, Hole, Machine, StepClaim, Steps, Verdict};
+use umpire_checker::{Checker, Result as Exploration};
+use umpire_dsl::{Claim, Hole, Machine, StepClaim, Steps, Verdict};
 
 mod deep;
 
@@ -105,7 +105,7 @@ where
     files
 }
 
-fn add_paths<M: Machine>(files: &mut Files, report: framework_checker::Report<M>)
+fn add_paths<M: Machine>(files: &mut Files, report: umpire_checker::Report<M>)
 where
     M::State: fmt::Display,
 {

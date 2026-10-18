@@ -153,24 +153,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "3f9eec918d3f24069decb9af1554cad7c880e2da24a9afd88aca000531ab82c1"
 
 [[package]]
-name = "framework-checker"
-version = "0.0.1"
-dependencies = [
- "fixedbitset",
- "framework-dsl",
- "indexmap",
- "proptest",
- "rustc-hash",
-]
-
-[[package]]
-name = "framework-dsl"
-version = "0.0.1"
-dependencies = [
- "smallvec",
-]
-
-[[package]]
 name = "getrandom"
 version = "0.4.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -368,9 +350,9 @@ dependencies = [
 name = "samples"
 version = "0.0.1"
 dependencies = [
- "framework-checker",
- "framework-dsl",
  "insta",
+ "umpire-checker",
+ "umpire-dsl",
 ]
 
 [[package]]
@@ -467,6 +449,33 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "baa693a8032d7e1cada7d0041e96126df243179ff061456783ac7f12bda4744c"
 dependencies = [
  "winnow",
+]
+
+[[package]]
+name = "umpire-checker"
+version = "0.0.1"
+dependencies = [
+ "fixedbitset",
+ "indexmap",
+ "proptest",
+ "rustc-hash",
+ "umpire-dsl",
+]
+
+[[package]]
+name = "umpire-dsl"
+version = "0.0.1"
+dependencies = [
+ "smallvec",
+]
+
+[[package]]
+name = "umpire-testing"
+version = "0.0.1"
+dependencies = [
+ "insta",
+ "umpire-checker",
+ "umpire-dsl",
 ]
 
 [[package]]

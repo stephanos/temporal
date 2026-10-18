@@ -5,7 +5,7 @@ mod kettle {
     include!("fixtures/kettle_trait.rs");
 }
 
-use framework_dsl::Machine;
+use umpire_dsl::Machine;
 use kettle::KettleWorld;
 
 #[test]

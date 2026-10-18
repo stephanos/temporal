@@ -11,8 +11,8 @@ rust-version.workspace = true
 workspace = true
 
 [dependencies]
-framework-dsl.workspace = true
+umpire-dsl.workspace = true
 
 [dev-dependencies]
-framework-checker.workspace = true
+umpire-checker.workspace = true
 insta.workspace = true

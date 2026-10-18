@@ -1,4 +1,4 @@
-use framework_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
+use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
 
 const BOILING_TEMPERATURE: i32 = 100;
 const COLDEST_TEMPERATURE: i32 = -40;

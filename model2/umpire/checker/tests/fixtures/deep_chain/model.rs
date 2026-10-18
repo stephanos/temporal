@@ -5,8 +5,8 @@ use std::{
     rc::Rc,
 };
 
-use framework_checker::Checker;
-use framework_dsl::{Claim, Machine, Steps, Verdict};
+use umpire_checker::Checker;
+use umpire_dsl::{Claim, Machine, Steps, Verdict};
 
 struct World(Rc<Cell<usize>>);
 

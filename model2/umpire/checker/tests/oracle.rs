@@ -2,8 +2,8 @@
 
 use std::collections::BTreeSet;
 
-use framework_checker::Checker;
-use framework_dsl::{Claim, Hole, Machine, Outcome, StepClaim, Steps, Verdict};
+use umpire_checker::Checker;
+use umpire_dsl::{Claim, Hole, Machine, Outcome, StepClaim, Steps, Verdict};
 use proptest::prelude::*;
 
 #[derive(Clone, Debug)]

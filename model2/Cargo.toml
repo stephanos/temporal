@@ -1,8 +1,8 @@
-# model2: the Rust prototype of the Umpire framework. Scope: what model/framework/samples/Kettle.scala
+# model2: the Rust prototype of the Umpire framework. Scope: what model/umpire/samples/Kettle.scala
 # uses today. Layout mirrors model/framework: dsl, checker, samples.
 [workspace]
 resolver = "3"
-members = ["framework/dsl", "framework/checker", "framework/samples"]
+members = ["umpire/dsl", "umpire/checker", "umpire/samples", "umpire/testing"]
 
 [workspace.package]
 version = "0.0.1"
@@ -12,8 +12,9 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
-framework-dsl = { version = "0.0.1", path = "framework/dsl" }
-framework-checker = { version = "0.0.1", path = "framework/checker" }
+umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
+umpire-checker = { version = "0.0.1", path = "umpire/checker" }
+umpire-testing = { version = "0.0.1", path = "umpire/testing" }
 
 # Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.
 indexmap = "2.14"
