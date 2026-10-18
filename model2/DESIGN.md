@@ -10,20 +10,17 @@ states, 424 emitted rows and depth 62. This is the decisive R20 slice before the
 attribute macros. The remaining fn-210 tasks continue; this note does not claim
 their authoring, liveness or lifting work is finished.
 
-The three application exports are `alloc`, `free` and `call`. Both sides use
+The three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
+and `umpire_call`. Both sides use
 generated messages from `umpire/proto/umpire/oracle/v1/oracle.proto`; Refusal is a
 case of the common Response envelope, separate from a checker verdict or trap.
 The guest includes `umpire/tests/fixtures/kettle_trait/model.rs` directly.
 
-There is one explicit post-link step. WASI libc already defines `free`, and stock
-rustc rejects a second incompatible runtime symbol. The guest therefore defines
-`umpire_free`; the configured linker wrapper invokes stock rust-lld and changes
-only that function's export-table name to `free`. Its internal symbol and libc's
-allocator stay distinct. No executable section or instruction is rewritten.
-The default gate checks byte preservation, malformed/duplicate/missing/wrong-kind
-exports, unrelated artifacts, and the final module's actual export signatures.
-This uses an ordinary linker wrapper, without a compiler fork or custom Rust
-toolchain. Direct Cargo builds use the wrapper through `.cargo/config.toml`.
+Rust exports these names directly using the stock linker. The buffer-release name
+avoids WASI libc's internal `free` symbol. The default gate compiles and runs the
+real guest through the Go host, validates its export signatures, and rejects
+missing, unexpected and mis-typed exports through compiled negative controls.
+Direct locked Cargo builds need no custom linker or post-link processing.
 
 ## Capability and panic boundaries
 
@@ -49,10 +46,17 @@ Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
 ## Measurements
 
+The direct-export guest built for fn-210.16 on 2026-10-18 is 3,370,765 bytes,
+including debug information, using the same release profile and toolchain below.
+
+The following host latency and memory measurements were taken for fn-210.9 on
+2026-10-18, before the direct-export rename in fn-210.16. They do not measure the
+current binary; fn-210.7 will refresh them.
+
 Measured on Linux arm64 with stock Rust 1.99.1, Go 1.27.0, protoc 29.5,
 prost/prost-build 0.14.4, protoc-gen-go v1.36.6 and protobuf Go v1.36.11.
 The release profile uses overflow checks, debug=1, thin LTO and one codegen unit;
-the wasm file is 2,872,544 bytes including debug information.
+that earlier wasm file was 2,872,544 bytes including debug information.
 
 Five cold compile/instantiate/close runs, excluding file reading, took 29.217,
 28.059, 27.874, 26.774 and 26.766 ms (median 27.874 ms).
@@ -71,7 +75,7 @@ CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -bench
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=5 -benchmem
 ```
 
-The integrated `make model2-time` passed with a 5.069 s warm full gate (30 s
+In fn-210.9, the integrated `make model2-time` passed with a 5.069 s warm full gate (30 s
 budget) and 1.210 s checker edit/rebuild/test loop (3 s budget). This includes
 capability/export controls, generation freshness, native checks, wasm builds
 and uncached CGO-disabled Go parity tests. Raw measurements and final gate

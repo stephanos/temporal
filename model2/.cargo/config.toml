@@ -2,6 +2,3 @@
 # The same gate `make model2-check` runs, for use from inside model2/.
 check-all = "clippy --workspace --all-targets --all-features -- -D warnings"
 doc-all = "doc --workspace --no-deps --document-private-items"
-
-[target.wasm32-wasip1]
-linker = "scripts/wasm-linker.sh"

@@ -5,13 +5,49 @@ import (
 	"errors"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"sync"
 	"testing"
 
+	"github.com/tetratelabs/wazero"
+	"github.com/tetratelabs/wazero/api"
 	"google.golang.org/protobuf/proto"
 	oraclev1 "umpire.local/oracle/umpire/oracle/v1"
 )
+
+func TestGuestExports(t *testing.T) {
+	ctx := context.Background()
+	r := wazero.NewRuntime(ctx)
+	defer func() {
+		if err := r.Close(ctx); err != nil {
+			t.Error(err)
+		}
+	}()
+	module, err := r.CompileModule(ctx, guestBytes(t))
+	if err != nil {
+		t.Fatal(err)
+	}
+	i32, i64 := api.ValueTypeI32, api.ValueTypeI64
+	for name, signature := range map[string][2][]api.ValueType{
+		"umpire_buffer_alloc":   {{i32}, {i32}},
+		"umpire_buffer_release": {{i32, i32}, nil},
+		"umpire_call":           {{i32, i32, i32}, {i64}},
+	} {
+		function := module.ExportedFunctions()[name]
+		if function == nil || !slices.Equal(function.ParamTypes(), signature[0]) || !slices.Equal(function.ResultTypes(), signature[1]) {
+			t.Errorf("missing or invalid export %s", name)
+		}
+	}
+	for _, name := range []string{"alloc", "free", "call", "umpire_free"} {
+		if module.ExportedFunctions()[name] != nil {
+			t.Errorf("obsolete application export %s", name)
+		}
+	}
+	if err := validateModule(module); err != nil {
+		t.Fatal(err)
+	}
+}
 
 func TestBoundaryControls(t *testing.T) {
 	ctx := context.Background()
@@ -97,11 +133,47 @@ func TestRejectsModuleContract(t *testing.T) {
 	}
 }
 
+func TestRejectsApplicationExports(t *testing.T) {
+	names := []string{"umpire_buffer_alloc", "umpire_buffer_release", "umpire_call"}
+	for index, name := range names {
+		for _, fault := range []string{"missing", "signature"} {
+			t.Run(name+"/"+fault, func(t *testing.T) {
+				exports := slices.Clone(names)
+				if fault == "missing" {
+					exports[index] = ""
+				} else {
+					next := (index + 1) % len(exports)
+					exports[index], exports[next] = exports[next], exports[index]
+				}
+				h, err := New(context.Background(), controlModuleExports(2048, 2, []byte{18, 0}, false, false, "", exports))
+				if err == nil {
+					_ = h.Close(context.Background())
+				}
+				if err == nil || !strings.Contains(err.Error(), "invalid signature") {
+					t.Fatalf("invalid export accepted or wrong failure: %v", err)
+				}
+			})
+		}
+	}
+	for _, name := range []string{"alloc", "free", "call", "umpire_free", "extra"} {
+		t.Run("unexpected/"+name, func(t *testing.T) {
+			exports := append(slices.Clone(names), name)
+			h, err := New(context.Background(), controlModuleExports(2048, 2, []byte{18, 0}, false, false, "", exports))
+			if err == nil {
+				_ = h.Close(context.Background())
+			}
+			if err == nil || !strings.Contains(err.Error(), "unexpected oracle function export "+name) {
+				t.Fatalf("unexpected export accepted or wrong failure: %v", err)
+			}
+		})
+	}
+}
+
 func TestTrapIdentifiesABIAndLogicalMethod(t *testing.T) {
 	ctx := context.Background()
-	for _, function := range []string{"alloc", "free", "call"} {
+	for _, function := range []string{"umpire_buffer_alloc", "umpire_buffer_release", "umpire_call"} {
 		t.Run(function, func(t *testing.T) {
-			h, err := New(ctx, controlModule(2048, 2, []byte{18, 0}, function == "call", false, "", function))
+			h, err := New(ctx, controlModule(2048, 2, []byte{18, 0}, function == "umpire_call", false, "", function))
 			if err != nil {
 				t.Fatal(err)
 			}
@@ -344,6 +416,11 @@ func TestGuestExhaustionPreservesExploration(t *testing.T) {
 
 // The control uses only the production ABI; unreachable supplies an actual engine trap.
 func controlModule(pointer, length uint32, payload []byte, trap, badSignature bool, imported string, trapAt ...string) []byte {
+	return controlModuleExports(pointer, length, payload, trap, badSignature, imported,
+		[]string{"umpire_buffer_alloc", "umpire_buffer_release", "umpire_call"}, trapAt...)
+}
+
+func controlModuleExports(pointer, length uint32, payload []byte, trap, badSignature bool, imported string, exportNames []string, trapAt ...string) []byte {
 	u := func(value uint64) []byte {
 		var result []byte
 		for {
@@ -395,10 +472,14 @@ func controlModule(pointer, length uint32, payload []byte, trap, badSignature bo
 	}
 	section(3, []byte{3, 0, 1, 2})
 	section(5, []byte{1, 0, 1})
-	exports := []byte{4}
-	for index, name := range []string{"alloc", "free", "call"} {
+	exports := []byte{1}
+	for index, name := range exportNames {
+		if name == "" {
+			continue
+		}
+		exports[0]++
 		exports = append(exports, str(name)...)
-		exports = append(exports, 0, byte(index)+offset)
+		exports = append(exports, 0, byte(index%3)+offset)
 	}
 	exports = append(exports, str("memory")...)
 	exports = append(exports, 2, 0)
@@ -410,10 +491,10 @@ func controlModule(pointer, length uint32, payload []byte, trap, badSignature bo
 	alloc = append(alloc, 0x0b)
 	free := []byte{0, 0x41, 16, 0x41, 16, 0x28, 2, 0, 0x41, 1, 0x6a, 0x36, 2, 0, 0x0b}
 	if len(trapAt) != 0 {
-		if trapAt[0] == "alloc" {
+		if trapAt[0] == "umpire_buffer_alloc" {
 			alloc = []byte{0, 0, 0x0b}
 		}
-		if trapAt[0] == "free" {
+		if trapAt[0] == "umpire_buffer_release" {
 			free = []byte{0, 0, 0x0b}
 		}
 	}

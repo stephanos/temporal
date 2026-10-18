@@ -136,7 +136,7 @@ impl Guest {
         }
         assert!(
             self.buffers.get(&ptr).is_some_and(|buffer| buffer.len() == len as usize),
-            "free requires an exact live allocation"
+            "umpire_buffer_release requires an exact live allocation"
         );
         self.buffers.remove(&ptr);
         self.live -= len as usize;
@@ -154,7 +154,7 @@ impl Guest {
             protocol::Response {
                 outcome: Some(refused(
                     protocol::RefusalCode::Allocation,
-                    "call requires an exact live allocation".into(),
+                    "umpire_call requires an exact live allocation".into(),
                 )),
             }
         };
@@ -187,20 +187,20 @@ thread_local! {
 /// Allocates a zeroed, bounded request buffer, or returns zero on exhaustion.
 #[allow(unsafe_code)]
 #[cfg_attr(target_arch = "wasm32", unsafe(no_mangle))]
-pub extern "C" fn alloc(len: u32) -> u32 {
+pub extern "C" fn umpire_buffer_alloc(len: u32) -> u32 {
     GUEST.with_borrow_mut(|guest| guest.allocate(len as usize))
 }
 
 /// Releases an exact live allocation; invalid ranges trap.
 #[allow(unsafe_code)]
-#[cfg_attr(target_arch = "wasm32", unsafe(export_name = "umpire_free"))]
-pub extern "C" fn abi_free(ptr: u32, len: u32) {
+#[cfg_attr(target_arch = "wasm32", unsafe(no_mangle))]
+pub extern "C" fn umpire_buffer_release(ptr: u32, len: u32) {
     GUEST.with_borrow_mut(|guest| guest.release(ptr, len));
 }
 
 /// Dispatches a request and packs a separately owned response's length and pointer.
 #[allow(unsafe_code)]
 #[cfg_attr(target_arch = "wasm32", unsafe(no_mangle))]
-pub extern "C" fn call(method: u32, ptr: u32, len: u32) -> u64 {
+pub extern "C" fn umpire_call(method: u32, ptr: u32, len: u32) -> u64 {
     GUEST.with_borrow_mut(|guest| guest.call(method, ptr, len))
 }

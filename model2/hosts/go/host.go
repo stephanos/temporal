@@ -55,7 +55,7 @@ func New(ctx context.Context, wasm []byte) (*Host, error) {
 		return nil, fmt.Errorf("instantiate oracle: %w", err)
 	}
 	h.module = module
-	h.alloc, h.free, h.call = module.ExportedFunction("alloc"), module.ExportedFunction("free"), module.ExportedFunction("call")
+	h.alloc, h.free, h.call = module.ExportedFunction("umpire_buffer_alloc"), module.ExportedFunction("umpire_buffer_release"), module.ExportedFunction("umpire_call")
 	success = true
 	return h, nil
 }
@@ -76,7 +76,7 @@ func validateModule(module wazero.CompiledModule) error {
 	}
 	i32, i64 := api.ValueTypeI32, api.ValueTypeI64
 	for name, signature := range map[string][2][]api.ValueType{
-		"alloc": {{i32}, {i32}}, "free": {{i32, i32}, nil}, "call": {{i32, i32, i32}, {i64}},
+		"umpire_buffer_alloc": {{i32}, {i32}}, "umpire_buffer_release": {{i32, i32}, nil}, "umpire_call": {{i32, i32, i32}, {i64}},
 	} {
 		function := module.ExportedFunctions()[name]
 		if function == nil || !slices.Equal(function.ParamTypes(), signature[0]) || !slices.Equal(function.ResultTypes(), signature[1]) {
@@ -85,7 +85,7 @@ func validateModule(module wazero.CompiledModule) error {
 	}
 	for name := range module.ExportedFunctions() {
 		switch name {
-		case "alloc", "free", "call", "_initialize", "__wasm_call_ctors":
+		case "umpire_buffer_alloc", "umpire_buffer_release", "umpire_call", "_initialize", "__wasm_call_ctors":
 		default:
 			return fmt.Errorf("unexpected oracle function export %s", name)
 		}
@@ -219,7 +219,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 			if allocation[0] == 0 {
 				continue
 			}
-			if _, freeErr := invoke("free", h.free, uint64(allocation[0]), uint64(allocation[1])); freeErr != nil {
+			if _, freeErr := invoke("umpire_buffer_release", h.free, uint64(allocation[0]), uint64(allocation[1])); freeErr != nil {
 				err = errors.Join(err, freeErr)
 				response = nil
 				return
@@ -232,7 +232,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 		return nil, fmt.Errorf("%s: invalid oracle ABI: %s", name, message)
 	}
 	if len(request) != 0 {
-		result, allocErr := invoke("alloc", h.alloc, uint64(len(request)))
+		result, allocErr := invoke("umpire_buffer_alloc", h.alloc, uint64(len(request)))
 		if allocErr != nil {
 			return nil, allocErr
 		}
@@ -244,7 +244,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 			return invalid("request allocation outside memory")
 		}
 	}
-	result, err := invoke("call", h.call, uint64(method), uint64(requestPtr), uint64(len(request)))
+	result, err := invoke("umpire_call", h.call, uint64(method), uint64(requestPtr), uint64(len(request)))
 	if err != nil {
 		return nil, err
 	}

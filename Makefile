@@ -1426,7 +1426,6 @@ model2-check: $(PROTOC_GEN_GO)
 	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
 	@$(call MODEL2_STEP,timing-controls) /bin/bash $(CURDIR)/model2/scripts/test-time-gate.sh
 	@$(call MODEL2_STEP,capability-controls) /bin/bash $(CURDIR)/model2/scripts/test-capabilities.sh
-	@$(call MODEL2_STEP,export-controls) python3 -B $(CURDIR)/model2/scripts/test-wasm-export.py
 	@$(call MODEL2_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model2/scripts/proto-go.sh --check
 	@cd model2 && $(call MODEL2_STEP,fmt) mise exec -- cargo fmt --all --check
 	@cd model2 && $(call MODEL2_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
@@ -1435,7 +1434,7 @@ model2-check: $(PROTOC_GEN_GO)
 	@cd model2 && $(call MODEL2_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
 	@cd model2 && $(call MODEL2_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
 	@cd model2 && $(call MODEL2_STEP,wasm-guest) mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked --quiet
-	@cd model2 && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call MODEL2_STEP,go-host) mise exec -- go -C "$$PWD/hosts/go" test -count=1 ./...
+	@cd model2 && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call MODEL2_STEP,go-host) mise exec -- go -C "$$PWD/hosts/go" test -tags test_dep -count=1 ./...
 
 model2-fmt:
 	@$(MODEL2_CARGO) fmt --all
