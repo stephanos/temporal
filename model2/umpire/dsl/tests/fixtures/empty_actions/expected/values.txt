@@ -1,2 +1,1 @@
-actions: []
-unique actions: 0
+values.snap.txt

@@ -1,7 +1,7 @@
 #[automatically_derived]
 impl ::core::clone::Clone for Heater {
     fn clone(&self) -> Self {
-        match self {
+        match *self {
             Self::Heat => Self::Heat,
             Self::Failover => Self::Failover,
         }
@@ -24,7 +24,7 @@ impl ::core::hash::Hash for Heater {
 #[automatically_derived]
 impl ::umpire_dsl::Spell for Heater {
     fn spell(&self, out: &mut ::std::string::String) {
-        match self {
+        match *self {
             Self::Heat => out.push_str("Heater::Heat"),
             Self::Failover => out.push_str("Heater::Failover"),
         }
