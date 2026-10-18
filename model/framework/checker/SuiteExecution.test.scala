@@ -1,0 +1,274 @@
+package framework.checker
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
+
+class SuiteExecutionTest extends munit.FunSuite:
+  final case class Addition(amount: Int)
+  class Counter extends Machine[Outcome, Boolean]:
+    var count = 0
+    val gap = hole
+
+    object client extends Actor:
+      lazy val increment = action
+      lazy val add =
+        action.inputs[Addition](inputField[Addition](_.amount).in(domains.oneOf(0 to 4)))
+
+    object transitions extends Transitions:
+      on(client.increment):
+        effects.increment()
+      on(client.add): in =>
+        effects.add(in.amount)
+
+    object effects:
+      def increment(): Unit =
+        count = count + 1
+        records(true)
+      def add(amount: Int): Unit =
+        count = count + amount
+
+  class MultipleStarts extends Machine[Outcome, Nothing]:
+    var count = oneOf(List(0, 2))
+
+    object transitions extends Transitions
+
+  class Failures extends Machine[Outcome, Nothing]:
+    var count = 0
+    val gap = hole
+
+    object client extends Actor:
+      lazy val disabled = action
+      lazy val explode = action
+      lazy val missing = action
+      lazy val once = action
+
+    object transitions extends Transitions:
+      on(client.disabled):
+        if count > 0 then effects.increment()
+      on(client.explode):
+        effects.explode()
+      on(client.missing):
+        effects.missing()
+      on(client.once):
+        if count == 0 then effects.increment()
+
+    object effects:
+      def increment(): Unit = count = count + 1
+      def explode(): Unit = throw IllegalStateException("effect failed")
+      def missing(): Unit = if gap.reached then count = count + 1
+
+  test("authored steps and expectations are deferred until replay restores the owner"):
+    val model = new Counter
+    var observations = 0
+    def observed: Boolean =
+      observations += 1
+      model.count == 2
+    val body = RunBody.capture(model):
+      repeat(2)(model.client.increment)
+      expect:
+        observed
+        before.count == 1
+        outcome == Outcome.accepted
+    assertEquals(observations, 0)
+    assertEquals(model.count, 0)
+    val result = SuiteExecution.run(body, budget = 8)
+    assertEquals(result.verdict, Verdict.verified)
+    assertEquals(result.path.steps.size, 2)
+    assertEquals(observations, 1)
+    assertEquals(model.count, 0)
+
+  test("named inputs read the actual restored step state once per repetition"):
+    val model = new Counter
+    val start = model.init
+    var inputs = Vector.empty[Int]
+    def amount: Int =
+      inputs = inputs :+ model.count
+      model.count
+    val body = RunBody.capture(model, from = start):
+      model.client.increment
+      repeat(2)(model.client.add(amount = amount))
+      expect:
+        model.count == 4
+        before.count == 2
+    assertEquals(inputs, Vector.empty)
+    model.count = 2
+    val result = SuiteExecution.run(body, budget = 8)
+    assertEquals(result.verdict, Verdict.verified)
+    assertEquals(inputs, Vector(1, 2))
+    assertEquals(model.count, 0)
+
+  test("an expectation cannot read a foreign instance of the same class"):
+    val model = new Counter
+    val other = new Counter
+    val body = RunBody.capture(model):
+      model.client.increment
+      expect:
+        other.count == 0
+    val failure = intercept[IllegalArgumentException](SuiteExecution.run(body, budget = 8))
+    assert(failure.getMessage.contains("another Model instance"))
+
+  test("a budget cut inside a long repetition cannot reach its trailing expectation"):
+    val model = new Counter
+    var evaluated = 0
+    def unreachable: Boolean =
+      evaluated += 1
+      false
+    val body = RunBody.capture(model):
+      repeat(2147483647)(model.client.increment)
+      expect:
+        unreachable
+    val result = SuiteExecution.run(body, budget = 2)
+    assertEquals(result.verdict, Verdict.unknown)
+    assertEquals(result.budget, 2)
+    assertEquals(result.complete, false)
+    assertEquals(evaluated, 0)
+
+  test("alternatives retain each target and evaluate following inputs in every frontier state"):
+    import framework.dsl.{oneOf as either, repeat as times}
+    val model = new Counter
+    val start = model.init
+    var inputs = Vector.empty[Int]
+    var seen = Vector.empty[Int]
+    def amount: Int =
+      inputs = inputs :+ model.count
+      model.count
+    def observed: Boolean =
+      seen = seen :+ model.count
+      true
+    val body = RunBody.capture(model, from = start):
+      either(model.client.add(amount = 1), model.client.add(amount = 2))
+      times(1)(model.client.add(amount = amount))
+      expect:
+        observed
+        model.count == before.count * 2
+    val alternatives = body.operations.head.asInstanceOf[RunStep].targets
+    assertEquals(alternatives.size, 2)
+    assert(alternatives.head.position.text.contains("amount = 1"))
+    assert(alternatives.last.position.text.contains("amount = 2"))
+    assertEquals(inputs, Vector.empty)
+    model.count = 3
+    val result = SuiteExecution.run(body, budget = 8)
+    assertEquals(
+      result.verdict,
+      Verdict.verified,
+      result.detail.mkString + s" inputs=$inputs seen=$seen"
+    )
+    assertEquals(inputs, Vector(1, 2))
+    assertEquals(seen, Vector(2, 4))
+    assertEquals(result.path.steps.size, 2)
+    assertEquals(model.count, 0)
+
+  test("multiple starts require a located explicit from and start evaluation remains deferred"):
+    val model = new MultipleStarts
+    val default = RunBody.capture(model):
+      expect(true)
+    val missing = intercept[IllegalArgumentException](SuiteExecution.run(default, budget = 4))
+    assert(missing.getMessage.contains("SuiteExecution.test.scala:"))
+    assert(missing.getMessage.contains("requires from"))
+    var starts = 0
+    def selected: State =
+      starts += 1
+      model.init.copy(count = 2)
+    val explicit = RunBody.capture(model, from = selected):
+      expect(model.count == 2)
+    assertEquals(starts, 0)
+    assertEquals(SuiteExecution.run(explicit, budget = 4).verdict, Verdict.verified)
+    assertEquals(starts, 1)
+
+  test("zero-step expectations supply state and empty facts but no invented preceding step"):
+    val model = new Counter
+    val state = RunBody.capture(model):
+      expect:
+        model.count == 0
+        !records(true)
+    assertEquals(SuiteExecution.run(state, budget = 4).verdict, Verdict.verified)
+    val previous = RunBody.capture(model):
+      expect(before.count == 0)
+    val answer = RunBody.capture(model):
+      expect(outcome == Outcome.accepted)
+    Vector(previous, answer).foreach: body =>
+      val failure = intercept[IllegalStateException](SuiteExecution.run(body, budget = 4))
+      assert(failure.getMessage.contains("requires a preceding replay step"))
+
+  test("the lazy adapter preserves disabled effect exception and reached-hole results"):
+    val model = new Failures
+    val disabled = RunBody.capture(model):
+      model.client.disabled
+    val thrown = RunBody.capture(model):
+      model.client.explode
+    val missing = RunBody.capture(model):
+      model.client.missing
+    val suffix = RunBody.capture(model):
+      repeat(2)(model.client.once)
+    val expectation = RunBody.capture(model):
+      expect(model.gap.reached[Boolean])
+    Vector(
+      (disabled, Vector(ReplayStep[State](model.client.disabled)), Verdict.refuted, 0),
+      (thrown, Vector(ReplayStep[State](model.client.explode)), Verdict.refuted, 0),
+      (missing, Vector(ReplayStep[State](model.client.missing)), Verdict.unknown, 0),
+      (
+        suffix,
+        Vector(ReplayStep[State](model.client.once), ReplayStep[State](model.client.once)),
+        Verdict.refuted,
+        1
+      )
+    ).foreach: (body, steps, verdict, depth) =>
+      val eager = framework.checker.Checker.replay(model, ReplayScript(steps), budget = 4)
+      val result = SuiteExecution.run(body, budget = 4)
+      assertEquals(result.verdict, verdict)
+      assertEquals(result.detail, eager.detail)
+      assertEquals(result.path, eager.path)
+      assertEquals(result.path.steps.size, depth)
+      assertEquals(model.count, 0)
+    val reached = SuiteExecution.run(expectation, budget = 4)
+    assertEquals(reached.verdict, Verdict.unknown)
+    assert(reached.detail.exists(_.startsWith("expectation at State(count = 0) reaches ")))
+    val counter = new Counter
+    def broken: Int = throw IllegalStateException("input failed")
+    val input = RunBody.capture(counter):
+      counter.client.add(amount = broken)
+    val result = SuiteExecution.run(input, budget = 4)
+    assertEquals(result.verdict, Verdict.refuted)
+    assert(result.detail.mkString.contains("input failed"))
+    assert(result.detail.mkString.contains("SuiteExecution.test.scala:"))
+    assertEquals(counter.count, 0)
+    def missingAmount: Int = counter.gap.reached[Int]
+    val missingInput = RunBody.capture(counter):
+      counter.client.add(amount = missingAmount)
+    val unknown = SuiteExecution.run(missingInput, budget = 4)
+    assertEquals(unknown.verdict, Verdict.unknown)
+    assert(unknown.detail.exists(_.contains("inputs at State(count = 0) reach ")))
+    assertEquals(counter.count, 0)
+
+  test("nested and exceptional replay restores outer context and retained evidence is immutable"):
+    val model = new Counter
+    val inner = new Counter
+    val nested = RunBody.capture(inner):
+      repeat(2)(inner.client.increment)
+      expect(inner.count == 2)
+    def thrown: Boolean = throw IllegalStateException("predicate failed")
+    val exceptional = RunBody.capture(inner):
+      inner.client.increment
+      expect(thrown)
+    def reenter: Boolean =
+      assertEquals(SuiteExecution.run(nested, budget = 8).verdict, Verdict.verified)
+      val failure = intercept[IllegalStateException](SuiteExecution.run(exceptional, budget = 8))
+      failure.getMessage == "predicate failed"
+    val outer = RunBody.capture(model):
+      model.client.increment
+      expect:
+        reenter
+        model.count == 1
+        before.count == 0
+        outcome == Outcome.accepted
+        records(true)
+        model.count == 9
+    val first = SuiteExecution.run(outer, budget = 8)
+    assertEquals(first.verdict, Verdict.refuted)
+    val retained = (first.path, first.expectation, first.detail)
+    assertEquals(SuiteExecution.run(nested, budget = 8).verdict, Verdict.verified)
+    assertEquals((first.path, first.expectation, first.detail), retained)
+    assert(first.expectation.exists(_.text.endsWith("model.count == 9")))
+    assertEquals(model.count, 0)
+    assertEquals(inner.count, 0)

@@ -5,6 +5,8 @@ import framework.dsl.*
 // The native runtime the DSL reaches through its seam (framework/dsl/NativeRuntime.scala), by this
 // object's name: each statement and evaluation the DSL declares, run here.
 private[framework] object Native extends NativeRuntime:
+  def runBody[M <: Machine[?, ?]](body: RunBody[M], budget: Int): Any =
+    SuiteExecution.evaluate(body, budget)
   def invoke(body: () => Unit): Unit = body()
   def stateCompare(vars: Vars, left: State, right: State): Int =
     DomainRuntime.stateCompare(vars, left, right)

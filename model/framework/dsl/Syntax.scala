@@ -94,6 +94,24 @@ final class StepRecords[F]:
 // `a.outcome` in `(b, a) => predicate(b, a)`.
 transparent inline def outcome: Any = ${ ClaimMacros.outcome }
 
+// Ordered Boolean assertions, deferred until an authored replay reaches their state.
+// Core form: `new RunAssertions(Vector(...))`.
+transparent inline def expect(inline body: Any)(using scope: RunContext[?]): RunAssertions =
+  ${ ExpectMacros.capture('body, 'scope) }
+
+// The actual preceding step's start, refined to this run's Model vars. Core form: `scope.previous`.
+transparent inline def before[M <: Machine[?, ?]](using scope: RunContext[M]): Any =
+  ${ ExpectMacros.previous[M]('scope) }
+
+// Finite alternatives for one authored step. Core form: `new RunStep(targets, () => 1, position)`.
+inline def oneOf(inline alternatives: (Action[?] | Class)*): RunStep =
+  ${ RunBodyMacros.alternatives('alternatives) }
+
+// Repeat one authored step a positive number of times, without expanding it during capture.
+// Core form: `new RunStep(Vector(target), () => count, position)`.
+inline def repeat(inline count: Int)(inline step: Action[?] | Class): RunStep =
+  ${ RunBodyMacros.repeat('count, 'step) }
+
 // What `oneOf` is in a claim: its branches, of which there are at least two. Core form:
 // `firstBranch || secondBranch || rest`.
 final class ClaimAlternatives:
@@ -261,6 +279,9 @@ private[framework] object ClaimMacros:
   @scala.annotation.publicInBinary
   private[framework] def before(using q: Quotes): Expr[Any] =
     import q.reflect.*
+    Expr.summon[RunContext[?]] match
+      case Some(scope) => return ExpectMacros.snapshot(scope, ExpectMacros.modelType(scope))
+      case None        => ()
     if !inside(stepSections) then
       report.errorAndAbort("before is the state a step started from; use it in a postcondition")
     val cls = machine.getOrElse(
@@ -287,6 +308,14 @@ private[framework] object ClaimMacros:
   @scala.annotation.publicInBinary
   private[framework] def outcome(using q: Quotes): Expr[Any] =
     import q.reflect.*
+    Expr.summon[RunContext[?]] match
+      case Some(scope) =>
+        val AppliedType(_, List(_, answer, _)) = ExpectMacros
+          .modelType(scope)
+          .baseType(TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol): @unchecked
+        answer.asType match
+          case '[o] => return '{ $scope.answer.asInstanceOf[o] }
+      case None => ()
     if !inside(stepSections) then
       report.errorAndAbort(
         "outcome is what a step answered: read it in a postcondition or a monitor"
@@ -302,6 +331,15 @@ private[framework] object ClaimMacros:
 
   @scala.annotation.publicInBinary
   private[framework] def records(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    Expr.summon[RunContext[?]] match
+      case Some(scope) =>
+        val AppliedType(_, List(_, _, fact)) = ExpectMacros
+          .modelType(scope)
+          .baseType(TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol): @unchecked
+        fact.asType match
+          case '[f] => return '{ new RunRecords[f]() }
+      case None => ()
     machineType(1, "records").asType match
       case '[f] => '{ new StepRecords[f]() }
 
@@ -312,7 +350,8 @@ private[framework] object ClaimMacros:
 
   @scala.annotation.publicInBinary
   private[framework] def oneOf(using q: Quotes): Expr[Any] =
-    if StartStatesMacro.initializer.nonEmpty then '{ new InitialAlternatives() }
+    if Expr.summon[RunContext[?]].nonEmpty then '{ new RunAlternatives() }
+    else if StartStatesMacro.initializer.nonEmpty then '{ new InitialAlternatives() }
     else '{ new ClaimAlternatives() }
 
   @scala.annotation.publicInBinary
@@ -377,6 +416,14 @@ extension (a: Boolean) inline infix def implies(b: => Boolean): Boolean = !a || 
 extension [S, O, F](step: Step[S, O, F])
   // A fact of the step's own type. Core form: `step.facts.contains(fact)`.
   inline def records[G](fact: G)(using G <:< F): Boolean = step.facts.contains(fact)
+
+// Whether the actual preceding step recorded a fact of this run's admitted fact type.
+// Core form: `scope.records(fact)`.
+def records[M <: Machine[?, ?], G](fact: G)(using
+    scope: RunContext[M]
+)(using
+    G <:< scope.model.Fact
+): Boolean = scope.records(fact)
 
 // `m.witness(a, b).records(fact)`: one path-and-outcome declaration, implicitly on the enclosing
 // machine or composition. Its default search budget is 512, with depth and schedule length equal

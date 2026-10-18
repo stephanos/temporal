@@ -2,9 +2,9 @@ package framework.dsl
 
 // The words a Machine's claims and effects are written in where they read its vars by name, which
 // a Machine and a derivation of one inherit, so that inside the object they are these. Each reads
-// where it is written (ClaimMacros): in a block of the retired `expect`, whose expectation it finds
-// as a given, it is the requirement it was there; in the Machine's sections it asserts natively
-// (NativeClaims), and outside the sections it belongs in it is refused.
+// where it is written (ClaimMacros): in an authored run it reads that run's exact Model context;
+// in the Machine's sections it asserts natively (NativeClaims), and outside the contexts it belongs
+// in it is refused.
 //
 //   - `after(target):` a block of a postcondition about the steps of one action, or class of it;
 //   - `before`: the State record the step started from, in a postcondition or a monitor;

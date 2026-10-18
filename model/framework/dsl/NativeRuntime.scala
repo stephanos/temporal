@@ -3,6 +3,7 @@ package framework.dsl
 // Declaration operations implemented by the product checker. Keeping the interface here lets the
 // lifter read declarations without loading the checker or evaluating authored callbacks.
 private[framework] trait NativeRuntime:
+  def runBody[M <: Machine[?, ?]](body: RunBody[M], budget: Int): Any
   def invoke(body: () => Unit): Unit
   def stateCompare(vars: Vars, left: State, right: State): Int
   def invoke[A, B, C, D](function: (A, B, C) => D, first: A, second: B, third: C): D

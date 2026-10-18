@@ -4,6 +4,15 @@ import framework.dsl.*
 
 sealed trait ReplayOperation[S]
 final case class ReplayStep[S](target: Any, alternatives: Any*) extends ReplayOperation[S]
+
+final private[framework] case class ReplayDeferredStep[S](
+    targets: () => Vector[Any],
+    position: RunPosition
+) extends ReplayOperation[S]
+
+final private[framework] case class ReplayRepeatedStep[S](step: ReplayDeferredStep[S], count: Int)
+    extends ReplayOperation[S]
+
 final case class ReplayExpectation[S](expectation: Expectation[S]) extends ReplayOperation[S]
 
 final case class ReplayScript[S](
@@ -38,9 +47,33 @@ private[checker] object Replay:
     var evidence = frontier.headOption.fold(Path.empty)(_._2)
     var depth = 0
     val boundClasses = instance.nativeEffects.flatMap((decl, _) => NativeCheck.classesOf(decl))
-    val operations = script.operations.iterator
+    def select(targets: Seq[Any], position: Option[RunPosition]): Seq[Class] =
+      targets.flatMap: target =>
+        val classes = boundClasses.filter(ClaimEvaluation.selects(target, _))
+        val location = position.fold("")(value => s"$value: ")
+        require(classes.nonEmpty, s"${location}replay pins $target, which no rule binds")
+        classes
+    def targets(operation: ReplayDeferredStep[?], before: S, path: Path): Vector[Any] =
+      val last = path.steps.lastOption
+      val origin = last.flatMap(_.before match
+        case value: State => Some(value)
+        case _            => None)
+      val context = ClaimEvaluation.Context(
+        origin,
+        last.map(_.action),
+        last.map(_.outcome),
+        last.fold(List.empty[Any])(_.facts)
+      )
+      def evaluate = ClaimEvaluation.within(context)(operation.targets())
+      instance.stateVars.fold(evaluate)(_.at(before)(evaluate))
+    val operations = script.operations.iterator.flatMap:
+      case repeated: ReplayRepeatedStep[S] =>
+        Iterator.fill(repeated.count)(repeated.step).takeWhile(_ => frontier.nonEmpty)
+      case operation => Iterator.single(operation)
     while failure.isEmpty && operations.hasNext do
       operations.next() match
+        case _: ReplayRepeatedStep[?] =>
+          throw IllegalStateException("replay repetition was not expanded")
         case ReplayExpectation(expectation) =>
           require(expectation != null, "replay requires an expectation")
           val retained = Vector.newBuilder[(S, Path, Boolean)]
@@ -65,16 +98,32 @@ private[checker] object Replay:
                 case HoleReached(hole) =>
                   engine.unknown += s"expectation at $state reaches ${NativeCheck.holeName(hole)}": Unit
           frontier = retained.result()
-        case operation: ReplayStep[?] =>
-          val selected = (operation.target +: operation.alternatives).flatMap: target =>
-            val classes = boundClasses.filter(ClaimEvaluation.selects(target, _))
-            require(classes.nonEmpty, s"replay pins $target, which no rule binds")
-            classes
+        case operation @ (_: ReplayStep[?] | _: ReplayDeferredStep[?]) =>
+          val eager = operation match
+            case step: ReplayStep[?] => Some(select(step.target +: step.alternatives, None))
+            case _                   => None
           val reached = Vector.newBuilder[(S, Path, Boolean)]
           frontier.iterator
             .filter(_._3)
             .takeWhile(_ => failure.isEmpty && !cut)
             .foreach: (before, path, _) =>
+              val selected = eager.getOrElse:
+                operation match
+                  case step: ReplayDeferredStep[?] =>
+                    val values =
+                      try Some(targets(step, before, path))
+                      catch
+                        case HoleReached(hole) =>
+                          engine.unknown += s"${step.position}: inputs at $before reach ${NativeCheck.holeName(hole)}": Unit
+                          None
+                        case scala.util.control.NonFatal(cause) =>
+                          failure = Some(
+                            Vector(s"${step.position}: inputs at $before: ${cause.getMessage}")
+                          )
+                          evidence = path
+                          None
+                    values.fold(Seq.empty[Class])(select(_, Some(step.position)))
+                  case _ => Seq.empty
               selected.iterator
                 .takeWhile(_ => failure.isEmpty && !cut)
                 .foreach: cls =>

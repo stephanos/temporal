@@ -15,7 +15,7 @@ The probe's assertion helper runs immediately. Production expectations must inst
 
 **Files:** `model/framework/dsl/RunBody.scala` and `Expect.scala` with their focused `.test.scala` controls; the minimum scoped context integration in `model/framework/dsl/Syntax.scala`, `ClaimWords.scala` and `NativeRuntime.scala`; `model/framework/checker/Native.scala` as the sole NativeRuntime implementation; `model/framework/checker/SuiteExecution.scala` and `SuiteExecution.test.scala` for translation to existing replay operations. S later extends the same adapter and therefore follows P serially. Edit existing replay internals only if a demonstrated integration defect requires it.
 
-**Touches:** [model/framework/dsl/RunBody.scala, model/framework/dsl/RunBody.test.scala, model/framework/dsl/Expect.scala, model/framework/dsl/Expect.test.scala, model/framework/dsl/Syntax.scala, model/framework/dsl/ClaimWords.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala]
+**Touches:** [model/framework/dsl/RunBody.scala, model/framework/dsl/RunBody.test.scala, model/framework/dsl/Expect.scala, model/framework/dsl/Expect.test.scala, model/framework/dsl/Syntax.scala, model/framework/dsl/ClaimWords.scala, model/framework/dsl/NativeRuntime.scala, model/framework/checker/Native.scala, model/framework/checker/SuiteExecution.scala, model/framework/checker/SuiteExecution.test.scala, model/framework/checker/Replay.scala, model/framework/checker/Questions.test.scala]
 
 **Dependencies:** Existing fn-195.1 closure `d0d2efeab0` and the already admitted fn-194/fn-196 native checkpoints. Keep existing `.2 -> .1`. This task produces the body/request seam consumed by S; it does not require whole fn-194/fn-196 completion or their held proofs. Trust the existing prerequisite admission rather than repeating it.
 
@@ -28,6 +28,18 @@ The probe's assertion helper runs immediately. Production expectations must inst
 - `model/framework/checker/Replay.scala` for retained alternatives, positioned operations, cuts and failure evidence.
 - `model/framework/checker/Spaces.scala` for restored-state expectation evaluation and actual preceding-step context.
 - `.flow/tmp/fn1952-plan/expect-probe.md` for the public Block.copy route, legal compilation boundaries and remaining production grammar/replay proofs.
+
+## Replay input evaluation
+
+The initial adapter demonstrated an integration defect: materializing target thunks before replay
+restores a frontier state binds named action inputs against the ordinary live fields, including
+externally mutated values. Preserve the authored sequence's meaning by evaluating captured action
+targets at their actual replay step under the exact restored owner state. Use a minimal lazy-target
+operation inside the existing replay interpreter, preserving the eager ReplayStep API and existing
+class selection, branching, failure/cut handling and evidence. This is a scoped existing-engine
+extension, not another search algorithm. The conductor admitted `Replay.scala` and
+`Questions.test.scala` to Touches for this demonstrated need. Establish the reached existing replay
+baseline before editing it and retain its behavior controls.
 
 ## Import and execution boundary
 
@@ -42,6 +54,12 @@ The product checker translates the DSL-owned request into its existing replay op
 - [ ] Deferred expectation evaluation reads the owning Model's restored state after the actual last step. Typed `before`, `outcome` and recorded-fact access use that exact step and actual owner-bound context, including a refused outcome with unchanged state and an action that records facts. Same-class foreign owner-bound accesses/roots and incompatible fact types remain refused. Preserve the existing `G <:< F` fact-type admission; compatible shared fact values remain legal and gain no invented instance identity. Replaying a second instance cannot change retained evidence from the first. Native zero-step expectation behavior remains explicit and supplies no invented preceding step. Existing claim/effect placement rules remain effective outside this run-body context.
 - [ ] The checker adapter preserves existing replay results and evidence for success, disabled steps, thrown effects, reached holes, expectation failures and budget cuts. It retains every alternative and source position while respecting the supplied caller budget; a cut never becomes verified. Capture does not eagerly evaluate callbacks, read model vars or execute effects, and nested/exceptional context restoration remains correct. It introduces no new checker verdict or search algorithm.
 - [ ] DSL/realize-only declaration compile/load and execution-without-checker controls demonstrate the import boundary. Public source-test and fresh separate-library clients cover real imports, qualification and aliases; an unrelated shadowing `expect` retains its original meaning. Unrelated discarded Booleans outside `expect` and a deprecated Boolean call inside it still fail strict compilation. Single-Boolean/single-literal bodies generate no unused-suppression warning. The unsupported joint-main route remains documented with its original failing evidence.
+
+- [ ] Named action inputs that read the bound owner's vars evaluate once in the actual restored
+  frontier state after prior steps, including each repeat/alternative. Capture evaluates no input
+  callbacks. External mutations of the owner's ordinary live fields before replay cannot change
+  the selected path inputs. Original eager ReplayStep callers retain their behavior, ownership,
+  disabled-step, hole, exception, alternative and budget/cut evidence.
 
 ## Verification
 
