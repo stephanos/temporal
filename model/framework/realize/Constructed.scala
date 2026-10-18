@@ -137,6 +137,10 @@ object ConstructedRealization:
       catalogs: Vector[(ActionDecl, Vector[framework.dsl.Class])]
   ):
     def admit(alternatives: Vector[Vector[ClassRef]]): Unit =
+      require(
+        realization.machine eq owner,
+        "realization belongs to another exact machine instance"
+      )
       require(alternatives.nonEmpty, "a native path requires alternatives")
       alternatives.foreach: path =>
         path.foreach: ref =>

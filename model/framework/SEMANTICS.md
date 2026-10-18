@@ -1319,12 +1319,13 @@ The first complete acquisition snapshots the catalogs needed by its performed an
 and the projected coverage for that realization. Unrelated action catalogs are not enumerated.
 Repeated requests retain that snapshot despite subsequent changes in a custom projection. Changing
 the exact machine association during projection or before reusing a snapshot refuses. A failed
-acquisition retains its original exception. Reentry fails permanently, even if the kit catches that
-failure; no partial coverage escapes. Finite-catalog inspection executes no guard, effect, command,
-dependency conversion or end predicate in the admitted native fixture catalog. This is no universal
-purity guarantee for arbitrary custom finite catalogs. Declaration compilation/loading remains
-checker-independent; requesting a class catalog without the checker retains the existing explicit
-missing-runtime refusal.
+acquisition retains its original exception. Each retained carrier's `admit` also rechecks the exact
+machine association before validating its supplied paths. Reentry fails permanently, even if the
+kit catches that failure; no partial coverage escapes. Finite-catalog inspection executes no guard,
+effect, command, dependency acquisition, IR conversion or end predicate in the admitted native
+fixture catalog. This is no universal purity guarantee for arbitrary custom finite catalogs.
+Declaration compilation/loading remains checker-independent; requesting a class catalog without the
+checker retains the existing explicit missing-runtime refusal.
 
 This protocol supplies checked coverage only. Automatic realization discovery, complete candidate
 selection, capability generation, actual P/X consumer integration, exact conformance binding and

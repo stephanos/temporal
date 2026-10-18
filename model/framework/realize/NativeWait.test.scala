@@ -349,6 +349,7 @@ package framework.realize {
         else
           val retained = kit.nativeCoverage(owner)
           current = foreign
+          refused("exact machine instance")(retained.admit(Vector(Vector.empty)))
           refused("exact machine instance")(kit.nativeCoverage(foreign))
           assert(retained.owner eq owner)
       checkPoison(calls)
