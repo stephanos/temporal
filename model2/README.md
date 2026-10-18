@@ -39,10 +39,19 @@ beside it:
 - behaviour: every sample Model's `cases/<model>/expected/report.txt` and `paths/<claim>.txt`
   (`insta`; review with `cargo insta review`);
 - refusals: `trybuild` `.rs` + `.stderr` under `framework/dsl/tests/ui/`;
-- expansion: `macrotest` `.expanded.rs` under `framework/dsl/tests/expand/`;
+- expansion: insta snapshots of each macro's implementation function, formatted by
+  `prettyplease`;
 - one property test against a brute-force reference explorer, the check that goldens are right
   rather than merely stable.
 
 Goldens are deterministic, human-readable and timing-free. `make model2-update` rewrites them; a
 golden with no case, or a case with no golden, fails. Unit tests only when a defect cannot be
 written as a case.
+
+## Dependencies
+
+Only admitted crates (fn-210 R18): a release in the last 12 months, or finished and very widely used.
+They are declared once in `[workspace.dependencies]`; a crate opts in with `name.workspace = true`.
+`deny.toml` bans the unmaintained alternatives (`im`, `derivative`, `proc-macro-error`,
+`proc-macro-error2`, `deluxe`, `index_vec`, `stateright`); `cargo deny check bans` enforces it. A new
+dependency needs the same check and a line in the spec.

@@ -15,6 +15,27 @@ license = "MIT"
 framework-dsl = { path = "framework/dsl" }
 framework-checker = { path = "framework/checker" }
 
+# Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.
+indexmap = "2.14"
+rustc-hash = "2.1"
+smallvec = { version = "1.16", features = ["union", "const_generics"] }
+petgraph = { version = "0.8", default-features = false, features = ["graphmap", "stable_graph"] }
+fixedbitset = "0.5"
+enum-iterator = "2.3"
+imbl = "7.0"
+thiserror = "2.0"
+# proc macros
+syn = { version = "3", features = ["full", "visit", "extra-traits"] }
+quote = "1.0"
+proc-macro2 = "1.0"
+darling = "0.24"
+manyhow = "0.14"
+prettyplease = "0.3"
+# tests
+insta = "1.49"
+trybuild = "1.0"
+proptest = "1.12"
+
 # One lint policy for every crate; each crate opts in with `[lints] workspace = true`.
 [workspace.lints.rust]
 missing_docs = "warn"

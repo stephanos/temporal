@@ -4,6 +4,8 @@ satisfies: [R2, R4]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.2 framework-checker: BFS explore with budget, invariants per state, postconditions per edge, verify_all, refuted
 
 ## Description
+**Deps 2026-10-18 (R18):** visited set = `IndexSet<State, FxBuildHasher>` (`indexmap`, `rustc-hash`): the insertion index is the `StateId`, iteration is discovery order, parents are a `Vec<(StateId, Action)>`; this is the `FullStates` impl of `Visited`. Vacuity tracking uses `fixedbitset`. Dev: `insta`, `proptest`.
+
 **Recut 2026-10-18 (R11, R14, R16):** run each step under `catch_unwind` and refute on panic or overflow with path, action and message; keep order structural (catalog order, ordered starts, FIFO BFS, no hash iteration in output); put the visited set behind `Visited<S>` with a full-state implementation.
 
 **Recut 2026-10-18 (R8, golden files):** deliver the behaviour runner and the oracle test, not assertions. Add `insta` (dev) and a `samples` test that runs every registered Model and snapshots `cases/<model>/expected/report.txt` and `paths/<claim>.txt`; give states a stable `Display` and sort whatever reaches a golden. Add `proptest` (dev) and a brute-force reference explorer over small random Models (2-3 small vars, 2-4 guarded actions) that must agree with `Checker::explore` on reached states and claim verdicts. Add `make model2-update`.

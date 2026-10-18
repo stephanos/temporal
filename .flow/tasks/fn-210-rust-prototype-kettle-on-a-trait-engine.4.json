@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.4.md",
   "status": "todo",
   "title": "framework-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]",
-  "updated_at": "2026-10-18T19:52:02.061257Z"
+  "updated_at": "2026-10-18T20:02:18.182293Z"
 }

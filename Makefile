@@ -1433,5 +1433,5 @@ model2-fmt:
 	@$(MODEL2_CARGO) fmt --all
 
 model2-update:
-	@printf $(COLOR) "Update model2 golden files (insta, trybuild, macrotest)..."
-	@cd model2 && INSTA_UPDATE=always TRYBUILD=overwrite MACROTEST=overwrite mise exec -- cargo test --workspace --quiet
+	@printf $(COLOR) "Update model2 golden files (insta, trybuild)..."
+	@cd model2 && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet

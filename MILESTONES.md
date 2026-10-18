@@ -50,14 +50,19 @@ the attribute surface (`#[derive(State)]`, `#[derive(Action)]`, a pass-through `
 impl collecting `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[progress]`), then
 Kettle itself with its test, then the design note. Testing is end to end by golden files (R8,
 owner 2026-10-18): `insta` snapshots of each Model's report and counterexample paths, `trybuild`
-refusals, `macrotest` expansions, one brute-force oracle property test, no unit tests by default.
+refusals, insta snapshots of macro expansions (formatted by `prettyplease`), one brute-force oracle
+property test, no unit tests by default.
 Architecture fixed before the checker (R9 to R17, owner 2026-10-18): a world value implements
 `Machine` with associated `State` and `Action` (constants and compositions live on the world);
 `step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
 in every profile and a panicking effect refutes its step; tri-state verdicts with holes; a
 liftable subset warned on now; structural determinism; a `wasm32-wasip2` build of dsl and checker
 in the gate; a `Visited` seam over full states; `imbl` collections and `Finite`-derived inputs
-recorded for Bank. Gate: `make model2-check`; update goldens with `make model2-update`.
+recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-18): `indexmap`
+(visited set and state ids), `petgraph` (SCCs for progress), `smallvec`, `rustc-hash`, `fixedbitset`,
+`enum-iterator`, `imbl`, `thiserror`, the `syn` 3 macro stack with `darling`, `manyhow` and
+`prettyplease`, and `insta`, `trybuild`, `proptest`; unmaintained alternatives are banned in
+`deny.toml`. Gate: `make model2-check`; update goldens with `make model2-update`.
 [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 | Name | Status | What |

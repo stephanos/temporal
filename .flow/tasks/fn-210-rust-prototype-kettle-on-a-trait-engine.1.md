@@ -4,6 +4,8 @@ satisfies: [R1]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.1 framework-dsl: Machine trait, Claim, StepClaim, Scope, Progress, Outcome; Kettle.trait.rs compiles as a fixture
 
 ## Description
+**Deps 2026-10-18 (R18):** `Steps` is `SmallVec<[Step; 1]>`; library errors use `thiserror`. No other dependency is needed for the vocabulary.
+
 **Recut 2026-10-18 (R9, R10, R12, in progress):** the trait shape changed. A world value implements `Machine` with associated `State` and `Action`; `starts(&self) -> Vec<State>`; `step(&self, &State, Action) -> Steps<State, Outcome, Fact>` with `Steps` an ordered list of `(outcome, facts, next)`, empty = disabled; claims return `Verdict { Holds, Fails, Unknown(Hole) }` with `From<bool>`. Adapt `tests/trait_fixture.rs` to this shape (an empty `KettleWorld` struct); R1's 'compiles unchanged' is superseded by R9.
 
 **Note 2026-10-18 (R8, golden files):** keep the fixture minimal: it proves the vocabulary compiles. Behaviour assertions belong in goldens from .2 on; do not add unit tests here beyond what compilation needs.
