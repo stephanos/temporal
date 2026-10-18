@@ -1,5 +1,5 @@
 error: unknown after action User::Missing
-  --> tests/ui/machine_unknown_after.rs:12:41
+  --> tests/ui/machine_unknown_after.rs:18:17
    |
-12 |     #[umpire_dsl::postcondition(after = User::Missing)]
-   |                                         ^^^^^^^^^^^^^
+18 |         #[after(User::Missing)]
+   |                 ^^^^^^^^^^^^^

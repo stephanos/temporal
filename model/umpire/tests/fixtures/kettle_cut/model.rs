@@ -1,1 +1,3 @@
-pub(crate) use crate::fixture_kettle::cut_run as run;
+use crate::fixture_kettle::kettle;
+
+umpire_testing::fixture!(kettle::world(), 82);

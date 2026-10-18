@@ -1,2 +1,2 @@
-0: User::PressButton choice=0 outcome=() facts=[] -> Kettle { temperature: 20, heating_on: true, beeping: false }
-1: User::DepressButton choice=0 outcome=() facts=[] -> Kettle { temperature: 20, heating_on: false, beeping: false }
+0: User::PressButton choice=0 outcome=() facts=[] -> Model { temperature: 20, heating_on: true, beeping: false }
+1: User::DepressButton choice=0 outcome=() facts=[] -> Model { temperature: 20, heating_on: false, beeping: false }

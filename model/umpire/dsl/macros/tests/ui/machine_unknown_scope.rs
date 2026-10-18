@@ -1,16 +1,21 @@
-use umpire_dsl::{Action, State, machine};
+use umpire_dsl::machine;
 
-#[derive(State)]
-struct Model {}
-#[derive(Action)]
-enum Nobody {}
+#[machine]
+mod model {
+    use umpire_dsl::{Action, State};
+    #[derive(State)]
+    struct Model {}
+    #[derive(Action)]
+    enum Nobody {}
 
-#[machine(actions = (Nobody,))]
-impl Model {
-    fn unregistered() -> umpire_dsl::Scope<ModelAction> { umpire_dsl::Scope::default() }
-
-    #[umpire_dsl::progress(within = Self::unregistered())]
-    fn eventual() -> umpire_dsl::Progress<ModelWorld> { umpire_dsl::Progress::new("eventual") }
+    impl Model {
+        fn unregistered() -> Scope { without([] as [Nobody; 0]) }
+    }
+    #[progress]
+    impl Model {
+        #[within(Self::unregistered)]
+        fn eventual(&self) -> Progress { whenever(true).eventually(true) }
+    }
 }
 
 fn main() {}

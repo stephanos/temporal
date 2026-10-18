@@ -1,0 +1,22 @@
+error[E0277]: the trait bound `Action: From<Other>` is not satisfied
+  --> tests/ui/machine_scope_actor.rs:16:47
+   |
+16 |         fn unknown_actor() -> Scope { without([super::Other::Unknown]) }
+   |                                       ------- ^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |                                       |
+   |                                       required by a bound introduced by this call
+   |
+help: the trait `From<Other>` is not implemented for `Action`
+      but trait `From<Nobody>` is implemented for it
+  --> tests/ui/machine_scope_actor.rs:6:1
+   |
+ 6 | #[machine]
+   | ^^^^^^^^^^
+   = help: for that trait implementation, expected `Nobody`, found `Other`
+   = note: required for `Other` to implement `Into<Action>`
+note: required by a bound in `without`
+  --> tests/ui/machine_scope_actor.rs:6:1
+   |
+ 6 | #[machine]
+   | ^^^^^^^^^^ required by this bound in `without`
+   = note: this error originates in the attribute macro `machine` (in Nightly builds, run with -Z macro-backtrace for more info)

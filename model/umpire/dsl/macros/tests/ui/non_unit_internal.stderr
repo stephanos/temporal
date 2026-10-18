@@ -5,7 +5,7 @@ error: #[internal] requires a unit action variant
   |     ^^^^
 
 error: #[internal] requires a unit action variant
- --> tests/ui/non_unit_internal.rs:8:5
+ --> tests/ui/non_unit_internal.rs:7:5
   |
-8 |     Failover { reason: bool },
+7 |     Failover { reason: bool },
   |     ^^^^^^^^

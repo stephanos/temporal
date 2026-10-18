@@ -8,25 +8,28 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     };
     let variants = &data.variants;
     let mut errors = manyhow::Emitter::new();
-    let mut internals = Vec::new();
+    let attrs: Vec<_> =
+        input.attrs.iter().filter(|attr| attr.path().is_ident("internal")).collect();
+    for attr in &attrs {
+        if let Err(error) = darling::util::Flag::from_meta(&attr.meta) {
+            errors.emit(error);
+        }
+    }
+    let internal = !attrs.is_empty();
     for variant in variants {
-        let attrs: Vec<_> =
-            variant.attrs.iter().filter(|attr| attr.path().is_ident("internal")).collect();
-        for attr in &attrs {
-            if let Err(error) = darling::util::Flag::from_meta(&attr.meta) {
-                errors.emit(error);
-            }
+        for attr in variant.attrs.iter().filter(|attr| attr.path().is_ident("internal")) {
+            errors.emit(syn::Error::new_spanned(
+                attr,
+                "#[internal] belongs on the action enum, not a variant",
+            ));
         }
         if !matches!(variant.fields, syn::Fields::Unit) {
-            let message = if attrs.is_empty() {
-                "Action currently requires unit variants"
-            } else {
+            let message = if internal {
                 "#[internal] requires a unit action variant"
+            } else {
+                "Action currently requires unit variants"
             };
             errors.emit(syn::Error::new_spanned(&variant.ident, message));
-        }
-        if !attrs.is_empty() {
-            internals.push(&variant.ident);
         }
     }
     errors.into_result()?;
@@ -34,11 +37,6 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     let names: Vec<_> = variants.iter().map(|variant| &variant.ident).collect();
     let spellings = names.iter().map(|variant| format!("{name}::{variant}"));
     let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
-    let internal = if internals.is_empty() {
-        quote!(false)
-    } else {
-        quote!(::core::matches!(self, #(Self::#internals)|*))
-    };
     Ok(quote! {
         #[automatically_derived]
         impl #impl_generics ::core::clone::Clone for #name #type_generics #where_clause {
