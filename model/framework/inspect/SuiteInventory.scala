@@ -351,6 +351,10 @@ private[framework] object SuiteInventory:
           catch
             case NonFatal(error) =>
               fail(s"${artifact.identity.path}!$entry", s"incompatible TASTy: ${error.getMessage}")
+          require(
+            header.toolingVersion == s"Scala ${input.toolchain.scalaVersion}",
+            s"${artifact.identity.path}!$entry: TASTy toolchain ${header.toolingVersion} disagrees with request ${input.toolchain.scalaVersion}"
+          )
           val id = header.uuid.toString.replace("-", "")
           val rootName = entry.stripSuffix(".tasty").replace('/', '.')
           val container = owners
@@ -442,18 +446,25 @@ private[framework] object SuiteInventory:
                   case _ => ()
                 super.traverseTree(tree)(parent)
             index.trees.foreach(tree => visit.traverseTree(tree)(Symbol.spliceOwner))
-        val inspected = if Files.isDirectory(artifact.identity.path) then
-          TastyInspector.inspectAllTastyFiles(
-            tastys.map((entry, _) => artifact.identity.path.resolve(entry).toString).toList,
-            Nil,
-            classpath
-          )(inspector)
-        else
-          TastyInspector.inspectAllTastyFiles(
-            Nil,
-            List(artifact.identity.path.toString),
-            classpath
-          )(inspector)
+        val inspected = try
+          if Files.isDirectory(artifact.identity.path) then
+            TastyInspector.inspectAllTastyFiles(
+              tastys.map((entry, _) => artifact.identity.path.resolve(entry).toString).toList,
+              Nil,
+              classpath
+            )(inspector)
+          else
+            TastyInspector.inspectAllTastyFiles(
+              Nil,
+              List(artifact.identity.path.toString),
+              classpath
+            )(inspector)
+        catch
+          case NonFatal(error) =>
+            fail(
+              s"${artifact.identity.path}!${needed.map(_.facts.binaryName).mkString(",")}",
+              s"typed metadata unavailable: ${error.getMessage}"
+            )
         require(
           inspected,
           s"${artifact.identity.path}!${needed.map(_.facts.binaryName).mkString(",")}: incompatible or partial typed metadata"

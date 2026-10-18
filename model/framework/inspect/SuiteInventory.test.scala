@@ -395,8 +395,11 @@ class SuiteInventoryTest extends munit.FunSuite:
         val marker = "Scala 3.9.0".getBytes(java.nio.charset.StandardCharsets.UTF_8)
         val start = bytes.sliding(marker.length).indexWhere(_.sameElements(marker))
         assert(start >= 0)
-        bytes.take(start) ++ "Scala 3.8.0".getBytes(java.nio.charset.StandardCharsets.UTF_8) ++ bytes.drop(start + marker.length)
-      else bytes))
+        bytes.take(start) ++ "Scala 3.8.0".getBytes(
+          java.nio.charset.StandardCharsets.UTF_8
+        ) ++ bytes.drop(start + marker.length)
+      else bytes)
+    )
     refused(request.copy(hierarchy = Vector(artifact(otherCompiler))), "Extra.tasty", "toolchain")
 
   test("fresh library ownership preserves complete typed ancestors and source-less positions"):
@@ -603,21 +606,57 @@ class SuiteInventoryTest extends munit.FunSuite:
     )
     val checker = compile("checker-runtime", Vector(Path.of("model/framework/checker")), "")
     val expected = Vector(
-      "duplicate.a.First", "duplicate.b.Second", "inventory.Direct", "inventory.Empty",
-      "inventory.ExplicitLeaf", "inventory.Indirect", "inventory.InferredLeaf", "inventory.ModelChild",
-      "inventory.ModelDirect", "inventory.Nested$a$plusb", "inventory.Private"
+      "duplicate.a.First",
+      "duplicate.b.Second",
+      "inventory.Direct",
+      "inventory.Empty",
+      "inventory.ExplicitLeaf",
+      "inventory.Indirect",
+      "inventory.InferredLeaf",
+      "inventory.ModelChild",
+      "inventory.ModelDirect",
+      "inventory.Nested$a$plusb",
+      "inventory.Private"
     )
-    val runtimeClasspath = Vector(matrix._1.toString, helper._1.toString, checker._1.toString, native._2)
-      .mkString(java.io.File.pathSeparator)
-    val libraryRun = run("matrix-library-junit", Vector("mise", "exec", "--", "java", "-cp",
-      runtimeClasspath, "org.junit.runner.JUnitCore") ++ expected)
+    val runtimeClasspath =
+      Vector(matrix._1.toString, helper._1.toString, checker._1.toString, native._2)
+        .mkString(java.io.File.pathSeparator)
+    val libraryRun = run(
+      "matrix-library-junit",
+      Vector(
+        "mise",
+        "exec",
+        "--",
+        "java",
+        "-cp",
+        runtimeClasspath,
+        "org.junit.runner.JUnitCore"
+      ) ++ expected
+    )
     assert(libraryRun.contains("OK (10 tests)"), libraryRun)
-    val sourceRun = run("matrix-source-junit", Vector(
-      "mise", "exec", "--", "scala-cli", "run", "--test", "--server=false",
-      "--suppress-outdated-dependency-warning", "--scala", "3.9.0", "--jvm", "27",
-      "--workspace", root.resolve("source-run-workspace").toString,
-      "--classpath", Vector(helper._1.toString, checker._1.toString, native._2).mkString(java.io.File.pathSeparator),
-      "--main-class", "org.junit.runner.JUnitCore"
-    ) ++ flags.flatMap(flag => Vector("--scalac-option", flag)) ++
-      (matrixSource +: duplicates).map(_.toString) ++ Vector("--") ++ expected)
+    val sourceRun = run(
+      "matrix-source-junit",
+      Vector(
+        "mise",
+        "exec",
+        "--",
+        "scala-cli",
+        "run",
+        "--test",
+        "--server=false",
+        "--suppress-outdated-dependency-warning",
+        "--scala",
+        "3.9.0",
+        "--jvm",
+        "27",
+        "--workspace",
+        root.resolve("source-run-workspace").toString,
+        "--classpath",
+        Vector(helper._1.toString, checker._1.toString, native._2)
+          .mkString(java.io.File.pathSeparator),
+        "--main-class",
+        "org.junit.runner.JUnitCore"
+      ) ++ flags.flatMap(flag => Vector("--scalac-option", flag)) ++
+        (matrixSource +: duplicates).map(_.toString) ++ Vector("--") ++ expected
+    )
     assert(sourceRun.contains("OK (10 tests)"), sourceRun)
