@@ -20,8 +20,16 @@ helper:
 
 test: helper test-helper test-go
 
+# The helper transcript corpus also runs on the diagnostic builds (fn-187); they
+# change the helper binary, so they build in their own target directory.
 test-helper:
 	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked
+	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+		--features diagnostic-profile --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
+	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+		--features diagnostic-fuel-off --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
+	cargo +1.94.1 test --manifest-path wasmhost/Cargo.toml --release --locked \
+		--features guest-profile --target-dir '$(CURDIR)/wasmhost/target-diagnostic' --test helper_corpus
 
 conformance-helper:
 	cargo +1.94.1 build --manifest-path wasmhost/Cargo.toml --release --locked \

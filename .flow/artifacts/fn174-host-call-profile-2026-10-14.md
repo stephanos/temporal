@@ -63,3 +63,32 @@ repetitions enforced by the collector), one untimed preparation run.
 `RERUN="fn174-candidate fn174-baseline fn174-runtime-cost" ONLY="fn174-candidate fn174-baseline fn174-runtime-cost" /home/agent/wt/measure-all.sh`.
 Helpers must be single-link copies (`$M/diag-<tree>/gomad3-wasmhost`): Cargo hardlinks `target/release/<bin>`,
 and helper admission refuses link count 2.
+
+## fn-187 rerun mapping (2026-10-16)
+
+The results above were produced by the `go test` producer of their recorded
+checkout and are not rewritten. On a checkout that contains
+`tools/gomad/internal/backends/wasm/cmd/wasmmeasure` (fn-187.2 onward) the same
+producer runs as
+
+```sh
+cd tools/gomad && go build -o /abs/bin/wasmmeasure ./internal/backends/wasm/cmd/wasmmeasure
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+  /abs/bin/wasmmeasure <subcommand> --repo <absolute checkout> [--go <go>] <flags>
+```
+
+(wasmmeasure builds and runs the `--repo` checkout's own producers),
+
+with every `GOMAD_*` variable of the recorded command passed as its flag
+(`GOMAD_WASM_X_Y` is `--x-y`, `GOMAD_STOCK_GO` is `--stock-go`; an older
+`GOMAD3_STOCK_GO` is `--stock-go` too) and no `GOMAD_*` environment, which the
+command refuses. Admission, identity and host-evidence checks and the retained
+artifact schemas are unchanged; new `rerun` records name the wasmmeasure
+command. Producer mapping for this artifact:
+
+| Recorded producer | wasmmeasure subcommand |
+| --- | --- |
+| `TestHelperRuntimeCostProfile` | `runtime-cost-profile` |
+
+The candidate and baseline steps ran through `/home/agent/wt/measure-all.sh`,
+which is not retained, so their producers are not mapped here.

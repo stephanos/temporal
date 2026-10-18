@@ -127,3 +127,32 @@ env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off go test -tags test_dep -cou
 ```
 
 The serial wrapper used for this run is `/home/agent/wt/measure-all.sh` (stages `fn173-B2`, `fn173-B4`).
+
+## fn-187 rerun mapping (2026-10-16)
+
+The results above were produced by the `go test` producers of their recorded
+checkouts and are not rewritten. On a checkout that contains
+`tools/gomad/internal/backends/wasm/cmd/wasmmeasure` (fn-187.2 onward) the
+candidate diagnostic helper build runs as
+
+```sh
+cd tools/gomad && go build -o /abs/bin/wasmmeasure ./internal/backends/wasm/cmd/wasmmeasure
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+  /abs/bin/wasmmeasure diagnostic-helper-build --repo <absolute checkout> \
+  --diagnostic-helper-build-root $EV/helpers/diagnostic-profile --features diagnostic-profile
+```
+
+with the same pinned Cargo command and admission. The guest-profile and
+fuel-off helpers are `--features diagnostic-profile,guest-profile` and
+`--features diagnostic-fuel-off,diagnostic-profile`. `TestWarmPreparationPrimeCache`
+is `wasmmeasure warm-preparation-prime`. The historical baseline producers
+(`TestBuildHistoricalWarmPreparationDiagnosticHelper`,
+`TestHistoricalWarmPreparationPrimeCache`) and `TestPrepareTemporalTerminalExitModule`
+live in their recorded checkouts or remain tests and rerun as recorded.
+
+| Recorded producer | wasmmeasure subcommand |
+| --- | --- |
+| `TestBuildDiagnosticProfileHelper` | `diagnostic-helper-build --features diagnostic-profile` |
+| `TestBuildDiagnosticGuestProfileHelper` | `diagnostic-helper-build --features diagnostic-profile,guest-profile` |
+| `TestBuildDiagnosticFuelOffHelper` | `diagnostic-helper-build --features diagnostic-fuel-off,diagnostic-profile` |
+| `TestWarmPreparationPrimeCache` | `warm-preparation-prime` |

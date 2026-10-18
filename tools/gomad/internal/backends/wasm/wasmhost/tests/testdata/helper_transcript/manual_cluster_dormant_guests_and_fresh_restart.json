@@ -1,0 +1,98 @@
+{
+  "expected": {
+    "evidence": {
+      "world": {"bytes":208,"sha256":"24dbf1a620bfe49ace2dd36140529bc00977be1812e6e1b6f774b71fab864acd"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"boot":"a","engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"a31118172e43aa743a412800fd0cb49575c4acc2ef3c405e8a503769afb76746","schema":"gomad.wasm-host/v1","type":"boot_started"},
+      {"boot":"b","engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"a31118172e43aa743a412800fd0cb49575c4acc2ef3c405e8a503769afb76746","schema":"gomad.wasm-host/v1","type":"boot_started"},
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"a31118172e43aa743a412800fd0cb49575c4acc2ef3c405e8a503769afb76746","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":1,"message":"invalid tape chunk","termination":"invalid","type":"control_result"},
+      {"id":2,"message":"","termination":"","type":"control_result"},
+      {"id":3,"message":"","termination":"","type":"control_result"},
+      {"exit_code":0,"fuel_remaining":9999,"instance":"a","local_model":{"advances":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":0,"execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":0,"process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":false},"output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"id":4,"message":"","termination":"","type":"control_result"},
+      {"id":5,"message":"","termination":"","type":"control_result"},
+      {"exit_code":0,"fuel_remaining":9999,"incarnation":2,"instance":"a","local_model":{"advances":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":0,"execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":0,"process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":false},"output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"id":6,"message":"","termination":"","type":"control_result"},
+      {"data_base64":"R01XU05BUDEAAAABAAAAAAAAAAcAAAAAAAAnEAAAAAAAACcQAAAAAAAAA+gAAAAAAACcQAAAAAACAAAAAAAEAA0jTM9SQwAAAAAAAAAAAAEAAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFUQ5hDYy5KL3YulHGs1jhI1BEUKy0D2LWaPotq100OW5QAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA==","stream":"world","type":"evidence"},
+      {"instances":[{"id":"a","termination":"exit"},{"id":"a","incarnation":2,"termination":"exit"}],"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"scheduler":{"active_nanos":"nonzero","guest_nanos":"nonzero","handoff_nanos":0,"handoff_samples":0,"handoffs":0,"host_nanos":0,"operation_samples":2,"overlap_nanos":0,"runnable_samples":0},"termination":"exit","type":"cluster_result","virtual_elapsed_nanos":1}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\")))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    },
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "b",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "b",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "A manual cluster refuses an invalid replay start, keeps never-started guests dormant, acknowledges each driver turn before the guest runs, and restarts a fresh store for incarnation 2.",
+  "replaces": [
+    "tests/cluster.rs::manual_cluster_keeps_unstarted_guests_dormant_and_restarts_fresh_stores"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"boot":"a","id":1,"incarnation":1,"node":"a","runtime":{"mode":2,"tape_chunks":2},"type":"start"},{"decisions":[],"instance":"a","type":"tape"},{"decisions":[],"instance":"a","type":"tape"}]
+    },
+    {
+      "after": {"id":1,"type":"control_result"},
+      "send": [{"boot":"a","id":2,"incarnation":1,"node":"a","type":"start"}]
+    },
+    {
+      "after": {"id":2,"type":"control_result"},
+      "send": [{"id":3,"incarnation":1,"node":"a","type":"run"}]
+    },
+    {
+      "after": {"instance":"a","type":"result"},
+      "send": [{"boot":"a","id":4,"incarnation":2,"node":"a","type":"restart"}]
+    },
+    {
+      "after": {"id":4,"type":"control_result"},
+      "send": [{"id":5,"incarnation":2,"node":"a","type":"run"}]
+    },
+    {
+      "after": {"instance":"a","type":"result"},
+      "send": [{"id":6,"type":"finish"}]
+    }
+  ],
+  "request": {
+    "broker": {
+      "limits": {"max_events":10000,"max_payload_bytes":33554432,"max_queued_events":1000,"max_requests":10000,"max_string_bytes":1024,"max_transitions":40000},
+      "seed": 7
+    },
+    "instances": [
+      {"fuel":10000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":3,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":10000,"id":"b","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":3,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024}
+    ],
+    "manual_start": true,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

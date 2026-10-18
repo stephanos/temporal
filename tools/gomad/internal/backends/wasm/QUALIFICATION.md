@@ -248,6 +248,63 @@ compiler CPU separately. Diagnostic-profile and guest-profile helpers refuse
 cluster execution, so diagnostic timings cannot substitute for matched release
 costs. Missing measurements remain open acceptance work.
 
+## Measurement producers
+
+Measurement producers are not tests. Each is a `wasmmeasure` subcommand
+(fn-187.2). Build the command, then run it; `go run` would report every
+failure as exit status 1:
+
+```sh
+cd tools/gomad && go build -o /abs/bin/wasmmeasure ./internal/backends/wasm/cmd/wasmmeasure
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+  /abs/bin/wasmmeasure <subcommand> --repo <absolute checkout> [--go <go>] <flags>
+```
+
+The producers are ordinary Go code in `internal/measure`. wasmmeasure builds
+and runs the measured `--repo` checkout's command with `--go` (default: `go`
+on PATH), binding execution to the producer, runtime and oracle sources that
+admission checks. The command uses explicit inputs and returns classified
+errors; it does not build a test binary. Every former `GOMAD_*` input is a flag
+(`GOMAD_WASM_PROFILE_ROOT` is `--profile-root`, `GOMAD_STOCK_GO` is
+`--stock-go`; the diagnostic helper feature set is `--features`). The command
+refuses an inherited `GOMAD_*` environment, a missing or relative `--repo`, a
+checkout without the producers, and a missing required input (exit 2) before
+building anything. Required inputs are the producer's former skip gate and its
+helper and compiler identities; `wasmmeasure help` lists them. The producers
+keep their admission, identity, host-evidence and repetition checks; a
+producer failure exits 1, a producer refusal 2. Retained artifacts keep their
+schemas; their `rerun` records name the wasmmeasure command. The paired
+namespace activity producer collects each sample through the sample tree's own
+wasmmeasure, or through the former `go test` producer when the tree predates
+it. No test target invokes the command. The subcommand names and inputs live
+in `internal/measurement`; production collection and admission helpers live
+in `internal/measure`, and their regression tests remain ordinary tests.
+
+| Subcommand | Former test producer |
+| --- | --- |
+| `compiled-identity-owners` | `TestDiagnosticCompiledIdentityOwners` |
+| `diagnostic-cluster-baseline` | `TestDiagnosticClusterBaseline` |
+| `diagnostic-helper-build` | `TestBuildDiagnostic{Profile,GuestProfile,FuelOff}Helper` |
+| `failing-suite-profile` | `TestHelperFailingSuiteDiagnosticProfile` |
+| `guest-profile` | `TestDiagnosticGuestProfile` |
+| `guest-variants` | `TestDiagnosticGuestVariants` |
+| `host-call-profile` | `TestHostCallActivityProfile` |
+| `legacy-workflow-profile` | `TestHelperLegacyWorkflowProfile` |
+| `matched-release-candidate` | `TestMatchedReleaseClusterCandidate` |
+| `matched-suite` | `TestHelperMatchedSuiteQualification` |
+| `migration` | `TestHelperMigrationQualification` |
+| `namespace-activity` | `TestNamespaceActivityMeasurement` |
+| `namespace-sample` | `TestNamespaceMeasurementSample` |
+| `operation-retention` | `TestHelperCanonicalOperationRetentionDiagnostic` |
+| `runtime-cost-profile` | `TestHelperRuntimeCostProfile` |
+| `scratch-smoke-profile` | `TestScratchSmokeProfile` |
+| `terminal-exit` | `TestTemporalTerminalToProcessExit` |
+| `terminal-exit-helper-build` | `TestBuildTerminalExitReleaseHelper` |
+| `terminal-exit-helper-stage` | `TestStageTerminalExitReleaseHelper` |
+| `warm-preparation` | `TestTemporalWarmPreparationAcceptance` |
+| `warm-preparation-helper-build` | `TestBuildWarmPreparationDiagnosticHelper` |
+| `warm-preparation-prime` | `TestWarmPreparationPrimeCache` |
+
 ## Operator surface
 
 `ReadSpec` bounds JSON and rejects unknown fields, duplicates (including field

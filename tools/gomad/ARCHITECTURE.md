@@ -147,6 +147,36 @@ refusal. A dependency-closed durable child can lack its parent's path; that
 valid partial persistence is preserved. Recovery image, complete evidence and
 refused-history limits remain independent.
 
+### WASM corpus and measurement ownership
+
+The helper transcript corpus under
+`internal/backends/wasm/wasmhost/tests/testdata/helper_transcript` is the shared
+Rust/Go behavior contract. The Rust loader executes the real helper; the Go
+consumer reads the same cases. Reviewed expectations pin the projected reply
+stream, terminal outcome and evidence. Differential model corpora separately
+bind Rust model behavior to the Go oracles. Neither kind of corpus is a
+performance qualification.
+
+Helper expectation regeneration is explicit and rejects output that varies
+between repeated executions. Review the resulting expectation diff and require
+a second regeneration to leave the files byte-identical. Existing Go corpus
+cases remain unchanged; new behavior coverage uses added cases. An inline test
+can be removed only when named corpus replacements and recorded coverage prove
+its assertions survive. Keep and document tests for invariants a corpus cannot
+state. A module move cannot justify changing expected behavior.
+The [WASM README](internal/backends/wasm/README.md) gives the loader and
+regeneration commands.
+
+`internal/backends/wasm/cmd/wasmmeasure` owns measurement producer invocation;
+`internal/backends/wasm/internal/measure` owns their execution. Test targets do
+not invoke producers. Explicit flags select the checkout, helper, compiler and
+evidence inputs; inherited measurement variables are refused. The command
+builds its executor from the selected checkout and preserves admission,
+identity and host-evidence checks. Moving the producer does not qualify a new
+candidate or relabel historical artifacts. The
+[qualification contract](internal/backends/wasm/QUALIFICATION.md) owns those
+requirements.
+
 ### Incarnation, backend, and fidelity
 
 A cluster selects one backend and declares its fidelity for its lifetime.

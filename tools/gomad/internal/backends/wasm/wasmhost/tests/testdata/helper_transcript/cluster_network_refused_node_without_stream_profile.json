@@ -1,0 +1,48 @@
+{
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"instances":[],"message":"WASI invalid: broker node requires stream network profile","termination":"invalid","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32)))\n  (import \"gomad_wasm_v2\" \"net_stream\" (func $stream (param i32 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (data (i32.const 512) \"hello\")\n  (func $be32 (param $at i32) (param $v i32)\n    (i32.store8 (local.get $at) (i32.shr_u (local.get $v) (i32.const 24)))\n    (i32.store8 (i32.add (local.get $at) (i32.const 1)) (i32.shr_u (local.get $v) (i32.const 16)))\n    (i32.store8 (i32.add (local.get $at) (i32.const 2)) (i32.shr_u (local.get $v) (i32.const 8)))\n    (i32.store8 (i32.add (local.get $at) (i32.const 3)) (local.get $v)))\n  (func $be64 (param $at i32) (param $v i64)\n    (call $be32 (local.get $at) (i32.wrap_i64 (i64.shr_u (local.get $v) (i64.const 32))))\n    (call $be32 (i32.add (local.get $at) (i32.const 4)) (i32.wrap_i64 (local.get $v))))\n  (func $get32 (param $at i32) (result i32)\n    (i32.or\n      (i32.or (i32.shl (i32.load8_u (local.get $at)) (i32.const 24))\n              (i32.shl (i32.load8_u (i32.add (local.get $at) (i32.const 1))) (i32.const 16)))\n      (i32.or (i32.shl (i32.load8_u (i32.add (local.get $at) (i32.const 2))) (i32.const 8))\n              (i32.load8_u (i32.add (local.get $at) (i32.const 3))))))\n  (func $get64 (param $at i32) (result i64)\n    (i64.or (i64.shl (i64.extend_i32_u (call $get32 (local.get $at))) (i64.const 32))\n            (i64.extend_i32_u (call $get32 (i32.add (local.get $at) (i32.const 4))))))\n  (func $net (param $op i32) (param $id i64) (param $handle i64) (param $port i32) (param $count i32) (param $len i32)\n    (memory.fill (i32.const 0) (i32.const 0) (i32.const 64))\n    (call $be32 (i32.const 0) (i32.const 2))\n    (call $be32 (i32.const 4) (local.get $op))\n    (call $be64 (i32.const 8) (local.get $id))\n    (call $be64 (i32.const 16) (local.get $handle))\n    (call $be32 (i32.const 32) (local.get $port))\n    (call $be32 (i32.const 36) (local.get $count))\n    (if (call $stream (i32.const 0) (local.get $len)) (then unreachable))\n    (if (call $get32 (i32.const 40)) (then unreachable))\n    (if (call $get32 (i32.const 44)) (then unreachable)))\n  (func (export \"_start\") (local $listener i64) (local $port i32) (local $client i64) (local $server i64) (local $n i32)\n    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))\n    (call $net (i32.const 1) (i64.const 1) (i64.const 0) (i32.const 0) (i32.const 0) (i32.const 64))\n    (local.set $listener (call $get64 (i32.const 16)))\n    (local.set $port (call $get32 (i32.const 48)))\n    (call $net (i32.const 2) (i64.const 2) (i64.const 0) (local.get $port) (i32.const 0) (i32.const 64))\n    (local.set $client (call $get64 (i32.const 16)))\n    (call $net (i32.const 3) (i64.const 3) (local.get $listener) (i32.const 0) (i32.const 0) (i32.const 64))\n    (local.set $server (call $get64 (i32.const 16)))\n    (memory.copy (i32.const 64) (i32.const 512) (i32.const 5))\n    (call $net (i32.const 5) (i64.const 4) (local.get $client) (i32.const 0) (i32.const 5) (i32.const 69))\n    (if (i32.ne (call $get32 (i32.const 36)) (i32.const 5)) (then unreachable))\n    (memory.fill (i32.const 64) (i32.const 0) (i32.const 5))\n    (call $net (i32.const 4) (i64.const 5) (local.get $server) (i32.const 0) (i32.const 5) (i32.const 69))\n    (if (i32.ne (call $get32 (i32.const 36)) (i32.const 5)) (then unreachable))\n    (if (i32.ne (i32.load (i32.const 64)) (i32.load (i32.const 512))) (then unreachable))\n    ))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Cluster network configuration with node without stream profile is invalid before started.",
+  "replaces": [
+    "tests/cluster.rs::cluster_network_configuration_is_refused_before_started"
+  ],
+  "request": {
+    "broker": {
+      "limits": {"max_events":10000,"max_payload_bytes":33554432,"max_queued_events":1000,"max_requests":10000,"max_string_bytes":1024,"max_transitions":40000},
+      "seed": 7
+    },
+    "instances": [
+      {"fuel":1000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":1048576},"mode":1,"now":1,"read_step_nanos":3,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024}
+    ],
+    "module_path": "/nonexistent.wat",
+    "module_sha256": "$guest_sha256",
+    "network": {
+      "model": {"limits":{"bytes":8388608,"connection_bytes":4194304,"connections":128,"listeners":128,"stall_nanos":10000000000,"transitions":8192},"profile":"gomad.simulation-network-stream/v3"}
+    },
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

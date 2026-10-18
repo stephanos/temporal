@@ -53,6 +53,12 @@ simulation execution. Qualification names the installed candidate, profile,
 host and workload; command availability does not qualify arbitrary Temporal
 tests or revive deferred native execution.
 
+The [WASM README](internal/backends/wasm/README.md) describes the shared helper
+transcript corpus, expectation regeneration and the explicit `wasmmeasure`
+command. The [architecture guide](ARCHITECTURE.md#wasm-corpus-and-measurement-ownership)
+records their ownership and the coverage requirement for removing inline tests.
+Corpus correctness and measurement qualification are separate contracts.
+
 The parent and native child modules keep the original exact dependency pins.
 Local parent/child replacements preserve internal import paths, with a server
 replacement in each module for Temporal guest fixtures. There is no Go

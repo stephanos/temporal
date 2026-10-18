@@ -1,12 +1,49 @@
 package stockgo
 
 import (
+	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
 	"sync"
 	"testing"
 )
+
+func TestSharedWithCacheUsesExplicitDirectory(t *testing.T) {
+	t.Parallel()
+	source := t.TempDir()
+	if err := os.Mkdir(filepath.Join(source, "bin"), 0700); err != nil {
+		t.Fatal(err)
+	}
+	command := filepath.Join(source, "bin", "go")
+	script := fmt.Sprintf("#!/bin/sh\ncase \"$*\" in\n'env GOROOT') printf '%%s\\n' '%s';;\nversion) printf 'go version fixture\\n';;\n*) exit 1;;\nesac\n", source)
+	if err := os.WriteFile(command, []byte(script), 0700); err != nil {
+		t.Fatal(err)
+	}
+	first, second := t.TempDir(), t.TempDir()
+	for _, cache := range []string{first, second} {
+		root, err := SharedWithCache(command, cache)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if filepath.Dir(filepath.Dir(filepath.Dir(root))) != cache {
+			t.Fatalf("root %q is outside selected cache %q", root, cache)
+		}
+		if _, err := os.Stat(filepath.Join(root, "bin", "go")); err != nil {
+			t.Fatal(err)
+		}
+		if again, err := SharedWithCache(command, cache); err != nil || again != root {
+			t.Fatalf("reuse %q, %v; want %q", again, err, root)
+		}
+	}
+}
+
+func TestSharedWithCacheRejectsRelativeDirectory(t *testing.T) {
+	t.Parallel()
+	if _, err := SharedWithCache("not-executed", "relative/cache"); err == nil {
+		t.Fatal("accepted relative cache")
+	}
+}
 
 func TestSharedCopyIsCreatedOnceAndReused(t *testing.T) {
 	cache := t.TempDir()

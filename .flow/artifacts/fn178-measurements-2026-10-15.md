@@ -55,3 +55,30 @@ Current-host spike (`store-handoff-spike 200000 7`, binary sha256 `d7234590…63
 Baton handoffs per scenario (guest idles, `handoffs`): 2,586 (seed 7) and 2,614 (seeds 19, 42); grant samples 2,590/2,618. Share = handoffs × 11,164.5 ns / T = 0.05–0.09% of authorized execution.
 
 Decision: threads stay. The share is roughly 60x below the 5% trigger, so moving to Wasmtime async fibers (async feature, four new Cargo.lock packages, async handoff imports, `call_async`) is not justified. No Cargo.lock change.
+
+## fn-187 rerun mapping (2026-10-16)
+
+The results above were produced by the `go test` producer of their recorded
+checkout and are not rewritten. On a checkout that contains
+`tools/gomad/internal/backends/wasm/cmd/wasmmeasure` (fn-187.2 onward) the same
+producer runs as
+
+```sh
+cd tools/gomad && go build -o /abs/bin/wasmmeasure ./internal/backends/wasm/cmd/wasmmeasure
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+  /abs/bin/wasmmeasure <subcommand> --repo <absolute checkout> [--go <go>] <flags>
+```
+
+(wasmmeasure builds and runs the `--repo` checkout's own producers),
+
+with every `GOMAD_*` variable of the recorded command passed as its flag
+(`GOMAD_WASM_X_Y` is `--x-y`, `GOMAD_STOCK_GO` is `--stock-go`; an older
+`GOMAD3_STOCK_GO` is `--stock-go` too) and no `GOMAD_*` environment, which the
+command refuses. Admission, identity and host-evidence checks and the retained
+artifact schemas are unchanged; new `rerun` records name the wasmmeasure
+command. Producer mapping for this artifact:
+
+| Recorded producer | wasmmeasure subcommand |
+| --- | --- |
+| `TestMatchedReleaseClusterCandidate` | matched-release-candidate (no `gomad_cluster_candidate` tag any more) |
+| `TestMatchedReleaseClusterBaseline` | none in this tree: the baseline producer lived in the measurement checkout and reruns there unchanged |

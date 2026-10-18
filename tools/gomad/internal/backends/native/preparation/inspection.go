@@ -24,6 +24,19 @@ func Inspect(ctx context.Context, spec target.Spec) (Inspection, error) {
 	return inspect(ctx, spec, os.RemoveAll)
 }
 
+// InspectSource reviews declared-platform sources without admitting execution.
+func InspectSource(ctx context.Context, spec target.Spec, goCommand, goos, goarch string) (Inspection, error) {
+	return inspectWith(ctx, spec, inspectionServices{
+		adapters: func(ctx context.Context, spec target.Spec) (target.Spec, []transcript.BuildAdapter, error) {
+			return transcript.PrepareSourceReviewAdapters(ctx, spec, goCommand, goos, goarch)
+		},
+		review: func(ctx context.Context, spec target.Spec) (target.CapabilityReview, error) {
+			return nativebuild.ReviewSourceCapabilities(ctx, spec, goCommand, goos, goarch)
+		},
+		remove: os.RemoveAll,
+	})
+}
+
 func inspect(ctx context.Context, spec target.Spec, remove func(string) error) (_ Inspection, retErr error) {
 	return inspectWith(ctx, spec, inspectionServices{
 		adapters: transcript.Default().PrepareTargetBuildAdapters,

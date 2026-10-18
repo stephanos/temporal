@@ -1,0 +1,28 @@
+{
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"instances":[],"message":"invalid or duplicate cluster instance id","termination":"invalid","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"wasi_snapshot_preview1\" \"fd_write\" (func $write (param i32 i32 i32 i32) (result i32)))\n  (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (data (i32.const 16) \"hello\\n\")\n  (func (export \"_start\") (local $n i32)\n    (i32.store (i32.const 0) (i32.const 16))\n    (i32.store (i32.const 4) (i32.const 6))\n    (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))\n    (drop (call $clock (i32.const 0) (i64.const 0) (i32.const 32)))\n    (if (i32.lt_s (memory.grow (i32.const 2)) (i32.const 0)) (then unreachable))\n    (local.set $n (i32.const 2000))\n    (loop $spin\n      (local.set $n (i32.sub (local.get $n) (i32.const 1)))\n      (br_if $spin (local.get $n)))))"
+  },
+  "intent": "A cluster_execute with empty id is invalid before started, as one cluster_result.",
+  "replaces": [
+    "tests/cluster.rs::cluster_refuses_invalid_configuration_before_started"
+  ],
+  "request": {
+    "instances": [
+      {"fuel":1000,"id":"","memory_bytes":131072,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

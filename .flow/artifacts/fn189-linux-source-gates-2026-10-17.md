@@ -1,5 +1,9 @@
 # fn-189 Linux source gates, stopped checkpoint
 
+The stopped results below are historical. The resumed default lint result is
+recorded in the 2026-10-18 follow-up at the end; other incomplete gates are not
+implied to have passed.
+
 The owner stopped this batch before source acceptance completed. Fresh stock-Go
 build, vet, integrated validation, the default harness including archcheck,
 World race tests and portable adapter source checks passed on the source rooted
@@ -84,3 +88,34 @@ worker has no remaining active execution handle and created no worktree.
 Existing worktrees, logs, caches and incomplete test temporary files remain
 with their owners. No revert, delete, commit, push, PR, CI or Flow state write
 was performed by this worker.
+
+## Resumed default lint, 2026-10-18
+
+The canonical default changed-package lint gate passed on primary HEAD
+`95eed5c83a26eb1e93f2b1ba2f971e33bc1d51bc` with staged source tree
+`32e04304f4eb899d8f8a0008ce16bb8266307576` and no unstaged source changes.
+The tree is an immutable index snapshot, not a commit. This follow-up supplies
+only default host-source lint, not full WASM, selected native-source lint or
+runtime/resource qualification. Fn-189 remains in progress.
+
+```sh
+env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED \
+  GOENV=off GOWORK=off GOTOOLCHAIN=local GOMAXPROCS=1 GOFLAGS=-p=1 \
+  PATH="$PWD/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin:$PATH" \
+  GOMAD_STOCK_GO="$PWD/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go" \
+  make lint-code-fast \
+    LOCALBIN="$PWD/.flow/tmp/fn189-linux/source-gates/lint-bin" \
+    GOLANGCI_LINT_BASE_REV=d8f936d2ce GOLANGCI_LINT_FIX=false
+```
+
+Run from the primary repository root; terminal exit was **0**. Raw output is
+`../tmp/fn189-linux/source-gates/lint-linux-warm-current.log`. The wrapper
+selected the original 112 host packages, using canonical
+`disable_grpc_modules,test_dep` tags, the unchanged ten-minute timeout,
+golangci-lint v2.13.0 and errortype v0.0.7. Both lint and the subsequent
+errortype vet step completed. Golangci-lint reported zero new issues under
+the existing baseline/exclusion rules; package loading took 2.703 seconds and
+its execution took 32.738 seconds. These durations describe this static gate,
+not a performance comparison. No fixes, source edits, commits or native
+execution were performed by the lint command. Other compiler jobs were held
+until its execution handle returned terminal exit 0, then the lane was released.

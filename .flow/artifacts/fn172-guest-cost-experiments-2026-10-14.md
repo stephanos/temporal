@@ -165,3 +165,30 @@ the default, `guest-profile` and `diagnostic-fuel-off` builds (separate target d
 `diagnostic_fuel_off_reports_distinct_revision_and_preserves_offered_fuel` (`wasmhost/tests/engine.rs`). Real-host use: the
 A2 guest-profile helper wrote symbolized Firefox profiles for all six C1 runs with evidence identical to unsampled runs,
 and the A3 fuel-off helper ran all 30 fuel-off runs to `exit` with identical evidence.
+
+## fn-187 rerun mapping (2026-10-16)
+
+The results above were produced by the `go test` producer of their recorded
+checkout and are not rewritten. On a checkout that contains
+`tools/gomad/internal/backends/wasm/cmd/wasmmeasure` (fn-187.2 onward) the same
+producer runs as
+
+```sh
+cd tools/gomad && go build -o /abs/bin/wasmmeasure ./internal/backends/wasm/cmd/wasmmeasure
+env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
+  /abs/bin/wasmmeasure <subcommand> --repo <absolute checkout> [--go <go>] <flags>
+```
+
+(wasmmeasure builds and runs the `--repo` checkout's own producers),
+
+with every `GOMAD_*` variable of the recorded command passed as its flag
+(`GOMAD_WASM_X_Y` is `--x-y`, `GOMAD_STOCK_GO` is `--stock-go`; an older
+`GOMAD3_STOCK_GO` is `--stock-go` too) and no `GOMAD_*` environment, which the
+command refuses. Admission, identity and host-evidence checks and the retained
+artifact schemas are unchanged; new `rerun` records name the wasmmeasure
+command. Producer mapping for this artifact:
+
+| Recorded producer | wasmmeasure subcommand |
+| --- | --- |
+| `TestDiagnosticGuestProfile` | `guest-profile` |
+| `TestDiagnosticGuestVariants` | `guest-variants` |

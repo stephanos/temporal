@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-leaf-xsys-darwin-arm64
 
-Review SHA-256: `sha256:2a606ad72e70e50d89f933f05469b3b95309b9da42452f75edfa7164740d4962`
+Review SHA-256: `sha256:e8306298fcb518239d731bcf8f36484e029ede7ddfe72ab7b9268fddb1d9aabd`
 
 Owner: `temporal-server`
 
@@ -34,16 +34,16 @@ Workload: `temporal-workflow-backoff`
 
 ## Activation
 
-- `github.com/prometheus/client_golang@v1.21.0` (`h1:DIsaGmiaBkSangBgMtWdNfxbMNdku5IK6iNhrEqWvdA=`), replacement `none`
-- `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
+- `github.com/prometheus/client_golang@v1.21.1` (`h1:DOvXXTqVzvkIewV/CDPFdejpMCGeMcbGCQ8YOmu+Ibk=`), replacement `none`
+- `golang.org/x/sys@v0.48.0` (`h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=`), replacement `none`
 
 ## Reviewed packages
 
 ### `golang.org/x/sys/unix`
 
-Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
+Module: `golang.org/x/sys@v0.48.0` (`h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=`), replacement `none`
 
-Source set: `sha256:0d5ae8f4c25ebe8a6175e66bbaac72de63a7217fe12ecaacdf206fd6bd9afb68`
+Source set: `sha256:268a7a534eada3ad34b9ccd276df2c9971eea9b3795d4f33e6138b07b6f0554e`
 
 Go sources:
 
@@ -65,8 +65,8 @@ Go sources:
 - `readv_unix.go`: `sha256:2abd5ef6af8852208f2bae9de6de1c8d90ae33caba76f7fb757004d7a4040fe8`
 - `sockcmsg_unix.go`: `sha256:7863093bfa7ec9e564c36992fbf2b7c97244c84d406e5fdc60b72c56a23af396`
 - `sockcmsg_unix_other.go`: `sha256:73f23d4f0c002e24160530515a45f46bb6fbe8728cc79b135a8c6956d5c8458c`
-- `syscall.go`: `sha256:41abaa37d079eee890fb7803dde876a19ba3acdbadf41f269ae8ed0d73ca0e37`
-- `syscall_bsd.go`: `sha256:53d6db23c6307444ad18512ee160159c175608c0d424a86ec22dec6b28eeda65`
+- `syscall.go`: `sha256:2f1f25726d54e971b2dcedc7e8bc7d109d579e3a671f0ecfabd4deb85246c3be`
+- `syscall_bsd.go`: `sha256:9ae0c12d64f207f6f9cee249a20cce822595688d99440363b673ec798cf10847`
 - `syscall_darwin.go`: `sha256:8928e516d815b6d95ff8d6b7ffdbf88843e47076737d885bd81d68bfa8f825ed`
 - `syscall_darwin_arm64.go`: `sha256:ca9f22a90e5e81a736c0ad500f015b139cbb05a23ffdbc39906c6feb6975244e`
 - `syscall_darwin_libSystem.go`: `sha256:0c327ad9b9845e19b1e097dfb7b569bc9793b670874e24be4a87ac9bd4647557`

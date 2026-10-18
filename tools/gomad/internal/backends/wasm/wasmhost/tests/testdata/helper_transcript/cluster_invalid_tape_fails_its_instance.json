@@ -1,0 +1,62 @@
+{
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"a31118172e43aa743a412800fd0cb49575c4acc2ef3c405e8a503769afb76746","schema":"gomad.wasm-host/v1","type":"started"},
+      {"fuel_remaining":0,"instance":"a","message":"invalid tape chunk","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"},
+      {"exit_code":0,"fuel_remaining":999,"instance":"b","local_model":{"advances":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"instances":[{"id":"a","termination":"invalid"},{"id":"b","termination":"exit"}],"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"termination":"exit","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\")))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    },
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "b",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "b",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "An invalid tape chunk (no decisions) fails only its own instance; the neighbor exits.",
+  "replaces": [
+    "tests/cluster.rs::cluster_invalid_tape_fails_only_its_instance"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"decisions":[],"instance":"a","type":"tape"},{"decisions":[],"instance":"a","type":"tape"}]
+    }
+  ],
+  "request": {
+    "instances": [
+      {"fuel":1000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":2,"now":1,"read_step_nanos":3,"seed":7,"tape_chunks":2,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":1000,"id":"b","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":2,"now":1,"read_step_nanos":3,"seed":7,"tape_chunks":0,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

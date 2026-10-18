@@ -54,6 +54,9 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 	compatibilityRootOverride := flags.String("compatibility-root", "", "absolute pack authoring root owned by another module (default: internal/backends/native/compatibilitypack)")
 	requestPath := flags.String("request", "", "compatibility-pack request path")
 	workingDirectory := flags.String("working-dir", "", "target working directory")
+	sourcePlatform := flags.String("source-platform", "", "declared request platform for source-only review, without native execution qualification")
+	sourceGo := flags.String("source-go", "", "absolute pinned stock Go executable for source-only review")
+	sourceInventory := flags.String("source-inventory", "", "source-only complete capability review JSON output")
 	if err := flags.Parse(arguments); err != nil || flags.NArg() != 0 || *root == "" || *requestPath == "" || *workingDirectory == "" {
 		return 2
 	}
@@ -78,17 +81,43 @@ func runCompatibilityPackDiscover(arguments []string, stdout, stderr io.Writer) 
 		}
 		return 2
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), compatibilityPackTimeout)
+	timeout := compatibilityPackTimeout
+	if *sourcePlatform != "" {
+		timeout = 30 * time.Minute
+	}
+	ctx, cancel := context.WithTimeout(context.Background(), timeout)
 	defer cancel()
-	prepared, err := capabilityanalysis.PrepareCapabilityReview(
-		ctx,
-		draft.ReviewSpec(*workingDirectory, filepath.Join(resolvedRoot, ".toolchain")),
-	)
+	reviewSpec := draft.ReviewSpec(*workingDirectory, filepath.Join(resolvedRoot, ".toolchain"))
+	var prepared capabilityanalysis.PreparedCapabilityReview
+	if *sourcePlatform != "" {
+		goos, goarch, ok := strings.Cut(*sourcePlatform, "/")
+		if !ok || len(draft.Platforms) != 1 || draft.Platforms[0] != *sourcePlatform || !filepath.IsAbs(*sourceGo) || *sourceInventory == "" {
+			if _, writeErr := fmt.Fprintln(stderr, "source review requires the request's single declared platform, an absolute --source-go and --source-inventory"); writeErr != nil {
+				return 2
+			}
+			return 2
+		}
+		prepared, err = capabilityanalysis.PrepareSourceCapabilityReview(ctx, reviewSpec, *sourceGo, goos, goarch)
+	} else {
+		if *sourceGo != "" || *sourceInventory != "" {
+			return 2
+		}
+		prepared, err = capabilityanalysis.PrepareCapabilityReview(ctx, reviewSpec)
+	}
 	if err != nil {
 		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
 			return 1
 		}
 		return 1
+	}
+	if *sourceInventory != "" {
+		if inventoryErr := publishCompatibilitySourceInventory(ctx, *sourceInventory, *sourcePlatform, prepared.Review); inventoryErr != nil {
+			err = errors.Join(inventoryErr, prepared.Close())
+			if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
+				return 1
+			}
+			return 1
+		}
 	}
 	discovered, digest, err := authoring.Discover(draft, prepared.Review)
 	err = errors.Join(err, prepared.Close())

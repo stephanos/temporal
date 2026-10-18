@@ -1,0 +1,47 @@
+{
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"instances":[],"message":"WASI invalid: broker node requires cooperative runtime","termination":"invalid","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32)))\n  (import \"gomad_wasm_v1\" \"idle\" (func $idle (param i32 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (func $sleep (param $deadline i64)\n    (i64.store (i32.const 0) (i64.const 0))\n    (i64.store (i32.const 8) (i64.const 0))\n    (i32.store8 (i32.const 3) (i32.const 1))\n    (i64.store (i32.const 8) (i64.or\n      (i64.shl (i64.and (local.get $deadline) (i64.const 0xff)) (i64.const 56))\n      (i64.shl (i64.and (i64.shr_u (local.get $deadline) (i64.const 8)) (i64.const 0xff)) (i64.const 48))))\n    (if (call $idle (i32.const 0) (i32.const 16)) (then unreachable)))\n  (func (export \"_start\")\n    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))\n    (call $sleep (i64.const 1000))\n    (call $sleep (i64.const 2000))))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "runtime.idle under a broker needs the cooperative runtime: a node without local_model is invalid before started.",
+  "replaces": [
+    "tests/cluster.rs::cluster_broker_refusals_keep_the_broker_classification"
+  ],
+  "request": {
+    "broker": {
+      "limits": {"max_events":10000,"max_payload_bytes":33554432,"max_queued_events":1000,"max_requests":10000,"max_string_bytes":1024,"max_transitions":40000},
+      "pause_on_settle": false,
+      "seed": 7
+    },
+    "instances": [
+      {"fuel":10000000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":0,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":10000000,"id":"b","memory_bytes":65536,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-compute-linux-amd64
 
-Review SHA-256: `sha256:2573b82c6fd5461f673e58d1eb5524dd4c2509dad536874f9e5520661b9fdb1b`
+Review SHA-256: `sha256:98d856b738bf8e03b678690768c4054367ca895ddf12a8d27eba4ae3c355e0f2`
 
 Owner: `temporal-server`
 
@@ -29,8 +29,8 @@ Workload: `frontend-system-info`
 - `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
 - `github.com/modern-go/reflect2@v1.0.3-0.20250322232337-35a7c28c31ee` (`h1:W5t00kpgFdJifH4BDsTlE89Zl93FEloxaWZfGcifgq8=`), replacement `none`
 - `github.com/twmb/murmur3@v1.1.8` (`h1:8Yt9taO/WN3l08xErzjeschgZU2QSrwm1kclYq+0aRg=`), replacement `none`
-- `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
-- `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
+- `golang.org/x/crypto@v0.57.0` (`h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=`), replacement `none`
+- `golang.org/x/sys@v0.48.0` (`h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=`), replacement `none`
 
 ## Reviewed packages
 
@@ -328,7 +328,7 @@ Requested facts:
 
 ### `golang.org/x/crypto/chacha20poly1305`
 
-Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
+Module: `golang.org/x/crypto@v0.57.0` (`h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=`), replacement `none`
 
 Source set: `sha256:3364c9afeff95aa5f0d788af10765f8ef77a30e77c80305eddafe4d022598e88`
 
@@ -351,7 +351,7 @@ Requested facts:
 
 ### `golang.org/x/crypto/internal/poly1305`
 
-Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
+Module: `golang.org/x/crypto@v0.57.0` (`h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=`), replacement `none`
 
 Source set: `sha256:253c7bbd21991d6bfa0352f048e38380e2df11d5a34f4b34d4670cd2074ea566`
 
@@ -371,17 +371,17 @@ Requested facts:
 
 ### `golang.org/x/sys/cpu`
 
-Module: `golang.org/x/sys@v0.47.0` (`h1:o7XGOvZQCADBQQ4Y7VNq2dRWQR7JmOUW8Kxx4ZsNgWs=`), replacement `none`
+Module: `golang.org/x/sys@v0.48.0` (`h1:bbX/i/6MgT9BVLM9RT1thmxL04yeTAhbEz4SyadbXoo=`), replacement `none`
 
-Source set: `sha256:02219d9f189e52891b33b837ba95e7f65b8161e5f9fa0a787afc89a01f663faf`
+Source set: `sha256:2637fcb94e13230037f95852eab4dd6a74c7bbfcffa4211b37e70f3f40d51900`
 
 Go sources:
 
 - `byteorder.go`: `sha256:825146fd4557b1cbd8161fa28bb4be8820089848d695316edeecb7fd5a551f8a`
-- `cpu.go`: `sha256:b56854737e8d803d582232f9790f7dda2d8ff69e5982f6cdbdd2a150be540922`
+- `cpu.go`: `sha256:b6a584c28b0453963d0de041a2b52b5d7225ff59f2a16d91ffbc9c701f65c4c0`
 - `cpu_gc_x86.go`: `sha256:2eec0a58e170f14b054a9d0c006fede8cd5c075c5d7cde1fbab688b4b793588e`
 - `cpu_linux_noinit.go`: `sha256:620abd97199a2230f59165a2bc58c3ba780b6801ec0246cfb7319553dd795226`
-- `cpu_other_x86.go`: `sha256:6f447bdafdc6f75593b29977c4f43a39f743043d4f286c542a8b93fa7fad3bf9`
+- `cpu_other_x86.go`: `sha256:4773a7cdfa25670c552bdd78cbe2bd874bd4b8f2d90f614c325ae79d2ffc0a7e`
 - `cpu_x86.go`: `sha256:6a9cdf0eca762b62d0e49e1f3bc9b5c68f23fecbdb888d12ef27bc32bc3893b9`
 - `endian_little.go`: `sha256:c6bc70c372d9e1fe86fcf295f406b17bf04bf8d1af25c2456f58520cdaef3be9`
 - `hwcap_linux.go`: `sha256:4101df793fddf76dfae477f917928008bc4a797446cd4ad44cde6e906c3f8713`

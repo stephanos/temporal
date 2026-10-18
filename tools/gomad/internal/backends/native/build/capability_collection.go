@@ -37,9 +37,13 @@ type listedPackage = capabilityreview.Package
 // collectCapabilityListing lists the closure and reads the inputs that decide
 // how its sources are collected.
 func collectCapabilityListing(ctx context.Context, goCommand string, spec target.Spec, tags []string, commandDirectory, packageArgument string, runner gocommand.Runner) ([]listedPackage, map[string]string, error) {
+	return collectCapabilityListingWithEnvironment(ctx, goCommand, spec, tags, commandDirectory, packageArgument, targetbuild.Environment(), runner)
+}
+
+func collectCapabilityListingWithEnvironment(ctx context.Context, goCommand string, spec target.Spec, tags []string, commandDirectory, packageArgument string, environment []string, runner gocommand.Runner) ([]listedPackage, map[string]string, error) {
 	packages, err := capabilityreview.ListWith(ctx, capabilityreview.Request{
 		GoCommand: goCommand, Directory: commandDirectory, Package: packageArgument, Tags: tags,
-		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: targetbuild.Environment(), Test: spec.Kind == target.KindGoTest,
+		Overlay: spec.BuildOverlay, ModFile: spec.BuildModFile, Environment: environment, Test: spec.Kind == target.KindGoTest,
 		OutputLimit: maximumCapabilityReviewOutputBytes, PackageLimit: maximumCapabilityReviewPackages,
 	}, runner)
 	if err != nil {

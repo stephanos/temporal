@@ -1,5 +1,31 @@
 # fn-189 upstream integration
 
+## Current-state note — 2026-10-18
+
+The owner has committed the integration as
+`0077477965a5b766b95a667247a9f562c100941b`, with parents
+`d8f936d2cea34f87acfad8f355702e59c9ed17e8` and upstream
+`48a1e5ff025e55b3d4d0f44247423d4c279ff636`. The subsequent repair is
+`bad3c401b5e7dbdf8bc8afaca3d08cad4da154fe`.
+At inspected HEAD `95eed5c83a26eb1e93f2b1ba2f971e33bc1d51bc`,
+`git merge-base --is-ancestor 48a1e5ff025e55b3d4d0f44247423d4c279ff636 HEAD`
+exits 0 and `git rev-parse -q --verify MERGE_HEAD` exits 1: the upstream ancestor
+is retained and no merge is in progress. This is ancestry evidence, not a new
+review or qualification result.
+
+The sections below preserve the earlier Darwin checkpoint, including its
+then-pending merge, failures and pause boundary. Later repairs are recorded in
+the [repair report](fn189-wasm-gate-fixes-2026-10-17.md); subsequent Linux/arm64
+source checks are recorded in the
+[source-gate checkpoint](fn189-linux-source-gates-2026-10-17.md) and
+[pack reconciliation](fn189-pack-source-reconciliation-2026-10-17.md).
+Their evidence is not interchangeable across candidates or hosts. Current
+runtime/workload/replay/identity/resource qualification and remaining host gates
+are still required; fn-189.1 remains in progress. Performance/resource-sensitive
+work stays held, native execution stays deferred, and no publishing is authorized.
+
+## Historical integration checkpoint
+
 The working tree integrates Temporal upstream `main` at
 `48a1e5ff025e55b3d4d0f44247423d4c279ff636` with Gomad
 `d8f936d2cea34f87acfad8f355702e59c9ed17e8`. The owner requires leaving commits

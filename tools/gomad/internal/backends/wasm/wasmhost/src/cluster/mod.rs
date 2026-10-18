@@ -711,7 +711,12 @@ fn run_instance(
             ..Default::default()
         }));
     }
-    coordinator.finish(index);
+    // Automatic handoff must follow the result so the next instance cannot
+    // overtake it. Manual control must observe a finished incarnation when
+    // Go answers the result with its next command.
+    if coordinator.driven() {
+        coordinator.finish(index);
+    }
     if let Err(error) = protocol::send_frame(&mut state.output, &outcome) {
         return Err(("infrastructure", format!("result transport: {error:#}")));
     }
@@ -857,6 +862,13 @@ impl Coordinator {
         match self {
             Self::Baton(_) => false,
             Self::Broker(broker) => broker.inspection_stopped(),
+        }
+    }
+
+    fn driven(&self) -> bool {
+        match self {
+            Self::Baton(_) => false,
+            Self::Broker(broker) => broker.manual(),
         }
     }
 

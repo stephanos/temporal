@@ -1,6 +1,6 @@
 # Compatibility Pack Review: temporal-functional-compute-darwin-arm64
 
-Review SHA-256: `sha256:8376c6b6c5645e2c3854cebbaf398dbdd93078cea4fd324f19f71848735f0ffe`
+Review SHA-256: `sha256:1b36534e78a78803fda22089d9f83e8ddac23b5e26728134ea21d600ff359a52`
 
 Owner: `temporal-server`
 
@@ -25,7 +25,7 @@ Workload: `frontend-system-info`
 - `github.com/cespare/xxhash/v2@v2.3.0` (`h1:UL815xU9SqsFlibzuggzjXhog7bL6oX9BbNZnL2UFvs=`), replacement `none`
 - `github.com/golang/snappy@v1.0.0` (`h1:Oy607GVXHs7RtbggtPBnr2RmDArIsAefDwvrdWvRhGs=`), replacement `none`
 - `github.com/klauspost/compress@v1.18.5` (`h1:/h1gH5Ce+VWNLSWqPzOVn6XBO+vJbCNGvjoaGBFW2IE=`), replacement `none`
-- `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
+- `golang.org/x/crypto@v0.57.0` (`h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=`), replacement `none`
 
 ## Reviewed packages
 
@@ -95,7 +95,7 @@ Requested facts:
 
 ### `golang.org/x/crypto/chacha20`
 
-Module: `golang.org/x/crypto@v0.55.0` (`h1:+KWHjbgOaAQ66dh/YlkZKHlz9ZUlq61AFirAR9ntP8M=`), replacement `none`
+Module: `golang.org/x/crypto@v0.57.0` (`h1:3ZVCjf8Ggz7zneR/EHRVx68Ctf+2pmIMP2UFhh9cC6M=`), replacement `none`
 
 Source set: `sha256:345263fea5c097bb2aed4db1b22bfccacd74fc0e92b40166b4936403f424fdd9`
 

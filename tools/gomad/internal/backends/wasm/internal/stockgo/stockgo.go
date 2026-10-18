@@ -21,7 +21,6 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
-	"testing"
 	"time"
 )
 
@@ -40,9 +39,16 @@ func Command() string {
 	return "go"
 }
 
+// TB is the part of testing.TB these helpers use, so measurement producers
+// running outside `go test` (cmd/wasmmeasure) can call them too.
+type TB interface {
+	Helper()
+	Fatal(args ...any)
+}
+
 // Root returns the shared read-only copy of Command's GOROOT, creating it
 // once when missing.
-func Root(t testing.TB) string {
+func Root(t TB) string {
 	t.Helper()
 	root, err := Shared(Command())
 	if err != nil {
@@ -52,14 +58,14 @@ func Root(t testing.TB) string {
 }
 
 // Compiler returns the go executable inside Root.
-func Compiler(t testing.TB) string {
+func Compiler(t TB) string {
 	t.Helper()
 	return filepath.Join(Root(t), "bin", "go")
 }
 
 // Clone copies the shared root into destination, which must not exist, for a
 // test that mutates, renames or removes its distribution. It returns destination.
-func Clone(t testing.TB, destination string) string {
+func Clone(t TB, destination string) string {
 	t.Helper()
 	if err := os.CopyFS(destination, os.DirFS(Root(t))); err != nil {
 		t.Fatal(err)
@@ -91,12 +97,31 @@ func Shared(command string) (string, error) {
 	return result.root, result.err
 }
 
+// SharedWithCache resolves an explicit cache without changing process environment.
+func SharedWithCache(command, cache string) (string, error) {
+	if cache == "" {
+		return Shared(command)
+	}
+	if !filepath.IsAbs(cache) {
+		return "", fmt.Errorf("stock distribution cache must be absolute: %q", cache)
+	}
+	key := command + "\x00" + cache
+	value, _ := shared.LoadOrStore(key, &sharedResult{})
+	result := value.(*sharedResult)
+	result.once.Do(func() { result.root, result.err = createInDirectory(command, cache) })
+	return result.root, result.err
+}
+
 func create(command string) (string, error) {
-	source, version, err := describe(command)
+	cache, err := cacheDirectory()
 	if err != nil {
 		return "", err
 	}
-	cache, err := cacheDirectory()
+	return createInDirectory(command, cache)
+}
+
+func createInDirectory(command, cache string) (string, error) {
+	source, version, err := describe(command)
 	if err != nil {
 		return "", err
 	}

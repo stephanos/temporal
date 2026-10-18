@@ -8,3 +8,16 @@ Snapshot of the drivers used for fn-176/fn-178 frozen qualification (2026-10-15)
 - `quiet-window-fast.fn178.sh`: the fn-178 measurement window (fast driver, concurrent measurement prebuilds, then baseline/candidate/baton timing alone). Its workspace paths are specific to the fn-178 run.
 
 Scratch must live on native disk, not virtiofs (the driver refuses virtiofs/fuse scratch). Default paths name the sandbox layout; pass explicit arguments elsewhere.
+
+## fn-187 producer move (2026-10-16)
+
+These drivers target the frozen fn-178 checkouts named in each script, which
+still contain the `go test` producers they call, so the scripts are unchanged.
+On a checkout with `tools/gomad/internal/backends/wasm/cmd/wasmmeasure`,
+`TestBuildTerminalExitReleaseHelper` is `wasmmeasure terminal-exit-helper-build
+--terminal-exit-helper-build-root ...`, `TestTemporalTerminalToProcessExit` is
+`wasmmeasure terminal-exit --terminal-exit-root ...` (with its helper/module
+receipt flags), and `TestMatchedReleaseClusterCandidate` is `wasmmeasure
+matched-release-candidate`. The command refuses inherited `GOMAD_*` variables,
+so a driver must unset them and pass flags; see
+`tools/gomad/internal/backends/wasm/QUALIFICATION.md#measurement-producers`.

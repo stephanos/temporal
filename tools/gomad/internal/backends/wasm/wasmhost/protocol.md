@@ -5,6 +5,39 @@ in this directory. Rust 1.94.1 and Wasmtime 47.0.3 are pinned locally. No WASI
 implementation or engine cache is linked. A helper handles one `execute` and exits,
 or hosts a `cluster_execute` session until its explicit `finish` control.
 
+The helper transcript corpus in `tests/testdata/helper_transcript` (schema
+`gomad.helper-transcript-corpus/v1`) pins this protocol end to end. A case holds
+`intent`, `replaces`, a `guest` (`wat`, `path` under the corpus directory, or
+`wat_parts` with `{"repeat":N,"text":...}`), the first `request` frame, initial
+`inputs`, `replies` (each sends its frames once the next emitted frame matches
+its `after` subset pattern), a `reply_policy` (`fail`, the default, or `deny`)
+for other `call`/`sync` frames, an optional `close_input` (`true` or
+`"after_replies"`), and `expected`. Sent strings `$guest_path`, `$guest_sha256`
+and `$trigger.<path>` resolve to the guest and the triggering frame; tagged
+frames put `instance` first. `expected` is the frame stream, termination,
+per-stream evidence sizes and SHA-256 (plus the text of the storage log and
+guest stdout/stderr), helper stderr and exit status. Host
+telemetry (`metrics`, cluster `scheduler`) keeps only zero, `nonzero` or
+`measured`, and `engine.host_os`/`host_arch` become `$host_os`/`$host_arch`.
+The guest path always has the same length, because refusals quote request
+columns. `tests/helper_corpus.rs` and the Go `wasi` test `TestHelperCorpus`
+run each case twice (ten times when regenerating) and refuse output that
+varies between runs. A case listing `builds` (`diagnostic-profile`,
+`diagnostic-fuel-off`, `guest-profile`) also runs on those builds
+(`make test-helper`); `expected_builds.<build>` replaces the top-level
+expected fields that build changes, such as its projected `diagnostic_profile`
+stderr report. A `derived` case embeds inputs taken from another case's
+expected evidence (`storage_image`, or the storage state's `crash_context`
+with JSON-pointer `set` edits and optional `select`); the Rust loader refuses
+stale copies and rebuilds them on regeneration. A Rust test checks the
+relations between committed cases that single cases cannot state (equal
+split-revocation storage, the image identity bound in storage state, the
+recovered `/db`, the namespace transcript records). After a reviewed behavior
+change, rerun `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.94.1 test --release
+--locked --test helper_corpus`, and the same with `--features diagnostic-profile`,
+`--features diagnostic-fuel-off` and `--features guest-profile` in a separate
+target directory; the corpus diff is the approval.
+
 Every frame is one UTF-8 JSON object followed by LF. Stdout carries protocol only.
 Integers are JSON integers, not floating-point strings. Byte strings use standard
 padded base64. Go supplies the sealed environment. Go owns descriptors and files
@@ -743,7 +776,10 @@ so stale replies and tapes are refused. A tagged frame may exceed the
 exceeds its own `memory_bytes` fails at instantiation with that instance's
 `capacity` result; module admission uses the largest instance limit.
 
-**Scheduling and threading.** Exactly one instance runs at a time. Each store
+**Scheduling and threading.** Exactly one instance runs at a time. Frame order
+across instances follows the baton: an automatic cluster streams an instance's
+`result` before the baton passes on, and a manual session marks the incarnation
+finished first, because Go answers that result with its next control. Each store
 lives on its own OS thread (8 MiB host stack) and runs only while it holds the
 cluster baton; synchronous typed imports are unchanged. Without a `broker`
 the baton runs each instance to its terminal in instance order. With one, the

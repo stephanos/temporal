@@ -1,0 +1,82 @@
+{
+  "expected": {
+    "evidence": {
+      "world": {"bytes":4144,"sha256":"b4188eaee182629f5f351142661e58ac7b2c93b45347c395d59bc777ed0b370d"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]},{"module":"gomad_wasm_v1","name":"idle","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"bed6e0bbd475a02436fd64e96c8f3ec2bbc7a3516e330b91260d0d92c2dc047a","schema":"gomad.wasm-host/v1","type":"started"},
+      {"exit_code":0,"fuel_remaining":9999933,"instance":"a","local_model":{"advances":2,"calls":3,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":2000,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"exit_code":0,"fuel_remaining":9999933,"instance":"b","local_model":{"advances":2,"calls":3,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":2000,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"exit_code":0,"fuel_remaining":9999933,"instance":"c","local_model":{"advances":2,"calls":3,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":2000,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"","output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"},
+      {"data_base64":"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","stream":"world","type":"evidence"},
+      {"instances":[{"id":"a","termination":"exit"},{"id":"b","termination":"exit"},{"id":"c","termination":"exit"}],"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"termination":"exit","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32)))\n  (import \"gomad_wasm_v1\" \"idle\" (func $idle (param i32 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (func $sleep (param $deadline i64)\n    (i64.store (i32.const 0) (i64.const 0))\n    (i64.store (i32.const 8) (i64.const 0))\n    (i32.store8 (i32.const 3) (i32.const 1))\n    (i64.store (i32.const 8) (i64.or\n      (i64.shl (i64.and (local.get $deadline) (i64.const 0xff)) (i64.const 56))\n      (i64.shl (i64.and (i64.shr_u (local.get $deadline) (i64.const 8)) (i64.const 0xff)) (i64.const 48))))\n    (if (call $idle (i32.const 0) (i32.const 16)) (then unreachable)))\n  (func (export \"_start\")\n    (if (call $config (i32.const 1024) (i32.const 16)) (then unreachable))\n    (call $sleep (i64.const 1000))\n    (call $sleep (i64.const 2000))))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "a",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "a",
+      "type": "model_inputs_end"
+    },
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "b",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "b",
+      "type": "model_inputs_end"
+    },
+    {
+      "data_base64": "UFdEPS8A",
+      "instance": "c",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "instance": "c",
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Under the broker, cooperative idles are ordered on the shared clock without callbacks; every instance resumes at the shared times, results follow the baton in instance order, and World evidence precedes the result.",
+  "replaces": [
+    "tests/cluster.rs::cluster_broker_orders_idles_on_the_shared_clock_without_callbacks"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "request": {
+    "broker": {
+      "limits": {"max_events":10000,"max_payload_bytes":33554432,"max_queued_events":1000,"max_requests":10000,"max_string_bytes":1024,"max_transitions":40000},
+      "seed": 7
+    },
+    "instances": [
+      {"fuel":10000000,"id":"a","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":0,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":10000000,"id":"b","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":0,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024},
+      {"fuel":10000000,"id":"c","local_model":{"arguments":{"bytes":0,"chunks":0,"count":0},"diagnostics":false,"entropy_key":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"environment":{"bytes":6,"chunks":1,"count":1},"epoch_nanos":1000,"limit":4096,"limits":{"calls":100,"pending_events":16,"transcript_bytes":65536},"mode":1,"now":1,"read_step_nanos":0,"seed":7,"working_directory_sha256":"8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"},"memory_bytes":65536,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

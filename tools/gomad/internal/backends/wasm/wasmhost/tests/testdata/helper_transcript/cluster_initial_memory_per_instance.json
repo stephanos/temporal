@@ -1,0 +1,38 @@
+{
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":2,"module_sha256":"762f788bf42b8060a362020f199281dce58e2c4170ca7c8da94742398ef9eacb","schema":"gomad.wasm-host/v1","type":"started"},
+      {"exit_code":0,"fuel_remaining":999,"instance":"big","message":"","output_bytes":0,"peak_memory_bytes":131072,"termination":"exit","type":"result"},
+      {"fuel_remaining":1000,"instance":"small","message":"guest linear memory capacity","output_bytes":0,"peak_memory_bytes":0,"termination":"capacity","type":"result"},
+      {"instances":[{"id":"big","termination":"exit"},{"id":"small","termination":"capacity"}],"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"termination":"exit","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 2) (func (export \"_start\")))"
+  },
+  "intent": "Initial memory is judged per instance: two pages fit the big instance and exceed the small one.",
+  "replaces": [
+    "tests/cluster.rs::cluster_initial_memory_is_judged_per_instance"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "request": {
+    "instances": [
+      {"fuel":1000,"id":"big","memory_bytes":196608,"output_bytes":1024},
+      {"fuel":1000,"id":"small","memory_bytes":65536,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

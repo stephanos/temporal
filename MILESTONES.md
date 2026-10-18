@@ -226,6 +226,12 @@ CI, PR, or push authority.
 
 ### Upstream sync — [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md)
 
+The integration base is Temporal `main` at
+`48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge
+`0077477965a5b766b95a667247a9f562c100941b`. The
+[integration report](.flow/artifacts/fn189-upstream-sync-2026-10-17.md)
+separates the merge and source evidence from still-open qualification.
+
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | 🚧 In progress | Merge upstream temporalio/temporal main into gomad and requalify |
@@ -234,9 +240,9 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-187.1](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.1.md) | 🚧 In progress | Add the helper transcript corpus and convert the engine scenarios |
-| [fn-187.2](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.2.md) | 🚧 In progress | Move measurement producers out of test files into wasmmeasure |
-| [fn-187.3](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md) | ⬜ Todo | Delete inline tests the corpora already cover after a coverage check |
+| [fn-187.1](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.1.md) | ✅ Done | Add the helper transcript corpus and convert the engine scenarios |
+| [fn-187.2](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.2.md) | ✅ Done | Move measurement producers out of test files into wasmmeasure |
+| [fn-187.3](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md) | 🚧 In progress | Delete inline tests the corpora already cover after a coverage check |
 | [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | ⬜ Todo | Restructure model, engine, namespace and cluster modules behind the corpus |
 | [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
 

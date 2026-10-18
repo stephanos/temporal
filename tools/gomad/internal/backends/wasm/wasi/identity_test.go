@@ -7,7 +7,7 @@ import (
 )
 
 func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
-	for _, name := range []string{"cluster.go", "debug_output.go", "storage_evidence.go", "storage_image.go", "storage_selection.go"} {
+	for _, name := range []string{"cluster.go", "debug_output.go", "measurement.go", "storage_evidence.go", "storage_image.go", "storage_selection.go"} {
 		t.Run(name, func(t *testing.T) {
 			sources := fstest.MapFS{}
 			entries, err := fs.ReadDir(implementationSources, ".")
@@ -26,12 +26,16 @@ func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
 			if changed := implementationSHA256(sources); baseline == "" || changed == "" || changed == baseline {
 				t.Fatalf("%s did not rotate model identity: %q / %q", name, baseline, changed)
 			}
+			delete(sources, name)
+			if got := implementationSHA256(sources); got != "" {
+				t.Fatalf("missing %s returned valid model identity %q", name, got)
+			}
 		})
 	}
 }
 
 func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
-	const expected = "sha256:9482b9c5e810464896c29d569c269d9b7e6d841872949ffa6cd20cfd5a7b0744"
+	const expected = "sha256:109cabe810787e615569ecac2ca9ca51baa71e430adce05dccd817d44fe53a60"
 	if got := ImplementationSHA256(); got != expected {
 		t.Fatalf("compiled model identity = %q, want %q", got, expected)
 	}

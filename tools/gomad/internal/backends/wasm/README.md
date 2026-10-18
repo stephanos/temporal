@@ -78,7 +78,25 @@ make -C tools/gomad/internal/backends/wasm test-model
 make -C tools/gomad test-wasm GOMAD_STOCK_GO=/absolute/stock/go1.27.1
 ```
 
-`test-helper` runs the Rust engine tests. `test-model` runs the focused Go model
+`test-helper` runs the Rust engine tests and the shared helper transcript corpus.
+The Rust loader in `wasmhost/tests/helper_corpus.rs` and Go's `TestHelperCorpus`
+consume `wasmhost/tests/testdata/helper_transcript`; each case records complete
+projected replies, terminal outcome and evidence. Regenerate reviewed expectations
+with `GOMAD_HELPER_CORPUS_REGENERATE=1 cargo +1.94.1 test --release --locked
+--manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml --test
+helper_corpus` from the repository root. Regeneration checks repeated executions
+for equality; a second regeneration must leave the corpus byte-identical.
+Original scenarios without an equivalent corpus assertion remain Rust tests,
+including cache filesystem/concurrency, diagnostic hooks and profile invariants.
+
+Measurement producers are ordinary commands, not tests. From `tools/gomad`, run
+`go run ./internal/backends/wasm/cmd/wasmmeasure --help`, then a named producer's
+`--help` for its explicit host, helper, compiler and output flags. Missing admission
+or identity inputs refuse before execution. The command builds its executor from
+the checkout selected by `--repo`; inherited measurement environment variables
+are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules.
+
+`test-model` runs the focused Go model
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
 `GOMAD_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.

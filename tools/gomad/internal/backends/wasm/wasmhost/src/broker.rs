@@ -636,6 +636,11 @@ impl Broker {
         Ok(())
     }
 
+    /// Whether Go's controls drive the session.
+    pub fn manual(&self) -> bool {
+        lock(&self.inner).manual
+    }
+
     pub fn activate(&self, me: usize) -> Result<(), Failure> {
         let mut inner = lock(&self.inner);
         Self::observe(&mut inner);

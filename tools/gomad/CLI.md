@@ -606,6 +606,17 @@ go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/inter
   --working-dir=/absolute/path/to/target-module
 ```
 
+For source reconciliation on another host, add
+`--source-platform=darwin/arm64` (or `linux/amd64`),
+`--source-go=/absolute/path/to/pinned/stock/go`, and
+`--source-inventory=/absolute/path/to/source-review.json` to `discover`.
+The platform must exactly match the request's single declared platform.
+This route inventories the selected Go and foreign sources, imports and
+linknames, verifies exact adapter source sets and derives that platform's
+profile identity. Its inventory explicitly records that native execution is
+unqualified. Review and generate still require the exact review digest;
+native execution admission and supported-host qualification are unchanged.
+
 Publish a human review and capture the digest it prints:
 
 ```sh

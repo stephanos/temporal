@@ -20,6 +20,17 @@ type PreparedCapabilityReview struct {
 
 func PrepareCapabilityReview(ctx context.Context, spec target.Spec) (PreparedCapabilityReview, error) {
 	inspected, err := preparation.Inspect(ctx, spec)
+	return preparedCapabilityReview(inspected, err)
+}
+
+// PrepareSourceCapabilityReview inventories sources for an explicitly declared
+// platform and supplies no native execution qualification.
+func PrepareSourceCapabilityReview(ctx context.Context, spec target.Spec, goCommand, goos, goarch string) (PreparedCapabilityReview, error) {
+	inspected, err := preparation.InspectSource(ctx, spec, goCommand, goos, goarch)
+	return preparedCapabilityReview(inspected, err)
+}
+
+func preparedCapabilityReview(inspected preparation.Inspection, err error) (PreparedCapabilityReview, error) {
 	if err != nil {
 		return PreparedCapabilityReview{}, err
 	}
