@@ -123,6 +123,27 @@ object SpacesFixture:
         model.client.set(left = any, right = supplied())
 
 class SpacesTest extends munit.FunSuite:
+  test("find stabilizes effectful and alternating receivers with their exact target context"):
+    val first = new SpacesFixture.Flag
+    val second = new SpacesFixture.Flag
+    val one = new SpacesFixture.Suite(first)
+    val two = new SpacesFixture.Suite(second)
+    Vector(false, true).foreach: alternating =>
+      var acquired = 0
+      def next: Explore[SpacesFixture.Flag] =
+        acquired += 1
+        if alternating && acquired > 1 then two.explorations.all else one.explorations.all
+      val request = next.find(steps = 1):
+        expect:
+          summon[RunContext[SpacesFixture.Flag]].model.eq(first)
+      assertEquals(acquired, 1)
+      assert(request.space.model.eq(first))
+      val evaluation = new RunAssertionEvaluation:
+        def test(position: RunPosition, condition: () => Boolean): Boolean =
+          val _ = position
+          condition()
+      assert(request.target.assertions.forall(_.evaluate(evaluation)))
+
   test("whole actions and typed wildcards retain finite ordering and unspecified positions"):
     val model = new SpacesFixture.Flag
     val suite = new SpacesFixture.Suite(model)
