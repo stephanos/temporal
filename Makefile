@@ -1416,3 +1416,17 @@ ensure-no-changes:
 	@git status --porcelain
 	@test -z "`git status --porcelain`" || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; git diff HEAD ; exit 1)
 endif
+
+##### model2: the Rust prototype (fn-210) #####
+MODEL2_CARGO := cd model2 && mise exec -- cargo
+
+.PHONY: model2-check model2-fmt
+model2-check:
+	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
+	@$(MODEL2_CARGO) fmt --all --check
+	@$(MODEL2_CARGO) clippy --workspace --all-targets --all-features -- -D warnings
+	@cd model2 && RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
+	@$(MODEL2_CARGO) test --workspace --quiet
+
+model2-fmt:
+	@$(MODEL2_CARGO) fmt --all

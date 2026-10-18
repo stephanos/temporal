@@ -1,0 +1,4 @@
+# Thresholds for the pedantic set; everything else is in Cargo.toml [workspace.lints].
+too-many-arguments-threshold = 6
+type-complexity-threshold = 300
+cognitive-complexity-threshold = 25

@@ -1,0 +1,4 @@
+# Matches the mise pin in ../mise.toml; rustup users get the same toolchain and components.
+[toolchain]
+channel = "1.99.1"
+components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]

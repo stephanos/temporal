@@ -1,15 +1,45 @@
 # model2: the Rust prototype of the Umpire framework. Scope: what model/framework/samples/Kettle.scala
 # uses today. Layout mirrors model/framework: dsl, checker, samples.
 [workspace]
-resolver = "2"
+resolver = "3"
 members = ["framework/dsl", "framework/checker", "framework/samples"]
 
 [workspace.package]
 version = "0.0.1"
 edition = "2024"
+rust-version = "1.99"
 publish = false
 license = "MIT"
 
 [workspace.dependencies]
 framework-dsl = { path = "framework/dsl" }
 framework-checker = { path = "framework/checker" }
+
+# One lint policy for every crate; each crate opts in with `[lints] workspace = true`.
+[workspace.lints.rust]
+missing_docs = "warn"
+unsafe_code = "forbid"
+unused_qualifications = "warn"
+unreachable_pub = "warn"
+rust_2018_idioms = { level = "warn", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "warn", priority = -1 }
+pedantic = { level = "warn", priority = -1 }
+# pedantic lints that fight the Model-authoring style
+module_name_repetitions = "allow"
+must_use_candidate = "allow"
+missing_errors_doc = "allow"
+missing_panics_doc = "allow"
+# correctness and footguns we want hard
+unwrap_used = "warn"
+expect_used = "warn"
+dbg_macro = "warn"
+todo = "warn"
+print_stdout = "warn"
+print_stderr = "warn"
+
+[profile.release]
+debug = 1          # symbols for profiling the checker
+lto = "thin"
+codegen-units = 1
