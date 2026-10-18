@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1 (carrying fn-190.15), fn-190.16 and fn-194.1-.4 done; next fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1/.2 (carrying fn-190.15), fn-190.16 and fn-194.1-.4 done; next fn-196.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1173,12 +1173,23 @@ fn-190.15 closes in `65a92926e0`. The DSL retains declarations and callable refe
 `framework.checker` executes them. All 653 original native tests remain, plus four new checker
 controls (657 total); framework checks 46, lint 31, corpus classification 162 and fresh
 declaration/core/plugin/sample compilation pass. The public questions share `Result`/`Report`
-with actual state/outcome paths. Remaining question/error contracts belong to fn-196.2;
+with actual state/outcome paths. These counts describe the module-move checkpoint;
 independent review stays phase-batch deferred, with no Go/IR/Temporal hold released.
+
+fn-196.2 is complete at source checkpoints `8c2e5ef135` and `8f84a96e49`, with closure
+`a0cc2feb84`. Positioned replay, horizon-bounded find, seeded sampled walks and ordinary
+negative-control results share budget and evidence contracts. Gate policies resolve per-suite
+budgets; foreign roots refuse before execution, and both verifyAll forms report effect failures.
+The final fresh generation passed 663 native tests, seven class-lint tests, 31 rule tests and
+66 boundary/gate tests; all 173 discovered suites were classified. Declaration-only/core/plugin
+builds, six-sample realization clients and public-question clients passed from source and separate
+libraries. The reference inventories the new public types without source-file references.
+Measurement and the lowering decision remain .3 work; ModelSuite wiring remains fn-195 work.
+Review remains deferred, the parent spec stays open, and Phase 3 holds remain in place.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-196.2 | 🔄 in progress | After .1: complete R1's question/error contracts with `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity and the gate's budget; a budget-cut find is unknown, not a completed negative search (R1-R3) |
+| fn-196.2 | ✅ done | Question/error contracts, complete-only vacuity and gate-owned suite budgets; fresh native663/class7/rule31/boundary66 and source/separate-library clients pass (R1-R3) |
 | fn-196.3 | ⬜ todo | After .2: measurement note on the largest available graphs; go/no-go on deleting the Go check; lowering location (R4) |
 | fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
 | fn-196.5 | ⬜ todo | After .3: MILESTONES Direction, README and SEMANTICS say the Scala checker is the oracle (R7) |
