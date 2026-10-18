@@ -28,7 +28,8 @@ Umpire in Rust lives in `temporal/model2`, a Cargo workspace pinned through `mis
 fixtures; the `samples` crate goes away). Its current scope is exactly what
 `model/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
 runs as wasm in a Go host through wasmtime-go on the stock toolchain, with Kettle's report matching
-the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information.
+the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
+deferred, since speed no longer decides.
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
@@ -71,6 +72,11 @@ What is fixed, all owner decisions of 2026-10-18:
 - **Vertical before broad (R19, R20, R24).** Two thin slices before the write-up: Kettle lifted
   from the macro's tokens to TLA+ and agreeing with TLC on all 283 states, and the checker as wasm
   in a wasmtime-go host. The wasm slice alone decides the verdict.
+- **Feedback loop (R30).** The inner loop (edit one crate, rebuild, run its fixtures) stays at 3 s or
+  less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model2-time`
+  prints each step and warns over budget; every task reports it when marked done, and a breach is
+  fixed in the task or excepted by the owner. Slow tools (JVM, network) run batched or behind
+  `UMPIRE_BACKENDS=require`.
 - **Process.** Parallel tasks touch disjoint crates; shared files (`Cargo.toml`, `Cargo.lock`,
   `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
   every session re-reads its task after it.
@@ -84,7 +90,7 @@ What is fixed, all owner decisions of 2026-10-18:
 | fn-210.4 | ⬜ todo | After .13: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
-| fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
+| fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` (in `umpire/backends/tlc/`) runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model2)
@@ -100,15 +106,10 @@ liveness through Apalache; TLC owns progress claims.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-211.1 | ⬜ todo | Snowcat type annotations in the TLA+ emitter; TLC results unchanged (R1) |
-| fn-211.2 | ⬜ todo | After .1: `umpire-apalache`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
+| fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through `Spell` and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 
 ## Open for the owner
 
-- fn-196.8 (the Scala checker speed fix) stays deferred, since speed no longer decides the verdict.
-  If any other Scala work should continue in parallel, name it.
-- Where `umpire-tlc` (and later `umpire-apalache`) sits: `umpire/backends/tlc/` or flat
-  `umpire/tlc/`. fn-210.8 is the first task that has to decide.
-- fn-210's title and spec text still say "Rust prototype"; reword them too, or keep them as the
-  historical title?
+Nothing open.

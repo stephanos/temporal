@@ -1420,7 +1420,7 @@ endif
 ##### model2: Umpire in Rust (fn-210) #####
 MODEL2_CARGO := cd model2 && mise exec -- cargo
 
-.PHONY: model2-check model2-fmt model2-update
+.PHONY: model2-check model2-fmt model2-update model2-time
 model2-check:
 	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
 	@$(MODEL2_CARGO) fmt --all --check
@@ -1435,3 +1435,7 @@ model2-fmt:
 model2-update:
 	@printf $(COLOR) "Update model2 golden files (insta, trybuild)..."
 	@cd model2 && INSTA_UPDATE=always TRYBUILD=overwrite mise exec -- cargo test --workspace --quiet
+
+model2-time:
+	@printf $(COLOR) "Time the model2 feedback loop (fn-210 R30)..."
+	@$(CURDIR)/model2/scripts/time-gate.sh

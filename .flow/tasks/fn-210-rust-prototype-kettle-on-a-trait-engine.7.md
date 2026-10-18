@@ -1,9 +1,11 @@
 ---
-satisfies: [R7, R24]
+satisfies: [R7, R24, R30]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.7 DESIGN.md: authoring, size, speed, tooling comparison and the recommendation
 
 ## Description
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.
+
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
 
 **Recut 2026-10-18 (R24):** the recommendation follows R24 alone (R20 on the stock toolchain: Rust; otherwise Scala, with the blocker). Authoring, speed (against the Scala note's pre-fix numbers, labelled so), lift size, build time and diagnostics are reported as information for sizing the follow-up work. .9 has already written the verdict section; this task completes the rest of the note.

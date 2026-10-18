@@ -4,6 +4,8 @@ satisfies: [R20, R15, R24]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle
 
 ## Description
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner. The Go host test belongs in the gate only if it stays within budget warm (wasmtime-go's first build is excluded).
+
 **Location (R29 amended):** there is no `samples` library; `umpire-wasm` includes `umpire/tests/fixtures/kettle_trait/model.rs` by `#[path]`.
 
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).

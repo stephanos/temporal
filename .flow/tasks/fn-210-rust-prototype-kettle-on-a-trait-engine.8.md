@@ -4,6 +4,10 @@ satisfies: [R19, R13, R14, R26, R28]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.8 Slice 1: lift Kettle to TLA+ and agree with TLC
 
 ## Description
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner. TLC runs on the Kettle fixture set in the default gate only if the gate stays within budget; otherwise one batched TLC run, or behind `UMPIRE_BACKENDS=require`.
+
+**Placement (owner 2026-10-18):** `umpire-tlc` lives at `model2/umpire/backends/tlc/`; `umpire-lift` at `model2/umpire/lift/`.
+
 **Consumer (R29):** register a TLC consumer owning `<Model>.tla`, `<Model>.cfg` and `tlc.txt`; add those files to Kettle and the shared fixtures TLC can express.
 
 **Conventions 2026-10-18 (R25, R26, R28):** TLA identifiers are the author's Rust names; the TLC-dump decoder parses values into states and re-spells them through `Spell` for the agreement; the lifted tree stays an internal enum (debug dump only, never a golden).

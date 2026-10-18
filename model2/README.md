@@ -27,6 +27,7 @@ The gate, from the repository root (`temporal/`):
 ```
 make model2-check   # fmt --check, clippy -D warnings on all targets, docs with warnings denied, tests
 make model2-fmt     # rustfmt the workspace
+make model2-time    # time each gate step; warns over the 3 s inner-loop and 30 s gate budgets (fn-210 R30)
 ```
 
 From inside `model2/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.

@@ -1,9 +1,11 @@
 ---
-satisfies: [R29]
+satisfies: [R29, R30]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.13 Shared end-to-end fixtures: umpire-tests crate, consumers selected by expected files
 
 ## Description
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.
+
 Runs alone, after .12 (R29).
 
 - Create crate `umpire-tests` at `model2/umpire/tests/` (workspace member, `publish = false`, `autotests = false`, one `[[test]] name = "fixtures" path = "fixtures.rs"`), with a `build.rs` that generates the `#[path]` modules from `fixtures/*/model.rs`, and fixtures directly under `model2/umpire/tests/fixtures/<name>/`.
@@ -14,7 +16,6 @@ Runs alone, after .12 (R29).
 **Files:** model2/Cargo.toml (members), model2/umpire/tests/{Cargo.toml,build.rs,fixtures.rs,fixtures/}, model2/umpire/samples/ (removed), model2/umpire/checker/tests/fixtures/, model2/umpire/testing/src/, model2/README.md.
 
 **Quick commands:** `make model2-check`
-
 ## Acceptance
 - `model2/umpire/tests/fixtures/` holds the eight shared fixtures; checker-only fixtures remain in `checker/tests/fixtures/`; the `samples` crate and folder no longer exist; Kettle's source is its fixture's `model.rs`.
 - Every moved golden is byte-identical.

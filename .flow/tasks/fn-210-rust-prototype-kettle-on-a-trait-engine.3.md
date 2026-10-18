@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.3 Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples
 
 ## Description
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner. Keep the progress oracle's case count bounded by default.
+
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
 
 **Conventions 2026-10-18 (R25-R27):** new fixtures implement `Spell` by hand until .4's derives land; an unknown scope action is a `Refusal`, not a panic; progress results and lassos are spelled through `Spell`.
