@@ -82,6 +82,10 @@ Metadata, payloads, aliases and pending snapshots belong to one logical expected
 extensions use insta's snapshot suffix to avoid collisions (`Model@tla.snap` and
 `Model@tla.snap.tla` back `Model.tla`; `Model@cfg.snap` separately backs `Model.cfg`). A pending
 snapshot is accepted with `cargo insta accept`, then checked by the same runner.
+The gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
+CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real
+pending-to-accept integration control runs explicitly from `model2/` with
+`mise exec -- cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored`.
 
 ## Dependencies
 

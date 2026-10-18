@@ -44,16 +44,30 @@ pub fn generate(root: &Path, output: &Path) -> io::Result<()> {
     let fixtures = discover(root)?;
     let mut source = String::new();
     for (name, path) in &fixtures {
+        let module = module_name(name);
         let model = fs::canonicalize(path.join("model.rs"))?;
         let model = model.to_str().ok_or_else(|| io::Error::other("invalid fixture path"))?;
-        writeln!(source, "#[allow(unused_imports, missing_docs, unreachable_pub)]\n#[path = {model:?}] mod fixture_{name};").map_err(io::Error::other)?;
+        writeln!(source, "#[allow(unused_imports, missing_docs, unreachable_pub)]\n#[path = {model:?}] mod {module};").map_err(io::Error::other)?;
     }
     source.push_str("fn registered() -> Vec<umpire_testing::Fixture> { vec![\n");
     for (name, _) in &fixtures {
-        writeln!(source, "({name:?}, fixture_{name}::run),").map_err(io::Error::other)?;
+        let module = module_name(name);
+        writeln!(source, "({name:?}, {module}::run),").map_err(io::Error::other)?;
     }
     source.push_str("] }\n");
     fs::write(output, source)
+}
+
+fn module_name(name: &str) -> String {
+    let mut module = String::from("fixture_");
+    for byte in name.bytes() {
+        if byte.is_ascii_lowercase() || byte.is_ascii_digit() {
+            module.push(char::from(byte));
+        } else {
+            write!(module, "_{byte:02x}").ok();
+        }
+    }
+    module
 }
 
 /// Cargo build-script entry point, shared as source to avoid a checker build-dependency cycle.

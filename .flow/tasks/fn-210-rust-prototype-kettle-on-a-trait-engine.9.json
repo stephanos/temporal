@@ -13,6 +13,6 @@
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.9.md",
   "status": "todo",
-  "title": "Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle",
-  "updated_at": "2026-10-18T20:53:44.505990Z"
+  "title": "Decisive slice: the checker as wasm in a wazero Go host, generated protobuf interface, on the trait Kettle",
+  "updated_at": "2026-10-18T21:13:33.853918Z"
 }

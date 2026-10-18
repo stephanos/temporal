@@ -2,4 +2,4 @@
 [toolchain]
 channel = "1.99.1"
 components = ["rustfmt", "clippy", "rust-src", "rust-analyzer"]
-targets = ["wasm32-wasip2"]  # fn-210 R15: dsl and checker must build for wasm
+targets = ["wasm32-wasip1"]  # fn-210 R32: core wasm hosted by wazero; no GC or component proposals

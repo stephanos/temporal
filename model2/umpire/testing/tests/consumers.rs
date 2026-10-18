@@ -51,14 +51,23 @@ fn child(
         .output()?)
 }
 
-#[test]
-fn consumers_select_and_accept_generic_snapshot_files() -> Result<(), Box<dyn Error>> {
-    let root = std::env::temp_dir().join(format!("umpire-consumers-{}", std::process::id()));
+fn with_control(
+    name: &str,
+    check: impl FnOnce(&Path, &Path) -> umpire_testing::TestResult,
+) -> umpire_testing::TestResult {
+    let root = std::env::temp_dir().join(format!("umpire-{name}-{}", std::process::id()));
     let expected = root.join("fixtures/control/expected");
     fs::create_dir_all(&expected)?;
-    let result = (|| -> Result<(), Box<dyn Error>> {
-        fs::write(root.join("fixtures/control/model.rs"), "")?;
-        fs::write(expected.join("artifact.tla"), "seed\n")?;
+    fs::write(root.join("fixtures/control/model.rs"), "")?;
+    fs::write(expected.join("artifact.tla"), "seed\n")?;
+    let result = check(&root, &expected);
+    fs::remove_dir_all(root)?;
+    result
+}
+
+#[test]
+fn consumers_select_generic_snapshot_files() -> Result<(), Box<dyn Error>> {
+    with_control("select-consumers", |root, expected| {
         let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
         assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
         for extension in ["tla", "cfg"] {
@@ -72,6 +81,24 @@ fn consumers_select_and_accept_generic_snapshot_files() -> Result<(), Box<dyn Er
                 "first\n"
             );
         }
+        let checked = child(&root.join("fixtures"), "no", "first\n", false)?;
+        assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stdout));
+        fs::write(expected.join("report.txt"), "seed\n")?;
+        let mixed = child(&root.join("fixtures"), "always", "first\n", true)?;
+        assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
+        assert_eq!(fs::read_to_string(expected.join("report.txt"))?, "checker selected\n");
+        let mixed = child(&root.join("fixtures"), "no", "first\n", true)?;
+        assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
+        Ok(())
+    })
+}
+
+#[test]
+#[ignore = "requires the optional cargo-insta CLI; run explicitly with --ignored"]
+fn accepts_generic_pending_snapshots_with_cli() -> Result<(), Box<dyn Error>> {
+    with_control("accept-consumers", |root, expected| {
+        let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
+        assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
         let pending = child(&root.join("fixtures"), "new", "accepted\n", false)?;
         assert!(!pending.status.success(), "mismatching snapshot silently passed");
         assert!(expected.join("artifact@cfg.snap.new").is_file());
@@ -98,16 +125,8 @@ fn consumers_select_and_accept_generic_snapshot_files() -> Result<(), Box<dyn Er
         }
         let checked = child(&root.join("fixtures"), "no", "accepted\n", false)?;
         assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stdout));
-        fs::write(expected.join("report.txt"), "seed\n")?;
-        let mixed = child(&root.join("fixtures"), "always", "accepted\n", true)?;
-        assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
-        assert_eq!(fs::read_to_string(expected.join("report.txt"))?, "checker selected\n");
-        let mixed = child(&root.join("fixtures"), "no", "accepted\n", true)?;
-        assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
         Ok(())
-    })();
-    fs::remove_dir_all(root)?;
-    result
+    })
 }
 
 #[test]

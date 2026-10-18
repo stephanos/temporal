@@ -1429,7 +1429,7 @@ model2-check:
 	@cd model2 && $(call MODEL2_STEP,clippy) mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings
 	@cd model2 && $(call MODEL2_STEP,docs) env RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet
 	@cd model2 && $(call MODEL2_STEP,tests) mise exec -- cargo test --workspace --quiet
-	@cd model2 && $(call MODEL2_STEP,wasm32-wasip2) mise exec -- cargo build --target wasm32-wasip2 -p umpire-dsl -p umpire-checker --quiet
+	@cd model2 && $(call MODEL2_STEP,wasm32-wasip2) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
 
 model2-fmt:
 	@$(MODEL2_CARGO) fmt --all

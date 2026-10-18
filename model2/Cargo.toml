@@ -26,6 +26,9 @@ fixedbitset = "0.5"
 enum-iterator = "2.3"
 imbl = "7.0"
 thiserror = "2.0"
+# the host interface (fn-210 R31): protobuf messages, generated from umpire/proto with the mise protoc
+prost = "0.14"
+prost-build = "0.14"
 # proc macros
 syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 quote = "1.0"

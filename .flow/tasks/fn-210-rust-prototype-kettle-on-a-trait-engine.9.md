@@ -1,9 +1,11 @@
 ---
-satisfies: [R20, R15, R24]
+satisfies: [R20, R15, R24, R31, R32]
 ---
-# fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle
+# fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a wazero Go host, generated protobuf interface, on the trait Kettle
 
 ## Description
+**Recut 2026-10-18 (R31, R32):** the host is wazero, not wasmtime-go, and the interface is generated protobuf, not a hand ABI. Add `model2/umpire/proto/umpire/oracle/v1/oracle.proto` (Explore, Rows, Refusal); `umpire-wasm` builds it with `prost-build` and exports only `alloc`, `free` and `call(method, ptr, len) -> u64` for target `wasm32-wasip1`; `model2/hosts/go` generates Go types with `protoc-gen-go` and loads the module with wazero v1.12 under `CGO_ENABLED=0`. Ignore the wasmtime-go and component-target instructions below; the report string in `ExploreResponse` is what is compared byte for byte with the golden.
+
 **Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner. The Go host test belongs in the gate only if it stays within budget warm (wasmtime-go's first build is excluded).
 
 **Location (R29 amended):** there is no `samples` library; `umpire-wasm` includes `umpire/tests/fixtures/kettle_trait/model.rs` by `#[path]`.
@@ -22,10 +24,10 @@ New crate `umpire/wasm` exporting `explore(budget)` (returns Kettle's report tex
 
 **Quick commands:** `mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release`; `cd model2/hosts/go && mise exec -- go test ./...`
 ## Acceptance
-- Go host test passes: report and rows byte-identical to the Rust goldens.
-- A trap surfaces as a Go error naming the export.
-- Target, module size, load time and per-call latency recorded.
-
+- The Go host test passes under `CGO_ENABLED=0` with wazero: `ExploreResponse.report` and `RowsResponse` match the trait Kettle's goldens byte for byte.
+- Both sides are generated from `oracle.proto`; no hand-written message structs.
+- An unknown method returns a `Refusal`; a trap surfaces as a Go error naming the method.
+- Module size, load time and per-call latency recorded; `make model2-time` within R30.
 ## Done summary
 TBD
 
