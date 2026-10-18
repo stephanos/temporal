@@ -1,15 +1,1 @@
-starts: 1
-reached: 1
-emitted: 0
-evaluated: 4
-refused: 3
-depth: 0
-cut: false
-outcome: refuted
-claim safe: verified
-claim step_0_0: refuted
-failure step_0_0: action Advance panicked: broken heater
-vacuity: action Advance never fired
-vacuity: action Reset never fired
-vacuity: action Idle never fired
-vacuity: action Unused never fired
+report.snap.txt

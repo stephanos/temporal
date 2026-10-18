@@ -48,6 +48,12 @@ Goldens are deterministic, human-readable and timing-free. `make model2-update` 
 golden with no case, or a case with no golden, fails. Unit tests only when a defect cannot be
 written as a case.
 
+Behaviour goldens use insta binary snapshots with text payloads. Each `report.txt`, `states.txt`,
+`rows.txt`, or `paths/<claim>.txt` is a symlink to its `.snap.txt` payload; the adjacent `.snap`
+stores insta's review metadata. This keeps the required text paths readable by other hosts and
+lets `cargo insta review` (or `cargo insta accept`) update their single source of expected content.
+Run `make model2-update` to create or refresh snapshots and their aliases together.
+
 ## Dependencies
 
 Only admitted crates (fn-210 R18): a release in the last 12 months, or finished and very widely used.

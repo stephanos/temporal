@@ -1,12 +1,1 @@
-starts: 1
-reached: 3
-emitted: 4
-evaluated: 12
-refused: 8
-depth: 2
-cut: false
-outcome: verified
-claim safe: verified
-claim unused_claim: verified
-vacuity: action Unused never fired
-vacuity: after claim unused_claim never triggered
+report.snap.txt

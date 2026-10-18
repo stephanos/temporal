@@ -1,13 +1,1 @@
-starts: 1
-reached: 1
-emitted: 0
-evaluated: 0
-refused: 0
-depth: 0
-cut: true
-outcome: unknown
-claim safe: unknown
-vacuity: action Advance never fired
-vacuity: action Reset never fired
-vacuity: action Idle never fired
-vacuity: action Unused never fired
+report.snap.txt

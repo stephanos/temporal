@@ -1,3 +1,1 @@
-start: state=0
-1: Advance choice=0 -> state=1
-failure: claim panicking_edge panicked: broken postcondition
+panicking_edge.snap.txt

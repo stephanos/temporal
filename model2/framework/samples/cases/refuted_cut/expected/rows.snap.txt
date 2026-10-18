@@ -1,0 +1,1 @@
+0: Advance choice=0 outcome=true facts=[] -> state=1

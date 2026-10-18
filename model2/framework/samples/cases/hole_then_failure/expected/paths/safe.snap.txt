@@ -1,0 +1,2 @@
+start: state=0
+1: Advance choice=0 -> state=1

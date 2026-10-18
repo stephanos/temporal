@@ -1,1 +1,1 @@
-refused: state budget must be at least one
+report.snap.txt

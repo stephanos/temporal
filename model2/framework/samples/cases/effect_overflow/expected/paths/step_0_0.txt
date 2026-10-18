@@ -1,2 +1,1 @@
-start: state=0
-failure: action Advance panicked: attempt to add with overflow
+step_0_0.snap.txt

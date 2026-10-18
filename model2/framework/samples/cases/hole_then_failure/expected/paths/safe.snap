@@ -1,0 +1,5 @@
+---
+source: framework/samples/tests/kettle.rs
+extension: txt
+snapshot_kind: binary
+---

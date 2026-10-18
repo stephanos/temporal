@@ -1,0 +1,11 @@
+starts: 1
+reached: 1001
+emitted: 1000
+evaluated: 1001
+refused: 1
+depth: 1000
+cut: false
+outcome: verified
+claim safe: verified
+vacuity: none
+clone_work: linear

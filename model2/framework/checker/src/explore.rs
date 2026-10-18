@@ -270,7 +270,7 @@ impl<M: Machine> Result<M> {
             }
             let verdict =
                 catch_unwind(AssertUnwindSafe(|| (claim.predicate)(world, self.state(state))));
-            self.record(index, verdict, self.path(state));
+            self.record(index, verdict, |result| result.path(state));
         }
     }
 
@@ -293,13 +293,15 @@ impl<M: Machine> Result<M> {
             let verdict = catch_unwind(AssertUnwindSafe(|| {
                 claim.holds(world, self.state(edge.source), &edge.action, &edge.emitted)
             }));
-            let mut path = self.path(edge.source);
-            path.steps.push(PathStep {
-                action: edge.action.clone(),
-                choice: edge.choice,
-                after: edge.emitted.2.clone(),
+            self.record(offset + index, verdict, |result| {
+                let mut path = result.path(edge.source);
+                path.steps.push(PathStep {
+                    action: edge.action.clone(),
+                    choice: edge.choice,
+                    after: edge.emitted.2.clone(),
+                });
+                path
             });
-            self.record(offset + index, verdict, path);
         }
     }
 
@@ -307,8 +309,13 @@ impl<M: Machine> Result<M> {
         &mut self,
         index: usize,
         verdict: std::result::Result<Verdict, Box<dyn Any + Send>>,
-        mut path: Path<M::State, M::Action>,
+        make_path: impl FnOnce(&Self) -> Path<M::State, M::Action>,
     ) {
+        let mut path = if matches!(verdict, Ok(Verdict::Fails) | Err(_)) {
+            Some(make_path(self))
+        } else {
+            None
+        };
         let claim = &mut self.claims[index];
         match verdict {
             Ok(Verdict::Holds) => {}
@@ -320,16 +327,18 @@ impl<M: Machine> Result<M> {
             }
             Ok(Verdict::Fails) => {
                 claim.outcome = Outcome::Refuted;
-                claim.path = Some(path);
+                claim.path = path;
             }
             Err(error) => {
-                path.failure = Some(format!(
-                    "claim {} panicked: {}",
-                    claim.name,
-                    panic_message(error.as_ref())
-                ));
+                if let Some(path) = &mut path {
+                    path.failure = Some(format!(
+                        "claim {} panicked: {}",
+                        claim.name,
+                        panic_message(error.as_ref())
+                    ));
+                }
                 claim.outcome = Outcome::Refuted;
-                claim.path = Some(path);
+                claim.path = path;
             }
         }
     }

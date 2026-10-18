@@ -1,2 +1,1 @@
-start: state=0
-failure: action Advance panicked: broken heater
+step_0_0.snap.txt

@@ -8,6 +8,8 @@ use std::{
 use framework_checker::{Checker, Result as Exploration};
 use framework_dsl::{Claim, Hole, Machine, StepClaim, Steps, Verdict};
 
+mod deep;
+
 #[allow(unreachable_pub)]
 mod kettle {
     include!("../fixtures/kettle_trait.rs");
@@ -32,6 +34,7 @@ type Case = (&'static str, fn() -> Result<Files, Box<dyn Error>>);
 
 pub(super) fn registered() -> Vec<Case> {
     vec![
+        ("deep_chain", || Ok(deep::run())),
         ("kettle", || {
             let mut files = render(&Checker::explore(&kettle::KettleWorld, 1 << 20));
             let negative = Checker::refuted(&kettle::KettleWorld, kettle::negative());

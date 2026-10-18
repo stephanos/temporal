@@ -1,3 +1,1 @@
-0: state=0
-1: state=1
-2: state=2
+states.snap.txt
