@@ -1182,8 +1182,9 @@ probe does not prove deferred replay, full Boolean grammar or typed suite contex
 Root rechecked all 24 terminal statuses and selected source/jar hashes in
 `.flow/tmp/fn1952-plan/expect-probe.md`. The broad .2 is split into authored capture, lifecycle,
 exploration and conditional conformance checkpoints, with a separate bounded native conformance
-proof. Flow validates all ten R-IDs across 11 tasks. With .2 complete, .8 and .10 are the ready candidates;
-compiler/build access remains coordinated. Case/Contract lifting and server execution stay held.
+proof. That initial checkpoint validated all ten R-IDs across 11 tasks. The later discovery proof
+and production split below bring the current plan to 14 tasks; compiler/build access remains
+coordinated. Case/Contract lifting and server execution stay held.
 Evidence: `.flow/tmp/fn1951/summary.md`; source/probe/artifact hashes rechecked by root.
 
 fn-195.2 is complete: authored capture `455f2ecc39`, decisive-evidence repairs `b17ac34545`,
@@ -1200,8 +1201,10 @@ source/artifact hashes and terminal command ownership. Evidence: `.flow/tmp/fn19
 | Name | Status | What |
 | --- | --- | --- |
 | fn-195.2 | ✅ done | Authored action/expect capture, exact-instance typed context and existing-checker replay adaptation; strict source-test and separate-library proofs (R2, local R7), closure `f39abda2d2` |
-| fn-195.12 | ⬜ todo | After .2: prove bounded compiled suite inventory and staged policy admission, including exact held-suite identities; split production prerequisites from measured evidence before .8 resumes (R1, local R7) |
-| fn-195.8 | ⏸️ blocked | Lifecycle/native execution checkpoint `ff0dcaf55d` passes native719 and all20 admitted stages, but actual Registry omits two runnable stable-term suites; wait for .12 and its production prerequisites (R1, R2, local R7) |
+| fn-195.12 | ✅ done | Bounded compiled metadata/source-less helper proof, report `41454f742a`, closure `6da31e9051`; retained partial-ancestor RED and actual full-gate limits; no production discovery claim (R1/local R7 prerequisite) |
+| fn-195.13 | ⬜ todo | After .12: in-process inert inventory producer, exact JVM/artifact/source identity and independent superclass/interface closure, with no-test records for final admission (R1, local R7) |
+| fn-195.14 | ⏸️ deferred | Explicitly blocked after .13 until the complete held-suite metadata route is admitted and Registry/Tools/both actual gate integrations are split into bounded tasks; fn-196.2 ordering remains unchanged |
+| fn-195.8 | ⏸️ blocked | Lifecycle/native execution checkpoint `ff0dcaf55d` passes native719 and all20 admitted stages, but actual Registry omits two runnable stable-term suites; wait for .13/.14 production integration (R1, R2, local R7) |
 | fn-195.9 | ⬜ todo | After .8: reusable exploration spaces, per-input `any` and existing-checker find/sample/refuted adapters (R3, local R7) |
 | fn-195.10 | ⬜ todo | After .1, independent of .8: disposable native proof of complete realization inventory, waited-class and capability-path projections, plus typed expectation defaults; no product implementation (R4 prerequisite) |
 | fn-195.11 | ⏸️ deferred | Explicit hold until .10 fixes mechanisms and honest implementation size; after .9 and .10, typed native conformance binding, capability paths, model-first replay and identity ingredients (R4, R5, local R7) |
