@@ -191,7 +191,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.12-.13 done; next ready fn-195.10, with .14/.8 integration blocked; then .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1-.2/.10/.12-.13 done; next ready fn-195.15-.18, with .14/.8 and .11 integration blocked; then .9/.11/.3/.4/.6/.5, fn-197 native .1-.3 and final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-190.3/.5 await fn-196.4 recut; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production need evidence-backed migration and a new go decision. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1215,16 +1215,31 @@ nested-byte replacement. Evidence: `.flow/tmp/fn19513/summary.md`.
 fn-195.14 remains blocked: retained historical export metadata lacks original output binding and
 has stale source/dependency inputs. It supplies no current complete held-suite authority. No fresh
 held export compilation is admitted, and fn-196.2's ordering contract is unchanged. The independent
-native conformance proof (.10) is ready; its read-only preparation identifies realization-inventory,
-wait projection and capability-generation gaps, not completed runtime mechanisms.
+export compile-only approval question remains unanswered. Its proposed bounded metadata probe grants
+no authority until the owner answers.
+
+fn-195.10 is complete: empirical report `f10ee8b160`, prerequisite plan `21b2fb86af`, closure
+`07f081a10d`. Source and packaged-library controls each pass 28 tests; each independent semantic
+oracle still fails exactly two requirements, complete realization inventory and executable native
+capability generation. Both independent quality axes report zero findings; root verified retained
+command/source/artifact bindings. No product conformance implementation or R4 completion is claimed.
+The report fixes future expectation tuples and shows bounded wait-projection feasibility. Actual
+tasks .15/.16 investigate the missing owner/receiver and capability mechanisms; .17/.18 implement
+independent native coverage and expectation leaves. Their four-way readiness permits disjoint
+preparation, with one compiler/writer lane. C stays blocked on integrated implementations and .9;
+closing feasibility reports alone cannot release it. Evidence: `.flow/tmp/fn19510/summary.md`,
+`conductor-summary.md` and `quality-reports.md`.
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-195.14 | ⏸️ deferred | Explicitly blocked after .13 until the complete held-suite metadata route is admitted and Registry/Tools/both actual gate integrations are split into bounded tasks; fn-196.2 ordering remains unchanged |
 | fn-195.8 | ⏸️ blocked | Lifecycle/native execution checkpoint `ff0dcaf55d` passes native719 and all20 admitted stages, but actual Registry omits two runnable stable-term suites; .13 leaf is done, full .14 production integration remains required (R1, R2, local R7) |
 | fn-195.9 | ⬜ todo | After .8: reusable exploration spaces, per-input `any` and existing-checker find/sample/refuted adapters (R3, local R7) |
-| fn-195.10 | ⬜ todo | After .1, independent of .8: disposable native proof of complete realization inventory, waited-class and capability-path projections, plus typed expectation defaults; no product implementation (R4 prerequisite) |
-| fn-195.11 | ⏸️ deferred | Explicit hold until .10 fixes mechanisms and honest implementation size; after .9 and .10, typed native conformance binding, capability paths, model-first replay and identity ingredients (R4, R5, local R7) |
+| fn-195.15 | ⬜ todo | After committed .10: bounded finite declaration-owner/exact runtime receiver feasibility, safe complete acquisition and close; negative report may complete while production remains blocked (R4 prerequisite) |
+| fn-195.16 | ⬜ todo | After committed .10: ordinary capability retention/executable expansion, effective waivers/overrides and native bounds through genuine generated replay; no production subsystem estimate before proof (R4 prerequisite) |
+| fn-195.17 | ⬜ todo | After committed .10: framework kit-owned waited-class projection and immutable exact performed/waited coverage; generic/native fixture kits only, actual system-kit adoption held (R4, local R7) |
+| fn-195.18 | ⬜ todo | After committed .10: realize expectation conveniences and one shared conformance validator, preserving raw/copy compatibility and independent fields; C owns actual binding (R4, R5, local R7) |
+| fn-195.11 | ⏸️ deferred | Explicit hold on integrated complete inventory/capability mechanisms, .17/.18 leaves and .9; .15/.16 report closures alone cannot release typed native conformance integration (R4, R5, local R7) |
 | fn-195.3 | ⬜ todo | After .11: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; final suite source admission including no-test suites; refine retained L scope before admission (R5, R7) |
 | fn-195.4 | ⬜ todo | After .3: the six samples' tests as ModelSuites with Quint's runs; intended answers reproduced (R6) |
 | fn-195.6 | ⬜ todo | After .4: class-only primary Machine declarations, including parameterless models; remove singleton support and migrate active native fixtures/clients, with fresh suite instances and unchanged behavior/ownership (R9) |
