@@ -142,9 +142,7 @@ private[framework] object Sections:
         _.getName.matches(java.util.regex.Pattern.quote(name) + "\\$lzy[0-9]+")
       )
     val methods = cls.getDeclaredMethods.toVector
-      .filterNot(method =>
-        method.isSynthetic || method.getName.matches(".*\\$lzyINIT[0-9]+")
-      )
+      .filterNot(method => method.isSynthetic || method.getName.matches(".*\\$lzyINIT[0-9]+"))
     def accepted(memberType: java.lang.Class[?], immutable: Boolean): Boolean =
       section == "explorations" && immutable && classOf[ExplorationSpace]
         .isAssignableFrom(

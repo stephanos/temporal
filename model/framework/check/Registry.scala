@@ -131,7 +131,13 @@ private object SuiteSources:
       packaged: Boolean = false,
       runnable: Boolean = true
   )
-  private case class Binding(start: Int, end: Int, from: String, to: String)
+  private case class Binding(
+      start: Int,
+      end: Int,
+      from: String,
+      to: String,
+      excluded: Set[String] = Set.empty
+  )
   private case class Definition(
       name: String,
       binaryName: String,
@@ -144,7 +150,8 @@ private object SuiteSources:
       section: Boolean = false,
       erasedMember: Boolean = false,
       line: Int = 0,
-      sectionOffset: Int = -1
+      sectionOffset: Int = -1,
+      local: Boolean = false
   )
   private val identifiers =
     "'(?:\\\\.|[^'\\\\])'|`[^`]+`|[A-Za-z_$][A-Za-z0-9_$]*|=>|[^\\s]".r
@@ -244,9 +251,7 @@ private object SuiteSources:
       else
         tokens
           .drop(body + 1)
-          .find(t =>
-            t.line > tokens(body).line && t.indent <= tokens(at).indent
-          )
+          .find(t => t.line > tokens(body).line && t.indent <= tokens(at).indent)
           .map(_.offset)
           .getOrElse(code.length)
     val scopes = scala.collection.mutable.ArrayBuffer.empty[Scope]
@@ -263,9 +268,7 @@ private object SuiteSources:
       val token = tokens(at)
       val active =
         scopes.filter(s => s.start < token.offset && token.offset < s.end)
-      if preceding(at)("inline") && active.lastOption.exists(s =>
-          sections(s.name)
-        )
+      if preceding(at)("inline") && active.lastOption.exists(s => sections(s.name))
       then
         val enclosing = owner(token.offset)
         val name = s"$enclosing.${text(at + 1)}"
@@ -295,34 +298,43 @@ private object SuiteSources:
             packaged = true
           )
           bodies += tokens(next).offset
-        else
-          packageName =
-            Vector(packageName, name).filter(_.nonEmpty).mkString(".")
+        else packageName = Vector(packageName, name).filter(_.nonEmpty).mkString(".")
         i = next
       else if token.text == "import" then
-        val (prefix, next) = qualified(i + 1)
         val end = scopes
           .filter(s => s.start < token.offset && token.offset < s.end)
           .map(_.end)
           .minOption
           .getOrElse(code.length)
-        if prefix.endsWith(".{") then
-          val base = prefix.stripSuffix(".{")
-          var at = next
-          while at < tokens.size && text(at) != "}" do
-            if text(at) != "," then
-              val name = text(at)
-              val renamed = Set("as", "=>")(text(at + 1))
-              val alias = if renamed then text(at + 2) else name
-              bindings += Binding(token.offset, end, s"$base.$name", alias)
-              at += (if renamed then 3 else 1)
-            else at += 1
-          i = at + 1
-        else
-          val renamed = Set("as", "=>")(text(next))
-          val alias = if renamed then text(next + 1) else prefix.split('.').last
-          bindings += Binding(token.offset, end, prefix, alias)
-          i = next + (if renamed then 2 else 0)
+        var at = i + 1
+        var more = true
+        while more do
+          val (prefix, next) = qualified(at)
+          if prefix.endsWith(".{") then
+            val base = prefix.stripSuffix(".{")
+            val selected = scala.collection.mutable.ArrayBuffer.empty[Binding]
+            var excluded = Set.empty[String]
+            at = next
+            while at < tokens.size && text(at) != "}" do
+              if text(at) != "," then
+                val name = text(at)
+                val renamed = Set("as", "=>")(text(at + 1))
+                val alias = if renamed then text(at + 2) else name
+                if renamed && alias == "_" then excluded += name
+                else selected += Binding(token.offset, end, s"$base.$name", alias)
+                at += (if renamed then 3 else 1)
+              else at += 1
+            bindings ++= selected.map(_.copy(excluded = excluded))
+            at += 1
+          else
+            val renamed = Set("as", "=>")(text(next))
+            val alias =
+              if renamed then text(next + 1) else prefix.split('.').last
+            if !(renamed && alias == "_") then bindings += Binding(token.offset, end, prefix, alias)
+            at = next + (if renamed then 2 else 0)
+          more = text(at) == ","
+          if more then at += 1
+        i = at
       else if token.text == "def" then
         erasedMember(i)
         var at = i + 1
@@ -364,8 +376,7 @@ private object SuiteSources:
           val newStatement =
             tokens(at).line > token.line && tokens(at).indent <= token.indent &&
               !Set("extends", "with", ",")(current)
-          if depth == 0 && (Set(":", "{", ";")(current) || newStatement) then
-            done = true
+          if depth == 0 && (Set(":", "{", ";")(current) || newStatement) then done = true
           else if depth == 0 && (Set("extends", "with")(
               current
             ) || (token.text == "type" && current == "="))
@@ -396,7 +407,8 @@ private object SuiteSources:
           ),
           section = token.text == "object" && sections(
             name
-          ) && active.lastOption.exists(_.name.nonEmpty)
+          ) && active.lastOption.exists(_.name.nonEmpty),
+          local = active.exists(_.name.isEmpty)
         )
         if Set(":", "{")(text(at)) then
           scopes += Scope(
@@ -415,13 +427,11 @@ private object SuiteSources:
 
   def declared(root: Path, module: Module): Vector[Declared] =
     val all = files(root, module).flatMap(definitions)
-    val index = all.filterNot(_.erasedMember).groupBy(_.name)
+    val index = all.filterNot(d => d.erasedMember || d.local).groupBy(_.name)
     def resolve(name: String, definition: Definition): Vector[String] =
       val parts = name.split('.').toVector
       val bindings =
-        definition.bindings.filter(b =>
-          b.start < definition.offset && definition.offset < b.end
-        )
+        definition.bindings.filter(b => b.start < definition.offset && definition.offset < b.end)
       def relative(value: String): Vector[String] =
         if value.startsWith("_root_.") then Vector(value.stripPrefix("_root_."))
         else
@@ -434,12 +444,10 @@ private object SuiteSources:
       def known(name: String): Boolean = index.contains(name) || roots(name)
       val imports = bindings.filter(_.to == parts.head)
       val explicit =
-        imports.flatMap(b =>
-          relative((b.from +: parts.tail).mkString(".")).find(known)
-        )
+        imports.flatMap(b => relative((b.from +: parts.tail).mkString(".")).find(known))
       val owners = relative(name).find(known).toVector
       val wildcard = bindings
-        .filter(b => Set("*", "_")(b.to))
+        .filter(b => Set("*", "_")(b.to) && !b.excluded(parts.head))
         .flatMap(b => relative(b.from.dropRight(1) + name).find(known))
       val candidates =
         (if imports.nonEmpty then explicit
@@ -467,12 +475,8 @@ private object SuiteSources:
         definition.runnable && definition.file.toString.endsWith(
           ".test.scala"
         ) &&
-          !module.skipped.exists(s =>
-            definition.file.startsWith(root.resolve(s))
-          ) &&
-          module.suiteRoots.exists(s =>
-            definition.file.startsWith(root.resolve(s))
-          ) && suite(
+          !module.skipped.exists(s => definition.file.startsWith(root.resolve(s))) &&
+          module.suiteRoots.exists(s => definition.file.startsWith(root.resolve(s))) && suite(
             definition,
             Set.empty
           )
@@ -504,7 +508,5 @@ private object SuiteSources:
         s"${root.relativize(member.file)}:${member.line}: inline section member ${member.name} is not an admitted test; move shared helpers outside sections"
       )
     candidates
-      .map(d =>
-        Declared(module, root.relativize(d.file).toString, d.binaryName)
-      )
+      .map(d => Declared(module, root.relativize(d.file).toString, d.binaryName))
       .distinct

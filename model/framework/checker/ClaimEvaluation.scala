@@ -12,8 +12,7 @@ import scala.collection.mutable
 // class through its parent, so the members read the live vars. Evaluations of one Machine run one at
 // a time, as its vars are one live state.
 private[framework] object ClaimEvaluation:
-  final private[framework] class Stopped
-      extends scala.util.control.ControlThrowable
+  final private[framework] class Stopped extends scala.util.control.ControlThrowable
   private val stopped = new Stopped
 
   def boundary(body: => Unit): Unit =
@@ -411,8 +410,7 @@ private[framework] object ClaimEvaluation:
         val reloaded = java.lang.Class.forName(wanted, true, loader)
         scala.util.Try(reloaded.getField("MODULE$")).toOption match
           case Some(field) => field.get(null) // scalafix:ok DisableSyntax.null
-          case None
-              if reloaded.getConstructors.exists(_.getParameterCount == 0) =>
+          case None if reloaded.getConstructors.exists(_.getParameterCount == 0) =>
             reloaded.getConstructor().newInstance()
           case None =>
             val instance = owner.getOrElse(

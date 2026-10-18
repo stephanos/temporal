@@ -62,9 +62,7 @@ private[framework] object Native extends NativeRuntime:
       before: S,
       step: Step[S, O, F]
   ): Boolean =
-    broken || program.same.exists(f => !f(step)) || program.across.exists(f =>
-      !f(before, step)
-    )
+    broken || program.same.exists(f => !f(step)) || program.across.exists(f => !f(before, step))
   def invoke[A, B](function: A => B, argument: A): B = function(argument)
   def invoke[A, B, C](function: (A, B) => C, first: A, second: B): C =
     function(first, second)

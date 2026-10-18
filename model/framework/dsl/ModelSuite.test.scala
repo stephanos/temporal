@@ -51,6 +51,81 @@ class PublicModelSuite extends ModelSuite(SuiteModels.publicInstance):
     test("ordinary future"):
       scala.concurrent.Future.successful(assertEquals(model.enabled, false))
 
+private object SuiteFixture:
+  private val sequence = new java.util.concurrent.atomic.AtomicInteger
+  private def api(name: String): java.lang.Class[?] =
+    java.lang.Class.forName("java.lang.classfile." + name)
+  def make[T](parent: java.lang.Class[T], arguments: AnyRef*): T =
+    require(java.lang.reflect.Modifier.isAbstract(parent.getModifiers))
+    val constructor = parent.getConstructors.head
+    val parameters = constructor.getParameterTypes
+    require(
+      parameters.forall(parameter =>
+        !parameter.isPrimitive || parameter.equals(Integer.TYPE) || parameter
+          .equals(java.lang.Boolean.TYPE)
+      )
+    )
+    val descriptor = java.lang.constant.MethodTypeDesc.ofDescriptor(
+      parameters.map(_.descriptorString).mkString("(", "", ")V")
+    )
+    val superclass = java.lang.constant.ClassDesc.of(parent.getName)
+    val consumer = classOf[java.util.function.Consumer[?]]
+    val code: java.util.function.Consumer[AnyRef] = (builder: AnyRef) =>
+      val _ = api("CodeBuilder")
+        .getMethod("aload", Integer.TYPE)
+        .invoke(builder, Int.box(0))
+      parameters.zipWithIndex.foreach: (parameter, index) =>
+        val name = if parameter.isPrimitive then "iload" else "aload"
+        val _ = api("CodeBuilder")
+          .getMethod(name, Integer.TYPE)
+          .invoke(builder, Int.box(index + 1))
+      val _ = api("CodeBuilder")
+        .getMethod(
+          "invokespecial",
+          classOf[java.lang.constant.ClassDesc],
+          classOf[String],
+          classOf[java.lang.constant.MethodTypeDesc]
+        )
+        .invoke(builder, superclass, "<init>", descriptor)
+      val _ = api("CodeBuilder").getMethod("return_").invoke(builder)
+    val body: java.util.function.Consumer[AnyRef] = (builder: AnyRef) =>
+      val _ = api("ClassBuilder")
+        .getMethod("withFlags", Integer.TYPE)
+        .invoke(builder, Int.box(0x31))
+      val _ = api("ClassBuilder")
+        .getMethod("withSuperclass", classOf[java.lang.constant.ClassDesc])
+        .invoke(builder, superclass)
+      val _ = api("ClassBuilder")
+        .getMethod(
+          "withMethodBody",
+          classOf[String],
+          classOf[java.lang.constant.MethodTypeDesc],
+          Integer.TYPE,
+          consumer
+        )
+        .invoke(builder, "<init>", descriptor, Int.box(1), code)
+    val classFile = api("ClassFile")
+      .getMethod("of")
+      .invoke(None.orNull) // scalafix:ok DisableSyntax.null
+    val bytes = api("ClassFile")
+      .getMethod("build", classOf[java.lang.constant.ClassDesc], consumer)
+      .invoke(
+        classFile,
+        java.lang.constant.ClassDesc
+          .of("suitecontrol.GeneratedFixture" + sequence.incrementAndGet()),
+        body
+      )
+      .asInstanceOf[Array[Byte]] // scalafix:ok DisableSyntax.asInstanceOf
+    val concrete = java.lang.invoke.MethodHandles.lookup().defineClass(bytes)
+    try
+      concrete
+        .getConstructor(parameters*)
+        .newInstance(arguments*)
+        .asInstanceOf[T] // scalafix:ok DisableSyntax.asInstanceOf
+    catch
+      case wrapped: java.lang.reflect.InvocationTargetException =>
+        throw wrapped.getCause
+
 class ModelSuiteTest extends munit.FunSuite:
   private def run(suite: munit.FunSuite): org.junit.runner.Result =
     val runner = new munit.MUnitRunner(suite.getClass, suite)
@@ -124,7 +199,7 @@ class ModelSuiteTest extends munit.FunSuite:
         test(munit.TestOptions("ordinary")):
           bodyRuns += 1
       val helper = "ready"
-    val suite = new Probe {}
+    val suite = SuiteFixture.make(classOf[Probe], instance)
     assertEquals(suite.events, Vector.empty)
     val names = suite.munitTests().map(_.name)
     assertEquals(
@@ -160,7 +235,7 @@ class ModelSuiteTest extends munit.FunSuite:
       object unit:
         test("selected"):
           ran += 1
-    val suite = new Probe {}
+    val suite = SuiteFixture.make(classOf[Probe], instance)
     val runner = new munit.MUnitRunner(classOf[Probe], suite)
     assertEquals(runner.getDescription.getChildren.size(), 3)
     assertEquals(suite.setup, 0)
@@ -187,7 +262,7 @@ class ModelSuiteTest extends munit.FunSuite:
           fail("ignored body ran")
         test("plain"):
           ran += 1
-    val suite = new Ignored {}
+    val suite = SuiteFixture.make(classOf[Ignored], instance)
     val result = run(suite)
     assertEquals(result.getFailureCount, 0, result.getFailures.toString)
     assertEquals(result.getRunCount, 2)
@@ -200,7 +275,10 @@ class ModelSuiteTest extends munit.FunSuite:
           ()
         test("excluded"):
           fail("only ignored")
-    assertEquals((new Only {}).munitTests().map(_.name), Seq("unit: selected"))
+    assertEquals(
+      SuiteFixture.make(classOf[Only], instance).munitTests().map(_.name),
+      Seq("unit: selected")
+    )
 
   test(
     "automatic claims fail examples-only and unit-only suites with native evidence"
@@ -214,7 +292,10 @@ class ModelSuiteTest extends munit.FunSuite:
       object unit:
         test("passes"):
           assert(true)
-    Vector(new ExamplesOnly {}, new UnitOnly {}).foreach: suite =>
+    Vector(
+      SuiteFixture.make(classOf[ExamplesOnly], instance),
+      SuiteFixture.make(classOf[UnitOnly], instance)
+    ).foreach: suite =>
       val result = run(suite)
       assertEquals(result.getRunCount, 2)
       assertEquals(result.getFailureCount, 1)
@@ -235,7 +316,7 @@ class ModelSuiteTest extends munit.FunSuite:
         test("first"):
           ()
         throw failure
-    val partial = new Partial {}
+    val partial = SuiteFixture.make(classOf[Partial], instance, failure)
     (1 to 2).foreach: _ =>
       assert(
         intercept[IllegalArgumentException](partial.munitTests()).eq(failure)
@@ -243,7 +324,7 @@ class ModelSuiteTest extends munit.FunSuite:
     abstract class Recursive extends ModelSuite(instance):
       object unit:
         val _ = munitTests()
-    val recursive = new Recursive {}
+    val recursive = SuiteFixture.make(classOf[Recursive], instance)
     (1 to 2).foreach: _ =>
       assert(
         intercept[IllegalStateException](recursive.munitTests()).getMessage
@@ -265,7 +346,7 @@ class ModelSuiteTest extends munit.FunSuite:
         )
         test("complete"):
           ()
-    val suite = new Blocking {}
+    val suite = SuiteFixture.make(classOf[Blocking], instance, entered, release)
     val pool = java.util.concurrent.Executors.newFixedThreadPool(2)
     try
       val first = pool.submit(new java.util.concurrent.Callable[Seq[String]]:
@@ -297,7 +378,7 @@ class ModelSuiteTest extends munit.FunSuite:
     abstract class Invalid extends ModelSuite(instance):
       object unit:
         val unsupported = 42
-    val suite = new Invalid {}
+    val suite = SuiteFixture.make(classOf[Invalid], instance)
     (1 to 2).foreach: _ =>
       val message =
         intercept[IllegalArgumentException](suite.munitTests()).getMessage
@@ -313,12 +394,15 @@ class ModelSuiteTest extends munit.FunSuite:
         test("private receiver"):
           ()
     assert(
-      (new Private {}).munitTests().exists(_.name == "unit: private receiver")
+      SuiteFixture
+        .make(classOf[Private], instance)
+        .munitTests()
+        .exists(_.name == "unit: private receiver")
     )
     abstract class Getter extends ModelSuite(instance):
       def unit: Object = new Object
     val message = intercept[IllegalArgumentException](
-      (new Getter {}).munitTests()
+      SuiteFixture.make(classOf[Getter], instance).munitTests()
     ).getMessage
     assert(message.contains("unit"), message)
     assert(message.contains("ModelSuite.test.scala:"), message)
@@ -332,7 +416,10 @@ class ModelSuiteTest extends munit.FunSuite:
       object examples:
         val _ = unit
       object unit
-    Vector(new EagerEmpty {}, new CrossEmpty {}).foreach: suite =>
+    Vector(
+      SuiteFixture.make(classOf[EagerEmpty], instance),
+      SuiteFixture.make(classOf[CrossEmpty], instance)
+    ).foreach: suite =>
       val message =
         intercept[IllegalArgumentException](suite.munitTests()).getMessage
       assert(message.contains("unit"), message)
@@ -368,7 +455,7 @@ class ModelSuiteTest extends munit.FunSuite:
           expect(instance.enabled)
         test("selected start", from = selected):
           expect(instance.enabled)
-    val result = run(new Starts {})
+    val result = run(SuiteFixture.make(classOf[Starts], instance, selected))
     assertEquals(result.getRunCount, 3)
     assertEquals(result.getFailureCount, 1)
     val message = result.getFailures.toString
@@ -398,7 +485,11 @@ class ModelSuiteTest extends munit.FunSuite:
       object unit:
         test(munit.TestOptions("same-name")):
           ()
-    Vector(new Mixed {}, new Options {}, new Across {}).foreach: suite =>
+    Vector(
+      SuiteFixture.make(classOf[Mixed], instance),
+      SuiteFixture.make(classOf[Options], instance),
+      SuiteFixture.make(classOf[Across], instance)
+    ).foreach: suite =>
       (1 to 2).foreach: _ =>
         val message =
           intercept[IllegalArgumentException](suite.munitTests()).getMessage
@@ -422,15 +513,17 @@ class ModelSuiteTest extends munit.FunSuite:
             expect(true)
       object unit:
         val _ = shared.examples
-    val cross = new Cross {}
-    val nested = new Nested {}
+    val cross = SuiteFixture.make(classOf[Cross], instance)
+    val nested = SuiteFixture.make(classOf[Nested], instance)
     Vector(cross, nested).foreach: suite =>
       val message =
         intercept[IllegalArgumentException](suite.munitTests()).getMessage
       assert(message.contains("cross-section"), message)
       assert(message.contains("ModelSuite.test.scala:"), message)
     assert(
-      intercept[IllegalArgumentException](new Eager {}).getMessage
+      intercept[IllegalArgumentException](
+        SuiteFixture.make(classOf[Eager], instance)
+      ).getMessage
         .contains("outside")
     )
 
@@ -449,7 +542,7 @@ class ModelSuiteTest extends munit.FunSuite:
       object unit:
         test("reentry"):
           ()
-    val result = run(new Recursive {})
+    val result = run(SuiteFixture.make(classOf[Recursive], instance))
     assertEquals(result.getRunCount, 2)
     assertEquals(result.getFailureCount, 2)
     assert(
@@ -474,8 +567,10 @@ class ModelSuiteTest extends munit.FunSuite:
             other.test("foreign receiver"):
               ()
     Vector(false, true).foreach: options =>
-      val first = new Pair(options) {}
-      val second = new Pair(options) {}
+      val first =
+        SuiteFixture.make(classOf[Pair], instance, Boolean.box(options))
+      val second =
+        SuiteFixture.make(classOf[Pair], instance, Boolean.box(options))
       first.nested = Some(second)
       second.target = Some(first)
       val message =

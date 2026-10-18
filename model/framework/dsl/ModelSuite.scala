@@ -22,8 +22,7 @@ abstract private[framework] class ModelSuiteRegistration extends munit.FunSuite:
   ): Unit =
     super.test(options)(body)
 
-abstract class ModelSuite[M <: Machine[?, ?]](val model: M)
-    extends ModelSuiteRegistration:
+abstract class ModelSuite[M <: Machine[?, ?]](val model: M) extends ModelSuiteRegistration:
   private enum Registration derives CanEqual:
     case Fresh, Loading, Ready
     case Failed(cause: Throwable)

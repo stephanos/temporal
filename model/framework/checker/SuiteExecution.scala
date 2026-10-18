@@ -78,9 +78,7 @@ object SuiteExecution:
         Vector(
           ReplayRepeatedStep(
             ReplayDeferredStep[State](
-              step.targets.map(target =>
-                (target.position, () => target.evaluate())
-              )
+              step.targets.map(target => (target.position, () => target.evaluate()))
             ),
             count
           )
@@ -131,8 +129,7 @@ object SuiteExecution:
           result.complete,
           result.path,
           result.detail.map(detail =>
-            if detail.startsWith("fails at line ") then
-              s"fails at line ${position.line}: $text"
+            if detail.startsWith("fails at line ") then s"fails at line ${position.line}: $text"
             else detail
           ),
           result.longest,

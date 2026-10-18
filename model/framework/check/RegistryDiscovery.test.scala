@@ -62,6 +62,74 @@ class RegistryDiscoveryTest extends munit.FunSuite:
     )
 
   test(
+    "comma-separated and grouped imports preserve exact suite budget identities"
+  ):
+    for (imports, parent) <- Vector(
+        "import scala.collection.mutable, framework.dsl.ModelSuite" -> "ModelSuite",
+        "import scala.collection.{mutable, immutable}, framework.dsl.{ModelSuite as BoundSuite}" -> "BoundSuite",
+        "import framework.dsl.{ModelSuite => BoundSuite}, scala.collection.{mutable, immutable}" -> "BoundSuite",
+        "import scala.collection.mutable,\n  framework.dsl.{ModelSuite as BoundSuite}" -> "BoundSuite"
+      )
+    do
+      val root = Scratch.directory("registry-comma-imports")
+      write(
+        root,
+        "tests/Leaf.test.scala",
+        s"package fixture\n$imports\nclass Leaf extends $parent(instance)\n"
+      )
+      val discovered = names(root)
+      assertEquals(discovered, Vector("fixture.Leaf"))
+      Tools(root, Map("UMPIRE_CHECKER_BUDGETS" -> "fixture.Leaf=7"))
+        .withCheckerBudgets(discovered.toSet)
+
+  test(
+    "method and block local types cannot impersonate addressable helper ancestors"
+  ):
+    for declaration <- Vector("def make", "val make") do
+      val root = Scratch.directory("registry-local-ancestor")
+      write(
+        root,
+        "helpers/Helpers.scala",
+        s"""package fixture
+        |object Helpers {
+        |  $declaration = {
+        |    class Base extends munit.FunSuite
+        |    new Base
+        |  }
+        |  class Base
+        |  abstract class Actual extends framework.dsl.ModelSuite(instance)
+        |}
+        |""".stripMargin
+      )
+      write(
+        root,
+        "tests/Leaf.test.scala",
+        "package fixture\nclass NotSuite extends Helpers.Base\nclass Valid extends Helpers.Actual\n"
+      )
+      assertEquals(names(root), Vector("fixture.Valid"))
+
+  test("wildcard exclusions apply only to their own import selector group"):
+    val root = Scratch.directory("registry-import-exclusion")
+    write(
+      root,
+      "helpers/Suite.scala",
+      "package suites\nabstract class Base extends framework.dsl.ModelSuite(instance)\n"
+    )
+    write(root, "helpers/Plain.scala", "package plain\nclass Base\n")
+    write(
+      root,
+      "tests/Leaf.test.scala",
+      "package fixture\nimport suites.{Base as _, *}\nimport plain.*\nclass Leaf extends Base\n"
+    )
+    assertEquals(names(root), Vector.empty)
+    write(
+      root,
+      "tests/Leaf.test.scala",
+      "package fixture\nimport suites.{Base as _, *}\nimport suites.*\nclass Restored extends Base\n"
+    )
+    assertEquals(names(root), Vector("fixture.Restored"))
+
+  test(
     "qualified and wildcard parent resolution does not confuse equal short names"
   ):
     val root = Scratch.directory("registry-bindings")
