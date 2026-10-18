@@ -10,6 +10,9 @@ satisfies: [R2, R11, R12, R13, R14, R16]
 
 **Construction/container split.** Delete `query`/`QueryDecl`/`QueryOn`/`QueryIn` and authorable `Limits` construction here; the broader `Query`/`ClaimQuery`/`Witness` container retirement belongs to fn-195.3. Any necessary interim bounds metadata is private and non-authorable. Rewrite substantive provenance, acquisition-laziness, crash/budget and environment tests in the plain form or as direct pure metadata tests; delete only the obsolete parser/authoring contracts and inventory the count/coverage delta.
 
+
+**Native illustration/container preservation (conductor, 2026-10-18).** Preserve recursive structural validity for native State vars (records, concrete sum cases, bounded leaves and native containers) without enumerating whole-state catalogs. Retain selected opaque leaf evidence at the var's declaration scope and selected Channel message evidence at illustration admission. Native Inbox associations must name an exact owning var and rooted immutable-field/optional/exact-sum-case coordinate without evaluating selectors; foreign owners, missing/repeated/conflicting associations and duplicate channel storage remain refusals. Preserve the fourteen illustration-state contracts in native owned snapshots. Witness/Query/Property containers pending fn-195.3 retain their meaningful identity, immutable-copy order, selected-domain, typed-attachment, provenance and short-circuit controls through private metadata construction, never restored public builders.
+
 **Size:** L
 
 ### Verification
