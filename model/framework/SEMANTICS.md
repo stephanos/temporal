@@ -20,8 +20,10 @@ siblings and consume their own budget atomically; authored effects control their
 Storage-loss assumptions remain generated private metadata with declaration identity. Native
 structural admission retains each var's selected recursive evidence and exact Inbox coordinates
 without executing selectors or enumerating whole-state catalogs. Choice selection retains exact
-per-action/class token inventories without executing guards or effects; separate native author and
-effect-library builds require `-Yretain-trees`.
+per-action/class token inventories without executing guards or effects. The pinned native author and
+effect-library build recipes include `-Yretain-trees`; static inventories can also survive without
+that flag when the compiler supplies the needed trees. Unavailable or opaque inventories refuse
+explicit selection.
 
 Existing Query/Witness/Property containers remain for metadata consumers pending their separate
 retirement. Their bounds are private; caller budgets belong to the checker. The historical excerpts
