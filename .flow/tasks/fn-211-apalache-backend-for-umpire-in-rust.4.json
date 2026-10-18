@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T20:46:44.462864Z",
+  "depends_on": [
+    "fn-211-apalache-backend-for-umpire-in-rust.3"
+  ],
+  "id": "fn-211-apalache-backend-for-umpire-in-rust.4",
+  "priority": 3,
+  "spec": "fn-211-apalache-backend-for-umpire-in-rust",
+  "spec_path": ".flow/tasks/fn-211-apalache-backend-for-umpire-in-rust.4.md",
+  "status": "todo",
+  "title": "Apalache consumer in the fixture runner; Kettle agreement golden",
+  "updated_at": "2026-10-18T20:48:00.803660Z"
+}
