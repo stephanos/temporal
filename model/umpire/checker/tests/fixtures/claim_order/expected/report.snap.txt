@@ -1,0 +1,58 @@
+manual default:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Outcome::Refuted
+claim step_0_0: Outcome::Refuted
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Verified
+claim step_0_0: Outcome::Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Outcome::Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired
+ordered world:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Outcome::Refuted
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Verified
+claim step_0_0: Outcome::Refuted
+claim step_0_0: Outcome::Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Outcome::Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired
+supplemental name collision:
+starts: 1
+reached: 1
+emitted: 0
+evaluated: 2
+refused: 0
+depth: 0
+cut: false
+outcome: Outcome::Refuted
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Verified
+claim duplicate: Outcome::Refuted
+claim duplicate: Outcome::Verified
+claim step_0_0: Outcome::Refuted
+claim step_0_0: Outcome::Refuted
+failure step_0_0: action false panicked: first failure
+claim step_0_1: Outcome::Refuted
+failure step_0_1: action true panicked: second failure
+vacuity: action false never fired
+vacuity: action true never fired

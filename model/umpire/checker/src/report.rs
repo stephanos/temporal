@@ -72,7 +72,8 @@ pub struct ClaimResult<S, A> {
 pub struct Report<M: Machine> {
     /// Graph statistics shared with the exploration result.
     pub counts: Counts,
-    /// Claims in declaration order, followed by caught effect failures in discovery order.
+    /// Claims in declaration order, with supplemental query claims in their registration slots,
+    /// followed by caught effect failures in discovery order.
     pub claims: Vec<ClaimResult<M::State, M::Action>>,
     /// Action-catalog warnings followed by filtered-claim warnings in declaration order.
     pub warnings: Vec<String>,
