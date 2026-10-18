@@ -51,6 +51,7 @@ abstract class ModelSuite[M <: NativeModel[State, ?, ?]](val model: M) extends m
 
   override def test(options: munit.TestOptions)(body: => Any)(using location: munit.Location): Unit =
     require(section == "unit", "test options belong in unit")
+    val _ = admit(options.name)
     super.test(options)(body)
 
   final def test(name: String, from: State, expectation: String = "satisfied", through: Option[String] = None)(using munit.Location): TestBuilder =
@@ -65,14 +66,17 @@ abstract class ModelSuite[M <: NativeModel[State, ?, ?]](val model: M) extends m
   final class TestBuilder(name: String, from: Option[State], expectation: String, through: Option[String])(using munit.Location):
     def apply(body: => Any): Unit = register(name, from, expectation, through)(body)
 
-  private def register(name: String, from: Option[State], expectation: String, through: Option[String])(body: => Any)(using location: munit.Location): Unit =
+  private def admit(name: String): (String, String) =
     require(section.nonEmpty, s"$name: test outside examples/explorations/conformance/unit")
     val origin = Thread.currentThread().getStackTrace.iterator.map(_.getClassName).find: name =>
       Vector("examples", "explorations", "conformance", "unit").exists(s => name.endsWith(s"$$$s$$"))
     require(origin.forall(_.endsWith(s"$$$section$$")), s"$name: cross-section initialization during $section")
     val slug = name.toLowerCase.replaceAll("[^a-z0-9]+", "-").stripPrefix("-").stripSuffix("-")
     require(names.add(slug), s"$name: duplicate test slug $slug")
-    val selected = section
+    section -> slug
+
+  private def register(name: String, from: Option[State], expectation: String, through: Option[String])(body: => Any)(using location: munit.Location): Unit =
+    val (selected, slug) = admit(name)
     super.test(munit.TestOptions(s"$selected: $name")):
       if selected == "unit" then body
       else

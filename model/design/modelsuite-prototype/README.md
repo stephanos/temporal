@@ -10,8 +10,9 @@ From the repository root, run the positive suites with:
 env -u BASH_ENV bash model/design/modelsuite-prototype/run.sh
 ```
 
-The expected inventory is 18 passing tests. BankTest has eight, QuintBankTest one, KettleTest two
-and LifecycleTest seven. The script selects the suite names explicitly and requires tests.
+The expected inventory is 20 passing tests. BankTest has eight, QuintBankTest one, KettleTest two,
+LifecycleTest seven and LifecycleOptionsTest two. The script selects the suite names explicitly
+and requires tests.
 It keeps compiler workspaces under `.flow/tmp/fn1951`; set `MODELSUITE_WORKSPACE` to use a fresh
 directory. It supplies MUnit 1.2.0 to this invocation's ordinary compile classpath, leaving the
 library's test-scoped dependency unchanged.
@@ -28,7 +29,8 @@ WrongExpectationProof must exit nonzero with the first Boolean's line, expressio
 balances, even though its second Boolean is true. Early.refusal.scala must fail strict safe-init
 compilation because an eager helper touches its section before the suite has finished construction.
 Inventory must exit zero after demonstrating that the actual source Registry recognizes only
-LifecycleTest here. Registry recognition of indirect ModelSuite subclasses remains fn-195.2 work.
+LifecycleTest and LifecycleOptionsTest here. Registry recognition of indirect ModelSuite
+subclasses remains fn-195.2 work.
 
 Bank uses named Send record fields, a finite oneOf family, a reusable any-action space, an overflow
 find, reproducible six-step sampled walks and a Leaky supply counterexample. QuintBankTest replays
@@ -39,6 +41,8 @@ LifecycleTest covers initialized eager helpers, independent receivers, fixed sec
 repeated/concurrent enumeration, deferred bodies, test/suite transforms, runner description and
 filtering, setup ordering, ignore/only, unit-only/empty/absent sections, top-level/invalid-member
 refusal, cross-section initialization, sticky partial failure and recursive registration.
+LifecycleOptionsTest reproduces duplicate-slug and nested-section options bypasses and checks
+that String and TestOptions registrations share the same admission checks.
 
 ## Deliberate prototype limitations
 

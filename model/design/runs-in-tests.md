@@ -42,6 +42,15 @@ that touches a section before enumeration is also refused. Referencing an alread
 exploration space from a conformance test body works. The prototype preserves ordinary MUnit
 transforms, filtering, ignore/only and setup ordering.
 
+String and TestOptions registrations share the same admission helper for section origin and
+duplicate slugs. The original options overload bypassed both checks. Two focused controls
+reproduce those failures, including mixed String/options names. The read-only audit is retained
+in `.flow/tmp/fn1951/registration-audit.md`.
+
+The concurrency probe compares two submitted enumerations without forcing overlap at a
+registration rendezvous. The instance monitor covers both registration and inherited enumeration;
+the experiment makes no timing or scheduler-contention claim.
+
 The source Registry has a separate problem. Its pattern recognizes direct FunSuite subclasses.
 The inventory experiment uses the actual unchanged Registry on the prototype directory and
 records which classes it misses. The explicit run script selects ModelSuite subclasses and
