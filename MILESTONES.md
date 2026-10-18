@@ -1113,9 +1113,16 @@ suite that tests it supplies the instance, Quint's `const` plus `instance`. A pa
 stays an object. DSL and native only; lifting an instance is the IR phase.
 [Spec](.flow/specs/fn-194-parametric-models-constants-and-finite.md).
 
+The prototype checkpoint is committed (`9648caeb9d`, receipt `f74ab768fe`), with all eight
+architecture verdicts in `model/design/parametric-models.md`. Two instances explore exact
+8/27-state graphs with independent starts/runtime, using an explicitly partial indexed-state
+fallback. Direct generic schemas, instance-dependent `before`, class-owned claim sections,
+automatic holder naming and constructor/lint admission remain implementation work, not prototype
+success claims. Six probe tests and both fresh compiler-refusal checks pass; the existing native
+600 and lint 31 tests remain green. No production framework code changed.
+
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.1 | 🔄 in progress | Prototype a parametric Bank (class form, per-instance vars, naming, starts from parameters) and record the verdict in `model/design` (R1-R3) |
 | fn-194.2 | ⬜ todo | After .1: the class form in the DSL, parameter kinds and compile errors, instance naming, lint admits the class form (R1-R4) |
 | fn-194.3 | ⬜ todo | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
 | fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
