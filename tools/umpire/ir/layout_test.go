@@ -572,12 +572,14 @@ func TestRetiredFeatureFilesAreFound(t *testing.T) {
 func TestModelFilesLeaveOutTheBuildCaches(t *testing.T) {
 	root := t.TempDir()
 	files := map[string]string{
-		"model/temporal/A.scala":                             "package temporal",
-		"model/build/history/x/A.scala":                      "import temporal.worker.*",
-		"model/gen/history/lifter.1/A.scala":                 "import temporal.standaloneactivity.*",
-		"model/gen/model-scala.classpath":                    "/repo/model/gen/model-scala.jar",
-		"model/temporal/features/gen/Generated.scala":        "package gen",
-		"model/temporal/features/build/.scala-build/x.scala": "x",
+		"model/archived/temporal/A.scala":                             "package temporal",
+		"model/archived/build/history/x/A.scala":                      "import temporal.worker.*",
+		"model/archived/gen/history/lifter.1/A.scala":                 "import temporal.standaloneactivity.*",
+		"model/archived/gen/model-scala.classpath":                    "/repo/model/gen/model-scala.jar",
+		"model/archived/temporal/features/gen/Generated.scala":        "package gen",
+		"model/archived/temporal/features/build/.scala-build/x.scala": "x",
+		"model/umpire/checker/src/lib.rs":                             "pub struct RustModel;",
+		"model/target/debug/build/generated.rs":                       "pub struct BuildOutput;",
 	}
 	for rel, content := range files {
 		require.NoError(t, os.MkdirAll(filepath.Join(root, filepath.Dir(rel)), 0o755))
@@ -587,5 +589,5 @@ func TestModelFilesLeaveOutTheBuildCaches(t *testing.T) {
 	require.NoError(t, modelFilesUnder(root, func(rel, _ string) { visited = append(visited, rel) }))
 	slices.Sort(visited)
 	require.Equal(t, []string{"model/temporal/A.scala", "model/temporal/features/gen/Generated.scala"}, visited,
-		"only model/'s own build caches are left out, not a folder of the same name deeper down")
+		"only archived Scala sources are scanned, excluding their build caches and keeping logical model paths")
 }
