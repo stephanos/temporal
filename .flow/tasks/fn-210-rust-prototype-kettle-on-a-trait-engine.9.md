@@ -1,9 +1,11 @@
 ---
-satisfies: [R20, R15, R24, R31, R32]
+satisfies: [R20, R15, R24, R31, R32, R33]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a wazero Go host, generated protobuf interface, on the trait Kettle
 
 ## Description
+**Scope of oracle.proto (R33):** only explore, rows and refusal messages; no observation, event, value or outcome types (those come from Testpilot's schema in the post-verdict Case slice).
+
 **Current owner recut (R31, R32):** build the decisive stock-rustc slice using generated protobuf over a three-function core-wasm ABI, hosted by wazero v1.12 with `CGO_ENABLED=0`. This supersedes all former wasmtime-go/component instructions. The hosted module and dsl/checker portability gate target `wasm32-wasip1`.
 
 One schema at `model2/umpire/proto/umpire/oracle/v1/oracle.proto` (package `umpire.oracle.v1`) defines Explore, Rows and Refusal messages. Generate Rust with admitted `prost`/`prost-build` 0.14 and mise-pinned protoc; generate Go with the repository's pinned `protoc-gen-go`. Only application exports are `alloc(len) -> ptr`, `free(ptr, len)` and `call(method, ptr, len) -> u64` (packed response pointer/length). Unknown methods and undecodable requests return generated Refusal messages; API misuse crosses as a code plus message and becomes a Go error. Unexpected traps become host errors naming the method. No handwritten message structs or extra operation exports.

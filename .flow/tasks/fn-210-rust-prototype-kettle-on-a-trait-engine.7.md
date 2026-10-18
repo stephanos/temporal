@@ -1,9 +1,11 @@
 ---
-satisfies: [R7, R24, R30]
+satisfies: [R7, R24, R30, R34, R35]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.7 DESIGN.md: authoring, size, speed, tooling comparison and the recommendation
 
 ## Description
+**Next slice (R34):** DESIGN.md's recommendation section carries R34's and R35's Testpilot targets (no CEL; generic runtime at most 5,000 lines, Testpilot at most 13,000) into the Case slice's plan.
+
 **Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.
 
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).

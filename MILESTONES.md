@@ -35,7 +35,7 @@ is Rust, with the explicit export-name-only linker step documented in `model2/DE
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
 | Umpire in Rust (now) | fn-210.3 beside .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; the macro surface, progress, TLC slice and full write-up follow |
-| After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
+| After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. The Case slice begins by redesigning Testpilot's IR around the Model as oracle (R33): its schema moves into `model2/umpire/proto/` as a system-agnostic core with a Temporal extension; the Program and evidence capture stay; the Contract and all CEL go, and the Model also decides read completion (R35); observations become the Model's input. Testpilot then shrinks to act-and-observe (R34): the generic runtime from about 20,000 to at most 5,000 lines, all of Testpilot from about 29,000 to at most 13,000. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
 
 ## Specs
 
@@ -83,6 +83,8 @@ What is fixed, all owner decisions of 2026-10-18:
   `model2/umpire/proto/` (`prost` in Rust, `protoc-gen-go` in Go). The Go host is wazero, so Go
   stays at `CGO_ENABLED=0`; the module targets `wasm32-wasip1`. wasmtime remains the simulation's
   host; the same module loads in both.
+  `oracle.proto` stays minimal (explore, rows, refusal) until the Case slice merges it with
+  Testpilot's schema into one vocabulary (R33).
 - **Process.** Parallel tasks touch disjoint crates; shared files (`Cargo.toml`, `Cargo.lock`,
   `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
   every session re-reads its task after it.
