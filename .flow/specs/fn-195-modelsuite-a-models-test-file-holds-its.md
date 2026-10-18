@@ -41,6 +41,35 @@ Model and performed on the server, with the Model replay as each Case's oracle.
 Execution is in-process on the Scala checker (fn-196). A section's tests are munit tests: a
 failing `expect:` line fails the test. Phase 2, DSL completion; the lowering changes are bounded.
 
+## Native checkpoint admission (2026-10-18)
+
+The conductor verified each following task as done through Flow and both listed commits as
+ancestors of integrated umpire HEAD `71b076b200e6727a2f1a3c4dfac6ec49e5e4a8bf`.
+These native checkpoints replace the two whole-spec scheduling prerequisites. They do not
+close either parent spec or earn their deferred batch review or held integration proofs.
+The original fn-194.2/fn-196.2 API prerequisites remain included.
+
+| Native task | Final source/evidence checkpoint | Committed closure |
+| --- | --- | --- |
+| fn-194-parametric-models-constants-and-finite.1 | `9648caeb9d9a74de4ca3de4be31d2b82ca7fc223` | `f74ab768fe3b58b1e6f5a116e48be3b3284922af` |
+| fn-194-parametric-models-constants-and-finite.2 | `b33e7e36b440c9f54a4a047f8488eb596b25520d` | `6e345185f8ec9ba426707688db766008a4784770` |
+| fn-194-parametric-models-constants-and-finite.3 | `bb8749d7cf56f76ece2f1cbbd583ee47cc791501` | `31e294207dd7d13716ba74c0ca2b46cb2a8fe030` |
+| fn-194-parametric-models-constants-and-finite.4 | `f431b252da886d9bec88b8d7270cb66a944c3169` | `f8d5d0f39aa236a8986a3be251c15001e2e4888d` |
+| fn-194-parametric-models-constants-and-finite.5 | `b53e677090f7b80c25010d196327b79d716ba62a` | `df9e05fbe0d4f1bdaf28dd92863b3c29fe8f20fb` |
+| fn-196-the-scala-checker-is-the-oracle.1 | `0dd5737301eaf2193d3ae89ea71a3dac2110c7ae` | `58fa14a2056cc50b9d120c0ce1185ad6e757f5e5` |
+| fn-196-the-scala-checker-is-the-oracle.2 | `8f84a96e4942fc4fb028bfd72e87ac78e379d329` | `a0cc2feb8432a4a3aa67b1d620becc9ccc78ea6f` |
+| fn-196-the-scala-checker-is-the-oracle.3 | `2319050f0f6f82adee2dc1b94b98d3f301f3fdc2` | `946b550a6d7a5f25fd84ca71e246a0b6ff890b4a` |
+| fn-196-the-scala-checker-is-the-oracle.5 | `8c2dada5fd7960be5db26ea0904d0a26306969e0` | `71b076b200e6727a2f1a3c4dfac6ec49e5e4a8bf` |
+| fn-196-the-scala-checker-is-the-oracle.6 | `89df25410b813ffcac67c553ff3e7a4e0106ba3b` | `c449a15a0b4d91bc4af237ba4a7dfc75feaaa4c9` |
+| fn-196-the-scala-checker-is-the-oracle.7 | `33b84f57806f4cd1e6b7132831b8d48f007a894d` | `115a1bcf47a9697780fe670dc73bb8d909b19b7c` |
+
+Fn-196.4 stays explicitly blocked on the measured no-go and Phase 3 migration boundary.
+Go/IR/export/lifting/schema/backend/generated/regeneration and all Temporal work remain held;
+no publishing or review verdict is authorized. Spec admission is local committed-checkpoint
+admission, not a forced task start or remote-branch fallback. The within-spec task chain is
+unchanged. Final fn-195.7 remains blocked until fn-195.5 and the later fn-197 native checkpoints
+are committed; its baseline must be taken after those DSL changes.
+
 ## Architecture & Data Models
 
 <!-- Architecture: 50% [user], 40% [paraphrase], 10% [inferred] -->
@@ -214,7 +243,7 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | `ModelSuite(instance)` registers munit tests from its `examples`, `explorations` and `conformance` sections and runs `test`s outside them as plain munit. Errors: a section with a non-test member other than a space `val` is refused naming the member. | fn-195.1, fn-195.2 | — |
+| R1 | `ModelSuite(instance)` registers munit tests from `examples`, `explorations`, `conformance` and `unit`; `unit` holds plain munit tests and top-level tests are refused. Errors: section/test placement and non-test members follow the current Architecture and API Contracts. | fn-195.1, fn-195.2 | — |
 | R2 | An `examples` body of named action calls, whole actions, `oneOf` families and `expect:` blocks is replayed on the instance by the Scala checker from `from` or the single start; each `expect:` statement is one assertion whose failure names the line and the state. Errors: the liftable-subset and `from` refusals in API Contracts. | fn-195.1, fn-195.2 | — |
 | R3 | `explorations` supports `explore(steps)` spaces with `any`, `space.find(steps)` with an `expect:` target, `space.sample(count, seed)` judged by the instance's claims, and `refuted(machine, claim)`; `assertRefuted` and `NativeControls` are retired. Errors: `any` outside `explorations`, zero `sample` count, `find` with no target. | fn-195.2 | — |
 | R4 | `conformance` tests are the only declarations the Case generator reads; each is replayed on the instance first; the expectation defaults to `satisfied` for a path and `conformant` for a sample; `through` binds by the decision in Architecture. Errors: the conformance refusals in API Contracts. | fn-195.2 | — |
