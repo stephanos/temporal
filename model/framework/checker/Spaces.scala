@@ -11,6 +11,7 @@ final class Space[S, O, F] private[checker] (
     val select: (Int, Class) => Boolean
 ):
   require(steps >= 1, "a space admits at least one step")
+  NativeCheck.admitRoots(instance, starts)
 
 private[checker] object Expectations:
   def holds[S, O, F](

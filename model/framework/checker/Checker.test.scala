@@ -81,7 +81,10 @@ class CheckerTest extends munit.FunSuite:
         () => Checker.explore(Counter, Counter.initialStates, budget),
         () => Checker.verifyAll(Counter, budget = budget),
         () => Checker.monitor(Counter, Counter.monitors.limited, Counter.initialStates, budget),
-        () => Checker.progress(Counter, Counter.progress.impossible, Counter.initialStates, budget)
+        () => Checker.progress(Counter, Counter.progress.impossible, Counter.initialStates, budget),
+        () => Checker.sample(Checker.space(Counter, steps = 1)(), count = 1, seed = 1L, budget),
+        () => Checker.refuted(Counter, Counter.invariants.bounded, budget = budget),
+        () => Checker.refuted(Counter, Counter.monitors.limited, budget = budget)
       )
       questions.foreach: question =>
         val refused = intercept[IllegalArgumentException](question())

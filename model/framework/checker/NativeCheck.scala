@@ -15,6 +15,9 @@ private[framework] object NativeCheck:
   // The states an exploration may reach unless a test names another budget.
   val defaultBudget: Int = BudgetPolicy.defaultBudget
 
+  private[checker] def admitRoots[S](machine: NativeModel[S, ?, ?], starts: Seq[S]): Unit =
+    machine.stateVars.foreach(vars => starts.foreach(state => vars.at(state)(())))
+
   final class EffectFailure(val action: Class, val before: Any, val cause: Throwable)
       extends RuntimeException(cause):
     var path: Path = Path(Some(before), Vector.empty)
@@ -96,6 +99,7 @@ private[framework] object NativeCheck:
       positioned: Boolean = false
   ):
     require(budget > 0, "a budget admits at least one state")
+    admitRoots(machine, origins)
     scan(machine)
     private val effects = machine.nativeEffects
       .filter((decl, _) => admit(decl))
@@ -519,6 +523,7 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       budget: Int = defaultBudget
   ): Result =
+    admitRoots(machine, starts)
     val search = explore(machine, Seq.empty[S], budget = budget)
     val index = mutable.HashMap.empty[(S, M), Int]
     val product = mutable.ArrayBuffer.empty[(S, M)]
@@ -647,6 +652,7 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       budget: Int
   ): Result =
+    admitRoots(machine, starts)
     claim.machine.foreach(
       ClaimEvaluation.requireOwner(varsOf(machine, s"progress claim $subject"), _)
     )

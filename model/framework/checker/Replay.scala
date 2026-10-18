@@ -18,6 +18,7 @@ private[checker] object Replay:
       budget: Int
   ): Result =
     require(budget >= 1, "a budget admits at least one state")
+    NativeCheck.admitRoots(instance, script.starts)
     val engine = NativeCheck.explore(instance, Seq.empty, budget = budget)
     var retainedStates = 0
     var cut = false

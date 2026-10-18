@@ -32,7 +32,9 @@ object Checker:
         graph.unknown.toVector,
         None,
         Some(() =>
-          report(NativeCheck.verifyAll(instance, origins, budget, exploration = Some(graph)))
+          checkedReport(instance.name, budget)(
+            NativeCheck.verifyAll(instance, origins, budget, exploration = Some(graph))
+          )
         )
       )
     catch
@@ -66,10 +68,7 @@ object Checker:
       starts: Seq[S],
       budget: Int
   ): Report =
-    try report(NativeCheck.verifyAll(instance, starts, budget))
-    catch
-      case failure: NativeCheck.EffectFailure =>
-        Report(Vector(effectResult(failure, instance.name, budget)), Vector.empty)
+    checkedReport(instance.name, budget)(NativeCheck.verifyAll(instance, starts, budget))
 
   inline def space[S, O, F](
       inline instance: NativeModel[S, O, F],
@@ -165,6 +164,7 @@ object Checker:
   ): Result =
     require(budget >= 1, "a budget admits at least one state")
     val subject = s"${instance.name}.${claim.property.name}"
+    NativeCheck.admitRoots(instance, starts)
     guarded(subject, budget):
       val environment = if claim.scenario.machine eq claim.property.machine then
         claim.scenario.copy(machine = instance)
@@ -288,6 +288,12 @@ object Checker:
 
   private def report(value: NativeCheck.Report): Report =
     Report(value.results.map(result), value.warnings)
+
+  private def checkedReport(subject: String, budget: Int)(value: => NativeCheck.Report): Report =
+    try report(value)
+    catch
+      case failure: NativeCheck.EffectFailure =>
+        Report(Vector(effectResult(failure, subject, budget)), Vector.empty)
 
   private[checker] def result(value: NativeCheck.Result): Result =
     val verdict = value.verdict match

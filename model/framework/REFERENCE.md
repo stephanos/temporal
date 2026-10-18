@@ -1407,6 +1407,20 @@ is separate work.
 `Checker` `WitnessBuilder` `WitnessFacts` `witnessFacts` `Recorded`
 `StepBinding` `BudgetedAction` `Exploration` `Variation`
 
+### Checker execution inputs and evidence
+
+Checker consumers pass a `Space` with an explicit finite step bound and positional action selection.
+A `ReplayScript` orders `ReplayOperation` values, using `ReplayStep` for finite action alternatives
+and `ReplayExpectation` for a positioned `Expectation` with its source line, text and predicate.
+
+`ExpectationFailure` retains the failing position, line, text and state. `SampleEvidence` retains
+ordered walks, seed, failing walk index, step bound and finite experiment completion. Successful
+finite walks establish no exhaustive safety or unbounded progress conclusion.
+
+The gate validates a `BudgetPolicy` against discovered suite identities. Its default and overrides
+resolve into an immutable `Execution` boundary that passes the selected budget into every question.
+The future ModelSuite adapter supplies registration, author syntax and suite discovery support.
+
 ### Realization building blocks
 
 The records, enums and scopes behind the forms of [Realizations](#21-realizations), for kits.

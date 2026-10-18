@@ -10,7 +10,9 @@ satisfies: [R1, R2, R3]
 
 **Files:** native checker entrypoints, results and existing execution primitives plus focused Replay/Spaces/Sampling/Vacuity/budget helpers and tests; gate budget validation/transport and its tests; focused sample-owned public-question controls and separate-library clients.
 
-**Touches:** `model/framework/checker/**`, `model/framework/check/**`, `model/framework/samples/**`
+**Touches:** `model/framework/checker/**`, `model/framework/check/**`, `model/framework/samples/**`, `model/framework/REFERENCE.md` (new public checker type inventory only)
+
+**Evidence-driven scope addition (conductor, 2026-10-17).** The full boundary gate reproduced ReferenceSurfaceTest refusal for the ten newly public checker types. Add those names with concise user-facing execution/evidence descriptions to the reference's closing inventory; no Scala-file references, no unrelated reference cleanup, and no oracle-direction changes reserved for .5. Preserve the coverage gate unchanged. `refuted` also forwards Monitor claims to the existing monitor execution boundary, preserving ordinary verdicts, policy budgets, starts, caller naming and the existing cache negative-control path; no assertion inversion or second execution engine.
 
 ### Contracts and verification
 - `replay(instance, path)` consumes pinned operations with positioned expectations. A failing second expectation names its own line/text/state. Disabled first steps and disabled later suffixes refute with the step/state, never vacuously verify. Success retains the concrete executed path. Holes and state-budget cuts are unknown under the shared incompleteness contract, not false success. Preserve the old pinned-query semantics until their separate fn-195 retirement; add the new contract rather than changing old callers to fit it.

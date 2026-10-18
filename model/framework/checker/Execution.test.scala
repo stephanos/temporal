@@ -42,8 +42,52 @@ object ExecutionFixture:
       val safe = monitor(0)(n => n + 1)(_ > 3)
       val uncertain = monitor(false)(_ => missing.reached)(identity)
 
+  object ScopedFailure extends Machine[Answer, Nothing]:
+    var value = 0
+
+    object transitions extends Transitions:
+      on(actor.advance):
+        if value == 1 then effects.advance()
+
+    object effects:
+      def advance(): Unit = throw IllegalStateException("scoped effect exploded")
+
+    object invariants:
+      val alternate =
+        check(value < 3) in only(actor.advance).starts(value = 1)
+
 class ExecutionTest extends munit.FunSuite:
   import ExecutionFixture.*
+
+  test("explicit roots refuse foreign machine states before executing questions"):
+    val model = CheckerFixture.Counter
+    val roots = Seq(CheckerFixture.Loop.init)
+    val questions: Vector[() => Any] = Vector(
+      () => Checker.replay(model, ReplayScript[State](Vector.empty, roots)),
+      () => Checker.space(model, steps = 1, starts = roots)(),
+      () => Checker.explore(model, starts = roots),
+      () => Checker.verifyAll(model, starts = roots),
+      () => Checker.monitor(model, model.monitors.limited, roots),
+      () => Checker.progress(model, model.progress.impossible, roots),
+      () => Checker.refuted(model, model.invariants.bounded, starts = roots)
+    )
+    questions.foreach: question =>
+      val refused = intercept[IllegalArgumentException](question())
+      assert(refused.getMessage.contains("state of another machine"))
+
+  test("both verifyAll entrypoints convert a scoped-start effect failure"):
+    val direct = Checker.verifyAll(ScopedFailure, budget = 3)
+    val graph = Checker.explore(ScopedFailure, budget = 3)
+    assertEquals(graph.verdict, Verdict.verified)
+    assert(graph.complete)
+    val reused = Checker.verifyAll(graph)
+    for report <- Vector(direct, reused) do
+      val result = report.results.head
+      assertEquals(result.verdict, Verdict.refuted)
+      assertEquals(result.budget, 3)
+      assert(!result.complete)
+      assertEquals(result.path.states, Vector(ScopedFailure.init.copy(value = 1)))
+      assert(result.detail.exists(_.contains("scoped effect exploded")))
 
   test("a model effect failure is refuted with its pre-step state and action"):
     val result = Checker.explore(Broken, budget = 3)

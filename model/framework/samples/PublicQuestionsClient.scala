@@ -108,13 +108,26 @@ object PublicQuestionsClient:
       Checker.replay(Original, ReplayScript[State](Vector(ReplayStep(actor.advance()))))
     assert(objectResult.verdict == Verdict.verified)
     val derivedResult =
-      Checker.replay(Changed, ReplayScript[State](Vector(ReplayStep(actor.advance()))))
+      Checker.replay(
+        Changed,
+        ReplayScript[State](Vector(ReplayStep(actor.advance())), Seq(Original.init))
+      )
     assert(derivedResult.verdict == Verdict.verified)
-    val composed = Checker.find(Checker.space(Together, steps = 1)(), horizon = 1)(
+    val composed = Checker.find(
+      Checker.space(Together, steps = 1, starts = Seq(Together.init))(),
+      horizon = 1
+    )(
       Expectation(103, "both advance", _ => Original.value == 1 && Other.value == 1)
     )
     assert(composed.verdict == Verdict.found)
     assert(composed.path.steps.size == 1)
+    val malformed = Together.init.copy(left = Other.init)
+    val foreignChildRefused =
+      try
+        val _ = Checker.replay(Together, ReplayScript[State](Vector.empty, Seq(malformed)))
+        false
+      catch case _: IllegalArgumentException => true
+    assert(foreignChildRefused)
     val outsider = new Counter(Holder.two)
     val refused =
       try
