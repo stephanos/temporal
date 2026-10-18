@@ -1,0 +1,11 @@
+error: #[starts] requires a bounded range, such as 0..=40
+ --> tests/ui/non_range_starts.rs:5:14
+  |
+5 |     #[starts(42)]
+  |              ^^
+
+error: #[starts] requires a bounded range, such as 0..=40
+ --> tests/ui/non_range_starts.rs:7:14
+  |
+7 |     #[starts(0..)]
+  |              ^^^
