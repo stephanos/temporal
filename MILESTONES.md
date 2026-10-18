@@ -34,7 +34,7 @@ is Rust, with the explicit export-name-only linker step documented in `model2/DE
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.14 protocol wiring alone, then .3 beside .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions, fixtures and decisive wasm slice are complete; the Rust recommendation is recorded; the macro surface, progress, TLC slice and full write-up follow |
+| Umpire in Rust (now) | fn-210.3 beside .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; the macro surface, progress, TLC slice and full write-up follow |
 | After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
 
 ## Specs
@@ -89,9 +89,8 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.14 | 🔄 in progress | After .9, alone: pre-wire the R27 scope-action Refusal through the generated host protocol, keeping .3/.4 disjoint |
-| fn-210.3 | ⬜ todo | After .14: progress within a scope, weak fairness on internal steps, lasso and dead-end counterexamples (R3) |
-| fn-210.4 | ⬜ todo | After .14, beside .3: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
+| fn-210.3 | 🔄 in progress | After .14: progress within a scope, weak fairness on internal steps, lasso and dead-end counterexamples (R3) |
+| fn-210.4 | 🔄 in progress | After .14, beside .3: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
 | fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` (in `umpire/backends/tlc/`) runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
