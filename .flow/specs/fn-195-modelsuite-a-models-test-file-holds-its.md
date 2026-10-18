@@ -220,4 +220,3 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195.5 | — |
 
 | R9 | Primary machines use class Model with independent suite instances; singleton primary Machine support is removed and active native fixtures migrate, preserving behavior and ownership. | fn-195.6 | — |
-
