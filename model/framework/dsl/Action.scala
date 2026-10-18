@@ -162,6 +162,7 @@ final case class ActionDecl(
     )
   private[framework] var nativeInputs = Option.empty[ActionInputs[?]]
   private[framework] var internalOwner = Option.empty[AnyRef]
+  private[framework] var nativeChannel = Option.empty[Channel[?]]
   private[framework] var composedClasses = Option.empty[List[Class]]
   private[framework] var selectsComposed = Option.empty[(Any, Class) => Boolean]
   private var source = Option.empty[String]

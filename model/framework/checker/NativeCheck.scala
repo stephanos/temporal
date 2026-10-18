@@ -261,14 +261,15 @@ private[framework] object NativeCheck:
 
   // The name an action is declared under.
   def actionName(decl: ActionDecl): String =
-    Option(synchronized(spelled.get(decl)))
+    DeclarationLifetime
+      .name(decl)
       .orElse(scala.util.Try(decl.declarationName.effective(decl.name, "action")).toOption)
       .orElse(decl.spelling)
       .filter(_.nonEmpty)
       .getOrElse(decl.name)
 
   def holeName(hole: Hole): String =
-    Option(synchronized(holes.get(hole))).getOrElse(hole.name)
+    DeclarationLifetime.name(hole).getOrElse(hole.name)
 
   // A class as a report shows it: its action, and its inputs where it has any.
   def shown(cls: Class): String =
@@ -289,7 +290,7 @@ private[framework] object NativeCheck:
     scan(machine)
     machine.bindings.toVector.map: binding =>
       val effect = effectOf[S, O, F](binding.decl, binding.function)
-      val run = Option(synchronized(channels.get(binding.decl))).fold(effect.apply(_: S, _: Class))(
+      val run = synchronized(binding.decl.nativeChannel).fold(effect.apply(_: S, _: Class))(
         channel => carried(channel, binding.decl, effect)
       )
       binding.decl -> run
@@ -970,12 +971,6 @@ private[framework] object NativeCheck:
   private def members(section: AnyRef): Vector[(String, Any)] =
     memberMethods(section).map(m => m.getName -> m.invoke(section))
 
-  // The names of actions natively, where only the lifter names them: each action a val of an
-  // object of the feature declares, a channel's delivery and loss under the channel's val.
-  private val spelled = java.util.IdentityHashMap[ActionDecl, String]()
-  private val channels = java.util.IdentityHashMap[ActionDecl, Channel[?]]()
-  private val holes = java.util.IdentityHashMap[Hole, String]()
-  private val claims = java.util.IdentityHashMap[AnyRef, String]()
   private val features = mutable.HashSet.empty[String]
 
   // Reads the objects of the feature that declares `machine`, the compiled modules beside it.
@@ -990,16 +985,14 @@ private[framework] object NativeCheck:
           members(o).foreach:
             case (member, a: Action[?]) => spell(a.decl, member)
             case (member, hole: Hole)   =>
-              if !holes.containsKey(hole) then
-                val _ = holes.put(hole, member)
+              DeclarationLifetime.spell(hole, member)
             case (member, c: Channel[?]) =>
               spell(c.deliver.decl, s"$member.deliver")
               spell(c.lose.decl, s"$member.lose")
-              val _ = channels.put(c.deliver.decl, c)
-              val _ = channels.put(c.lose.decl, c)
+              c.deliver.decl.nativeChannel = Some(c)
+              c.lose.decl.nativeChannel = Some(c)
             case (member, claim: (Property | Monitor[?, ?, ?, ?] | LeadsTo)) =>
-              if !claims.containsKey(claim) then
-                val _ = claims.put(claim, member)
+              DeclarationLifetime.spell(claim, member)
             case _ => ()
     machine match
       case derived: DerivedFrom[?] =>
@@ -1052,7 +1045,7 @@ private[framework] object NativeCheck:
     val member = claim match
       case _: Monitor[?, ?, ?, ?] => local(machine)
       case _                      => None
-    member.orElse(Option(synchronized(claims.get(claim)))).getOrElse(declared)
+    member.orElse(DeclarationLifetime.name(claim)).getOrElse(declared)
 
   // The names of the compiled objects under `feature` where `of` was loaded from.
   private def modules(of: java.lang.Class[?], feature: String): Vector[String] =
@@ -1076,8 +1069,7 @@ private[framework] object NativeCheck:
       .map(_.stripSuffix(".class").replace('/', '.'))
 
   private def spell(decl: ActionDecl, name: String): Unit =
-    if !spelled.containsKey(decl) then
-      val _ = spelled.put(decl, name)
+    DeclarationLifetime.spell(decl, name)
 
   // Every claim of a Machine's sections, checked from `starts` (its initial state unless named):
   // its invariants and postconditions on one exploration, its progress claims under their own

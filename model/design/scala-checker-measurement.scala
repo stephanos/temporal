@@ -167,43 +167,19 @@ object ScalaCheckerMeasurement:
         case other => throw IllegalArgumentException(other)
       new WeakReference[AnyRef](model)
 
-    val lives = stored(VarRuntime, "lives").asInstanceOf[java.util.Map[Vars, ?]]
-    val spelled = stored(NativeCheck, "spelled")
-      .asInstanceOf[java.util.Map[ActionDecl, String]]
-    val channels = stored(NativeCheck, "channels")
-      .asInstanceOf[java.util.Map[ActionDecl, ?]]
-    val claims = stored(NativeCheck, "claims").asInstanceOf[java.util.Map[?, ?]]
-    val holes = stored(NativeCheck, "holes").asInstanceOf[java.util.Map[?, ?]]
     val declared = stored(ClaimEvaluation, "declared").asInstanceOf[java.util.Map[?, ?]]
-
-    def actorPaths(map: java.util.Map[ActionDecl, ?], target: AnyRef): Vector[String] =
-      map.keySet.asScala.toVector.flatMap: decl =>
-        val actor = decl.actor
-        actor.getClass.getDeclaredFields.toVector
-          .filterNot(field =>
-            java.lang.reflect.Modifier.isStatic(field.getModifiers) || field.getType.isPrimitive
-          )
-          .flatMap: field =>
-            require(field.trySetAccessible(), s"cannot inspect $field")
-            Option.when(field.get(actor).asInstanceOf[AnyRef] eq target)(
-              s"${actor.getClass.getName}.${field.getName}"
-            )
+    println("CACHE_REMOVED\tVarRuntime.lives\towner-local runtime record")
+    println("CACHE_REPLACED\tNativeCheck.spelled,holes,claims\tweak identity names")
+    println("CACHE_REMOVED\tNativeCheck.channels\tdeclaration-local channel anchor")
+    println("ROOT_ATTRIBUTION\tremoved global instance indexes; survivors remain unattributed")
 
     def attribute(kind: String, refs: Vector[WeakReference[AnyRef]]): Unit =
       var alive = 0
-      var attributed = 0
       refs.zipWithIndex.foreach: (ref, index) =>
-        Option(ref.get()).foreach: target =>
+        Option(ref.get()).foreach: _ =>
           alive += 1
-          val runtime = lives.keySet.asScala.count(vars => vars.machine eq target)
-          val names = NativeCheck.synchronized(actorPaths(spelled, target))
-          val channelKeys = NativeCheck.synchronized(actorPaths(channels, target))
-          if runtime > 0 || names.nonEmpty || channelKeys.nonEmpty then attributed += 1
-          println(
-            s"OWNER_ROOT\t$kind\t$index\t$runtime\t${names.size}\t${channelKeys.size}" +
-              s"\t${names.mkString(",")}\t${channelKeys.mkString(",")}"
-          )
-      println(s"RETENTION\t$kind\t${refs.size}\t$alive\t$attributed\t${alive - attributed}")
+          println(s"OWNER_UNATTRIBUTED\t$kind\t$index")
+      println(s"RETENTION\t$kind\t${refs.size}\t$alive\t0\t$alive")
 
     val held = scala.collection.mutable.ArrayBuffer.empty[Vector[WeakReference[AnyRef]]]
     Vector("constructed", "initialized", "checked").foreach: kind =>
@@ -212,10 +188,7 @@ object ScalaCheckerMeasurement:
       val (id, bytes, start, end) = fullGc()
       println(s"RETENTION_GC\t$kind\t$id\t$bytes\t$start\t$end")
       attribute(kind, refs)
-      println(
-        s"CACHE_SIZES\t$kind\t${lives.size}\t${spelled.size}\t${channels.size}" +
-          s"\t${claims.size}\t${holes.size}\t${declared.size}"
-      )
+      println(s"STATIC_DECLARATIONS\t$kind\t${declared.size}")
       println(
         s"IDLE_FRAMES\t$kind\t${VarRuntime.current.isEmpty}\t${ClaimEvaluation.current.isEmpty}"
       )

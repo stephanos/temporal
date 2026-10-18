@@ -45,12 +45,14 @@ object DiscoveryCatalogueFixture:
 
   class Model extends Machine[Boolean, Nothing]:
     var value = 0
+
     object user extends Actor:
       lazy val advance = action
+
     object transitions extends Transitions
 
 class DiscoveryLifetimeTest extends munit.FunSuite:
-  import DiscoveryLifetimeFixture.*
+  import DiscoveryLifetimeFixture.{*, given}
 
   private def collect(label: String, refs: Vector[WeakReference[?]]): Unit =
     def collections =
@@ -90,18 +92,38 @@ class DiscoveryLifetimeTest extends munit.FunSuite:
     val model = Option(owner.get).getOrElse(fail("retained Result lost its owner"))
     assertEquals(result.verdict, Verdict.refuted)
     assertEquals(result.path.steps.map(s => NativeCheck.shown(s.action)), Vector("alias", "alias"))
-    assertEquals(result.path.states.map(_.asInstanceOf[State].selectDynamic("value")), Vector(0, 1, 2))
+    assertEquals(
+      result.path.states,
+      Vector(model.init, model.init.copy(value = 1), model.init.copy(value = 2))
+    )
     assertEquals(Checker.verifyAll(model, budget = 1).result("bounded").verdict, Verdict.unknown)
     assertEquals(NativeCheck.claimName(model.monitors.watched, model), "watched")
     Reference.reachabilityFence(result)
 
+  private def retainState(held: Array[Result]): Array[State] =
+    val state = held(0).path.states.head match
+      case value: State => value
+      case other        => fail(s"unexpected result state $other")
+    held(0) = null // scalafix:ok DisableSyntax.null
+    Array(state)
+
+  private def exerciseState(held: Array[State], owner: WeakReference[Model]): Unit =
+    collect("state-other-checked", batch(true))
+    val model = Option(owner.get).getOrElse(fail("retained State lost checked owner"))
+    assert(held(0).eq(model.init))
+    assertEquals(NativeCheck.actionName(model.user.advance.decl), "alias")
+    assertEquals(Checker.verifyAll(model, budget = 3).result("arrives").verdict, Verdict.verified)
+    Reference.reachabilityFence(held)
+
   test("a retained Result preserves names and states until its release"):
     val (held, owner) = retained()
     exerciseResult(held, owner)
-    held(0) = null // scalafix:ok DisableSyntax.null
-    collect("released-result", Vector(owner))
+    val state = retainState(held)
+    exerciseState(state, owner)
+    state(0) = null // scalafix:ok DisableSyntax.null
+    collect("released-result-and-state", Vector(owner))
 
-  private def catalogue(): (Array[ActionDecl], Vector[WeakReference[?]]) =
+  private def catalogue(): (Array[ActionDecl], Array[AnyRef], Vector[WeakReference[?]]) =
     val model = new DiscoveryCatalogueFixture.Model
     val wire = channel[Boolean](1, Order.fifo, Loss.lossy)
     val missing = hole
@@ -125,6 +147,7 @@ class DiscoveryLifetimeTest extends munit.FunSuite:
     entries.watched = null // scalafix:ok DisableSyntax.null
     (
       Array(wire.deliver.decl),
+      Array(missing, watch, offered.decl),
       Vector(model, offered.decl, missing, watch, wire, wire.deliver.decl, wire.lose.decl)
         .map(value => new WeakReference(value))
     )
@@ -133,11 +156,59 @@ class DiscoveryLifetimeTest extends munit.FunSuite:
     collect("catalogue-unrelated", batch(false))
     assert(channel.get != null, "retained delivery action lost its channel")
     assertEquals(NativeCheck.actionName(held(0)), "wire.deliver")
+    val wire = channel.get match
+      case value: Channel[?] =>
+        value.asInstanceOf[Channel[Boolean]] // scalafix:ok DisableSyntax.asInstanceOf
+      case _ => fail("retained action lost channel")
+    object mailbox extends Machine[Boolean, Nothing]:
+      var network = wire.empty.send(true)
+      var received = false
+
+      object transitions extends Transitions:
+        on(wire.deliver): message =>
+          effects.receive(message)
+        on(wire.lose): message =>
+          effects.lose(message)
+
+      object effects:
+        def receive(message: Boolean): Unit = received = message
+        def lose(message: Boolean): Unit = received = !message
+    val effects = NativeCheck.machineEffects(mailbox)
+    for (decl, received) <- Vector(wire.deliver.decl -> true, wire.lose.decl -> false) do
+      val run = effects.find((action, _) => action eq decl).get._2
+      val steps = run(mailbox.init, Class(decl, List(true)))
+      assertEquals(steps.size, 1)
+      assertEquals(mailbox.at(steps.head.state)(mailbox.network.isEmpty), true)
+      assertEquals(mailbox.at(steps.head.state)(mailbox.received), received)
+      assertEquals(run(steps.head.state, Class(decl, List(true))), Nil)
     Reference.reachabilityFence(held)
 
   test("scanned channel backreferences and callback claims release after live actions"):
-    val (held, refs) = catalogue()
+    val (held, named, refs) = catalogue()
     exerciseAction(held, refs(4))
+    assertEquals(DeclarationLifetime.name(named(0)), Some("missing"))
+    assertEquals(DeclarationLifetime.name(named(1)), Some("watched"))
+    assertEquals(DeclarationLifetime.name(named(2)), Some("offered"))
+    named.indices.foreach(i => named(i) = null) // scalafix:ok DisableSyntax.null
     collect("catalogue-owner-hole-claim", refs.take(4))
     held(0) = null // scalafix:ok DisableSyntax.null
     collect("catalogue-channel", refs.drop(4))
+
+  test("discovery names keep equal declarations distinct and retain their first spelling"):
+    final case class Equal(value: Int)
+    val first = Equal(1)
+    val second = Equal(1)
+    assertEquals(first, second)
+    assert(!(first eq second))
+    DeclarationLifetime.spell(first, "first")
+    DeclarationLifetime.spell(second, "second")
+    DeclarationLifetime.spell(first, "alias")
+    def discarded(): WeakReference[Equal] =
+      val value = Equal(1)
+      DeclarationLifetime.spell(value, "discarded")
+      new WeakReference(value)
+    collect("identity-equal-discarded", Vector(discarded()))
+    assertEquals(DeclarationLifetime.name(first), Some("first"))
+    assertEquals(DeclarationLifetime.name(second), Some("second"))
+    Reference.reachabilityFence(first)
+    Reference.reachabilityFence(second)
