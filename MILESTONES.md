@@ -27,7 +27,7 @@ Umpire in Rust lives in `temporal/model2`, a Cargo workspace pinned through `mis
 `testing` (the dev-only fixture runner) and, after fn-210.13, `tests` (the shared end-to-end
 fixtures; the `samples` crate goes away). Its current scope is exactly what
 `model/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
-runs as wasm in a Go host through wasmtime-go on the stock toolchain, with Kettle's report matching
+runs as wasm in a Go host through wazero (pure Go, no cgo) on the stock toolchain, with Kettle's report matching
 the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
 deferred, since speed no longer decides.
 
@@ -52,7 +52,7 @@ What is fixed, all owner decisions of 2026-10-18:
   `step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
   in every profile and a panicking effect refutes its step; verdicts are holds, fails or unknown;
   a liftable subset is warned on; determinism is structural; dsl and checker build for
-  `wasm32-wasip2` in the gate; the visited set sits behind a `Visited` seam; `imbl` collections and
+  `wasm32-wasip1` in the gate; the visited set sits behind a `Visited` seam; `imbl` collections and
   `Finite`-derived inputs are recorded for Bank.
 - **Dependencies (R18).** Only admitted crates (a release in the last 12 months, or finished and
   very widely used): `indexmap`, `petgraph`, `smallvec`, `rustc-hash`, `fixedbitset`,
@@ -71,12 +71,17 @@ What is fixed, all owner decisions of 2026-10-18:
   API misuse, Model problems as verdicts; the lifted tree is internal.
 - **Vertical before broad (R19, R20, R24).** Two thin slices before the write-up: Kettle lifted
   from the macro's tokens to TLA+ and agreeing with TLC on all 283 states, and the checker as wasm
-  in a wasmtime-go host. The wasm slice alone decides the verdict.
+  in a wazero Go host. The wasm slice alone decides the verdict.
 - **Feedback loop (R30).** The inner loop (edit one crate, rebuild, run its fixtures) stays at 3 s or
   less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model2-time`
   prints each step and warns over budget; every task reports it when marked done, and a breach is
   fixed in the task or excepted by the owner. Slow tools (JVM, network) run batched or behind
   `UMPIRE_BACKENDS=require`.
+- **Host interface (R31, R32).** The Model talks to any host through protobuf messages over a
+  three-function core-wasm ABI (`alloc`, `free`, `call`), generated on both sides from one schema in
+  `model2/umpire/proto/` (`prost` in Rust, `protoc-gen-go` in Go). The Go host is wazero, so Go
+  stays at `CGO_ENABLED=0`; the module targets `wasm32-wasip1`. wasmtime remains the simulation's
+  host; the same module loads in both.
 - **Process.** Parallel tasks touch disjoint crates; shared files (`Cargo.toml`, `Cargo.lock`,
   `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
   every session re-reads its task after it.
@@ -84,7 +89,7 @@ What is fixed, all owner decisions of 2026-10-18:
 | Name | Status | What |
 | --- | --- | --- |
 | fn-210.13 | 🔄 in progress | After .12, alone: `umpire-tests` crate with the shared fixtures in `umpire/tests/fixtures/`, consumers selected by expected files; Kettle's source moves into its fixture and `samples` is removed (R29) |
-| fn-210.9 | ⬜ todo | After .13, decisive: the checker as wasm in a wasmtime-go host on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
+| fn-210.9 | ⬜ todo | After .13, decisive: the checker as wasm in a wazero Go host, generated protobuf interface (R31, R32), on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
 | fn-210.3 | ⬜ todo | After .13: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .13: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
