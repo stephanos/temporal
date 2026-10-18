@@ -1,0 +1,16 @@
+public state starts: 1
+direct transition: true Counter { value: 1 }
+Counter { value: 0 }
+User::Increment internal: false edges: 1 next: Counter { value: 1 } outcome: () facts: 0 reset_clears=Holds grows_at_most_one=Holds
+User::Reset internal: false edges: 1 next: Counter { value: 0 } outcome: () facts: 0 reset_clears=Holds grows_at_most_one=Holds
+Clock::Tick internal: true edges: 0
+Counter { value: 1 }
+User::Increment internal: false edges: 1 next: Counter { value: 2 } outcome: () facts: 0 reset_clears=Holds grows_at_most_one=Holds
+User::Reset internal: false edges: 1 next: Counter { value: 0 } outcome: () facts: 0 reset_clears=Holds grows_at_most_one=Holds
+Clock::Tick internal: true edges: 0
+disabled increment: 0
+original state: Counter { value: 2 }
+order: reset_clears, bounded, reaches_two, grows_at_most_one
+bounded: Holds
+scope never_reset: User::Reset
+progress reaches_two: Holds -> Holds; without User::Reset

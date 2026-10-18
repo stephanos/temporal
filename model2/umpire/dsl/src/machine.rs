@@ -2,7 +2,7 @@ use std::hash::Hash;
 
 use smallvec::SmallVec;
 
-use crate::{Claim, Progress, Spell, StepClaim};
+use crate::{Claim, Progress, Scope, Spell, StepClaim};
 
 /// A world of constants defining a finite state machine and its named claims.
 pub trait Machine: Sized {
@@ -43,6 +43,17 @@ pub trait Machine: Sized {
 
     /// Registers scoped eventuality claims.
     fn progress(&self) -> Vec<Progress<Self>> {
+        Vec::new()
+    }
+
+    /// Registers named scope builders in declaration order.
+    fn scopes(&self) -> Vec<(&'static str, Scope<Self::Action>)> {
+        Vec::new()
+    }
+
+    /// Names claims in source order across invariant, postcondition and progress kinds.
+    /// An empty list retains the manual world's existing registration order.
+    fn claim_order(&self) -> Vec<&'static str> {
         Vec::new()
     }
 }

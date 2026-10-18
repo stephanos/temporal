@@ -2,6 +2,8 @@
 
 #[path = "../src/action.rs"]
 mod action;
+#[path = "../src/machine.rs"]
+mod machine;
 #[path = "../src/state.rs"]
 mod state;
 
