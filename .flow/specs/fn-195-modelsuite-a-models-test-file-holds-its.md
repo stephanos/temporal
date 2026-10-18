@@ -13,6 +13,8 @@
 > user (2026-10-18): "let's file a task for standardize primary machine declarations on class Model".
 > user (2026-10-18): "we should also remove support for object Model entirely for consitency".
 
+> user (2026-10-18): "once the DSL has settled after the last task, add antoher task after to go over each umpire frameowkr sample and simpify it (wihoutht losing behavior); each one must be the best version of itself".
+
 ## Goal & Context
 
 <!-- Goal & Context: 60% [user], 40% [paraphrase] -->
@@ -171,6 +173,8 @@ alternative; a `sample` count of zero.
 
 - **R9:** All six primary native sample machine declarations use `class Model`, including parameterless models; suites bind fresh stable-named instances with independent state and exact ownership. Singleton primary Machine declarations are refused regardless of object name, and active native fixtures/clients migrate without a compatibility escape hatch. Existing behavior, verdicts and realization bindings remain unchanged. Objects for namespaces, constants, actors and shared declarations remain; held Temporal/IR bodies are not migrated here. [user]
 
+- **R10:** After the DSL, ModelSuite, class-only declarations and their docs settle, review and simplify every native framework sample into its clearest idiomatic form without changing behavior, claims, bounds, counterexamples or realization bindings. Preserve test purposes and verify before/after evidence; exact upstream comparisons and held consumers remain unchanged. [user]
+
 ## Boundaries
 
 - Lifting the sections from test files, Contract assertions at intermediate `expect:` positions, and
@@ -218,5 +222,5 @@ unnecessary); keeping `.live` (a per-test switch a reviewer can miss). [inferred
 | R6 | The six samples' tests are rewritten as `ModelSuite`s with Quint's runs as examples (Bank's `sendTest`, TwoPhaseCommit's `successTest`), their reachability finds as explorations, their negative controls as `refuted`, and pass on the Scala checker with intended answers unchanged. Errors: a changed answer is a finding to fix. | fn-195.4 | — |
 | R7 | The lint applies the section rules in API Contracts, each refusal located at the test. Errors: as listed. | fn-195.3 | — |
 | R8 | SEMANTICS gains a section for the test file (the five-kind table, the sections, the rules), §9 Scenarios and Queries is rewritten to say the Model asks nothing of itself, and the README's test guidance follows. Errors: none beyond review. | fn-195.5 | — |
-
 | R9 | Primary machines use class Model with independent suite instances; singleton primary Machine support is removed and active native fixtures migrate, preserving behavior and ownership. | fn-195.6 | — |
+| R10 | Final per-sample idiomatic simplification after the DSL settles, with behavior and verification evidence preserved. | fn-195.7 | — |

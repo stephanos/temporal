@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T05:35:07.504695Z",
+  "depends_on": [
+    "fn-194-parametric-models-constants-and-finite.3"
+  ],
+  "id": "fn-194-parametric-models-constants-and-finite.5",
+  "priority": null,
+  "spec": "fn-194-parametric-models-constants-and-finite",
+  "spec_path": ".flow/tasks/fn-194-parametric-models-constants-and-finite.5.md",
+  "status": "todo",
+  "title": "Simplify TwoPhaseCommit predicates to read Model vars directly",
+  "updated_at": "2026-10-18T05:35:07.504695Z"
+}

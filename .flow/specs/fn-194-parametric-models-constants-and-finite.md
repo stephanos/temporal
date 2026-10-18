@@ -5,6 +5,8 @@
 > user (2026-10-17): "let's write a new flow spec for the parametric model first; and then a nother one for our ModelSuite"
 > assistant proposal, confirmed by the owner: a Model is a class whose constructor parameters are its constants and finite domains; the test suite instantiates it; a parameterless Model stays an object. Quint's `const` plus `instance`.
 
+> user (2026-10-18): "do that", approving Model-owned TwoPhaseCommit predicates reading vars directly and removal of Transaction/current.
+
 ## Goal & Context
 
 <!-- Goal & Context: 40% [user], 60% [paraphrase] -->
@@ -108,6 +110,8 @@ sections outside its body (the existing structure refusal, extended to the class
 - **R7:** SEMANTICS and the framework README describe parameters, the two kinds, instantiation and
   naming, with Voting as the worked example. Errors: none beyond review. [inferred]
 
+- **R8:** TwoPhaseCommit state predicates read the Model vars directly; the Transaction/current migration adapter is removed from active sample/tests. Tests evaluate predicates through Model.at and preserve all selected-world behavior, fairness/progress bounds and negative controls. [user]
+
 ## Boundaries
 
 - Lifting an instance (parameter values in the IR, Case identity including them) and the Go or
@@ -144,3 +148,4 @@ class per Model (one more declaration for no check). [inferred]
 | R5 | Bank takes its address type and holder and supply as parameters, Voting its values and quorums, TwoPhaseCommit its resource-manager set; each sample's test file declares the concrete types and instantiates the Model; the native suites pass with their intended answers unchanged for the instances that reproduce today's constants. Errors: a changed answer is a finding to fix, not a regeneration. | fn-194.3 | — |
 | R6 | Realizations bind to an instance the way they bind to an object today; the realization fixtures compile against an instantiated Model. Errors: a realization naming a Model class rather than an instance is a compile error. | fn-194.3 | — |
 | R7 | SEMANTICS and the framework README describe parameters, the two kinds, instantiation and naming, with Voting as the worked example. Errors: none beyond review. | fn-194.4 | — |
+| R8 | TwoPhaseCommit uses direct Model predicates without Transaction/current; sample behavior and test purposes remain unchanged. | fn-194.5 | — |
