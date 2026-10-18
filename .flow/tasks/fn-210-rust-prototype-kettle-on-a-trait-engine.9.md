@@ -4,6 +4,8 @@ satisfies: [R20, R15, R24]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.9 Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle
 
 ## Description
+**Conventions 2026-10-18 (R25, R27):** the wasm report is the `Spell`-based report text, so byte equality with the golden follows; a `Refusal` crosses the ABI as an error code plus its message, and the Go host turns it into a Go error.
+
 **Recut 2026-10-18 (R24, decisive):** this task decides the prototype. Run it right after .2 and .10 on the trait-shaped Kettle fixture (`samples/tests/fixtures/kettle_trait/`), not the surface-C Kettle; the goldens it must match byte for byte are that fixture's `expected/report.txt` and `rows.txt`. Stock rustc only. Record the result in `model2/DESIGN.md` immediately (a short verdict section), then continue with the remaining tasks.
 
 **Layout (R22):** the wasm host's expected report and rows are Kettle's goldens in `samples/tests/fixtures/kettle/expected/`; the Go host reads them from there.

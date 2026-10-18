@@ -4,7 +4,8 @@
   "claimed_at": null,
   "created_at": "2026-10-18T20:04:59.056623Z",
   "depends_on": [
-    "fn-210-rust-prototype-kettle-on-a-trait-engine.10"
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.12"
   ],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.9",
   "priority": 3,
@@ -12,5 +13,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.9.md",
   "status": "todo",
   "title": "Decisive slice: the checker as wasm in a Go host (wasmtime-go), on the trait Kettle",
-  "updated_at": "2026-10-18T20:38:15.015242Z"
+  "updated_at": "2026-10-18T20:41:33.353947Z"
 }

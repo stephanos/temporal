@@ -4,6 +4,8 @@ satisfies: [R3]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.3 Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples
 
 ## Description
+**Conventions 2026-10-18 (R25-R27):** new fixtures implement `Spell` by hand until .4's derives land; an unknown scope action is a `Refusal`, not a panic; progress results and lassos are spelled through `Spell`.
+
 **Touches:** model2/umpire/checker/src/**, model2/umpire/checker/tests/**, model2/umpire/samples/tests/fixtures/**
 
 **Parallel boundary:** shared Cargo wiring is prepared by .11; no manifests or lockfiles change in this lane.

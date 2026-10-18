@@ -1417,7 +1417,7 @@ ensure-no-changes:
 	@test -z "`git status --porcelain`" || (printf $(COLOR) "========================================================================"; printf $(RED) "Above files are not regenerated properly. Regenerate them and try again."; git diff HEAD ; exit 1)
 endif
 
-##### model2: the Rust prototype (fn-210) #####
+##### model2: Umpire in Rust (fn-210) #####
 MODEL2_CARGO := cd model2 && mise exec -- cargo
 
 .PHONY: model2-check model2-fmt model2-update

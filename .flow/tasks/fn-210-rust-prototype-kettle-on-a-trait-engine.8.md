@@ -1,9 +1,11 @@
 ---
-satisfies: [R19, R13, R14]
+satisfies: [R19, R13, R14, R26, R28]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.8 Slice 1: lift Kettle to TLA+ and agree with TLC
 
 ## Description
+**Conventions 2026-10-18 (R25, R26, R28):** TLA identifiers are the author's Rust names; the TLC-dump decoder parses values into states and re-spells them through `Spell` for the agreement; the lifted tree stays an internal enum (debug dump only, never a golden).
+
 **Layout (R22):** lift cases go in `umpire/lift/tests/fixtures/<name>/`; Kettle's `Kettle.tla`, `Kettle.cfg` and `tlc-agreement.txt` go in `samples/tests/fixtures/kettle/expected/`.
 
 New crates `umpire/lift` (tokens recorded by `#[machine]` to a tree for the R13 subset; TLA+ module and config emitter) and `umpire/backends/tlc` (pinned `tla2tools.jar` runner on the mise JDK, `-deadlock` on, `-dump` streamed, `-dumpTrace json` on violation). Agreement test: TLC's reachable set equals the checker's 283 states (decoded through the shared state spelling), invariant and postcondition verdicts agree, `boils` liveness agrees under weak fairness on internal steps. Goldens: `tests/fixtures/kettle/expected/Kettle.tla`, `Kettle.cfg`, `tlc-agreement.txt`. Record the jar's version and checksum; add `umpire-lift`/`umpire-tlc` to the admitted list only with what they need.

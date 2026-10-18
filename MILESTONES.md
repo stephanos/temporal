@@ -66,7 +66,10 @@ recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-1
 the reasons Rust is on the table: Kettle lifted from the macro's tokens to TLA+ and agreeing with TLC
 on all 283 states (R19), and the checker compiled to wasm and driven from a Go host through
 wasmtime-go, matching the Rust goldens byte for byte (R20). Verdict rule (R24, owner 2026-10-18): if the wasm slice passes on the stock toolchain, Rust
-wins; every other measure is information. Gate: `make model2-check`; update
+wins; every other measure is information. Conventions (R25 to R28, owner 2026-10-18): one `Spell` text form for all values in every
+output, the author's Rust names in outputs, `Result<_, Refusal>` for API misuse with Model problems
+as verdicts, an internal lifted tree. Parallel tasks touch disjoint crates; shared files are
+edited by one task at a time; the gate runs locally. Gate: `make model2-check`; update
 goldens with `make model2-update`. Test layout (R22, R23): each fixture lives in its owning crate's
 `tests/fixtures/<name>/`, with its `model.rs` and `expected/` ("fixture", since Case is Testpilot's term); `samples` holds the real Models and their
 end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
@@ -74,7 +77,6 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.11 | 🔄 in progress | After .10: checkpoint shared Cargo dependencies and the empty macro crate, enabling disjoint progress and derive implementation lanes without concurrent lockfile edits (R18) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
@@ -82,6 +84,7 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 | fn-210.8 | ⬜ todo | After .6: slice 1, `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
 | fn-210.9 | ⬜ todo | After .2/.10, decisive (R24): the checker as wasm in a wasmtime-go host on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md`: authoring, size, speed, tooling, lifting and hosting comparison and the recommendation; then delete `samples/options/` (R7) |
+| fn-210.12 | 🔄 in progress | After .10/.11, before .3/.4/.9: `Spell` as the one value spelling in every output and `Result<_, Refusal>` for API misuse; goldens re-rendered, diff is spelling only (R25, R27) |
 
 ## Open for the owner
 

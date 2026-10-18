@@ -4,6 +4,8 @@ satisfies: [R5]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.4 umpire-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]
 
 ## Description
+**Conventions 2026-10-18 (R25, R26):** `derive(State)` and `derive(Action)` also generate `Spell` in the R25 form, using the author's names (R26); replace the hand-written `Spell` impls in the fixtures with the derive and require byte-identical goldens.
+
 **Touches:** model2/umpire/dsl/build.rs, model2/umpire/dsl/macros/build.rs, model2/umpire/dsl/src/**, model2/umpire/dsl/tests/**, model2/umpire/dsl/macros/src/**, model2/umpire/dsl/macros/tests/**
 
 **Parallel boundary:** shared Cargo wiring and empty macro crate are prepared by .11; no manifests or lockfiles change in this lane.

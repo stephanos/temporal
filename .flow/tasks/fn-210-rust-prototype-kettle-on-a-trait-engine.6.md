@@ -4,6 +4,8 @@ satisfies: [R6]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.6 Kettle in surface C with its test; parity with the Scala suite
 
 ## Description
+**Conventions 2026-10-18 (R25):** Kettle in surface C spells through the derived `Spell`; its goldens must stay byte-identical to the trait Kettle's.
+
 **Recut 2026-10-18 (R8, golden files):** Kettle in surface C must produce exactly the same `tests/fixtures/kettle/expected/` goldens as the trait fixture from .2; that equality is the parity test.
 
 Write `umpire/samples/src/kettle.rs` in surface C (from `options/Kettle.attrs.rs`), and `tests/kettle.rs` asking the Scala suite's questions: explore counts, verify_all verified, `boils` verified, `!beeping` refuted. Record any deliberate deviation from the sketch.

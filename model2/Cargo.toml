@@ -1,4 +1,4 @@
-# model2: the Rust prototype of the Umpire framework. Scope: what model/framework/samples/Kettle.scala
+# model2: the Umpire framework in Rust. Current scope: what model/framework/samples/Kettle.scala
 # uses today. Layout mirrors model/framework: dsl, checker, samples.
 [workspace]
 resolver = "3"

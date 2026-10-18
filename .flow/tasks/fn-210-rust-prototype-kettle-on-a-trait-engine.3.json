@@ -6,7 +6,8 @@
   "depends_on": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine.2",
     "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
-    "fn-210-rust-prototype-kettle-on-a-trait-engine.11"
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.11",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.12"
   ],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.3",
   "priority": 2,
@@ -14,5 +15,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.md",
   "status": "todo",
   "title": "Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples",
-  "updated_at": "2026-10-18T20:27:20.274763Z"
+  "updated_at": "2026-10-18T20:41:31.934101Z"
 }
