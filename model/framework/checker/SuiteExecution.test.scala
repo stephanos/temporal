@@ -5,6 +5,28 @@ import framework.dsl.Finite.given
 import framework.dsl.outcomes.Outcome
 
 class SuiteExecutionTest extends munit.FunSuite:
+  test("nested find targets retain the first failing Boolean source line"):
+    val instance = new Counter
+    class Questions extends ModelSuite(instance):
+      object explorations:
+        val space = explore(steps = 1):
+          model.client.increment
+      def target = explorations.space.find(steps = 1):
+        expect:
+          true && {
+            false
+            true
+          }
+    val request = new Questions().target
+    val position = request.target.assertions.head.position
+    val innerLine =
+      position.line + position.text.linesIterator.toVector.indexWhere(_.trim == "false")
+    val execution =
+      SuiteExecution.forSuite("client.NestedLine", BudgetPolicy.parse(Some("default=4")))
+    val result = execution.find(instance, request, None)
+    assert(!result.verified)
+    assert(result.diagnostics.contains(s"${position.file}:$innerLine: false"), result.diagnostics)
+
   test("suite questions preserve their shared budget, target conjunction and seeded descriptor"):
     val instance = new Counter
     class Questions extends ModelSuite(instance):

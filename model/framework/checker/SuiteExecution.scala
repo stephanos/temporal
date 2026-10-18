@@ -64,7 +64,7 @@ object SuiteExecution:
                 if failed.nonEmpty then false
                 else
                   val holds = condition()
-                  if !holds then failed = Some(position -> state)
+                  if !holds && failed.isEmpty then failed = Some(position -> state)
                   holds
             request.target.assertions.forall: assertion =>
               try

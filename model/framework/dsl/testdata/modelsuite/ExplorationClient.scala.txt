@@ -81,6 +81,26 @@ class ExplorationClientTest extends munit.FunSuite:
       org.junit.runner.Request.runner(new munit.MUnitRunner(suite.getClass, suite))
     )
 
+  test("an exploration refuses executable statements before its question"):
+    val errors = scala.compiletime.testing.typeCheckErrors("""
+      import framework.dsl.*
+      import framework.dsl.Finite.given
+      import framework.dsl.outcomes.Outcome
+      class Model extends Machine[Outcome, Nothing]:
+        var count = 0
+        object transitions extends Transitions
+      val instance = new Model
+      class Prefix extends ModelSuite(instance):
+        object explorations:
+          val space = explore(steps = 1):
+            any
+          test("mutates"):
+            model.count = 99
+            space.sample(1, seed = 1L)
+    """)
+    assert(errors.exists(_.message.contains("an exploration test requires one find or sample question")), errors.toString)
+    assert(errors.forall(_.lineContent.nonEmpty))
+
   test("public sections register once without callbacks and execute the real questions"):
     ExplorationFixture.calls = Vector.empty
     val suite = new PublicExplorationSuite

@@ -232,12 +232,20 @@ private[framework] object ModelSuiteMacros:
       def unwrap(term: Term): Term = term match
         case Inlined(_, Nil, inner) => unwrap(inner)
         case other                  => other
+      def authored(term: Term): Term = term match
+        case Inlined(None, Nil, inner) => authored(inner)
+        case Typed(inner, _)           => authored(inner)
+        case Block(Nil, last)          => authored(last)
+        case other                     => other
       val expression = unwrap(body.asTerm) match
-        case Lambda(List(_), rhs) => unwrap(rhs)
+        case Lambda(List(_), rhs) => authored(rhs)
         case other => report.errorAndAbort("a section test requires a literal body", other.pos)
       val question = expression.tpe <:< TypeRepr.of[SpaceFind[M] | SpaceSample[M]]
       if section.name.stripSuffix("$") == "explorations" then
-        if !question then
+        val prefix = expression match
+          case Block(_, _) => true
+          case _           => false
+        if !question || prefix then
           report.errorAndAbort(
             "an exploration test requires one find or sample question",
             expression.pos
