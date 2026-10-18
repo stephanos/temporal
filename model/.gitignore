@@ -1,9 +1,1 @@
-/build/
-# The build cache had this name before fn-114.9; a checkout may hold it until it is cleaned.
-/gen/
-.scala-build/
-.bsp/
-# scalafix writes the semantic database of a source one project takes from another beside that
-# source: a tool's Temporal half, built with its framework half (temporal/check/*), the files the
-# lifter takes from the checks (framework/check/Tools.scala), or ../OutputPaths.scala.
-*.semanticdb
+/target
