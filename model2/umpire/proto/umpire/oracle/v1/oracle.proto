@@ -1,0 +1,45 @@
+syntax = "proto3";
+
+package umpire.oracle.v1;
+option go_package = "umpire.local/oracle/umpire/oracle/v1;oraclev1";
+
+enum Method {
+  METHOD_UNSPECIFIED = 0;
+  METHOD_EXPLORE = 1;
+  METHOD_ROWS = 2;
+}
+
+enum RefusalCode {
+  REFUSAL_CODE_UNSPECIFIED = 0;
+  REFUSAL_CODE_UNKNOWN_METHOD = 1;
+  REFUSAL_CODE_MALFORMED_REQUEST = 2;
+  REFUSAL_CODE_BUDGET = 3;
+  REFUSAL_CODE_STATE = 4;
+  REFUSAL_CODE_NOT_EXPLORED = 5;
+  REFUSAL_CODE_ALLOCATION = 6;
+}
+
+message ExploreRequest { uint32 budget = 1; }
+message ExploreResponse {
+  string report = 1;
+  uint32 starts = 2;
+  uint32 reached = 3;
+  uint32 emitted = 4;
+  uint32 evaluated = 5;
+  uint32 refused = 6;
+  uint32 depth = 7;
+  bool cut = 8;
+}
+message RowsRequest { uint32 state_id = 1; }
+message RowsResponse { repeated string rows = 1; }
+message Refusal {
+  RefusalCode code = 1;
+  string message = 2;
+}
+message Response {
+  oneof outcome {
+    ExploreResponse explore = 1;
+    RowsResponse rows = 2;
+    Refusal refusal = 3;
+  }
+}
