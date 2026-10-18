@@ -1077,7 +1077,7 @@ This changes names and test organization, without advancing held IR obligations.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-190.3 | ⬜ todo | After .1: IR evaluator for tests; the four native sample suites on it (R7) |
-| fn-190.16 | ⬜ todo | DSL completion, after .15 and fn-193.2: delete the record-state vocabulary (`RecordMachine`, `Rules`/`~>`, `property`/`expect`, `query`/`Limits`, `assume`, ...) from the DSL |
+| fn-190.16 | 🔄 in progress | DSL completion, after committed .15 and fn-193.2: delete the record-state vocabulary (`RecordMachine`, `Rules`/`~>`, `property`/`expect`, `query`/`Limits`, `assume`, ...) from the DSL |
 | fn-190.5 | ⬜ todo | Phase 3, after .3: delete the test-support native runtime once the IR evaluator carries the suites (R6) |
 | fn-190.8 | ⬜ todo | After .2/.6/.7: reconcile fn-189 and re-record the plugin counts (R10) |
 | fn-190.12 | ⬜ todo | Phase 3, after .9/.11: the composition lifting and the `<field>_<fact>` keys leave the lifter and the Go lowering (R17) |
