@@ -91,7 +91,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.5 | ⬜ todo | After .4: registration-only `#[machine]`, pass-through impl plus generated `Machine` impl; missing/duplicate `#[on]` and unknown `after` diagnostics (R5, R14, R26, R36) |
+| fn-210.5 | 🔄 in progress | After .4: registration-only `#[machine]`, pass-through impl plus generated `Machine` impl; missing/duplicate `#[on]` and unknown `after` diagnostics (R5, R14, R26, R36) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
