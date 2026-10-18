@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1 (carrying fn-190.15) and fn-190.16 done; next fn-194.1-.4; fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1 (carrying fn-190.15), fn-190.16 and fn-194.1/.2 done; next fn-194.3/.4; fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1113,17 +1113,19 @@ suite that tests it supplies the instance, Quint's `const` plus `instance`. A pa
 stays an object. DSL and native only; lifting an instance is the IR phase.
 [Spec](.flow/specs/fn-194-parametric-models-constants-and-finite.md).
 
-The prototype checkpoint is committed (`9648caeb9d`, receipt `f74ab768fe`), with all eight
-architecture verdicts in `model/design/parametric-models.md`. Two instances explore exact
-8/27-state graphs with independent starts/runtime, using an explicitly partial indexed-state
-fallback. Direct generic schemas, instance-dependent `before`, class-owned claim sections,
-automatic holder naming and constructor/lint admission remain implementation work, not prototype
-success claims. Six probe tests and both fresh compiler-refusal checks pass; the existing native
-600 and lint 31 tests remain green. No production framework code changed.
+The prototype's indexed-state fallback and eight architecture verdicts remain historical evidence
+in `model/design/parametric-models.md` (`9648caeb9d`, receipt `f74ab768fe`). Production class support
+is now committed (`e8977bcae6`, suite registration `b33e7e36b4`, receipt `6e345185f8`): Finite-only
+generic state and inputs, per-instance schemas/domains/starts, typed `before` and composition
+members, exact-owner claim sections, stable-holder naming, constructor refusals and class/object
+lint parity. All 623 native tests pass (600 retained plus 23 added), alongside the existing 31 lint
+controls, seven new class-lint controls, six separate-library client tests and 46 boundary/loop
+controls. Fresh declaration-only/core/plugin and source/jar six-sample realization-mode builds
+pass; 155 native files have no source-lint findings and 164 suites are classified. Review remains
+deferred; sample migration and documentation are next, with IR/Go/Temporal holds unchanged.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-194.2 | 🔄 in progress | After .1: the class form in the DSL, parameter kinds and compile errors, instance naming, lint admits the class form (R1-R4) |
 | fn-194.3 | ⬜ todo | After .2: Bank, Voting and TwoPhaseCommit parametric; tests declare the world; realization fixtures bind to instances; intended answers unchanged (R5, R6) |
 | fn-194.4 | ⬜ todo | After .3: SEMANTICS and README (R7) |
 
