@@ -26,7 +26,7 @@ Write `umpire/tests/fixtures/kettle/model.rs` in surface C from `options/Kettle.
 #[machine]
 pub mod kettle {
     #[derive(State)]
-    pub struct Kettle {
+    pub struct Model {
         #[starts(COLDEST_TEMPERATURE..=40)]
         temperature: i32,
         heating_on: bool,
@@ -41,7 +41,7 @@ pub mod kettle {
     pub enum Heater { Heat, Failover }
 
     #[transitions]
-    impl Kettle {
+    impl Model {
         #[on(User::PressButton)]
         fn press_button(&mut self) -> Option<()> { (!self.heating_on).then(|| { self.heating_on = true; self.beeping = false; }) }
         #[on(Heater::Failover)]
@@ -53,25 +53,25 @@ pub mod kettle {
     }
 
     #[invariants]
-    impl Kettle {
+    impl Model {
         fn beeps_only_when_off(&self) -> bool { !self.beeping || !self.heating_on }
     }
 
     #[postconditions]
-    impl Kettle {
+    impl Model {
         fn warms_only_when_on(&self, before: &Self) -> bool { before.heating_on || self.temperature <= before.temperature }
         #[after(Heater::Failover)]
         fn fails_over_at_boiling(&self) -> bool { self.temperature == BOILING_TEMPERATURE && self.beeping }
     }
 
     #[scopes]
-    impl Kettle {
+    impl Model {
         /// The user switches the kettle on but never off.
         fn never_switched_off() -> Scope { without([User::DepressButton]) }
     }
 
     #[progress]
-    impl Kettle {
+    impl Model {
         /// Switched on and left on, the water boils and the kettle beeps.
         #[within(Self::never_switched_off)]
         fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }
@@ -79,14 +79,14 @@ pub mod kettle {
 }
 ```
 
-Details fixed with it: actor-level `#[internal]` only (as Scala's `extends Internal`), no per-variant form; `before` optional in postconditions (macro reads the arity); `Scope` and `Progress` are plain non-generic values, `Progress` = `{ trigger: bool, target: bool }` evaluated per state, expanded as `|_, s| s.boils().trigger` / `.target`, `Scope` holds actor-level action values mapped into `KettleAction` by the expansion; the author never names the generated `KettleWorld`/`KettleAction`. Kept: `#[on]` handlers returning `Option<()>` (empty-vs-enabled-no-op matters for liveness) and named `#[scopes]`. The `Machine` trait, checker, goldens and wasm host do not move; consumers (shared fixture runner, `umpire-wasm`'s `#[path]` include) refer to `kettle::Kettle` and the `pub` items. Record any remaining difference from the sketch in DESIGN.md, one sentence each.
+Details fixed with it: actor-level `#[internal]` only (as Scala's `extends Internal`), no per-variant form; `before` optional in postconditions (macro reads the arity); `Scope` and `Progress` are plain non-generic values, `Progress` = `{ trigger: bool, target: bool }` evaluated per state, expanded as `|_, s| s.boils().trigger` / `.target`, `Scope` holds actor-level action values mapped into `kettle::Action` by the expansion; the author never names the generated `kettle::World`/`kettle::Action` (module-scoped, no prefix). Kept: `#[on]` handlers returning `Option<()>` (empty-vs-enabled-no-op matters for liveness) and named `#[scopes]`. The `Machine` trait, checker, goldens and wasm host do not move; consumers (shared fixture runner, `umpire-wasm`'s `#[path]` include) refer to `kettle::Model` and the `pub` items. **Naming (owner 2026-10-18):** the state struct is `Model` (Scala's `object Model`), so the canonical goldens carry a fifth approved substitution, state spelling `Kettle { .. }` to `Model { .. }` in `states.txt`, `rows.txt` and `paths/`; record it next to the four action substitutions in DESIGN.md. `kettle_trait` stays unchanged. Record any remaining difference from the sketch in DESIGN.md, one sentence each.
 ## Acceptance
 - The canonical Kettle uses the attribute surface with separate `User` and `Heater` enums; its fixture asks all Scala-suite questions.
-- Canonical expected payloads differ from the previous trait-shaped Kettle only by the four owner-approved action-name substitutions; report counts/verdicts, states, catalog/discovery order and counterexample structure remain identical.
+- Canonical expected payloads differ from the previous trait-shaped Kettle only by the four owner-approved action-name substitutions and the state spelling `Kettle { .. }` to `Model { .. }`; report counts/verdicts, states, catalog/discovery order and counterexample structure remain identical.
 - The separate `kettle_trait` source and all its expected files remain unchanged and its native/WASM consumers still pass.
 - `#[machine]` on the Model module rejects a duplicated or out-of-order group impl (`#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[scopes]`, `#[progress]`) with an error at the first offending block; trybuild `.stderr` fixtures pin both messages and every attribute fixture complies (R44).
 - A shared interleaved invariant/postcondition/progress fixture on a manual trait world proves actual checker report declaration order; manual-world defaults and dynamic effect-failure ordering remain deterministic.
-- Kettle is written in the approved nested surface: a `#[machine] pub mod kettle` with one impl per part kind, actor-level `#[internal]`, optional `before`, `#[after(..)]`/`#[within(..)]` qualifiers, `fn never_switched_off() -> Scope { without([User::DepressButton]) }` and `fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }`, with no generated world or action type named by the author; remaining differences from the sketch are recorded in DESIGN.md.
+- Kettle is written in the approved nested surface: a `#[machine] pub mod kettle` whose state struct is `Model`, with one impl per part kind, actor-level `#[internal]`, optional `before`, `#[after(..)]`/`#[within(..)]` qualifiers, `fn never_switched_off() -> Scope { without([User::DepressButton]) }` and `fn boils(&self) -> Progress { whenever(self.heating_on).eventually(self.beeping) }`, with no generated world or action type named by the author; remaining differences from the sketch are recorded in DESIGN.md.
 - The workspace test command and full local gate pass; actual warm model-time output satisfies R30 or records an owner-approved exception.
 ## Done summary
 TBD
