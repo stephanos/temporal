@@ -39,8 +39,9 @@ IR carries no Scala: everything a reader knows is in the feature's `generated/ir
 The running example is the committed **mini activity**, `model/temporal/features/activity_mini/`:
 its Product says what a client sees, its Protocol adds attempts, backoff and dispatch designs,
 and `realization/MiniActivityRun.scala` binds two live Queries to typed commands and evidence.
-Every Scala block below is a cited source excerpt, read in its original package and imports;
-excerpts are not standalone programs. The feature header names its complete hard-instance inventory.
+Historical Scala blocks below are cited source excerpts, read in their original package and imports;
+excerpts are not standalone programs. The Parameters subsection supplies a standalone native Voting
+client. The feature header names its complete hard-instance inventory.
 The shared framework and Closable definition are cited where the mini consumes their contracts.
 
 The mini's `.live` values are historical authored expectations, not observed Verdicts. Its current
@@ -53,7 +54,7 @@ Contents:
 1. [Types](#1-types): finite domains, catalogs, counters
 2. [Phases and roles](#2-phases-and-roles): the lifecycle vocabulary
 3. [The signature](#3-the-signature): entities, actors, actions, inputs, timers
-4. [The machine](#4-the-machine): the object, its header and its sections
+4. [The machine](#4-the-machine): classes, objects, parameters and sections
 5. [Effects](#5-effects): what a step is and how it is written
 6. [Rules](#6-rules): when each action fires
 7. [The table](#7-the-table): what the reader derives, and what lint reads off it
@@ -257,6 +258,120 @@ declared once beside the outcome type; the shared outcomes come with theirs. A m
 nothing a caller reads (a worker, a queue) still names an outcome type, since every step has one.
 
 ## 4. The machine
+
+### Current native form
+
+A machine declares allowed transitions and promises over its state vars. Write
+`class Model[D: Finite](initial: D) extends Machine[Outcome, Nothing]` when the Model takes a
+domain or a constant. Write `object Model extends Machine[Outcome, Nothing]` when it takes no
+parameters. The two type arguments are the outcome and fact types; `Nothing` means no facts.
+The framework derives the snapshot `State` and its schema from the vars. Authors do not supply
+an explicit record-state type or additional `Data`/`StateData` bounds on the Model's domains.
+
+Var initializers define starts and may read constructor parameters. `oneOf` can select several
+starts from a parameter's domain. Each instance owns its vars, schema, starts, selected input
+catalogs and reachable graph. Checking a second instance in the same process does not reuse the
+first instance's state. A parameterless object's name still comes from its object name with the
+first letter lowered.
+
+Declare native transitions in `object transitions extends Transitions`, Unit-valued methods in
+`object effects`, and promises in `invariants`, `postconditions` and `progress`. The class form
+obeys the same section and declaration-order lint as the object form. Model member `val` and
+`def` bodies start on the following line; vars retain their initializer form. The landed
+[Voting Model](samples/Voting.scala#L41) shows this structure.
+
+### Parameters
+
+A domain the Model is generic over is a type parameter with its own `Finite` bound. The suite
+declares the concrete enum and supplies the instance. A domain owned by the Model can stay an
+enum inside it. A constant is an immutable constructor value of a liftable kind, a `Finite`
+type, `Int`, `Boolean`, or a `Set` or `Map` whose members recursively have those kinds.
+Callbacks and arbitrary runtime objects are refused. A constructor's `Finite` bound admits its
+type parameter; selected generic members used in state collections must also have supported
+native structure. Binding checks that structure before reading their catalogs, guards or effects.
+It does not require authors to add another type bound.
+
+Voting takes two finite domains and two constants. Its declaration is in
+[Voting.scala](samples/Voting.scala#L41); the concrete acceptors, values and pairwise quorums are
+owned by [Voting.test.scala](samples/Voting.test.scala#L7). The following standalone client uses
+that constructor with the same test world. Compile it alongside the landed Voting source and
+the native checker, or against their compiled libraries.
+
+```scala
+package examples
+
+import framework.checker.Checker
+import framework.dsl.Finite.given
+import samples.Voting
+
+object VotingExample:
+  enum Acceptor:
+    case a1, a2, a3
+
+  enum Value:
+    case v1, v2
+
+  val smallVoting = new Voting.Model[Acceptor, Value](
+    values = Set(Value.v1, Value.v2),
+    quorums = Set(
+      Set(Acceptor.a1, Acceptor.a2),
+      Set(Acceptor.a1, Acceptor.a3),
+      Set(Acceptor.a2, Acceptor.a3)
+    )
+  )
+
+  @main def checkVoting(): Unit =
+    val result = Checker.explore(smallVoting)
+    println(result.subject)
+```
+
+The first check through a stable `val` holder names the instance, here `smallVoting`. Later
+aliases and helper checks preserve that name. A freshly constructed or computed instance with
+no stable holder is refused when checked. Store a factory result in a val before checking it.
+Each construction explicitly supplies its world; there is no implicit/default instantiation,
+world wrapper or manual naming argument. Suite-header conveniences remain separate work.
+
+Actions whose input record is nested in an instance retain that instance's selected types.
+Voting's `smallVoting.voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)` uses its actual
+`VoteFor` record. Named calls preserve constructor defaults where declared and reject foreign
+records even when their fields look alike. The
+[selected-record controls](dsl/InputRecords.test.scala#L36) cover defaults and exact input types.
+
+A progress bound may use a positive compile-time integer or the `.size` of an immutable
+constructor `Set` parameter of the current Model. TwoPhaseCommit uses
+`within = resourceManagers.size`. That size is captured once per claim and must be positive;
+state-dependent sizes, mutable parameters, callbacks and arbitrary runtime expressions gain no
+permission from this form. See [bound controls](dsl/ParametricBounds.test.scala).
+
+The native `Realization` constructor binds the actual instance with `machine = smallVoting`
+and retains it as its machine. A Model class or
+constructor function cannot stand for that instance. The
+[sample realization client](samples/testdata/realization/SampleRealizations.scala.txt) exercises
+this public binding. Lifting an instance with its parameter values, IR identity and Case
+generation remain the IR phase; native instance binding establishes none of those results.
+
+**API refusals.** The parameter name and selected type fill the placeholders below. Constructor
+checks and holder capture report at the source location; native admission errors use
+`requirement failed:` before the message.
+
+| Contract | Refusal text | Source |
+| --- | --- | --- |
+| Every Model type parameter has its own `Finite` bound | `<T>: a Model type parameter requires a Finite bound` | [Vars.scala](dsl/Vars.scala#L373) |
+| Constructor constants have liftable kinds | `<parameter>: <type> is not a liftable Model constant; use a Finite domain, Int, Boolean, Set or Map with liftable members` | [Vars.scala](dsl/Vars.scala#L403) |
+| A checked instance has a stable holder | `<Model>: a checked Model instance needs a stable val holder` | [CheckerNaming.scala](checker/CheckerNaming.scala#L65) |
+| Selected generic state collections have supported member structure | `a Model domain used in state collections requires supported native members` | [Domain.scala](dsl/Domain.scala#L158) |
+| An enumerated start domain is nonempty | `<var>: oneOf takes a non-empty domain` | [ParametricMachines.test.scala](dsl/ParametricMachines.test.scala#L208) |
+| Constructor-set progress bounds are positive | `within is a positive number of steps` | [Syntax.scala](dsl/Syntax.scala#L957) |
+| Progress bound expressions use the admitted form | `within is a positive number of steps, written as a literal or an immutable constructor Set parameter's size` | [Syntax.scala](dsl/Syntax.scala#L962) |
+
+The section lint reports `<member> is declared outside its sections in <owner>`, followed by
+the admitted object/class forms and section names. [NativeClassForms.test.scala](lint/NativeClassForms.test.scala)
+checks both forms. These constructor and native binding contracts do not imply lifter support.
+
+### Historical record-state IR form (held)
+
+The following header and section descriptions concern the earlier record-state IR pipeline.
+They are retained for held integration work and are not current native authoring instructions.
 
 **Meaning.** A machine is a transition relation over a finite state type: for every state and every
 action class, the list of steps that class may take there. Its start, its ends, and the steps are
@@ -763,8 +878,9 @@ Source: [samples/Kettle.scala:71](samples/Kettle.scala#L71).
 A bound, where it is the promise, is the second argument of `eventually`, as in TwoLayeredCache:
 `whenever(!agreed(current)): eventually(agreed(current), within = 1)`.
 
-`eventually` is written only in a `whenever` block, and `within` is a positive constant: a literal,
-or arithmetic over `inline val`s. `leadsTo(from = p, to = q, within = n)` is the same bounded
+`eventually` is written only in a `whenever` block. `within` takes a positive compile-time integer
+or an immutable constructor Set parameter's `.size`, as described in [Parameters](#parameters).
+`leadsTo(from = p, to = q, within = n)` is the same bounded
 claim. The named form of a Derived machine, below, predates both:
 
 Source: [temporal/features/activity_mini/protocol/DispatchingProgress.scala:12](../temporal/features/activity_mini/protocol/DispatchingProgress.scala#L12).

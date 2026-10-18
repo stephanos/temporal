@@ -4,6 +4,36 @@
 as the Scala oracle, and `framework.realize` supplies generic realization values. The framework has no Temporal Model dependency. The wider model pipeline is
 described in [model/README.md](../README.md); the native expectation loop below is narrower.
 
+## Parametric Models in tests
+
+Give a Model the domains and constants its behavior needs through a class constructor.
+`class Model[D: Finite](initial: D, limit: Int) extends Machine[Outcome, Nothing]` takes a finite
+type domain and two value constants. A value constant has a liftable kind, a `Finite` type,
+`Int`, `Boolean`, or recursively a `Set` or `Map` of those. The Model needs only the `Finite`
+bound on a generic domain. Its schema and snapshot state come from its vars. Keep
+`object Model extends Machine[Outcome, Nothing]` for a Model with no parameters.
+
+The test owns the concrete world. Declare its enums there and explicitly construct an instance
+in a stable val, supplying every constant. The [standalone Voting example](SEMANTICS.md#parameters)
+uses the actual [Voting constructor](samples/Voting.scala#L41) with the acceptors, values and
+pairwise quorums from [Voting's test world](samples/Voting.test.scala#L7). Voting takes
+`values: Set[Value]` and `quorums: Set[Set[Acceptor]]`; both type parameters have `Finite` bounds.
+No global world, implicit/default instance or suite-header API supplies those choices.
+
+Run `Checker.explore(smallVoting)` and pass its result to `Checker.verifyAll` to check the
+instance's promises. The first checked stable holder supplies its name; aliases and helper
+checks retain it. Bind a fresh constructor or factory result to a val before checking it.
+Two instances have independent vars, schemas, starts, selected input catalogs and reachable
+graphs. Var initializers and `oneOf` starts may read the constructor constants. Empty enumerated
+start domains refuse rather than inventing a start.
+
+Nested action input records retain the selected instance's exact generic types and defaults.
+For example, `smallVoting.voter.voteFor(a = Acceptor.a2, b = 0, v = Value.v1)` constructs its
+own `VoteFor` input. A native `Realization` also binds that actual instance, through its
+`machine = smallVoting` constructor argument. Instance lifting, parameter values in the IR and Case
+identity remain the IR phase. See [Parameters](SEMANTICS.md#parameters) for the constructor,
+selected-state, holder and progress-bound refusal contracts.
+
 ## Inputs
 
 Declare an action's record with `.inputs[In]`. The action keeps that actual input type:
@@ -185,8 +215,9 @@ exporter carriers remain held integration work.
 
 Bank uses sparse `Map[Addr, Map[Denom, Int]]` balances: absent denominations read zero;
 zero writes remove the denomination and then an empty account. Its Send record retains
-the finite amount domain 0..3 through a field binding, including accepted funded zero sends
-and refused empty zero sends. TwoPhaseCommit uses an exact three-key manager map, a set of
+the finite amount domain -1..supply+1 through a field binding, including accepted funded zero sends
+and refused empty zero sends. Its holder, supply and address domain come from its test.
+TwoPhaseCommit's test supplies its manager set; the Model uses exactly those keys in its manager map, a set of
 received managers and a separate ever-sent message set; messages are never consumed as an Inbox.
 Required manager lookups remain partial rather than defaulting a missing manager to working.
 
