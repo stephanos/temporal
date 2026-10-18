@@ -1,5 +1,12 @@
 use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
 
+#[allow(clippy::unnecessary_wraps, reason = "fixture producers share a fallible runner signature")]
+pub(crate) fn run() -> umpire_testing::RunResult {
+    fn accepts_machine<M: Machine>() {}
+    accepts_machine::<KettleWorld>();
+    Ok(umpire_testing::Files::new())
+}
+
 const BOILING_TEMPERATURE: i32 = 100;
 const COLDEST_TEMPERATURE: i32 = -40;
 

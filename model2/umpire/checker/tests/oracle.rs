@@ -2,9 +2,9 @@
 
 use std::collections::BTreeSet;
 
+use proptest::prelude::*;
 use umpire_checker::Checker;
 use umpire_dsl::{Claim, Hole, Machine, Outcome, StepClaim, Steps, Verdict};
-use proptest::prelude::*;
 
 #[derive(Clone, Debug)]
 struct Rule {

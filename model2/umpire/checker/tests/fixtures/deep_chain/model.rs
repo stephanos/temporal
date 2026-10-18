@@ -61,9 +61,10 @@ impl Machine for World {
     }
 }
 
-pub(super) fn run() -> super::Files {
+#[allow(clippy::unnecessary_wraps, reason = "fixture producers share a fallible runner signature")]
+pub(crate) fn run() -> umpire_testing::RunResult {
     let world = World(Rc::new(Cell::new(0)));
     let result = Checker::explore(&world, 1001);
     let work = if world.0.get() <= 4 * result.counts.reached { "linear" } else { "excessive" };
-    BTreeMap::from([("report.txt".into(), format!("{}clone_work: {work}\n", result.verify_all()))])
+    Ok(BTreeMap::from([("report.txt".into(), format!("{}clone_work: {work}\n", result.verify_all()))]))
 }

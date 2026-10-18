@@ -1,1 +1,3 @@
-//! Sample Models. `Kettle` lands here once a surface is chosen from `options/`.
+//! Real sample Models for Umpire.
+
+pub mod kettle;

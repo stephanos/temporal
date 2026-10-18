@@ -350,9 +350,8 @@ dependencies = [
 name = "samples"
 version = "0.0.1"
 dependencies = [
- "insta",
- "umpire-checker",
  "umpire-dsl",
+ "umpire-testing",
 ]
 
 [[package]]
@@ -460,6 +459,7 @@ dependencies = [
  "proptest",
  "rustc-hash",
  "umpire-dsl",
+ "umpire-testing",
 ]
 
 [[package]]

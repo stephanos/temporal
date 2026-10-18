@@ -14,5 +14,4 @@ workspace = true
 umpire-dsl.workspace = true
 
 [dev-dependencies]
-umpire-checker.workspace = true
-insta.workspace = true
+umpire-testing.workspace = true

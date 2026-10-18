@@ -18,3 +18,4 @@ fixedbitset.workspace = true
 
 [dev-dependencies]
 proptest.workspace = true
+umpire-testing.workspace = true

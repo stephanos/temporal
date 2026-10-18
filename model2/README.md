@@ -1,7 +1,7 @@
 # model2: the Rust prototype
 
 A Cargo workspace mirroring `model/framework`'s layout. Scope is only what
-`model/umpire/samples/Kettle.scala` uses today; see `umpire/samples/options/README.md` for the
+`model/framework/samples/Kettle.scala` uses today; see `umpire/samples/options/README.md` for the
 authoring-surface options under discussion.
 
 The toolchain is pinned in the repository's `mise.toml` (`rust = "1.99.1"`); run through mise:
@@ -47,7 +47,17 @@ produces, in its owning crate's `tests/fixtures/<name>/` (`model.rs` and `expect
 
 Goldens are deterministic, human-readable and timing-free. `make model2-update` rewrites them; a
 fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
-written as a case.
+written as a fixture.
+
+`umpire-testing` is a development-only dependency of the owning crates. It owns rendering,
+comparison, snapshot updates and discovery. Their build scripts share its dependency-free
+discovery source, so building the checker never creates a dependency cycle through its test runner.
+Every fixture directory is discovered automatically, in name order, and must contain both
+`model.rs` and `expected/`. Synthetic behavior belongs to `umpire/checker/tests/fixtures/`;
+the real Kettle world is importable from `samples::kettle`, with its adapters and the retained
+trait compilation sketch in `umpire/samples/tests/fixtures/`. The compilation-only fixture
+produces no golden files; its empty `expected/` is retained with `.gitkeep`. No other file is
+ignored in an empty expected folder.
 
 Behaviour goldens use insta binary snapshots with text payloads. Each `report.txt`, `states.txt`,
 `rows.txt`, or `paths/<claim>.txt` is a symlink to its `.snap.txt` payload; the adjacent `.snap`
