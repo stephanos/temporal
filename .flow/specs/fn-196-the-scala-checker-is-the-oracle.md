@@ -1,3 +1,7 @@
+# The Scala checker is the oracle
+
+> HTML render lens (local-only, ignored): open `.flow/artifacts/fn-196-the-scala-checker-is-the-oracle/spec.html` locally. Regenerable; markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-17): "also; should we have the simpistic (simple as can be) model checker in Scala now? the extra step via IR and Go seems slow. wed replace the Go one entirely. this is assuming it's fairly easy to write a simple, not high-performant one."
@@ -108,6 +112,8 @@ whose effect throws is a `refuted` Result carrying the exception's message and t
 - **R7:** MILESTONES' Direction, the framework README and SEMANTICS say the Scala checker is the
   oracle and the IR is the export and lowering format. Errors: none beyond review. [inferred]
 
+- **R8:** Discarded parametric Models and their declarations become collectible after native initialization and checking when no live Model, State, Result, action or other legitimate owner remains. Runtime snapshots and discovery metadata follow those owners' lifetimes. Errors and boundaries include exact foreign-owner refusal, reference-identity lookup, stable retained-result diagnostics, live channel behavior, static/derived/composed owners, nested and exceptional restoration, and concurrent access to one owner's runtime. No disposal API or cache clearing is required. This repairs the instance-retention finding from R4's measurement before ModelSuite adopts fresh instances.
+
 ## Boundaries
 
 - The Testpilot runtime, Driver and canary stay in Go and do not change. [paraphrase]
@@ -118,6 +124,8 @@ whose effect throws is a `refuted` Result carrying the exception's message and t
   single-threaded unless the note says otherwise. [user]
 - Refinement and rule-disjointness checks that exist only over the IR are not reimplemented here;
   they are listed in the measurement note as kept, moved or dropped. [inferred]
+
+- Instance reclamation excludes intentionally live Results, States and actions, and classloader/static metadata. The repair does not change reachable graphs, budgets, verdicts, refinement standings, or the Go-deletion decision.
 
 ## Decision Context
 
@@ -133,14 +141,17 @@ the Temporal graphs was the one observed number and Scala states are heavier per
 Rejected: keeping both checkers (two oracles); building the IR evaluator first (the Scala checker
 already answers the samples). [inferred]
 
+The measurement's repeated-instance controls found 0 of 64 constructed-only Models retained, all 64 initialized Models retained by the global var-runtime map, and all 64 checked Models retained by that map plus action discovery names. The native follow-up repairs runtime ownership first and declaration indexes second, then reruns the combined retention control before oracle documentation and ModelSuite admission. Weak keys alone are insufficient when cached values point back to their keys. Classloader-cache redesign, visited-set optimization and a performance target remain outside this repair.
+
 ## Requirement coverage
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | The Scala checker lives in a module outside `framework.dsl` with the public questions in API Contracts and one `Result` shape carrying verdict, budget, completion and the path or failing line; `framework.dsl` executes nothing. Errors: as in API Contracts. | fn-196.1, fn-196.2 | — |
-| R2 | `verifyAll` reports vacuity (actions never fired, postconditions never triggered) in fn-190 R15's shapes, and the budget comes from the gate's configuration with per-suite overrides. Errors: an override naming no suite is a configuration error. | fn-196.2 | — |
-| R3 | `replay`, `find` with a horizon, `sample` with a seed and `refuted` exist and are what fn-195's sections call; `sample` with one seed replays the same paths twice. Errors: as in API Contracts. | fn-196.2 | — |
-| R4 | A design note in `model/design` records time and live heap for the largest available graphs and a go or no-go on deleting the Go check, with the lowering location decided in the same note. Errors: the note is not optional; a no-go keeps the Go check and reopens this spec's Boundaries. | fn-196.3 | — |
-| R5 | On go, the Go `check` package and the IR evaluator task are retired, fn-190.5 is re-cut to delete the Go check rather than the Scala runtime, the gate's sample check runs the Scala checker, and conformance replay of a recorded Run against the Model runs in Scala. Errors: a Go test that only exercised the Go check is deleted with it, one that exercised lowering or export stays. | fn-196.4 | — |
-| R6 | The six samples' intended answers on the default budget match the inventory on the Scala checker. Errors: a changed answer is a finding to fix. | fn-196.4 | — |
-| R7 | MILESTONES' Direction, the framework README and SEMANTICS say the Scala checker is the oracle and the IR is the export and lowering format. Errors: none beyond review. | fn-196.5 | — |
+| R1 | The Scala checker lives in a module outside `framework.dsl` with the public questions in API Contracts and one `Result` shape carrying verdict, budget, completion and the path or failing line; `framework.dsl` executes nothing. Errors: as in API Contracts. | fn-196-the-scala-checker-is-the-oracle.1, fn-196-the-scala-checker-is-the-oracle.2 | — |
+| R2 | `verifyAll` reports vacuity (actions never fired, postconditions never triggered) in fn-190 R15's shapes, and the budget comes from the gate's configuration with per-suite overrides. Errors: an override naming no suite is a configuration error. | fn-196-the-scala-checker-is-the-oracle.2 | — |
+| R3 | `replay`, `find` with a horizon, `sample` with a seed and `refuted` exist and are what fn-195's sections call; `sample` with one seed replays the same paths twice. Errors: as in API Contracts. | fn-196-the-scala-checker-is-the-oracle.2 | — |
+| R4 | A design note in `model/design` records time and live heap for the largest available graphs and a go or no-go on deleting the Go check, with the lowering location decided in the same note. Errors: the note is not optional; a no-go keeps the Go check and reopens this spec's Boundaries. | fn-196-the-scala-checker-is-the-oracle.3 | — |
+| R5 | On go, the Go `check` package and the IR evaluator task are retired, fn-190.5 is re-cut to delete the Go check rather than the Scala runtime, the gate's sample check runs the Scala checker, and conformance replay of a recorded Run against the Model runs in Scala. Errors: a Go test that only exercised the Go check is deleted with it, one that exercised lowering or export stays. | fn-196-the-scala-checker-is-the-oracle.4 | — |
+| R6 | The six samples' intended answers on the default budget match the inventory on the Scala checker. Errors: a changed answer is a finding to fix. | fn-196-the-scala-checker-is-the-oracle.4 | — |
+| R7 | MILESTONES' Direction, the framework README and SEMANTICS say the Scala checker is the oracle and the IR is the export and lowering format. Errors: none beyond review. | fn-196-the-scala-checker-is-the-oracle.5 | — |
+| R8 | Discarded parametric Models and their declarations become collectible after native initialization and checking when no live Model, State, Result, action or other legitimate owner remains. Runtime snapshots and discovery metadata follow those owners' lifetimes. Errors and boundaries include exact foreign-owner refusal, reference-identity lookup, stable retained-result diagnostics, live channel behavior, static/derived/composed owners, nested and exceptional restoration, and concurrent access to one owner's runtime. No disposal API or cache clearing is required. This repairs the instance-retention finding from R4's measurement before ModelSuite adopts fresh instances. | fn-196-the-scala-checker-is-the-oracle.6, fn-196-the-scala-checker-is-the-oracle.7 | — |

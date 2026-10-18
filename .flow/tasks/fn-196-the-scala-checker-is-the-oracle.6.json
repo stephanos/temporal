@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T05:56:38.286893Z",
+  "depends_on": [
+    "fn-196-the-scala-checker-is-the-oracle.3"
+  ],
+  "id": "fn-196-the-scala-checker-is-the-oracle.6",
+  "priority": null,
+  "spec": "fn-196-the-scala-checker-is-the-oracle",
+  "spec_path": ".flow/tasks/fn-196-the-scala-checker-is-the-oracle.6.md",
+  "status": "todo",
+  "title": "Bind native var-runtime records to their Model instance lifetime",
+  "updated_at": "2026-10-18T05:56:38.286893Z"
+}
