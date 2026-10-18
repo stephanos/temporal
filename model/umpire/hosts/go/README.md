@@ -2,7 +2,7 @@
 
 This isolated module runs the generated oracle v1 contract using wazero v1.12.0
 with Go 1.27.0 and `CGO_ENABLED=0`. It has no dependency on the server module.
-The protobuf source is `../../umpire/proto/umpire/oracle/v1/oracle.proto`;
+The protobuf source is `../../proto/umpire/oracle/v1/oracle.proto`;
 generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
 Build the real `umpire-wasm` release artifact before running:
@@ -10,7 +10,7 @@ Build the real `umpire-wasm` release artifact before running:
 ```sh
 # From model/:
 mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked
-# From model/hosts/go:
+# From model/umpire/hosts/go:
 CGO_ENABLED=0 mise exec -- go test -tags test_dep -count=1 ./...
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=5x -count=1
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=1
@@ -18,7 +18,7 @@ CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime
 
 Tests resolve `UMPIRE_WASM` first, then
 `$CARGO_TARGET_DIR/wasm32-wasip1/release/umpire_wasm.wasm`, then the same path
-under `../../target`. A missing artifact is an error. The parity test compares
+under `../../../target`. A missing artifact is an error. The parity test compares
 the report and every ordered row against the native trait Kettle fixtures.
 
 Rust directly exports `umpire_buffer_alloc(u32) -> u32`,

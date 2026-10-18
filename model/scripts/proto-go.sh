@@ -15,7 +15,7 @@ if [ "$(mise exec -- protoc --version)" != 'libprotoc 29.5' ]; then
   printf 'wrong protoc version; expected mise-pinned libprotoc 29.5\n' >&2
   exit 1
 fi
-output="$PWD/hosts/go"
+output="$PWD/umpire/hosts/go"
 if [ "${1:-}" = --check ]; then
   output=$(mktemp -d)
   trap 'rm -rf "$output"' EXIT
@@ -26,5 +26,5 @@ fi
 mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
   --go_out="$output" --go_opt=paths=source_relative umpire/proto/umpire/oracle/v1/oracle.proto
 if [ "${1:-}" = --check ]; then
-  diff -u hosts/go/umpire/oracle/v1/oracle.pb.go "$output/umpire/oracle/v1/oracle.pb.go"
+  diff -u umpire/hosts/go/umpire/oracle/v1/oracle.pb.go "$output/umpire/oracle/v1/oracle.pb.go"
 fi

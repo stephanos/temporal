@@ -43,7 +43,7 @@ the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, r
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`; see
-`umpire/proto/README.md` for ownership and refusal contracts, and `hosts/go/README.md`
+`umpire/proto/README.md` for ownership and refusal contracts, and `umpire/hosts/go/README.md`
 for reproduction and measurements. Rust exports these functions directly with the stock
 linker. Go checks the built module's exact application exports and signatures, including
 negative controls for missing, unexpected and mis-typed exports.

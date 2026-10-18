@@ -10,9 +10,9 @@ Preserve its relevant Git history, including the earlier Rust paths. Temporal co
 the local checkout during development: an uncommitted Umpire change must be usable
 without a commit, push, package publication or binary download.
 
-The owner approved moving `model/hosts/go` to `model/umpire/hosts/go` before extraction.
-Re-read the current tree when executing; handle whichever location actually exists,
-and stop if both contain different files. The target repository puts the contents of
+The Go host now lives at `model/umpire/hosts/go`, following the owner-approved move
+from `model/hosts/go` (fn-210.17). Re-read the current tree when executing extraction.
+The target repository puts the contents of
 `model/umpire/` at its root, rather than retaining a redundant `model/umpire/` wrapper.
 
 Keep checker behavior, macro authoring, fixtures, protobuf messages and ABI unchanged.
@@ -29,7 +29,7 @@ are relative to the new Umpire repository.
 | Source | Destination and treatment |
 | --- | --- |
 | `model/umpire/{dsl,checker,testing,tests,wasm,proto}/` | Same directories at repository root; preserve complete fixture groups and symlinks |
-| `model/umpire/hosts/go/` (currently `model/hosts/go/`) | `hosts/go/`, including its separate Go module and generated protobuf code |
+| `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
 | `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files; remove the `umpire/` prefix from member and dependency paths |
 | `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
 | `model/scripts/` | `scripts/`, adapted to the standalone root |
@@ -214,6 +214,10 @@ separate completion claims from preparing this plan.
   green. Capture exact commands, revisions, results and remaining limitations.
 
 ## Pattern Survey
+
+Recorded on 2026-10-18 before fn-210.17 moved the host. Paths and line references
+below retain that survey's historical source evidence; current host paths are in
+the source and destination map above.
 
 ### Analogous Features
 

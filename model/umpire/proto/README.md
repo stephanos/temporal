@@ -21,3 +21,5 @@ Access to one instance is serialized. An unexpected trap invalidates the host in
 
 Rust generates into Cargo's OUT_DIR with prost-build 0.14 and mise's protoc 29.5.
 Go uses the repository's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
+The separate Go host module and generated Go messages live at `../hosts/go/`;
+regenerate from the repository root with `bash model/scripts/proto-go.sh`.

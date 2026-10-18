@@ -72,7 +72,7 @@ modulo 283, and consumes row text. Each run consumed 17,705,239 bytes; guest
 memory stayed at 17 pages before and after every run. Go allocation counts were
 28 allocs/op and 1,437–1,447 B/op. Runs include ordinary host scheduling noise.
 
-Reproduce from `hosts/go`, with `UMPIRE_WASM` naming the built guest:
+Reproduce from `umpire/hosts/go` inside `model/`, with `UMPIRE_WASM` naming the built guest:
 
 ```sh
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=1x -count=5

@@ -575,7 +575,7 @@ func guestBytes(t testing.TB) []byte {
 	if path == "" {
 		target := os.Getenv("CARGO_TARGET_DIR")
 		if target == "" {
-			target = "../../target"
+			target = "../../../target"
 		}
 		path = filepath.Join(target, "wasm32-wasip1/release/umpire_wasm.wasm")
 	}
@@ -601,7 +601,7 @@ func TestKettleParity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wantReport, err := os.ReadFile("../../umpire/tests/fixtures/kettle_trait/expected/report.txt")
+	wantReport, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/report.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -618,7 +618,7 @@ func TestKettleParity(t *testing.T) {
 			rows.WriteString(row)
 		}
 	}
-	wantRows, err := os.ReadFile("../../umpire/tests/fixtures/kettle_trait/expected/rows.txt")
+	wantRows, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/rows.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

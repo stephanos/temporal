@@ -1433,7 +1433,7 @@ model-check: $(PROTOC_GEN_GO)
 	@cd model && $(call RUST_MODEL_STEP,wasm32-wasip1) mise exec -- cargo build --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --quiet
 	@cd model && $(call RUST_MODEL_STEP,core-wasm-clippy) mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings
 	@cd model && $(call RUST_MODEL_STEP,wasm-guest) mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked --quiet
-	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/hosts/go" test -tags test_dep -count=1 ./...
+	@cd model && target="$${CARGO_TARGET_DIR:-$$PWD/target}" && case "$$target" in /*) ;; *) target="$$PWD/$$target" ;; esac && UMPIRE_WASM="$$target/wasm32-wasip1/release/umpire_wasm.wasm" CGO_ENABLED=0 $(call RUST_MODEL_STEP,go-host) mise exec -- go -C "$$PWD/umpire/hosts/go" test -tags test_dep -count=1 ./...
 
 model-fmt:
 	@$(RUST_MODEL_CARGO) fmt --all
