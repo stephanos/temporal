@@ -191,7 +191,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16 and fn-194.1-.5 done; next fn-195.1-.4/.6/.5, fn-197 native .1-.3, then final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints, fn-193.1/.2, fn-196.1-.3/.6/.7/.5 (carrying fn-190.15), fn-190.16, fn-194.1-.5 and fn-195.1 done; next fn-195.2-.4/.6/.5, fn-197 native .1-.3, then final fn-195.7 (fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196), measured instance-lifetime repairs, the sectioned ModelSuite that owns every question and every Case (fn-195), and correlated obligations (fn-197). Final sample polish follows all of them. Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.10/.8; fn-190.3/.5 await fn-196.4 recut; fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The Scala checker stays; no IR evaluator is selected. Go retirement and Scala Case production need evidence-backed migration and a new go decision. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; the Go/IR execution holds remain |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1158,18 +1158,27 @@ class-only primary declaration policy belongs to fn-195.6.
 ### fn-195: ModelSuite: a Model's test file holds its examples, explorations and conformance tests
 
 Captured on 2026-10-17 for the DSL-completion phase, after fn-194 and fn-196. The Model states its
-promises; its test file asks every question of it, in three sections of a munit suite over one
+promises; its test file asks every question of it, in four sections of a munit suite over one
 instance: `examples` (pinned paths with `expect:` blocks of bare Booleans), `explorations` (spaces
 with `any`, `find` with a horizon, seeded `sample`, `refuted` negative controls) and `conformance`,
 the only source of Cases, each replayed on the Model first, and `unit` for plain munit tests of
-helpers, with nothing but sections at a suite's top level. `queries`, `Query`, `find`, `verify`,
+helpers, with sections and shared helpers at a suite's top level. `queries`, `Query`, `find`, `verify`,
 `witness`, `.live`, `.explore` and the capability live switch leave the Model; `Realizes` loses
-`runs`. Design note: `model/design/runs-in-tests.md` (its `Runs` object and `.live` are superseded
-by the sections). [Spec](.flow/specs/fn-195-modelsuite-a-models-test-file-holds-its.md). Native admission follows the integrated fn-194.1-.5 and fn-196.1-.3/.6/.7/.5 checkpoints, recorded with source/closure commits in the spec. Both parents remain open; whole-spec scheduling edges are removed without releasing their review or Phase 3 holds.
+`runs`. Prototype verdict: `model/design/runs-in-tests.md`.
+[Spec](.flow/specs/fn-195-modelsuite-a-models-test-file-holds-its.md). Native admission follows the integrated fn-194.1-.5 and fn-196.1-.3/.6/.7/.5 checkpoints, recorded with source/closure commits in the spec. Both parents remain open; whole-spec scheduling edges are removed without releasing their review or Phase 3 holds.
+
+fn-195.1 is complete: prototype `0b6b7118af`, overload-bypass reproduction `307f56ce45`,
+repair `641cc2b198`, closure `d0d2efeab0`. Bank/Kettle and registration controls pass 20 tests,
+separate from native673 and all 20 fresh allowed gate stages. The literal Quint Bank run passes;
+a wrong expectation reports its line/state and unsafe eager initialization is refused.
+`repeat(80)(heater.heat)` is the prototype recommendation. Registry inheritance, ordinary MUnit
+dependency ownership and strict unannotated `expect:` syntax remain public implementation work,
+not solved by the prototype's scoped suppression/adapters. Refine the broad fn-195.2 scope against
+these findings before admission. Case/Contract lifting and server execution stay held.
+Evidence: `.flow/tmp/fn1951/summary.md`; source/probe/artifact hashes rechecked by root.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-195.1 | 🔄 in progress | After integrated native checkpoints: prototype a ModelSuite on Bank (sections, `test` builder, `expect:` macro, spaces) and revise the design note (R1, R2) |
 | fn-195.2 | ⬜ todo | After .1: ModelSuite, the four sections, `expect:`, spaces, `find`/`sample`/`refuted`, conformance defaults and `through` binding, `satisfied`/`inconclusive`/`conformant` in realize (R1-R4) |
 | fn-195.3 | ⬜ todo | After .2: retire `queries`, `Query`, `witness`, `.live`, `.explore`, `Exploration`, the capability live switch and `Realizes.runs`; section lint rules; split with fn-190.16 (R5, R7) |
 | fn-195.4 | ⬜ todo | After .3: the six samples' tests as ModelSuites with Quint's runs; intended answers reproduced (R6) |
