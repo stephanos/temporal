@@ -201,12 +201,12 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 	if len(request) > maxBuffer {
 		return nil, &RefusalError{Code: oraclev1.RefusalCode_REFUSAL_CODE_ALLOCATION, Message: "request exceeds 1 MiB"}
 	}
-	invoke := func(function api.Function, args ...uint64) ([]uint64, error) {
+	invoke := func(abiName string, function api.Function, args ...uint64) ([]uint64, error) {
 		result, callErr := function.Call(ctx, args...)
 		if callErr != nil {
 			h.unusable = true
 			_ = h.module.Close(ctx)
-			return nil, fmt.Errorf("%s: %w", name, callErr)
+			return nil, fmt.Errorf("%s: %s: %w", name, abiName, callErr)
 		}
 		return result, nil
 	}
@@ -219,7 +219,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 			if allocation[0] == 0 {
 				continue
 			}
-			if _, freeErr := invoke(h.free, uint64(allocation[0]), uint64(allocation[1])); freeErr != nil {
+			if _, freeErr := invoke("free", h.free, uint64(allocation[0]), uint64(allocation[1])); freeErr != nil {
 				err = errors.Join(err, freeErr)
 				response = nil
 				return
@@ -232,7 +232,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 		return nil, fmt.Errorf("%s: invalid oracle ABI: %s", name, message)
 	}
 	if len(request) != 0 {
-		result, allocErr := invoke(h.alloc, uint64(len(request)))
+		result, allocErr := invoke("alloc", h.alloc, uint64(len(request)))
 		if allocErr != nil {
 			return nil, allocErr
 		}
@@ -244,7 +244,7 @@ func (h *Host) Call(ctx context.Context, method oraclev1.Method, request []byte)
 			return invalid("request allocation outside memory")
 		}
 	}
-	result, err := invoke(h.call, uint64(method), uint64(requestPtr), uint64(len(request)))
+	result, err := invoke("call", h.call, uint64(method), uint64(requestPtr), uint64(len(request)))
 	if err != nil {
 		return nil, err
 	}

@@ -97,6 +97,119 @@ func TestRejectsModuleContract(t *testing.T) {
 	}
 }
 
+func TestTrapIdentifiesABIAndLogicalMethod(t *testing.T) {
+	ctx := context.Background()
+	for _, function := range []string{"alloc", "free", "call"} {
+		t.Run(function, func(t *testing.T) {
+			h, err := New(ctx, controlModule(2048, 2, []byte{18, 0}, function == "call", false, "", function))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				if err := h.Close(ctx); err != nil {
+					t.Error(err)
+				}
+			}()
+			_, err = h.Rows(ctx, &oraclev1.RowsRequest{StateId: 1})
+			if err == nil || !strings.Contains(err.Error(), "METHOD_ROWS: "+function+":") {
+				t.Fatalf("missing method or ABI context: %v", err)
+			}
+		})
+	}
+}
+
+func TestGuestAllocationGuards(t *testing.T) {
+	ctx := context.Background()
+	for _, scenario := range []string{"zero", "oversize", "initialized", "inexact call", "invalid free", "double free"} {
+		t.Run(scenario, func(t *testing.T) {
+			h, err := New(ctx, guestBytes(t))
+			if err != nil {
+				t.Fatal(err)
+			}
+			defer func() {
+				if err := h.Close(ctx); err != nil {
+					t.Error(err)
+				}
+			}()
+			allocate := func(size uint64) uint64 {
+				t.Helper()
+				result, err := h.alloc.Call(ctx, size)
+				if err != nil {
+					t.Fatal(err)
+				}
+				return result[0]
+			}
+			switch scenario {
+			case "zero":
+				if pointer := allocate(0); pointer != 0 {
+					t.Fatalf("alloc(0) = %d", pointer)
+				}
+				if _, err := h.free.Call(ctx, 0, 0); err != nil {
+					t.Fatal(err)
+				}
+			case "oversize":
+				if pointer := allocate(maxBuffer + 1); pointer != 0 {
+					t.Fatalf("oversize allocation = %d", pointer)
+				}
+			case "initialized":
+				pointer := allocate(16)
+				if pointer == 0 {
+					t.Fatal("allocation exhausted")
+				}
+				data, ok := h.module.Memory().Read(uint32(pointer), 16)
+				if !ok || string(data) != string(make([]byte, 16)) {
+					t.Fatal("allocation is not zero initialized")
+				}
+				if _, err := h.free.Call(ctx, pointer, 16); err != nil {
+					t.Fatal(err)
+				}
+			case "inexact call":
+				pointer := allocate(16)
+				if pointer == 0 {
+					t.Fatal("allocation exhausted")
+				}
+				result, err := h.call.Call(ctx, uint64(oraclev1.Method_METHOD_ROWS), pointer+1, 15)
+				if err != nil {
+					t.Fatal(err)
+				}
+				responsePtr, length := uint32(result[0]), uint32(result[0]>>32)
+				data, ok := h.module.Memory().Read(responsePtr, length)
+				if !ok {
+					t.Fatal("refusal outside memory")
+				}
+				response := new(oraclev1.Response)
+				if err := proto.Unmarshal(data, response); err != nil {
+					t.Fatal(err)
+				}
+				if refusal := response.GetRefusal(); refusal == nil || refusal.Code != oraclev1.RefusalCode_REFUSAL_CODE_ALLOCATION {
+					t.Fatalf("inexact call response %v", response)
+				}
+				if _, err := h.free.Call(ctx, uint64(responsePtr), uint64(length)); err != nil {
+					t.Fatal(err)
+				}
+				if _, err := h.free.Call(ctx, pointer, 16); err != nil {
+					t.Fatal(err)
+				}
+			case "invalid free", "double free":
+				pointer := allocate(16)
+				if pointer == 0 {
+					t.Fatal("allocation exhausted")
+				}
+				length := uint64(15)
+				if scenario == "double free" {
+					if _, err := h.free.Call(ctx, pointer, 16); err != nil {
+						t.Fatal(err)
+					}
+					length = 16
+				}
+				if _, err := h.free.Call(ctx, pointer, length); err == nil || !strings.Contains(err.Error(), "unreachable") {
+					t.Fatalf("invalid free did not trap: %v", err)
+				}
+			}
+		})
+	}
+}
+
 func TestRefusals(t *testing.T) {
 	ctx := context.Background()
 	h, err := New(ctx, guestBytes(t))
@@ -230,7 +343,7 @@ func TestGuestExhaustionPreservesExploration(t *testing.T) {
 }
 
 // The control uses only the production ABI; unreachable supplies an actual engine trap.
-func controlModule(pointer, length uint32, payload []byte, trap, badSignature bool, imported string) []byte {
+func controlModule(pointer, length uint32, payload []byte, trap, badSignature bool, imported string, trapAt ...string) []byte {
 	u := func(value uint64) []byte {
 		var result []byte
 		for {
@@ -296,6 +409,14 @@ func controlModule(pointer, length uint32, payload []byte, trap, badSignature bo
 	}
 	alloc = append(alloc, 0x0b)
 	free := []byte{0, 0x41, 16, 0x41, 16, 0x28, 2, 0, 0x41, 1, 0x6a, 0x36, 2, 0, 0x0b}
+	if len(trapAt) != 0 {
+		if trapAt[0] == "alloc" {
+			alloc = []byte{0, 0, 0x0b}
+		}
+		if trapAt[0] == "free" {
+			free = []byte{0, 0, 0x0b}
+		}
+	}
 	call := append([]byte{0, 0x42}, s(int64(uint64(length)<<32|uint64(pointer)))...)
 	call = append(call, 0x0b)
 	if trap {
