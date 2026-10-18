@@ -184,7 +184,7 @@ facet vocabularies are recorded in fn-161.
 | Sections | fn-191 (captured 2026-10-16) | Samples follow the machine sections (`properties`, `queries`); Kettle done on capture; a samples lint stage in `checkFramework`. Three tasks |
 | 9 | fn-164.3 source and capture done | Expectation blocks lift through the exporter and are captured by the plugin (ExpectFixtures 9, ExpectCaptureSuite 14). The bridges are parked on `work/fn1643-bridges`; fn-190.4 retires the public `expect` surface, so .3's rest moves to fn-190.9 and .7/.8/.9 are superseded |
 | Phase 1 done | fn-191.1, fn-190.1/.2/.4/.6/.11/.7 | DSL only (owner, 2026-10-17): plain-Scala Models (vars, assignment effects, `transitions`, claim sections, progress environments), legacy vocabulary unreachable outside `framework`, composition member facts as data; 637 native tests, 31 lint and the loop suite pass on `5fd91dc1bf`. The export gate is expected red until Phase 3 |
-| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints and fn-193.1 done; fn-193.2 in progress; fn-196.1 next (carries fn-190.15); fn-190.16; fn-194.1-.4; fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
+| Phase 2: DSL completion (now) | fn-189.1/.4/.2/.3/.5 native checkpoints and fn-193.1/.2 done; fn-196.1 in progress (carries fn-190.15); fn-190.16; fn-194.1-.4; fn-196.2/.3/.5, then fn-195.1-.5 (planned 2026-10-17; fn-196.4 is Phase 3) | Ordered by DSL impact (owner, 2026-10-17): every remaining change to what a Model author writes or can reach, nothing else. `given Family`, single-parameter-list helpers, `inline` sugar, the `Lifted` marker; plain-Scala compositions (members as vals, no state case class); native execution moved out of `framework.dsl` into the product checker module under fn-196.1, carrying fn-190.15; the record-state vocabulary deleted; parametric Models (fn-194), the Scala checker as the oracle (fn-196) and the sectioned ModelSuite that owns every question and every Case (fn-195). Gate: the native checks plus the plugin compiling the six samples. Out: fn-189.8 (waits for fn-174.8) |
 | Phase 3: IR and plugin (batched) | fn-190.9/.12/.3/.10/.5/.8, fn-189.9/.10/.12/.7, fn-192, fn-198 before the export/lint re-anchoring, fn-191.2/.3, fn-164.3 rest | IR and plugin once against the final DSL: lifting vars/effects/transitions/check blocks and compositions, the IR evaluator (then fn-190.5 deletes the test-support runtime), builtins table and `BuiltinCall` with fn-173.4's collections, samples lint and model-check, export/lint re-anchoring; one full framework gate at the end. The 2026-10-17 scout found the export fixtures (454 Scala files) failing on retired vocabulary, 247 Go test failures (stale testdata paths, disabled Temporal sources), no framework-only `ir-scalapb.jar` regeneration, and a Go interpreter that enumerates whole catalogs; it needs a Go baseline repair, framework-only IR codegen, fn-173.2 re-cut to on-demand rows within a budget, and the Go hold released |
 | Later | Framework build/export, IR/schema/Go/backends | Separately held, not automatically released by native completion; original integration and exact-proof tasks remain open |
 
@@ -1085,17 +1085,16 @@ This changes names and test organization, without advancing held IR obligations.
 
 ### fn-193: Compositions are plain Scala: members as vals, no state case class
 
-Captured on 2026-10-17 for the DSL-completion phase. `Composition[S <: Product]` still takes an
-author-written state case class, field selectors and the record-state claim surface; it is the last
-DSL form that needs `RecordMachine`. A composition becomes an object whose members are `val`s naming
-Machines, with syncs by action reference and fn-190's claim sections; a prototype on the framework's
-composition fixtures decides the details first. DSL and native runtime only; lifting and Go follow
-with fn-190.12, and the Temporal compositions migrate at the sweep.
+The native DSL work is committed: source `b8a541c83d`, receipt `f5abb0940b`. Compositions declare
+member vals, action-reference syncs, native claim sections and named `withMember` derivations,
+including nested members. They use the existing on-demand checker over member snapshots, with no
+record-state composition adapter. All 653 native tests, 46 framework checks, 161-suite corpus
+classification, fresh core/plugin/sample builds and separate-library clients pass. The clients
+cover derived-member `before`, exact fact types, progress and both witness forms. Earlier failed
+and interrupted runs remain in `.flow/tmp/checks/fn1932/record.md` and earn no pass credit.
+Independent review remains deferred to the phase batch; the spec stays open. Lifting and Go follow
+with fn-190.12, and Temporal compositions migrate at the sweep.
 [Spec](.flow/specs/fn-193-compositions-are-plain-scala-members-as.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-193.2 | 🔄 in progress | After .1: plain compositions in the DSL; fixtures, tests, SEMANTICS §17 and README rewritten; nothing needs `RecordMachine` (R2-R5) |
 
 ### fn-194: Parametric Models: constants and finite domains as constructor parameters, instantiated by the suite
 
@@ -1145,7 +1144,7 @@ Go-oracle decision. [Spec](.flow/specs/fn-196-the-scala-checker-is-the-oracle.md
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-196.1 | ⬜ todo | The native runtime and `NativeCheck` move to a product checker module outside `framework.dsl` with one `Result` shape; carries fn-190.15's move (R1) |
+| fn-196.1 | 🔄 in progress | The native runtime and `NativeCheck` move to a product checker module outside `framework.dsl` with one `Result` shape; carries fn-190.15's move (R1) |
 | fn-196.2 | ⬜ todo | After .1: complete R1's question/error contracts with `replay`, `find` with a horizon, seeded `sample`, `refuted`, vacuity and the gate's budget; a budget-cut find is unknown, not a completed negative search (R1-R3) |
 | fn-196.3 | ⬜ todo | After .2: measurement note on the largest available graphs; go/no-go on deleting the Go check; lowering location (R4) |
 | fn-196.4 | ⬜ todo | Phase 3, after .3's go: retire the Go check and the IR evaluator, re-cut fn-190.3/.5, gate and conformance replay on the Scala checker (R5, R6) |
