@@ -4,6 +4,8 @@ satisfies: [R7, R24]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.7 DESIGN.md: authoring, size, speed, tooling comparison and the recommendation
 
 ## Description
+**Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
+
 **Recut 2026-10-18 (R24):** the recommendation follows R24 alone (R20 on the stock toolchain: Rust; otherwise Scala, with the blocker). Authoring, speed (against the Scala note's pre-fix numbers, labelled so), lift size, build time and diagnostics are reported as information for sizing the follow-up work. .9 has already written the verdict section; this task completes the rest of the note.
 
 **Recut 2026-10-18 (R19, R20):** also judge the two vertical slices: how much of `umpire-lift` the token route needed against the Scala plugin and lifter, whether TLC agreed first time, the wasm target that worked, module size, load time and per-call latency against a JVM call, and what each slice says about extending the prototype.

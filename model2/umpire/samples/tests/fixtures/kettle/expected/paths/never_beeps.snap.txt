@@ -1,63 +1,63 @@
-start: temperature=40, heating_on=false, beeping=false
-1: UserPressButton choice=0 -> temperature=40, heating_on=true, beeping=false
-2: HeaterHeat choice=0 -> temperature=41, heating_on=true, beeping=false
-3: HeaterHeat choice=0 -> temperature=42, heating_on=true, beeping=false
-4: HeaterHeat choice=0 -> temperature=43, heating_on=true, beeping=false
-5: HeaterHeat choice=0 -> temperature=44, heating_on=true, beeping=false
-6: HeaterHeat choice=0 -> temperature=45, heating_on=true, beeping=false
-7: HeaterHeat choice=0 -> temperature=46, heating_on=true, beeping=false
-8: HeaterHeat choice=0 -> temperature=47, heating_on=true, beeping=false
-9: HeaterHeat choice=0 -> temperature=48, heating_on=true, beeping=false
-10: HeaterHeat choice=0 -> temperature=49, heating_on=true, beeping=false
-11: HeaterHeat choice=0 -> temperature=50, heating_on=true, beeping=false
-12: HeaterHeat choice=0 -> temperature=51, heating_on=true, beeping=false
-13: HeaterHeat choice=0 -> temperature=52, heating_on=true, beeping=false
-14: HeaterHeat choice=0 -> temperature=53, heating_on=true, beeping=false
-15: HeaterHeat choice=0 -> temperature=54, heating_on=true, beeping=false
-16: HeaterHeat choice=0 -> temperature=55, heating_on=true, beeping=false
-17: HeaterHeat choice=0 -> temperature=56, heating_on=true, beeping=false
-18: HeaterHeat choice=0 -> temperature=57, heating_on=true, beeping=false
-19: HeaterHeat choice=0 -> temperature=58, heating_on=true, beeping=false
-20: HeaterHeat choice=0 -> temperature=59, heating_on=true, beeping=false
-21: HeaterHeat choice=0 -> temperature=60, heating_on=true, beeping=false
-22: HeaterHeat choice=0 -> temperature=61, heating_on=true, beeping=false
-23: HeaterHeat choice=0 -> temperature=62, heating_on=true, beeping=false
-24: HeaterHeat choice=0 -> temperature=63, heating_on=true, beeping=false
-25: HeaterHeat choice=0 -> temperature=64, heating_on=true, beeping=false
-26: HeaterHeat choice=0 -> temperature=65, heating_on=true, beeping=false
-27: HeaterHeat choice=0 -> temperature=66, heating_on=true, beeping=false
-28: HeaterHeat choice=0 -> temperature=67, heating_on=true, beeping=false
-29: HeaterHeat choice=0 -> temperature=68, heating_on=true, beeping=false
-30: HeaterHeat choice=0 -> temperature=69, heating_on=true, beeping=false
-31: HeaterHeat choice=0 -> temperature=70, heating_on=true, beeping=false
-32: HeaterHeat choice=0 -> temperature=71, heating_on=true, beeping=false
-33: HeaterHeat choice=0 -> temperature=72, heating_on=true, beeping=false
-34: HeaterHeat choice=0 -> temperature=73, heating_on=true, beeping=false
-35: HeaterHeat choice=0 -> temperature=74, heating_on=true, beeping=false
-36: HeaterHeat choice=0 -> temperature=75, heating_on=true, beeping=false
-37: HeaterHeat choice=0 -> temperature=76, heating_on=true, beeping=false
-38: HeaterHeat choice=0 -> temperature=77, heating_on=true, beeping=false
-39: HeaterHeat choice=0 -> temperature=78, heating_on=true, beeping=false
-40: HeaterHeat choice=0 -> temperature=79, heating_on=true, beeping=false
-41: HeaterHeat choice=0 -> temperature=80, heating_on=true, beeping=false
-42: HeaterHeat choice=0 -> temperature=81, heating_on=true, beeping=false
-43: HeaterHeat choice=0 -> temperature=82, heating_on=true, beeping=false
-44: HeaterHeat choice=0 -> temperature=83, heating_on=true, beeping=false
-45: HeaterHeat choice=0 -> temperature=84, heating_on=true, beeping=false
-46: HeaterHeat choice=0 -> temperature=85, heating_on=true, beeping=false
-47: HeaterHeat choice=0 -> temperature=86, heating_on=true, beeping=false
-48: HeaterHeat choice=0 -> temperature=87, heating_on=true, beeping=false
-49: HeaterHeat choice=0 -> temperature=88, heating_on=true, beeping=false
-50: HeaterHeat choice=0 -> temperature=89, heating_on=true, beeping=false
-51: HeaterHeat choice=0 -> temperature=90, heating_on=true, beeping=false
-52: HeaterHeat choice=0 -> temperature=91, heating_on=true, beeping=false
-53: HeaterHeat choice=0 -> temperature=92, heating_on=true, beeping=false
-54: HeaterHeat choice=0 -> temperature=93, heating_on=true, beeping=false
-55: HeaterHeat choice=0 -> temperature=94, heating_on=true, beeping=false
-56: HeaterHeat choice=0 -> temperature=95, heating_on=true, beeping=false
-57: HeaterHeat choice=0 -> temperature=96, heating_on=true, beeping=false
-58: HeaterHeat choice=0 -> temperature=97, heating_on=true, beeping=false
-59: HeaterHeat choice=0 -> temperature=98, heating_on=true, beeping=false
-60: HeaterHeat choice=0 -> temperature=99, heating_on=true, beeping=false
-61: HeaterHeat choice=0 -> temperature=100, heating_on=true, beeping=false
-62: HeaterFailover choice=0 -> temperature=100, heating_on=false, beeping=true
+start: Kettle { temperature: 40, heating_on: false, beeping: false }
+1: Act::UserPressButton choice=0 -> Kettle { temperature: 40, heating_on: true, beeping: false }
+2: Act::HeaterHeat choice=0 -> Kettle { temperature: 41, heating_on: true, beeping: false }
+3: Act::HeaterHeat choice=0 -> Kettle { temperature: 42, heating_on: true, beeping: false }
+4: Act::HeaterHeat choice=0 -> Kettle { temperature: 43, heating_on: true, beeping: false }
+5: Act::HeaterHeat choice=0 -> Kettle { temperature: 44, heating_on: true, beeping: false }
+6: Act::HeaterHeat choice=0 -> Kettle { temperature: 45, heating_on: true, beeping: false }
+7: Act::HeaterHeat choice=0 -> Kettle { temperature: 46, heating_on: true, beeping: false }
+8: Act::HeaterHeat choice=0 -> Kettle { temperature: 47, heating_on: true, beeping: false }
+9: Act::HeaterHeat choice=0 -> Kettle { temperature: 48, heating_on: true, beeping: false }
+10: Act::HeaterHeat choice=0 -> Kettle { temperature: 49, heating_on: true, beeping: false }
+11: Act::HeaterHeat choice=0 -> Kettle { temperature: 50, heating_on: true, beeping: false }
+12: Act::HeaterHeat choice=0 -> Kettle { temperature: 51, heating_on: true, beeping: false }
+13: Act::HeaterHeat choice=0 -> Kettle { temperature: 52, heating_on: true, beeping: false }
+14: Act::HeaterHeat choice=0 -> Kettle { temperature: 53, heating_on: true, beeping: false }
+15: Act::HeaterHeat choice=0 -> Kettle { temperature: 54, heating_on: true, beeping: false }
+16: Act::HeaterHeat choice=0 -> Kettle { temperature: 55, heating_on: true, beeping: false }
+17: Act::HeaterHeat choice=0 -> Kettle { temperature: 56, heating_on: true, beeping: false }
+18: Act::HeaterHeat choice=0 -> Kettle { temperature: 57, heating_on: true, beeping: false }
+19: Act::HeaterHeat choice=0 -> Kettle { temperature: 58, heating_on: true, beeping: false }
+20: Act::HeaterHeat choice=0 -> Kettle { temperature: 59, heating_on: true, beeping: false }
+21: Act::HeaterHeat choice=0 -> Kettle { temperature: 60, heating_on: true, beeping: false }
+22: Act::HeaterHeat choice=0 -> Kettle { temperature: 61, heating_on: true, beeping: false }
+23: Act::HeaterHeat choice=0 -> Kettle { temperature: 62, heating_on: true, beeping: false }
+24: Act::HeaterHeat choice=0 -> Kettle { temperature: 63, heating_on: true, beeping: false }
+25: Act::HeaterHeat choice=0 -> Kettle { temperature: 64, heating_on: true, beeping: false }
+26: Act::HeaterHeat choice=0 -> Kettle { temperature: 65, heating_on: true, beeping: false }
+27: Act::HeaterHeat choice=0 -> Kettle { temperature: 66, heating_on: true, beeping: false }
+28: Act::HeaterHeat choice=0 -> Kettle { temperature: 67, heating_on: true, beeping: false }
+29: Act::HeaterHeat choice=0 -> Kettle { temperature: 68, heating_on: true, beeping: false }
+30: Act::HeaterHeat choice=0 -> Kettle { temperature: 69, heating_on: true, beeping: false }
+31: Act::HeaterHeat choice=0 -> Kettle { temperature: 70, heating_on: true, beeping: false }
+32: Act::HeaterHeat choice=0 -> Kettle { temperature: 71, heating_on: true, beeping: false }
+33: Act::HeaterHeat choice=0 -> Kettle { temperature: 72, heating_on: true, beeping: false }
+34: Act::HeaterHeat choice=0 -> Kettle { temperature: 73, heating_on: true, beeping: false }
+35: Act::HeaterHeat choice=0 -> Kettle { temperature: 74, heating_on: true, beeping: false }
+36: Act::HeaterHeat choice=0 -> Kettle { temperature: 75, heating_on: true, beeping: false }
+37: Act::HeaterHeat choice=0 -> Kettle { temperature: 76, heating_on: true, beeping: false }
+38: Act::HeaterHeat choice=0 -> Kettle { temperature: 77, heating_on: true, beeping: false }
+39: Act::HeaterHeat choice=0 -> Kettle { temperature: 78, heating_on: true, beeping: false }
+40: Act::HeaterHeat choice=0 -> Kettle { temperature: 79, heating_on: true, beeping: false }
+41: Act::HeaterHeat choice=0 -> Kettle { temperature: 80, heating_on: true, beeping: false }
+42: Act::HeaterHeat choice=0 -> Kettle { temperature: 81, heating_on: true, beeping: false }
+43: Act::HeaterHeat choice=0 -> Kettle { temperature: 82, heating_on: true, beeping: false }
+44: Act::HeaterHeat choice=0 -> Kettle { temperature: 83, heating_on: true, beeping: false }
+45: Act::HeaterHeat choice=0 -> Kettle { temperature: 84, heating_on: true, beeping: false }
+46: Act::HeaterHeat choice=0 -> Kettle { temperature: 85, heating_on: true, beeping: false }
+47: Act::HeaterHeat choice=0 -> Kettle { temperature: 86, heating_on: true, beeping: false }
+48: Act::HeaterHeat choice=0 -> Kettle { temperature: 87, heating_on: true, beeping: false }
+49: Act::HeaterHeat choice=0 -> Kettle { temperature: 88, heating_on: true, beeping: false }
+50: Act::HeaterHeat choice=0 -> Kettle { temperature: 89, heating_on: true, beeping: false }
+51: Act::HeaterHeat choice=0 -> Kettle { temperature: 90, heating_on: true, beeping: false }
+52: Act::HeaterHeat choice=0 -> Kettle { temperature: 91, heating_on: true, beeping: false }
+53: Act::HeaterHeat choice=0 -> Kettle { temperature: 92, heating_on: true, beeping: false }
+54: Act::HeaterHeat choice=0 -> Kettle { temperature: 93, heating_on: true, beeping: false }
+55: Act::HeaterHeat choice=0 -> Kettle { temperature: 94, heating_on: true, beeping: false }
+56: Act::HeaterHeat choice=0 -> Kettle { temperature: 95, heating_on: true, beeping: false }
+57: Act::HeaterHeat choice=0 -> Kettle { temperature: 96, heating_on: true, beeping: false }
+58: Act::HeaterHeat choice=0 -> Kettle { temperature: 97, heating_on: true, beeping: false }
+59: Act::HeaterHeat choice=0 -> Kettle { temperature: 98, heating_on: true, beeping: false }
+60: Act::HeaterHeat choice=0 -> Kettle { temperature: 99, heating_on: true, beeping: false }
+61: Act::HeaterHeat choice=0 -> Kettle { temperature: 100, heating_on: true, beeping: false }
+62: Act::HeaterFailover choice=0 -> Kettle { temperature: 100, heating_on: false, beeping: true }

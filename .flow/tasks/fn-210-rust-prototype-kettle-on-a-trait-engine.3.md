@@ -4,13 +4,15 @@ satisfies: [R3]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.3 Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples
 
 ## Description
+**Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
+
 **Conventions 2026-10-18 (R25-R27):** new fixtures implement `Spell` by hand until .4's derives land; an unknown scope action is a `Refusal`, not a panic; progress results and lassos are spelled through `Spell`.
 
-**Touches:** model2/umpire/checker/src/**, model2/umpire/checker/tests/**, model2/umpire/samples/tests/fixtures/**
+**Touches:** model2/umpire/checker/src/**, model2/umpire/checker/tests/**, model2/umpire/tests/fixtures/**
 
 **Parallel boundary:** shared Cargo wiring is prepared by .11; no manifests or lockfiles change in this lane.
 
-**Layout (R22):** progress cases go in `umpire/checker/tests/fixtures/<name>/{model.rs,expected/}`; Kettle's `boils` result lands in `samples/tests/fixtures/kettle/expected/report.txt`.
+**Layout (R22):** progress cases go in `umpire/checker/tests/fixtures/<name>/{model.rs,expected/}`; Kettle's `boils` result lands in `umpire/tests/fixtures/kettle/expected/report.txt`.
 
 **Deps 2026-10-18 (R18):** build the scoped graph as a `petgraph` `DiGraph` over `StateId`s and use `tarjan_scc`; a fair cycle is a non-trivial SCC inside the scope where every weakly-fair internal step enabled throughout is taken; the lasso is a BFS prefix to the SCC plus a cycle within it.
 

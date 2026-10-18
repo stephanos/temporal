@@ -5,11 +5,11 @@ evaluated: 4
 refused: 3
 depth: 0
 cut: false
-outcome: refuted
-claim safe: verified
-claim step_0_0: refuted
-failure step_0_0: action Advance panicked: attempt to add with overflow
-vacuity: action Advance never fired
-vacuity: action Reset never fired
-vacuity: action Idle never fired
-vacuity: action Unused never fired
+outcome: Outcome::Refuted
+claim safe: Outcome::Verified
+claim step_0_0: Outcome::Refuted
+failure step_0_0: action Action::Advance panicked: attempt to add with overflow
+vacuity: action Action::Advance never fired
+vacuity: action Action::Reset never fired
+vacuity: action Action::Idle never fired
+vacuity: action Action::Unused never fired

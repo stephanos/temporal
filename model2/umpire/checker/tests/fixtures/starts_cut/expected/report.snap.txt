@@ -5,9 +5,9 @@ evaluated: 0
 refused: 0
 depth: 0
 cut: true
-outcome: unknown
-claim safe: unknown
-vacuity: action Advance never fired
-vacuity: action Reset never fired
-vacuity: action Idle never fired
-vacuity: action Unused never fired
+outcome: Outcome::Unknown
+claim safe: Outcome::Unknown
+vacuity: action Action::Advance never fired
+vacuity: action Action::Reset never fired
+vacuity: action Action::Idle never fired
+vacuity: action Action::Unused never fired

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T20:47:56.704613Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.12"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.13",
+  "priority": 1,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.13.md",
+  "status": "todo",
+  "title": "Shared end-to-end fixtures: umpire-tests crate, consumers selected by expected files",
+  "updated_at": "2026-10-18T20:47:56.704613Z"
+}

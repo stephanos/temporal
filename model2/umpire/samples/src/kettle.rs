@@ -1,6 +1,6 @@
 //! Kettle's plain-trait world and state.
 
-use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
+use umpire_dsl::{Claim, Machine, Progress, Scope, Spell, StepClaim, Steps};
 
 const BOILING_TEMPERATURE: i32 = 100;
 const COLDEST_TEMPERATURE: i32 = -40;
@@ -109,12 +109,25 @@ impl Machine for KettleWorld {
     }
 }
 
-impl std::fmt::Display for Kettle {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "temperature={}, heating_on={}, beeping={}",
-            self.temperature, self.heating_on, self.beeping
-        )
+impl Spell for Kettle {
+    fn spell(&self, out: &mut String) {
+        out.push_str("Kettle { temperature: ");
+        self.temperature.spell(out);
+        out.push_str(", heating_on: ");
+        self.heating_on.spell(out);
+        out.push_str(", beeping: ");
+        self.beeping.spell(out);
+        out.push_str(" }");
+    }
+}
+
+impl Spell for Act {
+    fn spell(&self, out: &mut String) {
+        out.push_str(match self {
+            Self::UserPressButton => "Act::UserPressButton",
+            Self::UserDepressButton => "Act::UserDepressButton",
+            Self::HeaterHeat => "Act::HeaterHeat",
+            Self::HeaterFailover => "Act::HeaterFailover",
+        });
     }
 }

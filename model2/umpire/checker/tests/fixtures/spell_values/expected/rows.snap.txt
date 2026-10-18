@@ -1,0 +1,1 @@
+0: Action::Advance { amount: 1 } choice=0 outcome=Decision::Accepted facts=[Fact::Changed { amount: 1 }] -> State { value: Option::Some { 0: (1, true) } }

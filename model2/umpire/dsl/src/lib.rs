@@ -6,11 +6,13 @@ mod claim;
 mod machine;
 mod progress;
 mod scope;
+mod spell;
 
 pub use claim::{Claim, Hole, StepClaim, StepPredicate, Verdict};
 pub use machine::{Machine, Step, Steps};
 pub use progress::Progress;
 pub use scope::Scope;
+pub use spell::Spell;
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]

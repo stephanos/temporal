@@ -8,7 +8,8 @@
     "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
     "fn-210-rust-prototype-kettle-on-a-trait-engine.11",
     "fn-210-rust-prototype-kettle-on-a-trait-engine.9",
-    "fn-210-rust-prototype-kettle-on-a-trait-engine.12"
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.12",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.13"
   ],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.4",
   "priority": 2,
@@ -16,5 +17,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.4.md",
   "status": "todo",
   "title": "umpire-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]",
-  "updated_at": "2026-10-18T20:41:32.250882Z"
+  "updated_at": "2026-10-18T20:47:58.780852Z"
 }

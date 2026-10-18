@@ -16,77 +16,99 @@ As of 2026-10-18.
 
 ## Direction
 
-On 2026-10-18 the owner paused everything else for one question: is Rust the better base for the
-framework? The Scala framework under `model/` keeps working as it is and is not modified. Every
-spec other than fn-210 is deferred in Flow (each carries a dated Decision Context line) and is not
-listed here; the previous version of this page, with the Scala phases and the one-language
-series, is in Flow's history and in the specs themselves.
+On 2026-10-18 the owner paused everything else for one question: should Umpire be built in Rust?
+The Scala framework under `model/` keeps working as it is and is not modified. Every spec other
+than fn-210 and its follow-up fn-211 is deferred in Flow (each carries a dated Decision Context
+line) and is not listed here; the earlier Scala phases and the one-language series live in those
+specs.
 
-The prototype lives in `temporal/model2`, a Cargo workspace mirroring `model/framework`'s layout
-(`umpire/dsl`, `umpire/checker`, `umpire/samples` after fn-210.10; `framework/…` until then), pinned through `mise.toml`
-(`rust = "1.99.1"`). Its scope is exactly what `model/framework/samples/Kettle.scala` uses today.
-The authoring-surface options are written out as the same Model seven ways in
-`model2/framework/samples/options/`; the owner chose to build the plain-trait engine first
-(every surface expands to it) and then the attribute surface (plain functions with pass-through
-attributes). The write-up at the end, `model2/DESIGN.md`, recommends extending the prototype to
-Bank and Voting or stopping, and that recommendation decides what is un-deferred.
+Umpire in Rust lives in `temporal/model2`, a Cargo workspace pinned through `mise.toml`
+(`rust = "1.99.1"`), with crates under `model2/umpire/`: `dsl` (with `dsl/macros`), `checker`,
+`testing` (the dev-only fixture runner) and, after fn-210.13, `tests` (the shared end-to-end
+fixtures; the `samples` crate goes away). Its current scope is exactly what
+`model/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
+runs as wasm in a Go host through wasmtime-go on the stock toolchain, with Kettle's report matching
+the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information.
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Rust prototype (now) | fn-210.1 and .2, then the rename .10 and shared Cargo wiring .11, then .3 and .4 → .5 in parallel, with the decisive wasm slice .9 right after .10, then .6 and the TLC slice .8, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
-| After the recommendation | decided by fn-210.7 | Either grow the Rust DSL one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through checker, TLA and Case together, with real Testpilot starting on the mini activity; or close fn-210 with its evidence and resume the Scala phases |
+| Umpire in Rust (now) | fn-210.12, then the fixture move .13 alone, then the decisive wasm slice .9 beside .3 and .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions and fixtures are in place; the wasm slice decides; the macro surface, Kettle in that surface, the TLC slice and the write-up follow |
+| After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
 
 ## Specs
 
 ### fn-210: Rust prototype: Kettle on a trait engine with an attribute surface (model2)
 
-Captured on 2026-10-18 from the owner's decision to prototype the framework in Rust before going
-deeper on the Scala side. Scope is Kettle only: vars with a `oneOf` start, actors with actions and
-internal steps, guarded transitions with effects, invariants, postconditions with `before` and
-`after`, one `without` scope, one `whenever … eventually … in` progress claim, and the questions
-`explore`, `verifyAll` and `refuted`. Engine first (a `Machine` trait, BFS with a shared visited
-set, claims per state and per edge, progress with weak fairness and lasso counterexamples), then
-the attribute surface (`#[derive(State)]`, `#[derive(Action)]`, a pass-through `#[machine]` on the
-impl collecting `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[progress]`), then
-Kettle itself with its test, then the design note. Testing is end to end by golden files (R8,
-owner 2026-10-18): `insta` snapshots of each fixture's report and counterexample paths, `trybuild`
-refusals, insta snapshots of macro expansions (formatted by `prettyplease`), one brute-force oracle
-property test, no unit tests by default.
-Architecture fixed before the checker (R9 to R17, owner 2026-10-18): a world value implements
-`Machine` with associated `State` and `Action` (constants and compositions live on the world);
-`step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
-in every profile and a panicking effect refutes its step; tri-state verdicts with holes; a
-liftable subset warned on now; structural determinism; a `wasm32-wasip2` build of dsl and checker
-in the gate; a `Visited` seam over full states; `imbl` collections and `Finite`-derived inputs
-recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-18): `indexmap`
-(visited set and state ids), `petgraph` (SCCs for progress), `smallvec`, `rustc-hash`, `fixedbitset`,
-`enum-iterator`, `imbl`, `thiserror`, the `syn` 3 macro stack with `darling`, `manyhow` and
-`prettyplease`, and `insta`, `trybuild`, `proptest`; unmaintained alternatives are banned in
-`deny.toml`. Vertical before broad (owner, 2026-10-18): before the write-up, two thin slices test
-the reasons Rust is on the table: Kettle lifted from the macro's tokens to TLA+ and agreeing with TLC
-on all 283 states (R19), and the checker compiled to wasm and driven from a Go host through
-wasmtime-go, matching the Rust goldens byte for byte (R20). Verdict rule (R24, owner 2026-10-18): if the wasm slice passes on the stock toolchain, Rust
-wins; every other measure is information. Conventions (R25 to R28, owner 2026-10-18): one `Spell` text form for all values in every
-output, the author's Rust names in outputs, `Result<_, Refusal>` for API misuse with Model problems
-as verdicts, an internal lifted tree. Parallel tasks touch disjoint crates; shared files are
-edited by one task at a time; the gate runs locally. Gate: `make model2-check`; update
-goldens with `make model2-update`. Test layout (R22, R23): each fixture lives in its owning crate's
-`tests/fixtures/<name>/`, with its `model.rs` and `expected/` ("fixture", since Case is Testpilot's term); `samples` holds the real Models and their
-end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
-[Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
+Captured on 2026-10-18. Scope is Kettle's constructs only: vars with a `oneOf` start, actors with
+actions and internal steps, guarded transitions with effects, invariants, postconditions with
+`before` and `after`, one `without` scope, one `whenever … eventually … in` progress claim, and the
+questions `explore`, `verifyAll` and `refuted`. Gate: `make model2-check` (local); goldens update
+with `make model2-update`. [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
+
+What is fixed, all owner decisions of 2026-10-18:
+
+- **Shape (R9 to R17).** A world value implements `Machine` with associated `State` and `Action`;
+  `step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
+  in every profile and a panicking effect refutes its step; verdicts are holds, fails or unknown;
+  a liftable subset is warned on; determinism is structural; dsl and checker build for
+  `wasm32-wasip2` in the gate; the visited set sits behind a `Visited` seam; `imbl` collections and
+  `Finite`-derived inputs are recorded for Bank.
+- **Dependencies (R18).** Only admitted crates (a release in the last 12 months, or finished and
+  very widely used): `indexmap`, `petgraph`, `smallvec`, `rustc-hash`, `fixedbitset`,
+  `enum-iterator`, `imbl`, `thiserror`, the `syn` 3 macro stack with `darling`, `manyhow` and
+  `prettyplease`, and `insta`, `trybuild`, `proptest`. Unmaintained alternatives are banned in
+  `deny.toml`.
+- **Testing (R8, R22, R23, R29).** End to end by golden files, no unit tests by default, one
+  brute-force oracle property test. A fixture is a folder with its `model.rs` and `expected/`
+  ("fixture", since Case is Testpilot's term). Fixtures every backend must agree on live in
+  `umpire/tests/fixtures/<name>/`, and their expected files select the consumers (checker, TLC,
+  Apalache); checker-only fixtures (panics, overflow, holes, budget cuts, refusals) stay in
+  `umpire/checker/tests/fixtures/`. A Model's source is its fixture's `model.rs`; there is no
+  `samples` crate.
+- **Conventions (R25 to R28).** One `Spell` text form for every value in every output; the
+  author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
+  API misuse, Model problems as verdicts; the lifted tree is internal.
+- **Vertical before broad (R19, R20, R24).** Two thin slices before the write-up: Kettle lifted
+  from the macro's tokens to TLA+ and agreeing with TLC on all 283 states, and the checker as wasm
+  in a wasmtime-go host. The wasm slice alone decides the verdict.
+- **Process.** Parallel tasks touch disjoint crates; shared files (`Cargo.toml`, `Cargo.lock`,
+  `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
+  every session re-reads its task after it.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
-| fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
-| fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
-| fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface with its test; parity with the Scala suite (R6) |
-| fn-210.8 | ⬜ todo | After .6: slice 1, `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
-| fn-210.9 | ⬜ todo | After .2/.10, decisive (R24): the checker as wasm in a wasmtime-go host on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
-| fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md`: authoring, size, speed, tooling, lifting and hosting comparison and the recommendation; then delete `samples/options/` (R7) |
-| fn-210.12 | 🔄 in progress | After .10/.11, before .3/.4/.9: `Spell` as the one value spelling in every output and `Result<_, Refusal>` for API misuse; goldens re-rendered, diff is spelling only (R25, R27) |
+| fn-210.12 | 🔄 in progress | `Spell` as the one value spelling in every output, `Result<_, Refusal>` for API misuse; goldens re-rendered, diff is spelling only (R25, R27) |
+| fn-210.13 | ⬜ todo | After .12, alone: `umpire-tests` crate with the shared fixtures in `umpire/tests/fixtures/`, consumers selected by expected files; Kettle's source moves into its fixture and `samples` is removed (R29) |
+| fn-210.9 | ⬜ todo | After .13, decisive: the checker as wasm in a wasmtime-go host on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
+| fn-210.3 | ⬜ todo | After .13: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
+| fn-210.4 | ⬜ todo | After .13: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
+| fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
+| fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
+| fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
+| fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+
+### fn-211: Apalache backend for Umpire in Rust (model2)
+
+Captured on 2026-10-18 as a follow-up, after fn-210 and only if its verdict is to continue in
+Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
+annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
+per invariant at the native depth plus one, ITF counterexamples decoded through `Spell` and
+replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
+liveness through Apalache; TLC owns progress claims.
+[Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-211.1 | ⬜ todo | Snowcat type annotations in the TLA+ emitter; TLC results unchanged (R1) |
+| fn-211.2 | ⬜ todo | After .1: `umpire-apalache`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
+| fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through `Spell` and replayed through the Model (R3) |
+| fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
 
 ## Open for the owner
 
-- The deferral is total by request; fn-196.8 (the Scala checker speed fix) stays deferred, since speed
-  no longer decides the verdict. If any other Scala work should continue in parallel, name it.
+- fn-196.8 (the Scala checker speed fix) stays deferred, since speed no longer decides the verdict.
+  If any other Scala work should continue in parallel, name it.
+- Where `umpire-tlc` (and later `umpire-apalache`) sits: `umpire/backends/tlc/` or flat
+  `umpire/tlc/`. fn-210.8 is the first task that has to decide.
+- fn-210's title and spec text still say "Rust prototype"; reword them too, or keep them as the
+  historical title?

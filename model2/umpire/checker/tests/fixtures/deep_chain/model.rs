@@ -6,13 +6,23 @@ use std::{
 };
 
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Machine, Steps, Verdict};
+use umpire_dsl::{Claim, Machine, Spell, Steps, Verdict};
 
 struct World(Rc<Cell<usize>>);
 
 struct State {
     value: usize,
     clones: Rc<Cell<usize>>,
+}
+
+impl Spell for State {
+    fn spell(&self, out: &mut String) {
+        out.push_str("State { value: ");
+        self.value.spell(out);
+        out.push_str(", clones: ");
+        self.clones.get().spell(out);
+        out.push_str(" }");
+    }
 }
 
 impl Clone for State {
@@ -61,10 +71,14 @@ impl Machine for World {
     }
 }
 
-#[allow(clippy::unnecessary_wraps, reason = "fixture producers share a fallible runner signature")]
 pub(crate) fn run() -> umpire_testing::RunResult {
     let world = World(Rc::new(Cell::new(0)));
-    let result = Checker::explore(&world, 1001);
+    let result = Checker::explore(&world, 1001)?;
     let work = if world.0.get() <= 4 * result.counts.reached { "linear" } else { "excessive" };
-    Ok(BTreeMap::from([("report.txt".into(), format!("{}clone_work: {work}\n", result.verify_all()))]))
+    let mut report = String::new();
+    result.verify_all()?.spell(&mut report);
+    report.push_str("clone_work: ");
+    report.push_str(work);
+    report.push('\n');
+    Ok(BTreeMap::from([("report.txt".into(), report)]))
 }

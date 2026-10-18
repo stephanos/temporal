@@ -1,0 +1,2 @@
+start: State { value: Option::None }
+1: Action::Advance { amount: 1 } choice=0 -> State { value: Option::Some { 0: (1, true) } }

@@ -1,2 +1,2 @@
-start: state=0
-failure: action Advance panicked: broken heater
+start: Value { 0: 0 }
+failure: action Action::Advance panicked: broken heater

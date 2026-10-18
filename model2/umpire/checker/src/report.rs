@@ -1,6 +1,6 @@
-use std::fmt;
+use std::fmt::Write;
 
-use umpire_dsl::{Machine, Outcome};
+use umpire_dsl::{Machine, Outcome, Spell};
 
 use crate::Counts;
 
@@ -26,23 +26,21 @@ pub struct Path<S, A> {
     pub failure: Option<String>,
 }
 
-impl<S: fmt::Display, A: fmt::Debug> fmt::Display for Path<S, A> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "start: {}", self.start)?;
+impl<S: Spell, A: Spell> Spell for Path<S, A> {
+    fn spell(&self, out: &mut String) {
+        out.push_str("start: ");
+        self.start.spell(out);
+        out.push('\n');
         for (index, step) in self.steps.iter().enumerate() {
-            writeln!(
-                f,
-                "{}: {:?} choice={} -> {}",
-                index + 1,
-                step.action,
-                step.choice,
-                step.after
-            )?;
+            write!(out, "{}: ", index + 1).ok();
+            step.action.spell(out);
+            write!(out, " choice={} -> ", step.choice).ok();
+            step.after.spell(out);
+            out.push('\n');
         }
         if let Some(failure) = &self.failure {
-            writeln!(f, "failure: {failure}")?;
+            writeln!(out, "failure: {failure}").ok();
         }
-        Ok(())
     }
 }
 
@@ -86,53 +84,52 @@ impl<M: Machine> Report<M> {
     }
 }
 
-impl<M: Machine> Report<M>
-where
-    M::State: fmt::Display,
-{
+impl<M: Machine> Report<M> {
     /// Panics for refuted or unknown verification, printing the first refutation's path.
     pub fn assert_verified(&self) {
         if let Some(claim) = self.claims.iter().find(|claim| claim.outcome == Outcome::Refuted) {
-            let path = claim.path.as_ref().map_or_else(String::new, ToString::to_string);
+            let mut path = String::new();
+            if let Some(counterexample) = &claim.path {
+                counterexample.spell(&mut path);
+            }
             panic!("claim {} refuted:\n{path}", claim.name);
         }
-        assert!(self.outcome() == Outcome::Verified, "verification unknown:\n{self}");
+        if self.outcome() != Outcome::Verified {
+            let mut report = String::new();
+            self.spell(&mut report);
+            panic!("verification unknown:\n{report}");
+        }
     }
 }
 
-impl<M: Machine> fmt::Display for Report<M> {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        writeln!(f, "starts: {}", self.counts.starts)?;
-        writeln!(f, "reached: {}", self.counts.reached)?;
-        writeln!(f, "emitted: {}", self.counts.emitted)?;
-        writeln!(f, "evaluated: {}", self.counts.evaluated)?;
-        writeln!(f, "refused: {}", self.counts.refused)?;
-        writeln!(f, "depth: {}", self.counts.depth)?;
-        writeln!(f, "cut: {}", self.counts.cut)?;
-        writeln!(f, "outcome: {}", verdict(self.outcome()))?;
+impl<M: Machine> Spell for Report<M> {
+    fn spell(&self, out: &mut String) {
+        writeln!(out, "starts: {}", self.counts.starts).ok();
+        writeln!(out, "reached: {}", self.counts.reached).ok();
+        writeln!(out, "emitted: {}", self.counts.emitted).ok();
+        writeln!(out, "evaluated: {}", self.counts.evaluated).ok();
+        writeln!(out, "refused: {}", self.counts.refused).ok();
+        writeln!(out, "depth: {}", self.counts.depth).ok();
+        writeln!(out, "cut: {}", self.counts.cut).ok();
+        out.push_str("outcome: ");
+        self.outcome().spell(out);
+        out.push('\n');
         for claim in &self.claims {
-            writeln!(f, "claim {}: {}", claim.name, verdict(claim.outcome))?;
+            write!(out, "claim {}: ", claim.name).ok();
+            claim.outcome.spell(out);
+            out.push('\n');
             for hole in &claim.holes {
-                writeln!(f, "hole {}: {hole}", claim.name)?;
+                writeln!(out, "hole {}: {hole}", claim.name).ok();
             }
             if let Some(failure) = claim.path.as_ref().and_then(|path| path.failure.as_ref()) {
-                writeln!(f, "failure {}: {failure}", claim.name)?;
+                writeln!(out, "failure {}: {failure}", claim.name).ok();
             }
         }
         if self.warnings.is_empty() {
-            writeln!(f, "vacuity: none")?;
+            writeln!(out, "vacuity: none").ok();
         }
         for warning in &self.warnings {
-            writeln!(f, "vacuity: {warning}")?;
+            writeln!(out, "vacuity: {warning}").ok();
         }
-        Ok(())
-    }
-}
-
-fn verdict(outcome: Outcome) -> &'static str {
-    match outcome {
-        Outcome::Verified => "verified",
-        Outcome::Refuted => "refuted",
-        Outcome::Unknown => "unknown",
     }
 }

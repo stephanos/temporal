@@ -4,7 +4,7 @@ use std::collections::BTreeSet;
 
 use proptest::prelude::*;
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Hole, Machine, Outcome, StepClaim, Steps, Verdict};
+use umpire_dsl::{Claim, Hole, Machine, Outcome, Spell, StepClaim, Steps, Verdict};
 
 #[derive(Clone, Debug)]
 struct Rule {
@@ -25,6 +25,14 @@ struct World {
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Action(usize);
+
+impl Spell for Action {
+    fn spell(&self, out: &mut String) {
+        out.push_str("Action { 0: ");
+        self.0.spell(out);
+        out.push_str(" }");
+    }
+}
 
 impl Machine for World {
     type State = [u8; 3];
@@ -201,15 +209,15 @@ proptest! {
     #[test]
     fn brute_force_oracle(world in worlds()) {
         let expected = reference(&world);
-        let actual = Checker::explore(&world, 27);
+        let actual = Checker::explore(&world, 27)?;
         prop_assert_eq!(actual.states().map(|(_, s)| *s).collect::<BTreeSet<_>>(), expected.reached);
-        let report = actual.verify_all();
+        let report = actual.verify_all()?;
         prop_assert_eq!(report.claims.iter().map(|c| (c.name.as_str(), c.outcome)).collect::<Vec<_>>(), expected.outcomes);
         prop_assert_eq!(actual.counts.emitted, expected.edges.len());
         prop_assert_eq!(actual.counts.evaluated, actual.counts.reached * world.actions.len());
         prop_assert!(!actual.counts.cut);
         for (id, state) in actual.states() {
-            let rows: Vec<_> = actual.rows(id).map(|edge| (edge.action.0, edge.choice, edge.emitted.2)).collect();
+            let rows: Vec<_> = actual.rows(id)?.map(|edge| (edge.action.0, edge.choice, edge.emitted.2)).collect();
             let wanted: Vec<_> = expected.edges.iter().filter(|(before, _, _, _)| before == state)
                 .map(|(_, action, choice, after)| (*action, *choice, *after)).collect();
             prop_assert_eq!(rows, wanted);

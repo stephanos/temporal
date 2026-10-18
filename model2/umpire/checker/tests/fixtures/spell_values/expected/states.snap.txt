@@ -1,0 +1,2 @@
+0: State { value: Option::None }
+1: State { value: Option::Some { 0: (1, true) } }

@@ -1,12 +1,13 @@
-use std::fmt;
-use umpire_dsl::{Claim, Hole, Machine, StepClaim, Steps, Verdict};
+use umpire_dsl::{Claim, Hole, Machine, Spell, StepClaim, Steps, Verdict};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub(crate) struct Value(u8);
 
-impl fmt::Display for Value {
-    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
-        write!(f, "state={}", self.0)
+impl Spell for Value {
+    fn spell(&self, out: &mut String) {
+        out.push_str("Value { 0: ");
+        self.0.spell(out);
+        out.push_str(" }");
     }
 }
 
@@ -16,6 +17,17 @@ pub(crate) enum Action {
     Reset,
     Idle,
     Unused,
+}
+
+impl Spell for Action {
+    fn spell(&self, out: &mut String) {
+        out.push_str(match self {
+            Self::Advance => "Action::Advance",
+            Self::Reset => "Action::Reset",
+            Self::Idle => "Action::Idle",
+            Self::Unused => "Action::Unused",
+        });
+    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

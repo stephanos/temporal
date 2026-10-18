@@ -1,19 +1,19 @@
-use std::{fmt::Debug, hash::Hash};
+use std::hash::Hash;
 
 use smallvec::SmallVec;
 
-use crate::{Claim, Progress, StepClaim};
+use crate::{Claim, Progress, Spell, StepClaim};
 
 /// A world of constants defining a finite state machine and its named claims.
 pub trait Machine: Sized {
     /// The dynamic state, independent of the world's constants.
-    type State: Clone + Eq + Hash;
+    type State: Clone + Eq + Hash + Spell;
     /// The finite action catalog's value type.
-    type Action: Clone + Eq + Hash + Debug;
+    type Action: Clone + Eq + Hash + Spell;
     /// A domain outcome carried by an edge, including rejecting outcomes.
-    type Outcome;
+    type Outcome: Spell;
     /// A domain fact emitted by an edge.
-    type Fact;
+    type Fact: Spell;
 
     /// Enumerates initial states in field order with each domain ascending.
     fn starts(&self) -> Vec<Self::State>;

@@ -5,9 +5,9 @@ evaluated: 12
 refused: 11
 depth: 1
 cut: false
-outcome: verified
-claim safe: verified
-claim choice_facts: verified
-vacuity: action Reset never fired
-vacuity: action Idle never fired
-vacuity: action Unused never fired
+outcome: Outcome::Verified
+claim safe: Outcome::Verified
+claim choice_facts: Outcome::Verified
+vacuity: action Action::Reset never fired
+vacuity: action Action::Idle never fired
+vacuity: action Action::Unused never fired

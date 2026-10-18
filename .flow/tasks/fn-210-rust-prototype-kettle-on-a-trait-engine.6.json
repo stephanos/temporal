@@ -5,7 +5,8 @@
   "created_at": "2026-10-18T19:34:15.473075Z",
   "depends_on": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine.3",
-    "fn-210-rust-prototype-kettle-on-a-trait-engine.5"
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.5",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.13"
   ],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.6",
   "priority": 3,
@@ -13,5 +14,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.6.md",
   "status": "todo",
   "title": "Kettle in surface C with its test; parity with the Scala suite",
-  "updated_at": "2026-10-18T20:41:32.794231Z"
+  "updated_at": "2026-10-18T20:47:59.366820Z"
 }

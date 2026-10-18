@@ -1,1 +1,1 @@
-refused: state budget must be at least one
+refused: state budget must be at least one (given: 0)

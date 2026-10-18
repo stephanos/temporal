@@ -1,0 +1,32 @@
+false: false
+true: true
+i8: -128
+i16: -32768
+i32: -2147483648
+i64: -9223372036854775808
+i128: -170141183460469231731687303715884105728
+isize: -42
+u8: 255
+u16: 65535
+u32: 4294967295
+u64: 18446744073709551615
+u128: 340282366920938463463374607431768211455
+usize: 42
+verified: Outcome::Verified
+refuted: Outcome::Refuted
+unknown: Outcome::Unknown
+none: Option::None
+some: Option::Some { 0: (true, -3) }
+nested: Option::Some { 0: Option::None }
+unit: ()
+singleton: (1,)
+tuple: (false, -1, Option::Some { 0: true })
+wide_tuple: (0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11)
+str: "quote: \" slash: \\ newline: \n carriage: \r tab: \t nul: \0 control: \u{1b} unicode: é"
+string: "owned"
+char: '\''
+slice: [true, false]
+vec: [Option::Some { 0: 1 }, Option::None]
+array: [1, 2, 3]
+empty: []
+reference: 42

@@ -5,7 +5,7 @@ evaluated: 12
 refused: 8
 depth: 2
 cut: false
-outcome: refuted
-claim safe: refuted
+outcome: Outcome::Refuted
+claim safe: Outcome::Refuted
 failure safe: claim safe panicked: broken invariant
-vacuity: action Unused never fired
+vacuity: action Action::Unused never fired

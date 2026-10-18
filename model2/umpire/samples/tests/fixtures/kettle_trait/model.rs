@@ -1,4 +1,4 @@
-use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
+use umpire_dsl::{Claim, Machine, Progress, Scope, Spell, StepClaim, Steps};
 
 #[allow(clippy::unnecessary_wraps, reason = "fixture producers share a fallible runner signature")]
 pub(crate) fn run() -> umpire_testing::RunResult {
@@ -25,6 +25,29 @@ pub enum Act {
     UserDepressButton,
     HeaterHeat,
     HeaterFailover,
+}
+
+impl Spell for Kettle {
+    fn spell(&self, out: &mut String) {
+        out.push_str("Kettle { temperature: ");
+        self.temperature.spell(out);
+        out.push_str(", heating_on: ");
+        self.heating_on.spell(out);
+        out.push_str(", beeping: ");
+        self.beeping.spell(out);
+        out.push_str(" }");
+    }
+}
+
+impl Spell for Act {
+    fn spell(&self, out: &mut String) {
+        out.push_str(match self {
+            Self::UserPressButton => "Act::UserPressButton",
+            Self::UserDepressButton => "Act::UserDepressButton",
+            Self::HeaterHeat => "Act::HeaterHeat",
+            Self::HeaterFailover => "Act::HeaterFailover",
+        });
+    }
 }
 
 impl Machine for KettleWorld {

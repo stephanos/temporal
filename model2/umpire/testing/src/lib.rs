@@ -22,15 +22,18 @@ pub type Fixture = (&'static str, fn() -> RunResult);
 macro_rules! fixture {
     ($world:expr, $budget:expr) => {
         pub(crate) fn run() -> $crate::RunResult {
-            Ok($crate::render(&$crate::Checker::explore(&$world, $budget)))
+            Ok($crate::render(&$crate::Checker::explore(&$world, $budget)?)?)
         }
     };
     ($world:expr, $budget:expr, $negative:expr) => {
         pub(crate) fn run() -> $crate::RunResult {
-            let mut files = $crate::render(&$crate::Checker::explore(&$world, $budget));
-            let negative = $crate::Checker::refuted(&$world, $negative);
-            files.insert("negative_report.txt".into(), negative.verify_all().to_string());
-            $crate::add_paths(&mut files, negative.verify_all());
+            let mut files = $crate::render(&$crate::Checker::explore(&$world, $budget)?)?;
+            let negative = $crate::Checker::refuted(&$world, $negative)?;
+            let report = negative.verify_all()?;
+            let mut text = String::new();
+            $crate::Spell::spell(&report, &mut text);
+            files.insert("negative_report.txt".into(), text);
+            $crate::add_paths(&mut files, report);
             Ok(files)
         }
     };
@@ -38,3 +41,6 @@ macro_rules! fixture {
 
 #[doc(hidden)]
 pub use umpire_checker::Checker;
+
+#[doc(hidden)]
+pub use umpire_dsl::Spell;

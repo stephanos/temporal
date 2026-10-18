@@ -4,9 +4,11 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use umpire_dsl::{Claim, Machine, Outcome, Step, StepClaim, Verdict};
+use umpire_dsl::{Claim, Machine, Outcome, Spell, Step, StepClaim, Verdict};
 
-use crate::{ClaimResult, FullStates, Path, PathStep, Report, StateId, Visited, report::aggregate};
+use crate::{
+    ClaimResult, FullStates, Path, PathStep, Refusal, Report, StateId, Visited, report::aggregate,
+};
 
 /// Work observed during an exploration; disabled actions emit no edge.
 #[derive(Clone, Copy, Debug, Default, PartialEq, Eq)]
@@ -59,21 +61,32 @@ pub struct Result<M: Machine> {
 impl Checker {
     /// Explores ordered starts with a shared visited set and FIFO action/choice expansion.
     ///
-    /// # Panics
-    /// Panics if `budget` is zero. The budget limits admitted states, not edge evaluations.
-    pub fn explore<M: Machine>(world: &M, budget: usize) -> Result<M> {
+    /// The budget limits admitted states, not edge evaluations; zero is refused.
+    pub fn explore<M: Machine>(
+        world: &M,
+        budget: usize,
+    ) -> std::result::Result<Result<M>, Refusal> {
         Self::explore_claims(world, budget, &world.invariants())
     }
 
     /// Checks an additional state predicate with the default million-state budget.
-    pub fn refuted<M: Machine>(world: &M, claim: Claim<M>) -> Result<M> {
+    pub fn refuted<M: Machine>(
+        world: &M,
+        claim: Claim<M>,
+    ) -> std::result::Result<Result<M>, Refusal> {
         let mut invariants = world.invariants();
         invariants.push(claim);
         Self::explore_claims(world, 1 << 20, &invariants)
     }
 
-    fn explore_claims<M: Machine>(world: &M, budget: usize, invariants: &[Claim<M>]) -> Result<M> {
-        assert!(budget > 0, "state budget must be at least one");
+    fn explore_claims<M: Machine>(
+        world: &M,
+        budget: usize,
+        invariants: &[Claim<M>],
+    ) -> std::result::Result<Result<M>, Refusal> {
+        if budget == 0 {
+            return Err(Refusal::Budget { given: budget });
+        }
         let postconditions = world.postconditions();
         let actions = world.actions();
         let mut result = Result {
@@ -106,8 +119,10 @@ impl Checker {
                     Ok(choices) => choices,
                     Err(error) => {
                         let mut path = result.path(source);
+                        let mut action_text = String::new();
+                        action.spell(&mut action_text);
                         path.failure = Some(format!(
-                            "action {action:?} panicked: {}",
+                            "action {action_text} panicked: {}",
                             panic_message(error.as_ref())
                         ));
                         result.claims.push(ClaimResult {
@@ -162,7 +177,7 @@ impl Checker {
             cursor += 1;
         }
         result.finish(&actions, &postconditions, &fired, &triggered);
-        result
+        Ok(result)
     }
 }
 
@@ -213,7 +228,9 @@ impl<M: Machine> Result<M> {
         }
         for (index, action) in actions.iter().enumerate() {
             if !fired.contains(index) {
-                self.warnings.push(format!("action {action:?} never fired"));
+                let mut action_text = String::new();
+                action.spell(&mut action_text);
+                self.warnings.push(format!("action {action_text} never fired"));
             }
         }
         for (index, claim) in postconditions.iter().enumerate() {
@@ -228,13 +245,23 @@ impl<M: Machine> Result<M> {
     }
 
     /// Emitted rows for one state in catalog/choice order, including repeated destinations.
-    pub fn rows(&self, state: StateId) -> impl Iterator<Item = &Transition<M>> {
-        self.transitions.iter().filter(move |edge| edge.source == state)
+    pub fn rows(
+        &self,
+        state: StateId,
+    ) -> std::result::Result<impl Iterator<Item = &Transition<M>>, Refusal> {
+        if self.visited.get(state).is_none() {
+            return Err(Refusal::State { given: state.0 });
+        }
+        Ok(self.transitions.iter().filter(move |edge| edge.source == state))
     }
 
     /// Returns safety/step claims and diagnostics without re-running model code.
-    pub fn verify_all(&self) -> Report<M> {
-        Report { counts: self.counts, claims: self.claims.clone(), warnings: self.warnings.clone() }
+    pub fn verify_all(&self) -> std::result::Result<Report<M>, Refusal> {
+        Ok(Report {
+            counts: self.counts,
+            claims: self.claims.clone(),
+            warnings: self.warnings.clone(),
+        })
     }
 
     /// The aggregate safety verdict for this exploration.
