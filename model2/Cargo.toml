@@ -12,8 +12,8 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
-framework-dsl = { path = "framework/dsl" }
-framework-checker = { path = "framework/checker" }
+framework-dsl = { version = "0.0.1", path = "framework/dsl" }
+framework-checker = { version = "0.0.1", path = "framework/checker" }
 
 # Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.
 indexmap = "2.14"

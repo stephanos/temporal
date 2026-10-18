@@ -33,8 +33,8 @@ Bank and Voting or stopping, and that recommendation decides what is un-deferred
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Rust prototype (now) | fn-210.1 → .2 → .3, with .4 → .5 in parallel after .1, then .6 → .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
-| After the recommendation | decided by fn-210.7 | Either extend to Bank and Voting and re-plan the deferred specs in Rust terms, or close fn-210 with its evidence and resume the Scala phases |
+| Rust prototype (now) | fn-210.1 → .2 → .3, with .4 → .5 in parallel after .1, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
+| After the recommendation | decided by fn-210.7 | Either grow the Rust DSL one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through checker, TLA and Case together, with real Testpilot starting on the mini activity; or close fn-210 with its evidence and resume the Scala phases |
 
 ## Specs
 
@@ -62,7 +62,11 @@ recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-1
 (visited set and state ids), `petgraph` (SCCs for progress), `smallvec`, `rustc-hash`, `fixedbitset`,
 `enum-iterator`, `imbl`, `thiserror`, the `syn` 3 macro stack with `darling`, `manyhow` and
 `prettyplease`, and `insta`, `trybuild`, `proptest`; unmaintained alternatives are banned in
-`deny.toml`. Gate: `make model2-check`; update goldens with `make model2-update`.
+`deny.toml`. Vertical before broad (owner, 2026-10-18): before the write-up, two thin slices test
+the reasons Rust is on the table: Kettle lifted from the macro's tokens to TLA+ and agreeing with TLC
+on all 283 states (R19), and the checker compiled to wasm and driven from a Go host through
+wasmtime-go, matching the Rust goldens byte for byte (R20). Gate: `make model2-check`; update
+goldens with `make model2-update`.
 [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 | Name | Status | What |
@@ -73,7 +77,9 @@ recorded for Bank. Dependencies come from an admitted list (R18, owner 2026-10-1
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface with its test; parity with the Scala suite (R6) |
-| fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md`: authoring, size, speed, tooling comparison and the recommendation; then delete `samples/options/` (R7) |
+| fn-210.8 | ⬜ todo | After .6: slice 1, `framework-lift` from recorded tokens to TLA+, `framework-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
+| fn-210.9 | ⬜ todo | After .6: slice 2, `framework-wasm` exports driven by a wasmtime-go host in `model2/hosts/go`; report and rows byte-identical to the goldens; size and latency measured (R20) |
+| fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md`: authoring, size, speed, tooling, lifting and hosting comparison and the recommendation; then delete `samples/options/` (R7) |
 
 ## Open for the owner
 
