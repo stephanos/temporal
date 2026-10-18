@@ -1,10 +1,12 @@
 //! Independent finite-universe closure oracle for small generated worlds.
 
-use std::collections::BTreeSet;
+use std::collections::{BTreeSet, VecDeque};
 
 use proptest::prelude::*;
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Hole, Machine, Outcome, Spell, StepClaim, Steps, Verdict};
+use umpire_dsl::{
+    Claim, Hole, Machine, Outcome, Progress, Scope, Spell, StepClaim, Steps, Verdict,
+};
 
 #[derive(Clone, Debug)]
 struct Rule {
@@ -12,6 +14,7 @@ struct Rule {
     guard_value: u8,
     effect_var: usize,
     increments: Vec<u8>,
+    internal: bool,
 }
 
 #[derive(Clone, Debug)]
@@ -21,6 +24,9 @@ struct World {
     actions: Vec<Rule>,
     forbidden: [u8; 3],
     hole: [u8; 3],
+    excluded: u8,
+    trigger: u32,
+    target: u32,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -46,8 +52,8 @@ impl Machine for World {
     fn actions(&self) -> Vec<Action> {
         (0..self.actions.len()).map(Action).collect()
     }
-    fn internal(&self, _: &Action) -> bool {
-        false
+    fn internal(&self, action: &Action) -> bool {
+        self.actions[action.0].internal
     }
     fn step(&self, state: &Self::State, action: Action) -> Steps<Self::State, bool, usize> {
         let rule = &self.actions[action.0];
@@ -86,6 +92,23 @@ impl Machine for World {
             }),
         ]
     }
+    fn progress(&self) -> Vec<Progress<Self>> {
+        vec![
+            Progress::<Self>::new("eventually_target")
+                .whenever(|world, state| member(world.trigger, *state).into())
+                .eventually(|world, state| member(world.target, *state).into())
+                .within(Scope::without(
+                    &(0..self.actions.len())
+                        .filter(|action| self.excluded & (1 << action) != 0)
+                        .map(Action)
+                        .collect::<Vec<_>>(),
+                )),
+        ]
+    }
+}
+
+fn member(set: u32, state: [u8; 3]) -> bool {
+    set & (1 << (state[0] + 3 * state[1] + 9 * state[2])) != 0
 }
 
 fn worlds() -> impl Strategy<Value = World> {
@@ -93,13 +116,22 @@ fn worlds() -> impl Strategy<Value = World> {
         prop::collection::vec(2u8..=3, 2..=3),
         prop::collection::vec(any::<[u8; 3]>(), 1..=3),
         prop::collection::vec(
-            (0usize..3, any::<u8>(), 0usize..3, prop::collection::vec(0u8..=2, 1..=2)),
+            (
+                0usize..3,
+                any::<u8>(),
+                0usize..3,
+                prop::collection::vec(0u8..=2, 1..=2),
+                any::<bool>(),
+            ),
             2..=4,
         ),
         any::<[u8; 3]>(),
         any::<[u8; 3]>(),
+        any::<u8>(),
+        0u32..(1 << 27),
+        0u32..(1 << 27),
     )
-        .prop_map(|(domains, starts, rules, forbidden, hole)| {
+        .prop_map(|(domains, starts, rules, forbidden, hole, excluded, trigger, target)| {
             let normalize = |mut values: [u8; 3]| {
                 for (index, value) in values.iter_mut().enumerate() {
                     *value = domains.get(index).map_or(0, |d| *value % d);
@@ -110,28 +142,94 @@ fn worlds() -> impl Strategy<Value = World> {
                 starts: starts.into_iter().map(normalize).collect(),
                 actions: rules
                     .into_iter()
-                    .map(|(guard_var, guard_value, effect_var, increments)| {
+                    .map(|(guard_var, guard_value, effect_var, increments, internal)| {
                         let guard_var = guard_var % domains.len();
                         Rule {
                             guard_var,
                             guard_value: guard_value % domains[guard_var],
                             effect_var: effect_var % domains.len(),
                             increments,
+                            internal,
                         }
                     })
                     .collect(),
                 forbidden: normalize(forbidden),
                 hole: normalize(hole),
+                excluded,
+                trigger,
+                target,
                 domains,
             }
         })
 }
 
+type Edge = ([u8; 3], usize, usize, [u8; 3]);
+
 #[derive(Debug)]
 struct Reference {
     reached: BTreeSet<[u8; 3]>,
     outcomes: Vec<(&'static str, Outcome)>,
-    edges: Vec<([u8; 3], usize, usize, [u8; 3])>,
+    edges: Vec<Edge>,
+}
+
+fn progress_fails(world: &World, reached: &BTreeSet<[u8; 3]>, edges: &[Edge]) -> bool {
+    let scoped: Vec<_> =
+        edges.iter().filter(|(_, action, _, _)| world.excluded & (1 << action) == 0).collect();
+    let mut pending: BTreeSet<_> = reached
+        .iter()
+        .filter(|state| member(world.trigger, **state) && !member(world.target, **state))
+        .copied()
+        .collect();
+    loop {
+        let additions: Vec<_> = scoped
+            .iter()
+            .filter(|(before, _, _, after)| {
+                pending.contains(before) && !member(world.target, *after)
+            })
+            .map(|(_, _, _, after)| *after)
+            .collect();
+        let old_len = pending.len();
+        pending.extend(additions);
+        if pending.len() == old_len {
+            break;
+        }
+    }
+    let required = world.actions.iter().enumerate().fold(0u8, |mask, (action, rule)| {
+        if rule.internal && world.excluded & (1 << action) == 0 {
+            mask | (1 << action)
+        } else {
+            mask
+        }
+    });
+    let disabled = |state: &[u8; 3]| {
+        scoped
+            .iter()
+            .filter(|(before, _, _, _)| before == state)
+            .fold(required, |mask, (_, action, _, _)| mask & !(1 << action))
+    };
+    for entry in pending {
+        if !scoped.iter().any(|(before, _, _, _)| *before == entry) {
+            return true;
+        }
+        let initial = (entry, disabled(&entry));
+        let mut seen = BTreeSet::from([initial]);
+        let mut queue = VecDeque::from([initial]);
+        while let Some((state, mask)) = queue.pop_front() {
+            for (_, action, _, after) in scoped
+                .iter()
+                .filter(|(before, _, _, after)| *before == state && !member(world.target, *after))
+            {
+                let next_mask = mask | disabled(after) | (required & (1 << action));
+                if *after == entry && next_mask == required {
+                    return true;
+                }
+                if seen.insert((*after, next_mask)) {
+                    queue.push_back((*after, next_mask));
+                }
+            }
+        }
+    }
+    false
 }
 
 fn reference(world: &World) -> Reference {
@@ -198,6 +296,7 @@ fn reference(world: &World) -> Reference {
                 ),
             ),
             ("choice_facts", Outcome::Verified),
+            ("eventually_target", outcome(progress_fails(world, &reached, &edges))),
         ],
         reached,
         edges,
@@ -223,6 +322,9 @@ proptest! {
             prop_assert_eq!(rows, wanted);
         }
         for claim in report.claims {
+            if claim.name == "eventually_target" {
+                prop_assert_eq!(claim.path.is_some(), claim.outcome == Outcome::Refuted);
+            }
             if let Some(path) = claim.path {
                 prop_assert!(world.starts.contains(&path.start));
                 let mut before = path.start;
@@ -231,6 +333,38 @@ proptest! {
                     before = step.after;
                 }
                 if claim.name == "not_forbidden" { prop_assert_eq!(before, world.forbidden); }
+                if claim.name == "eventually_target" {
+                    prop_assert!(path.failure.is_none());
+                    let states: Vec<_> = std::iter::once(path.start)
+                        .chain(path.steps.iter().map(|step| step.after)).collect();
+                    let suffix_end = path.cycle_start.unwrap_or(path.steps.len());
+                    prop_assert!(suffix_end <= path.steps.len());
+                    prop_assert!((0..=suffix_end).any(|trigger| {
+                        member(world.trigger, states[trigger])
+                            && states[trigger..].iter().all(|state| !member(world.target, *state))
+                            && path.steps[trigger..].iter()
+                                .all(|step| world.excluded & (1 << step.action.0) == 0)
+                    }), "progress witness contains a trigger and scoped target-avoiding suffix");
+                    if let Some(cycle) = path.cycle_start {
+                        prop_assert!(cycle < path.steps.len());
+                        prop_assert_eq!(before, states[cycle]);
+                        for (action, rule) in world.actions.iter().enumerate() {
+                            if rule.internal && world.excluded & (1 << action) == 0 {
+                                prop_assert!(path.steps[cycle..].iter()
+                                    .any(|step| step.action.0 == action)
+                                    || states[cycle..path.steps.len()].iter().any(|state| {
+                                        !expected.edges.iter().any(|(source, candidate, _, _)| {
+                                            source == state && *candidate == action
+                                        })
+                                }), "cycle satisfies each internal action's weak fairness");
+                            }
+                        }
+                    } else {
+                        prop_assert!(!expected.edges.iter().any(|(source, action, _, _)| {
+                            *source == before && world.excluded & (1 << action) == 0
+                        }), "finite progress witness ends at a scoped dead end");
+                    }
+                }
             }
         }
     }

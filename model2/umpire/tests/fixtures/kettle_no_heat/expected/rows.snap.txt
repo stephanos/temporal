@@ -1,0 +1,2 @@
+0: Act::UserPressButton choice=0 outcome=() facts=[] -> Kettle { temperature: 20, heating_on: true, beeping: false }
+1: Act::UserDepressButton choice=0 outcome=() facts=[] -> Kettle { temperature: 20, heating_on: false, beeping: false }

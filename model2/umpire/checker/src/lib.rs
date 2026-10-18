@@ -1,6 +1,7 @@
-//! Breadth-first exploration and safety claims over finite machines.
+//! Breadth-first exploration, safety claims and fair progress over finite machines.
 
 mod explore;
+mod progress;
 mod refusal;
 mod report;
 mod visited;

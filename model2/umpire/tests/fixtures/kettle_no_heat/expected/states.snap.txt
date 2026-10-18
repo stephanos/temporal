@@ -1,0 +1,2 @@
+0: Kettle { temperature: 20, heating_on: false, beeping: false }
+1: Kettle { temperature: 20, heating_on: true, beeping: false }

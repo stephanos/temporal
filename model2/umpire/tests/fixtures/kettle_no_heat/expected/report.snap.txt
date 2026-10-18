@@ -1,0 +1,11 @@
+starts: 1
+reached: 2
+emitted: 2
+evaluated: 8
+refused: 6
+depth: 1
+cut: false
+outcome: Outcome::Refuted
+claim boils: Outcome::Refuted
+vacuity: action Act::HeaterHeat never fired
+vacuity: action Act::HeaterFailover never fired

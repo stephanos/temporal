@@ -1,0 +1,6 @@
+prefix:
+start: State { 0: 0 }
+cycle:
+1: Action::Left choice=0 -> State { 0: 1 }
+2: Action::Right choice=0 -> State { 0: 0 }
+repeat cycle

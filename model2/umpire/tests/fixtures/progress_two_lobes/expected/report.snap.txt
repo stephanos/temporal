@@ -1,0 +1,11 @@
+starts: 1
+reached: 4
+emitted: 6
+evaluated: 16
+refused: 10
+depth: 2
+cut: false
+outcome: Outcome::Refuted
+claim reaches_target: Outcome::Refuted
+vacuity: action Action::Enter never fired
+vacuity: action Action::Escape never fired
