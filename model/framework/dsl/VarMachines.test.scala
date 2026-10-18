@@ -220,6 +220,19 @@ class VarMachinesTest extends munit.FunSuite:
     val error = intercept[IllegalStateException](Lamp.effects.refuse())
     assert(error.getMessage.contains("a statement of an effect"), error.getMessage)
 
+  test("a failed nested effect restores the interrupted state and closes its effect frame"):
+    val on = lamp(Lit.on, 2)
+    Lamp.at(on):
+      val error = intercept[IllegalStateException]:
+        Lamp.stateVars.get.step(off, Said.ok):
+          Lamp.light = Lit.broken
+          throw IllegalStateException("nested effect failed")
+      assertEquals(error.getMessage, "nested effect failed")
+      assertEquals((Lamp.light, Lamp.presses: Int), (Lit.on, 2))
+    assertEquals((Lamp.light, Lamp.presses: Int), (Lit.off, 0))
+    assert(framework.checker.VarRuntime.current.isEmpty)
+    assertEquals(run(Lamp, off, hand.press()), List(Step(Said.ok, lamp(Lit.on, 1), List(Note.lit))))
+
   test("derivations share the vars of their source and bind its effects"):
     assertEquals(Brittle.init, off)
     assertEquals(run(Brittle, off, hand.press()), List(Step(Said.ok, lamp(Lit.broken, 0))))

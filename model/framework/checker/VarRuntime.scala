@@ -28,9 +28,13 @@ private[framework] object VarRuntime:
             throw IllegalStateException(s"${vars.machine.name}: ${v.name} has no public accessors")
           )
 
-  private val lives = java.util.concurrent.ConcurrentHashMap[Vars, Live]()
-
-  private def live(vars: Vars): Live = lives.computeIfAbsent(vars, Live(_))
+  private def live(vars: Vars): Live =
+    vars.runtime
+      .getOrElse:
+        val state = Live(vars)
+        vars.runtime = Some(state)
+        state
+      .asInstanceOf[Live] // scalafix:ok DisableSyntax.asInstanceOf
 
   // The state the vars hold before any evaluation: their initialisers.
   def initial(vars: Vars): State = vars.synchronized:

@@ -175,6 +175,24 @@ class ParametricMachinesTest extends munit.FunSuite:
     assertEquals(first("small.typedLedger"), framework.checker.Verdict.verified)
     assertEquals(second("large.typedLedger"), framework.checker.Verdict.verified)
 
+  test("runtime snapshots restore independent owners and refuse exact foreign states"):
+    val small = Model(Address.alice, 1)
+    val large = Model(Address.bob, 2)
+    val initial = small.init
+    val changed = initial.copy(opening = 1)
+    small.at(changed):
+      assertEquals(small.opening, 1)
+      assertEquals(large.at(large.init)(large.opening), 0)
+      assertEquals(small.opening, 1)
+    assertEquals(small.opening, 0)
+    assert(small.init.eq(initial))
+    val error = intercept[IllegalArgumentException](small.at(large.init)(fail("foreign body ran")))
+    assertEquals(
+      error.getMessage,
+      s"${large.init} is a state of another machine than ${small.name}"
+    )
+    assertEquals(large.ledger, Ledger(Map(Address.bob -> 2)))
+
   test("class-owned monitors and progress retain their instance's parameters"):
     val small = Model(Address.alice, 1)
     val large = Model(Address.bob, 2)

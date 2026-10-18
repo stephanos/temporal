@@ -30,9 +30,8 @@ Run after the prerequisite closure is committed on umpire. Use own focused basel
 ### Quick command
 
 ```sh
-timeout 600 env -u BASH_ENV mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only framework.checker.CheckerTest
+timeout 600 env -u BASH_ENV mise exec -- scala-cli test --server=false model/framework/checker --require-tests --test-only checkercontrol.CheckerTest
 ```
-
 ## Acceptance
 - [ ] Initialized-only transient owners are collectible under an observed bounded collection protocol; constructed controls release, and intentionally retained States preserve their owner and initial snapshot.
 - [ ] Nested/exceptional restoration, same-owner synchronization, independent parametric owners and foreign-state refusal retain their current exact behavior.

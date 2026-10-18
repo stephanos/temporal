@@ -175,6 +175,8 @@ final class Vars private[framework] (
     private[framework] val schema: VarSchema,
     private[framework] val children: Vector[Vars] = Vector.empty
 ):
+  private[framework] var runtime = Option.empty[AnyRef]
+
   private[framework] def leaves: Vector[Vars] =
     if children.isEmpty then Vector(this) else children.flatMap(_.leaves)
   def initial: State = NativeRuntime.installed.initial(this)
