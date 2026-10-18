@@ -92,7 +92,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.6 | ⬜ todo | Attribute Kettle with separate User/Heater enums; only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14) |
+| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14) |
 | fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
