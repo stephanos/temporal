@@ -86,9 +86,20 @@ Keep Temporal reads, Go, real repository Make gates, IR/export/lifting/schema/ba
 - [ ] If a required proof fails, record its minimal counterexample and the remaining exact blocker. The proof report can be complete while C remains blocked; its receipt must not claim R4 implementation completion.
 
 ## Done summary
-TBD
+The empirical report is committed at f10ee8b160fdd1c355343ac89e531e6630de2b21. It completes this investigation and fixes the proposed nine-field expectations and immutable declaration contract. Complete realization discovery and executable native capability generation remain failed requirements for C. R4 implementation is incomplete.
 
+Final source and packaged-client controls each pass 28 tests. Each independent completeness oracle exits 1 with exactly two intended semantic failures. Library packaging exits 0. All command handles are joined. The conductor independently checked the existing verifier and complete final-bindings manifest to exit 0 without rerunning compilation or tests. The immutable library SHA-256 is 10b735be051ad15fcc9f5ef11fb502aad509f607a933e717999a8afd6953dae1; final bindings SHA-256 is e7aacf068ae979ed352c2ba9ab4b447d9d4bcc3e885b75d6f983074e161e7e40. Earlier failed attempts remain retained and receive no final aggregate credit.
+
+Two fresh independent quality audits report zero findings on their respective correctness and standards axes. Their verbatim reports and conductor decision are retained at .flow/tmp/fn19510/quality-reports.md. Formal implementation review remains skipped under the owner's explicit phase-batch deferral. A documentation-only audit verdict supplies no formal batch SHIP verdict.
+
+Prerequisite plan commit 21b2fb86af records actual tasks .15 finite-owner/exact-receiver feasibility, .16 ordinary capability-retention/executable-expansion feasibility, .17 native waited-class/checked-coverage implementation and .18 expectation conveniences/shared admission validation. Each follows .10; .11 depends on all four and .9 and remains blocked. Closing .15/.16 reports cannot release .11. The conductor must add and integrate the proved production mechanisms before admitting that conditional integration shell. Raw expectation/copy compatibility stays unchanged; C retains actual consumer and monitor identity checks. Final documentation synchronization stays in .5.
+
+Plan validation passes with 18 tasks, all ten R-IDs covered and zero errors/warnings. Ready follow-ons are independent task surfaces, with one compiler/JVM lane. No product source changed in the report or planning commits. Temporal reads, actual Make/Go, exporter/reify/IR/lifting/schema/backend/generated/regeneration, Case/server and publishing remain held. The separate export compile-only approval question remains unanswered and grants no authority.
+
+Worker handovers remain frozen at .flow/tmp/fn19510/summary.md and evidence.json. Evidence substrate remains .flow/tmp/fn1952-conformance-proof/. Historical Bloop and other-owner worktrees remain untouched.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f10ee8b160fdd1c355343ac89e531e6630de2b21, 21b2fb86af
+- Tests: GATE_SKIPPED:unittest:green-receipt 59bbc513 - baseline reused from prior post-gate pass, env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/run.sh combined-v11 source (joined exit 0; 28 tests), env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/run.sh library-v10 library (joined exit 0), env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/run.sh client-v11 client .flow/tmp/fn1952-conformance-proof/library-v10/proof-library.jar (joined exit 0; 28 tests), env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/run.sh oracle-source-v11 oracle-source (joined expected exit 1; exactly 2 intended semantic failures), env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/run.sh oracle-client-v11 oracle-client .flow/tmp/fn1952-conformance-proof/library-v10/proof-library.jar (joined expected exit 1; exactly 2 intended semantic failures), env -u BASH_ENV bash .flow/tmp/fn1952-conformance-proof/verify.sh (worker and independent conductor exit 0; no suite rerun), sha256sum -c .flow/tmp/fn1952-conformance-proof/final-bindings-v11.sha256 (independent conductor exit 0; every row matches), GATE_SKIPPED:unittest:docs-only - report classified tier-B, planning writes only Flow Markdown/JSON, python3 /home/agent/.codex/scripts/flowctl.py validate --spec fn-195-modelsuite-a-models-test-file-holds-its --coverage --json (valid; 18 tasks; all R-IDs covered; zero errors/warnings), git diff --check (exit 0 after correcting a trailing blank line before plan commit)
 - PRs:
