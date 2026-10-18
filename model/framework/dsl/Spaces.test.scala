@@ -56,6 +56,8 @@ object SpacesFixture:
         alias.client.set
       val scalar = explore(steps = 1):
         model.client.scalar(any)
+      val pinned = explore(steps = 2):
+        model.client.set(left = false, right = false)
 
   class Borrower(instance: Flag, other: Suite) extends ModelSuite(instance):
 
@@ -145,6 +147,17 @@ class SpacesTest extends munit.FunSuite:
       framework.checker.Expectation(1, "enabled", (_: State) => model.enabled)
     )
     assertEquals(found.verdict, Verdict.found)
+    val pinned = suite.explorations.pinned.acquire(model, None)
+    val afterUnspecified = NativeChecker.find(
+      NativeChecker.space(model, pinned.steps, pinned.starts)(pinned.select),
+      horizon = 2,
+      budget = 16
+    )(
+      framework.checker.Expectation(1, "enabled after the pinned step", (_: State) => model.enabled)
+    )
+    assertEquals(afterUnspecified.verdict, Verdict.found)
+    assertEquals(afterUnspecified.path.steps.size, 2)
+    assertEquals(afterUnspecified.path.steps.head.action.values, List(false, false))
     assertEquals(model.enabled, false)
     assert(all.select(2, partial.selectors.head.head))
     val ordinary = RunBody.capture(model):
