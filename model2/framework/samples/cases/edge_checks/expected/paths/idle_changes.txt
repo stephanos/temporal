@@ -1,0 +1,4 @@
+start: state=0
+1: Advance choice=0 -> state=1
+2: Advance choice=0 -> state=2
+3: Idle choice=0 -> state=2

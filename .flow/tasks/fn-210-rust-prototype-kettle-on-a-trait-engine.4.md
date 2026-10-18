@@ -1,7 +1,7 @@
 ---
 satisfies: [R5]
 ---
-# fn-210-rust-prototype-kettle-on-a-trait-engine.4 framework-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]
+# fn-210-rust-prototype-kettle-on-a-trait-engine.4 umpire-dsl-macros: derive(State) with #[starts], derive(Action) with #[internal]
 
 ## Description
 **Deps 2026-10-18 (R18):** proc-macro crate on `syn` 3, `quote`, `proc-macro2`, `darling` 0.24 (attribute parsing) and `manyhow` (multiple errors with spans). `derive(Action)` may delegate enumeration to `enum-iterator`'s `Sequence` (syn 2 duplicate accepted). Expansion goldens: insta snapshots of the derive's implementation function, formatted by `prettyplease`, not macrotest.
@@ -10,11 +10,11 @@ satisfies: [R5]
 
 **Note 2026-10-18 (R8, golden files):** refusals are `trybuild` `.stderr` goldens and the derived output is an insta snapshot formatted by `prettyplease`; no unit tests of the derive.
 
-New proc-macro crate `framework/dsl/macros` re-exported from `framework-dsl`: `#[derive(State)]` adds Clone, Eq, Hash and `fn starts() -> Vec<Self>` from `#[starts(expr)]` field attributes (cartesian over annotated fields, defaults for the rest); `#[derive(Action)]` yields the catalog, names and `internal()` from `#[internal]` variants. Use `syn`, `quote`, `darling`; pin messages with `trybuild`.
+New proc-macro crate `umpire/dsl/macros` re-exported from `umpire-dsl`: `#[derive(State)]` adds Clone, Eq, Hash and `fn starts() -> Vec<Self>` from `#[starts(expr)]` field attributes (cartesian over annotated fields, defaults for the rest); `#[derive(Action)]` yields the catalog, names and `internal()` from `#[internal]` variants. Use `syn`, `quote`, `darling`; pin messages with `trybuild`.
 
-**Files:** model2/framework/dsl/macros/{Cargo.toml,src/lib.rs}, model2/framework/dsl/Cargo.toml, tests/ui/.
+**Files:** model2/umpire/dsl/macros/{Cargo.toml,src/lib.rs}, model2/umpire/dsl/Cargo.toml, tests/ui/.
 
-**Quick commands:** `mise exec -- cargo test -p framework-dsl`
+**Quick commands:** `mise exec -- cargo test -p umpire-dsl`
 ## Acceptance
 - Kettle's struct and enums derive; insta expansion snapshots for `derive(State)` and `derive(Action)` checked in (prettyplease-formatted).
 - `ui/` goldens for a non-range `#[starts]` and a non-unit `#[internal]` variant.

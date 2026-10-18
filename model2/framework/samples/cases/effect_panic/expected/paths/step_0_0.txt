@@ -1,0 +1,2 @@
+start: state=0
+failure: action Advance panicked: broken heater

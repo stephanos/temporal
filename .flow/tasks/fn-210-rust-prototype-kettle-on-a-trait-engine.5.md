@@ -12,9 +12,9 @@ satisfies: [R5]
 
 Attribute macro on an `impl` block: emit the impl unchanged, then a `Machine` impl whose `step` dispatches by `#[on(Action::Variant)]` (a `None` return refuses), whose claim lists collect `#[invariant]` and `#[postcondition(after = …)]` functions by name, and whose progress collects `#[progress(within = …)]`. Compile errors naming the action for a missing or duplicate `#[on]` and for an unknown `after`. Confirm rust-analyzer navigates the impl (record in the write-up).
 
-**Files:** model2/framework/dsl/macros/src/machine.rs, tests/ui/.
+**Files:** model2/umpire/dsl/macros/src/machine.rs, tests/ui/.
 
-**Quick commands:** `mise exec -- cargo test -p framework-dsl`
+**Quick commands:** `mise exec -- cargo test -p umpire-dsl`
 ## Acceptance
 - Attribute output contains the original impl unchanged (insta snapshot of the prettyplease-formatted expansion).
 - trybuild: missing #[on], duplicate #[on], unknown after.

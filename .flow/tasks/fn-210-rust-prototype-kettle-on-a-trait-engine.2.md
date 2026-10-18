@@ -1,9 +1,11 @@
 ---
-satisfies: [R2, R4]
+satisfies: [R2, R4, R8, R11, R14, R16]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.2 framework-checker: BFS explore with budget, invariants per state, postconditions per edge, verify_all, refuted
 
 ## Description
+**Note 2026-10-18 (R21):** the framework is renamed `umpire` (folder `model2/umpire/`, crates `umpire-*`) by fn-210.10 right after this task; keep using the current names until then.
+
 **Deps 2026-10-18 (R18):** visited set = `IndexSet<State, FxBuildHasher>` (`indexmap`, `rustc-hash`): the insertion index is the `StateId`, iteration is discovery order, parents are a `Vec<(StateId, Action)>`; this is the `FullStates` impl of `Visited`. Vacuity tracking uses `fixedbitset`. Dev: `insta`, `proptest`.
 
 **Recut 2026-10-18 (R11, R14, R16):** run each step under `catch_unwind` and refute on panic or overflow with path, action and message; keep order structural (catalog order, ordered starts, FIFO BFS, no hash iteration in output); put the visited set behind `Visited<S>` with a full-state implementation.

@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T20:08:12.495834Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.1",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.2"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.10",
+  "priority": 1,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.10.md",
+  "status": "todo",
+  "title": "Rename model2/framework/ to model2/umpire/ and framework-* crates to umpire-*",
+  "updated_at": "2026-10-18T20:08:12.495834Z"
+}

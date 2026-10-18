@@ -23,7 +23,7 @@ listed here; the previous version of this page, with the Scala phases and the on
 series, is in Flow's history and in the specs themselves.
 
 The prototype lives in `temporal/model2`, a Cargo workspace mirroring `model/framework`'s layout
-(`framework/dsl`, `framework/checker`, `framework/samples`), pinned through `mise.toml`
+(`umpire/dsl`, `umpire/checker`, `umpire/samples` after fn-210.10; `framework/…` until then), pinned through `mise.toml`
 (`rust = "1.99.1"`). Its scope is exactly what `model/framework/samples/Kettle.scala` uses today.
 The authoring-surface options are written out as the same Model seven ways in
 `model2/framework/samples/options/`; the owner chose to build the plain-trait engine first
@@ -33,7 +33,7 @@ Bank and Voting or stopping, and that recommendation decides what is un-deferred
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Rust prototype (now) | fn-210.1 → .2 → .3, with .4 → .5 in parallel after .1, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
+| Rust prototype (now) | fn-210.1 and .2, then the rename .10, then .3 and .4 → .5 in parallel, then .6, then the vertical slices .8 and .9 in parallel, then .7 | Engine on the `Machine` trait with BFS, claims, progress; derive and attribute macros; Kettle in the attribute surface with the Scala suite's questions and the measurement note's counts (81 starts, 283 states, depth 62) as parity; `DESIGN.md` with the comparison and the recommendation |
 | After the recommendation | decided by fn-210.7 | Either grow the Rust DSL one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through checker, TLA and Case together, with real Testpilot starting on the mini activity; or close fn-210 with its evidence and resume the Scala phases |
 
 ## Specs
@@ -71,14 +71,14 @@ goldens with `make model2-update`.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.1 | 🔄 in progress | Reopened for R9–R12: world-based `Machine`, associated state/actions, ordered `Steps`, and tri-state claims; adapt the compilation fixture |
-| fn-210.2 | 🔄 in progress | Checker work preserved while .1 adapts; then BFS, panic paths, unknown holes, deterministic goldens, the oracle property test, and the visited-state seam (R2, R4, R8, R11, R14, R16) |
+| fn-210.2 | 🔄 in progress | World-based BFS, panic paths, unknown holes, deterministic goldens, the oracle property test, and the IndexSet visited-state seam (R2, R4, R8, R11, R14, R16, R18) |
+| fn-210.10 | ⬜ todo | After .1/.2: rename `model2/framework/` to `model2/umpire/` and the crates `framework-*` to `umpire-*`; gate passes, goldens unchanged (R21) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface with its test; parity with the Scala suite (R6) |
-| fn-210.8 | ⬜ todo | After .6: slice 1, `framework-lift` from recorded tokens to TLA+, `framework-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
-| fn-210.9 | ⬜ todo | After .6: slice 2, `framework-wasm` exports driven by a wasmtime-go host in `model2/hosts/go`; report and rows byte-identical to the goldens; size and latency measured (R20) |
+| fn-210.8 | ⬜ todo | After .6: slice 1, `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` runner, agreement with the checker's 283 states as goldens (R19) |
+| fn-210.9 | ⬜ todo | After .6: slice 2, `umpire-wasm` exports driven by a wasmtime-go host in `model2/hosts/go`; report and rows byte-identical to the goldens; size and latency measured (R20) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md`: authoring, size, speed, tooling, lifting and hosting comparison and the recommendation; then delete `samples/options/` (R7) |
 
 ## Open for the owner

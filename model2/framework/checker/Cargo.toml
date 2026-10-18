@@ -12,3 +12,9 @@ workspace = true
 
 [dependencies]
 framework-dsl.workspace = true
+indexmap.workspace = true
+rustc-hash.workspace = true
+fixedbitset.workspace = true
+
+[dev-dependencies]
+proptest.workspace = true

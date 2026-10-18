@@ -10,9 +10,9 @@ satisfies: [R3]
 
 Implement progress checking over the explored graph restricted to the scope's action set: from every state where `whenever` holds, every fair path reaches a state where `eventually` holds; weak fairness on internal steps; a refutation is a lasso (prefix plus cycle) or a dead end. Verify Kettle's `boils` within `without(DepressButton)`; refute it on a control Model whose heater never fires.
 
-**Files:** model2/framework/checker/src/progress.rs, tests.
+**Files:** model2/umpire/checker/src/progress.rs, tests.
 
-**Quick commands:** `mise exec -- cargo test -p framework-checker -p samples`
+**Quick commands:** `mise exec -- cargo test -p umpire-checker -p samples`
 ## Acceptance
 - Kettle's `report.txt` lists `boils` verified; the control case's golden holds the lasso (prefix and cycle marked).
 - The oracle test covers progress.

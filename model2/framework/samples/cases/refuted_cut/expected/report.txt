@@ -1,0 +1,12 @@
+starts: 1
+reached: 1
+emitted: 1
+evaluated: 1
+refused: 0
+depth: 0
+cut: true
+outcome: refuted
+claim safe: refuted
+vacuity: action Reset never fired
+vacuity: action Idle never fired
+vacuity: action Unused never fired

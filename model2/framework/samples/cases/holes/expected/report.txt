@@ -1,0 +1,13 @@
+starts: 1
+reached: 3
+emitted: 4
+evaluated: 12
+refused: 8
+depth: 2
+cut: false
+outcome: unknown
+claim safe: unknown
+hole safe: temperature unavailable
+claim edge_hole: unknown
+hole edge_hole: edge unavailable
+vacuity: action Unused never fired

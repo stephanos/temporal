@@ -1,0 +1,10 @@
+starts: 2
+reached: 3
+emitted: 4
+evaluated: 12
+refused: 8
+depth: 1
+cut: false
+outcome: verified
+claim safe: verified
+vacuity: action Unused never fired

@@ -1,0 +1,12 @@
+starts: 1
+reached: 3
+emitted: 4
+evaluated: 12
+refused: 8
+depth: 2
+cut: false
+outcome: refuted
+claim safe: verified
+claim panicking_edge: refuted
+failure panicking_edge: claim panicking_edge panicked: broken postcondition
+vacuity: action Unused never fired

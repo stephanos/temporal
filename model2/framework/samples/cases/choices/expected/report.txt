@@ -1,0 +1,13 @@
+starts: 1
+reached: 3
+emitted: 3
+evaluated: 12
+refused: 11
+depth: 1
+cut: false
+outcome: verified
+claim safe: verified
+claim choice_facts: verified
+vacuity: action Reset never fired
+vacuity: action Idle never fired
+vacuity: action Unused never fired

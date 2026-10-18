@@ -1,0 +1,3 @@
+0: Advance choice=0 outcome=false facts=["rejected"] -> state=2
+0: Advance choice=1 outcome=true facts=["accepted"] -> state=1
+0: Advance choice=2 outcome=false facts=["same_target"] -> state=1
