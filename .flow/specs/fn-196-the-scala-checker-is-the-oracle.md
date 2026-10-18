@@ -135,7 +135,7 @@ already answers the samples). [inferred]
 
 | Req | Description | Task(s) | Gap justification |
 | --- | --- | --- | --- |
-| R1 | The Scala checker lives in a module outside `framework.dsl` with the public questions in API Contracts and one `Result` shape carrying verdict, budget, completion and the path or failing line; `framework.dsl` executes nothing. Errors: as in API Contracts. | fn-196.1 | — |
+| R1 | The Scala checker lives in a module outside `framework.dsl` with the public questions in API Contracts and one `Result` shape carrying verdict, budget, completion and the path or failing line; `framework.dsl` executes nothing. Errors: as in API Contracts. | fn-196.1, fn-196.2 | — |
 | R2 | `verifyAll` reports vacuity (actions never fired, postconditions never triggered) in fn-190 R15's shapes, and the budget comes from the gate's configuration with per-suite overrides. Errors: an override naming no suite is a configuration error. | fn-196.2 | — |
 | R3 | `replay`, `find` with a horizon, `sample` with a seed and `refuted` exist and are what fn-195's sections call; `sample` with one seed replays the same paths twice. Errors: as in API Contracts. | fn-196.2 | — |
 | R4 | A design note in `model/design` records time and live heap for the largest available graphs and a go or no-go on deleting the Go check, with the lowering location decided in the same note. Errors: the note is not optional; a no-go keeps the Go check and reopens this spec's Boundaries. | fn-196.3 | — |
