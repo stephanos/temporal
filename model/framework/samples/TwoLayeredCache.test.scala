@@ -369,6 +369,13 @@ class TwoLayeredCacheTest extends munit.FunSuite:
     val stale = assertRefuted(WriteThroughL1, Model.monitors.readAfterWrite)
     assertEquals(stale.detail, Vector("counterexample: write, l1Expire, read"))
     assertEquals(stale.subject, "writeThroughL1.readAfterWrite")
+    val ordinary = framework.checker.Checker.refuted(WriteThroughL1, Model.monitors.readAfterWrite)
+    assertEquals(ordinary.verdict, framework.checker.Verdict.refuted)
+    assertEquals(
+      ordinary.path.steps.map(s => NativeCheck.shown(s.action)),
+      Vector("write", "l1Expire", "read")
+    )
+    assertEquals(ordinary.path, stale.path)
 
 object TwoLayeredCacheControls:
   import samples.TwoLayeredCache.*

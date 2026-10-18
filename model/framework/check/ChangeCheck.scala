@@ -216,6 +216,7 @@ final class ChangeCheck(
       case _            => "no test count printed"
 
   def run(scope: Scope): Unit =
+    val testing = tools.withCheckerBudgets(registry.declared(root).map(_.name).toSet)
     val features = scope.features
     val sources = ModelSources(
       root,
@@ -336,7 +337,7 @@ final class ChangeCheck(
           s"scala-cli run --test <${module.name}> --main-class org.junit.runner.JUnitCore -- " +
             suites.mkString(" ")
         ):
-          val result = tools.scalaCli(arguments, Output.Logged(logOf(title)))
+          val result = testing.scalaCli(arguments, Output.Logged(logOf(title)))
           val (exit, output, verdict) = ran(result, "passed")
           (exit, output, s"$verdict: ${counts(output)}")
     if scope.suites.exists(

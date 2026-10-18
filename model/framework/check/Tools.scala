@@ -7,6 +7,7 @@ package framework.check
 import java.io.File
 import java.nio.file.{Files, Path}
 import scala.jdk.CollectionConverters.*
+import framework.checker.BudgetPolicy
 
 // A missing tool or a failed run. The message names the tool.
 final class ToolError(message: String) extends Exception(message)
@@ -76,6 +77,13 @@ final class Tools(val directory: Path, environment: Map[String, String]):
         s"$name=$value"
 
   def withEnvironment(more: (String, String)*): Tools = Tools(directory, environment ++ more)
+
+  private[check] def withCheckerBudgets(suites: Set[String]): Tools =
+    try
+      val policy = BudgetPolicy.fromEnvironment(environment)
+      policy.validate(suites)
+      withEnvironment(BudgetPolicy.environmentName -> policy.normalized)
+    catch case error: IllegalArgumentException => throw GateError(error.getMessage)
 
   def withoutEnvironment(names: String*): Tools = Tools(directory, environment -- names)
 

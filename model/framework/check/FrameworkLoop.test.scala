@@ -157,7 +157,8 @@ class FrameworkLoopSuite extends munit.FunSuite:
         "framework.dsl.TwoLayeredCacheTest",
         "framework.dsl.TwoPhaseCommitTest",
         "framework.dsl.VotingBehaviorTest",
-        "framework.dsl.VotingTest"
+        "framework.dsl.VotingTest",
+        "samples.PublicQuestionsTest"
       )
     )
     assert(samples.forall(_.module == core))

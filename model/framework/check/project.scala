@@ -8,6 +8,7 @@
 // then runs the classes it wrote, and nothing stands in front of the gate to read its own build.
 //> using scala 3.9.0
 //> using file ../../OutputPaths.scala
+//> using file ../checker/BudgetPolicy.scala
 //> using jvm 27
 //> using options -deprecation -feature -unchecked -Wunused:imports -language:strictEquality
 //> using test.dep org.scalameta::munit:1.2.0

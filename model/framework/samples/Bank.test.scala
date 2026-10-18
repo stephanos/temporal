@@ -351,6 +351,14 @@ class BankTest extends munit.FunSuite:
     val leak = assertRefuted(Leaky, leakyTotalSupplyInv, Seq.empty[State], 1024)
     assertEquals(leak.subject, "leaky.leakyTotalSupplyInv")
     assertEquals(leak.detail.head, "counterexample: send(king, donkeykong, banana, -1)")
+    val ordinary =
+      framework.checker.Checker.refuted(Leaky, model.invariants.totalSupplyInv, budget = 1024)
+    assertEquals(ordinary.verdict, framework.checker.Verdict.refuted)
+    assertEquals(
+      ordinary.path.steps.map(s => NativeCheck.shown(s.action)),
+      Vector("send(king, donkeykong, banana, -1)")
+    )
+    assertEquals(ordinary.path.states.last, leak.path.states.last)
     assertEquals(NativeCheck.queries(Leaky), Vector.empty)
 
 object BankFixture:

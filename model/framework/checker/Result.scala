@@ -19,6 +19,17 @@ final case class Path(initial: Option[Any], steps: Vector[PathStep]) derives Can
 object Path:
   val empty: Path = Path(None, Vector.empty)
 
+final case class ExpectationFailure(position: Int, line: Int, text: String, state: Any)
+
+final case class SampleEvidence(
+    seed: Long,
+    walks: Vector[Path],
+    failingIndex: Option[Int],
+    steps: Int,
+    requested: Int,
+    complete: Boolean
+)
+
 final class Result private[checker] (
     val subject: String,
     val verdict: Verdict,
@@ -28,11 +39,16 @@ final class Result private[checker] (
     val path: Path,
     val detail: Vector[String],
     val longest: Option[Int],
-    private[checker] val checking: Option[() => Report] = None
+    private[checker] val checking: Option[() => Report] = None,
+    val expectation: Option[ExpectationFailure] = None,
+    val sampling: Option[SampleEvidence] = None
 ):
   override def toString: String =
     val completion = if complete then "complete" else "cut"
-    (s"$subject: $verdict (budget $budget states, $depth steps; exploration $completion)" +: detail)
+    val scope = sampling.fold(s"exploration $completion")(e =>
+      s"finite sample ${if e.complete then "complete" else "cut"}: ${e.walks.size}/${e.requested} walks, at most ${e.steps} steps, seed ${e.seed}"
+    )
+    (s"$subject: $verdict (budget $budget states, $depth steps; $scope)" +: detail)
       .mkString("\n  ")
 
 final case class Report(results: Vector[Result], warnings: Vector[String]):

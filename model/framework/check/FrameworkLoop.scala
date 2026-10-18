@@ -177,6 +177,7 @@ final class FrameworkLoop(outer: Tools, out: PrintStream, record: Path):
     note("PASS framework source/build-directive boundary")
     val declared = FrameworkSuites.declared(root)
     if declared.isEmpty then throw GateError("no framework suites discovered")
+    val configured = tools.withCheckerBudgets(declared.map(_.name).toSet)
     val selected = declared.filter: suite =>
       FrameworkSuites.held(suite) match
         case Some(reason) => note(s"HELD ${suite.name} (${suite.file}): $reason"); false
@@ -228,7 +229,7 @@ final class FrameworkLoop(outer: Tools, out: PrintStream, record: Path):
         build.resolve("reify.jar").toString
       )
     ): Unit
-    val testing = tools.withEnvironment("UMPIRE_FRAMEWORK_BUILD" -> build.toString)
+    val testing = configured.withEnvironment("UMPIRE_FRAMEWORK_BUILD" -> build.toString)
     for module <- FrameworkSuites.modules do
       val suites = selected.filter(_.module == module)
       if suites.isEmpty then throw GateError(s"no generic ${module.name} suites selected")

@@ -13,7 +13,26 @@ import scala.collection.mutable
 // unknown, never verified; a counterexample found before the cut stands.
 private[framework] object NativeCheck:
   // The states an exploration may reach unless a test names another budget.
-  val defaultBudget: Int = 1 << 20
+  val defaultBudget: Int = BudgetPolicy.defaultBudget
+
+  final class EffectFailure(val action: Class, val before: Any, val cause: Throwable)
+      extends RuntimeException(cause):
+    var path: Path = Path(Some(before), Vector.empty)
+
+  private def execute[S, O, F](
+      effect: (S, Class) => List[Step[S, O, F]],
+      before: S,
+      cls: Class,
+      path: Path
+  ): List[Step[S, O, F]] =
+    try effect(before, cls)
+    catch
+      case hole: HoleReached                  => throw hole
+      case failure: EffectFailure             => throw failure
+      case scala.util.control.NonFatal(cause) =>
+        val failure = EffectFailure(cls, before, cause)
+        if path.initial.nonEmpty then failure.path = path
+        throw failure
 
   enum Verdict(val shown: String) derives CanEqual:
     case verified extends Verdict("verified")
@@ -71,7 +90,10 @@ private[framework] object NativeCheck:
       origins: Seq[S],
       admit: ActionDecl => Boolean,
       val budget: Int,
-      select: Class => Boolean
+      select: Class => Boolean,
+      horizon: Int = Int.MaxValue,
+      positionSelect: (Int, Class) => Boolean = (_, _) => true,
+      positioned: Boolean = false
   ):
     require(budget > 0, "a budget admits at least one state")
     scan(machine)
@@ -79,7 +101,7 @@ private[framework] object NativeCheck:
       .filter((decl, _) => admit(decl))
       .map((decl, run) => (decl, run, classesOf(decl).filter(select)))
     val admitted: Vector[ActionDecl] = effects.map(_._1).toVector
-    private val index = mutable.HashMap.empty[S, Int]
+    private val index = mutable.HashMap.empty[(S, Int), Int]
     val states = mutable.ArrayBuffer.empty[S]
     val depths = mutable.ArrayBuffer.empty[Int]
     val parents = mutable.ArrayBuffer.empty[Option[Edge[S, O, F]]]
@@ -94,13 +116,13 @@ private[framework] object NativeCheck:
 
     private def reach(state: S, depth: Int, via: Option[Edge[S, O, F]]): Int =
       index.getOrElse(
-        state,
+        (state, if positioned then depth else 0),
         if states.size >= budget then
           cut = true
           -1
         else
           val at = states.size
-          index.update(state, at)
+          index.update((state, if positioned then depth else 0), at)
           states += state: Unit
           depths += depth: Unit
           parents += via: Unit
@@ -113,24 +135,43 @@ private[framework] object NativeCheck:
     def mayEnable(state: Int, cls: Class): Boolean = unknownSteps.get(states(state)).exists(_(cls))
 
     // Native outcomes in binding/class order, shared by state and monitor-product searches.
-    def steps(source: S, noteHoles: Boolean = true): Iterator[(Class, Step[S, O, F])] =
+    def steps(
+        source: S,
+        noteHoles: Boolean = true,
+        selectClass: Class => Boolean = _ => true,
+        prefix: Path = Path.empty
+    ): Iterator[(Class, Step[S, O, F])] =
       effects.iterator.flatMap: (decl, effect, classes) =>
-        classes.iterator.flatMap: cls =>
-          require(decl eq cls.decl, s"class ${shown(cls)} belongs to another action")
-          val results =
-            try effect(source, cls)
-            catch
-              case HoleReached(hole) =>
-                if noteHoles then
-                  unknown += s"${shown(cls)} at $source reaches ${holeName(hole)}": Unit
-                  unknownSteps.getOrElseUpdate(source, mutable.HashSet.empty) += cls: Unit
-                Nil
-          results.iterator.map(cls -> _)
+        classes.iterator
+          .filter(selectClass)
+          .flatMap: cls =>
+            require(decl eq cls.decl, s"class ${shown(cls)} belongs to another action")
+            val results =
+              try execute(effect, source, cls, prefix)
+              catch
+                case HoleReached(hole) =>
+                  if noteHoles then
+                    unknown += s"${shown(cls)} at $source reaches ${holeName(hole)}": Unit
+                    unknownSteps.getOrElseUpdate(source, mutable.HashSet.empty) += cls: Unit
+                  Nil
+            results.iterator.map(cls -> _)
 
     // Replay successors for cycle bookkeeping without retaining edges or admitting new states.
     def successors(source: Int): Iterator[Edge[S, O, F]] =
-      steps(states(source), noteHoles = false).map: (cls, step) =>
-        Edge(source, cls, step, index.getOrElse(step.state, -1))
+      if depths(source) >= horizon then Iterator.empty
+      else
+        steps(
+          states(source),
+          noteHoles = false,
+          selectClass = cls => positionSelect(depths(source), cls),
+          prefix = trace(source)
+        ).map: (cls, step) =>
+          Edge(
+            source,
+            cls,
+            step,
+            index.getOrElse((step.state, if positioned then depths(source) + 1 else 0), -1)
+          )
 
     // Visit starts and newly reached states, and each step, until a callback has its answer.
     // A later walk can resume the same frontier, without executing a consumed step again.
@@ -143,7 +184,14 @@ private[framework] object NativeCheck:
       var stopped = states.indices.exists(announce)
       while !stopped && next < states.size do
         val out = outgoing.getOrElse:
-          val generated = steps(states(next)).map: (cls, step) =>
+          val generated = (if depths(next) >= horizon then Iterator.empty
+                           else
+                             steps(
+                               states(next),
+                               selectClass = cls => positionSelect(depths(next), cls),
+                               prefix = trace(next)
+                             )
+          ).map: (cls, step) =>
             val pending = Edge(next, cls, step, -1)
             val target = reach(step.state, depths(next) + 1, Some(pending))
             Edge(next, cls, step, target)
@@ -163,7 +211,7 @@ private[framework] object NativeCheck:
     // A check starts at the roots even if another consumer already advanced this frontier.
     def forCheck: Search[S, O, F] =
       if announced.nonEmpty || outgoing.nonEmpty || exhausted then
-        Search(machine, origins, admit, budget, select)
+        Search(machine, origins, admit, budget, select, horizon, positionSelect, positioned)
       else this
 
     // The actions of the breadth-first path from a start to a state.
@@ -249,8 +297,12 @@ private[framework] object NativeCheck:
       starts: Seq[S],
       admit: ActionDecl => Boolean = _ => true,
       budget: Int = defaultBudget,
-      select: Class => Boolean = _ => true
-  ): Search[S, O, F] = Search(machine, starts, admit, budget, select)
+      select: Class => Boolean = _ => true,
+      horizon: Int = Int.MaxValue,
+      positionSelect: (Int, Class) => Boolean = (_, _) => true,
+      positioned: Boolean = false
+  ): Search[S, O, F] =
+    Search(machine, starts, admit, budget, select, horizon, positionSelect, positioned)
 
   // A channel's delivery or loss, as the reader derives it (model/framework/SEMANTICS.md, Channels): enabled
   // where the inbox holds the message, first for a FIFO channel, it removes that entry and applies
@@ -520,7 +572,7 @@ private[framework] object NativeCheck:
     var next = 0
     while violation.isEmpty && next < product.size do
       val (state, m) = product(next)
-      val out = if blocked(next) then Iterator.empty else search.steps(state)
+      val out = if blocked(next) then Iterator.empty else search.steps(state, prefix = trace(next))
       while violation.isEmpty && out.hasNext do
         val (cls, step) = out.next()
         try
@@ -978,10 +1030,23 @@ private[framework] object NativeCheck:
   // The name of the val that declares a claim of a scanned feature, or its declared name.
   def claimName(claim: Property | Monitor[?, ?, ?, ?], machine: AnyRef): String =
     scan(machine)
+    def local(owner: AnyRef): Option[String] =
+      section(owner, "monitors")
+        .collectFirst:
+          case (member, watch: Monitor[?, ?, ?, ?]) if watch eq claim => member
+        .orElse(owner match
+          case derived: DerivedFrom[?] =>
+            derived.source match
+              case source: AnyRef => local(source)
+              case _              => None
+          case _ => None)
     val declared = claim match
       case p: Property            => p.name
       case m: Monitor[?, ?, ?, ?] => m.name
-    Option(synchronized(claims.get(claim))).getOrElse(declared)
+    val member = claim match
+      case _: Monitor[?, ?, ?, ?] => local(machine)
+      case _                      => None
+    member.orElse(Option(synchronized(claims.get(claim)))).getOrElse(declared)
 
   // The names of the compiled objects under `feature` where `of` was loaded from.
   private def modules(of: java.lang.Class[?], feature: String): Vector[String] =
@@ -1105,6 +1170,69 @@ private[framework] object NativeCheck:
       idle ++ warnings ++ scoped.flatMap(_.warnings)
     )
 
+  private[checker] def scenarioPath(
+      path: Path,
+      scenario: ScenarioDecl
+  ): Option[Path] =
+    if scenario.start.exists(s => !path.initial.contains(s)) then None
+    else
+      val selected = path.steps.zipWithIndex.takeWhile: (step, position) =>
+        scenario.admits(step.action) &&
+          (scenario.free || scenario.actions
+            .lift(position)
+            .exists(ClaimEvaluation.selects(_, step.action)))
+      Some(path.copy(steps = selected.map(_._1)))
+
+  private[checker] def safetyPath[S, O, F](
+      machine: NativeModel[S, O, F],
+      path: Path,
+      budget: Int
+  ): Vector[Result] =
+    val claims = Vector("invariants", "postconditions").flatMap: kind =>
+      section(machine, kind).map:
+        case (member, p: Property) => (kind, member, p)
+        case (member, other)       =>
+          throw IllegalArgumentException(
+            s"${machine.name}.$kind.$member holds $other: a member of $kind is a claim"
+          )
+    def subject(member: String): String = s"${machine.name}.$member"
+    val graph = explore(machine, Seq.empty[S], budget = budget)
+    val ordinary = claims.collect:
+      case (kind, member, p) if !p.isInstanceOf[ScopedClaim] => (kind, member, p.decl)
+    val (results, _, _) = blocks(graph, machine, subject, ordinary, recorded = Some(path))
+    val scoped = claims.collect:
+      case (kind, member, p: ScopedClaim) =>
+        val declared = p.scenario
+        val environment =
+          if declared.decl.machine eq p.decl.machine then
+            Scenario(declared.decl.copy(machine = machine))
+          else declared
+        val scenario = environment.bound(machine, member)
+        if scenario.machine ne machine then
+          Vector(
+            Result(
+              subject(member),
+              Verdict.unknown,
+              budget,
+              path.steps.size,
+              false,
+              Vector(
+                s"reads ${p.decl.machine.name} through a refinement, which no native check reads"
+              )
+            )
+          )
+        else
+          scenarioPath(path, scenario).toVector.flatMap: selected =>
+            blocks(
+              graph,
+              machine,
+              subject,
+              Vector((kind, member, p.decl)),
+              includeSections = false,
+              recorded = Some(selected)
+            )._1
+    results ++ scoped.flatten
+
   // The claims of `owner`'s `invariants` and `postconditions` written as blocks of assertions
   // (NativeClaims), each section evaluated once per state, or once per step, of the graph: an
   // invariant in every reached state, a postcondition on every step, from the state it started in
@@ -1116,8 +1244,67 @@ private[framework] object NativeCheck:
       owner: AnyRef,
       subject: String => String,
       claims: Vector[(String, String, PropertyDecl)],
-      includeSections: Boolean = true
+      includeSections: Boolean = true,
+      recorded: Option[Path] = None
   ): (Vector[Result], Vector[String], Set[ActionDecl]) =
+    def state(at: Int): S = recorded.fold(graph.states(at))(
+      _.states(at).asInstanceOf[S] // scalafix:ok DisableSyntax.asInstanceOf
+    )
+    def trace(at: Int): Path = recorded.fold(graph.trace(at))(p => p.copy(steps = p.steps.take(at)))
+    def path(at: Int): Vector[String] = recorded.fold(graph.path(at))(
+      _.steps.take(at).map(s => shown(s.action))
+    )
+    def through(edge: Edge[S, O, F]): Path =
+      trace(edge.source).append(edge.cls, state(edge.source), edge.step)
+    def counterexampleAt(edge: Edge[S, O, F]): Vector[String] =
+      recorded.fold(counterexample(graph, edge))(_ =>
+        Vector(
+          s"counterexample: ${(path(edge.source) :+ shown(edge.cls)).mkString(", ")}",
+          s"in ${edge.step.state}"
+        )
+      )
+    def context(edge: Edge[S, O, F]): ClaimEvaluation.Context =
+      ClaimEvaluation.Context(
+        Some(stateOf(state(edge.source))),
+        Some(edge.cls),
+        Some(edge.step.outcome),
+        edge.step.facts
+      )
+    def walk(onState: Int => Boolean, onEdge: Edge[S, O, F] => Boolean): Unit = recorded match
+      case None    => graph.walk(onState, onEdge)
+      case Some(p) =>
+        var stopped = onState(0)
+        var at = 0
+        while !stopped && at < p.steps.size do
+          val s = p.steps(at)
+          val step = Step(
+            s.outcome.asInstanceOf[O], // scalafix:ok DisableSyntax.asInstanceOf
+            s.after.asInstanceOf[S], // scalafix:ok DisableSyntax.asInstanceOf
+            s.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
+          )
+          stopped = onEdge(Edge(at, s.action, step, at + 1))
+          if !stopped then stopped = onState(at + 1)
+          at += 1
+    def answer(
+        subject: String,
+        violation: Option[Vector[String]],
+        missing: Vector[String],
+        path: Path
+    ): Result =
+      recorded match
+        case None    => graph.result(subject, violation, missing = missing, path = path)
+        case Some(p) =>
+          Result(
+            subject,
+            if violation.nonEmpty then Verdict.refuted
+            else if missing.nonEmpty then Verdict.unknown
+            else Verdict.verified,
+            graph.budget,
+            p.steps.size,
+            missing.isEmpty,
+            violation.toVector.flatten ++ missing,
+            path = path
+          )
     val sections = for
       kind <- Vector("invariants", "postconditions")
       if includeSections
@@ -1176,25 +1363,25 @@ private[framework] object NativeCheck:
           if evaluated.failure(ref.member).nonEmpty then
             failures.update(at, Vector(s"counterexample: ${path.mkString(", ")}"))
             failurePaths.update(at, trace)
-    graph.walk(
+    walk(
       onState = i =>
         for (kind, cls, members, vars, outcome) <- sections if kind == "invariants" do
           outcome.note(
             ClaimEvaluation
-              .evaluate(vars, cls, owner, stateOf(graph.states(i)), ClaimEvaluation.Context()),
+              .evaluate(vars, cls, owner, stateOf(state(i)), ClaimEvaluation.Context()),
             Vector(
-              s"counterexample: ${graph.path(i).mkString(", ")}",
-              s"in ${graph.states(i)}"
+              s"counterexample: ${path(i).mkString(", ")}",
+              s"in ${state(i)}"
             ),
             members,
-            graph.trace(i)
+            trace(i)
           )
         noteReferences(
           "invariants",
-          graph.states(i),
+          state(i),
           () => ClaimEvaluation.Context(),
-          graph.path(i),
-          graph.trace(i)
+          path(i),
+          trace(i)
         )
         finished
       ,
@@ -1207,9 +1394,9 @@ private[framework] object NativeCheck:
           selected += at: Unit
           if !failures.contains(at) then
             try
-              if !holds(decl, graph.states(e.source), e.step) then
-                failures.update(at, counterexample(graph, e))
-                failurePaths.update(at, graph.through(e))
+              if !holds(decl, state(e.source), e.step) then
+                failures.update(at, counterexampleAt(e))
+                failurePaths.update(at, through(e))
             catch
               case HoleReached(hole) =>
                 missing.getOrElseUpdate(
@@ -1219,23 +1406,23 @@ private[framework] object NativeCheck:
         for (kind, cls, members, vars, outcome) <- sections if kind == "postconditions" do
           outcome.note(
             ClaimEvaluation
-              .evaluate(vars, cls, owner, stateOf(e.step.state), stepContext(graph, e)),
-            counterexample(graph, e),
+              .evaluate(vars, cls, owner, stateOf(e.step.state), context(e)),
+            counterexampleAt(e),
             members,
-            graph.through(e)
+            through(e)
           )
         noteReferences(
           "postconditions",
           e.step.state,
-          () => stepContext(graph, e),
-          graph.path(e.source) :+ shown(e.cls),
-          graph.through(e)
+          () => context(e),
+          path(e.source) :+ shown(e.cls),
+          through(e)
         )
         finished
     )
     val results = claims.zipWithIndex.map:
       case ((_, member, _), at) =>
-        graph.result(
+        answer(
           subject(member),
           failures.get(at),
           missing = missing.getOrElse(at, Vector.empty),
@@ -1246,7 +1433,7 @@ private[framework] object NativeCheck:
         outcome
           .ordered(members)
           .map(member =>
-            graph.result(
+            answer(
               subject(member),
               outcome.failures.get(member),
               missing = outcome.missing.getOrElse(member, Vector.empty),
@@ -1394,7 +1581,7 @@ private[framework] object NativeCheck:
   private def finds(q: Query): Boolean = q.form eq QueryForm.find
 
   // A pinned Scenario: each listed class from every state the classes before it reached.
-  private def pinned[S, O, F](
+  private[checker] def pinned[S, O, F](
       machine: NativeModel[S, O, F],
       subject: String,
       q: Query,
@@ -1452,7 +1639,7 @@ private[framework] object NativeCheck:
           selected.flatMap { cls =>
             val effect = effects.find(_._1 eq cls.decl).get._2
             val steps =
-              try effect(before, cls)
+              try execute(effect, before, cls, path)
               catch
                 case HoleReached(hole) =>
                   unknown += s"unknown: ${shown(cls)} at $before reaches ${holeName(hole)}"
