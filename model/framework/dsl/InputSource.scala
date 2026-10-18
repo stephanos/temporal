@@ -187,6 +187,11 @@ private[framework] object InputSource:
     if method.valueOrAbort != "apply" then
       quotes.reflect.report.errorAndAbort("only action class calls are supported")
     args match
+      case Varargs(values) if values.size == 1 && SpacesMacros.wildcard(values.head.asTerm) =>
+        if TypeRepr.of[I] =:= TypeRepr.of[EmptyTuple] &&
+          !(action.asTerm.tpe.widen <:< TypeRepr.of[ScalarAction[?]])
+        then report.errorAndAbort("a fieldless action takes no input", values.head.asTerm.pos)
+        '{ SpacesMacros.pattern($action.decl, Vector.empty) }
       case Varargs(Nil) =>
         if action.asTerm.tpe.widen <:< TypeRepr.of[RecordAction[?]] then construct[I](action, Nil)
         else if action.asTerm.tpe.widen <:< TypeRepr.of[ScalarAction[?]] ||
@@ -254,6 +259,43 @@ private[framework] object InputSource:
     if names.distinct.size != names.size then report.errorAndAbort("an input is supplied twice")
     supplied.foreach: (name, value) =>
       if !fields.exists(_.name == name) then report.errorAndAbort(s"unknown input $name", value.pos)
+    if supplied.exists((_, value) => SpacesMacros.wildcard(value)) then
+      val defaults = fields.zipWithIndex
+        .filterNot((field, _) => names.contains(field.name))
+        .map: (field, index) =>
+          field.name -> defaultTerm[I](index).getOrElse(
+            report.errorAndAbort(
+              s"missing input ${field.name}; supply its value or any",
+              supplied.head._2.pos
+            )
+          )
+      val constraints = (supplied ++ defaults)
+        .filterNot((_, value) => SpacesMacros.wildcard(value))
+        .map: (name, value) =>
+          val index = fields.indexWhere(_.name == name)
+          tpe.memberType(fields(index)).asType match
+            case '[a] =>
+              if !(value.tpe <:< TypeRepr.of[a]) then
+                report.errorAndAbort(s"input $name requires its declared field type", value.pos)
+              val data = Expr
+                .summon[Data.Structural[a]]
+                .getOrElse(
+                  report.errorAndAbort(s"input $name requires structural comparison", value.pos)
+                )
+              val located = RunBodyMacros.position(value)
+              val typed = value.asExprOf[a]
+              '{
+                val fixed = try $typed
+                catch
+                  case scala.util.control.NonFatal(error) =>
+                    throw IllegalArgumentException(s"${$located}: ${error.getMessage}", error)
+                (
+                  ${ Expr(index) },
+                  $located,
+                  (candidate: Any) => $data.equivalent(candidate.asInstanceOf[a], fixed)
+                )
+              }
+      return '{ SpacesMacros.pattern($action.decl, ${ Expr.ofSeq(constraints) }.toVector) }
     val arguments = supplied.map((name, value) => NamedArg(name, value))
     val value = Select
       .overloaded(recordCompanion[I], "apply", Nil, arguments, tpe)

@@ -1462,7 +1462,7 @@ level; tests belong inside these optional objects, registered in this order:
 | Section | Test body |
 |---|---|
 | `object examples` | The captured native-body grammar above, replayed against the bound instance |
-| `object explorations` | Container reserved for the pending exploration grammar (X); exploration tests currently refuse at compile time |
+| `object explorations` | Reusable `explore` space declarations; exploration tests currently refuse at compile time |
 | `object conformance` | The same captured native-body grammar and native replay as examples |
 | `object unit` | An ordinary MUnit body, with MUnit assertions, return values and asynchronous behavior |
 
@@ -1477,7 +1477,7 @@ Registration happens once, at the first `munitTests` enumeration, after concrete
 initialize and before MUnit snapshots the test list or runs setup. Unrelated lazy helpers stay
 lazy. Empty or absent sections and unit-only suites are supported. Tests outside sections,
 cross-section early registration and arbitrary non-test section members refuse with a source
-location; the exploration container reserves space-valued members for X. Names must yield a
+location; explorations also accepts immutable space vals. Names must yield a
 nonempty slug, unique across all sections and both registration forms. Registered names have
 `examples:`, `conformance:` or `unit:` prefixes. Recursive enumeration during loading refuses;
 a failed section initializer remains failed on subsequent enumeration.
@@ -1502,6 +1502,33 @@ a native test requires the product checker on the class path and fails explicitl
 Conformance bodies here establish native replay evidence only. Typed conformance metadata (C),
 realization/capability binding and Case production remain pending; the section name does not
 establish any of them.
+
+### Exploration space declarations
+
+Inside a ModelSuite's `explorations`, declare a reusable bounded space:
+
+```scala
+val sends = explore(steps = 4):
+  model.client.send
+```
+
+Each listed selector constrains that position, starting at the first step. A whole action searches
+its existing finite input catalog. A named call can use `any` independently at each input while
+retaining the other named values; omitted inputs keep their declared defaults. A standalone `any`
+and positions after the listed selectors leave the search unconstrained. The positive `steps`
+bound includes every listed position. Catalog order and whole-record correlations are preserved.
+`any` is available only inside this capture, with a `SpaceContext`; examples and conformance
+authored bodies cannot use it. Fixed-input authored runs retain their ordinary rules.
+
+An `Explore` declaration retains its exact Model instance without executing effects, guards,
+claims or input expressions. Its first native acquisition evaluates the named constraints once,
+in written order, and retains those immutable values across reuse. Constraints are not reevaluated
+at each reached state. Another instance's roots, actions, classes or starts are refused.
+
+`space.find(steps = n): expect: ...` retains every positioned condition in a `SpaceFind` carrier;
+`space.sample(count, seed)` retains a `SpaceSample` with the space's horizon, count and seed.
+These are declaration signatures for the pending question adapter. They do not yet register or
+execute ModelSuite questions, provide conformance binding or produce Cases.
 
 The realize expectation forms and shared metadata validator are available independently.
 Connecting that validator to actual retained-value admission remains part of typed conformance

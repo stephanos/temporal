@@ -67,6 +67,9 @@ abstract class ModelSuite[M <: Machine[?, ?]](val model: M) extends ModelSuiteRe
             throw cause
     super.munitTests()
 
+  final transparent inline def explore(steps: Int)(inline body: SpaceContext ?=> Any): Explore[M] =
+    ${ SpacesMacros.capture[M]('this, 'steps, 'body) }
+
   final transparent inline def test(
       name: String
   )(inline body: RunContext[M] ?=> Any)(using
