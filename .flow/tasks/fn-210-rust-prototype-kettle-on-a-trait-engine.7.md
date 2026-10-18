@@ -1,9 +1,11 @@
 ---
-satisfies: [R7, R24, R30, R34, R35]
+satisfies: [R7, R24, R30, R34, R35, R37, R38, R39]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.7 DESIGN.md: authoring, size, speed, tooling comparison and the recommendation
 
 ## Description
+**Recut 2026-10-18 (R36-R39):** no TLC slice to judge (moved to fn-212). The recommendation carries R34, R35 and R37-R39 into the Case slice's plan: Testpilot at most 11,000 non-test lines, generic runtime at most 5,000, no CEL, worker asks the Model at callbacks, one command, Runs without profiles, receipts or provenance.
+
 **Next slice (R34):** DESIGN.md's recommendation section carries R34's and R35's Testpilot targets (no CEL; generic runtime at most 5,000 lines, Testpilot at most 13,000) into the Case slice's plan.
 
 **Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T22:10:29.443590Z",
+  "depends_on": [
+    "fn-212-tla-lifting-and-the-tlc-backend-for.1"
+  ],
+  "id": "fn-212-tla-lifting-and-the-tlc-backend-for.2",
+  "priority": 2,
+  "spec": "fn-212-tla-lifting-and-the-tlc-backend-for",
+  "spec_path": ".flow/tasks/fn-212-tla-lifting-and-the-tlc-backend-for.2.md",
+  "status": "todo",
+  "title": "Lift, emit TLA+, run TLC; agreement goldens on Kettle and the shared fixtures",
+  "updated_at": "2026-10-18T22:10:29.443590Z"
+}

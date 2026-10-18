@@ -18,7 +18,7 @@ As of 2026-10-18.
 
 On 2026-10-18 the owner paused everything else for one question: should Umpire be built in Rust?
 The Scala framework under `model/` keeps working as it is and is not modified. Every spec other
-than fn-210 and its follow-up fn-211 is deferred in Flow (each carries a dated Decision Context
+than fn-210 and its follow-ups fn-212 and fn-211 is deferred in Flow (each carries a dated Decision Context
 line) and is not listed here; the earlier Scala phases and the one-language series live in those
 specs.
 
@@ -34,8 +34,8 @@ is Rust, with the explicit export-name-only linker step documented in `model2/DE
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.5, then .6 and the TLC slice .8, then .7 | Engine, progress, derives, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; the machine attribute, TLC slice and full write-up follow |
-| After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. The Case slice begins by redesigning Testpilot's IR around the Model as oracle (R33): its schema moves into `model2/umpire/proto/` as a system-agnostic core with a Temporal extension; the Program and evidence capture stay; the Contract and all CEL go, and the Model also decides read completion (R35); observations become the Model's input. Testpilot then shrinks to act-and-observe (R34): the generic runtime from about 20,000 to at most 5,000 lines, all of Testpilot from about 29,000 to at most 13,000. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
+| Umpire in Rust (now) | fn-210.5, then .6, then .7 | Engine, progress, derives, conventions, fixtures, host protocol and decisive wasm slice are complete; the Rust recommendation is recorded; the registration attribute, attribute Kettle and full write-up follow |
+| After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -52,7 +52,7 @@ What is fixed, all owner decisions of 2026-10-18:
 - **Shape (R9 to R17).** A world value implements `Machine` with associated `State` and `Action`;
   `step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
   in every profile and a panicking effect refutes its step; verdicts are holds, fails or unknown;
-  a liftable subset is warned on; determinism is structural; dsl and checker build for
+  determinism is structural; dsl and checker build for
   `wasm32-wasip1` in the gate; the visited set sits behind a `Visited` seam; `imbl` collections and
   `Finite`-derived inputs are recorded for Bank.
 - **Dependencies (R18).** Only admitted crates (a release in the last 12 months, or finished and
@@ -69,10 +69,10 @@ What is fixed, all owner decisions of 2026-10-18:
   `samples` crate.
 - **Conventions (R25 to R28).** One `Spell` text form for every value in every output; the
   author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
-  API misuse, Model problems as verdicts; the lifted tree is internal.
-- **Vertical before broad (R19, R20, R24).** Two thin slices before the write-up: Kettle lifted
-  from the macro's tokens to TLA+ and agreeing with TLC on all 283 states, and the checker as wasm
-  in a wazero Go host. The wasm slice alone decides the verdict.
+  API misuse, Model problems as verdicts. A future lifted tree is internal.
+- **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
+  which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
+  `#[machine]` stays here as registration only, without token recording or subset warnings.
 - **Feedback loop (R30).** The inner loop (edit one crate, rebuild, run its fixtures) stays at 3 s or
   less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model2-time`
   prints each step and warns over budget; every task reports it when marked done, and a breach is
@@ -91,14 +91,25 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
+| fn-210.5 | ⬜ todo | After .4: registration-only `#[machine]`, pass-through impl plus generated `Machine` impl; missing/duplicate `#[on]` and unknown `after` diagnostics (R5, R14, R26, R36) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
-| fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` (in `umpire/backends/tlc/`) runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
 | fn-210.7 | ⬜ todo | After .6/.8/.9: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+
+### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model2)
+
+After fn-210, first decide whether the independent reading and temporal checks justify the
+lifting subset, emitter and JVM gate. On approval, lift shared Models, run pinned TLC and compare
+reachable states and verdicts through the shared fixture consumer.
+[Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-212.1 | ⬜ todo | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
+| fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-211: Apalache backend for Umpire in Rust (model2)
 
-Captured on 2026-10-18 as a follow-up, after fn-210 and only if its verdict is to continue in
+Captured on 2026-10-18 as a follow-up, after fn-210 and fn-212 and only if their verdicts are to continue in
 Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
 annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
 per invariant at the native depth plus one, ITF counterexamples decoded through `Spell` and

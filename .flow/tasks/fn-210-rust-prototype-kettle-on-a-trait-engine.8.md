@@ -25,8 +25,9 @@ New crates `umpire/lift` (tokens recorded by `#[machine]` to a tree for the R13 
 - An out-of-subset expression refuses emission naming it (trybuild or insta golden).
 
 ## Done summary
-TBD
+Moved to fn-212 (TLA+ lifting and the TLC backend), which first decides whether the second opinion is worth the machinery (fn-210 R36).
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

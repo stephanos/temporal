@@ -1,9 +1,11 @@
 ---
-satisfies: [R5, R13, R14, R26]
+satisfies: [R5, R14, R26, R36]
 ---
 # fn-210-rust-prototype-kettle-on-a-trait-engine.5 #[machine] attribute: pass-through impl, generated Machine impl from #[on]/#[invariant]/#[postcondition]/#[scope]/#[progress]
 
 ## Description
+**Recut 2026-10-18 (R36):** `#[machine]` is a registration attribute only. It passes the impl through and generates the `Machine` impl from `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]` and `#[progress]`; it records no tokens for lifting and emits no liftable-subset warnings (both moved to fn-212). Ignore those instructions below.
+
 **Integration after .3/.4:** the existing engine is world-shaped (R9/R10). Generated dispatch must clone the state, call the original transition, and turn an enabled `Option<()>` into the ordered unit-outcome/fact-free edge; `None` means disabled, not an API Refusal or rejecting outcome. Preserve the original impl and method bodies in the expansion; helper attributes must remain valid pass-through Rust attributes. Record any deliberate authoring changes from the hypothetical sketch in the .6 DESIGN comparison, not by silently rewriting bodies.
 
 **R14 cross-kind order:** source-order metadata must retain interleaved invariant/postcondition/progress names, not merely each kind's order. A defaulted Machine metadata hook can be added within this DSL lane; .6 will connect it to checker reporting and prove actual cross-kind order after the lanes join. Do not edit checker source while .3 is active.
