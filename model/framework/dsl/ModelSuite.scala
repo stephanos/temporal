@@ -126,6 +126,23 @@ abstract class ModelSuite[M <: Machine[?, ?]](val model: M) extends ModelSuiteRe
     append(options.withName(section + ": " + options.name)):
       check(execution.replay(body()))
 
+  @scala.annotation.publicInBinary
+  final private[framework] def registerQuestion(
+      options: munit.TestOptions,
+      owner: AnyRef,
+      receiver: Boolean,
+      body: () => SpaceFind[M] | SpaceSample[M],
+      from: Option[() => State]
+  )(using location: munit.Location): Unit =
+    val section = admit(options.name, owner, receiver)
+    append(options.withName(section + ": " + options.name)):
+      val runtime = execution
+      val question = body()
+      val start = from.map(_())
+      check(question match
+        case request: SpaceFind[M]   => runtime.find(model, request, start)
+        case request: SpaceSample[M] => runtime.sample(model, request, start))
+
   private def admit(name: String, owner: AnyRef, receiver: Boolean)(using
       location: munit.Location
   ): String =
@@ -211,15 +228,37 @@ private[framework] object ModelSuiteMacros:
           $location
         )
       }
-    else if section.name.stripSuffix("$") == "explorations" then
-      report.errorAndAbort(
-        "exploration test forms are not installed yet",
-        body.asTerm.pos
-      )
     else
-      val captured = RunBodyMacros.capture[M, M]('{ $suite.model }, from, body)
-      '{
-        $suite.registerRun($options, $owner, $receiver, () => $captured)(using
-          $location
-        )
-      }
+      def unwrap(term: Term): Term = term match
+        case Inlined(_, Nil, inner) => unwrap(inner)
+        case other                  => other
+      val expression = unwrap(body.asTerm) match
+        case Lambda(List(_), rhs) => unwrap(rhs)
+        case other => report.errorAndAbort("a section test requires a literal body", other.pos)
+      val question = expression.tpe <:< TypeRepr.of[SpaceFind[M] | SpaceSample[M]]
+      if section.name.stripSuffix("$") == "explorations" then
+        if !question then
+          report.errorAndAbort(
+            "an exploration test requires one find or sample question",
+            expression.pos
+          )
+        '{
+          $suite.registerQuestion(
+            $options,
+            $owner,
+            $receiver,
+            () =>
+              $body(using new RunContext[M]($suite.model))
+                .asInstanceOf[SpaceFind[M] | SpaceSample[M]],
+            $from
+          )(using $location)
+        }
+      else
+        if question then
+          report.errorAndAbort("find and sample belong in explorations", expression.pos)
+        val captured = RunBodyMacros.capture[M, M]('{ $suite.model }, from, body)
+        '{
+          $suite.registerRun($options, $owner, $receiver, () => $captured)(using
+            $location
+          )
+        }

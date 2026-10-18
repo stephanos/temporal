@@ -5,6 +5,244 @@ import framework.dsl.Finite.given
 import framework.dsl.outcomes.Outcome
 
 class SuiteExecutionTest extends munit.FunSuite:
+  test("suite questions preserve their shared budget, target conjunction and seeded descriptor"):
+    val instance = new Counter
+    class Questions extends ModelSuite(instance):
+      object explorations:
+        val space = explore(steps = 3):
+          model.client.increment
+      def target = explorations.space.find(steps = 2):
+        expect:
+          model.count > 0
+          model.count == before.count + 1
+          outcome == Outcome.accepted
+          records(true)
+      def absent = explorations.space.find(steps = 2):
+        expect:
+          model.count == 9
+          true
+      def sample = explorations.space.sample(3, seed = 19L)
+    val suite = new Questions
+    val target = suite.target
+    val absent = suite.absent
+    val sample = suite.sample
+    val execution =
+      SuiteExecution.forSuite("client.Questions", BudgetPolicy.parse(Some("default=8")))
+    val found = execution.find(instance, target, None)
+    val missed = execution.find(instance, absent, None)
+    val first = execution.sample(instance, sample, None)
+    val again = execution.sample(instance, sample, None)
+    val result = found.evidence.asInstanceOf[Result]
+    val missing = missed.evidence.asInstanceOf[Result]
+    val sampled = first.evidence.asInstanceOf[Result]
+    assert(found.verified)
+    assert(!missed.verified)
+    assertEquals(result.verdict, Verdict.found)
+    assertEquals(result.path.steps.size, 1)
+    assertEquals(missing.verdict, Verdict.notFound)
+    assert(missing.complete)
+    assertEquals(sampled.verdict, Verdict.verified)
+    assertEquals(sampled.sampling.get.walks, again.evidence.asInstanceOf[Result].sampling.get.walks)
+    assertEquals((sample.count, sample.seed, sample.space.steps), (3, 19L, 3))
+    assertEquals(sampled.sampling.get.requested, 3)
+    assertEquals(sampled.sampling.get.steps, 3)
+    assertEquals(sampled.sampling.get.seed, 19L)
+    assertEquals(sampled.sampling.get.failingIndex, None)
+    assert(Vector(result, missing, sampled).forall(_.budget == 8))
+    assertEquals(instance.count, 0)
+
+  test("find preserves positioned target order, cuts, effect failures and restored nested context"):
+    val instance = new Counter
+    var observed = Vector.empty[String]
+    def observe(label: String, condition: => Boolean): Boolean =
+      observed :+= label
+      condition
+    class Questions extends ModelSuite(instance):
+      object explorations:
+        val space = explore(steps = 2):
+          model.client.increment
+          model.client.increment
+      def query(first: Boolean) = explorations.space.find(steps = 2):
+        expect:
+          observe("first", first)
+          observe("second", model.count > 0)
+          observe("third", true)
+      def secondFalse = explorations.space.find(steps = 2):
+        expect:
+          observe("first", true)
+          observe("second", false)
+          observe("third", true)
+      def missing = explorations.space.find(steps = 2):
+        expect(model.count == 9)
+      def witness = explorations.space.find(steps = 2):
+        expect(model.count == 1)
+      def holeTarget = explorations.space.find(steps = 2):
+        expect(model.count == 0 && model.gap.reached)
+    val suite = new Questions
+    val execution = SuiteExecution.forSuite("client.Context", BudgetPolicy.parse(Some("default=8")))
+    val cut = SuiteExecution.forSuite("client.Cut", BudgetPolicy.parse(Some("default=1")))
+    val early = suite.query(false)
+    val later = suite.query(true)
+    assertEquals(observed, Vector.empty)
+    val failed = execution.find(instance, early, None)
+    assertEquals(failed.evidence.asInstanceOf[Result].verdict, Verdict.notFound)
+    assertEquals(observed, Vector("first", "first", "first"))
+    assert(failed.diagnostics.contains("observe(\"first\", first)"))
+    observed = Vector.empty
+    val secondFailure = execution.find(instance, suite.secondFalse, None)
+    assert(!secondFailure.verified)
+    assert(secondFailure.diagnostics.contains("observe(\"second\", false)"))
+    assertEquals(observed, Vector("first", "second", "first", "second", "first", "second"))
+    observed = Vector.empty
+    assert(execution.find(instance, later, None).verified)
+    assertEquals(observed, Vector("first", "second", "first", "second", "third"))
+    val unknown = cut.find(instance, suite.missing, None)
+    assert(unknown.inconclusive)
+    assert(!unknown.verified)
+    assertEquals(unknown.evidence.asInstanceOf[Result].verdict, Verdict.unknown)
+    assert(cut.find(instance, suite.witness, None).verified)
+    assert(execution.find(instance, suite.holeTarget, None).inconclusive)
+    val replay = RunBody.capture(instance):
+      instance.client.increment
+      expect:
+        execution.find(instance, suite.witness, None).verified
+        !execution.find(instance, suite.missing, None).verified
+        before.count == 0
+        outcome == Outcome.accepted
+        records(true)
+        instance.count == 1
+    assertEquals(SuiteExecution.run(replay, budget = 8).verdict, Verdict.verified)
+    assertEquals(instance.count, 0)
+    val broken = new Failures
+    class Broken extends ModelSuite(broken):
+      object explorations:
+        val space = explore(steps = 2):
+          model.client.explode
+      def target = explorations.space.find(steps = 1):
+        expect(false)
+    val failure = execution.find(broken, new Broken().target, None)
+    val result = failure.evidence.asInstanceOf[Result]
+    assertEquals(result.verdict, Verdict.refuted)
+    assert(!failure.verified)
+    assert(result.detail.exists(_.contains("effect failed")))
+    assertEquals(broken.count, 0)
+
+  test(
+    "suite samples retain claim, monitor, progress and finite-cut results without exhaustive credit"
+  ):
+    class Draw[M <: Machine[?, ?]](instance: M, horizon: Int) extends ModelSuite(instance):
+      object explorations:
+        val space = explore(steps = horizon):
+          any
+      def sample = explorations.space.sample(2, seed = 19L)
+    val execution =
+      SuiteExecution.forSuite("client.Sampling", BudgetPolicy.parse(Some("default=8")))
+    def checked[M <: Machine[?, ?]](
+        instance: M,
+        horizon: Int,
+        verdict: Verdict,
+        failing: Option[Int]
+    ): Unit =
+      val suite = new Draw(instance, horizon)
+      val request = suite.sample
+      val first = execution.sample(instance, request, None)
+      val second = execution.sample(instance, request, None)
+      val result = first.evidence.asInstanceOf[Result]
+      val again = second.evidence.asInstanceOf[Result]
+      assertEquals(result.verdict, verdict)
+      assertEquals(first.verified, verdict == Verdict.verified)
+      assertEquals(first.inconclusive, verdict == Verdict.unknown)
+      assertEquals(result.sampling.get.walks, again.sampling.get.walks)
+      assertEquals(result.sampling.get.failingIndex, failing)
+      assertEquals(
+        (
+          result.budget,
+          result.sampling.get.steps,
+          result.sampling.get.requested,
+          result.sampling.get.seed
+        ),
+        (8, horizon, 2, 19L)
+      )
+      assert(
+        result.detail.exists(_.contains("no exhaustive safety or unbounded progress conclusion"))
+      )
+    checked(SamplingFixture.Counter, 3, Verdict.refuted, Some(0))
+    checked(SamplingFixture.Watched, 3, Verdict.refuted, Some(0))
+    checked(SamplingFixture.Deadline, 2, Verdict.refuted, Some(0))
+    checked(SamplingFixture.Unbounded, 2, Verdict.unknown, None)
+    checked(SamplingFixture.Uncertain, 2, Verdict.unknown, None)
+    val instance = new Counter
+    val suite = new Draw(instance, 3)
+    val cut = SuiteExecution.forSuite("client.SmallSample", BudgetPolicy.parse(Some("default=1")))
+    val result = cut.sample(instance, suite.sample, None)
+    assert(!result.verified)
+    assert(result.inconclusive)
+    assertEquals(result.evidence.asInstanceOf[Result].budget, 1)
+    assert(!result.evidence.asInstanceOf[Result].sampling.get.complete)
+
+  test("questions refuse foreign owners and starts, missing starts and invalid authored bounds"):
+    val instance = new Counter
+    val foreign = new Counter
+    class Questions extends ModelSuite(instance):
+      object explorations:
+        val space = explore(steps = 2):
+          model.client.increment
+      def target(horizon: Int) = explorations.space.find(steps = horizon):
+        expect(model.count > 0)
+      def foreignTarget = explorations.space.find(steps = 1):
+        expect(foreign.count == 0)
+      def hiddenForeignTarget = explorations.space.find(steps = 1):
+        expect:
+          false
+          foreign.count == 0
+      def sample(count: Int) = explorations.space.sample(count, seed = 9L)
+      def missingTarget = explorations.space.find(steps = 1):
+        model.client.increment
+    val suite = new Questions
+    val execution =
+      SuiteExecution.forSuite("client.Refusals", BudgetPolicy.parse(Some("default=4")))
+    val cases = Vector[(String, () => Any)](
+      "find horizon" -> (() => execution.find(instance, suite.target(0), None)),
+      "find horizon" -> (() => execution.find(instance, suite.target(3), None)),
+      "sample count" -> (() => execution.sample(instance, suite.sample(0), None)),
+      "another Model instance" -> (() => execution.find(foreign, suite.target(1), None)),
+      "another Model instance" -> (() => execution.sample(foreign, suite.sample(1), None)),
+      "another Model instance" -> (() => execution.find(instance, suite.foreignTarget, None)),
+      "another Model instance" -> (() => execution.find(instance, suite.hiddenForeignTarget, None)),
+      "another machine" -> (() => execution.find(instance, suite.target(1), Some(foreign.init))),
+      "expect target" -> (() => suite.missingTarget)
+    )
+    cases.foreach: (message, call) =>
+      val error = intercept[IllegalArgumentException](call())
+      assert(error.getMessage.contains(message), error.getMessage)
+    val multiple = new MultipleStarts
+    class Starts extends ModelSuite(multiple):
+      object explorations:
+        val space = explore(steps = 1):
+          any
+      def target = explorations.space.find(steps = 1):
+        expect(model.count == 2)
+      def sample = explorations.space.sample(2, seed = 3L)
+    val starts = new Starts
+    assert(
+      intercept[IllegalArgumentException](execution.find(multiple, starts.target, None)).getMessage
+        .contains("requires from")
+    )
+    assert(
+      intercept[IllegalArgumentException](
+        execution.sample(multiple, starts.sample, None)
+      ).getMessage.contains("requires from")
+    )
+    val initial = multiple.init.copy(count = 2)
+    val found = execution.find(multiple, starts.target, Some(initial))
+    val sampled = execution.sample(multiple, starts.sample, Some(initial))
+    assert(found.verified)
+    assert(sampled.verified)
+    assertEquals(
+      sampled.evidence.asInstanceOf[Result].sampling.get.walks.map(_.initial),
+      Vector(Some(initial), Some(initial))
+    )
+
   test(
     "one exact-suite execution shares its immutable caller budget between claims and replay"
   ):

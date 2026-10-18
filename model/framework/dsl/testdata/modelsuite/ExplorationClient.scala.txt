@@ -1,0 +1,170 @@
+package outsidequestions
+
+import framework.dsl.*
+import framework.dsl.Finite.given
+import framework.dsl.outcomes.Outcome
+
+object ExplorationFixture:
+  var calls = Vector.empty[String]
+  def observed(label: String): Boolean =
+    calls :+= label
+    true
+  class Model(bad: Boolean = false) extends Machine[Outcome, Boolean]:
+    var count = 0
+    val gap = hole
+    object client extends Actor:
+      lazy val increment = action
+    object transitions extends Transitions:
+      on(client.increment):
+        if observed("guard") && count < 3 then effects.increment()
+    object effects:
+      def increment(): Unit =
+        val _ = observed("effect")
+        count = count + 1
+        records(true)
+    object invariants:
+      val safe =
+        check(observed("claim") && (!bad || count < 2))
+  val instance = new Model
+  class BudgetSuite(instance: Model) extends ModelSuite(instance):
+    object examples:
+      test("budgeted replay"):
+        model.client.increment()
+        expect(model.count == 1)
+    object explorations:
+      val space = explore(steps = 3):
+        model.client.increment
+      test("budgeted find"):
+        space.find(steps = 2):
+          expect(model.count == 99)
+      test("budgeted sample"):
+        space.sample(3, seed = 19L)
+  class Multiple extends Machine[Outcome, Nothing]:
+    var count = oneOf(Vector(0, 2))
+    object transitions extends Transitions
+  class StartSuite(instance: Multiple) extends ModelSuite(instance):
+    var acquisitions = 0
+    def selected: State =
+      acquisitions += 1
+      model.init.copy(count = 2)
+    object explorations:
+      val space = explore(steps = 2):
+        any
+      test("find from selected start", from = selected):
+        space.find(steps = 1):
+          expect(model.count == 2)
+      test("sample from selected start", from = selected):
+        space.sample(2, seed = 2L)
+
+class PublicExplorationSuite extends ModelSuite(ExplorationFixture.instance):
+  object examples:
+    test("ordinary run"):
+      model.client.increment()
+      expect(model.count == 1)
+  object explorations:
+    val space = explore(steps = 3):
+      model.client.increment
+    test(munit.TestOptions("positioned find")):
+      space.find(steps = 2):
+        expect:
+          ExplorationFixture.observed("target")
+          model.count > 0
+          model.count == before.count + 1
+          outcome == Outcome.accepted
+          records(true)
+    test("seeded walks"):
+      space.sample(3, seed = 19L)
+
+class ExplorationClientTest extends munit.FunSuite:
+  private def run(suite: munit.FunSuite): org.junit.runner.Result =
+    new org.junit.runner.JUnitCore().run(
+      org.junit.runner.Request.runner(new munit.MUnitRunner(suite.getClass, suite))
+    )
+
+  test("public sections register once without callbacks and execute the real questions"):
+    ExplorationFixture.calls = Vector.empty
+    val suite = new PublicExplorationSuite
+    val registered = suite.munitTests()
+    assertEquals(registered.size, 4)
+    assertEquals(suite.munitTests().map(_.name), registered.map(_.name))
+    assertEquals(ExplorationFixture.calls, Vector.empty)
+    val library = sys.props.get("questions.library")
+    library.foreach: path =>
+      val origin = java.nio.file.Path.of(suite.explorations.space.getClass.getProtectionDomain.getCodeSource.getLocation.toURI)
+      assertEquals(origin.toRealPath().toString, java.nio.file.Path.of(path).toRealPath().toString)
+    if sys.props.contains("questions.declarations-only") then
+      assert(Option(getClass.getClassLoader.getResource("framework/checker/Native$.class")).isEmpty)
+      val result = run(suite)
+      assertEquals(result.getRunCount, 4)
+      assertEquals(result.getFailureCount, 4)
+      assert(result.getFailures.toArray.forall(_.toString.contains("native execution requires the product checker module")))
+      assertEquals(ExplorationFixture.calls, Vector.empty)
+    else
+      val result = run(suite)
+      assertEquals(result.getRunCount, 4)
+      assertEquals(result.getFailureCount, 0, result.getFailures.toString)
+      assert(ExplorationFixture.calls.contains("target"))
+      assert(ExplorationFixture.calls.contains("claim"))
+      assertEquals(suite.model.count, 0)
+
+  test("MUnit refuses notFound, unknown find, and a failing sampled claim"):
+    if !sys.props.contains("questions.declarations-only") then
+      val instance = new ExplorationFixture.Model
+      class Missing extends ModelSuite(instance):
+        object explorations:
+          val space = explore(steps = 2):
+            model.client.increment
+          test("missing witness"):
+            space.find(steps = 1):
+              expect(model.count == 99)
+      val missing = run(new Missing)
+      assertEquals(missing.getRunCount, 2)
+      assertEquals(missing.getFailureCount, 1)
+      assert(missing.getFailures.toString.contains("notFound"))
+      class Unknown extends ModelSuite(instance):
+        object explorations:
+          val space = explore(steps = 2):
+            model.client.increment
+          test("unknown target"):
+            space.find(steps = 1):
+              expect(model.count >= 0 && model.gap.reached)
+      val unknown = run(new Unknown)
+      assertEquals(unknown.getRunCount, 2)
+      assertEquals(unknown.getFailureCount, 1)
+      assert(unknown.getFailures.toString.contains("unknown"))
+      val broken = new ExplorationFixture.Model(bad = true)
+      class BadSample extends ModelSuite(broken):
+        object explorations:
+          val space = explore(steps = 3):
+            model.client.increment
+          test("bad sample"):
+            space.sample(2, seed = 19L)
+      val sampled = run(new BadSample)
+      assertEquals(sampled.getRunCount, 2)
+      assertEquals(sampled.getFailureCount, 2)
+      assert(sampled.getFailures.toString.contains("refuted"))
+      assert(sampled.getFailures.toString.contains("finite sample"))
+      assertEquals(broken.count, 0)
+
+  test("one exact concrete suite override reaches claims, replay, find and sample"):
+    if !sys.props.contains("questions.declarations-only") then
+      val suite = new ExplorationFixture.BudgetSuite(new ExplorationFixture.Model)
+      assertEquals(suite.getClass.getName, "outsidequestions.ExplorationFixture$BudgetSuite")
+      assert(sys.env.getOrElse("UMPIRE_CHECKER_BUDGETS", "").contains(suite.getClass.getName + "=1"))
+      val result = run(suite)
+      assertEquals(result.getRunCount, 4)
+      assertEquals(result.getFailureCount, 4)
+      val failures = result.getFailures.toArray.toVector.map(_.toString)
+      assert(failures.forall(_.contains("unknown")), failures.mkString("\n"))
+      assert(failures.forall(_.contains("budget 1 states")), failures.mkString("\n"))
+      assertEquals(suite.model.count, 0)
+
+  test("test-level from remains deferred and supplies both native question starts"):
+    val suite = new ExplorationFixture.StartSuite(new ExplorationFixture.Multiple)
+    assertEquals(suite.munitTests().size, 3)
+    assertEquals(suite.acquisitions, 0)
+    if !sys.props.contains("questions.declarations-only") then
+      val result = run(suite)
+      assertEquals(result.getRunCount, 3)
+      assertEquals(result.getFailureCount, 0, result.getFailures.toString)
+      assertEquals(suite.acquisitions, 2)

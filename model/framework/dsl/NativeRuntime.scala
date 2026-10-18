@@ -11,6 +11,8 @@ private[framework] trait NativeSuiteExecution:
   def budget: Int
   def claims[M <: Machine[?, ?]](model: M): SuiteCheck
   def replay[M <: Machine[?, ?]](body: RunBody[M]): SuiteCheck
+  def find[M <: Machine[?, ?]](model: M, request: SpaceFind[M], from: Option[State]): SuiteCheck
+  def sample[M <: Machine[?, ?]](model: M, request: SpaceSample[M], from: Option[State]): SuiteCheck
 
 // Declaration operations implemented by the product checker. Keeping the interface here lets the
 // lifter read declarations without loading the checker or evaluating authored callbacks.

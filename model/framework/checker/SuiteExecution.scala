@@ -32,6 +32,75 @@ object SuiteExecution:
           diagnostics(result)
         )
 
+      def find[M <: Machine[?, ?]](
+          model: M,
+          request: SpaceFind[M],
+          from: Option[State]
+      ): SuiteCheck =
+        require(
+          request.steps >= 1 && request.steps <= request.space.steps,
+          s"${request.position}: a find horizon must be within 1..${request.space.steps}"
+        )
+        require(
+          request.target.assertions.nonEmpty,
+          s"${request.position}: find requires an expect target"
+        )
+        val descriptor = request.space.acquire(model, from)
+        request.target.assertions.foreach: assertion =>
+          assertion.owners.foreach: (position, owner) =>
+            require(
+              owner().eq(model),
+              s"$position: an expectation belongs to another Model instance"
+            )
+        val space = Checker.spaceHeld(model, descriptor.steps, descriptor.starts, descriptor.select)
+        var failed = Option.empty[(RunPosition, State)]
+        val target = Expectation[State](
+          request.position.line,
+          request.position.text,
+          state =>
+            failed = None
+            val evaluation = new RunAssertionEvaluation:
+              def test(position: RunPosition, condition: () => Boolean): Boolean =
+                if failed.nonEmpty then false
+                else
+                  val holds = condition()
+                  if !holds then failed = Some(position -> state)
+                  holds
+            request.target.assertions.forall: assertion =>
+              try
+                evaluation.test(
+                  assertion.position,
+                  () => assertion.evaluate(evaluation)
+                ) && failed.isEmpty
+              catch case _: HoleReached if failed.nonEmpty => false
+        )
+        val result = execution.find(space, request.steps)(target)
+        val positioned = if result.verdict == Verdict.notFound then
+          failed.toVector.map((position, state) => s"target fails at $position, state $state")
+        else Vector.empty
+        SuiteCheck(
+          result,
+          result.verdict == Verdict.found,
+          result.verdict == Verdict.unknown,
+          (Vector(diagnostics(result)) ++ positioned).mkString("\n")
+        )
+
+      def sample[M <: Machine[?, ?]](
+          model: M,
+          request: SpaceSample[M],
+          from: Option[State]
+      ): SuiteCheck =
+        require(request.count >= 1, s"${request.position}: a sample count is at least one")
+        val descriptor = request.space.acquire(model, from)
+        val space = Checker.spaceHeld(model, descriptor.steps, descriptor.starts, descriptor.select)
+        val result = execution.sample(space, request.count, request.seed)
+        SuiteCheck(
+          result,
+          result.verdict == Verdict.verified && result.complete,
+          result.verdict == Verdict.unknown,
+          diagnostics(result)
+        )
+
   private def diagnostics(result: Result): String =
     val initial = result.path.initial.map(state => s"initial: $state").toVector
     val steps = result.path.steps.zipWithIndex.map: (step, index) =>
