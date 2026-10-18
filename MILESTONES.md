@@ -36,7 +36,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
 | Umpire in Rust (now) | fn-210.6 and .7 | The archive, registration, progress, direct wasm ABI and generic Go host relocation are complete; attribute Kettle and the comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
-| After the verdict | fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| After the verdict | fn-213 (ModelSuite: examples and explorations), fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -97,6 +97,23 @@ What is fixed, all owner decisions of 2026-10-18:
 | --- | --- | --- |
 | fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; `#[machine]` enforces the Scala part order as an error and the approved nested surface (`#[machine] mod` with one impl per part kind, actor-level `#[internal]`, optional `before`, `without([..])` scopes, `whenever(..).eventually(..)` progress as per-state booleans); state struct `kettle::Model`; only the four approved action spellings and `Kettle { .. }` to `Model { .. }` change in canonical goldens; trait reference stays unchanged (R6, R14, R44) |
 | fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+
+### fn-213: ModelSuite in Rust: examples and explorations (model)
+
+Captured on 2026-10-18, after fn-210. Every shared fixture becomes `{model.rs, tests.rs, expected/}`:
+`model.rs` is only the Model, `tests.rs` beside it holds `mod examples` (authored paths: `Run::from`,
+`step`, `repeat`, `expect!`) and `mod explorations` (`Space`, `verify_all`, `refuted`, `find`), as
+plain `#[test]` functions run by `cargo test`; the golden hook moves there too and state fields are
+`pub`. Conformance, Cases and `sample` wait for the Case slice (owner, 2026-10-18). Kettle's
+`tests.rs` asks the questions of the archived `Kettle.test.scala` that the surface admits.
+[Spec](.flow/specs/fn-213-modelsuite-in-rust-examples-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-213.1 | ⬜ todo | Fixture layout: `tests.rs` beside `model.rs`, `build.rs` declares both, golden hook moves, `pub` fields (R1) |
+| fn-213.2 | ⬜ todo | After .1: `umpire-suite` examples: `Run`, `step`, `repeat`, `expect!`, refusal fixtures (R2) |
+| fn-213.3 | ⬜ todo | After .1: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find`, fixtures (R3) |
+| fn-213.4 | ⬜ todo | After .2 and .3: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
 

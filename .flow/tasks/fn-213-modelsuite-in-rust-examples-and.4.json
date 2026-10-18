@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T23:44:49.058713Z",
+  "depends_on": [
+    "fn-213-modelsuite-in-rust-examples-and.2",
+    "fn-213-modelsuite-in-rust-examples-and.3"
+  ],
+  "id": "fn-213-modelsuite-in-rust-examples-and.4",
+  "priority": null,
+  "spec": "fn-213-modelsuite-in-rust-examples-and",
+  "spec_path": ".flow/tasks/fn-213-modelsuite-in-rust-examples-and.4.md",
+  "status": "todo",
+  "title": "Kettle tests.rs: the Scala suite's questions in examples and explorations",
+  "updated_at": "2026-10-18T23:44:49.058713Z"
+}

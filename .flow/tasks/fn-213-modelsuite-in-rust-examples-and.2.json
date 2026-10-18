@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T23:44:48.489799Z",
+  "depends_on": [
+    "fn-213-modelsuite-in-rust-examples-and.1"
+  ],
+  "id": "fn-213-modelsuite-in-rust-examples-and.2",
+  "priority": null,
+  "spec": "fn-213-modelsuite-in-rust-examples-and",
+  "spec_path": ".flow/tasks/fn-213-modelsuite-in-rust-examples-and.2.md",
+  "status": "todo",
+  "title": "umpire-suite examples: Run, step, repeat, expect!",
+  "updated_at": "2026-10-18T23:44:48.489799Z"
+}
