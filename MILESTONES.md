@@ -73,8 +73,7 @@ end-to-end goldens; a dev-only `umpire-testing` crate owns the runner.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.10 | 🔄 in progress | After .1/.2: rename `model2/framework/` to `model2/umpire/` and crates to `umpire-*` (R21); move synthetic fixtures to `checker/tests/fixtures/<name>/{model.rs,expected/}`, keep only Kettle's in `samples`, extract the runner into `umpire-testing` (R22, R23); goldens byte-identical |
-| fn-210.11 | ⬜ todo | After .10: checkpoint shared Cargo dependencies and the empty macro crate, enabling disjoint progress and derive implementation lanes without concurrent lockfile edits (R18) |
+| fn-210.11 | 🔄 in progress | After .10: checkpoint shared Cargo dependencies and the empty macro crate, enabling disjoint progress and derive implementation lanes without concurrent lockfile edits (R18) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
