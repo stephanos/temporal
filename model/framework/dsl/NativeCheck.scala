@@ -64,7 +64,7 @@ private[framework] object NativeCheck:
   // depth each was first reached at and the step that reached it. Successors are generated when
   // consumed; only visited states and predecessor paths are retained, never an adjacency table.
   final class Search[S, O, F](
-      val machine: RecordMachine[S, O, F],
+      val machine: NativeModel[S, O, F],
       origins: Seq[S],
       admit: ActionDecl => Boolean,
       val budget: Int,
@@ -72,14 +72,9 @@ private[framework] object NativeCheck:
   ):
     require(budget > 0, "a budget admits at least one state")
     scan(machine)
-    private val effects = machine.bindings
-      .filter(b => admit(b.decl))
-      .map: b =>
-        val effect = effectOf[S, O, F](b.decl, b.function)
-        val run = Option(synchronized(channels.get(b.decl))).fold(effect.apply(_: S, _: Class))(
-          channel => carried(channel, b.decl, effect)
-        )
-        (b.decl, run, classesOf(b.decl).filter(select))
+    private val effects = machine.nativeEffects
+      .filter((decl, _) => admit(decl))
+      .map((decl, run) => (decl, run, classesOf(decl).filter(select)))
     val admitted: Vector[ActionDecl] = effects.map(_._1).toVector
     private val index = mutable.HashMap.empty[S, Int]
     val states = mutable.ArrayBuffer.empty[S]
@@ -215,16 +210,28 @@ private[framework] object NativeCheck:
     else cls.values.mkString(s"${actionName(cls.decl)}(", ", ", ")")
 
   // Every class of an action: one per assignment of its inputs, or the action itself.
-  def classesOf(decl: ActionDecl): List[Class] = decl.nativeInputs match
-    case Some(shape) => shape.inputClasses(decl)
-    case None        =>
-      require(decl.inputs.isEmpty, s"action ${actionName(decl)} has no declared input shape")
-      List(Class(decl, Nil))
+  def classesOf(decl: ActionDecl): List[Class] =
+    decl.composedClasses.getOrElse(decl.nativeInputs match
+      case Some(shape) => shape.inputClasses(decl)
+      case None        =>
+        require(decl.inputs.isEmpty, s"action ${actionName(decl)} has no declared input shape")
+        List(Class(decl, Nil)))
+
+  def machineEffects[S, O, F](
+      machine: RecordMachine[S, O, F]
+  ): Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] =
+    scan(machine)
+    machine.bindings.toVector.map: binding =>
+      val effect = effectOf[S, O, F](binding.decl, binding.function)
+      val run = Option(synchronized(channels.get(binding.decl))).fold(effect.apply(_: S, _: Class))(
+        channel => carried(channel, binding.decl, effect)
+      )
+      binding.decl -> run
 
   // Explores a Machine breadth-first from `starts` under the actions `admit` accepts, reaching at
   // most `budget` states. Construction runs no effects; each check drives its own search.
   def explore[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       starts: Seq[S],
       admit: ActionDecl => Boolean = _ => true,
       budget: Int = defaultBudget,
@@ -285,15 +292,12 @@ private[framework] object NativeCheck:
 
   // Whether a Property is about a step of `cls`: every step, one class, or every class of an
   // action.
-  def selects(when: Option[ClassRef | Composed | String], cls: Class): Boolean = when match
-    case Some(c: Class) => (c.decl eq cls.decl) && java.util.Objects.equals(c.values, cls.values)
-    case Some(a: Action[?])  => a.decl eq cls.decl
+  def selects(when: Option[ClassRef | CompositionTarget | String], cls: Class): Boolean = when match
     case Some(named: String) => named == actionName(cls.decl) || named == cls.decl.name
-    case Some(other)         =>
-      throw IllegalArgumentException(s"$other selects a composed step, which no native check reads")
-    case _ => true
+    case Some(target)        => NativeClaims.selects(target, cls)
+    case _                   => true
 
-  private def selector(when: Option[ClassRef | Composed | String]): String = when match
+  private def selector(when: Option[ClassRef | CompositionTarget | String]): String = when match
     case Some(c: Class)      => shown(c)
     case Some(a: Action[?])  => actionName(a.decl)
     case Some(named: String) => named
@@ -413,7 +417,7 @@ private[framework] object NativeCheck:
   // A monitor, checked on the product of the graph and the monitor's own state: its verdict is
   // read after every step, after the steps it selects, or in every state the Machine may end in.
   def monitor[S, O, F, M](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       subject: String,
       watch: Monitor[S, O, F, M],
       starts: Seq[S],
@@ -527,7 +531,7 @@ private[framework] object NativeCheck:
   // A progress claim in the environment a scenario says: the graph from its start, or from
   // `starts` where it names none, under the actions it admits, and the actions it makes fair.
   def progress[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       subject: String,
       claim: LeadsTo,
       scenario: ScenarioDecl,
@@ -871,7 +875,7 @@ private[framework] object NativeCheck:
   // that never fire and postconditions selecting steps no action takes. The sections are read from
   // `sections` where they are another object's, such as for a derivation made in place.
   def verifyAll[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       starts: Seq[S] = Seq.empty,
       budget: Int = defaultBudget,
       sections: Option[AnyRef] = None
@@ -944,8 +948,8 @@ private[framework] object NativeCheck:
       case (member, p: Progress[?]) =>
         val claim = p.asInstanceOf[Progress[S]] // scalafix:ok DisableSyntax.asInstanceOf
         val environment = p.machine match
-          case m: RecordMachine[?, ?, ?] =>
-            m.asInstanceOf[RecordMachine[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
+          case m: NativeModel[?, ?, ?] =>
+            m.asInstanceOf[NativeModel[S, O, F]] // scalafix:ok DisableSyntax.asInstanceOf
           case _ => machine
         val search = explore(environment, origins, budget = budget)
         progress(search, subject(member), claim, fairness(claim, environment))
@@ -1164,7 +1168,7 @@ private[framework] object NativeCheck:
     case other        =>
       throw IllegalArgumentException(s"$other is no state of a Machine that declares its vars")
 
-  private def varsOf(machine: RecordMachine[?, ?, ?], what: String): Vars =
+  private def varsOf(machine: NativeModel[?, ?, ?], what: String): Vars =
     machine.stateVars.getOrElse(
       throw IllegalArgumentException(s"the $what read vars, and ${machine.name} declares none")
     )
@@ -1203,14 +1207,14 @@ private[framework] object NativeCheck:
     graph.result(subject, failure)
 
   // The actions a progress claim assumes weakly fair: its own assumptions' and its Machine's.
-  def fairness[S](claim: Progress[S], machine: RecordMachine[?, ?, ?]): Seq[ActionDecl] =
+  def fairness[S](claim: Progress[S], machine: NativeModel[?, ?, ?]): Seq[ActionDecl] =
     (claim.assumptions ++ machine.assumptions).flatMap(_.fairness).distinct
 
   // A progress claim of a Machine with the same state, checked in that Machine's environment: the
   // claim's own, or another such as the whole Machine its claim's derivation restricts.
   def progress[S, O, F](
       claim: Progress[S],
-      environment: RecordMachine[S, O, F],
+      environment: NativeModel[S, O, F],
       starts: Seq[S],
       budget: Int
   ): Result =
@@ -1225,9 +1229,9 @@ private[framework] object NativeCheck:
   // the Scenario's start, over the whole graph of a free Scenario or along a pinned one's classes.
   def query(q: Query, subject: String, budget: Int = defaultBudget): Result =
     q.scenario.machine match
-      case m: RecordMachine[?, ?, ?] =>
+      case m: NativeModel[?, ?, ?] =>
         val machine =
-          m.asInstanceOf[RecordMachine[Any, Any, Any]] // scalafix:ok DisableSyntax.asInstanceOf
+          m.asInstanceOf[NativeModel[Any, Any, Any]] // scalafix:ok DisableSyntax.asInstanceOf
         val starts = q.scenario.start.fold(machine.initialStates)(s => Seq(s))
         if q.property.leads.nonEmpty then
           progress(machine, subject, q.property.leads.get, q.scenario, starts, budget)
@@ -1249,7 +1253,7 @@ private[framework] object NativeCheck:
 
   // A pinned Scenario: each listed class from every state the classes before it reached.
   private def pinned[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       subject: String,
       q: Query,
       starts: Seq[S],
@@ -1257,14 +1261,12 @@ private[framework] object NativeCheck:
   ): Report =
     require(budget > 0, "a budget admits at least one state")
     scan(machine)
-    val classes = q.scenario.actions.map:
-      case c: Class     => c
-      case a: Action[?] => Class(a.decl, Nil)
-      case other        =>
-        throw IllegalArgumentException(
-          s"$subject pins $other, a composed step no native check reads"
-        )
-    val effects = machine.bindings.map(b => b.decl -> effectOf[S, O, F](b.decl, b.function))
+    val effects = machine.nativeEffects
+    val classes = q.scenario.actions.map: target =>
+      val selected =
+        effects.flatMap((decl, _) => classesOf(decl)).filter(NativeClaims.selects(target, _))
+      require(selected.nonEmpty, s"$subject pins $target, which no rule binds")
+      selected
     val reached = mutable.HashSet.empty[S]
     val unknown = Vector.newBuilder[String]
     var cut = false
@@ -1298,38 +1300,35 @@ private[framework] object NativeCheck:
     var depth = 0
     var witness = classes.isEmpty && frontier.exists(_._2)
     var stepped = false
-    classes.zipWithIndex.foreach: (cls, i) =>
-      val effect = effects
-        .find(_._1 eq cls.decl)
-        .map(_._2)
-        .getOrElse(
-          throw IllegalArgumentException(s"$subject pins ${shown(cls)}, which no rule binds")
-        )
+    classes.zipWithIndex.foreach: (selected, i) =>
       frontier = frontier.flatMap { (before, matched) =>
-        val steps =
-          try effect(before, cls)
-          catch
-            case HoleReached(hole) =>
-              unknown += s"unknown: ${shown(cls)} at $before reaches ${holeName(hole)}"
-              Nil
-        steps.flatMap: step =>
-          stepped = true
-          try
-            val holds = judge(q.property, before, cls, step, outcome)
-            holds match
-              case Some(false) if failure.isEmpty =>
-                failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
-              case _ => ()
-            val now = matched || holds.contains(true)
-            if i == classes.size - 1 && now then witness = true
-            if admit(step.state) then
-              depth = i + 1
-              Some(step.state -> now)
-            else None
-          catch
-            case HoleReached(hole) =>
-              unknown += s"unknown: ${shown(cls)} at ${step.state} reaches ${holeName(hole)}"
-              None
+        selected.flatMap { cls =>
+          val effect = effects.find(_._1 eq cls.decl).get._2
+          val steps =
+            try effect(before, cls)
+            catch
+              case HoleReached(hole) =>
+                unknown += s"unknown: ${shown(cls)} at $before reaches ${holeName(hole)}"
+                Nil
+          steps.flatMap: step =>
+            stepped = true
+            try
+              val holds = judge(q.property, before, cls, step, outcome)
+              holds match
+                case Some(false) if failure.isEmpty =>
+                  failure = Some(s"counterexample at step ${i + 1}, ${shown(cls)}")
+                case _ => ()
+              val now = matched || holds.contains(true)
+              if i == classes.size - 1 && now then witness = true
+              if admit(step.state) then
+                depth = i + 1
+                Some(step.state -> now)
+              else None
+            catch
+              case HoleReached(hole) =>
+                unknown += s"unknown: ${shown(cls)} at ${step.state} reaches ${holeName(hole)}"
+                None
+        }
       }.distinct
     val missing = unknown.result()
     val complete = !cut && missing.isEmpty
@@ -1380,13 +1379,7 @@ private[framework] object NativeCheck:
     val section = NativeClaims
       .sectionClass(ref.machine, ref.section, requireStatic = true)
       .getOrElse(throw IllegalArgumentException(s"$ref is declared in no section object"))
-    val vars = varsOf(
-      ref.machine match
-        case m: RecordMachine[?, ?, ?] => m
-        case other => throw IllegalArgumentException(s"${other.name} declares no vars")
-      ,
-      s"claim $ref"
-    )
+    val vars = stateOf(state).owner
     val evaluated = NativeClaims.evaluate(vars, section, stateOf(state), context)
     outcome.note(evaluated, Vector.empty, Vector(ref.member))
     if evaluated.applies(ref.member) && evaluated.failure(ref.member).isEmpty then

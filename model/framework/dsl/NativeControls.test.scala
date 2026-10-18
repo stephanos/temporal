@@ -8,7 +8,7 @@ object NativeControls:
   // Asserts that an invariant or postcondition is refuted on `machine` from `starts` (its initial
   // state unless named): `assertRefuted(Bank.Leaky, Bank.Leaky.invariants.leakyTotalSupplyInv)`.
   def assertRefuted[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       claim: Property,
       starts: Seq[S] = Seq.empty,
       budget: Int = NativeCheck.defaultBudget
@@ -21,7 +21,7 @@ object NativeControls:
   // Asserts that a monitor is broken on `machine`, such as one the machine keeps from the source it
   // is derived from: `assertRefuted(Naive, Model.monitors.agreement)`.
   def assertRefuted[S, O, F, M](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       watch: Monitor[S, O, F, M]
   )(using munit.Location): NativeCheck.Result =
     val subject = s"${machine.name}.${NativeCheck.claimName(watch, machine)}"
@@ -31,13 +31,13 @@ object NativeControls:
   // `starts` (its initial state unless named): `assertRefuted(Bank.Leaky,
   // invariant(check(totalSupply(balances))))`.
   def assertRefuted[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       claim: NativeClaims.Adhoc
   )(using munit.Location): NativeCheck.Result =
     assertRefuted(machine, claim, Seq.empty[S])
 
   def assertRefuted[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       claim: NativeClaims.Adhoc,
       starts: Seq[S]
   )(using munit.Location): NativeCheck.Result =
@@ -45,7 +45,7 @@ object NativeControls:
 
   // The same within `budget` states: a counterexample found before the cut stands.
   def assertRefuted[S, O, F](
-      machine: RecordMachine[S, O, F],
+      machine: NativeModel[S, O, F],
       claim: NativeClaims.Adhoc,
       starts: Seq[S],
       budget: Int

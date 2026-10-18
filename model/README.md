@@ -779,6 +779,56 @@ delivery/backoff evidence; its text remains source-only and cannot supply a judg
 fn-166.4 owns lowering/live proof, .5 the complete loop, .6 the Case subtree and .10 the
 production migration loader. The current focused source checks do not close those tasks.
 
+### Plain compositions
+
+Write a composition as `object Together extends Composition[JoinedFact]` with member vals,
+`val left = Subject` and `val right = Other`. Its state is the members' var snapshots, not an
+authored state case class. Claims read `left.phase` or an ordinary helper such as `left.isClosed`;
+`before.left.phase` reads that member's pre-step snapshot. Members can themselves be compositions.
+
+```scala
+enum JoinedFact:
+  case left(value: Fact)
+  case right(value: Foreign)
+
+object Together extends Composition[JoinedFact]:
+  val left = Subject
+  val right = Other
+
+  object syncs:
+    val started =
+      sync(left(hand.start), right(hand.start))
+
+  object postconditions:
+    val startedTogether =
+      after(syncs.started):
+        check(before.left.phase == Phase.open)
+        records(JoinedFact.left(Fact.completed))
+```
+
+An action bound by just one member can be named directly; `left(action)` or `left(action(input))`
+chooses a member when the action is ambiguous. A sync takes both members' effects in one step,
+combines their alternatives, returns the first member's actual outcome and wraps each member's
+facts in its enum case. Unpaired actions step their member alone; paired actions never also step
+alone. Use `Composition[Nothing]` if no member records facts. The default `end` is true; override
+it with a Boolean expression reading member vars or helpers.
+
+The Machine claim sections, monitors, progress, scenarios and witnesses apply to compositions.
+Targets are sync vals or action references, with member qualification where needed. Native checks
+start from the product of member starts and share the on-demand search, budget/cut and fairness
+rules; a sync counts as one composed step. Each member must hold independent vars, so a Machine
+and a derivation sharing its vars cannot occupy two slots.
+
+`object LateTogether extends Composition(Together.withMember(right = LateOther))` retains the
+source's member order, syncs, end and fact type. The replacement must be the member or a derivation
+holding its vars; a misspelt member or unrelated replacement is refused. A derived composition
+can declare its own claims and use the inherited member snapshots in `before`.
+
+This is the native authoring surface. Selector-based composition APIs in retained exporter notes
+below describe held integration checkpoints, not forms to use in a new Model. Final composition
+IR lifting, replacement-refinement proofs and Go lowering remain held under fn-190.12. See
+[framework compositions](framework/SEMANTICS.md#17-compositions) for the complete rules.
+
 ### Function-body sugar
 
 The seven function-body sugar families (`enter`, `stay`, `reject`, `disabled`, `in`, `implies`,
@@ -793,7 +843,7 @@ Capture precedes pickling, so its compiler host requests the pinned compiler's i
 The resulting bindings retain strict argument order and lazy by-name reads; static type evidence
 does not become IR state.
 
-The composition overload keeps `after.records(_.member, fact)`. Its inline boundary captures only
+The retained legacy composed-record overload keeps `after.records(_.member, fact)`. Its inline boundary captures only
 the typed selector path; it never lifts a function body. A plain definition forms the member's
 canonical fact key and checks membership. Framework definitions and Model/kit definitions share
 one index, while framework sources remain outside author root discovery and source admission.
@@ -1341,6 +1391,9 @@ retirement and system/Go equivalence remain open.
 
 ### Constructed composed references (staged)
 
+This retained checkpoint describes the retired selector-based form. Current native authoring uses
+[plain compositions](#plain-compositions); final-DSL IR integration remains held under fn-190.12.
+
 `Composed.toIR(declaration)` constructs an isolated `ComposedActionRef`. The post-pickler
 signature phase retains direct member fields, exact action/class operands and sync endpoints;
 saved TASTy remains available to the current composition reader. Bare actions select every input
@@ -1468,7 +1521,7 @@ The IR generator reads what an author wrote, as written:
   positional `start(unset, expires, unset)` and `start()`, every input at its declared default
   (`start(unset, unset, unset)`, and for an action with no input its one class);
   Properties, Scenarios, Queries, Limits, monitors, assumptions, holes, channels, compositions,
-  progress claims and realizations. A composition names its members by field selector
+  progress claims and realizations. The retained composition reader names members by field selector
   (`_.activity -> RecordMember`), and so do its `sync`, `replaces` and `withMember`; a `sync`
   with no name is named after its first member's action; a Scenario
   or `whenAction` of it names a sync by one member action it pairs, `c.synced(_.activity ->
@@ -1481,18 +1534,20 @@ The IR generator reads what an author wrote, as written:
   claim whose assumption selects steps of another composition, and a machine that assumes composed
   fairness. The bound counts composed steps, a sync's once, and weak fairness does not shorten it
   (model/framework/SEMANTICS.md, Progress); `system/DispatchProgress.scala` states the restrictions its
-  one-step bound rests on, with the variant whose stopping worker refutes it. Composition progress
-  is supported by the current Scala authoring, lifter and model-check path. It is model-only: no
+  one-step bound rests on, with the variant whose stopping worker refutes it. This is the retained
+  selector-based reader checkpoint; native plain-composition checks do not establish its final
+  IR/Go integration. Progress is model-only: no
   Case is generated from it, and this source support does not itself close fn-150's pending
   generated-consumer, gate or live evidence.
-- **Shared claims:** `property` and `scenario` are declared on `Declares[S]`, the supertype of a
+- **Retained shared-claim reader:** `property` and `scenario` are declared on `Declares[S]`, the former supertype of a
   machine and a composition, so one function over `m: Declares[S]` declares a Property on either.
   A function-valued argument of such a function names a def of the lifted sources, which the
   IR generator binds where the function is called, as it binds a machine argument; a type parameter
   reads as the type the call applies it to. A case class whose every field is a Property, Scenario
   or Query bundles claims: built by its constructor in such a function, it lifts as its claims, and
   `x.field` reads one back. Shared capability Properties are lifted sources too, in
-  `model/temporal/capabilities/product` and `.../system`; the framework holds none.
+  `model/temporal/capabilities/product` and `.../system`; the framework holds none. Native
+  compositions use claim sections rather than these record-state helpers.
 - **Types:** enums with and without case fields, case classes, and bounded counters `UpTo[N]`: a
   field `attempts: UpTo[2]` has the values 0, 1 and 2, lifted as the IR int range 0..2, and a step
   writes one with `UpTo(n)`. Every enum and case class is a domain with no `derives` clause: the

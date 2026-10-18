@@ -5,11 +5,20 @@ import framework.dsl.Finite.given
 object ExpectFixture:
   import WitnessFixture.*
 
-  object Reordered extends Composition[Joined](_.right -> Other, _.left -> Subject):
-    type Fact = JoinedFact
+  object Reordered extends Composition[JoinedFact]:
+    val right = NativeOther
+    val left = NativeSubject
 
-  object Repeated extends Composition[Joined](_.right -> Subject, _.left -> Subject):
-    type Fact = JoinedFact
+  object JoinedPredicates
+      extends RecordMachine[Joined, String, JoinedFact](using
+        summon[Data[Joined]],
+        Finite.of("accepted"),
+        summon[Finite[JoinedFact]]
+      ):
+    val init = Joined(State.open, State.open)
+    def end(state: Joined) = true
+
+    object transitions extends Bindings[Joined, String, JoinedFact]()
   def left(using view: View[Joined]): State = view.get(_.left)
 
 class ExpectTest extends munit.FunSuite:
@@ -254,8 +263,8 @@ class ExpectTest extends munit.FunSuite:
     assertEquals(exact.decl.when, Some(move(false)))
     assertNotEquals(exact.decl.when, Some(move(true)))
     assertEquals(whole.decl.when, Some("move"))
-    val composed = ExpectFixture.Reordered.own(_.left, WitnessFixture.start)
-    val allMemberClasses = ExpectFixture.Reordered.property
+    val composed = ExpectFixture.Reordered.left(WitnessFixture.start)
+    val allMemberClasses = ExpectFixture.JoinedPredicates.property
       .afterAction(composed)
       .expect:
         check(true)
@@ -269,12 +278,12 @@ class ExpectTest extends munit.FunSuite:
         check(equal(before, after.state))
     def composed(owner: Declares[Joined]): Property = owner.property.expect:
       check(left.equals(State.open))
-    val predicate = generic(Reordered, (a, b) => a.equals(b)).decl.holds2.get
+    val predicate = generic(JoinedPredicates, (a, b) => a.equals(b)).decl.holds2.get
       .asInstanceOf[(Joined, Step[Joined, String, String]) => Boolean]
     val old = Joined(State.open, State.closed)
     assert(predicate(old, Step("accepted", old)))
     assert(!predicate(old, Step("accepted", old.copy(left = State.closed))))
-    val reads = composed(Reordered).decl.holds.get
+    val reads = composed(JoinedPredicates).decl.holds.get
       .asInstanceOf[Step[Joined, String, String] => Boolean]
     assert(reads(Step("accepted", old)))
     assert(!reads(Step("accepted", old.copy(left = State.closed))))
@@ -309,12 +318,24 @@ class ExpectTest extends munit.FunSuite:
     import WitnessFixture.*
     import ExpectFixture.*
     val step =
-      Step("accepted", Joined(State.open, State.closed), List(JoinedFact.left(Fact.completed)))
+      Step(
+        "accepted",
+        Reordered.init.copy(
+          left = NativeSubject.init.copy(phase = State.open),
+          right = NativeOther.init.copy(phase = State.closed)
+        ),
+        List(JoinedFact.left(Fact.completed))
+      )
     def recorded(q: Query): Boolean =
-      q.property.holds.get.asInstanceOf[Step[Joined, String, JoinedFact] => Boolean](step)
+      q.property.holds.get
+        .asInstanceOf[Step[framework.dsl.State, String, JoinedFact] => Boolean](step)
     assert(recorded(Reordered.witness(start()).records(JoinedFact.left(Fact.completed))))
     assert(!recorded(Reordered.witness(start()).records(JoinedFact.right(Foreign.completed))))
-    assert(recorded(Repeated.witness(start()).records(JoinedFact.left(Fact.completed))))
+    assert(
+      compileErrors(
+        """object Repeated extends Composition[JoinedFact] { val left = NativeSubject; val right = NativeSubject }"""
+      ).nonEmpty
+    )
 
   test("expectation validation refuses empty, discarded and wrong-level statements"):
     val invalid = List(
@@ -367,15 +388,18 @@ class ExpectTest extends munit.FunSuite:
     )
     assertEquals(invalid.zipWithIndex.filter((diagnostic, _) => diagnostic.isEmpty), Nil)
 
-  test("member metadata requires an authored direct field rather than a computed selector"):
+  test("composition members refuse unrelated objects and repeated machines"):
     val computed = compileErrors(
-      """import WitnessFixture.*; object Computed extends Composition[Joined](s => identity(s.left) -> Subject, _.right -> Other)"""
+      """import WitnessFixture.*; object Computed extends Composition[Nothing] { val clock = WitnessFixture }"""
     )
-    assert(computed.contains("Required: framework.dsl.MemberSelection"), computed)
+    assert(
+      computed.contains("clock") && computed.contains("neither a Machine nor a Composition"),
+      computed
+    )
     val foreignRoot = compileErrors(
-      """import WitnessFixture.*; def build(foreign: Joined) = { object Wrong extends Composition[Joined](_ => foreign.left -> Subject, _.right -> Other); Wrong }"""
+      """import WitnessFixture.*; object Wrong extends Composition[JoinedFact] { val left = NativeSubject; val right = NativeSubject }"""
     )
-    assert(foreignRoot.nonEmpty, "a constructor member must select its own state parameter")
+    assert(foreignRoot.contains("already"), foreignRoot)
 
   test("structural validation inspects nested expressions and transitive source helpers"):
     val invalid = List(
@@ -440,7 +464,7 @@ class ExpectTest extends munit.FunSuite:
       records(JoinedFact.right(Foreign.completed))
       check(before.left.equals(after.state.left))
     val joined = Joined(State.open, State.closed)
-    val memberState = Reordered.property.expect:
+    val memberState = JoinedPredicates.property.expect:
       check(Subject.end(left))
     val readsMember = memberState.decl.holds.get
       .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean]
@@ -449,17 +473,17 @@ class ExpectTest extends munit.FunSuite:
     def holds(p: Property, facts: List[JoinedFact]): Boolean =
       p.decl.holds.get
         .asInstanceOf[Step[Joined, String, JoinedFact] => Boolean](Step("accepted", joined, facts))
-    val reordered = Reordered.property.expect:
+    val reordered = JoinedPredicates.property.expect:
       check(named(after))
     assert(holds(reordered, List(JoinedFact.left(Fact.completed))))
     assert(!holds(reordered, List(JoinedFact.right(Foreign.completed))))
-    val across = Reordered.property.across.expect:
+    val across = JoinedPredicates.property.across.expect:
       check(transition(before, after))
     val predicate = across.decl.holds2.get
       .asInstanceOf[(Joined, Step[Joined, String, JoinedFact]) => Boolean]
     assert(predicate(joined, Step("accepted", joined, List(JoinedFact.right(Foreign.completed)))))
     assert(!predicate(joined, Step("accepted", joined, List(JoinedFact.left(Fact.completed)))))
-    val conditional = Reordered.property.expect:
+    val conditional = JoinedPredicates.property.expect:
       if after.records(JoinedFact.right(Foreign.completed)) then
         records(JoinedFact.left(Fact.completed))
     assert(!holds(conditional, List(JoinedFact.right(Foreign.completed))))
@@ -473,14 +497,14 @@ class ExpectTest extends munit.FunSuite:
     val named: Step[Joined, String, JoinedFact] => Boolean = expect:
       records(JoinedFact.left(WitnessFixture.Fact.completed))
     def forwarded(step: Step[Joined, String, JoinedFact]): Boolean = named(step)
-    val same = Reordered.property.expect:
+    val same = JoinedPredicates.property.expect:
       check(forwarded(after))
     val transition: (Joined, Step[Joined, String, JoinedFact]) => Boolean = expect.across:
       records(JoinedFact.right(Foreign.completed))
       check(before.left.equals(after.state.left))
     def across(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
       transition(before, after)
-    val property = Reordered.property.across.expect:
+    val property = JoinedPredicates.property.across.expect:
       check(across(before, after))
     assertEquals(same.name, "")
     assertEquals(property.name, "")
@@ -501,7 +525,7 @@ class ExpectTest extends munit.FunSuite:
           records(WitnessFixture.JoinedFact.left(WitnessFixture.Fact.completed))
         def forwarded(predicate: Step[Joined, String, JoinedFact] => Boolean,
             step: Step[Joined, String, JoinedFact]): Boolean = predicate(step)
-        Reordered.property.expect:
+        JoinedPredicates.property.expect:
           check(forwarded(named, after))
       """),
       compileErrors("""
@@ -512,7 +536,7 @@ class ExpectTest extends munit.FunSuite:
         def forwarded(before: Joined, after: Step[Joined, String, JoinedFact]): Boolean =
           val local = named
           local(before, after)
-        Reordered.property.across.expect:
+        JoinedPredicates.property.across.expect:
           check(forwarded(before, after))
       """)
     )

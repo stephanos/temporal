@@ -155,8 +155,14 @@ private[framework] object NativeClaims:
   def alternative(body: => Unit): Unit = current.foreach(_.alternative(body))
 
   // A block about the steps of `target`, which runs where the step took it.
-  def targeting(target: Any, member: String)(block: => Unit): Unit =
+  def targeting(target: Any, member: String, location: String)(block: => Unit): Unit =
     current.foreach: c =>
+      c.origin
+        .map(_.owner.machine)
+        .foreach:
+          case composition: Composition[?] =>
+            composition.validateTarget(target, s"$location: $member", required = false)
+          case _ => ()
       c.seen += member: Unit
       c.targeted.getOrElseUpdate(member, target): Unit
       if c.taken.exists(selects(target, _)) then
@@ -166,9 +172,11 @@ private[framework] object NativeClaims:
 
   // Whether a step of `cls` is a step of `target`: the class itself, or any class of an action.
   def selects(target: Any, cls: Class): Boolean = target match
+    case _ if cls.decl.selectsComposed.nonEmpty => cls.decl.selectsComposed.get(target, cls)
     case c: Class     => (c.decl eq cls.decl) && java.util.Objects.equals(c.values, cls.values)
     case a: Action[?] => a.decl eq cls.decl
-    case other        =>
+    case _: CompositionTarget => false
+    case other                =>
       throw IllegalArgumentException(s"$other selects a composed step, which no native check reads")
 
   // The state the step under evaluation started from, or `fallback` outside an evaluation.

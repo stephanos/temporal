@@ -272,7 +272,7 @@ class PropertyIllustrationsSuite extends munit.FunSuite:
         "Individual only",
         IllustrationKind.positive,
         start(),
-        Step("accepted", Joined(State.open, State.open))
+        Step[framework.dsl.State, Any, JoinedFact]("accepted", Together.init)
       )
     assert(error.getMessage.contains("composed"), error.getMessage)
     val derived = DerivedSubject.property.expect:

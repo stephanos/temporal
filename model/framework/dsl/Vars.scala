@@ -7,11 +7,17 @@ import scala.quoted.*
 private[framework] object StartStatesMacro:
   def initializer(using q: Quotes): Option[q.reflect.Symbol] =
     import q.reflect.*
-    val owner = Iterator.iterate(Symbol.spliceOwner)(_.owner).takeWhile(!_.isNoSymbol)
-      .find(s => (s.isValDef || s.isDefDef) &&
-        !s.name.contains("$") && !s.name.startsWith("<") && s.name != "macro")
-    owner.filter(v => v.owner.isClassDef &&
-      v.owner.declarations.exists(_.name == s"${v.name}_="))
+    val owner = Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(!_.isNoSymbol)
+      .find(s =>
+        (s.isValDef || s.isDefDef) &&
+          !s.name.contains("$") && !s.name.startsWith("<") && s.name != "macro"
+      )
+    owner.filter(v =>
+      v.owner.isClassDef &&
+        v.owner.declarations.exists(_.name == s"${v.name}_=")
+    )
 
   def initialize[A: Type](domain: Expr[Iterable[A]])(using Quotes): Expr[A] =
     import quotes.reflect.*
@@ -162,12 +168,15 @@ object VarSchema:
 // arguments of the Machine's parent constructor would be hoisted into the object that encloses the
 // Machine, whose initialization would then run inside the Machine's.
 final class Vars private[framework] (
-    private[framework] val machine: RecordMachine[State, ?, ?],
-    private[framework] val schema: VarSchema
+    private[framework] val machine: Model,
+    private[framework] val schema: VarSchema,
+    private[framework] val children: Vector[Vars] = Vector.empty
 ):
   private var depth = 0
   private var captured = Option.empty[State]
-  private val accessors = schema.vars.map: v =>
+  private[framework] def leaves: Vector[Vars] =
+    if children.isEmpty then Vector(this) else children.flatMap(_.leaves)
+  private val accessors = (if children.isEmpty then schema.vars else Vector.empty).map: v =>
     val methods = machine.getClass.getMethods.toVector
     val getter = methods.find(m => m.getName == v.name && m.getParameterCount == 0)
     val setter = methods.find(m => m.getName == s"${v.name}_$$eq" && m.getParameterCount == 1)
@@ -184,10 +193,12 @@ final class Vars private[framework] (
 
   // The vars as they are now.
   private def snapshot(): State =
-    State(
-      this,
-      schema.vars.lazyZip(accessors).map((v, accessor) => v.checked(accessor._1.invoke(machine)))
-    )
+    if children.nonEmpty then State(this, children.map(_.initial))
+    else
+      State(
+        this,
+        schema.vars.lazyZip(accessors).map((v, accessor) => v.checked(accessor._1.invoke(machine)))
+      )
 
   private def restore(state: State): Unit =
     accessors
@@ -206,13 +217,18 @@ final class Vars private[framework] (
   // Evaluates `evaluate` on the vars as they are in `state`.
   def at[A](state: Any)(evaluate: => A): A = synchronized:
     val target = owned(state)
-    val resume = if depth == 0 then initial else snapshot()
-    depth += 1
-    restore(target)
-    try evaluate
-    finally
-      depth -= 1
-      restore(resume)
+    if children.nonEmpty then
+      children.indices.foldRight(() => evaluate)((i, inner) =>
+        () => children(i).at(target.values(i))(inner())
+      )()
+    else
+      val resume = if depth == 0 then initial else snapshot()
+      depth += 1
+      restore(target)
+      try evaluate
+      finally
+        depth -= 1
+        restore(resume)
 
   // The step an effect takes from `state`: the rejection it refused with, from `state`, or the
   // accepted outcome into the vars it assigned, with the facts it recorded in order; one step for

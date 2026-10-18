@@ -49,10 +49,7 @@ final class IrFile private[framework] (
             machine.reaches.foreach(model)
           case c: Composition[?] =>
             c.members.foreach(model)
-            c.shape match
-              case Composition.Shape.Of(source)      => model(source)
-              case Composition.Shape.With(source, _) => model(source)
-              case Composition.Shape.Members(_)      => ()
+            c.source.foreach(model)
           case _ => ()
     def query(q: Query): Unit =
       Seq(q.scenario.machine, q.property.machine).foreach(model)

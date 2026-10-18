@@ -216,14 +216,14 @@ private[framework] object Signature:
     else
       Vector(
         Assumption.Fairness.Actions(value.fairness),
-        Assumption.Fairness.Composed(value.composed)
+        Assumption.Fairness.CompositionTarget(value.composed)
       )
     val fair = segments
       .collect { case Assumption.Fairness.Actions(actions) => actions }
       .flatten
       .map(actionId)
     val refs = segments
-      .collect { case Assumption.Fairness.Composed(actions) => actions }
+      .collect { case Assumption.Fairness.CompositionTarget(actions) => actions }
       .flatten
       .map(_.toIR(context))
     if fair.nonEmpty && refs.nonEmpty then

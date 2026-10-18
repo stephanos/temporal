@@ -124,6 +124,8 @@ private[framework] def choiceTokens(effect: AnyRef): Option[Vector[Choice]] = ef
 // A declared, derived or composed machine.
 trait Model:
   def name: String
+  def apply(target: Action[?] | Class | CompositionTarget): MemberStep =
+    new MemberStep(this, target)
 
 // The name an object form takes from its object: `object OrderProduct` is `orderProduct`.
 private[framework] def objectName(of: AnyRef): String =
@@ -167,6 +169,15 @@ trait Declares[S] extends Model:
     PropertyBuilder(name, this, None)
   def scenario: ScenarioBuilder[S] = ScenarioBuilder("", this, None)
   def scenario(name: String): ScenarioBuilder[S] = ScenarioBuilder(name, this, None)
+
+private[framework] trait NativeModel[S, O, F] extends Declares[S]:
+  type Outcome = O
+  type Fact = F
+  def initialStates: Seq[S]
+  def init: S
+  def end(state: S): Boolean
+  def assumptions: List[Assumption]
+  private[framework] def nativeEffects: Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])]
 
 // What a derivation binds in its source's place: one action's step function, `action ~> f`, or the
 // rules of one action, `on(action) { where(g) ~> effect }` (model/framework/dsl/Syntax.scala).
@@ -543,9 +554,11 @@ abstract class RecordMachine[S, O, F] private[framework] (using
     private[framework] val fo: Finite[O],
     private[framework] val ff: Finite[F]
 )(using private[framework] val ss: StateData[S])
-    extends Declares[S]:
-  type Outcome = O
-  type Fact = F
+    extends NativeModel[S, O, F]:
+
+  final private[framework] def nativeEffects
+      : Vector[(ActionDecl, (S, Class) => List[Step[S, O, F]])] =
+    NativeCheck.machineEffects(this)
 
   final override private[framework] def illustrationMachine: Option[RecordMachine[S, O, F]] = Some(
     this
@@ -1092,7 +1105,7 @@ abstract class RecordMachine[S, O, F] private[framework] (using
 // them.
 abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema)
     extends RecordMachine[State, O, F],
-      ClaimWords,
+      NativeClaimWords[O, F],
       Lifted:
   private lazy val declared: Vars = Vars(this, schema)
   private val initialDomains = scala.collection.mutable.LinkedHashMap.empty[String, Vector[Any]]
@@ -1135,40 +1148,6 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
   protected given recording: Recording[F] = new Recording[F]:
     private[framework] def add(recorded: Seq[F]): Unit = declared.add(recorded)
 
-  // A monitor of the Machine's steps, `monitor(List.empty[Observation])(history =>
-  // observe(history))(readHistoryBroken)`, named after its `val`: `next` reads the vars, with the
-  // state after each step restored into them, and `before`, `outcome`, `facts` and
-  // `recorded(fact)` of the step; `violated` says which of its states break the promise.
-  final def monitor[M](initial: M)(next: M => M)(violated: M => Boolean)(using
-      Data[M]
-  )(using StateData[M]): Monitor[State, O, F, M] =
-    framework.dsl.monitor[State, O, F, M](initial)((m, before, step) =>
-      NativeClaims.watching(before, step)(next(m))
-    )(violated)
-
-  // The monitors written over a state and a step, as outside a Machine.
-  final def monitor[S, MO, MF, M](initial: M)(next: (M, S, Step[S, MO, MF]) => M)(
-      violated: M => Boolean
-  )(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
-    framework.dsl.monitor[S, MO, MF, M](initial)(next)(violated)
-
-  final def monitor[S, MO, MF, M](name: String, initial: M)(
-      next: (M, S, Step[S, MO, MF]) => M
-  )(violated: M => Boolean)(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
-    framework.dsl.monitor[S, MO, MF, M](name, initial)(next)(violated)
-
-  // A monitor of a promise about every step, which once a step breaks it stays broken: `promise`
-  // reads the vars after the step, and `before`, `outcome`, `facts` and `recorded(fact)`.
-  final def sticky(promise: => Boolean): Monitor[State, O, F, Boolean] =
-    monitor[Boolean](false)(broken => broken || !promise)(broken => broken)
-
-  // The facts the step a monitor watches recorded.
-  final def facts: List[F] =
-    NativeClaims.facts.asInstanceOf[List[F]] // scalafix:ok DisableSyntax.asInstanceOf
-
-  // Whether the step a monitor watches recorded `fact`.
-  final def recorded(fact: F): Boolean = NativeClaims.facts.contains(fact)
-
   // The durability of a state var across a crash: `durable(p1)` keeps it, `ephemeral(pending, 0)`
   // resets it, `inMemory(origin)(sending -> crashed)` replaces the values listed.
   final protected inline def durable[A](inline variable: A): FieldDurability[State] =
@@ -1192,11 +1171,13 @@ abstract class Machine[O, F](using Finite[O], Finite[F])(using schema: VarSchema
 // `assuming` and `unmonitored`; the object adds only the sections that are its own, `states`,
 // `properties`, `capabilities` and `queries`, and reuses its source's effects by name. Its end is its
 // source's.
-abstract class Derived[S, O, F](derivation: RecordMachine[S, O, F])
+abstract class Derived[S, O, F, M <: RecordMachine[S, O, F]](derivation: M)
     extends RecordMachine[S, O, F](using derivation.fs, derivation.fo, derivation.ff)(using
       derivation.ss
     ),
-      ClaimWords:
+      ClaimWords,
+      DerivedFrom[M]:
+  final private[framework] def source: M = derivation
   override def reach: Limits = derivation.reach
   override private[framework] def nativeDurability: Vector[FieldDurability[S]] =
     derivation.nativeDurability ++ super.nativeDurability

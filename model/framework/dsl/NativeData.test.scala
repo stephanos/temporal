@@ -127,6 +127,7 @@ class NativeDataTest extends munit.FunSuite:
   }
 
   test("declared and rebound rules construct without enumerating state or invoking callbacks") {
+    given Ok[Boolean] = Ok(true)
     given Finite[Poison] = new Finite[Poison]:
       def values = throw AssertionError("construction enumerated whole-state catalog")
     def guard(s: Poison): Boolean = throw AssertionError("construction invoked guard")
@@ -165,9 +166,21 @@ class NativeDataTest extends munit.FunSuite:
       assertEquals(machine.init, Native.init)
     assertEquals(extended.bindings.map(_.decl), List(caller.act.decl, caller.extra.decl))
     assert(refined.refinementEvidence.get.of eq Native)
-    final case class ProductState(left: Poison, right: Poison)
-    object Product extends Composition[ProductState](_.left -> Native, _.right -> Copied)
-    assertEquals(Product.members, Vector(Native, Copied))
+    object Left extends Machine[Boolean, Nothing]:
+      var ready = false
+      object transitions extends Transitions
+    object Right extends Machine[Boolean, Nothing]:
+      var ready = false
+      object transitions extends Transitions
+    object CopiedLeft extends Derived(Left.restrict())
+    object Product extends Composition[Nothing]:
+      val left = Left
+      val right = Right
+    object Shared extends Composition[Nothing]:
+      val left = Left
+      val right = CopiedLeft
+    assertEquals(Product.members, Vector(Left, Right))
+    assert(intercept[IllegalArgumentException](Shared.init).getMessage.contains("same vars"))
   }
 
   test("collection monitor copies preserve their state evidence without running callbacks") {

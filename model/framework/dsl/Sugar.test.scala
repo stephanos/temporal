@@ -8,29 +8,36 @@ class SugarNativeTest extends munit.FunSuite:
 
   test("a composition declares member fact cases and refuses an untagged member fact"):
     assertEquals(
-      compileErrors("""object Tagged extends Composition[Pair]() {
-        enum Fact { case left(value: SugarNativeTest.this.Fact); case right(value: SugarNativeTest.this.Fact) }
-        val claim = witness(own(_.left, action("move", Actor("tester")))).records(Fact.left(SugarNativeTest.this.Fact.changed))
+      compileErrors("""given Ok[Boolean] = Ok(true)
+      given Finite[SugarNativeTest.this.Fact] = Finite.of(SugarNativeTest.this.Fact.changed, SugarNativeTest.this.Fact.repeated(0))
+      object Member extends Machine[Boolean, SugarNativeTest.this.Fact] {
+        var active = false
+        object transitions extends Transitions
+      }
+      enum TaggedFact { case left(value: SugarNativeTest.this.Fact) }
+      object Tagged extends Composition[TaggedFact] {
+        val left = Member
+        val claim = witness(left(action("move", Actor("tester")))).records(TaggedFact.left(SugarNativeTest.this.Fact.changed))
       }"""),
       ""
     )
 
   test("a derived composition retains the source's tagged fact type"):
     assertEquals(
-      compileErrors("""enum Note { case changed }
-      object Member extends RecordMachine[Boolean, Boolean, Note] {
-        def init = false
-        def end(state: Boolean) = state
-        object transitions extends Rules
+      compileErrors("""given Ok[Boolean] = Ok(true)
+      enum Note { case changed }
+      object Member extends Machine[Boolean, Note] {
+        var active = false
+        object transitions extends Transitions
       }
-      object Source extends Composition[Pair](_.left -> Member, _.right -> Member) {
-        enum Fact { case left(value: Note); case right(value: Note) }
+      enum TaggedFact { case left(value: Note) }
+      object Source extends Composition[TaggedFact] {
+        val left = Member
       }
-      object Derived extends DerivedComposition(Source.withMember(_.left -> Member)) {
-        val claim = witness(own(_.left, action("move", Actor("tester")))).records(Source.Fact.left(Note.changed))
+      object Derived extends Composition(Source.withMember(left = Member)) {
+        val claim = witness(Source.left(action("move", Actor("tester")))).records(TaggedFact.left(Note.changed))
       }
-      val replacement = Source.withMember(_.left -> Member)
-      val claim = replacement.witness(replacement.own(_.left, action("move", Actor("tester")))).records(Source.Fact.left(Note.changed))
+      val claim = Derived.witness(Source.left(action("move", Actor("tester")))).records(TaggedFact.left(Note.changed))
       """),
       ""
     )

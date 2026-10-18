@@ -9,7 +9,7 @@ final class PropertyDecl private[framework] (
     val name: String,
     val machine: Model,
     // The exact action class or whole action the Property is about.
-    private[framework] val when: Option[ClassRef | Composed | String],
+    private[framework] val when: Option[ClassRef | CompositionTarget | String],
     private[framework] val holds: Option[Nothing => Boolean],
     private[framework] val holds2: Option[(Nothing, Nothing) => Boolean],
     val illustrations: Vector[Illustration[?, ?, ?]] = Vector.empty,
@@ -55,10 +55,10 @@ object ScopedClaim:
 final class PropertyBuilder[S, O, F] private[framework] (
     private[framework] val name: String,
     private[framework] val m: Declares[S] { type Outcome = O; type Fact = F },
-    private[framework] val when: Option[ClassRef | Composed | String]
+    private[framework] val when: Option[ClassRef | CompositionTarget | String]
 ):
   // Restricts the Property to the step of one action class.
-  infix def when(c: ClassRef | Composed): PropertyBuilder[S, O, F] =
+  infix def when(c: ClassRef | CompositionTarget): PropertyBuilder[S, O, F] =
     PropertyBuilder(name, m, Some(c))
 
   // Restricts the Property to every class of an action, including a composition's synchronized
@@ -67,9 +67,8 @@ final class PropertyBuilder[S, O, F] private[framework] (
     PropertyBuilder(name, m, Some(action))
 
   // Restricts a composition's Property to every class of one composed action: a sync,
-  // `whenAction(c.synced(_.member -> action))`, or a member's own action,
-  // `whenAction(c.own(_.member, action))`.
-  def whenAction(action: Composed): PropertyBuilder[S, O, F] =
+  // `whenAction(c.syncs.started)`, or a member's own action, `whenAction(c.member(action))`.
+  def whenAction(action: CompositionTarget): PropertyBuilder[S, O, F] =
     PropertyBuilder(name, m, Some(action))
 
   // Finishes a same-step Property.
@@ -123,12 +122,12 @@ final class ScenarioDecl private[framework] (
     val machine: Model,
     val start: Option[Any],
     // The declared classes, or for a composition its composed classes.
-    val actions: Vector[ClassRef | Composed],
+    val actions: Vector[ClassRef | CompositionTarget],
     val free: Boolean,
-    val only: Option[Vector[Action[?] | Class | Composed]] = None,
-    val fair: Vector[Action[?] | Class | Composed] = Vector.empty,
+    val only: Option[Vector[Action[?] | Class | CompositionTarget]] = None,
+    val fair: Vector[Action[?] | Class | CompositionTarget] = Vector.empty,
     val updates: Vector[(String, Any)] = Vector.empty,
-    val excluded: Vector[Action[?] | Class | Composed] = Vector.empty
+    val excluded: Vector[Action[?] | Class | CompositionTarget] = Vector.empty
 ):
   require(
     only.isEmpty || actions.isEmpty,
@@ -147,37 +146,33 @@ final class ScenarioDecl private[framework] (
   // Whether it admits an action: every action, unless it says `only` or drops the whole action
   // with `without`. Dropping one class of it leaves the action's other classes admitted.
   private[framework] def admits(decl: ActionDecl): Boolean =
-    only.forall(_.exists:
-      case a: Action[?] => a.decl eq decl
-      case c: Class     => c.decl eq decl
-      case _            => false) && !excluded.exists:
-      case a: Action[?] => a.decl eq decl
-      case _            => false
+    NativeCheck.classesOf(decl).exists(admits)
 
   private[framework] def admits(cls: Class): Boolean =
-    only.forall(_.exists:
-      case a: Action[?] => a.decl eq cls.decl
-      case c: Class     => c == cls
-      case _            => false) && !excluded.exists:
-      case a: Action[?] => a.decl eq cls.decl
-      case c: Class     => c == cls
-      case _            => false
+    only.forall(_.exists(NativeClaims.selects(_, cls))) &&
+      !excluded.exists(NativeClaims.selects(_, cls))
 
   // The actions it assumes weakly fair: every class of each one named, or the one class named.
-  private[framework] def fairActions: Vector[ActionDecl | Class] = fair.collect:
-    case a: Action[?] => a.decl
-    case c: Class     => c
+  private[framework] def fairActions: Vector[ActionDecl | Class] = machine match
+    case composition: Composition[?] =>
+      composition.nativeEffects
+        .flatMap((decl, _) => NativeCheck.classesOf(decl))
+        .filter(cls => fair.exists(NativeClaims.selects(_, cls)))
+    case _ =>
+      fair.collect:
+        case a: Action[?] => a.decl
+        case c: Class     => c
 
   private[framework] def copy(
       name: String = name,
       machine: Model = machine,
       start: Option[Any] = start,
-      actions: Vector[ClassRef | Composed] = actions,
+      actions: Vector[ClassRef | CompositionTarget] = actions,
       free: Boolean = free,
-      only: Option[Vector[Action[?] | Class | Composed]] = only,
-      fair: Vector[Action[?] | Class | Composed] = fair,
+      only: Option[Vector[Action[?] | Class | CompositionTarget]] = only,
+      fair: Vector[Action[?] | Class | CompositionTarget] = fair,
       updates: Vector[(String, Any)] = updates,
-      excluded: Vector[Action[?] | Class | Composed] = excluded
+      excluded: Vector[Action[?] | Class | CompositionTarget] = excluded
   ): ScenarioDecl =
     ScenarioDecl(name, machine, start, actions, free, only, fair, updates, excluded)
 
@@ -194,29 +189,34 @@ final class Scenario private[framework] (val decl: ScenarioDecl):
   def name: String = decl.name
 
   // Admits these actions and no others.
-  def only(actions: (Action[?] | Class | Composed)*): Scenario =
+  def only(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
     require(decl.only.isEmpty, s"a scenario says only once: ${decl.name}")
     Scenario(decl.copy(only = Some(actions.toVector)))
 
   // Admits every action but these: a whole action, or one class of it.
-  def without(actions: (Action[?] | Class | Composed)*): Scenario =
+  def without(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
     Scenario(decl.copy(excluded = decl.excluded ++ actions))
 
   // Makes these admitted actions weakly fair: one that stays enabled is eventually taken.
-  def fair(actions: (Action[?] | Class | Composed)*): Scenario =
+  def fair(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
     Scenario(decl.copy(fair = decl.fair ++ actions))
 
   // Starts in the Machine's initial state with the vars named changed: `.starts(heatingOn = true)`.
   def starts: Scenario.Starts = Scenario.Starts(this)
 
   // Pins the schedule to exactly these classes, in order.
-  def actions(cs: (ClassRef | Composed)*): Scenario =
+  def actions(cs: (ClassRef | CompositionTarget)*): Scenario =
     Scenario(decl.copy(actions = cs.toVector, free = false))
 
   // The scenario of a check of `machine`'s claim: its own machine where it was built in one, and
   // its start the initial state with its updates, checked against the Machine's vars.
   private[framework] def bound(machine: Model, named: String): ScenarioDecl =
     val owner = if decl.machine eq Unbound then machine else decl.machine
+    owner match
+      case composition: Composition[?] =>
+        (decl.only.toVector.flatten ++ decl.excluded ++ decl.fair ++ decl.actions)
+          .foreach(composition.validateTarget(_, s"scenario $named", required = true))
+      case _ => ()
     val start =
       if decl.updates.isEmpty then decl.start
       else
@@ -267,8 +267,8 @@ final class ScenarioBuilder[S] private[framework] (
   infix def starts(s: S): ScenarioBuilder[S] = ScenarioBuilder(name, m, Some(s))
 
   // Pins the schedule to exactly these classes, in order: a machine's classes, or a composition's as
-  // `c.synced(_.member -> action)` and `c.own(_.member, action)` select them.
-  def actions(cs: (ClassRef | Composed)*): Scenario =
+  // `c.syncs.started` and `c.member(action)` select them.
+  def actions(cs: (ClassRef | CompositionTarget)*): Scenario =
     Scenario(ScenarioDecl(name, m, start, cs.toVector, free = false))
 
   // Admits any action at every step, within the Query's step limit.
@@ -491,10 +491,18 @@ private[framework] def query(name: String): QueryDecl = QueryDecl(name)
 private[framework] def query: QueryDecl = QueryDecl("")
 
 // The unfinished path claim: it becomes an ordinary find Query only when a fact is stated.
+object WitnessBuilder:
+  def declared[S, O, F](
+      owner: Declares[S],
+      name: String,
+      path: Vector[ClassRef | CompositionTarget]
+  ): WitnessBuilder[S, O, F] =
+    new WitnessBuilder(owner, name, path)
+
 final class WitnessBuilder[S, O, F] private[framework] (
     private[framework] val owner: Declares[S],
     private[framework] val name: String,
-    private[framework] val path: Vector[ClassRef | Composed]
+    private[framework] val path: Vector[ClassRef | CompositionTarget]
 ):
   private[framework] def recording(
       recorded: Step[S, O, F] => Boolean
@@ -514,7 +522,7 @@ final class WitnessBuilder[S, O, F] private[framework] (
 final class Witness[S, O, F] private[framework] (
     private[framework] val owner: Declares[S],
     named: String,
-    private[framework] val path: Vector[ClassRef | Composed],
+    private[framework] val path: Vector[ClassRef | CompositionTarget],
     private[framework] val recorded: Step[S, O, F] => Boolean,
     private[framework] val conditional: Vector[Step[S, O, F] => Boolean],
     private[framework] val ending: Option[S => Boolean],

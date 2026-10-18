@@ -262,13 +262,47 @@ object RulesFixture:
 
   final case class Pair(left: Lamp, right: Lamp)
 
-  object Twins extends Composition[Pair](_.left -> Switch, _.right -> Unfelt):
-    def end(s: Pair) = Switch.end(s.left)
+  object NativeSwitch extends Machine[Said, Nothing]:
+    var light = Lit.off
 
-    object syncs extends Syncs:
-      sync(_.left -> hand.press, _.right -> hand.press)
+    object transitions extends Transitions:
+      on(hand.press):
+        effects.lightUp()
 
-  object Odd extends Composition(Twins.withMember(_.right -> Stuck))
+    object effects:
+      def lightUp() =
+        light = Lit.on
+      def wear() =
+        light = Lit.broken
+
+  object NativeUnfelt extends Machine[Said, Nothing]:
+    var light = Lit.off
+
+    object transitions extends Transitions:
+      on(hand.press):
+        effects.lightUp()
+
+    object effects:
+      def lightUp() =
+        light = Lit.on
+
+  object NativeStuck
+      extends Derived(
+        NativeSwitch.rebind(
+          on(hand.press):
+            NativeSwitch.effects.wear()
+        )
+      )
+
+  object Twins extends Composition[Nothing]:
+    val left = NativeSwitch
+    val right = NativeUnfelt
+    override def end = left.light == Lit.broken
+
+    object syncs:
+      val pressed = sync(left(hand.press), right(hand.press))
+
+  object Odd extends Composition(Twins.withMember(left = NativeStuck))
 
 class RulesTest extends munit.FunSuite:
   import RulesFixture.*
@@ -482,9 +516,10 @@ class RulesTest extends munit.FunSuite:
     "a composition object is its members, and an IR file constructs what it reaches"
   ) {
     assertEquals(Twins.name, "twins")
-    assertEquals(Twins.members, Vector(Switch, Unfelt))
+    assertEquals(Twins.members, Vector(NativeSwitch, NativeUnfelt))
     assertEquals(Odd.name, "odd")
-    assertEquals(Odd.members, Vector(Switch, Unfelt, Stuck))
+    assertEquals(Odd.members, Vector(NativeStuck, NativeUnfelt))
+    intercept[IllegalArgumentException](Twins.withMember(right = NativeStuck)): Unit
     // Built directly, so the IR files the gate holds model/ir to stay the Models' own.
     IrFile("rules-test", Seq(Odd, Switch)).construct(): Unit
   }
@@ -592,7 +627,7 @@ class RulesTest extends munit.FunSuite:
     val refused = intercept[IllegalArgumentException](Undeclared.bindings)
     assertEquals(
       refused.getMessage,
-      "requirement failed: on(tap) names its action bare at Rules.test.scala:590:12: name it through the object that " +
+      "requirement failed: on(tap) names its action bare at Rules.test.scala:625:12: name it through the object that " +
         "declares it, `on(<declarer>.tap)`"
     )
   }

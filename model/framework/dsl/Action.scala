@@ -161,6 +161,8 @@ final case class ActionDecl(
       s"${prefix(modelOnlyReasons.lastOption.fold(at)(_._2))}: modelOnly requires a nonempty reason"
     )
   private[framework] var nativeInputs = Option.empty[ActionInputs[?]]
+  private[framework] var composedClasses = Option.empty[List[Class]]
+  private[framework] var selectsComposed = Option.empty[(Any, Class) => Boolean]
   private var source = Option.empty[String]
   private var binding = Option.empty[String]
   private var channel = Option.empty[(String, String)]

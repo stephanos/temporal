@@ -10,18 +10,18 @@ final class gap(val subjects: Subject*)(val because: String, val until: String =
 
 sealed abstract class Subject(val kind: String)
 
-final case class silent[P](action: ClassRef | Action[?] | Composed, in: P*)(using
+final case class silent[P](action: ClassRef | Action[?] | CompositionTarget, in: P*)(using
     val domain: Finite[P]
 ) extends Subject("silent-rejection")
 
-final case class byDefault[P](action: ClassRef | Action[?] | Composed, in: P*)(using
+final case class byDefault[P](action: ClassRef | Action[?] | CompositionTarget, in: P*)(using
     val domain: Finite[P]
 ) extends Subject("disabled-by-default")
 
-final case class neverEnabled(actions: (ClassRef | Action[?] | Composed)*)
+final case class neverEnabled(actions: (ClassRef | Action[?] | CompositionTarget)*)
     extends Subject("never-enabled")
 
-final case class unconstrained(classes: (ClassRef | Action[?] | Composed)*)
+final case class unconstrained(classes: (ClassRef | Action[?] | CompositionTarget)*)
     extends Subject("unconstrained-result")
 
 final case class unproduced[A](values: A*)(using val domain: Finite[A])
@@ -32,7 +32,7 @@ final case class unperformed(actions: Action[?]*) extends Subject("unperformed-a
 final case class unevidenced[F](facts: F*)(using val domain: Finite[F])
     extends Subject("unevidenced-fact")
 
-final case class uncovered(classes: (ClassRef | Action[?] | Composed)*)
+final case class uncovered(classes: (ClassRef | Action[?] | CompositionTarget)*)
     extends Subject("uncovered-class")
 
 final case class unmapped(values: (GeneratedEnum | GeneratedOneof)*)
@@ -58,9 +58,9 @@ final case class stuck[S](states: S*)(using val domain: Data[S])(using StateData
 final case class unreadObservation(observations: Observation*) extends Subject("unread-observation")
 final case class explicitWait(polls: (Command | Instruction)*) extends Subject("explicit-wait")
 
-final case class unreachableBinding(classes: (ClassRef | Action[?] | Composed)*)
+final case class unreachableBinding(classes: (ClassRef | Action[?] | CompositionTarget)*)
     extends Subject("unreachable-binding")
 
-final case class mustNotPinned[P](action: ClassRef | Action[?] | Composed, in: P*)(using
+final case class mustNotPinned[P](action: ClassRef | Action[?] | CompositionTarget, in: P*)(using
     val domain: Finite[P]
 ) extends Subject("must-not-pinned")

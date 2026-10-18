@@ -16,3 +16,27 @@ trait ClaimWords:
   protected transparent inline def records: Any = ${ ClaimMacros.records }
   protected transparent inline def oneOf: Any = ${ ClaimMacros.oneOf }
   protected transparent inline def branch: Any = ${ ClaimMacros.branch }
+
+private[framework] trait NativeClaimWords[O, F] extends ClaimWords:
+  final def monitor[M](initial: M)(
+      next: M => M
+  )(violated: M => Boolean)(using Data[M])(using StateData[M]): Monitor[State, O, F, M] =
+    framework.dsl.monitor[State, O, F, M](initial)((m, before, step) =>
+      NativeClaims.watching(before, step)(next(m))
+    )(violated)
+
+  final def monitor[S, MO, MF, M](initial: M)(next: (M, S, Step[S, MO, MF]) => M)(
+      violated: M => Boolean
+  )(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
+    framework.dsl.monitor[S, MO, MF, M](initial)(next)(violated)
+
+  final def monitor[S, MO, MF, M](name: String, initial: M)(next: (M, S, Step[S, MO, MF]) => M)(
+      violated: M => Boolean
+  )(using Data[M])(using StateData[M]): Monitor[S, MO, MF, M] =
+    framework.dsl.monitor[S, MO, MF, M](name, initial)(next)(violated)
+
+  final def sticky(promise: => Boolean): Monitor[State, O, F, Boolean] =
+    monitor(false)(broken => broken || !promise)(identity)
+
+  final def facts: List[F] = NativeClaims.facts.asInstanceOf[List[F]]
+  final def recorded(fact: F): Boolean = NativeClaims.facts.contains(fact)

@@ -441,25 +441,69 @@ when hidden in locally bound expressions or inspected source helpers. Write opti
 with colon indentation; retain braces only where Scala requires them or in deliberate refusal
 fixtures.
 
-## Composed facts
+## Compositions
 
-Select both the exact state field and its machine:
+A composition names its members as vals. Its state is their var snapshots, so claims read a
+member's vars and ordinary helpers directly. There is no authored state record or field selector.
+`Composition[F]` takes the composition's fact type; use `Nothing` when its members record no facts.
+
+For Machines `Subject` and `Other` that both bind `hand.start`:
 
 ```scala
-val memberCompleted: Step[Joined, String, String] => Boolean = expect:
-  records(_.left -> LeftMachine, LeftFact.completed)
+enum JoinedFact:
+  case left(value: Fact)
+  case right(value: Foreign)
 
-val selected = JoinedMachine.property.expect:
-  check(memberCompleted(after))
+object Together extends Composition[JoinedFact]:
+  val left = Subject
+  val right = Other
+
+  override def end =
+    left.isClosed && right.phase == Phase.closed
+
+  object syncs:
+    val started =
+      sync(left(hand.start), right(hand.start))
+
+  object invariants:
+    val rightClosedWithLeft =
+      if left.isClosed then check(right.phase == Phase.closed)
+
+  object postconditions:
+    val startedTogether =
+      after(syncs.started):
+        check(before.left.phase == Phase.open)
+        records(JoinedFact.left(Fact.completed))
 ```
 
-Use a direct field selector rooted in the supplied state, such as `_.left`, rather than a computed
-selector or a selector val. The fact type belongs to the selected machine. The field/machine pair
-must match the declaring composition; constructor order does not replace field identity, and two
-fields containing the same machine remain distinct. Reusable predicates retain this evidence
-through `check(named(after))` and the transition equivalent. Wrong composition attachment is
-rejected even when an invalid member read lies in an unreachable branch. Witness selectors follow
-the same exact-member rule.
+If an action belongs to only one member, name it directly in `sync`; `left(action)` chooses the
+member when the same action is bound by more than one. A sync takes both effects in one composed
+step, combining their alternatives and wrapping each recorded fact in its member case. Its first
+member supplies the outcome. An action paired by a sync does not also step alone; an unpaired
+action steps only its member. Each composed step counts once toward a progress bound.
+
+Claims, monitors, progress and scenarios use the same forms as on a Machine. Name a sync by its val
+or an action directly in `after`, `only`, `without`, `fair` and a witness; member qualification
+resolves ambiguity. `before.left.phase` reads the corresponding member's pre-step snapshot,
+including through nested compositions. Exploration starts from the product of member starts and
+uses the same on-demand checker and budget/cut rules. Without an override, `end` is true.
+
+Replace a member with that Machine or a derivation holding its vars:
+
+```scala
+object LateTogether extends Composition(Together.withMember(right = LateOther)):
+  object invariants:
+    val rightStaysOpen =
+      check(Together.right.phase == Phase.open)
+```
+
+The replacement keeps the source's member order, syncs, end and fact type. A misspelt member or an
+unrelated replacement is refused. Each member must hold its own vars: the same Machine, or two
+derivations sharing its vars, cannot fill two member slots. A member may itself be a composition.
+Missing or mistyped fact cases and an unbound or ambiguous sync endpoint are refused.
+
+These are native authoring and checking rules. Composition IR lifting and Go lowering remain
+held for the final-DSL integration work; native success does not establish those proofs.
 
 ## Property illustrations
 

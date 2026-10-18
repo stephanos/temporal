@@ -52,14 +52,22 @@ object EndsFixture:
 
     object transitions extends Rules
 
-  object PausedPair extends Composition[Pair](_.left -> ClosedRecord, _.right -> ClosedRecord):
-    def end(s: State) = s.left.phase == Phase.paused
+  object RightEnd extends Machine[Answer, Nothing]:
+    var phase = Phase.absent
+    override def end = phase.in[Closed]
 
-    object syncs extends Syncs
+    object transitions extends Transitions
 
-  object DerivedPair extends DerivedComposition(PausedPair.withMember(_.right -> PausedEnd))
+  object ReplacedEnd extends Derived(RightEnd.restrict())
 
-  object PlainDerivedPair extends Composition(PausedPair.withMember(_.right -> PausedEnd))
+  object PausedPair extends Composition[Nothing]:
+    val left = ClosedEnd
+    val right = RightEnd
+    override def end = left.phase == Phase.paused
+
+  object DerivedPair extends Composition(PausedPair.withMember(right = ReplacedEnd))
+
+  object PlainDerivedPair extends Composition(DerivedPair.withMember(right = RightEnd))
 
   object OpenEnd extends RecordMachine[OpenPhase, Answer, Nothing]:
     val init = OpenPhase.waiting
@@ -82,11 +90,16 @@ class EndsSuite extends munit.FunSuite:
       val s = Snapshot(p)
       assertEquals(PausedEnd.end(s), p == Phase.paused, p.toString)
       assertEquals(ClosedRecord.end(s), p.in[Closed], p.toString)
-      assertEquals(PausedPair.end(Pair(s, ClosedRecord.init)), p == Phase.paused, p.toString)
+      val joined = PausedPair.init.copy(left = ClosedEnd.init.copy(phase = p))
+      assertEquals(PausedPair.end(joined), p == Phase.paused, p.toString)
+      assertEquals(
+        DerivedPair.end(DerivedPair.init.copy(left = ClosedEnd.init.copy(phase = p))),
+        p == Phase.paused
+      )
     assert(OpenEnd.end(OpenPhase.waiting))
 
   test("a derived composition keeps its source's members, and the member it adds"):
     assertEquals(DerivedPair.name, "derivedPair")
-    assertEquals(DerivedPair.members, Vector(ClosedRecord, ClosedRecord, PausedEnd))
+    assertEquals(DerivedPair.members, Vector(ClosedEnd, ReplacedEnd))
     assertEquals(PlainDerivedPair.name, "plainDerivedPair")
-    assertEquals(PlainDerivedPair.members.last, PausedEnd)
+    assertEquals(PlainDerivedPair.members, Vector(ClosedEnd, RightEnd))

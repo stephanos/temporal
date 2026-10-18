@@ -942,29 +942,55 @@ ignores capabilities. See [Known gaps](#known-gaps).
 
 ## 18. Compositions
 
-Legacy. No plain-form example exists, and no native check explores
-a composition: `<subject> runs on <c>, which no native check explores`.
+Members are vals naming Machines or compositions. Their var snapshots form the composed state;
+there is no authored state case class or selector pairing. The type parameter is the composition's
+fact type, with a case wrapping each fact-recording member's fact type.
 
 ```scala
-object Twins extends Composition[Pair](_.left -> Switch, _.right -> Unfelt):
-  def end(s: Pair) = Switch.end(s.left)
-  object syncs extends Syncs:
-    sync(_.left -> hand.press, _.right -> hand.press)
+enum JoinedFact:
+  case left(value: Fact)
+  case right(value: Foreign)
+
+object Together extends Composition[JoinedFact]:
+  val left = Subject
+  val right = Other
+
+  object syncs:
+    val started =
+      sync(left(hand.start), right(hand.start))
+
+  object postconditions:
+    val startedTogether =
+      after(syncs.started):
+        check(before.left.phase == Phase.open)
+        records(JoinedFact.left(Fact.completed))
 ```
 
 | Form | Meaning |
 |---|---|
-| `Composition[S](_.member -> M, ...)` | Several machines as fields of one state `S` |
-| `object syncs extends Syncs: sync(a, b)` | A pair of member actions that step together; `sync(name, a, b)` names it |
-| `c.synced(_.m -> a)`, `c.own(_.m, a)` | A composed step selector, for `only`, `fair`, `actions` |
-| `c.withMember(_.m -> M2)` | The composition with one member replaced |
-| `replaces(_.m, opaque)` | A member that stands in for an opaque machine |
-| `type Fact` / `enum Fact` | One fact case per member |
+| `Composition[F]` | The Model of its member snapshots, recording facts of type `F`; use `Nothing` when none are recorded |
+| `val member = M` | A Machine or composition member, in declaration order |
+| `val started = sync(a, b)` in `object syncs` | Two member actions stepping together; the val names the sync |
+| `member(action)` / `member(action(input))` | Qualifies an action or class when several members bind it |
+| `after(syncs.started)`, `only(action)`, `fair(member(action))` | The same claim/scenario target forms as a Machine, resolved to composed steps |
+| `before.member.field` | A member's pre-step snapshot; nested compositions retain nested paths |
+| `records(JoinedFact.member(fact))` | Checks the member-tagged fact; an unwrapped member fact has the wrong type |
+| `Composition(Source.withMember(member = Replacement))` | A derivation retaining syncs, end, member order and fact type |
+| `override def end = predicate` | Reads member vars/helpers; the default is true |
 
-Refusals: compile `a member selector must name exactly one direct state field`; runtime
-`<c>: duplicate member fields`, `<c>: no member <field>`; export
-`<c> declares no end: a composition object declares \`def end(s: S) =
-...\``, `<c> declares no syncs: ...`.
+A sync combines its members' alternatives in one step, with the first member's actual outcome and
+both members' tagged facts. A paired action does not also step alone; an unpaired action steps its
+member. Starts are the product of member starts. Claims, monitors, progress and witnesses use the
+shared on-demand checker, with the same budgets, cut/unknown behavior and fairness semantics;
+one sync counts as one composed step.
+
+Refusals name a non-Model member, repeated/shared member vars, missing or mistyped fact cases,
+an unbound or ambiguous sync endpoint, an action in multiple syncs, an unknown replacement member
+or an unrelated replacement. A replacement must hold the original member's vars, as that member
+or a derivation of it does. Sync refusals identify the authored location.
+
+Composition IR lifting and Go lowering remain held; these native forms do not establish those
+integration proofs.
 
 ---
 
@@ -1271,6 +1297,7 @@ Each was removed or made `private[framework]`; the right column is what to write
 | `action(this)`, `internal`, `action("name", Actor("x"))` | `action` in an `Actor`, `step` in an `Internal` | R16 |
 | `.schema[M]` | the realization's binding of the class | — |
 | `through(_.member, read)`, `records(_.member -> M, fact)`, `<field>_<fact>` keys | a refinement map; member fact cases | R17 |
+| `Composition[S]` with a state case class and selectors, `Syncs`, `own`, `synced`, `DerivedComposition` | `Composition[F]` with member vals, sync vals, action references and named `withMember` | fn-193 |
 | `restrict`, `assuming` derivations | a scenario's `only`/`without`/`fair` | R13 |
 | `@sugar` and the lifter's expansion engine | `inline` sugar definitions | — |
 | `irFile(...)`, `object exports` | IR files collected by package | — |
@@ -1297,7 +1324,6 @@ Where the code and the spec (fn-190) or this reference's intent differ today:
   list the old sections (`states`, `rules`, `properties`, ...).
 - **Capabilities** cannot be authored in the plain form (no public way to write a kind's Properties;
   `bound` needs `Limits`).
-- **Compositions** have no plain-form example and no native check.
 - **Vacuity.** A claim triggered by an outcome (`if outcome != accepted then ...`) is silently
   vacuous when no step answers that outcome.
 - **`starts(x = v)`** collapses the other vars' `oneOf` starts to their first values.
@@ -1324,8 +1350,8 @@ Named in signatures and error messages; an author writes the form, not the type.
 `CapabilityOf` `FieldDurability` `Accepting`
 `Refusing` `Recording` `Before` `StepTarget` `StepRecords` `RequirementFacts` `Alternatives`
 `ClaimAlternatives` `InitialAlternatives` `Branching` `ClaimBranch` `Owner` `Declaring` `Declares`
-`DerivedFrom` `Rule` `RuleGroup` `Rebinding` `RuleBook` `MemberSelection` `Composed` `Move`
-`Composer` `DerivedComposition` `Family`
+`DerivedFrom` `Rule` `RuleGroup` `Rebinding` `RuleBook` `MemberStep` `CompositionTarget` `MemberReplacement` `Sync`
+`Family`
 
 ### Legacy
 
@@ -1356,5 +1382,5 @@ The records, enums and scopes behind the forms of [Realizations](#21-realization
 Public for the plugin, the exporter or the checker; no author use.
 
 `FacetSource` `FiniteSchema` `IrFile` `IrRoot` `liftedIr` `Reify` `NativeInput` `RuleInput`
-`Vars` `VarSchema` `RuleTable` `ClaimWords` `StateChoiceProgram` `InputChoiceProgram` `IllustrationKind` `Illustration` `Reference`
+`Vars` `VarSchema` `RuleTable` `ClaimWords` `CompositionSchema` `CompositionFact` `StateChoiceProgram` `InputChoiceProgram` `IllustrationKind` `Illustration` `Reference`
 `Named`

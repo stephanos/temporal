@@ -5,6 +5,7 @@ object DiscoveryFixtures:
     case open, closed
   enum Outcome:
     case done
+  given Ok[Outcome] = Ok(Outcome.done)
   enum RolePhase:
     case pending extends RolePhase, Waiting
     case settled extends RolePhase, Closed
@@ -38,9 +39,17 @@ object DiscoveryFixtures:
 
   final case class Joined(value: State)
 
-  object JoinedSource extends Composition[Joined](_.value -> Added)
+  object NativeOriginal extends Machine[Outcome, Nothing]:
+    var phase = State.open
 
-  object JoinedReplacement extends Composition(JoinedSource.withMember(_.value -> Original))
+    object transitions extends Transitions
+
+  object NativeAdded extends Derived(NativeOriginal.restrict())
+
+  object JoinedSource extends Composition[Nothing]:
+    val value = NativeAdded
+
+  object JoinedReplacement extends Composition(JoinedSource.withMember(value = NativeOriginal))
 
   object Mapped extends Derived(Added.refining(Original)(identity))
 
@@ -377,6 +386,8 @@ class IrFileDiscoveryTest extends munit.FunSuite:
     val expected = Vector(
       JoinedReplacement,
       JoinedSource,
+      NativeAdded,
+      NativeOriginal,
       Added,
       Original,
       Mapped,

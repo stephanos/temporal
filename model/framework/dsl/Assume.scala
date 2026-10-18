@@ -6,7 +6,7 @@ package framework.dsl
 final class Assumption private[framework] (
     val name: String,
     val fairness: List[ActionDecl],
-    val composed: List[Composed] = Nil,
+    val composed: List[CompositionTarget] = Nil,
     private[framework] val fairSegments: Vector[Assumption.Fairness] = Vector.empty
 ) extends RetainedDeclarationName:
   private[framework] def nativeIdentity: Option[String] =
@@ -28,19 +28,19 @@ final class Assumption private[framework] (
     )
 
   // Makes composed steps of one composition weakly fair, for a progress claim of that composition:
-  // `assume.fair(c.synced(_.order -> dispatch), c.own(_.queue, queue.persist))`. Each selects an
-  // action, every class of it, or one class of it, `c.own(_.queue, enqueue(Priority.high))`, as a
+  // `assume.fair(c.syncs.dispatched, c.queue(queue.persist))`. Each selects an
+  // action, every class of it, or one class of it, `c.queue(enqueue(Priority.high))`, as a
   // Scenario selects them; a synced step is the sync's, whose enabledness is the composition's, never
   // its member's alone. The lifter refuses an assumption that mixes both forms, one selecting steps of
   // another composition than the claim's, and one a machine assumes.
-  def fair(first: Composed, more: Composed*): Assumption =
+  def fair(first: CompositionTarget, more: CompositionTarget*): Assumption =
     val selected = first :: more.toList
     retained(
       Assumption(
         name,
         fairness,
         composed ++ selected,
-        fairSegments :+ Assumption.Fairness.Composed(selected)
+        fairSegments :+ Assumption.Fairness.CompositionTarget(selected)
       )
     )
 
@@ -49,7 +49,7 @@ final class Assumption private[framework] (
 object Assumption:
   private[framework] enum Fairness:
     case Actions(values: List[ActionDecl])
-    case Composed(values: List[framework.dsl.Composed])
+    case CompositionTarget(values: List[framework.dsl.CompositionTarget])
 
 // Declares an assumption.
 private[framework] def assume(name: String): Assumption =
@@ -112,12 +112,6 @@ extension [O, F](m: RecordMachine[State, O, F])
   )(from: => Boolean, to: => Boolean, within: Int, under: Assumption*): Progress[State] =
     val vars = Vars.of(m)
     Progress(name, m, s => vars.at(s)(from), s => vars.at(s)(to), within, under.toList)
-
-extension [S <: Product](c: Composition[S])
-  private[framework] def leadsTo(
-      name: String
-  )(from: S => Boolean, to: S => Boolean, within: Int, under: Assumption*): Progress[S] =
-    Progress(name, c, from, to, within, under.toList)
 
 // A progress claim of a Machine that declares its state as vars, `whenever(heatingOn):
 // eventually(beeping)` in its `progress` section, named after its `val`: from every state its

@@ -616,9 +616,8 @@ A source witness names a pinned path and its last step's claim in one declaratio
 and `find` Query, all named after the Query and owned by the witness's machine or composition.
 No new IR declaration kind is added; these use ordinary same-step Property semantics. The
 Property selects the last listed class and tests `records(fact) && statePredicate` on its
-resulting state, or `records(fact)` alone without `.ends`. A composition lists its `own` or
-`synced` classes and records a typed member fact with
-`.records(_.member -> MemberMachine, fact)`.
+resulting state, or `records(fact)` alone without `.ends`. A plain composition lists its sync or
+member action references and records a typed member fact, `.records(JoinedFact.member(fact))`.
 
 Derived Limits have `steps = actions = path length` and `search = 512`; `.limits` replaces them.
 A repeated last class is refused because a same-step Property would test its earlier occurrences
@@ -765,10 +764,10 @@ in the claim and its fairness or recovery assumptions in its environment. A `fin
 therefore not evidence that this universal progress claim holds.
 
 A composition's claim reads the composed state and counts composed steps, a sync's once. Its
-assumptions select composed steps by structure: `assume.fair(c.synced(_.activity -> worker.poll),
-c.own(_.queue, queue.persist))`. The Scala authoring, lifting and model-check path supports this
-composition form today. Progress is a model check only: no Case is generated from it, and that
-source support does not by itself close fn-150's pending generated-consumer, gate or live evidence.
+environment selects sync and member steps by reference, `only(c.syncs.dispatched).fair(c.syncs.dispatched)`.
+Native progress checks share the Machine search semantics; composition lifting and Go lowering
+remain held. Progress is a model check only: no Case is generated from it, and native source
+support does not close fn-150's pending generated-consumer, gate or live evidence.
 
 ## 12. Holes
 
@@ -1015,65 +1014,75 @@ expects the Run its field names; every other brought Property is a free `verify`
 
 ## 17. Compositions
 
-**Meaning.** A composition is one Model from machines of *different entities*, for a claim no one
-of them can state: an activity over its task queue, an operation with its worker. Its state is a
-record with one field per member. A member's own action steps that member alone and is keyed
-`<field>_<class>`; a *sync* pairs two members' actions into one step keyed by the sync's name
-followed by both classes' inputs, whose results are the product of the members' results with the
-first member's outcome and both members' facts. Only the rows reachable from the
-members' starts belong to it. Its outcome type is `String`, the composed outcome key. Its fact type
-is an enum declared by the composition, with one case per member carrying that member's fact.
-Native claims read those tagged values directly; lifting and Go lowering still use the legacy
-`<field>_<fact>` keys until the composition migration's second phase.
+**Meaning.** A composition is one Model from members whose interaction needs a claim: an activity
+with its task queue, an operation with its worker. Members are Machines or compositions. Its state
+contains each member's var snapshot, recursively, and its starts are the product of their starts.
+The author writes no composed state case class, selectors or `Data`/`StateData` instance.
 
-A member that *replaces* a machine stands in for it within the composition: a detailed provider in
-place of an opaque one. Its machine must declare a refinement of the replaced machine that holds,
-and the composition relies on none of the replaced machine's assumptions.
+An unpaired action steps its member alone. A *sync* pairs two member actions into one composed
+step: both read their pre-step member snapshots, their alternatives form a product, and the result
+updates both members. A paired action never also steps alone. The sync's first member supplies the
+actual outcome, rather than an encoded outcome string. The composition declares its fact type,
+with a case per fact-recording member carrying that member's fact; nested compositions wrap their
+facts at each member boundary. An unwrapped member fact has the wrong type.
 
-**Writing it.** An object with field selectors; `->` pairs a member with its value and never means
-a transition:
-
-The source excerpt retains the held record-state spelling. A native composition declares its own
-`Fact` enum with per-member cases, such as `case activity(value: AdmissionFact)` and
-`case queue(value: QueueFact)`.
-
-Source: [temporal/features/activity_mini/protocol/Queue.scala:13](../temporal/features/activity_mini/protocol/Queue.scala#L13).
+**Writing it.** Name members as vals and syncs as vals in `object syncs`. An action bound by one
+member is unambiguous. Where several members bind it, qualify it with the member, `left(action)`.
+The member's own vars and helpers are read directly:
 
 ```scala
-final case class OverQueue(activity: State, queue: QueueView)
+enum JoinedFact:
+  case left(value: Fact)
+  case right(value: Foreign)
 
-object taskQueue:
-  val schedule = internal.input(scheduleToStart).on(foundations.taskqueue.taskQueueEntity)
+object Together extends Composition[JoinedFact]:
+  val left = Subject
+  val right = Other
 
-object Queue extends Composition[OverQueue](
-    _.activity -> ProtocolMember, _.queue -> QueueScheduled):
-  def end(s: State) = s.activity.phase.in[Closed]
-  object syncs extends Syncs:
-    sync(_.activity -> activityWorker.poll, _.queue -> foundationQueue.deliver)
-  object properties:
-    object safety:
-      val deliveredWasScheduled = property.whenAction(synced(_.activity -> activityWorker.poll))
-        .holds(_.state.queue.outstanding.in(Outstanding.deliveredOnce, Outstanding.deliveredTwice))
-  object queries:
-    val delivery = scenario.actions(own(_.activity, client.start()), own(_.queue, taskQueue.schedule()),
-      synced(_.activity -> activityWorker.poll))
-    val queueDelivery = query verify properties.safety.deliveredWasScheduled in delivery limits three
+  override def end =
+    left.isClosed && right.phase == Phase.closed
+
+  object syncs:
+    val started =
+      sync(left(hand.start), right(hand.start))
+
+  object invariants:
+    val rightClosedWithLeft =
+      if left.isClosed then check(right.phase == Phase.closed)
+
+  object postconditions:
+    val startedTogether =
+      after(syncs.started):
+        check(before.left.phase == Phase.open)
+        records(JoinedFact.left(Fact.completed))
 ```
 
-`synced` finds the one sync that pairs that member's action; `own` an action the member binds and
-no sync pairs. `withMember` replaces one member, keeping syncs, end and order; `DerivedComposition`
-is the form that also keeps the source's fact type. A claim that reads a member's named state
-set calls its helper directly, `ActivityRecord.states.twoActive(activity)`. A member fact is wrapped
-in its case, `records(Fact.activity(AdmissionFact.admissionCommitFailed))`; witnesses use the same
-value in `.records`, `.excludes` and `.recordsWhen`. An unwrapped member fact is a type error.
-A native composed step carries those same tagged values in its facts, for example
-`Step("accepted", joined, List(Fact.activity(AdmissionFact.admissionCommitFailed)))`.
-The framework's own composition starts from each member's first start; the reader composes every start.
+Use `Composition[Nothing]` when no member records facts. Without an override, `end` is true.
+Claims use the Machine sections and `check` words; a postcondition's `before.left.phase` is the
+member's pre-step value. A nested member retains the path to its inner state. Scenarios and
+witnesses take sync vals or action references; `left(action)` resolves an ambiguous action or
+class. `only`, `without` and `fair` retain the same restrictions and assumptions as on a Machine.
+A progress bound counts composed steps, with a sync counting once.
 
-**Refused.** A selector naming no field; a member of another state type; a sync of an action the
-member does not bind; a `synced` matching none or several; an `own` of a paired action; a
-replacement by a machine that refines nothing; a Scenario or `whenAction` over a key that is no
-composed class.
+The native checker uses its shared on-demand successor search for compositions. Safety and
+witness searches stop when conclusive; monitors explore their product with the composed state;
+progress uses the same cycle/fairness rules. The budget bounds visited states, and a cut remains
+unknown unless an earlier witness or counterexample establishes the answer.
+
+**Deriving one.** `object LateTogether extends Composition(Together.withMember(right = LateOther))`
+keeps the source's member order, syncs, end and fact type. A replacement is the original member or
+a derivation holding its vars, so claims reading the original member still read the selected
+state. A derived composition can declare its own sections and read the inherited member snapshots
+through `before`. No `DerivedComposition` wrapper or redeclared fact type is needed.
+
+**Refused.** A member naming neither a Machine nor a Composition; the same member in two slots or
+two members sharing vars; a missing or mistyped member-fact case; an action not bound by the named
+member; an ambiguous endpoint; an action paired by more than one sync; an unknown replacement
+member or a replacement holding unrelated vars. Source locations identify refused syncs.
+
+**IR boundary.** This plain form and its native checks do not establish composition IR lifting,
+refinement replacement proofs or Go lowering. Those remain held for the final-DSL integration
+work; the disabled Temporal compositions are not migrated here.
 
 ## 18. Channels
 
@@ -1288,7 +1297,7 @@ assumptions it relies on and the work it took.
 The DSL is kept in two layers so it can be changed with confidence. **Core** is what the IR needs
 declared: `Machine`, `Derived`, `Composition`, `Phased`, the derivations, `Actor`, `action` and its
 classes, `input`, `UpTo`, `Bindings` and `~>`, `Step` and `because`, `Declares[S]`, `property` with
-`holds`/`holdsAcross`/`when`, `monitor`, `leadsTo`, `Syncs` with `sync`/`synced`/`own`/`withMember`,
+`holds`/`holdsAcross`/`when`, `monitor`, `leadsTo`, plain member vals with `sync`/`withMember`,
 `scenario`, `query`, `Limits`, `total`, `Capabilities`, `choose`, `channel`, `hole`,
 `assume`, and the realization declarations with their script helpers. **Sugar** is any form whose
 meaning a core form already says: `Rules` with `on`/`from`/`when`/`where`/`always`/`disabled`,

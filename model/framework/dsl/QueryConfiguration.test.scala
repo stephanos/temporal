@@ -5,6 +5,7 @@ object QueryConfigurationFixture:
     case ready, done
   enum Outcome:
     case accepted
+  given Ok[Outcome] = Ok(Outcome.accepted)
   enum Fact:
     case recorded
 
@@ -37,15 +38,23 @@ object QueryConfigurationFixture:
 
   final case class Joined(member: State)
 
-  object DefaultComposition extends Composition[Joined](_.member -> Bounded)
+  object NativeBounded extends Machine[Outcome, Nothing]:
+    var ready = true
 
-  object BoundedComposition extends Composition[Joined](_.member -> Bounded):
+    object transitions extends Transitions
+
+  object NativeInherited extends Derived(NativeBounded.restrict())
+
+  object DefaultComposition extends Composition[Nothing]:
+    val member = NativeBounded
+
+  object BoundedComposition extends Composition[Nothing]:
+    val member = NativeBounded
     override val reach = Limits("compositionReach", steps = 9, actions = 17, search = 31)
 
-  object Replaced extends Composition(BoundedComposition.withMember(_.member -> Inherited))
+  object Replaced extends Composition(BoundedComposition.withMember(member = NativeInherited))
 
-  object DerivedJoined
-      extends DerivedComposition(BoundedComposition.withMember(_.member -> Inherited))
+  object DerivedJoined extends Composition(Replaced.withMember(member = NativeBounded))
 
   val bounds = Limits("question", steps = 2, actions = 1, search = 41)
   val selected = Default
@@ -115,9 +124,10 @@ class QueryConfigurationTest extends munit.FunSuite:
   }
 
   test("composition replacement and both derived forms retain composition reach") {
-    object OverrideJoined extends Composition(BoundedComposition.withMember(_.member -> Inherited)):
+    object OverrideJoined
+        extends Composition(BoundedComposition.withMember(member = NativeInherited)):
       override val reach = Limits("replacementReach", steps = 2, actions = 19, search = 37)
-    for owner <- Seq(BoundedComposition.withMember(_.member -> Inherited), Replaced, DerivedJoined)
+    for owner <- Seq(Replaced, DerivedJoined)
     do assertEquals(owner.reach, Limits("compositionReach", steps = 9, actions = 17, search = 31))
     assertEquals(
       OverrideJoined.reach,

@@ -147,7 +147,7 @@ def after[S, O, F](using context: Expectation[S, O, F]): Step[S, O, F] = context
 // `target`, `after(heater.failover): check(beeping)`, which must hold an assertion. Core form:
 // `!(a.action == target) || requirements`.
 final class StepTarget:
-  inline def apply(target: Action[?] | Class | Composed)(inline block: Unit): Unit =
+  inline def apply(target: Action[?] | Class | CompositionTarget)(inline block: Unit): Unit =
     ${ ClaimMacros.targeted('target, 'block) }
 
 // The state before a transition's step in an `across` block: for a Machine that declares its state
@@ -315,22 +315,22 @@ private[framework] object ClaimMacros:
 
   private def machine(using q: Quotes): Option[q.reflect.Symbol] =
     import q.reflect.*
-    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    val base = TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol
     owners.find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
 
   // The outcome (0) or fact (1) type of the Machine the expansion sits in.
   private def machineType(using q: Quotes)(index: Int, word: String): q.reflect.TypeRepr =
     import q.reflect.*
-    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    val base = TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol
     machine
       .map(_.typeRef.baseType(base))
       .collect { case AppliedType(_, List(_, o, f)) => if index == 0 then o else f }
       .getOrElse(report.errorAndAbort(s"$word reads a step of a Machine: write it in one"))
 
-  private def machineRef(using q: Quotes)(cls: q.reflect.Symbol): Expr[RecordMachine[?, ?, ?]] =
+  private def machineRef(using q: Quotes)(cls: q.reflect.Symbol): Expr[NativeModel[?, ?, ?]] =
     import q.reflect.*
     val ref = if cls.flags.is(Flags.Module) then Ref(cls.companionModule) else This(cls)
-    ref.asExprOf[RecordMachine[?, ?, ?]]
+    ref.asExprOf[NativeModel[?, ?, ?]]
 
   private def arguments(using q: Quotes)(tpe: q.reflect.TypeRepr, of: q.reflect.Symbol) =
     tpe.widen.baseType(of).typeArgs
@@ -422,12 +422,17 @@ private[framework] object ClaimMacros:
         '{ new StepTarget() }
 
   @scala.annotation.publicInBinary
-  private[framework] def targeted(target: Expr[Action[?] | Class | Composed], block: Expr[Unit])(
-      using q: Quotes
+  private[framework] def targeted(
+      target: Expr[Action[?] | Class | CompositionTarget],
+      block: Expr[Unit]
+  )(using
+      q: Quotes
   ): Expr[Unit] =
     import q.reflect.*
     if !asserts(block.asTerm) then report.errorAndAbort(emptyBlock, block.asTerm.pos)
-    '{ NativeClaims.targeting($target, $member)($block) }
+    val position = target.asTerm.pos
+    val location = Expr(s"${position.sourceFile.name}:${position.startLine + 1}")
+    '{ NativeClaims.targeting($target, $member, $location)($block) }
 
   @scala.annotation.publicInBinary
   private[framework] def before(using q: Quotes): Expr[Any] =
@@ -444,13 +449,15 @@ private[framework] object ClaimMacros:
         val cls = machine.getOrElse(
           report.errorAndAbort("before is the state a step of a Machine started from")
         )
-        val record = VarSchemaMacro
-          .enclosingMachine(Symbol.spliceOwner)
-          .fold(TypeRepr.of[State]): declared =>
-            VarSchemaMacro
-              .stateVars(declared)
-              .foldLeft(TypeRepr.of[State]): (record, variable) =>
-                Refinement(record, variable.name, VarSchemaMacro.declaredType(declared, variable))
+        val record = if CompositionMacros.enclosing.nonEmpty then CompositionMacros.stateType(cls)
+        else
+          VarSchemaMacro
+            .enclosingMachine(Symbol.spliceOwner)
+            .fold(TypeRepr.of[State]): declared =>
+              VarSchemaMacro
+                .stateVars(declared)
+                .foldLeft(TypeRepr.of[State]): (record, variable) =>
+                  Refinement(record, variable.name, VarSchemaMacro.declaredType(declared, variable))
         val owner = machineRef(cls)
         record.asType match
           case '[r] =>
@@ -752,11 +759,11 @@ implicit def expectationBuilder[S, O, F](builder: PropertyBuilder[S, O, F]): Exp
 // `builder.when(c).sameStep(predicate)` or `builder.whenAction(action).sameStep(predicate)`.
 extension [S, O, F](builder: PropertyBuilder[S, O, F])
   // Restricts to one exact action class. Core form: `builder.when(c)`.
-  infix def after(c: ClassRef | Composed): PropertyBuilder[S, O, F] = builder.when(c)
+  infix def after(c: ClassRef | CompositionTarget): PropertyBuilder[S, O, F] = builder.when(c)
   // Restricts to all classes of the action. Core form: `builder.whenAction(action)`.
   def afterAction(action: String): PropertyBuilder[S, O, F] = builder.whenAction(action)
   // Restricts to a whole composed action. Core form: `builder.whenAction(action)`.
-  def afterAction(action: Composed): PropertyBuilder[S, O, F] = builder.whenAction(action)
+  def afterAction(action: CompositionTarget): PropertyBuilder[S, O, F] = builder.whenAction(action)
   // Enables the before-state reading. Core form: `builder.transition(predicate)`.
   def across: Across[S, O, F] = new Across(builder)
 
@@ -861,34 +868,32 @@ extension [S, O, F](step: Step[S, O, F])
 // `query find m.property.when(b).sameStep(_.facts.contains(fact)) in m.scenario.actions(a, b) limits bounds`.
 extension [S](owner: Declares[S])
   def witness(
-      first: ClassRef | Composed,
-      rest: (ClassRef | Composed)*
+      first: ClassRef | CompositionTarget,
+      rest: (ClassRef | CompositionTarget)*
   ): WitnessBuilder[S, owner.Outcome, owner.Fact] =
     WitnessBuilder(owner, "", first +: rest.toVector)
 
   // A witness named explicitly, such as one in a list. Core form:
   // `query("done") find m.property("done").when(b).sameStep(_.facts.contains(fact)) in m.scenario("done").actions(a, b) limits bounds`.
   def witness(name: String)(
-      first: ClassRef | Composed,
-      rest: (ClassRef | Composed)*
+      first: ClassRef | CompositionTarget,
+      rest: (ClassRef | CompositionTarget)*
   ): WitnessBuilder[S, owner.Outcome, owner.Fact] =
     WitnessBuilder(owner, name, first +: rest.toVector)
 
 // A witness on the enclosing machine or composition, named after its val. Core form:
 // `query find property.when(last).sameStep(_.facts.contains(fact)) in scenario.actions(path*) limits bounds`.
-def witness[S, O, F](
-    first: ClassRef | Composed,
-    rest: (ClassRef | Composed)*
-)(using declaring: Declaring[S, O, F]): WitnessBuilder[S, O, F] =
-  WitnessBuilder(declaring.model, "", first +: rest.toVector)
+transparent inline def witness(
+    first: ClassRef | CompositionTarget,
+    rest: (ClassRef | CompositionTarget)*
+): Any = ${ QueryMacros.witness('first, 'rest, '{ "" }) }
 
 // A witness on the enclosing owner with an explicit name. Core form:
 // `query(name) find property(name).when(last).sameStep(_.facts.contains(fact)) in scenario(name).actions(path*) limits bounds`.
-def witness[S, O, F](name: String)(
-    first: ClassRef | Composed,
-    rest: (ClassRef | Composed)*
-)(using declaring: Declaring[S, O, F]): WitnessBuilder[S, O, F] =
-  WitnessBuilder(declaring.model, name, first +: rest.toVector)
+transparent inline def witness(name: String)(
+    first: ClassRef | CompositionTarget,
+    rest: (ClassRef | CompositionTarget)*
+): Any = ${ QueryMacros.witness('first, 'rest, 'name) }
 
 // Finishes a witness with a fact of its declaring machine. Core form:
 // `m.property.when(last).sameStep(step => step.facts.contains(fact))`, joined to the pinned Scenario
@@ -1799,17 +1804,17 @@ inline def find(inline claim: Any): ClaimQuery = ${ QueryMacros.finding('claim) 
 
 // `only(heater.heat, heater.failover)`: the scenario that admits these actions and no others, named
 // after its `val` where it is one. Core form: `scenario.free` restricted to the actions listed.
-inline def only(actions: (Action[?] | Class | Composed)*): Scenario =
+inline def only(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
   Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).only(actions*)
 
 // `without(user.depressButton)`: the scenario that admits every action but these, named after its
 // `val` where it is one. Core form: `scenario.free` restricted to the actions not listed.
-inline def without(actions: (Action[?] | Class | Composed)*): Scenario =
+inline def without(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
   Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).without(actions*)
 
 // `fair(rm.commit)`: the scenario that makes these actions weakly fair, an action that stays enabled
 // is eventually taken, and admits every action. Core form: `scenario.free` assuming `fair(actions)`.
-inline def fair(actions: (Action[?] | Class | Composed)*): Scenario =
+inline def fair(actions: (Action[?] | Class | CompositionTarget)*): Scenario =
   Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).fair(actions*)
 
 // `starts(temperature = -40)`: the scenario that starts in the Machine's initial state with the
@@ -1820,7 +1825,7 @@ inline def starts: Scenario.Starts =
 
 // `actions(client.write(), client.read())`: the scenario pinned to exactly these classes, in order.
 // Core form: `scenario.actions(classes*)`.
-inline def actions(cs: (ClassRef | Composed)*): Scenario =
+inline def actions(cs: (ClassRef | CompositionTarget)*): Scenario =
   Scenario.of(QueryMacros.enclosing, NativeLocation.declaredName).actions(cs*)
 
 // The compile-time half of `verify`, `find` and the scenario words: what claim a check names, and
@@ -1828,6 +1833,29 @@ inline def actions(cs: (ClassRef | Composed)*): Scenario =
 @scala.annotation.publicInBinary
 private[framework] object QueryMacros:
   import scala.quoted.*
+
+  @scala.annotation.publicInBinary
+  private[framework] def witness(
+      first: Expr[ClassRef | CompositionTarget],
+      rest: Expr[Seq[ClassRef | CompositionTarget]],
+      name: Expr[String]
+  )(using q: Quotes): Expr[Any] =
+    import q.reflect.*
+    val base = TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol
+    val cls = Iterator
+      .iterate(Symbol.spliceOwner)(_.owner)
+      .takeWhile(!_.isNoSymbol)
+      .find(s => s.isClassDef && !s.equals(base) && s.typeRef.baseClasses.contains(base))
+      .getOrElse(
+        report.errorAndAbort(
+          "witness belongs in a Machine or Composition; elsewhere use owner.witness"
+        )
+      )
+    cls.typeRef.baseType(base).typeArgs.map(_.asType) match
+      case List('[s], '[o], '[f]) =>
+        val owner = This(cls).asExprOf[Declares[s]]
+        '{ WitnessBuilder.declared[s, o, f]($owner, $name, $first +: $rest.toVector) }
+      case _ => report.errorAndAbort("witness reads its owner's state, outcome and fact types")
 
   private val blockSections = Set("invariants$", "postconditions$", "queries$")
 
@@ -1838,7 +1866,7 @@ private[framework] object QueryMacros:
   @scala.annotation.publicInBinary
   private[framework] def enclosingImpl(using q: Quotes): Expr[Option[Model]] =
     import q.reflect.*
-    val base = TypeRepr.of[RecordMachine[?, ?, ?]].typeSymbol
+    val base = TypeRepr.of[NativeModel[?, ?, ?]].typeSymbol
     Iterator
       .iterate(Symbol.spliceOwner)(_.owner)
       .takeWhile(!_.isNoSymbol)

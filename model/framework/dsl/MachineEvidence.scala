@@ -318,7 +318,7 @@ private[framework] object MachineEvidence:
   def collect(machine: RecordMachine[?, ?, ?]): Contribution =
     require(machine ne null, "Machine evidence: declaration is not initialized")
     def declaring(current: RecordMachine[?, ?, ?]): RecordMachine[?, ?, ?] = current match
-      case _: Derived[?, ?, ?] | _: Built[?, ?, ?, ?] =>
+      case _: Derived[?, ?, ?, ?] | _: Built[?, ?, ?, ?] =>
         current.derivationParent.fold(current)(declaring)
       case _ => current
     val source = machine.evidenceSource
