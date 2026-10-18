@@ -12,7 +12,7 @@ satisfies: [R3]
 
 **Touches:** model2/umpire/checker/src/**, model2/umpire/checker/tests/**, model2/umpire/tests/fixtures/**
 
-**Parallel boundary:** shared Cargo wiring is prepared by .11; no manifests or lockfiles change in this lane.
+**Parallel boundary:** shared Cargo wiring is prepared by .11 and scope-refusal protocol wiring by .14; no manifests, lockfiles, protobuf schema, generated Go or wasm adapter change in this lane. Read the shared progress-readiness.md note for SCC/witness/cut analysis.
 
 **Layout (R22):** progress cases go in `umpire/checker/tests/fixtures/<name>/{model.rs,expected/}`; Kettle's `boils` result lands in `umpire/tests/fixtures/kettle/expected/report.txt`.
 
@@ -24,11 +24,11 @@ Implement progress checking over the explored graph restricted to the scope's ac
 
 **Files:** model2/umpire/checker/src/progress.rs, tests.
 
-**Quick commands:** `mise exec -- cargo test -p umpire-checker -p samples`
+**Quick commands:** `mise exec -- cargo test -p umpire-checker -p umpire-tests`
 ## Acceptance
-- Kettle's `report.txt` lists `boils` verified; the control case's golden holds the lasso (prefix and cycle marked).
+- Kettle's `report.txt` lists `boils` verified. The actual no-heater Kettle control refutes with a dead-end path; a separate cyclic no-progress Model has a lasso golden with prefix and cycle marked. No implicit stuttering is added.
 - The oracle test covers progress.
-- An unknown scope action refuses with its name (trybuild golden).
+- An unknown scope action returns the pre-wired `Refusal::ScopeAction` with its canonical name in a runtime fixture golden; catalog membership is not a compile-time property.
 ## Done summary
 TBD
 

@@ -8,7 +8,7 @@ satisfies: [R5]
 
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
 
-**Conventions 2026-10-18 (R25, R26):** `derive(State)` and `derive(Action)` also generate `Spell` in the R25 form, using the author's names (R26); replace the hand-written `Spell` impls in the fixtures with the derive and require byte-identical goldens.
+**Conventions 2026-10-18 (R25, R26):** `derive(State)` and `derive(Action)` also generate `Spell` in the R25 form, using the author's names (R26); replace the hand-written `Spell` impls in DSL-owned fixtures with the derive and require byte-identical goldens. Compile Kettle-shaped state/action declarations in this lane; canonical shared Kettle migration belongs to .6 so this lane does not modify .3's shared fixture surface.
 
 **Touches:** model2/umpire/dsl/build.rs, model2/umpire/dsl/macros/build.rs, model2/umpire/dsl/src/**, model2/umpire/dsl/tests/**, model2/umpire/dsl/macros/src/**, model2/umpire/dsl/macros/tests/**
 
@@ -26,9 +26,9 @@ New proc-macro crate `umpire/dsl/macros` re-exported from `umpire-dsl`: `#[deriv
 
 **Files:** model2/umpire/dsl/macros/{Cargo.toml,src/lib.rs}, model2/umpire/dsl/Cargo.toml, tests/ui/.
 
-**Quick commands:** `mise exec -- cargo test -p umpire-dsl`
+**Quick commands:** `mise exec -- cargo test -p umpire-dsl -p umpire-dsl-macros`
 ## Acceptance
-- Kettle's struct and enums derive; insta expansion snapshots for `derive(State)` and `derive(Action)` checked in (prettyplease-formatted).
+- Kettle-shaped struct and enums compile with the derives in DSL-owned coverage; insta expansion snapshots for `derive(State)` and `derive(Action)` checked in (prettyplease-formatted).
 - `ui/` goldens for a non-range `#[starts]` and a non-unit `#[internal]` variant.
 ## Done summary
 TBD

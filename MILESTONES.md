@@ -24,16 +24,17 @@ specs.
 
 Umpire in Rust lives in `temporal/model2`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model2/umpire/`: `dsl` (with `dsl/macros`), `checker`,
-`testing` (the dev-only fixture runner) and, after fn-210.13, `tests` (the shared end-to-end
-fixtures; the `samples` crate goes away). Its current scope is exactly what
+`testing` (the dev-only fixture runner), `tests` (the shared end-to-end fixtures), and `wasm`
+(the generated-protobuf guest); the `samples` crate has been removed. Its current scope is exactly what
 `model/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
 runs as wasm in a Go host through wazero (pure Go, no cgo) on the stock toolchain, with Kettle's report matching
 the Rust goldens byte for byte, Rust wins. Everything else in `model2/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
-deferred, since speed no longer decides.
+deferred, since speed no longer decides. The decisive slice passed in fn-210.9: the recommendation
+is Rust, with the explicit export-name-only linker step documented in `model2/DESIGN.md`.
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.12, then the fixture move .13 alone, then the decisive wasm slice .9 beside .3 and .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions and fixtures are in place; the wasm slice decides; the macro surface, Kettle in that surface, the TLC slice and the write-up follow |
+| Umpire in Rust (now) | fn-210.14 protocol wiring alone, then .3 beside .4 → .5, then .6 and the TLC slice .8, then .7 | Engine, conventions, fixtures and decisive wasm slice are complete; the Rust recommendation is recorded; the macro surface, progress, TLC slice and full write-up follow |
 | After the verdict | fn-211, then decided by fn-210.7 | Apalache over the same emitter and fixtures (fn-211); then the DSL grows one construct at a time (inputs, collections, parameters, compositions, refinement), each landing through the checker, TLA and the Case together, with real Testpilot starting on the mini activity. If the verdict is no, fn-210 closes with its evidence and the Scala phases resume |
 
 ## Specs
@@ -88,9 +89,9 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.9 | 🔄 in progress | After .13, decisive: the checker as wasm in a wazero Go host, generated protobuf interface (R31, R32), on the trait Kettle; report and rows byte-identical to its goldens on stock rustc means Rust (R20, R24) |
-| fn-210.3 | ⬜ todo | After .13: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
-| fn-210.4 | ⬜ todo | After .13: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
+| fn-210.14 | 🔄 in progress | After .9, alone: pre-wire the R27 scope-action Refusal through the generated host protocol, keeping .3/.4 disjoint |
+| fn-210.3 | ⬜ todo | After .14: progress within a scope, weak fairness on internal steps, lasso and dead-end counterexamples (R3) |
+| fn-210.4 | ⬜ todo | After .14, beside .3: `derive(State)` and `derive(Action)` with `Spell`; trybuild messages (R5, R17, R25) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5, R13, R26) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
 | fn-210.8 | ⬜ todo | After .6: TLC slice: `umpire-lift` from recorded tokens to TLA+, `umpire-tlc` (in `umpire/backends/tlc/`) runner and consumer, `tlc.txt` agreement on 283 states (R19, R26, R28) |
