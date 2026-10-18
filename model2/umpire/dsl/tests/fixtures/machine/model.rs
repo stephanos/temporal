@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use umpire_dsl::{Action, Machine, Progress, Scope, Spell, State, invariant, machine, on, postcondition, progress, scope};
+use umpire_dsl::{Action, Machine, Outcome, Progress, Scope, Spell, State, Verdict, invariant, machine, on, postcondition, progress, scope};
 
 #[derive(State)]
 struct Counter {
@@ -56,6 +56,14 @@ fn spelled(value: &impl Spell) -> String {
     out
 }
 
+fn judgment(verdict: Verdict) -> String {
+    spelled(&match verdict {
+        Verdict::Holds => Outcome::Verified,
+        Verdict::Fails => Outcome::Refuted,
+        Verdict::Unknown(_) => Outcome::Unknown,
+    })
+}
+
 mod public_state {
     use umpire_dsl::{Action, Machine, State, machine};
 
@@ -91,7 +99,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
                 edge.2.spell(&mut output);
                 write!(output, " outcome: {} facts: {}", spelled(&edge.0), edge.1.len())?;
                 for claim in world.postconditions() {
-                    write!(output, " {}={:?}", claim.name, claim.holds(&world, &state, &action, edge))?;
+                    write!(output, " {}={}", claim.name, judgment(claim.holds(&world, &state, &action, edge)))?;
                 }
             }
             output.push('\n');
@@ -102,15 +110,15 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     writeln!(output, "original state: {}", spelled(&state))?;
     writeln!(output, "order: {}", world.claim_order().join(", "))?;
     for claim in world.invariants() {
-        writeln!(output, "{}: {:?}", claim.name, (claim.predicate)(&world, &state))?;
+        writeln!(output, "{}: {}", claim.name, judgment((claim.predicate)(&world, &state)))?;
     }
     for (name, scope) in world.scopes() {
         writeln!(output, "scope {name}: {}", spelled(&scope.excluded[0]))?;
     }
     for claim in world.progress() {
-        writeln!(output, "progress {}: {:?} -> {:?}; without {}", claim.name,
-            (claim.trigger)(&world, &Counter { value: 1 }),
-            (claim.target)(&world, &state), spelled(&claim.scope.excluded[0]))?;
+        writeln!(output, "progress {}: {} -> {}; without {}", claim.name,
+            judgment((claim.trigger)(&world, &Counter { value: 1 })),
+            judgment((claim.target)(&world, &state)), spelled(&claim.scope.excluded[0]))?;
     }
     Ok(umpire_testing::Files::from([("values.txt".into(), output)]))
 }
