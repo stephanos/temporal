@@ -30,3 +30,19 @@ make model2-fmt     # rustfmt the workspace
 ```
 
 From inside `model2/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
+
+## Testing
+
+End to end, by golden files (fn-210 R8). A test is a case plus the output it produces, checked in
+beside it:
+
+- behaviour: every sample Model's `cases/<model>/expected/report.txt` and `paths/<claim>.txt`
+  (`insta`; review with `cargo insta review`);
+- refusals: `trybuild` `.rs` + `.stderr` under `framework/dsl/tests/ui/`;
+- expansion: `macrotest` `.expanded.rs` under `framework/dsl/tests/expand/`;
+- one property test against a brute-force reference explorer, the check that goldens are right
+  rather than merely stable.
+
+Goldens are deterministic, human-readable and timing-free. `make model2-update` rewrites them; a
+golden with no case, or a case with no golden, fails. Unit tests only when a defect cannot be
+written as a case.

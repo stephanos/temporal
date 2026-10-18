@@ -1420,7 +1420,7 @@ endif
 ##### model2: the Rust prototype (fn-210) #####
 MODEL2_CARGO := cd model2 && mise exec -- cargo
 
-.PHONY: model2-check model2-fmt
+.PHONY: model2-check model2-fmt model2-update
 model2-check:
 	@printf $(COLOR) "Check model2 (fmt, clippy, docs, tests)..."
 	@$(MODEL2_CARGO) fmt --all --check
@@ -1430,3 +1430,7 @@ model2-check:
 
 model2-fmt:
 	@$(MODEL2_CARGO) fmt --all
+
+model2-update:
+	@printf $(COLOR) "Update model2 golden files (insta, trybuild, macrotest)..."
+	@cd model2 && INSTA_UPDATE=always TRYBUILD=overwrite MACROTEST=overwrite mise exec -- cargo test --workspace --quiet

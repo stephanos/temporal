@@ -48,23 +48,24 @@ internal steps, guarded transitions with effects, invariants, postconditions wit
 set, claims per state and per edge, progress with weak fairness and lasso counterexamples), then
 the attribute surface (`#[derive(State)]`, `#[derive(Action)]`, a pass-through `#[machine]` on the
 impl collecting `#[on]`, `#[invariant]`, `#[postcondition]`, `#[scope]`, `#[progress]`), then
-Kettle itself with its test, then the design note. Gate: `mise exec -- cargo test --workspace`.
+Kettle itself with its test, then the design note. Testing is end to end by golden files (R8,
+owner 2026-10-18): `insta` snapshots of each Model's report and counterexample paths, `trybuild`
+refusals, `macrotest` expansions, one brute-force oracle property test, no unit tests by default.
+Gate: `make model2-check`; update goldens with `make model2-update`.
 [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-210.1 | 🔄 in progress | `framework-dsl`: `Machine`, `Claim`, `StepClaim`, `Scope`, `Progress`, `Outcome`; `Kettle.trait.rs` compiles as a fixture (R1) |
-| fn-210.2 | ⬜ todo | After .1: `framework-checker` BFS explore with budget, invariants per state, postconditions per edge, `verify_all`, `refuted`; Kettle counts match the Scala note (R2, R4) |
+| fn-210.2 | ⬜ todo | After .1: `framework-checker` BFS explore, claims, `verify_all`, `refuted`; the insta behaviour runner (`cases/kettle/expected/report.txt` with the Scala note's counts) and the brute-force oracle property test (R2, R4, R8) |
 | fn-210.3 | ⬜ todo | After .2: progress within a scope, weak fairness on internal steps, lasso counterexamples (R3) |
 | fn-210.4 | ⬜ todo | After .1: `derive(State)` with `#[starts]`, `derive(Action)` with `#[internal]`; trybuild messages (R5) |
 | fn-210.5 | ⬜ todo | After .4: `#[machine]` attribute, pass-through impl plus generated `Machine` impl; refusals for missing or duplicate `#[on]` (R5) |
 | fn-210.6 | ⬜ todo | After .3/.5: Kettle in the attribute surface with its test; parity with the Scala suite (R6) |
-| fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md`: authoring, size, speed, tooling comparison and the recommendation (R7) |
+| fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md`: authoring, size, speed, tooling comparison and the recommendation; then delete `samples/options/` (R7) |
 
 ## Open for the owner
 
-- Whether `temporal/model2`'s option sketches stay in the tree after fn-210.6 lands Kettle, or move
-  to `model2/DESIGN.md` as excerpts.
 - The deferral is total by request; if any Scala work should continue in parallel (for example
   fn-196.8, the checker performance fix, which is needed for a fair speed comparison in fn-210.7),
   name it and it returns to this page.

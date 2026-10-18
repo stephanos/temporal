@@ -10,5 +10,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.1.md",
   "status": "todo",
   "title": "framework-dsl: Machine trait, Claim, StepClaim, Scope, Progress, Outcome; Kettle.trait.rs compiles as a fixture",
-  "updated_at": "2026-10-18T19:41:41.973513Z"
+  "updated_at": "2026-10-18T19:42:58.663154Z"
 }
