@@ -270,6 +270,30 @@ func withoutKeptRuntimeVocabulary(line string) string {
 	return line
 }
 
+func retiredVocabularyMention(rel, line string) bool {
+	line = withoutKeptRuntimeVocabulary(line)
+	return retiredModelVocabulary.MatchString(line) ||
+		(strings.HasPrefix(rel, "model/temporal/") && strings.Contains(line, `scenario("`)) ||
+		((rel == "model/README.md" || rel == "model/framework/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
+			retiredLevelProse.MatchString(line))
+}
+
+func TestArchivedVocabularyChecksSourceAndProse(t *testing.T) {
+	for _, test := range []struct {
+		path, line string
+		found      bool
+	}{
+		{"model/archived/temporal/features/example/Product.scala", `scenario("example")`, true},
+		{"model/archived/README.md", "a protocol machine", true},
+		{"model/archived/framework/SEMANTICS.md", "a system contract", true},
+		{"model/umpire/checker/src/lib.rs", `scenario("example")`, false},
+	} {
+		t.Run(test.path, func(t *testing.T) {
+			require.Equal(t, test.found, retiredVocabularyMention(test.path, test.line))
+		})
+	}
+}
+
 func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
 	self := filepath.ToSlash(filepath.Join("tools", "umpire", "ir", "layout_test.go"))
 	var mentions []string
@@ -278,11 +302,7 @@ func TestRetiredModelVocabularyStaysRetired(t *testing.T) {
 			return
 		}
 		for i, line := range strings.Split(content, "\n") {
-			line = withoutKeptRuntimeVocabulary(line)
-			if retiredModelVocabulary.MatchString(line) ||
-				(strings.HasPrefix(rel, "model/temporal/") && strings.Contains(line, `scenario("`)) ||
-				((rel == "model/README.md" || rel == "model/framework/SEMANTICS.md" || strings.HasPrefix(rel, ".plans/")) &&
-					retiredLevelProse.MatchString(line)) {
+			if retiredVocabularyMention(rel, line) {
 				mentions = append(mentions, fmt.Sprintf("%s:%d", rel, i+1))
 			}
 		}
