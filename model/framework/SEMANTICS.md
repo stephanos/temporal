@@ -1311,6 +1311,7 @@ The retained immutable coverage admits explicitly supplied finite alternatives, 
 and concrete sampled paths only when every class is performed or awaited with those exact input
 values. Whole zero-input actions have their one empty class. Whole-record and composed classes
 use the existing lazy native runtime's class catalog, preserving correlated input domains.
+Each input value uses the native catalog's `.equals` relation. An Int catalog value `1` refuses `1L`.
 Foreign or unbound actions, malformed input declarations, out-of-catalog values and unsupported
 classes refuse. Script conditions, evidence confirmations, controls and dependency-only actions
 confer no coverage. At least one alternative is required; an empty path within it is permitted.

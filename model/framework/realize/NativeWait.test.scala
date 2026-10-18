@@ -21,6 +21,67 @@ package framework.realize {
 
     private def checkPoison(calls: Calls): Unit = assertEquals(calls.counts, Vector.fill(6)(0))
 
+    private def numericFixture(composed: Boolean, calls: Calls): (Machine[?, ?], Class) =
+      val world = new World(calls)
+      val first = new world.NumericSubject
+      if !composed then (first, first.local.number(1))
+      else
+        val second = new world.NumericSubject
+        class Together extends Composition[Nothing]:
+          val left = first
+          val right = second
+          object syncs:
+            val paired = sync(left(first.local.number), right(second.local.number))
+        val together = new Together
+        val cls = NativeRuntime.installed
+          .composition(together)
+          .effects
+          .find((decl, _) => decl.name == together.syncs.paired.name)
+          .flatMap((decl, _) => NativeRuntime.installed.classesOf(decl).headOption)
+          .get
+        assertEquals(cls.values, List(1, 1))
+        object selected:
+          val step = new Action[EmptyTuple](cls.decl)
+        class Consumer extends Machine[Boolean, Nothing]:
+          var ready = false
+          object effects:
+            def touch(): Unit = calls.effect()
+          object transitions extends framework.dsl.Transitions:
+            on(selected.step):
+              effects.touch()
+        (new Consumer, cls)
+
+    for
+      composed <- Vector(false, true)
+      boundary <- Vector("performed", "awaited", "admitted")
+    do
+      test(s"${
+          if composed then "composed" else "ordinary"
+        } Int classes reject Long inputs when $boundary"):
+        val calls = new Calls
+        val (owner, expected) = numericFixture(composed, calls)
+        val malformed = Class(expected.decl, expected.values.map(_ => 1L))
+        expected.decl.nativeInputs.foreach: shape =>
+          intercept[IllegalArgumentException](
+            NativeRuntime.installed.inputs.input(shape, malformed)
+          ): Unit
+        val valid =
+          new Kit(owner, Vector.empty, () => Vector(expected), calls).nativeCoverage(owner)
+        valid.admit(Vector(Vector(expected)))
+        refused("outside the native catalog"):
+          boundary match
+            case "performed" =>
+              new Kit(
+                owner,
+                Vector(Performance(malformed, command(calls))),
+                () => Vector.empty,
+                calls
+              ).nativeCoverage(owner)
+            case "awaited" =>
+              new Kit(owner, Vector.empty, () => Vector(malformed), calls).nativeCoverage(owner)
+            case _ => valid.admit(Vector(Vector(malformed)))
+        checkPoison(calls)
+
     test("generic actual server steps and an ordinary custom kit supply exact native coverage"):
       val calls = new Calls
       val world = new World(calls)
@@ -445,6 +506,19 @@ package nativewaitfixture {
 
     final case class Pair(left: Boolean, right: Boolean)
     class World(val calls: Calls):
+      class NumericSubject extends Machine[Boolean, Nothing]:
+        var ready = false
+
+        object local extends Actor:
+          lazy val number = action.input[Int](name = "number", domain = domains.oneOf(1))
+
+        object effects:
+          def touch(): Unit = calls.effect()
+
+        object transitions extends Transitions:
+          on(local.number): _ =>
+            effects.touch()
+
       class Subject extends Machine[Boolean, Nothing]:
         var ready = false
 

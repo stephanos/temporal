@@ -157,7 +157,7 @@ object ConstructedRealization:
     case action: Action[?]        => action.omittedClass
 
   private def sameClass(left: framework.dsl.Class, right: framework.dsl.Class): Boolean =
-    (left.decl eq right.decl) && left.values.equals(right.values)
+    (left.decl eq right.decl) && left.values.corresponds(right.values)((a, b) => a.equals(b))
 
   private def validateOwner(declarations: Vector[ActionDecl], cls: framework.dsl.Class): Unit =
     require(
