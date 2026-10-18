@@ -20,16 +20,27 @@ Define the vocabulary in `framework/dsl/src`: `Machine { type Action; starts(); 
 - `cargo doc` renders every public item with a one-line doc.
 
 ## Done summary
-Defined Machine, Claim, StepClaim, Scope, Progress and Outcome with documented public APIs. The executable trait fixture type-checks against the DSL; its only source change is the owner-approved `Progress::<Self>::new` annotation, with namespace compatibility imports outside the fixture. The original option sketch is untouched.
-
-R8's compilation-only policy superseded the initial behavioral assertions during review. The final fixture only requires Kettle: Machine; behavior coverage belongs to task .2's goldens and oracle property test. Focused workspace build and samples tests passed after the fix, and make model2-check passed formatting, strict Clippy, warning-free docs and workspace tests. Reviewers could not rebuild in their read-only sandbox; conductor verification supplies execution evidence.
+The DSL separates a world's constants from its associated dynamic State and returns ordered edges carrying domain outcomes and facts. R18 now stores the first edge inline through smallvec, while the adapted KettleWorld fixture continues to prove compilation of the trait vocabulary and tri-state predicates.
 
 Tier: project implementer gpt-6.1-sol at medium (judge unavailable no_key).
-stage: impl-review - ran (model: gpt-6.1-sol at high; codex backend, same family as writer; SHIP after one R8 policy fix)
+stage: impl-review - skipped(policy: parallel-wave - conductor owns the final combined review)
+
+The world API and R18 SmallVec update are integrated into umpire. The conductor re-ran both exact Quick commands, make model2-check (including WASI), and cargo deny check bans on the integrated tree; all passed. The ban check required explicit 0.0.1 versions on internal workspace path dependencies.
+
+R18 changes Steps<S, O, F> to smallvec::SmallVec<[Step<S, O, F>; 1]>, with Step<S, O, F> = (O, Vec<F>, S). The DSL opts into smallvec.workspace and Cargo.lock resolves 1.16.3. The fixture uses Steps::new() for disabled actions and Steps::new() plus push for the single emitted result. This adds no direct smallvec dependency to samples. The vocabulary has no fallible API or error type, so thiserror remains available in workspace dependencies for the checker's actual error surface.
+
+Baseline was green for both exact task Quick commands. After the Steps alias change, the existing fixture failed compilation with mismatched Vec and SmallVec return types. Adapting the fixture constructors made both Quick commands pass. make model2-check passed formatting, strict Clippy, warning-free documentation, workspace tests, and the wasm32-wasip2 build. The samples suite ran the trait compilation fixture and the inherited placeholder. R8 behavior goldens remain owned by .2. Cumulative gate classification was FULL. Logs are in the workspace's .flow/tmp/fn2101-r18-{baseline-build,baseline-samples,red,verify-build,verify-samples,model2-check}.log files.
+
+The remainder of the world API is unchanged from the previous handover. Machine is implemented by a Sized world with State: Clone + Eq + Hash, Action: Clone + Eq + Hash + Debug, Outcome, and Fact. starts, actions, internal, and claim registration take the world by reference; step(&self, &State, Action) returns Steps<State, Self::Outcome, Self::Fact>. The finite action catalog is ordered and admits future data variants. Empty Steps disables an action; a rejecting domain outcome remains an edge.
+
+Claim predicates take (&M, &M::State). StepPredicate takes (&M, &before, &after, &Action, &M::Outcome, &[M::Fact]). StepClaim::holds takes (&self, world, before, action, &Step<M::State, M::Outcome, M::Fact>). Progress trigger and target also receive the world and state. All predicates return Verdict::{Holds, Fails, Unknown(Hole { reason })}, with bool conversion. Aggregate Outcome retains Verified, Refuted, and Unknown separately from Machine::Outcome. Scope supports Clone actions and borrowed allows(&Action). The Kettle fixture uses an empty public KettleWorld with separate public Kettle state and unit outcomes/facts. Original option sketches stay unchanged.
+
+The conductor reported a completed review of the world API before R18. The new R18 delta and final combined artifact require conductor review. R15 here proves target compilation; the conductor's observed wasm32-wasip2 panic=abort limitation remains for the later R11 hosting write-up.
+
+Review receipt: /tmp/impl-review-receipt-be5707dcaf67-fn-210-rust-prototype-kettle-on-a-trait-engine.1.json
 stage: plan-sync - skipped(config: planSync.enabled=false)
-Review receipt: /tmp/impl-review-receipt-8f37faba39e2-fn-210-rust-prototype-kettle-on-a-trait-engine.1.json
-Memory capture: skipped; review fix mechanically relocated coverage under the newly added testing policy.
+Memory capture: skipped; both world/R18 review cycles were clean first-pass SHIP.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 05787789742ee7872c43d464360c54de72578d06, 4147e723e750878952f2760ef3152df6218e921c, 841867500274cd1a34ad5d0b5f83822648c2a097, 9e22629e26b2dc1bbd00e7a003e9ec89507f8d01, a6661dcf7601f08e69ada3c6592049e7929f0f36, a8cf087dbc61cd2c9544472d88f6875c13787883
+- Tests: mise exec -- cargo build --workspace, mise exec -- cargo test -p samples, make model2-check, mise exec -- cargo deny check bans, git diff --check
 - PRs:
