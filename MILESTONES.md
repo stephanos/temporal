@@ -91,7 +91,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.16 | ⬜ todo | After .5, alone: direct `umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call` exports; remove export rewriting and update the Go host (R42) |
+| fn-210.16 | 🔄 in progress | After .5, alone: direct `umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call` exports; remove export rewriting and update the Go host (R42) |
 | fn-210.15 | ⬜ todo | After .16, alone: archive the Scala tree under `model/archived/` (history kept), rename `model2/` to `model/`, rename the Rust Make targets to `model-*`, update `AGENTS.md`, docs and open specs (R41) |
 | fn-210.6 | ⬜ todo | After .15: Kettle in the attribute surface as its fixture's `model.rs`; goldens identical to the trait Kettle's (R6) |
 | fn-210.7 | ⬜ todo | After .6: `model2/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
