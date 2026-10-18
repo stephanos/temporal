@@ -1,8 +1,12 @@
-# model2: Umpire in Rust
+# model: Umpire in Rust
 
-The Umpire framework as a Cargo workspace mirroring `model/framework`'s layout. Its current scope is
-what `model/framework/samples/Kettle.scala` uses today; see `options/README.md` for the
+The Umpire framework as a Cargo workspace mirroring `model/archived/framework`'s layout. Its current scope is
+what `model/archived/framework/samples/Kettle.scala` uses today; see `options/README.md` for the
 authoring-surface options under discussion.
+
+`archived/` holds the former Scala tree unchanged for reference, including its retained build
+caches. Its internal paths describe the old layout, and its Scala targets are unmaintained and
+not expected to build. The Cargo workspace and Rust gate do not build the archive.
 
 The toolchain is pinned in the repository's `mise.toml` (`rust = "1.99.1"`); run through mise:
 
@@ -25,9 +29,9 @@ advisories; it needs the tool installed and the network.
 The gate, from the repository root (`temporal/`):
 
 ```
-make model2-check   # fmt --check, clippy -D warnings on all targets, docs with warnings denied, tests
-make model2-fmt     # rustfmt the workspace
-make model2-time    # time the actual gate; warns over the 3 s inner-loop and 30 s gate budgets (fn-210 R30)
+make model-check   # fmt --check, clippy -D warnings on all targets, docs with warnings denied, tests
+make model-fmt     # rustfmt the workspace
+make model-time    # time the actual gate; warns over the 3 s inner-loop and 30 s gate budgets (fn-210 R30)
 ```
 
 The gate also checks resolved core capability restrictions and their negative controls,
@@ -35,7 +39,7 @@ protobuf freshness, the wasm32-wasip1 core and guest builds, and CGO-disabled Go
 It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
 target on first use; warm runs need no network. Rust generation uses prost-build and
 the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, run
-`bash model2/scripts/proto-go.sh` from the repository root.
+`bash model/scripts/proto-go.sh` from the repository root.
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`; see
@@ -46,10 +50,10 @@ negative controls for missing, unexpected and mis-typed exports.
 The ABI crate keeps the workspace lint rules with `unsafe_code = deny` and local
 exceptions only on the three named export attributes. DSL/checker retain `forbid`.
 
-From inside `model2/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
-`model2-time` measures the actual `make model2-check`, including every current gate step. Its inner
+From inside `model/`, `cargo check-all` and `cargo doc-all` are aliases for the clippy and doc steps.
+`model-time` measures the actual `make model-check`, including every current gate step. Its inner
 loop defaults to touching `umpire/checker/src/lib.rs` and testing `umpire-checker`; select another
-crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model2/`). Timed
+crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model/`). Timed
 command failures fail the helper; exceeding a time budget prints a warning and succeeds.
 
 ## Testing
@@ -66,7 +70,7 @@ produces (`model.rs` and `expected/`). "Fixture", not
 - one property test against a brute-force reference explorer, the check that goldens are right
   rather than merely stable.
 
-Goldens are deterministic, human-readable and timing-free. `make model2-update` rewrites them; a
+Goldens are deterministic, human-readable and timing-free. `make model-update` rewrites them; a
 fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
 written as a fixture.
 
@@ -87,20 +91,20 @@ and `paths/*.txt`; a selected consumer renders and checks its outputs twice for 
 The DSL registers its spelling consumer for `values.txt`. Future backends register their own
 filenames and renderer. An unregistered filename, an orphan snapshot artifact, or an empty
 fixture fails naming its folder, including during updates. Seed a new fixture with a declared
-logical output filename before running `make model2-update`.
+logical output filename before running `make model-update`.
 
 Behaviour goldens use insta binary snapshots with text payloads. Each `report.txt`, `states.txt`,
 `rows.txt`, or `paths/<claim>.txt` is a symlink to its `.snap.txt` payload; the adjacent `.snap`
 stores insta's review metadata. This keeps the required text paths readable by other hosts and
 lets `cargo insta review` (or `cargo insta accept`) update their single source of expected content.
-Run `make model2-update` to create or refresh snapshots and their aliases together.
+Run `make model-update` to create or refresh snapshots and their aliases together.
 Metadata, payloads, aliases and pending snapshots belong to one logical expected file. Non-text
 extensions use insta's snapshot suffix to avoid collisions (`Model@tla.snap` and
 `Model@tla.snap.tla` back `Model.tla`; `Model@cfg.snap` separately backs `Model.cfg`). A pending
 snapshot is accepted with `cargo insta accept`, then checked by the same runner.
 The gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
 CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real
-pending-to-accept integration control runs explicitly from `model2/` with
+pending-to-accept integration control runs explicitly from `model/` with
 `mise exec -- cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored`.
 
 ## Dependencies

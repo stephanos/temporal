@@ -8,12 +8,12 @@
 
 ## Goal & Context
 
-fn-210 builds Umpire in Rust (`temporal/model2`) with one TLA+ backend, TLC, which gives an exhaustive reachable-set agreement with the native checker. Apalache adds a different kind of answer: a bounded symbolic verdict per invariant, with a counterexample when one exists within the bound, and it scales to state spaces TLC cannot enumerate. This spec adds Apalache as a second backend over the same lifted tree and TLA+ emitter that fn-210.8 builds, run through the same fixture runner, with the same rule that every backend answer is confirmed by the native checker. It starts after fn-210 is done and its verdict (fn-210 R24) is to continue in Rust; it is filed now so the design is recorded while fn-210's emitter is being shaped. The Scala-side equivalent is fn-206, deferred.
+fn-210 builds Umpire in Rust (`temporal/model`) with one TLA+ backend, TLC, which gives an exhaustive reachable-set agreement with the native checker. Apalache adds a different kind of answer: a bounded symbolic verdict per invariant, with a counterexample when one exists within the bound, and it scales to state spaces TLC cannot enumerate. This spec adds Apalache as a second backend over the same lifted tree and TLA+ emitter that fn-210.8 builds, run through the same fixture runner, with the same rule that every backend answer is confirmed by the native checker. It starts after fn-210 is done and its verdict (fn-210 R24) is to continue in Rust; it is filed now so the design is recorded while fn-210's emitter is being shaped. The Scala-side equivalent is fn-206, deferred.
 
 ## Architecture & Data Models
 
 - Emitter: the TLA+ emitter in `umpire-lift` gains Snowcat type annotations (`\* @type: ...;`) for every variable, constant and operator it emits, derived from the Model's Rust types through the same mapping the TLC slice uses; TLC ignores them, so one module serves both backends.
-- Runner: a crate `umpire-apalache`, placed next to `umpire-tlc` (same folder convention as fn-210.8 chooses), runs a pinned Apalache release on the mise-pinned JDK (Java 21 or newer) from `model2/build/`, never from the user's home directory. One `apalache-mc check --inv=<invariant> --length=<N>` per invariant, where N is the native checker's BFS depth plus one; a server process, if used, is started and stopped by the runner with no process left behind.
+- Runner: a crate `umpire-apalache`, placed next to `umpire-tlc` (same folder convention as fn-210.8 chooses), runs a pinned Apalache release on the mise-pinned JDK (Java 21 or newer) from `model/build/`, never from the user's home directory. One `apalache-mc check --inv=<invariant> --length=<N>` per invariant, where N is the native checker's BFS depth plus one; a server process, if used, is started and stopped by the runner with no process left behind.
 - Counterexamples: Apalache's ITF JSON trace is decoded through the canonical `Spell` form into a path of states and actions, and replayed step by step through the Model's `step` by the native checker; a path that is not a path of the Model is a witness-rejected result.
 - Agreement: for every fixture selected for Apalache, each invariant's bounded verdict must agree with the native checker within the bound: no violation where the checker verifies, and a replayable violation where the checker refutes within that depth. The result is a golden `expected/apalache.txt` (invariant, bound, verdict, agreement), produced by an Apalache consumer in the fixture runner and selected by the presence of that file.
 - Postconditions and progress: postconditions are emitted as action properties checked as invariants over a one-step history; `boils`-style progress claims are out of scope for Apalache (TLC covers liveness).
@@ -22,8 +22,8 @@ fn-210 builds Umpire in Rust (`temporal/model2`) with one TLA+ backend, TLC, whi
 
 - `Apalache::check(module, invariant, length) -> Result<Bounded, Refusal>` where `Bounded` is `NoViolation { length }`, `Violation { path }` or `NotRun { reason }`.
 - `apalache.txt` lists, per invariant in declaration order: name, bound, verdict, and `agrees` or the disagreement; a violation also writes `expected/paths/apalache_<invariant>.txt`.
-- The fixture runner runs the Apalache consumer only for fixtures with `expected/apalache.txt`; `make model2-update` rewrites it like any golden.
-- The Apalache step runs only when `UMPIRE_BACKENDS=require` (or a dedicated make target); the default `make model2-check` looks for no JVM tool beyond what fn-210 already requires.
+- The fixture runner runs the Apalache consumer only for fixtures with `expected/apalache.txt`; `make model-update` rewrites it like any golden.
+- The Apalache step runs only when `UMPIRE_BACKENDS=require` (or a dedicated make target); the default `make model-check` looks for no JVM tool beyond what fn-210 already requires.
 
 ## Edge Cases & Constraints
 
@@ -52,7 +52,6 @@ fn-210 builds Umpire in Rust (`temporal/model2`) with one TLA+ backend, TLC, whi
 
 Apalache was kept out of fn-210 because R24 decides fn-210 on the wasm slice alone, the TLC slice already proves lifting and emission, and Apalache adds type annotations and bounded agreement rules that TLC does not need. Filed on 2026-10-18 at the owner's request so the emitter is shaped with annotations in mind. It reuses fn-210's lifted tree, emitter, `Spell` and fixture runner, and selects fixtures by the presence of `apalache.txt`, so no Model is defined twice. The Scala-side Apalache spec (fn-206, deferred) explored an in-process route through Apalache's Scala libraries; from Rust the CLI or JSON-RPC server is the route, and a pinned release in the build directory replaces the earlier `~/.quint` download and port-kill lifecycle.
 
-2026-10-18, placement (owner): `umpire-apalache` lives at `model2/umpire/backends/apalache/`, beside `umpire/backends/tlc/`.
+2026-10-18, placement (owner): `umpire-apalache` lives at `model/umpire/backends/apalache/`, beside `umpire/backends/tlc/`.
 
 2026-10-18: fn-210 R30's feedback-loop budget applies; R5 keeps Apalache out of the default gate for that reason.
-

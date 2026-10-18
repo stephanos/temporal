@@ -8,9 +8,9 @@ generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 Build the real `umpire-wasm` release artifact before running:
 
 ```sh
-# From model2/:
+# From model/:
 mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked
-# From model2/hosts/go:
+# From model/hosts/go:
 CGO_ENABLED=0 mise exec -- go test -tags test_dep -count=1 ./...
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=5x -count=1
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime=100000x -count=1

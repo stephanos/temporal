@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Times the model2 gate (fn-210 R30) and warns when the feedback loop exceeds its budget.
+# Times the model gate (fn-210 R30) and warns when the feedback loop exceeds its budget.
 # Uses bash's `time` so it works on macOS and Linux alike. It warns rather than fails: timing is
 # machine-dependent, and a breach is fixed or excepted by the owner, not retried until green.
 set -euo pipefail
@@ -27,10 +27,10 @@ fi
 inner_crate=${UMPIRE_INNER_CRATE:-umpire-checker}
 inner_file=${UMPIRE_INNER_SOURCE:-umpire/checker/src/lib.rs}
 printf '%-32s %7s\n' "step (warm)" "time"
-printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model2-check\n'
+printf 'gate command: UMPIRE_TIME_STEPS=1 make -C .. model-check\n'
 gate_log=$(mktemp)
 trap 'rm -f "$gate_log"' EXIT
-total=$({ time UMPIRE_TIME_STEPS=1 make -C .. model2-check >"$gate_log" 2>&1; } 2>&1) || {
+total=$({ time UMPIRE_TIME_STEPS=1 make -C .. model-check >"$gate_log" 2>&1; } 2>&1) || {
   rc=$?
   cat "$gate_log"
   exit "$rc"

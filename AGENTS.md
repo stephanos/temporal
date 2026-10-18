@@ -4,7 +4,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 # Core Mandates
 
 - **Conventions:** Rigorously adhere to existing project conventions when reading or modifying code. Analyze surrounding code, tests, and configuration first.
-- **Model:** The behavior model is written in Scala under `model/` and checked by its gate, `make umpire-check-model`. Before any task involving it, read [model/README.md](model/README.md) and [model/framework/SEMANTICS.md](model/framework/SEMANTICS.md). Check each change with `make model-check-changed [BASE=<rev>]`, which runs only what the change reaches and writes a record under `.flow/tmp/checks/` that a task receipt cites ([model/README.md](model/README.md#writing-a-model)); the full gate and `make umpire-gen-model` (then review the diff of each feature's `generated/`) are the batch-end and sweep tier.
+- **Model:** Umpire is the Rust workspace under `model/`; read [model/README.md](model/README.md) before working on it and verify with `make model-check`. The former Scala tree is frozen under `model/archived/`, for reference only; its targets are unmaintained and it is not expected to build.
 - Update the Model independently of the implementation. When conformance fails, ask a human rather than fitting the Model to the code.
 - **Umpire:** Before any task involving Umpire code (`model/`, `tools/umpire/`, `common/testing/testpilot/`, `tools/canary/`), read and follow [UMPIRE4 Spec](.plans/UMPIRE4_SPEC.md), the high-level architecture and its rules in [UMPIRE4 Vision](.plans/UMPIRE4_VISION.md#high-level-architecture), and the [module map](.plans/UMPIRE_MODULES.md), which states each module's job, public interface and permitted imports.
 - **Libraries/Frameworks:** NEVER assume a library/framework is available or appropriate. Verify its established usage within the project (check imports, and 'go.mod') before employing it.
@@ -45,7 +45,8 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - `/common/testing/testpilot`: Testpilot, the runtime that prepares, runs and evaluates a Case
 - `/config`: configuration files and templates
 - `/docs`: documentation
-- `/model`: the Scala behavior model and its gate; it holds no Go. `model/framework` is the self-contained, Temporal-free framework (the DSL in `framework/dsl`, the realization core, the IR generator in `framework/export`, the checks and the migration harness), and `model/temporal` holds the Temporal Models with Temporal's halves of those tools (`temporal/{export,check,migrate}`) and the checked-in IR and Cases
+- `/model`: the Umpire Rust Cargo workspace, with the DSL, checker, shared fixtures and wasm guest under `umpire/`, and the Go host under `hosts/go`
+- `/model/archived`: the frozen Scala framework and Temporal Models, retained with history for reference
 - `/proto`: proto definitions for internal services
 - `/schema`: database schema definitions for core databases store and visibility store
 - `/service`: main services (frontend, history, matching, worker, etc.)
@@ -64,9 +65,10 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Code generation: `make proto`
 - Update API proto: `make update-go-api`
 - Unit Testing: `make unit-test`
-- Model gate (build, lift, compare with the checked-in IR and Cases, Go checks): `make umpire-check-model`
-- Regenerate the model's IR and Cases: `make umpire-gen-model`
-- Model linting and formatting (Scala): `make lint-model`, `make fmt-model`, `make fix-model`
+- Model gate (format, lint, docs, native fixtures, wasm and Go-host parity): `make model-check`
+- Model formatting: `make model-fmt`
+- Update Model goldens: `make model-update`
+- Model feedback-loop timing: `make model-time`
 - Go tests of the model tooling: `go test -tags test_dep ./tools/umpire/... ./common/testing/testpilot/... ./tools/canary/...`
 
 ## Best Practices:

@@ -1,14 +1,14 @@
-# model2: Kettle design options in Rust
+# model: Kettle design options in Rust
 
-`model2` is the Umpire framework in Rust. Its current scope is exactly what
-[`model/framework/samples/Kettle.scala`](../../model/framework/samples/Kettle.scala) uses today:
+`model` is the Umpire framework in Rust. Its current scope is exactly what
+[`model/archived/framework/samples/Kettle.scala`](../../model/archived/framework/samples/Kettle.scala) uses today:
 vars with a `oneOf` start, actors with actions and internal steps, transitions with guards and
 effects, invariants, postconditions with `before` and `after(action)`, one scope (`without`), one
 progress claim (`whenever … eventually … in scope`), and the native questions the Scala test asks
 (`explore`, `verifyAll`, `refuted`). Nothing else.
 
 Each file here is the same Model in one authoring style. None compiles yet; the framework they
-assume is the thing `model2` builds. Read them side by side with `Kettle.scala`.
+assume is the thing `model` builds. Read them side by side with `Kettle.scala`.
 
 | File | Kind | One line | Macro effort | Editor support inside the Model | Lifting |
 | --- | --- | --- | --- | --- | --- |
@@ -34,10 +34,10 @@ What the comparison shows:
   `step(&mut self, Action) -> Outcome` with `_ => Refused`, claim functions, scope values, progress
   triples. The engine does not care which surface is chosen.
 
-Layout `model2` follows, mirroring `model/framework`:
+Layout `model` follows, mirroring `model/archived/framework`:
 
 ```
-model2/
+model/
   umpire/
     dsl/        State, Action, Machine, Claim, Scope, Progress, the macros
     checker/    explore, verify_all, refuted; BFS with a shared visited set

@@ -6,9 +6,9 @@ satisfies: [R6, R14]
 ## Description
 **R14 joined integration:** consume the .5 source-order metadata in checker reporting, if the separate registry hooks otherwise group claims by kind. Add a shared Model with interleaved invariant/postcondition/progress declarations and a report golden proving actual order, while keeping manual-world defaults and dynamic effect failures deterministic. This checker integration belongs here after .3/.5, not in the parallel DSL lane.
 
-**Touches:** `model2/umpire/tests/**`, `model2/umpire/checker/src/**`, `model2/umpire/checker/tests/**`, `model2/DESIGN.md`
+**Touches:** `model/umpire/tests/**`, `model/umpire/checker/src/**`, `model/umpire/checker/tests/**`, `model/DESIGN.md`
 
-**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model2-check` at 30 s or less, warm; paste `make model2-time` output into the done summary; a breach is fixed here or excepted by the owner.
+**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model-check` at 30 s or less, warm; paste `make model-time` output into the done summary; a breach is fixed here or excepted by the owner.
 
 **Location (R29 amended):** there is no `samples` crate; write Kettle in surface C as `umpire/tests/fixtures/kettle/model.rs`, replacing the trait-shaped source there.
 
@@ -20,9 +20,9 @@ satisfies: [R6, R14]
 
 Write `umpire/tests/fixtures/kettle/model.rs` in surface C (from `options/Kettle.attrs.rs`), and `tests/kettle.rs` asking the Scala suite's questions: explore counts, verify_all verified, `boils` verified, `!beeping` refuted. Record any deliberate deviation from the sketch.
 
-**Files:** model2/umpire/tests/fixtures/kettle/model.rs and shared fixture runner; checker ordering integration; model2/DESIGN.md for deliberate sketch differences. Keep the separate trait Kettle as the WASM/native reference and preserve its goldens.
+**Files:** model/umpire/tests/fixtures/kettle/model.rs and shared fixture runner; checker ordering integration; model/DESIGN.md for deliberate sketch differences. Keep the separate trait Kettle as the WASM/native reference and preserve its goldens.
 
-**Quick commands:** `mise exec -- cargo test --workspace`
+**Quick commands:** `cd model && mise exec -- cargo test --workspace`
 ## Acceptance
 - `tests/fixtures/kettle/expected/` unchanged when the trait fixture is replaced by the surface-C Kettle.
 - Sketch and source differ only where DESIGN.md says.

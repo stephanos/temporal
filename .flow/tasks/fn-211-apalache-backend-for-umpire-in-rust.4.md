@@ -8,7 +8,7 @@ Add an Apalache consumer to the fixture runner, selected per fixture by the pres
 
 **Files:** the consumer registry in `umpire-testing` and the shared fixtures in `umpire/tests/fixtures/` (fn-210 R29), Kettle's `expected/apalache.txt`, Makefile.
 
-**Quick commands:** `UMPIRE_BACKENDS=require make model2-check`; `make model2-check` (unchanged default)
+**Quick commands:** `UMPIRE_BACKENDS=require make model-check`; `make model-check` (unchanged default)
 ## Acceptance
 - Kettle's `apalache.txt` shows agreement for every invariant and postcondition within the bound.
 - Default gate unchanged; a disagreement is listed and fails.
