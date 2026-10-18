@@ -1157,12 +1157,53 @@ Refusals:
 | `Elapsed.milliseconds(n)` | A duration |
 | `Learned(id, kind)`, `Observed[M](id)`, `Actuator(id, kind, role)` | A learned value, a recorded message, a control |
 
+### Run expectations
+
+Import `framework.realize.*` for these authored expectations. They state what a Run should
+support; constructing one establishes no observed Run or server verdict.
+
+| Field | Path `satisfied` | Sample `conformant` | Property-only `inconclusive(reason, because)` |
+| --- | --- | --- | --- |
+| conformance | conformant | conformant | conformant |
+| property | satisfied | inconclusive | inconclusive |
+| contract | satisfied | satisfied | satisfied |
+| disposition | completed | completed | completed |
+| cleanup | succeeded | succeeded | succeeded |
+| reason | None | Some(neverEvaluated) | Some(supplied reason) |
+| conformanceReason | None | None | None |
+| monitors | empty | empty | empty |
+| because | empty | `A sampled path selects no individual Property` | supplied nonblank text |
+
+The Property-only `inconclusive` shorthand accepts `Reason.explanationsDisagree`,
+`Reason.neverEvaluated` and `Reason.unreadable`. Other reasons require a full
+`RunExpectation(conformance, property, contract, disposition, cleanup, reason,
+conformanceReason, monitors, because)` with independently chosen fields. Unsupported shorthand
+reasons throw `IllegalArgumentException` directing the author to that full form; empty or
+whitespace-only shorthand explanations throw `IllegalArgumentException` naming `because`.
+Nonblank explanations retain the supplied text, including surrounding whitespace.
+
+The framework's shared conformance validation boundary checks full and retained/copied
+expectations as well as convenience outputs. The shared `reason` is absent exactly when both
+Property and Contract are satisfied. In that pair `because` is empty; in each of the other eight
+pairs it is nonblank after trimming. `conformanceReason` is absent exactly when conformance is
+conformant. Each `MonitorExpectation(name, outcome, reason, because)` follows its own outcome:
+satisfied requires absent reason and empty text; violated or inconclusive requires a reason and
+nonblank text. Invalid metadata throws `IllegalArgumentException` identifying the failing field.
+Disposition, cleanup and all other independently supplied fields are preserved.
+
+Raw `RunExpectation` and `MonitorExpectation` construction retains its existing type restrictions:
+satisfied assessments refuse explanation text, constructors are private, and `copy` permits only
+`because = ""`. Raw non-satisfied values can still omit text or retain blank or copied-empty text;
+the conformance boundary refuses those values when validated. Monitor names, declaration
+references, order and duplicate entries remain intact here. Actual conformance binding must
+resolve their identities, owners and duplicates separately.
+
 ### Binding a Query
 
 | Form | Meaning | Refusal |
 |---|---|---|
 | `query.live(RunExpectation(...))` | Marks a live Case and its expected Run | runtime `<name> runs on the model only: its scenario restricts or assumes the environment` when the scenario says `only`, `without` or `fair` |
-| `RunExpectation(conformance, property, contract, disposition, cleanup, reason, because)` | The expected Run | export `<q>'s live expectation is short of satisfied and says no reason why: state it, \`because = "..."\`` |
+| `RunExpectation(conformance, property, contract, disposition, cleanup, reason, conformanceReason, monitors, because)` | The independent expected Run fields described above | export `<q>'s live expectation is short of satisfied and says no reason why: state it, \`because = "..."\`` |
 | `action.modelOnly(because)` | A fault no realization performs | runtime, at `perform` |
 
 ---
@@ -1461,6 +1502,12 @@ a native test requires the product checker on the class path and fails explicitl
 Conformance bodies here establish native replay evidence only. Typed conformance metadata (C),
 realization/capability binding and Case production remain pending; the section name does not
 establish any of them.
+
+The realize expectation forms and shared metadata validator are available independently.
+Connecting that validator to actual retained-value admission remains part of typed conformance
+integration. The proposed authored-path default is `satisfied`; the sampled default is `conformant`,
+whose singular Property is inconclusive because no individual Property is selected. These
+defaults do not register or admit conformance declarations.
 
 ## Public surface not in this reference
 
