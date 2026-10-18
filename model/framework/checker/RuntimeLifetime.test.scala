@@ -92,8 +92,7 @@ class RuntimeLifetimeTest extends munit.FunSuite:
                 Thread.`yield`()
                 assertEquals(model.at(initial)(model.count), 7)
                 assertEquals(model.count, count)
-            initial
-        )
+            initial)
       val prepared = ready.await(5, TimeUnit.SECONDS)
       assert(prepared)
       start.countDown()
