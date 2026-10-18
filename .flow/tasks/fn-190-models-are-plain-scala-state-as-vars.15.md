@@ -20,9 +20,15 @@ satisfies: [R6]
 - [ ] fn-196.1's source and verified committed closure carry the move; this tracking task is closed afterward, without a second implementation
 
 ## Done summary
-TBD
+Carried by fn-196.1, whose source 0dd5737301eaf2193d3ae89ea71a3dac2110c7ae and verified closure 58fa14a2056cc50b9d120c0ce1185ad6e757f5e5 are committed on umpire. The native evaluator, domains/inputs/budgets, snapshots, claims and composition runtime now live in production framework.checker; the DSL retains declarations and callable references. No second implementation or test-support destination was introduced.
 
+The conductor read the handover and check record, verified fn-196.1 done and its spec structurally valid, and compared original test-name multisets: all653 baseline tests remain, with four additive checker controls (657 total). Framework checks46, actual lint31, corpus162, declaration-only compilation, fresh core/plugin and combined/separate-library realization sample compilations passed. Exact commands, observed exits and intermediate reds are retained in .flow/tmp/checks/fn1961/record.md and fn-196.1's committed evidence.
+
+This closes only the carried runtime move. Parent R6's deferred integration obligations, full IR/export proofs, Go retirement and disabled Temporal work remain open. Independent review is owner-deferred to the phase batch; no SHIP verdict is asserted.
+
+stage: impl-review - skipped(policy: independent review deferred to the phase batch by owner)
+stage: plan-sync - skipped(config: planSync.enabled=false)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 0dd5737301eaf2193d3ae89ea71a3dac2110c7ae, 58fa14a2056cc50b9d120c0ce1185ad6e757f5e5
+- Tests: Carried verified implementation: fn-196-the-scala-checker-is-the-oracle.1; exact commands and observed exits in .flow/tmp/checks/fn1961/record.md, Native657: original653 test-name multiset preserved, four additive checker controls; framework checks46; actual lint31; corpus162; fresh declaration/core/plugin/sample gates passed, flowctl show fn-196-the-scala-checker-is-the-oracle.1 --json: done; flowctl validate --spec fn-196-the-scala-checker-is-the-oracle --json: valid, no errors or warnings
 - PRs:
