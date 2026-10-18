@@ -95,7 +95,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; `#[machine]` enforces the Scala part order as an error and the approved nested surface (`#[machine] mod` with one impl per part kind, actor-level `#[internal]`, optional `before`, `without([..])` scopes, `whenever(..).eventually(..)` progress as per-state booleans); only the four approved action spellings change in canonical goldens; trait reference stays unchanged (R6, R14, R44) |
+| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; `#[machine]` enforces the Scala part order as an error and the approved nested surface (`#[machine] mod` with one impl per part kind, actor-level `#[internal]`, optional `before`, `without([..])` scopes, `whenever(..).eventually(..)` progress as per-state booleans); state struct `kettle::Model`; only the four approved action spellings and `Kettle { .. }` to `Model { .. }` change in canonical goldens; trait reference stays unchanged (R6, R14, R44) |
 | fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)

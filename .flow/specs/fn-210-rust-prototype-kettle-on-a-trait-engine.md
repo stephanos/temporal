@@ -146,3 +146,5 @@ Seven surface options were written for the same Model (`framework/samples/option
 2026-10-18, owner structural lint: the parts of a `#[machine]` impl must be grouped by kind in the Scala order (transitions, invariants, postconditions, scopes, progress), enforced by the attribute as an error (R44); folded into task .6 rather than a task of its own.
 
 2026-10-18, owner nested grouping: the attribute surface mirrors Scala's nested objects with one `impl` block per part kind inside a `#[machine] mod`; this replaces the flat ordering lint (R44 amended) and drops `#[invariant]`, `#[postcondition]`, `#[progress]` per item and the `actions = (..)` argument. The `mod` wrapper and `pub` items are the accepted cost; a link-section registry was rejected as unsafe on wasm.
+
+2026-10-18, owner naming: the state struct of every attribute Model is `Model` inside its module (`kettle::Model`, as Scala's `object Model`); `#[machine]` generates `kettle::World` and `kettle::Action` without a prefix. The canonical Kettle goldens therefore gain a fifth approved substitution, state spelling `Kettle { .. }` to `Model { .. }`; the `kettle_trait` reference goldens stay unchanged.
