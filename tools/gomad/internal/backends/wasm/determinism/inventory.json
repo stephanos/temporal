@@ -769,6 +769,1634 @@
    "evidence": [
     "go:internal/backends/wasm/determinism:TestWasip1SeededDrawCheckDecision"
    ]
+  },
+  {
+   "id": "runtime.wasip1-draw-patches",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "runtime-table:wasip1-draw-patches",
+   "disposition": "controlled",
+   "owner": "WASM overlay (toolchain/overlay.go stockRewrites)",
+   "rule": "Every overlay patch that touches a seeded draw or a clock path is a reviewed wasip1 row in the native draw-row grammar (reviewedWasip1DrawPatches); a new patch without a row fails.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+   ]
+  },
+  {
+   "id": "runtime.wasip1-host-clock",
+   "layer": "guest-runtime",
+   "class": "clock",
+   "site": "runtime-table:wasip1-host-clock",
+   "disposition": "controlled",
+   "owner": "stock runtime under the WASM overlay",
+   "rule": "Every host-clock identifier in the effective wasip1/wasm sources, including the glue's nanotime reads, is a reviewed row in the native host-clock grammar (reviewedWasip1HostClockReferences); on wasip1 each read lands on the transcribed clock_time_get import.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.provider.run.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:backend/provider.go|Provider.Run|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm backend package",
+   "rule": "Taken only with ObserveExecution; feeds ExecutionMetrics.WallElapsedNanos for the observer, never the returned Result or its evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.provider.run.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:backend/provider.go|Provider.Run|clock|time.Since|1",
+   "disposition": "recorded",
+   "owner": "wasm backend package",
+   "rule": "ExecutionMetrics.WallElapsedNanos for the observer callback only; the Result and its Evidence never include it.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.command.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:backend/provider.go|command|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm backend package",
+   "rule": "Taken only with a compiler observer; feeds CompilerCommandMetrics.WallElapsedNanos.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.command.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:backend/provider.go|command|clock|time.Since|1",
+   "disposition": "recorded",
+   "owner": "wasm backend package",
+   "rule": "CompilerCommandMetrics.WallElapsedNanos for the observer; command output and errors do not depend on it.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.sourceinventory.map-range.files",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:backend/provider.go|sourceInventory|map-range|files|1",
+   "disposition": "controlled",
+   "owner": "wasm backend package",
+   "rule": "Keys are collected and sorted with sort.Strings before they are hashed or appended to sources.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.sourceinventory.map-range.overlay",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:backend/provider.go|sourceInventory|map-range|overlay|1",
+   "disposition": "controlled",
+   "owner": "wasm backend package",
+   "rule": "Copies overlay entries into the replacements map; insertion order cannot change the result.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.provider.preparewithstager.unstable-sort.sort.slice_aftersources",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:backend/provider.go|Provider.prepareWithStager|unstable-sort|sort.Slice afterSources|1",
+   "disposition": "controlled",
+   "owner": "wasm backend package",
+   "rule": "Key is Path; a tie is the same file read twice with the same digest, and a changed file fails verifySources.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.backend.provider.provider.preparewithstager.unstable-sort.sort.slice_sources",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:backend/provider.go|Provider.prepareWithStager|unstable-sort|sort.Slice sources|1",
+   "disposition": "controlled",
+   "owner": "wasm backend package",
+   "rule": "Key is Path; a tie is the same file read twice with the same digest, and a changed file fails verifySources.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.operator.normalizeoperator.map-range.nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/operator.go|NormalizeOperator|map-range|nodes|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Checks every node and returns the same constant error text whichever node fails first.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedresults.map-range.e.results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|e.results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Results are sorted by (Node, Incarnation) right after the loop; a detached host-observation projection.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedresults.map-range.result.storagecrashenumeration",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|result.StorageCrashEnumeration|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Deep clone into a new map keyed by the same IDs.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedresults.map-range.result.storageoperations",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|result.StorageOperations|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Deep clone into a new map keyed by the same IDs.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedresults.unstable-sort.sort.slice_results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedResults|unstable-sort|sort.Slice results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Key (Node, Incarnation) is the full handle, taken from e.results map keys, so it is unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedsummaries.map-range.e.results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedSummaries|map-range|e.results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Summaries are sorted by (Node, Incarnation) after the loop.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.completedsummaries.unstable-sort.sort.slice_results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.CompletedSummaries|unstable-sort|sort.Slice results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Key is the full handle from e.results map keys, so it is unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.open.map-range.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.Open|map-range|boots|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Boot IDs are collected and sorted before configurations are built.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.open.map-range.p.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.Open|map-range|p.Boots|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Map-to-map copy.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.provider.open.unstable-sort.sort.slice_ids",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|Provider.Open|unstable-sort|sort.Slice ids|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "IDs are boots map keys, so they are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.awaitrevocation.clock.time.newtimer",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|awaitRevocation|clock|time.NewTimer|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "30s split-revocation grace; expiry is classified as an infrastructure failure, never as different valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.clonestoragecrashcontext.map-range.source",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|cloneStorageCrashContext|map-range|source|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Map-to-map deep clone.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.clusterexecutiontimeout.map-range.request.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|clusterExecutionTimeout|map-range|request.Boots|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Takes the maximum boot timeout, which is commutative.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.finish.map-range.e.nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Finish|map-range|e.nodes|2",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "One loop returns a constant unreaped-node error; the other appends volume states that BindWASMVolumeEvidence sorts by unique (Node, Volume).",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.finish.map-range.e.results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Finish|map-range|e.results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Handles are collected and sorted by (Node, Incarnation) before evidence is built.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.finish.map-range.result.storageoperations",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Finish|map-range|result.StorageOperations|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Volume IDs are collected and sorted before transitions are appended.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.finish.unstable-sort.sort.slice_handles",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Finish|unstable-sort|sort.Slice handles|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Key is the full handle from e.results map keys, so it is unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.shutdown.clock.time.newtimer",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.Shutdown|clock|time.NewTimer|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "100ms cleanup grace before a hard cancel; a split-owned cancel is classified infrastructure, never different valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.shutdown.map-range.e.nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Shutdown|map-range|e.nodes|2",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Cluster branch only waits on every node with order-independent errors; broker branch sorts nodes by Node before revoking.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.shutdown.unstable-sort.sort.slice_nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.Shutdown|unstable-sort|sort.Slice nodes|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Key is handle.Node, which keys e.nodes, so it is unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.start.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.Start|clock|time.Now|2",
+   "disposition": "recorded",
+   "owner": "wasm cluster package",
+   "rule": "Feeds IncarnationSummary/IncarnationResult.WallElapsedNanos host telemetry, not WASM evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.start.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.Start|clock|time.Since|2",
+   "disposition": "recorded",
+   "owner": "wasm cluster package",
+   "rule": "Feeds WallElapsedNanos host telemetry, not WASM evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.start.goroutine.func_literal",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:cluster/provider.go|execution.Start|goroutine|func literal|2",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Each goroutine stores one handle's result under e.mu; every consumer sorts by handle.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.opencluster.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.openCluster|clock|time.Now|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Computes only the shutdown stop-context deadline.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.stopcontext.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.stopContext|clock|time.Now|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Chooses only the cleanup deadline.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.stopcontext.map-range.e.nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/provider.go|execution.stopContext|map-range|e.nodes|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Boolean AND over every node's done state.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.replay_inspection_search.searchwasminspection.map-range.cache",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/replay_inspection_search.go|SearchWASMInspection|map-range|cache|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Any violating entry sets the same monotonicity_violation status without a position.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.retained.provider.retentionpayload.map-range.p.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/retained.go|Provider.RetentionPayload|map-range|p.Boots|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "IDs are sorted before validation and before bundle.Boots is appended.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.retained.provider.retentionpayload.unstable-sort.sort.slice_ids",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/retained.go|Provider.RetentionPayload|unstable-sort|sort.Slice ids|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "IDs are p.Boots map keys, so they are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.retained.bindinstalledhelper.map-range.p.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/retained.go|bindInstalledHelper|map-range|p.Boots|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "IDs are sorted before validation, so the first mismatch error is deterministic.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.retained.bindinstalledhelper.unstable-sort.sort.slice_ids",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/retained.go|bindInstalledHelper|unstable-sort|sort.Slice ids|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "IDs are p.Boots map keys, so they are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.retained.detachedstoragecrashselections.map-range.boot.request.storagecrashselection",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/retained.go|detachedStorageCrashSelections|map-range|boot.Request.StorageCrashSelection|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Map-to-map deep clone.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.map-range.e.results",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|map-range|e.results|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Handles are sorted by (Node, Incarnation) before any oracle is produced.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.unstable-sort.slices.sortfunc_handles",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|unstable-sort|slices.SortFunc handles|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Handles are e.results keys plus policy handles, and duplicate policy handles are rejected, so keys are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.unstable-sort.slices.sortfunc_oracles",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|unstable-sort|slices.SortFunc oracles|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Names hash the unique node/incarnation, and the input is already sorted.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.broker.broker.encodeworldevidence.map-range.b.sessions",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/broker.go|Broker.EncodeWorldEvidence|map-range|b.sessions|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Checks that every session finished and returns a constant error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.broker.broker.diagnosticsnapshot.map-range.s.environment.networkv2.requests",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/broker.go|Broker.diagnosticSnapshot|map-range|s.environment.networkV2.requests|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "LocalRequests is sorted right after the loop; the outer loop follows b.order.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.broker.broker.diagnosticsnapshot.unstable-sort.sort.slice_p.localrequests",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/broker.go|Broker.diagnosticSnapshot|unstable-sort|sort.Slice p.LocalRequests|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Values are networkV2.requests map keys, so they are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.broker.brokersession.finishcall.map-range.b.crashoutputs",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/broker.go|BrokerSession.finishCall|map-range|b.crashOutputs|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Boolean AND over crashSeen; crash nodes are built from b.order.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.broker_network.newbrokernetwork.unstable-sort.sort.slice_nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/broker_network.go|newBrokerNetwork|unstable-sort|sort.Slice nodes|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "NewBroker rejects duplicate node IDs, so keys are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.finish.map-range.session.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.Finish|map-range|session.states|2",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Boolean OR for inspected plus an all-done check with a constant error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.start.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|ClusterSession.Start|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "frameSink.authorizedAt feeds Result.AuthorizationToTerminalNanos telemetry only.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.wait.goroutine.func_literal",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:wasi/cluster.go|ClusterSession.Wait|goroutine|func literal|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Only releases the driver baton after state.done on caller cancellation; results come from per-state fields.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.collect.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|ClusterSession.collect|clock|time.Since|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "ClusterResult.AuthorizationToTerminalNanos host timing outside canonical replay.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.command.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|ClusterSession.command|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "authorizationStartedAt and authorizedAt feed AuthorizationToTerminalNanos only.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.run.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|ClusterSession.run|clock|time.Now|2",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "executionClassifiedAt feeds WallElapsedNanos and TerminalObservedAt (json:\"-\"), read only by internal/measure.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.run.map-range.session.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.run|map-range|session.states|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Every unfinished state receives the same error and reaped value; waiters read results keyed by handle.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.opencluster.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|OpenCluster|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "Feeds ClusterResult.WallElapsedNanos measurement.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.opencluster.goroutine.clustersession.run",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:wasi/cluster.go|OpenCluster|goroutine|ClusterSession.run|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Single supervisor per helper process; frames are processed serially under session.mu.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.opencluster.map-range.request.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|OpenCluster|map-range|request.Boots|2",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "One loop takes a commutative maximum timeout; the other sorts IDs before frames and order are built.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.opencluster.unstable-sort.sort.slice_instances",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|OpenCluster|unstable-sort|sort.Slice instances|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "IDs were deduplicated by NewBroker; a raw duplicate is refused with a fixed error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clusterstate.collect.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|clusterState.collect|clock|time.Now|3",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "executionClassifiedAt feeds Result.AuthorizationToTerminalNanos telemetry only.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clusterstate.collect.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|clusterState.collect|clock|time.Since|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "Result.AuthorizationToTerminalNanos, excluded from retained evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clusterstream.frame.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|clusterStream.frame|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "authorizedAt feeds AuthorizationStartedAt (json:\"-\") and AuthorizationToTerminalNanos.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clusterstream.frame.map-range.s.boots",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|clusterStream.frame|map-range|s.boots|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Checks that every boot started and returns a constant error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clusterstream.frame.map-range.s.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|clusterStream.frame|map-range|s.states|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Boolean OR over the inspection flag.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster_network.clusternetworkframe.map-range.config.addresses",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster_network.go|ClusterNetworkFrame|map-range|config.Addresses|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Map-to-map copy; json.Marshal sorts map keys when the frame is encoded.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster_network.clusternetworkframe.map-range.nodes",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster_network.go|ClusterNetworkFrame|map-range|nodes|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Any non-nil model returns the same constant error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.environment.environment.filesystemserved.map-range.e.filesystemcalls",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/environment.go|Environment.filesystemServed|map-range|e.filesystemCalls|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "Map copy into Result.GoFilesystemCalls, a measurement field read only by internal/measure.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.namespace.environment.readdir.map-range.d.node.children",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/namespace.go|Environment.readdir|map-range|d.node.children|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Names are sorted with slices.Sort before cookies and entries are emitted.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.namespace.containsnode.map-range.root.children",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/namespace.go|containsNode|map-range|root.children|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Pure boolean reachability search.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.namespace_image.declarenamespaceimage.map-range.entry.node.children",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/namespace_image.go|declareNamespaceImage|map-range|entry.node.children|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Entries are sorted by unique inode before the image is hashed.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.namespace_image.declarenamespaceimage.unstable-sort.slices.sortfunc_image.entries",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/namespace_image.go|declareNamespaceImage|unstable-sort|slices.SortFunc image.entries|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Key is the unique inode; each node appears once in the walk.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.network_v2.environment.networkv2advance.map-range.n.handles",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/network_v2.go|Environment.networkV2Advance|map-range|n.handles|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Handles are sorted before Reset is applied.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.network_v2.environment.networkv2advance.unstable-sort.sort.slice_handles",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/network_v2.go|Environment.networkV2Advance|unstable-sort|sort.Slice handles|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Values are n.handles map keys, so they are unique.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.measureterminalexit.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|MeasureTerminalExit|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "reapedAt feeds TerminalExitObservation measurement fields only.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.measureterminalexit.goroutine.func_literal",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:wasi/process.go|MeasureTerminalExit|goroutine|func literal|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Watcher only closes stdin at the deadline and is joined via watcherDone.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.run.goroutine.func_literal",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:wasi/process.go|Run|goroutine|func literal|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Watcher only closes stdin on context done and is joined before results are read.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.framesink.frame.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|frameSink.frame|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "authorizedAt starts AuthorizationToTerminalNanos telemetry.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.framesink.frame.clock.time.since",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|frameSink.frame|clock|time.Since|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "Result.AuthorizationToTerminalNanos telemetry only.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.helperinput.start.goroutine.func_literal",
+   "layer": "host-go",
+   "class": "thread-order",
+   "site": "host-go:wasi/process.go|helperInput.start|goroutine|func literal|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Pumps the initial stdin bytes; later writes wait on ready, so byte order is preserved and finish joins it.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.terminalexitsink.write.clock.time.now",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|terminalExitSink.Write|clock|time.Now|1",
+   "disposition": "recorded",
+   "owner": "wasm wasi package",
+   "rule": "TerminalExitObservation.TerminalReceivedAt measurement.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_ordered",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc ordered|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "compareIdentity compares all 32 bytes, so ties are identical values.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.storage_evidence.framesink.collecthelperstorage.map-range.state.enumerations",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/storage_evidence.go|frameSink.collectHelperStorage|map-range|state.enumerations|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Membership check with a constant error.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.storage_image.encodestorageimage.map-range.counts",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/storage_image.go|encodeStorageImage|map-range|counts|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Keys are sorted with slices.Sort before encoding.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.storage_selection.storagecrashcontextmatches.map-range.expected",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/storage_selection.go|storageCrashContextMatches|map-range|expected|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Boolean all-match check.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.volume.clonestorageoccurrences.map-range.source",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/volume.go|cloneStorageOccurrences|map-range|source|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Map-to-map copy.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.volume.namespace.initializestorage.map-range.ns.descriptors",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/volume.go|namespace.initializeStorage|map-range|ns.descriptors|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Read-only open of existing nodes; records no operations and assigns no IDs.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.volume.relocatestoragenode.map-range.n.children",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/volume.go|relocateStorageNode|map-range|n.children|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "Sets each subtree's storagePath; the result does not depend on order.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.shutdown.map-range.session.states",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1",
+   "disposition": "escape",
+   "owner": "wasm wasi package",
+   "rule": "Stop control frames are sent to the helper in map order before Finish encodes World and network evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
+   ],
+   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Reached only by programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated.",
+   "readme_anchor": "README.md#known-determinism-escapes"
+  },
+  {
+   "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashcontext",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashContext|1",
+   "disposition": "escape",
+   "owner": "wasm wasi package",
+   "rule": "With more than one invalid volume, map order chooses which pre-execution refusal dimension is reported.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
+   ],
+   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent.",
+   "readme_anchor": "README.md#known-determinism-escapes"
+  },
+  {
+   "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashselection",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashSelection|1",
+   "disposition": "escape",
+   "owner": "wasm wasi package",
+   "rule": "With more than one invalid volume, map order chooses which pre-execution refusal dimension is reported.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
+   ],
+   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent.",
+   "readme_anchor": "README.md#known-determinism-escapes"
+  },
+  {
+   "id": "helper.cache.devurandom",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:cache.rs|/dev/urandom|1",
+   "disposition": "controlled",
+   "owner": "wasmhost cache.rs",
+   "rule": "Seeds a unique staging file name for compile-cache publication; the entry is published by atomic rename to its content-addressed path and the name never reaches evidence.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cache.systemtime",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:cache.rs|SystemTime|1",
+   "disposition": "controlled",
+   "owner": "wasmhost cache.rs",
+   "rule": "Fallback uniqueness for the compile-cache staging file name when /dev/urandom is unavailable; never reaches evidence.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cache.instant-now",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:cache.rs|Instant::now|2",
+   "disposition": "recorded",
+   "owner": "wasmhost cache.rs",
+   "rule": "Compile-cache phase timings reported in the separate metrics frame, which is excluded from evidence and identities.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cluster.execution.manual.instant-now",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:cluster/execution/manual.rs|Instant::now|1",
+   "disposition": "recorded",
+   "owner": "wasmhost cluster/execution/manual.rs",
+   "rule": "Cluster preparation timing reported in the metrics frame only.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cluster.execution.manual.thread-builder",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:cluster/execution/manual.rs|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "wasmhost cluster/execution/manual.rs",
+   "rule": "One OS thread per started incarnation; the baton admits exactly one thread at a time in recorded cluster order, so host thread scheduling cannot reorder guest steps.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"
+   ]
+  },
+  {
+   "id": "helper.cluster.execution.mod.instant-now",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:cluster/execution/mod.rs|Instant::now|3",
+   "disposition": "recorded",
+   "owner": "wasmhost cluster/execution/mod.rs",
+   "rule": "Admission, check and execute timings reported in the metrics frame only.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.cluster.execution.mod.thread-builder",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:cluster/execution/mod.rs|thread::Builder|1",
+   "disposition": "controlled",
+   "owner": "wasmhost cluster/execution/mod.rs",
+   "rule": "One OS thread per cluster instance under the baton; handoffs follow the recorded cluster order, never host thread start or wake order.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"
+   ]
+  },
+  {
+   "id": "helper.cluster.handoff.broker.instant-now",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:cluster/handoff/broker.rs|Instant::now|3",
+   "disposition": "recorded",
+   "owner": "wasmhost cluster/handoff/broker.rs",
+   "rule": "Handoff wait timings (observed_at, granted_at) feed metrics::elapsed only.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.engine.instant-now",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:engine.rs|Instant::now|5",
+   "disposition": "recorded",
+   "owner": "wasmhost engine.rs",
+   "rule": "Prepare, compile and model-operation timings reported in the metrics frame only.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.engine.hashset",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:engine.rs|HashSet|2",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs",
+   "rule": "Deduplicates (module, name) while linking imports; membership only, never iterated.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.model.hashmap",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:model.rs|HashMap|2",
+   "disposition": "controlled",
+   "owner": "wasmhost model.rs",
+   "rule": "Pending evidence buffers keyed by stream name and flushed in a fixed stream list; never iterated.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.model.guest_state.hashmap",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:model/guest_state.rs|HashMap|2",
+   "disposition": "controlled",
+   "owner": "wasmhost model/guest_state.rs",
+   "rule": "Pending evidence buffers keyed by stream name; lookups only, never iterated.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.model.guest_state.hashset",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:model/guest_state.rs|HashSet|1",
+   "disposition": "controlled",
+   "owner": "wasmhost model/guest_state.rs",
+   "rule": "Rejects duplicate local environment names; membership only, never iterated.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
+   ]
+  },
+  {
+   "id": "helper.allow.diagnostic",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-allow:diagnostic.rs",
+   "disposition": "controlled",
+   "owner": "wasmhost diagnostic.rs (diagnostic-profile feature)",
+   "rule": "Allowlisted: compiled only with the diagnostic-profile feature, whose helpers the Go side refuses for every qualification role; its timings and threads feed profile output, never evidence.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity"
+   ]
+  },
+  {
+   "id": "helper.allow.guest_profile",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-allow:guest_profile.rs",
+   "disposition": "controlled",
+   "owner": "wasmhost guest_profile.rs (guest-profile feature)",
+   "rule": "Allowlisted: compiled only with the guest-profile feature, whose helpers the Go side refuses for every qualification role; its timings and threads feed profile output, never evidence.",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn",
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRejectsReleaseHelperForDiagnosticIdentity"
+   ]
+  },
+  {
+   "id": "engine.setting-1",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:Config::new",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Defaults come from the exactly pinned wasmtime 47.0.3 (Cargo.toml =47.0.3, built --locked); a version change is a re-review.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-2",
+   "layer": "engine-config",
+   "class": "scheduling",
+   "site": "engine-setting:consume_fuel(!cfg!(feature = \"diagnostic-fuel-off\"))",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Fuel metering counts guest instructions deterministically; fuel-off exists only in diagnostic builds the Go side refuses for qualification.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-3",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:native_unwind_info(false)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Host unwind metadata is not generated; it has no guest-visible effect.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-4",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:cranelift_nan_canonicalization(true)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "NaN results are canonicalized, so scalar and SIMD float bit patterns do not depend on the host CPU.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-5",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:wasm_relaxed_simd(false)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Relaxed SIMD, whose results are implementation-defined, is rejected at module validation.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-6",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:wasm_memory64(false)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "64-bit memories are rejected at module validation.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-7",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "engine-setting:wasm_multi_memory(false)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Multiple memories are rejected at module validation.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-8",
+   "layer": "engine-config",
+   "class": "clock",
+   "site": "engine-setting:#[cfg(feature = \"guest-profile\")] epoch_interruption(true)",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Host-timed epochs drive guest-profile sampling only; guest-profile helpers are refused for every qualification role.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "engine.setting-9",
+   "layer": "engine-config",
+   "class": "thread-order",
+   "site": "engine-setting:cargo wasmtime = { version = \"=47.0.3\", default-features = false, features = [\"cranelift\", \"runtime\", \"std\", \"wat\", \"reexport-wasmparser\"] }",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs prepare",
+   "rule": "Without the threads feature, shared memories and atomics proposals are rejected before started; the feature set is pinned with the version.",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+   ]
+  },
+  {
+   "id": "finding.gc-pacer-enlist-worker",
+   "layer": "guest-runtime",
+   "class": "entropy",
+   "site": "finding:gc-pacer-enlist-worker",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "enlistWorker in the GC pacer draws a random P only when gomaxprocs > 1; the overlay forces GOMAXPROCS to 1 under Gomad, so the host-timed draw is unreachable on wasip1.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1SeedFindingPremises"
+   ]
+  },
+  {
+   "id": "finding.gc-lastgc-pauseend",
+   "layer": "guest-runtime",
+   "class": "gc-finalizer",
+   "site": "finding:gc-lastgc-pauseend",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "MemStats.LastGC/PauseEnd come from time_now, which on wasip1 reads the transcribed virtual wall clock (host-clock row runtime/mgc.go time_now).",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+   ]
+  },
+  {
+   "id": "finding.cputicks",
+   "layer": "guest-runtime",
+   "class": "clock",
+   "site": "finding:cputicks",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "cputicks on wasm returns nanotime, the transcribed virtual clock; profiling reads are target-ordered.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed",
+    "go:internal/backends/wasm/determinism:TestWasip1SeedFindingPremises"
+   ]
+  },
+  {
+   "id": "finding.tracer-snapshot",
+   "layer": "guest-runtime",
+   "class": "clock",
+   "site": "finding:tracer-snapshot",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "The execution tracer's clock snapshot reads the virtual clock on wasip1 (runtime/tracetime.go rows).",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+   ]
+  },
+  {
+   "id": "finding.fips-monotime",
+   "layer": "guest-stdlib",
+   "class": "clock",
+   "site": "finding:fips-monotime",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "crypto/internal/fips140deps/time.monoTime reaches time_now, which on wasip1 is the virtual clock; there is no unguarded host read.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
+   ]
+  },
+  {
+   "id": "finding.cluster-thread-per-instance",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "finding:cluster-thread-per-instance",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "One OS thread per cluster instance runs only while holding the baton in recorded cluster order (helper rows cluster/execution thread::Builder).",
+   "evidence": [
+    "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried",
+    "rust:src/cluster/handoff/baton.rs:cluster_baton_serializes_in_instance_order"
+   ]
+  },
+  {
+   "id": "finding.volume-evidence-map-range",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "finding:volume-evidence-map-range",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "cluster/provider.go map ranges that feed volume evidence sort by unique (Node, Volume) or volume ID before evidence is built (host-go rows execution.Finish).",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried"
+   ]
+  },
+  {
+   "id": "finding.sort-slice-keys",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "finding:sort-slice-keys",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "Every unstable sort in the WASM host packages is a reviewed host-go row; each key is unique or ties are identical values.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried"
+   ]
+  },
+  {
+   "id": "finding.serde-json-map-order",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "finding:serde-json-map-order",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "serde_json is built without preserve_order, so JSON objects are BTreeMaps and serialize in sorted key order.",
+   "evidence": [
+    "rust:tests/inventory.rs:serde_json_objects_serialize_in_sorted_key_order"
+   ]
+  },
+  {
+   "id": "finding.simd-nan-canonicalization",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "finding:simd-nan-canonicalization",
+   "disposition": "controlled",
+   "owner": "fn-188 audit",
+   "rule": "SIMD stays enabled with NaN canonicalization on and relaxed SIMD off (engine-setting rows).",
+   "evidence": [
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
+   ]
   }
  ]
 }

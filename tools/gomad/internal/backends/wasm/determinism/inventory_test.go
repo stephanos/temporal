@@ -198,3 +198,71 @@ func TestWasip1SeededDrawCheckDecision(t *testing.T) {
 		}
 	}
 }
+
+// TestWasip1SeedFindingPremises pins the stock-runtime and overlay facts the
+// controlled seed-finding rows rest on.
+func TestWasip1SeedFindingPremises(t *testing.T) {
+	root := stockRoot(t)
+	read := func(path string) string {
+		t.Helper()
+		data, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		return string(data)
+	}
+	// finding.gc-pacer-enlist-worker: the random P pick follows a
+	// single-P return, and the overlay forces one P under Gomad.
+	pacer := read(filepath.Join(root, "src/runtime/mgcpacer.go"))
+	start := strings.Index(pacer, "func (c *gcControllerState) enlistWorker() {")
+	if start < 0 {
+		t.Fatal("enlistWorker not found")
+	}
+	body := pacer[start:]
+	body = body[:strings.Index(body, "\n}\n")]
+	guard, draw := strings.Index(body, "if gomaxprocs <= 1 {\n\t\treturn\n\t}"), strings.Index(body, "cheaprandn(")
+	if guard < 0 || draw < 0 || guard > draw {
+		t.Fatalf("enlistWorker no longer returns on one P before its random draw")
+	}
+	overlay := read("../toolchain/overlay.go")
+	if !strings.Contains(overlay, `\tif gomadEnabled {\n\t\tprocs = 1\n`) {
+		t.Fatal("the WASM overlay no longer forces GOMAXPROCS=1 under Gomad")
+	}
+	// finding.cputicks: cputicks is nanotime on wasm.
+	if !strings.Contains(read(filepath.Join(root, "src/runtime/os_wasm.go")), "func cputicks() int64 {\n\t// runtime·nanotime() is a poor approximation of CPU ticks that is enough for the profiler.\n\treturn nanotime()\n}") {
+		t.Fatal("cputicks on wasm no longer returns nanotime")
+	}
+}
+
+func TestInventoryEscapeAnchorsResolve(t *testing.T) {
+	inventory := loadInventory(t)
+	headings := map[string]bool{}
+	for line := range strings.Lines(string(mustRead(t, "../README.md"))) {
+		if title, ok := strings.CutPrefix(strings.TrimSpace(line), "#"); ok {
+			title = strings.ToLower(strings.TrimSpace(strings.TrimLeft(title, "#")))
+			headings["README.md#"+strings.ReplaceAll(title, " ", "-")] = true
+		}
+	}
+	escapes := 0
+	for _, entry := range inventory.Entries {
+		if entry.Disposition != "escape" {
+			continue
+		}
+		escapes++
+		if !headings[entry.ReadmeAnchor] {
+			t.Errorf("escape row %q anchor %q is not a WASM README heading", entry.ID, entry.ReadmeAnchor)
+		}
+	}
+	if escapes == 0 {
+		t.Fatal("no escape rows; drop this check or the README section deliberately")
+	}
+}
+
+func mustRead(t *testing.T, path string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	return data
+}
