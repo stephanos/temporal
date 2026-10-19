@@ -35,7 +35,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.7 | The archive, flat attribute Kettle with actor-match transitions, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, sample/behavior fixture naming, direct wasm ABI and generic Go host relocation are complete; the final comparison remains. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| Umpire in Rust (now) | fn-210 final review | All implementation tasks and the measured DESIGN comparison are complete. Recommendation: Rust, under stock WASM/Go parity alone. Cross-task spec review and final quality audits remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
 | After the verdict | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice planned by fn-210.7 keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
@@ -96,9 +96,9 @@ What is fixed, all owner decisions of 2026-10-18:
   `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
   every session re-reads its task after it.
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-210.7 | 🔄 in progress | `model/DESIGN.md` with the verdict and final-source comparison; then delete `options/` (R7, R24); record parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+All implementation tasks are complete. DESIGN records the Rust recommendation, final measurements,
+parameterized-Model readiness and the historical options comparison; `options/` is removed.
+Cross-task spec review and final quality audits remain before the local spec closure.
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 
