@@ -22,16 +22,17 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution has resumed under the owner's milestone-completion instruction. fn-216 is complete
-locally, including its completion review. fn-221 is complete locally, with all four tasks and
-its completion review passed. fn-212.2 is being prepared for integration from its separate
-worktree at the owner's request. TLC is required for scaling larger Models.
+Execution is stopped at the owner's request after wrapping up in-flight work. fn-216,
+fn-221 and fn-212 are complete locally, including their completion reviews. No follow-on
+task was started. TLC is implemented for its admitted source subset; unsupported source,
+including the current Phased/reject activity Model, is explicitly refused.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
-`testing` (the dev-only fixture runner), `tests` (the shared end-to-end fixtures), and `wasm`
-(the generated-protobuf guest); the `samples` crate has been removed. Its current scope is exactly what
-`model/archived/framework/samples/Kettle.scala` uses today. The verdict is one rule (R24): if the checker
+`testing` (the dev-only fixture runner), `tests` (the shared end-to-end fixtures), `wasm`
+(the generated-protobuf guest), and `lift` plus `backends/tlc` (the independent source backend);
+the `samples` crate has been removed. The original Rust verdict was scoped to what
+`model/archived/framework/samples/Kettle.scala` uses. The verdict is one rule (R24): if the checker
 runs as wasm in a Go host through wazero (pure Go, no cgo) on the stock toolchain, with Kettle's report matching
 the Rust goldens byte for byte, Rust wins. Everything else in `model/DESIGN.md` is information. fn-196.8, the Scala checker speed fix, stays
 deferred, since speed no longer decides. The decisive slice passed in fn-210.9: the recommendation
@@ -40,7 +41,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (now) | fn-213 → fn-215 → fn-218 → fn-217 → fn-211; fn-212 in parallel | Owner priority order, with fn-212 explicitly parallel. fn-210, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 delivers lifting and TLC for larger Models; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (stopped) | fn-213 → fn-215 → fn-218 → fn-217 → fn-211 | Owner priority order when execution resumes. fn-210, fn-212, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -73,18 +74,6 @@ the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
-
-### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
-
-The owner requires TLC for scaling larger Models. Lift shared Models with a build-time `syn`
-pass, run pinned TLC and compare reachable states and verdicts through the shared fixture
-consumer. Preserve authored transitions and explicit fairness; the translation must account
-for native maximal paths versus TLA+ idle stuttering. The decision note passed local review.
-[Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-212.2 | 🔄 in progress | Lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

@@ -10,7 +10,7 @@
   "priority": 2,
   "spec": "fn-212-tla-lifting-and-the-tlc-backend-for",
   "spec_path": ".flow/tasks/fn-212-tla-lifting-and-the-tlc-backend-for.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Lift, emit TLA+, run TLC; agreement goldens on Kettle and the shared fixtures",
   "updated_at": "2026-10-19T21:13:16.918234Z"
 }
