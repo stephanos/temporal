@@ -63,12 +63,12 @@ impl From<activity::Deadline> for Action {
     }
 }
 
-impl umpire_dsl::Spell for Action {
-    fn spell(&self, out: &mut String) {
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
-            Self::Client(value) => value.spell(out),
-            Self::Worker(value) => value.spell(out),
-            Self::Deadline(value) => value.spell(out),
+            Self::Client(value) => std::fmt::Display::fmt(value, out),
+            Self::Worker(value) => std::fmt::Display::fmt(value, out),
+            Self::Deadline(value) => std::fmt::Display::fmt(value, out),
         }
     }
 }

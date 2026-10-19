@@ -58,6 +58,13 @@ command failures fail the helper; exceeding a time budget prints a warning and s
 
 ## Writing a Model
 
+`State` derives `Display` and `Debug`, rendering named fields with standard `Debug`
+formatting, including collections and nested Debug-only values. `Action` derives standard
+`Debug` and a qualified `Display` name such as `User::PressButton`. Manual `Machine`
+implementations provide `Display` for their states and actions and `Debug` for domain
+outcomes and facts. Reports and paths implement `Display`; native and Wasm rows use the
+same formatting contracts.
+
 Inside a `#[machine]` module, one `impl Model` holds methods with per-item attributes.
 `#[on(Actor)]` selects an actor enum derived with `Action`; its method takes that actor type
 and matches its actions. Kettle's user transitions are:
@@ -151,7 +158,7 @@ action to reach the target. The crate's sole test target is `fixtures.rs`.
 The Kettle Models live in their own fixture's `model.rs`;
 native and wasm hosts can include that source by path. The trait Kettle has executable native
 report, states and rows goldens. Checker-specific failures, panics, overflows, holes, budget cuts
-and refusals remain in `umpire/checker/tests/fixtures/`. DSL spelling fixtures remain with the DSL.
+and refusals remain in `umpire/checker/tests/fixtures/`. DSL formatting fixtures remain with the DSL.
 The historical authoring sketches have been retired after preserving their comparison in
 [DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
@@ -161,7 +168,7 @@ source, avoiding a checker dependency cycle. Fixtures are discovered in name ord
 contain `model.rs`, `expected/`, and at least one consumer-owned expected file. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.
-The DSL registers its spelling consumer for `values.txt`. Future backends register their own
+The DSL registers its formatting consumer for `values.txt`. Future backends register their own
 filenames and renderer. An unregistered filename, an orphan snapshot artifact, or an empty
 fixture fails naming its folder, including during updates. Seed a new fixture with a snapshot
 payload such as `report.snap.txt` before running `make model-update`; renderers and consumer

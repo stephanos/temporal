@@ -635,16 +635,16 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let generated = quote! {
         struct World;
 
-        #[derive(Clone, PartialEq, Eq, Hash)]
+        #[derive(Clone, Debug, PartialEq, Eq, Hash)]
         enum Action { #(#actors(#actors)),* }
 
         #(impl ::core::convert::From<#actors> for Action {
             fn from(value: #actors) -> Self { Self::#actors(value) }
         })*
 
-        impl ::umpire_dsl::Spell for Action {
-            fn spell(&self, out: &mut ::std::string::String) {
-                match self { #(Self::#actors(value) => ::umpire_dsl::Spell::spell(value, out)),* }
+        impl ::core::fmt::Display for Action {
+            fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                match *self { #(Self::#actors(ref value) => ::core::fmt::Display::fmt(value, out)),* }
             }
         }
 

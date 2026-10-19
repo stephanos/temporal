@@ -66,9 +66,9 @@ Remaining differences from the hypothetical sketch are deliberate:
 - The module discovers action enums in declaration order rather than taking
   an actor tuple, preserving press, depress, heat, failover catalog order.
 - Actor-level `#[internal]` replaces the hypothetical `Internal` derive.
-- `State` supplies clone, equality, hashing, canonical `Spell` and ordered
+- `State` supplies clone, equality, hashing, `Debug`, `Display` and ordered
   starts with defaults for unannotated booleans; `Action` supplies clone,
-  equality, hashing, spelling and ordered enumeration.
+  equality, hashing, `Debug`, qualified `Display` and ordered enumeration.
 - `#[postcondition(after = Heater::Failover)]` selects the failover action;
   its unused `before` parameter is omitted while the warming claim keeps it.
 - The named assumption is a static function returning a module-local `Assumption`
@@ -316,7 +316,7 @@ the checker row and `xargs awk 'FNR == 1 {files++} {physical++} NF {nonblank++} 
 The engine is ready by construction under R9: a world is a value implementing `Machine`, and
 its parameters can be ordinary fields. `starts`, `actions` and `step` receive `&self`; state,
 edge and progress predicates receive `&M` (`dsl/src/machine.rs`, `claim.rs`, `progress.rs`).
-The associated `State: Clone + Eq + Hash + Spell` admits generic state values satisfying those
+The associated `State: Clone + Eq + Hash + Display` admits generic state values satisfying those
 bounds, without a whole-state enumeration. Manual worlds can therefore compute starts and
 action catalogs from their parameters. The missing R17 engine-side convenience is `Finite`
 and its derive/domain support; persistent collections are admitted dependencies, not a ported

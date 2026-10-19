@@ -4,9 +4,7 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use umpire_dsl::{
-    Claim, Machine, Outcome, Progress, Spell, Step, StepClaim, Verdict, claim::Evaluation,
-};
+use umpire_dsl::{Claim, Machine, Outcome, Progress, Step, StepClaim, Verdict, claim::Evaluation};
 
 use crate::{
     ClaimResult, FullStates, Path, PathStep, Refusal, Report, StateId, Visited, report::aggregate,
@@ -117,8 +115,7 @@ impl Checker {
                     Ok(choices) => choices,
                     Err(error) => {
                         let mut path = result.path(source);
-                        let mut action_text = String::new();
-                        action.spell(&mut action_text);
+                        let action_text = action.to_string();
                         path.failure = Some(format!(
                             "action {action_text} panicked: {}",
                             panic_message(error.as_ref())
@@ -290,8 +287,7 @@ impl<M: Machine> Result<M> {
         }
         for (index, action) in actions.iter().enumerate() {
             if !fired.contains(index) {
-                let mut action_text = String::new();
-                action.spell(&mut action_text);
+                let action_text = action.to_string();
                 self.warnings.push(format!("action {action_text} never fired"));
             }
         }
@@ -418,8 +414,7 @@ impl<M: Machine> Result<M> {
             Ok(Evaluation { verdict: Verdict::Fails, failure }) => {
                 if let (Some(path), Some(expression)) = (&mut path, failure) {
                     let state = path.steps.last().map_or(&path.start, |step| &step.after);
-                    let mut state_text = String::new();
-                    state.spell(&mut state_text);
+                    let state_text = state.to_string();
                     path.failure = Some(format!("check!({expression}) failed at {state_text}"));
                 }
                 claim.outcome = Outcome::Refuted;

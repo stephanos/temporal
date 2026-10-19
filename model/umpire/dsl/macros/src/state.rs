@@ -43,8 +43,8 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     let (total_eq_impl, _, total_eq_where) = total_eq.split_for_impl();
     let hash = bounded(&input.generics, &fields, &quote!(::core::hash::Hash));
     let (hash_impl, _, hash_where) = hash.split_for_impl();
-    let spell = bounded(&input.generics, &fields, &quote!(::umpire_dsl::Spell));
-    let (spell_impl, _, spell_where) = spell.split_for_impl();
+    let debug = bounded(&input.generics, &fields, &quote!(::core::fmt::Debug));
+    let (debug_impl, _, debug_where) = debug.split_for_impl();
     let mut start_bounds = clone.clone();
     for (field, range) in fields.iter().zip(&ranges) {
         if range.is_none() {
@@ -56,12 +56,9 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         }
     }
     let (start_impl, _, start_where) = start_bounds.split_for_impl();
-    let prefix = format!("{name} {{");
-    let labels = names.iter().enumerate().map(|(index, field)| {
-        let separator = if index == 0 { " " } else { ", " };
-        format!("{separator}{}: ", field.to_string().trim_start_matches("r#"))
-    });
-    let suffix = if names.is_empty() { "}" } else { " }" };
+    let label = name.to_string();
+    let labels: Vec<_> =
+        names.iter().map(|field| field.to_string().trim_start_matches("r#").to_owned()).collect();
 
     Ok(quote! {
         #[automatically_derived]
@@ -83,11 +80,15 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
             }
         }
         #[automatically_derived]
-        impl #spell_impl ::umpire_dsl::Spell for #name #type_generics #spell_where {
-            fn spell(&self, out: &mut ::std::string::String) {
-                out.push_str(#prefix);
-                #(out.push_str(#labels); ::umpire_dsl::Spell::spell(&self.#names, out);)*
-                out.push_str(#suffix);
+        impl #debug_impl ::core::fmt::Debug for #name #type_generics #debug_where {
+            fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                out.debug_struct(#label)#(.field(#labels, &self.#names))*.finish()
+            }
+        }
+        #[automatically_derived]
+        impl #debug_impl ::core::fmt::Display for #name #type_generics #debug_where {
+            fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                ::core::fmt::Debug::fmt(self, out)
             }
         }
         impl #start_impl #name #type_generics #start_where {

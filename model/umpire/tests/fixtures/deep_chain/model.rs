@@ -8,7 +8,7 @@ use std::{
 use std::collections::BTreeMap;
 #[cfg(test)]
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Machine, Spell, Steps, Verdict};
+use umpire_dsl::{Claim, Machine, Steps, Verdict};
 
 struct World(Rc<Cell<usize>>);
 
@@ -17,13 +17,14 @@ struct State {
     clones: Rc<Cell<usize>>,
 }
 
-impl Spell for State {
-    fn spell(&self, out: &mut String) {
-        out.push_str("State { value: ");
-        self.value.spell(out);
-        out.push_str(", clones: ");
-        self.clones.get().spell(out);
-        out.push_str(" }");
+impl std::fmt::Display for State {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("State { value: ")?;
+        write!(out, "{:?}", self.value)?;
+        out.write_str(", clones: ")?;
+        write!(out, "{}", self.clones.get())?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
@@ -78,8 +79,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let world = World(Rc::new(Cell::new(0)));
     let result = Checker::explore(&world, 1001)?;
     let work = if world.0.get() <= 4 * result.counts.reached { "linear" } else { "excessive" };
-    let mut report = String::new();
-    result.verify_all()?.spell(&mut report);
+    let report = (result.verify_all()?).to_string();
     report.push_str("clone_work: ");
     report.push_str(work);
     report.push('\n');

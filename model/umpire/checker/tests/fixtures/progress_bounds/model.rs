@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::fmt::Write;
 
 use umpire_checker::Checker;
-use umpire_dsl::{Assumption, Claim, Hole, Machine, Progress, ProgressEvaluation, Spell, Steps, Verdict, machine};
+use umpire_dsl::{Assumption, Claim, Hole, Machine, Progress, ProgressEvaluation, Steps, Verdict, machine};
 
 #[machine]
 mod generated {
@@ -157,10 +157,8 @@ fn record(text: &mut String, name: &str, world: &World, budget: usize) -> umpire
             let before_query = world.calls.get();
             let queried = result.verify_progress(world, &world.progress().remove(0))?;
             let original = report.claims.iter().find(|claim| claim.name == "reaches_target").ok_or("missing original progress claim")?;
-            let mut expected = String::new();
-            let mut actual = String::new();
-            original.path.spell(&mut expected);
-            queried.path.spell(&mut actual);
+            let expected = original.path.as_ref().map(ToString::to_string);
+            let actual = queried.path.as_ref().map(ToString::to_string);
             assert_eq!(actual, expected, "query preserves {name}");
             assert_eq!((queried.outcome, &queried.verdict, &queried.hint, &queried.holes), (original.outcome, &original.verdict, &original.hint, &original.holes));
             assert_eq!(world.calls.get() - before_query, if matches!(world.metadata, Metadata::PredicatePanic) { 1 } else { result.counts.reached });
@@ -175,17 +173,17 @@ fn record(text: &mut String, name: &str, world: &World, budget: usize) -> umpire
             world.calls.set(before_query);
             let claim = &report.claims[0];
             text.push_str("outcome: ");
-            claim.outcome.spell(text);
+            write!(text, "{:?}", claim.outcome)?;
             text.push_str("\nverdict: ");
-            claim.verdict.spell(text);
+            write!(text, "{:?}", claim.verdict)?;
             text.push_str("\nhint: ");
-            claim.hint.spell(text);
+            write!(text, "{:?}", claim.hint)?;
             text.push('\n');
             for hole in &claim.holes {
                 writeln!(text, "hole: {hole}")?;
             }
             if let Some(path) = &claim.path {
-                path.spell(text);
+                write!(text, "{}", path)?;
             }
             let before = world.calls.get();
             for claim in &report.claims {
@@ -226,7 +224,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let mut text = String::new();
     let generated = Checker::explore(&generated::world(), 16)?.verify_all()?;
     text.push_str("generated_exact_bound: ");
-    generated.claims[0].verdict.spell(&mut text);
+    write!(text, "{:?}", generated.claims[0].verdict)?;
     text.push_str("\n\n");
     let chain = [(0, 0, 1), (1, 0, 2), (2, 0, 3)];
     for (name, bound) in [("finite_longest", None), ("exact_bound", Some(2)), ("missed_bound", Some(1))] {

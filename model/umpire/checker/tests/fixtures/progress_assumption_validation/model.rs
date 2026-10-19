@@ -2,7 +2,7 @@ use std::cell::Cell;
 use std::fmt::Write;
 
 use umpire_checker::{Checker, Refusal};
-use umpire_dsl::{Assumption, AssumptionExt, Machine, Progress, ProgressEvaluation, Spell, Steps, Verdict};
+use umpire_dsl::{Assumption, AssumptionExt, Machine, Progress, ProgressEvaluation, Steps, Verdict};
 
 #[derive(Clone, Copy)]
 enum Source {
@@ -101,7 +101,7 @@ fn record(text: &mut String, name: &str, world: &World) -> umpire_testing::TestR
             write!(text, "refused: {error}")?;
         }
         Err(error) => return Err(error.into()),
-        Ok(result) => result.verify_all()?.outcome().spell(text),
+        Ok(result) => write!(text, "{:?}", result.verify_all()?.outcome())?,
     }
     writeln!(text, "; steps={} calls={}", world.steps.get(), world.calls.get())?;
     Ok(())

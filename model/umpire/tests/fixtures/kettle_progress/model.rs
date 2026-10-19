@@ -1,7 +1,7 @@
 use crate::fixture_sample_5fkettle::kettle;
 use std::fmt::Write;
 use umpire_checker::{Checker, ClaimResult, ProgressVerdict};
-use umpire_dsl::{Assumption, Machine, Outcome, Spell};
+use umpire_dsl::{Assumption, Machine, Outcome};
 use umpire_testing::Files;
 
 #[path = "../../support/progress_starts.rs"]
@@ -25,7 +25,7 @@ fn world<M: Machine<State = kettle::Model>>(
     })
 }
 
-fn render<S: Spell, A: Spell>(
+fn render<S: std::fmt::Display, A: std::fmt::Display>(
     files: &mut Files,
     report: &mut String,
     question: &str,
@@ -44,8 +44,7 @@ fn render<S: Spell, A: Spell>(
             .steps
             .iter()
             .map(|step| {
-                let mut action = String::new();
-                step.action.spell(&mut action);
+                let action = (step.action).to_string();
                 action
             })
             .collect();
@@ -56,16 +55,15 @@ fn render<S: Spell, A: Spell>(
         );
     }
     write!(report, "{question}: ")?;
-    result.outcome.spell(report);
+    write!(report, "{:?}", result.outcome)?;
     report.push_str("; ");
-    result.verdict.as_ref().ok_or("Kettle progress has no temporal verdict")?.spell(report);
+    write!(report, "{}", result.verdict.as_ref().ok_or("Kettle progress has no temporal verdict")?)?;
     report.push('\n');
     if let Some(hint) = result.hint {
         writeln!(report, "hint: {hint}")?;
     }
     if let Some(path) = result.path {
-        let mut text = String::new();
-        path.spell(&mut text);
+        let text = path.to_string();
         files.insert(format!("paths/{question}.txt"), text);
     }
     Ok(())

@@ -35,6 +35,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
     errors.into_result()?;
     let name = &input.ident;
     let names: Vec<_> = variants.iter().map(|variant| &variant.ident).collect();
+    let labels = names.iter().map(ToString::to_string);
     let spellings = names.iter().map(|variant| format!("{name}::{variant}"));
     let (impl_generics, type_generics, where_clause) = input.generics.split_for_impl();
     Ok(quote! {
@@ -57,9 +58,15 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
             }
         }
         #[automatically_derived]
-        impl #impl_generics ::umpire_dsl::Spell for #name #type_generics #where_clause {
-            fn spell(&self, out: &mut ::std::string::String) {
-                match *self { #(Self::#names => out.push_str(#spellings)),* }
+        impl #impl_generics ::core::fmt::Debug for #name #type_generics #where_clause {
+            fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                match *self { #(Self::#names => out.write_str(#labels)),* }
+            }
+        }
+        #[automatically_derived]
+        impl #impl_generics ::core::fmt::Display for #name #type_generics #where_clause {
+            fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+                match *self { #(Self::#names => out.write_str(#spellings)),* }
             }
         }
         impl #impl_generics #name #type_generics #where_clause {

@@ -5,8 +5,7 @@ use std::collections::{BTreeSet, VecDeque};
 use proptest::prelude::*;
 use umpire_checker::{Checker, ProgressVerdict};
 use umpire_dsl::{
-    Assumption, AssumptionExt, Claim, Hole, Machine, Outcome, Progress, Spell, StepClaim, Steps,
-    Verdict,
+    Assumption, AssumptionExt, Claim, Hole, Machine, Outcome, Progress, StepClaim, Steps, Verdict,
 };
 
 #[derive(Clone, Debug)]
@@ -35,22 +34,32 @@ struct World {
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 struct Action(usize);
 
-impl Spell for Action {
-    fn spell(&self, out: &mut String) {
-        out.push_str("Action { 0: ");
-        self.0.spell(out);
-        out.push_str(" }");
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
+struct State([u8; 3]);
+
+impl std::fmt::Display for State {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        std::fmt::Debug::fmt(&self.0, out)
+    }
+}
+
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("Action { 0: ")?;
+        write!(out, "{:?}", self.0)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
 impl Machine for World {
-    type State = [u8; 3];
+    type State = State;
     type Action = Action;
     type Outcome = bool;
     type Fact = usize;
 
     fn starts(&self) -> Vec<Self::State> {
-        self.starts.clone()
+        self.starts.iter().copied().map(State).collect()
     }
     fn actions(&self) -> Vec<Action> {
         (0..self.actions.len()).map(Action).collect()
@@ -61,11 +70,11 @@ impl Machine for World {
     fn step(&self, state: &Self::State, action: Action) -> Steps<Self::State, bool, usize> {
         let rule = &self.actions[action.0];
         let mut choices = Steps::new();
-        if state[rule.guard_var] == rule.guard_value {
+        if state.0[rule.guard_var] == rule.guard_value {
             for (choice, increment) in rule.increments.iter().enumerate() {
                 let mut after = *state;
-                after[rule.effect_var] =
-                    (after[rule.effect_var] + increment) % self.domains[rule.effect_var];
+                after.0[rule.effect_var] =
+                    (after.0[rule.effect_var] + increment) % self.domains[rule.effect_var];
                 choices.push((choice % 2 == 0, vec![choice], after));
             }
         }
@@ -73,9 +82,9 @@ impl Machine for World {
     }
     fn invariants(&self) -> Vec<Claim<Self>> {
         vec![Claim::<Self>::new("not_forbidden", |world, state| {
-            if state == &world.forbidden {
+            if state.0 == world.forbidden {
                 Verdict::Fails
-            } else if state == &world.hole {
+            } else if state.0 == world.hole {
                 Verdict::Unknown(Hole { reason: "random hole" })
             } else {
                 Verdict::Holds
@@ -85,7 +94,7 @@ impl Machine for World {
     fn postconditions(&self) -> Vec<StepClaim<Self>> {
         vec![
             StepClaim::<Self>::new("nondecreasing", |_, before, after, _, _, _| {
-                (after[0] >= before[0]).into()
+                (after.0[0] >= before.0[0]).into()
             }),
             StepClaim::<Self>::after("zero_changes", Action(0), |_, before, after, _, _, _| {
                 (before != after).into()
@@ -97,8 +106,8 @@ impl Machine for World {
     }
     fn progress(&self) -> Vec<Progress<Self>> {
         let claim = Progress::<Self>::new("eventually_target")
-            .whenever(|world, state| member(world.trigger, *state).into())
-            .eventually(|world, state| member(world.target, *state).into())
+            .whenever(|world, state| member(world.trigger, state.0).into())
+            .eventually(|world, state| member(world.target, state.0).into())
             .assuming(
                 Assumption::fair(
                     &(0..self.actions.len())
@@ -344,15 +353,15 @@ proptest! {
     fn brute_force_oracle(world in worlds()) {
         let expected = reference(&world);
         let actual = Checker::explore(&world, 27)?;
-        prop_assert_eq!(actual.states().map(|(_, s)| *s).collect::<BTreeSet<_>>(), expected.reached);
+        prop_assert_eq!(actual.states().map(|(_, s)| s.0).collect::<BTreeSet<_>>(), expected.reached);
         let report = actual.verify_all()?;
         prop_assert_eq!(report.claims.iter().map(|c| (c.name.as_str(), c.outcome)).collect::<Vec<_>>(), expected.outcomes);
         prop_assert_eq!(actual.counts.emitted, expected.edges.len());
         prop_assert_eq!(actual.counts.evaluated, actual.counts.reached * world.actions.len());
         prop_assert!(!actual.counts.cut);
         for (id, state) in actual.states() {
-            let rows: Vec<_> = actual.rows(id)?.map(|edge| (edge.action.0, edge.choice, edge.emitted.2)).collect();
-            let wanted: Vec<_> = expected.edges.iter().filter(|(before, _, _, _)| before == state)
+            let rows: Vec<_> = actual.rows(id)?.map(|edge| (edge.action.0, edge.choice, edge.emitted.2.0)).collect();
+            let wanted: Vec<_> = expected.edges.iter().filter(|(before, _, _, _)| *before == state.0)
                 .map(|(_, action, choice, after)| (*action, *choice, *after)).collect();
             prop_assert_eq!(rows, wanted);
         }
@@ -361,17 +370,17 @@ proptest! {
                 prop_assert_eq!(claim.path.is_some(), claim.outcome == Outcome::Refuted);
             }
             if let Some(path) = claim.path {
-                prop_assert!(world.starts.contains(&path.start));
-                let mut before = path.start;
+                prop_assert!(world.starts.contains(&path.start.0));
+                let mut before = path.start.0;
                 for step in &path.steps {
-                    prop_assert!(expected.edges.contains(&(before, step.action.0, step.choice, step.after)));
-                    before = step.after;
+                    prop_assert!(expected.edges.contains(&(before, step.action.0, step.choice, step.after.0)));
+                    before = step.after.0;
                 }
                 if claim.name == "not_forbidden" { prop_assert_eq!(before, world.forbidden); }
                 if claim.name == "eventually_target" {
                     prop_assert!(path.failure.is_none());
-                    let states: Vec<_> = std::iter::once(path.start)
-                        .chain(path.steps.iter().map(|step| step.after)).collect();
+                    let states: Vec<_> = std::iter::once(path.start.0)
+                        .chain(path.steps.iter().map(|step| step.after.0)).collect();
                     let suffix_end = path.cycle_start.unwrap_or(path.steps.len());
                     prop_assert!(suffix_end <= path.steps.len());
                     prop_assert!((0..=suffix_end).any(|trigger| {

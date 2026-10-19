@@ -1,8 +1,6 @@
-use std::fmt::Write;
-
 use prost::Message;
 use umpire_checker::{Checker, StateId};
-use umpire_dsl::{Machine, Spell};
+use umpire_dsl::Machine;
 
 use crate::{Dispatch, google::protobuf::Any, protocol, refusal::checker_refusal};
 
@@ -249,7 +247,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         let report = result.verify_all().map_err(|error| checker_error(&error))?;
         let counts = &result.counts;
         let response = protocol::ExploreResponse {
-            report: spelling(&report),
+            report: report.to_string(),
             starts: count(counts.starts),
             reached: count(counts.reached),
             emitted: count(counts.emitted),
@@ -272,16 +270,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         for edge in
             result.rows(StateId(state_id as usize)).map_err(|error| checker_error(&error))?
         {
-            let mut row = format!("{state_id}: ");
-            edge.action.spell(&mut row);
-            write!(row, " choice={} outcome=", edge.choice).ok();
-            edge.emitted.0.spell(&mut row);
-            row.push_str(" facts=");
-            edge.emitted.1.spell(&mut row);
-            row.push_str(" -> ");
-            edge.emitted.2.spell(&mut row);
-            row.push('\n');
-            rows.push(row);
+            rows.push(format!(
+                "{state_id}: {} choice={} outcome={:?} facts={:?} -> {}\n",
+                edge.action, edge.choice, edge.emitted.0, edge.emitted.1, edge.emitted.2
+            ));
         }
         Ok((protocol::response::Outcome::Rows(protocol::RowsResponse { rows }), None))
     }
@@ -347,12 +339,6 @@ fn checker_error(error: &umpire_checker::Refusal) -> protocol::Refusal {
         unreachable!("checker errors are refusals")
     };
     refusal
-}
-
-fn spelling(value: &impl Spell) -> String {
-    let mut text = String::new();
-    value.spell(&mut text);
-    text
 }
 
 fn count(value: usize) -> u32 {

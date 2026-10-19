@@ -4,7 +4,7 @@ use std::{
 };
 
 use petgraph::{algo::tarjan_scc, graph::DiGraph};
-use umpire_dsl::{Assumption, Machine, Outcome, Progress, Spell, Verdict};
+use umpire_dsl::{Assumption, Machine, Outcome, Progress, Verdict};
 
 use crate::{
     ClaimResult, Path, PathStep, ProgressVerdict, Refusal, Result, StateId, Visited,
@@ -33,7 +33,7 @@ fn validate_bound(name: &str, bound: Option<u32>) -> std::result::Result<(), Ref
     Ok(())
 }
 
-fn validate_assumption<A: Spell + Clone + PartialEq>(
+fn validate_assumption<A: std::fmt::Display + Clone + PartialEq>(
     assumption: &Assumption<A>,
     actions: &[A],
 ) -> std::result::Result<(), Refusal> {
@@ -41,8 +41,7 @@ fn validate_assumption<A: Spell + Clone + PartialEq>(
         assumption.only.iter().flatten().chain(&assumption.excluded).chain(&assumption.fair)
     {
         if !actions.contains(action) {
-            let mut name = String::new();
-            action.spell(&mut name);
+            let name = action.to_string();
             return Err(Refusal::ScopeAction { action: name });
         }
     }
@@ -152,8 +151,7 @@ impl<M: Machine> Result<M> {
             if complete[state] && outgoing[state].is_empty() {
                 self.refute_progress(result, state, &parents, &origins, &[]);
                 let path = result.path.as_ref().unwrap_or_else(|| unreachable!());
-                let mut terminal = String::new();
-                self.state(StateId(state)).spell(&mut terminal);
+                let terminal = (self.state(StateId(state))).to_string();
                 result.hint = Some(format!(
                     "deadlock: {} ends in {terminal}",
                     Self::progress_actions(path.steps.iter().map(|step| &step.action))
@@ -360,14 +358,7 @@ impl<M: Machine> Result<M> {
     where
         M::Action: 'a,
     {
-        actions
-            .map(|action| {
-                let mut name = String::new();
-                action.spell(&mut name);
-                name
-            })
-            .collect::<Vec<_>>()
-            .join(", ")
+        actions.map(ToString::to_string).collect::<Vec<_>>().join(", ")
     }
 
     fn progress_cycle_hint(
@@ -385,8 +376,7 @@ impl<M: Machine> Result<M> {
                 && cycle.iter().any(|&edge| enabled[self.transitions[edge].source.0][*action])
         });
         if let Some((_, action)) = idle {
-            let mut name = String::new();
-            action.spell(&mut name);
+            let name = action.to_string();
             format!(
                 "cycle {names}: {name} stays enabled and is never taken; add fair({name}) to the assumption, or admit fewer actions with only"
             )

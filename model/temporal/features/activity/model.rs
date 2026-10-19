@@ -8,10 +8,10 @@ use umpire_dsl::machine;
 /// One activity's finite lifecycle, independent of any SDK or server observation.
 #[machine]
 pub mod activity {
-    use umpire_dsl::{Action, Spell, State, check};
+    use umpire_dsl::{Action, State, check};
 
     /// The phase of the activity.
-    #[derive(Clone, Copy, Default, PartialEq, Eq, Hash)]
+    #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
     pub enum Phase {
         /// Started successfully and waiting for delivery.
         #[default]
@@ -26,19 +26,6 @@ pub mod activity {
         Canceled,
         /// An applicable abstract deadline expired.
         TimedOut,
-    }
-
-    impl Spell for Phase {
-        fn spell(&self, out: &mut String) {
-            out.push_str(match self {
-                Self::Scheduled => "Phase::Scheduled",
-                Self::Started => "Phase::Started",
-                Self::Completed => "Phase::Completed",
-                Self::Failed => "Phase::Failed",
-                Self::Canceled => "Phase::Canceled",
-                Self::TimedOut => "Phase::TimedOut",
-            });
-        }
     }
 
     /// Actions controlled by the client.
@@ -139,14 +126,13 @@ pub(crate) fn run() -> umpire_testing::RunResult {
 #[cfg(test)]
 mod tests {
     use super::activity::{Client, Deadline, Model, Phase, Worker, world};
-    use umpire_dsl::{Machine, Spell, Verdict};
+    use umpire_dsl::{Machine, Verdict};
 
     const TERMINALS: [Phase; 4] =
         [Phase::Completed, Phase::Failed, Phase::Canceled, Phase::TimedOut];
 
-    fn spelling(value: &impl Spell) -> String {
-        let mut text = String::new();
-        value.spell(&mut text);
+    fn rendered(value: &impl std::fmt::Display) -> String {
+        let text = value.to_string();
         text
     }
 
@@ -185,8 +171,8 @@ mod tests {
                 assert!(
                     steps.as_slice() == expected,
                     "{} after {}",
-                    spelling(action),
-                    spelling(&phase),
+                    rendered(action),
+                    rendered(&phase),
                 );
             }
         }

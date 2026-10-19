@@ -3,7 +3,8 @@
 The generated protobuf messages in `umpire/model/v1/model.proto` are the wire contract.
 Method enum numbers are stable dispatch IDs. `umpire_call` always returns a `Response` envelope.
 Explore replaces the current exploration only on success; Rows needs a successful Explore.
-Each rows string is one complete Spell-based native golden line, including its newline.
+Each rows string is one complete native golden line, including its newline. States and actions
+use Display; domain outcomes and facts use Debug.
 
 Reset (3), Judge (4) and Answer (5) carry the core run protocol. Judge accepts an opaque
 observation Any and returns either a present Explanation (including zero steps) or

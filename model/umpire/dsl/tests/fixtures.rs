@@ -1,4 +1,4 @@
-//! Canonical spelling of the DSL's leaf values.
+//! Standard formatting of DSL states and actions.
 
 #[path = "support/recorder.rs"]
 mod recorder;
@@ -11,7 +11,7 @@ fn fixtures() -> umpire_testing::TestResult {
         &std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures"),
         registered(),
         &[umpire_testing::Consumer {
-            name: "spell",
+            name: "formatting",
             expected: &["values.txt"],
             render: |produce, _| produce(),
         }],

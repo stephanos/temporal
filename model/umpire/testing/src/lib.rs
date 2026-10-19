@@ -30,9 +30,7 @@ macro_rules! fixture {
             let mut files = $crate::render(&$crate::Checker::explore(&$world, $budget)?)?;
             let negative = $crate::Checker::refuted(&$world, $negative)?;
             let report = negative.verify_all()?;
-            let mut text = String::new();
-            $crate::Spell::spell(&report, &mut text);
-            files.insert("negative_report.txt".into(), text);
+            files.insert("negative_report.txt".into(), report.to_string());
             $crate::add_paths(&mut files, report);
             Ok(files)
         }
@@ -41,6 +39,3 @@ macro_rules! fixture {
 
 #[doc(hidden)]
 pub use umpire_checker::Checker;
-
-#[doc(hidden)]
-pub use umpire_dsl::Spell;

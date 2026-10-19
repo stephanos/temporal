@@ -1,19 +1,15 @@
 use crate::Files;
 use std::{collections::BTreeMap, fmt::Write};
 use umpire_checker::Result as Exploration;
-use umpire_dsl::{Machine, Spell};
+use umpire_dsl::Machine;
 
 /// Render deterministic exploration results and counterexamples.
 pub fn render<M: Machine>(result: &Exploration<M>) -> Result<Files, umpire_checker::Refusal> {
     let report = result.verify_all()?;
-    let mut report_text = String::new();
-    report.spell(&mut report_text);
-    let mut files = BTreeMap::from([("report.txt".into(), report_text)]);
+    let mut files = BTreeMap::from([("report.txt".into(), report.to_string())]);
     let mut states = String::new();
     for (id, state) in result.states() {
-        write!(states, "{}: ", id.0).ok();
-        state.spell(&mut states);
-        states.push('\n');
+        writeln!(states, "{}: {state}", id.0).ok();
     }
     files.insert("states.txt".into(), states);
     if result.counts.reached <= 3 {
@@ -28,15 +24,12 @@ pub fn render_rows<M: Machine>(result: &Exploration<M>) -> Result<String, umpire
     let mut rows = String::new();
     for (id, _) in result.states() {
         for edge in result.rows(id)? {
-            write!(rows, "{}: ", id.0).ok();
-            edge.action.spell(&mut rows);
-            write!(rows, " choice={} outcome=", edge.choice).ok();
-            edge.emitted.0.spell(&mut rows);
-            rows.push_str(" facts=");
-            edge.emitted.1.spell(&mut rows);
-            rows.push_str(" -> ");
-            edge.emitted.2.spell(&mut rows);
-            rows.push('\n');
+            writeln!(
+                rows,
+                "{}: {} choice={} outcome={:?} facts={:?} -> {}",
+                id.0, edge.action, edge.choice, edge.emitted.0, edge.emitted.1, edge.emitted.2
+            )
+            .ok();
         }
     }
     Ok(rows)
@@ -46,9 +39,7 @@ pub fn render_rows<M: Machine>(result: &Exploration<M>) -> Result<String, umpire
 pub fn add_paths<M: Machine>(files: &mut Files, report: umpire_checker::Report<M>) {
     for claim in report.claims {
         if let Some(path) = claim.path {
-            let mut text = String::new();
-            path.spell(&mut text);
-            files.insert(format!("paths/{}.txt", claim.name), text);
+            files.insert(format!("paths/{}.txt", claim.name), path.to_string());
         }
     }
 }

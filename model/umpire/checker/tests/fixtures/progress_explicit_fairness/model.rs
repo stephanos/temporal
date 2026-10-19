@@ -61,9 +61,7 @@ mod model {
 }
 
 pub(crate) fn run() -> umpire_testing::RunResult {
-    use umpire_dsl::Spell;
-    let result = umpire_checker::Checker::explore(&model::world(), 8)?;
-    let mut text = String::new();
-    result.verify_all()?.spell(&mut text);
+        let result = umpire_checker::Checker::explore(&model::world(), 8)?;
+    let text = (result.verify_all()?).to_string();
     Ok(std::collections::BTreeMap::from([("report.txt".into(), text)]))
 }

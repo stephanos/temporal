@@ -1,4 +1,4 @@
-use umpire_dsl::{Claim, Machine, Spell, Steps};
+use umpire_dsl::{Claim, Machine, Steps};
 
 struct World;
 
@@ -7,11 +7,12 @@ struct State {
     value: Option<(u8, bool)>,
 }
 
-impl Spell for State {
-    fn spell(&self, out: &mut String) {
-        out.push_str("State { value: ");
-        self.value.spell(out);
-        out.push_str(" }");
+impl std::fmt::Display for State {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("State { value: ")?;
+        write!(out, "{:?}", self.value)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
@@ -20,38 +21,24 @@ enum Action {
     Advance { amount: u8 },
 }
 
-impl Spell for Action {
-    fn spell(&self, out: &mut String) {
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self::Advance { amount } = self;
-        out.push_str("Action::Advance { amount: ");
-        amount.spell(out);
-        out.push_str(" }");
+        out.write_str("Action::Advance { amount: ")?;
+        write!(out, "{:?}", amount)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
+#[derive(Debug)]
 enum Decision {
     Accepted,
 }
 
-impl Spell for Decision {
-    fn spell(&self, out: &mut String) {
-        match self {
-            Self::Accepted => out.push_str("Decision::Accepted"),
-        }
-    }
-}
-
-enum Fact {
+#[derive(Debug)]
+pub enum Fact {
     Changed { amount: u8 },
-}
-
-impl Spell for Fact {
-    fn spell(&self, out: &mut String) {
-        let Self::Changed { amount } = self;
-        out.push_str("Fact::Changed { amount: ");
-        amount.spell(out);
-        out.push_str(" }");
-    }
 }
 
 impl Machine for World {

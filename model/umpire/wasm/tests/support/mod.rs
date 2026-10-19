@@ -1,4 +1,4 @@
-use umpire_dsl::{Machine, Spell, Steps};
+use umpire_dsl::{Machine, Steps};
 use umpire_wasm::{
     AnswerPlan, Projection, Realize, Runtime, Transition, google::protobuf::Any, protocol,
 };
@@ -15,34 +15,26 @@ pub(crate) enum Action {
     Finish,
 }
 
+#[derive(Debug)]
 pub(crate) struct Outcome;
+#[derive(Debug)]
 pub(crate) struct Fact;
 
-impl Spell for State {
-    fn spell(&self, out: &mut String) {
-        self.0.spell(out);
+impl std::fmt::Display for State {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        write!(out, "{:?}", self.0)?;
+        Ok(())
     }
 }
 
-impl Spell for Action {
-    fn spell(&self, out: &mut String) {
-        out.push_str(match self {
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str(match self {
             Self::Deliver => "Deliver",
             Self::Respond => "Respond",
             Self::Finish => "Finish",
-        });
-    }
-}
-
-impl Spell for Outcome {
-    fn spell(&self, out: &mut String) {
-        out.push_str("outcome");
-    }
-}
-
-impl Spell for Fact {
-    fn spell(&self, out: &mut String) {
-        out.push_str("fact");
+        })?;
+        Ok(())
     }
 }
 

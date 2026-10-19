@@ -1,4 +1,4 @@
-use umpire_dsl::{Claim, Machine, Progress, Scope, Spell, StepClaim, Steps};
+use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
 
 #[cfg(test)]
 pub(crate) fn run() -> umpire_testing::RunResult {
@@ -28,26 +28,28 @@ pub enum Act {
     HeaterFailover,
 }
 
-impl Spell for Kettle {
-    fn spell(&self, out: &mut String) {
-        out.push_str("Kettle { temperature: ");
-        self.temperature.spell(out);
-        out.push_str(", heating_on: ");
-        self.heating_on.spell(out);
-        out.push_str(", beeping: ");
-        self.beeping.spell(out);
-        out.push_str(" }");
+impl std::fmt::Display for Kettle {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("Kettle { temperature: ")?;
+        write!(out, "{:?}", self.temperature)?;
+        out.write_str(", heating_on: ")?;
+        write!(out, "{:?}", self.heating_on)?;
+        out.write_str(", beeping: ")?;
+        write!(out, "{:?}", self.beeping)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
-impl Spell for Act {
-    fn spell(&self, out: &mut String) {
-        out.push_str(match self {
+impl std::fmt::Display for Act {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str(match self {
             Self::UserPressButton => "Act::UserPressButton",
             Self::UserDepressButton => "Act::UserDepressButton",
             Self::HeaterHeat => "Act::HeaterHeat",
             Self::HeaterFailover => "Act::HeaterFailover",
-        });
+        })?;
+        Ok(())
     }
 }
 

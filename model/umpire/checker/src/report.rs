@@ -1,6 +1,6 @@
-use std::fmt::Write;
+use std::fmt::{self, Display};
 
-use umpire_dsl::{Machine, Outcome, Spell};
+use umpire_dsl::{Machine, Outcome};
 
 use crate::Counts;
 
@@ -28,30 +28,32 @@ pub struct Path<S, A> {
     pub failure: Option<String>,
 }
 
-impl<S: Spell, A: Spell> Spell for Path<S, A> {
-    fn spell(&self, out: &mut String) {
+impl<S: Display, A: Display> Display for Path<S, A> {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
         if self.cycle_start.is_some() {
-            out.push_str("prefix:\n");
+            out.write_str("prefix:\n")?;
         }
-        out.push_str("start: ");
-        self.start.spell(out);
-        out.push('\n');
+        writeln!(out, "start: {}", self.start)?;
         for (index, step) in self.steps.iter().enumerate() {
             if self.cycle_start == Some(index) {
-                out.push_str("cycle:\n");
+                out.write_str("cycle:\n")?;
             }
-            write!(out, "{}: ", index + 1).ok();
-            step.action.spell(out);
-            write!(out, " choice={} -> ", step.choice).ok();
-            step.after.spell(out);
-            out.push('\n');
+            writeln!(
+                out,
+                "{}: {} choice={} -> {}",
+                index + 1,
+                step.action,
+                step.choice,
+                step.after
+            )?;
         }
         if self.cycle_start.is_some() {
-            out.push_str("repeat cycle\n");
+            out.write_str("repeat cycle\n")?;
         }
         if let Some(failure) = &self.failure {
-            writeln!(out, "failure: {failure}").ok();
+            writeln!(out, "failure: {failure}")?;
         }
+        Ok(())
     }
 }
 
@@ -73,19 +75,9 @@ pub enum ProgressVerdict {
     Unknown,
 }
 
-impl Spell for ProgressVerdict {
-    fn spell(&self, out: &mut String) {
-        match self {
-            Self::Deadlock => out.push_str("Deadlock"),
-            Self::Cycle => out.push_str("Cycle"),
-            Self::MissedDeadline => out.push_str("MissedDeadline"),
-            Self::Verified { longest } => {
-                out.push_str("Verified { longest: ");
-                longest.spell(out);
-                out.push_str(" }");
-            }
-            Self::Unknown => out.push_str("Unknown"),
-        }
+impl Display for ProgressVerdict {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
+        fmt::Debug::fmt(self, out)
     }
 }
 
@@ -138,48 +130,38 @@ impl<M: Machine> Report<M> {
     /// Panics for refuted or unknown verification, printing the first refutation's path.
     pub fn assert_verified(&self) {
         if let Some(claim) = self.claims.iter().find(|claim| claim.outcome == Outcome::Refuted) {
-            let mut path = String::new();
-            if let Some(counterexample) = &claim.path {
-                counterexample.spell(&mut path);
-            }
+            let path = claim.path.as_ref().map(ToString::to_string).unwrap_or_default();
             panic!("claim {} refuted:\n{path}", claim.name);
         }
-        if self.outcome() != Outcome::Verified {
-            let mut report = String::new();
-            self.spell(&mut report);
-            panic!("verification unknown:\n{report}");
-        }
+        assert!(self.outcome() == Outcome::Verified, "verification unknown:\n{self}");
     }
 }
 
-impl<M: Machine> Spell for Report<M> {
-    fn spell(&self, out: &mut String) {
-        writeln!(out, "starts: {}", self.counts.starts).ok();
-        writeln!(out, "reached: {}", self.counts.reached).ok();
-        writeln!(out, "emitted: {}", self.counts.emitted).ok();
-        writeln!(out, "evaluated: {}", self.counts.evaluated).ok();
-        writeln!(out, "refused: {}", self.counts.refused).ok();
-        writeln!(out, "depth: {}", self.counts.depth).ok();
-        writeln!(out, "cut: {}", self.counts.cut).ok();
-        out.push_str("outcome: ");
-        self.outcome().spell(out);
-        out.push('\n');
+impl<M: Machine> Display for Report<M> {
+    fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
+        writeln!(out, "starts: {}", self.counts.starts)?;
+        writeln!(out, "reached: {}", self.counts.reached)?;
+        writeln!(out, "emitted: {}", self.counts.emitted)?;
+        writeln!(out, "evaluated: {}", self.counts.evaluated)?;
+        writeln!(out, "refused: {}", self.counts.refused)?;
+        writeln!(out, "depth: {}", self.counts.depth)?;
+        writeln!(out, "cut: {}", self.counts.cut)?;
+        writeln!(out, "outcome: {:?}", self.outcome())?;
         for claim in &self.claims {
-            write!(out, "claim {}: ", claim.name).ok();
-            claim.outcome.spell(out);
-            out.push('\n');
+            writeln!(out, "claim {}: {:?}", claim.name, claim.outcome)?;
             for hole in &claim.holes {
-                writeln!(out, "hole {}: {hole}", claim.name).ok();
+                writeln!(out, "hole {}: {hole}", claim.name)?;
             }
             if let Some(failure) = claim.path.as_ref().and_then(|path| path.failure.as_ref()) {
-                writeln!(out, "failure {}: {failure}", claim.name).ok();
+                writeln!(out, "failure {}: {failure}", claim.name)?;
             }
         }
         if self.warnings.is_empty() {
-            writeln!(out, "vacuity: none").ok();
+            writeln!(out, "vacuity: none")?;
         }
         for warning in &self.warnings {
-            writeln!(out, "vacuity: {warning}").ok();
+            writeln!(out, "vacuity: {warning}")?;
         }
+        Ok(())
     }
 }

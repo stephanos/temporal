@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use umpire_dsl::{Machine, Outcome, Spell, Verdict, machine};
+use umpire_dsl::{Machine, Outcome, Verdict, machine};
 
 #[machine]
 mod counter {
@@ -112,14 +112,12 @@ impl Counter {
 
 use counter::{Counter, User};
 
-fn spelled(value: &impl Spell) -> String {
-    let mut out = String::new();
-    value.spell(&mut out);
-    out
+fn rendered(value: &impl std::fmt::Display) -> String {
+    value.to_string()
 }
 
 fn judgment(verdict: Verdict) -> String {
-    spelled(&match verdict {
+    format!("{:?}", match verdict {
         Verdict::Holds => Outcome::Verified,
         Verdict::Fails => Outcome::Refuted,
         Verdict::Unknown(_) => Outcome::Unknown,
@@ -154,19 +152,19 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let before = direct.clone();
     direct.increment();
     let enabled = direct != before;
-    writeln!(output, "direct transition: {enabled} {}", spelled(&direct))?;
+    writeln!(output, "direct transition: {enabled} {}", rendered(&direct))?;
     for state in world.starts() {
-        state.spell(&mut output);
+        write!(output, "{}", state)?;
         output.push('\n');
         for action in world.actions() {
-            action.spell(&mut output);
+            write!(output, "{}", action)?;
             write!(output, " internal: {}", world.internal(&action))?;
             let edges = world.step(&state, action.clone());
             write!(output, " edges: {}", edges.len())?;
             for edge in &edges {
                 output.push_str(" next: ");
-                edge.2.spell(&mut output);
-                write!(output, " outcome: {} facts: {}", spelled(&edge.0), edge.1.len())?;
+                write!(output, "{}", edge.2)?;
+                write!(output, " outcome: {:?} facts: {}", edge.0, edge.1.len())?;
                 for claim in world.postconditions() {
                     write!(output, " {}={}", claim.name, judgment(claim.holds(&world, &state, &action, edge)))?;
                 }
@@ -176,13 +174,13 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     }
     let state = Counter { value: 2 };
     writeln!(output, "disabled increment: {}", world.step(&state, User::Increment.into()).len())?;
-    writeln!(output, "original state: {}", spelled(&state))?;
+    writeln!(output, "original state: {}", rendered(&state))?;
     writeln!(output, "order: {}", world.claim_order().join(", "))?;
     for claim in world.invariants() {
         writeln!(output, "{}: {}", claim.name, judgment((claim.predicate)(&world, &state)))?;
     }
     for (name, assumption) in world.assumptions() {
-        writeln!(output, "scope {name}: {}", spelled(&assumption.excluded[0]))?;
+        writeln!(output, "scope {name}: {}", rendered(&assumption.excluded[0]))?;
     }
     for claim in world.progress() {
         let evaluate = claim.evaluator.ok_or("missing generated progress evaluator")?;
@@ -195,7 +193,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         assert_eq!(counter::PROGRESS_CALLS.load(std::sync::atomic::Ordering::SeqCst), 2);
         writeln!(output, "progress {}: {} -> {}; without {}", claim.name,
             judgment(initial.trigger),
-            judgment(final_state.target), spelled(&initial.assumption.excluded[0]))?;
+            judgment(final_state.target), rendered(&initial.assumption.excluded[0]))?;
     }
     Ok(umpire_testing::Files::from([("values.txt".into(), output)]))
 }

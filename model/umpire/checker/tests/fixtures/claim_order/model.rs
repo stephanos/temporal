@@ -1,7 +1,7 @@
 use std::cell::Cell;
 
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Machine, Progress, Spell, StepClaim, Steps};
+use umpire_dsl::{Claim, Machine, Progress, StepClaim, Steps};
 
 struct World {
     ordered: bool,
@@ -102,9 +102,8 @@ pub(crate) fn run() -> umpire_testing::RunResult {
             Checker::explore(&world, 1)?
         };
         world.sealed.set(true);
-        let mut repeated = String::new();
-        result.verify_all()?.spell(&mut repeated);
-        result.verify_all()?.spell(&mut text);
+        let repeated = (result.verify_all()?).to_string();
+        write!(text, "{}", result.verify_all()?)?;
         assert!(text.ends_with(&repeated));
     }
     Ok(umpire_testing::Files::from([("report.txt".into(), text)]))

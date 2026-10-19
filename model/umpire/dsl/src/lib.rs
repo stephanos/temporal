@@ -6,13 +6,11 @@ pub mod claim;
 mod machine;
 mod progress;
 mod scope;
-mod spell;
 
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
 pub use machine::{Machine, Step, Steps};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};
-pub use spell::Spell;
 pub use umpire_dsl_macros::{Action, State, machine};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.

@@ -1,13 +1,14 @@
-use umpire_dsl::{Assumption, Hole, Machine, Progress, Scope, Spell, Steps, Verdict};
+use umpire_dsl::{Assumption, Hole, Machine, Progress, Scope, Steps, Verdict};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct State(pub u8);
 
-impl Spell for State {
-    fn spell(&self, out: &mut String) {
-        out.push_str("State { 0: ");
-        self.0.spell(out);
-        out.push_str(" }");
+impl std::fmt::Display for State {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("State { 0: ")?;
+        write!(out, "{:?}", self.0)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
@@ -18,13 +19,14 @@ pub enum Action {
     Absent,
 }
 
-impl Spell for Action {
-    fn spell(&self, out: &mut String) {
-        out.push_str(match self {
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str(match self {
             Self::Advance => "Action::Advance",
             Self::Loop => "Action::Loop",
             Self::Absent => "Action::Absent",
-        });
+        })?;
+        Ok(())
     }
 }
 

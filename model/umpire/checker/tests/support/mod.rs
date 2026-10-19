@@ -1,13 +1,14 @@
-use umpire_dsl::{Claim, Hole, Machine, Spell, StepClaim, Steps, Verdict};
+use umpire_dsl::{Claim, Hole, Machine, StepClaim, Steps, Verdict};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub(crate) struct Value(u8);
 
-impl Spell for Value {
-    fn spell(&self, out: &mut String) {
-        out.push_str("Value { 0: ");
-        self.0.spell(out);
-        out.push_str(" }");
+impl std::fmt::Display for Value {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str("Value { 0: ")?;
+        write!(out, "{:?}", self.0)?;
+        out.write_str(" }")?;
+        Ok(())
     }
 }
 
@@ -19,14 +20,15 @@ pub(crate) enum Action {
     Unused,
 }
 
-impl Spell for Action {
-    fn spell(&self, out: &mut String) {
-        out.push_str(match self {
+impl std::fmt::Display for Action {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        out.write_str(match self {
             Self::Advance => "Action::Advance",
             Self::Reset => "Action::Reset",
             Self::Idle => "Action::Idle",
             Self::Unused => "Action::Unused",
-        });
+        })?;
+        Ok(())
     }
 }
 

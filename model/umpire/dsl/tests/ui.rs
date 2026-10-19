@@ -1,7 +1,7 @@
-//! Machine states and actions must provide their canonical spelling.
+//! Machine states and actions must implement Display.
 
 #[test]
-fn missing_spell() {
+fn missing_display() {
     let tests = trybuild::TestCases::new();
-    tests.compile_fail("tests/ui/missing_spell_*.rs");
+    tests.compile_fail("tests/ui/missing_display_*.rs");
 }
