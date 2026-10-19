@@ -886,6 +886,33 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-temporal"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "umpire-dsl",
+ "umpire-temporal-api",
+ "umpire-wasm",
+]
+
+[[package]]
+name = "umpire-temporal-api"
+version = "0.0.1"
+dependencies = [
+ "prost",
+ "prost-build",
+ "umpire-wasm",
+]
+
+[[package]]
+name = "umpire-temporal-guest"
+version = "0.0.1"
+dependencies = [
+ "umpire-temporal",
+ "umpire-wasm",
+]
+
+[[package]]
 name = "umpire-temporal-tests"
 version = "0.0.1"
 dependencies = [

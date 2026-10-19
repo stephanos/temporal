@@ -1,0 +1,20 @@
+syntax = "proto3";
+
+package umpire.temporal.v1;
+
+option go_package = "umpire.local/temporal/umpire/temporal/v1";
+
+import "google/protobuf/any.proto";
+
+message Observation {
+  string method = 1;
+  google.protobuf.Any response = 2;
+}
+
+message Callback {
+  google.protobuf.Any task = 1;
+}
+
+message Reply {
+  google.protobuf.Any request = 1;
+}

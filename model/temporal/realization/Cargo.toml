@@ -1,0 +1,17 @@
+[package]
+name = "umpire-temporal"
+description = "Mini activity realization over the upstream Temporal API"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+umpire-dsl.workspace = true
+umpire-wasm.workspace = true
+umpire-temporal-api.workspace = true
+prost.workspace = true
+
+[lints]
+workspace = true

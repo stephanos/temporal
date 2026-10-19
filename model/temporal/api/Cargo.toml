@@ -1,0 +1,18 @@
+[package]
+name = "umpire-temporal-api"
+description = "Generated Temporal API closure and Umpire envelopes"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[dependencies]
+umpire-wasm.workspace = true
+prost.workspace = true
+
+[build-dependencies]
+prost-build.workspace = true
+
+[lints]
+workspace = true
