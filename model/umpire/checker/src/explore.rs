@@ -64,6 +64,9 @@ pub struct Result<M: Machine> {
 }
 
 impl Checker {
+    /// The default state budget, about a million states.
+    pub const BUDGET: usize = 1 << 20;
+
     /// Explores ordered starts with a shared visited set and FIFO action/choice expansion.
     ///
     /// The budget limits admitted states, not edge evaluations; zero is refused.
@@ -82,7 +85,7 @@ impl Checker {
         let mut invariants = world.invariants();
         let supplemental = invariants.len();
         invariants.push(claim);
-        Self::explore_claims(world, 1 << 20, &invariants, Some(supplemental))
+        Self::explore_claims(world, Self::BUDGET, &invariants, Some(supplemental))
     }
 
     fn explore_claims<M: Machine>(
@@ -317,6 +320,18 @@ impl<M: Machine> Result<M> {
             return Err(Refusal::State { given: state.0 });
         }
         Ok(self.transitions.iter().filter(move |edge| edge.source == state))
+    }
+
+    /// The path by which exploration first reached an admitted state; no admitted path to it is
+    /// shorter.
+    pub fn path_to(
+        &self,
+        state: StateId,
+    ) -> std::result::Result<Path<M::State, M::Action>, Refusal> {
+        if self.visited.get(state).is_none() {
+            return Err(Refusal::State { given: state.0 });
+        }
+        Ok(self.path(state))
     }
 
     /// Returns claim results and diagnostics without re-running model code.

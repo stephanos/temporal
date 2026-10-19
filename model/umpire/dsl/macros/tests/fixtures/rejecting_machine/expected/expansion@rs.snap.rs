@@ -153,4 +153,10 @@ pub mod counter {
             ::std::vec!["correct_outcome", "rejected_not_found"]
         }
     }
+    impl ::umpire_dsl::Registered for Model {
+        type World = World;
+        fn world() -> World {
+            World
+        }
+    }
 }

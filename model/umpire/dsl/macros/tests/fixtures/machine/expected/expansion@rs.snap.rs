@@ -472,4 +472,10 @@ mod counter {
             ::std::vec!["bounded", "reset_clears", "grows_at_most_one", "reaches_two"]
         }
     }
+    impl ::umpire_dsl::Registered for Counter {
+        type World = World;
+        fn world() -> World {
+            World
+        }
+    }
 }

@@ -956,6 +956,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-suite"
+version = "0.0.1"
+dependencies = [
+ "thiserror",
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-testing",
+]
+
+[[package]]
 name = "umpire-temporal"
 version = "0.0.1"
 dependencies = [

@@ -1,0 +1,2 @@
+every line true: passed
+second line false: expected `k.temperature == 100` at Model { temperature: 20, heating_on: true, beeping: false }

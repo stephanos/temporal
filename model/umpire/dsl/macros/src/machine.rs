@@ -814,6 +814,11 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
             fn assumptions(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Assumption<Self::Action>)> { ::std::vec![#(#assumption_tokens),*] }
             fn claim_order(&self) -> ::std::vec::Vec<&'static str> { ::std::vec![#(#order),*] }
         }
+
+        impl ::umpire_dsl::Registered for #state {
+            type World = World;
+            fn world() -> World { World }
+        }
     };
     items.extend(syn::parse2::<syn::File>(generated)?.items);
     Ok(quote!(#input))

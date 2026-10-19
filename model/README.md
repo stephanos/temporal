@@ -238,6 +238,16 @@ the Go host's expected payloads. DSL formatting fixtures remain with the DSL.
 The historical authoring sketches have been retired after preserving their comparison in
 [DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
+`umpire-suite` at `umpire/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
+an authored path: `Run::from(state)`, `.step(action)`, `.repeat(n, action)` and `.state()` replay it
+through `Machine::checked_step`, and `Run::along(path![state, .., |s| ..])` fills in the gaps with
+the shortest leg to each next waypoint, then replays it. A disabled action, one emitting several
+steps, an unbridgeable gap and a predicate as the first waypoint are `Refusal`s naming the action
+or waypoint and spelling the state. `expect! { s = run.state(); a; b; }` fails the test at the
+first false line with its source text and the state. A run starts from a state alone because
+`#[machine]` registers the state with its world (`Registered`); a manual Model implements that
+trait by hand. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
+
 `umpire-testing` is a development-only dependency. It owns rendering, comparison, snapshot
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must

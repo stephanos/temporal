@@ -12,7 +12,7 @@ mod progress;
 mod scope;
 
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
-pub use machine::{Machine, Step, StepError, Steps};
+pub use machine::{Machine, Registered, Step, StepError, Steps};
 pub use outcome::{Outcome, Rejection};
 #[doc(hidden)]
 pub use path::kind as waypoint_kind;

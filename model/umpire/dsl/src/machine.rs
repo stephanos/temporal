@@ -79,6 +79,15 @@ pub trait Machine: Sized {
     }
 }
 
+/// A state whose machine has no constants, as `#[machine]` registers it, so a test can start
+/// from a state alone.
+pub trait Registered: Clone + Eq + Hash + Display {
+    /// The machine this state belongs to.
+    type World: Machine<State = Self>;
+    /// Builds that machine.
+    fn world() -> Self::World;
+}
+
 /// An emitted edge `(outcome, facts, next)`, including an edge with a rejecting outcome.
 pub type Step<S, O, F> = (O, Vec<F>, S);
 
