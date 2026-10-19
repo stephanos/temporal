@@ -21,10 +21,11 @@ impl<'ast> syn::visit::Visit<'ast> for WithinAttribute<'ast> {
 
 fn rejects(tokens: TokenStream) -> bool {
     let tokens: Vec<_> = tokens.into_iter().collect();
-    tokens.windows(2).any(|pair| {
+    tokens.windows(3).any(|pair| {
         matches!(pair,
-            [proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Punct(mark)]
+            [proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Punct(mark), proc_macro2::TokenTree::Group(group)]
                 if name == "reject" && mark.as_char() == '!'
+                    && group.delimiter() != proc_macro2::Delimiter::None
         )
     }) || tokens.into_iter().any(|token| match token {
         proc_macro2::TokenTree::Group(group) => rejects(group.stream()),

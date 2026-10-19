@@ -116,3 +116,43 @@ fn a_literal_rejection_inside_a_helper_macro_selects_step_outcomes() {
     assert_eq!(steps[0].0, Outcome::Rejected(Rejection::PermissionDenied));
     assert_eq!(steps[0].2, *state);
 }
+
+#[umpire_dsl::machine]
+mod comparison {
+    use umpire_dsl::{Action, State};
+
+    #[derive(State)]
+    pub(crate) struct Model {
+        reject: u8,
+    }
+
+    #[derive(Action, Copy)]
+    pub(crate) enum User {
+        Apply,
+    }
+
+    impl Model {
+        #[on(User)]
+        fn user(&mut self, _: User) {
+            if self.reject != 1 {
+                self.reject = 1;
+            }
+        }
+    }
+}
+
+#[test]
+fn a_field_comparison_named_reject_keeps_unit_outcomes() {
+    use umpire_dsl::Machine;
+
+    fn unit_outcomes<M: Machine<Outcome = ()>>(_: &M) {}
+
+    let world = comparison::world();
+    unit_outcomes(&world);
+    let state = &world.starts()[0];
+    let steps = world
+        .checked_step(state, world.actions()[0].clone())
+        .unwrap_or_else(|error| panic!("unexpected Model error: {error}"));
+    assert_eq!(steps.len(), 1);
+    assert_ne!(steps[0].2, *state);
+}
