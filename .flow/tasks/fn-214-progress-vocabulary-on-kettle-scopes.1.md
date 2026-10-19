@@ -46,9 +46,32 @@ Timing uses the owner's 10 s inner / 30 s full soft targets; investigate materia
 - [ ] The canonical `sample_kettle` and `sample_kettle_trait` sources and all their existing snapshot metadata/payloads match the task baseline byte-for-byte. Legacy `Scope::without` and `Progress::within(scope)` still compile unchanged.
 - [ ] Focused tests, `make model-check` and the recorded `make model-time` pass; macro refusal/expansion updates are scoped to the added API and semantics.
 ## Done summary
-TBD
+Model authors can compose `only`, `without` and explicit `fair` assumptions over actor actions while retaining `Scope::without(&[])` and registered `Progress::within(scope)`. The checker validates available action lists before search, preserves reached-state evaluation and zero-start vacuity, and treats internal actions as environment-independent without implicit fairness.
 
+R1 coverage lives in the DSL `assumptions` fixture, checker `progress_explicit_fairness` and `progress_assumption_validation` fixtures, the fixed-evaluation controls and the independent brute-force oracle. They pin replacement, stable deduplication, admission order, unknown actions in every list including nonadmitted fair entries, explicit empty restrictions, disabled-action and empty-catalog deadlocks, and generated callback counts. The WASM dispatch test pins empty admission as code 7 with its distinct diagnostic through generated protobuf encoding and decoding.
+
+Both canonical Kettle directories match base a37fe4a667ea140800689e82a2edfb52ee481298 byte-for-byte. Verification compared the complete filesystem path inventory and every file's Git blob hash, covering sources, snapshot metadata and payloads. Macro snapshot changes cover helper expansion, internal documentation and the compiler's `model::without` qualification.
+
+baseline: green after a clean focused suite, `make model-check` and `make model-time`. The first model-check attempt exited 2 while an oracle child edit raced the baseline format check; restoring that exact edit established the clean baseline. The contaminated observation remains in `.flow/tmp/fn214-1-baseline-model-check.log`; the clean gate log is `.flow/tmp/fn214-1-baseline-model-check-clean.log`.
+
+RED evidence is recorded in `.flow/tmp/fn214-1-red-api.log`, `fn214-1-red-semantics.log`, `fn214-1-red-implicit-fairness.log` and `fn214-1-red-wasm-refusal.log`. The semantic negative control observed implicit fairness incorrectly verify `internal_is_not_fair`. The full-gate WASM compile failure remains in `.flow/tmp/fn214-1-model-check-pre-wasm.log`.
+
+The focused suite, WASM dispatch suite and full model gate passed. Post-change timing passed at 2.679 s inner and 3.661 s full against the 10 s / 30 s soft targets. Logs are `.flow/tmp/fn214-1-focused.log`, `fn214-1-wasm-dispatch.log`, `fn214-1-model-check.log` and `fn214-1-model-time.log`. Final native/WASI clippy, formatting and denied-warning documentation checks passed in `fn214-1-final-hygiene.log`.
+
+GATE_SKIPPED:unittest:green-receipt 79b05c24 - baseline reused from prior post-gate pass
+GATE_SKIPPED:model-check:green-receipt 79b05c24 - baseline reused from prior post-gate pass
+GATE_SKIPPED:model-time:green-receipt 79b05c24 - baseline reused from prior post-gate pass
+
+stage: impl-review - ran [2026-10-19T16:04:19Z..2026-10-19T16:06:19Z] (codex:gpt-6.1-sol:high, SHIP on all three axes, zero findings)
+
+Review receipt: `/tmp/impl-review-receipt-8f37faba39e2-fn-214-progress-vocabulary-on-kettle-scopes.1.json`. The reviewer and writer use the same model family under explicit project routing. Reviewers' read-only Cargo lock failures limited their checks to static inspection; the worker's actual gates passed. A transient abandoned fanout journal was superseded by the original foreground command's successful completion and finalization, without a retry or counter reset. Clean first-pass review required no memory capture.
+
+Tier: session (jev-unavailable(no_key)); explicitprojectroutingpreserved
+
+Two bounded subagents updated the oracle and authored the admission fixture. Both returned before staging and verification. The authoring route now accepts `only([...]).without([...]).fair([...])` inside generated machine modules. No follow-up work is required for R1.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 79b05c248963a85e098483d9ff20141b5e35994f
+- Tests: mise exec -- cargo test -p umpire-dsl -p umpire-dsl-macros -p umpire-checker -p umpire-tests, mise exec -- cargo test -p umpire-wasm --test dispatch, make model-check, make model-time, mise exec -- cargo fmt --all --check, mise exec -- cargo clippy --workspace --all-targets --all-features -- -D warnings, RUSTDOCFLAGS="-D warnings" mise exec -- cargo doc --workspace --no-deps --quiet, mise exec -- cargo clippy --target wasm32-wasip1 -p umpire-dsl -p umpire-checker --lib --locked -- -D warnings, GATE_SKIPPED:unittest:green-receipt 79b05c24 - baseline reused from prior post-gate pass, GATE_SKIPPED:model-check:green-receipt 79b05c24 - baseline reused from prior post-gate pass, GATE_SKIPPED:model-time:green-receipt 79b05c24 - baseline reused from prior post-gate pass
 - PRs:
