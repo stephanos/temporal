@@ -162,8 +162,9 @@ that made the trigger true is not counted. The list reads the same everywhere; t
 asked with it decides what it promises:
 
 - In a `#[progress]` claim, `..` means on every admitted path: whenever the first waypoint
-  holds, every path the assumption admits reaches the second. A claim has exactly two waypoints;
-  a longer chain is refused.
+  holds, every path the assumption admits reaches the second. A claim has exactly two waypoints:
+  `#[machine]` refuses a literal `path!` chain at compile time, and a chain built elsewhere
+  panics when the claim is evaluated, so the check reports that claim Refuted.
 - In a search for an example or witness (`find`, `Run::along`, arriving with fn-213), `..` means
   some path: the checker takes the shortest leg from each reached waypoint to the next, which
   need not be the shortest path through all waypoints at once.

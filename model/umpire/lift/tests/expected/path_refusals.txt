@@ -1,0 +1,3 @@
+path.rs:103:13: warning: a path! claim takes only .assuming(..); TLA+ emission refused
+path.rs:103:13: warning: a progress claim has one trigger and one target; ask a longer progression with find or Run::along; TLA+ emission refused
+path.rs:103:36: warning: a path gap is .. or ..=n; TLA+ emission refused

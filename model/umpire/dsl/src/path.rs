@@ -175,11 +175,18 @@ macro_rules! __path {
     (@waypoint [$($acc:tt)*]) => {
         ::core::compile_error!("a path ends with a waypoint, not a gap: write [p, .., q]")
     };
-    (@waypoint [$($acc:tt)*] $($move:ident)? | $arg:ident $(: $ty:ty)? | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] ($($move)? | $arg $(: $ty)? | $body) $($($rest)*)?)
+    // `move` is matched as the keyword: an identifier would read `a | b | c` as a closure.
+    (@waypoint [$($acc:tt)*] move | $arg:ident $(: $ty:ty)? | $body:expr $(, $($rest:tt)*)?) => {
+        $crate::__path!(@judged [$($acc)*] (move | $arg $(: $ty)? | $body) $($($rest)*)?)
     };
-    (@waypoint [$($acc:tt)*] $($move:ident)? | $arg:pat_param | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] ($($move)? | $arg | $body) $($($rest)*)?)
+    (@waypoint [$($acc:tt)*] move | $arg:pat_param | $body:expr $(, $($rest:tt)*)?) => {
+        $crate::__path!(@judged [$($acc)*] (move | $arg | $body) $($($rest)*)?)
+    };
+    (@waypoint [$($acc:tt)*] | $arg:ident $(: $ty:ty)? | $body:expr $(, $($rest:tt)*)?) => {
+        $crate::__path!(@judged [$($acc)*] (| $arg $(: $ty)? | $body) $($($rest)*)?)
+    };
+    (@waypoint [$($acc:tt)*] | $arg:pat_param | $body:expr $(, $($rest:tt)*)?) => {
+        $crate::__path!(@judged [$($acc)*] (| $arg | $body) $($($rest)*)?)
     };
     (@waypoint [] $waypoint:expr $(, $($rest:tt)*)?) => {
         $crate::__path!(@gap [first { $crate::IntoWaypoint::into_waypoint($waypoint) }] $($($rest)*)?)
@@ -207,6 +214,6 @@ macro_rules! __path {
         $crate::__path!(@waypoint [$kind $built ($crate::Gap::AtMost($bound))] $($($rest)*)?)
     };
     (@gap [$($acc:tt)*] $($rest:tt)*) => {
-        ::core::compile_error!("write [p, ..=1, q] for the next step, or [p, .., q]")
+        ::core::compile_error!("write [p, ..=1, q] for at most one step, or [p, .., q]")
     };
 }

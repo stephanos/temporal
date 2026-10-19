@@ -237,3 +237,20 @@ fn inherent_enum_into_is_resolved_before_primitive_conversion()
     assert!(module.tla.contains("mode' = \"Mode::On\""));
     Ok(())
 }
+
+#[test]
+fn path_claims_refuse_builders_chains_and_other_gaps() -> Result<(), Box<dyn std::error::Error>> {
+    let mut refusals = Vec::new();
+    for replacement in [
+        "path![self.heating_on, .., self.beeping].within(3)",
+        "path![self.heating_on, .., self.heating_on, .., self.beeping]",
+        "path![self.heating_on, 1..3, self.beeping]",
+    ] {
+        let source = KETTLE.replace("path![self.heating_on, .., self.beeping]", replacement);
+        let error =
+            Lift::parse("path.rs", &source).err().ok_or("malformed path claim was admitted")?;
+        refusals.push(format!("{error}\n"));
+    }
+    assert_eq!(refusals.concat(), include_str!("expected/path_refusals.txt"));
+    Ok(())
+}

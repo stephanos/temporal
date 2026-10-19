@@ -1,5 +1,6 @@
 judged against: [Kettle { temperature: 20, beeping: false }, Kettle { temperature: 60, beeping: false }, Kettle { temperature: 100, beeping: true }]
 bools: 2 waypoints; yyy .. nnn
+bool or: 2 waypoints; yyy .. yyy
 closures: 2 waypoints; ynn ..=1 nny
 inferred closure: 2 waypoints; ynn .. nyy
 destructured closure: 2 waypoints; nny .. yyn

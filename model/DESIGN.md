@@ -278,7 +278,8 @@ state, or states) with a gap between each pair: `..` for any number of steps, `.
 most `n`. The pattern says nothing about whether it holds on every path or on some path; the
 question asked with it does (see the reading rules in [README.md](README.md)). A claim takes
 exactly two waypoints: `#[machine]` refuses a literal `path!` chain at compile time and
-`Path::claim` refuses one built elsewhere, because the universal reading of a chain is
+`Path::claim` panics on one built elsewhere when the claim is evaluated, which the checker
+reports as that claim Refuted (pinned by the `progress_chain_path` checker fixture), because the universal reading of a chain is
 ambiguous and no surveyed claim needed one. Adjacent waypoints without a gap are refused
 rather than read as "next step"; `..=1` says that. The ceiling is concatenation and bounded
 wildcards; alternation of sub-sequences, repetition and negation are not part of the pattern.

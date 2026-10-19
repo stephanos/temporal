@@ -32,6 +32,8 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let mut output = String::new();
     writeln!(output, "judged against: {states:?}")?;
     render(&mut output, "bools", &path![true, .., false], &states)?;
+    let (warm, boiling, beeping) = (false, true, false);
+    render(&mut output, "bool or", &path![warm | boiling | beeping, .., true], &states)?;
     render(&mut output, "closures", &path![|k: &Kettle| k.temperature < 50, ..=1, move |k: &Kettle| k.beeping], &states)?;
     render(&mut output, "inferred closure", &path![cold.clone(), .., |k| k.temperature >= 60], &states)?;
     render(&mut output, "destructured closure", &path![boiled.clone(), .., |&Kettle { beeping, .. }| !beeping], &states)?;
