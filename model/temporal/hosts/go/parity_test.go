@@ -65,14 +65,24 @@ func TestCancelSuccessAndRejectedSelfLoop(t *testing.T) {
 }
 
 func TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses(t *testing.T) {
-	for _, code := range []int32{5, 6, 9, 3, 7, 14, 999} {
-		h := guest(t)
-		unexplained(t, judge(t, h, cancelObservation(t, code)), "Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart")
-		unexplained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart")
-		_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
-		refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
-		reset(t, h)
-		explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
+	for _, closed := range []bool{false, true} {
+		for _, code := range []int32{5, 6, 9, 3, 7, 14, 999} {
+			if closed && code == 5 {
+				continue
+			}
+			h := guest(t)
+			expected := []string{"Client::Cancel", "Worker::Poll", "Deadline::ScheduleToStart"}
+			if closed {
+				explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
+				expected = []string{"Client::Cancel"}
+			}
+			unexplained(t, judge(t, h, cancelObservation(t, code)), expected...)
+			unexplained(t, judge(t, h, cancelObservation(t, 0)), expected...)
+			_, err := h.Answer(context.Background(), &modelv1.AnswerRequest{Callback: callback(t, "Complete")})
+			refusal(t, err, modelv1.RefusalCode_REFUSAL_CODE_STATE)
+			reset(t, h)
+			explained(t, judge(t, h, cancelObservation(t, 0)), "Client::Cancel")
+		}
 	}
 	for _, tc := range []struct {
 		value *temporalv1.Observation

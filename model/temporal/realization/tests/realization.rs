@@ -195,10 +195,16 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
 
 #[test]
 fn contradictory_and_unknown_cancel_statuses_freeze_the_current_expected_actions() {
-    for delivered in [false, true] {
+    for phase in [activity::Phase::Scheduled, activity::Phase::Started, activity::Phase::Canceled] {
         for code in [5, 6, 9, 3, 7, 14, 0, 999] {
+            if phase == activity::Phase::Canceled && code == 5 {
+                continue;
+            }
             let mut guest = Guest::new(runtime());
-            let expected = if delivered {
+            let expected = if phase == activity::Phase::Canceled {
+                explained(judge(&mut guest, cancel(None)), &["Client::Cancel"]);
+                vec!["Client::Cancel"]
+            } else if phase == activity::Phase::Started {
                 answer(&mut guest, callback(b"Complete"));
                 vec![
                     "Client::Cancel",
