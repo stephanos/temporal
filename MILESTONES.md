@@ -54,8 +54,8 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 | Name | Status | What |
 | --- | --- | --- |
 | fn-216.1 | ✅ done | Independent six-phase Model and goldens; exhaustive terminal-closure controls (R1) |
-| fn-216.2 | 🔄 in progress | After .1: rename core to `umpire.model.v1`, pin old wire bytes, add Any messages and generic Go encoding (R2) |
-| fn-216.5 | ⬜ todo | After .2: reusable stateful realization core and ABI library; reset, judgment and answer controls (R2) |
+| fn-216.2 | ✅ done | After .1: rename core to `umpire.model.v1`, pin old wire bytes, add Any messages and generic Go encoding (R2) |
+| fn-216.5 | 🔄 in progress | After .2: reusable stateful realization core and ABI library; reset, judgment and answer controls (R2) |
 | fn-216.6 | ⬜ todo | After .1 and .5: three Temporal envelopes, real descriptor generation, realization and guest (R1, R2) |
 | fn-216.3 | ⬜ todo | After .6: real SDK/in-process server test in `tests/`; Model answers, every observation judged (R3) |
 | fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs and complete integration evidence (R4, R5) |
