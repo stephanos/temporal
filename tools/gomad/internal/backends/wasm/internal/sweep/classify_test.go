@@ -4,6 +4,8 @@ import (
 	"encoding/json"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 )
 
 func events(t *testing.T, values ...Event) []byte {
@@ -35,7 +37,7 @@ func TestClassifyFixtureObservations(t *testing.T) {
 	errorEvent := func(classification, message string) Event {
 		return Event{Type: "error", Classification: classification, Message: message}
 	}
-	for _, fixture := range []struct {
+	fixtures := []struct {
 		name        string
 		exit        int
 		execError   string
@@ -61,22 +63,22 @@ func TestClassifyFixtureObservations(t *testing.T) {
 			facts: &ArtifactFacts{Stdout: []byte("=== RUN"), StdoutTruncated: true}, class: ClassInfrastructure, reason: "stdout truncated"},
 		{name: "success-without-artifact", stdout: events(t, result("success")), class: ClassInfrastructure, reason: "unverifiable"},
 		{name: "guest-panic", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "panic_or_runtime_fatal", Termination: "exit", ExitCode: exitCode(2), Stderr: []byte("panic: listen tcp 127.0.0.1:43123: bind: address in use\n\ngoroutine 7 [running]:\n")},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "panic_or_runtime_fatal", Termination: "exit", ExitCode: exitCode(2), Stderr: []byte("panic: listen tcp 127.0.0.1:43123: bind: address in use\n\ngoroutine 7 [running]:\n")},
 			class: ClassGuestFailure, reason: "panic_or_runtime_fatal: panic: listen tcp N.N:N: bind: address in use"},
 		{name: "guest-testify", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "nonzero_exit", ExitCode: exitCode(1), Stdout: []byte("    --- FAIL: TestFrontendSystemInfo/TestX (2.00s)\n        Error Trace:\t/src/tests/x_test.go:42\n        Error:      \tReceived unexpected error:\n--- FAIL: TestFrontendSystemInfo (3.00s)\nFAIL\n")},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "nonzero_exit", ExitCode: exitCode(1), Stdout: []byte("    --- FAIL: TestFrontendSystemInfo/TestX (2.00s)\n        Error Trace:\t/src/tests/x_test.go:42\n        Error:      \tReceived unexpected error:\n--- FAIL: TestFrontendSystemInfo (3.00s)\nFAIL\n")},
 			class: ClassGuestFailure, reason: "exit N: Received unexpected error:", subtestFail: 1},
 		{name: "guest-fail-line", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "nonzero_exit", ExitCode: exitCode(1), Stdout: []byte("    --- FAIL: TestFrontendSystemInfo/TestY (0.10s)\n--- FAIL: TestFrontendSystemInfo (0.20s)\n")},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "nonzero_exit", ExitCode: exitCode(1), Stdout: []byte("    --- FAIL: TestFrontendSystemInfo/TestY (0.10s)\n--- FAIL: TestFrontendSystemInfo (0.20s)\n")},
 			class: ClassGuestFailure, reason: "--- FAIL: TestFrontendSystemInfo/TestY", subtestFail: 1},
 		{name: "soft-assertion", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "soft_assertion", ExitCode: exitCode(0)}, class: ClassGuestFailure, reason: "soft_assertion"},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "soft_assertion", ExitCode: exitCode(0)}, class: ClassGuestFailure, reason: "soft_assertion"},
 		{name: "world-capacity", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "world_capacity"}, class: ClassCapacityExceeded, reason: "world capacity"},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "world_capacity"}, class: ClassCapacityExceeded, reason: "world capacity"},
 		{name: "world-replay-divergence", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
-			facts: &ArtifactFacts{Kind: "target_failure", Reason: "world_replay_divergence"}, class: ClassReplayDivergence, reason: "world replay divergence"},
+			facts: &ArtifactFacts{Kind: record.ArtifactTargetFailure, Reason: "world_replay_divergence"}, class: ClassReplayDivergence, reason: "world replay divergence"},
 		{name: "watchdog", exit: 1, stdout: events(t, Event{Type: "result", Classification: "watchdog_observation", Failures: 1, Watchdogs: 1}, artifactEvent("watchdog_observation")),
-			facts: &ArtifactFacts{Kind: "watchdog_timeout", Termination: "timeout"}, class: ClassTimeout, reason: "execution-timeout"},
+			facts: &ArtifactFacts{Kind: record.ArtifactWatchdogTimeout, Termination: "timeout"}, class: ClassTimeout, reason: "execution-timeout"},
 		{name: "replay-divergence-result", exit: 1, stdout: events(t, Event{Type: "result", Classification: "replay_divergence", ReplayDivergences: 1}, artifactEvent("replay_divergence")),
 			facts: &ArtifactFacts{Reason: "replay_mismatch"}, class: ClassReplayDivergence, reason: "diverged"},
 		{name: "backend-divergence", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: target_supervision: backend divergence: choice tape exhausted at ordinal 1234")),
@@ -85,8 +87,6 @@ func TestClassifyFixtureObservations(t *testing.T) {
 			class: ClassRefusedImport, reason: "execute: sock_accept: socket accept is not modeled"},
 		{name: "refused-import-prepare", exit: 2, stdout: events(t, errorEvent("unsupported_target", "target requires os/exec capability")),
 			class: ClassRefusedImport, reason: "prepare: target requires os/exec capability"},
-		{name: "refused-import-prepare-invalid-input", exit: 2, stdout: events(t, errorEvent("invalid_input", "WASM module has unsupported import env.foo")),
-			class: ClassRefusedImport, reason: "prepare: WASM module has unsupported import env.foo"},
 		{name: "capacity-backend", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: target_supervision: backend capacity: fuel exhausted after 1125899906842624 units")),
 			class: ClassCapacityExceeded, reason: "fuel exhausted after N units"},
 		{name: "capacity-choice-trace", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: choice_trace_overflow: trace exceeds 67108864 bytes")),
@@ -97,8 +97,10 @@ func TestClassifyFixtureObservations(t *testing.T) {
 			class: ClassGuestFailure, reason: "trap: wasm trap: out of bounds memory access"},
 		{name: "overall-timeout", exit: 3, stdout: events(t, errorEvent("overall_timeout", "gomad Runner/host failure: overall_timeout: context deadline exceeded")),
 			class: ClassTimeout, reason: "overall-timeout"},
-		{name: "build-failure", exit: 2, stdout: events(t, errorEvent("invalid_input", "WASM compiler command failed: # go.temporal.io/server/tests/mixedbrain\n/abs/checkout/tests/mixedbrain/build_util.go:17:2: undefined: exec.LookPath\n")),
+		{name: "build-failure", exit: 2, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: target_preparation: WASM compiler command failed: # go.temporal.io/server/tests/mixedbrain\n/abs/checkout/tests/mixedbrain/build_util.go:17:2: undefined: exec.LookPath\n")),
 			class: ClassBuildFailure, reason: "build_util.go: undefined: exec.LookPath"},
+		{name: "compiler-killed-without-diagnostic", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: target_preparation: WASM compiler command failed: ")),
+			class: ClassInfrastructure, reason: "without a diagnostic"},
 		{name: "backend-infrastructure", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: target_supervision: backend infrastructure: helper exited")),
 			class: ClassInfrastructure, reason: "backend infrastructure: helper exited"},
 		{name: "runner-failure-other", exit: 3, stdout: events(t, errorEvent("runner_failure", "gomad Runner/host failure: runs_append: disk full")),
@@ -108,7 +110,19 @@ func TestClassifyFixtureObservations(t *testing.T) {
 		{name: "exec-error", exit: -1, execError: "signal: killed", class: ClassInfrastructure, reason: "gomad subprocess: signal: killed"},
 		{name: "unreadable-artifact", exit: 1, stdout: events(t, result("target_failure"), artifactEvent("target_failure")),
 			facts: &ArtifactFacts{ReadError: "artifact directory mode is 0755, want 0700"}, class: ClassGuestFailure, reason: "artifact unreadable"},
-	} {
+	}
+	// Every class except not-run (a sweep row state, covered by the sweep
+	// tests) must be produced by some fixture observation.
+	reached := map[Class]bool{ClassNotRun: true}
+	for _, fixture := range fixtures {
+		reached[fixture.class] = true
+	}
+	for _, class := range Classes {
+		if !reached[class] {
+			t.Errorf("no fixture observation classifies as %s", class)
+		}
+	}
+	for _, fixture := range fixtures {
 		t.Run(fixture.name, func(t *testing.T) {
 			t.Parallel()
 			observation := Observation{Test: test, Exit: fixture.exit, ExecError: fixture.execError, Stdout: fixture.stdout, Stderr: []byte(fixture.stderr), Artifacts: map[string]ArtifactFacts{}}
@@ -135,17 +149,16 @@ func TestClassifyFixtureObservations(t *testing.T) {
 	}
 }
 
-func TestEveryClassIsReachableAndListed(t *testing.T) {
+func TestClassesAreTheSpecClassesPlusNotRun(t *testing.T) {
 	t.Parallel()
-	if len(Classes) != 9 {
-		t.Fatalf("classes %v: want the seven spec classes, replay divergence and not-run", Classes)
+	want := []Class{ClassPass, ClassGuestFailure, ClassRefusedImport, ClassCapacityExceeded, ClassTimeout, ClassBuildFailure, ClassInfrastructure, ClassReplayDivergence, ClassNotRun}
+	if len(Classes) != len(want) {
+		t.Fatalf("classes %v, want %v", Classes, want)
 	}
-	seen := map[Class]bool{}
-	for _, class := range Classes {
-		if seen[class] {
-			t.Fatalf("duplicate class %s", class)
+	for index := range want {
+		if Classes[index] != want[index] {
+			t.Fatalf("classes %v, want %v", Classes, want)
 		}
-		seen[class] = true
 	}
 }
 

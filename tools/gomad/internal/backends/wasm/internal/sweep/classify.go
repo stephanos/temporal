@@ -9,6 +9,8 @@ import (
 	"regexp"
 	"strings"
 	"unicode/utf8"
+
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 )
 
 // Class is the single outcome class of one test function.
@@ -48,7 +50,8 @@ type Event struct {
 
 // ArtifactFacts is what the classifier needs from one retained artifact.
 type ArtifactFacts struct {
-	Kind            string // record artifact kind
+	Kind            string // record artifact kind (record.Artifact*)
+	ModuleSHA256    string // prepared guest module identity
 	Domain, Reason  string // record outcome domain and reason
 	Termination     string
 	ExitCode        *uint64
@@ -82,6 +85,7 @@ type Outcome struct {
 	Reason       string    `json:"reason,omitempty"`
 	Skipped      bool      `json:"skipped,omitempty"`
 	ArtifactPath string    `json:"-"`
+	ModuleSHA256 string    `json:"-"`
 	Subtests     *Subtests `json:"subtests,omitempty"`
 }
 
@@ -154,7 +158,7 @@ func classify(observation Observation) Outcome {
 		}
 	}
 	outcome := classifyResult(observation.Test, *result, facts, artifactPath != "")
-	outcome.ArtifactPath = artifactPath
+	outcome.ArtifactPath, outcome.ModuleSHA256 = artifactPath, facts.ModuleSHA256
 	if artifactPath != "" && facts.ReadError == "" {
 		outcome.Subtests = parseSubtests(observation.Test, facts.Stdout)
 	}
@@ -192,19 +196,14 @@ func classifyError(event Event) Outcome {
 		return Outcome{Class: ClassCapacityExceeded, Reason: "choice trace overflow"}
 	}
 	if index := strings.Index(message, "WASM compiler command failed:"); index >= 0 {
-		return Outcome{Class: ClassBuildFailure, Reason: compileReason(message[index+len("WASM compiler command failed:"):])}
-	}
-	if event.Classification == "invalid_input" && preparationRefusal(message) {
-		return Outcome{Class: ClassRefusedImport, Reason: "prepare: " + Normalize(firstLine([]byte(message)))}
+		if reason := compileReason(message[index+len("WASM compiler command failed:"):]); reason != "" {
+			return Outcome{Class: ClassBuildFailure, Reason: reason}
+		}
+		// The provider also reports its own 10-minute compiler kill this way,
+		// usually without a diagnostic; that is not a compile error.
+		return Outcome{Class: ClassInfrastructure, Reason: "compiler command failed without a diagnostic (provider compiler limit or host failure)"}
 	}
 	return Outcome{Class: ClassInfrastructure, Reason: event.Classification + ": " + Normalize(firstLine([]byte(message)))}
-}
-
-// preparationRefusal recognizes a guest the provider refused before
-// execution because of what it imports or links.
-func preparationRefusal(message string) bool {
-	lower := strings.ToLower(message)
-	return strings.Contains(lower, "unsupported import") || strings.Contains(lower, "refused import") || strings.Contains(lower, "unsupported capability") || strings.Contains(lower, "not supported by the wasm")
 }
 
 var compileLocation = regexp.MustCompile(`^(?:\S*/)?([^/\s]+\.(?:go|s)):\d+(?::\d+)?: (.*)$`)
@@ -223,7 +222,7 @@ func compileReason(output string) string {
 			return Normalize(line)
 		}
 	}
-	return "compiler failed without a diagnostic"
+	return ""
 }
 
 func classifyResult(test string, result Event, facts ArtifactFacts, haveArtifact bool) Outcome {
@@ -261,7 +260,7 @@ func classifyResult(test string, result Event, facts ArtifactFacts, haveArtifact
 		case "world_replay_divergence":
 			return Outcome{Class: ClassReplayDivergence, Reason: "world replay divergence"}
 		}
-		if facts.Kind == "watchdog_timeout" || facts.Termination == "timeout" {
+		if facts.Kind == record.ArtifactWatchdogTimeout || facts.Termination == "timeout" {
 			return Outcome{Class: ClassTimeout, Reason: "execution-timeout: watchdog stopped the guest"}
 		}
 		return Outcome{Class: ClassGuestFailure, Reason: guestFailureReason(test, facts)}

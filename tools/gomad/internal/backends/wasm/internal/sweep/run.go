@@ -4,26 +4,33 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/hex"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"io"
 	"io/fs"
 	"os"
 	"path/filepath"
+	"slices"
 	"strings"
 	"time"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 )
 
 // Explore inputs that are fixed for every row. Choice recording is required:
-// cooperative WASM execution refuses to run without it.
+// cooperative WASM execution refuses to run without it. For WASM the output
+// limit is the guest's hard combined-output capacity (wasi.Limits.OutputBytes),
+// so it matches the measure fixture's 256 MiB. The WASI transcript keeps
+// explore's 64 MiB default (--io-transcript-bytes is native-only); transcript
+// capacity rows are therefore bounded by this harness, not the guest.
 const (
 	exploreChoiceBytes  = "64MiB"
-	exploreOutputLimit  = "16MiB"
+	exploreOutputLimit  = "256MiB"
 	exploreSuccessBytes = "4GiB"
 	exploreGrace        = "2s"
 	subprocessSlack     = 5 * time.Minute
@@ -37,6 +44,9 @@ type Sweeper struct {
 	Now          func() time.Time
 	Log          io.Writer
 	Command      []string // recorded in the header
+	// HarnessSHA256 identifies the wasmsweep build; it is part of the
+	// candidate so a changed classifier or limit never resumes old rows.
+	HarnessSHA256 string
 }
 
 // Paths of the sweep's outputs under --out.
@@ -80,6 +90,8 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 		return nil, err
 	}
 	candidate, err := sweeper.baseCandidate(ctx, tags)
+	candidate.HarnessSHA256 = sweeper.HarnessSHA256
+	candidate.ExploreFlags = fixedExploreFlags()
 	if err != nil {
 		return nil, err
 	}
@@ -119,6 +131,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 	retention := newRetention(options.RetainBytes, latest)
 	for _, pkg := range packages {
 		dirs := dirsFor(options.Work, pkg.Pattern)
+		warmed := false
 		for index, name := range pkg.Tests {
 			if options.MaxTests != 0 && index >= options.MaxTests {
 				break
@@ -131,14 +144,30 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 			switch {
 			case pkg.GuestExcluded[name] != "":
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassBuildFailure, Reason: "guest-file-set: " + pkg.GuestExcluded[name] + " is excluded from the wasip1 guest build under the slim tags"}
-			case sweeper.Now().Sub(started)+options.PerTestTimeout+options.PrepareTimeout > options.OverallBudget:
+			case !sweeper.fits(started, 1):
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted before start"}
 			default:
-				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention)
+				if !warmed && sweeper.fits(started, 2) {
+					// The helper compiles the module (Cranelift) inside the
+					// execution timeout. One unrecorded run selecting no test
+					// fills this package's engine cache, so the first row's
+					// budget is not spent compiling.
+					warmup, err := sweeper.warm(ctx, pkg.Pattern, manifests[pkg.Pattern], dirs)
+					if err != nil {
+						return nil, err
+					}
+					if err := journal.Append(Row{Kind: "warmup", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &warmup}); err != nil {
+						return nil, err
+					}
+					fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded)
+				}
+				warmed = true
+				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention, started)
 				if err != nil {
 					return nil, err
 				}
 			}
+			entry.ConfigSource = options.ConfigSource
 			if err := journal.Append(Row{Kind: "test", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &entry}); err != nil {
 				return nil, err
 			}
@@ -166,27 +195,70 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 	return Verify(sidecar), nil
 }
 
-// ExploreArgs is the gomad command line for one test function.
-func ExploreArgs(manifest, artifacts string, options Options, pattern, test string) []string {
-	args := []string{"--installation", manifest, "explore", "--json",
-		fmt.Sprintf("--seeds=%d", options.Seed), "--parallel=1",
-		"--execution-timeout=" + options.PerTestTimeout.String(),
-		"--overall-timeout=" + (options.PerTestTimeout + options.PrepareTimeout).String(),
-		"--terminate-grace=" + exploreGrace,
-		"--choices", "--choice-bytes=" + exploreChoiceBytes,
-		"--output-limit=" + exploreOutputLimit,
-		"--keep-successes=all", "--success-limit=1", "--success-bytes=" + exploreSuccessBytes,
-		"--artifacts", artifacts, "--working-dir", options.Checkout}
+// fixedExploreFlags are the explore flags every row shares; they are part of
+// the candidate identity.
+func fixedExploreFlags() []string {
+	flags := []string{"--json", "--parallel=1", "--terminate-grace=" + exploreGrace,
+		"--choices", "--choice-bytes=" + exploreChoiceBytes, "--output-limit=" + exploreOutputLimit,
+		"--keep-successes=all", "--success-limit=1", "--success-bytes=" + exploreSuccessBytes}
 	for _, tag := range GuestTags() {
-		args = append(args, "--build-tag="+tag)
+		flags = append(flags, "--build-tag="+tag)
 	}
 	for _, env := range []string{"TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TEMPORAL_TEST_LOG_LEVEL=warn"} {
-		args = append(args, "--env="+env)
+		flags = append(flags, "--env="+env)
 	}
-	return append(args, "go-test", pattern, "--", "-test.run=^"+test+"$", "-test.v", "-test.count=1")
+	return flags
 }
 
-func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest string, dirs packageDirs, retention *retention) (TestEntry, error) {
+// ExploreArgs is the gomad command line for one test function.
+func ExploreArgs(manifest, artifacts string, options Options, pattern, test string) []string {
+	return exploreArgs(manifest, artifacts, options, pattern, "^"+test+"$", options.PerTestTimeout)
+}
+
+func exploreArgs(manifest, artifacts string, options Options, pattern, run string, executionTimeout time.Duration) []string {
+	args := []string{"--installation", manifest, "explore", fmt.Sprintf("--seeds=%d", options.Seed),
+		"--execution-timeout=" + executionTimeout.String(),
+		"--overall-timeout=" + (executionTimeout + options.PrepareTimeout).String(),
+		"--artifacts", artifacts, "--working-dir", options.Checkout}
+	args = append(args, fixedExploreFlags()...)
+	return append(args, "go-test", pattern, "--", "-test.run="+run, "-test.v", "-test.count=1")
+}
+
+// fits reports whether runs more per-test executions (each with its
+// preparation allowance) still fit the overall budget.
+func (sweeper *Sweeper) fits(started time.Time, runs int) bool {
+	options := sweeper.Options
+	return sweeper.Now().Sub(started)+time.Duration(runs)*(options.PerTestTimeout+options.PrepareTimeout) <= options.OverallBudget
+}
+
+// warm runs the package's guest once with a run expression that selects no
+// test, under the preparation allowance, and records only its costs.
+func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs packageDirs) (TestEntry, error) {
+	options := sweeper.Options
+	entry := TestEntry{Package: pattern, Name: "(warm-up)", Attempts: 1, ConfigSource: options.ConfigSource}
+	runRoot := filepath.Join(dirs.runs, "warm-up")
+	if err := resetDirectory(runRoot); err != nil {
+		return entry, err
+	}
+	_, before := treeSize(dirs.engine)
+	completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: exploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, "^$", options.PrepareTimeout), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: 2*options.PrepareTimeout + subprocessSlack})
+	if ctx.Err() != nil {
+		return entry, errors.Join(ctx.Err(), os.RemoveAll(runRoot))
+	}
+	entry.GomadExit, entry.WallSeconds = completed.Exit, completed.Elapsed.Seconds()
+	entry.PreparationBytes, _ = treeSize(dirs.preparation)
+	entry.ArtifactBytes, _ = treeSize(runRoot)
+	var after int
+	entry.EngineCacheBytes, after = treeSize(dirs.engine)
+	entry.EngineEntriesAdded = after - before
+	entry.Class, entry.Reason = ClassNotRun, "warm-up only; not a test row"
+	if completed.Err != nil {
+		entry.Reason += ": " + Normalize(completed.Err.Error())
+	}
+	return entry, errors.Join(os.RemoveAll(runRoot), resetDirectory(dirs.preparation))
+}
+
+func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
 	options := sweeper.Options
 	entry := TestEntry{Package: pattern, Name: name}
 	var runRoot string
@@ -201,6 +273,11 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 		}
 		_, entriesBefore := treeSize(dirs.engine)
 		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
+		if ctx.Err() != nil {
+			// An interrupted sweep records nothing for this function; a
+			// resumed sweep runs it again.
+			return entry, errors.Join(ctx.Err(), os.RemoveAll(runRoot))
+		}
 		observation := Observation{Test: name, Exit: completed.Exit, Stdout: completed.Stdout, Stderr: completed.Stderr, Artifacts: map[string]ArtifactFacts{}}
 		if completed.Err != nil {
 			observation.ExecError = completed.Err.Error()
@@ -220,7 +297,7 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 		entry.EngineCacheBytes, entriesAfter = treeSize(dirs.engine)
 		entry.EngineEntriesAdded = entriesAfter - entriesBefore
 		entry.EngineCacheHit = entriesBefore > 0 && entriesAfter == entriesBefore
-		if outcome.Class != ClassInfrastructure || attempt == 2 {
+		if outcome.Class != ClassInfrastructure || attempt == 2 || !sweeper.fits(started, 1) {
 			break
 		}
 		entry.FirstAttemptReason = outcome.Reason
@@ -228,7 +305,7 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			return entry, err
 		}
 	}
-	entry.Class, entry.Reason, entry.Skipped, entry.Subtests = outcome.Class, outcome.Reason, outcome.Skipped, outcome.Subtests
+	entry.Class, entry.Reason, entry.Skipped, entry.Subtests, entry.ModuleSHA256 = outcome.Class, outcome.Reason, outcome.Skipped, outcome.Subtests, outcome.ModuleSHA256
 	retained, note := retention.keep(entry, runRoot, filepath.Join(options.Artifacts, filepath.Base(dirs.root), name))
 	entry.ArtifactRetained, entry.RetentionNote = retained != "", note
 	if retained != "" && outcome.ArtifactPath != "" {
@@ -348,10 +425,30 @@ func fillFromManifest(candidate *Candidate, manifest installation.Manifest) {
 	engine := manifest.Options.Engine
 	candidate.Engine = strings.Join([]string{engine.Name, engine.Version, engine.Configuration, engine.HostOS, engine.HostArch}, "/")
 	candidate.Profile = manifest.Options.Config.Profile
+	candidate.MemoryBytes, candidate.Fuel = manifest.Options.MemoryBytes, manifest.Options.Fuel
+	candidate.GuestConfigSHA256 = packageIndependentConfigDigest(manifest.Options.Config)
 	if manifest.Options.HelperSHA256 != "" && strings.TrimPrefix(manifest.Options.HelperSHA256, "sha256:") != strings.TrimPrefix(candidate.HelperSHA256, "sha256:") {
 		candidate.HelperSHA256 = "mismatch:" + manifest.Options.HelperSHA256
 	}
 }
+
+// packageIndependentConfigDigest hashes the installed guest configuration
+// without the per-package working directory, so every package of one sweep
+// shares it.
+func packageIndependentConfigDigest(config wasi.Config) string {
+	config.WorkingDirectory = ""
+	config.Environment = slices.DeleteFunc(slices.Clone(config.Environment), func(entry string) bool { return strings.HasPrefix(entry, "PWD=") })
+	config.WritableDirectories = slices.DeleteFunc(slices.Clone(config.WritableDirectories), func(dir string) bool { return strings.HasPrefix(dir, "/workspace/") })
+	encoded, err := json.Marshal(config)
+	if err != nil {
+		return ""
+	}
+	sum := sha256.Sum256(encoded)
+	return "sha256:" + hex.EncodeToString(sum[:])
+}
+
+// FileSHA256 is the "sha256:<hex>" digest of a file.
+func FileSHA256(path string) (string, error) { return fileSHA256(path) }
 
 func fileSHA256(path string) (string, error) {
 	file, err := os.Open(path)
@@ -375,7 +472,7 @@ func ReadArtifact(path string) ArtifactFacts {
 	}
 	defer opened.Close()
 	manifest := opened.Manifest()
-	facts := ArtifactFacts{Kind: manifest.ArtifactKind, Domain: manifest.Outcome.Domain, Reason: manifest.Outcome.Reason, Termination: manifest.Outcome.Termination, StoredBytes: opened.StoredBytes()}
+	facts := ArtifactFacts{Kind: manifest.ArtifactKind, ModuleSHA256: string(manifest.Target.SHA256), Domain: manifest.Outcome.Domain, Reason: manifest.Outcome.Reason, Termination: manifest.Outcome.Termination, StoredBytes: opened.StoredBytes()}
 	if manifest.Outcome.ExitCode != nil {
 		code := uint64(*manifest.Outcome.ExitCode)
 		facts.ExitCode = &code

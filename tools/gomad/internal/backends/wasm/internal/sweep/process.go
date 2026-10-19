@@ -5,6 +5,7 @@ import (
 	"context"
 	"errors"
 	"os/exec"
+	"syscall"
 	"time"
 )
 
@@ -65,6 +66,10 @@ func (HostExecutor) Exec(ctx context.Context, command Command) Completed {
 	defer cancel()
 	process := exec.CommandContext(ctx, command.Path, command.Args...)
 	process.Dir, process.Env = command.Dir, command.Env
+	// gomad starts the Go compiler and the WASM helper; a timeout or an
+	// interrupted sweep must stop the whole group, not only gomad.
+	process.SysProcAttr = &syscall.SysProcAttr{Setpgid: true}
+	process.Cancel = func() error { return syscall.Kill(-process.Process.Pid, syscall.SIGKILL) }
 	process.WaitDelay = 30 * time.Second
 	stdout := &boundedBuffer{limit: maximumCapturedOutput}
 	stderr := &boundedBuffer{limit: maximumCapturedOutput}

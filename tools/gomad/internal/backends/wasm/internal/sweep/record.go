@@ -41,6 +41,11 @@ type Candidate struct {
 	Seed                        uint64       `json:"seed"`
 	PerTestTimeout              string       `json:"per_test_timeout"`
 	PrepareTimeout              string       `json:"prepare_timeout"`
+	HarnessSHA256               string       `json:"harness_sha256"`
+	ExploreFlags                []string     `json:"explore_flags"`
+	MemoryBytes                 uint64       `json:"memory_bytes"`
+	Fuel                        uint64       `json:"fuel"`
+	GuestConfigSHA256           string       `json:"guest_config_sha256"`
 }
 
 // Key is the SHA-256 of the candidate's canonical JSON.
@@ -56,7 +61,7 @@ func (candidate Candidate) missing() []string {
 		"gomad_sha256": candidate.GomadSHA256, "helper_sha256": candidate.HelperSHA256, "compiler_sha256": candidate.CompilerSHA256,
 		"go_version": candidate.GoVersion, "model_sha256": candidate.ModelSHA256, "runtime_implementation_sha256": candidate.RuntimeImplementationSHA256,
 		"engine": candidate.Engine, "profile": candidate.Profile, "git_sha": candidate.GitSHA, "config_source": string(candidate.ConfigSource),
-		"per_test_timeout": candidate.PerTestTimeout,
+		"per_test_timeout": candidate.PerTestTimeout, "harness_sha256": candidate.HarnessSHA256, "guest_config_sha256": candidate.GuestConfigSHA256,
 	} {
 		if value == "" {
 			missing = append(missing, name)
@@ -64,6 +69,12 @@ func (candidate Candidate) missing() []string {
 	}
 	if len(candidate.BuildTags) == 0 {
 		missing = append(missing, "build_tags")
+	}
+	if len(candidate.ExploreFlags) == 0 {
+		missing = append(missing, "explore_flags")
+	}
+	if candidate.MemoryBytes == 0 || candidate.Fuel == 0 {
+		missing = append(missing, "memory_bytes/fuel")
 	}
 	sort.Strings(missing)
 	return missing
@@ -122,24 +133,26 @@ type Header struct {
 
 // TestEntry is the outcome of one top-level test function.
 type TestEntry struct {
-	Package            string    `json:"package"`
-	Name               string    `json:"name"`
-	Class              Class     `json:"class"`
-	Reason             string    `json:"reason,omitempty"`
-	Skipped            bool      `json:"skipped,omitempty"`
-	Subtests           *Subtests `json:"subtests,omitempty"`
-	Attempts           int       `json:"attempts"`
-	FirstAttemptReason string    `json:"first_attempt_reason,omitempty"`
-	GomadExit          int       `json:"gomad_exit"`
-	WallSeconds        float64   `json:"wall_seconds"`
-	PreparationBytes   uint64    `json:"preparation_bytes"`
-	ArtifactBytes      uint64    `json:"artifact_bytes"`
-	EngineCacheBytes   uint64    `json:"engine_cache_bytes"`
-	EngineEntriesAdded int       `json:"engine_entries_added"`
-	EngineCacheHit     bool      `json:"engine_cache_hit"`
-	ArtifactRetained   bool      `json:"artifact_retained"`
-	ArtifactPath       string    `json:"artifact_path,omitempty"`
-	RetentionNote      string    `json:"retention_note,omitempty"`
+	Package            string       `json:"package"`
+	Name               string       `json:"name"`
+	ConfigSource       ConfigSource `json:"config_source,omitempty"`
+	ModuleSHA256       string       `json:"module_sha256,omitempty"`
+	Class              Class        `json:"class"`
+	Reason             string       `json:"reason,omitempty"`
+	Skipped            bool         `json:"skipped,omitempty"`
+	Subtests           *Subtests    `json:"subtests,omitempty"`
+	Attempts           int          `json:"attempts"`
+	FirstAttemptReason string       `json:"first_attempt_reason,omitempty"`
+	GomadExit          int          `json:"gomad_exit"`
+	WallSeconds        float64      `json:"wall_seconds"`
+	PreparationBytes   uint64       `json:"preparation_bytes"`
+	ArtifactBytes      uint64       `json:"artifact_bytes"`
+	EngineCacheBytes   uint64       `json:"engine_cache_bytes"`
+	EngineEntriesAdded int          `json:"engine_entries_added"`
+	EngineCacheHit     bool         `json:"engine_cache_hit"`
+	ArtifactRetained   bool         `json:"artifact_retained"`
+	ArtifactPath       string       `json:"artifact_path,omitempty"`
+	RetentionNote      string       `json:"retention_note,omitempty"`
 }
 
 // Journal is the append-only JSONL record of a sweep.

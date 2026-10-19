@@ -62,7 +62,8 @@ type packageDirs struct {
 }
 
 func dirsFor(work, pattern string) packageDirs {
-	slug := strings.NewReplacer("./", "", "/", "-").Replace(pattern)
+	sum := sha256.Sum256([]byte(pattern))
+	slug := strings.NewReplacer("./", "", "/", "-").Replace(pattern) + "-" + fmt.Sprintf("%x", sum[:4])
 	root := filepath.Join(work, "packages", slug)
 	return packageDirs{
 		root: root, install: filepath.Join(root, "install"), manifest: filepath.Join(root, "install", "gomad-wasm.json"),

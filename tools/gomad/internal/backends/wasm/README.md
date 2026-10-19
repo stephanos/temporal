@@ -160,8 +160,12 @@ once), replay divergence, or not-run (cut by the overall budget or
 variables and missing or unbounded budgets are refused. Each package gets its own
 installation: `--config-source=throwaway` writes a sweep-local `wasi.Config` with
 the measure-fixture parameters and runs `gomad install --config`, labelled
-`throwaway` in every row; `temporal-install` uses fn-220's
-`install --temporal-checkout/--temporal-package` once it exists. Preparation
+`throwaway` in every row and in the candidate identity; `temporal-install` uses fn-220's
+`install --temporal-checkout/--temporal-package` once it exists. A package's
+first recorded function follows one unrecorded warm-up run selecting no test,
+because the helper's engine compilation counts against the execution timeout.
+`--output-limit=256MiB` is the guest's hard output capacity, as in the measure
+fixture. Preparation
 caches are deleted after each function and the engine cache after each package;
 one failure artifact per distinct reason is kept under `--retain-bytes`. Rows go
 to an append-only `sweep.jsonl` keyed by candidate identity, so a rerun with the

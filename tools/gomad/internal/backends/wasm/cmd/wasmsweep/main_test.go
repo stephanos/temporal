@@ -46,10 +46,14 @@ func TestRunPassesValidatedOptions(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
 	var got sweep.Options
+	var harness string
 	code := run(t.Context(), validArgs(root), []string{"HOME=" + root}, &bytes.Buffer{}, &bytes.Buffer{}, func(_ context.Context, sweeper *sweep.Sweeper) ([]string, error) {
-		got = sweeper.Options
+		got, harness = sweeper.Options, sweeper.HarnessSHA256
 		return nil, nil
 	})
+	if !strings.HasPrefix(harness, "sha256:") {
+		t.Fatalf("harness identity %q", harness)
+	}
 	if code != 0 || got.RetainBytes != 5<<30 || got.MaxTests != 10 || len(got.Packages) != 2 || got.Packages[1] != "./tests" || got.ConfigSource != sweep.ConfigThrowaway {
 		t.Fatalf("exit %d options %+v", code, got)
 	}

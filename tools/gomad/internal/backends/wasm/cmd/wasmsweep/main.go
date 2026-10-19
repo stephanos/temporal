@@ -114,7 +114,15 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 		fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
 		return exitRefused
 	}
-	sweeper := &sweep.Sweeper{Options: options, Log: stderr, Command: append([]string{"wasmsweep"}, args...)}
+	executable, err := os.Executable()
+	if err == nil {
+		executable, err = sweep.FileSHA256(executable)
+	}
+	if err != nil {
+		fmt.Fprintf(stderr, "wasmsweep: identify the harness build: %v\n", err)
+		return exitFailed
+	}
+	sweeper := &sweep.Sweeper{Options: options, Log: stderr, Command: append([]string{"wasmsweep"}, args...), HarnessSHA256: executable}
 	findings, err := start(ctx, sweeper)
 	if errors.Is(err, sweep.ErrRefused) {
 		fmt.Fprintf(stderr, "wasmsweep: %v\n", err)

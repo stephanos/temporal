@@ -11,7 +11,8 @@ import (
 func validSidecar() Sidecar {
 	candidate := Candidate{GomadSHA256: "sha256:g", HelperSHA256: "sha256:h", CompilerSHA256: "sha256:c", GoVersion: "go1.27.1", ModelSHA256: "sha256:m",
 		RuntimeImplementationSHA256: "sha256:r", Engine: "wasmtime/1", Profile: "gomad.wasi-cooperative/v1", GitSHA: "abc", ConfigSource: ConfigThrowaway,
-		BuildTags: GuestTags(), PerTestTimeout: "10m0s", PrepareTimeout: "30m0s"}
+		BuildTags: GuestTags(), PerTestTimeout: "10m0s", PrepareTimeout: "30m0s", HarnessSHA256: "sha256:w", ExploreFlags: fixedExploreFlags(),
+		MemoryBytes: 4 << 30, Fuel: 1 << 50, GuestConfigSHA256: "sha256:cfg"}
 	return Sidecar{Schema: SidecarSchema, Statement: ObservationStatement, Candidate: candidate, CandidateKey: candidate.Key(), Hosts: []Host{{Hostname: "h"}},
 		Packages: []Package{{Pattern: "./tests", Tests: []string{"TestA", "TestB", "TestC"}, ListCount: 3, ParsedCount: 3}},
 		Rows: []TestEntry{{Package: "./tests", Name: "TestA", Class: ClassPass}, {Package: "./tests", Name: "TestB", Class: ClassPass, Skipped: true},
@@ -40,6 +41,7 @@ func TestVerifyFindsEveryR2Violation(t *testing.T) {
 		{"skipped-failure", func(s *Sidecar) { s.Rows[2].Skipped = true }, "skipped is only valid on pass"},
 		{"missing-helper", func(s *Sidecar) { s.Candidate.HelperSHA256 = ""; s.CandidateKey = s.Candidate.Key() }, "missing helper_sha256"},
 		{"missing-git", func(s *Sidecar) { s.Candidate.GitSHA = ""; s.CandidateKey = s.Candidate.Key() }, "missing git_sha"},
+		{"missing-harness", func(s *Sidecar) { s.Candidate.HarnessSHA256 = ""; s.CandidateKey = s.Candidate.Key() }, "missing harness_sha256"},
 		{"stale-key", func(s *Sidecar) { s.Candidate.Seed = 9 }, "candidate key"},
 		{"unreconciled", func(s *Sidecar) { s.Packages[0].ListCount = 4 }, "not reconciled"},
 		{"statement", func(s *Sidecar) { s.Statement = "supported" }, "observation statement"},

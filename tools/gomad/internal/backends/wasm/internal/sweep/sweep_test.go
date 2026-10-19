@@ -31,6 +31,7 @@ type fixture struct {
 	attempts map[string]int
 	installs []string
 	explores []string
+	warmups  []string
 	facts    map[string]ArtifactFacts
 }
 
@@ -149,7 +150,7 @@ func (f *fixture) Exec(_ context.Context, command Command) Completed {
 			return Completed{Exit: 2, Stderr: []byte(err.Error())}
 		}
 		manifest := installation.Manifest{Schema: installation.Schema, RuntimeImplementationSHA256: "sha256:runtime", Options: backend.Options{
-			HelperSHA256: mustDigest(f.options.Helper), ModelSHA256: "sha256:model", Engine: wasi.EngineIdentity{Name: "wasmtime", Version: "1", Configuration: "c", HostOS: "linux", HostArch: "aarch64"}, Config: config,
+			HelperSHA256: mustDigest(f.options.Helper), MemoryBytes: 4 << 30, Fuel: 1 << 50, ModelSHA256: "sha256:model", Engine: wasi.EngineIdentity{Name: "wasmtime", Version: "1", Configuration: "c", HostOS: "linux", HostArch: "aarch64"}, Config: config,
 		}}
 		encoded, _ := json.Marshal(manifest)
 		if err := os.WriteFile(flagValue(args, "--output"), encoded, 0o600); err != nil {
@@ -157,8 +158,12 @@ func (f *fixture) Exec(_ context.Context, command Command) Completed {
 		}
 		return ok("gomad: installed\n")
 	case command.Path == f.options.Gomad && slices.Contains(args, "explore"):
-		f.explores = append(f.explores, strings.Join(args, " "))
 		run := flagValue(args, "-test.run")
+		if run == "^$" {
+			f.warmups = append(f.warmups, strings.Join(args, " "))
+			return Completed{Exit: 0, Elapsed: time.Second, Stdout: exploreOutput(Event{Type: "result", Classification: "success"})}
+		}
+		f.explores = append(f.explores, strings.Join(args, " "))
 		name := strings.TrimSuffix(strings.TrimPrefix(run, "^"), "$")
 		f.attempts[name]++
 		behavior := f.outcomes[name]
@@ -209,7 +214,7 @@ func passing(name string) func(int, string) (Completed, map[string]ArtifactFacts
 	return func(_ int, artifacts string) (Completed, map[string]ArtifactFacts) {
 		path := filepath.Join(artifacts, "v1", "success")
 		return Completed{Exit: 0, Elapsed: time.Second, Stdout: exploreOutput(Event{Type: "result", Classification: "success"}, Event{Type: "artifact", Classification: "success", Path: path})},
-			map[string]ArtifactFacts{path: {Stdout: []byte("--- PASS: " + name + " (1.00s)\nPASS\n")}}
+			map[string]ArtifactFacts{path: {Stdout: []byte("--- PASS: " + name + " (1.00s)\nPASS\n"), ModuleSHA256: "sha256:module"}}
 	}
 }
 
@@ -222,7 +227,7 @@ func failing(message string) func(int, string) (Completed, map[string]ArtifactFa
 }
 
 func (f *fixture) sweeper() *Sweeper {
-	return &Sweeper{Options: f.options, Executor: f, ReadArtifact: f.readArtifact, Command: []string{"wasmsweep", "test"}}
+	return &Sweeper{Options: f.options, Executor: f, ReadArtifact: f.readArtifact, Command: []string{"wasmsweep", "test"}, HarnessSHA256: "sha256:harness-under-test"}
 }
 
 func TestOptionsRefuseInheritedVariablesAndUnboundedRuns(t *testing.T) {
@@ -251,7 +256,10 @@ func TestOptionsRefuseInheritedVariablesAndUnboundedRuns(t *testing.T) {
 		{"artifacts-in-checkout", func(o *Options) { o.Artifacts = filepath.Join(o.Checkout, "a") }, "--artifacts must be outside --checkout"},
 		{"config-source", func(o *Options) { o.ConfigSource = "" }, "--config-source"},
 		{"no-packages", func(o *Options) { o.Packages = nil }, "--packages is required"},
-		{"package-outside-tests", func(o *Options) { o.Packages = []string{"./service/..."} }, "not under ./tests"},
+		{"package-outside-tests", func(o *Options) { o.Packages = []string{"./service/..."} }, "not a clean pattern under ./tests"},
+		{"package-escapes-tests", func(o *Options) { o.Packages = []string{"./tests/../service"} }, "not a clean pattern under ./tests"},
+		{"work-overlaps-out", func(o *Options) { o.Work = filepath.Join(o.Out, "work") }, "--work must not overlap"},
+		{"artifacts-in-work", func(o *Options) { o.Artifacts = filepath.Join(o.Work, "a") }, "--work must not overlap"},
 		{"negative-max-tests", func(o *Options) { o.MaxTests = -1 }, "--max-tests"},
 	} {
 		t.Run(mutation.name, func(t *testing.T) {
@@ -356,11 +364,22 @@ func TestSweepClassifiesRetainsResumesAndVerifies(t *testing.T) {
 		t.Fatalf("aggregates %v", sidecar.ByClass)
 	}
 	for _, explore := range f.explores {
-		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json"} {
+		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--output-limit=256MiB", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json"} {
 			if !strings.Contains(explore, want) {
 				t.Fatalf("explore %q lacks %q", explore, want)
 			}
 		}
+	}
+	// One warm-up per package fills the engine cache under the prepare
+	// allowance before the first recorded row.
+	if len(f.warmups) != 2 || !strings.Contains(f.warmups[0], "--execution-timeout=30m0s") {
+		t.Fatalf("warm-ups %v", f.warmups)
+	}
+	if sidecar.Candidate.HarnessSHA256 == "" || sidecar.Candidate.GuestConfigSHA256 == "" || sidecar.Candidate.MemoryBytes != 4<<30 || len(sidecar.Candidate.ExploreFlags) == 0 {
+		t.Fatalf("candidate lacks harness identity: %+v", sidecar.Candidate)
+	}
+	if rows["TestAlpha"].ConfigSource != ConfigThrowaway || rows["TestAlpha"].ModuleSHA256 != "sha256:module" {
+		t.Fatalf("row labels %+v", rows["TestAlpha"])
 	}
 	// Each package's scratch, caches and unretained run roots are removed.
 	if entries, err := os.ReadDir(filepath.Join(f.options.Work, "packages")); err != nil || len(entries) != 0 {
@@ -391,12 +410,12 @@ func TestSweepClassifiesRetainsResumesAndVerifies(t *testing.T) {
 func TestSweepRecordsBudgetCutoffAsNotRunAndResumesIt(t *testing.T) {
 	t.Parallel()
 	f := newFixture(t)
-	f.options.PerTestTimeout, f.options.PrepareTimeout, f.options.OverallBudget = time.Minute, time.Minute, 3*time.Minute
+	f.options.PerTestTimeout, f.options.PrepareTimeout, f.options.OverallBudget = time.Minute, time.Minute, 5*time.Minute
 	sweeper := f.sweeper()
 	now := time.Unix(1_000_000, 0)
 	sweeper.Now = func() time.Time { return now }
 	f.outcomes["TestAlpha"] = func(attempt int, artifacts string) (Completed, map[string]ArtifactFacts) {
-		now = now.Add(2 * time.Minute) // the first run consumes most of the budget
+		now = now.Add(4 * time.Minute) // the first run consumes most of the budget
 		return passing("TestAlpha")(attempt, artifacts)
 	}
 	if findings, err := sweeper.Run(t.Context()); err != nil || len(findings) != 0 {
@@ -482,4 +501,29 @@ func readSidecar(t *testing.T, out string) Sidecar {
 		t.Fatal(err)
 	}
 	return sidecar
+}
+
+func TestInterruptedSweepRecordsNoRowForTheRunningTest(t *testing.T) {
+	t.Parallel()
+	f := newFixture(t)
+	ctx, cancel := context.WithCancel(t.Context())
+	f.outcomes["TestAlpha"] = func(_ int, _ string) (Completed, map[string]ArtifactFacts) {
+		cancel()
+		return Completed{Exit: -1, Err: errors.New("signal: killed")}, nil
+	}
+	if _, err := f.sweeper().Run(ctx); !errors.Is(err, context.Canceled) {
+		t.Fatalf("got %v, want cancellation", err)
+	}
+	rows, err := ReadJournal(JournalPath(f.options.Out))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, row := range rows {
+		if row.Kind == "test" {
+			t.Fatalf("interrupted run recorded %+v", row.Test)
+		}
+	}
+	if f.attempts["TestAlpha"] != 1 {
+		t.Fatalf("interrupted test retried %d times", f.attempts["TestAlpha"])
+	}
 }

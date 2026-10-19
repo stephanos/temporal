@@ -10,6 +10,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"path"
 	"path/filepath"
 	"strings"
 	"time"
@@ -52,8 +53,10 @@ type Options struct {
 	MaxTests     int      // per-package cap in sorted order; 0 = every test
 	Seed         uint64
 	// PerTestTimeout is explore's --execution-timeout. PrepareTimeout is the
-	// allowance added for the cold guest build and Cranelift compilation;
-	// explore's --overall-timeout is their sum.
+	// allowance for the cold guest build, added to explore's --overall-timeout.
+	// The helper compiles the module (Cranelift) inside the execution timeout,
+	// so each package first runs one unrecorded warm-up under PrepareTimeout
+	// as its execution timeout to fill the engine cache.
 	PerTestTimeout, PrepareTimeout, OverallBudget time.Duration
 	RetainBytes                                   uint64 // exemplar artifact budget
 	Out                                           string // JSONL journal and sidecar
@@ -99,9 +102,16 @@ func (options Options) Validate() error {
 		return fmt.Errorf("%w: --packages is required", ErrRefused)
 	}
 	for _, pattern := range options.Packages {
-		if pattern != "./tests" && !strings.HasPrefix(pattern, "./tests/") {
-			return fmt.Errorf("%w: package pattern %q is not under ./tests", ErrRefused, pattern)
+		cleaned := "./" + path.Clean(strings.TrimSuffix(pattern, "/..."))
+		if strings.HasSuffix(pattern, "/...") {
+			cleaned += "/..."
 		}
+		if cleaned != pattern || pattern != "./tests" && !strings.HasPrefix(pattern, "./tests/") {
+			return fmt.Errorf("%w: package pattern %q is not a clean pattern under ./tests", ErrRefused, pattern)
+		}
+	}
+	if within(options.Work, options.Out) || within(options.Out, options.Work) || within(options.Work, options.Artifacts) || within(options.Artifacts, options.Work) {
+		return fmt.Errorf("%w: --work must not overlap --out or --artifacts (it is deleted per package)", ErrRefused)
 	}
 	if options.MaxTests < 0 {
 		return fmt.Errorf("%w: --max-tests must be nonnegative", ErrRefused)
