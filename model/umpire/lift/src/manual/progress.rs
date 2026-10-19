@@ -21,7 +21,7 @@ impl Manual<'_> {
                     let mut progress = ProgressDef {
                         name: String::new(),
                         trigger: Expr::bool(true),
-                        target: Expr::bool(false),
+                        target: Expr::bool(true),
                         assumption: AssumptionDef::default(),
                         bound: None,
                     };
@@ -68,7 +68,7 @@ impl Manual<'_> {
             let mut progress = ProgressDef {
                 name: String::new(),
                 trigger: Expr::bool(true),
-                target: Expr::bool(false),
+                target: Expr::bool(true),
                 assumption: AssumptionDef::default(),
                 bound: None,
             };
@@ -98,9 +98,16 @@ impl Manual<'_> {
                 if !constructor.starts_with("Progress::<") || !constructor.ends_with("::new") {
                     return Err(refusal(self.file, expression, "unsupported progress constructor"));
                 }
-                progress.name = expression.args.first().and_then(text).ok_or_else(|| {
+                let name = expression.args.first().and_then(text).ok_or_else(|| {
                     refusal(self.file, expression, "progress name must be a string")
                 })?;
+                *progress = ProgressDef {
+                    name,
+                    trigger: Expr::bool(true),
+                    target: Expr::bool(true),
+                    assumption: AssumptionDef::default(),
+                    bound: None,
+                };
                 Ok(())
             }
             RustExpr::MethodCall(expression) => {
@@ -144,6 +151,7 @@ impl Manual<'_> {
                     }
                     Ok(())
                 } else if name == "within" || name == "assuming" {
+                    progress.assumption = AssumptionDef::default();
                     self.assumption(
                         expression
                             .args

@@ -31,8 +31,8 @@ Complete == ~ENABLED ModelNext /\ UNCHANGED vars
 Next == Edge \/ Complete
 Spec == Init /\ [][Next]_vars
 
-Post_no_change_checked == [][~(ModelEdge /\ (__umpire_action' = "User::NoChange")) \/ (((value') # (value)))]_vars
-Post_same_value_checked == [][~(ModelEdge /\ (__umpire_action' = "User::SameValue")) \/ (((value') # (value)))]_vars
-Post_mutate_restore_checked == [][~(ModelEdge /\ (__umpire_action' = "User::MutateRestore")) \/ (((value') # (value)))]_vars
-Post_actual_change_checked == [][~(ModelEdge /\ (__umpire_action' = "User::ActualChange")) \/ (((value') = (value)))]_vars
+Post_no_change_checked == [][~(ModelEdge /\ (__umpire_action' = "User::NoChange")) \/ ((<<((value') # (value))>> = <<TRUE>>))]_vars
+Post_same_value_checked == [][~(ModelEdge /\ (__umpire_action' = "User::SameValue")) \/ ((<<((value') # (value))>> = <<TRUE>>))]_vars
+Post_mutate_restore_checked == [][~(ModelEdge /\ (__umpire_action' = "User::MutateRestore")) \/ ((<<((value') # (value))>> = <<TRUE>>))]_vars
+Post_actual_change_checked == [][~(ModelEdge /\ (__umpire_action' = "User::ActualChange")) \/ ((<<((value') = (value))>> = <<TRUE>>))]_vars
 ====

@@ -30,6 +30,10 @@ fairness. Terminal completion keeps deadlock checking enabled without counting a
 Decoding removes exactly the declared private fields, refuses collisions and unknown fields,
 and deduplicates the projected set. Arithmetic controls cover ordered updates, checked
 overflow, signed division/remainder including minimum integers, and empty starts.
+The fixed `imbl::Vector` table covers scalar/enum elements, empty construction, length,
+emptiness, bounded guarded appends and explicitly safe lookup. A separately authored
+collection control compares the complete native/TLC sets and verified/refuted properties;
+unsupported methods and unguarded growth retain located refusals.
 
 The pinned official artifact is `tla2tools` 1.7.4 (TLC 2.19), SHA-256
 `936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`, on mise Temurin 27.
@@ -39,8 +43,9 @@ library extraction and state directory, avoiding concurrent JVM extraction races
 
 The shared fixture corpus admits 19 fixtures, including both Kettles at 283 projected states,
 choice/fact controls, weak-fairness controls and scoped progress; these are control variants,
-not 19 independent products. Five sources retain located refusals: `deep_chain` uses an
-unsupported state type; `interleaved_claims` adds supplemental manual registrations;
+not 19 independent products. Five sources retain located refusals: `deep_chain` and
+`interleaved_claims` contain manual inherent helpers outside the admitted resolver (and also
+use an unsupported state type or supplemental manual registrations, respectively);
 `kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
 subset. Some are expressible Models whose Rust source form is not yet admitted.
 The system-owned fixture root additionally owns source-dependent artifacts. The newer

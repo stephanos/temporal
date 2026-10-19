@@ -1,1 +1,1 @@
-fixtures/deep_chain/model.rs:16:5: warning: manual source: unsupported manual state type; TLA+ emission refused
+fixtures/deep_chain/model.rs:32:5: warning: manual source: authored inherent methods and clone/into overrides require unsupported manual helper resolution; TLA+ emission refused

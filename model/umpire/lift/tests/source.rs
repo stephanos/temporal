@@ -218,3 +218,24 @@ fn unsupported_control_characters_refuse_at_the_authored_literal()
     }
     Ok(())
 }
+
+#[test]
+fn inherent_enum_into_is_resolved_before_primitive_conversion()
+-> Result<(), Box<dyn std::error::Error>> {
+    let source = r"
+        use umpire_dsl::machine;
+        #[machine] mod intrinsic {
+            use umpire_dsl::{State,Action};
+            #[derive(Clone,Copy,Debug,Default,PartialEq,Eq,Hash)] enum Mode { #[default] Off, On }
+            impl Mode { fn into(self)->Self { Self::On } }
+            #[derive(State)] struct Model { mode:Mode }
+            #[derive(Action)] enum User { Set }
+            impl Model {
+                #[on(User)] fn user(&mut self,action:User) {match action {User::Set=>{self.mode=self.mode.into();}}}
+            }
+        }
+    ";
+    let module = Tla::emit(&Lift::parse("intrinsic.rs", source)?)?;
+    assert!(module.tla.contains("mode' = \"Mode::On\""));
+    Ok(())
+}

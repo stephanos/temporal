@@ -1,9 +1,18 @@
 //! Independently lift authored Rust Models into a checked internal tree and TLA+.
+//!
+//! The collection subset admits canonical `imbl::Vector<T>` fields whose elements are scalar
+//! booleans, admitted integers, or fieldless enums. Defaults and `Vector::new/default()` are empty;
+//! `len`, `is_empty`, and ordered `push_back` map to TLA+ sequences. Growth needs an authored finite
+//! length guard. Reads admit `get(index).copied().unwrap_or(default)` (including eager default
+//! evaluation), `get(index).is_some()`, and `get(index).is_none()`. Indices must fit the nonnegative
+//! signed 32-bit domain. Other collection operations, aliases, and unchecked unwraps refuse by
+//! source location; this is a method table rather than general Rust collection interpretation.
 use proc_macro2::Span;
 use quote::ToTokens;
 use std::{collections::BTreeMap, fmt, path::Path};
 pub mod build;
 mod emit;
+mod leaf;
 mod manual;
 mod names;
 mod parse;

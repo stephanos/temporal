@@ -246,6 +246,10 @@ a separate fixture obligation; a cut native exploration cannot establish it. The
 source subset includes scalar/enum attribute Models and the shared manual transition-table,
 choice, and progress controls. Checked integer operations use signed TLC-representable
 Rust types (`i8`, `i16`, `i32`, `u8`, `u16`); wider types refuse by source location.
+Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/enum elements:
+`new`/`default`, `len`, `is_empty`, guarded `push_back`, and safe `get` queries
+(`is_some`/`is_none` or `copied().unwrap_or(default)`). Growth requires an authored finite
+length guard; arbitrary collection methods, indexing and panicking `unwrap` refuse.
 Generic delegating adapters and arbitrary Rust remain outside the subset. `Phased`,
 `reject!`, and imported generic `closable` laws also currently refuse; that source shape
 has no system TLC agreement evidence. System fixture roots may retain located refusal

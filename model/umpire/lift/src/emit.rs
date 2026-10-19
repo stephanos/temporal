@@ -433,6 +433,17 @@ fn prime(value: &Expr) -> Expr {
         ExprKind::If(cond, yes, no) => {
             ExprKind::If(Box::new(prime(cond)), Box::new(prime(yes)), Box::new(prime(no)))
         }
+        ExprKind::Sequence(values) => ExprKind::Sequence(values.iter().map(prime).collect()),
+        ExprKind::Checks(values) => ExprKind::Checks(values.iter().map(prime).collect()),
+        ExprKind::Length(value) => ExprKind::Length(Box::new(prime(value))),
+        ExprKind::Append(sequence, value) => {
+            ExprKind::Append(Box::new(prime(sequence)), Box::new(prime(value)))
+        }
+        ExprKind::GetOr(sequence, index, fallback) => ExprKind::GetOr(
+            Box::new(prime(sequence)),
+            Box::new(prime(index)),
+            Box::new(prime(fallback)),
+        ),
         other => other.clone(),
     };
     Expr { kind, ty: value.ty.clone() }
@@ -464,8 +475,23 @@ fn expr(value: &Expr) -> String {
         ExprKind::Text(v) | ExprKind::Enum(v) => text(v),
         ExprKind::Unit => "<<>>".into(),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
-        ExprKind::Tuple(values) => {
+        ExprKind::Tuple(values) | ExprKind::Sequence(values) => {
             format!("<<{}>>", values.iter().map(expr).collect::<Vec<_>>().join(", "))
+        }
+        ExprKind::Length(sequence) => format!("Len({})", expr(sequence)),
+        ExprKind::Checks(checks) => format!(
+            "(<<{}>> = <<{}>>)",
+            checks.iter().map(expr).collect::<Vec<_>>().join(", "),
+            vec!["TRUE"; checks.len()].join(", ")
+        ),
+        ExprKind::Append(sequence, value) => format!("Append({}, {})", expr(sequence), expr(value)),
+        ExprKind::GetOr(sequence, index, fallback) => {
+            let sequence = expr(sequence);
+            let index = expr(index);
+            let fallback = expr(fallback);
+            format!(
+                "(IF ({fallback}) = ({fallback}) THEN (IF ({index}) < Len({sequence}) THEN ({sequence})[({index}) + 1] ELSE ({fallback})) ELSE ({fallback}))"
+            )
         }
         ExprKind::Unary(op, inner) => {
             let inner = expr(inner);

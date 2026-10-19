@@ -33,9 +33,9 @@ Complete == ~ENABLED ModelNext /\ UNCHANGED vars
 Next == Edge \/ Complete
 Spec == Init /\ [][Next]_vars
 
-Invariant_beeps_only_when_off == ((~(beeping)) \/ (~(heating_on)))
-Post_warms_only_when_on == [][~(ModelEdge) \/ (((~(~(heating_on))) \/ (((temperature') <= (temperature)))))]_vars
-Post_fails_over_at_boiling == [][~(ModelEdge /\ (__umpire_action' = "Heater::Failover")) \/ (((((temperature') = (100))) /\ (beeping')))]_vars
+Invariant_beeps_only_when_off == (<<((~(beeping)) \/ ((<<~(heating_on)>> = <<TRUE>>)))>> = <<TRUE>>)
+Post_warms_only_when_on == [][~(ModelEdge) \/ ((<<((~(~(heating_on))) \/ ((<<((temperature') <= (temperature))>> = <<TRUE>>)))>> = <<TRUE>>))]_vars
+Post_fails_over_at_boiling == [][~(ModelEdge /\ (__umpire_action' = "Heater::Failover")) \/ ((<<((temperature') = (100)), beeping'>> = <<TRUE, TRUE>>))]_vars
 Negative_never_beeps == ~(beeping)
 Assumption_never_switched_off == (User_PressButton) \/ (Heater_Heat) \/ (Heater_Failover)
 Scoped_boils == Assumption_never_switched_off

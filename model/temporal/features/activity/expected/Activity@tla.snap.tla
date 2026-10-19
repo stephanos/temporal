@@ -33,5 +33,5 @@ Complete == ~ENABLED ModelNext /\ UNCHANGED vars
 Next == Edge \/ Complete
 Spec == Init /\ [][Next]_vars
 
-Post_terminal_remains == [][~(ModelEdge) \/ (((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) \/ (((phase') = (phase)))))]_vars
+Post_terminal_remains == [][~(ModelEdge) \/ ((<<((~(((((((((phase) = ("Phase::Completed"))) \/ (((phase) = ("Phase::Failed"))))) \/ (((phase) = ("Phase::Canceled"))))) \/ (((phase) = ("Phase::TimedOut")))))) \/ ((<<((phase') = (phase))>> = <<TRUE>>)))>> = <<TRUE>>))]_vars
 ====

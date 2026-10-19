@@ -12,12 +12,11 @@ pub(super) fn scalar_type(ty: &syn::Type) -> Option<Type> {
     if path.qself.is_some() || path.path.leading_colon.is_some() || path.path.segments.len() != 1 {
         return None;
     }
-    Some(match path.path.segments.last()?.ident.to_string().as_str() {
-        "bool" => Type::Bool,
-        "u8" => Type::Int { min: 0, max: 255 },
-        "i32" => Type::Int { min: i128::from(i32::MIN), max: i128::from(i32::MAX) },
-        _ => return None,
-    })
+    let name = path.path.segments.last()?.ident.to_string();
+    if !matches!(name.as_str(), "bool" | "u8" | "i32") {
+        return None;
+    }
+    crate::leaf::scalar_type(&name)
 }
 
 pub(super) fn result_type(file: &str, ty: &syn::Type) -> Result<Type, Diagnostic> {
@@ -56,6 +55,87 @@ pub(super) fn constant_bool(expression: &Expr) -> Option<bool> {
 }
 
 impl Manual<'_> {
+    pub(super) fn start_binding_type(
+        &self,
+        body: &RustExpr,
+        binding: &syn::Ident,
+    ) -> Result<Type, Diagnostic> {
+        struct UsesBinding<'a> {
+            name: &'a syn::Ident,
+            found: bool,
+        }
+        impl<'ast> syn::visit::Visit<'ast> for UsesBinding<'_> {
+            fn visit_expr_path(&mut self, expression: &'ast syn::ExprPath) {
+                if expression.path.is_ident(self.name) {
+                    self.found = true;
+                }
+                syn::visit::visit_expr_path(self, expression);
+            }
+        }
+        let values = match body {
+            RustExpr::Call(call)
+                if path_name(&call.func).as_deref() == Some(self.state_name.as_str())
+                    && call.args.len() == self.fields.len() =>
+            {
+                self.fields
+                    .iter()
+                    .zip(&call.args)
+                    .map(|(field, value)| (&field.ty, value))
+                    .collect::<Vec<_>>()
+            }
+            RustExpr::Struct(record)
+                if record.path.is_ident(&self.state_name) && record.rest.is_none() =>
+            {
+                record
+                    .fields
+                    .iter()
+                    .map(|value| {
+                        let name = value.member.to_token_stream().to_string();
+                        let field = self
+                            .fields
+                            .iter()
+                            .find(|field| field.name == name)
+                            .ok_or_else(|| refusal(self.file, value, "unknown starts field"))?;
+                        Ok((&field.ty, &value.expr))
+                    })
+                    .collect::<Result<Vec<_>, Diagnostic>>()?
+            }
+            _ => {
+                return Err(refusal(
+                    self.file,
+                    body,
+                    "starts map requires a direct state constructor",
+                ));
+            }
+        };
+        let mut inferred = None;
+        for (ty, value) in values {
+            let mut visitor = UsesBinding { name: binding, found: false };
+            syn::visit::Visit::visit_expr(&mut visitor, value);
+            if !visitor.found {
+                continue;
+            }
+            if !matches!(value, RustExpr::Path(path) if path.path.is_ident(binding)) {
+                return Err(refusal(
+                    self.file,
+                    value,
+                    "starts range binding arithmetic requires unsupported Rust type inference",
+                ));
+            }
+            if !matches!(ty, Type::Int { .. })
+                || inferred.as_ref().is_some_and(|inferred| inferred != ty)
+            {
+                return Err(refusal(
+                    self.file,
+                    value,
+                    "starts range binding has incompatible field types",
+                ));
+            }
+            inferred = Some(ty.clone());
+        }
+        Ok(inferred.unwrap_or_else(|| integer(0).ty))
+    }
+
     pub(super) fn pattern(&self, pattern: &syn::Pat, value: Expr) -> Result<Expr, Diagnostic> {
         match pattern {
             syn::Pat::Wild(_) => Ok(Expr::bool(true)),
@@ -95,9 +175,18 @@ impl Manual<'_> {
                 )
             }
             RustExpr::MethodCall(expression)
-                if expression.method == "into" || expression.method == "clone" =>
+                if (expression.method == "into" || expression.method == "clone")
+                    && expression.args.is_empty() =>
             {
-                self.expr(&expression.receiver, aliases)
+                let value = self.expr(&expression.receiver, aliases)?;
+                if expression.method == "into" && value.ty != Type::Bool {
+                    return Err(refusal(
+                        self.file,
+                        expression,
+                        "only Boolean into Verdict has a known manual conversion",
+                    ));
+                }
+                Ok(value)
             }
             RustExpr::Lit(expression) => match &expression.lit {
                 syn::Lit::Bool(value) => Ok(Expr::bool(value.value)),
@@ -218,33 +307,24 @@ impl Manual<'_> {
                 {
                     return Err(refusal(self.file, expression, "unary operand has the wrong type"));
                 }
-                Ok(match expression.op {
-                    syn::UnOp::Deref(_) => value,
-                    syn::UnOp::Not(_) => value.not(),
-                    syn::UnOp::Neg(_) => Expr {
-                        ty: value.ty.clone(),
-                        kind: ExprKind::Unary(Unary::Neg, Box::new(value)),
+                if matches!(expression.op, syn::UnOp::Deref(_)) {
+                    return Ok(value);
+                }
+                Ok(
+                    match crate::leaf::unary_op(&expression.op).ok_or_else(|| {
+                        refusal(self.file, expression, "unsupported unary operator")
+                    })? {
+                        Unary::Not => value.not(),
+                        Unary::Neg => Expr {
+                            ty: value.ty.clone(),
+                            kind: ExprKind::Unary(Unary::Neg, Box::new(value)),
+                        },
                     },
-                    _ => return Err(refusal(self.file, expression, "unsupported unary operator")),
-                })
+                )
             }
             RustExpr::Binary(expression) => {
-                let op = match expression.op {
-                    syn::BinOp::Add(_) => Op::Add,
-                    syn::BinOp::Sub(_) => Op::Sub,
-                    syn::BinOp::Mul(_) => Op::Mul,
-                    syn::BinOp::Div(_) => Op::Div,
-                    syn::BinOp::Rem(_) => Op::Rem,
-                    syn::BinOp::And(_) => Op::And,
-                    syn::BinOp::Or(_) => Op::Or,
-                    syn::BinOp::Eq(_) => Op::Eq,
-                    syn::BinOp::Ne(_) => Op::Ne,
-                    syn::BinOp::Lt(_) => Op::Lt,
-                    syn::BinOp::Le(_) => Op::Le,
-                    syn::BinOp::Gt(_) => Op::Gt,
-                    syn::BinOp::Ge(_) => Op::Ge,
-                    _ => return Err(refusal(self.file, expression, "unsupported binary operator")),
-                };
+                let op = crate::leaf::binary_op(&expression.op)
+                    .ok_or_else(|| refusal(self.file, expression, "unsupported binary operator"))?;
                 let mut left = self.expr(&expression.left, aliases)?;
                 let mut right = self.expr(&expression.right, aliases)?;
                 if matches!((&left.ty, &right.ty), (Type::Int { .. }, Type::Int { .. })) {

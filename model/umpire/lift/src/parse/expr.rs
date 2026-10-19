@@ -4,33 +4,24 @@ use crate::{
     tree::{Expr, ExprKind, Op, Unary},
 };
 use quote::ToTokens;
-use syn::{BinOp, Expr as RustExpr, Item, Pat};
+use syn::{Expr as RustExpr, Item, Pat};
 
 impl Parser<'_> {
     pub(super) fn ty(&self, ty: &syn::Type) -> Result<Type> {
+        if let Some(ty) = self.vector_type(ty)? {
+            return Ok(ty);
+        }
         let name = path_name(&ty.to_token_stream().to_string());
-        let bounds = match name.as_str() {
-            "i8" => Some((i128::from(i8::MIN), i128::from(i8::MAX))),
-            "i16" => Some((i128::from(i16::MIN), i128::from(i16::MAX))),
-            "i32" => Some((i128::from(i32::MIN), i128::from(i32::MAX))),
-            "i64" => Some((i128::from(i64::MIN), i128::from(i64::MAX))),
-            "u8" => Some((0, i128::from(u8::MAX))),
-            "u16" => Some((0, i128::from(u16::MAX))),
-            "u32" => Some((0, i128::from(u32::MAX))),
-            "u64" => Some((0, i128::from(u64::MAX))),
-            _ => None,
-        };
-        if let Some((min, max)) = bounds {
-            if min < i128::from(i32::MIN) || max > i128::from(i32::MAX) {
+        if let Some(scalar) = crate::leaf::scalar_type(&name) {
+            if let Type::Int { min, max } = scalar
+                && (min < i128::from(i32::MIN) || max > i128::from(i32::MAX))
+            {
                 return self.err(
                     ty,
                     format!("integer type `{name}` exceeds TLC's signed 32-bit integer range"),
                 );
             }
-            return Ok(Type::Int { min, max });
-        }
-        if name == "bool" {
-            return Ok(Type::Bool);
+            return Ok(scalar);
         }
         self.enums
             .get(&name)
@@ -41,6 +32,7 @@ impl Parser<'_> {
         match ty {
             Type::Bool => Ok(Expr::bool(false)),
             Type::Int { .. } => Ok(Expr::int(0, ty.clone())),
+            Type::Seq(_) => Ok(Expr { kind: ExprKind::Sequence(Vec::new()), ty: ty.clone() }),
             Type::Enum { name, .. } => {
                 let value = items
                     .iter()
@@ -74,7 +66,12 @@ impl Parser<'_> {
             .map(|f| (f.name.clone(), Expr::var(&f.name, f.ty.clone(), primed)))
             .collect()
     }
-    fn require(&self, node: &impl ToTokens, value: Expr, expected: Option<&Type>) -> Result<Expr> {
+    pub(super) fn require(
+        &self,
+        node: &impl ToTokens,
+        value: Expr,
+        expected: Option<&Type>,
+    ) -> Result<Expr> {
         if expected.is_some_and(|t| *t != value.ty) {
             return self
                 .err(node, format!("type mismatch: expected {expected:?}, got {:?}", value.ty));
@@ -190,11 +187,8 @@ impl Parser<'_> {
                 }
             }
             RustExpr::Unary(unary) => {
-                let op = match unary.op {
-                    syn::UnOp::Not(_) => Unary::Not,
-                    syn::UnOp::Neg(_) => Unary::Neg,
-                    _ => return self.err(node, "unsupported unary operator"),
-                };
+                let op = crate::leaf::unary_op(&unary.op)
+                    .ok_or_else(|| Diagnostic::at(self.file, node, "unsupported unary operator"))?;
                 let value = self.expr(
                     &unary.expr,
                     state,
@@ -208,22 +202,9 @@ impl Parser<'_> {
                 Expr { ty: value.ty.clone(), kind: ExprKind::Unary(op, Box::new(value)) }
             }
             RustExpr::Binary(binary) => {
-                let op = match binary.op {
-                    BinOp::Add(_) => Op::Add,
-                    BinOp::Sub(_) => Op::Sub,
-                    BinOp::Mul(_) => Op::Mul,
-                    BinOp::Div(_) => Op::Div,
-                    BinOp::Rem(_) => Op::Rem,
-                    BinOp::And(_) => Op::And,
-                    BinOp::Or(_) => Op::Or,
-                    BinOp::Eq(_) => Op::Eq,
-                    BinOp::Ne(_) => Op::Ne,
-                    BinOp::Lt(_) => Op::Lt,
-                    BinOp::Le(_) => Op::Le,
-                    BinOp::Gt(_) => Op::Gt,
-                    BinOp::Ge(_) => Op::Ge,
-                    _ => return self.err(node, "unsupported binary operator"),
-                };
+                let op = crate::leaf::binary_op(&binary.op).ok_or_else(|| {
+                    Diagnostic::at(self.file, node, "unsupported binary operator")
+                })?;
                 let bool_op = matches!(op, Op::And | Op::Or);
                 let arithmetic = matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem);
                 let context = if bool_op {
@@ -285,9 +266,16 @@ impl Parser<'_> {
                     }
                 }
             }
+            RustExpr::Call(call) => match self.vector_constructor(call, expected)? {
+                Some(value) => value,
+                None => {
+                    return self
+                        .err(node, format!("unsupported expression `{}`", node.to_token_stream()));
+                }
+            },
             RustExpr::MethodCall(call) => {
-                if call.method == "into" && call.args.is_empty() {
-                    return self.expr(&call.receiver, state, locals, expected, depth);
+                if let Some(value) = self.vector_method(call, state, locals, expected, depth)? {
+                    return self.require(node, value, expected);
                 }
                 if matches!(call.receiver.as_ref(),RustExpr::Path(path)if path.path.is_ident("self"))
                     && let Some(method) = self.methods.get(&call.method.to_string())
@@ -310,6 +298,9 @@ impl Parser<'_> {
                     );
                 }
                 let receiver = self.expr(&call.receiver, state, locals, None, depth)?;
+                if call.method == "into" && call.args.is_empty() && receiver.ty == Type::Bool {
+                    return self.require(node, receiver, expected);
+                }
                 let Type::Enum { name, .. } = &receiver.ty else {
                     return self.err(node, format!("unsupported method `{}`", call.method));
                 };

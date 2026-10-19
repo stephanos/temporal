@@ -8,6 +8,7 @@ use syn::{BinOp, Expr as RustExpr, ImplItem, Item, Pat, Stmt};
 
 mod expr;
 mod progress;
+mod vector;
 
 type Result<T> = std::result::Result<T, Diagnostic>;
 type Env = BTreeMap<String, Expr>;
@@ -46,7 +47,10 @@ pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted> {
             let mut bindings = Vec::new();
             imports(&import.tree, "", &mut bindings);
             for (binding, path) in bindings {
-                if binding == "*" || path != format!("umpire_dsl::{binding}") {
+                if binding == "*"
+                    || (path != format!("umpire_dsl::{binding}")
+                        && !(binding == "Vector" && path == "imbl::Vector"))
+                {
                     return Err(Diagnostic::at(
                         file,
                         import,
@@ -80,6 +84,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted> {
         enums: BTreeMap::new(),
         helpers: BTreeMap::new(),
         methods: BTreeMap::new(),
+        vector_imported: admitted_imports.iter().any(|name| name == "Vector"),
     };
     for item in items {
         let attrs = match item {
@@ -97,16 +102,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted> {
             }
         };
         parser.attrs(attrs, &["doc", "derive", "internal"])?;
-        if let Item::Use(import) = item {
-            let tokens = import.tree.to_token_stream().to_string();
-            if !tokens.starts_with("umpire_dsl ::") {
-                return Err(Diagnostic::at(
-                    file,
-                    import,
-                    format!("unsupported source dependency `{tokens}`"),
-                ));
-            }
-        }
         if let Item::Enum(value) = item {
             if !value.generics.params.is_empty()
                 || value
@@ -455,6 +450,7 @@ struct Parser<'a> {
     enums: BTreeMap<String, Type>,
     helpers: BTreeMap<String, syn::ImplItemFn>,
     methods: BTreeMap<String, syn::ImplItemFn>,
+    vector_imported: bool,
 }
 impl Parser<'_> {
     fn err<T>(&self, node: &impl ToTokens, message: impl Into<String>) -> Result<T> {
@@ -520,6 +516,7 @@ impl Parser<'_> {
                 let mut locals = Env::new();
                 let mut checks = Vec::new();
                 self.effects(&arm.body, &mut state, &mut locals, &mut checks, 0)?;
+                self.bounded_vector_growth(&arm.body, &state, &effective)?;
                 action.branches.push(Branch {
                     guard: effective,
                     updates: state,
@@ -565,6 +562,7 @@ impl Parser<'_> {
         }
         match node {
             RustExpr::Block(block) => {
+                let mut scoped = locals.clone();
                 for statement in &block.block.stmts {
                     match statement {
                         Stmt::Local(local) => {
@@ -577,11 +575,13 @@ impl Parser<'_> {
                             if init.diverge.is_some() {
                                 return self.err(local, "let-else is unsupported");
                             }
-                            let value = self.expr(&init.expr, state, locals, None, depth)?;
+                            let value = self.expr(&init.expr, state, &scoped, None, depth)?;
                             checks.push(value.clone());
-                            locals.insert(id.ident.to_string(), value);
+                            scoped.insert(id.ident.to_string(), value);
                         }
-                        Stmt::Expr(expr, _) => self.effects(expr, state, locals, checks, depth)?,
+                        Stmt::Expr(expr, _) => {
+                            self.effects(expr, state, &mut scoped, checks, depth)?;
+                        }
                         _ => return self.err(statement, "unsupported effect statement"),
                     }
                 }
@@ -643,6 +643,9 @@ impl Parser<'_> {
                     checks.push(Expr::select(cond.clone(), default_expr(&value.ty), value));
                 }
             }
+            RustExpr::MethodCall(call) if call.method == "push_back" => {
+                self.vector_push(call, state, locals, checks, depth)?;
+            }
             RustExpr::MethodCall(call) if matches!(call.receiver.as_ref(),RustExpr::Path(p)if p.path.is_ident("self")) =>
             {
                 let method = self
@@ -660,7 +663,7 @@ impl Parser<'_> {
                     label: None,
                     block: method.block.clone(),
                 });
-                self.effects(&body, state, locals, checks, depth + 1)?;
+                self.effects(&body, state, &mut Env::new(), checks, depth + 1)?;
             }
             _ => return self.err(node, format!("unsupported effect `{}`", node.to_token_stream())),
         }
@@ -675,7 +678,7 @@ impl Parser<'_> {
         self.err(node, "assignment must target a declared self field")
     }
     fn claim(&self, block: &syn::Block, state: &Env, locals: &Env, depth: usize) -> Result<Expr> {
-        let mut out = Expr::bool(true);
+        let mut checks = Vec::new();
         for statement in &block.stmts {
             let value = match statement {
                 Stmt::Macro(mac) if mac.mac.path.is_ident("check") => {
@@ -716,15 +719,16 @@ impl Parser<'_> {
                         .err(statement, "claim body supports check! and conditional checks only");
                 }
             };
-            out = out.and(value);
+            checks.push(value);
         }
-        Ok(out)
+        Ok(Expr { kind: ExprKind::Checks(checks), ty: Type::Bool })
     }
 }
 fn default_expr(ty: &Type) -> Expr {
     match ty {
         Type::Bool => Expr::bool(false),
         Type::Int { .. } => Expr::int(0, ty.clone()),
+        Type::Seq(_) => Expr { kind: ExprKind::Sequence(Vec::new()), ty: ty.clone() },
         Type::Enum { variants, .. } => {
             Expr { kind: ExprKind::Enum(variants[0].clone()), ty: ty.clone() }
         }

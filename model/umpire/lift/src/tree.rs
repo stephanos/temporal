@@ -99,6 +99,11 @@ pub(crate) enum ExprKind {
     Binary(Op, Box<Expr>, Box<Expr>),
     If(Box<Expr>, Box<Expr>, Box<Expr>),
     Tuple(Vec<Expr>),
+    Sequence(Vec<Expr>),
+    Length(Box<Expr>),
+    Append(Box<Expr>, Box<Expr>),
+    GetOr(Box<Expr>, Box<Expr>, Box<Expr>),
+    Checks(Vec<Expr>),
 }
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
 pub(crate) enum Unary {
