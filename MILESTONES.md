@@ -23,7 +23,7 @@ to the archived tree. The Rust follow-ups below use the owner's priority order; 
 readiness gates and dependencies still apply.
 
 Execution has resumed under the owner's milestone-completion instruction. fn-216 is complete
-locally, including its completion review. fn-221.1–.2 are complete; fn-221.3 runs in the main lane; fn-212.2 runs in a
+locally, including its completion review. fn-221.1–.3 are complete; fn-221.4 runs in the main lane; fn-212.2 runs in a
 separate worktree at the owner's request. TLC is required for scaling larger Models.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
@@ -56,8 +56,7 @@ Depends on fn-216. [Spec](.flow/specs/fn-221-rejecting-outcomes-reject-steps-pha
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-221.3 | 🔄 in progress | `Explanation.outcomes`, `matches` with outcome, error observations, cancel projection (R3) |
-| fn-221.4 | ⬜ todo | After .3: live cancel scenarios, gates, DESIGN and README (R4) |
+| fn-221.4 | 🔄 in progress | Live cancel scenarios, gates, DESIGN and README (R4) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 
