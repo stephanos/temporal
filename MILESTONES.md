@@ -98,7 +98,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.22 | ⬜ todo | After .20: rename authoring examples to `sample_kettle` / `sample_kettle_trait` and the finite progress-refutation control to `progress_dead_end`; preserve behavior payloads |
+| fn-210.22 | 🔄 in progress | Renames to `sample_kettle`, `sample_kettle_trait` and `progress_dead_end` are committed with identical payloads and SHIP review; the single 3.038 s inner-loop timing awaits an owner exception or fix |
 | fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
