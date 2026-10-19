@@ -1,9 +1,180 @@
 # Rust hygiene and WASM gate checkpoint
 
-Neither fn-187 nor fn-189 is complete. R3 remains in its worker checkout and is
-not integrated. All qualification budgets and final acceptance gates remain intact.
+Neither fn-187 nor fn-189 is complete. The R1-R4 source batch is now integrated
+in primary; R4 compilation, generator validation, qualification and review remain
+open. All qualification budgets and final acceptance gates remain intact.
 
 ## Latest continuation checkpoint
+
+### Post-deletion frozen candidate — 2026-10-19
+
+Seven remaining public test roots are removed across four files (295 lines).
+`/home/agent/wt/evidence/fn187/r3-current/seven-public-removals-application-2026-10-19.json`
+proves retained lines are byte-identical to exact backed-up preimages. Packet
+`remaining-public-deletion-named-entry-2026-10-19/` retains the assertion map,
+patch and recoverable whole-file preimages. All142 private binding keys/reasons
+are unchanged; no public test was relabeled as a private invariant.
+
+Combined-mode baseline profiling exposed a fixture race:3/8 runs sampled only
+the unnamed entry rather than its named loop. The only fixture change names that
+WAT entry `$hot_entry`; instructions, assertions and budgets remain identical.
+`guest-symbolization-name-only-proof-2026-10-19.json` reconstructs the preimages
+by removing only that name in primary and R3. Focused confirmation passes20/20;
+the complete original combined-mode suite passes. Failed attempts remain retained.
+The four earlier passing coverage certificates are now historical, not rebound
+to the changed engine test file.
+
+Six-mode Rustfmt/strict Clippy passes (terminal session76393), and69 coverage
+tooling tests pass (terminal session34557). Post-deletion preservation proves all
+526 original contracts and215 helper cases unchanged. The accepted R1/R2 staged
+diff remains SHA2560a343ce3549c1b7ed42146caf23c7800f2cd48f9a60c78ebfd3954036833d299.
+
+Session70048 terminated0 after `run-post-delete-conservation-2026-10-19.py`: new
+before/r3-post-delete-conservation phases rebuild baseline and candidate for all
+five modes. Every required full/corpus/invariant, frozen object/source/tool,
+compiled-roster, cursor and strict conservation check passes. Baseline-covered
+production lines preserved are15626/14971/14963/15103/14276 in default,
+diagnostic-profile, diagnostic-fuel-off, guest-profile and combined modes.
+All loss/union-gap lists are empty. Default also passes Go full/corpus/invariants
+and statement conservation. Post-run verification proves all ten baseline/candidate
+source/tool/object pins still match; log is
+post-delete-final-pin-verification-2026-10-19.log. These results qualify the exact
+pre-assertion-repair source, not the changed Go adapters or completion of R3.
+
+The periodic final-seven-root correctness/standards audits return0 findings;
+verbatim reports are fn187-seven-public-removals-review-2026-10-19.md. The
+canonical Codex fan-out51eff737bb014145b605e88037d1e2a9 reviewed only the empty
+HEAD-to-HEAD committed range. All three outputs explicitly decline task
+certification; its mechanical SHIP receipt is not accepted for R3. Owner-only
+project commits remain intact. Fresh native read-only correctness/standards
+audits cover the actual worktree/index delta and untracked consumers as fallback.
+The standards report returns0 Should Fix/1 Consider (private broker golden
+bookkeeping coupling). Full correctness review returns3 Should Fix: discarded
+Go idle return1000, constructor World capacity identity, and exact network
+resource-exhaustion sentinel identity. All three are repaired after intended RED;
+focused GREEN and four production-source overlay mutations verify the restored
+assertions. Both corpus regenerations agree byte-for-byte, all eight normal
+corpus/control roots pass without skips, and fresh preservation checks retain
+all526 original contracts and215 original helper cases. Source rereview resolves
+all three findings. Reports and disposition are
+fn187-r3-working-tree-review-2026-10-19.md.
+
+Fresh five-mode verification passed under owned session25445, terminal exit0, log
+`/home/agent/wt/evidence/fn187/r3-current/typed-assertion-replay-2026-10-19.log`.
+All five full/corpus/invariant/cursor/conservation gates pass, with zero production
+line losses or union gaps; default Go full/corpus/invariants and statement
+conservation also pass. Session36566 subsequently verified all ten baseline and
+candidate source/tool/object pins against current inputs. Authenticated frozen Rust objects are reused only
+after proving unchanged compiler inputs; every test arm/profile/comparison is
+fresh. Reviewed input manifest SHA256 is
+`a2a0fce819a1761d392aba7fe443de7e140065a240bb80199f7815b70ddbe38d`.
+Bounded rereview resolves two replay provenance findings: exact reviewed Go,
+fixture-proof and per-mode script/selector hashes are checked before capture.
+Old passing phases remain pre-repair evidence, never relabeled. Final independent
+actual-worktree correctness verdict is SHIP for R3,0 findings. `flowctl done`
+then `show` verifies task .3 done. Standards remains0 Should Fix/1 Consider.
+
+Task .4 is claimed in progress. Fresh source-only worker
+`/root/fn187_r4_modules` implements the complete approved model/protocol/namespace/
+handoff/dead-code ownership refactor in the existing functional checkout.
+Root retains compiler/runtime/review/identity qualification ownership; owner
+retains staging/commits. The worker is now source-frozen, including an explicit
+cluster/handoff owner. First lint found14 unused imports/items; the second
+passed the ordinary binary then found five stale test references/imports.
+Worker corrections are included. Primary strict six-mode Rustfmt/Clippy now
+passes, terminal session9541 exit0; make validate passes, session53809 exit0,
+including template/output, compatibility pack and qualification manifest checks.
+Integrated retained Rust matrix59182 terminated0:201 default,55 conformance unit,
+204 diagnostic-profile,205 fuel-off,206 guest-profile and207 combined tests pass.
+Only original2/3 ignored benchmark roots stay ignored. Source/testdata maps are
+checked before/after each mode and match primary after terminal success.
+Logs/source receipt are in r5-current/r4-integrated-rust-tests-2026-10-19/.
+Go/default-host/final qualification and independent batch review remain open.
+
+R5 physical counts are now retained in
+`.flow/artifacts/fn187-r5-physical-counts-2026-10-19.md`, with the current R1-R5
+mapping appended to `fn187-functional-2026-10-17.md`. Root independently verifies
+all131 counted candidate inputs and inventory digest
+da1132cf955b09c42aa2d64dad4f5dd79fc9fac45bdfde2daffed61ad3c59bdd.
+All Rust src+tests physical lines decrease42803→42016; Go WASI tests21898→21061.
+The historical src/non-inline bucket increases because separate test-only corpus
+readers are classified there; no compiled-production reduction is claimed.
+
+Combined qualification preparation is frozen under
+`/home/agent/wt/evidence/fn187/final-integrated-2026-10-19/`:
+8494 source inputs, manifest SHA256
+9a74770b9e03de25e05910c0070decbed73c3a841c95b5d2421b4d18f77e62f8.
+All manifest entries pass the independent preparation check (64710 exit0).
+Approved recovery/replication fixture copies are staged byte-identically under
+`.flow/tmp/fn187-final-integrated-2026-10-19/temporal-staged`.
+No qualification result is yet claimed for this freeze. Restore/publish ordinary
+and conformance helpers from current source after the profile matrix before Go
+gates, and record actual helper/model/runtime identities.
+
+Remaining qualification scope is not merely ten workload cells: retain the
+applicable full ladder in
+`/home/agent/wt/evidence/fn189/final/driver/fn189-run-qualification.sh` (89 reference
+stages), plus current retained-inspection and matched-release obligations.
+Its old clean-checkout/Rust1.94.1 assumptions and moved go-test producers cannot
+be executed unchanged: bind current dirty-owner source freeze/Rust1.99.1 and use
+the documented wasmmeasure command mapping. Keep runtime32 seeds/aggregate,
+cluster provider/functional/busy boundary and grouped tests, stream/replay,
+terminal/artifact/operator, actual storage/network/cluster, workload/SQLite
+selection and retained-inspection contracts at their original scope. Reuse only
+source-appropriate prior static evidence, explicitly marked not fresh. Native
+backend execution, fn185 profiling and ignored benchmarks stay out of scope;
+portable native-source/pin checks are not native qualification.
+
+Primary integration is applied, terminal session40259 followed by successful
+final hash verification. Evidence:
+`/home/agent/wt/evidence/fn187/r5-current/integrated-batch-2026-10-19/`.
+The guarded plan reconciles2603 owned paths (124 source/docs,2479 data), preserving
+primary owner changes via recorded R3 baseline matches and three-way document
+merges. Recoverable preimages are retained. An initial postcheck caught one
+Unicode line-separator split in a copied comment; exact candidate bytes were
+restored and every planned final hash then matched. Both indexes remain unchanged,
+and primary diff check passes. All82 Rust source/config/test paths match the
+worker; all3026 testdata inputs match the accepted R3 freeze. Unrelated native,
+Makefile and Flow owner changes remain untouched. Old R3 phase manifests retain
+their exact pre-R4 source meaning, not current-primary qualification.
+
+R5 original-baseline timing preparation runs serially under root session56914:
+`/home/agent/wt/evidence/fn187/r5-current/time-original-canonical-2026-10-19.py`.
+New clean detached worktree `/home/agent/wt/wasm-fn187-original-timing` is at exact
+original commit bad3c401b5e7dbdf8bc8afaca3d08cad4da154fe, retained while timing
+runs; the older baseline's unrelated cluster-test edit is untouched. The exact
+original attempt terminated56914 exit2 after305.387s: the cluster fixture's
+2000-iteration guest exits rather than exhausting its unchanged20000 fuel.
+Failed original evidence is retained. A single-value baseline-only fixture
+correction2000→4000 passes the exact original isolation test (30441 exit0), with
+all assertions, production bytes and fuel unchanged. Corrected source diff is
+SHA2562a7e7562f54cfb4f0e1829962749c769dea75bcca6108051fee46e4519129bff.
+Corrected timing session29449 terminated exit2 after439.999s, with ordinary-helper
+link-count2 failures in Go host tests. Both failed setup attempts are retained.
+The supported explicit independent-helper setup is now running under10953:
+`r5-current/time-published-original-canonical-2026-10-19.py`, logs/receipts under
+`published-original-canonical-2026-10-19/`. The helper is an authenticated independent
+copy of the original default Cargo artifact, with link count1 and matching SHA;
+no source/admission changes beyond the disclosed fixture correction. One warmup
+and three measured samples are intended; no timing result is claimed yet.
+The candidate arm must use the same explicit-helper/serial environment.
+No link-count, memory, replay, identity or other admission check is weakened.
+Original Rust1.94.1 versus candidate1.99.1 is a compiler
+confound to disclose, not a pure refactor speedup. Both arms must use identical
+serial resource settings and the same host. Existing21 worktrees remain for
+open fn185/fn187/fn189 work, uncommitted corpus/module work or retained qualification
+reproduction; no preexisting worktree or branch was removed this turn.
+
+The approved recurring readiness selector is also fixed in both copies. Outer
+`TestTemporalBrokerReadinessSource` passes (session68015); direct staged execution
+passes both predicate roots and47 subtests without skips (session93077). Evidence
+is `/home/agent/wt/evidence/fn189/readiness-source-selector-2026-10-19.log` and
+`readiness-source-selector-controls-2026-10-19.jsonl`. Earlier5394-entry host
+freeze predates the engine naming and selector edits and is not current-source
+qualification. Final combined gates/review and admitted matched comparison remain.
+
+The following sections are historical checkpoints. Their live-process and
+unapplied-patch statements are superseded by this section.
 
 ### Current primary host gates — 2026-10-19
 
@@ -33,6 +204,127 @@ the actual result and5394/5394 passing source hashes in the same evidence root.
 This supersedes the cached-only World limitation, not deferred native qualification.
 
 ### R3 broker fixture provenance correction and fresh default freeze
+
+Session67815 is terminal1, not live: guest-profile baseline tests all pass, but
+strict full export admission rejects two entries for one previously unseen
+debugid wrapper. The full307-entry diagnostic inventory contains no nonzero-hash
+or project mismatch. The new wrapper maps uniquely to registry
+debugid0.8.0/src/lib.rs, SHA256d39adde2…, exactly
+`_RNvMs0_CshOPwBy4Ngnb_7debugidNtB5_7DebugId8breakpad`. It also exposes the
+guest-feature dependency variant of the already reviewed aarch64 unwinder,
+`_RNvNtNtCsl1f379ryPF2_26wasmtime_internal_unwinder4arch7aarch6417get_stack_pointer`,
+mapping to the unchanged47.0.3 source SHA2564daf28dc…. All unknown/project/nonzero
+mismatches remain errors. No broad debugid/unwinder-crate allowance was added.
+
+New symbol acceptance regressions first fail for the intended refusal; then69
+tooling tests pass, including other-symbol/version/source/hash, ambiguous,
+missing and modified-source refusals. Logs are
+`debugid-exact-variant-red-2026-10-19.log`,
+`guest-unwinder-exact-variant-red-2026-10-19.log` and
+`guest-exact-variants-green-2026-10-19.log`.
+`debugid-exact-source-disposition-2026-10-19.json` inventories all307 retained
+diagnostics only; it does not relabel the failed historical phase.
+
+The repair lives only in NEW `guest-debugid-tools-2026-10-19/{guest-profile,
+guest-profile-fuel-off}` tool roots; canonical and prior executed tools remain
+unchanged. All three passing default/diagnostic source/tool/object pins verify
+again, with15626/14971/14963 baseline covered lines and zero losses/union gaps.
+Fresh guest retry session52099 uses `run-guest-exact-conservation-2026-10-19.py`
+and new before/r3-guest-exact-conservation phases. Both original guest baselines
+and candidates must execute full/corpus/invariant/cursor/comparison gates; no
+objects, source pins or receipts are rebound. Original tests and staged index
+remain untouched. The source-only deletion-packet agent has returned; it has no
+live compiler/runtime work and its patch remains unapplied.
+
+Three clean modes now pass full conservation: default, diagnostic-profile and
+diagnostic-fuel-off. For both diagnostic modes, baseline full/corpus, candidate
+full/corpus/138-invariant arms, fresh bounded cursor proof and the separate full
+line comparison all exit0. Diagnostic-profile retains14971 original covered
+lines with zero loss/union gaps. Guest modes remain pending under live
+session67815. The candidate source and all original tests remain unchanged.
+The prepared deletion-only packet is
+`remaining-public-deletion-packet-2026-10-19/`: four files, seven public roots,
+295 deletions/zero additions; SHA256
+48620d31b84095d226d24badd50f323a3293fca1611a4fd27dd7e87b728d0ddd.
+Root independently rechecks all35 source/fixture bindings and patch dry-run.
+These are static preparation checks, not deletion permission or a review verdict.
+Original request-limit differences for the diagnostic cluster refusal remain
+explicit in its assertion map; no exact request-byte equality is claimed there.
+
+Clean-retry default evidence now passes every required arm and comparison.
+Session67815 remains live, proceeding to diagnostic-profile. Both baseline and
+candidate initial builds rebuild all eight project executables, fresh=false,
+without compiler warnings; early production source-root admission passes.
+Default baseline Rust/Go full+corpus and candidate Rust/Go full+corpus+invariant
+arms and post-Go exports all exit0. The fresh bounded cursor proof exits0;
+the separate full Rust conservation certificate records15626 original covered
+production lines, zero losses and zero corpus+invariant union gaps. Go's exact
+statement conservation likewise records empty loss/union-gap lists.
+Source pins are356730b76c2d15229a9dc25290f78e66564df47edc73cc20fbe9465c0b444b41
+andc65699316ed27a08781895ce0662d34583a594ae06f63257b81ced184e03dde1.
+Evidence is under `before-feature-clean-conservation-2026-10-19/default`,
+`r3-feature-clean-conservation-2026-10-19/default` and the latter phase's
+`go/statement-conservation.json`. The cursor receipt is only its bounded probe,
+not a stand-alone full certificate. All four nondefault comparisons, remaining
+public assertion-level deletion proof, post-deletion verification and review
+remain required. A separate source-only agent may prepare future deletion
+patches outside frozen inputs; it cannot apply them or run tests.
+
+Superseding terminal checkpoint: session42656 ended1 at cursor proof after all
+default candidate Rust/Go full, corpus and invariant arms and post-Go exports
+returned0. Baseline had full/corpus arms only. No comparison certificate passed.
+The strict foreign-source guard found candidate paths in baseline production
+mappings. Independent per-object empty-profile exports in
+`foreign-root-diagnosis-2026-10-19/` isolate the fault: baseline ordinary helper
+has0 primary/37 candidate project source paths; baseline conformance helper has
+24 primary/0 candidate paths. Cargo's baseline JSON reports ordinary helper and
+two test executables fresh=true despite its primary manifest path. The shared
+target reused prior candidate artifacts. This invalidates the phase as an
+original-baseline conservation reference; do not normalize paths or relabel it.
+
+Two new early-admission regression tests fail for the intended missing refusal,
+then all66 tooling tests pass after the minimal correction. `coverage.inventory`
+rejects every reused project executable before freezing, and production mapping
+admission invokes the unchanged strict source-root parser before pinning.
+RED/GREEN logs are `foreign-root-guards-{red,green}-2026-10-19.log`.
+Coverage/new-test hashes are6cd7e12d…/7c9cadea… and are mirrored into all four
+unexecuted mode-specific tool roots and their manifests. No project/unknown
+diagnostic exception, source-root normalization or production behavior changed.
+
+Fresh retry session67815 runs `run-feature-clean-conservation-2026-10-19.py`
+under new phases `before-feature-clean-conservation-2026-10-19` and
+`r3-feature-clean-conservation-2026-10-19`. Before each initial no-run build it
+cleans only package gomad-wasmhost in the exact owned R3 coverage target; registry
+dependencies, source, index and independently frozen historical objects remain.
+All original full/corpus/invariant/Go/cursor/comparison obligations still apply.
+Old attempts, commands, raw profiles and actual failed guards remain retained.
+
+Current continuation: six-mode lint session93845 and five-mode compiled-roster
+session64340 both terminate0. Source-bound inventory refresh admits only four
+unconditional test-machinery roots in the default selector: functional204,
+machinery40, corpus28, private133 and combined invariants134. Existing private
+reasons and142 bindings are unchanged. Coverage-tooling tests pass64/64 in
+session12058. Per-feature tool copies retain exact compiled partitions: diagnostic
+functional210/corpus26/invariants138/public5/machinery41; fuel-off212/26/138/6/42;
+guest213/26/140/6/41; combined215/26/140/7/42. One resource root is still separate
+from functional selection but included in actual full execution; default ignores
+two benchmarks and each nondefault mode ignores three. No ignored benchmark is
+executed and no public root is admitted as private. Hash/count/subset/disjoint
+partition checks pass for all five modes in
+`feature-inventory-validation-2026-10-19.log`.
+
+Fresh phases `before-feature-conservation-2026-10-19` and
+`r3-feature-conservation-2026-10-19` are executing under root session42656 via
+`run-feature-conservation-2026-10-19.py`. Default baseline warning-free build,
+Rust full/corpus, Go full/corpus and post-Go Rust exports pass. Candidate default
+warning-free build and Rust full/corpus pass; remaining candidate invariant/Go
+arms, cursor proof, comparisons and all four nondefault modes remain unproved.
+Do not edit pinned source or tools during execution. Failed historical phases
+remain unchanged. Fresh preservation receipts confirm526 original JSON contracts
+unchanged and215 original helper files byte-identical under
+`feature-current-preserve526-2026-10-19.json` and
+`feature-current-preserve215-2026-10-19.json`. These checks do not replace final
+coverage, assertion-level deletion proof, review or qualification.
 
 Continuation: session57726 is terminal exit1, not live. Its fresh Rust full,
 corpus and134-invariant arms pass, but candidate Go full exposed the same stale

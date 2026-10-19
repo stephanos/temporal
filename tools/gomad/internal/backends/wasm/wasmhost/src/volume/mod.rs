@@ -5,16 +5,18 @@ mod hash;
 mod image;
 mod state;
 
-pub(crate) use config::{StorageFault, StorageModel};
-pub(crate) use crash::{
-    CrashEntry, CrashEnumeration, CrashEnumerationLimits, CrashExploration, CrashState,
-};
+pub(crate) use config::StorageModel;
+#[cfg(any(test, feature = "conformance"))]
+pub(crate) use crash::CrashExploration;
+pub(crate) use crash::{CrashEnumeration, CrashEnumerationLimits};
 pub(crate) use faults::{
     Image, Stop as StorageStop, Storage, boundary as storage_boundary, errno as storage_errno,
-    error_text as storage_error_text, event_line,
+    error_text as storage_error_text,
 };
-pub(crate) use image::{IMAGE_VERSION, RecoveryImage, image_digest};
-pub(crate) use state::{
-    Error, Fs, Handle, Kind, Node, OpenFlags, Operation, Result, SnapshotEntry, VolumeConfig,
-    VolumeLimits, VolumeSnapshot,
-};
+#[cfg(any(test, feature = "conformance"))]
+pub(crate) use image::IMAGE_VERSION;
+#[cfg(not(feature = "conformance"))]
+pub(crate) use image::RecoveryImage;
+#[cfg(not(feature = "conformance"))]
+pub(crate) use state::Operation;
+pub(crate) use state::{Error, Handle, Kind, OpenFlags};

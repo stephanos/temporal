@@ -266,3 +266,36 @@ exact reruns and unfinished acceptance. Earlier qualification staging/scratch
 remains accounted for in `wasm-user-stop-2026-10-17.md` and the fn-189 Linux
 handovers; it was not resumed or removed here. All commands owned by this batch
 are terminal; no background measurement or workload remains running.
+
+## Integrated R1–R5 continuation — 2026-10-19
+
+The earlier sections retain their original scope and receipts. This continuation
+records the current integrated batch in the primary checkout; it does not
+relabel old results as current-candidate qualification. Root owns live timing,
+remaining gates, independent review and completion. Task .4 remains in progress
+and .5 remains todo under the batch-first strategy.
+
+| Task / requirement | Delivered scope and evidence | Remaining batch acceptance |
+| --- | --- | --- |
+| .1 / R1 | Shared helper corpus, Rust/Go loaders, nondeterminism refusal, repeated regeneration and named replacement/retained scenarios: R1 receipt above and `.flow/tmp/fn187-r1-acceptance.md`. Current integrated Rust corpus/retained tests: `r5-current/r4-integrated-rust-tests-2026-10-19/receipt.json`. | Final integrated source/qualification review; prior R1 source review remains scoped to its reviewed patch. |
+| .2 / R2 | Ordinary `wasmmeasure` command, explicit admission/identity flags, producer/test-root conservation and artifact rerun mappings: R2 receipt and corrected independent source review above; `.flow/tmp/fn187-r2-acceptance.md`. | Final integrated batch review and applicable current-candidate gates. |
+| .3 / R3 | Assertion map, intended-red/fixed-green controls, rejected source mutations, five-mode Rust and default Go conservation, ten phase pin verification and final R3 correctness SHIP: [R3 review](fn187-r3-working-tree-review-2026-10-19.md), `.flow/tmp/fn187-r3-done-summary-2026-10-19.md`, `r3-current/typed-assertion-replay-2026-10-19.log`. | R3 acceptance is retained for its exact source; module-moved candidate evidence remains separately bound. |
+| .4 / R4 | Guest state/reply/import routing, protocol types, namespace ownership and `cluster/handoff` continuation owner: `.flow/tmp/fn187-r4-handover.md`. Six-mode strict lint and generated validation pass: `r5-current/r4-primary-second-lint-2026-10-19.log`, `r4-primary-validate-2026-10-19.log`. Integrated Rust matrix passes with unchanged frozen inputs: `r4-integrated-rust-tests-2026-10-19/{receipt,source-inputs}.json`. Root independently preserved all 3,026 testdata inputs. | Actual helper/model/runtime identity comparison, frozen-candidate WASM qualification and independent R4/batch source review remain pending. |
+| .5 / R5 | Original Git-baseline and integrated physical counts with exact counter convention, host and source inventories: [count artifact](fn187-r5-physical-counts-2026-10-19.md). README/ARCHITECTURE contain corpus contract, regeneration, invariant policy and `wasmmeasure` ownership. | Successful same-host canonical baseline/candidate timing repetitions, medians/ranges, final-freeze recount if inputs change, and independent final review remain pending. |
+
+Paths starting `r3-current/` or `r5-current/` are under
+`/home/agent/wt/evidence/fn187/`. The current Rust receipt records exit 0 for
+default, conformance-unit, diagnostic-profile, diagnostic-fuel-off, guest-profile
+and combined guest-profile/fuel-off. Root's totals are respectively
+201/55/204/205/206/207 passes; only the existing ignored benchmarks remain.
+The conformance lane runs the binary's unit target, not the default protocol
+integration targets against the conformance executable.
+
+The R5 source-only worker verified 131 counted input hashes against that exact
+integrated Rust manifest with zero differences and left source/test/corpus bytes
+unchanged. The unchanged historical counter reports physical source buckets,
+not compiled production LOC. No runtime/performance gain is claimed. Canonical
+timing is still root-owned and live; failed baseline attempts and the fixture-only
+spin-count repair remain retained, without changes to runtime budgets, oracles,
+assertions or the original Makefile. No final batch qualification/review verdict
+is claimed by this continuation.

@@ -1,0 +1,70 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "transcript": {"bytes":92,"sha256":"550284fad6c8340f5e620f7a9cee7f1a94c8f35cab88412aad9dd3cfa90f99d0"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"random_get","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"9e49db7f85432f6e8d2d23488bdd5ae0c03690ba19810c54363521028518bea3","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAHAAAAAQAAAAAAAAAMAAAAIAAAAAAAAAAAAAAABwAAAAIAAAAAAAAADAAAACAAAAAgAAAAAAAAAAcAAAADAAAAAAAAAAwAAAAAAAAAQAAAAAAAAAA=","stream":"transcript","type":"evidence"},
+      {"exit_code":0,"fuel_remaining":999664,"local_model":{"advances":0,"calls":3,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":92,"transcript_sha256":"550284fad6c8340f5e620f7a9cee7f1a94c8f35cab88412aad9dd3cfa90f99d0"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"random_get\" (func $random (param i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i32.const 32 call $random i32.eqz if else unreachable end i32.const 32 i32.const 32 call $random i32.eqz if else unreachable end i32.const 64 i32.const 0 call $random i32.eqz if else unreachable end i32.const 0 i32.load8_u i32.const 221 i32.ne if unreachable end i32.const 1 i32.load8_u i32.const 119 i32.ne if unreachable end i32.const 2 i32.load8_u i32.const 52 i32.ne if unreachable end i32.const 3 i32.load8_u i32.const 115 i32.ne if unreachable end i32.const 4 i32.load8_u i32.const 118 i32.ne if unreachable end i32.const 5 i32.load8_u i32.const 117 i32.ne if unreachable end i32.const 6 i32.load8_u i32.const 208 i32.ne if unreachable end i32.const 7 i32.load8_u i32.const 27 i32.ne if unreachable end i32.const 8 i32.load8_u i32.const 179 i32.ne if unreachable end i32.const 9 i32.load8_u i32.const 64 i32.ne if unreachable end i32.const 10 i32.load8_u i32.const 105 i32.ne if unreachable end i32.const 11 i32.load8_u i32.const 84 i32.ne if unreachable end i32.const 12 i32.load8_u i32.const 50 i32.ne if unreachable end i32.const 13 i32.load8_u i32.const 24 i32.ne if unreachable end i32.const 14 i32.load8_u i32.const 23 i32.ne if unreachable end i32.const 15 i32.load8_u i32.const 91 i32.ne if unreachable end i32.const 16 i32.load8_u i32.const 198 i32.ne if unreachable end i32.const 17 i32.load8_u i32.const 99 i32.ne if unreachable end i32.const 18 i32.load8_u i32.const 28 i32.ne if unreachable end i32.const 19 i32.load8_u i32.const 110 i32.ne if unreachable end i32.const 20 i32.load8_u i32.const 30 i32.ne if unreachable end i32.const 21 i32.load8_u i32.const 58 i32.ne if unreachable end i32.const 22 i32.load8_u i32.const 53 i32.ne if unreachable end i32.const 23 i32.load8_u i32.const 200 i32.ne if unreachable end i32.const 24 i32.load8_u i32.const 159 i32.ne if unreachable end i32.const 25 i32.load8_u i32.const 250 i32.ne if unreachable end i32.const 26 i32.load8_u i32.const 14 i32.ne if unreachable end i32.const 27 i32.load8_u i32.const 209 i32.ne if unreachable end i32.const 28 i32.load8_u i32.const 19 i32.ne if unreachable end i32.const 29 i32.load8_u i32.const 210 i32.ne if unreachable end i32.const 30 i32.load8_u i32.const 102 i32.ne if unreachable end i32.const 31 i32.load8_u i32.const 192 i32.ne if unreachable end i32.const 32 i32.load8_u i32.const 251 i32.ne if unreachable end i32.const 33 i32.load8_u i32.const 53 i32.ne if unreachable end i32.const 34 i32.load8_u i32.const 19 i32.ne if unreachable end i32.const 35 i32.load8_u i32.const 244 i32.ne if unreachable end i32.const 36 i32.load8_u i32.const 121 i32.ne if unreachable end i32.const 37 i32.load8_u i32.const 34 i32.ne if unreachable end i32.const 38 i32.load8_u i32.const 20 i32.ne if unreachable end i32.const 39 i32.load8_u i32.const 2 i32.ne if unreachable end i32.const 40 i32.load8_u i32.const 127 i32.ne if unreachable end i32.const 41 i32.load8_u i32.const 77 i32.ne if unreachable end i32.const 42 i32.load8_u i32.const 143 i32.ne if unreachable end i32.const 43 i32.load8_u i32.const 87 i32.ne if unreachable end i32.const 44 i32.load8_u i32.const 162 i32.ne if unreachable end i32.const 45 i32.load8_u i32.const 242 i32.ne if unreachable end i32.const 46 i32.load8_u i32.const 107 i32.ne if unreachable end i32.const 47 i32.load8_u i32.const 180 i32.ne if unreachable end i32.const 48 i32.load8_u i32.const 56 i32.ne if unreachable end i32.const 49 i32.load8_u i32.const 201 i32.ne if unreachable end i32.const 50 i32.load8_u i32.const 134 i32.ne if unreachable end i32.const 51 i32.load8_u i32.const 238 i32.ne if unreachable end i32.const 52 i32.load8_u i32.const 222 i32.ne if unreachable end i32.const 53 i32.load8_u i32.const 32 i32.ne if unreachable end i32.const 54 i32.load8_u i32.const 168 i32.ne if unreachable end i32.const 55 i32.load8_u i32.const 134 i32.ne if unreachable end i32.const 56 i32.load8_u i32.const 101 i32.ne if unreachable end i32.const 57 i32.load8_u i32.const 149 i32.ne if unreachable end i32.const 58 i32.load8_u i32.const 223 i32.ne if unreachable end i32.const 59 i32.load8_u i32.const 237 i32.ne if unreachable end i32.const 60 i32.load8_u i32.const 94 i32.ne if unreachable end i32.const 61 i32.load8_u i32.const 191 i32.ne if unreachable end i32.const 62 i32.load8_u i32.const 12 i32.ne if unreachable end i32.const 63 i32.load8_u i32.const 154 i32.ne if unreachable end))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "32+32+0 local random_get calls, full64 literal bytes, zero return and terminal entropy offset64 encoded in finalzero record; old30+6+28+0 is not this length32 pathway.",
+  "replaces": [
+    "model::tests::local_entropy_uses_shared_sha256_counter_golden"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

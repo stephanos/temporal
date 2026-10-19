@@ -1,0 +1,21 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "partial-abnormal-prefix-publication",
+  "kind": "partial",
+  "output_limit": 0,
+  "frames": null,
+  "transcript_base64": "R01XVAEAAAAI",
+  "choice_base64": "cGFydGlhbCBjaG9pY2U=",
+  "diagnostic_base64": "cGFydGlhbCBkaWFnbm9zdGlj",
+  "operations": null,
+  "expected": {
+    "steps": null,
+    "partial_transcript_base64": "R01XVAEAAAAI",
+    "partial_choice_base64": "cGFydGlhbCBjaG9pY2U=",
+    "partial_diagnostic_base64": "cGFydGlhbCBkaWFnbm9zdGlj",
+    "calls": 0,
+    "runtime_interrupted": false,
+    "termination": "infrastructure",
+    "filesystem_served": null
+  }
+}

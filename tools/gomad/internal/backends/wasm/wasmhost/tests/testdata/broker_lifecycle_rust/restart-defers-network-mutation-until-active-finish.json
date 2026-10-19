@@ -1,0 +1,142 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "restart-defers-network-mutation-until-active-finish",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "network": true,
+  "steps": [
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "restart",
+        "incarnation": 2
+      },
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "queue_restart",
+        "index": 1,
+        "incarnation": 2
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "check",
+        "incarnation": 2
+      },
+      "expected": ""
+    },
+    {
+      "input": {
+        "op": "queued_commands"
+      },
+      "expected": 1
+    },
+    {
+      "input": {
+        "op": "session",
+        "index": 1
+      },
+      "expected": [
+        1,
+        2
+      ]
+    },
+    {
+      "input": {
+        "op": "network_incarnations",
+        "value": "b."
+      },
+      "expected": [
+        1,
+        1
+      ]
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "ack"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "session",
+        "index": 1
+      },
+      "expected": [
+        2,
+        4
+      ]
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

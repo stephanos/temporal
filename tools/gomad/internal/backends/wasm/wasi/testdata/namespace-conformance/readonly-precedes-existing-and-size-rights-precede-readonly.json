@@ -1,0 +1,140 @@
+{
+  "name": "readonly-precedes-existing-and-size-rights-precede-readonly",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L2Zyb3plbg==",
+          "directory": true,
+          "readonly": true,
+          "data_base64": null
+        },
+        {
+          "path_base64": "L2Zyb3plbi9maWxl",
+          "directory": false,
+          "readonly": true,
+          "data_base64": "eA=="
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L2Zyb3plbg==",
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNBAAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAAHAAAAAAAAAC9mcm96ZW4KAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAHAAAAAAAAAC9mcm96ZW4EAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEBBwAAAAAAAAAvZnJvemVuAAAAAAAAAAACAQwAAAAAAAAAL2Zyb3plbi9maWxlAQAAAAAAAAB4AQAKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEABAAAAAAAAAAvdG1wAAAAAAAAAAAA",
+      "files": 5
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZmlsZQ==",
+        "dirflags": 0,
+        "oflags": 0,
+        "rights_base": 64,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZmlsZQ=="
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZmlsZQ==",
+        "dirflags": 0,
+        "oflags": 0,
+        "rights_base": 4194310,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 6,
+        "size": 18446744073709551615
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 6,
+        "data_base64": "AQ=="
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 6
+      }
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 76,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "e0c0ced71d7c8607fd4b3515432a5ed0d86ede04e6767db826203a9550097495",
+    "e0c0ced71d7c8607fd4b3515432a5ed0d86ede04e6767db826203a9550097495",
+    "64ad5b75173a0ded27c2e811d709914e4068204c0a27ed526d235fcaf2d9fd6e",
+    "64ad5b75173a0ded27c2e811d709914e4068204c0a27ed526d235fcaf2d9fd6e",
+    "64ad5b75173a0ded27c2e811d709914e4068204c0a27ed526d235fcaf2d9fd6e"
+  ],
+  "digest": "64ad5b75173a0ded27c2e811d709914e4068204c0a27ed526d235fcaf2d9fd6e"
+}

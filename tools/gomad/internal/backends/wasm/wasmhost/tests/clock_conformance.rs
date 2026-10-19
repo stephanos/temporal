@@ -38,6 +38,12 @@ fn corpora() -> Vec<(String, Value)> {
 #[test]
 fn clock_corpus_headers_match_the_go_pin() {
     let corpora = corpora();
+    assert!(
+        corpora
+            .iter()
+            .any(|(name, _)| name == "quoted-participant-names"),
+        "missing quoted participant-name clock corpus"
+    );
     for source in ["scripted", "generated", "recorded"] {
         assert!(
             corpora.iter().any(|(_, corpus)| corpus["source"] == source),

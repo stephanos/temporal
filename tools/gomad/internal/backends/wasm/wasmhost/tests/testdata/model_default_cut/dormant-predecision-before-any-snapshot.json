@@ -1,0 +1,16 @@
+{
+  "schema": "gomad.rust-model-default-cut/v1",
+  "name": "dormant-predecision-before-any-snapshot",
+  "builder": "model::tests::model",
+  "debug_input": "model::tests::debug_predecision",
+  "runtime_input": "model::tests::decision",
+  "mode": 2,
+  "tape": [],
+  "actions": ["bootstrap", "debug_predecision", "runtime_decision"],
+  "expected": {
+    "debug_success": true,
+    "divergence_after_debug": false,
+    "runtime_error": true,
+    "divergence_after_runtime": true
+  }
+}

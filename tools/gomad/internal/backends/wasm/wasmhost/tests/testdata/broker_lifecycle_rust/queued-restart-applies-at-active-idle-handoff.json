@@ -1,0 +1,68 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "queued-restart-applies-at-active-idle-handoff",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "queue_restart",
+        "index": 1,
+        "incarnation": 2
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "idle_with_restarted_peer",
+        "index": 1,
+        "incarnation": 2,
+        "deadline": 1000
+      },
+      "expected": {
+        "now": 1000,
+        "peer_acquired": true,
+        "peer_current": true
+      }
+    },
+    {
+      "input": {
+        "op": "ack"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

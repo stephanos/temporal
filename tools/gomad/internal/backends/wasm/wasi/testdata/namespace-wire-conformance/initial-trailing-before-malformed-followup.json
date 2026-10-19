@@ -1,0 +1,5 @@
+{
+  "name": "initial-trailing-before-malformed-followup",
+  "input": "{\"fd\":0} {\"\\ud800\":0}\n",
+  "output": "{\"boundary\":\"invalid:trailing JSON\"}\n"
+}

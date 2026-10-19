@@ -99,6 +99,35 @@ network v2 and stock execution retain their existing Go owners. Go model sources
 generated native projections and strict retained-evidence decoders remain live
 consumers even when a cooperative cluster executes those models in Rust.
 
+The Rust helper's `model.rs` keeps its guest-state types and private fields as
+the facade. Private `model/guest_state.rs` owns input admission and guest
+lifetime setup, `model/imports.rs` owns typed host-import routing, and
+`model/reply.rs` owns transcript and evidence encoding. `protocol.rs` owns
+execution requests, outcomes, continuation replies and remote transcript chunks;
+`engine.rs` retains store state, limits and snapshots. The namespace model,
+typed call admission, image decoder and framed input transport live together
+under `namespace/`.
+
+`cluster/handoff/` is the single continuation owner. Its coordinator selects the
+in-order baton or broker; its private broker owns acquisition, idle transfer and
+finish cleanup, including World cancellation, network revocation, clock removal
+and session completion. `cluster/execution/` owns automatic and manual guest
+lifecycle and transport, while `cluster/network/` owns shared endpoints, network
+transitions and evidence. Automatic execution publishes its result before
+finishing; manual execution finishes before publishing its result. Idle and
+terminal boundaries eagerly commit and check network inspection state before
+another incarnation can observe it. These orderings remain part of the corpus
+contract.
+
+The `conformance` feature also enables raw JSON dependencies, selects module
+availability and admits the namespace's explicit `Unsupported` operation. It
+therefore remains a feature rather than a two-binary main-function replacement.
+Dead-code exceptions name individual retained model entry points, including
+volume-projection operations outside the WASI subset; the World implementation
+does not port Go replay plans or recordings. The older Rust evidence path cited
+by the identity-bound Go network decoder, `src/network/cluster/evidence.rs`, now
+maps to `src/cluster/network/evidence.rs`; its Go source bytes stay unchanged.
+
 `tools/gomad/internal/model/cluster` owns the application-facing cluster seam. An Execution selects one
 backend and records bounded node, topology, lifecycle, output, network, volume,
 fault, scenario, history, and oracle evidence. The in-process backend assigns

@@ -1,0 +1,47 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"41a70037b1e048fc66df6fa22152e3b28c1a87cb7b9afb2349f54dd57911a900","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":1,"input":{"data_base64":"MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=","fd":1},"op":"fd_write","type":"call"},
+      {"fuel_remaining":999969,"message":"output capacity","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":32,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "capacity"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"fd_write\" (func $write (param i32 i32 i32 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 256) \"01234567890123456789012345678901\") (func (export \"_start\") i32.const 16 i32.const 256 i32.store i32.const 20 i32.const 32 i32.store i32.const 24 i32.const -1 i32.store i32.const 1 i32.const 16 i32.const 1 i32.const 24 call $write i32.const 6 i32.ne if unreachable end i32.const 24 i32.load i32.const -1 i32.ne if unreachable end i32.const 20 i32.const 1 i32.store i32.const 1 i32.const 16 i32.const 1 i32.const 24 call $write drop))"
+  },
+  "intent": "Offered bytes charge 32 even for a partial or failed write; the next byte fails before a second callback.",
+  "replaces": [
+    "src/engine.rs::typed_write_abi_charges_offered_output_including_partial_and_failed_writes"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    },
+    {
+      "after": {"input":{"data_base64":"MDEyMzQ1Njc4OTAxMjM0NTY3ODkwMTIzNDU2Nzg5MDE=","fd":1},"op":"fd_write","type":"call"},
+      "send": [{"errno":6,"id":"$trigger.id","output":{},"type":"reply"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 32,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

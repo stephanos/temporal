@@ -3514,7 +3514,7 @@ func TestTemporalBrokerReadinessSource(t *testing.T) {
 	staged := filepath.Join(".tmp", "wasm-backend-temporal", "temporal_broker-"+digest(body)[:16])
 	temporalStageBrokerFixture(t, root, staged)
 	environment := append(os.Environ(), "GOOS="+runtime.GOOS, "GOARCH="+runtime.GOARCH, "CGO_ENABLED=0", "GOENV=off", "GOFLAGS=", "GOWORK=off", "GOTOOLCHAIN=local", "GOROOT="+filepath.Dir(filepath.Dir(compiler)))
-	temporalCommand(t, t.TempDir(), "readiness-source", root, environment, []string{compiler, "test", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-run", "^TestReplicationReadinessRequiresRemoteAcknowledgment$", "-count=1", "./" + filepath.ToSlash(staged)})
+	temporalCommand(t, t.TempDir(), "readiness-source", root, environment, []string{compiler, "test", "-mod=readonly", "-tags", "test_dep,disable_grpc_modules,sqlite3_dotlk", "-run", "^(TestReplicationReadinessRequiresRemoteAcknowledgment|TestReplicatedNamespaceReadiness)$", "-count=1", "./" + filepath.ToSlash(staged)})
 }
 
 func TestTemporalIndependentClustersPartitionHealWholeClusterCrash(t *testing.T) {

@@ -1,0 +1,382 @@
+{
+  "schema": "gomad.volume-conformance/v1",
+  "name": "invalid-storage-many-volumes",
+  "origin": "volume::config::validation_mirrors_every_go_rule_including_crash_after",
+  "seed": 0,
+  "session": {
+    "model": "internal/model/volume",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        },
+        {
+          "ID": "v0",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v1",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v2",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v3",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v4",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v5",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v6",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v7",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v8",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v9",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v10",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v11",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v12",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v13",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v14",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v15",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v16",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v17",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v18",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v19",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v20",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v21",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v22",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v23",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v24",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v25",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v26",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v27",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v28",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v29",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v30",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v31",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v32",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v33",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v34",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v35",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v36",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v37",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v38",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v39",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v40",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v41",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v42",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v43",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v44",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v45",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v46",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v47",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v48",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v49",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v50",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v51",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v52",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v53",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v54",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v55",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v56",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v57",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v58",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v59",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v60",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v61",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v62",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        },
+        {
+          "ID": "v63",
+          "Path": "/workspace",
+          "CapacityBytes": 1
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      }
+    }
+  },
+  "initial_reply_base64": "eyJib3VuZGFyeSI6ImludmFsaWQ6c3RvcmFnZSBtb2RlbCBib3VuZHMifQ==",
+  "operations": null,
+  "observations": null
+}

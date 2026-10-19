@@ -1,0 +1,56 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "helper-output-ab-x-aggregate3",
+  "kind": "output",
+  "output_limit": 3,
+  "frames": [
+    {
+      "type": "evidence",
+      "stream": "stdout",
+      "data_base64": "YWI="
+    },
+    {
+      "type": "evidence",
+      "stream": "stderr",
+      "data_base64": "eA=="
+    },
+    {
+      "type": "evidence",
+      "stream": "stderr",
+      "data_base64": "eQ=="
+    }
+  ],
+  "transcript_base64": null,
+  "choice_base64": null,
+  "diagnostic_base64": null,
+  "operations": null,
+  "expected": {
+    "steps": [
+      {
+        "error": "",
+        "mirror_base64": "YWI=",
+        "stdout_base64": "YWI=",
+        "stderr_base64": null
+      },
+      {
+        "error": "",
+        "mirror_base64": "YWI=",
+        "stdout_base64": "YWI=",
+        "stderr_base64": "eA=="
+      },
+      {
+        "error": "WASI capacity: offered-output-bytes",
+        "mirror_base64": "YWI=",
+        "stdout_base64": "YWI=",
+        "stderr_base64": "eA=="
+      }
+    ],
+    "partial_transcript_base64": null,
+    "partial_choice_base64": null,
+    "partial_diagnostic_base64": null,
+    "calls": 0,
+    "runtime_interrupted": false,
+    "termination": "",
+    "filesystem_served": null
+  }
+}

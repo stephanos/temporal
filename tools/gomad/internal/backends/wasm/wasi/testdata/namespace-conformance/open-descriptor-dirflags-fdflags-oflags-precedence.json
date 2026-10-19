@@ -1,0 +1,178 @@
+{
+  "name": "open-descriptor-dirflags-fdflags-oflags-precedence",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 999,
+        "path_base64": "Li4veA==",
+        "dirflags": 2,
+        "oflags": 3,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 2
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Li4veA==",
+        "dirflags": 2,
+        "oflags": 3,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 2
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Li4veA==",
+        "dirflags": 0,
+        "oflags": 3,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 2
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Li4veA==",
+        "dirflags": 0,
+        "oflags": 3,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Lg==",
+        "dirflags": 0,
+        "oflags": 2,
+        "rights_base": 8192,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 5,
+        "path_base64": "eA==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 2,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "bWlzc2luZy8=",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 2,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 8,
+      "output": {}
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "open flags outside volatile profile"
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 76,
+      "output": {}
+    },
+    {
+      "errno": 54,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "3ae6d89d5e4ea430e68984bd7ab4cf049082add822396fcd060ca84b0c78b837",
+    "3ae6d89d5e4ea430e68984bd7ab4cf049082add822396fcd060ca84b0c78b837",
+    "3ae6d89d5e4ea430e68984bd7ab4cf049082add822396fcd060ca84b0c78b837"
+  ],
+  "digest": "3ae6d89d5e4ea430e68984bd7ab4cf049082add822396fcd060ca84b0c78b837"
+}

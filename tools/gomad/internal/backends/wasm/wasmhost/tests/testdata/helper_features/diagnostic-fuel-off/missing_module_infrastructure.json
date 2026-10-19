@@ -1,0 +1,27 @@
+{
+  "build": "diagnostic-fuel-off",
+  "case": "missing_module_infrastructure.json",
+  "expected": {
+    "diagnostic_profile": {
+      "abi": {"clock":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"idle":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"observation":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"other_local":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"remote_callback":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"scheduler":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"select":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"}},
+      "abi_overlap_errors": 0,
+      "backend": "cranelift-jit",
+      "diagnostic_only": true,
+      "host_arch": "$host_arch",
+      "host_os": "$host_os",
+      "nested": {"alternative_hash":{"count":0,"wall_nanos":"measured"},"encoding":{"count":1,"wall_nanos":"measured"},"flush":{"count":0,"wall_nanos":"measured"},"remote_read_wait":{"count":0,"wall_nanos":"measured"},"remote_write":{"count":0,"wall_nanos":"measured"},"transcript_hash":{"count":0,"wall_nanos":"measured"}},
+      "phases": {"cache_identity":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_read":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_write":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"compile":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"deserialize":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"engine_init":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"envelope_verify":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"execute":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"instantiate":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_hash":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_read":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"}},
+      "residual": "measured",
+      "schema": "gomad.wasm-profile/v1"
+    },
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"fuel_remaining":0,"message":"No such file or directory (os error 2)","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":0,"execute_nanos":0,"instantiate_nanos":0,"peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":0,"termination":"infrastructure","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "infrastructure"
+  },
+  "schema": "gomad.helper-feature-expectation/v1",
+  "source_sha256": "e2fcdce05c1f4f46a5be727ceaa40986752dd7777a07fedbf2c1f9aa45d5e82c"
+}

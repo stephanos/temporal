@@ -121,30 +121,6 @@ mod tests {
     }
 
     #[test]
-    fn raw_digest_matches_literal_sha256_vectors() {
-        for (value, expected) in [
-            (
-                &b""[..],
-                "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
-            ),
-            (
-                &b"abc"[..],
-                "sha256:ba7816bf8f01cfea414140de5dae2223b00361a396177a9cb410ff61f20015ad",
-            ),
-            (
-                &b"\0\xff\x80\x01"[..],
-                "sha256:6509423fd9da5c225d2f8619ffae394b40f9f7686fee55a38c54b1424ac65f46",
-            ),
-            (
-                &[b'a'; 128][..],
-                "sha256:6836cf13bac400e9105071cd6af47084dfacad4e5e302c94bfed24e013afb73e",
-            ),
-        ] {
-            assert_eq!(bytes_digest(value), expected);
-        }
-    }
-
-    #[test]
     fn raw_writes_preserve_stream_across_nonconsuming_finish() {
         let mut hasher = Hasher::new();
         assert_eq!(

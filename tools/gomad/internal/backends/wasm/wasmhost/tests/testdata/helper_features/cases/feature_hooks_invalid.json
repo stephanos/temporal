@@ -1,0 +1,61 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {},
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 3 call $sync drop))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "feature_hooks_invalid: public feature assertion conservation",
+  "replaces": [
+    "tests/engine.rs::diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failures"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    },
+    {
+      "after": {"type":"call"},
+      "send": [{"errno":0,"id":"$trigger.id","local_state":{"advances":0,"now":4},"output":[],"transcript_base64":"DQAAAAIAAAAAAAAABAAAAAMAAAA=","type":"reply"}]
+    }
+  ],
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 3,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

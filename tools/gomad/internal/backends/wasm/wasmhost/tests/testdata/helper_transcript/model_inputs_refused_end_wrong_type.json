@@ -1,0 +1,61 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": true,
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"fuel_remaining":0,"message":"invalid local model input end","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_input"
+    }
+  ],
+  "intent": "Local input framing and captured environment validation refuse malformed declarations or carriage before guest execution.",
+  "replaces": [
+    "src/model.rs::fragmented_inputs_accept_full_domain_and_reject_malformed_carriage"
+  ],
+  "replies": [],
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

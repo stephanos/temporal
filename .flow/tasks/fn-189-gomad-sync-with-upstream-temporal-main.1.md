@@ -13,7 +13,9 @@ The owner committed integration as `0077477965a5b766b95a667247a9f562c100941b`
 and the seven-test repair as `bad3c401b5`. Exact upstream base is
 `48a1e5ff025e55b3d4d0f44247423d4c279ff636`; use a merge, never rewrite retained
 evidence history. Primary HEAD is now
-`d200fb9be26b916fab433db1ebe882eb54e06e31`. No merge is in progress.
+`5951d8bb96f41fdd1b146ee4a8cbb17613495aa0` (owner checkpoint). All5394
+host-freeze source hashes passed after that commit, before subsequent engine
+fixture naming and readiness-selector edits. No merge is in progress.
 Keep commits with the owner; no push, PR, CI or migration execution is authorized.
 
 Original source reconciliation and conflict/pack evidence remain in
@@ -42,8 +44,12 @@ identities, raw exits/results and unchanged budgets are retained under
 `/home/agent/wt/evidence/fn189/namespace-readiness-2026-10-18/qualification`.
 These are source-bound results, not a claim that every remaining acceptance
 obligation or a subsequently changed tree is qualified. The recurring source
-selector still needs the approved readiness predicate test wired in at the next
-combined source-change window, followed by applicable fresh source-bound gates.
+selector now executes both approved readiness predicate suites. The outer source
+test passes (session68015); direct staged execution passes both top-level roots
+and47 subtests, no failures/skips (session93077). Evidence is
+`/home/agent/wt/evidence/fn189/readiness-source-selector-2026-10-19.log` and
+`readiness-source-selector-controls-2026-10-19.jsonl`. Both primary and R3 copies
+carry the exact selector. Applicable fresh combined source-bound gates remain.
 
 Historical matched-release baseline passes all12 scenarios for seeds7/19/42
 with exact crash/reopen/prefix/full replay and recovery oracles. Candidate build
@@ -65,8 +71,12 @@ are in `/home/agent/wt/evidence/fn189/host-gates-current-2026-10-19/`.
 Harness/architecture and World race targets also pass, terminal sessions33534
 and56071 with5394 source checks after each. Archcheck executed in31.533s;
 ordinary package results include valid cache hits and all three World race
-package results are cached, not fresh race executions. Preserve unrelated
-primary Makefile/native-qualification edits; root has not staged or committed them.
+package results were cached. Separate session13147 now proves fresh uncached
+World/mailbox/process race execution with `-race -tags=test_dep -p=1
+-parallel=1 -count=1 ./internal/model/world/...`: all three pass, exit0,
+and all5394 source hashes pass afterward. Logs are world-fresh.* in the same
+host-gate evidence root. Preserve unrelated primary Makefile/native-qualification
+edits; root has not staged or committed them.
 
 The owner explicitly authorized WASM resource-sensitive execution, superseding
 the earlier non-resource-sensitive hold. Execute serially with one compiler,
@@ -76,7 +86,7 @@ scope. Source/static checks are not native backend qualification.
 
 Remaining acceptance includes a valid candidate matched-release comparison,
 remaining source/host/Temporal storage/network/recovery gates at their exact
-required scope, the recurring readiness selector, final review and one R1-R4
+required scope after the two test-file edits, final review and one R1-R4
 handover with identities/conflicts/resolutions/commands/exits. MILESTONES and
 README already name the new upstream base; do not remove the milestone or mark
 the task done until all obligations are evidenced. Fn187 R3 coverage work

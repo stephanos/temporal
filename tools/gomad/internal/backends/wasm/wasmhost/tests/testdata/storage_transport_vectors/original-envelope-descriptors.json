@@ -1,0 +1,79 @@
+{
+  "schema": "gomad.rust-storage-transport-vectors/v1",
+  "model_json": "{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}}",
+  "model_identity": "sha256:a9ec2d754ec09e513f6d0580634e16cc9ab4c21fa9353f2d3d91cea0ced251c3",
+  "envelope": {
+    "name": "original-v1-layout",
+    "snapshots": "[]",
+    "operations": "{}",
+    "enumerations": "null",
+    "image_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+    "log": "x\n",
+    "expected": {
+      "magic": [
+        71,
+        77,
+        83,
+        84,
+        79,
+        82,
+        69,
+        1
+      ],
+      "header": [
+        1,
+        0,
+        0,
+        0,
+        5,
+        0,
+        0,
+        0
+      ],
+      "body_bytes": 188,
+      "total_bytes": 228,
+      "body_sha256": "aea3c5b80a202b6649d69bed5b2bb5832a0c0cdbe65b29acc039a0e1e9313f2c"
+    }
+  },
+  "descriptors": [
+    {
+      "name": "valid-identity",
+      "descriptor_json": "{\"model\":{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}},\"model_identity\":\"sha256:a9ec2d754ec09e513f6d0580634e16cc9ab4c21fa9353f2d3d91cea0ced251c3\",\"return_image\":true}",
+      "expected": {
+        "stage": "valid"
+      }
+    },
+    {
+      "name": "wrong-identity",
+      "descriptor_json": "{\"model\":{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}},\"model_identity\":\"sha256:0000000000000000000000000000000000000000000000000000000000000000\",\"return_image\":true}",
+      "expected": {
+        "stage": "validate",
+        "message": "storage model identity mismatch"
+      }
+    },
+    {
+      "name": "invalid-framed-image",
+      "descriptor_json": "{\"model\":{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}},\"model_identity\":\"sha256:a9ec2d754ec09e513f6d0580634e16cc9ab4c21fa9353f2d3d91cea0ced251c3\",\"return_image\":false,\"image\":{\"chunks\":2,\"bytes\":10,\"sha256\":\"0000000000000000000000000000000000000000000000000000000000000000\"}}",
+      "expected": {
+        "stage": "validate",
+        "message": "invalid storage image descriptor"
+      }
+    },
+    {
+      "name": "unknown-selection-volume",
+      "descriptor_json": "{\"model\":{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}},\"model_identity\":\"sha256:a9ec2d754ec09e513f6d0580634e16cc9ab4c21fa9353f2d3d91cea0ced251c3\",\"return_image\":true,\"crash_selection\":{\"other\":[1]}}",
+      "expected": {
+        "stage": "validate",
+        "message": "WASI invalid: storage crash selection volume"
+      }
+    },
+    {
+      "name": "unknown-extra-field",
+      "descriptor_json": "{\"model\":{\"volumes\":[{\"ID\":\"data\",\"Path\":\"/workspace\",\"CapacityBytes\":1024}],\"limits\":{\"PendingOperations\":10,\"Transitions\":10}},\"model_identity\":\"x\",\"return_image\":true,\"extra\":1}",
+      "expected": {
+        "stage": "parse",
+        "prefix": "unknown field `extra`"
+      }
+    }
+  ]
+}

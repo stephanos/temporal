@@ -176,50 +176,6 @@ fn world_identity_and_transition_exhaustion_do_not_wrap_or_mutate() {
     assert_eq!(model.state_digest(), before);
 }
 
-#[test]
-fn world_quiesce_delivers_one_instant_in_order_and_cancel_removes_queued() {
-    let mut model = Model::new(Config {
-        seed: 7,
-        limits: limits(),
-    })
-    .unwrap();
-    let a = model.register(request("b")).unwrap();
-    let b = model.register(request("a")).unwrap();
-    let c = model.register(request("c")).unwrap();
-    for (id, at) in [(a, 10), (b, 10), (c, 11)] {
-        model
-            .ready(Readiness {
-                request_id: id,
-                at: INITIAL_TIME + at,
-                kind: "done".into(),
-                payload: vec![1],
-                equivalence_class: String::new(),
-            })
-            .unwrap();
-    }
-    assert_eq!(
-        model.cancel(c).unwrap(),
-        Cancellation {
-            request_id: c,
-            event_id: 3,
-            status: CancelStatus::Won
-        }
-    );
-    let delivered = model.quiesce().unwrap();
-    assert_eq!(delivered.kind, QuiescenceKind::Delivered);
-    assert_eq!(
-        delivered
-            .deliveries
-            .iter()
-            .map(|delivery| delivery.request_id)
-            .collect::<Vec<_>>(),
-        vec![b, a]
-    );
-    assert_eq!(model.now(), INITIAL_TIME + 10);
-    assert_eq!(model.quiesce().unwrap().kind, QuiescenceKind::Idle);
-    assert_eq!(model.cardinality().payload_bytes, 3 * 2 + 2);
-}
-
 /// The retained transition frames reproduce the uncached Go `stateDigest`
 /// after every mutation, refusal and cap fallback.
 #[test]

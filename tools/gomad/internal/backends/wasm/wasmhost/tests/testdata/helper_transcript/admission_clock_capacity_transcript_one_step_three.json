@@ -1,0 +1,68 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"83365565ae61eabf8a84fd4f38f515fc3c1f8c0bbaa817b37cb9095d3834dcda","schema":"gomad.wasm-host/v1","type":"started"},
+      {"fuel_remaining":999995,"local_model":{"advances":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"WASI capacity: transcript-bytes","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "capacity"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 1 i64.const 0 i32.const 8 call $clock i32.eqz if else unreachable end i32.const 8 i64.load i64.const 1 i64.ne if unreachable end))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "calls100/transcript1/now1/read_step3/no prime, clock1 precision0 refuses transcript-bytes; public completed0/now1/adv0/T0.",
+  "replaces": [
+    "engine::tests::typed_clock_state_capacity_preserves_attempted_and_completed_counts"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "digest_only": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":1},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 3,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

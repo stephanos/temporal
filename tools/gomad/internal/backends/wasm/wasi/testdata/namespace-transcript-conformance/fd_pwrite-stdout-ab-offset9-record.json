@@ -1,0 +1,28 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "fd_pwrite-stdout-ab-offset9-record",
+  "kind": "codec",
+  "op": "fd_pwrite",
+  "input": {
+    "fd": 1,
+    "data_base64": "YWI=",
+    "offset": 9
+  },
+  "limit": 8388608,
+  "reference_limit": 0,
+  "digest_transcript": false,
+  "reference": null,
+  "expected": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 76,
+      "output": {}
+    },
+    "transcript_base64": "R01XVAEAAAAJAEwAAQAAAAAAAAASAAAAAQAAAAIAAABhYgkAAAAAAAAA",
+    "sha256": "8d509ab9b579c51510719dd5c23ad26138e29c5e3c86668bf399e96b3a9de7e2",
+    "tag": 9,
+    "binary_input_base64": "AQAAAAIAAABhYgkAAAAAAAAA",
+    "binary_output_base64": null
+  }
+}

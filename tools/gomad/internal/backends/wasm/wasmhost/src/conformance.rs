@@ -1,6 +1,6 @@
 use crate::namespace::{self, Image, ImageEntry, Limits, Namespace, Open, Operation, Output};
 use crate::transcript::{self, Subscription};
-use crate::{local_model, namespace_call, volume};
+use crate::{local_model, namespace::call as namespace_call, volume};
 use base64::{Engine, engine::general_purpose::STANDARD};
 use serde::{Deserialize, de::MapAccess};
 use serde_json::value::RawValue;
@@ -388,7 +388,7 @@ impl Session {
         }
         if let Some(binary) = request_binary {
             let bytes = decode(&binary.data_base64)?;
-            let decoded = crate::namespace_image::decode(
+            let decoded = crate::namespace::decode_image(
                 &mut &bytes[..],
                 binary.files,
                 limits.output_bytes,
@@ -1208,248 +1208,7 @@ mod tests {
     use super::*;
 
     #[test]
-    fn volume_selector_requires_storage_and_namespace_refuses_it() {
-        for input in [
-            &b"{\"model\":\"internal/model/volume\",\"image\":{}}\n"[..],
-            &b"{\"model\":\"namespace\",\"image\":{},\"storage\":{}}\n"[..],
-        ] {
-            let mut output = Vec::new();
-            run(&mut &input[..], &mut output).unwrap();
-            assert_eq!(
-                String::from_utf8(output).unwrap(),
-                "{\"boundary\":\"invalid:conformance model\"}\n"
-            );
-        }
-    }
-
-    fn request(transcript_bytes: u64, calls: u64) -> String {
-        format!(
-            r#"{{"model":"namespace","image":{{"entries":[{{"path_base64":"L3RtcA==","directory":true,"readonly":false,"data_base64":""}},{{"path_base64":"L3dvcmtzcGFjZQ==","directory":true,"readonly":false,"data_base64":""}}],"writable_directories":["L3dvcmtzcGFjZQ==","L3RtcA=="],"preopens":["L3RtcA==","L3dvcmtzcGFjZQ=="],"working_directory":"L3dvcmtzcGFjZQ==","stdin_base64":"","limits":{{"files":100,"descriptors":64,"filesystem_bytes":8388608,"output_bytes":1048576,"calls":{calls},"transcript_bytes":{transcript_bytes},"pending_events":4096}},"epoch_nanos":946684800000000000,"read_step_nanos":1000}}}}"#
-        )
-    }
-
-    fn session(transcript_bytes: u64, calls: u64) -> Session {
-        Session::new(&request(transcript_bytes, calls)).unwrap()
-    }
-
-    /// A production image built from writable directories, in Go's GMWN layout.
-    fn binary_image(writable: &[&str], cwd: &str) -> String {
-        let mut bytes = b"GMWN\x01\0\0\0".to_vec();
-        let number = |bytes: &mut Vec<u8>, value: u64| bytes.extend(value.to_le_bytes());
-        let blob = |bytes: &mut Vec<u8>, value: &[u8]| {
-            bytes.extend((value.len() as u64).to_le_bytes());
-            bytes.extend(value);
-        };
-        let mut sorted = writable.to_vec();
-        sorted.sort_unstable();
-        for value in [100, 64, 8_388_608, 1_048_576, 946_684_800_000_000_000] {
-            number(&mut bytes, value);
-        }
-        for count in [writable.len(), writable.len(), 0, writable.len()] {
-            number(&mut bytes, count as u64);
-        }
-        for path in writable {
-            blob(&mut bytes, path.as_bytes());
-        }
-        for path in &sorted {
-            blob(&mut bytes, path.as_bytes());
-        }
-        blob(&mut bytes, cwd.as_bytes());
-        blob(&mut bytes, b"");
-        for path in &sorted {
-            bytes.extend([1, 0]);
-            blob(&mut bytes, path.as_bytes());
-            blob(&mut bytes, b"");
-        }
-        bytes.push(0);
-        format!(
-            r#","binary_image":{{"data_base64":"{}","files":{}}}}}"#,
-            STANDARD.encode(bytes),
-            writable.len() + 1
-        )
-    }
-
-    #[test]
-    fn namespace_conformance_binary_image_must_match_session_image() {
-        let base = request(1 << 20, 100);
-        let with = |binary: String| format!("{}{binary}", &base[..base.len() - 1]);
-        let matching = with(binary_image(&["/workspace", "/tmp"], "/workspace"));
-        if let Err(error) = Session::new(&matching) {
-            panic!("matching production image refused: {error}");
-        }
-        let different = with(binary_image(&["/tmp"], "/tmp"));
-        assert_eq!(
-            Session::new(&different).err().unwrap(),
-            "invalid:binary namespace image mismatch"
-        );
-        let truncated = with(r#","binary_image":{"data_base64":"R01XTg==","files":3}}"#.into());
-        assert!(Session::new(&truncated).is_err());
-    }
-
-    #[test]
-    fn namespace_conformance_image_requires_nullable_byte_fields() {
-        for removed in ["stdin_base64", "data_base64"] {
-            let mut request: serde_json::Value =
-                serde_json::from_str(&request(1 << 20, 100)).unwrap();
-            let image = request["image"].as_object_mut().unwrap();
-            if removed == "data_base64" {
-                image["entries"][0].as_object_mut().unwrap().remove(removed);
-            } else {
-                image.remove(removed);
-            }
-            assert_eq!(
-                Session::new(&go_json(&request)).err(),
-                Some("invalid:namespace image".into())
-            );
-        }
-    }
-
-    #[test]
-    fn namespace_conformance_binary_admission_validates_input_before_full_reservation() {
-        let mut session = session(100, 100);
-        assert_eq!(
-            session.handle(r#"{"op":"fd_read","input":{"fd":0}}"#),
-            r#"{"boundary":"invalid:operation fields"}"#
-        );
-        assert_eq!(session.transcript_bytes, 0);
-    }
-
-    #[test]
-    fn namespace_conformance_binary_clock_reads_fold_without_new_reservation() {
-        let mut session = session(52, 100);
-        let clock = r#"{"op":"clock_time_get","input":{"clock_id":1,"precision":0}}"#;
-        assert_eq!(
-            session.handle(clock),
-            r#"{"errno":0,"output":{"timestamp":0}}"#
-        );
-        assert_eq!(
-            session.handle(clock),
-            r#"{"errno":0,"output":{"timestamp":1000}}"#
-        );
-        assert_eq!(session.transcript_bytes, 52);
-        assert_eq!(
-            session.handle(r#"{"op":"clock_time_get","input":{"clock_id":1,"precision":1}}"#),
-            r#"{"boundary":"capacity:transcript-bytes"}"#
-        );
-        assert_eq!(
-            session.handle(r#"{"op":"clock_time_get","input":{"clock_id":1}}"#),
-            r#"{"boundary":"invalid:operation fields"}"#
-        );
-        assert_eq!(
-            session.handle(clock),
-            r#"{"errno":0,"output":{"timestamp":2000}}"#
-        );
-        assert_eq!(session.transcript_bytes, 52);
-    }
-
-    #[test]
-    fn namespace_conformance_binary_fields_validate_in_schema_order() {
-        let mut session = session(1 << 20, 100);
-        assert_eq!(
-            session.handle(r#"{"op":"fd_read","input":{"fd":"bad","length":null}}"#),
-            r#"{"boundary":"invalid:operation JSON types"}"#
-        );
-        assert_eq!(session.handle(r#"{"op":"path_open","input":{"fd":3,"dirflags":"bad","path_base64":null,"oflags":0,"rights_base":0,"rights_inheriting":0,"fdflags":0}}"#), r#"{"boundary":"invalid:operation JSON types"}"#);
-    }
-
-    #[test]
-    fn namespace_conformance_binary_transcript_counts_actual_records() {
-        let mut session = session(48, 100);
-        assert_eq!(
-            session.handle(r#"{"op":"fd_close","input":{"fd":999}}"#),
-            r#"{"errno":8,"output":{}}"#
-        );
-        assert_eq!(session.transcript_bytes, 28);
-        assert_eq!(
-            session.handle(r#"{"op":"fd_close","input":{"fd":999}}"#),
-            r#"{"errno":8,"output":{}}"#
-        );
-        assert_eq!(session.transcript_bytes, 48);
-    }
-
-    #[test]
-    fn namespace_conformance_reserves_before_mutating() {
-        let mut session = session(1, 100);
-        let before = session.digest();
-        let reply = session
-            .handle(r#"{"op":"path_create_directory","input":{"fd":3,"path_base64":"YQ=="}}"#);
-        assert_eq!(reply, r#"{"boundary":"capacity:transcript-bytes"}"#);
-        assert_eq!(session.digest(), before);
-    }
-
-    #[test]
-    fn namespace_conformance_callback_limit_precedes_input_validation() {
-        let mut session = session(1 << 20, 1);
-        assert_eq!(
-            session.handle(r#"{"op":"fd_close","input":{"fd":999}}"#),
-            r#"{"errno":8,"output":{}}"#
-        );
-        assert_eq!(
-            session.handle(r#"{"op":"fd_close","input":{"fd":null}}"#),
-            r#"{"boundary":"capacity:callbacks"}"#
-        );
-    }
-
-    #[test]
-    fn namespace_conformance_strict_input_and_length_precedence() {
-        for (input, boundary) in [
-            (r#"{"fd":3,"fd":4}"#, "invalid:duplicate JSON field"),
-            (r#"{"\ud800":0}"#, "invalid:malformed JSON"),
-            (r#"{"\udfff":0}"#, "invalid:malformed JSON"),
-            (r#"{"fd":3,"extra":{"\ud800":0}}"#, "invalid:malformed JSON"),
-            (
-                r#"{"\ud83d\ude00":0}"#,
-                "invalid:missing operation field fd",
-            ),
-            (r#"{"fd":null}"#, "invalid:missing operation field fd"),
-            (r#"{"fd":4294967296}"#, "invalid:operation JSON types"),
-            (r#"{"fd":3,"extra":0}"#, "invalid:operation fields"),
-            (r#"{"fd":3,"length":4194305}"#, "capacity:buffer-bytes"),
-        ] {
-            let mut session = session(1 << 20, 100);
-            let before = session.digest();
-            let reply = session.handle(&format!(r#"{{"op":"fd_close","input":{input}}}"#));
-            assert_eq!(reply, format!(r#"{{"boundary":"{boundary}"}}"#), "{input}");
-            assert_eq!(session.digest(), before);
-        }
-    }
-
-    #[test]
-    fn namespace_conformance_json_errors_follow_wire_token_order() {
-        let deep = format!("{}0{}", "[".repeat(33), "]".repeat(33));
-        let malformed_deep = format!("{}|{}", "[".repeat(33), "]".repeat(33));
-        for (input, boundary) in [
-            (
-                r#"{"fd":0,"extra":{"\ud800":0},"fd":1}"#.to_string(),
-                "invalid:malformed JSON",
-            ),
-            (
-                r#"{"z":"\ud800","a":{"x":0,"x":1}}"#.to_string(),
-                "invalid:malformed JSON",
-            ),
-            (
-                format!(r#"{{"z":{deep},"a":"\ud800"}}"#),
-                "invalid:JSON nesting",
-            ),
-            (
-                format!(r#"{{"z":{malformed_deep}}}"#),
-                "invalid:JSON nesting",
-            ),
-            (
-                r#"{"fd":0,"fd":{"\ud800":0}}"#.to_string(),
-                "invalid:duplicate JSON field",
-            ),
-            (
-                r#"{"fd":0,"\u0066d":1}"#.to_string(),
-                "invalid:duplicate JSON field",
-            ),
-            (
-                r#"{"fd":0} {"\ud800":0}"#.to_string(),
-                "invalid:trailing JSON",
-            ),
-        ] {
-            assert_eq!(check_json(&input, 0), Err(boundary.into()), "{input}");
-        }
+    fn token_validator_accepts_non_object_json() {
         for input in [
             "1e400",
             "-1234567890123456789012345678901234567890",
@@ -1460,44 +1219,51 @@ mod tests {
     }
 
     #[test]
-    fn namespace_conformance_poll_returns_ready_fds_before_future_clock() {
-        let mut session = session(1 << 20, 100);
-        assert_eq!(
-            session.handle(r#"{"op":"poll_oneoff","input":{"subscriptions":[{"userdata":1,"type":0,"clock_id":1,"timeout":50,"precision":0,"flags":0},{"userdata":2,"type":1,"fd":0}]}}"#),
-            r#"{"errno":0,"output":{"events":[{"userdata":2,"errno":0,"type":1,"nbytes":0,"flags":1}]}}"#
-        );
-        assert_eq!(
-            session.handle(r#"{"op":"clock_time_get","input":{"clock_id":1,"precision":0}}"#),
-            r#"{"errno":0,"output":{"timestamp":0}}"#
-        );
-    }
-
-    #[test]
-    fn namespace_conformance_unsupported_reply_matches_go_bytes() {
-        let mut session = session(1 << 20, 100);
-        assert_eq!(
-            session.handle(r#"{"op":"sock_accept","input":{"fd":3,"flags":0}}"#),
-            r#"{"errno":0,"output":{},"unsupported":true,"message":"operation outside stock WASI profile: sock_accept"}"#
-        );
-    }
-
-    #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The corpus validator preserves its complete ordered literal and observation checks."
+    )]
     fn namespace_conformance_corpus() {
         #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
         struct Corpus {
             name: String,
+            #[serde(rename = "origin")]
+            _origin: String,
             session: Box<RawValue>,
             operations: Vec<CorpusOperation>,
             replies: Vec<Box<RawValue>>,
             digest: String,
+            digests: Option<Vec<String>>,
         }
         #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
         struct CorpusOperation {
             op: String,
             input: Box<RawValue>,
             #[serde(default)]
             repeat_data: u32,
         }
+        const LEGACY_NAMES: [&str; 18] = [
+            "capacity-buffer-bytes",
+            "capacity-callbacks",
+            "capacity-descriptors",
+            "capacity-files",
+            "capacity-filesystem-bytes",
+            "capacity-offered-output-bytes",
+            "capacity-pending-events",
+            "capacity-transcript-bytes",
+            "capacity-write-buffer",
+            "detached-directory",
+            "directories-and-rename",
+            "errno-and-containment",
+            "invalid-fields-before-transcript",
+            "metadata-and-data",
+            "output-and-mixed-poll",
+            "readonly",
+            "recorded-stock-guest",
+            "strict-and-unsupported",
+        ];
         let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
             .join("../wasi/testdata/namespace-conformance");
         let mut paths = std::fs::read_dir(&directory)
@@ -1507,8 +1273,92 @@ mod tests {
             .collect::<Vec<_>>();
         paths.sort();
         assert!(!paths.is_empty(), "missing namespace conformance corpus");
+        for name in LEGACY_NAMES {
+            assert!(
+                directory
+                    .join(format!("{name}-binary-image-and-step-digests.json"))
+                    .is_file(),
+                "missing enhanced companion for {name}"
+            );
+        }
         for path in paths {
-            let corpus: Corpus = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
+            let raw = std::fs::read(&path).unwrap();
+            let corpus: Corpus = serde_json::from_slice(&raw).unwrap();
+            assert_eq!(
+                path.file_stem().unwrap().to_str(),
+                Some(corpus.name.as_str())
+            );
+            let fields = object_fields(std::str::from_utf8(&raw).unwrap()).unwrap();
+            let session_fields = object_fields(corpus.session.get()).unwrap();
+            let legacy = LEGACY_NAMES.contains(&corpus.name.as_str());
+            if legacy {
+                assert!(
+                    !fields.contains_key("digests"),
+                    "{} legacy schema",
+                    corpus.name
+                );
+                assert!(
+                    !session_fields.contains_key("binary_image"),
+                    "{} legacy session",
+                    corpus.name
+                );
+            } else {
+                assert!(
+                    session_fields
+                        .get("binary_image")
+                        .is_some_and(|image| image.get() != "null"),
+                    "{} missing enhanced binary image",
+                    corpus.name
+                );
+                assert_eq!(
+                    corpus
+                        .digests
+                        .as_ref()
+                        .expect("enhanced corpus digests required")
+                        .len(),
+                    corpus.operations.len(),
+                    "{}",
+                    corpus.name
+                );
+            }
+            if let Some(original) = corpus.name.strip_suffix("-binary-image-and-step-digests") {
+                assert!(LEGACY_NAMES.contains(&original));
+                let original_bytes =
+                    std::fs::read(directory.join(format!("{original}.json"))).unwrap();
+                let mut original_fields =
+                    object_fields(std::str::from_utf8(&original_bytes).unwrap()).unwrap();
+                let mut enhanced_fields =
+                    object_fields(std::str::from_utf8(&raw).unwrap()).unwrap();
+                assert_eq!(original_fields["name"].get(), go_json(&original));
+                enhanced_fields.insert(
+                    "name".into(),
+                    RawValue::from_string(go_json(&original)).unwrap(),
+                );
+                enhanced_fields.remove("digests").unwrap();
+                let mut enhanced_session =
+                    object_fields(enhanced_fields.remove("session").unwrap().get()).unwrap();
+                enhanced_session.remove("binary_image").unwrap();
+                let original_session =
+                    object_fields(original_fields.remove("session").unwrap().get()).unwrap();
+                let raw_values = |fields: Fields| -> BTreeMap<String, String> {
+                    fields
+                        .into_iter()
+                        .map(|(key, value)| (key, value.get().to_owned()))
+                        .collect()
+                };
+                assert_eq!(
+                    raw_values(enhanced_fields),
+                    raw_values(original_fields),
+                    "{} companion changed original projection",
+                    corpus.name
+                );
+                assert_eq!(
+                    raw_values(enhanced_session),
+                    raw_values(original_session),
+                    "{} companion changed original session",
+                    corpus.name
+                );
+            }
             let mut session = Session::new(corpus.session.get()).unwrap();
             assert_eq!(
                 corpus.operations.len(),
@@ -1544,11 +1394,194 @@ mod tests {
                     corpus.name,
                     operation.op
                 );
+                if let Some(digests) = &corpus.digests {
+                    assert_eq!(
+                        session.handle(r#"{"op":"digest","input":{}}"#),
+                        format!(r#"{{"digest":"{}"}}"#, digests[index]),
+                        "{} op {index} state",
+                        corpus.name
+                    );
+                }
             }
             assert_eq!(
-                session.digest(),
+                session.handle(r#"{"op":"digest","input":{}}"#),
                 format!(r#"{{"digest":"{}"}}"#, corpus.digest),
                 "{} final digest",
+                corpus.name
+            );
+        }
+    }
+
+    #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The corpus validator preserves its complete ordered literal and observation checks."
+    )]
+    fn namespace_image_conformance_corpus() {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Corpus {
+            name: String,
+            data_base64: String,
+            files: u64,
+            output_bytes: u64,
+            epoch_nanos: u64,
+            #[serde(default)]
+            image_sha256: Option<String>,
+            #[serde(default)]
+            namespace_sha256: Option<String>,
+            #[serde(default)]
+            boundary: Option<String>,
+            #[serde(default)]
+            repeat: Option<Repeat>,
+        }
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Repeat {
+            offset: usize,
+            count: usize,
+            byte: u8,
+        }
+        for malformed in [
+            r#"{"name":"unknown","data_base64":"","files":1,"output_bytes":3,"epoch_nanos":4,"boundary":"invalid:namespace image","extra":0}"#,
+            r#"{"name":"wrong-bytes","data_base64":[],"files":1,"output_bytes":3,"epoch_nanos":4,"boundary":"invalid:namespace image"}"#,
+            r#"{"name":"unknown-repeat","data_base64":"","files":1,"output_bytes":3,"epoch_nanos":4,"boundary":"invalid:namespace image","repeat":{"offset":0,"count":1,"byte":0,"extra":0}}"#,
+        ] {
+            assert!(
+                serde_json::from_str::<Corpus>(malformed).is_err(),
+                "accepted malformed image fixture: {malformed}"
+            );
+        }
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../wasi/testdata/namespace-image-conformance");
+        let mut paths = std::fs::read_dir(directory)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| path.extension().is_some_and(|value| value == "json"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        assert!(!paths.is_empty(), "missing namespace image corpus");
+        for path in paths {
+            let corpus: Corpus = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+            assert_ne!(
+                corpus.boundary.is_some(),
+                corpus.image_sha256.is_some(),
+                "{}",
+                corpus.name
+            );
+            let mut bytes = STANDARD.decode(&corpus.data_base64).unwrap();
+            if let Some(repeat) = corpus.repeat {
+                assert!(repeat.offset <= bytes.len() && repeat.count <= (4 << 20) + 1);
+                bytes.splice(
+                    repeat.offset..repeat.offset,
+                    std::iter::repeat_n(repeat.byte, repeat.count),
+                );
+            }
+            let decoded = crate::namespace::decode_image(
+                &mut &bytes[..],
+                corpus.files,
+                corpus.output_bytes,
+                corpus.epoch_nanos,
+            );
+            let image = match decoded {
+                Err(error) => {
+                    assert_eq!(
+                        Some(boundary_name(&error)),
+                        corpus.boundary,
+                        "{}",
+                        corpus.name
+                    );
+                    continue;
+                }
+                Ok(image) => {
+                    assert!(
+                        corpus.boundary.is_none(),
+                        "{} accepted invalid image",
+                        corpus.name
+                    );
+                    image
+                }
+            };
+            let paths = |values: &[Vec<u8>]| {
+                values
+                    .iter()
+                    .map(|value| STANDARD.encode(value))
+                    .collect::<Vec<_>>()
+            };
+            let projection = serde_json::json!({
+                "entries": image.entries.iter().map(|entry| serde_json::json!({
+                    "path_base64": STANDARD.encode(&entry.path),
+                    "directory": entry.directory,
+                    "readonly": entry.readonly,
+                    "data_base64": STANDARD.encode(&entry.data),
+                })).collect::<Vec<_>>(),
+                "writable_directories": paths(&image.writable_directories),
+                "preopens": paths(&image.preopens),
+                "working_directory": STANDARD.encode(&image.working_directory),
+                "stdin_base64": STANDARD.encode(&image.stdin),
+                "epoch_nanos": image.epoch_nanos,
+                "limits": {
+                    "files": image.limits.files,
+                    "descriptors": image.limits.descriptors,
+                    "filesystem_bytes": image.limits.filesystem_bytes,
+                    "output_bytes": image.limits.output_bytes,
+                },
+            });
+            assert_eq!(
+                Some(format!("{:x}", Sha256::digest(go_json(&projection)))),
+                corpus.image_sha256,
+                "{} decoded image",
+                corpus.name
+            );
+            let namespace = Namespace::new(image)
+                .unwrap_or_else(|error| panic!("{} namespace: {error}", corpus.name));
+            if let Some(expected) = corpus.namespace_sha256 {
+                assert_eq!(
+                    format!("{:x}", Sha256::digest(namespace.canonical_state())),
+                    expected,
+                    "{} canonical namespace",
+                    corpus.name
+                );
+            }
+        }
+    }
+
+    #[test]
+    fn namespace_wire_conformance_corpus() {
+        #[derive(Deserialize)]
+        #[serde(deny_unknown_fields)]
+        struct Corpus {
+            name: String,
+            input: String,
+            output: String,
+        }
+        assert!(
+            serde_json::from_str::<Corpus>(
+                r#"{"name":"unknown","input":"","output":"","extra":0}"#
+            )
+            .is_err()
+        );
+        let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("../wasi/testdata/namespace-wire-conformance");
+        let mut paths = std::fs::read_dir(directory)
+            .unwrap()
+            .map(|entry| entry.unwrap().path())
+            .filter(|path| path.extension().is_some_and(|value| value == "json"))
+            .collect::<Vec<_>>();
+        paths.sort();
+        assert!(!paths.is_empty(), "missing namespace wire corpus");
+        for path in paths {
+            let corpus: Corpus = serde_json::from_slice(&std::fs::read(path).unwrap()).unwrap();
+            let mut output = Vec::new();
+            run(
+                &mut std::io::Cursor::new(corpus.input.as_bytes()),
+                &mut output,
+            )
+            .unwrap();
+            assert_eq!(
+                String::from_utf8(output).unwrap(),
+                corpus.output,
+                "{}",
                 corpus.name
             );
         }
@@ -1603,17 +1636,6 @@ mod tests {
             }
         }
     }
-
-    #[test]
-    fn namespace_conformance_lf_session_refuses_unknown_model() {
-        let mut output = Vec::new();
-        run(
-            &mut std::io::Cursor::new(b"{\"model\":\"other\",\"image\":{}}\n"),
-            &mut output,
-        )
-        .unwrap();
-        assert_eq!(output, b"{\"boundary\":\"invalid:conformance model\"}\n");
-    }
 }
 
 /// The `internal/model/volume` session state beyond the namespace: the
@@ -1641,6 +1663,8 @@ struct EnumerateInput {
     limits: Option<volume::CrashEnumerationLimits>,
     #[serde(default)]
     cursor: String,
+    #[serde(default)]
+    cursor_input: Option<volume::CrashExploration>,
     #[serde(default)]
     save: String,
 }
@@ -1772,7 +1796,7 @@ impl Session {
                 let input: EnumerateInput = strict(input)?;
                 let state = self.volume.as_ref().unwrap();
                 let cursor = if input.cursor.is_empty() {
-                    None
+                    input.cursor_input
                 } else {
                     let page = state
                         .pages

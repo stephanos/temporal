@@ -1,0 +1,280 @@
+[
+  {
+    "name": "actions-and-occurrences",
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      },
+      "faults": [
+        {
+          "name": "a",
+          "resource": "/workspace/db",
+          "operation": "write",
+          "occurrence": 2,
+          "action": "torn-write",
+          "bytes": 2
+        },
+        {
+          "name": "b",
+          "resource": "/workspace/db",
+          "operation": "sync",
+          "occurrence": 1,
+          "action": "crash-before"
+        },
+        {
+          "name": "c",
+          "resource": "/workspace/db",
+          "operation": "open",
+          "occurrence": 1,
+          "action": "no-space"
+        }
+      ]
+    },
+    "transcript_limit": 8388608,
+    "steps": [
+      {
+        "resource": "/workspace/db",
+        "operation": "write",
+        "count": 5,
+        "now": 7,
+        "written": 5,
+        "errno": 0,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo1fQo=",
+        "occurrences": {
+          "/workspace/db\u0000write": 1
+        },
+        "sequence": 1,
+        "clock": 7
+      },
+      {
+        "resource": "/workspace/db",
+        "operation": "write",
+        "count": 5,
+        "now": 8,
+        "written": 2,
+        "errno": 29,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo1fQp7InNlcXVlbmNlIjoxLCJyZXNvdXJjZSI6Ii93b3Jrc3BhY2UvZGIiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjIsImZhdWx0IjoiYSIsImFjdGlvbiI6InRvcm4td3JpdGUiLCJieXRlcyI6Mn0K",
+        "occurrences": {
+          "/workspace/db\u0000write": 2
+        },
+        "sequence": 2,
+        "clock": 8
+      },
+      {
+        "resource": "/workspace/db",
+        "operation": "open",
+        "count": 0,
+        "now": 9,
+        "written": 0,
+        "errno": 51,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo1fQp7InNlcXVlbmNlIjoxLCJyZXNvdXJjZSI6Ii93b3Jrc3BhY2UvZGIiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjIsImZhdWx0IjoiYSIsImFjdGlvbiI6InRvcm4td3JpdGUiLCJieXRlcyI6Mn0KeyJzZXF1ZW5jZSI6MiwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImZhdWx0IjoiYyIsImFjdGlvbiI6Im5vLXNwYWNlIn0K",
+        "occurrences": {
+          "/workspace/db\u0000open": 1,
+          "/workspace/db\u0000write": 2
+        },
+        "sequence": 3,
+        "clock": 9
+      },
+      {
+        "resource": "/workspace/db",
+        "operation": "sync",
+        "count": 0,
+        "now": 9,
+        "written": 0,
+        "errno": 0,
+        "reply_base64": "eyJzdG9yYWdlX2NyYXNoIjoiYiJ9",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo1fQp7InNlcXVlbmNlIjoxLCJyZXNvdXJjZSI6Ii93b3Jrc3BhY2UvZGIiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjIsImZhdWx0IjoiYSIsImFjdGlvbiI6InRvcm4td3JpdGUiLCJieXRlcyI6Mn0KeyJzZXF1ZW5jZSI6MiwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImZhdWx0IjoiYyIsImFjdGlvbiI6Im5vLXNwYWNlIn0KeyJzZXF1ZW5jZSI6MywicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoic3luYyIsIm9jY3VycmVuY2UiOjEsImZhdWx0IjoiYiIsImFjdGlvbiI6ImNyYXNoLWJlZm9yZSJ9Cg==",
+        "occurrences": {
+          "/workspace/db\u0000open": 1,
+          "/workspace/db\u0000sync": 1,
+          "/workspace/db\u0000write": 2
+        },
+        "sequence": 4,
+        "clock": 9
+      }
+    ]
+  },
+  {
+    "name": "nonshortening-write",
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      },
+      "faults": [
+        {
+          "name": "a",
+          "resource": "/workspace/db",
+          "operation": "write",
+          "occurrence": 1,
+          "action": "short-write",
+          "bytes": 2
+        }
+      ]
+    },
+    "transcript_limit": 8388608,
+    "steps": [
+      {
+        "resource": "/workspace/db",
+        "operation": "write",
+        "count": 2,
+        "now": 1,
+        "written": 0,
+        "errno": 0,
+        "reply_base64": "eyJib3VuZGFyeSI6ImludmFsaWQ6c3RvcmFnZSB3cml0ZSBmYXVsdCBtdXN0IHNob3J0ZW4gdGhlIG1hdGNoZWQgd3JpdGUifQ==",
+        "events_base64": null,
+        "occurrences": {
+          "/workspace/db\u0000write": 1
+        },
+        "sequence": 0,
+        "clock": 1
+      }
+    ]
+  },
+  {
+    "name": "transcript-capacity",
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      }
+    },
+    "transcript_limit": 10,
+    "steps": [
+      {
+        "resource": "/workspace/db",
+        "operation": "open",
+        "count": 0,
+        "now": 1,
+        "written": 0,
+        "errno": 0,
+        "reply_base64": "eyJib3VuZGFyeSI6ImNhcGFjaXR5OnN0b3JhZ2UtdHJhbnNjcmlwdCJ9",
+        "events_base64": null,
+        "occurrences": {
+          "/workspace/db\u0000open": 1
+        },
+        "sequence": 0,
+        "clock": 1
+      }
+    ]
+  },
+  {
+    "name": "event-json-escaping",
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      },
+      "faults": [
+        {
+          "name": "f\u0026g",
+          "resource": "/workspace/\u003cx\u003e",
+          "operation": "write",
+          "occurrence": 2,
+          "action": "short-write",
+          "bytes": 2
+        }
+      ]
+    },
+    "transcript_limit": 8388608,
+    "steps": [
+      {
+        "resource": "/workspace/db",
+        "operation": "open",
+        "count": 0,
+        "now": 0,
+        "written": 0,
+        "errno": 0,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+        "occurrences": {
+          "/workspace/db\u0000open": 1
+        },
+        "sequence": 1,
+        "clock": 0
+      },
+      {
+        "resource": "/workspace/\u003cx\u003e",
+        "operation": "write",
+        "count": 4,
+        "now": 0,
+        "written": 4,
+        "errno": 0,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0KeyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL1x1MDAzY3hcdTAwM2UiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjR9Cg==",
+        "occurrences": {
+          "/workspace/\u003cx\u003e\u0000write": 1,
+          "/workspace/db\u0000open": 1
+        },
+        "sequence": 2,
+        "clock": 0
+      },
+      {
+        "resource": "/workspace/db",
+        "operation": "read",
+        "count": 0,
+        "now": 0,
+        "written": 0,
+        "errno": 0,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0KeyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL1x1MDAzY3hcdTAwM2UiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjR9Cnsic2VxdWVuY2UiOjIsInJlc291cmNlIjoiL3dvcmtzcGFjZS9kYiIsIm9wZXJhdGlvbiI6InJlYWQiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSJ9Cg==",
+        "occurrences": {
+          "/workspace/\u003cx\u003e\u0000write": 1,
+          "/workspace/db\u0000open": 1,
+          "/workspace/db\u0000read": 1
+        },
+        "sequence": 3,
+        "clock": 0
+      },
+      {
+        "resource": "/workspace/\u003cx\u003e",
+        "operation": "write",
+        "count": 4,
+        "now": 0,
+        "written": 2,
+        "errno": 0,
+        "reply_base64": "e30=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0KeyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL1x1MDAzY3hcdTAwM2UiLCJvcGVyYXRpb24iOiJ3cml0ZSIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjR9Cnsic2VxdWVuY2UiOjIsInJlc291cmNlIjoiL3dvcmtzcGFjZS9kYiIsIm9wZXJhdGlvbiI6InJlYWQiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSJ9Cnsic2VxdWVuY2UiOjMsInJlc291cmNlIjoiL3dvcmtzcGFjZS9cdTAwM2N4XHUwMDNlIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoyLCJmYXVsdCI6ImZcdTAwMjZnIiwiYWN0aW9uIjoic2hvcnQtd3JpdGUiLCJieXRlcyI6Mn0K",
+        "occurrences": {
+          "/workspace/\u003cx\u003e\u0000write": 2,
+          "/workspace/db\u0000open": 1,
+          "/workspace/db\u0000read": 1
+        },
+        "sequence": 4,
+        "clock": 0
+      }
+    ]
+  }
+]

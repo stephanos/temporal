@@ -1,6 +1,52 @@
 # fn-189 upstream integration
 
-## Current-state note — 2026-10-18
+## Current handover checkpoint — 2026-10-19
+
+Fn-189 remains in progress. Primary is owner checkpoint
+`5951d8bb96f41fdd1b146ee4a8cbb17613495aa0`; upstream
+`48a1e5ff025e55b3d4d0f44247423d4c279ff636` remains an ancestor and no merge is
+in progress. All5394 source hashes from the host-gate freeze passed
+after this commit, recorded in
+`/home/agent/wt/evidence/fn189/host-gates-current-2026-10-19/owner-checkpoint-5951d8bb96.source-check.log`.
+The checkpoint changed commit metadata, not those measured source bytes. Later
+engine fixture naming and readiness-selector edits are outside that freeze;
+its receipts do not qualify the subsequently changed source.
+
+| Requirement | Retained evidence and remaining scope |
+| --- | --- |
+| R1 ancestry and bounded seams | Merge parents and15 conflict resolutions are retained below. Current upstream ancestry check passes; source reviews and seam checks are linked in the repair/source-gate reports. |
+| R2 pins and packs | Five mapped pack refreshes and inherited-pin dispositions are in [pack reconciliation](fn189-pack-source-reconciliation-2026-10-17.md). Current integrated validation exits0; this is not native runtime qualification. |
+| R3 ordinary host gates | Current build, test_dep vet, validation and harness exit0. Archcheck actually executes; fresh World/mailbox/process race tests with `-count=1` exit0. Complete commands, exits and5394-entry source checks are in `host-gates-current-2026-10-19/`. |
+| R3 WASM ladder | Full WASM/runtime results and the approved namespace-readiness qualification are source-scoped separately in the [chronological checkpoint](rust-hygiene-2026-10-18.md). The changed fixture passes success/canary, exact10-cell corpus, four supplementary SQLite states and retained failure inspection/replay with original budgets. These do not prove qualification of later R3/R4 restructuring. |
+| R3 remaining execution | The matched-release candidate comparison failed unchanged8GiB post-preparation memory admission. It has no passing candidate result or speedup. Final combined frozen-candidate gates/review remain required. |
+| R4 handover and references | This report retains the upstream SHA, conflicts and source history; README and MILESTONES name the new base. Current identities, command/exit paths and qualification limitations are consolidated in the chronological checkpoint. Final acceptance remains unproved. |
+
+The owner approved only the bounded namespace-readiness fixture exception
+recorded in the spec; upstream validation, history assertions, recovery/canary
+distinctions and all budgets remain unchanged. Raw qualification evidence is
+`/home/agent/wt/evidence/fn189/namespace-readiness-2026-10-18/qualification/`.
+Matched baseline/candidate build receipts, failed candidate rows and errors are
+under `matched-release-current-2026-10-18/`. The historical baseline uses
+Rust1.94.1 and the current candidate1.99.1; disclose that compiler difference in
+any future comparison, not a broker-only attribution. Source identities and
+earlier compiler candidates remain distinct; do not relabel historical receipts.
+
+The recurring readiness source selector now runs both predicate suites. Its
+outer test passes; direct staged execution proves both top-level roots and47
+subtests, no failures/skips. Raw evidence is
+`/home/agent/wt/evidence/fn189/readiness-source-selector-2026-10-19.log` and
+`readiness-source-selector-controls-2026-10-19.jsonl` (terminal sessions68015/93077).
+Both primary and isolated R3 copies include the selector; current frozen R3
+coverage phases include this change. This closes the selector omission, not the
+remaining final combined qualification or matched-release admission requirement.
+
+WASM resource-sensitive execution is authorized, superseding earlier holds.
+Root serializes compiler/runtime/LLVM work. Native execution remains deferred;
+fn185 profiling, ignored benchmarks and push/PR/CI/migration actions are not
+authorized. Fn-187 R3 stays isolated until its full assertion/coverage gates pass;
+no fn-189 milestone removal or task completion is claimed.
+
+## Historical state note — 2026-10-18
 
 The owner has committed the integration as
 `0077477965a5b766b95a667247a9f562c100941b`, with parents

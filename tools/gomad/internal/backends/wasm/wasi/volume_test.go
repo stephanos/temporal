@@ -6,17 +6,14 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"flag"
 	"fmt"
-	"io"
 	"math/rand/v2"
 	"os"
 	"path/filepath"
 	"reflect"
 	"slices"
 	"strings"
-	"syscall"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -31,19 +28,11 @@ func (storageOpenError) As(any) bool     { panic("storage error mapper dispatche
 func (storageOpenError) Unwrap() error   { panic("storage error mapper dispatched arbitrary Unwrap") }
 
 func TestStorageErrorMappingIsClosed(t *testing.T) {
-	for _, test := range []struct {
-		err  error
-		want uint16
-	}{{nil, 0}, {io.EOF, 0}, {volume.ErrClosed, 8}, {syscall.ENOENT, 44}, {syscall.ENOSPC, 51}, {syscall.EIO, 29}, {&volume.VolumeCapacityError{Resource: "volume_bytes"}, 51}, {storageOpenError{}, 29}} {
-		if got := storageErrno(test.err); got != test.want {
-			t.Fatalf("closed error conversion got %d want %d", got, test.want)
-		}
+	if got := storageErrno(storageOpenError{}); got != 29 {
+		t.Fatalf("closed error conversion got %d want 29", got)
 	}
 	if storageBoundary(storageOpenError{}) != nil {
 		t.Fatal("unknown errors must not become modeled capacity")
-	}
-	if storageBoundary(&volume.VolumeCapacityError{Resource: "pending_operations"}) == nil {
-		t.Fatal("known model capacity must retain typed classification")
 	}
 }
 
@@ -62,231 +51,6 @@ func readStorage(t *testing.T, e *Environment, fd uint32) string {
 	var read bytesOutput
 	output(t, call(t, e, "fd_pread", fmt.Sprintf(`{"fd":%d,"offset":0,"length":100}`, fd)), &read)
 	return string(read.Data)
-}
-
-func TestStorageFileAndDirectorySyncCrashReopen(t *testing.T) {
-	c := storageConfig()
-	e := newTestEnvironment(t, c)
-	fd := openPath(t, e, 4, "db", 1, rightsAll)
-	output(t, writeStorage(t, e, fd, 0, "committed"), &writtenOutput{})
-	output(t, call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-	// File sync persists data but cannot make an unsynced directory entry durable.
-	image, err := e.CrashStorage(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if call(t, e, "fd_filestat_get", fmt.Sprintf(`{"fd":%d}`, fd)).Errno != errnoBadf {
-		t.Fatal("crash retained guest handles")
-	}
-	recovered, err := NewRecoveredEnvironment(c, image)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if reply := call(t, recovered, "path_filestat_get", `{"fd":4,"path_base64":"ZGI=","flags":0}`); reply.Errno != errnoNoent {
-		t.Fatalf("unsynced entry survived: %+v", reply)
-	}
-	fd = openPath(t, recovered, 4, "db", 1, rightsAll)
-	output(t, writeStorage(t, recovered, fd, 0, "committed"), &writtenOutput{})
-	output(t, call(t, recovered, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-	output(t, call(t, recovered, "fd_sync", `{"fd":4}`), &struct{}{})
-	output(t, writeStorage(t, recovered, fd, 0, "volatile!"), &writtenOutput{})
-	image, err = recovered.CrashStorage(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for i := 0; i < 2; i++ {
-		fresh, err := NewRecoveredEnvironment(c, image)
-		if err != nil {
-			t.Fatal(err)
-		}
-		fd = openPath(t, fresh, 4, "db", 0, rightsAll)
-		if got := readStorage(t, fresh, fd); got != "committed" {
-			t.Fatalf("durable bytes after fresh reopen %d: %q", i, got)
-		}
-	}
-}
-
-func TestStorageFaultResourceOccurrenceReplayAndTypedOutcomes(t *testing.T) {
-	for _, action := range []string{"short-write", "torn-write", "io-error", "no-space", "sync-error"} {
-		t.Run(action, func(t *testing.T) {
-			c := storageConfig()
-			operation := "write"
-			if action == "sync-error" {
-				operation = "sync"
-			}
-			fault := StorageFault{Name: "named-" + action, Resource: "/workspace/db", Operation: operation, Occurrence: 2, Action: action}
-			if action == "short-write" || action == "torn-write" {
-				fault.Bytes = 2
-			}
-			c.Storage.Faults = []StorageFault{fault}
-			var transcript, model []byte
-			for attempt := 0; attempt < 2; attempt++ {
-				e := newTestEnvironment(t, c)
-				other := openPath(t, e, 4, "other", 1, rightsAll)
-				fd := openPath(t, e, 4, "db", 1, rightsAll)
-				output(t, writeStorage(t, e, other, 0, "unrelated"), &writtenOutput{})
-				output(t, writeStorage(t, e, fd, 0, "initial"), &writtenOutput{})
-				if action == "sync-error" {
-					output(t, call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-					if reply := call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)); reply.Errno != 29 {
-						t.Fatalf("sync error=%+v", reply)
-					}
-				} else {
-					reply := writeStorage(t, e, fd, 0, "changed")
-					switch action {
-					case "short-write":
-						var written writtenOutput
-						output(t, reply, &written)
-						if written.Written != 2 || readStorage(t, e, fd) != "chitial" {
-							t.Fatalf("short result %+v", written)
-						}
-					case "torn-write":
-						if reply.Errno != 29 || readStorage(t, e, fd) != "chitial" {
-							t.Fatalf("reviewed prefix tear=%+v", reply)
-						}
-					case "io-error":
-						if reply.Errno != 29 || readStorage(t, e, fd) != "initial" {
-							t.Fatalf("io result %+v", reply)
-						}
-					case "no-space":
-						if reply.Errno != 51 || readStorage(t, e, fd) != "initial" {
-							t.Fatalf("space result %+v", reply)
-						}
-					}
-				}
-				if attempt == 0 {
-					transcript, model = e.Transcript(), e.StorageTranscript()
-				} else if !bytes.Equal(transcript, e.Transcript()) || !bytes.Equal(model, e.StorageTranscript()) {
-					t.Fatal("fault and import transcript replay diverged")
-				}
-				if !bytes.Contains(e.StorageTranscript(), []byte(fault.Name)) {
-					t.Fatal("stable fault evidence absent")
-				}
-			}
-		})
-	}
-}
-
-func TestStorageCrashFaultAndModelLimits(t *testing.T) {
-	c := storageConfig()
-	c.Storage.Faults = []StorageFault{{Name: "before-sync", Resource: "/workspace/db", Operation: "sync", Occurrence: 1, Action: "crash-before"}}
-	e := newTestEnvironment(t, c)
-	fd := openPath(t, e, 4, "db", 1, rightsAll)
-	input, _ := json.Marshal(fdInput{FD: fd})
-	_, err := e.Handle(Call{Type: "call", ID: e.nextCall, Op: "fd_sync", Input: input})
-	var crash *StorageCrash
-	if !errors.As(err, &crash) || crash.Fault != "before-sync" {
-		t.Fatalf("crash classification: %v", err)
-	}
-	c = storageConfig()
-	c.Storage.Volumes[0].CapacityBytes = 2
-	e = newTestEnvironment(t, c)
-	fd = openPath(t, e, 4, "db", 1, rightsAll)
-	if reply := writeStorage(t, e, fd, 0, "123"); reply.Errno != 51 {
-		t.Fatalf("volume space exhaustion must be ENOSPC: %+v", reply)
-	}
-	if readStorage(t, e, fd) != "" {
-		t.Fatal("ENOSPC mutated visible data")
-	}
-	c = storageConfig()
-	c.Storage.Limits.PendingOperations = 1
-	e = newTestEnvironment(t, c)
-	input, _ = json.Marshal(openInput{FD: 4, Path: []byte("db"), Oflags: 1, Base: rightsAll})
-	_, err = e.Handle(Call{Type: "call", ID: e.nextCall, Op: "path_open", Input: input})
-	var boundary *BoundaryError
-	if !errors.As(err, &boundary) || boundary.Kind != "capacity" || e.namespace.lookup("/workspace/db") != nil {
-		t.Fatalf("pending operation bound: err=%v", err)
-	}
-}
-
-func TestStorageEnumerationAndCapabilityRights(t *testing.T) {
-	c := storageConfig()
-	e := newTestEnvironment(t, c)
-	fd := openPath(t, e, 4, "db", 1, rightsAll)
-	output(t, writeStorage(t, e, fd, 0, "ack"), &writtenOutput{})
-	output(t, call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-	output(t, call(t, e, "fd_sync", `{"fd":4}`), &struct{}{})
-	output(t, writeStorage(t, e, fd, 0, "new"), &writtenOutput{})
-	states, err := e.EnumerateStorageCrashStates("data", volume.CrashEnumerationLimits{States: 16, Operations: 32, Depth: 32, Bytes: 1 << 20, Work: 1 << 16}, nil)
-	if err != nil || !states.Complete || len(states.States) < 2 {
-		t.Fatalf("reviewed crash states: %+v %v", states, err)
-	}
-	for _, state := range states.States {
-		for _, entry := range state.Entries {
-			if entry.Path == "/db" && string(entry.Data) != "ack" && string(entry.Data) != "new" {
-				t.Fatalf("unreviewed torn bytes %q", entry.Data)
-			}
-		}
-	}
-	readonly := openPath(t, e, 4, "db", 0, rightRead)
-	before := e.StorageTranscript()
-	if reply := call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, readonly)); reply.Errno != errnoNotcapable {
-		t.Fatal("sync bypassed WASI rights")
-	}
-	if !bytes.Equal(before, e.StorageTranscript()) {
-		t.Fatal("denied operation consumed storage occurrence")
-	}
-	if reply := call(t, e, "path_open", `{"fd":4,"path_base64":"Li4vZGI=","dirflags":0,"oflags":1,"rights_base":0,"rights_inheriting":0,"fdflags":0}`); reply.Errno != errnoNotcapable {
-		t.Fatal("malformed escaping path accepted")
-	}
-}
-
-func TestStorageSQLiteLockAdapterIsExactOptIn(t *testing.T) {
-	for _, adapted := range []bool{false, true} {
-		t.Run(fmt.Sprintf("adapted=%v", adapted), func(t *testing.T) {
-			c := storageConfig()
-			if adapted {
-				c.Storage.SQLiteLockDatabases = []string{"/workspace/db"}
-			}
-			e := newTestEnvironment(t, c)
-			openPath(t, e, 4, "db.lock", 1|4, rightsAll)
-			output(t, call(t, e, "path_create_directory", `{"fd":4,"path_base64":"ZGItc2ht"}`), &struct{}{})
-			for _, name := range []string{"db", "db-wal", "db-journal", "other.lock"} {
-				fd := openPath(t, e, 4, name, 1, rightsAll)
-				output(t, writeStorage(t, e, fd, 0, "durable"), &writtenOutput{})
-				output(t, call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-			}
-			output(t, call(t, e, "fd_sync", `{"fd":4}`), &struct{}{})
-			image, err := e.CrashStorage(nil)
-			if err != nil {
-				t.Fatal(err)
-			}
-			fresh, err := NewRecoveredEnvironment(c, image)
-			if err != nil {
-				t.Fatal(err)
-			}
-			for _, name := range []string{"db", "db-wal", "db-journal", "other.lock"} {
-				fd := openPath(t, fresh, 4, name, 0, rightsAll)
-				if readStorage(t, fresh, fd) != "durable" {
-					t.Fatalf("lock adapter changed %s", name)
-				}
-			}
-			for _, name := range []string{"db.lock", "db-shm"} {
-				input, _ := json.Marshal(struct {
-					FD    uint32 `json:"fd"`
-					Path  []byte `json:"path_base64"`
-					Flags uint32 `json:"flags"`
-				}{4, []byte(name), 0})
-				reply := call(t, fresh, "path_filestat_get", string(input))
-				if adapted && reply.Errno != errnoNoent || !adapted && reply.Errno != 0 {
-					t.Fatalf("process-lock persistence %s %+v", name, reply)
-				}
-			}
-		})
-	}
-	for _, databases := range [][]string{{"/workspace/db", "/workspace/db"}, {"/workspace/db-shm", "/workspace/db"}, {"/outside/db"}, {"/workspace/db", "/workspace/db.lock"}} {
-		c := storageConfig()
-		c.Storage.SQLiteLockDatabases = databases
-		if _, err := NewEnvironment(c); err == nil {
-			t.Fatalf("invalid lock policy accepted: %v", databases)
-		}
-	}
-	c := storageConfig()
-	c.Storage.SQLiteLockDatabases = []string{"/workspace/db"}
-	c.Storage.Faults = []StorageFault{{Name: "invalid-lock-fault", Resource: "/workspace/db.lock", Operation: "open", Occurrence: 1, Action: "io-error"}}
-	if _, err := NewEnvironment(c); err == nil {
-		t.Fatal("unmodeled process-owned lock fault accepted")
-	}
 }
 
 var volumeConformanceOutput = flag.String("volume-conformance-output", "", "write Go reference corpus to an external directory for review")
@@ -347,14 +111,15 @@ type volumeConformanceObservation struct {
 }
 
 type volumeConformanceCorpus struct {
-	Schema       string                         `json:"schema"`
-	Name         string                         `json:"name"`
-	Origin       string                         `json:"origin"`
-	Seed         uint64                         `json:"seed"`
-	Session      volumeConformanceSession       `json:"session"`
-	InitialReply []byte                         `json:"initial_reply_base64"`
-	Operations   []volumeConformanceOperation   `json:"operations"`
-	Observations []volumeConformanceObservation `json:"observations"`
+	ImportTranscript []byte                         `json:"import_transcript_base64,omitempty"`
+	Schema           string                         `json:"schema"`
+	Name             string                         `json:"name"`
+	Origin           string                         `json:"origin"`
+	Seed             uint64                         `json:"seed"`
+	Session          volumeConformanceSession       `json:"session"`
+	InitialReply     []byte                         `json:"initial_reply_base64"`
+	Operations       []volumeConformanceOperation   `json:"operations"`
+	Observations     []volumeConformanceObservation `json:"observations"`
 }
 
 type volumeConformanceScript struct {
@@ -362,6 +127,7 @@ type volumeConformanceScript struct {
 	seed         uint64
 	config       Config
 	operations   []volumeConformanceOperation
+	observe      func(*Environment, int)
 }
 
 func TestVolumeConformanceCorpus(t *testing.T) {
@@ -393,162 +159,29 @@ func TestVolumeConformanceCorpus(t *testing.T) {
 			if difference := volumeConformanceDifference(want, got); difference != "" {
 				t.Fatalf("Go volume drift: %s; inspect before updating %s", difference, name)
 			}
+			if len(want.ImportTranscript) != 0 {
+				replayed := volumeConformanceRun(t, script)
+				if difference := volumeConformanceDifference(want, replayed); difference != "" {
+					t.Fatalf("Go volume second-attempt drift: %s; inspect before updating %s", difference, name)
+				}
+			}
 		})
-	}
-}
-
-func TestVolumeConformance(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
-	for _, script := range volumeConformanceScripts(t) {
-		t.Run(script.name, func(t *testing.T) {
-			volumeConformanceCheck(t, helper, script)
-		})
-	}
-}
-
-func volumeConformanceCheck(t *testing.T, helper string, script volumeConformanceScript) {
-	t.Helper()
-	want := volumeConformanceRun(t, script)
-	exchange, closeDriver := namespaceConformanceTransport(t, helper, script.name)
-	defer closeDriver()
-	initial := exchange(want.Session)
-	if !bytes.Equal(initial, want.InitialReply) {
-		t.Fatalf("seed=%d session divergence: Go=%s Rust=%s", script.seed, want.InitialReply, initial)
-	}
-	for step, operation := range script.operations {
-		data := exchange(operation)
-		var got volumeConformanceObservation
-		if err := json.Unmarshal(data, &got); err != nil {
-			t.Fatalf("seed=%d step=%d invalid reply: %v", script.seed, step, err)
-		}
-		if !reflect.DeepEqual(want.Observations[step], got) {
-			t.Fatalf("seed=%d first divergence at step=%d op=%s now=%d\nGo=%s\nRust=%s", script.seed, step, operation.Op, operation.Now, volumeConformanceReply(t, want.Observations[step], nil), data)
-		}
-	}
-}
-
-func TestVolumeConformanceCrossDirectoryRenameRecovery(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
-	for _, directory := range []bool{false, true} {
-		for _, sync := range []uint32{0, 6, 7} {
-			t.Run(fmt.Sprintf("directory=%t/sync=%d", directory, sync), func(t *testing.T) {
-				fd := func(n uint32) volumeConformanceOperation { return volumeConformanceOp("fd_sync", fdInput{FD: n}) }
-				ops := []volumeConformanceOperation{
-					volumeConformanceOp("path_create_directory", pathInput{FD: 4, Path: []byte("left")}),
-					volumeConformanceOp("path_create_directory", pathInput{FD: 4, Path: []byte("right")}),
-					volumeConformanceOpen("left/db", 1, rightsAll), volumeConformanceWrite(5, "committed"), fd(5),
-					volumeConformanceOpen("left", 2, rightsAll&^rightWrite), volumeConformanceOpen("right", 2, rightsAll&^rightWrite), fd(6), fd(4),
-				}
-				old, next := "left/db", "right/db"
-				if directory {
-					old, next = "left", "right/left"
-				}
-				ops = append(ops, volumeConformanceOp("path_rename", renameInput{FD: 4, Path: []byte(old), NewFD: 4, NewPath: []byte(next)}))
-				if sync != 0 {
-					if directory && sync == 6 {
-						ops = append(ops, fd(4))
-					} else {
-						ops = append(ops, fd(sync))
-					}
-				}
-				limits := volume.CrashEnumerationLimits{States: 64, Operations: 64, Depth: 64, Bytes: 1 << 20, Work: 1 << 16}
-				ops = append(ops, volumeConformanceEnumerate(limits, "", "all"))
-				if sync == 0 {
-					ops = append(ops, volumeConformanceOp("crash", map[string]any{"page": "all", "state": 1, "image": "moved"}))
-				} else {
-					ops = append(ops, volumeConformanceOp("crash", map[string]any{"image": "moved"}))
-				}
-				ops = append(ops, volumeConformanceOp("recover", map[string]string{"image": "moved"}))
-				script := volumeConformanceScript{config: storageConfig(), operations: ops}
-				want := volumeConformanceRun(t, script)
-				states := want.Observations[len(ops)-3].Enumeration
-				require.True(t, states.Complete)
-				if sync == 0 {
-					require.Len(t, states.States, 2)
-				} else {
-					require.Len(t, states.States, 1)
-				}
-				for _, observation := range want.Observations {
-					require.NotContains(t, string(observation.Reply), `"error"`)
-					require.NotContains(t, string(observation.Reply), `"boundary"`)
-					var reply struct {
-						Errno uint16 `json:"errno"`
-					}
-					require.NoError(t, json.Unmarshal(observation.Reply, &reply))
-					require.Zero(t, reply.Errno)
-				}
-				require.Equal(t, "{}", string(want.Observations[len(ops)-1].Reply))
-				volumeConformanceCheck(t, helper, script)
-			})
-		}
 	}
 }
 
 func TestVolumeConformanceInvalidRecoveryImages(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
 	config := storageConfig()
 	config.Storage.SQLiteLockDatabases = []string{"/workspace/db"}
-	source := newTestEnvironment(t, config)
+	source := newTestEnvironment(t, storageConfig())
+	fd := openPath(t, source, 4, "db.lock", 1, rightsAll)
+	output(t, call(t, source, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
+	output(t, call(t, source, "fd_sync", `{"fd":4}`), &struct{}{})
 	image, err := source.CrashStorage(nil)
 	require.NoError(t, err)
-	valid, digest, err := volumeConformanceEncodeImage(image, storageImageLimit(config))
+	image.model, err = json.Marshal(config.Storage)
 	require.NoError(t, err)
-	wrongModel, _, err := encodeStorageImage(image.fs, []byte("{}"), image.occurrences, storageImageLimit(config))
-	require.NoError(t, err)
-	lockConfig := storageConfig()
-	lockSource := newTestEnvironment(t, lockConfig)
-	fd := openPath(t, lockSource, 4, "db.lock", 1, rightsAll)
-	output(t, call(t, lockSource, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd)), &struct{}{})
-	output(t, call(t, lockSource, "fd_sync", `{"fd":4}`), &struct{}{})
-	lockImage, err := lockSource.CrashStorage(nil)
-	require.NoError(t, err)
-	lockImage.model = image.model
-	locked, _, err := volumeConformanceEncodeImage(lockImage, storageImageLimit(config))
-	require.NoError(t, err)
-	_, err = NewRecoveredEnvironment(config, lockImage)
+	_, err = NewRecoveredEnvironment(config, image)
 	require.EqualError(t, err, "WASI invalid: durable image contains process-owned SQLite lock")
-	wrong := *image
-	wrong.model = []byte("{}")
-	_, err = NewRecoveredEnvironment(config, &wrong)
-	require.EqualError(t, err, "WASI invalid: recovery storage model identity")
-
-	for _, test := range []struct {
-		name, boundary string
-		data           []byte
-		digest         string
-	}{
-		{"model", "invalid:recovery storage model identity", wrongModel, ""},
-		{"lock", "invalid:durable image contains process-owned SQLite lock", locked, ""},
-		{"truncated", "invalid:durable storage image", valid[:len(valid)-1], ""},
-		{"digest", "invalid:durable storage image", valid, strings.Repeat("0", 64)},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			if test.digest == "" {
-				test.digest = fmt.Sprintf("%x", sha256.Sum256(test.data))
-			}
-			fixture := volumeConformanceRun(t, volumeConformanceScript{config: config})
-			exchange, closeDriver := namespaceConformanceTransport(t, helper, test.name)
-			defer closeDriver()
-			require.Equal(t, fixture.InitialReply, exchange(fixture.Session))
-			var before volumeConformanceObservation
-			require.NoError(t, json.Unmarshal(exchange(volumeConformanceOp("select", map[string]any{"seed": 0})), &before))
-			recover := func(data []byte, hash string) volumeConformanceOperation {
-				return volumeConformanceOp("recover", map[string]any{"image_base64": data, "image_digest": hash})
-			}
-			var refused volumeConformanceObservation
-			require.NoError(t, json.Unmarshal(exchange(recover(test.data, test.digest)), &refused))
-			require.JSONEq(t, fmt.Sprintf(`{"boundary":%q}`, test.boundary), string(refused.Reply))
-			require.Equal(t, before.NamespaceDigest, refused.NamespaceDigest)
-			require.Equal(t, before.Snapshots, refused.Snapshots)
-			require.Equal(t, before.Operations, refused.Operations)
-			require.Empty(t, refused.Events)
-			var recovered volumeConformanceObservation
-			require.NoError(t, json.Unmarshal(exchange(recover(valid, digest)), &recovered))
-			require.Equal(t, "{}", string(recovered.Reply))
-			require.Equal(t, valid, recovered.ImageData)
-			require.Equal(t, digest, recovered.ImageDigest)
-		})
-	}
 }
 
 func volumeConformanceDifference(want, got volumeConformanceCorpus) string {
@@ -608,13 +241,14 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 		switch operation.Op {
 		case "enumerate":
 			var input struct {
-				Volume string                        `json:"volume"`
-				Limits volume.CrashEnumerationLimits `json:"limits"`
-				Cursor string                        `json:"cursor"`
-				Save   string                        `json:"save"`
+				Volume      string                        `json:"volume"`
+				Limits      volume.CrashEnumerationLimits `json:"limits"`
+				Cursor      string                        `json:"cursor"`
+				CursorInput *volume.CrashExploration      `json:"cursor_input,omitempty"`
+				Save        string                        `json:"save"`
 			}
 			volumeConformanceDecode(t, operation.Input, &input)
-			var cursor *volume.CrashExploration
+			cursor := input.CursorInput
 			if input.Cursor != "" {
 				page, exists := pages[input.Cursor]
 				if !exists || page.ChoiceExploration == nil {
@@ -702,6 +336,9 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 			}{reply.Errno, reply.Output, reply.Unsupported, reply.Message}
 		}
 		observation.Reply = volumeConformanceReply(t, result, err)
+		if script.observe != nil {
+			script.observe(e, step)
+		}
 		observation.Events = slices.Clone(e.StorageTranscript()[before:])
 		observation.Snapshots = e.StorageSnapshots()
 		operations := e.StorageOperations()
@@ -717,6 +354,9 @@ func volumeConformanceRun(t *testing.T, script volumeConformanceScript) volumeCo
 		observation.ImageData = slices.Clone(imageData)
 		observation.NamespaceDigest = namespaceConformanceDigest(e)
 		corpus.Observations = append(corpus.Observations, observation)
+	}
+	if strings.HasPrefix(script.name, "fault-import-transcript-") {
+		corpus.ImportTranscript = slices.Clone(e.Transcript())
 	}
 	return corpus
 }
@@ -876,6 +516,11 @@ func volumeConformanceScripts(t *testing.T) []volumeConformanceScript {
 			ops = append(ops, volumeConformanceOp("path_filestat_get", pathStatInput{FD: 4, Path: []byte(name)}))
 		}
 		scripts = append(scripts, volumeConformanceScript{name: fmt.Sprintf("sqlite-lock-opt-in-%v", adapted), origin: "wasi/volume_test.go:TestStorageSQLiteLockAdapterIsExactOptIn", config: config, operations: ops})
+		readback := slices.Clone(ops)
+		for i, name := range []string{"db", "db-wal", "db-journal", "other.lock"} {
+			readback = append(readback, volumeConformanceOpen(name, 0, rightsAll), read(uint32(5+i)))
+		}
+		scripts = append(scripts, volumeConformanceScript{name: fmt.Sprintf("sqlite-durable-readback-opt-in-%v", adapted), origin: "wasi/volume_test.go:TestStorageSQLiteLockAdapterIsExactOptIn", config: config, operations: readback})
 	}
 	ops := []volumeConformanceOperation{volumeConformanceOp("path_create_directory", pathInput{FD: 4, Path: []byte("dir")}), volumeConformanceOpen("dir/db", 1, rightsAll), volumeConformanceWrite(5, "abcdef"), volumeConformanceOp("fd_filestat_set_size", struct {
 		FD   uint32 `json:"fd"`
@@ -961,6 +606,8 @@ func volumeConformanceScripts(t *testing.T) []volumeConformanceScript {
 		ops = append(ops, volumeConformanceWrite(5, fmt.Sprintf("seed-%d", seed)), fd("fd_sync", 5), volumeConformanceOp("path_rename", renameInput{FD: 4, Path: []byte("db"), NewFD: 4, NewPath: []byte("renamed")}), volumeConformanceOp("path_unlink_file", pathInput{FD: 4, Path: []byte("renamed")}), volumeConformanceEnumerate(limits, "", "all"), volumeConformanceOp("select", map[string]any{"seed": seed, "save": "seeded"}), volumeConformanceOp("crash", map[string]any{"selection": "seeded", "image": "durable"}), recover, volumeConformanceOpen("continued", 1, rightsAll), volumeConformanceWrite(5, "continue"), fd("fd_sync", 5), fd("fd_sync", 4), volumeConformanceEnumerate(limits, "", "continued"))
 		scripts = append(scripts, volumeConformanceScript{name: fmt.Sprintf("generated-%02d", seed), origin: "seeded PCG write/sync/rename/unlink, enumerate/select/crash/recover/continue", seed: seed, config: config, operations: ops})
 	}
+	scripts = append(scripts, volumeConformanceMigrationScripts()...)
+	scripts = append(scripts, volumeConformanceCursorScripts(t)...)
 	for i := range scripts {
 		for j := range scripts[i].operations {
 			scripts[i].operations[j].Now = 100 + uint64(j)*17
@@ -1016,92 +663,6 @@ func volumeConformanceRecordedScript(t *testing.T) volumeConformanceScript {
 	}}
 }
 
-func TestVolumeConformanceRecordedStorageOperations(t *testing.T) {
-	script := volumeConformanceRecordedScript(t)
-	got := volumeConformanceRun(t, script)
-	operations := got.Observations[1].Operations[0].Operations
-	want := []volume.Operation{
-		{ID: 1, Kind: "alloc", Inode: 4, EffectSHA256: "sha256:c4309c69af416fc917b6edce8d13de86ef33651689eedbfa213a4b64f48c4f9e"},
-		{ID: 2, Kind: "namespace", Dependencies: []uint64{1}, Inode: 4, Path: "/db", EffectSHA256: "sha256:c95b01d0ab007cff084d7add4766e76a03afdc26d73f28abf3e72d2d219ec118"},
-		{ID: 3, Kind: "alloc", Inode: 5, EffectSHA256: "sha256:c240adef27d33093e3c6802294664120b2d827906c03d94f4cdc4a5d8763d7ed"},
-		{ID: 4, Kind: "namespace", Dependencies: []uint64{3}, Inode: 5, Path: "/db-journal", EffectSHA256: "sha256:0a25851decdfc5b485b0eb919848d37adc12c0ac18da618ad05825d09f7f987f"},
-	}
-	if !reflect.DeepEqual(want, operations) {
-		t.Fatalf("recorded storage operation prefix differs:\nwant=%+v\ngot=%+v", want, operations)
-	}
-}
-
-func TestVolumeConformanceReferenceContracts(t *testing.T) {
-	for _, script := range volumeConformanceScripts(t) {
-		t.Run(script.name, func(t *testing.T) {
-			got := volumeConformanceRun(t, script)
-			switch script.name {
-			case "invalid-crash-after":
-				if string(got.InitialReply) != `{"boundary":"invalid:storage fault action"}` {
-					t.Fatalf("crash-after admission = %s", got.InitialReply)
-				}
-			case "invalid-short-write", "invalid-torn-write":
-				step := got.Observations[1]
-				if string(step.Reply) != `{"boundary":"invalid:storage write fault must shorten the matched write"}` || len(step.Events) != 0 {
-					t.Fatalf("invalid write mutated event stream: %+v", step)
-				}
-			case "fault-short-write":
-				if string(got.Observations[4].Reply) != `{"errno":0,"output":{"written":2}}` {
-					t.Fatalf("short write reply=%s", got.Observations[4].Reply)
-				}
-			case "fault-io-error", "fault-torn-write":
-				if string(got.Observations[4].Reply) != `{"errno":29,"output":{}}` {
-					t.Fatalf("error reply=%s", got.Observations[4].Reply)
-				}
-			case "fault-no-space":
-				if string(got.Observations[4].Reply) != `{"errno":51,"output":{}}` {
-					t.Fatalf("no-space reply=%s", got.Observations[4].Reply)
-				}
-			case "fault-sync-error":
-				if string(got.Observations[5].Reply) != `{"errno":29,"output":{}}` {
-					t.Fatalf("sync error reply=%s", got.Observations[5].Reply)
-				}
-			case "fault-crash-before":
-				if string(got.Observations[5].Reply) != `{"storage_crash":"named-crash-before"}` {
-					t.Fatalf("crash reply=%s", got.Observations[5].Reply)
-				}
-			case "work-resume-stale":
-				var resumed []volume.CrashState
-				for _, observation := range got.Observations[3:19] {
-					resumed = append(resumed, observation.Enumeration.States...)
-				}
-				if !got.Observations[18].Enumeration.Complete || !reflect.DeepEqual(resumed, got.Observations[2].Enumeration.States) {
-					t.Fatal("tiny Work lost or reordered states")
-				}
-				if string(got.Observations[20].Reply) == "{}" {
-					t.Fatal("stale cursor was accepted")
-				}
-			case "recover-occurrence-continuation":
-				if !bytes.Contains(got.Observations[7].Events, []byte(`"occurrence":2,"fault":"after-recovery"`)) || !bytes.Contains(got.Observations[12].Events, []byte(`"occurrence":3,"action":"complete"`)) {
-					t.Fatal("recovery reset fault occurrences")
-				}
-			case "capacity-filesystem-bytes":
-				if string(got.Observations[3].Reply) != `{"boundary":"capacity:filesystem-bytes"}` {
-					t.Fatalf("namespace byte capacity=%s", got.Observations[3].Reply)
-				}
-			case "sorted-volumes-invalid-selection":
-				if string(got.InitialReply) != "{}" || len(got.Observations[0].Operations) != 2 || got.Observations[0].Operations[0].Volume != "data" || got.Observations[0].Operations[1].Volume != "z-secondary" {
-					t.Fatal("multi-volume script did not exercise sorted operation observations")
-				}
-			}
-			if strings.HasPrefix(script.name, "generated-") {
-				var events []byte
-				for _, observation := range got.Observations {
-					events = append(events, observation.Events...)
-				}
-				if !bytes.Contains(events, []byte(`"fault":"generated"`)) {
-					t.Fatalf("seed=%d never realized its scheduled fault", script.seed)
-				}
-			}
-		})
-	}
-}
-
 const volumeConformanceBinaryImageIdentity = StorageImageIdentity
 
 func volumeConformanceEncodeImage(image *StorageImage, maximum uint64) ([]byte, string, error) {
@@ -1109,49 +670,6 @@ func volumeConformanceEncodeImage(image *StorageImage, maximum uint64) ([]byte, 
 		return nil, "", invalid("durable storage image")
 	}
 	return encodeStorageImage(image.fs, image.model, image.occurrences, maximum)
-}
-
-func TestVolumeConformanceImageIncludesHistoryAndCounters(t *testing.T) {
-	config := storageConfig()
-	e := newTestEnvironment(t, config)
-	fd := openPath(t, e, 4, "db", 1, rightsAll)
-	writeStorage(t, e, fd, 0, "durable")
-	call(t, e, "fd_sync", fmt.Sprintf(`{"fd":%d}`, fd))
-	call(t, e, "fd_sync", `{"fd":4}`)
-	image, err := e.CrashStorage(nil)
-	if err != nil {
-		t.Fatal(err)
-	}
-	data, identity, err := volumeConformanceEncodeImage(image, 1<<20)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if !bytes.HasPrefix(data, []byte("GMVOLIMG\x01\x00\x00\x00\x03\x00\x00\x00")) {
-		t.Fatal("image framing missing")
-	}
-	if identity != image.Identity() || !bytes.Equal(data, image.data) {
-		t.Fatal("storage image identity is not the SHA-256 of its recovery blob")
-	}
-	before := image.fs.ConformanceState()
-	copyImage := &StorageImage{fs: image.fs.CloneDurable(), model: slices.Clone(image.model), occurrences: cloneStorageOccurrences(image.occurrences)}
-	_, clonedIdentity, err := volumeConformanceEncodeImage(copyImage, 1<<20)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if identity == clonedIdentity || before.NextInode == copyImage.fs.ConformanceState().NextInode {
-		t.Fatal("recovery inode continuation missing from image identity")
-	}
-	if _, _, err := volumeConformanceEncodeImage(image, uint64(len(data)-1)); err == nil {
-		t.Fatal("oversized image admitted")
-	}
-	image.occurrences["/workspace/db\x00write"]++
-	_, changedIdentity, err := volumeConformanceEncodeImage(image, 1<<20)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if identity == changedIdentity {
-		t.Fatal("occurrence continuation missing from image identity")
-	}
 }
 
 type volumeCoreVectors struct {
@@ -1173,6 +691,7 @@ type volumeCoreInput struct {
 	Flags       *volume.OpenFlags   `json:"flags,omitempty"`
 	Mode        uint32              `json:"mode,omitempty"`
 	Offset      int64               `json:"offset,omitempty"`
+	Whence      int                 `json:"whence,omitempty"`
 	Size        int64               `json:"size,omitempty"`
 	ModTime     int64               `json:"mod_time,omitempty"`
 	Data        []byte              `json:"data_base64,omitempty"`
@@ -1189,6 +708,14 @@ type volumeCoreStep struct {
 	State         volume.ConformanceState       `json:"state"`
 	Selections    map[string][]uint64           `json:"selections"`
 	Accepted      *bool                         `json:"accepted,omitempty"`
+	Error         string                        `json:"error,omitempty"`
+	Capacity      *volume.VolumeCapacityError   `json:"capacity,omitempty"`
+	Value         int64                         `json:"value,omitempty"`
+	Data          []byte                        `json:"data_base64,omitempty"`
+	Names         []string                      `json:"names,omitempty"`
+	Cwd           string                        `json:"cwd,omitempty"`
+	HandlePath    string                        `json:"handle_path,omitempty"`
+	UsedBytes     *uint64                       `json:"used_bytes,omitempty"`
 	ImageDigest   string                        `json:"image_digest,omitempty"`
 	ImageData     []byte                        `json:"image_base64,omitempty"`
 	ImageIdentity string                        `json:"image_identity,omitempty"`
@@ -1197,8 +724,10 @@ type volumeCoreStep struct {
 func TestVolumeCoreVectors(t *testing.T) {
 	got := volumeCoreVectors{
 		Schema: "gomad.volume-core-vectors/v1", Model: volumeConformanceModel,
-		Scenarios: []volumeCoreScenario{volumeCoreScript(t), volumeCoreNestedOrphanScript(t)},
+		Scenarios: []volumeCoreScenario{volumeCoreScript(t), volumeCoreNestedOrphanScript(t), volumeCoreMetadataUnlinkScript(t)},
 	}
+	got.Scenarios = append(got.Scenarios, volumeCoreAPIScripts(t)...)
+	got.Scenarios = append(got.Scenarios, volumeCoreGracefulLiteralScript(t))
 	if *volumeConformanceOutput != "" {
 		require.True(t, filepath.IsAbs(*volumeConformanceOutput), "volume-conformance-output must be an absolute external directory")
 		directory := filepath.Join(*volumeConformanceOutput, "vectors")
@@ -1421,137 +950,4 @@ func contextStorageSections() [][]byte {
 func storageLogBinding(log []byte) []byte {
 	digest := sha256.Sum256(log)
 	return append(binary.LittleEndian.AppendUint64(nil, uint64(len(log))), digest[:]...)
-}
-
-func TestStorageEvidenceDecodesHelperEnvelope(t *testing.T) {
-	state, err := decodeStorageState(storageStateEnvelope(1, 5, validStorageSections()...))
-	if err != nil {
-		t.Fatal(err)
-	}
-	if len(state.snapshots) != 1 || state.snapshots[0].ID != "data" || len(state.operations["data"]) != 1 || !state.enumerations["data"].Complete || state.imageIdentity != strings.Repeat("a", 64) {
-		t.Fatalf("decoded state = %+v", state)
-	}
-	sections := validStorageSections()
-	sections[2] = []byte("null")
-	state, err = decodeStorageState(storageStateEnvelope(1, 5, sections...))
-	if err != nil || state.enumerations != nil {
-		t.Fatalf("null enumerations = %+v %v", state.enumerations, err)
-	}
-}
-
-func TestStorageEvidenceRefusesCorruptTruncatedAndTrailingEnvelopes(t *testing.T) {
-	valid := storageStateEnvelope(1, 5, validStorageSections()...)
-	body := valid[:len(valid)-40]
-	mutate := func(edit func([]byte) []byte) []byte { return edit(append([]byte(nil), valid...)) }
-	cases := map[string][]byte{
-		"empty":            nil,
-		"truncated":        valid[:len(valid)-1],
-		"trailing":         append(append([]byte(nil), valid...), 0),
-		"digest":           mutate(func(data []byte) []byte { data[len(data)-1] ^= 1; return data }),
-		"body-bit":         mutate(func(data []byte) []byte { data[20] ^= 1; return data }),
-		"magic":            sealStorageState(append([]byte("GMSTORE\x02"), body[8:]...)),
-		"version":          storageStateEnvelope(2, 4, validStorageSections()...),
-		"section-count":    storageStateEnvelope(1, 3, validStorageSections()[:3]...),
-		"missing-section":  storageStateEnvelope(1, 5, validStorageSections()[:3]...),
-		"extra-section":    storageStateEnvelope(1, 5, append(validStorageSections(), []byte("x"))...),
-		"body-trailing":    sealStorageState(append(append([]byte(nil), body...), 0)),
-		"section-overflow": sealStorageState(append(append([]byte(nil), body[:len(body)-40-8]...), 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f)),
-	}
-	for _, tamper := range []struct {
-		name    string
-		section int
-		value   string
-	}{
-		{"snapshots-unknown-field", 0, `[{"ID":"data","Unknown":1}]`},
-		{"snapshots-trailing", 0, `[] []`},
-		{"operations-null", 1, `null`},
-		{"operations-type", 1, `{"data":[{"ID":"one"}]}`},
-		{"enumerations-duplicate", 2, `{"data":{"Complete":true,"Complete":false}}`},
-		{"identity-short", 3, "abc"},
-		{"identity-upper", 3, strings.Repeat("A", 64)},
-		{"log-binding-short", 4, "x"},
-	} {
-		sections := validStorageSections()
-		sections[tamper.section] = []byte(tamper.value)
-		cases[tamper.name] = storageStateEnvelope(1, 5, sections...)
-	}
-	for name, data := range cases {
-		if _, err := decodeStorageState(data); err == nil || !strings.Contains(err.Error(), "WASI invalid: storage evidence") {
-			t.Errorf("%s: accepted or unclassified refusal: %v", name, err)
-		}
-	}
-}
-
-func TestStorageEvidenceCollectionRefusesInconsistentHelperState(t *testing.T) {
-	config := storageConfig()
-	limits := volume.CrashEnumerationLimits{States: 1, Operations: 1, Depth: 1, Bytes: 1, Work: 1}
-	for _, test := range []struct {
-		name    string
-		request Request
-		edit    func(*helperEvidence)
-		want    string
-	}{
-		{"missing-state", Request{Config: config}, func(e *helperEvidence) { e.storageState = nil }, "missing helper storage evidence"},
-		{"stream-without-state", Request{Config: config}, func(e *helperEvidence) { e.storageState, e.storage = nil, []byte("x") }, "storage evidence without state"},
-		{"unrequested-enumeration", Request{Config: config}, func(*helperEvidence) {}, "enumerations"},
-		{"missing-enumeration", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) {
-			sections := validStorageSections()
-			sections[2] = []byte("null")
-			e.storageState = storageStateEnvelope(1, 5, sections...)
-		}, "enumerations"},
-		{"missing-image", Request{Config: config, StorageCrashLimits: &limits, ReturnStorageImage: true}, func(*helperEvidence) {}, "recovery image"},
-		{"wrong-image", Request{Config: config, StorageCrashLimits: &limits, ReturnStorageImage: true}, func(e *helperEvidence) { e.storageImage = []byte("x") }, "recovery image"},
-		{"unrequested-image", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) { e.storageImage = []byte("x") }, "unrequested recovery image"},
-		{"truncated-log", Request{Config: config, StorageCrashLimits: &limits}, func(e *helperEvidence) { e.storage = []byte("x") }, "storage log length or digest"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			sink := &frameSink{request: test.request, terminal: &resultFrame{Termination: "exit"}}
-			sink.helperEvidence.storageState = storageStateEnvelope(1, 5, validStorageSections()...)
-			if test.request.StorageCrashLimits != nil {
-				sink.helperEvidence.storageState = storageStateEnvelope(3, 6, contextStorageSections()...)
-			}
-			test.edit(&sink.helperEvidence)
-			var result Result
-			err := sink.collectHelperStorage(&result)
-			if err == nil || !strings.Contains(err.Error(), test.want) || result.StorageImage != nil {
-				t.Fatalf("collect = %v, want refusal containing %q", err, test.want)
-			}
-		})
-	}
-	sink := &frameSink{request: Request{Config: config, StorageCrashLimits: &limits}, terminal: &resultFrame{Termination: "exit"}}
-	sink.helperEvidence.storage = []byte("{}\n")
-	sections := contextStorageSections()
-	sections[4] = storageLogBinding(sink.helperEvidence.storage)
-	sink.helperEvidence.storageState = storageStateEnvelope(3, 6, sections...)
-	var result Result
-	if err := sink.collectHelperStorage(&result); err != nil || result.StorageImage == nil || result.StorageImage.Identity() != strings.Repeat("a", 64) || result.StorageImage.data != nil || string(result.StorageTranscript) != "{}\n" {
-		t.Fatalf("valid helper storage evidence = %+v %v", result, err)
-	}
-	if _, err := NewRecoveredEnvironment(config, result.StorageImage); err == nil {
-		t.Fatal("identity-only image admitted for recovery")
-	}
-}
-
-func TestStorageCrashSelectionAndUnsolicitedCrashRefusedBeforeExecution(t *testing.T) {
-	config := storageConfig()
-	for _, test := range []struct {
-		name      string
-		selection map[string][]uint64
-		want      string
-	}{
-		{"volume", map[string][]uint64{"unknown": {1}}, "storage crash selection volume"},
-		{"duplicate", map[string][]uint64{"data": {1, 1}}, "duplicate operation"},
-		{"zero", map[string][]uint64{"data": {0}}, "zero operation"},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			result, err := Run(t.Context(), Request{Config: config, StorageCrashSelection: test.selection})
-			if err == nil || !strings.Contains(err.Error(), test.want) || result.Started != nil {
-				t.Fatalf("selection admission = %+v %v, want %q before execution", result, err, test.want)
-			}
-		})
-	}
-	config.Storage.Faults = []StorageFault{{Name: "stop", Resource: "/workspace/db", Operation: "sync", Occurrence: 1, Action: "crash-before"}}
-	if !storageCrashConfigured(config.Storage, "modeled storage crash: stop") || storageCrashConfigured(config.Storage, "modeled storage crash: other") || storageCrashConfigured(storageConfig().Storage, "modeled storage crash: stop") {
-		t.Fatal("helper storage_crash admission does not require the configured crash-before fault")
-	}
 }

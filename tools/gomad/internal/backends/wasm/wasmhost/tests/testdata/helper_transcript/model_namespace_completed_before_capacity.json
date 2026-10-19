@@ -1,0 +1,78 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "stdout": {"bytes":2,"sha256":"fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603","text":"ab"},
+      "transcript": {"bytes":38,"sha256":"257015d8be7185a03634a6345c9ca50d5fd496c2c93133443b6b9c9684e024ed"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"f5d839d0f36816a8672caf0db043eecfaccd7f7667a43e368a4768696351943d","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAIAAAAAQAAAAAAAAAOAAAAAQAAAAIAAABhYgIAAAA=","stream":"transcript","type":"evidence"},
+      {"data_base64":"YWI=","stream":"stdout","type":"evidence"},
+      {"fuel_remaining":999977,"local_model":{"advances":0,"calls":1,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":38,"transcript_sha256":"257015d8be7185a03634a6345c9ca50d5fd496c2c93133443b6b9c9684e024ed"},"message":"WASI capacity: transcript-bytes","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":2,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "capacity"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"fd_write\" (func $write (param i32 i32 i32 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 256) \"abx\") (func (export \"_start\") i32.const 16 i32.const 256 i32.store i32.const 20 i32.const 2 i32.store i32.const 1 i32.const 16 i32.const 1 i32.const 24 call $write drop i32.const 16 i32.const 258 i32.store i32.const 20 i32.const 1 i32.store i32.const 1 i32.const 16 i32.const 1 i32.const 24 call $write drop))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS90bXAA",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Completed stdout and its exact first transcript record survive the next write reservation failure; refused byte is absent.",
+  "replaces": [
+    "src/model.rs::namespace_capacity_refuses_before_mutation_and_preserves_completed_evidence"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"data_base64":"R01XTgEAAAAKAAAAAAAAABAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAOgDAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAAAAAAAAAAAAEABAAAAAAAAAAvdG1wAAAAAAAAAAAA","sequence":0,"type":"namespace_input"},{"type":"namespace_inputs_end"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":9,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":38},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "e9671acd244849c57167c658fa2f969752048f7ab184a3dcf5c46cb4d56ae124"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 147,
+      "chunks": 1,
+      "files": 2,
+      "sha256": "7a235fb172ea3e48d1bedb9ae3c7447bfcf73c8596ef3c696ec52d98cf451406"
+    },
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

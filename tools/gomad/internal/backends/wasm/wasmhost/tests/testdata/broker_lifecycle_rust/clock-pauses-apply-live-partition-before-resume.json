@@ -1,0 +1,43 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "clock-pauses-apply-live-partition-before-resume",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "network": true,
+  "control": "{\"type\":\"control\",\"command\":\"link\",\"action\":\"partition\",\"from\":\"a\",\"to\":\"b\",\"symmetric\":true}\n{\"type\":\"resume\"}\n{\"type\":\"resume\"}\n",
+  "steps": [
+    {
+      "input": {
+        "op": "idle_all",
+        "deadlines": [
+          100,
+          200
+        ]
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "captured"
+      },
+      "expected": "{\"at\":100,\"reason\":\"settle\",\"type\":\"pause\"}\n{\"at\":200,\"reason\":\"settle\",\"type\":\"pause\"}\n"
+    },
+    {
+      "input": {
+        "op": "cross_links"
+      },
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    }
+  ]
+}

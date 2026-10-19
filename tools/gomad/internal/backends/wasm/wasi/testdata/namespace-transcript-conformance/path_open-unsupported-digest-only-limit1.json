@@ -1,0 +1,48 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "path_open-unsupported-digest-only-limit1",
+  "kind": "digest",
+  "op": "path_open",
+  "input": {
+    "fd": 3,
+    "dirflags": 0,
+    "path_base64": "eA==",
+    "oflags": 0,
+    "rights_base": 2,
+    "rights_inheriting": 0,
+    "fdflags": 2
+  },
+  "limit": 1,
+  "reference_limit": 96,
+  "digest_transcript": true,
+  "reference": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "open flags outside volatile profile"
+    },
+    "transcript_base64": "R01XVAEAAAAaAQAAAQAAAAAAAABIAAAAAwAAAAAAAAABAAAAeAAAAgAAAAAAAAAAAAAAAAAAAAIAIwAAAG9wZW4gZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl",
+    "sha256": "c84a28ccb59f8f6dfb31c41a395e457b92525f608c1b2375749af3e299dfda99",
+    "tag": 26,
+    "binary_input_base64": "AwAAAAAAAAABAAAAeAAAAgAAAAAAAAAAAAAAAAAAAAIA",
+    "binary_output_base64": null
+  },
+  "expected": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "open flags outside volatile profile"
+    },
+    "transcript_base64": null,
+    "sha256": "c84a28ccb59f8f6dfb31c41a395e457b92525f608c1b2375749af3e299dfda99",
+    "tag": 26,
+    "binary_input_base64": "AwAAAAAAAAABAAAAeAAAAgAAAAAAAAAAAAAAAAAAAAIA",
+    "binary_output_base64": null
+  }
+}

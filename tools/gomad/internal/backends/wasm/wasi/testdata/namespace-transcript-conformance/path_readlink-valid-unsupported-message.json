@@ -1,0 +1,6 @@
+{
+  "name": "path_readlink-valid-unsupported-message",
+  "transcript_base64": "R01XVAEAAAAbAQAAAQAAAAAAAABEAAAAAwAAAAEAAAB4AAAAADMAAABvcGVyYXRpb24gb3V0c2lkZSBzdG9jayBXQVNJIHByb2ZpbGU6IHBhdGhfcmVhZGxpbms=",
+  "valid": true,
+  "message": "operation outside stock WASI profile: path_readlink"
+}

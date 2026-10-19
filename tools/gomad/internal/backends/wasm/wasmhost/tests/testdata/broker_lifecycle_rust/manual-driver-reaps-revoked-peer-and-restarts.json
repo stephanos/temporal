@@ -1,0 +1,178 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "manual-driver-reaps-revoked-peer-and-restarts",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "defer_starts"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "activate"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "activate",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "revoke",
+        "kind": "stop"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "run",
+        "incarnation": 2
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "run"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": "stop"
+    },
+    {
+      "input": {
+        "op": "run",
+        "index": 1
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "hold"
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "run",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "run"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": 1
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "restart",
+        "incarnation": 2
+      },
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "run",
+        "incarnation": 2
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

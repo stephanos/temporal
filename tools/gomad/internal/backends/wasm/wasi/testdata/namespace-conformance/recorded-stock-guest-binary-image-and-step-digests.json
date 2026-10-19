@@ -1,0 +1,266 @@
+{
+  "name": "recorded-stock-guest-binary-image-and-step-digests",
+  "origin": "filesystem calls extracted unchanged from backend/testdata/premove-stock-artifact/backend/evidence.bin sha256:413065bfbdf1c62c0c5e15d02091d047f69260b001d808777eeda7f308a473ed",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 0
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 0,
+        "flags": 4
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 1
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 1,
+        "flags": 4
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 2
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 2,
+        "flags": 4
+      }
+    },
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 3
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 3,
+        "length": 4
+      }
+    },
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 4
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 4,
+        "length": 10
+      }
+    },
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 0
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 1
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 2
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "data_base64": "c2VsZWN0ZWQ9MQo=",
+        "fd": 1
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 0,
+        "rights_base": 136314890,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 0,
+        "rights_base": 136314952,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 0,
+        "rights_base": 136314952,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "name_length": 4
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "L3RtcA=="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "name_length": 10
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "L3dvcmtzcGFjZQ=="
+      }
+    },
+    {
+      "errno": 8,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 4,
+        "rights_base": 136314890,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 4,
+        "rights_base": 136314952,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 2,
+        "flags": 4,
+        "rights_base": 136314952,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 11
+      }
+    }
+  ],
+  "digests": [
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "f1c0dc957edddd1ac4233d9f869c933ea617294d28c7e39cbd8721eb5413dfce",
+    "f1c0dc957edddd1ac4233d9f869c933ea617294d28c7e39cbd8721eb5413dfce",
+    "01d353cce6c55bf3fe7c84cfd799cdfdb02ec5f397c13fe2efb6bd548d01f396",
+    "01d353cce6c55bf3fe7c84cfd799cdfdb02ec5f397c13fe2efb6bd548d01f396",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "262b19649b18e19ef382b69c08c648838694593a89110351643a21e6bea0c7bf",
+    "b24917724087fa21579bca4f9ad140ee93c3007030b9ba5cb9442b148c8ad9ad"
+  ],
+  "digest": "b24917724087fa21579bca4f9ad140ee93c3007030b9ba5cb9442b148c8ad9ad"
+}

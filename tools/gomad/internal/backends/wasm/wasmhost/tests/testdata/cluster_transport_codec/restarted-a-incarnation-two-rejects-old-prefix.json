@@ -1,0 +1,19 @@
+{
+  "schema": "gomad.cluster-transport-codec-corpus/v1",
+  "name": "restarted-a-incarnation-two-rejects-old-prefix",
+  "go_implementation_sha256": "be76311c239576c1f15d0dee1c4f27eb6d66b56f07b93547552a6136bc61df3e",
+  "target": {
+    "node": "a",
+    "incarnation": 2
+  },
+  "result_payload": "{\"type\":\"result\"}\n",
+  "incoming_frame": "{\"instance\":\"a\",\"type\":\"reply\"}\n",
+  "expected": {
+    "tagged_result": "{\"instance\":\"a\",\"incarnation\":2,\"type\":\"result\"}\n",
+    "go_attribution_error": {
+      "kind": "invalid",
+      "dimension": "unattributable cluster frame",
+      "message": "WASI invalid: unattributable cluster frame"
+    }
+  }
+}

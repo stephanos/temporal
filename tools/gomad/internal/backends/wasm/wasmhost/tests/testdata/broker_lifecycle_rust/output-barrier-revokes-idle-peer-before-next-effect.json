@@ -1,0 +1,43 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "output-barrier-revokes-idle-peer-before-next-effect",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "barrier",
+        "nodes": [
+          "a",
+          "b"
+        ],
+        "value": "ready"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "output_barrier_handoff",
+        "value": "ready"
+      },
+      "expected": [
+        "crash",
+        "crash"
+      ]
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

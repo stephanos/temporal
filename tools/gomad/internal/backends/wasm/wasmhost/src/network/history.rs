@@ -165,6 +165,10 @@ pub fn transitions_digest(transitions: &[Transition]) -> Result<String, String> 
     ))
 }
 
+#[allow(
+    dead_code,
+    reason = "Detached history validation remains covered by the network conformance corpus."
+)]
 pub(crate) fn validate_transitions(transitions: &[Transition]) -> Result<(), String> {
     encode_transitions(
         &mut Encoder {
@@ -184,10 +188,18 @@ fn encode_transitions(encoder: &mut Encoder, transitions: &[Transition]) -> Resu
 }
 
 /// A value of [`transitions_digest`]'s fixed length.
+#[allow(
+    dead_code,
+    reason = "Detached history validation remains covered by the network conformance corpus."
+)]
 pub(crate) const TRANSITION_DIGEST_PLACEHOLDER: &str =
     "sha256:0000000000000000000000000000000000000000000000000000000000000000";
 
 /// Fails exactly when [`snapshot_digest`] would.
+#[allow(
+    dead_code,
+    reason = "Detached history validation remains covered by the network conformance corpus."
+)]
 pub(crate) fn validate_snapshot(snapshot: &Snapshot) -> Result<(), String> {
     encode_snapshot(
         &mut Encoder {
@@ -270,6 +282,10 @@ pub(crate) fn valid_endpoint(endpoint: &Endpoint, incarnation: bool) -> bool {
         && (!incarnation || endpoint.incarnation != 0)
 }
 
+#[allow(
+    dead_code,
+    reason = "Detached history validation remains covered by the network conformance corpus."
+)]
 pub(crate) fn valid_transition(transition: &Transition) -> bool {
     match transition.kind.as_str() {
         "listen" | "dial" | "accept" | "write" | "close" | "listener_close" | "stop" | "crash"
@@ -356,6 +372,10 @@ pub(crate) fn lane(transition: &Transition) -> String {
     }
 }
 
+#[allow(
+    dead_code,
+    reason = "Detached history validation remains covered by the network conformance corpus."
+)]
 pub fn canonicalize(transitions: &mut [Transition]) {
     transitions.sort_by_cached_key(lane);
     for (ordinal, transition) in transitions.iter_mut().enumerate() {

@@ -1,0 +1,27 @@
+{
+  "build": "guest-profile-fuel-off",
+  "case": "admission_handoff_boundary_documents.json",
+  "expected": {
+    "diagnostic_profile": {
+      "abi": {"clock":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"idle":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"observation":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"other_local":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"remote_callback":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"scheduler":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"select":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"}},
+      "abi_overlap_errors": 0,
+      "backend": "cranelift-jit",
+      "diagnostic_only": true,
+      "host_arch": "$host_arch",
+      "host_os": "$host_os",
+      "nested": {"alternative_hash":{"count":0,"wall_nanos":"measured"},"encoding":{"count":1,"wall_nanos":"measured"},"flush":{"count":0,"wall_nanos":"measured"},"remote_read_wait":{"count":0,"wall_nanos":"measured"},"remote_write":{"count":0,"wall_nanos":"measured"},"transcript_hash":{"count":0,"wall_nanos":"measured"}},
+      "phases": {"cache_identity":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_read":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_write":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"compile":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"deserialize":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"engine_init":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"envelope_verify":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"execute":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"instantiate":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_hash":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_read":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"}},
+      "residual": "measured",
+      "schema": "gomad.wasm-profile/v1"
+    },
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"instances":[],"message":"diagnostic helper builds do not run clusters","termination":"unsupported","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "unsupported"
+  },
+  "schema": "gomad.helper-feature-expectation/v1",
+  "source_sha256": "c1cbfe6af6602ca948185014204cff0097607fc3a38286f471061aef070a5200"
+}

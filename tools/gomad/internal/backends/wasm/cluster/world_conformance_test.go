@@ -336,6 +336,28 @@ func worldConformanceScripted(t *testing.T) []worldConformanceCorpus {
 	}
 	limits := worldConformanceTestLimits()
 	cell := func(key string) world.ResourceID { return world.ResourceID{Adapter: "memory", Kind: "cell", Key: key} }
+	add("cancel-later-instant-retains-payload-accounting", "src/world/tests.rs world_quiesce_delivers_one_instant_in_order_and_cancel_removes_queued", world.Config{Seed: 7, Limits: limits}, func(b *worldConformanceBuilder) {
+		for index, key := range []string{"b", "a", "c"} {
+			id, _ := b.register(world.Request{Kind: "wait", Resource: cell(key)})
+			at := world.InitialTime + 10
+			if index == 2 {
+				at++
+			}
+			_, _ = b.ready(world.Readiness{RequestID: id, At: at, Kind: "done", Payload: []byte{1}})
+		}
+		_, _ = b.cancel(3)
+		_, _ = b.quiesce()
+		_, _ = b.quiesce()
+	})
+	for _, seed := range []uint64{41, ^uint64(0)} {
+		add(fmt.Sprintf("unicode-equivalence-class-seed-%d", seed), "src/world/tests.rs world_choice_rank_matches_go_vectors UTF-8 class framing", world.Config{Seed: world.Seed(seed), Limits: limits}, func(b *worldConformanceBuilder) {
+			for range 8 {
+				id, _ := b.register(world.Request{Kind: "receive", Resource: cell("queue")})
+				_, _ = b.ready(world.Readiness{RequestID: id, At: world.InitialTime, Kind: "message", EquivalenceClass: "üñî"})
+			}
+			_, _ = b.quiesce()
+		})
+	}
 	add("lifecycle-whole-instant", "world_test.go TestWorldLifecycleCopiesDataAndDeliversWholeInstant", world.Config{Seed: 7, Limits: limits}, func(b *worldConformanceBuilder) {
 		first, _ := b.register(world.Request{Kind: "read", Resource: cell("a"), Priority: 2, Payload: []byte("request")})
 		second, _ := b.register(world.Request{Kind: "read", Resource: cell("b"), Priority: 1})

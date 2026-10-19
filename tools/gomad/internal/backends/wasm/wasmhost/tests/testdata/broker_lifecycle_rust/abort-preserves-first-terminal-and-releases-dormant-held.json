@@ -1,0 +1,82 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "abort-preserves-first-terminal-and-releases-dormant-held",
+  "nodes": [
+    "a",
+    "b",
+    "c"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "defer_starts"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "activate",
+        "index": 0
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "activate",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "run"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "abort",
+        "kind": "inspected_prefix",
+        "value": "verified cut"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 2
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": false
+    },
+    {
+      "input": {
+        "op": "abort",
+        "kind": "infrastructure",
+        "value": "neighbor aborted"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "failure"
+      },
+      "expected": [
+        "inspected_prefix",
+        "verified cut"
+      ]
+    }
+  ]
+}

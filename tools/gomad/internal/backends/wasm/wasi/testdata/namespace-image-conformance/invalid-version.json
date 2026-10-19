@@ -1,0 +1,8 @@
+{
+  "name": "invalid-version",
+  "data_base64": "R01XTgkAAAABAAAAAAAAAAUAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAC8BAAAAAAAAAHgA",
+  "files": 1,
+  "output_bytes": 3,
+  "epoch_nanos": 4,
+  "boundary": "invalid:namespace image"
+}

@@ -1,0 +1,54 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": "after_replies",
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"ad8e1d6b95b418e7ad07cbe86c98f5508302a907b8f546b2059cdec9cc9bc50a","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":1,"input":{"data_base64":"aGVsbG8K","fd":1},"instance":"a","op":"fd_write","type":"call"},
+      {"id":2,"input":{"clock_id":0,"precision":0},"instance":"a","op":"clock_time_get","type":"call"},
+      {"exit_code":0,"fuel_remaining":975976,"instance":"a","message":"","output_bytes":6,"peak_memory_bytes":196608,"termination":"exit","type":"result"},
+      {"instances":[{"id":"a","termination":"exit"}],"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"termination":"exit","type":"cluster_result","virtual_elapsed_nanos":0}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"wasi_snapshot_preview1\" \"fd_write\" (func $write (param i32 i32 i32 i32) (result i32)))\n  (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (data (i32.const 16) \"hello\\n\")\n  (func (export \"_start\") (local $n i32)\n    (i32.store (i32.const 0) (i32.const 16))\n    (i32.store (i32.const 4) (i32.const 6))\n    (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))\n    (drop (call $clock (i32.const 0) (i64.const 0) (i32.const 32)))\n    (if (i32.lt_s (memory.grow (i32.const 2)) (i32.const 0)) (then unreachable))\n    (local.set $n (i32.const 4000))\n    (loop $spin\n      (local.set $n (i32.sub (local.get $n) (i32.const 1)))\n      (br_if $spin (local.get $n)))))"
+  },
+  "inputs": [],
+  "intent": "closed_cluster_diagnostic_refusal: Closed R3 cluster assertion replacement: diagnostic_builds_refuse_cluster_execution",
+  "replaces": [
+    "tests/cluster.rs::diagnostic_builds_refuse_cluster_execution"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    },
+    {
+      "after": {"id":1,"instance":"a","op":"fd_write","type":"call"},
+      "send": [{"errno":0,"id":1,"instance":"a","output":{"written":6},"type":"reply"}]
+    },
+    {
+      "after": {"id":2,"instance":"a","op":"clock_time_get","type":"call"},
+      "send": [{"errno":0,"id":2,"instance":"a","output":{"timestamp":1000},"type":"reply"}]
+    }
+  ],
+  "request": {
+    "instances": [
+      {"fuel":1000000,"id":"a","memory_bytes":262144,"output_bytes":1024}
+    ],
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "schema": "gomad.wasm-host/v1",
+    "type": "cluster_execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

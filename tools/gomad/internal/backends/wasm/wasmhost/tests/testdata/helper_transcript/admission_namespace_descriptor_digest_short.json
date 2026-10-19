@@ -1,0 +1,69 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": true,
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"fuel_remaining":0,"message":"invalid namespace descriptor","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Namespace descriptor validation refuses this exact public field before started/image transport.",
+  "replaces": [
+    "src/namespace_transport.rs::validates_descriptor_without_allocating_declared_bytes",
+    "src/namespace_transport.rs::rejects_digest_cwd_and_image_identity_mismatches"
+  ],
+  "replies": [],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 4,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 262144,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 99,
+      "chunks": 1,
+      "files": 1,
+      "sha256": "a"
+    },
+    "output_bytes": 3,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

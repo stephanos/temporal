@@ -1,0 +1,1001 @@
+{
+  "import_transcript_base64": "R01XVAEAAAAaAAAAAQAAAAAAAAApAAAABAAAAAAAAAAFAAAAb3RoZXIBAP///x8AAAAAAAAAAAAAAAAAAAUAAAAaAAAAAgAAAAAAAAAmAAAABAAAAAAAAAACAAAAZGIBAP///x8AAAAAAAAAAAAAAAAAAAYAAAAJAAAAAwAAAAAAAAAdAAAABQAAAAkAAAB1bnJlbGF0ZWQAAAAAAAAAAAkAAAAJAAAABAAAAAAAAAAbAAAABgAAAAcAAABpbml0aWFsAAAAAAAAAAAHAAAACQAdAAUAAAAAAAAAFwAAAAYAAAAHAAAAY2hhbmdlZAAAAAAAAAAACwAAAAYAAAAAAAAAGwAAAAYAAABkAAAAAAAAAAAAAAAHAAAAaW5pdGlhbA==",
+  "schema": "gomad.volume-conformance/v1",
+  "name": "fault-import-transcript-io-error",
+  "origin": "TestStorageFaultResourceOccurrenceReplayAndTypedOutcomes",
+  "seed": 0,
+  "session": {
+    "model": "internal/model/volume",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      },
+      "faults": [
+        {
+          "name": "named-io-error",
+          "resource": "/workspace/db",
+          "operation": "write",
+          "occurrence": 2,
+          "action": "io-error"
+        }
+      ]
+    }
+  },
+  "initial_reply_base64": "e30=",
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "b3RoZXI=",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 100
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 4,
+        "path_base64": "ZGI=",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      },
+      "now": 117
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "data_base64": "dW5yZWxhdGVk"
+      },
+      "now": 134
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 6,
+        "offset": 0,
+        "data_base64": "aW5pdGlhbA=="
+      },
+      "now": 151
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 6,
+        "offset": 0,
+        "data_base64": "Y2hhbmdlZA=="
+      },
+      "now": 168
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 6,
+        "offset": 0,
+        "length": 100
+      },
+      "now": 185
+    }
+  ],
+  "observations": [
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo1fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL290aGVyIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 100,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 2,
+          "PendingSHA256": "sha256:7413fce03ec19fd90da322840432045546fe266d3985f7bd638f9bbc056096b9",
+          "NextOperation": 3,
+          "Identity": "sha256:721d9c458e4f69fb78e6ded97d275c50619fe939c573ac3f418d717792bcc597"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "c4694c306226a3c8a6e55a98f971f303039fef092494bbe3856581e97d2ae838"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImZkIjo2fX0=",
+      "events_base64": "eyJzZXF1ZW5jZSI6MSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 117,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 100,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            }
+          ],
+          "PendingOperations": 4,
+          "PendingSHA256": "sha256:f81b6d47da180387eb3174e1d0227371bb50fbb0e9bebc44b687cc14ad8bfdcc",
+          "NextOperation": 5,
+          "Identity": "sha256:682c090f7665ae2da81d9938af160a34e225f45a2b2005fea5afba01be680d07"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:c4041941989dc161ab7a98b0da4412b3f659057627f2dc34ebddff1f343f5c81",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:9efc2389440749841c8c265ae93801fa2ce80943c971f5548988a2bb64c9d617",
+              "Path": "/db",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "90aef5d2ad5e4b0c625be2dbb79958210730994ebf9a3e0e05ca79521cefa31c"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjl9fQ==",
+      "events_base64": "eyJzZXF1ZW5jZSI6MiwicmVzb3VyY2UiOiIvd29ya3NwYWNlL290aGVyIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo5fQo=",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 117,
+              "Size": 0,
+              "DataSHA256": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 134,
+              "Size": 9,
+              "DataSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4"
+            }
+          ],
+          "PendingOperations": 6,
+          "PendingSHA256": "sha256:59661472f57dc67a02f1137a04d178c5a05210a8dac85ea65bbadb1586aa200d",
+          "NextOperation": 7,
+          "Identity": "sha256:02497190d4f169d75ec4473f9b894ebe7085ff1f1916fd8dfd63d82b38b92c02"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:c4041941989dc161ab7a98b0da4412b3f659057627f2dc34ebddff1f343f5c81",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:9efc2389440749841c8c265ae93801fa2ce80943c971f5548988a2bb64c9d617",
+              "Path": "/db",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:502ff4fe98b59566127265fcef45001deb886e50be28450105125cd788b05bcd",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                5
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4",
+              "EffectSHA256": "sha256:e647ee419fa419a5afd5e5522a3cf6c454745f8f2216eeb6db95458ca762da56",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "0e58cb75750670e998e44eab45e3e0bae6a59ae7e75f0ce7d5fb4b81d3a91260"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7IndyaXR0ZW4iOjd9fQ==",
+      "events_base64": "eyJzZXF1ZW5jZSI6MywicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoxLCJhY3Rpb24iOiJjb21wbGV0ZSIsImJ5dGVzIjo3fQo=",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 151,
+              "Size": 7,
+              "DataSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149"
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 134,
+              "Size": 9,
+              "DataSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4"
+            }
+          ],
+          "PendingOperations": 8,
+          "PendingSHA256": "sha256:0d1d6b1227b2e50c90f1cce580541cb699862bfbebc3f5727bf8ee6a7880b363",
+          "NextOperation": 9,
+          "Identity": "sha256:025f5cb2d7031208a7ae52277d1dde46305ecabbaa5bea3e54a6b35c38eebad0"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:c4041941989dc161ab7a98b0da4412b3f659057627f2dc34ebddff1f343f5c81",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:9efc2389440749841c8c265ae93801fa2ce80943c971f5548988a2bb64c9d617",
+              "Path": "/db",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:502ff4fe98b59566127265fcef45001deb886e50be28450105125cd788b05bcd",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                5
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4",
+              "EffectSHA256": "sha256:e647ee419fa419a5afd5e5522a3cf6c454745f8f2216eeb6db95458ca762da56",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "resize",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:a188f83c7a1f5475e95ccc0cdfa4afeba4889b8c3b1ca47cc46491840ec28bc7",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "write",
+              "Dependencies": [
+                3,
+                7
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149",
+              "EffectSHA256": "sha256:a7686dbc7ef71986a202876cbf9c9e15f9f6869d6dd8fe85c4793f229231c3c5",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "27b16ab1a1cbb3616151ab42c6fa3198773d499c075e9337afddf49db36d8d90"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MjksIm91dHB1dCI6e319",
+      "events_base64": "eyJzZXF1ZW5jZSI6NCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoid3JpdGUiLCJvY2N1cnJlbmNlIjoyLCJmYXVsdCI6Im5hbWVkLWlvLWVycm9yIiwiYWN0aW9uIjoiaW8tZXJyb3IiLCJieXRlcyI6N30K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 151,
+              "Size": 7,
+              "DataSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149"
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 134,
+              "Size": 9,
+              "DataSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4"
+            }
+          ],
+          "PendingOperations": 8,
+          "PendingSHA256": "sha256:0d1d6b1227b2e50c90f1cce580541cb699862bfbebc3f5727bf8ee6a7880b363",
+          "NextOperation": 9,
+          "Identity": "sha256:025f5cb2d7031208a7ae52277d1dde46305ecabbaa5bea3e54a6b35c38eebad0"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:c4041941989dc161ab7a98b0da4412b3f659057627f2dc34ebddff1f343f5c81",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:9efc2389440749841c8c265ae93801fa2ce80943c971f5548988a2bb64c9d617",
+              "Path": "/db",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:502ff4fe98b59566127265fcef45001deb886e50be28450105125cd788b05bcd",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                5
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4",
+              "EffectSHA256": "sha256:e647ee419fa419a5afd5e5522a3cf6c454745f8f2216eeb6db95458ca762da56",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "resize",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:a188f83c7a1f5475e95ccc0cdfa4afeba4889b8c3b1ca47cc46491840ec28bc7",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "write",
+              "Dependencies": [
+                3,
+                7
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149",
+              "EffectSHA256": "sha256:a7686dbc7ef71986a202876cbf9c9e15f9f6869d6dd8fe85c4793f229231c3c5",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "27b16ab1a1cbb3616151ab42c6fa3198773d499c075e9337afddf49db36d8d90"
+    },
+    {
+      "reply_base64": "eyJlcnJubyI6MCwib3V0cHV0Ijp7ImRhdGFfYmFzZTY0IjoiYVc1cGRHbGhiQT09In19",
+      "events_base64": "eyJzZXF1ZW5jZSI6NSwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoicmVhZCIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIiwiYnl0ZXMiOjEwMH0K",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1048576,
+          "Persisted": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            }
+          ],
+          "Volatile": [
+            {
+              "Path": "/",
+              "Mode": 493,
+              "Kind": "directory",
+              "ModTime": 0,
+              "Size": 0,
+              "DataSHA256": ""
+            },
+            {
+              "Path": "/db",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 151,
+              "Size": 7,
+              "DataSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149"
+            },
+            {
+              "Path": "/other",
+              "Mode": 438,
+              "Kind": "file",
+              "ModTime": 134,
+              "Size": 9,
+              "DataSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4"
+            }
+          ],
+          "PendingOperations": 8,
+          "PendingSHA256": "sha256:0d1d6b1227b2e50c90f1cce580541cb699862bfbebc3f5727bf8ee6a7880b363",
+          "NextOperation": 9,
+          "Identity": "sha256:025f5cb2d7031208a7ae52277d1dde46305ecabbaa5bea3e54a6b35c38eebad0"
+        }
+      ],
+      "operations": [
+        {
+          "volume": "data",
+          "operations": [
+            {
+              "ID": 1,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:614b8c05d3069d233ad29f3cab09eee319bb9b492c22f2b6b7a2bf5e7d55f7c8",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 2,
+              "Kind": "namespace",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:caeb828df99eb70a4e605556904384f778d0d1887382f25871dd7311c626ea48",
+              "Path": "/other",
+              "Destination": ""
+            },
+            {
+              "ID": 3,
+              "Kind": "alloc",
+              "Dependencies": null,
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:c4041941989dc161ab7a98b0da4412b3f659057627f2dc34ebddff1f343f5c81",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 4,
+              "Kind": "namespace",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 0,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:9efc2389440749841c8c265ae93801fa2ce80943c971f5548988a2bb64c9d617",
+              "Path": "/db",
+              "Destination": ""
+            },
+            {
+              "ID": 5,
+              "Kind": "resize",
+              "Dependencies": [
+                1
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:502ff4fe98b59566127265fcef45001deb886e50be28450105125cd788b05bcd",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 6,
+              "Kind": "write",
+              "Dependencies": [
+                1,
+                5
+              ],
+              "Inode": 4,
+              "Offset": 0,
+              "Bytes": 9,
+              "PayloadSHA256": "sha256:c2703a7ddf6c74b39505339af20dd6dd4f0794720e038b78ba395600c72417d4",
+              "EffectSHA256": "sha256:e647ee419fa419a5afd5e5522a3cf6c454745f8f2216eeb6db95458ca762da56",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 7,
+              "Kind": "resize",
+              "Dependencies": [
+                3
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "",
+              "EffectSHA256": "sha256:a188f83c7a1f5475e95ccc0cdfa4afeba4889b8c3b1ca47cc46491840ec28bc7",
+              "Path": "",
+              "Destination": ""
+            },
+            {
+              "ID": 8,
+              "Kind": "write",
+              "Dependencies": [
+                3,
+                7
+              ],
+              "Inode": 5,
+              "Offset": 0,
+              "Bytes": 7,
+              "PayloadSHA256": "sha256:ac1b5c0961a7269b6a053ee64276ed0e20a7f48aefb9f67519539d23aaf10149",
+              "EffectSHA256": "sha256:a7686dbc7ef71986a202876cbf9c9e15f9f6869d6dd8fe85c4793f229231c3c5",
+              "Path": "",
+              "Destination": ""
+            }
+          ]
+        }
+      ],
+      "enumeration": null,
+      "selections": null,
+      "image_digest": "",
+      "image_base64": null,
+      "image_identity": "gomad.volume-recovery-image/v1",
+      "namespace_digest": "27b16ab1a1cbb3616151ab42c6fa3198773d499c075e9337afddf49db36d8d90"
+    }
+  ]
+}

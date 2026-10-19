@@ -30,6 +30,32 @@ guest semantics.
 | `toolchain/` | Content-addressed Go 1.27.1 cooperative runtime overlay |
 | `testdata/` | Guest fixtures |
 
+The Rust helper keeps its wire types in `wasmhost/src/protocol.rs` and its
+execution state, limits and snapshots in `engine.rs`. `model.rs` is the
+guest-state facade, with private `model/guest_state.rs` for configuration/input
+admission and lifetime setup, `model/imports.rs` for typed host-import routing,
+and `model/reply.rs` for reply, transcript and evidence encoding. Namespace
+state, typed call admission, image decoding and framed input transport live in
+`namespace/{mod,call,image,transport}.rs`.
+
+`cluster/handoff/` owns continuation acquisition, idle transfer and finish. Its
+coordinator selects the private in-order baton or broker; broker finish performs
+World cancellation, network revocation, clock removal and session completion.
+`cluster/execution/` owns automatic/manual lifecycle and framed transport;
+`cluster/network/` owns shared network state, endpoint transitions and evidence.
+Automatic execution emits a result before finish, while manual execution finishes
+before its result. Idle and terminal handoffs retain eager network inspection
+commitment checks. The older `src/network/cluster/evidence.rs` path in the
+identity-bound Go decoder maps to `src/cluster/network/evidence.rs`; that Go
+source remains byte-identical.
+
+The `conformance` feature remains necessary: besides selecting its entry point,
+it enables `serde_json/raw_value`, controls module availability and includes the
+namespace `Unsupported` operation. Two binary entry points alone would not
+preserve that contract. Dead-code exceptions apply to individual retained model
+entry points; complete volume-projection operations exceed the WASI subset, while
+the World port excludes Go replay plans and recordings.
+
 The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.99.1 and Wasmtime
 47.0.3, with locked dependencies and an explicit engine configuration.
 

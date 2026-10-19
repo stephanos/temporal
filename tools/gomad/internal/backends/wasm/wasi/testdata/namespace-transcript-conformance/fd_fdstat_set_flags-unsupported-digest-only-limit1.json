@@ -1,0 +1,43 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "fd_fdstat_set_flags-unsupported-digest-only-limit1",
+  "kind": "digest",
+  "op": "fd_fdstat_set_flags",
+  "input": {
+    "fd": 3,
+    "flags": 2
+  },
+  "limit": 1,
+  "reference_limit": 75,
+  "digest_transcript": true,
+  "reference": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "descriptor flags outside volatile profile"
+    },
+    "transcript_base64": "R01XVAEAAAASAQAAAQAAAAAAAAAzAAAAAwAAAAIAKQAAAGRlc2NyaXB0b3IgZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl",
+    "sha256": "021fc1b524f3de06c7ec6f153fe35e759e0638c4344695691f245fdd37bbcb85",
+    "tag": 18,
+    "binary_input_base64": "AwAAAAIA",
+    "binary_output_base64": null
+  },
+  "expected": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "descriptor flags outside volatile profile"
+    },
+    "transcript_base64": null,
+    "sha256": "021fc1b524f3de06c7ec6f153fe35e759e0638c4344695691f245fdd37bbcb85",
+    "tag": 18,
+    "binary_input_base64": "AwAAAAIA",
+    "binary_output_base64": null
+  }
+}

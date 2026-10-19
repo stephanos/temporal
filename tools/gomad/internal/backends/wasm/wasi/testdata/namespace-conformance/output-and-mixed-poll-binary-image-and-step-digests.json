@@ -1,0 +1,332 @@
+{
+  "name": "output-and-mixed-poll-binary-image-and-step-digests",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 1,
+        "data_base64": "b3V0"
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 2,
+        "data_base64": "ZXJy"
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 1,
+        "offset": 0,
+        "data_base64": "eA=="
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "cG9sbA==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 5,
+        "data_base64": "YWJj"
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": 1,
+        "whence": 0
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": [
+          {
+            "userdata": 10,
+            "type": 0,
+            "clock_id": 1,
+            "timeout": 99,
+            "precision": 0,
+            "flags": 0
+          },
+          {
+            "userdata": 11,
+            "type": 1,
+            "fd": 5
+          },
+          {
+            "userdata": 12,
+            "type": 2,
+            "fd": 5
+          },
+          {
+            "userdata": 13,
+            "type": 1,
+            "fd": 3
+          },
+          {
+            "userdata": 14,
+            "type": 1,
+            "fd": 999
+          },
+          {
+            "userdata": 15,
+            "type": 1,
+            "fd": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": [
+          {
+            "userdata": 20,
+            "type": 0,
+            "clock_id": 1,
+            "timeout": 99,
+            "precision": 0,
+            "flags": 0
+          },
+          {
+            "userdata": 21,
+            "type": 0,
+            "clock_id": 0,
+            "timeout": 946684800000000200,
+            "precision": 0,
+            "flags": 1
+          }
+        ]
+      }
+    },
+    {
+      "op": "clock_time_get",
+      "input": {
+        "clock_id": 1,
+        "precision": 0
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "whence": 2
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": [
+          {
+            "userdata": 22,
+            "type": 1,
+            "fd": 5
+          }
+        ]
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": []
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 76,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 1
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "events": [
+          {
+            "userdata": 11,
+            "errno": 0,
+            "type": 1,
+            "nbytes": 2,
+            "flags": 0
+          },
+          {
+            "userdata": 12,
+            "errno": 0,
+            "type": 2,
+            "nbytes": 0,
+            "flags": 0
+          },
+          {
+            "userdata": 13,
+            "errno": 28,
+            "type": 1,
+            "nbytes": 0,
+            "flags": 0
+          },
+          {
+            "userdata": 14,
+            "errno": 8,
+            "type": 1,
+            "nbytes": 0,
+            "flags": 0
+          },
+          {
+            "userdata": 15,
+            "errno": 76,
+            "type": 1,
+            "nbytes": 0,
+            "flags": 0
+          }
+        ]
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "events": [
+          {
+            "userdata": 20,
+            "errno": 0,
+            "type": 0,
+            "nbytes": 0,
+            "flags": 0
+          }
+        ]
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "timestamp": 99
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "events": [
+          {
+            "userdata": 22,
+            "errno": 0,
+            "type": 1,
+            "nbytes": 0,
+            "flags": 1
+          }
+        ]
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "2e70404415e2abb5051bd0ea8de8ea7e680b6743da3167345c7f382152c60052",
+    "83bd0a1f808475384badc8a23dd8583aab5ac31683e6a0e427e55e3dd7b08120",
+    "45115fd6f28a9e9f209b486baed8e11d0dbb04b459d9d852855273e4f982bd80",
+    "25b7e8719f4a14b52cd21b65e380037fd25a029a3784e41398b0e765b87ed631",
+    "6d772b3af4d8b214166f3d4c5e79a6b26a666852ff6c4b14327eb52b2d92e6f6",
+    "eade9e5ad077254babb062edfca5fedda80f449e3ab0e5bd1cdce54b9a11117c",
+    "eade9e5ad077254babb062edfca5fedda80f449e3ab0e5bd1cdce54b9a11117c",
+    "eade9e5ad077254babb062edfca5fedda80f449e3ab0e5bd1cdce54b9a11117c",
+    "eade9e5ad077254babb062edfca5fedda80f449e3ab0e5bd1cdce54b9a11117c",
+    "6d772b3af4d8b214166f3d4c5e79a6b26a666852ff6c4b14327eb52b2d92e6f6",
+    "6d772b3af4d8b214166f3d4c5e79a6b26a666852ff6c4b14327eb52b2d92e6f6",
+    "6d772b3af4d8b214166f3d4c5e79a6b26a666852ff6c4b14327eb52b2d92e6f6"
+  ],
+  "digest": "6d772b3af4d8b214166f3d4c5e79a6b26a666852ff6c4b14327eb52b2d92e6f6"
+}

@@ -1,0 +1,5 @@
+{
+  "name": "volume-selector-without-storage",
+  "input": "{\"model\":\"internal/model/volume\",\"image\":{}}\n",
+  "output": "{\"boundary\":\"invalid:conformance model\"}\n"
+}

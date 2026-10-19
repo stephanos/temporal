@@ -1,0 +1,5 @@
+{
+  "name": "unknown-model",
+  "input": "{\"model\":\"other\",\"image\":{}}\n",
+  "output": "{\"boundary\":\"invalid:conformance model\"}\n"
+}

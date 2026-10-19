@@ -1,0 +1,5 @@
+{
+  "name": "namespace-selector-with-storage",
+  "input": "{\"model\":\"namespace\",\"image\":{},\"storage\":{}}\n",
+  "output": "{\"boundary\":\"invalid:conformance model\"}\n"
+}

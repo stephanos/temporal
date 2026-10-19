@@ -1,0 +1,125 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "cumulative-output-crash-reap-survivor-and-stale-incarnation",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "boundary",
+        "kind": "crash",
+        "value": "committed"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "output",
+        "value": "com"
+      },
+      "expected": ""
+    },
+    {
+      "input": {
+        "op": "output",
+        "value": "mitted"
+      },
+      "expected": "crash"
+    },
+    {
+      "input": {
+        "op": "current"
+      },
+      "expected": 1
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": "crash"
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "idle",
+        "index": 1,
+        "deadline": 1000
+      },
+      "expected": 1000
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": "invalid"
+    },
+    {
+      "input": {
+        "op": "restart",
+        "incarnation": 2
+      },
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": "invalid"
+    },
+    {
+      "input": {
+        "op": "check",
+        "incarnation": 2
+      },
+      "expected": ""
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    }
+  ]
+}

@@ -39,6 +39,15 @@ fn corpora() -> Vec<(String, Value)> {
 #[test]
 fn world_corpus_headers_match_the_go_pin() {
     let corpora = corpora();
+    for name in [
+        "unicode-equivalence-class-seed-41",
+        "unicode-equivalence-class-seed-18446744073709551615",
+    ] {
+        assert!(
+            corpora.iter().any(|(actual, _)| actual == name),
+            "missing {name} World corpus"
+        );
+    }
     for source in ["scripted", "generated", "recorded"] {
         assert!(
             corpora.iter().any(|(_, corpus)| corpus["source"] == source),

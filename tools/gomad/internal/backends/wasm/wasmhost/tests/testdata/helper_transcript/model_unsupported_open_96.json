@@ -1,0 +1,76 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "transcript": {"bytes":96,"sha256":"c84a28ccb59f8f6dfb31c41a395e457b92525f608c1b2375749af3e299dfda99"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"path_open","params":["i32","i32","i32","i32","i32","i64","i64","i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"83d3f877c4d5bd30090eaa4cd6ccef35f8cc4d36dba87ada8b5bf84b0e6caf5a","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAaAQAAAQAAAAAAAABIAAAAAwAAAAAAAAABAAAAeAAAAgAAAAAAAAAAAAAAAAAAAAIAIwAAAG9wZW4gZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl","stream":"transcript","type":"evidence"},
+      {"fuel_remaining":999989,"local_model":{"advances":0,"calls":1,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":96,"transcript_sha256":"c84a28ccb59f8f6dfb31c41a395e457b92525f608c1b2375749af3e299dfda99"},"message":"path_open: open flags outside volatile profile","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"unsupported","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "unsupported"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"path_open\" (func $op (param i32 i32 i32 i32 i32 i64 i64 i32 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 0) \"x\") (func (export \"_start\") i32.const 3 i32.const 0 i32.const 0 i32.const 1 i32.const 0 i64.const 2 i64.const 0 i32.const 2 i32.const 16 call $op drop))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS90bXAA",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Unsupported operation reserves exact message bytes before mutation; accepted record preserves ID 1 and complete message.",
+  "replaces": [
+    "src/model.rs::namespace_unsupported_exact_bounds_preserve_message_bytes_and_ids"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"data_base64":"R01XTgEAAAAKAAAAAAAAABAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAOgDAAAAAAAAAQAAAAAAAAABAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAAEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAAAAAAAAAAAAEABAAAAAAAAAAvdG1wAAAAAAAAAAAA","sequence":0,"type":"namespace_input"},{"type":"namespace_inputs_end"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":9,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":96},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "e9671acd244849c57167c658fa2f969752048f7ab184a3dcf5c46cb4d56ae124"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 147,
+      "chunks": 1,
+      "files": 2,
+      "sha256": "7a235fb172ea3e48d1bedb9ae3c7447bfcf73c8596ef3c696ec52d98cf451406"
+    },
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

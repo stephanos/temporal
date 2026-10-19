@@ -1,4 +1,3 @@
-pub mod cluster;
 mod connection;
 pub mod history;
 mod stall;
@@ -331,6 +330,10 @@ impl Model {
             self.history_reserved -= 1;
         }
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus exercises direct handle reset; cluster lifecycle uses domain revocation."
+    )]
     pub fn reset(&mut self, handle: u64) -> Result<(), String> {
         let Some(Handle::Connection(_, identity, client)) = self.handles.get(&handle).cloned()
         else {
@@ -500,6 +503,10 @@ impl Model {
         snapshot.transition_sha256 = history::TRANSITION_DIGEST_PLACEHOLDER.into();
         history::validate_snapshot(&snapshot)
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus retains standalone terminal evidence; clusters record shared live state."
+    )]
     pub fn finish(&mut self) -> Result<history::Record, String> {
         if self.finished {
             return Err("simulation network is already finished".into());
@@ -524,6 +531,10 @@ impl Model {
         }
         Ok(record)
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus retains standalone link controls; clusters use directional change_group."
+    )]
     pub fn partition(&mut self, left: &str, right: &str, symmetric: bool) -> Result<(), String> {
         self.change_group(
             &[left.to_owned()],
@@ -533,6 +544,10 @@ impl Model {
             symmetric,
         )
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus retains standalone link controls; clusters use directional change_group."
+    )]
     pub fn heal(&mut self, left: &str, right: &str, symmetric: bool) -> Result<(), String> {
         self.change_group(
             &[left.to_owned()],
@@ -542,6 +557,10 @@ impl Model {
             symmetric,
         )
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus retains standalone link controls; clusters use directional change_group."
+    )]
     pub fn delay(
         &mut self,
         left: &str,
@@ -2022,6 +2041,10 @@ impl Model {
         self.live.insert(domain.node.clone(), domain);
         Ok(())
     }
+    #[allow(
+        dead_code,
+        reason = "The network corpus inspects detached snapshots; cluster evidence uses record."
+    )]
     pub fn snapshot(&self) -> Result<history::Snapshot, String> {
         let transition_sha256 = history::transitions_digest(&self.transitions)?;
         let mut snapshot = self.snapshot_fields();

@@ -13,16 +13,49 @@
 //! identical). The conformance build replaces the helper and does not run the
 //! corpus.
 #![cfg(not(feature = "conformance"))]
+#[path = "common/residual_helper_literals.rs"]
+mod residual_helper_literals;
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Map, Value, json};
 use sha2::{Digest, Sha256};
 use std::collections::BTreeMap;
+use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Read, Write};
 use std::path::{Path, PathBuf};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 use std::sync::mpsc;
 use std::time::Duration;
+
+#[path = "common/inspection.rs"]
+mod inspection;
+
+#[path = "common/profile_stderr.rs"]
+mod profile_stderr;
+
+#[path = "common/namespace_corpus_literals.rs"]
+mod namespace_corpus_literals;
+
+#[path = "common/closed_cluster_guards.rs"]
+mod closed_cluster_guards;
+
+#[path = "common/model_corpus_literals.rs"]
+mod model_corpus_literals;
+
+#[path = "common/admission_corpus_literals.rs"]
+mod admission_corpus_literals;
+
+#[path = "common/write_corpus_literals.rs"]
+mod write_corpus_literals;
+
+#[path = "common/helper_corpus_inputs.rs"]
+mod helper_corpus_inputs;
+
+#[path = "common/helper_corpus_projection.rs"]
+mod helper_corpus_projection;
+use helper_corpus_projection::{project, split_profile};
+#[path = "common/helper_feature_corpus.rs"]
+mod helper_feature_corpus;
 
 const SCHEMA: &str = "gomad.helper-transcript-corpus/v1";
 const CASE_KEYS: [&str; 13] = [
@@ -55,7 +88,6 @@ const BUILD: &str = if cfg!(all(
 } else {
     "default"
 };
-const PROFILE_PREFIX: &str = "gomad-wasm-profile-v1 ";
 const TIMEOUT: Duration = Duration::from_secs(120);
 
 fn corpus_dir() -> PathBuf {
@@ -66,6 +98,7 @@ fn corpus_dir() -> PathBuf {
 #[derive(Clone, PartialEq, Debug)]
 struct Run {
     frames: Vec<Value>,
+    raw: Vec<String>,
     stderr: String,
     exit_code: Option<i32>,
 }
@@ -161,12 +194,32 @@ fn matches(pattern: &Value, frame: &Value) -> bool {
 /// Encodes a sent frame; cluster frames carry their `instance` tag first, as
 /// the helper's transport routes by that prefix.
 fn line(frame: &Value) -> String {
+    fn encode(value: &Value) -> String {
+        match value {
+            Value::Object(fields) if fields.len() == 1 && fields.contains_key("raw_json") => {
+                fields["raw_json"].as_str().unwrap().to_owned()
+            }
+            Value::Object(fields) => format!(
+                "{{{}}}",
+                fields
+                    .iter()
+                    .map(|(key, value)| format!("{}:{}", json!(key), encode(value)))
+                    .collect::<Vec<_>>()
+                    .join(",")
+            ),
+            Value::Array(items) => format!(
+                "[{}]",
+                items.iter().map(encode).collect::<Vec<_>>().join(",")
+            ),
+            _ => value.to_string(),
+        }
+    }
     let Some(instance) = frame.get("instance") else {
-        return frame.to_string();
+        return encode(frame);
     };
     let mut rest = frame.clone();
     rest.as_object_mut().unwrap().remove("instance");
-    let rest = rest.to_string();
+    let rest = encode(&rest);
     if rest == "{}" {
         return format!("{{\"instance\":{instance}}}");
     }
@@ -211,11 +264,156 @@ fn run_case(case: &Value) -> Result<Run, String> {
         path.to_str().unwrap().to_owned(),
         format!("{:x}", Sha256::digest(&bytes)),
     );
-    let result = drive(case, &guest);
+    let result = (|| {
+        let prepared = closed_cluster_guards::assets(case, &path)?;
+        let run = drive(&prepared, &guest)?;
+        closed_cluster_guards::check(case, &run)?;
+        helper_feature_corpus::check_raw_profile(case, &run)?;
+        Ok(run)
+    })();
     let _ = std::fs::remove_dir_all(path.parent().unwrap());
     result
 }
 
+fn parse_output_frame(line: &str) -> Result<Value, String> {
+    let frame: Value = serde_json::from_str(line)
+        .map_err(|error| format!("helper emitted non-JSON {line:?}: {error}"))?;
+    if frame["type"] == "call" && matches!(frame["op"].as_str(), Some("fd_write" | "fd_pwrite")) {
+        let number = |value: &Value| {
+            value
+                .as_u64()
+                .ok_or("invalid unsigned write callback field")
+        };
+        let id = number(&frame["id"])?;
+        let fd = number(&frame["input"]["fd"])?;
+        if fd > u64::from(u32::MAX) {
+            return Err("write callback fd exceeds u32".into());
+        }
+        let data = frame["input"]["data_base64"]
+            .as_str()
+            .ok_or("missing write callback bytes")?;
+        let offset = if frame["op"] == "fd_pwrite" {
+            format!(",\"offset\":{}", number(&frame["input"]["offset"])?)
+        } else {
+            String::new()
+        };
+        let state = if let Some(state) = frame.get("local_state") {
+            let offered = if let Some(offered) = state.get("offered_output_bytes") {
+                format!(",\"offered_output_bytes\":{}", number(offered)?)
+            } else {
+                String::new()
+            };
+            format!(
+                ",\"local_state\":{{\"advances\":{},\"now\":{},\"transcript_bytes\":{}{offered}}}",
+                number(&state["advances"])?,
+                number(&state["now"])?,
+                number(&state["transcript_bytes"])?
+            )
+        } else {
+            String::new()
+        };
+        let mut instance = if let Some(instance) = frame.get("instance") {
+            format!(
+                "\"instance\":{},",
+                json!(instance.as_str().ok_or("invalid callback instance")?)
+            )
+        } else {
+            String::new()
+        };
+        if let Some(incarnation) = frame.get("incarnation") {
+            let incarnation = number(incarnation)?;
+            if instance.is_empty() || incarnation <= 1 {
+                return Err("invalid restarted callback incarnation".into());
+            }
+            write!(instance, "\"incarnation\":{incarnation},").unwrap();
+        }
+        let expected = format!(
+            "{{{instance}\"id\":{id},\"input\":{{\"data_base64\":{},\"fd\":{fd}{offset}}}{state},\"op\":{},\"type\":\"call\"}}",
+            json!(data),
+            frame["op"]
+        );
+        if line != expected {
+            return Err("write callback raw literal key order or bytes differ".into());
+        }
+    }
+    Ok(frame)
+}
+
+#[test]
+fn write_callback_raw_lines_preserve_literal_key_order_and_bytes() {
+    for literal in [
+        r#"{"id":1,"input":{"data_base64":"AP8=","fd":13},"local_state":{"advances":0,"now":1,"transcript_bytes":0},"op":"fd_write","type":"call"}"#,
+        r#"{"id":2,"input":{"data_base64":"","fd":4294967295,"offset":18446744073709551615},"op":"fd_pwrite","type":"call"}"#,
+    ] {
+        assert!(parse_output_frame(literal).is_ok(), "{literal}");
+        let reordered = literal
+            .replace("{\"id\":", "{\"type\":\"call\",\"id\":")
+            .replace(",\"type\":\"call\"}", "}");
+        assert_eq!(
+            serde_json::from_str::<Value>(&reordered).unwrap(),
+            serde_json::from_str::<Value>(literal).unwrap()
+        );
+        assert!(
+            parse_output_frame(&reordered).is_err(),
+            "raw key-order drift accepted"
+        );
+        assert!(
+            parse_output_frame(&literal.replacen(':', ": ", 1)).is_err(),
+            "raw whitespace drift accepted"
+        );
+    }
+    let escaped =
+        r#"{"id":1,"input":{"data_base64":"AP\u0038=","fd":13},"op":"fd_write","type":"call"}"#;
+    assert!(
+        parse_output_frame(escaped).is_err(),
+        "alternate string escape accepted"
+    );
+    let duplicate =
+        r#"{"id":1,"id":1,"input":{"data_base64":"","fd":13},"op":"fd_write","type":"call"}"#;
+    assert!(
+        parse_output_frame(duplicate).is_err(),
+        "duplicate output key accepted"
+    );
+}
+
+fn read_output_line(reader: &mut impl BufRead) -> Result<Option<String>, String> {
+    let mut line = String::new();
+    if reader
+        .read_line(&mut line)
+        .map_err(|error| error.to_string())?
+        == 0
+    {
+        return Ok(None);
+    }
+    if !line.ends_with('\n') {
+        return Err("helper frame is missing its literal LF delimiter".into());
+    }
+    line.pop();
+    Ok(Some(line))
+}
+
+#[test]
+fn captured_write_callback_requires_literal_lf_without_cr_normalization() {
+    let literal =
+        r#"{"id":1,"input":{"data_base64":"AP8=","fd":13},"op":"fd_write","type":"call"}"#;
+    for suffix in ["\r\n", ""] {
+        let mut reader = std::io::Cursor::new(format!("{literal}{suffix}"));
+        let result = read_output_line(&mut reader)
+            .and_then(|line| parse_output_frame(&line.ok_or("missing frame")?));
+        assert!(
+            result.is_err(),
+            "capture normalized raw callback delimiter {suffix:?}"
+        );
+    }
+    let mut reader = std::io::Cursor::new(format!("{literal}\n"));
+    assert!(parse_output_frame(&read_output_line(&mut reader).unwrap().unwrap()).is_ok());
+    assert!(read_output_line(&mut reader).unwrap().is_none());
+}
+
+#[expect(
+    clippy::too_many_lines,
+    reason = "The corpus validator preserves its complete ordered literal and observation checks."
+)]
 fn drive(case: &Value, guest: &(String, String)) -> Result<Run, String> {
     let empty = Vec::new();
     let replies = case["replies"].as_array().unwrap_or(&empty);
@@ -262,12 +460,13 @@ fn drive(case: &Value, guest: &(String, String)) -> Result<Run, String> {
         input = None;
     }
     let mut frames = Vec::new();
+    let mut raw = Vec::new();
     let mut cursor = 0;
     let mut failure = None;
-    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
-        let line = line.map_err(|error| error.to_string())?;
-        let frame: Value = serde_json::from_str(&line)
-            .map_err(|error| format!("helper emitted non-JSON {line:?}: {error}"))?;
+    let mut reader = BufReader::new(child.stdout.take().unwrap());
+    while let Some(line) = read_output_line(&mut reader)? {
+        let frame = parse_output_frame(&line)?;
+        raw.push(line.clone());
         if failure.is_none() {
             if cursor < replies.len() && matches(&replies[cursor]["after"], &frame) {
                 for send in replies[cursor]["send"].as_array().unwrap_or(&empty) {
@@ -299,6 +498,7 @@ fn drive(case: &Value, guest: &(String, String)) -> Result<Run, String> {
         .join()
         .unwrap()
         .map_err(|error| error.to_string())?;
+    profile_stderr::validate(stderr.as_bytes())?;
     if let Some(failure) = failure {
         return Err(failure);
     }
@@ -315,104 +515,10 @@ fn drive(case: &Value, guest: &(String, String)) -> Result<Run, String> {
     }
     Ok(Run {
         frames,
+        raw,
         stderr,
         exit_code: status.code(),
     })
-}
-
-/// Host clocks and resource counters (`metrics`, cluster `scheduler`) are
-/// informational: durations keep only whether they are zero, process
-/// counters only that they were measured.
-fn project_metrics(metrics: &Value) -> Value {
-    let Some(fields) = metrics.as_object() else {
-        return metrics.clone();
-    };
-    let mut out = Map::new();
-    for (key, value) in fields {
-        let projected = match (key.as_str(), value.as_u64()) {
-            ("process_user_nanos" | "process_system_nanos" | "peak_rss_bytes", Some(_)) => {
-                json!("measured")
-            }
-            (name, Some(number)) if name.ends_with("_nanos") => {
-                if number == 0 {
-                    json!(0)
-                } else {
-                    json!("nonzero")
-                }
-            }
-            _ => project(value),
-        };
-        out.insert(key.clone(), projected);
-    }
-    Value::Object(out)
-}
-
-fn project(value: &Value) -> Value {
-    match value {
-        Value::Object(fields) => {
-            let mut out = Map::new();
-            for (key, item) in fields {
-                let projected = match key.as_str() {
-                    // Host telemetry outside semantic evidence.
-                    "metrics" | "scheduler" => project_metrics(item),
-                    "engine" if item.is_object() => {
-                        let mut engine = project(item);
-                        for host in ["host_os", "host_arch"] {
-                            if engine[host].is_string() {
-                                engine[host] = json!(format!("${host}"));
-                            }
-                        }
-                        engine
-                    }
-                    _ => project(item),
-                };
-                out.insert(key.clone(), projected);
-            }
-            Value::Object(out)
-        }
-        Value::Array(items) => Value::Array(items.iter().map(project).collect()),
-        other => other.clone(),
-    }
-}
-
-/// Diagnostic builds report one `gomad-wasm-profile-v1` stderr line of host
-/// timing; it is kept as its projected document, the rest as text.
-fn split_profile(stderr: &str) -> Result<(String, Value), String> {
-    let mut rest = String::new();
-    let mut profile = Value::Null;
-    for line in stderr.split_inclusive('\n') {
-        match line.strip_prefix(PROFILE_PREFIX) {
-            Some(document) if profile.is_null() => {
-                let document: Value = serde_json::from_str(document)
-                    .map_err(|error| format!("diagnostic profile: {error}"))?;
-                profile = project_profile(&document);
-            }
-            _ => rest.push_str(line),
-        }
-    }
-    Ok((rest, profile))
-}
-
-/// `gomad.wasm-profile/v1`: event counts stay exact; every duration, CPU,
-/// RSS and residual figure keeps only that it was measured (nested spans can
-/// read zero nanoseconds, so not even zero/nonzero is stable).
-fn project_profile(value: &Value) -> Value {
-    match value {
-        Value::Object(fields) => {
-            let mut out = Map::new();
-            for (key, item) in fields {
-                let projected = match (key.as_str(), item.as_u64()) {
-                    ("residual", _) | ("peak_rss_bytes_high_water", Some(_)) => json!("measured"),
-                    ("host_os" | "host_arch", _) => json!(format!("${key}")),
-                    (name, Some(_)) if name.ends_with("_nanos") => json!("measured"),
-                    _ => project_profile(item),
-                };
-                out.insert(key.clone(), projected);
-            }
-            Value::Object(out)
-        }
-        other => other.clone(),
-    }
 }
 
 /// The comparable record of a run: projected frames, classified outcome,
@@ -519,6 +625,33 @@ fn first_difference(left: &Value, right: &Value) -> String {
 }
 
 fn validate(case: &Value) -> Result<(), String> {
+    fn raw_frames(value: &Value) -> Result<(), String> {
+        match value {
+            Value::Object(fields) if fields.contains_key("raw_json") => {
+                let text = fields["raw_json"]
+                    .as_str()
+                    .ok_or("raw_json must be a string")?;
+                if fields.len() != 1
+                    || text.contains(['\n', '\r'])
+                    || !serde_json::from_str::<Value>(text).is_ok_and(|value| value.is_object())
+                {
+                    return Err("raw_json must contain exactly one JSON object on one line".into());
+                }
+            }
+            Value::Object(fields) => {
+                for value in fields.values() {
+                    raw_frames(value)?;
+                }
+            }
+            Value::Array(items) => {
+                for value in items {
+                    raw_frames(value)?;
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
     let object = case.as_object().ok_or("case must be an object")?;
     if object["schema"] != SCHEMA {
         return Err(format!("schema must be {SCHEMA}"));
@@ -536,7 +669,36 @@ fn validate(case: &Value) -> Result<(), String> {
             return Err(format!("reply needs after and send: {reply}"));
         }
     }
+    for field in ["request", "inputs", "replies"] {
+        raw_frames(&case[field])?;
+    }
     Ok(())
+}
+
+#[test]
+fn raw_wire_frames_preserve_duplicate_keys_without_accepting_extra_frames() {
+    let duplicate = r#"{"type":"namespace_inputs_end","type":"namespace_inputs_end"}"#;
+    let case = json!({"schema":SCHEMA,"intent":"raw duplicate-key parser probes","inputs":[{"raw_json":duplicate}]});
+    validate(&case).unwrap();
+    assert_eq!(line(&case["inputs"][0]), duplicate);
+    assert_eq!(
+        line(&json!({"namespace":{"raw_json":"{\"files\":1,\"files\":2}"}})),
+        "{\"namespace\":{\"files\":1,\"files\":2}}"
+    );
+    for raw in [
+        json!(0),
+        json!("[]"),
+        json!("{}\n{}"),
+        json!("{}\r"),
+        json!("{"),
+    ] {
+        let mut bad = case.clone();
+        bad["inputs"][0]["raw_json"] = raw;
+        assert!(validate(&bad).is_err());
+    }
+    let mut bad = case;
+    bad["inputs"][0]["extra"] = json!(true);
+    assert!(validate(&bad).is_err());
 }
 
 fn case_files() -> Vec<PathBuf> {
@@ -546,6 +708,7 @@ fn case_files() -> Vec<PathBuf> {
         .filter(|path| path.extension().is_some_and(|ext| ext == "json"))
         .collect();
     files.sort();
+    helper_feature_corpus::append_cases(&mut files);
     files
 }
 
@@ -606,23 +769,6 @@ fn write_case(file: &Path, text: &str, case: &Value) -> Result<(), String> {
         .map_err(|error| error.to_string())
 }
 
-/// A build's expected block is the default block with top-level fields
-/// replaced, usually only `diagnostic_profile` (and `frames` under fuel-off).
-fn build_overrides(default: &Value, actual: &Value) -> Result<Map<String, Value>, String> {
-    let default = default
-        .as_object()
-        .ok_or("regenerate the default build first")?;
-    let actual = actual.as_object().unwrap();
-    if let Some(missing) = default.keys().find(|key| !actual.contains_key(*key)) {
-        return Err(format!("{BUILD} output lacks default field {missing}"));
-    }
-    Ok(actual
-        .iter()
-        .filter(|(key, value)| default.get(*key) != Some(value))
-        .map(|(key, value)| (key.clone(), value.clone()))
-        .collect())
-}
-
 fn runs_in_this_build(case: &Value) -> bool {
     BUILD == "default"
         || case["builds"]
@@ -637,9 +783,9 @@ fn check_case(file: &Path, regenerate: bool) -> Result<(), String> {
         return Ok(());
     }
     if let Some(derived) = case.get("derived").cloned() {
-        let rebuilt = derive_inputs(&case, &derived)?;
+        let rebuilt = helper_corpus_inputs::derive_inputs(&case, &derived)?;
         if rebuilt != case {
-            if !regenerate {
+            if !regenerate || BUILD != "default" {
                 return Err(format!(
                     "derived inputs are stale against {} (GOMAD_HELPER_CORPUS_REGENERATE=1)",
                     derived["from"]
@@ -650,28 +796,45 @@ fn check_case(file: &Path, regenerate: bool) -> Result<(), String> {
             text = encode(&case);
         }
     }
+    admission_corpus_literals::check_storage_context_input(
+        file.file_stem().unwrap().to_str().unwrap(),
+        &case,
+    )?;
+    residual_helper_literals::input(file.file_stem().unwrap().to_str().unwrap(), &case)?;
+    if file.file_stem().unwrap() == "admission_mode_one_inspection" {
+        let (_, positive) = read_case(&corpus_dir().join("model_debug_pending_inspect.json"))?;
+        let mut configuration = positive["request"]["local_model"].clone();
+        configuration["mode"] = json!(1);
+        configuration.as_object_mut().unwrap().remove("tape");
+        configuration.as_object_mut().unwrap().remove("tape_chunks");
+        if case["request"]["local_model"] != configuration {
+            return Err(
+                "mode-one inspection case has a confounding configuration difference".into(),
+            );
+        }
+    }
     // Regeneration repeats each case ten times before it records anything.
     let actual = stable_expected(&case, expected_of, if regenerate { 10 } else { 2 })?;
+    helper_feature_corpus::check_literals(file, &actual)?;
+    model_corpus_literals::check_model_literals(
+        file.file_stem().unwrap().to_str().unwrap(),
+        &actual,
+    )?;
+    write_corpus_literals::check_write_literals(
+        file.file_stem().unwrap().to_str().unwrap(),
+        &actual,
+    )?;
+    admission_corpus_literals::check_admission_literals(
+        file.file_stem().unwrap().to_str().unwrap(),
+        &actual,
+    )?;
+    residual_helper_literals::actual(file.file_stem().unwrap().to_str().unwrap(), &actual)?;
+    namespace_corpus_literals::check(file.file_stem().unwrap().to_str().unwrap(), &case, &actual)?;
+    if BUILD != "default" {
+        return helper_feature_corpus::check_expected(file, &text, &case, &actual, regenerate);
+    }
     if regenerate {
-        if BUILD == "default" {
-            case["expected"] = actual;
-        } else {
-            // A build whose output equals the default block shares it.
-            let builds = case.as_object_mut().unwrap();
-            let mut separate = builds
-                .remove("expected_builds")
-                .and_then(|value| value.as_object().cloned())
-                .unwrap_or_default();
-            let overrides = build_overrides(&builds["expected"], &actual)?;
-            if overrides.is_empty() {
-                separate.remove(BUILD);
-            } else {
-                separate.insert(BUILD.into(), Value::Object(overrides));
-            }
-            if !separate.is_empty() {
-                builds.insert("expected_builds".into(), Value::Object(separate));
-            }
-        }
+        case["expected"] = actual;
         return write_case(file, &text, &case);
     }
     if case["expected"].is_null() {
@@ -698,12 +861,25 @@ fn check_case(file: &Path, regenerate: bool) -> Result<(), String> {
     Ok(())
 }
 
-/// Producers run before the cases whose inputs derive from their expected
-/// blocks, so one regeneration pass refreshes both.
+#[test]
+fn residual_regeneration_selection_is_exact_and_generation_only() {
+    residual_helper_literals::residual_regeneration_selection_is_exact_and_generation_only();
+}
+
 #[test]
 fn helper_transcript_corpus_reproduces_expected_outcomes() {
     let regenerate = std::env::var("GOMAD_HELPER_CORPUS_REGENERATE").as_deref() == Ok("1");
-    let files = case_files();
+    let selection = match std::env::var("GOMAD_HELPER_CORPUS_RESIDUAL_CASES") {
+        Ok(value) => Some(value),
+        Err(std::env::VarError::NotPresent) => None,
+        Err(error) => panic!("invalid residual case selection: {error}"),
+    };
+    let files = residual_helper_literals::residual_regeneration_files(
+        case_files(),
+        regenerate,
+        selection.as_deref(),
+    )
+    .unwrap();
     assert!(!files.is_empty(), "empty helper transcript corpus");
     let (derived, producers): (Vec<_>, Vec<_>) = files
         .iter()
@@ -725,127 +901,9 @@ fn helper_transcript_corpus_reproduces_expected_outcomes() {
     assert!(failures.is_empty(), "{}", failures.join("\n"));
 }
 
-/// Concatenated evidence stream of a producer's default expected block.
-fn producer_stream(name: &str, stream: &str) -> Result<Vec<u8>, String> {
-    let (_, producer) = read_case(&corpus_dir().join(format!("{name}.json")))?;
-    let mut bytes = Vec::new();
-    for frame in producer["expected"]["frames"]
-        .as_array()
-        .ok_or("producer has no expected frames")?
-    {
-        if frame["type"] == "evidence" && frame["stream"] == stream {
-            bytes.extend(
-                STANDARD
-                    .decode(frame["data_base64"].as_str().unwrap_or_default())
-                    .map_err(|error| error.to_string())?,
-            );
-        }
-    }
-    Ok(bytes)
-}
-
-/// The JSON crash context section (tag 6) of a `GMSTORE` storage state.
-fn crash_context(state: &[u8]) -> Result<Value, String> {
-    let word = |at: usize| {
-        state
-            .get(at..at + 4)
-            .map(|b| u32::from_le_bytes(b.try_into().unwrap()))
-    };
-    let long = |at: usize| {
-        state
-            .get(at..at + 8)
-            .map(|b| u64::from_le_bytes(b.try_into().unwrap()))
-    };
-    let mut offset = 16;
-    for tag in 1..=6u32 {
-        if word(offset) != Some(tag) {
-            return Err(format!("storage state section {tag} missing"));
-        }
-        let length = usize::try_from(long(offset + 4).ok_or("storage state truncated")?)
-            .map_err(|_| "storage state length exceeds host width")?;
-        offset += 12;
-        let body = state
-            .get(offset..offset + length)
-            .ok_or("storage state truncated")?;
-        if tag == 6 {
-            return serde_json::from_slice(body).map_err(|error| error.to_string());
-        }
-        offset += length;
-    }
-    unreachable!()
-}
-
-fn chunk_frames(kind: &str, bytes: &[u8]) -> Vec<Value> {
-    let mut frames: Vec<Value> = bytes
-        .chunks(65536)
-        .enumerate()
-        .map(|(sequence, chunk)| json!({"type":format!("{kind}_input"),"sequence":sequence,"data_base64":STANDARD.encode(chunk)}))
-        .collect();
-    frames.push(json!({"type":format!("{kind}_inputs_end")}));
-    frames
-}
-
-fn declaration(bytes: &[u8]) -> Value {
-    json!({"chunks":bytes.len().div_ceil(65536),"bytes":bytes.len(),"sha256":format!("{:x}", Sha256::digest(bytes))})
-}
-
-/// Rebuilds a derived case's inputs from its producer: `storage_image`
-/// embeds the producer's returned recovery image; `crash_context` embeds the
-/// crash context recorded in its storage state, with JSON-pointer `set`
-/// edits and, under `select`, a crash selection of every recorded operation.
-/// The inputs follow the authorize frame and namespace inputs, as Go sends
-/// them.
-fn derive_inputs(case: &Value, derived: &Value) -> Result<Value, String> {
-    let from = derived["from"]
-        .as_str()
-        .ok_or("derived.from must name a case")?;
-    let mut case = case.clone();
-    let mut inputs = Vec::new();
-    if derived["storage_image"] == true {
-        let image = producer_stream(from, "storage_image")?;
-        if image.is_empty() {
-            return Err(format!("{from} returned no storage image"));
-        }
-        inputs.extend(chunk_frames("storage_image", &image));
-        case["request"]["storage"]["image"] = declaration(&image);
-    }
-    if let Some(edit) = derived.get("crash_context") {
-        let mut context = crash_context(&producer_stream(from, "storage_state")?)?;
-        for (pointer, value) in edit["set"].as_object().into_iter().flatten() {
-            *context
-                .pointer_mut(pointer)
-                .ok_or_else(|| format!("crash context has no {pointer}"))? = value.clone();
-        }
-        let bytes = serde_json::to_vec(&context).unwrap();
-        inputs.extend(chunk_frames("storage_context", &bytes));
-        case["request"]["storage"]["crash_context"] = declaration(&bytes);
-        if edit["select"] == true {
-            let selection: Map<String, Value> = context
-                .as_object()
-                .ok_or("crash context must be an object")?
-                .iter()
-                .map(|(volume, state)| {
-                    let ids = state["Operations"]
-                        .as_array()
-                        .into_iter()
-                        .flatten()
-                        .map(|operation| operation["ID"].clone());
-                    (volume.clone(), Value::Array(ids.collect()))
-                })
-                .collect();
-            case["request"]["storage"]["crash_selection"] = Value::Object(selection);
-        }
-    }
-    let send = case["replies"][0]["send"]
-        .as_array_mut()
-        .ok_or("derived case needs an authorize reply")?;
-    send.retain(|frame| {
-        !frame["type"].as_str().is_some_and(|kind| {
-            kind.starts_with("storage_image_input") || kind.starts_with("storage_context_input")
-        })
-    });
-    send.extend(inputs);
-    Ok(case)
+#[test]
+fn namespace_ownership_literal_rejects_wrong_admission_stage() {
+    admission_corpus_literals::namespace_ownership_literal_rejects_wrong_admission_stage();
 }
 
 /// The determinism gate is real: without the metrics projection, host clock
@@ -882,93 +940,32 @@ fn loader_refuses_unscripted_requests_and_unused_replies() {
     );
 }
 
-/// Derived inputs are a function of their producer: a corrupted copy is
-/// detected and rebuilt to the committed bytes.
 #[test]
 fn derived_inputs_follow_their_producer() {
-    let mut derived = 0;
-    for file in case_files() {
-        let (_, case) = read_case(&file).unwrap();
-        let Some(spec) = case.get("derived") else {
-            continue;
-        };
-        derived += 1;
-        let mut corrupted = case.clone();
-        corrupted["replies"][0]["send"]
-            .as_array_mut()
-            .unwrap()
-            .push(json!({"type":"storage_context_input","sequence":9,"data_base64":""}));
-        corrupted["request"]["storage"]["image"] = json!(null);
-        corrupted["request"]["storage"]["crash_context"] = json!(null);
-        assert_ne!(corrupted, case);
-        let rebuilt = derive_inputs(&corrupted, spec).unwrap();
-        let mut want = case.clone();
-        for key in ["image", "crash_context"] {
-            if want["request"]["storage"].get(key).is_none() {
-                want["request"]["storage"][key] = json!(null);
-            }
-        }
-        assert_eq!(rebuilt, want, "{}", file.display());
-    }
-    assert!(derived >= 5, "{derived} derived cases");
+    helper_corpus_inputs::derived_inputs_follow_their_producer();
 }
 
-/// Relations between committed cases that the deleted engine.rs scenarios
-/// asserted, checked over the expected blocks without running the helper.
 #[test]
 fn committed_cases_keep_their_cross_case_relations() {
-    const DURABLE: &[u8] = br#""Path":"/db""#;
-    let stream = |case: &str, name: &str| producer_stream(case, name).unwrap();
-    // Split revocation preserves the same storage whether the revoked call
-    // was replied to or completed by the interrupt (split_revocation_*).
-    for kind in ["crash", "stop"] {
-        for effect in ["remote_only", "local_write"] {
-            for name in ["storage", "storage_state", "storage_image"] {
-                let replied = stream(
-                    &format!("split_revocation_{kind}_after_reply_{effect}"),
-                    name,
-                );
-                let completed = stream(
-                    &format!("split_revocation_{kind}_completed_interrupt_{effect}"),
-                    name,
-                );
-                assert!(!replied.is_empty(), "{kind}/{effect}/{name} is empty");
-                assert_eq!(replied, completed, "{kind}/{effect}/{name}");
-            }
-        }
-    }
-    // The sealed storage state binds the identity of the returned image.
-    let state = stream("storage_volume_operations_local", "storage_state");
-    let image = stream("storage_volume_operations_local", "storage_image");
-    assert!(image.starts_with(b"GMVOLIMG"));
-    let identity = format!("{:x}", Sha256::digest(&image));
-    assert!(
-        state
-            .windows(identity.len())
-            .any(|window| window == identity.as_bytes()),
-        "storage state does not bind the image identity"
-    );
-    // Recovery from that image starts with the durable file.
-    let recovered = stream("storage_recovery_from_returned_image", "storage_state");
-    assert!(
-        recovered
-            .windows(DURABLE.len())
-            .any(|window| window == DURABLE),
-        "recovered state lacks /db"
-    );
-    // The read-only namespace run records path_open, poll_oneoff and fd_write
-    // as calls 1, 2 and 3 in one transcript.
-    let transcript = stream("namespace_rofs_and_mixed_poll_stay_local", "transcript");
-    assert_eq!(&transcript[..8], b"GMWT\x01\0\0\0");
-    let mut at = 8;
-    for (id, tag) in [(1u64, 26u8), (2, 32), (3, 8)] {
-        assert_eq!(transcript[at], tag, "record {id} tag");
-        assert_eq!(
-            &transcript[at + 4..at + 12],
-            &id.to_le_bytes(),
-            "record {id} id"
-        );
-        at += 16 + u32::from_le_bytes(transcript[at + 12..at + 16].try_into().unwrap()) as usize;
-    }
-    assert_eq!(at, transcript.len(), "trailing transcript records");
+    helper_corpus_inputs::committed_cases_keep_their_cross_case_relations();
+}
+
+#[test]
+fn model_refusal_literals_reject_wrong_stage_messages() {
+    model_corpus_literals::model_refusal_literals_reject_wrong_stage_messages();
+}
+
+#[test]
+fn scatter_tuple_literals_reject_changed_payload_and_callback_ids() {
+    write_corpus_literals::scatter_tuple_literals_reject_changed_payload_and_callback_ids();
+}
+
+#[test]
+fn inspection_schema_literals_reject_wrong_schema_and_world_encoding() {
+    model_corpus_literals::inspection_schema_literals_reject_wrong_schema_and_world_encoding();
+}
+
+#[test]
+fn max_buffer_literals_reject_wrong_callback_identity_and_local_state() {
+    write_corpus_literals::max_buffer_literals_reject_wrong_callback_identity_and_local_state();
 }

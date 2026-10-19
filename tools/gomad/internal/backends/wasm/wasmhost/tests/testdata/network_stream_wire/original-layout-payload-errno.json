@@ -1,0 +1,300 @@
+{
+  "schema": "gomad.rust-network-stream-wire/v1",
+  "layout": [
+    {
+      "name": "listen-header",
+      "input": {
+        "prefix_hex": "0000000200000001",
+        "zero_pad_to": 64
+      },
+      "call": {
+        "op": 1,
+        "id": 0,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 0,
+        "address": 0
+      },
+      "invalid": null
+    },
+    {
+      "name": "reserved-40",
+      "input": {
+        "prefix_hex": "0000000200000001000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-44",
+      "input": {
+        "prefix_hex": "000000020000000100000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-47",
+      "input": {
+        "prefix_hex": "000000020000000100000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-52",
+      "input": {
+        "prefix_hex": "0000000200000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-55",
+      "input": {
+        "prefix_hex": "0000000200000001000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-60",
+      "input": {
+        "prefix_hex": "00000002000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "reserved-63",
+      "input": {
+        "prefix_hex": "00000002000000010000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "version-three",
+      "input": {
+        "prefix_hex": "0000000300000001",
+        "zero_pad_to": 64
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "short-63",
+      "input": {
+        "prefix_hex": "0000000300000001",
+        "zero_pad_to": 63
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "overlong-65601",
+      "input": {
+        "prefix_hex": "",
+        "zero_pad_to": 65601
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "valid-maximum-65600",
+      "input": {
+        "prefix_hex": "0000000200000001",
+        "zero_pad_to": 65600
+      },
+      "call": {
+        "op": 1,
+        "id": 0,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 0,
+        "address": 0
+      },
+      "invalid": null
+    },
+    {
+      "name": "valid-overlong-65601",
+      "input": {
+        "prefix_hex": "0000000200000001",
+        "zero_pad_to": 65601
+      },
+      "call": null,
+      "invalid": "layout"
+    },
+    {
+      "name": "dial-address",
+      "input": {
+        "prefix_hex": "00000002000000020000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000a000002",
+        "zero_pad_to": 64
+      },
+      "call": {
+        "op": 2,
+        "id": 0,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 0,
+        "address": 167772162
+      },
+      "invalid": null
+    },
+    {
+      "name": "nonzero-fields",
+      "input": {
+        "prefix_hex": "00000002000000020102030405060708111213141516171821222324252627283132333441424344000000000000000051525354000000000a000002",
+        "zero_pad_to": 64
+      },
+      "call": {
+        "op": 2,
+        "id": 72623859790382856,
+        "handle": 1230066625199609624,
+        "deadline": 2387509390608836392,
+        "port": 825373492,
+        "count": 1094861636,
+        "address": 167772162
+      },
+      "invalid": null
+    }
+  ],
+  "payload": [
+    {
+      "name": "write-three",
+      "call": {
+        "op": 5,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 3,
+        "address": 0
+      },
+      "length": 67,
+      "invalid": null
+    },
+    {
+      "name": "write-short",
+      "call": {
+        "op": 5,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 3,
+        "address": 0
+      },
+      "length": 66,
+      "invalid": "write_payload"
+    },
+    {
+      "name": "read-eight",
+      "call": {
+        "op": 4,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 8,
+        "address": 0
+      },
+      "length": 72,
+      "invalid": null
+    },
+    {
+      "name": "read-short",
+      "call": {
+        "op": 4,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 8,
+        "address": 0
+      },
+      "length": 64,
+      "invalid": "payload"
+    },
+    {
+      "name": "poll-buffer",
+      "call": {
+        "op": 12,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 0,
+        "address": 0
+      },
+      "length": 164,
+      "invalid": null
+    },
+    {
+      "name": "listen-extra",
+      "call": {
+        "op": 1,
+        "id": 1,
+        "handle": 0,
+        "deadline": 0,
+        "port": 0,
+        "count": 0,
+        "address": 0
+      },
+      "length": 65,
+      "invalid": "payload"
+    }
+  ],
+  "errno": [
+    {
+      "message": "",
+      "value": 0
+    },
+    {
+      "message": "EOF",
+      "value": 0
+    },
+    {
+      "message": "context canceled",
+      "value": 11
+    },
+    {
+      "message": "connection timed out",
+      "value": 65558
+    },
+    {
+      "message": "i/o timeout",
+      "value": 73
+    },
+    {
+      "message": "read deadline passed",
+      "value": 73
+    },
+    {
+      "message": "connection refused",
+      "value": 14
+    },
+    {
+      "message": "network resources exhausted",
+      "value": 42
+    },
+    {
+      "message": "use of closed network connection",
+      "value": 15
+    },
+    {
+      "message": "stale file handle",
+      "value": 8
+    }
+  ]
+}

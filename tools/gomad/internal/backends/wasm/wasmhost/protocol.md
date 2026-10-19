@@ -725,7 +725,7 @@ Go. Single executions still forward `runtime_net_stream` to the Go owner.
 Each network instance streams its binary `network` evidence
 (`{"instance":"<id>","type":"evidence","stream":"network","data_base64":"..."}`,
 64 KiB chunks) at every terminal, after its model evidence and before its
-result. The `GMNETEV1` layout is documented in `src/network/cluster/evidence.rs`:
+result. The `GMNETEV1` layout is documented in `src/cluster/network/evidence.rs`:
 the operations log (request/result and World-quiescence entries, with the
 helper's Go-JSON byte count of the log), the shared owner's Record at that
 moment and the instance's expanded `GMWSNAP1` network World. The log is bounded
@@ -783,7 +783,7 @@ finished first, because Go answers that result with its next control. Each store
 lives on its own OS thread (8 MiB host stack) and runs only while it holds the
 cluster baton; synchronous typed imports are unchanged. Without a `broker`
 the baton runs each instance to its terminal in instance order. With one, the
-in-process broker (`src/broker.rs`) is the Go broker's policy: the active
+in-process broker (`src/cluster/handoff/broker.rs`) is the Go broker's policy: the active
 instance hands off only at `runtime_idle`; the next is the first runnable
 instance in id order; an idle asks the Rust clock to quiesce with
 `{generation, current, deadline, arrivals: 0}`; when every live instance is idle

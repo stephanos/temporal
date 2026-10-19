@@ -1,0 +1,10 @@
+{
+  "schema": "gomad.rust-cluster-transport-input-corpus/v1",
+  "name": "unterminated-current-incarnation-reply",
+  "target": {"instance": "a", "incarnation": 2},
+  "input": "{\"instance\":\"a\",\"incarnation\":2,",
+  "expected": {
+    "error": "unexpected cluster protocol EOF",
+    "broken": "unexpected cluster protocol EOF"
+  }
+}

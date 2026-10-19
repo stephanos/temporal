@@ -1,0 +1,72 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "inspection": {"bytes":644,"sha256":"d68fbaaa5a68ea759cfcebd716193af0d80295455b720620a5d6c4694bddd668"},
+      "transcript": {"bytes":52,"sha256":"3d8e76b94e4782c65a9b612e28e492f7629bc77bcbca0536c98a181717a92934"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]},{"module":"gomad_debug_v1","name":"exchange","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"d0a42f8f5d80eb850ad95de8a5214e6bba8f1b34d1f9ab0bd0c6e6fb99a04029","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAhAAAAAgAAAAAAAAAcAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAACAAAAAAAAAA==","stream":"transcript","type":"evidence"},
+      {"data_base64":"eyJzY2hlbWEiOiJnb21hZC53YXNtLWluc3BlY3Rpb24vdjMiLCJib3VuZGFyeV9lbmNvZGluZyI6ImdvbWFkLmluc3BlY3Rpb24tYm91bmRhcmllcy1iaW5hcnkvdjEiLCJsaWZlY3ljbGVfZW5jb2RpbmciOiJnb21hZC5pbnNwZWN0aW9uLWxpZmVjeWNsZS1iaW5hcnkvdjEiLCJzdGF0ZV9lbmNvZGluZyI6ImdvbWFkLmluc3BlY3Rpb24tc3RhdGUtc2hhMjU2L3YxIiwid29ybGRfZW5jb2RpbmciOiJnb21hZC5pbnNwZWN0aW9uLXdvcmxkLXNoYTI1Ni92MSIsImNvbXBsZXRlIjpmYWxzZSwid29ybGQiOiJaMjl0WVdRdWFXNXpjR1ZqZEdsdmJpMTNiM0pzWkMxamIyMXRhWFJ0Wlc1MGN5OTJNUUE9IiwibGlmZWN5Y2xlIjoiUjAxWFNVd0JBQUE9IiwiaW5jYXJuYXRpb25zIjpbeyJoYW5kbGUiOnsibm9kZSI6Imd1ZXN0IiwiaW5jYXJuYXRpb24iOjF9LCJzdGFydGVkX29yZGVyIjozLCJ0ZXJtaW5hbF9vcmRlciI6NiwicmVnaXN0cnkiOnsiY2xvc2VkIjp0cnVlLCJjbG9zZWRfb3JkZXIiOjQsImVudHJpZXMiOltdfSwic3RyZWFtcyI6eyJjaG9pY2UiOiIiLCJ3YXNpIjoiIiwibmV0d29yayI6IiIsInN0b3JhZ2UiOiIiLCJzdGRvdXQiOiIiLCJzdGRlcnIiOiIifX1dLCJib3VuZGFyeV9mcmFtZXMiOiJSMDFYU1VJQkFBQUFBQUFBIn0=","stream":"inspection","type":"evidence"},
+      {"exit_code":0,"fuel_remaining":999975,"local_model":{"advances":0,"calls":3,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":52,"transcript_sha256":"3d8e76b94e4782c65a9b612e28e492f7629bc77bcbca0536c98a181717a92934"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"gomad_debug_v1\" \"exchange\" (func $debug (param i32 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 512) \"\\01\\00\\00\\00\\03\\00\\00\\00\\00\\00\\00\\00\\04\\00\\00\\00\\01\\00\\00\\00\") (func (export \"_start\") i32.const 0 i32.const 16 call $config if unreachable end i32.const 1 i64.const 0 i32.const 256 call $clock if unreachable end i32.const 512 i32.const 20 call $debug if unreachable end i32.const 1 i64.const 0 i32.const 264 call $clock if unreachable end i32.const 256 i64.load i32.const 264 i64.load i64.ne if unreachable end))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Debug exchange preserves an open clock run and validates replay at the authenticated pending decision without consuming its tape suffix.",
+  "replaces": [
+    "src/model.rs::debug_exchange_preserves_open_clock_run_and_canonical_state"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

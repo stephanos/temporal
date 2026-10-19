@@ -1,0 +1,36 @@
+{
+  "build": "diagnostic-profile",
+  "case": "typed_interrupt_crash_cooperative.json",
+  "expected": {
+    "diagnostic_profile": {
+      "abi": {"clock":{"count":1,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"idle":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"observation":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"other_local":{"count":1,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"remote_callback":{"count":1,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"scheduler":{"count":1,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"},"select":{"count":0,"execute_wall_nanos":"measured","instantiate_wall_nanos":"measured","wall_nanos":"measured"}},
+      "abi_overlap_errors": 0,
+      "backend": "cranelift-jit",
+      "diagnostic_only": true,
+      "host_arch": "$host_arch",
+      "host_os": "$host_os",
+      "nested": {"alternative_hash":{"count":1,"wall_nanos":"measured"},"encoding":{"count":12,"wall_nanos":"measured"},"flush":{"count":4,"wall_nanos":"measured"},"remote_read_wait":{"count":1,"wall_nanos":"measured"},"remote_write":{"count":1,"wall_nanos":"measured"},"transcript_hash":{"count":2,"wall_nanos":"measured"}},
+      "phases": {"cache_identity":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_read":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"cache_write":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"compile":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"deserialize":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"engine_init":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"envelope_verify":{"count":0,"cpu_samples":0,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"execute":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"instantiate":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_hash":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"},"module_read":{"count":1,"cpu_samples":1,"peak_rss_bytes_high_water":"measured","system_nanos":"measured","user_nanos":"measured","wall_nanos":"measured"}},
+      "residual": "measured",
+      "schema": "gomad.wasm-profile/v1"
+    },
+    "evidence": {
+      "choice": {"bytes":96,"sha256":"724cf9c73e01c4ca9238a58671aa84c43999201dc885696190f39200f1e10520"},
+      "diagnostic": {"bytes":96,"sha256":"2ea9ab9198d1638007400cd2c3bef1cc745b864b76011a0e1bc52180ac6452d4"},
+      "transcript": {"bytes":52,"sha256":"be4431c46c762aee17d821c7c664d97878a615d690aedea3d95e9bf647e31df5"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]},{"module":"gomad_wasm_v1","name":"decision","params":["i32","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"fd_sync","params":["i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"c543a3cbc8f9fa2bea502ab2fdebd8162f82bdf1430771ebb86d54e28609c444","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":4,"input":{"fd":3},"local_state":{"advances":0,"now":1,"transcript_bytes":52},"op":"fd_sync","type":"call"},
+      {"data_base64":"AAAAAAAAAAABAQAAAAAAAgAAAAAAAAAAAAAAAAAAAAABAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAeAFQsvpnR0pqSh4OlV6bKT25MxPfsSB/7XuIn1UpLyA","stream":"choice","type":"evidence"},
+      {"data_base64":"AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA","stream":"diagnostic","type":"evidence"},
+      {"data_base64":"R01XVAEAAAAhAAAAAwAAAAAAAAAcAAAAAQAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAA==","stream":"transcript","type":"evidence"},
+      {"fuel_remaining":999987,"local_model":{"advances":0,"calls":3,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":1,"terminal_base64":"","transcript_bytes":52,"transcript_sha256":"be4431c46c762aee17d821c7c664d97878a615d690aedea3d95e9bf647e31df5"},"message":"modeled interruption: fault","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"crash","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "crash"
+  },
+  "schema": "gomad.helper-feature-expectation/v1",
+  "source_sha256": "8e83b2686a72750ef1df6e3ded4dbc35b3ff1280c72dc12c75813d0a784c065a"
+}

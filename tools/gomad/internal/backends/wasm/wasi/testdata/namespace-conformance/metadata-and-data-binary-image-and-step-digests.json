@@ -1,0 +1,477 @@
+{
+  "name": "metadata-and-data-binary-image-and-step-digests",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 3
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 3,
+        "length": 4
+      }
+    },
+    {
+      "op": "fd_prestat_dir_name",
+      "input": {
+        "fd": 3,
+        "length": 3
+      }
+    },
+    {
+      "op": "fd_prestat_get",
+      "input": {
+        "fd": 0
+      }
+    },
+    {
+      "op": "path_filestat_get",
+      "input": {
+        "fd": 3,
+        "path_base64": "Lg==",
+        "flags": 0
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 3,
+        "offset": 0,
+        "whence": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "Yg==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_fdstat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 2,
+        "data_base64": "eHl6"
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": -2,
+        "whence": 2
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "length": 2,
+        "offset": 2
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 1
+      }
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 5,
+        "size": 8
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 5,
+        "flags": 1
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "data_base64": "eA=="
+      }
+    },
+    {
+      "op": "fd_sync",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "YQ==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 2,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 25,
+        "cookie": 0
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 100,
+        "cookie": 1
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 1,
+        "cookie": 9
+      }
+    },
+    {
+      "op": "fd_readdir",
+      "input": {
+        "fd": 3,
+        "length": 0,
+        "cookie": 2
+      }
+    },
+    {
+      "op": "path_unlink_file",
+      "input": {
+        "fd": 3,
+        "path_base64": "Yg=="
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_close",
+      "input": {
+        "fd": 5
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "name_length": 4
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "L3RtcA=="
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 8,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 3,
+        "filetype": 3,
+        "nlink": 1,
+        "size": 0,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "filetype": 4,
+        "flags": 0,
+        "rights_base": 536870911,
+        "rights_inheriting": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 0,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AAB4eXo="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "eHk="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "eQ=="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 1
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 9,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 6
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AQAAAAAAAAAIAAAAAAAAAAEAAAAEAAAAYQ=="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AgAAAAAAAAAHAAAAAAAAAAEAAAAEAAAAYg=="
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "egAAAHg="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 8,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "50d6311071367aeb4e5efb21c40697feca2c1361549de103c02b57823baace56",
+    "50d6311071367aeb4e5efb21c40697feca2c1361549de103c02b57823baace56",
+    "50d6311071367aeb4e5efb21c40697feca2c1361549de103c02b57823baace56",
+    "093989cf0aaee59044c7fa4902053cb9072e451dd18a725b67bbb30ad7e0cb21",
+    "a52c75c5df91df790c9c322150421e045465ea2ada2fe8fe64767199f69d43e7",
+    "a52c75c5df91df790c9c322150421e045465ea2ada2fe8fe64767199f69d43e7",
+    "ea0d257edce997180aee7d7a24e75f7d612b340eeafeb60c2783796748c74663",
+    "ea0d257edce997180aee7d7a24e75f7d612b340eeafeb60c2783796748c74663",
+    "f9c7c7acde0a0f6f0e9c3e2120b6135e5c6eeff583d6038fe7b669355f33bd51",
+    "4168de74c3e6a0c1eca5e9eae35235598e9fb7462d9bd79f1e4f7b5520df81d2",
+    "08aa9fbe57899b0c0a762f390de930279be57970d43509eb9481b2d5dcfa10ad",
+    "61b75290bc98899e467d268776dc43ba492ac16af7595f8d554101fbb396d602",
+    "61b75290bc98899e467d268776dc43ba492ac16af7595f8d554101fbb396d602",
+    "61b75290bc98899e467d268776dc43ba492ac16af7595f8d554101fbb396d602",
+    "3f00540d7352793ccccb45c12a9df73fe08dacfdba3b3dbd61edb8cb3a00df9e",
+    "3f00540d7352793ccccb45c12a9df73fe08dacfdba3b3dbd61edb8cb3a00df9e",
+    "3f00540d7352793ccccb45c12a9df73fe08dacfdba3b3dbd61edb8cb3a00df9e",
+    "3f00540d7352793ccccb45c12a9df73fe08dacfdba3b3dbd61edb8cb3a00df9e",
+    "3f00540d7352793ccccb45c12a9df73fe08dacfdba3b3dbd61edb8cb3a00df9e",
+    "73ddaf4f34fb9cc69d45a1420e404431310de3c594b2c082243975f474c279b4",
+    "5fa39655746a6e057c60ddee70c366b94b912c4d4380eac10e6d550c17d1eba7",
+    "688b925dae43df8d8affe96cffe1e3b455149e868257c3121e4331d579cecd0e",
+    "688b925dae43df8d8affe96cffe1e3b455149e868257c3121e4331d579cecd0e"
+  ],
+  "digest": "688b925dae43df8d8affe96cffe1e3b455149e868257c3121e4331d579cecd0e"
+}

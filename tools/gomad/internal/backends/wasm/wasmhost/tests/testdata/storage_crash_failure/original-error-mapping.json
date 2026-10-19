@@ -1,0 +1,15 @@
+{
+  "schema": "gomad.rust-storage-crash-failure/v1",
+  "cases": [
+    {
+      "name": "image-capacity-preserves-classification",
+      "error": {"type": "capacity", "resource": "image-bytes", "required": 3, "maximum": 2},
+      "expected": {"kind": "capacity", "message": "WASI capacity: storage-image-bytes"}
+    },
+    {
+      "name": "unknown-operation-preserves-infrastructure-message",
+      "error": {"type": "invalid", "message": "crash selection contains an unknown operation"},
+      "expected": {"kind": "infrastructure", "message": "crash selection contains an unknown operation"}
+    }
+  ]
+}

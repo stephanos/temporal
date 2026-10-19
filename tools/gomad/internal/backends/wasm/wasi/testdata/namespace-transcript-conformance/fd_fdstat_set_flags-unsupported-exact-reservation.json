@@ -1,0 +1,14 @@
+{
+  "name": "fd_fdstat_set_flags-unsupported-exact-reservation",
+  "reservation": {
+    "op": "fd_fdstat_set_flags",
+    "input": {
+      "fd": 3,
+      "flags": 2
+    },
+    "limit": 75,
+    "normal_transcript_base64": "R01XVAEAAAASAQAAAQAAAAAAAAAzAAAAAwAAAAIAKQAAAGRlc2NyaXB0b3IgZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl",
+    "short_refusal": "capacity:transcript-bytes"
+  },
+  "transcript_base64": "R01XVAEAAAASAQAAAQAAAAAAAAAzAAAAAwAAAAIAKQAAAGRlc2NyaXB0b3IgZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl"
+}

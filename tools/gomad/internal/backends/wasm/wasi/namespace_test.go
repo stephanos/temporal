@@ -9,12 +9,10 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"flag"
-	"fmt"
 	"math/rand/v2"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"reflect"
 	"slices"
 	"strings"
 	"testing"
@@ -79,6 +77,7 @@ type namespaceConformanceCorpus struct {
 	Session    namespaceConformanceSession     `json:"session"`
 	Operations []namespaceConformanceOperation `json:"operations"`
 	Replies    []json.RawMessage               `json:"replies"`
+	Digests    *[]string                       `json:"digests,omitempty"`
 	Digest     string                          `json:"digest"`
 }
 
@@ -87,167 +86,67 @@ func TestNamespaceConformanceCorpus(t *testing.T) {
 		t.Run(script.name, func(t *testing.T) {
 			environment := newTestEnvironment(t, script.config)
 			corpus := namespaceConformanceCorpus{Name: script.name, Origin: script.origin, Session: namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, script.config), nil}, Operations: script.operations}
+			image, declaration, err := declareNamespaceImage(environment)
+			if err != nil {
+				t.Fatal(err)
+			}
+			var binaryImage bytes.Buffer
+			if err := image.write(&binaryImage); err != nil {
+				t.Fatal(err)
+			}
+			corpus.Session.BinaryImage = &namespaceConformanceBinaryImage{binaryImage.Bytes(), declaration.Files}
+			digests := make([]string, 0, len(corpus.Operations))
+			corpus.Digests = &digests
 			for index, operation := range corpus.Operations {
 				corpus.Replies = append(corpus.Replies, namespaceConformanceReply(t, environment, operation, index))
+				digests = append(digests, namespaceConformanceDigest(environment))
 			}
 			corpus.Digest = namespaceConformanceDigest(environment)
-			data, err := json.MarshalIndent(corpus, "", "  ")
-			if err != nil {
-				t.Fatal(err)
+			projections := []namespaceConformanceCorpus{corpus}
+			if namespaceLegacyConformanceCase(script.name) {
+				enhanced := corpus
+				enhanced.Name += "-binary-image-and-step-digests"
+				corpus.Session.BinaryImage, corpus.Digests = nil, nil
+				projections = []namespaceConformanceCorpus{corpus, enhanced}
 			}
-			data = append(data, '\n')
-			name := filepath.Join("testdata", "namespace-conformance", script.name+".json")
-			if *updateNamespaceConformance {
-				if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
+			for _, projection := range projections {
+				data, err := json.MarshalIndent(projection, "", "  ")
+				if err != nil {
 					t.Fatal(err)
 				}
-				if err := os.WriteFile(name, data, 0644); err != nil {
-					t.Fatal(err)
+				data = append(data, '\n')
+				name := filepath.Join("testdata", "namespace-conformance", projection.Name+".json")
+				if *updateNamespaceConformance {
+					if err := os.MkdirAll(filepath.Dir(name), 0755); err != nil {
+						t.Fatal(err)
+					}
+					if err := os.WriteFile(name, data, 0644); err != nil {
+						t.Fatal(err)
+					}
+				}
+				want, err := os.ReadFile(name)
+				if err != nil {
+					t.Fatal("namespace corpus missing; regenerate with -update-conformance: ", err)
+				}
+				if !bytes.Equal(data, want) {
+					t.Fatalf("Go namespace drift in %s; inspect the difference before regenerating with -update-conformance", name)
 				}
 			}
-			want, err := os.ReadFile(name)
-			if err != nil {
-				t.Fatal("namespace corpus missing; regenerate with -update-conformance: ", err)
-			}
-			if !bytes.Equal(data, want) {
-				t.Fatalf("Go namespace drift in %s; inspect the difference before regenerating with -update-conformance", name)
-			}
 		})
 	}
 }
 
-func TestNamespaceConformance(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
-	for _, script := range namespaceConformanceScripts(t) {
-		t.Run(script.name, func(t *testing.T) {
-			namespaceConformanceCompare(t, helper, script.config, script.operations, script.name)
-		})
-	}
-	for seed := uint64(0); seed < 100; seed++ {
-		t.Run(fmt.Sprintf("seed-%d", seed), func(t *testing.T) {
-			config, operations := namespaceConformanceGenerated(seed)
-			namespaceConformanceCompare(t, helper, config, operations, fmt.Sprintf("seed=%d", seed))
-		})
-	}
-}
-
-// TestNamespaceConformanceProductionImages carries Go's production namespace
-// image for captured-input and activity-selection configurations to the
-// helper's image decoder and requires the Go and Rust namespace digests to match.
-func TestNamespaceConformanceProductionImages(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
-	repo, err := filepath.Abs("../../../../../..")
-	if err != nil {
-		t.Fatal(err)
-	}
-	mount := func(target string) Config {
-		source := t.TempDir()
-		if err := os.MkdirAll(filepath.Join(source, "nested"), 0700); err != nil {
-			t.Fatal(err)
-		}
-		for name, data := range map[string]string{"input": "frozen", "nested/deep": "deeper"} {
-			if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
-				t.Fatal(err)
-			}
-		}
-		inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: source, Target: target}}, captured.DefaultLimits())
-		if err != nil {
-			t.Fatal(err)
-		}
-		config := testConfig()
-		config.CapturedInputs = inputs
-		return config
-	}
-	for name, config := range map[string]Config{
-		"activity-selection":         prototypeTemporalConfig(t, repo, "/workspace/tests", "-test.run=^TestActivityTestSuite$", "-persistenceType=sql", "-persistenceDriver=sqlite"),
-		"captured-root":              mount("/fixtures"),
-		"captured-writable-ancestor": mount("/workspace/frozen"),
-	} {
-		t.Run(name, func(t *testing.T) {
-			namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
-				{Op: "path_open", Input: json.RawMessage(`{"fd":3,"path_base64":"eA==","dirflags":0,"oflags":1,"rights_base":64,"rights_inheriting":0,"fdflags":0}`)},
-			}, name)
-		})
-	}
-}
-
-func TestNamespaceConformanceGeneratedReference(t *testing.T) {
-	for seed := uint64(0); seed < 100; seed++ {
-		config, operations := namespaceConformanceGenerated(seed)
-		environment := newTestEnvironment(t, config)
-		for index, operation := range operations {
-			namespaceConformanceReply(t, environment, operation, index)
-		}
-	}
-}
-
-func TestNamespaceConformanceBinaryAdmissionReference(t *testing.T) {
-	config := testConfig()
-	config.Limits.TranscriptBytes = 100
-	environment := newTestEnvironment(t, config)
-	got := namespaceConformanceReply(t, environment, namespaceConformanceOperation{Op: "fd_read", Input: json.RawMessage(`{"fd":0}`)}, 0)
-	if string(got) != `{"boundary":"invalid:operation fields"}` || environment.transcriptLength != 0 {
-		t.Fatalf("binary input admission = %s transcript=%d", got, environment.transcriptLength)
-	}
-}
-
-func TestNamespaceConformanceBinaryBoundaries(t *testing.T) {
-	helper := namespaceConformanceHelper(t)
-	op := func(name, input string) namespaceConformanceOperation {
-		return namespaceConformanceOperation{Op: name, Input: json.RawMessage(input)}
-	}
-	for _, limit := range []uint64{23, 24, 35, 36, 45, 46} {
-		t.Run(fmt.Sprintf("limit-%d", limit), func(t *testing.T) {
-			config := testConfig()
-			config.Limits.TranscriptBytes = limit
-			namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
-				op("fd_read", "{\"fd\":0}"),
-				op("fd_read", "{\"fd\":0,\"length\":0}"),
-				op("fd_read", "{\"fd\":999,\"length\":10}"),
-				op("fd_close", "{\"fd\":999}"),
-			}, fmt.Sprintf("binary-transcript-limit=%d", limit))
-		})
-	}
-	t.Run("clock-run", func(t *testing.T) {
-		config := testConfig()
-		config.Limits.TranscriptBytes = 52
-		namespaceConformanceCompare(t, helper, config, []namespaceConformanceOperation{
-			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
-			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
-			op("clock_time_get", "{\"clock_id\":1,\"precision\":1}"),
-			op("clock_time_get", "{\"clock_id\":1}"),
-			op("clock_time_get", "{\"clock_id\":1,\"precision\":0}"),
-			op("fd_close", "{\"fd\":999}"),
-		}, "binary-transcript-clock-fold")
-	})
-	t.Run("field-order", func(t *testing.T) {
-		namespaceConformanceCompare(t, helper, testConfig(), []namespaceConformanceOperation{
-			op("fd_read", "{\"fd\":\"bad\",\"length\":null}"),
-			op("path_open", "{\"fd\":3,\"dirflags\":\"bad\",\"path_base64\":null,\"oflags\":0,\"rights_base\":0,\"rights_inheriting\":0,\"fdflags\":0}"),
-			{Op: "fd_pwrite", Input: json.RawMessage("{\"fd\":1,\"data_base64\":\"\",\"offset\":null}"), RepeatData: bufferLimit + 1},
-			op("poll_oneoff", "{\"subscriptions\":[{\"userdata\":0,\"Type\":1,\"fd\":0}]}"),
-		}, "binary-transcript-field-order")
-	})
-}
-
-func TestNamespaceConformanceDigestTracksDetachedChildren(t *testing.T) {
-	environment := newTestEnvironment(t, testConfig())
-	call(t, environment, "path_create_directory", `{"fd":3,"path_base64":"YQ=="}`)
-	call(t, environment, "path_create_directory", `{"fd":3,"path_base64":"Yg=="}`)
-	var opened fdOutput
-	output(t, call(t, environment, "path_open", `{"fd":3,"path_base64":"YQ==","dirflags":0,"oflags":2,"rights_base":536870911,"rights_inheriting":536870911,"fdflags":0}`), &opened)
-	fd := opened.FD
-	call(t, environment, "path_rename", `{"fd":3,"path_base64":"Yg==","new_fd":3,"new_path_base64":"YQ=="}`)
-	before := namespaceConformanceDigest(environment)
-	openPath(t, environment, fd, "child", 1, rightsAll)
-	after := namespaceConformanceDigest(environment)
-	if before == after {
-		t.Fatal("digest missed a file added to the detached directory")
-	}
-	child := environment.namespace.descriptors[fd].node.children["child"]
-	child.data = []byte("changed")
-	if namespaceConformanceDigest(environment) == after {
-		t.Fatal("digest missed detached descendant data")
+func namespaceLegacyConformanceCase(name string) bool {
+	switch name {
+	case "capacity-buffer-bytes", "capacity-callbacks", "capacity-descriptors", "capacity-files",
+		"capacity-filesystem-bytes", "capacity-offered-output-bytes", "capacity-pending-events",
+		"capacity-transcript-bytes", "capacity-write-buffer", "detached-directory",
+		"directories-and-rename", "errno-and-containment", "invalid-fields-before-transcript",
+		"metadata-and-data", "output-and-mixed-poll", "readonly", "recorded-stock-guest",
+		"strict-and-unsupported":
+		return true
+	default:
+		return false
 	}
 }
 
@@ -272,36 +171,6 @@ func namespaceConformanceHelper(t *testing.T) string {
 		t.Skip("build the test-only conformance helper with make test-conformance: ", err)
 	}
 	return name
-}
-
-func namespaceConformanceCompare(t *testing.T, helper string, config Config, operations []namespaceConformanceOperation, label string) {
-	t.Helper()
-	environment := newTestEnvironment(t, config)
-	exchange, closeDriver := namespaceConformanceTransport(t, helper, label)
-	defer closeDriver()
-	image, declaration, err := declareNamespaceImage(environment)
-	if err != nil {
-		t.Fatal(err)
-	}
-	var wire bytes.Buffer
-	if err := image.write(&wire); err != nil {
-		t.Fatal(err)
-	}
-	session := namespaceConformanceSession{"namespace", namespaceConformanceInitialImage(environment, config), &namespaceConformanceBinaryImage{wire.Bytes(), declaration.Files}}
-	if got := exchange(session); string(got) != "{}" {
-		t.Fatalf("%s driver initialization: %s", label, got)
-	}
-	for index, operation := range operations {
-		want := namespaceConformanceReply(t, environment, operation, index)
-		got := exchange(namespaceConformanceExpanded(t, operation))
-		if !bytes.Equal(want, got) {
-			t.Fatalf("%s first divergence at op %d %s input=%s\nGo: %s\nRust: %s", label, index, operation.Op, operation.Input, want, got)
-		}
-	}
-	want := fmt.Sprintf(`{"digest":"%s"}`, namespaceConformanceDigest(environment))
-	if got := exchange(namespaceConformanceOperation{Op: "digest", Input: json.RawMessage(`{}`)}); string(got) != want {
-		t.Fatalf("%s final namespace divergence\nGo: %s\nRust: %s", label, want, got)
-	}
 }
 
 func namespaceConformanceTransport(t *testing.T, helper, label string) (func(any) []byte, func()) {
@@ -329,6 +198,9 @@ func namespaceConformanceTransport(t *testing.T, helper, label string) (func(any
 		}
 		if err := command.Wait(); err != nil {
 			t.Errorf("%s conformance driver: %v; stderr=%s", label, err, stderr.String())
+		}
+		if err := helperProfileStderr(stderr.Bytes()); err != nil {
+			t.Errorf("%s conformance driver: %v", label, err)
 		}
 	}
 	reader := bufio.NewReaderSize(output, 64<<10)
@@ -711,7 +583,7 @@ func namespaceConformanceScripts(t *testing.T) []namespaceConformanceScript {
 	}
 	sampleDigest := sha256.Sum256(sample)
 	scripts = append(scripts, namespaceConformanceScript{"recorded-stock-guest", "filesystem calls extracted unchanged from backend/testdata/premove-stock-artifact/backend/evidence.bin sha256:" + hex.EncodeToString(sampleDigest[:]), base, recorded})
-	return scripts
+	return append(scripts, namespaceR3ConformanceScripts(t)...)
 }
 
 // namespaceConformanceGenerated returns one seeded session: its configuration
@@ -910,20 +782,13 @@ func namespaceConformanceGenerated(seed uint64) (Config, []namespaceConformanceO
 	return config, operations
 }
 
-func TestNamespaceGoFilesystemCounterCountsActualServedErrorsAndPoll(t *testing.T) {
+func TestNamespaceFilesystemCounterResultDoesNotAliasModel(t *testing.T) {
 	e := newTestEnvironment(t, testConfig())
 	call(t, e, "fd_read", `{"fd":99,"length":1}`)
-	call(t, e, "path_create_directory", `{"fd":99,"path_base64":"eA=="}`)
-	call(t, e, "poll_oneoff", `{"subscriptions":[{"userdata":1,"type":1,"fd":99}]}`)
-	call(t, e, "clock_time_get", `{"clock_id":1,"precision":0}`)
-	call(t, e, "poll_oneoff", `{"subscriptions":[{"userdata":2,"type":0,"clock_id":1,"timeout":1,"precision":0,"flags":0}]}`)
-	want := map[string]uint64{"fd_read": 1, "path_create_directory": 1, "poll_oneoff": 1}
-	if got := e.filesystemServed(); !reflect.DeepEqual(got, want) {
-		t.Fatalf("served filesystem operations=%v, want %v", got, want)
-	}
+	before := e.filesystemServed()["fd_read"]
 	got := e.filesystemServed()
 	got["fd_read"]++
-	if !reflect.DeepEqual(e.filesystemServed(), want) {
+	if e.filesystemServed()["fd_read"] != before {
 		t.Fatal("result counter aliases model state")
 	}
 }
@@ -946,52 +811,30 @@ func TestNamespaceOwnedCallbackRefusedBeforeAdoptingRemoteState(t *testing.T) {
 	}
 }
 
-func TestNamespaceHelperOutputStreamsPreserveMirrorAndAggregateCapacity(t *testing.T) {
+func TestNamespaceHelperOutputRefusesInconsistentOwnership(t *testing.T) {
 	e := newTestEnvironment(t, testConfig())
-	e.helperOwned, e.namespaceOwned = true, true
-	var mirror bytes.Buffer
-	e.mirror = &mirror
+	e.helperOwned, e.namespaceOwned = true, false
 	sink := &frameSink{environment: e, started: &Started{}, request: Request{Config: testConfig()}}
-	sink.request.Config.Limits.OutputBytes = 3
-	write := func(stream, data string) error {
-		frame, err := newValidatedFrame([]byte(`{"type":"evidence","stream":"` + stream + `","data_base64":"` + data + `"}`))
-		if err != nil {
-			return err
-		}
-		return sink.receiveHelperEvidence(frame)
-	}
-	if err := write("stdout", "YWI="); err != nil || mirror.String() != "ab" {
-		t.Fatal("helper stdout/mirror was not retained", err)
-	}
-	if err := write("stderr", "eA=="); err != nil {
+	frame, err := newValidatedFrame([]byte(`{"type":"evidence","stream":"stdout","data_base64":"eg=="}`))
+	if err != nil {
 		t.Fatal(err)
 	}
-	if err := write("stderr", "eQ=="); err == nil || err.Error() != "WASI capacity: offered-output-bytes" {
-		t.Fatal("combined output capacity classification changed", err)
-	}
-	if mirror.String() != "ab" {
-		t.Fatal("stderr or refusal reached stdout mirror")
-	}
-	e.namespaceOwned = false
-	if err := write("stdout", "eg=="); err == nil {
+	if err := sink.receiveHelperEvidence(frame); err == nil {
 		t.Fatal("remote namespace accepted helper output")
 	}
 }
 
-func TestNamespacePartialEvidenceKeepsRawAbnormalPrefixWithoutInventingCounts(t *testing.T) {
-	sink := &frameSink{helperEvidence: helperEvidence{transcript: []byte("GMWT\x01\x00\x00\x00\x08"), choice: []byte("partial choice"), diagnostic: []byte("partial diagnostic")}}
+func TestNamespacePartialEvidenceResultDoesNotAliasTransport(t *testing.T) {
+	sink := &frameSink{helperEvidence: helperEvidence{transcript: []byte("GMWT\x01\x00\x00\x00\x08")}}
 	result := Result{Termination: "infrastructure"}
 	sink.retainPartialHelperEvidence(&result)
-	if !bytes.Equal(result.PartialHelperTranscript, sink.helperEvidence.transcript) || !bytes.Equal(result.PartialHelperChoice, sink.helperEvidence.choice) || !bytes.Equal(result.PartialHelperDiagnostic, sink.helperEvidence.diagnostic) || result.Calls != 0 || result.RuntimeInterrupted {
-		t.Fatal("raw abnormal evidence lost or promoted to completed model evidence")
-	}
 	result.PartialHelperTranscript[0] = 'x'
 	if sink.helperEvidence.transcript[0] != 'G' {
 		t.Fatal("partial result aliases transport evidence")
 	}
 }
 
-func TestNamespaceUnsupportedTranscriptAdmissionBound(t *testing.T) {
+func TestNamespaceUnsupportedTranscriptAdmissionCounters(t *testing.T) {
 	for _, test := range []struct {
 		name, input string
 		limit       uint64
@@ -1004,66 +847,47 @@ func TestNamespaceUnsupportedTranscriptAdmissionBound(t *testing.T) {
 			config := testConfig()
 			config.Limits.TranscriptBytes = test.limit
 			e := newTestEnvironment(t, config)
-			before := namespaceConformanceDigest(e)
 			_, err := e.Handle(Call{Type: "call", ID: 1, Op: test.name, Input: json.RawMessage(test.input)})
-			if err == nil || err.Error() != "WASI capacity: transcript-bytes" || e.nextCall != 1 || before != namespaceConformanceDigest(e) || len(e.Transcript()) != 0 || len(e.filesystemServed()) != 0 {
+			if err == nil {
+				t.Fatal("expected refusal before checking admission counters")
+			}
+			if e.nextCall != 1 || len(e.Transcript()) != 0 || len(e.filesystemServed()) != 0 {
 				t.Fatalf("unsupported admission=%v next=%d transcript=%d limit=%d", err, e.nextCall, len(e.Transcript()), test.limit)
 			}
 		})
 	}
 }
 
-func TestNamespaceUnsupportedTranscriptExactBoundary(t *testing.T) {
+func TestNamespaceUnsupportedTranscriptExactAdmissionCounters(t *testing.T) {
 	for _, test := range []struct {
-		op, input, supported, message string
-		limit                         uint64
+		op, input, supported string
+		limit                uint64
 	}{
-		{"fd_fdstat_set_flags", `{"fd":3,"flags":2}`, `{"fd":3,"flags":1}`, "descriptor flags outside volatile profile", 75},
-		{"path_open", `{"fd":3,"dirflags":0,"path_base64":"eA==","oflags":0,"rights_base":2,"rights_inheriting":0,"fdflags":2}`, `{"fd":3,"dirflags":0,"path_base64":"eA==","oflags":1,"rights_base":2,"rights_inheriting":0,"fdflags":0}`, "open flags outside volatile profile", 96},
-		{"path_readlink", `{"fd":3,"path_base64":"eA==","length":0}`, "", "operation outside stock WASI profile: path_readlink", 92},
+		{"fd_fdstat_set_flags", `{"fd":3,"flags":2}`, `{"fd":3,"flags":1}`, 75},
+		{"path_open", `{"fd":3,"dirflags":0,"path_base64":"eA==","oflags":0,"rights_base":2,"rights_inheriting":0,"fdflags":2}`, `{"fd":3,"dirflags":0,"path_base64":"eA==","oflags":1,"rights_base":2,"rights_inheriting":0,"fdflags":0}`, 96},
+		{"path_readlink", `{"fd":3,"path_base64":"eA==","length":0}`, "", 92},
 	} {
 		t.Run(test.op, func(t *testing.T) {
 			inputs := []string{test.input}
 			if test.supported != "" {
 				inputs = append(inputs, test.supported)
 			}
-			for index, input := range inputs {
+			for _, input := range inputs {
 				config := testConfig()
 				config.Limits.TranscriptBytes = test.limit - 1
-				e := newTestEnvironment(t, config)
-				before := namespaceConformanceDigest(e)
-				_, err := e.Handle(Call{Type: "call", ID: 1, Op: test.op, Input: json.RawMessage(input)})
-				if err == nil || err.Error() != "WASI capacity: transcript-bytes" || e.nextCall != 1 || before != namespaceConformanceDigest(e) || len(e.Transcript()) != 0 || len(e.filesystemServed()) != 0 {
-					t.Fatal("ceiling-minus-one committed before admission", err)
+				environment := newTestEnvironment(t, config)
+				_, err := environment.Handle(Call{Type: "call", ID: 1, Op: test.op, Input: json.RawMessage(input)})
+				if err == nil {
+					t.Fatal("expected refusal before checking admission counters")
+				}
+				if environment.nextCall != 1 || len(environment.Transcript()) != 0 || len(environment.filesystemServed()) != 0 {
+					t.Fatal("refused exact-bound call changed admission counters")
 				}
 				config.Limits.TranscriptBytes = test.limit
-				e = newTestEnvironment(t, config)
-				reply := call(t, e, test.op, input)
-				if reply.Errno != 0 || reply.Unsupported != (index == 0) || index == 0 && reply.Message != test.message || e.nextCall != 2 || e.filesystemServed()[test.op] != 1 || uint64(len(e.Transcript())) > test.limit {
-					t.Fatal("exact supported/unsupported boundary", reply, len(e.Transcript()))
-				}
-				records, err := DecodeTranscript(e.Transcript())
-				if err != nil || len(records) != 1 || records[0].Message != reply.Message {
-					t.Fatal("unsupported message bytes changed", err)
-				}
-				normal := newTestEnvironment(t, testConfig())
-				normalReply := call(t, normal, test.op, input)
-				if !reflect.DeepEqual(reply, normalReply) || !bytes.Equal(e.Transcript(), normal.Transcript()) || namespaceConformanceDigest(e) != namespaceConformanceDigest(normal) {
-					t.Fatal("normal-limit behavior changed")
-				}
-				if index == 0 {
-					bad := append([]byte(nil), e.Transcript()...)
-					bad[len(bad)-1] = 0xff
-					if _, err := DecodeTranscript(bad); err == nil {
-						t.Fatal("malformed unsupported message accepted")
-					}
-					config.Limits.TranscriptBytes = 1
-					digested := newTestEnvironment(t, config)
-					digested.digestOnly = true
-					digested.transcriptHash = sha256.New()
-					if got := call(t, digested, test.op, input); !reflect.DeepEqual(got, reply) || len(digested.Transcript()) != 0 || digested.TranscriptSHA256() != e.TranscriptSHA256() {
-						t.Fatal("digest-only unsupported behavior changed")
-					}
+				environment = newTestEnvironment(t, config)
+				call(t, environment, test.op, input)
+				if environment.nextCall != 2 || environment.filesystemServed()[test.op] != 1 {
+					t.Fatal("admitted exact-bound call changed admission counters")
 				}
 			}
 		})

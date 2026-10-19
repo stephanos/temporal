@@ -1,0 +1,185 @@
+{
+  "name": "readonly-binary-image-and-step-digests",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L2ZpeHR1cmVz",
+          "directory": true,
+          "readonly": true,
+          "data_base64": null
+        },
+        {
+          "path_base64": "L2ZpeHR1cmVzL2lucHV0",
+          "directory": false,
+          "readonly": true,
+          "data_base64": "ZnJvemVu"
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L2ZpeHR1cmVz",
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNBAAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAAJAAAAAAAAAC9maXh0dXJlcwoAAAAAAAAAL3dvcmtzcGFjZQQAAAAAAAAAL3RtcAkAAAAAAAAAL2ZpeHR1cmVzBAAAAAAAAAAvdG1wCgAAAAAAAAAvd29ya3NwYWNlCgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAQkAAAAAAAAAL2ZpeHR1cmVzAAAAAAAAAAACAQ8AAAAAAAAAL2ZpeHR1cmVzL2lucHV0BgAAAAAAAABmcm96ZW4BAAoAAAAAAAAAL3dvcmtzcGFjZQAAAAAAAAAAAQAEAAAAAAAAAC90bXAAAAAAAAAAAAA=",
+      "files": 5
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "aW5wdXQ=",
+        "dirflags": 0,
+        "oflags": 0,
+        "rights_base": 536870847,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 6,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 6,
+        "size": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "aW5wdXQ=",
+        "dirflags": 0,
+        "oflags": 0,
+        "rights_base": 64,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "bmV3",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 2,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "bmV3"
+      }
+    },
+    {
+      "op": "path_unlink_file",
+      "input": {
+        "fd": 3,
+        "path_base64": "aW5wdXQ="
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "aW5wdXQ=",
+        "new_fd": 3,
+        "new_path_base64": "b3RoZXI="
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "fd": 6
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "ZnJvemVu"
+      }
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    },
+    {
+      "errno": 69,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "802e451ba770a3f728019dea92e323c90cbe8973e47d951f8d36c1ed2402e6af",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e",
+    "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e"
+  ],
+  "digest": "5a0c02ec6a3aea7f684e75ba4cb9e6d7f7ea85ec62a520fdf64e47e4ca17122e"
+}

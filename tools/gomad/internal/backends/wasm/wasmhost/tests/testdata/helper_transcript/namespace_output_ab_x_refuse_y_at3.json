@@ -1,0 +1,80 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "stderr": {"bytes":1,"sha256":"2d711642b726b04401627ca9fbac32f5c8530fb1903cc4db02258717921a4881","text":"x"},
+      "stdout": {"bytes":2,"sha256":"fb8e20fc2e4c3f248c60c39bd652f3c1347298bb977b8b4d5903b85055620603","text":"ab"},
+      "transcript": {"bytes":67,"sha256":"e117ac23f908429af31e8e7dabc0f8260755f2561485479a66bbc086cf79dded"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"8764b02d4f48acb163868a1405a3b6798d47e7314cdb815cbddd9c8d33f88711","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAIAAAAAQAAAAAAAAAOAAAAAQAAAAIAAABhYgIAAAAIAAAAAgAAAAAAAAANAAAAAgAAAAEAAAB4AQAAAA==","stream":"transcript","type":"evidence"},
+      {"data_base64":"YWI=","stream":"stdout","type":"evidence"},
+      {"data_base64":"eA==","stream":"stderr","type":"evidence"},
+      {"fuel_remaining":999967,"local_model":{"advances":0,"calls":2,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":67,"transcript_sha256":"e117ac23f908429af31e8e7dabc0f8260755f2561485479a66bbc086cf79dded"},"message":"WASI capacity: offered-output-bytes","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":3,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "capacity"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"fd_write\" (func $op (param i32 i32 i32 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 16) \"ab\") (data (i32.const 32) \"x\") (data (i32.const 48) \"y\") (func (export \"_start\") i32.const 64 i32.const 16 i32.store i32.const 68 i32.const 2 i32.store i32.const 1 i32.const 64 i32.const 1 i32.const 72 call $op if unreachable end i32.const 64 i32.const 32 i32.store i32.const 68 i32.const 1 i32.store i32.const 2 i32.const 64 i32.const 1 i32.const 72 call $op if unreachable end i32.const 64 i32.const 48 i32.store i32.const 1 i32.const 64 i32.const 1 i32.const 72 call $op drop))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Namespace stdoutab then stderrx exhaust aggregate3, refuse stdouty, preserve exact completed bytes/transcript and offered3 across output drains.",
+  "replaces": [
+    "src/namespace.rs::drained_output_preserves_offered_count_and_later_capacity"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"data_base64":"R01XTgEAAAAKAAAAAAAAAAoAAAAAAAAAAAQAAAAAAAADAAAAAAAAAOgDAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAC8BAAAAAAAAAHEA","sequence":0,"type":"namespace_input"},{"type":"namespace_inputs_end"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":131072},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 99,
+      "chunks": 1,
+      "files": 1,
+      "sha256": "cfd9aa818b8272e417f5e03950a277081938a0973f7dec11b33b20c51efd2e5c"
+    },
+    "output_bytes": 3,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

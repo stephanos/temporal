@@ -1,0 +1,5 @@
+{
+  "name": "nesting-before-malformed-deep-token",
+  "input": "{\"z\":[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[[|]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]]}\n",
+  "output": "{\"boundary\":\"invalid:JSON nesting\"}\n"
+}

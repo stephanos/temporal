@@ -328,93 +328,119 @@ pub(crate) fn error_text(error: &Error) -> String {
 mod tests {
     use super::*;
 
-    fn storage(faults: &str, transcript: u64) -> Storage {
-        let model: StorageModel = serde_json::from_str(&format!(
-            r#"{{"volumes":[{{"ID":"data","Path":"/workspace","CapacityBytes":1048576}}],"limits":{{"PendingOperations":1000,"Transitions":1000}}{faults}}}"#
+    #[test]
+    fn go_generated_fault_decision_corpus() {
+        use base64::{Engine, engine::general_purpose::STANDARD};
+        let cases: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../wasi/testdata/volume-conformance/vectors/fault-decisions.json"
         ))
         .unwrap();
-        Storage::new(model, transcript).unwrap()
+        for case in cases.as_array().unwrap() {
+            let model: StorageModel = serde_json::from_value(case["storage"].clone()).unwrap();
+            let mut storage =
+                Storage::new(model, case["transcript_limit"].as_u64().unwrap()).unwrap();
+            for step in case["steps"].as_array().unwrap() {
+                let result = storage.decision(
+                    step["resource"].as_str().unwrap(),
+                    step["operation"].as_str().unwrap(),
+                    step["count"].as_u64().unwrap(),
+                    step["now"].as_u64().unwrap(),
+                );
+                let (written, errno, reply) = match result {
+                    Ok((written, errno)) => (written, errno, serde_json::json!({})),
+                    Err(Stop::Boundary(kind, detail)) => (
+                        0,
+                        0,
+                        serde_json::json!({"boundary":format!("{kind}:{detail}")}),
+                    ),
+                    Err(Stop::Crash(fault)) => (0, 0, serde_json::json!({"storage_crash":fault})),
+                    Err(error) => panic!("unexpected decision stop {error:?}"),
+                };
+                assert_eq!(
+                    written,
+                    step["written"].as_u64().unwrap(),
+                    "{}",
+                    case["name"]
+                );
+                assert_eq!(u64::from(errno), step["errno"].as_u64().unwrap());
+                assert_eq!(
+                    serde_json::to_vec(&reply).unwrap(),
+                    STANDARD
+                        .decode(step["reply_base64"].as_str().unwrap())
+                        .unwrap()
+                );
+                assert_eq!(
+                    storage.log,
+                    STANDARD
+                        .decode(step["events_base64"].as_str().unwrap_or_default())
+                        .unwrap()
+                );
+                assert_eq!(
+                    serde_json::to_value(&storage.occurrences).unwrap(),
+                    step["occurrences"]
+                );
+                assert_eq!(storage.sequence, step["sequence"].as_u64().unwrap());
+                assert_eq!(storage.clock, step["clock"].as_i64().unwrap());
+            }
+        }
     }
 
     #[test]
-    fn event_lines_match_go_marshal_field_order_and_omitempty() {
-        assert_eq!(
-            event_line(0, "/workspace/db", "open", 1, None, "complete", 0),
-            r#"{"sequence":0,"resource":"/workspace/db","operation":"open","occurrence":1,"action":"complete"}"#
-        );
-        assert_eq!(
-            event_line(3, "/w/<x>", "write", 2, Some("f&g"), "short-write", 2),
-            r#"{"sequence":3,"resource":"/w/\u003cx\u003e","operation":"write","occurrence":2,"fault":"f\u0026g","action":"short-write","bytes":2}"#
-        );
-    }
-
-    #[test]
-    fn decisions_count_occurrences_and_map_every_action() {
-        let mut storage = storage(
-            r#","faults":[{"name":"a","resource":"/workspace/db","operation":"write","occurrence":2,"action":"torn-write","bytes":2},{"name":"b","resource":"/workspace/db","operation":"sync","occurrence":1,"action":"crash-before"},{"name":"c","resource":"/workspace/db","operation":"open","occurrence":1,"action":"no-space"}]"#,
-            1 << 20,
-        );
-        assert_eq!(storage.decision("/workspace/db", "write", 5, 7), Ok((5, 0)));
-        assert_eq!(
-            storage.decision("/workspace/db", "write", 5, 8),
-            Ok((2, 29))
-        );
-        assert_eq!(storage.decision("/workspace/db", "open", 0, 9), Ok((0, 51)));
-        assert_eq!(
-            storage.decision("/workspace/db", "sync", 0, 9),
-            Err(Stop::Crash("b".into()))
-        );
-        assert_eq!(storage.clock, 9);
-        assert_eq!(storage.log.split(|byte| *byte == b'\n').count() - 1, 4);
-        assert_eq!(storage.occurrences["/workspace/db\0write"], 2);
-    }
-
-    #[test]
-    fn nonshortening_write_fault_and_transcript_capacity_record_nothing() {
-        let mut storage = storage(
-            r#","faults":[{"name":"a","resource":"/workspace/db","operation":"write","occurrence":1,"action":"short-write","bytes":2}]"#,
-            1 << 20,
-        );
-        assert_eq!(
-            storage.decision("/workspace/db", "write", 2, 1),
-            Err(Stop::Boundary(
-                "invalid",
-                "storage write fault must shorten the matched write"
-            ))
-        );
-        assert_eq!(storage.log.len(), 0);
-        let mut small = storage_with_limit();
-        assert_eq!(
-            small.decision("/workspace/db", "open", 0, 1),
-            Err(Stop::Boundary("capacity", "storage-transcript"))
-        );
-        assert_eq!(small.log.len(), 0);
-    }
-
-    fn storage_with_limit() -> Storage {
-        storage("", 10)
-    }
-
-    #[test]
-    fn errno_and_boundary_follow_go_storage_classification() {
-        let volume = Error::Capacity {
-            resource: "volume_bytes",
-            required: 3,
-            maximum: 2,
-        };
-        assert_eq!(errno(&volume), 51);
-        assert_eq!(boundary(&volume), None);
-        let pending = Error::Capacity {
-            resource: "pending_operations",
-            required: 3,
-            maximum: 2,
-        };
-        assert_eq!(errno(&pending), 29);
-        assert_eq!(
-            boundary(&pending),
-            Some(Stop::Boundary("capacity", "storage-pending_operations"))
-        );
-        assert_eq!(errno(&Error::Errno("stale")), 72);
-        assert_eq!(errno(&Error::Invalid("x")), 29);
+    fn go_generated_errno_mapping_corpus() {
+        let cases: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../wasi/testdata/volume-conformance/vectors/error-mapping.json"
+        ))
+        .unwrap();
+        for case in cases.as_array().unwrap() {
+            let name = match case["name"].as_str().unwrap() {
+                "nil" => "nil",
+                "eof" => "eof",
+                "closed" | "bad-descriptor" => "bad-descriptor",
+                "io" => "io",
+                "stale" => "stale",
+                "no-entry" => "no-entry",
+                "no-space" => "no-space",
+                "read-only-access" => "read-only-access",
+                "busy" => "busy",
+                "exists" => "exists",
+                "file-too-large" => "file-too-large",
+                "invalid" => "invalid",
+                "is-directory" => "is-directory",
+                "too-many-files" => "too-many-files",
+                "no-memory" => "no-memory",
+                "not-directory" => "not-directory",
+                "not-empty" => "not-empty",
+                "permission" => "permission",
+                "read-only" => "read-only",
+                "cross-device" => "cross-device",
+                "unmapped" => "unmapped",
+                "volume_bytes" => "volume_bytes",
+                "pending_operations" => "pending_operations",
+                "transitions" => "transitions",
+                "x" => "x",
+                other => panic!("unknown mapping {other}"),
+            };
+            let error = match case["kind"].as_str().unwrap() {
+                "nil" => None,
+                "errno" => Some(Error::Errno(name)),
+                "invalid" => Some(Error::Invalid(name)),
+                "capacity" => Some(Error::Capacity {
+                    resource: name,
+                    required: 3,
+                    maximum: 2,
+                }),
+                other => panic!("unknown error kind {other}"),
+            };
+            assert_eq!(
+                u64::from(error.as_ref().map_or(0, errno)),
+                case["errno"].as_u64().unwrap()
+            );
+            let observed = match error.as_ref().and_then(boundary) {
+                Some(Stop::Boundary(kind, detail)) => format!("WASI {kind}: {detail}"),
+                None => String::new(),
+                other => panic!("unexpected boundary {other:?}"),
+            };
+            assert_eq!(observed, case["boundary"].as_str().unwrap());
+        }
     }
 }

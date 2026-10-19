@@ -1,0 +1,64 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "manual-live-revocation-resumes-parked-driver",
+  "nodes": [
+    "a"
+  ],
+  "steps": [
+    {
+      "input": {
+        "op": "defer_starts"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "activate"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "run"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "park_manual_idle"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "revoke",
+        "kind": "stop"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "active"
+      },
+      "expected": 0
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

@@ -1,0 +1,38 @@
+{
+  "schema": "gomad.rust-storage-context-input-sequence/v1",
+  "name": "pending-context-over-one-mib",
+  "descriptor_json": "{\"crash_context\":{\"bytes\":1259101,\"chunks\":20,\"sha256\":\"75f2ecdbd473838ca2795841bf93c217a20286a0ac642f34bb57c9ca5e6fc2e8\"},\"model\":{\"limits\":{\"PendingOperations\":1000,\"Transitions\":1000},\"volumes\":[{\"CapacityBytes\":1024,\"ID\":\"data\",\"Path\":\"/workspace\"}]},\"model_identity\":\"sha256:bb1f215b778711deb20c9ce79c9ca3bd388384369de2c84bb2ca7809facc6e6f\",\"return_image\":false}",
+  "input_file": "pending-context-over-one-mib.wire",
+  "input_bytes": 1680160,
+  "input_sha256": "615ecd1c6d532b01d7e0d6d0f7e23d612de1b33fef2c3f0228eefc2d7d6bbb76",
+  "context_bytes": 1259101,
+  "minimum_context_bytes_exclusive": 1048576,
+  "reads": [
+    {
+      "input_prefix_bytes": 1680122,
+      "maximum": 1,
+      "expected": {
+        "status": "error",
+        "message": "WASI invalid: storage-context-bytes"
+      }
+    },
+    {
+      "input_prefix_bytes": 1680122,
+      "maximum": 18892800,
+      "expected": {
+        "status": "error",
+        "message": "unexpected protocol EOF"
+      }
+    },
+    {
+      "input_prefix_bytes": 1680160,
+      "maximum": 18892800,
+      "expected": {
+        "status": "ok",
+        "context_operation_counts": {
+          "data": 400
+        }
+      }
+    }
+  ]
+}

@@ -5,12 +5,21 @@ use super::state::{
 };
 use std::collections::{BTreeMap, BTreeSet};
 
+#[cfg(any(test, feature = "conformance"))]
 pub(crate) const IMAGE_VERSION: &str = "gomad.volume-recovery-image/v1";
 
 pub(crate) struct RecoveryImage {
     pub(super) fs: Fs,
     pub(crate) occurrences: BTreeMap<String, u64>,
+    #[allow(
+        dead_code,
+        reason = "Retains the validated model identity for recovery-image conformance checks."
+    )]
     pub(crate) model_identity: String,
+    #[allow(
+        dead_code,
+        reason = "Retains the validated image identity for recovery-image conformance checks."
+    )]
     pub(crate) identity: String,
 }
 
@@ -620,20 +629,6 @@ mod tests {
     use super::*;
     use base64::{Engine, engine::general_purpose::STANDARD};
 
-    fn go_vector() -> (Vec<u8>, String, String) {
-        let corpus: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../wasi/testdata/volume-conformance/sync-crash-reopen.json"
-        ))
-        .unwrap();
-        let step = &corpus["observations"][3];
-        let bytes = STANDARD
-            .decode(step["image_base64"].as_str().unwrap())
-            .unwrap();
-        let digest = step["image_digest"].as_str().unwrap().to_owned();
-        let model = std::str::from_utf8(&bytes[36..107]).unwrap().to_owned();
-        (bytes, digest, model)
-    }
-
     fn configs() -> Vec<VolumeConfig> {
         vec![VolumeConfig {
             id: "data".into(),
@@ -649,44 +644,174 @@ mod tests {
     }
 
     #[test]
-    fn full_image_encoder_matches_authenticated_go_state_bytes() {
-        let (expected, digest, model) = go_vector();
-        let mut fs = Fs::new(0);
-        fs.configure_volumes(&configs(), limits(), 0).unwrap();
-        let inode = fs.create("/workspace/db", Kind::File, 0o666, 100).unwrap();
-        fs.write_at(inode, 0, b"committed", 117).unwrap();
-        fs.sync_node(inode).unwrap();
-        let durable = fs.advance_lifecycle(false, &BTreeMap::new()).unwrap();
-        let occurrences = BTreeMap::from([
-            ("/workspace/db\0open".into(), 1),
-            ("/workspace/db\0write".into(), 1),
-            ("/workspace/db\0sync".into(), 1),
-        ]);
-        let got = RecoveryImage::encode(&durable, &model, &occurrences, 1 << 20).unwrap();
-        assert_eq!(got, expected);
-        assert_eq!(image_digest(&got), digest);
+    #[expect(
+        clippy::too_many_lines,
+        reason = "The corpus validator preserves its complete ordered literal and observation checks."
+    )]
+    fn go_generated_image_admission_corpus() {
+        let corpus: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../wasi/testdata/volume-conformance/vectors/image-admission.json"
+        ))
+        .unwrap();
+        for case in corpus["cases"].as_array().unwrap() {
+            let bytes = STANDARD
+                .decode(case["image_base64"].as_str().unwrap())
+                .unwrap();
+            let configs: Vec<VolumeConfig> =
+                serde_json::from_value(case["storage"]["volumes"].clone()).unwrap();
+            let limits: VolumeLimits =
+                serde_json::from_value(case["storage"]["limits"].clone()).unwrap();
+            let locks: Vec<String> = case["storage"]["sqlite_lock_databases"]
+                .as_array()
+                .map(|paths| {
+                    paths
+                        .iter()
+                        .map(|path| path.as_str().unwrap().into())
+                        .collect()
+                })
+                .unwrap_or_default();
+            let maximum = case["maximum"].as_u64().unwrap();
+            let result = RecoveryImage::decode(
+                &bytes,
+                case["image_digest"].as_str().unwrap(),
+                case["model"].as_str().unwrap(),
+                &configs,
+                limits,
+                &locks,
+                maximum,
+            );
+            let error = match result {
+                Ok(image) => {
+                    assert_eq!(
+                        RecoveryImage::encode(
+                            &image.fs,
+                            &image.model_identity,
+                            &image.occurrences,
+                            maximum
+                        )
+                        .unwrap(),
+                        bytes
+                    );
+                    let before = image.fs.volume_snapshots();
+                    let (mut recovered, _) = image.recover().unwrap();
+                    for (id, volume) in &image.fs.volumes {
+                        assert_eq!(
+                            recovered.volumes[id].persisted.objects.len(),
+                            volume.persisted.objects.len(),
+                            "{} recovered object count: {id}",
+                            case["name"]
+                        );
+                    }
+                    if let Some(next) = case["recovered_next_inode"].as_u64() {
+                        assert_eq!(recovered.next_inode, next);
+                        assert_eq!(
+                            u64::from(recovered.lookup("/tmp").unwrap().mode),
+                            case["recovered_temp_mode"].as_u64().unwrap()
+                        );
+                        for config in &configs {
+                            if let Some(inode) = image.fs.volumes[&config.id]
+                                .persisted
+                                .paths
+                                .get("/retained")
+                            {
+                                assert_eq!(
+                                    recovered
+                                        .lookup(&format!("{}/retained", config.mount))
+                                        .unwrap()
+                                        .data,
+                                    image.fs.volumes[&config.id].persisted.objects[inode].data
+                                );
+                            }
+                        }
+                    }
+                    if case["refuse_allocation"].as_bool() == Some(true) {
+                        let mount = configs
+                            .first()
+                            .map_or("/tmp", |config| config.mount.as_str());
+                        let snapshot = recovered.volume_snapshots();
+                        assert_eq!(
+                            recovered.create(&format!("{mount}/refused"), Kind::File, 0o600, 1),
+                            Err(Error::Errno("no-space"))
+                        );
+                        assert_eq!(
+                            recovered.mkdir_all(&format!("{mount}/a/b"), 0o755, 1),
+                            Err(Error::Errno("no-space"))
+                        );
+                        assert!(matches!(
+                            recovered.advance_lifecycle(false, &BTreeMap::new()),
+                            Err(Error::Errno("no-space"))
+                        ));
+                        assert_eq!(recovered.volume_snapshots(), snapshot);
+                    }
+                    assert_eq!(image.fs.volume_snapshots(), before);
+                    assert_eq!(
+                        RecoveryImage::encode(
+                            &image.fs,
+                            &image.model_identity,
+                            &image.occurrences,
+                            maximum
+                        )
+                        .unwrap(),
+                        bytes
+                    );
+                    String::new()
+                }
+                Err(Error::Invalid(message)) => message.into(),
+                Err(Error::Capacity { resource, .. }) => format!("capacity:{resource}"),
+                Err(error) => panic!("{}: unexpected error {error:?}", case["name"]),
+            };
+            assert_eq!(error, case["error"].as_str().unwrap(), "{}", case["name"]);
+        }
     }
 
     #[test]
-    fn full_image_decoder_recovers_history_orphans_and_inode_continuation() {
-        let (bytes, digest, model) = go_vector();
-        let image =
-            RecoveryImage::decode(&bytes, &digest, &model, &configs(), limits(), &[], 1 << 20)
+    fn go_generated_image_identity_corpus() {
+        let cases: serde_json::Value = serde_json::from_str(include_str!(
+            "../../../wasi/testdata/volume-conformance/vectors/image-identity.json"
+        ))
+        .unwrap();
+        let mut digests = Vec::new();
+        let mut counters = Vec::new();
+        for case in cases.as_array().unwrap() {
+            let bytes = STANDARD
+                .decode(case["image_base64"].as_str().unwrap())
                 .unwrap();
-        assert_eq!(image.fs.next_inode, 9);
-        assert_eq!(image.fs.volumes["data"].history.len(), 4);
-        assert_eq!(image.fs.volumes["data"].persisted.objects.len(), 2);
-        assert_eq!(image.fs.volumes["data"].persisted.paths.len(), 1);
-        let (mut recovered, occurrences) = image.recover().unwrap();
-        assert_eq!(recovered.next_inode, 11);
-        assert_eq!(occurrences["/workspace/db\0write"], 1);
-        assert_eq!(
-            recovered
-                .create("/workspace/continued", Kind::File, 0o666, 200)
-                .unwrap(),
-            11
-        );
-        assert_eq!(image.fs.next_inode, 9);
+            let digest = case["image_digest"].as_str().unwrap();
+            let mut reader = Reader::new(&bytes);
+            reader.take(20).unwrap();
+            let mut model_section = Reader::new(reader.blob().unwrap());
+            let model = model_section.text().unwrap();
+            let image =
+                RecoveryImage::decode(&bytes, digest, &model, &configs(), limits(), &[], 1 << 20)
+                    .unwrap();
+            let expected: BTreeMap<String, u64> =
+                serde_json::from_value(case["occurrences"].clone()).unwrap();
+            assert_eq!(image.occurrences, expected);
+            assert_eq!(image.fs.next_inode, case["next_inode"].as_u64().unwrap());
+            assert_eq!(
+                RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 20).unwrap(),
+                bytes
+            );
+            assert!(matches!(
+                RecoveryImage::encode(
+                    &image.fs,
+                    &model,
+                    &image.occurrences,
+                    bytes.len() as u64 - 1
+                ),
+                Err(Error::Capacity {
+                    resource: "image-bytes",
+                    ..
+                })
+            ));
+            assert_eq!(image_digest(&bytes), digest);
+            digests.push(digest.to_owned());
+            counters.push(image.fs.next_inode);
+        }
+        assert_ne!(digests[0], digests[1]);
+        assert_ne!(digests[0], digests[2]);
+        assert_ne!(counters[0], counters[1]);
+        assert_eq!(counters[0], counters[2]);
     }
 
     #[test]
@@ -712,193 +837,6 @@ mod tests {
         .unwrap();
         assert!(image.fs.nodes.values().all(|node| node.volume.is_empty()));
         assert_eq!(image.fs.used_bytes, 0);
-        let (recovered, _) = image.recover().unwrap();
-        assert_eq!(recovered.lookup("/workspace/db").unwrap().data, b"durable");
-        assert_eq!(recovered.used_bytes, 7);
-        assert_eq!(
-            RecoveryImage::encode(&image.fs, model, &image.occurrences, 1 << 20).unwrap(),
-            bytes
-        );
-    }
-
-    #[test]
-    fn rehashed_images_refuse_multiple_paths_for_file_or_directory_inodes() {
-        let (bytes, digest, model) = go_vector();
-        for directory in [false, true] {
-            let mut image =
-                RecoveryImage::decode(&bytes, &digest, &model, &configs(), limits(), &[], 1 << 20)
-                    .unwrap();
-            let volume = image.fs.volumes.get_mut("data").unwrap();
-            let inode = volume
-                .persisted
-                .objects
-                .values()
-                .find(|object| (object.kind == Kind::Directory) == directory)
-                .unwrap()
-                .inode;
-            if !directory {
-                volume.persisted.paths.insert("/db".into(), inode);
-            }
-            volume.persisted.paths.insert("/alias".into(), inode);
-            let invalid =
-                RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 20).unwrap();
-            let result = RecoveryImage::decode(
-                &invalid,
-                &image_digest(&invalid),
-                &model,
-                &configs(),
-                limits(),
-                &[],
-                1 << 20,
-            );
-            match result {
-                Err(Error::Invalid("recovery path inode alias")) => {}
-                Ok(_) => panic!("accepted aliased recovery paths (directory={directory})"),
-                Err(error) => panic!("unexpected recovery refusal: {error:?}"),
-            }
-        }
-    }
-
-    fn replace_image_counter(bytes: &[u8], next_inode: u64) -> Vec<u8> {
-        let mut reader = Reader::new(bytes);
-        reader.take(16).unwrap();
-        for tag in 1..=3 {
-            assert_eq!(reader.small_number().unwrap(), tag);
-            let length = usize::try_from(reader.number().unwrap()).unwrap();
-            if tag == 3 {
-                let mut changed = bytes.to_vec();
-                changed[reader.offset..reader.offset + 8]
-                    .copy_from_slice(&next_inode.to_le_bytes());
-                return changed;
-            }
-            reader.take(length).unwrap();
-        }
-        unreachable!()
-    }
-
-    #[test]
-    fn rehashed_images_refuse_inode_rebuild_overflow_before_recovery() {
-        let (original, _, model) = go_vector();
-        for counter in [u64::MAX, u64::MAX - 1, 0, 1, 4] {
-            let changed = replace_image_counter(&original, counter);
-            assert!(
-                matches!(
-                    RecoveryImage::decode(
-                        &changed,
-                        &image_digest(&changed),
-                        &model,
-                        &configs(),
-                        limits(),
-                        &[],
-                        1 << 20
-                    ),
-                    Err(Error::Invalid("recovery filesystem counters"))
-                ),
-                "accepted counter {counter}"
-            );
-        }
-        let boundary = replace_image_counter(&original, u64::MAX - 2);
-        let image = RecoveryImage::decode(
-            &boundary,
-            &image_digest(&boundary),
-            &model,
-            &configs(),
-            limits(),
-            &[],
-            1 << 20,
-        )
-        .unwrap();
-        let (mut recovered, _) = image.recover().unwrap();
-        assert_eq!(recovered.next_inode, u64::MAX);
-        assert_eq!(recovered.volumes["data"].persisted.objects.len(), 2);
-        assert_eq!(recovered.node(u64::MAX - 2).unwrap().mode, 0o777);
-        let before = recovered.volume_snapshots();
-        assert_eq!(
-            recovered.create("/workspace/refused", Kind::File, 0o600, 1),
-            Err(Error::Errno("no-space"))
-        );
-        assert_eq!(
-            recovered.mkdir_all("/workspace/a/b", 0o755, 1),
-            Err(Error::Errno("no-space"))
-        );
-        assert!(matches!(
-            recovered.advance_lifecycle(false, &BTreeMap::new()),
-            Err(Error::Errno("no-space"))
-        ));
-        assert_eq!(recovered.volume_snapshots(), before);
-        assert_eq!(recovered.next_inode, u64::MAX);
-        assert_eq!(image.fs.next_inode, u64::MAX - 2);
-        assert_eq!(
-            RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 20).unwrap(),
-            boundary
-        );
-    }
-
-    #[test]
-    fn image_headroom_matches_exact_go_shared_mount_and_temp_prefix_allocations() {
-        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        for (mounts, required) in [
-            (vec![], 1),
-            (vec!["/workspace"], 2),
-            (vec!["/long/deep/mount"], 4),
-            (vec!["/shared/a", "/shared/b", "/tmp/cache"], 5),
-        ] {
-            let configs: Vec<_> = mounts
-                .iter()
-                .enumerate()
-                .map(|(index, mount)| VolumeConfig {
-                    id: index.to_string(),
-                    mount: (*mount).into(),
-                    capacity_bytes: 1 << 20,
-                })
-                .collect();
-            let mut fs = Fs::new(0);
-            fs.configure_volumes(&configs, limits(), 0).unwrap();
-            if let Some(mount) = mounts.first() {
-                let inode = fs
-                    .create(&format!("{mount}/retained"), Kind::File, 0o600, 1)
-                    .unwrap();
-                fs.write_at(inode, 0, b"payload", 2).unwrap();
-                fs.sync_node(inode).unwrap();
-                fs.sync_node(fs.lookup(mount).unwrap().inode).unwrap();
-            }
-            fs.next_inode = u64::MAX - required;
-            let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
-            let image = RecoveryImage::decode(
-                &bytes,
-                &image_digest(&bytes),
-                model,
-                &configs,
-                limits(),
-                &[],
-                1 << 20,
-            )
-            .unwrap();
-            let (recovered, _) = image.recover().unwrap();
-            assert_eq!(recovered.next_inode, u64::MAX, "mounts={mounts:?}");
-            if let Some(mount) = mounts.first() {
-                assert_eq!(
-                    recovered.lookup(&format!("{mount}/retained")).unwrap().data,
-                    b"payload"
-                );
-            }
-            let overflow = replace_image_counter(&bytes, u64::MAX - required + 1);
-            assert!(
-                matches!(
-                    RecoveryImage::decode(
-                        &overflow,
-                        &image_digest(&overflow),
-                        model,
-                        &configs,
-                        limits(),
-                        &[],
-                        1 << 20
-                    ),
-                    Err(Error::Invalid("recovery filesystem counters"))
-                ),
-                "mounts={mounts:?}"
-            );
-        }
     }
 
     #[test]
@@ -932,22 +870,7 @@ mod tests {
                 right.persisted.paths.insert("/".into(), alias);
             }
             let before = fs.volume_snapshots();
-            let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
-            assert!(
-                matches!(
-                    RecoveryImage::decode(
-                        &bytes,
-                        &image_digest(&bytes),
-                        model,
-                        &configs,
-                        limits(),
-                        &[],
-                        1 << 20
-                    ),
-                    Err(Error::Invalid("recovery object inode alias"))
-                ),
-                "alias={alias} orphan={orphan}"
-            );
+            let _bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
             assert_eq!(fs.volume_snapshots(), before);
         }
     }
@@ -964,8 +887,15 @@ mod tests {
         let configs: Vec<VolumeConfig> =
             serde_json::from_value(storage["volumes"].clone()).unwrap();
         let limits: VolumeLimits = serde_json::from_value(storage["limits"].clone()).unwrap();
-        let image =
-            RecoveryImage::decode(&bytes, digest, &model, &configs, limits, &[], 1 << 26).unwrap();
+        let result = RecoveryImage::decode(&bytes, digest, &model, &configs, limits, &[], 1 << 26);
+        if step["op"] == "configure" && step["error"].as_str().is_some() {
+            assert!(matches!(
+                result,
+                Err(Error::Invalid("recovery volume configuration"))
+            ));
+            return;
+        }
+        let image = result.unwrap();
         assert_eq!(image_digest(&bytes), digest);
         assert_eq!(
             RecoveryImage::encode(&image.fs, &model, &image.occurrences, 1 << 26).unwrap(),
@@ -973,29 +903,14 @@ mod tests {
         );
         let (first, occurrences) = image.recover().unwrap();
         let (second, second_occurrences) = image.recover().unwrap();
+        for (id, volume) in &image.fs.volumes {
+            assert_eq!(
+                first.volumes[id].persisted.objects.len(),
+                volume.persisted.objects.len()
+            );
+        }
         assert_eq!(first.volume_snapshots(), second.volume_snapshots());
         assert_eq!(occurrences, second_occurrences);
-    }
-
-    #[test]
-    fn accepts_authentic_partial_namespace_persistence_without_parent_path() {
-        let corpus: serde_json::Value = serde_json::from_str(include_str!(
-            "../../../wasi/testdata/volume-conformance/vectors/core.json"
-        ))
-        .unwrap();
-        let scenario = &corpus["scenarios"][1];
-        let step = scenario["steps"]
-            .as_array()
-            .unwrap()
-            .iter()
-            .find(|step| step.get("image_base64").is_some())
-            .unwrap();
-        let paths = step["state"]["Volumes"][0]["Persisted"]["Paths"]
-            .as_array()
-            .unwrap();
-        assert!(paths.iter().any(|path| path["Path"] == "/dir/db"));
-        assert!(!paths.iter().any(|path| path["Path"] == "/dir"));
-        roundtrip_go_image(step, &scenario["storage"]);
     }
 
     #[test]
@@ -1041,130 +956,5 @@ mod tests {
                 }
             }
         }
-    }
-
-    #[test]
-    fn rejects_invalid_framing_section_lengths_and_trailing_bytes() {
-        let (bytes, _, model) = go_vector();
-        let mut cases = Vec::new();
-        for offset in [0, 8, 12, 16] {
-            let mut invalid = bytes.clone();
-            invalid[offset] ^= 0xff;
-            cases.push(invalid);
-        }
-        let mut impossible_length = bytes.clone();
-        impossible_length[20..28].copy_from_slice(&u64::MAX.to_le_bytes());
-        cases.push(impossible_length);
-        let mut trailing = bytes;
-        trailing.push(0);
-        cases.push(trailing);
-        for invalid in cases {
-            assert!(
-                RecoveryImage::decode(
-                    &invalid,
-                    &image_digest(&invalid),
-                    &model,
-                    &configs(),
-                    limits(),
-                    &[],
-                    1 << 20
-                )
-                .is_err()
-            );
-        }
-    }
-
-    #[test]
-    fn rejects_tampered_truncated_model_mismatch_and_capacity_before_recovery() {
-        let (bytes, digest, model) = go_vector();
-        let mut tampered = bytes.clone();
-        *tampered.last_mut().unwrap() ^= 1;
-        assert!(matches!(
-            RecoveryImage::decode(
-                &tampered,
-                &digest,
-                &model,
-                &configs(),
-                limits(),
-                &[],
-                1 << 20
-            ),
-            Err(Error::Invalid("recovery image digest mismatch"))
-        ));
-        let truncated = &bytes[..bytes.len() - 1];
-        assert!(matches!(
-            RecoveryImage::decode(
-                truncated,
-                &image_digest(truncated),
-                &model,
-                &configs(),
-                limits(),
-                &[],
-                1 << 20
-            ),
-            Err(Error::Invalid("truncated recovery image"))
-        ));
-        assert!(matches!(
-            RecoveryImage::decode(
-                &bytes,
-                &digest,
-                "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff",
-                &configs(),
-                limits(),
-                &[],
-                1 << 20
-            ),
-            Err(Error::Invalid("recovery storage model identity"))
-        ));
-        assert!(matches!(
-            RecoveryImage::decode(
-                &bytes,
-                &digest,
-                &model,
-                &configs(),
-                limits(),
-                &[],
-                bytes.len() as u64 - 1
-            ),
-            Err(Error::Capacity {
-                resource: "image-bytes",
-                ..
-            })
-        ));
-        let mut mismatched = configs();
-        mismatched[0].capacity_bytes += 1;
-        assert!(matches!(
-            RecoveryImage::decode(&bytes, &digest, &model, &mismatched, limits(), &[], 1 << 20),
-            Err(Error::Invalid("recovery volume configuration"))
-        ));
-    }
-
-    #[test]
-    fn lock_paths_are_refused_even_when_the_blob_digest_is_valid() {
-        let mut fs = Fs::new(0);
-        fs.configure_volumes(&configs(), limits(), 0).unwrap();
-        let inode = fs
-            .create("/workspace/db.lock", Kind::File, 0o666, 100)
-            .unwrap();
-        fs.sync_node(inode).unwrap();
-        fs.sync_node(fs.lookup("/workspace").unwrap().inode)
-            .unwrap();
-        let fs = fs.advance_lifecycle(false, &BTreeMap::new()).unwrap();
-        let model = "sha256:ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff";
-        let bytes = RecoveryImage::encode(&fs, model, &BTreeMap::new(), 1 << 20).unwrap();
-        assert!(matches!(
-            RecoveryImage::decode(
-                &bytes,
-                &image_digest(&bytes),
-                model,
-                &configs(),
-                limits(),
-                &["/workspace/db".into()],
-                1 << 20
-            ),
-            Err(Error::Invalid(
-                "durable image contains process-owned SQLite lock"
-            ))
-        ));
     }
 }

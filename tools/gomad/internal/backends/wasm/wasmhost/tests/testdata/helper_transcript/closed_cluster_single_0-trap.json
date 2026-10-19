@@ -1,0 +1,69 @@
+{
+  "close_input": "after_replies",
+  "expected": {
+    "evidence": {
+      "transcript": {"bytes":222,"sha256":"4249af73d7e71709d3148cfb44b9e03ca935d6562b136dc27c2389500d4ec7d2"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_write","params":["i32","i32","i32","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"ad8e1d6b95b418e7ad07cbe86c98f5508302a907b8f546b2059cdec9cc9bc50a","schema":"gomad.wasm-host/v1","type":"started"},
+      {"id":1,"input":{"data_base64":"aGVsbG8K","fd":1},"local_state":{"advances":0,"now":1,"transcript_bytes":0},"op":"fd_write","type":"call"},
+      {"data_base64":"eyJpZCI6MSwiaW5wdXQiOnsiZGF0YV9iYXNlNjQiOiJhR1ZzYkc4SyIsImZkIjoxfSwibG9jYWxfc3RhdGUiOnsiYWR2YW5jZXMiOjAsIm5vdyI6MSwidHJhbnNjcmlwdF9ieXRlcyI6MH0sIm9wIjoiZmRfd3JpdGUiLCJ0eXBlIjoiY2FsbCJ9CnsiZXJybm8iOjgsImlkIjoxLCJsb2NhbF9zdGF0ZSI6eyJhZHZhbmNlcyI6MCwibm93IjoxfSwib3V0cHV0Ijp7fSwidHlwZSI6InJlcGx5In0K","stream":"transcript","type":"evidence"},
+      {"fuel_remaining":999987,"local_model":{"advances":0,"calls":1,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":222,"transcript_sha256":"4249af73d7e71709d3148cfb44b9e03ca935d6562b136dc27c2389500d4ec7d2"},"message":"error while executing at wasm backtrace:\n    0:     0xa9 - <unknown>!<wasm function 2>: wasm trap: wasm `unreachable` instruction executed","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":6,"peak_memory_bytes":65536,"termination":"trap","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "trap"
+  },
+  "guest": {
+    "wat": "(module\n  (import \"wasi_snapshot_preview1\" \"fd_write\" (func $write (param i32 i32 i32 i32) (result i32)))\n  (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32)))\n  (memory (export \"memory\") 1)\n  (data (i32.const 16) \"hello\\n\")\n  (func (export \"_start\") (local $n i32)\n    (i32.store (i32.const 0) (i32.const 16))\n    (i32.store (i32.const 4) (i32.const 6))\n    (if (call $write (i32.const 1) (i32.const 0) (i32.const 1) (i32.const 8)) (then unreachable))\n    (drop (call $clock (i32.const 0) (i64.const 0) (i32.const 32)))\n    (if (i32.lt_s (memory.grow (i32.const 2)) (i32.const 0)) (then unreachable))\n    (local.set $n (i32.const 4000))\n    (loop $spin\n      (local.set $n (i32.sub (local.get $n) (i32.const 1)))\n      (br_if $spin (local.get $n)))))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "closed_cluster_single_0-trap: Closed R3 cluster assertion replacement: cluster_instances_match_their_single_runs_and_isolate_failures",
+  "replaces": [
+    "tests/cluster.rs::cluster_instances_match_their_single_runs_and_isolate_failures"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    },
+    {
+      "after": {"id":1,"op":"fd_write","type":"call"},
+      "send": [{"errno":8,"id":1,"local_state":{"advances":0,"now":1},"output":{},"transcript_base64":"eyJpZCI6MSwiaW5wdXQiOnsiZGF0YV9iYXNlNjQiOiJhR1ZzYkc4SyIsImZkIjoxfSwibG9jYWxfc3RhdGUiOnsiYWR2YW5jZXMiOjAsIm5vdyI6MSwidHJhbnNjcmlwdF9ieXRlcyI6MH0sIm9wIjoiZmRfd3JpdGUiLCJ0eXBlIjoiY2FsbCJ9CnsiZXJybm8iOjgsImlkIjoxLCJsb2NhbF9zdGF0ZSI6eyJhZHZhbmNlcyI6MCwibm93IjoxfSwib3V0cHV0Ijp7fSwidHlwZSI6InJlcGx5In0K","type":"reply"}]
+    }
+  ],
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 3,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 262144,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

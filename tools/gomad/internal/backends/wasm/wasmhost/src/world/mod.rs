@@ -214,6 +214,7 @@ impl ErrorClass {
         }
     }
 
+    #[cfg(test)]
     pub fn name(self) -> &'static str {
         match self {
             Self::InvalidConfig => "invalid-config",
@@ -240,6 +241,7 @@ pub enum Error {
 }
 
 impl Error {
+    #[cfg(test)]
     pub fn class(&self) -> &'static str {
         match self {
             Self::Capacity { .. } => "capacity",
@@ -295,6 +297,10 @@ pub struct Event {
 
 /// Cheap per-step summary, Go `DiagnosticCardinality`.
 #[derive(Clone, Debug, PartialEq, Eq)]
+#[allow(
+    dead_code,
+    reason = "Detached cardinality is retained for the differential World corpus."
+)]
 pub struct Cardinality {
     pub now: i64,
     pub requests: u64,
@@ -472,6 +478,10 @@ impl Model {
         self.now
     }
 
+    #[allow(
+        dead_code,
+        reason = "Detached cardinality is retained for the differential World corpus."
+    )]
     pub fn cardinality(&self) -> Cardinality {
         Cardinality {
             now: self.now,

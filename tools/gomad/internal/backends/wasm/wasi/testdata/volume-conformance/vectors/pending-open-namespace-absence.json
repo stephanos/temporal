@@ -1,0 +1,131 @@
+{
+  "schema": "gomad.volume-pending-namespace-absence/v1",
+  "probe_path": "/workspace/db",
+  "absent_after_operation": [
+    true
+  ],
+  "corpus": {
+    "schema": "gomad.volume-conformance/v1",
+    "name": "pending-open-namespace-absence",
+    "origin": "wasi/volume_test.go:TestStorageCrashFaultAndModelLimits",
+    "seed": 0,
+    "session": {
+      "model": "internal/model/volume",
+      "image": {
+        "entries": [
+          {
+            "path_base64": "L3dvcmtzcGFjZQ==",
+            "directory": true,
+            "readonly": false,
+            "data_base64": ""
+          },
+          {
+            "path_base64": "L3RtcA==",
+            "directory": true,
+            "readonly": false,
+            "data_base64": ""
+          }
+        ],
+        "writable_directories": [
+          "L3dvcmtzcGFjZQ==",
+          "L3RtcA=="
+        ],
+        "preopens": [
+          "L3RtcA==",
+          "L3dvcmtzcGFjZQ=="
+        ],
+        "working_directory": "L3dvcmtzcGFjZQ==",
+        "stdin_base64": null,
+        "limits": {
+          "files": 1000,
+          "descriptors": 64,
+          "filesystem_bytes": 8388608,
+          "output_bytes": 1048576,
+          "calls": 10000,
+          "transcript_bytes": 8388608,
+          "pending_events": 4096
+        },
+        "epoch_nanos": 946684800000000000,
+        "read_step_nanos": 1000
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1,
+          "Transitions": 1000
+        }
+      }
+    },
+    "initial_reply_base64": "e30=",
+    "operations": [
+      {
+        "op": "path_open",
+        "input": {
+          "fd": 4,
+          "path_base64": "ZGI=",
+          "dirflags": 0,
+          "oflags": 1,
+          "rights_base": 536870911,
+          "rights_inheriting": 0,
+          "fdflags": 0
+        },
+        "now": 0
+      }
+    ],
+    "observations": [
+      {
+        "reply_base64": "eyJib3VuZGFyeSI6ImNhcGFjaXR5OnN0b3JhZ2UtcGVuZGluZ19vcGVyYXRpb25zIn0=",
+        "events_base64": "eyJzZXF1ZW5jZSI6MCwicmVzb3VyY2UiOiIvd29ya3NwYWNlL2RiIiwib3BlcmF0aW9uIjoib3BlbiIsIm9jY3VycmVuY2UiOjEsImFjdGlvbiI6ImNvbXBsZXRlIn0K",
+        "snapshots": [
+          {
+            "ID": "data",
+            "Mount": "/workspace",
+            "CapacityBytes": 1048576,
+            "Persisted": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": "directory",
+                "ModTime": 0,
+                "Size": 0,
+                "DataSHA256": ""
+              }
+            ],
+            "Volatile": [
+              {
+                "Path": "/",
+                "Mode": 493,
+                "Kind": "directory",
+                "ModTime": 0,
+                "Size": 0,
+                "DataSHA256": ""
+              }
+            ],
+            "PendingOperations": 0,
+            "PendingSHA256": "sha256:dab78877329cb3bf4668e9a38eac05c3f5fc1f9940436a80ee576e9e7444becd",
+            "NextOperation": 1,
+            "Identity": "sha256:17b17ec98ce2f42e1015c998ca58de47b27320af019f619e74514624e0a72484"
+          }
+        ],
+        "operations": [
+          {
+            "volume": "data",
+            "operations": []
+          }
+        ],
+        "enumeration": null,
+        "selections": null,
+        "image_digest": "",
+        "image_base64": null,
+        "image_identity": "gomad.volume-recovery-image/v1",
+        "namespace_digest": "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92"
+      }
+    ]
+  }
+}

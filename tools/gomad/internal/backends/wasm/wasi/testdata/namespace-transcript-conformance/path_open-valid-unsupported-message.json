@@ -1,0 +1,6 @@
+{
+  "name": "path_open-valid-unsupported-message",
+  "transcript_base64": "R01XVAEAAAAaAQAAAQAAAAAAAABIAAAAAwAAAAAAAAABAAAAeAAAAgAAAAAAAAAAAAAAAAAAAAIAIwAAAG9wZW4gZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWxl",
+  "valid": true,
+  "message": "open flags outside volatile profile"
+}

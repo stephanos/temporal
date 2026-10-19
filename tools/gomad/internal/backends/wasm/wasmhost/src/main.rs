@@ -1,15 +1,10 @@
 #[cfg(not(feature = "conformance"))]
 mod abi;
 #[cfg(not(feature = "conformance"))]
-mod broker;
-#[cfg(not(feature = "conformance"))]
 mod cache;
-#[allow(
-    dead_code,
-    reason = "the simulation clock is consumed by the fn-178.7 scheduler"
-)]
+#[cfg(any(test, not(feature = "conformance")))]
 mod clock;
-#[cfg(not(feature = "conformance"))]
+#[cfg(any(test, not(feature = "conformance")))]
 mod cluster;
 #[cfg(any(test, feature = "conformance"))]
 mod conformance;
@@ -25,28 +20,16 @@ mod metrics;
 #[cfg(not(feature = "conformance"))]
 mod model;
 mod namespace;
-mod namespace_call;
-mod namespace_image;
-#[cfg(not(feature = "conformance"))]
-mod namespace_transport;
-#[allow(dead_code, reason = "network owner is consumed by fn178")]
+#[cfg(any(test, not(feature = "conformance")))]
 mod network;
 #[cfg(not(feature = "conformance"))]
 mod protocol;
 #[cfg(not(feature = "conformance"))]
 mod storage_transport;
 mod transcript;
-#[allow(
-    dead_code,
-    unused_imports,
-    reason = "complete volume projection port pinned by Go vectors; WASI routes a subset"
-)]
 mod volume;
 
-#[allow(
-    dead_code,
-    reason = "the World model is consumed by the fn-178.7 scheduler"
-)]
+#[cfg(any(test, not(feature = "conformance")))]
 mod world;
 
 #[cfg(feature = "conformance")]

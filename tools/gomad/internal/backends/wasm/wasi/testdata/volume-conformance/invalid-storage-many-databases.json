@@ -1,0 +1,129 @@
+{
+  "schema": "gomad.volume-conformance/v1",
+  "name": "invalid-storage-many-databases",
+  "origin": "volume::config::validation_mirrors_every_go_rule_including_crash_after",
+  "seed": 0,
+  "session": {
+    "model": "internal/model/volume",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "storage": {
+      "volumes": [
+        {
+          "ID": "data",
+          "Path": "/workspace",
+          "CapacityBytes": 1048576
+        }
+      ],
+      "limits": {
+        "PendingOperations": 1000,
+        "Transitions": 1000
+      },
+      "sqlite_lock_databases": [
+        "/workspace/d000",
+        "/workspace/d001",
+        "/workspace/d002",
+        "/workspace/d003",
+        "/workspace/d004",
+        "/workspace/d005",
+        "/workspace/d006",
+        "/workspace/d007",
+        "/workspace/d008",
+        "/workspace/d009",
+        "/workspace/d010",
+        "/workspace/d011",
+        "/workspace/d012",
+        "/workspace/d013",
+        "/workspace/d014",
+        "/workspace/d015",
+        "/workspace/d016",
+        "/workspace/d017",
+        "/workspace/d018",
+        "/workspace/d019",
+        "/workspace/d020",
+        "/workspace/d021",
+        "/workspace/d022",
+        "/workspace/d023",
+        "/workspace/d024",
+        "/workspace/d025",
+        "/workspace/d026",
+        "/workspace/d027",
+        "/workspace/d028",
+        "/workspace/d029",
+        "/workspace/d030",
+        "/workspace/d031",
+        "/workspace/d032",
+        "/workspace/d033",
+        "/workspace/d034",
+        "/workspace/d035",
+        "/workspace/d036",
+        "/workspace/d037",
+        "/workspace/d038",
+        "/workspace/d039",
+        "/workspace/d040",
+        "/workspace/d041",
+        "/workspace/d042",
+        "/workspace/d043",
+        "/workspace/d044",
+        "/workspace/d045",
+        "/workspace/d046",
+        "/workspace/d047",
+        "/workspace/d048",
+        "/workspace/d049",
+        "/workspace/d050",
+        "/workspace/d051",
+        "/workspace/d052",
+        "/workspace/d053",
+        "/workspace/d054",
+        "/workspace/d055",
+        "/workspace/d056",
+        "/workspace/d057",
+        "/workspace/d058",
+        "/workspace/d059",
+        "/workspace/d060",
+        "/workspace/d061",
+        "/workspace/d062",
+        "/workspace/d063",
+        "/workspace/d064"
+      ]
+    }
+  },
+  "initial_reply_base64": "eyJib3VuZGFyeSI6ImludmFsaWQ6U1FMaXRlIGxvY2sgYWRhcHRlciBib3VuZHMifQ==",
+  "operations": null,
+  "observations": null
+}

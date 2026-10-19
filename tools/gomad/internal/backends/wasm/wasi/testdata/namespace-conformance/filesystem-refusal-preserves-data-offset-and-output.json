@@ -1,0 +1,127 @@
+{
+  "name": "filesystem-refusal-preserves-data-offset-and-output",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": "aW5wdXQ=",
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 5,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAABQAAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UFAAAAAAAAAGlucHV0AQAKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEABAAAAAAAAAAvdG1wAAAAAAAAAAAA",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZmlsZQ==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 5,
+        "data_base64": "AQ=="
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "whence": 1
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "length": 10
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 1,
+        "data_base64": ""
+      },
+      "repeat_data": 4194305
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "boundary": "capacity:filesystem-bytes"
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "boundary": "capacity:buffer-bytes"
+    }
+  ],
+  "digests": [
+    "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b",
+    "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b",
+    "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b",
+    "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b",
+    "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b"
+  ],
+  "digest": "760d1a8456c31d00dd716eeb1aafd56ac25973eb4143fa18ec7254fb2b4c589b"
+}

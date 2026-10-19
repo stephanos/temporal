@@ -1,0 +1,393 @@
+[
+  {
+    "name": "body-bit",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACeAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAEKidqh5TEUcmvCneewWdJGGhu4X7jd7xBtRzVGh/wJL",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope length or digest",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "body-trailing",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFUAQAIAAAAAAAD3R1iHDRNZQR1wo6tBgrh0CgR0GkF1dkNF92BaHDePFg==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: trailing envelope bytes",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "digest",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAEKidqh5TEUcmvCneewWdJGGhu4X7jd7xBtRzVGh/wJK",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope length or digest",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "empty",
+    "input_base64": null,
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope header",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "enumerations-duplicate",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAAKwAAAAAAAAB7ImRhdGEiOnsiQ29tcGxldGUiOnRydWUsIkNvbXBsZXRlIjpmYWxzZX19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFUbAgAAAAAAAI7DAEXnmjC8/+Aa01sPAKdGpi/Dxv10YXC23QywZtnI",
+    "expected": {
+      "error": "WASI invalid: storage evidence: enumerations",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "extra-section",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFUGAAAAAQAAAAAAAAB4TAIAAAAAAACFQAYJK6fpebn9MEfB41J7Aohqs/81jX6mZllRRnvxVA==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: trailing envelope bytes",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "identity-short",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAAMAAAAAAAAAYWJjBQAAACgAAAAAAAAAAAAAAAAAAADjsMRCmPwcFJr79MiZb7kkJ65B5GSbk0yklZkbeFK4VQICAAAAAAAAZp+EjebPx0FWy20zLuYU8ikAdgXgCQbXASl6T3zW6So=",
+    "expected": {
+      "error": "WASI invalid: storage evidence: image identity",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "identity-upper",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQUFBQQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAADgu5yyWqbCDTY+GDAlbrt+qzON1S+Pc33ukbf76KBAz",
+    "expected": {
+      "error": "WASI invalid: storage evidence: image identity",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "log-binding-short",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAABAAAAAAAAAHgYAgAAAAAAAIhmgalD5TI/1JRymuvOwwjN/9LyfVwEQhs42XJH6He2",
+    "expected": {
+      "error": "WASI invalid: storage evidence: storage log binding",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "magic",
+    "input_base64": "R01TVE9SRQIBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAABdeeZ6qiRWzeckKCEMAiJLiZqMbM3agiODA77wYSOsd",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope header",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "missing-section",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19vwEAAAAAAAD6sxQK8uZOfOue0L8rpHKng9Pb+ajGE3c7kS8yQkQqGw==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope sections",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "null-enumerations",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAABAAAAAAAAABudWxsBAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFX0AQAAAAAAADVqXqZ0ooF+QNg4YuIJwuYxvAjIk6pBnfrHTEffhu9L",
+    "expected": {
+      "error": "",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1024,
+          "Persisted": [],
+          "Volatile": [],
+          "PendingOperations": 0,
+          "PendingSHA256": "",
+          "NextOperation": 1,
+          "Identity": ""
+        }
+      ],
+      "operations": {
+        "data": [
+          {
+            "ID": 1,
+            "Kind": "alloc",
+            "Dependencies": null,
+            "Inode": 4,
+            "Offset": 0,
+            "Bytes": 0,
+            "PayloadSHA256": "",
+            "EffectSHA256": "sha256:x",
+            "Path": "",
+            "Destination": ""
+          }
+        ]
+      },
+      "enumerations": null,
+      "image_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "log_length": 0,
+      "log_digest": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "operations-null",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAAAEAAAAAAAAAG51bGwDAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFWmAQAAAAAAAPccT08Noq9jUCVh8KefkItAW6tT9exxuyHbiQVE6xo6",
+    "expected": {
+      "error": "WASI invalid: storage evidence: operations",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "operations-type",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAAAXAAAAAAAAAHsiZGF0YSI6W3siSUQiOiJvbmUifV19AwAAAE8AAAAAAAAAeyJkYXRhIjp7IlN0YXRlcyI6bnVsbCwiQ2hvaWNlRXhwbG9yYXRpb24iOm51bGwsIkNvbXBsZXRlIjp0cnVlLCJDYXBhY2l0eSI6IiJ9fQQAAABAAAAAAAAAAGFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWEFAAAAKAAAAAAAAAAAAAAAAAAAAOOwxEKY/BwUmvv0yJlvuSQnrkHkZJuTTKSVmRt4UrhVuQEAAAAAAABUKdVuo5rdnKPYeMws55zv1P/HtzO8hlAX1zW0QOO3Qg==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: operations",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "section-count",
+    "input_base64": "R01TVE9SRQEBAAAAAwAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19vwEAAAAAAADnrTVPepmhNGfnklvoUPjh+NNUMv5ywFslPno88sIGZw==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope version",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "section-overflow",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAD/////////fxcCAAAAAAAA1CWxypRrgmIBywjn3yWbaBBtUEAi1Ba09GcI1bV6MAc=",
+    "expected": {
+      "error": "WASI invalid: storage evidence: truncated envelope section",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "snapshots-trailing",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAAAFAAAAAAAAAFtdIFtdAgAAAJ0AAAAAAAAAeyJkYXRhIjpbeyJJRCI6MSwiS2luZCI6ImFsbG9jIiwiRGVwZW5kZW5jaWVzIjpudWxsLCJJbm9kZSI6NCwiT2Zmc2V0IjowLCJCeXRlcyI6MCwiUGF5bG9hZFNIQTI1NiI6IiIsIkVmZmVjdFNIQTI1NiI6InNoYTI1Njp4IiwiUGF0aCI6IiIsIkRlc3RpbmF0aW9uIjoiIn1dfQMAAABPAAAAAAAAAHsiZGF0YSI6eyJTdGF0ZXMiOm51bGwsIkNob2ljZUV4cGxvcmF0aW9uIjpudWxsLCJDb21wbGV0ZSI6dHJ1ZSwiQ2FwYWNpdHkiOiIifX0EAAAAQAAAAAAAAABhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhBQAAACgAAAAAAAAAAAAAAAAAAADjsMRCmPwcFJr79MiZb7kkJ65B5GSbk0yklZkbeFK4VaUBAAAAAAAAxe1lF+wldQO0jcwSXNbj/mCMNuzipsJTn44eWTZpOPw=",
+    "expected": {
+      "error": "WASI invalid: storage evidence: snapshots",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "snapshots-unknown-field",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAAAbAAAAAAAAAFt7IklEIjoiZGF0YSIsIlVua25vd24iOjF9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFW7AQAAAAAAALp+XZgscLgL0SUKdIo+07REc5rDdmjbkntF19gXSCBc",
+    "expected": {
+      "error": "WASI invalid: storage evidence: snapshots",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "trailing",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAEKidqh5TEUcmvCneewWdJGGhu4X7jd7xBtRzVGh/wJLAA==",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope length or digest",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "truncated",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAEKidqh5TEUcmvCneewWdJGGhu4X7jd7xBtRzVGh/wI=",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope length or digest",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "valid",
+    "input_base64": "R01TVE9SRQEBAAAABQAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAEKidqh5TEUcmvCneewWdJGGhu4X7jd7xBtRzVGh/wJL",
+    "expected": {
+      "error": "",
+      "snapshots": [
+        {
+          "ID": "data",
+          "Mount": "/workspace",
+          "CapacityBytes": 1024,
+          "Persisted": [],
+          "Volatile": [],
+          "PendingOperations": 0,
+          "PendingSHA256": "",
+          "NextOperation": 1,
+          "Identity": ""
+        }
+      ],
+      "operations": {
+        "data": [
+          {
+            "ID": 1,
+            "Kind": "alloc",
+            "Dependencies": null,
+            "Inode": 4,
+            "Offset": 0,
+            "Bytes": 0,
+            "PayloadSHA256": "",
+            "EffectSHA256": "sha256:x",
+            "Path": "",
+            "Destination": ""
+          }
+        ]
+      },
+      "enumerations": {
+        "data": {
+          "States": null,
+          "ChoiceExploration": null,
+          "Complete": true,
+          "Capacity": ""
+        }
+      },
+      "image_identity": "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa",
+      "log_length": 0,
+      "log_digest": "47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  },
+  {
+    "name": "version",
+    "input_base64": "R01TVE9SRQECAAAABAAAAAEAAACfAAAAAAAAAFt7IklEIjoiZGF0YSIsIk1vdW50IjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwMjQsIlBlcnNpc3RlZCI6W10sIlZvbGF0aWxlIjpbXSwiUGVuZGluZ09wZXJhdGlvbnMiOjAsIlBlbmRpbmdTSEEyNTYiOiIiLCJOZXh0T3BlcmF0aW9uIjoxLCJJZGVudGl0eSI6IiJ9XQIAAACdAAAAAAAAAHsiZGF0YSI6W3siSUQiOjEsIktpbmQiOiJhbGxvYyIsIkRlcGVuZGVuY2llcyI6bnVsbCwiSW5vZGUiOjQsIk9mZnNldCI6MCwiQnl0ZXMiOjAsIlBheWxvYWRTSEEyNTYiOiIiLCJFZmZlY3RTSEEyNTYiOiJzaGEyNTY6eCIsIlBhdGgiOiIiLCJEZXN0aW5hdGlvbiI6IiJ9XX0DAAAATwAAAAAAAAB7ImRhdGEiOnsiU3RhdGVzIjpudWxsLCJDaG9pY2VFeHBsb3JhdGlvbiI6bnVsbCwiQ29tcGxldGUiOnRydWUsIkNhcGFjaXR5IjoiIn19BAAAAEAAAAAAAAAAYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYWFhYQUAAAAoAAAAAAAAAAAAAAAAAAAA47DEQpj8HBSa+/TImW+5JCeuQeRkm5NMpJWZG3hSuFU/AgAAAAAAAJfwSwjKuZkVioSlul3F+wOzGDma7rCpVOj+iGUyNFCg",
+    "expected": {
+      "error": "WASI invalid: storage evidence: envelope version",
+      "snapshots": null,
+      "operations": null,
+      "enumerations": null,
+      "image_identity": "",
+      "log_length": 0,
+      "log_digest": "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=",
+      "failed_stage": 0,
+      "crash_context": null
+    }
+  }
+]

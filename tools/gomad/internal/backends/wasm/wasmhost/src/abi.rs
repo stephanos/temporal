@@ -1137,7 +1137,7 @@ fn invoke_namespace(
     let reply = guest
         .caller
         .data_mut()
-        .namespace_call(crate::namespace_call::Call::new(operation))?;
+        .namespace_call(crate::namespace::call::Call::new(operation))?;
     results[0] = Val::I32(i32::from(reply.errno));
     if reply.errno != 0 {
         return Ok(());

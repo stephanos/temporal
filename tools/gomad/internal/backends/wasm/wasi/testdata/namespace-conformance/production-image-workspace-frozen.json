@@ -1,0 +1,99 @@
+{
+  "name": "production-image-workspace-frozen",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZS9mcm96ZW4=",
+          "directory": true,
+          "readonly": true,
+          "data_base64": null
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZS9mcm96ZW4vaW5wdXQ=",
+          "directory": false,
+          "readonly": true,
+          "data_base64": "ZnJvemVu"
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZS9mcm96ZW4vbmVzdGVk",
+          "directory": true,
+          "readonly": true,
+          "data_base64": null
+        },
+        {
+          "path_base64": "L3dvcmtzcGFjZS9mcm96ZW4vbmVzdGVkL2RlZXA=",
+          "directory": false,
+          "readonly": true,
+          "data_base64": "ZGVlcGVy"
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ==",
+        "L3dvcmtzcGFjZS9mcm96ZW4="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNBgAAAAAAAAACAAAAAAAAAAEAAAAAAAAAAwAAAAAAAAARAAAAAAAAAC93b3Jrc3BhY2UvZnJvemVuCgAAAAAAAAAvd29ya3NwYWNlBAAAAAAAAAAvdG1wBAAAAAAAAAAvdG1wCgAAAAAAAAAvd29ya3NwYWNlEQAAAAAAAAAvd29ya3NwYWNlL2Zyb3plbgoAAAAAAAAAL3dvcmtzcGFjZQAAAAAAAAAAAQAKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEBEQAAAAAAAAAvd29ya3NwYWNlL2Zyb3plbgAAAAAAAAAAAgEXAAAAAAAAAC93b3Jrc3BhY2UvZnJvemVuL2lucHV0BgAAAAAAAABmcm96ZW4BARgAAAAAAAAAL3dvcmtzcGFjZS9mcm96ZW4vbmVzdGVkAAAAAAAAAAACAR0AAAAAAAAAL3dvcmtzcGFjZS9mcm96ZW4vbmVzdGVkL2RlZXAGAAAAAAAAAGRlZXBlcgEABAAAAAAAAAAvdG1wAAAAAAAAAAAA",
+      "files": 7
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "eA==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 64,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "fd": 6
+      }
+    }
+  ],
+  "digests": [
+    "4a3311838c7db0d8bd388a6c87c838cfb2093c7f74cfae3562f8cd36bffb5cf9"
+  ],
+  "digest": "4a3311838c7db0d8bd388a6c87c838cfb2093c7f74cfae3562f8cd36bffb5cf9"
+}

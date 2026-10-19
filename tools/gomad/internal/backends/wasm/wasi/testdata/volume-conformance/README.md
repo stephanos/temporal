@@ -71,3 +71,40 @@ go test -tags test_dep -p 1 -run '^TestVolumeConformanceCorpus$' ./internal/back
 Copy reviewed fixture changes into this tree through the normal patch workflow.
 The corpus does not qualify native execution; native parity is transitive
 through the drift-tested projection.
+
+R3 adds hand-named configuration, fault, cursor, filesystem and rename-recovery
+scripts, plus pure API steps in `vectors/core.json`. API steps retain errors,
+typed capacity counts, read/seek results, directory names, working directory,
+original handle path, charged bytes and the full recovery state. The test-only
+`enumerate.input.cursor_input` supplies a literal exploration cursor for forged
+identity, cursor, duplicate-seen and invalid-seen cases. It extends the corpus
+driver only; it is not a production request field.
+
+`fault-import-transcript-*` also pins the complete WASI import transcript.
+The migration contract reruns those scripts and compares both import bytes and
+all storage observations, and rejects a deliberately altered import transcript.
+`vectors/fault-decisions.json` checks direct storage decisions, including the
+occurrence, sequence and clock values when refusal appends no event.
+`vectors/error-mapping.json` checks the complete errno and capacity mapping.
+The hostile arbitrary-error dispatch probe remains a private invariant test.
+
+`vectors/image-admission.json` carries authenticated images and named decoder
+refusals, including exact inode headroom at shared mounts and the temp prefix.
+`vectors/image-identity.json` pins full image bytes and SHA-256, encoder refusal
+at one byte below the actual length, and independent inode and fault occurrence
+continuation changes. The Go generator checks its encoder against the exposed
+recovery state before writing forged image inputs for the Rust decoder.
+
+The Go boundary loaders read serialized inputs from
+`vectors/storage-envelopes.json`, `storage-collection.json`,
+`storage-run-admission.json` and `recovered-constructor.json`. They preserve
+complete decoded results, refusal messages, image/log state and whether an
+invalid request started execution. `vectors/recovery-admission.json` sends
+malformed images through the helper session, checks complete unchanged state
+after refusal and then successfully recovers a valid image in the same session.
+
+Regenerate all volume inputs into an existing external review directory:
+
+```sh
+go test -tags test_dep -p 1 -run '^(TestVolumeConformanceCorpus|TestVolumeCoreVectors|TestVolumeImageAdmissionCorpus|TestVolumeImageIdentityCorpus|TestVolumeErrorMappingCorpus|TestVolumeFaultDecisionCorpus|TestVolumeStorageEnvelopeCorpus|TestVolumeStorageCollectionCorpus|TestVolumeStorageRunAdmissionCorpus|TestVolumeRecoveredConstructorCorpus|TestVolumeRecoveryAdmissionCorpus)$' ./internal/backends/wasm/wasi -args -volume-conformance-output=/absolute/review/corpus
+```

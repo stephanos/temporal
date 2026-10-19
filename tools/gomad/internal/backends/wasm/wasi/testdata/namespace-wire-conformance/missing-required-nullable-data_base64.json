@@ -1,0 +1,5 @@
+{
+  "name": "missing-required-nullable-data_base64",
+  "input": "{\"image\":{\"entries\":[{\"directory\":true,\"path_base64\":\"L3dvcmtzcGFjZQ==\",\"readonly\":false},{\"data_base64\":\"\",\"directory\":true,\"path_base64\":\"L3RtcA==\",\"readonly\":false}],\"epoch_nanos\":946684800000000000,\"limits\":{\"files\":1000,\"descriptors\":64,\"filesystem_bytes\":8388608,\"output_bytes\":1048576,\"calls\":10000,\"transcript_bytes\":8388608,\"pending_events\":4096},\"preopens\":[\"L3RtcA==\",\"L3dvcmtzcGFjZQ==\"],\"read_step_nanos\":1000,\"stdin_base64\":null,\"working_directory\":\"L3dvcmtzcGFjZQ==\",\"writable_directories\":[\"L3dvcmtzcGFjZQ==\",\"L3RtcA==\"]},\"model\":\"namespace\"}\n",
+  "output": "{\"boundary\":\"invalid:namespace image\"}\n"
+}

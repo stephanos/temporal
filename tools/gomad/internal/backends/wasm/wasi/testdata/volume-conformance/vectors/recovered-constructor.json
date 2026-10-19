@@ -1,0 +1,681 @@
+[
+  {
+    "name": "nil-image",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": null,
+    "expected": {
+      "error": "WASI invalid: durable storage image",
+      "present": false,
+      "identity": ""
+    }
+  },
+  {
+    "name": "identity-only",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": {
+      "data_base64": null,
+      "model_base64": "eyJ2b2x1bWVzIjpbeyJJRCI6ImRhdGEiLCJQYXRoIjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwNDg1NzZ9XSwibGltaXRzIjp7IlBlbmRpbmdPcGVyYXRpb25zIjoxMDAwLCJUcmFuc2l0aW9ucyI6MTAwMH19",
+      "identity": "59a9b9a77efe3d7351817d8b82c2494f8966291d25e3819e25040a4887813545"
+    },
+    "expected": {
+      "error": "WASI invalid: durable storage image",
+      "present": false,
+      "identity": ""
+    }
+  },
+  {
+    "name": "model-mismatch",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": {
+      "data_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OmQ0NTY1ZWUwOGVkMGFkODE0ZmY2NDQ2ODRlYWE5ZjM5ZGY5YjRjNmJiZjdlOGQ4MDU1ZmU0MDA3ZWVjYjM0ZDMCAAAACAAAAAAAAAAAAAAAAAAAAAMAAACvAAAAAAAAAAgAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAQAAAAAAAAAZGF0YQoAAAAAAAAAL3dvcmtzcGFjZQAAEAAAAAAAAQAAAAAAAAADAAAAAAAAAO0BAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=",
+      "model_base64": "e30=",
+      "identity": "59a9b9a77efe3d7351817d8b82c2494f8966291d25e3819e25040a4887813545"
+    },
+    "expected": {
+      "error": "WASI invalid: recovery storage model identity",
+      "present": false,
+      "identity": ""
+    }
+  },
+  {
+    "name": "invalid-profile",
+    "config": {
+      "Profile": "invalid",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": {
+      "data_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OmQ0NTY1ZWUwOGVkMGFkODE0ZmY2NDQ2ODRlYWE5ZjM5ZGY5YjRjNmJiZjdlOGQ4MDU1ZmU0MDA3ZWVjYjM0ZDMCAAAACAAAAAAAAAAAAAAAAAAAAAMAAACvAAAAAAAAAAgAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAQAAAAAAAAAZGF0YQoAAAAAAAAAL3dvcmtzcGFjZQAAEAAAAAAAAQAAAAAAAAADAAAAAAAAAO0BAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=",
+      "model_base64": "eyJ2b2x1bWVzIjpbeyJJRCI6ImRhdGEiLCJQYXRoIjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwNDg1NzZ9XSwibGltaXRzIjp7IlBlbmRpbmdPcGVyYXRpb25zIjoxMDAwLCJUcmFuc2l0aW9ucyI6MTAwMH19",
+      "identity": "59a9b9a77efe3d7351817d8b82c2494f8966291d25e3819e25040a4887813545"
+    },
+    "expected": {
+      "error": "WASI invalid: profile",
+      "present": false,
+      "identity": ""
+    }
+  },
+  {
+    "name": "authentic-helper-image",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": {
+      "data_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OmQ0NTY1ZWUwOGVkMGFkODE0ZmY2NDQ2ODRlYWE5ZjM5ZGY5YjRjNmJiZjdlOGQ4MDU1ZmU0MDA3ZWVjYjM0ZDMCAAAACAAAAAAAAAAAAAAAAAAAAAMAAACvAAAAAAAAAAgAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAQAAAAAAAAAZGF0YQoAAAAAAAAAL3dvcmtzcGFjZQAAEAAAAAAAAQAAAAAAAAADAAAAAAAAAO0BAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=",
+      "model_base64": "eyJ2b2x1bWVzIjpbeyJJRCI6ImRhdGEiLCJQYXRoIjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwNDg1NzZ9XSwibGltaXRzIjp7IlBlbmRpbmdPcGVyYXRpb25zIjoxMDAwLCJUcmFuc2l0aW9ucyI6MTAwMH19",
+      "identity": "59a9b9a77efe3d7351817d8b82c2494f8966291d25e3819e25040a4887813545"
+    },
+    "expected": {
+      "error": "",
+      "present": true,
+      "identity": "c685ceda35f806b1d2ca8f21d9305e493ed0a98880fc930e7115a7a029e0c76e"
+    }
+  },
+  {
+    "name": "nonempty-storage-mount",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 666,
+          "Entries": 2,
+          "File": "io/mounts.json",
+          "Limits": {
+            "DirectoryEntries": 100000,
+            "Files": 10000,
+            "PathBytes": 4096,
+            "Requests": 100000,
+            "SingleFileBytes": 16777216,
+            "TotalBytes": 67108864
+          },
+          "Mappings": [
+            "/workspace/frozen"
+          ],
+          "NotExist": 0,
+          "Schema": "gomad.io-read-only-mounts/v1",
+          "SHA256": "sha256:9ccf95e3cfe9ddf83e53b3c2c7436c88a6e68f4cb4c0a0315e898a80f7ba0479",
+          "TotalBytes": 6
+        },
+        "Descriptor": "eyJlbnRyaWVzIjpbeyJjaGlsZHJlbiI6W3sia2luZCI6ImZpbGUiLCJtb2RlIjoiMDYwMCIsIm5hbWUiOiJpbnB1dCJ9XSwia2luZCI6ImRpcmVjdG9yeSIsIm1vZGUiOiIwNzU1IiwicGF0aCI6Ii93b3Jrc3BhY2UvZnJvemVuIiwic2l6ZSI6IjAifSx7ImNoaWxkcmVuIjpbXSwia2luZCI6ImZpbGUiLCJtb2RlIjoiMDYwMCIsInBhdGgiOiIvd29ya3NwYWNlL2Zyb3plbi9pbnB1dCIsInBheWxvYWQiOiJpby9tb3VudHMvZmlsZXMvZmZiMzA0ODE2YTEwOTAzMTNlODMzMjE1YzA4ZGFlM2QyMDljZmFkMWZmZDFmNjc0ZjA5MDlhMmFlOTllMTM5NCIsInNoYTI1NiI6InNoYTI1NjpmZmIzMDQ4MTZhMTA5MDMxM2U4MzMyMTVjMDhkYWUzZDIwOWNmYWQxZmZkMWY2NzRmMDkwOWEyYWU5OWUxMzk0Iiwic2l6ZSI6IjYifV0sImxpbWl0cyI6eyJkaXJlY3RvcnlfZW50cmllcyI6IjEwMDAwMCIsImZpbGVzIjoiMTAwMDAiLCJwYXRoX2J5dGVzIjoiNDA5NiIsInJlcXVlc3RzIjoiMTAwMDAwIiwic2luZ2xlX2ZpbGVfYnl0ZXMiOiIxNjc3NzIxNiIsInRvdGFsX2J5dGVzIjoiNjcxMDg4NjQifSwibWFwcGluZ3MiOlsiL3dvcmtzcGFjZS9mcm96ZW4iXSwicmVxdWVzdHMiOiIyIiwic2NoZW1hIjoiZ29tYWQuaW8tcmVhZC1vbmx5LW1vdW50cy92MSIsInRvdGFsX2J5dGVzIjoiNiJ9",
+        "Payloads": {
+          "io/mounts/files/ffb304816a1090313e833215c08dae3d209cfad1ffd1f674f0909a2ae99e1394": "ZnJvemVu"
+        }
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "image": {
+      "data_base64": "R01WT0xJTUcBAAAAAwAAAAEAAABPAAAAAAAAAEcAAAAAAAAAc2hhMjU2OmQ0NTY1ZWUwOGVkMGFkODE0ZmY2NDQ2ODRlYWE5ZjM5ZGY5YjRjNmJiZjdlOGQ4MDU1ZmU0MDA3ZWVjYjM0ZDMCAAAACAAAAAAAAAAAAAAAAAAAAAMAAACvAAAAAAAAAAgAAAAAAAAAAgAAAAAAAAABAAAAAAAAAAQAAAAAAAAAZGF0YQoAAAAAAAAAL3dvcmtzcGFjZQAAEAAAAAAAAQAAAAAAAAADAAAAAAAAAO0BAAAAAAAAAgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAQAAAAAAAAABAAAAAAAAAC8DAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAEAAAAAAAAAAAAAAAAAAAA=",
+      "model_base64": "eyJ2b2x1bWVzIjpbeyJJRCI6ImRhdGEiLCJQYXRoIjoiL3dvcmtzcGFjZSIsIkNhcGFjaXR5Qnl0ZXMiOjEwNDg1NzZ9XSwibGltaXRzIjp7IlBlbmRpbmdPcGVyYXRpb25zIjoxMDAwLCJUcmFuc2l0aW9ucyI6MTAwMH19",
+      "identity": "59a9b9a77efe3d7351817d8b82c2494f8966291d25e3819e25040a4887813545"
+    },
+    "fresh": true,
+    "expected": {
+      "error": "WASI invalid: storage mount must be an empty writable directory",
+      "present": false,
+      "identity": ""
+    }
+  }
+]

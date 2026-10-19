@@ -1,0 +1,69 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {
+    "evidence": {
+      "transcript": {"bytes":173,"sha256":"f4e25f9873891f5a82a323646a16b36ca76edbd17194513aeefca59a004a088f"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"sched_yield","params":[],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"clock_time_get","params":["i32","i64","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"04022fbf6fcf61d36be9312d577ca105529f94f5e3563838d8bc6e3720278753","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAACAAAAAQAAAAAAAAAAAAAAAgAAAAIAAAAAAAAAAAAAAAIAAAADAAAAAAAAAAAAAAACAAAABAAAAAAAAAAAAAAAAgAAAAUAAAAAAAAAAAAAAAIAAAAGAAAAAAAAAAAAAAABAQAABwAAAAAAAAA1AAAA/////wAAAAAAAAAAJQAAAENQVSBjbG9ja3Mgb3V0c2lkZSBzdG9jayBXQVNJIHByb2ZpbGU=","stream":"transcript","type":"evidence"},
+      {"fuel_remaining":999983,"local_model":{"advances":0,"calls":7,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":173,"transcript_sha256":"f4e25f9873891f5a82a323646a16b36ca76edbd17194513aeefca59a004a088f"},"message":"clock_time_get: CPU clocks outside stock WASI profile","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"unsupported","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "unsupported"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"sched_yield\" (func $yield (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") call $yield if unreachable end call $yield if unreachable end call $yield if unreachable end call $yield if unreachable end call $yield if unreachable end call $yield if unreachable end i32.const -1 i64.const 0 i32.const 64 call $clock drop unreachable))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Six literal yields preserve the original clock record ID7; exact full-width public clock input preserves canonical bytes/time/unsupported semantics.",
+  "replaces": [
+    "src/model.rs::typed_clock_preserves_json_reference_and_literal_canonical_bytes"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"}]
+    }
+  ],
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 3,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

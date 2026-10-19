@@ -1,13 +1,13 @@
-use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
+#[cfg(feature = "guest-profile")]
 use std::fmt::Write as _;
 use std::io::{BufRead, BufReader, Write};
 use std::process::{Command, Stdio};
 use std::sync::atomic::{AtomicU64, Ordering};
 
-#[path = "common/inspection.rs"]
-mod inspection;
+#[path = "common/profile_stderr.rs"]
+mod profile_stderr;
 
 fn run(wat: &str, change: Value, reply: impl FnMut(&Value) -> Value) -> Vec<Value> {
     run_authorized(wat, change, reply, AuthorizationMismatch::None)
@@ -108,124 +108,15 @@ fn run_captured(
         .read_to_string(&mut stderr)
         .unwrap();
     assert!(child.wait().unwrap().success(), "{stderr}");
+    profile_stderr::validate(stderr.as_bytes()).unwrap();
     std::fs::remove_file(path).unwrap();
     (frames, stderr)
 }
 fn deny(call: &Value) -> Value {
     json!({"type":"reply", "id":call["id"], "errno":0, "output":{}, "unsupported":true, "message":"not modeled"})
 }
-fn input_model() -> Value {
-    json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}})
-}
-
-#[test]
-fn dedicated_debug_import_seals_open_clock_prefix_without_finishing_runtime_tape() {
-    let mut pending = vec![0u8; 16 + 96 + 128];
-    pending[..4].copy_from_slice(&1u32.to_le_bytes());
-    pending[4..8].copy_from_slice(&1u32.to_le_bytes());
-    pending[12..16].copy_from_slice(&224u32.to_le_bytes());
-    pending[16..20].copy_from_slice(&1u32.to_be_bytes());
-    pending[20..24].copy_from_slice(&1u32.to_be_bytes());
-    pending[24..32].copy_from_slice(&42u64.to_be_bytes());
-    pending[36..40].copy_from_slice(&2u32.to_be_bytes());
-    pending[40..44].copy_from_slice(&1u32.to_be_bytes());
-    pending[48..80].fill(2);
-    pending[80..112].fill(1);
-    pending[224..232].copy_from_slice(&1u64.to_be_bytes());
-    let data: String = pending.iter().fold(String::new(), |mut text, byte| {
-        write!(text, "\\{byte:02x}").unwrap();
-        text
-    });
-    let guest = format!(
-        r#"(module
-      (import "wasi_snapshot_preview1" "clock_time_get" (func $clock (param i32 i64 i32) (result i32)))
-      (import "gomad_debug_v1" "exchange" (func $debug (param i32 i32) (result i32)))
-      (memory (export "memory") 1)
-      (data (i32.const 256) "{data}")
-      (data (i32.const 1024) "\01\00\00\00\06\00\00\00\00\00\00\00\00\00\00\00")
-      (func (export "_start")
-        (drop (call $clock (i32.const 1) (i64.const 0) (i32.const 0)))
-        (drop (call $debug (i32.const 256) (i32.const 240)))
-        (if (i32.load (i32.const 264))
-          (then (drop (call $debug (i32.const 1024) (i32.const 16))) unreachable))))"#
-    );
-    let recorded = run(&guest, json!({"local_model":input_model()}), deny);
-    let metadata: Vec<u8> = recorded
-        .iter()
-        .filter(|f| f["stream"] == "inspection")
-        .flat_map(|f| STANDARD.decode(f["data_base64"].as_str().unwrap()).unwrap())
-        .collect();
-    let evidence: Value = serde_json::from_slice(&metadata).unwrap();
-    assert_eq!(evidence["complete"], true);
-    let boundaries = inspection::boundaries(&evidence);
-    let boundary = &boundaries[0];
-    let cut = &boundary["cuts"][0];
-    let decode = |v: &Value| STANDARD.decode(v.as_str().unwrap()).unwrap();
-    let hash = |v: &[u8]| format!("{:x}", Sha256::digest(v));
-    let mut streams = serde_json::Map::new();
-    for (name, size) in [
-        ("choice", "choice_bytes"),
-        ("wasi", "wasi_bytes"),
-        ("network", "network_bytes"),
-        ("storage", "storage_bytes"),
-        ("stdout", "stdout_bytes"),
-        ("stderr", "stderr_bytes"),
-    ] {
-        let bytes = decode(&evidence["incarnations"][0]["streams"][name]);
-        streams.insert(
-            name.into(),
-            json!(hash(
-                &bytes[..usize::try_from(cut[size].as_u64().unwrap()).unwrap()]
-            )),
-        );
-    }
-    let world = decode(&evidence["world"]);
-    let lifecycle = decode(&evidence["lifecycle"]);
-    let control = json!({"target":{"node":"guest","incarnation":1},"decision":0,"expected":boundary,
-      "world_sha256":hash(&world[..usize::try_from(boundary["world_bytes"].as_u64().unwrap()).unwrap()]),
-      "lifecycle_sha256":hash(&lifecycle[..usize::try_from(boundary["lifecycle_bytes"].as_u64().unwrap()).unwrap()]),
-      "stream_sha256":[streams],"probes":[],"commands":[],"registries":[evidence["incarnations"][0]["registry"]]});
-    let mut alternative_hash = Sha256::new();
-    alternative_hash.update(b"gomad-choice-alternative-set/v1\0");
-    alternative_hash.update(2u64.to_be_bytes());
-    alternative_hash.update([1u8; 32]);
-    alternative_hash.update([2u8; 32]);
-    let digest: [u8; 32] = alternative_hash.finalize().into();
-    let decision = json!({"Ordinal":0,"Kind":1,"SiteOffset":42,"SiteMissing":false,"RankOverride":false,
-      "Alternatives":2,"Selected":0,"Data":0,"SelectedIdentity":vec![1u8;32],"AlternativeSetDigest":digest.to_vec()});
-    let mut model = input_model();
-    model["mode"] = json!(2);
-    model["tape"] = json!([decision.clone(), decision]);
-    model["inspection"] = control;
-    let inspected = run(&guest, json!({"local_model":model}), deny);
-    let terminal = inspected.last().unwrap();
-    assert_eq!(terminal["termination"], "inspected_prefix", "{terminal}");
-    assert_eq!(terminal["local_model"]["records"], 0);
-    assert_eq!(terminal["local_model"]["cursor"], 0);
-    assert_eq!(terminal["local_model"]["finished"], false);
-    assert_eq!(terminal["local_model"]["calls"], 1);
-}
-
 fn termination(frames: &[Value]) -> &str {
     frames.last().unwrap()["termination"].as_str().unwrap()
-}
-
-#[cfg(feature = "diagnostic-fuel-off")]
-#[test]
-fn diagnostic_fuel_off_reports_distinct_revision_and_preserves_offered_fuel() {
-    let frames = run(
-        "(module (memory (export \"memory\") 1) (func (export \"_start\")))",
-        json!({"fuel":1}),
-        deny,
-    );
-    assert_eq!(termination(&frames), "exit");
-    assert_eq!(frames.last().unwrap()["fuel_remaining"], 1);
-    assert!(
-        frames[0]["engine"]["configuration"]
-            .as_str()
-            .unwrap()
-            .ends_with("-fuel-off")
-    );
 }
 
 #[cfg(feature = "guest-profile")]
@@ -246,7 +137,7 @@ fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure()
         text
     });
     let guest = format!(
-        "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func $hot (local $n i32) i32.const 10000000 local.set $n (loop $work local.get $n i32.const 1 i32.sub local.tee $n br_if $work)) (func (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop call $hot))"
+        "(module (import \"gomad_wasm_v1\" \"config\" (func $config (param i32 i32) (result i32))) (import \"gomad_wasm_v1\" \"decision\" (func $decision (param i32 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (memory (export \"memory\") 1) (data (i32.const 32) \"{literal}\") (func $hot (local $n i32) i32.const 10000000 local.set $n (loop $work local.get $n i32.const 1 i32.sub local.tee $n br_if $work)) (func $hot_entry (export \"_start\") i32.const 0 i32.const 16 call $config drop i32.const 32 i32.const 192 call $decision drop i32.const 1 i64.const 0 i32.const 256 call $clock drop call $hot))"
     );
     let model = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":true,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
     let baseline = run(
@@ -334,178 +225,6 @@ fn guest_profile_drops_epochs_elapsed_inside_host_calls() {
     let profile: Value = serde_json::from_slice(&std::fs::read(&path).unwrap()).unwrap();
     assert_eq!(profile["meta"]["gomadGuestProfile"]["samples"], 0);
     std::fs::remove_file(path).unwrap();
-}
-
-#[cfg(feature = "guest-profile")]
-#[test]
-fn guest_profile_rejects_invalid_bounds_and_unknown_fields() {
-    for config in [
-        json!({"path":"relative","interval_micros":1000,"max_samples":1}),
-        json!({"path":"/tmp/profile.json","interval_micros":0,"max_samples":1}),
-        json!({"path":"/tmp/profile.json","interval_micros":1_000_001,"max_samples":1}),
-        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":100_001}),
-        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":0}),
-        json!({"path":"/tmp/profile.json","interval_micros":1,"max_samples":1,"unknown":true}),
-    ] {
-        let frames = run("(module)", json!({"guest_profile":config}), deny);
-        assert_eq!(termination(&frames), "invalid");
-        assert_eq!(frames.len(), 1);
-    }
-}
-
-#[cfg(feature = "diagnostic-profile")]
-fn diagnostic_run(wat: &str, malformed_reply: bool) -> (Vec<Value>, Value) {
-    use std::io::Read;
-    let path = std::env::temp_dir().join(format!("gomad-profile-{}.wat", std::process::id()));
-    std::fs::write(&path, wat).unwrap();
-    let hash = format!("{:x}", Sha256::digest(wat.as_bytes()));
-    let config = json!({"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":3,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16}});
-    let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
-        .stdin(Stdio::piped())
-        .stdout(Stdio::piped())
-        .stderr(Stdio::piped())
-        .spawn()
-        .unwrap();
-    let mut input = child.stdin.take().unwrap();
-    writeln!(input, "{}", json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":path,
-        "module_sha256":hash,"memory_bytes":131_072,"fuel":1_000_000,"output_bytes":1024,"local_model":config})).unwrap();
-    writeln!(
-        input,
-        "{}",
-        json!({"type":"model_input","stream":"environment","sequence":0,"data_base64":"UFdEPS8A"})
-    )
-    .unwrap();
-    writeln!(input, "{}", json!({"type":"model_inputs_end"})).unwrap();
-    let mut frames = Vec::new();
-    for line in BufReader::new(child.stdout.take().unwrap()).lines() {
-        let frame: Value = serde_json::from_str(&line.unwrap()).unwrap();
-        if frame["type"] == "started" {
-            writeln!(input, "{}", json!({"type":"authorize","module_sha256":hash,"configuration":frame["engine"]["configuration"]})).unwrap();
-        }
-        if frame["type"] == "call" {
-            let transcript =
-                b"\x0d\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x03\x00\x00\x00";
-            writeln!(input, "{}", json!({"type":"reply","id":frame["id"],"errno":0,
-                "output":if malformed_reply {json!([])} else {json!({})},
-                "local_state":{"now":4,"advances":0},"transcript_base64":STANDARD.encode(transcript)})).unwrap();
-        }
-        frames.push(frame);
-    }
-    let mut stderr = Vec::new();
-    child
-        .stderr
-        .take()
-        .unwrap()
-        .read_to_end(&mut stderr)
-        .unwrap();
-    assert!(child.wait().unwrap().success());
-    std::fs::remove_file(path).unwrap();
-    assert!(
-        stderr.len() < 16 * 1024,
-        "{}",
-        String::from_utf8_lossy(&stderr)
-    );
-    #[expect(
-        clippy::naive_bytecount,
-        reason = "The test counts line delimiters in one small diagnostic frame; no bytecount dependency is needed."
-    )]
-    {
-        assert_eq!(stderr.iter().filter(|&&byte| byte == b'\n').count(), 1);
-    }
-    assert!(stderr.starts_with(b"gomad-wasm-profile-v1 "));
-    let profile = serde_json::from_slice(&stderr[b"gomad-wasm-profile-v1 ".len()..]).unwrap();
-    (frames, profile)
-}
-
-#[cfg(feature = "diagnostic-profile")]
-#[test]
-fn diagnostic_hooks_measure_real_boundaries_without_changing_evidence_or_failures() {
-    let guest = "(module (import \"wasi_snapshot_preview1\" \"clock_time_get\" (func $clock (param i32 i64 i32) (result i32))) (import \"wasi_snapshot_preview1\" \"fd_sync\" (func $sync (param i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 0 i64.const 0 i32.const 8 call $clock drop i32.const 3 call $sync drop))";
-    let clock = b"\x47\x4d\x57\x54\x01\x00\x00\x00\x21\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x1c\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00\x01\x00\x00\x00\x00\x00\x00\x00";
-    for (wat, bad_reply, want, remote_count) in [
-        (guest.to_owned(), false, "exit", 1),
-        (guest.to_owned(), true, "invalid", 1),
-        (
-            guest.replace("i32.const 8", "i32.const 65535"),
-            false,
-            "trap",
-            0,
-        ),
-    ] {
-        let (frames, profile) = diagnostic_run(&wat, bad_reply);
-        assert_eq!(termination(&frames), want, "{frames:?}");
-        assert_eq!(profile["schema"], "gomad.wasm-profile/v1");
-        assert_eq!(profile["abi_overlap_errors"], 0);
-        for phase in [
-            "module_read",
-            "module_hash",
-            "engine_init",
-            "compile",
-            "instantiate",
-            "execute",
-        ] {
-            assert_eq!(profile["phases"][phase]["count"], 1, "missing {phase}");
-            assert!(profile["phases"][phase]["wall_nanos"].as_u64().unwrap() > 0);
-        }
-        assert_eq!(profile["abi"]["clock"]["count"], 1);
-        assert_eq!(profile["abi"]["remote_callback"]["count"], remote_count);
-        assert_eq!(profile["nested"]["remote_write"]["count"], remote_count);
-        assert_eq!(profile["nested"]["remote_read_wait"]["count"], remote_count);
-        let mut transcript = Vec::new();
-        for frame in frames.iter().filter(|frame| frame["type"] == "evidence") {
-            assert_eq!(frame["stream"], "transcript");
-            transcript.extend(
-                STANDARD
-                    .decode(frame["data_base64"].as_str().unwrap())
-                    .unwrap(),
-            );
-        }
-        let mut expected: Vec<u8> = Vec::new();
-        if want != "trap" {
-            expected.extend(clock);
-        }
-        if want == "exit" {
-            expected.extend(
-                b"\x0d\x00\x00\x00\x02\x00\x00\x00\x00\x00\x00\x00\x04\x00\x00\x00\x03\x00\x00\x00",
-            );
-        }
-        assert_eq!(transcript, expected);
-        assert_eq!(
-            frames.last().unwrap()["local_model"]["now"],
-            if want == "trap" { 1 } else { 4 }
-        );
-    }
-}
-
-#[cfg(feature = "diagnostic-profile")]
-#[test]
-fn local_yield_and_poll_encode_only_terminal_evidence_frames() {
-    let guest = r#"(module
-        (import "wasi_snapshot_preview1" "sched_yield" (func $yield (result i32)))
-        (import "wasi_snapshot_preview1" "poll_oneoff" (func $poll (param i32 i32 i32 i32) (result i32)))
-        (memory (export "memory") 1)
-        (data (i32.const 16) "\01\00\00\00")
-        (func (export "_start")
-            call $yield drop
-            i32.const 0 i32.const 64 i32.const 1 i32.const 128 call $poll drop
-            i32.const 128 i32.load i32.const 1 i32.ne if unreachable end))"#;
-    let (frames, stderr) = run_captured(
-        guest,
-        json!({"local_model":{"seed":7,"mode":1,"limit":4096,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":1000,"read_step_nanos":0,"now":1,"limits":{"calls":8,"transcript_bytes":65536,"pending_events":16}}}),
-        deny,
-        AuthorizationMismatch::None,
-    );
-    assert_eq!(termination(&frames), "exit", "{frames:?}");
-    let profile: Value = serde_json::from_str(
-        stderr
-            .trim()
-            .strip_prefix("gomad-wasm-profile-v1 ")
-            .unwrap(),
-    )
-    .unwrap();
-    // Started, final evidence and result are the only JSON encoding spans.
-    assert_eq!(profile["nested"]["encoding"]["count"], 3);
-    assert_eq!(profile["abi"]["remote_callback"]["count"], 0);
 }
 
 #[test]

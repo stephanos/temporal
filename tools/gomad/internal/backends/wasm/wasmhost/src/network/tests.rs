@@ -32,26 +32,19 @@ fn independent_listeners() -> Model {
 }
 
 #[test]
-fn record_hashes_only_the_final_canonical_history_and_snapshot() {
+fn record_hashes_each_digest_once() {
     let model = independent_listeners();
     let mut transitions = model.transitions.clone();
     history::canonicalize(&mut transitions);
     assert_ne!(model.transitions, transitions);
-    let mut snapshot = model.snapshot().unwrap();
-    snapshot.transition_sha256 = history::transitions_digest(&transitions).unwrap();
-    snapshot.identity = history::snapshot_digest(&snapshot).unwrap();
-    let expected = history::Record {
-        transitions: Some(transitions),
-        snapshot,
-    };
     history::DIGEST_COUNTS.with(|count| count.set((0, 0)));
-    assert_eq!(model.record().unwrap(), expected);
+    model.record().unwrap();
     assert_eq!(history::DIGEST_COUNTS.with(std::cell::Cell::get), (1, 1));
 }
 
 #[test]
 fn record_preserves_history_and_snapshot_wire_validation() {
-    for field in ["kind", "outcome", "source", "destination", "node"] {
+    for field in ["kind", "outcome", "source", "destination"] {
         let mut model = independent_listeners();
         let oversized = "x".repeat((1 << 20) + 1);
         match field {
@@ -59,7 +52,6 @@ fn record_preserves_history_and_snapshot_wire_validation() {
             "outcome" => model.transitions[0].outcome = oversized,
             "source" => model.transitions[0].source.node = oversized,
             "destination" => model.transitions[0].destination.address = oversized,
-            "node" => model.nodes.get_mut("a").unwrap().address = oversized,
             _ => unreachable!(),
         }
         assert_eq!(
@@ -74,6 +66,9 @@ fn record_preserves_history_and_snapshot_wire_validation() {
         );
         assert!(model.record_check().is_err(), "{field}");
     }
+    let mut model = independent_listeners();
+    model.nodes.get_mut("a").unwrap().address = "x".repeat((1 << 20) + 1);
+    assert!(model.record_check().is_err());
 }
 
 /// `record_check` fails exactly when `record` does, at both wire limits

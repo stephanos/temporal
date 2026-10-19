@@ -1,0 +1,271 @@
+{
+  "name": "directories-and-rename-binary-image-and-step-digests",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly"
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly"
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGlyL2NoaWxk"
+      }
+    },
+    {
+      "op": "path_remove_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly",
+        "new_fd": 3,
+        "new_path_base64": "ZGlyL2NoaWxkL2N5Y2xl"
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_write",
+      "input": {
+        "fd": 5,
+        "data_base64": "c3RhYmxl"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "new_fd": 3,
+        "new_path_base64": "bWlzc2luZy8="
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "new_fd": 3,
+        "new_path_base64": "c291cmNl"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "new_fd": 3,
+        "new_path_base64": "dGFyZ2V0"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "dGFyZ2V0",
+        "new_fd": 3,
+        "new_path_base64": "ZGly"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly",
+        "new_fd": 3,
+        "new_path_base64": "dGFyZ2V0"
+      }
+    },
+    {
+      "op": "path_remove_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGlyL2NoaWxk"
+      }
+    },
+    {
+      "op": "path_remove_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZGly"
+      }
+    },
+    {
+      "op": "path_unlink_file",
+      "input": {
+        "fd": 3,
+        "path_base64": "dGFyZ2V0"
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "length": 20
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 20,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 55,
+      "output": {}
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 6
+      }
+    },
+    {
+      "errno": 54,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 31,
+      "output": {}
+    },
+    {
+      "errno": 54,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "c3RhYmxl"
+      }
+    }
+  ],
+  "digests": [
+    "76ef0097d3418cf241a616d0a1a18ada5592a1c3d57e4b2c9af3badf88845c83",
+    "76ef0097d3418cf241a616d0a1a18ada5592a1c3d57e4b2c9af3badf88845c83",
+    "ad7cbfd851ffb999877fa6516d57d0cb29d52d089e15748c7f3679d4db303323",
+    "ad7cbfd851ffb999877fa6516d57d0cb29d52d089e15748c7f3679d4db303323",
+    "ad7cbfd851ffb999877fa6516d57d0cb29d52d089e15748c7f3679d4db303323",
+    "76d22b304bbb24ac7b108462337d30a1e7dcb6203ccb7ddc607a7b9c9383a9b5",
+    "4d5c03d51869d722e7f6021e6035ab3887c34118024294863ed3e58ec825c8e5",
+    "4d5c03d51869d722e7f6021e6035ab3887c34118024294863ed3e58ec825c8e5",
+    "4d5c03d51869d722e7f6021e6035ab3887c34118024294863ed3e58ec825c8e5",
+    "0cebc8d462c0a51fee4dc952a24e9a83a450be41eae93e8d49622301cf17b23d",
+    "0cebc8d462c0a51fee4dc952a24e9a83a450be41eae93e8d49622301cf17b23d",
+    "0cebc8d462c0a51fee4dc952a24e9a83a450be41eae93e8d49622301cf17b23d",
+    "30d3613d3386e47a422f9e008ef68bbe00471dff7b4102a3a4e509dbc2f08ed4",
+    "b25727549933b959e5a2385b7c68bf285e7891e3668f81e90da482d49f9d0bb3",
+    "30fc81ddf451fc1037dae8feded27c334d5be992f4c5dcf32d874063dff0a81e",
+    "30fc81ddf451fc1037dae8feded27c334d5be992f4c5dcf32d874063dff0a81e"
+  ],
+  "digest": "30fc81ddf451fc1037dae8feded27c334d5be992f4c5dcf32d874063dff0a81e"
+}

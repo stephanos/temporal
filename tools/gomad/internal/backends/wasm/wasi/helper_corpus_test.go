@@ -74,6 +74,10 @@ func TestHelperCorpus(t *testing.T) {
 					t.Fatalf("unknown case field %s", key)
 				}
 			}
+			name := strings.TrimSuffix(filepath.Base(file), ".json")
+			if err := helperCorpusResidualInput(name, fields); err != nil {
+				t.Fatal(err)
+			}
 			expected, ok := fields["expected"]
 			if !ok {
 				t.Fatal("no expected block; regenerate with the Rust loader and review")
@@ -91,6 +95,12 @@ func TestHelperCorpus(t *testing.T) {
 				}
 				projected, err := helperCorpusExpected(run)
 				if err != nil {
+					t.Fatal(err)
+				}
+				if err := helperCorpusRefusalLiteral(strings.TrimSuffix(filepath.Base(file), ".json"), projected); err != nil {
+					t.Fatal(err)
+				}
+				if err := helperCorpusResidualActual(name, projected); err != nil {
 					t.Fatal(err)
 				}
 				actual = append(actual, projected)
@@ -118,6 +128,137 @@ func decodeCorpusJSON(data []byte) (any, error) {
 		return nil, errors.New("trailing JSON")
 	}
 	return value, nil
+}
+
+func helperCorpusOutputFrame(line []byte) (any, error) {
+	frame, err := decodeCorpusJSON(line)
+	if err != nil {
+		return nil, err
+	}
+	fields, ok := frame.(map[string]any)
+	if !ok || fields["type"] != "call" || fields["op"] != "fd_write" && fields["op"] != "fd_pwrite" {
+		return frame, nil
+	}
+	number := func(value any) (string, error) {
+		n, ok := value.(json.Number)
+		if !ok {
+			return "", errors.New("invalid unsigned write callback field")
+		}
+		value64, err := strconv.ParseUint(n.String(), 10, 64)
+		if err != nil {
+			return "", err
+		}
+		return strconv.FormatUint(value64, 10), nil
+	}
+	quote := func(value string) string {
+		encoded, _ := helperCorpusMarshal(value)
+		encoded = bytes.ReplaceAll(encoded, []byte(`\u2028`), []byte{0xe2, 0x80, 0xa8})
+		encoded = bytes.ReplaceAll(encoded, []byte(`\u2029`), []byte{0xe2, 0x80, 0xa9})
+		return string(encoded)
+	}
+	id, err := number(fields["id"])
+	if err != nil {
+		return nil, err
+	}
+	input, ok := fields["input"].(map[string]any)
+	if !ok {
+		return nil, errors.New("missing write callback input")
+	}
+	fd, err := number(input["fd"])
+	if err != nil {
+		return nil, err
+	}
+	if _, err := strconv.ParseUint(fd, 10, 32); err != nil {
+		return nil, err
+	}
+	data, ok := input["data_base64"].(string)
+	if !ok {
+		return nil, errors.New("missing write callback bytes")
+	}
+	offset := ""
+	if fields["op"] == "fd_pwrite" {
+		value, err := number(input["offset"])
+		if err != nil {
+			return nil, err
+		}
+		offset = `,"offset":` + value
+	}
+	state := ""
+	if value, present := fields["local_state"]; present {
+		local, ok := value.(map[string]any)
+		if !ok {
+			return nil, errors.New("invalid callback local_state")
+		}
+		var parts []string
+		for _, key := range []string{"advances", "now", "transcript_bytes"} {
+			value, err := number(local[key])
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, quote(key)+":"+value)
+		}
+		if offered, present := local["offered_output_bytes"]; present {
+			value, err := number(offered)
+			if err != nil {
+				return nil, err
+			}
+			parts = append(parts, `"offered_output_bytes":`+value)
+		}
+		state = `,"local_state":{` + strings.Join(parts, ",") + `}`
+	}
+	instance := ""
+	if value, present := fields["instance"]; present {
+		name, ok := value.(string)
+		if !ok {
+			return nil, errors.New("invalid callback instance")
+		}
+		instance = `"instance":` + quote(name) + ","
+	}
+	instance, err = helperCorpusClusterIncarnationPrefix(fields, instance)
+	if err != nil {
+		return nil, err
+	}
+	expected := fmt.Sprintf(`{%s"id":%s,"input":{"data_base64":%s,"fd":%s%s}%s,"op":%s,"type":"call"}`, instance, id, quote(data), fd, offset, state, quote(fields["op"].(string)))
+	if !bytes.Equal(line, []byte(expected)) {
+		return nil, errors.New("write callback raw literal key order or bytes differ")
+	}
+	return frame, nil
+}
+
+func TestHelperCorpusWriteRawLinesPreserveLiteralKeyOrderAndBytes(t *testing.T) {
+	for _, literal := range []string{
+		`{"id":1,"input":{"data_base64":"AP8=","fd":13},"local_state":{"advances":0,"now":1,"transcript_bytes":0},"op":"fd_write","type":"call"}`,
+		`{"id":2,"input":{"data_base64":"","fd":4294967295,"offset":18446744073709551615},"op":"fd_pwrite","type":"call"}`,
+	} {
+		if _, err := helperCorpusOutputFrame([]byte(literal)); err != nil {
+			t.Fatal(err)
+		}
+		reordered := strings.ReplaceAll(strings.ReplaceAll(literal, `{"id":`, `{"type":"call","id":`), `,"type":"call"}`, `}`)
+		original, err := decodeCorpusJSON([]byte(literal))
+		if err != nil {
+			t.Fatal(err)
+		}
+		changed, err := decodeCorpusJSON([]byte(reordered))
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !reflect.DeepEqual(original, changed) {
+			t.Fatal("mutation changed parsed fields")
+		}
+		for _, wrong := range []string{reordered, strings.Replace(literal, ":", ": ", 1)} {
+			if _, err := helperCorpusOutputFrame([]byte(wrong)); err == nil {
+				t.Fatalf("raw callback byte/order drift accepted: %s", wrong)
+			}
+		}
+	}
+	for _, wrong := range []string{
+		`{"id":1,"input":{"data_base64":"AP\u0038=","fd":13},"op":"fd_write","type":"call"}`,
+		`{"id":1,"id":1,"input":{"data_base64":"","fd":13},"op":"fd_write","type":"call"}`,
+	} {
+		if _, err := helperCorpusOutputFrame([]byte(wrong)); err == nil {
+			t.Fatalf("raw escape/duplicate drift accepted: %s", wrong)
+		}
+	}
 }
 
 func helperCorpusGuest(guest any) ([]byte, error) {
@@ -263,6 +404,10 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 	if err := os.WriteFile(guestPath, guest, 0o600); err != nil {
 		return nil, err
 	}
+	kase, err = helperCorpusClusterAssets(kase, guestPath)
+	if err != nil {
+		return nil, err
+	}
 	digest := sha256.Sum256(guest)
 	guestSHA256 := hex.EncodeToString(digest[:])
 	replies, _ := kase["replies"].([]any)
@@ -273,6 +418,11 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 		deny = true
 	default:
 		return nil, fmt.Errorf("unknown reply_policy %v", policy)
+	}
+	for _, frames := range []any{kase["request"], kase["inputs"], kase["replies"]} {
+		if _, err := helperCorpusWireMarshal(frames); err != nil {
+			return nil, err
+		}
 	}
 	command := exec.Command(helper)
 	stdin, err := command.StdinPipe()
@@ -352,7 +502,7 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 		if err != nil {
 			return nil, err
 		}
-		frame, err := decodeCorpusJSON(line)
+		frame, err := helperCorpusOutputFrame(bytes.TrimSuffix(line, []byte("\n")))
 		if err != nil {
 			return nil, fmt.Errorf("helper emitted non-JSON %q: %w", line, err)
 		}
@@ -387,6 +537,9 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 	}
 	closeInput()
 	err = command.Wait()
+	if err := helperProfileStderr(stderr.Bytes()); err != nil {
+		return nil, err
+	}
 	var exit *exec.ExitError
 	switch {
 	case err == nil:
@@ -413,7 +566,7 @@ func helperCorpusLine(frame any) ([]byte, error) {
 	fields, ok := frame.(map[string]any)
 	instance, tagged := fields["instance"]
 	if !ok || !tagged {
-		return helperCorpusMarshal(frame)
+		return helperCorpusWireMarshal(frame)
 	}
 	rest := make(map[string]any, len(fields))
 	for key, value := range fields {
@@ -425,7 +578,7 @@ func helperCorpusLine(frame any) ([]byte, error) {
 	if err != nil {
 		return nil, err
 	}
-	body, err := helperCorpusMarshal(rest)
+	body, err := helperCorpusWireMarshal(rest)
 	if err != nil {
 		return nil, err
 	}
@@ -433,6 +586,62 @@ func helperCorpusLine(frame any) ([]byte, error) {
 		return []byte(`{"instance":` + string(tag) + `}`), nil
 	}
 	return []byte(`{"instance":` + string(tag) + `,` + string(body[1:])), nil
+}
+
+func helperCorpusWireMarshal(value any) ([]byte, error) {
+	switch fields := value.(type) {
+	case map[string]any:
+		if raw, found := fields["raw_json"]; found {
+			text, ok := raw.(string)
+			trimmed := strings.TrimSpace(text)
+			if !ok || len(fields) != 1 || strings.ContainsAny(text, "\r\n") || !strings.HasPrefix(trimmed, "{") || !json.Valid([]byte(text)) {
+				return nil, errors.New("raw_json needs one JSON object without line breaks or sibling fields")
+			}
+			return []byte(text), nil
+		}
+		keys := make([]string, 0, len(fields))
+		for key := range fields {
+			keys = append(keys, key)
+		}
+		sort.Strings(keys)
+		var output bytes.Buffer
+		output.WriteByte('{')
+		for index, key := range keys {
+			if index != 0 {
+				output.WriteByte(',')
+			}
+			name, err := helperCorpusMarshal(key)
+			if err != nil {
+				return nil, err
+			}
+			item, err := helperCorpusWireMarshal(fields[key])
+			if err != nil {
+				return nil, err
+			}
+			output.Write(name)
+			output.WriteByte(':')
+			output.Write(item)
+		}
+		output.WriteByte('}')
+		return output.Bytes(), nil
+	case []any:
+		var output bytes.Buffer
+		output.WriteByte('[')
+		for index, field := range fields {
+			if index != 0 {
+				output.WriteByte(',')
+			}
+			item, err := helperCorpusWireMarshal(field)
+			if err != nil {
+				return nil, err
+			}
+			output.Write(item)
+		}
+		output.WriteByte(']')
+		return output.Bytes(), nil
+	default:
+		return helperCorpusMarshal(value)
+	}
 }
 
 // helperCorpusMarshal encodes like serde_json: sorted keys, no HTML escaping.

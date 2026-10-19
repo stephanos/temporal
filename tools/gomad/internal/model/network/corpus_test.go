@@ -2,6 +2,7 @@ package network
 
 import (
 	"bytes"
+	"crypto/sha256"
 	"encoding/json"
 	"fmt"
 	"math"
@@ -19,16 +20,19 @@ const networkCorpusDirectory = "../../backends/wasm/wasmhost/tests/testdata/netw
 // Inputs are concrete Model calls, including resolved handles and ports, so a
 // consumer needs neither Go's scenario builders nor the net_stream ABI.
 type networkCorpusInput struct {
-	Action    string   `json:"action"`
-	Request   *Request `json:"request,omitempty"`
-	Domain    *Domain  `json:"domain,omitempty"`
-	RequestID uint64   `json:"request_id,omitempty"`
-	Handle    uint64   `json:"handle,omitempty"`
-	Left      string   `json:"left,omitempty"`
-	Right     string   `json:"right,omitempty"`
-	Symmetric bool     `json:"symmetric,omitempty"`
-	Graceful  bool     `json:"graceful,omitempty"`
-	Nanos     uint64   `json:"nanos,omitempty"`
+	Action     string   `json:"action"`
+	Request    *Request `json:"request,omitempty"`
+	Domain     *Domain  `json:"domain,omitempty"`
+	RequestID  uint64   `json:"request_id,omitempty"`
+	Handle     uint64   `json:"handle,omitempty"`
+	Left       string   `json:"left,omitempty"`
+	Right      string   `json:"right,omitempty"`
+	Symmetric  bool     `json:"symmetric,omitempty"`
+	Graceful   bool     `json:"graceful,omitempty"`
+	Nanos      uint64   `json:"nanos,omitempty"`
+	LeftNodes  []string `json:"left_nodes,omitempty"`
+	RightNodes []string `json:"right_nodes,omitempty"`
+	LinkAction string   `json:"link_action,omitempty"`
 }
 
 type networkCorpusPending struct {
@@ -46,13 +50,14 @@ type networkCorpusState struct {
 }
 
 type networkCorpusOutput struct {
-	Result      *Result            `json:"result,omitempty"`
-	Error       string             `json:"error"`
-	Ready       []uint64           `json:"ready"`
-	Deadline    uint64             `json:"next_deadline"`
-	State       networkCorpusState `json:"state"`
-	Snapshot    Snapshot           `json:"snapshot"`
-	Transitions []Transition       `json:"transitions"`
+	Result        *Result            `json:"result,omitempty"`
+	Error         string             `json:"error"`
+	Ready         []uint64           `json:"ready"`
+	Deadline      uint64             `json:"next_deadline"`
+	State         networkCorpusState `json:"state"`
+	Snapshot      *Snapshot          `json:"snapshot"`
+	SnapshotError string             `json:"snapshot_error,omitempty"`
+	Transitions   []Transition       `json:"transitions"`
 }
 
 type networkCorpusStep struct {
@@ -71,6 +76,7 @@ type networkCorpus struct {
 	Steps          []networkCorpusStep `json:"steps"`
 	Final          *Record             `json:"final,omitempty"`
 	FinalError     string              `json:"final_error"`
+	RecordError    string              `json:"record_error,omitempty"`
 }
 
 type networkCorpusBuilder struct {
@@ -179,6 +185,12 @@ func (b *networkCorpusBuilder) step(input networkCorpusInput) networkCorpusOutpu
 		err = m.Reset(input.Handle)
 	case "advance":
 		output.Ready, err = m.Advance(input.Nanos)
+	case "advance_before":
+		output.Ready, err = m.AdvanceBefore(input.Nanos)
+	case "clock_ceiling":
+		err = m.LimitClockCeiling(input.Nanos)
+	case "group":
+		err = m.ChangeGroup(input.LeftNodes, input.RightNodes, input.LinkAction, input.Nanos, input.Symmetric)
 	case "ready":
 		output.Ready = m.Ready()
 	case "finish":
@@ -194,7 +206,7 @@ func (b *networkCorpusBuilder) step(input networkCorpusInput) networkCorpusOutpu
 	}
 	// Observe settled requests without running Ready: an implicit retry between
 	// heal and repartition would change the serialized owner's behavior.
-	if input.Action != "ready" && input.Action != "advance" {
+	if input.Action != "ready" && input.Action != "advance" && input.Action != "advance_before" {
 		for id, p := range m.pending {
 			if p.result != nil {
 				output.Ready = append(output.Ready, id)
@@ -216,9 +228,11 @@ func (b *networkCorpusBuilder) step(input networkCorpusInput) networkCorpusOutpu
 		output.State.Pending = append(output.State.Pending, networkCorpusPending{RequestID: id, State: state, Accepted: p.accepted})
 	}
 	sort.Slice(output.State.Pending, func(i, j int) bool { return output.State.Pending[i].RequestID < output.State.Pending[j].RequestID })
-	output.Snapshot, err = m.Snapshot()
+	snapshot, err := m.Snapshot()
 	if err != nil {
-		b.t.Fatal(err)
+		output.SnapshotError = err.Error()
+	} else {
+		output.Snapshot = &snapshot
 	}
 	output.Transitions = append([]Transition(nil), m.network.transitions[b.history:]...)
 	b.history = len(m.network.transitions)
@@ -233,9 +247,10 @@ func (b *networkCorpusBuilder) finish() networkCorpus {
 	}
 	r, err := b.model.Record()
 	if err != nil {
-		b.t.Fatal(err)
+		b.corpus.RecordError = err.Error()
+	} else {
+		b.corpus.Final = &r
 	}
-	b.corpus.Final = &r
 	if !b.model.network.finished {
 		if _, err := b.model.Finish(); err != nil {
 			b.corpus.FinalError = err.Error()
@@ -257,6 +272,11 @@ func networkCorpusScenarios(t *testing.T) []networkCorpus {
 	}
 	limits := testLimits()
 	limits.StallNanos = 10
+	oversized := newNetworkCorpus(t, "oversized-node-address-wire-refusal", Config{Nodes: []Node{{Node: "a", Address: strings.Repeat("x", (1<<20)+1)}}, Limits: limits})
+	oversized.step(networkCorpusInput{Action: "ready"})
+	corpora = append(corpora, oversized.finish())
+	networkCorpusRestoredStalls(add)
+	corpora = append(corpora, networkCorpusHealedEpoch(t))
 	for _, keys := range []int{1, 17} {
 		for _, closed := range []bool{false, true} {
 			add(fmt.Sprintf("listener-history-keys-%d-closed-%t", keys, closed), limits, func(b *networkCorpusBuilder, _, c Domain) {
@@ -478,6 +498,8 @@ func networkCorpusScenarios(t *testing.T) []networkCorpus {
 		corpora = append(corpora, b.finish())
 	}
 	corpora = append(corpora, networkCorpusBroker(t)...)
+	corpora = append(corpora, networkCorpusTimeoutReplayMismatch(t))
+	corpora = append(corpora, networkCorpusAdmission(t)...)
 	corpora = append(corpora, networkCorpusRandom(t)...)
 	return corpora
 }
@@ -503,6 +525,103 @@ func TestListenerHistoryCorporaExactReplay(t *testing.T) {
 }
 
 type networkCorpusAdd func(string, Limits, func(*networkCorpusBuilder, Domain, Domain)) networkCorpus
+
+func networkCorpusTimeoutReplayMismatch(t *testing.T) networkCorpus {
+	limits := testLimits()
+	limits.StallNanos, limits.ConnectionBytes = 100, 4
+	setup := func(b *networkCorpusBuilder) (Domain, uint64) {
+		a, c := b.domains()
+		_, x, _, _ := b.pair(a, c, 0)
+		b.link("partition", a, c, 0, false)
+		b.io(a, "write", x, "held", 0)
+		return a, x
+	}
+	source := newNetworkCorpus(t, "timeout-replay-source", networkCorpusConfig(limits))
+	setup(source)
+	source.advance(101)
+	record := *source.finish().Final
+	for index := range record.Transitions {
+		if record.Transitions[index].Kind == "reset" {
+			record.Transitions[index].Bytes = 5
+		}
+	}
+	encoded, err := encodeSimulationTransitions(record.Transitions)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record.Snapshot.TransitionSHA256 = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad-simulation-network-transitions/v3\x00"), encoded...)))
+	record.Snapshot.Identity = ""
+	encoded, err = encodeSimulationSnapshotIdentity(record.Snapshot)
+	if err != nil {
+		t.Fatal(err)
+	}
+	record.Snapshot.Identity = fmt.Sprintf("sha256:%x", sha256.Sum256(append([]byte("gomad-simulation-network-snapshot/v3\x00"), encoded...)))
+	config := networkCorpusConfig(limits)
+	config.Replay = &record
+	b := newNetworkCorpus(t, "replay-mismatch-preserves-timeout-reservation-and-bytes", config)
+	a, x := setup(b)
+	b.advance(101)
+	b.io(a, "write", x, "x", 0)
+	return b.finish()
+}
+
+func networkCorpusRestoredStalls(add networkCorpusAdd) {
+	limits := testLimits()
+	limits.StallNanos, limits.ConnectionBytes = 100, 4
+	for _, healFirst := range []bool{false, true} {
+		add(fmt.Sprintf("equal-time-held-delivery-heal-first-%t", healFirst), limits, func(b *networkCorpusBuilder, a, c Domain) {
+			_, x, y, _ := b.pair(a, c, 0)
+			b.link("partition", a, c, 0, false)
+			b.io(a, "write", x, "held", 0)
+			if healFirst {
+				b.step(networkCorpusInput{Action: "advance_before", Nanos: 101})
+				b.link("heal", a, c, 0, false)
+			}
+			b.advance(101)
+			if !healFirst {
+				b.link("heal", a, c, 0, false)
+			}
+			b.io(c, "read", y, "", 4)
+		})
+	}
+	add("expiry-wakes-partial-writer-and-blocked-reader", limits, func(b *networkCorpusBuilder, a, c Domain) {
+		_, x, y, _ := b.pair(a, c, 0)
+		b.link("partition", a, c, 0, false)
+		writer := b.io(a, "write", x, "heldmore", 0)
+		reader := b.io(c, "read", y, "", 1)
+		b.advance(101)
+		b.poll(a, writer.RequestID)
+		b.poll(c, reader.RequestID)
+	})
+	bounded := limits
+	bounded.Transitions = 8
+	add("reserved-expiry-drops-seven-received-and-held-bytes", bounded, func(b *networkCorpusBuilder, a, c Domain) {
+		_, x, y, _ := b.pair(a, c, 0)
+		b.io(c, "write", y, "ab", 0)
+		b.io(a, "read", x, "", 1)
+		b.link("partition", a, c, 0, true)
+		b.io(a, "write", x, "held", 0)
+		b.io(c, "write", y, "cd", 0)
+		b.advance(100)
+		b.advance(101)
+		for _, end := range []struct {
+			domain Domain
+			handle uint64
+		}{{a, x}, {c, y}} {
+			b.io(end.domain, "read", end.handle, "", 1)
+			b.io(end.domain, "write", end.handle, "x", 0)
+		}
+		b.advance(1000)
+	})
+	add("simultaneous-expiry-second-connection-stalled-first", limits, func(b *networkCorpusBuilder, a, c Domain) {
+		_, first, _, _ := b.pair(a, c, 0)
+		_, second, _, _ := b.pair(a, c, 0)
+		b.link("partition", a, c, 0, false)
+		b.io(a, "write", second, "two", 0)
+		b.io(a, "write", first, "one", 0)
+		b.advance(101)
+	})
+}
 
 func networkCorpusFIFO(add networkCorpusAdd) {
 	add("fifo-partition-delay-redundant-heal", testLimits(), func(b *networkCorpusBuilder, a, c Domain) {
@@ -912,6 +1031,9 @@ func TestNetworkCorpusIsCurrent(t *testing.T) {
 			t.Fatalf("duplicate corpus %s", name)
 		}
 		wantNames[name] = true
+		if err := checkNetworkHealedEpoch(corpus); err != nil {
+			t.Fatal(err)
+		}
 		data, err := json.Marshal(corpus)
 		if err != nil {
 			t.Fatal(err)
@@ -949,6 +1071,9 @@ func checkNetworkCorpusSerializedReplay(t *testing.T, data []byte) {
 	if err := json.Unmarshal(data, &corpus); err != nil {
 		t.Fatal(err)
 	}
+	if err := checkNetworkHealedEpoch(corpus); err != nil {
+		t.Fatal(err)
+	}
 	replay := newNetworkCorpus(t, corpus.Name, corpus.Config)
 	if corpus.Run != replay.corpus.Run || corpus.CreationError != replay.corpus.CreationError {
 		t.Fatalf("%s creation differs: run=%d error=%q, want run=%d error=%q", corpus.Name, replay.corpus.Run, replay.corpus.CreationError, corpus.Run, corpus.CreationError)
@@ -967,7 +1092,7 @@ func checkNetworkCorpusSerializedReplay(t *testing.T, data []byte) {
 		}
 	}
 	got := replay.finish()
-	if got.FinalError != corpus.FinalError || !reflect.DeepEqual(got.Final, corpus.Final) {
+	if got.FinalError != corpus.FinalError || got.RecordError != corpus.RecordError || !reflect.DeepEqual(got.Final, corpus.Final) {
 		t.Fatalf("%s serialized replay terminal differs: got record=%+v error=%q, want record=%+v error=%q", corpus.Name, got.Final, got.FinalError, corpus.Final, corpus.FinalError)
 	}
 }

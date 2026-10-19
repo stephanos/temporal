@@ -18,7 +18,7 @@ func clusterNetworkLimits() ClusterNetworkLimits {
 }
 
 // goBrokerFixture replays the helper's checked-in cluster network scenario
-// (wasmhost `src/network/cluster/tests.rs` `fixture_scenario`) through the Go
+// (wasmhost `src/cluster/network/tests.rs` `fixture_scenario`) through the Go
 // broker path: the Go owner, broker addressing and slot bases, and each node's
 // environment with its own network World.
 func goBrokerFixture(t *testing.T) (map[string][]byte, netmodel.Record) {

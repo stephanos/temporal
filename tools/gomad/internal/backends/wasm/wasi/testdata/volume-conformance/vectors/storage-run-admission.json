@@ -1,0 +1,681 @@
+[
+  {
+    "name": "unknown-volume",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "selection": {
+      "unknown": [
+        1
+      ]
+    },
+    "message": "",
+    "error": "WASI invalid: storage crash selection volume",
+    "started": false,
+    "accepted": false
+  },
+  {
+    "name": "duplicate",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "selection": {
+      "data": [
+        1,
+        1
+      ]
+    },
+    "message": "",
+    "error": "WASI invalid: storage crash selection duplicate operation",
+    "started": false,
+    "accepted": false
+  },
+  {
+    "name": "zero",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "selection": {
+      "data": [
+        0
+      ]
+    },
+    "message": "",
+    "error": "WASI invalid: storage crash selection zero operation",
+    "started": false,
+    "accepted": false
+  },
+  {
+    "name": "configured-crash",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        },
+        "faults": [
+          {
+            "name": "stop",
+            "resource": "/workspace/db",
+            "operation": "sync",
+            "occurrence": 1,
+            "action": "crash-before"
+          }
+        ]
+      }
+    },
+    "selection": null,
+    "message": "modeled storage crash: stop",
+    "error": "",
+    "started": false,
+    "accepted": true
+  },
+  {
+    "name": "different-crash-name",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        },
+        "faults": [
+          {
+            "name": "stop",
+            "resource": "/workspace/db",
+            "operation": "sync",
+            "occurrence": 1,
+            "action": "crash-before"
+          }
+        ]
+      }
+    },
+    "selection": null,
+    "message": "modeled storage crash: other",
+    "error": "",
+    "started": false,
+    "accepted": false
+  },
+  {
+    "name": "missing-crash-fault",
+    "config": {
+      "Profile": "gomad.wasi-stock-exploratory/v1",
+      "Args": [
+        "guest",
+        "literal $arg"
+      ],
+      "Environment": [
+        "PWD=/workspace",
+        "TZ=UTC",
+        "ONLY=captured"
+      ],
+      "WorkingDirectory": "/workspace",
+      "WritableDirectories": [
+        "/workspace",
+        "/tmp"
+      ],
+      "CapturedInputs": {
+        "Manifest": {
+          "Bytes": 0,
+          "Entries": 0,
+          "File": "",
+          "Limits": {
+            "DirectoryEntries": 0,
+            "Files": 0,
+            "PathBytes": 0,
+            "Requests": 0,
+            "SingleFileBytes": 0,
+            "TotalBytes": 0
+          },
+          "Mappings": null,
+          "NotExist": 0,
+          "Schema": "",
+          "SHA256": "",
+          "TotalBytes": 0
+        },
+        "Descriptor": null,
+        "Payloads": null
+      },
+      "Stdin": null,
+      "EntropyKey": [
+        1,
+        2,
+        3,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0,
+        0
+      ],
+      "Clock": {
+        "EpochNanos": 946684800000000000,
+        "ReadStepNanos": 1000
+      },
+      "Limits": {
+        "OutputBytes": 1048576,
+        "TranscriptBytes": 8388608,
+        "Calls": 10000,
+        "Descriptors": 64,
+        "Files": 1000,
+        "FilesystemBytes": 8388608,
+        "PendingEvents": 4096
+      },
+      "storage": {
+        "volumes": [
+          {
+            "ID": "data",
+            "Path": "/workspace",
+            "CapacityBytes": 1048576
+          }
+        ],
+        "limits": {
+          "PendingOperations": 1000,
+          "Transitions": 1000
+        }
+      }
+    },
+    "selection": null,
+    "message": "modeled storage crash: stop",
+    "error": "",
+    "started": false,
+    "accepted": false
+  }
+]

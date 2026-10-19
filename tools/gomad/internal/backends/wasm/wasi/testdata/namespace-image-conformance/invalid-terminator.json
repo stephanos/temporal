@@ -1,0 +1,8 @@
+{
+  "name": "invalid-terminator",
+  "data_base64": "R01XTgEAAAABAAAAAAAAAAUAAAAAAAAAAgAAAAAAAAADAAAAAAAAAAQAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAC8BAAAAAAAAAHgJ",
+  "files": 1,
+  "output_bytes": 3,
+  "epoch_nanos": 4,
+  "boundary": "invalid:namespace image"
+}

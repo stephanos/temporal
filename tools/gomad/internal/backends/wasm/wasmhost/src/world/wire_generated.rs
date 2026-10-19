@@ -9,7 +9,9 @@ use super::{Model, Readiness, Request, Transition, TransitionBody};
 use std::io::{Error, ErrorKind, Result, Write};
 
 pub const MAGIC: [u8; 8] = [0x47, 0x4d, 0x57, 0x53, 0x4e, 0x41, 0x50, 0x31];
+#[allow(dead_code, reason = "Shared wire schema limit retained for codec conformance.")]
 pub const MAXIMUM_DEPTH: usize = 4;
+#[allow(dead_code, reason = "Shared wire schema limit retained for codec conformance.")]
 pub const MAXIMUM_ENUM_BYTES: usize = 32;
 
 struct Writer<'a> {

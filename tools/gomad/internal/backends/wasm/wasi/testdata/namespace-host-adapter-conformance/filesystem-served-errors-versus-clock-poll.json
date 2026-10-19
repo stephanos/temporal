@@ -1,0 +1,74 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "filesystem-served-errors-versus-clock-poll",
+  "kind": "served",
+  "output_limit": 0,
+  "frames": null,
+  "transcript_base64": null,
+  "choice_base64": null,
+  "diagnostic_base64": null,
+  "operations": [
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 99,
+        "length": 1
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 99,
+        "path_base64": "eA=="
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": [
+          {
+            "userdata": 1,
+            "type": 1,
+            "fd": 99
+          }
+        ]
+      }
+    },
+    {
+      "op": "clock_time_get",
+      "input": {
+        "clock_id": 1,
+        "precision": 0
+      }
+    },
+    {
+      "op": "poll_oneoff",
+      "input": {
+        "subscriptions": [
+          {
+            "userdata": 2,
+            "type": 0,
+            "clock_id": 1,
+            "timeout": 1,
+            "precision": 0,
+            "flags": 0
+          }
+        ]
+      }
+    }
+  ],
+  "expected": {
+    "steps": null,
+    "partial_transcript_base64": null,
+    "partial_choice_base64": null,
+    "partial_diagnostic_base64": null,
+    "calls": 0,
+    "runtime_interrupted": false,
+    "termination": "",
+    "filesystem_served": {
+      "fd_read": 1,
+      "path_create_directory": 1,
+      "poll_oneoff": 1
+    }
+  }
+}

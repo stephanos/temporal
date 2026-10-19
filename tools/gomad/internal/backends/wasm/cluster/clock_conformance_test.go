@@ -321,6 +321,12 @@ func clockConformanceScripted(t *testing.T) []clockConformanceCorpus {
 	strict := clockConformanceClock{Kind: "process"}
 	forward := clockConformanceClock{Kind: "process", Forward: true}
 	broker := clockConformanceClock{Kind: "broker"}
+	add("quoted-participant-names", "src/clock.rs clock_quotes_names_like_go", broker, func(b *clockConformanceBuilder, _ int64) {
+		for _, name := range []string{"node/1", "a\"b\\c", "line\n\t\r\a\b\f\v\x00\x1f\u0085ü"} {
+			b.register(name, true)
+			b.register(name, true)
+		}
+	})
 	// pairs registers coordinator and node/1 inactive, then activates both.
 	pair := func(b *clockConformanceBuilder) (string, string) {
 		c, n := b.register("coordinator", true), b.register("node/1", true)
@@ -429,6 +435,33 @@ func clockConformanceScripted(t *testing.T) []clockConformanceCorpus {
 		b.quiesce(c, 2, at+10, at+30, 0)
 		b.activate(restarted)
 		b.quiesce(restarted, 1, at+10, at+20, 0)
+	})
+	add("restart-runnable-hold-removal", "src/clock.rs clock_restart_hold_blocks_advance_until_removed", broker, func(b *clockConformanceBuilder, at int64) {
+		a, old := b.register("a/1", false), b.register("b/1", false)
+		hold := b.register("restart/b/1", false)
+		b.event("remove", old, "", 0, 0, 0)
+		parked := b.quiesce(a, 1, at, at+5, 0)
+		if len(parked.Responses) != 0 || parked.Current != at {
+			t.Fatal("restart hold did not preserve the parked deadline")
+		}
+		restarted := b.register("b/2", false)
+		removed := b.event("remove", hold, "", 0, 0, 0)
+		if len(removed.Responses) != 0 || removed.Current != at {
+			t.Fatal("restart became runnable before quiescing")
+		}
+		advanced := b.quiesce(restarted, 1, at, at+5, 0)
+		if len(advanced.Responses) != 2 || advanced.Current != at+5 {
+			t.Fatal("restart failed to release both participants at the deadline")
+		}
+		for _, response := range advanced.Responses {
+			if response.Generation != 1 || response.Kind != 1 || response.Time != at+5 || response.Error != "" {
+				t.Fatalf("restart response differs: %+v", response)
+			}
+		}
+		inactive := b.event("runnable", old, "", 0, 0, 0)
+		if inactive.Error != "simulation time participant is inactive" {
+			t.Fatalf("old incarnation remained active: %+v", inactive)
+		}
 	})
 	add("strict-rejects-forward-tick", "simulation_time_test.go TestSimulationTimeArbiterRejectsForwardTickEpochInStrictMode", strict, func(b *clockConformanceBuilder, at int64) {
 		c := b.register("coordinator", true)

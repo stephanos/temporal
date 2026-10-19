@@ -1,0 +1,9 @@
+{
+  "name": "go-literal-root-with-stdin-hi",
+  "data_base64": "R01XTgEAAAAKAAAAAAAAAAUAAAAAAAAAEAAAAAAAAAAgAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAC8CAAAAAAAAAGhpAA==",
+  "files": 1,
+  "output_bytes": 32,
+  "epoch_nanos": 9,
+  "image_sha256": "40cac1166d503a56ccad7bb7e05c5e04052987dd5f50669af368939ec5dc372f",
+  "namespace_sha256": "30433144fd02a9eeca8a996fcd1ac435506af1fb83f63013e7315e2b12e722bb"
+}

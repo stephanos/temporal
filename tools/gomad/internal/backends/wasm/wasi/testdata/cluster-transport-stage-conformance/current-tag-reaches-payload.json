@@ -1,0 +1,15 @@
+{
+  "schema": "gomad.go-cluster-transport-stage-corpus/v1",
+  "name": "current-tag-reaches-payload",
+  "go_implementation_sha256": "be76311c239576c1f15d0dee1c4f27eb6d66b56f07b93547552a6136bc61df3e",
+  "target": {
+    "node": "a",
+    "incarnation": 2
+  },
+  "incoming_frame": "{\"instance\":\"a\",\"incarnation\":2,\"type\":\"reply\"}\n",
+  "expected": {
+    "kind": "invalid",
+    "dimension": "unexpected instance frame",
+    "message": "WASI invalid: unexpected instance frame"
+  }
+}

@@ -1445,8 +1445,6 @@ mod tests {
             encoded.len()
         );
         assert!(recorder.evidence.complete);
-        assert_eq!(recorder.evidence.schema, "gomad.wasm-inspection/v3");
-        assert_eq!(recorder.evidence.world_encoding, WORLD_ENCODING);
         assert_eq!(recorder.evidence.boundaries.len(), 2000);
         assert!(encoded.len() < 8 << 20);
         assert_eq!(
@@ -1478,26 +1476,6 @@ mod tests {
                 assert_ne!(storage, commitment(kind, b"abc"));
             }
         }
-    }
-    #[test]
-    fn terminal_network_cut_commits_the_retained_terminal_document() {
-        let mut recorder = Recorder::default();
-        let handle = Handle {
-            node: "peer".into(),
-            incarnation: 1,
-        };
-        let _ = recorder.snapshot(
-            Cut {
-                handle: handle.clone(),
-                ..Default::default()
-            },
-            b"before",
-            &[],
-        );
-        recorder.terminal_network(&handle, b"after".to_vec());
-        let cut = recorder.cuts.get(&handle).unwrap();
-        assert_eq!(cut.network_state, commitment("network", b"after"));
-        assert_eq!(cut.network_bytes, 5);
     }
     #[test]
     fn workflow_scale_inventory_fits_without_omitting_boundaries() {

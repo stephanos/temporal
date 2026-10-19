@@ -1,0 +1,15 @@
+{
+  "name": "path_readlink-unsupported-exact-reservation",
+  "reservation": {
+    "op": "path_readlink",
+    "input": {
+      "fd": 3,
+      "path_base64": "eA==",
+      "length": 0
+    },
+    "limit": 92,
+    "normal_transcript_base64": "R01XVAEAAAAbAQAAAQAAAAAAAABEAAAAAwAAAAEAAAB4AAAAADMAAABvcGVyYXRpb24gb3V0c2lkZSBzdG9jayBXQVNJIHByb2ZpbGU6IHBhdGhfcmVhZGxpbms=",
+    "short_refusal": "capacity:transcript-bytes"
+  },
+  "transcript_base64": "R01XVAEAAAAbAQAAAQAAAAAAAABEAAAAAwAAAAEAAAB4AAAAADMAAABvcGVyYXRpb24gb3V0c2lkZSBzdG9jayBXQVNJIHByb2ZpbGU6IHBhdGhfcmVhZGxpbms="
+}

@@ -1,0 +1,69 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": "after_replies",
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"e7f0becfd8e5895b99ce4804f6858de067ad53d2233686ef55d81b42cc877f90","schema":"gomad.wasm-host/v1","type":"started"},
+      {"fuel_remaining":0,"message":"tape decision capacity","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":0,"instantiate_nanos":0,"peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "Two streamed tape records exceed the exact one-record choice budget and refuse before guest execution.",
+  "replaces": [
+    "src/model.rs::canonical_record_and_forced_rank_preserve_identities"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"decisions":[{"AlternativeSetDigest":[224,5,66,203,233,157,29,41,169,40,120,58,85,122,108,164,246,228,204,79,126,196,129,255,181,238,34,125,84,164,188,128],"Alternatives":2,"Data":0,"Kind":1,"Ordinal":0,"RankOverride":true,"Selected":1,"SelectedIdentity":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"SiteMissing":false,"SiteOffset":42},{"AlternativeSetDigest":[224,5,66,203,233,157,29,41,169,40,120,58,85,122,108,164,246,228,204,79,126,196,129,255,181,238,34,125,84,164,188,128],"Alternatives":2,"Data":0,"Kind":1,"Ordinal":0,"RankOverride":true,"Selected":1,"SelectedIdentity":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"SiteMissing":false,"SiteOffset":42}],"type":"tape"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 1000,
+      "limit": 160,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 2,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "tape_chunks": 1,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

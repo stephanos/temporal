@@ -1,0 +1,77 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": "after_replies",
+  "expected": {
+    "evidence": {
+      "transcript": {"bytes":38,"sha256":"c6645ce624b7c7f6f63c6bafca43775579462646d03701c6c96c70f5e04a68d9"}
+    },
+    "exit_code": 0,
+    "frames": [
+      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"fd_read","params":["i32","i32","i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"6b4828fbd00332888161d633e8b2b6109d6c6952da3b277a1273c949f9d13040","schema":"gomad.wasm-host/v1","type":"started"},
+      {"data_base64":"R01XVAEAAAAKAAAAAQAAAAAAAAAOAAAAAAAAAAIAAAACAAAAaGk=","stream":"transcript","type":"evidence"},
+      {"exit_code":0,"fuel_remaining":999977,"local_model":{"advances":0,"calls":1,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":38,"transcript_sha256":"c6645ce624b7c7f6f63c6bafca43775579462646d03701c6c96c70f5e04a68d9"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"exit","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "exit"
+  },
+  "guest": {
+    "wat": "(module (import \"wasi_snapshot_preview1\" \"fd_read\" (func $read (param i32 i32 i32 i32) (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") i32.const 16 i32.const 256 i32.store i32.const 20 i32.const 2 i32.store i32.const 0 i32.const 16 i32.const 1 i32.const 64 call $read if unreachable end i32.const 64 i32.load i32.const 2 i32.ne if unreachable end i32.const 256 i32.load16_u i32.const 26984 i32.ne if unreachable end))"
+  },
+  "inputs": [
+    {
+      "data_base64": "UFdEPS8A",
+      "sequence": 0,
+      "stream": "environment",
+      "type": "model_input"
+    },
+    {
+      "type": "model_inputs_end"
+    }
+  ],
+  "intent": "The shared Go literal transports exact stdin hi and the matching limits/epoch into a guest read.",
+  "replaces": [
+    "src/namespace_transport.rs::shared_go_literal_preserves_full_reference_state_digest"
+  ],
+  "replies": [
+    {
+      "after": {"type":"started"},
+      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"data_base64":"R01XTgEAAAAKAAAAAAAAAAUAAAAAAAAAEAAAAAAAAAAgAAAAAAAAAAkAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAABAAAAAAAAAC8CAAAAAAAAAGhpAA==","sequence":0,"type":"namespace_input"},{"type":"namespace_inputs_end"}]
+    }
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1000000,
+    "local_model": {
+      "arguments": {"bytes":0,"chunks":0,"count":0},
+      "diagnostics": false,
+      "entropy_key": [0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],
+      "environment": {"bytes":6,"chunks":1,"count":1},
+      "epoch_nanos": 9,
+      "limit": 4096,
+      "limits": {"calls":100,"pending_events":16,"transcript_bytes":65536},
+      "mode": 1,
+      "now": 1,
+      "read_step_nanos": 0,
+      "seed": 7,
+      "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
+    },
+    "memory_bytes": 262144,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 100,
+      "chunks": 1,
+      "files": 1,
+      "sha256": "2ca1f37027243a76114ec21055ff5e9551a71a5b68377fb6e04e237dde5ca9fc"
+    },
+    "output_bytes": 32,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

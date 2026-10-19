@@ -1,0 +1,42 @@
+{
+  "builds": [
+    "diagnostic-profile",
+    "diagnostic-fuel-off",
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "close_input": "after_replies",
+  "expected": {
+    "evidence": {},
+    "exit_code": 0,
+    "frames": [
+      {"fuel_remaining":0,"message":"namespace requires local model ownership","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+    ],
+    "stderr": "",
+    "termination": "invalid"
+  },
+  "guest": {
+    "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"
+  },
+  "intent": "Namespace ownership refusal precedes guest start and image input.",
+  "replaces": [
+    "src/protocol.rs::namespace_ownership_tests::image_descriptor_requires_local_model_before_execution"
+  ],
+  "reply_policy": "deny",
+  "request": {
+    "fuel": 1,
+    "memory_bytes": 65536,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "namespace": {
+      "bytes": 100,
+      "chunks": 1,
+      "files": 1,
+      "sha256": "0000000000000000000000000000000000000000000000000000000000000000"
+    },
+    "output_bytes": 32,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

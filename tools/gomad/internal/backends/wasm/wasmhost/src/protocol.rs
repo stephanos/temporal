@@ -360,7 +360,7 @@ pub struct Execute {
     #[serde(default)]
     pub local_model: Option<crate::model::Config>,
     #[serde(default)]
-    pub namespace: Option<crate::namespace_transport::NamespaceDescriptor>,
+    pub namespace: Option<crate::namespace::transport::NamespaceDescriptor>,
     #[serde(default)]
     pub storage: Option<crate::storage_transport::StorageDescriptor>,
     #[cfg(feature = "guest-profile")]
@@ -420,25 +420,6 @@ impl Execute {
     }
 }
 
-#[cfg(test)]
-mod namespace_ownership_tests {
-    use super::*;
-
-    #[test]
-    fn image_descriptor_requires_local_model_before_execution() {
-        let request: Execute = serde_json::from_value(serde_json::json!({
-            "schema": SCHEMA, "type": "execute", "module_path": "/module.wasm",
-            "module_sha256": "0".repeat(64), "memory_bytes": 65536, "fuel": 1,
-            "output_bytes": 32,
-            "namespace": {"chunks":1,"files":1,"bytes":100,"sha256":"0".repeat(64)}
-        }))
-        .unwrap();
-        assert_eq!(
-            request.validate().unwrap_err().to_string(),
-            "namespace requires local model ownership"
-        );
-    }
-}
 #[derive(Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct Authorization {
@@ -560,4 +541,20 @@ pub fn send_frame(output: &mut dyn Write, frame: &impl Serialize) -> Result<()> 
         .write_all(&bytes)
         .and_then(|()| output.flush())
         .map_err(Error::new)
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Continue {
+    #[serde(rename = "type")]
+    pub(crate) kind: String,
+    pub(crate) now: u64,
+}
+
+#[derive(Deserialize)]
+#[serde(deny_unknown_fields)]
+pub(crate) struct Chunk {
+    #[serde(rename = "type")]
+    pub(crate) _kind: String,
+    pub(crate) data_base64: String,
 }

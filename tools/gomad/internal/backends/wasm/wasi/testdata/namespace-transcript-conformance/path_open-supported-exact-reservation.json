@@ -1,0 +1,19 @@
+{
+  "name": "path_open-supported-exact-reservation",
+  "reservation": {
+    "op": "path_open",
+    "input": {
+      "fd": 3,
+      "dirflags": 0,
+      "path_base64": "eA==",
+      "oflags": 1,
+      "rights_base": 2,
+      "rights_inheriting": 0,
+      "fdflags": 0
+    },
+    "limit": 96,
+    "normal_transcript_base64": "R01XVAEAAAAaAAAAAQAAAAAAAAAlAAAAAwAAAAAAAAABAAAAeAEAAgAAAAAAAAAAAAAAAAAAAAAABQAAAA==",
+    "short_refusal": "capacity:transcript-bytes"
+  },
+  "transcript_base64": "R01XVAEAAAAaAAAAAQAAAAAAAAAlAAAAAwAAAAAAAAABAAAAeAEAAgAAAAAAAAAAAAAAAAAAAAAABQAAAA=="
+}

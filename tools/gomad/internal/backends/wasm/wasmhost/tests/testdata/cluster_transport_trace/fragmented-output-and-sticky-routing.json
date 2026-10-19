@@ -1,0 +1,32 @@
+{
+  "schema": "gomad.rust-cluster-transport-trace/v1",
+  "name": "fragmented-output-and-sticky-routing",
+  "target": { "instance": "node-a", "incarnation": 1 },
+  "writes": [
+    { "chunk": "{\"type\":\"call\",", "error": null, "cumulative": "" },
+    {
+      "chunk": "\"id\":1}\n{\"type\":\"x\"}\n",
+      "error": null,
+      "cumulative": "{\"instance\":\"node-a\",\"type\":\"call\",\"id\":1}\n{\"instance\":\"node-a\",\"type\":\"x\"}\n"
+    },
+    {
+      "chunk": "[]\n",
+      "error": "cluster frame is not a JSON object",
+      "cumulative": "{\"instance\":\"node-a\",\"type\":\"call\",\"id\":1}\n{\"instance\":\"node-a\",\"type\":\"x\"}\n"
+    }
+  ],
+  "input": "{\"instance\":\"node-a\",\"type\":\"reply\",\"id\":1}\n{\"instance\":\"node-b\",\"type\":\"reply\"}\n",
+  "reads": [
+    { "frame": "{\"type\":\"reply\",\"id\":1}\n", "error": null, "broken": null },
+    {
+      "frame": null,
+      "error": "cluster frame is not addressed to the waiting instance",
+      "broken": "cluster frame is not addressed to the waiting instance"
+    },
+    {
+      "frame": null,
+      "error": "unexpected cluster protocol EOF",
+      "broken": "cluster frame is not addressed to the waiting instance"
+    }
+  ]
+}

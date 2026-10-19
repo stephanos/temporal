@@ -7,378 +7,20 @@ import (
 	"encoding/base64"
 	"encoding/binary"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io"
 	"os"
 	"path/filepath"
-	"reflect"
-	"strconv"
 	"sync"
 	"testing"
 	"time"
 
-	gomadsim "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
 func brokerTestConfig() BrokerConfig {
 	return BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}, {ID: "b", Incarnation: 1}}, Seed: 7, Limits: world.Limits{MaxRequests: 10000, MaxEvents: 10000, MaxQueuedEvents: 1000, MaxTransitions: 40000, MaxPayloadBytes: 32 << 20, MaxStringBytes: 1024}}
-}
-
-func TestBrokerBoundedDiagnosticsAndAtomicWorldCapacity(t *testing.T) {
-	config := brokerTestConfig()
-	config.Diagnostics = true
-	config.Limits.MaxTransitions = 10000
-	b, err := NewBroker(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	request := world.Request{Kind: "diagnostic", Resource: world.ResourceID{Adapter: "broker", Kind: "call", Key: "a"}}
-	for i := 0; i < 10000; i++ {
-		if _, err := b.world.Register(request); err != nil {
-			t.Fatal(err)
-		}
-	}
-	before := b.DiagnosticCardinality()
-	if _, err := b.world.Register(request); !errors.Is(err, world.ErrCapacity) {
-		t.Fatalf("world transition capacity did not fail typed: %v", err)
-	}
-	if after := b.DiagnosticCardinality(); after != before {
-		t.Fatal("capacity rejection or cardinality read mutated World")
-	}
-	data := b.Diagnostics()
-	if len(data) == 0 || len(data) > 2048 || before.Requests != 10000 || before.Transitions != 10000 {
-		t.Fatal("bounded infrastructure diagnostic expanded full canonical World")
-	}
-	if after := b.DiagnosticCardinality(); after != before {
-		t.Fatal("live diagnostic changed global order or time")
-	}
-}
-
-func TestBrokerPreparationCancellationAndFailureRelease(t *testing.T) {
-	b, err := NewBroker(brokerTestConfig())
-	if err != nil {
-		t.Fatal(err)
-	}
-	a, peer := b.Session("a"), b.Session("b")
-	if err := peer.Prepare(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	ctx, cancel := context.WithCancel(t.Context())
-	cancel()
-	if err := a.Prepare(ctx); err != context.Canceled {
-		t.Fatalf("canceled preparation: %v", err)
-	}
-	if b.preparing != peer || b.active != a {
-		t.Fatal("preparation changed visible continuation ordering")
-	}
-	peer.Prepared()
-	peer.Prepared()
-	if err := a.Prepare(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	if err := a.Finished(); err != nil {
-		t.Fatal(err)
-	}
-	if b.preparing != nil {
-		t.Fatal("failed helper retained compilation slot")
-	}
-	if err := peer.Prepare(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	peer.Prepared()
-	if err := peer.Activate(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	if err := a.Prepare(t.Context()); err == nil {
-		t.Fatal("stale incarnation obtained preparation slot")
-	}
-}
-
-func TestBrokerRevokedInFlightCompletionRetainsTypedBoundary(t *testing.T) {
-	b, err := NewBroker(brokerTestConfig())
-	if err != nil {
-		t.Fatal(err)
-	}
-	s := b.Session("a")
-	s.request = 1
-	if err := b.Stop("a"); err != nil {
-		t.Fatal(err)
-	}
-	var boundary *BoundaryError
-	if err := s.Delivered(Call{ID: 1, Op: "fd_write"}); !errors.As(err, &boundary) || boundary.Kind != "stop" {
-		t.Fatalf("revoked in-flight reply lost typed interruption: %v", err)
-	}
-	for _, op := range []string{"runtime_idle", "runtime_net_stream"} {
-		if err := s.Delivered(Call{ID: 1, Op: op}); !errors.As(err, &boundary) || boundary.Kind != "stop" {
-			t.Fatalf("revoked %s completion lost typed interruption: %v", op, err)
-		}
-	}
-	if err := s.beginCall(&Environment{}, Call{ID: 2, Op: "fd_write"}); !errors.As(err, &boundary) {
-		t.Fatalf("revoked request lost boundary: %v", err)
-	}
-	if err := s.finishCall(&Environment{}, Call{ID: 1, Op: "runtime_net_stream"}); !errors.As(err, &boundary) {
-		t.Fatalf("revoked readiness lost boundary: %v", err)
-	}
-	if _, err := s.prepareIdle(1000); !errors.As(err, &boundary) || s.state != "revoked" {
-		t.Fatalf("revoked participant became idle: state=%s err=%v", s.state, err)
-	}
-	if err := s.Finished(); err != nil {
-		t.Fatal(err)
-	}
-	if err := s.Delivered(Call{ID: 1, Op: "runtime_idle"}); !errors.As(err, &boundary) || boundary.Kind != "invalid" {
-		t.Fatalf("finished incarnation retained live boundary: %v", err)
-	}
-}
-
-func TestBrokerRevocationReleasesSurvivorProgressAfterReap(t *testing.T) {
-	for _, kind := range []string{"crash", "stop"} {
-		t.Run(kind, func(t *testing.T) {
-			b, err := NewBroker(brokerTestConfig())
-			if err != nil {
-				t.Fatal(err)
-			}
-			old := b.Session("a")
-			if kind == "crash" {
-				err = b.Crash("a")
-			} else {
-				err = b.Stop("a")
-			}
-			if err != nil {
-				t.Fatal(err)
-			}
-			if b.Current() != 1 || b.active != old {
-				t.Fatal("revocation released continuation before helper reap")
-			}
-			if err := old.Finished(); err != nil {
-				t.Fatal(err)
-			}
-			ctx, cancel := context.WithTimeout(t.Context(), time.Second)
-			defer cancel()
-			now, err := b.Session("b").idle(ctx, 1000)
-			if err != nil || now != 1000 {
-				t.Fatalf("surviving timer blocked without restart: now=%d err=%v", now, err)
-			}
-		})
-	}
-}
-
-func TestBrokerStaleLifecycleAndContinuationGate(t *testing.T) {
-	b, err := NewBroker(brokerTestConfig())
-	if err != nil {
-		t.Fatal(err)
-	}
-	a, old := b.Session("a"), b.Session("b")
-	if err = a.Activate(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	if err = b.Crash("b"); err != nil {
-		t.Fatal(err)
-	}
-	if err = old.Activate(t.Context()); err == nil {
-		t.Fatal("stale incarnation authorized")
-	}
-	if err = old.Finished(); err != nil {
-		t.Fatal(err)
-	}
-	next, err := b.Restart("b")
-	if err != nil || next.Node.Incarnation != 2 {
-		t.Fatalf("restart %v %v", next, err)
-	}
-	if err = old.Delivered(Call{ID: 1}); err == nil {
-		t.Fatal("stale completion accepted")
-	}
-	if err = a.Finished(); err != nil {
-		t.Fatal(err)
-	}
-	if err = next.Activate(t.Context()); err != nil {
-		t.Fatal(err)
-	}
-	if err = next.Finished(); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestBrokerCompressedWorldProfileAdmissionAndTerminalOwnership(t *testing.T) {
-	config := BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, WorldProfile: world.CompressedSnapshotSchema, Limits: world.CompressedSnapshotProfile().Limits}
-	oversize := config
-	oversize.Limits.MaxRequests++
-	if broker, err := NewBroker(oversize); !errors.Is(err, world.ErrCapacity) || broker != nil {
-		t.Fatalf("oversize configured profile admitted: %v", err)
-	}
-	unknown := config
-	unknown.WorldProfile = "unknown"
-	if broker, err := NewBroker(unknown); err == nil || broker != nil {
-		t.Fatal("unknown World profile admitted")
-	}
-	b, err := NewBroker(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := b.EncodeWorldEvidence(); err == nil {
-		t.Fatal("live participant World was detached")
-	}
-	if err := b.Session("a").Finished(); err != nil {
-		t.Fatal(err)
-	}
-	before := b.DiagnosticCardinality()
-	data, err := b.EncodeWorldEvidence()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := world.DecodeCompressedSnapshot(data, world.CompressedSnapshotProfile()); err != nil {
-		t.Fatal(err)
-	}
-	if b.DiagnosticCardinality() != before {
-		t.Fatal("terminal ownership transfer changed diagnostic cardinality")
-	}
-	if _, err := b.EncodeWorldEvidence(); err == nil {
-		t.Fatal("terminal World encoded twice")
-	}
-	if _, err := b.Restart("a"); err == nil {
-		t.Fatal("terminal detached World restarted")
-	}
-}
-
-func TestBrokerAbsentWorldProfileUsesBinaryOwnerCodec(t *testing.T) {
-	b, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: world.CompressedSnapshotProfile().Limits})
-	if err != nil {
-		t.Fatal(err)
-	}
-	if err := b.Session("a").Finished(); err != nil {
-		t.Fatal(err)
-	}
-	data, err := b.EncodeWorldEvidence()
-	if err != nil {
-		t.Fatal(err)
-	}
-	if _, err := world.DecodeCompressedSnapshot(data, world.CompressedSnapshotProfile()); err != nil {
-		t.Fatal(err)
-	}
-}
-
-func TestBrokerImplicitProfileAdmitsDefaultSimulationLimits(t *testing.T) {
-	simulation := gomadsim.DefaultLimits()
-	limits := world.Limits{
-		MaxRequests: simulation.NetworkTransitions * 2, MaxEvents: simulation.NetworkTransitions * 2,
-		MaxQueuedEvents: min(netmodel.MaximumPendingOperations, simulation.NetworkTransitions*2), MaxTransitions: simulation.NetworkTransitions * 8,
-		MaxPayloadBytes: simulation.ObservationBytes, MaxStringBytes: 1024,
-	}
-	if _, err := NewBroker(BrokerConfig{Nodes: []BrokerNode{{ID: "a", Incarnation: 1}}, Limits: limits}); err != nil {
-		t.Fatalf("implicit World profile rejected default simulation limits: %v", err)
-	}
-}
-
-func TestBrokerLeapPreservesEarlierDialDeadline(t *testing.T) {
-	for _, scheduledHeal := range []bool{false, true} {
-		t.Run(strconv.FormatBool(scheduledHeal), func(t *testing.T) {
-			config := brokerTestConfig()
-			config.Network = streamConfig()
-			config.Network.Limits.StallNanos = 10
-			if scheduledHeal {
-				config.Faults = []BrokerNetworkFault{{Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: 100, Symmetric: true}}
-			}
-			b, err := NewBroker(config)
-			if err != nil {
-				t.Fatal(err)
-			}
-			client, _ := b.network.domains(b.Session("a"))
-			_, server := b.network.domains(b.Session("b"))
-			m := b.network.model
-			l := m.Dispatch(netmodel.Request{Domain: server, Op: "listen", RequestID: 1})
-			if l.Error != "" {
-				t.Fatal(l)
-			}
-			if err := b.ChangeLink("partition", "a", "b", 0, true); err != nil {
-				t.Fatal(err)
-			}
-			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "dial", Host: server.Address, Port: l.Local.Port, Deadline: 5, RequestID: 2}); r.State != "pending" {
-				t.Fatal(r)
-			}
-			if err := b.network.advance(100); err != nil {
-				t.Fatal(err)
-			}
-			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "poll", RequestID: 2}); r.Error != "context deadline exceeded" {
-				t.Fatalf("later stall overtook earlier caller deadline: %+v", r)
-			}
-		})
-	}
-}
-
-func TestBrokerLinkGroupRejectionIsAtomic(t *testing.T) {
-	for _, scheduled := range []bool{false, true} {
-		for _, action := range []string{"partition", "heal", "delay"} {
-			t.Run(fmt.Sprintf("%s/scheduled=%v", action, scheduled), func(t *testing.T) {
-				config := brokerTestConfig()
-				config.Network = streamConfig()
-				config.Network.Limits.Transitions = 1
-				if scheduled {
-					config.Faults = []BrokerNetworkFault{{Name: "change", Action: action, From: "a", To: "b", AtNanos: 100, DelayNanos: 10, Symmetric: true}}
-				}
-				b, err := NewBroker(config)
-				if err != nil {
-					t.Fatal(err)
-				}
-				before, err := b.NetworkRecord()
-				if err != nil {
-					t.Fatal(err)
-				}
-				if scheduled {
-					err = b.network.advance(100)
-				} else {
-					err = b.ChangeLink(action, "a", "b", 10, true)
-				}
-				if err != netmodel.ErrResourceExhausted {
-					t.Fatalf("%s scheduled=%v capacity error=%v", action, scheduled, err)
-				}
-				after, err := b.NetworkRecord()
-				if err != nil {
-					t.Fatal(err)
-				}
-				if !reflect.DeepEqual(before, after) {
-					t.Fatalf("%s scheduled=%v rejected group changed links or history", action, scheduled)
-				}
-			})
-		}
-	}
-}
-
-func TestBrokerDirectionalGroupChangesPreserveReverseLinks(t *testing.T) {
-	config := brokerTestConfig()
-	config.Network = streamConfig()
-	b, err := NewBroker(config)
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, action := range []string{"partition", "delay", "heal"} {
-		if err := b.ChangeLink(action, "a", "b", 10, false); err != nil {
-			t.Fatal(err)
-		}
-		snapshot, err := b.NetworkSnapshot()
-		if err != nil {
-			t.Fatal(err)
-		}
-		var changed, reverse int
-		for _, link := range snapshot.Links {
-			if link.From[0] == 'a' && link.To[0] == 'b' {
-				changed++
-				if link.Enabled != (action == "heal") || action != "partition" && link.DelayNanos != 10 {
-					t.Fatalf("directional %s changed wrong state: %+v", action, link)
-				}
-			}
-			if link.From[0] == 'b' && link.To[0] == 'a' {
-				reverse++
-				if !link.Enabled || link.DelayNanos != 0 {
-					t.Fatalf("directional %s changed reverse link: %+v", action, link)
-				}
-			}
-		}
-		if changed != 4 || reverse != 4 {
-			t.Fatalf("logical link expansion changed=%d reverse=%d", changed, reverse)
-		}
-	}
 }
 
 func reviewBrokerPair(t *testing.T, b *Broker) (netmodel.Domain, netmodel.Domain, uint64, uint64) {
@@ -395,122 +37,12 @@ func reviewBrokerPair(t *testing.T, b *Broker) (netmodel.Domain, netmodel.Domain
 	return client, server, c.Handle, s.Handle
 }
 
-func TestBrokerLinkGroupReservationRejectionAndExpiry(t *testing.T) {
-	for _, transitions := range []uint64{12, 13} {
-		t.Run(strconv.FormatUint(transitions, 10), func(t *testing.T) {
-			config := brokerTestConfig()
-			config.Network = streamConfig()
-			config.Network.Limits.Transitions, config.Network.Limits.StallNanos = transitions, 10
-			b, err := NewBroker(config)
-			if err != nil {
-				t.Fatal(err)
-			}
-			client, _, handle, _ := reviewBrokerPair(t, b)
-			if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
-				t.Fatal(err)
-			}
-			m := b.network.model
-			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "write", Handle: handle, RequestID: 4, Bytes: []byte("held")}); r.Error != "" || r.Count != 4 {
-				t.Fatal(r)
-			}
-			before, err := b.NetworkRecord()
-			if err != nil {
-				t.Fatal(err)
-			}
-			err = b.ChangeLink("partition", "a", "b", 0, true)
-			if transitions == 12 {
-				if err != netmodel.ErrResourceExhausted {
-					t.Fatalf("reservation admission error=%v", err)
-				}
-				after, err := b.NetworkRecord()
-				if err != nil || !reflect.DeepEqual(before, after) || m.NextDeadline() != 0 {
-					t.Fatalf("rejection mutated links, bytes, history or expiry: %v", err)
-				}
-				if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
-					t.Fatalf("rejected group leaked reservation: %v", err)
-				}
-				return
-			}
-			if err != nil || m.NextDeadline() != 12 {
-				t.Fatalf("group failed to reserve pair expiry: %v next=%d", err, m.NextDeadline())
-			}
-			if err := b.ChangeLink("delay", "a", "b", 1, true); err != netmodel.ErrResourceExhausted {
-				t.Fatalf("competing action consumed terminal capacity: %v", err)
-			}
-			if err := b.network.advance(12); err != nil {
-				t.Fatal(err)
-			}
-			record, err := b.NetworkRecord()
-			if err != nil || len(record.Transitions) != 13 || !record.Snapshot.Connections[0].Reset {
-				t.Fatalf("reserved expiry failed: %v %+v", err, record)
-			}
-		})
-	}
-}
-
-func TestBrokerScheduledPartitionAndHealUseFaultTime(t *testing.T) {
-	for _, healAt := range []uint64{0, 111, 112} {
-		t.Run(strconv.FormatUint(healAt, 10), func(t *testing.T) {
-			config := brokerTestConfig()
-			config.Network = streamConfig()
-			config.Network.Limits.StallNanos = 10
-			config.Faults = []BrokerNetworkFault{{Name: "partition", Action: "partition", From: "a", To: "b", AtNanos: 100, Symmetric: true}}
-			if healAt != 0 {
-				config.Faults = append(config.Faults, BrokerNetworkFault{Name: "heal", Action: "heal", From: "a", To: "b", AtNanos: healAt, Symmetric: true})
-			}
-			b, err := NewBroker(config)
-			if err != nil {
-				t.Fatal(err)
-			}
-			client, server, c, s := reviewBrokerPair(t, b)
-			if err := b.ChangeLink("delay", "a", "b", 200, true); err != nil {
-				t.Fatal(err)
-			}
-			m := b.network.model
-			if r := m.Dispatch(netmodel.Request{Domain: client, Op: "write", Handle: c, RequestID: 4, Bytes: []byte("x")}); r.Error != "" || r.Count != 1 {
-				t.Fatal(r)
-			}
-			if err := b.network.advance(max(110, healAt)); err != nil {
-				t.Fatal(err)
-			}
-			r := m.Dispatch(netmodel.Request{Domain: server, Op: "read", Handle: s, RequestID: 5, Count: 1})
-			if healAt == 112 {
-				if r.Error != "connection timed out" {
-					t.Fatalf("later heal erased earlier expiry: %+v", r)
-				}
-				return
-			}
-			if r.State != "pending" {
-				t.Fatalf("partition or heal used stale time: %+v", r)
-			}
-			if healAt == 0 {
-				if m.NextDeadline() != 111 {
-					t.Fatalf("partition expiry=%d want=111", m.NextDeadline())
-				}
-				return
-			}
-			if err := b.network.advance(310); err != nil {
-				t.Fatal(err)
-			}
-			if r := m.Dispatch(netmodel.Request{Domain: server, Op: "poll", RequestID: 5}); r.State != "pending" {
-				t.Fatalf("heal delay released early: %+v", r)
-			}
-			if err := b.network.advance(311); err != nil {
-				t.Fatal(err)
-			}
-			if r := m.Dispatch(netmodel.Request{Domain: server, Op: "poll", RequestID: 5}); string(r.Bytes) != "x" || r.Error != "" {
-				t.Fatalf("equal-time heal lost byte stream: %+v", r)
-			}
-		})
-	}
-}
-
 // Recorded Go broker orders for the in-process broker (fn-178.7). Each
 // scenario runs scripted node call sequences through the Go broker (sessions
 // on goroutines, as helpers drive them) and records every call's output
 // buffer or error, the broker World's expanded wire and each node's network
 // evidence document. The Rust broker replays the same scripts
-// (`wasmhost/src/broker/tests.rs`) and must match byte for byte; its network
+// (`wasmhost/src/cluster/handoff/broker/tests.rs`) and must match byte for byte; its network
 // evidence is checked in beside the fixture and decoded here.
 const brokerOrderDirectory = "../wasmhost/tests/testdata/broker_orders"
 
@@ -548,6 +80,72 @@ type brokerOrderScenario struct {
 	Outputs  map[string][]brokerOrderOutput `json:"outputs"`
 	World    string                         `json:"world_base64"`
 	Networks map[string]string              `json:"network_documents_base64,omitempty"`
+}
+
+// TestBrokerOrdersAreCurrent records the Go broker's orders for the Rust
+// broker's replay; GOMAD_BROKER_ORDERS_REGENERATE=1 rewrites them.
+func TestBrokerOrdersAreCurrent(t *testing.T) {
+	regenerate := os.Getenv("GOMAD_BROKER_ORDERS_REGENERATE") == "1"
+	for _, scenario := range brokerOrderScenarios() {
+		recorded := runBrokerOrder(t, scenario)
+		data, err := json.MarshalIndent(recorded, "", " ")
+		if err != nil {
+			t.Fatal(err)
+		}
+		data = append(data, '\n')
+		path := filepath.Join(brokerOrderDirectory, scenario.Name+".json")
+		if regenerate {
+			if err := os.MkdirAll(brokerOrderDirectory, 0o755); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(path, data, 0o644); err != nil {
+				t.Fatal(err)
+			}
+			continue
+		}
+		got, err := os.ReadFile(path)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if !bytes.Equal(got, data) {
+			t.Errorf("Go broker order %s changed; review, then rerun with GOMAD_BROKER_ORDERS_REGENERATE=1 and the Rust broker replay", scenario.Name)
+		}
+	}
+}
+
+// TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments decodes the Rust
+// broker replay's checked-in network evidence into the Go documents.
+func TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments(t *testing.T) {
+	for _, scenario := range brokerOrderScenarios() {
+		if scenario.Network == nil {
+			continue
+		}
+		data, err := os.ReadFile(filepath.Join(brokerOrderDirectory, scenario.Name+".json"))
+		if err != nil {
+			t.Fatal(err)
+		}
+		var recorded brokerOrderScenario
+		if err := json.Unmarshal(data, &recorded); err != nil {
+			t.Fatal(err)
+		}
+		for _, id := range scenario.Nodes {
+			evidence, err := os.ReadFile(filepath.Join(brokerOrderDirectory, scenario.Name+"."+id+".gmnetev1"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			decoded, err := DecodeClusterNetworkEvidence(evidence, ClusterNetworkLimits{Network: scenario.Network.Limits, Instance: *scenario.Network, TranscriptBytes: 8 << 20})
+			if err != nil {
+				t.Fatalf("%s/%s: %v", scenario.Name, id, err)
+			}
+			want, err := base64.StdEncoding.DecodeString(recorded.Networks[id])
+			if err != nil {
+				t.Fatal(err)
+			}
+			if !bytes.Equal(decoded.Document, want) {
+				t.Errorf("%s/%s: Rust network evidence differs from the Go broker:\nrust %s\ngo   %s", scenario.Name, id, decoded.Document, want)
+			}
+		}
+	}
 }
 
 func brokerOrderScenarios() []brokerOrderScenario {
@@ -800,70 +398,4 @@ func runBrokerOrder(t *testing.T, scenario brokerOrderScenario) brokerOrderScena
 		}
 	}
 	return scenario
-}
-
-// TestBrokerOrdersAreCurrent records the Go broker's orders for the Rust
-// broker's replay; GOMAD_BROKER_ORDERS_REGENERATE=1 rewrites them.
-func TestBrokerOrdersAreCurrent(t *testing.T) {
-	regenerate := os.Getenv("GOMAD_BROKER_ORDERS_REGENERATE") == "1"
-	for _, scenario := range brokerOrderScenarios() {
-		recorded := runBrokerOrder(t, scenario)
-		data, err := json.MarshalIndent(recorded, "", " ")
-		if err != nil {
-			t.Fatal(err)
-		}
-		data = append(data, '\n')
-		path := filepath.Join(brokerOrderDirectory, scenario.Name+".json")
-		if regenerate {
-			if err := os.MkdirAll(brokerOrderDirectory, 0o755); err != nil {
-				t.Fatal(err)
-			}
-			if err := os.WriteFile(path, data, 0o644); err != nil {
-				t.Fatal(err)
-			}
-			continue
-		}
-		got, err := os.ReadFile(path)
-		if err != nil {
-			t.Fatal(err)
-		}
-		if !bytes.Equal(got, data) {
-			t.Errorf("Go broker order %s changed; review, then rerun with GOMAD_BROKER_ORDERS_REGENERATE=1 and the Rust broker replay", scenario.Name)
-		}
-	}
-}
-
-// TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments decodes the Rust
-// broker replay's checked-in network evidence into the Go documents.
-func TestBrokerOrdersRustNetworkEvidenceRebuildsGoDocuments(t *testing.T) {
-	for _, scenario := range brokerOrderScenarios() {
-		if scenario.Network == nil {
-			continue
-		}
-		data, err := os.ReadFile(filepath.Join(brokerOrderDirectory, scenario.Name+".json"))
-		if err != nil {
-			t.Fatal(err)
-		}
-		var recorded brokerOrderScenario
-		if err := json.Unmarshal(data, &recorded); err != nil {
-			t.Fatal(err)
-		}
-		for _, id := range scenario.Nodes {
-			evidence, err := os.ReadFile(filepath.Join(brokerOrderDirectory, scenario.Name+"."+id+".gmnetev1"))
-			if err != nil {
-				t.Fatal(err)
-			}
-			decoded, err := DecodeClusterNetworkEvidence(evidence, ClusterNetworkLimits{Network: scenario.Network.Limits, Instance: *scenario.Network, TranscriptBytes: 8 << 20})
-			if err != nil {
-				t.Fatalf("%s/%s: %v", scenario.Name, id, err)
-			}
-			want, err := base64.StdEncoding.DecodeString(recorded.Networks[id])
-			if err != nil {
-				t.Fatal(err)
-			}
-			if !bytes.Equal(decoded.Document, want) {
-				t.Errorf("%s/%s: Rust network evidence differs from the Go broker:\nrust %s\ngo   %s", scenario.Name, id, decoded.Document, want)
-			}
-		}
-	}
 }

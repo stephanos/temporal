@@ -1,0 +1,51 @@
+{
+  "schema": "gomad.rust-cluster-transport-input-sequence/v1",
+  "name": "oversized-tagged-frame-followup",
+  "target": {
+    "instance": "a",
+    "incarnation": 1
+  },
+  "input_file": "oversized-tagged-frame-followup.wire",
+  "input_bytes": 8388706,
+  "input_sha256": "d0129c73ce964bf162e12b0e238b6c0f7425dce5d2708f87d346dee39bd0ce93",
+  "reads": [
+    {
+      "reader": "fresh",
+      "expected": {
+        "outcome": {
+          "status": "error",
+          "classification": "capacity",
+          "message": "protocol frame exceeds 8 MiB"
+        },
+        "broken": null
+      }
+    },
+    {
+      "reader": "fresh",
+      "expected": {
+        "outcome": {
+          "status": "frame",
+          "bytes": [
+            123,
+            34,
+            116,
+            121,
+            112,
+            101,
+            34,
+            58,
+            34,
+            110,
+            101,
+            120,
+            116,
+            34,
+            125,
+            10
+          ]
+        },
+        "broken": null
+      }
+    }
+  ]
+}

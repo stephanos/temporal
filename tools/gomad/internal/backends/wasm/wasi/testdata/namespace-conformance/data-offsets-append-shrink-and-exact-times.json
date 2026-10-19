@@ -1,0 +1,287 @@
+{
+  "name": "data-offsets-append-shrink-and-exact-times",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 1000,
+      "read_step_nanos": 7
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAOgDAAAAAAAAAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "clock_time_get",
+      "input": {
+        "clock_id": 1,
+        "precision": 0
+      }
+    },
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZmlsZQ==",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 2,
+        "data_base64": "eHl6"
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_read",
+      "input": {
+        "fd": 5,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": -2,
+        "whence": 2
+      }
+    },
+    {
+      "op": "fd_fdstat_set_flags",
+      "input": {
+        "fd": 5,
+        "flags": 1
+      }
+    },
+    {
+      "op": "fd_pwrite",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "data_base64": "IQ=="
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "whence": 1
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "fd_seek",
+      "input": {
+        "fd": 5,
+        "offset": -9223372036854775808,
+        "whence": 0
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "offset": 18446744073709551615,
+        "length": 1
+      }
+    },
+    {
+      "op": "fd_filestat_set_size",
+      "input": {
+        "fd": 5,
+        "size": 2
+      }
+    },
+    {
+      "op": "fd_pread",
+      "input": {
+        "fd": 5,
+        "offset": 0,
+        "length": 20
+      }
+    },
+    {
+      "op": "fd_sync",
+      "input": {
+        "fd": 5
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "timestamp": 0
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AAB4eXo="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": ""
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "written": 1
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AAB4eXoh"
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "offset": 3
+      }
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 6,
+        "atim": 1007,
+        "mtim": 1007,
+        "ctim": 1007
+      }
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "data_base64": "AAA="
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "284ceabba587ff0db2d2a5a9210401f4cdf6b65af4b3ec3c1120a16c3d65aa92",
+    "05f53d2e25f77fee335b6dea122814cde29f77f08b9d0683e5811e1245d65d4c",
+    "df1da3b3e5210025928bdc9ba2724f7a01bfb861a82fbcf5878a86c68bb8e7ee",
+    "b0e686af468d8a5e22760571723242a8281e44ce5900f3ec92dd0c8a2bd280f6",
+    "b0e686af468d8a5e22760571723242a8281e44ce5900f3ec92dd0c8a2bd280f6",
+    "99b52052aa9b9d4113734be7abb0984b74b1d81215969539c9b08e53fb51da20",
+    "154b9cee5093e805b987a1b4f308c8514b629e5d4d231eeb6c8e1cc3a18c7802",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "fdec5ea17423d43929a889f04254e62d80d0689227deed410d172dadb66841ad",
+    "d5414366c621af0a4ddf54c935b58476b96243f4c0c9e06b2a304fd0a04dc33f",
+    "d5414366c621af0a4ddf54c935b58476b96243f4c0c9e06b2a304fd0a04dc33f",
+    "d5414366c621af0a4ddf54c935b58476b96243f4c0c9e06b2a304fd0a04dc33f"
+  ],
+  "digest": "d5414366c621af0a4ddf54c935b58476b96243f4c0c9e06b2a304fd0a04dc33f"
+}

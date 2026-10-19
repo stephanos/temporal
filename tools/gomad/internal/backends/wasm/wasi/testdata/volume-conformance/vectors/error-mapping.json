@@ -1,0 +1,158 @@
+[
+  {
+    "kind": "nil",
+    "name": "nil",
+    "errno": 0,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "eof",
+    "errno": 0,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "closed",
+    "errno": 8,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "read-only-access",
+    "errno": 2,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "busy",
+    "errno": 10,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "exists",
+    "errno": 20,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "file-too-large",
+    "errno": 22,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "invalid",
+    "errno": 28,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "is-directory",
+    "errno": 31,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "too-many-files",
+    "errno": 33,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "no-memory",
+    "errno": 48,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "not-directory",
+    "errno": 54,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "not-empty",
+    "errno": 55,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "permission",
+    "errno": 63,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "read-only",
+    "errno": 69,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "cross-device",
+    "errno": 75,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "unmapped",
+    "errno": 29,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "stale",
+    "errno": 72,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "bad-descriptor",
+    "errno": 8,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "no-entry",
+    "errno": 44,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "no-space",
+    "errno": 51,
+    "boundary": ""
+  },
+  {
+    "kind": "errno",
+    "name": "io",
+    "errno": 29,
+    "boundary": ""
+  },
+  {
+    "kind": "invalid",
+    "name": "x",
+    "errno": 29,
+    "boundary": ""
+  },
+  {
+    "kind": "capacity",
+    "name": "volume_bytes",
+    "errno": 51,
+    "boundary": ""
+  },
+  {
+    "kind": "capacity",
+    "name": "pending_operations",
+    "errno": 29,
+    "boundary": "WASI capacity: storage-pending_operations"
+  },
+  {
+    "kind": "capacity",
+    "name": "transitions",
+    "errno": 29,
+    "boundary": "WASI capacity: storage-transitions"
+  }
+]

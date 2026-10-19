@@ -1,0 +1,31 @@
+{
+  "builds": [
+    "guest-profile",
+    "guest-profile-fuel-off"
+  ],
+  "expected": {},
+  "guest": {
+    "wat": "(module)"
+  },
+  "inputs": [],
+  "intent": "feature_guest_invalid_interval_zero: public feature assertion conservation",
+  "replaces": [
+    "tests/engine.rs::guest_profile_rejects_invalid_bounds_and_unknown_fields"
+  ],
+  "replies": [],
+  "request": {
+    "fuel": 1000000,
+    "guest_profile": {
+      "interval_micros": 0,
+      "max_samples": 1,
+      "path": "/tmp/profile.json"
+    },
+    "memory_bytes": 131072,
+    "module_path": "$guest_path",
+    "module_sha256": "$guest_sha256",
+    "output_bytes": 1024,
+    "schema": "gomad.wasm-host/v1",
+    "type": "execute"
+  },
+  "schema": "gomad.helper-transcript-corpus/v1"
+}

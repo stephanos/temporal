@@ -1,0 +1,148 @@
+{
+  "schema": "gomad.broker-lifecycle-corpus/v1",
+  "name": "live-commands-revoke-and-partition-active-store",
+  "nodes": [
+    "a",
+    "b"
+  ],
+  "network": true,
+  "steps": [
+    {
+      "input": {
+        "op": "start"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "queue_link",
+        "nodes": [
+          "a",
+          "b"
+        ]
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": ""
+    },
+    {
+      "input": {
+        "op": "ack"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "cross_links"
+      },
+      "expected": [
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false,
+        false
+      ]
+    },
+    {
+      "input": {
+        "op": "queue_revoke",
+        "kind": "stop"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "check"
+      },
+      "expected": "stop"
+    },
+    {
+      "input": {
+        "op": "ack"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "acquire",
+        "index": 1
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish",
+        "index": 1
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "restart",
+        "incarnation": 2
+      },
+      "expected": [
+        2,
+        3
+      ]
+    },
+    {
+      "input": {
+        "op": "acquire"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "queue_revoke",
+        "incarnation": 2,
+        "kind": "crash"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "check",
+        "incarnation": 2
+      },
+      "expected": "crash"
+    },
+    {
+      "input": {
+        "op": "ack"
+      },
+      "expected": true
+    },
+    {
+      "input": {
+        "op": "finish"
+      },
+      "expected": null
+    },
+    {
+      "input": {
+        "op": "wait"
+      },
+      "expected": true
+    }
+  ]
+}

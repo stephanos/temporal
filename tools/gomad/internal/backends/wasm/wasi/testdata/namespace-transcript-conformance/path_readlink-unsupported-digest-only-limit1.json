@@ -1,0 +1,44 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "path_readlink-unsupported-digest-only-limit1",
+  "kind": "digest",
+  "op": "path_readlink",
+  "input": {
+    "fd": 3,
+    "path_base64": "eA==",
+    "length": 0
+  },
+  "limit": 1,
+  "reference_limit": 92,
+  "digest_transcript": true,
+  "reference": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "operation outside stock WASI profile: path_readlink"
+    },
+    "transcript_base64": "R01XVAEAAAAbAQAAAQAAAAAAAABEAAAAAwAAAAEAAAB4AAAAADMAAABvcGVyYXRpb24gb3V0c2lkZSBzdG9jayBXQVNJIHByb2ZpbGU6IHBhdGhfcmVhZGxpbms=",
+    "sha256": "98b3235789b889d5047cb8d10be284a3f68f527bc6b9353000ac11cb03c56b86",
+    "tag": 27,
+    "binary_input_base64": "AwAAAAEAAAB4AAAAAA==",
+    "binary_output_base64": null
+  },
+  "expected": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {},
+      "unsupported": true,
+      "message": "operation outside stock WASI profile: path_readlink"
+    },
+    "transcript_base64": null,
+    "sha256": "98b3235789b889d5047cb8d10be284a3f68f527bc6b9353000ac11cb03c56b86",
+    "tag": 27,
+    "binary_input_base64": "AwAAAAEAAAB4AAAAAA==",
+    "binary_output_base64": null
+  }
+}

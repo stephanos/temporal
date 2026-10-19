@@ -1,0 +1,29 @@
+{
+  "schema": "gomad.namespace-public-corpus/v1",
+  "name": "fd_write-stdout-ab-record",
+  "kind": "codec",
+  "op": "fd_write",
+  "input": {
+    "fd": 1,
+    "data_base64": "YWI="
+  },
+  "limit": 8388608,
+  "reference_limit": 0,
+  "digest_transcript": false,
+  "reference": null,
+  "expected": {
+    "reply": {
+      "type": "reply",
+      "id": 1,
+      "errno": 0,
+      "output": {
+        "written": 2
+      }
+    },
+    "transcript_base64": "R01XVAEAAAAIAAAAAQAAAAAAAAAOAAAAAQAAAAIAAABhYgIAAAA=",
+    "sha256": "257015d8be7185a03634a6345c9ca50d5fd496c2c93133443b6b9c9684e024ed",
+    "tag": 8,
+    "binary_input_base64": "AQAAAAIAAABhYg==",
+    "binary_output_base64": "AgAAAA=="
+  }
+}

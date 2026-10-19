@@ -1,0 +1,6 @@
+{
+  "name": "fd_fdstat_set_flags-invalid-utf8-unsupported-message",
+  "transcript_base64": "R01XVAEAAAASAQAAAQAAAAAAAAAzAAAAAwAAAAIAKQAAAGRlc2NyaXB0b3IgZmxhZ3Mgb3V0c2lkZSB2b2xhdGlsZSBwcm9maWz/",
+  "valid": false,
+  "message": "descriptor flags outside volatile profile"
+}

@@ -142,6 +142,7 @@ pub struct StateInput<'a, R, E> {
 }
 
 /// Go `stateDigest`, streamed in the same byte order.
+#[cfg(test)]
 pub fn state_digest<'a, R, E>(input: StateInput<'a, R, E>) -> [u8; 32]
 where
     R: ExactSizeIterator<Item = (u64, &'a RequestEntry)>,

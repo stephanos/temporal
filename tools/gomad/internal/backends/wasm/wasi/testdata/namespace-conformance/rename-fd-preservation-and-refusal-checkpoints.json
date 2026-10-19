@@ -1,0 +1,210 @@
+{
+  "name": "rename-fd-preservation-and-refusal-checkpoints",
+  "origin": "handwritten",
+  "session": {
+    "model": "namespace",
+    "image": {
+      "entries": [
+        {
+          "path_base64": "L3dvcmtzcGFjZQ==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        },
+        {
+          "path_base64": "L3RtcA==",
+          "directory": true,
+          "readonly": false,
+          "data_base64": ""
+        }
+      ],
+      "writable_directories": [
+        "L3dvcmtzcGFjZQ==",
+        "L3RtcA=="
+      ],
+      "preopens": [
+        "L3RtcA==",
+        "L3dvcmtzcGFjZQ=="
+      ],
+      "working_directory": "L3dvcmtzcGFjZQ==",
+      "stdin_base64": null,
+      "limits": {
+        "files": 1000,
+        "descriptors": 64,
+        "filesystem_bytes": 8388608,
+        "output_bytes": 1048576,
+        "calls": 10000,
+        "transcript_bytes": 8388608,
+        "pending_events": 4096
+      },
+      "epoch_nanos": 946684800000000000,
+      "read_step_nanos": 1000
+    },
+    "binary_image": {
+      "data_base64": "R01XTgEAAADoAwAAAAAAAEAAAAAAAAAAAACAAAAAAAAAABAAAAAAAAAAQ1LPTCMNAgAAAAAAAAACAAAAAAAAAAAAAAAAAAAAAgAAAAAAAAAKAAAAAAAAAC93b3Jrc3BhY2UEAAAAAAAAAC90bXAEAAAAAAAAAC90bXAKAAAAAAAAAC93b3Jrc3BhY2UKAAAAAAAAAC93b3Jrc3BhY2UAAAAAAAAAAAEACgAAAAAAAAAvd29ya3NwYWNlAAAAAAAAAAABAAQAAAAAAAAAL3RtcAAAAAAAAAAAAA==",
+      "files": 3
+    }
+  },
+  "operations": [
+    {
+      "op": "path_open",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "dirflags": 0,
+        "oflags": 1,
+        "rights_base": 536870911,
+        "rights_inheriting": 0,
+        "fdflags": 0
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "new_fd": 3,
+        "new_path_base64": "bWlzc2luZy8="
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "c291cmNl",
+        "new_fd": 3,
+        "new_path_base64": "dGFyZ2V0"
+      }
+    },
+    {
+      "op": "fd_filestat_get",
+      "input": {
+        "fd": 5
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZA=="
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZC9l"
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZA==",
+        "new_fd": 3,
+        "new_path_base64": "ZC9lL2Y="
+      }
+    },
+    {
+      "op": "path_remove_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZA=="
+      }
+    },
+    {
+      "op": "path_unlink_file",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZA=="
+      }
+    },
+    {
+      "op": "path_create_directory",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZW1wdHk="
+      }
+    },
+    {
+      "op": "path_rename",
+      "input": {
+        "fd": 3,
+        "path_base64": "ZW1wdHk=",
+        "new_fd": 3,
+        "new_path_base64": "ZA=="
+      }
+    }
+  ],
+  "replies": [
+    {
+      "errno": 0,
+      "output": {
+        "fd": 5
+      }
+    },
+    {
+      "errno": 54,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {
+        "dev": 1,
+        "ino": 7,
+        "filetype": 4,
+        "nlink": 1,
+        "size": 0,
+        "atim": 946684800000000000,
+        "mtim": 946684800000000000,
+        "ctim": 946684800000000000
+      }
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 28,
+      "output": {}
+    },
+    {
+      "errno": 55,
+      "output": {}
+    },
+    {
+      "errno": 31,
+      "output": {}
+    },
+    {
+      "errno": 0,
+      "output": {}
+    },
+    {
+      "errno": 55,
+      "output": {}
+    }
+  ],
+  "digests": [
+    "bb3c009dc60a872a8f76d23fca00db32af64bbaff8ca1039b9628aa0c5b62ebe",
+    "bb3c009dc60a872a8f76d23fca00db32af64bbaff8ca1039b9628aa0c5b62ebe",
+    "66f4a8de5ec56eaea6bf2d74ef60f2fb64b09ac9acdd930171577af05930d0e5",
+    "66f4a8de5ec56eaea6bf2d74ef60f2fb64b09ac9acdd930171577af05930d0e5",
+    "34105394cafb23dd5f18ca6bbe5ebd0164820176a1888485a45dd3721eb2332e",
+    "056a892c599f63049911c84feae6b9455fd2639ce1b944e9e303cac408c5fe0c",
+    "056a892c599f63049911c84feae6b9455fd2639ce1b944e9e303cac408c5fe0c",
+    "056a892c599f63049911c84feae6b9455fd2639ce1b944e9e303cac408c5fe0c",
+    "056a892c599f63049911c84feae6b9455fd2639ce1b944e9e303cac408c5fe0c",
+    "3e7350c8ea21ccca85ef71c45cb4098715d687c0d0ce2ce35675de0db4599c7e",
+    "3e7350c8ea21ccca85ef71c45cb4098715d687c0d0ce2ce35675de0db4599c7e"
+  ],
+  "digest": "3e7350c8ea21ccca85ef71c45cb4098715d687c0d0ce2ce35675de0db4599c7e"
+}
