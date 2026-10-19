@@ -96,6 +96,8 @@ require (
 	gopkg.in/validator.v2 v2.0.1
 	gopkg.in/yaml.v3 v3.0.1
 	modernc.org/sqlite v1.51.0
+	umpire.local/model v0.0.0
+	umpire.local/temporal v0.0.0
 )
 
 require (
@@ -201,6 +203,7 @@ require (
 	github.com/spf13/pflag v1.0.10 // indirect
 	github.com/spiffe/go-spiffe/v2 v2.7.0 // indirect
 	github.com/stretchr/objx v0.5.3 // indirect
+	github.com/tetratelabs/wazero v1.12.0 // indirect
 	github.com/twmb/murmur3 v1.1.8 // indirect
 	github.com/uber-common/bark v1.3.0 // indirect
 	github.com/x448/float16 v0.8.4 // indirect
@@ -232,5 +235,9 @@ require (
 	sigs.k8s.io/structured-merge-diff/v6 v6.4.0 // indirect
 	sigs.k8s.io/yaml v1.6.0 // indirect
 )
+
+replace umpire.local/model => ./model/umpire/hosts/go
+
+replace umpire.local/temporal => ./model/temporal/hosts/go
 
 tool golang.org/x/perf/cmd/benchstat

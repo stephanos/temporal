@@ -551,16 +551,41 @@ umpire-assess-run:
 	@$(MAKE) --no-print-directory umpire-assess
 	@./.build/umpire-assess run --case "$(CASE)" --run "$(RUN)" --profile "$(PROFILE)" --receipt-root "$(RECEIPT_ROOT)"
 
-umpire-check-live-tests:
+.PHONY: umpire-model-slice-guest umpire-check-model-slice
+umpire-model-slice-guest: $(API_BINPB)
+	@cd model && mise exec -- cargo build -p umpire-temporal-guest --target wasm32-wasip1 --release --locked --quiet
+
+umpire-check-model-slice: umpire-model-slice-guest
+	@set -eu; \
+		target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}"; \
+		case "$$target" in /*) ;; *) target="$(CURDIR)/model/$$target" ;; esac; \
+		temporary=$$(mktemp); \
+		trap 'rm -f "$$temporary"' EXIT HUP INT TERM; \
+		status=0; \
+		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" CGO_ENABLED=0 \
+			mise exec -- go test -v -count=1 -timeout 2m -tags 'test_dep integration' \
+			./tests -run '^TestTestpilotModelSlice$$' > "$$temporary" 2>&1 || status=$$?; \
+		cat "$$temporary"; \
+		if [ "$$status" -ne 0 ]; then exit "$$status"; fi; \
+		awk '/^[[:space:]]*--- PASS:/ { passed[$$3] = 1 } \
+			END { count = split("TestTestpilotModelSlice TestTestpilotModelSlice/Complete TestTestpilotModelSlice/Fail TestTestpilotModelSlice/HostRefusal TestTestpilotModelSlice/Cancellation", required, " "); \
+				for (i = 1; i <= count; i++) if (!passed[required[i]]) { \
+					printf "Required Model slice test did not pass: %s\n", required[i]; failed = 1 \
+				} exit failed }' "$$temporary"
+
+umpire-check-live-tests: umpire-check-model-slice
 	@$(MAKE) --no-print-directory umpire-ir-bridge
 	@set -eu; \
 		physical_tmpdir=$$(cd "$${TMPDIR:-/tmp}" && pwd -P); \
+		target="$${CARGO_TARGET_DIR:-$(CURDIR)/model/target}"; \
+		case "$$target" in /*) ;; *) target="$(CURDIR)/model/$$target" ;; esac; \
 		temporary=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		expected=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		actual=$$(TMPDIR="$$physical_tmpdir" mktemp); \
 		trap 'rm -f "$$temporary" "$$expected" "$$actual"' EXIT HUP INT TERM; \
 		status=0; \
-		TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
+		UMPIRE_TEMPORAL_WASM="$$target/wasm32-wasip1/release/umpire_temporal_guest.wasm" \
+			TMPDIR="$$physical_tmpdir" mise exec -- go test -v -count=1 -timeout 30m -tags 'test_dep integration' \
 			./tests -run '^TestTestpilot' > "$$temporary" 2>&1 || status=$$?; \
 		cat "$$temporary"; \
 		sed -n -E 's/^[[:space:]]*--- FAIL: ([^ ]+).*/\1/p' "$$temporary" | LC_ALL=C sort -u > "$$actual"; \
