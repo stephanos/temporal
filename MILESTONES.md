@@ -41,7 +41,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (in progress) | fn-213 → fn-215 → fn-223 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-223 is placed after fn-215 by the root agent. fn-210, fn-212, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (in progress) | fn-213 → fn-215 → fn-223 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-223 is placed after fn-215 by the root agent. fn-210, fn-212, fn-214, fn-215, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -61,19 +61,6 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 | fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
 | fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
-### fn-215: The path! pattern: progressions for claims, witnesses and examples (model)
-
-Captured on 2026-10-19, after fn-214. A list with gaps is a pattern over paths:
-`path![self.heating_on, .., self.beeping]` (`..` = any steps, `..=n` = at most `n`). The question
-decides the reading: `#[progress]` (every admitted path; exactly two waypoints, more are refused),
-`find` (some path, shortest leg by leg) and `Run::along` (a milestone story the checker fills in),
-the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
-[Spec](.flow/specs/fn-215-the-path-pattern-progressions-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
-
 ### fn-223: One lifted source form: the lifter reads attribute Models only (model)
 
 Captured on 2026-10-19 at the owner's request. About 2,000 of `umpire-lift`'s 5,000 source lines
@@ -86,7 +73,6 @@ suite, cover and Apalache work builds on one front end.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-223.2 | ⬜ todo | After .1: delete the manual lowering; located refusal for hand-written `Machine` source (R2) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

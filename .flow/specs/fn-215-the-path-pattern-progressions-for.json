@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-215-the-path-pattern-progressions-for",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T23:29:08.780080Z",
   "created_at": "2026-10-19T00:21:07.169846Z",
   "default_impl": null,
   "default_review": null,
@@ -16,7 +16,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-215-the-path-pattern-progressions-for.md",
-  "status": "open",
+  "status": "done",
   "title": "The path! pattern: progressions for claims, witnesses and examples (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -29,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T23:22:32.942688Z"
+  "updated_at": "2026-10-19T23:29:09.065214Z"
 }
