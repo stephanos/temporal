@@ -43,5 +43,3 @@ pub mod counter {
         }
     }
 }
-
-umpire_testing::fixture!(counter::world(), 2);

@@ -57,5 +57,3 @@ pub mod changed_state {
         }
     }
 }
-
-umpire_testing::fixture!(changed_state::world(), 2);

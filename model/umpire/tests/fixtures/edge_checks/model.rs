@@ -1,7 +1,7 @@
 use umpire_dsl::{Claim, Machine, StepClaim, Steps, Verdict};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
-pub struct Value(u8);
+pub struct Value(pub u8);
 
 impl std::fmt::Display for Value {
     fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -76,6 +76,3 @@ impl Machine for Tiny {
         ]
     }
 }
-
-#[cfg(test)]
-umpire_testing::fixture!(Tiny, 3);

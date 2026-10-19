@@ -20,9 +20,9 @@ fn manual_choices_keep_each_authored_outcome_and_fact() -> Result<(), Box<dyn st
 
 #[test]
 fn manual_authored_edge_tables_and_mode_wrappers_lift() -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../tests/fixtures/progress_graph/model.rs");
-    let lifted = Lift::parse("progress_graph/model.rs", source)?;
-    let module = Tla::emit(&lifted)?;
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../tests/fixtures/progress_graph/model.rs");
+    let module = Tla::emit(&Lift::source(&path)?)?;
     assert_eq!(module.metadata.actions.len(), 4);
     assert_eq!(module.metadata.progress[0].name, "reaches_target");
     Ok(())
@@ -50,7 +50,7 @@ fn wrappers_keep_their_selected_mode_and_dependency() -> Result<(), Box<dyn std:
     assert_eq!(module.metadata.progress[0].fair, ["Action::Escape"]);
     assert_eq!(
         module.metadata.world_path,
-        "crate::fixture_progress_5fgraph::Graph(crate::fixture_progress_5fgraph::Mode::Continuous)"
+        "crate::progress_graph::Graph(crate::progress_graph::Mode::Continuous)"
     );
     Ok(())
 }

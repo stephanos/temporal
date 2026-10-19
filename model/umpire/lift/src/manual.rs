@@ -11,14 +11,19 @@ use quote::ToTokens;
 use syn::{Expr as RustExpr, ImplItem, Item, Stmt, spanned::Spanned};
 
 use crate::tree::{ActionDef, ClaimDef, Expr, FieldDef, PostDef, Start};
-use crate::{Diagnostic, Lifted, Type};
+use crate::{Diagnostic, Hook, Lifted, Type};
 
-pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted, Diagnostic> {
-    parse_selected(file, ast, selected_mode(ast))
+pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
+    parse_selected(file, ast, selected_mode(hooks), hooks)
 }
 
 #[allow(clippy::too_many_lines)]
-fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<Lifted, Diagnostic> {
+fn parse_selected(
+    file: &str,
+    ast: &syn::File,
+    mode: Option<String>,
+    hooks: &[Hook<'_>],
+) -> Result<Lifted, Diagnostic> {
     for item in &ast.items {
         if let Item::Impl(implementation) = item {
             for member in &implementation.items {
@@ -124,34 +129,26 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
     };
     if ast.items.iter().filter(|item| matches!(item, Item::Impl(item) if item.trait_.as_ref().is_some_and(|(path, _)| canonical_machine(ast, path)))).count() != 1 { return Err(refusal(file, implementation, "multiple manual Machine implementations require explicit source selection")); }
     let world = implementation.self_ty.to_token_stream().to_string();
-    for item in &ast.items {
-        if let Item::Macro(item) = item
-            && item.mac.path.segments.last().is_some_and(|segment| segment.ident == "fixture")
-        {
-            let arguments = item
-                .mac
-                .parse_body_with(
-                    syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
-                )
-                .map_err(|error| refusal(file, item, &error.to_string()))?;
-            if arguments.len() != 2 {
-                return Err(refusal(
-                    file,
-                    item,
-                    "supplemental manual fixture claims are unsupported",
-                ));
-            }
-            let selected = arguments.first().and_then(|expression| match expression {
-                RustExpr::Call(call) => path_name(&call.func),
-                expression => path_name(expression),
-            });
-            if selected.as_deref() != Some(world.as_str()) {
-                return Err(refusal(
-                    file,
-                    item,
-                    "fixture constructor does not select this Machine implementation",
-                ));
-            }
+    for Hook { file, mac: item } in hooks {
+        let arguments = item
+            .mac
+            .parse_body_with(
+                syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
+            )
+            .map_err(|error| refusal(file, item, &error.to_string()))?;
+        if arguments.len() != 2 {
+            return Err(refusal(file, item, "supplemental manual fixture claims are unsupported"));
+        }
+        let selected = arguments.first().and_then(|expression| match expression {
+            RustExpr::Call(call) => path_name(&call.func),
+            expression => path_name(expression),
+        });
+        if selected.as_deref() != Some(world.as_str()) {
+            return Err(refusal(
+                file,
+                item,
+                "fixture constructor does not select this Machine implementation",
+            ));
         }
     }
     if !implementation.generics.params.is_empty() {
@@ -427,15 +424,13 @@ struct Manual<'a> {
 }
 
 fn dependency(file: &str, ast: &syn::File, mode: Option<String>) -> Result<Lifted, Diagnostic> {
+    // Sibling fixtures compile as `crate::<module>`; see the shared discovery's `module_name`.
     fn fixture(tree: &syn::UseTree) -> Option<String> {
         match tree {
-            syn::UseTree::Path(path) => path
-                .ident
-                .to_string()
-                .strip_prefix("fixture_")
-                .map(str::to_string)
-                .or_else(|| fixture(&path.tree)),
-            syn::UseTree::Group(group) => group.items.iter().find_map(fixture),
+            syn::UseTree::Path(path) if path.ident == "crate" => match path.tree.as_ref() {
+                syn::UseTree::Path(module) => Some(module.ident.to_string()),
+                _ => None,
+            },
             _ => None,
         }
     }
@@ -449,21 +444,28 @@ fn dependency(file: &str, ast: &syn::File, mode: Option<String>) -> Result<Lifte
         .ok_or_else(|| {
             refusal(file, ast, "no locally declared Machine implementation or fixture dependency")
         })?;
-    let encoded = import.1.as_bytes();
-    let mut name = String::new();
-    let mut index = 0;
-    while index < encoded.len() {
-        if encoded[index] == b'_'
-            && index + 2 < encoded.len()
-            && let Ok(value) = u8::from_str_radix(&import.1[index + 1..index + 3], 16)
-        {
-            name.push(char::from(value));
-            index += 3;
-            continue;
-        }
-        name.push(char::from(encoded[index]));
-        index += 1;
-    }
+    let module = &import.1;
+    let name = module.strip_prefix("fixture_").map_or_else(
+        || module.clone(),
+        |escaped| {
+            let encoded = escaped.as_bytes();
+            let mut name = String::new();
+            let mut index = 0;
+            while index < encoded.len() {
+                if encoded[index] == b'_'
+                    && index + 2 < encoded.len()
+                    && let Ok(value) = u8::from_str_radix(&escaped[index + 1..index + 3], 16)
+                {
+                    name.push(char::from(value));
+                    index += 3;
+                    continue;
+                }
+                name.push(char::from(encoded[index]));
+                index += 1;
+            }
+            name
+        },
+    );
     if name.contains('/') || name.contains('\\') || name == "." || name == ".." {
         return Err(refusal(file, import.0, "invalid fixture dependency identifier"));
     }
@@ -490,8 +492,8 @@ fn dependency(file: &str, ast: &syn::File, mode: Option<String>) -> Result<Lifte
     let ast = syn::parse_file(&source)
         .map_err(|error| Diagnostic::span(&input, error.span(), error.to_string()))?;
     if !ast.items.iter().any(|item| matches!(item, Item::Impl(item) if item.trait_.as_ref().is_some_and(|(path, _)| canonical_machine(&ast, path)))) { return Err(refusal(file, import.0, "fixture dependency must declare its Machine directly")); }
-    let mut lifted = parse_selected(&input, &ast, mode)?;
-    let qualifier = format!("crate::fixture_{}::", import.1);
+    let mut lifted = parse_selected(&input, &ast, mode, &[])?;
+    let qualifier = format!("crate::{module}::");
     if let Some((world, rest)) = lifted.world_path.split_once('(') {
         lifted.world_path = format!("{qualifier}{world}({qualifier}{rest}");
     } else {
@@ -715,23 +717,19 @@ fn attributes(file: &str, attributes: &[syn::Attribute]) -> Result<(), Diagnosti
     Ok(())
 }
 
-fn selected_mode(ast: &syn::File) -> Option<String> {
-    ast.items.iter().find_map(|item| match item {
-        Item::Macro(item)
-            if item.mac.path.segments.last().is_some_and(|s| s.ident == "fixture") =>
-        {
-            let expressions = item
-                .mac
-                .parse_body_with(
-                    syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
-                )
-                .ok()?;
-            let RustExpr::Call(call) = expressions.first()? else {
-                return None;
-            };
-            path_name(call.args.first()?)
-        }
-        _ => None,
+fn selected_mode(hooks: &[Hook<'_>]) -> Option<String> {
+    hooks.iter().find_map(|hook| {
+        let expressions = hook
+            .mac
+            .mac
+            .parse_body_with(
+                syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
+            )
+            .ok()?;
+        let RustExpr::Call(call) = expressions.first()? else {
+            return None;
+        };
+        path_name(call.args.first()?)
     })
 }
 

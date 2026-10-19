@@ -1,7 +1,7 @@
-use crate::fixture_sample_5fkettle::kettle::{self, Heater, Model, User};
+pub use crate::sample_kettle::kettle::{self, Heater, Model, User};
 use umpire_dsl::{Machine, Progress, Scope, Steps};
 
-struct ProgressDeadEnd<M>(M);
+pub struct ProgressDeadEnd<M>(pub M);
 
 impl<M> Machine for ProgressDeadEnd<M>
 where
@@ -42,5 +42,3 @@ where
         ]
     }
 }
-
-umpire_testing::fixture!(ProgressDeadEnd(kettle::world()), 16);

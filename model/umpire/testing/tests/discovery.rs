@@ -7,17 +7,24 @@ fn refuses_incomplete_fixtures() -> Result<(), Box<dyn Error>> {
     let root = std::env::temp_dir().join(format!("umpire-discovery-{}", std::process::id()));
     fs::create_dir_all(&root)?;
     let result = (|| -> Result<(), Box<dyn Error>> {
-        for missing in ["model.rs", "expected"] {
+        for missing in ["model.rs", "tests.rs", "expected"] {
             let fixture = root.join(format!("missing_{}", missing.replace('.', "_")));
             fs::create_dir(&fixture)?;
-            if missing == "model.rs" {
-                fs::create_dir(fixture.join("expected"))?;
-            } else {
-                fs::write(fixture.join("model.rs"), "")?;
+            for present in ["model.rs", "tests.rs"] {
+                if present != missing {
+                    fs::write(fixture.join(present), "")?;
+                }
             }
-            let error = umpire_testing::discovery::generate(&root, &root.join("generated.rs"))
-                .err()
-                .ok_or("incomplete fixture was silently accepted")?;
+            if missing != "expected" {
+                fs::create_dir(fixture.join("expected"))?;
+            }
+            let error = umpire_testing::discovery::generate(
+                &root,
+                umpire_testing::discovery::MODEL_AND_TESTS,
+                &root.join("generated.rs"),
+            )
+            .err()
+            .ok_or("incomplete fixture was silently accepted")?;
             let message = error.to_string();
             assert!(message.contains(missing), "{message}");
             assert!(message.contains(&*fixture.to_string_lossy()), "{message}");
@@ -35,13 +42,28 @@ fn compiles_distinct_non_identifier_folder_names() -> Result<(), Box<dyn Error>>
     let fixtures = root.join("fixtures");
     fs::create_dir_all(&fixtures)?;
     let result = (|| -> Result<(), Box<dyn Error>> {
-        for name in ["kettle-cut", "kettle_cut", "kettle_2dcut", "Kettle", "4", "λ"] {
+        for name in [
+            "kettle-cut",
+            "kettle_cut",
+            "kettle_2dcut",
+            "fixture_kettle_2dcut",
+            "kettle_cut_tests",
+            "Kettle",
+            "4",
+            "λ",
+            "type",
+        ] {
             let folder = fixtures.join(name);
             fs::create_dir_all(folder.join("expected"))?;
-            fs::write(folder.join("model.rs"), "pub(crate) fn run() {}\n")?;
+            fs::write(folder.join("model.rs"), "")?;
+            fs::write(folder.join("tests.rs"), "pub(crate) fn run() {}\n")?;
         }
         let generated = root.join("generated.rs");
-        umpire_testing::discovery::generate(&fixtures, &generated)?;
+        umpire_testing::discovery::generate(
+            &fixtures,
+            umpire_testing::discovery::MODEL_AND_TESTS,
+            &generated,
+        )?;
         let source = root.join("lib.rs");
         fs::write(
             &source,

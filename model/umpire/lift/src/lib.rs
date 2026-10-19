@@ -181,27 +181,62 @@ pub struct Module {
 /// Independent authored-source admission.
 pub struct Lift;
 impl Lift {
-    /// Read a source root.
+    /// Read a source root, with the golden hook from a `tests.rs` beside it.
     pub fn source(path: impl AsRef<Path>) -> Result<Lifted, Diagnostic> {
         let path = path.as_ref();
         let file = path.to_string_lossy();
-        let source = std::fs::read_to_string(path)
-            .map_err(|error| Diagnostic::span(&file, Span::call_site(), error.to_string()))?;
-        Self::parse(&file, &source)
+        let read = |path: &Path, file: &str| {
+            let source = std::fs::read_to_string(path)
+                .map_err(|error| Diagnostic::span(file, Span::call_site(), error.to_string()))?;
+            syn::parse_file(&source)
+                .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))
+        };
+        let ast = read(path, &file)?;
+        let tests_path = path.with_file_name("tests.rs");
+        let tests_file = tests_path.to_string_lossy();
+        let tests = if tests_path.is_file() { Some(read(&tests_path, &tests_file)?) } else { None };
+        let mut hooks = Hook::all(&file, &ast);
+        if let Some(tests) = &tests {
+            hooks.extend(Hook::all(&tests_file, tests));
+        }
+        Self::lift(&file, &ast, &hooks)
     }
     /// Parse a source root without executing its Rust transitions.
     pub fn parse(file: &str, source: &str) -> Result<Lifted, Diagnostic> {
         let ast = syn::parse_file(source)
             .map_err(|error| Diagnostic::span(file, error.span(), error.to_string()))?;
+        Self::lift(file, &ast, &Hook::all(file, &ast))
+    }
+    fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
         let lifted = if ast.items.iter().any(
             |item| matches!(item, syn::Item::Mod(module) if parse::has(&module.attrs,"machine")),
         ) {
-            parse::parse(file, &ast)
+            parse::parse(file, ast, hooks)
         } else {
-            manual::parse(file, &ast)
+            manual::parse(file, ast, hooks)
         }?;
-        names::validate(file, &ast, &lifted)?;
+        names::validate(file, ast, &lifted)?;
         Ok(lifted)
+    }
+}
+/// A golden hook (`fixture!`) and the file it is written in.
+pub(crate) struct Hook<'a> {
+    file: &'a str,
+    mac: &'a syn::ItemMacro,
+}
+impl<'a> Hook<'a> {
+    fn all(file: &'a str, ast: &'a syn::File) -> Vec<Self> {
+        ast.items
+            .iter()
+            .filter_map(|item| match item {
+                syn::Item::Macro(mac)
+                    if mac.mac.path.segments.last().is_some_and(|s| s.ident == "fixture") =>
+                {
+                    Some(Self { file, mac })
+                }
+                _ => None,
+            })
+            .collect()
     }
 }
 /// TLA+ emission from the internal typed tree.

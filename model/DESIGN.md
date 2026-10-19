@@ -304,7 +304,7 @@ declarations. They compare authored constructs, not a claim of general front-end
 | Action-filtered postcondition | 66–69 | 88–92 | Scala nests `after(action)`; Rust places the filter on the method attribute and omits an unused before parameter. Both check boiling and beeping. |
 | Environment assumption | 73–74 | 94–98 | Scala has a val; Rust has a named static method returning module-local `Assumption`. Both exclude the user's depress action. |
 | Progress | 76–82 | 100–104 | Rust uses `whenever(bool).eventually(bool).assuming(...) -> LeadsTo`; Scala uses its block syntax and `in`. Neither the future `path!` form nor numeric bounds are implemented here. |
-| Fixture entrypoint | Separate test file | 108 | Rust includes a fixture registration and the negative `never_beeps` claim in this file; it is included in the full-file counts below. |
+| Fixture entrypoint | Separate test file | `tests.rs` | Both keep tests beside the Model: Rust's golden hook and the negative `never_beeps` claim live in the fixture's `tests.rs`, outside the counts below. |
 
 The final source has one invariant, two postconditions and one progress claim. No
 `macro_rules!` transition, invariant, postcondition or progress wrapper earned a place: ordinary
@@ -346,10 +346,10 @@ far more than Kettle: these are module sizes, not equal-feature implementation c
 
 | Sample or support surface | Files | Physical | Nonblank | Nonblank excluding whole-line `//` comments |
 | --- | ---: | ---: | ---: | ---: |
-| Final `sample_kettle/model.rs` | 1 | 108 | 94 | 80 |
-| Manual `sample_kettle_trait/model.rs` | 1 | 126 | 111 | 111 |
+| Final `sample_kettle/model.rs` | 1 | 106 | 93 | 79 |
+| Manual `sample_kettle_trait/model.rs` | 1 | 120 | 106 | 106 |
 | Frozen `Kettle.scala` | 1 | 82 | 71 | 57 |
-| All shared fixture Models (including both Kettles and controls) | 23 | 984 | 851 | — |
+| All shared fixture Models (including both Kettles and controls) | 25 | 980 | 862 | — |
 | Checked-in formatted macro expansion snapshots | 3 | 561 | 561 | — |
 | Go host handwritten source | 1 | 277 | 262 | — |
 | Go host generated protobuf source | 1 | 625 | 538 | — |

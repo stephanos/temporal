@@ -3,7 +3,7 @@ use umpire_dsl::{Action, Claim, Machine, Progress, State, StepClaim, Steps};
 #[derive(State)]
 pub struct Counter {
     #[starts(0..=0)]
-    value: u8,
+    pub value: u8,
 }
 
 #[derive(Action)]
@@ -11,7 +11,7 @@ pub enum User {
     Advance,
 }
 
-struct CounterWorld;
+pub struct CounterWorld;
 
 impl CounterWorld {
     fn advances() -> StepClaim<Self> {
@@ -95,5 +95,3 @@ impl Machine for CounterWorld {
         ]
     }
 }
-
-umpire_testing::fixture!(CounterWorld, 2, Claim::<CounterWorld>::new("supplemental", |_, _| true.into()));

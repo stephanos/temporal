@@ -14,7 +14,7 @@ type Result<T> = std::result::Result<T, Diagnostic>;
 type Env = BTreeMap<String, Expr>;
 
 #[expect(clippy::too_many_lines, reason = "The admission pass preserves source declaration order")]
-pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted> {
+pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> Result<Lifted> {
     let modules: Vec<_> = ast
         .items
         .iter()
@@ -323,42 +323,40 @@ pub(crate) fn parse(file: &str, ast: &syn::File) -> Result<Lifted> {
         }
     }
     let mut negative = Vec::new();
-    for item in &ast.items {
-        if let Item::Macro(mac) = item
-            && mac.mac.path.segments.last().is_some_and(|s| s.ident == "fixture")
-        {
-            let args = mac
-                .mac
-                .parse_body_with(
-                    syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
-                )
-                .map_err(|e| Diagnostic::span(file, e.span(), e.to_string()))?;
-            for expr in args.iter().skip(2) {
-                if let RustExpr::Call(call) = expr
-                    && call.args.len() == 2
-                {
-                    let Some(RustExpr::Lit(name)) = call.args.first() else { continue };
-                    let syn::Lit::Str(name) = &name.lit else { continue };
-                    let Some(RustExpr::Closure(closure)) = call.args.last() else {
-                        continue;
-                    };
-                    let mut env = Env::new();
-                    if let Some(pat) = closure.inputs.iter().nth(1) {
-                        let pat = if let Pat::Type(p) = pat { p.pat.as_ref() } else { pat };
-                        if let Pat::Ident(id) = pat {
-                            for f in &parser.fields {
-                                env.insert(
-                                    format!("{}.{}", id.ident, f.name),
-                                    Expr::var(&f.name, f.ty.clone(), false),
-                                );
-                            }
+    for hook in hooks {
+        parser.file = hook.file;
+        let args = hook
+            .mac
+            .mac
+            .parse_body_with(
+                syn::punctuated::Punctuated::<RustExpr, syn::Token![,]>::parse_terminated,
+            )
+            .map_err(|e| Diagnostic::span(hook.file, e.span(), e.to_string()))?;
+        for expr in args.iter().skip(2) {
+            if let RustExpr::Call(call) = expr
+                && call.args.len() == 2
+            {
+                let Some(RustExpr::Lit(name)) = call.args.first() else { continue };
+                let syn::Lit::Str(name) = &name.lit else { continue };
+                let Some(RustExpr::Closure(closure)) = call.args.last() else {
+                    continue;
+                };
+                let mut env = Env::new();
+                if let Some(pat) = closure.inputs.iter().nth(1) {
+                    let pat = if let Pat::Type(p) = pat { p.pat.as_ref() } else { pat };
+                    if let Pat::Ident(id) = pat {
+                        for f in &parser.fields {
+                            env.insert(
+                                format!("{}.{}", id.ident, f.name),
+                                Expr::var(&f.name, f.ty.clone(), false),
+                            );
                         }
                     }
-                    negative.push(ClaimDef {
-                        name: name.value(),
-                        expr: parser.expr(&closure.body, &initial, &env, Some(&Type::Bool), 0)?,
-                    });
                 }
+                negative.push(ClaimDef {
+                    name: name.value(),
+                    expr: parser.expr(&closure.body, &initial, &env, Some(&Type::Bool), 0)?,
+                });
             }
         }
     }

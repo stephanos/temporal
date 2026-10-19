@@ -4,17 +4,13 @@ use std::{
     rc::Rc,
 };
 
-#[cfg(test)]
-use std::collections::BTreeMap;
-#[cfg(test)]
-use umpire_checker::Checker;
 use umpire_dsl::{Claim, Machine, Steps, Verdict};
 
-struct World(Rc<Cell<usize>>);
+pub struct World(pub Rc<Cell<usize>>);
 
-struct State {
-    value: usize,
-    clones: Rc<Cell<usize>>,
+pub struct State {
+    pub value: usize,
+    pub clones: Rc<Cell<usize>>,
 }
 
 impl std::fmt::Display for State {
@@ -48,7 +44,7 @@ impl Hash for State {
 }
 
 #[derive(umpire_dsl::Action)]
-enum Action {
+pub enum Action {
     Advance,
 }
 
@@ -77,16 +73,4 @@ impl Machine for World {
     fn invariants(&self) -> Vec<Claim<Self>> {
         vec![Claim::<Self>::new("safe", |_, _| Verdict::Holds)]
     }
-}
-
-#[cfg(test)]
-pub(crate) fn run() -> umpire_testing::RunResult {
-    let world = World(Rc::new(Cell::new(0)));
-    let result = Checker::explore(&world, 1001)?;
-    let work = if world.0.get() <= 4 * result.counts.reached { "linear" } else { "excessive" };
-    let mut report = result.verify_all()?.to_string();
-    report.push_str("clone_work: ");
-    report.push_str(work);
-    report.push('\n');
-    Ok(BTreeMap::from([("report.txt".into(), report)]))
 }

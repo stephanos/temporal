@@ -1,6 +1,6 @@
 //! Model authored with the attribute surface.
 
-use umpire_dsl::{Claim, machine};
+use umpire_dsl::machine;
 
 /// A kettle controlled by its user and heating element.
 #[machine]
@@ -104,5 +104,3 @@ pub mod kettle {
         }
     }
 }
-
-umpire_testing::fixture!(kettle::world(), 1 << 20, Claim::new("never_beeps", |_, state: &kettle::Model| (!state.beeping).into()));

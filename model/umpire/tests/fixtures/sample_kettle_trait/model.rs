@@ -1,13 +1,5 @@
 use umpire_dsl::{Claim, Machine, Progress, Scope, StepClaim, Steps};
 
-#[cfg(test)]
-pub(crate) fn run() -> umpire_testing::RunResult {
-    let result = umpire_testing::Checker::explore(&KettleWorld, 1 << 20)?;
-    let mut files = umpire_testing::render(&result)?;
-    files.insert("rows.txt".into(), umpire_testing::render_rows(&result)?);
-    Ok(files)
-}
-
 const BOILING_TEMPERATURE: i32 = 100;
 const COLDEST_TEMPERATURE: i32 = -40;
 
@@ -15,9 +7,9 @@ pub struct KettleWorld;
 
 #[derive(Clone, PartialEq, Eq, Hash, Debug)]
 pub struct Kettle {
-    temperature: i32,
-    heating_on: bool,
-    beeping: bool,
+    pub temperature: i32,
+    pub heating_on: bool,
+    pub beeping: bool,
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash, Debug)]

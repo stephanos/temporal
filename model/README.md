@@ -179,7 +179,7 @@ comparison and capability boundaries.
 ## Testing
 
 End to end, by golden files (fn-210 R8, R23, R29). A test is a fixture, an input plus the output it
-produces (`model.rs` and `expected/`). "Fixture", not
+produces (`model.rs`, `tests.rs` and `expected/`). "Fixture", not
 "case": Case is Testpilot's term.
 
 - behaviour: each fixture's `expected/report.snap.txt`, `states.snap.txt`, `rows.snap.txt` and `paths/<claim>.snap.txt`
@@ -191,14 +191,20 @@ produces (`model.rs` and `expected/`). "Fixture", not
   rather than merely stable.
 
 Goldens are deterministic, human-readable and timing-free. `make model-update` rewrites them; a
-fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
+shared fixture folder without `model.rs`, `tests.rs` or `expected/` fails the build naming it. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-tests` at `umpire/tests/` owns 24 shared fixtures in `fixtures/<name>/`.
+`umpire-tests` at `umpire/tests/` owns 25 shared fixtures in `fixtures/<name>/`.
 `sample_kettle` and `sample_kettle_trait` are the canonical attribute and manual-trait authoring
 examples; focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
 action to reach the target. The crate's sole test target is `fixtures.rs`.
+A shared fixture's `model.rs` holds only the Model (what `#[machine]` registers, what the lifter
+reads, what hosts include); its golden hook (`umpire_testing::fixture!` or a hand-written `run`)
+lives in `tests.rs` beside it. The build declares both as sibling modules, `<name>` and
+`<name>_tests`, so `tests.rs` reaches the Model as `crate::<name>` and state fields are `pub`.
+Folder names that are not plain lowercase identifiers compile under an escaped `fixture_` module.
+The lifter reads a hook's supplemental claims and selected mode from `tests.rs`.
 The Kettle Models live in their own fixture's `model.rs`;
 native and wasm hosts can include that source by path. The trait Kettle has executable native
 report, states and rows goldens. Checker-specific failures, panics, overflows, holes, budget cuts
@@ -209,7 +215,9 @@ The historical authoring sketches have been retired after preserving their compa
 `umpire-testing` is a development-only dependency. It owns rendering, comparison, snapshot
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must
-contain `model.rs`, `expected/`, and at least one consumer-owned expected file. Expected files
+contain `model.rs`, `expected/`, and at least one consumer-owned expected file; shared fixture
+roots (`umpire/tests/fixtures/`, `temporal/features/`) also require `tests.rs`, while synthetic
+control roots keep the hook in `model.rs`. Expected files
 select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `negative_report.txt`
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.
 The DSL registers its formatting consumer for `values.txt`. Future backends register their own

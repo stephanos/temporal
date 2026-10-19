@@ -180,8 +180,7 @@ fn progress_bounds_and_machine_identity_are_fail_closed() -> Result<(), Box<dyn 
         module.metadata.observer_types["__umpire_steps"],
         Type::Int { max: 2_147_483_647, .. }
     ));
-    let source =
-        KETTLE.replace("use umpire_dsl::{Claim, machine};", "use other::{Claim, machine};");
+    let source = KETTLE.replace("use umpire_dsl::machine;", "use other::machine;");
     assert!(Lift::parse("identity.rs", &source).is_err());
     Ok(())
 }

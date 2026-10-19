@@ -66,8 +66,10 @@ pub fn run_at_skipping(
             "backend {name}: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)"
         );
     }
-    let discovered: BTreeSet<_> =
-        crate::discovery::discover(root)?.into_iter().map(|(name, _)| name).collect();
+    let discovered: BTreeSet<_> = crate::discovery::discover(root, crate::discovery::MODEL)?
+        .into_iter()
+        .map(|fixture| fixture.name)
+        .collect();
     let registered: BTreeSet<_> = fixtures.iter().map(|(name, _)| (*name).to_owned()).collect();
     if discovered != registered || fixtures.len() != registered.len() {
         return Err("discovered fixtures differ from generated registry; rebuild required".into());

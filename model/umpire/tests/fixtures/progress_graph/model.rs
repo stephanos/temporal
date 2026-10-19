@@ -127,6 +127,3 @@ impl Machine for Graph {
         vec![claim]
     }
 }
-
-#[cfg(test)]
-umpire_testing::fixture!(Graph(Mode::Cycle), 16);

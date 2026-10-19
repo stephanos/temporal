@@ -1,9 +1,10 @@
 //! Build-time source admission and generated backend fixture bindings.
 
-/// Generate emitted artifacts and typed fixture bindings from independently read source roots.
+/// Generate emitted artifacts and typed fixture bindings from independently read source roots,
+/// given each fixture's name, model module and folder.
 #[allow(clippy::print_stdout)]
 pub fn generate(
-    fixtures: &[(String, std::path::PathBuf)],
+    fixtures: &[(String, String, std::path::PathBuf)],
     output: &std::path::Path,
 ) -> std::io::Result<()> {
     use std::fmt::Write;
@@ -13,10 +14,14 @@ pub fn generate(
     let mut replay = String::from(
         "#[allow(unused_imports, unused_qualifications)]\nfn check_backend(name: &str, module: &umpire_lift::Module, folder: &std::path::Path, native: &umpire_testing::Files) -> umpire_testing::RunResult { match name {\n",
     );
+    // A module evaluates each world path against its fixture's glob alone. Discovery never names
+    // a fixture module `fixture_lifted`: `lifted` stays plain and only non-plain names escape.
+    let mut bindings = String::from("mod fixture_lifted {\n");
     let mut admitted = Vec::new();
-    for (name, folder) in fixtures {
+    for (name, identifier, folder) in fixtures {
         let input = folder.join("model.rs");
         println!("cargo:rerun-if-changed={}", input.display());
+        println!("cargo:rerun-if-changed={}", folder.join("tests.rs").display());
         match crate::Lift::source(&input).and_then(|lifted| crate::Tla::emit(&lifted)) {
             Ok(module) => {
                 admitted.push(name.clone());
@@ -28,15 +33,12 @@ pub fn generate(
                 std::fs::write(&tla, &module.tla)?;
                 std::fs::write(&cfg, &module.cfg)?;
                 writeln!(source, "{name:?} => Ok(umpire_lift::Module {{ name: {:?}.into(), tla: include_str!({:?}).into(), cfg: include_str!({:?}).into(), metadata: {} }}),", module.name, tla.to_string_lossy(), cfg.to_string_lossy(), metadata(&module.metadata)).map_err(std::io::Error::other)?;
-                let mut identifier = String::from("fixture_");
-                for byte in name.bytes() {
-                    if byte.is_ascii_lowercase() || byte.is_ascii_digit() {
-                        identifier.push(char::from(byte));
-                    } else {
-                        write!(identifier, "_{byte:02x}").map_err(std::io::Error::other)?;
-                    }
-                }
-                writeln!(replay, "{name:?} => umpire_testing::backend::check_machine(&{{ use {identifier}::*; {} }}, module, folder, native),", module.metadata.world_path).map_err(std::io::Error::other)?;
+                writeln!(
+                    replay,
+                    "{name:?} => fixture_lifted::{identifier}::check(module, folder, native),"
+                )
+                .map_err(std::io::Error::other)?;
+                writeln!(bindings, "pub(super) mod {identifier} {{ #[allow(unused_imports)] use crate::{identifier}::*; pub(crate) fn check(module: &umpire_lift::Module, folder: &std::path::Path, native: &umpire_testing::Files) -> umpire_testing::RunResult {{ umpire_testing::backend::check_machine(&{}, module, folder, native) }} }}", module.metadata.world_path).map_err(std::io::Error::other)?;
             }
             Err(diagnostic) => {
                 println!("cargo:warning={diagnostic}");
@@ -52,6 +54,8 @@ pub fn generate(
         replay.push_str("_ => Err(format!(\"unselected backend coverage: {name}\").into()), } }\n");
     }
     source.push_str(&replay);
+    bindings.push_str("}\n");
+    source.push_str(&bindings);
     writeln!(source, "fn admitted() -> &'static [&'static str] {{ &{admitted:?} }}")
         .map_err(std::io::Error::other)?;
     std::fs::write(output.join("lifted.rs"), source)
