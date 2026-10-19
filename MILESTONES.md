@@ -43,14 +43,14 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
 `Assumption` (renamed from `Scope`; `#[assumption]` methods, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
-`#[internal]` (owner); `Progress::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
+`#[internal]` (owner); `LeadsTo::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
 missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
 change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-214.1 | ⬜ todo | `Assumption` with `only`/`fair`; fairness from the assumption only (R1) |
-| fn-214.2 | ⬜ todo | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
+| fn-214.2 | ⬜ todo | After .1: `.within(n)`; named verdicts and hints in the checker (R2, R3) |
 | fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)

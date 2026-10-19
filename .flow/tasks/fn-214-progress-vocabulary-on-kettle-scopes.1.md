@@ -1,15 +1,49 @@
 ---
 satisfies: [R1]
 ---
-# fn-214-progress-vocabulary-on-kettle-scopes.1 Scope: only and fair; fairness explicit, never implied by #[internal]
+# fn-214-progress-vocabulary-on-kettle-scopes.1 Assumptions: only and fair with explicit fairness and legacy compatibility
 
 ## Description
-`Assumption` (renamed from `Scope`; declared by `#[assumption]` methods, owner 2026-10-19) in `umpire-dsl` gains `only([..])` and `fair([..])` beside `without([..])`, chaining, over actor-level action values; `#[machine]` maps the lists into `<mod>::Action` (as .6 does for `without`). `allows` = only minus without (only wins when both present), `is_fair` from the fair list. Nothing is fair by default: remove the checker's `world.internal(action)` fairness and use `scope.is_fair` (`Machine::internal` stays, meaning only "not driven by the environment"). Unknown actions in an assumption are refused naming them (compile-time where `#[machine]` sees them, `Refusal` at runtime otherwise); an empty admitted set is reported as an empty assumption. Kettle's goldens must not change.
+Implement R1 on the current flat attribute surface, preserving the legacy trait API.
+This task owns the shared assumption representation and fairness integration before .2.
 
-**Prerequisite:** fn-210.19 done (bare `#[within]`, nested surface). **Touches:** `model/umpire/dsl/src/assumption.rs` (renamed from `scope.rs`), `dsl/macros/src/machine.rs`, `checker/src/progress.rs`, checker fixtures. **Feedback loop (R30):** paste `make model-time` into the done summary.
+**Size:** M
+**Files:** existing DSL assumption/machine APIs, macro helpers, progress admission, oracle and focused fixtures.
+**Touches:** [model/umpire/dsl/src/scope.rs, model/umpire/dsl/src/lib.rs, model/umpire/dsl/src/machine.rs, model/umpire/dsl/macros/src/machine.rs, model/umpire/dsl/macros/src/action.rs, model/umpire/dsl/macros/tests/fixtures/**, model/umpire/dsl/tests/**, model/umpire/checker/src/progress.rs, model/umpire/checker/src/refusal.rs, model/umpire/checker/tests/**, model/umpire/tests/fixtures/progress*/**]
+
+### Approach
+
+- Extend the existing `Assumption` in `dsl/src/scope.rs`; retain the `Scope` alias and `Scope::without(&[..])` constructor. Do not rename the file or duplicate the assumption representation.
+- Add optional admitted-action selection and explicit fair membership. `.only` replaces the prior only-selection; `.without` and `.fair` accumulate stable deduplicated entries. Restriction order does not affect only-minus-without admission.
+- Preserve the static `Assumption::without` API and add receiver chaining through one extension trait, imported into generated modules. Rust permits that combination; the disposable `/tmp/fn214-associated-and-chain.rs` probe compiled and ran with Rust 1.99.1. Use actor-to-generated-Action conversion in the existing helpers and chaining methods. Keep generated syntax ordinary Rust, without new attributes or method/header rewriting.
+- Replace `world.internal` fairness selection with the assumption's fair membership. Validate all three lists, including nonadmitted fair entries, against the catalog before search where registration metadata is already available. Preserve once-per-state generated evaluation and Unknown on inconsistent assumptions.
+- Refuse empty admission only for an explicit restriction (`only` specified or nonempty exclusions). An unrestricted zero-action Model remains valid and can yield a deadlock. A valid press-only assumption with a disabled press is a deadlock, not an admission error.
+- Update the independent brute-force oracle's fairness input and generated assumptions; it currently encodes implicit internal fairness in multiple places. Existing fairness-specific fixtures must explicitly declare their fair actions when their purpose needs them.
+- Correct `Machine::internal` and derive documentation to mean environment-independent only. No new dependencies or workspace wiring.
+
+### Investigation targets
+
+**Required:**
+- `model/umpire/dsl/src/scope.rs:1` - current representation and static constructor.
+- `model/umpire/dsl/macros/src/machine.rs:612` - assumption helpers and actor conversion.
+- `model/umpire/checker/src/progress.rs:14` - validation, fixed assumption evaluation and fair SCC checks.
+- `model/umpire/checker/tests/oracle.rs` - independent reference fairness.
+- `model/umpire/checker/tests/support/progress_evaluation.rs` - once-per-state and inconsistent-assumption controls.
+
+**Optional:**
+- `model/umpire/tests/fixtures/sample_kettle_trait/model.rs:123` - protected legacy constructor and scope builder.
+
+### Quick commands
+
+From `model/`, `mise exec -- cargo test -p umpire-dsl -p umpire-dsl-macros -p umpire-checker -p umpire-tests`.
+From the repository root, run `make model-check` and record one `make model-time` output.
+Timing uses the owner's 10 s inner / 30 s full soft targets; investigate material overruns, not millisecond noise.
 ## Acceptance
-- [ ] TBD
-
+- [ ] Fixtures pin all/default, only, exclusion, chain-order independence, repeated-only replacement and stable repeated fair/without behavior; actor conversion works for constructors and chains.
+- [ ] Fixtures prove internal actions are not fair by default, explicit fairness affects cycles, and fairness never admits an excluded action. The independent brute-force oracle exercises explicit fair sets.
+- [ ] Unknown actions in every available registration/override list refuse naming the action even with zero starts. Method-produced lists are validated on real reached evaluations only; zero starts invoke no evaluator and preserve vacuous verification. Explicit empty admission refuses, while an unrestricted empty catalog and state-local disabled actions retain deadlock semantics.
+- [ ] The canonical `sample_kettle` and `sample_kettle_trait` sources and all their existing snapshot metadata/payloads match the task baseline byte-for-byte. Legacy `Scope::without` and `Progress::within(scope)` still compile unchanged.
+- [ ] Focused tests, `make model-check` and the recorded `make model-time` pass; macro refusal/expansion updates are scoped to the added API and semantics.
 ## Done summary
 TBD
 

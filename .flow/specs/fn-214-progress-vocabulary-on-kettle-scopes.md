@@ -1,5 +1,7 @@
 # Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 
+> Local HTML render lens: `.flow/artifacts/fn-214-progress-vocabulary-on-kettle-scopes/spec.html`. Regenerable; markdown is the record. <!-- flow-next:artifact-link -->
+
 ## Conversation Evidence
 
 > user (2026-10-19): "do we have the Temporal logic API well flhes out?" — answered: no; Rust has `whenever/eventually` and `without` only, and `#[internal]` implies weak fairness where Scala and TLA+ make fairness explicit.
@@ -11,22 +13,24 @@ Umpire in Rust checks one progress form today: `whenever(p).eventually(q)` insid
 
 ## Architecture & Data Models
 
-- `Assumption` (umpire-dsl; renamed from `Scope`, owner 2026-10-19): a plain value with three chaining builders, `without([a, ..])`, `only([a, ..])`, `fair([a, ..])`, over actor-level action values; `#[machine]` maps them into the generated `<mod>::Action`. `only` and `without` select the admitted actions (`only` wins when both are present: admitted = only minus without); `fair` lists weakly fair actions and admits nothing by itself. Nothing is fair by default. `#[internal]` keeps its meaning "not driven by the environment" and no longer implies fairness.
-- `Progress` (umpire-dsl): `{ trigger: bool, target: bool, within: Option<u32> }` evaluated per state; `.within(n)` sets the bound, `n` a positive constant. A claim names its assumption in its expression, `.assuming(Self::never_switched_off())` (owner 2026-10-19); several compose by chaining on a named one, `Self::reporting().fair([..])`.
-- Checker verdicts (umpire-checker): a progress claim's result carries a `Verdict` kind in Scala's order of testing: `Deadlock` (a region state has no admitted successor), `Cycle` (a cycle avoiding the target that no fair action leaves; a fair action leaves a cycle when it is enabled at every state of it and never taken inside it), `MissedDeadline` (bounded only: a path of `n` steps reaches no target, or a cycle that a fair action leaves can still avoid the target), `Verified` with `longest: Option<u32>` (the longest path to the first target state; `None` when an unbounded claim's region cycles), `Unknown` (cut exploration or a hole). The aggregate `Outcome` keeps Verified/Refuted/Unknown; the kind is additional.
+- `Assumption` is the existing plain DSL value, with `without`, `only` and `fair` constructors and receiver chaining over actor-level actions. The macro maps those actions into the generated action catalog. Admission is the only-selection minus exclusions, independently of chaining order. Repeated `only` replaces the selection; repeated `without` and `fair` accumulate stable deduplicated entries. Fair membership admits nothing by itself. Nothing is fair by default. `#[internal]` means environment-independent only. Preserve the manual-trait `Scope` alias and its static `without` constructor; one extension trait supplies compatible receiver chaining.
+- Author-facing `LeadsTo` carries trigger, target, assumption and an optional positive numeric bound. `.within(n)` counts transitions from an obligation state to its first target, excluding the incoming transition that made the trigger true. A target at exactly n transitions satisfies the bound. A claim names its assumption with `.assuming(Self::never_switched_off())`; named assumptions compose by chaining. Generated metadata must be fixed across reached states, otherwise the claim is Unknown. The legacy registered `Progress<M>` and its scope-taking `.within(scope)` remain compatible; registered numeric bounds use a distinct operation.
+- Checker progress results carry `ProgressVerdict` in this order: `Deadlock` (a region state has no admitted successor), `Cycle` (a target-avoiding cycle not excluded by explicit weak fairness), `MissedDeadline` (bounded only, an n-step target-avoiding witness or a cycle excluded only by fairness), `Verified { longest }`, `Unknown`. Longest counts transitions to the first target, is zero without an outstanding obligation, and is absent for a complete unbounded claim whose region can cycle before a fair exit. Refuting logical results have paths and hints; Verified and Unknown need no refutation path. Unknown replaces unproved success on cuts or holes, while concrete refutations remain authoritative. The aggregate Outcome stays Verified/Refuted/Unknown.
 - Hint lines, Scala's wording with Rust names: `deadlock: <a>, <b> ends in <state>`; `cycle <a>, <b>: <action> stays enabled and is never taken; add fair(<action>) to the assumption, or admit fewer actions with only`; `cycle <a>, ..: every action enabled on it is taken; admit fewer actions with only`; `a cycle can avoid a target state for any number of steps`; `a path of <n> steps reaches no target state`.
-- Questions beyond `verify_all` are asked from fn-213's `tests.rs`: `Model::boils.assuming(Model::press_only())` re-states a claim under another assumption for one question (Scala's `verify(boils) in scenario`), and `Model::boils.within(80)` asks a bounded variant. fn-213.4 depends on this spec.
+- This spec checks per-question variants through one narrow registered-progress query over an existing exploration. A fixture adapter supplies room/cold starts and delegates original behavior and callbacks. It preserves the canonical sample sources and goldens. Fn-213 later provides ergonomic `tests.rs` claim selection and the illustrated `Model::boils` notation; this spec does not depend on that future surface.
 
 ## API Contracts
 
-- `Assumption::without(actions) / only(actions) / fair(actions)`, each `(self, actions) -> Assumption` and as free constructors; `Assumption::allows(&action) -> bool`, `Assumption::is_fair(&action) -> bool`; `Progress::assuming(self, Assumption) -> Progress`.
-- `Progress::within(self, n: u32) -> Progress`.
-- `ClaimResult::verdict: Verdict` with `Verdict::{Deadlock, Cycle, MissedDeadline, Verified { longest: Option<u32> }, Unknown}`; `ClaimResult::hint: Option<String>`; the refuting `Path` keeps `cycle_start` for cycles.
-- fn-213 suite: `verify(&space, claim) -> ClaimResult`, the claim being any `Progress` value, so `Model::boils.assuming(..)` and `.within(n)` compose per question.
+- Assumption constructors and chains provide `without`, `only`, `fair`, `allows` and `is_fair`. Preserve the existing static `Assumption::without` / `Scope::without`; receiver chaining is supplied by an extension trait in scope in generated modules.
+- `LeadsTo::within(self, n: u32) -> LeadsTo` and `.assuming(self, assumption) -> LeadsTo`. Registered progress values expose assumption replacement and a separately named numeric-bound operation. An explicit replacement discards the original metadata completely, including its consistency checks; a bound override changes only the bound.
+- `ClaimResult::verdict: Option<ProgressVerdict>` and `ClaimResult::hint: Option<String>`, with `ProgressVerdict::{Deadlock, Cycle, MissedDeadline, Verified { longest: Option<u32> }, Unknown}`. Safety results and caught predicate/effect defects keep existing outcomes without a fabricated temporal classification. The DSL's predicate `Verdict` remains distinct. Refuting cycles retain `Path::cycle_start`. Default report text stays byte-identical; supplementary fixtures render the new fields.
+- `Result::verify_progress(&self, world, &registered_claim) -> Result<ClaimResult, Refusal>` reuses the retained graph and progress algorithm, without re-exploration, retained-row cloning or mutation of cached claim results. Fn-213 can wrap this operation in its future suite.
 
 ## Edge Cases & Constraints
 
 - `within(0)` or an assumption naming an unknown action is a `Refusal` naming it (compile-time where `#[machine]` can see it, runtime otherwise).
+- Validate entries in every assumption list, including excluded fair entries, before deciding admission. An explicit restriction with no admitted catalog action is an empty-assumption Refusal. An unrestricted empty catalog remains valid; an outstanding obligation there is a Deadlock. A press-only catalog that admits PressButton remains valid when that action is disabled in the current state.
+- Validate available registration metadata and explicit overrides even when there are no starts. Method-produced metadata is checked only when a real reached state invokes its evaluator. A zero-start Model invokes no evaluator and remains vacuously verified when its available metadata is valid; do not fabricate a state to inspect a callback's return value.
 - A bounded claim never benefits from fairness: any cycle avoiding the target fails it (as a cycle when no fair action leaves it, as a missed deadline when one does).
 - `end` states are not part of this spec; when `end` arrives, a deadlock test ignores `end` states as Scala did.
 - fn-210 R14 determinism and R30 budgets hold; Kettle's existing goldens must not change (the fairness rule change is invisible on Kettle inside `never_switched_off`).
@@ -34,16 +38,16 @@ Umpire in Rust checks one progress form today: `whenever(p).eventually(q)` insid
 ## Acceptance Criteria
 
 - **R1:** `Assumption` (renamed from `Scope`, declared by `#[assumption]` methods, used by `.assuming(..)`) chains `without`, `only` and `fair` over actor-level actions; nothing is fair by default and `#[internal]` no longer implies fairness. Errors: an unknown action in an assumption is refused naming it; `only` and `without` of the same action admits nothing and is reported as an empty assumption.
-- **R2:** `Progress::within(n)` makes a claim bounded; `n` must be positive. Errors: `within(0)` is refused.
-- **R3:** Progress verdicts are `Deadlock`, `Cycle`, `MissedDeadline`, `Verified { longest }` or `Unknown`, tested in that order, each with a path and the hint line above; the aggregate `Outcome` is unchanged. Errors: none beyond R1/R2; a cut exploration answers `Unknown`.
+- **R2:** `LeadsTo::within(n)` makes a claim bounded; n must be positive and reaching the first target in exactly n transitions passes. Errors: zero is refused; inconsistent reached bound metadata is Unknown unless replaced by a per-question bound.
+- **R3:** Progress verdicts are `Deadlock`, `Cycle`, `MissedDeadline`, `Verified { longest }` or `Unknown`, tested in that order, with paths and the specified hints for refuting logical results; the aggregate `Outcome` is unchanged. Safety and caught-defect results have no temporal classification. Errors: none beyond R1/R2; cuts and reached holes prevent unproved success while concrete refutations remain visible.
 - **R4:** Kettle answers its archived test's progress questions: `boils` in `never_switched_off` is verified with longest 81 from room temperature and 141 from the coldest start; on the whole kettle from room temperature it is a cycle `depress, press` with the `only` hint; assuming `only([User::PressButton])` it is a deadlock ending in the switched-on room-temperature state; with `within(80)` from room temperature it is a missed deadline; with budget 10 it is unknown. Pinned as checker fixtures and, once fn-213 exists, asked from Kettle's `tests.rs`. Kettle's existing goldens are byte-identical. No error surface.
 - **R5:** fn-212's emitter contract is recorded: each `fair` entry becomes `WF_vars(A)` and nothing else is fair; stated in `DESIGN.md`. No error surface.
 
 ## Boundaries
 
 - No `end`, monitors, strong fairness, `starts(..)`, pinned schedules or refinement: `starts` and schedules belong to fn-213's `Space`/`Run`; the rest to the samples that need them (parked).
-- No change to the attribute surface beyond `only`, `fair` and `.within(n)`.
-- Does not start before fn-210.19.
+- Keep the flat attribute surface; add only the assumption/bound builders and the registered-progress query needed by these questions. No new attributes, suite crate or starts DSL.
+- Starts after fn-210's committed local closure. The implementation tasks run .1, then .2, then .3 because they share macro and checker files.
 
 ## Decision Context
 
@@ -51,4 +55,29 @@ Umpire in Rust checks one progress form today: `whenever(p).eventually(q)` insid
 
 2026-10-19, owner: `Scope` becomes `Assumption` (`#[assumption]` methods, `.assuming(..)` on the claim) so the sentence reads 'boils, assuming never switched off'; the word is SEMANTICS §10's. The `#[within(..)]` attribute is gone; `.within(n)` is only the bound. fn-215 adds the `path!` progression notation on top of this spec's `Progress`.
 
-2026-10-19, naming: the progress claim value type is `LeadsTo` (`#[progress]` is the attribute; `Progress` is not a type); read `Progress` as a value type in this spec as `LeadsTo`: `LeadsTo::within(n)`, `LeadsTo::assuming(..)`.
+2026-10-19, naming: the author-facing progress claim value type is `LeadsTo`. The existing registered trait-engine `Progress<M>` remains a separate compatibility surface.
+
+2026-10-19, delegated implementation choices: an optional ProgressVerdict avoids misclassifying failed safety claims. An extension trait preserves the static legacy assumption constructor while adding chains; a Rust 1.99.1 disposable probe confirmed method resolution. The registered query and a delegating fixture adapter deliver R4 without depending on fn-213 or changing canonical Kettle behavior. The archived fair(heat) hint is generic advice; heat is disabled during the off part of the press/depress cycle, so explicit weak fairness alone does not remove it.
+
+## Quick commands
+
+```bash
+make model-check
+make model-time
+```
+
+The feedback-loop targets remain 10 s inner and 30 s full, both soft. Record minor deviations without blocking; investigate material overruns.
+
+## Early proof point
+
+Task .1 proves explicit fairness can replace internal-action fairness while retaining canonical Kettle parity and the independent brute-force oracle. If it fails, resolve assumption admission and fairness representation before bounds or query fixtures are built.
+
+## Requirement coverage
+
+| Req | Description | Task(s) | Gap justification |
+| --- | --- | --- | --- |
+| R1 | `Assumption` (renamed from `Scope`, declared by `#[assumption]` methods, used by `.assuming(..)`) chains `without`, `only` and `fair` over actor-level actions; nothing is fair by default and `#[internal]` no longer implies fairness. Errors: an unknown action in an assumption is refused naming it; `only` and `without` of the same action admits nothing and is reported as an empty assumption. | fn-214-progress-vocabulary-on-kettle-scopes.1 | — |
+| R2 | `LeadsTo::within(n)` makes a claim bounded; n must be positive and reaching the first target in exactly n transitions passes. Errors: zero is refused; inconsistent reached bound metadata is Unknown unless replaced by a per-question bound. | fn-214-progress-vocabulary-on-kettle-scopes.2 | — |
+| R3 | Progress verdicts are `Deadlock`, `Cycle`, `MissedDeadline`, `Verified { longest }` or `Unknown`, tested in that order, with paths and the specified hints for refuting logical results; the aggregate `Outcome` is unchanged. Safety and caught-defect results have no temporal classification. Errors: none beyond R1/R2; cuts and reached holes prevent unproved success while concrete refutations remain visible. | fn-214-progress-vocabulary-on-kettle-scopes.2 | — |
+| R4 | Kettle answers its archived test's progress questions: `boils` in `never_switched_off` is verified with longest 81 from room temperature and 141 from the coldest start; on the whole kettle from room temperature it is a cycle `depress, press` with the `only` hint; assuming `only([User::PressButton])` it is a deadlock ending in the switched-on room-temperature state; with `within(80)` from room temperature it is a missed deadline; with budget 10 it is unknown. Pinned as checker fixtures and, once fn-213 exists, asked from Kettle's `tests.rs`. Kettle's existing goldens are byte-identical. No error surface. | fn-214-progress-vocabulary-on-kettle-scopes.3 | — |
+| R5 | fn-212's emitter contract is recorded: each `fair` entry becomes `WF_vars(A)` and nothing else is fair; stated in `DESIGN.md`. No error surface. | fn-214-progress-vocabulary-on-kettle-scopes.3 | — |

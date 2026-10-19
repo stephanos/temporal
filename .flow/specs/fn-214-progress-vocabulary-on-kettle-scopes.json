@@ -1,13 +1,120 @@
 {
   "branch_name": "fn-214-progress-vocabulary-on-kettle-scopes",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T00:02:15.983260Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine"
   ],
   "id": "fn-214-progress-vocabulary-on-kettle-scopes",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-19T15:50:13.706386Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "f23d9045957e9e2076824a885d4b5084a276312c503a55ab3d8acd5c60ed48bf",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d53b1e1d1270b2e65ea63d98fd2d87b9",
+            "classification": "introduced",
+            "findingId": "finding-d53b1e1d1270b2e65ea63d98fd2d87b9",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ef61dcbee323abbe7dc3049d3d1ea25517d9a3fc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 254648,
+      "output_sha256": "a8d87362d6d51be53e5d45f00c073d297c9a52fe07e4c3d910a7f4269494e739",
+      "reservation_id": "cef75aa69ab74661bb54f85ca2904dc8",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T15:48:53.246035Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7ef5f6841b261e010db99427252ad5454ee7d2e5f3943c43e14faa8cfe3e5238",
+      "backend": "codex",
+      "base_sha": "6875191ef7d7ea191549150812c3b7b36507215c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d53b1e1d1270b2e65ea63d98fd2d87b9",
+            "classification": "introduced",
+            "findingId": "finding-d53b1e1d1270b2e65ea63d98fd2d87b9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ef61dcbee323abbe7dc3049d3d1ea25517d9a3fc",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 563,
+      "output_sha256": "bb1e4978ca1fdc5f2512c45b33dc864f7dea3a73c5a6399a795f326b71c3d7a9",
+      "reservation_id": "d75b5e12300b48fdb8710c9332210d56",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T15:50:13.673812Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md",
   "status": "open",
   "title": "Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)",
@@ -22,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T02:53:06.482009Z"
+  "updated_at": "2026-10-19T15:50:13.714690Z"
 }

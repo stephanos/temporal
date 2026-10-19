@@ -8,7 +8,7 @@ Kettle's `umpire/tests/fixtures/kettle/tests.rs` with `mod examples` and `mod ex
 
 **Touches:** `model/umpire/tests/fixtures/kettle/tests.rs`, `model/README.md` (how to write a Model's tests).
 
-**Cross-spec prerequisite (2026-10-19):** fn-214 (progress vocabulary: `only`, `fair`, `.within(n)`, named verdicts) must be done first; the deadlock, cycle and missed-deadline questions here use `Model::boils.assuming(..)` and `Model::boils.within(80)` from that spec; write the claims in fn-215's `path!` notation where the tests restate one. Not a Flow dependency because task deps are spec-local.
+**Cross-spec prerequisite:** fn-214.3's committed integrated checkpoint provides the progress questions and registered-query seam. This task supplies their ergonomic suite presentation, including claim selection and `path!` notation. The conductor must verify that prerequisite before claiming this task. The CLI refuses cross-spec task edges; do not invent one or replace this with a cyclic whole-spec dependency. Illustrative `Model::boils` notation does not imply fn-214 already exposes a public callable claim descriptor.
 ## Acceptance
 - [ ] TBD
 
