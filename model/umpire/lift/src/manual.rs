@@ -58,6 +58,7 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
                 if item.trait_.as_ref().is_some_and(|(path, _)| canonical_machine(ast, path)) =>
             {
                 attributes(file, &item.attrs)?;
+                reject_conditionals(file, item)?;
                 for member in &item.items {
                     if let ImplItem::Fn(method) = member {
                         attributes(file, &method.attrs)?;
@@ -78,7 +79,6 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
                                 "manual checked_step overrides are unsupported",
                             ));
                         }
-                        reject_conditionals(file, &method.block)?;
                         if method.sig.asyncness.is_some()
                             || matches!(method.sig.safety, syn::Safety::Unsafe(_))
                             || !method.sig.generics.params.is_empty()

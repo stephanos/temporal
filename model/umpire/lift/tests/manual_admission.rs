@@ -8,6 +8,8 @@ mod checked;
 mod conditional;
 #[path = "fixtures/manual_admission_guard.rs"]
 mod guarded;
+#[path = "fixtures/manual_admission_members.rs"]
+mod members;
 
 fn located_refusal(
     file: &str,
@@ -24,6 +26,44 @@ fn located_refusal(
     assert!(error.column > 0);
     assert!(error.message.contains(message), "{error}");
     Ok(())
+}
+
+#[test]
+fn conditional_associated_types_and_parameters_refuse_before_lifting()
+-> Result<(), Box<dyn std::error::Error>> {
+    let world = members::World;
+    assert_eq!(world.step(&world.starts()[0], members::Action::Go).len(), 1);
+    let original = include_str!("fixtures/manual_admission_members.rs");
+    let attributes = [
+        "cfg(any())",
+        "cfg_attr(all(), cfg(any()))",
+        "r#cfg(any())",
+        "r#cfg_attr(all(), cfg(any()))",
+    ];
+    for selected in attributes {
+        let mut source = original.to_string();
+        for removed in attributes {
+            if selected != removed {
+                source = source.replace(&format!("    #[{removed}]\n    type Outcome = ();\n"), "");
+            }
+        }
+        located_refusal(
+            "conditional_type.rs",
+            &source,
+            &format!("#[{selected}]"),
+            "conditional compilation",
+        )?;
+    }
+    let mut signature = original.to_string();
+    for attribute in attributes {
+        signature = signature.replace(&format!("    #[{attribute}]\n    type Outcome = ();\n"), "");
+    }
+    located_refusal(
+        "conditional_signature.rs",
+        &signature,
+        "#[cfg(any())]",
+        "conditional compilation",
+    )
 }
 
 #[test]
