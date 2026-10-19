@@ -13,9 +13,26 @@ Kettle's `umpire/tests/fixtures/kettle/tests.rs` with `mod examples` and `mod ex
 - [ ] TBD
 
 ## Done summary
-TBD
+Kettle's `model/umpire/tests/fixtures/sample_kettle/tests.rs` gains `mod examples` (3 tests) and `mod explorations` (6 tests), plain `#[test]` functions returning `Result<(), Refusal>`, discovered by `cargo test` in the umpire-tests `fixtures` binary (umpire-suite added as a dev-dependency). The `fixture!` hook is unchanged; no golden changed.
 
+Asked (R4): the press/heat/depress enabledness table from -40 and 20; 99->100 boundary, heat disabled at 100, failover beeps, beeps_only_when_off holds and never_beeps fails at the beep, press re-arms; the `>=` guard (failover at 101) and `fails_over_at_boiling` refuted from (101, on); boils verified from room with longest 81 (141 from coldest and from all -40..=40 starts), plus `repeat(80, Heat)` and `Run::along(path![on, .., beeping])` = 81 steps, no depress; never_beeps refuted by press, 80 heats, failover (and `find` = 82 steps); budget 10 -> cut, every claim Unknown, `refuted` -> `Refusal::Unknown`; a counterexample before a cut stands (from room + (99, on), budget 12); a heating-and-beeping start refutes beeps_only_when_off at once.
+
+Not admitted (listed in model/README.md): vacuity with the heater excluded, the whole-Kettle cycle, only(press) deadlock, the 80-step deadline and the fair(heat) cycle (a Space chooses starts and budget, never actions or assumptions; these remain in the kettle_progress* fixtures); claim truth tables over non-step before/after pairs; boils metadata (no claim descriptors); the Scala report's prose line and empty query list.
+
+Deviation: the Scala "one state short of the whole graph" cut question does not carry over: from room the beep is the deepest (last-admitted) state, so a budget of reached-1 answers Unknown. The cut-but-refuted question uses two starts instead; README notes it. `find`/`along` use concrete first waypoints, so the greedy leg caveat does not show.
+
+Gate: `make model-check` passes. `make model-time`:
+```
+timing-controls 0.015s; capability-controls 0.074s; source-boundary 0.083s; protobuf-freshness 0.055s;
+temporal-protobuf-freshness 0.053s; fmt 0.180s; clippy 0.081s; docs 0.139s; tests 2.221s;
+wasm32-wasip1 0.053s; core-wasm-clippy 0.069s; wasm-guest 0.068s; go-host 1.097s; temporal-go-host 6.490s
+inner loop (edit+test)            2.221s
+gate total                       10.882s  (soft target 30s)
+inner loop                        2.221s  (soft target 10s)
+```
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 74adbab0c4
+- Tests: make model-check, make model-time, cargo test -p umpire-tests
 - PRs:
