@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T19:33:18.387022Z",
+  "depends_on": [],
+  "id": "fn-221-rejecting-outcomes-reject-steps-phased.1",
+  "priority": null,
+  "spec": "fn-221-rejecting-outcomes-reject-steps-phased",
+  "spec_path": ".flow/tasks/fn-221-rejecting-outcomes-reject-steps-phased.1.md",
+  "status": "todo",
+  "title": "Outcomes and reject!: Rejection, Outcome, the outcome frame, macro edge rules and outcome-taking postconditions",
+  "updated_at": "2026-10-19T19:33:18.387022Z"
+}

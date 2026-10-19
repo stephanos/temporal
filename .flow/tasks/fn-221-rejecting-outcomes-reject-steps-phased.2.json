@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T19:33:18.387661Z",
+  "depends_on": [
+    "fn-221-rejecting-outcomes-reject-steps-phased.1"
+  ],
+  "id": "fn-221-rejecting-outcomes-reject-steps-phased.2",
+  "priority": null,
+  "spec": "fn-221-rejecting-outcomes-reject-steps-phased",
+  "spec_path": ".flow/tasks/fn-221-rejecting-outcomes-reject-steps-phased.2.md",
+  "status": "todo",
+  "title": "Phased, Phase and closable laws; the mini activity Model rejects cancel after closure",
+  "updated_at": "2026-10-19T19:33:18.387661Z"
+}

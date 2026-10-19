@@ -37,7 +37,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (now) | fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210 and fn-214 are complete locally with their reviews and gates passed. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (now) | fn-216 → fn-221 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210 and fn-214 are complete locally with their reviews and gates passed. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -56,6 +56,24 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 | Name | Status | What |
 | --- | --- | --- |
 | fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs, complete integration evidence, and the `temporal.rs` cleanup (macro-exported `World`, prost type names, generic Any/refusal helpers in umpire) (R4, R5) |
+
+### fn-221: Rejecting outcomes: reject! steps, Phased closure laws and judged RPC errors (model, temporal)
+
+Captured on 2026-10-19, after the fn-216 review of `Client::Cancel => {}`. A legal request the system
+answers with an error becomes a Model step distinct from a disabled action: `reject!(Rejection::NotFound)`
+as a statement in a unit-returning handler, mirroring `check!`, emits a self-loop edge with
+`Rejected(NotFound)`; `#[machine]` switches `Outcome` on only for modules that use it, so existing goldens
+stand. A hand-implemented `Phased` trait carries the archive's two `Closable` laws as shared functions.
+`Explanation` gains parallel `outcomes`, `Observation` gains an error result, and the realization judges
+`RequestCancelActivityExecution` success and NotFound by replay. Two live cancel scenarios prove it.
+Depends on fn-216. [Spec](.flow/specs/fn-221-rejecting-outcomes-reject-steps-phased.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-221.1 | ⬜ todo | `Rejection`, `Outcome`, the outcome frame and `reject!`; macro edge rules; outcome-taking postconditions; fixtures (R1) |
+| fn-221.2 | ⬜ todo | After .1: `Phase`, `Phased`, `closable` laws; mini activity rejects cancel after closure; goldens (R2) |
+| fn-221.3 | ⬜ todo | After .2 and fn-216.4: `Explanation.outcomes`, `matches` with outcome, error observations, cancel projection (R3) |
+| fn-221.4 | ⬜ todo | After .3: live cancel scenarios, gates, DESIGN and README (R4) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 
