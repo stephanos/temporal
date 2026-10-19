@@ -1,0 +1,774 @@
+{
+ "schema": "gomad.wasm-determinism-inventory/v1",
+ "reviewed": {
+  "go_toolchain": "go1.27.1",
+  "wasmtime": "47.0.3",
+  "rust": "1.99.1"
+ },
+ "entries": [
+  {
+   "id": "import.wasi.clock_time_get",
+   "layer": "helper",
+   "class": "clock",
+   "site": "import:wasi_snapshot_preview1::clock_time_get",
+   "disposition": "controlled",
+   "owner": "clock model (wasmhost clock.rs, wasi/clock.go)",
+   "rule": "Answered from the virtual clock model, never from host time; every read is transcribed and folded into clock runs.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestTranscriptClockRunFoldsAndPreservesDigestModes",
+    "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks",
+    "rust:tests/clock_conformance.rs:clock_corpus_replays_exactly",
+    "corpus:wasmhost/tests/testdata/helper_transcript/local_clock_literal_transcript.json"
+   ]
+  },
+  {
+   "id": "import.wasi.poll_oneoff",
+   "layer": "helper",
+   "class": "clock",
+   "site": "import:wasi_snapshot_preview1::poll_oneoff",
+   "disposition": "controlled",
+   "owner": "clock model and namespace (wasmhost model/imports.rs, wasi/namespace.go)",
+   "rule": "Clock subscriptions advance virtual time and fd subscriptions are answered by the namespace model; the host never blocks on real time.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestTranscriptClockRunFoldsAndPreservesDigestModes",
+    "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks",
+    "rust:tests/clock_conformance.rs:clock_corpus_replays_exactly",
+    "corpus:wasmhost/tests/testdata/helper_transcript/marshal_poll_subscriptions.json"
+   ]
+  },
+  {
+   "id": "import.wasi.sched_yield",
+   "layer": "helper",
+   "class": "scheduling",
+   "site": "import:wasi_snapshot_preview1::sched_yield",
+   "disposition": "controlled",
+   "owner": "wasi.Environment / wasmhost model",
+   "rule": "Returns success without a host yield or a clock tick; scheduling stays with the seeded runtime choices.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestExploratoryClockAndPollDoNotUseWallTimeOrYieldTicks"
+   ]
+  },
+  {
+   "id": "import.wasi.random_get",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "import:wasi_snapshot_preview1::random_get",
+   "disposition": "controlled",
+   "owner": "wasi.Environment entropy stream / wasmhost model",
+   "rule": "Bytes are SHA-256 counter output keyed by the declared entropy key, never host entropy; the offset is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "corpus:wasmhost/tests/testdata/helper_transcript/local_random_and_strings_stay_local.json",
+    "corpus:wasmhost/tests/testdata/helper_transcript/host_entropy_written_to_guest.json"
+   ]
+  },
+  {
+   "id": "import.wasi.args_get",
+   "layer": "helper",
+   "class": "settings",
+   "site": "import:wasi_snapshot_preview1::args_get",
+   "disposition": "recorded",
+   "owner": "wasi.Environment configuration",
+   "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+   ]
+  },
+  {
+   "id": "import.wasi.args_sizes_get",
+   "layer": "helper",
+   "class": "settings",
+   "site": "import:wasi_snapshot_preview1::args_sizes_get",
+   "disposition": "recorded",
+   "owner": "wasi.Environment configuration",
+   "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+   ]
+  },
+  {
+   "id": "import.wasi.environ_get",
+   "layer": "helper",
+   "class": "settings",
+   "site": "import:wasi_snapshot_preview1::environ_get",
+   "disposition": "recorded",
+   "owner": "wasi.Environment configuration",
+   "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+   ]
+  },
+  {
+   "id": "import.wasi.environ_sizes_get",
+   "layer": "helper",
+   "class": "settings",
+   "site": "import:wasi_snapshot_preview1::environ_sizes_get",
+   "disposition": "recorded",
+   "owner": "wasi.Environment configuration",
+   "rule": "Answered from the declared arguments and environment, which are part of the environment identity.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCapturedArgumentsEnvironmentAndEntropy",
+    "go:internal/backends/wasm/wasi:TestEnvironmentRejectsAmbiguousInputsAndMalformedCalls"
+   ]
+  },
+  {
+   "id": "import.wasi.proc_exit",
+   "layer": "helper",
+   "class": "scheduling",
+   "site": "import:wasi_snapshot_preview1::proc_exit",
+   "disposition": "controlled",
+   "owner": "wasmhost abi.rs terminal handling",
+   "rule": "Ends the guest with a transcribed terminal outcome; the exit code is evidence, not a host signal.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestTransportRejectsInvalidTerminalClaims",
+    "go:internal/backends/wasm/wasi:TestTerminalExitMeasurementControls"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_close",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_close",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_sync",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_sync",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_filestat_get",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_filestat_get",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_fdstat_get",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_fdstat_get",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_prestat_get",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_prestat_get",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_fdstat_set_flags",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_fdstat_set_flags",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_filestat_set_size",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_filestat_set_size",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_write",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_write",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_read",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_read",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_create_directory",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_create_directory",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_remove_directory",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_remove_directory",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_unlink_file",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_unlink_file",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_prestat_dir_name",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_prestat_dir_name",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_pread",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_pread",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_pwrite",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_pwrite",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_readdir",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_readdir",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.fd_seek",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::fd_seek",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_filestat_get",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_filestat_get",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_rename",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_rename",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_open",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_open",
+   "disposition": "controlled",
+   "owner": "namespace model (wasmhost namespace/, wasi/namespace.go)",
+   "rule": "Served by the in-memory namespace model from the declared image; the host filesystem is never reopened, and every call is transcribed.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNamespaceConformanceCorpus",
+    "go:internal/backends/wasm/wasi:TestCapturedNamespaceNeverReopensHostAndInfersAbsence",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes"
+   ]
+  },
+  {
+   "id": "import.wasi.path_readlink",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_readlink",
+   "disposition": "rejected",
+   "owner": "namespace model (wasi/namespace.go default branch, wasmhost namespace/)",
+   "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
+    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+   ]
+  },
+  {
+   "id": "import.wasi.path_symlink",
+   "layer": "helper",
+   "class": "fs-io",
+   "site": "import:wasi_snapshot_preview1::path_symlink",
+   "disposition": "rejected",
+   "owner": "namespace model (wasi/namespace.go default branch, wasmhost namespace/)",
+   "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
+    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+   ]
+  },
+  {
+   "id": "import.wasi.sock_accept",
+   "layer": "helper",
+   "class": "network-io",
+   "site": "import:wasi_snapshot_preview1::sock_accept",
+   "disposition": "rejected",
+   "owner": "namespace model (wasi/namespace.go default branch, wasmhost namespace/)",
+   "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
+    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+   ]
+  },
+  {
+   "id": "import.wasi.sock_shutdown",
+   "layer": "helper",
+   "class": "network-io",
+   "site": "import:wasi_snapshot_preview1::sock_shutdown",
+   "disposition": "rejected",
+   "owner": "namespace model (wasi/namespace.go default branch, wasmhost namespace/)",
+   "rule": "Outside the stock WASI profile: refused as unsupported (operation outside stock WASI profile) and transcribed, never forwarded to the host.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused",
+    "go:internal/backends/wasm/wasi:TestNamespaceRightsOffsetsDirectoryCookiesAndClosure",
+    "go:internal/backends/wasm/wasi:TestGuestTransportClassifiesCapacityMalformedAndUnsupported"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v1.config",
+   "layer": "guest-runtime",
+   "class": "settings",
+   "site": "import:gomad_wasm_v1::config",
+   "disposition": "recorded",
+   "owner": "cooperative runtime (runtime_wasm.go.txt gomadWasmInit, wasi.RuntimeControl)",
+   "rule": "Delivers the declared seed and diagnostic flag; both are part of the execution identity.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted",
+    "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v1.decision",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "import:gomad_wasm_v1::decision",
+   "disposition": "controlled",
+   "owner": "cooperative runtime and choice tape (model/choice)",
+   "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted",
+    "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
+    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v1.observation",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "import:gomad_wasm_v1::observation",
+   "disposition": "controlled",
+   "owner": "cooperative runtime and choice tape (model/choice)",
+   "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted",
+    "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
+    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v1.finish",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "import:gomad_wasm_v1::finish",
+   "disposition": "controlled",
+   "owner": "cooperative runtime and choice tape (model/choice)",
+   "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted",
+    "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
+    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v1.idle",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "import:gomad_wasm_v1::idle",
+   "disposition": "controlled",
+   "owner": "cooperative runtime and choice tape (model/choice)",
+   "rule": "Every scheduling decision and observation crosses this import and is recorded on the choice tape; replay forces the recorded alternative.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted",
+    "corpus:wasmhost/tests/testdata/helper_features/diagnostic-profile/runtime_import_refused_v1_other.json",
+    "go:internal/backends/wasm/wasi:TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape"
+   ]
+  },
+  {
+   "id": "import.gomad_wasm_v2.net_stream",
+   "layer": "guest-runtime",
+   "class": "network-io",
+   "site": "import:gomad_wasm_v2::net_stream",
+   "disposition": "controlled",
+   "owner": "network model (wasmhost network/, wasi/network_v2.go)",
+   "rule": "Stream operations are answered by the deterministic network model; no host socket is opened.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/wasi:TestNetworkV2StateRejectsInvalidProfile",
+    "rust:tests/network_corpus.rs:network_full_corpus_requires_all_scripts_every_step_and_final_record",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted"
+   ]
+  },
+  {
+   "id": "import.gomad_debug_v1.exchange",
+   "layer": "guest-runtime",
+   "class": "settings",
+   "site": "import:gomad_debug_v1::exchange",
+   "disposition": "controlled",
+   "owner": "fn-180 inspection (toolchain debug glue, wasmhost diagnostic exchange)",
+   "rule": "Dormant unless helper-owned inspection is requested; inspection stops at recorded boundaries and does not shift decision ordinals.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCoversGoImportTables",
+    "go:internal/backends/wasm/toolchain:TestDebugDecisionStopsBeforeApplyingEveryDecisionKind",
+    "go:internal/backends/wasm/wasi:TestClusterInspectionMetadataDoesNotReplaceWorldEvidence",
+    "corpus:wasmhost/tests/testdata/helper_transcript/debug_registration_dormant_without_go_owned_inspection.json"
+   ]
+  },
+  {
+   "id": "import.unknown",
+   "layer": "helper",
+   "class": "settings",
+   "site": "import:*",
+   "disposition": "rejected",
+   "owner": "wasmhost engine.rs import linking, wasi.Run import checks",
+   "rule": "Any import outside the operation table, or with the wrong signature or kind, is refused as unsupported before started.",
+   "evidence": [
+    "rust:tests/inventory.rs:inventory_covers_every_operation",
+    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json",
+    "rust:tests/helper_corpus.rs:helper_transcript_corpus_reproduces_expected_outcomes",
+    "go:internal/backends/wasm/wasi:TestDeterminismInventoryCooperativeImportsRefuseUnlisted"
+   ]
+  },
+  {
+   "id": "stream.runq_draws",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "stream:runq_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The run queue index choice (gomadChoiceRunqSeeded) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.scheduler_draws",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "stream:scheduler_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The runnext/scheduler choice (gomadChoiceRunnextSeeded) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.select_draws",
+   "layer": "guest-runtime",
+   "class": "scheduling",
+   "site": "stream:select_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The select poll order (gomadChoiceSelectSeeded) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.runtime_rand_draws",
+   "layer": "guest-runtime",
+   "class": "entropy",
+   "site": "stream:runtime_rand_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The runtime rand (gomadRuntimeRand) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.runtime_cheap_rand_draws",
+   "layer": "guest-runtime",
+   "class": "entropy",
+   "site": "stream:runtime_cheap_rand_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The runtime cheaprand (gomadRuntimeCheapRand) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.timer_draws",
+   "layer": "guest-runtime",
+   "class": "clock",
+   "site": "stream:timer_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The timer heap randomization (gomadTimerRand) stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "stream.clock_tick_draws",
+   "layer": "guest-runtime",
+   "class": "clock",
+   "site": "stream:clock_tick_draws",
+   "disposition": "controlled",
+   "owner": "runtime overlay (model/runtimesource gomad_semantics.go.txt, toolchain overlay.go)",
+   "rule": "The virtual clock tick draws stream is seeded from the declared seed only, counted at every choice point and compared by choice.DiffDiagnostics.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestInventoryCoversDiagnosticStreams",
+    "go:internal/model/choice:TestDiagnosticDiffFindsFirstOrdinalAndFields",
+    "go:internal/backends/wasm/wasi:TestCooperativeRuntimeQualification"
+   ]
+  },
+  {
+   "id": "runtime.check-seeded-draw",
+   "layer": "guest-runtime",
+   "class": "thread-order",
+   "site": "runtime-decision:gomadDiagnosticCheckSeededDraw",
+   "disposition": "controlled",
+   "owner": "WASM runtime glue (toolchain/runtime_wasm.go.txt)",
+   "rule": "No-op by construction on wasip1: the runtime has no sysmon (haveSysmon is false for wasm), cannot create threads (newosproc throws) and takes no signals, so no host-timed context exists that could draw from a seeded stream; the test fails if any of these premises changes.",
+   "evidence": [
+    "go:internal/backends/wasm/determinism:TestWasip1SeededDrawCheckDecision"
+   ]
+  }
+ ]
+}
