@@ -14,10 +14,10 @@ Removed 169 tracked fixture symlink aliases, including reports, states, rows, pa
 
 Verification: regression test failed before implementation because the old runner recreated an alias. Updated consumers suite passed (3 passed, optional CLI test ignored); the optional real cargo-insta pending/accept test then passed separately. Integrated make model-check exited 0, including native fixtures, capability controls, wasm builds and Go-host parity. git diff --check passed; no snapshot metadata/payload changes.
 
-Changes remain uncommitted alongside owner planning edits; no owner changes were staged or committed. This checkpoint does not integrate or complete fn-210.19, and does not rename fixtures.
+Committed separately as 556ec3442a after independent gpt-6.1-sol high read-only review found no issues. Unrelated owner planning edits remain uncommitted and were not included in this checkpoint. This cleanup does not rename fixtures. The conductor also ran the combined post-.19 gate, which passed; one integrated warm timing was full4.005s and inner2.305s.
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests: Red: cargo test -p umpire-testing --test consumers consumers_select_generic_snapshot_files -- --exact exited 101 on the unwanted alias assertion, Green: cargo test -p umpire-testing --test consumers exited 0 (3 passed, 1 optional ignored), cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored --exact exited 0, CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target make model-check exited 0; log .flow/tmp/fn210-21-model-check.log, git diff --check exited 0; tracked snapshot payloads/metadata unchanged
+- Commits: 556ec3442a
+- Tests: Red: cargo test -p umpire-testing --test consumers consumers_select_generic_snapshot_files -- --exact exited 101 on the unwanted alias assertion, Green: cargo test -p umpire-testing --test consumers exited 0 (3 passed, 1 optional ignored), cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored --exact exited 0, CARGO_TARGET_DIR=/home/agent/.cache/codex-build/cargo-target make model-check exited 0; log .flow/tmp/fn210-21-model-check.log, git diff --check exited 0; tracked snapshot payloads/metadata unchanged, Independent gpt-6.1-sol high scope review: no findings, Combined post19 make model-check and single model-time exited0; full4.005s inner2.305s
 - PRs:
