@@ -1938,7 +1938,7 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Reached only by programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated.",
+   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. This is a defect pending that fix, not an admissible permanent escape: stop frames can reach World and network evidence for programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated and never reach it. Until fixed, such scenarios are outside the deterministic guarantee and the fn-188.5 stress matrix must not include them.",
    "readme_anchor": "README.md#known-determinism-escapes"
   },
   {
@@ -1954,7 +1954,7 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent.",
+   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
    "readme_anchor": "README.md#known-determinism-escapes"
   },
   {
@@ -1970,8 +1970,99 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to a follow-up spec: the fix (iterate in sorted (ID, Incarnation) or volume order) edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent.",
+   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
    "readme_anchor": "README.md#known-determinism-escapes"
+  },
+  {
+   "id": "host-go.cluster.provider.execution.shutdown.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.Shutdown|clock|context.WithTimeout|2",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Host cleanup grace for reaping helpers after the run; expiry cancels and is classified infrastructure, never different valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.stopcontext.clock.context.withdeadline",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.stopContext|clock|context.WithDeadline|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Bounds host cleanup by the cluster execution deadline; expiry is classified infrastructure, never different valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.provider.execution.stopcontext.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/provider.go|execution.stopContext|clock|context.WithTimeout|1",
+   "disposition": "controlled",
+   "owner": "wasm cluster package",
+   "rule": "Bounds host cleanup by the stop grace; expiry is classified infrastructure, never different valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.cluster.replay_inspection_search.searchwasminspection.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:cluster/replay_inspection_search.go|SearchWASMInspection|clock|context.WithTimeout|1",
+   "disposition": "recorded",
+   "owner": "wasm cluster package",
+   "rule": "The declared search wall-time budget; exhausting it ends the search with a budget status, not different execution evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.opencluster.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/cluster.go|OpenCluster|clock|context.WithTimeout|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "The declared execution watchdog; expiry yields a watchdog termination, which qualification treats as a failure, never as valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.measureterminalexit.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|MeasureTerminalExit|clock|context.WithTimeout|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "The declared execution watchdog of a measurement run; expiry is a watchdog outcome, never valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
+  },
+  {
+   "id": "host-go.wasi.process.run.clock.context.withtimeout",
+   "layer": "host-go",
+   "class": "clock",
+   "site": "host-go:wasi/process.go|Run|clock|context.WithTimeout|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "The declared execution watchdog (request.Timeout); expiry yields WatchdogTimeout, which qualification treats as a failure, never as valid evidence.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange"
+   ]
   },
   {
    "id": "helper.cache.devurandom",
@@ -2090,7 +2181,7 @@
    "site": "helper-source:engine.rs|HashSet|2",
    "disposition": "controlled",
    "owner": "wasmhost engine.rs",
-   "rule": "Deduplicates (module, name) while linking imports; membership only, never iterated.",
+   "rule": "Deduplicates (module, name) while linking imports; membership only, never iterated (reviewed; the scan counts type mentions, not iteration).",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
@@ -2102,7 +2193,7 @@
    "site": "helper-source:model.rs|HashMap|2",
    "disposition": "controlled",
    "owner": "wasmhost model.rs",
-   "rule": "Pending evidence buffers keyed by stream name and flushed in a fixed stream list; never iterated.",
+   "rule": "Model.pending evidence buffers keyed by stream name, flushed by model/reply.rs in a fixed stream list; never iterated (reviewed; the scan counts type mentions, not iteration).",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
@@ -2114,7 +2205,7 @@
    "site": "helper-source:model/guest_state.rs|HashMap|2",
    "disposition": "controlled",
    "owner": "wasmhost model/guest_state.rs",
-   "rule": "Pending evidence buffers keyed by stream name; lookups only, never iterated.",
+   "rule": "Initializes Model.pending; lookups only, never iterated (reviewed; the scan counts type mentions, not iteration).",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
@@ -2126,7 +2217,7 @@
    "site": "helper-source:model/guest_state.rs|HashSet|1",
    "disposition": "controlled",
    "owner": "wasmhost model/guest_state.rs",
-   "rule": "Rejects duplicate local environment names; membership only, never iterated.",
+   "rule": "Rejects duplicate local environment names; membership only, never iterated (reviewed; the scan counts type mentions, not iteration).",
    "evidence": [
     "rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"
    ]
@@ -2168,8 +2259,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "Defaults come from the exactly pinned wasmtime 47.0.3 (Cargo.toml =47.0.3, built --locked); a version change is a re-review.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2182,7 +2272,7 @@
    "rule": "Fuel metering counts guest instructions deterministically; fuel-off exists only in diagnostic builds the Go side refuses for qualification.",
    "evidence": [
     "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
    ]
   },
   {
@@ -2194,8 +2284,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "Host unwind metadata is not generated; it has no guest-visible effect.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2207,8 +2296,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "NaN results are canonicalized, so scalar and SIMD float bit patterns do not depend on the host CPU.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2220,8 +2308,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "Relaxed SIMD, whose results are implementation-defined, is rejected at module validation.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2233,8 +2320,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "64-bit memories are rejected at module validation.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2246,8 +2332,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "Multiple memories are rejected at module validation.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2260,7 +2345,7 @@
    "rule": "Host-timed epochs drive guest-profile sampling only; guest-profile helpers are refused for every qualification role.",
    "evidence": [
     "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"
    ]
   },
   {
@@ -2272,8 +2357,7 @@
    "owner": "wasmhost engine.rs prepare",
    "rule": "Without the threads feature, shared memories and atomics proposals are rejected before started; the feature set is pinned with the version.",
    "evidence": [
-    "rust:tests/inventory.rs:engine_settings_are_inventoried",
-    "corpus:wasmhost/tests/testdata/helper_transcript/unknown_import_refusal.json"
+    "rust:tests/inventory.rs:engine_settings_are_inventoried"
    ]
   },
   {
@@ -2283,9 +2367,10 @@
    "site": "finding:gc-pacer-enlist-worker",
    "disposition": "controlled",
    "owner": "fn-188 audit",
-   "rule": "enlistWorker in the GC pacer draws a random P only when gomaxprocs > 1; the overlay forces GOMAXPROCS to 1 under Gomad, so the host-timed draw is unreachable on wasip1.",
+   "rule": "enlistWorker draws a random P with cheaprandn only when gomaxprocs > 1. The overlay forces GOMAXPROCS=1 at startup; if guest code raises it, the draw runs on a P and the cheaprand patch routes it to the seeded gomadRuntimeCheapRand stream, and wasip1 has no host-timed context, so the draw stays seeded and target-ordered.",
    "evidence": [
-    "go:internal/backends/wasm/determinism:TestWasip1SeedFindingPremises"
+    "go:internal/backends/wasm/determinism:TestWasip1SeedFindingPremises",
+    "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"
    ]
   },
   {

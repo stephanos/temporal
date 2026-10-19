@@ -56,8 +56,9 @@ type Run struct {
 }
 
 // Coordinate places an event in helper execution order. Shared is the fn-180
-// shared execution-order coordinate (the World step the event ran in; zero
-// for a single guest), ChoiceOrdinal is the number of choice records the
+// shared execution-order coordinate of the World step the event ran in (the
+// lifecycle order a WASMInspectionBoundary records as Order; zero for a
+// single guest), ChoiceOrdinal is the number of choice records the
 // incarnation committed before the event (the tape ordinal), and VirtualTime
 // is the incarnation's virtual clock at the event.
 type Coordinate struct {
@@ -105,6 +106,8 @@ type Transition struct {
 // WorldStep is one step of the shared World order: the instance that held
 // the baton and its tape ordinal when it received it.
 type WorldStep struct {
+	// Order is the step's fn-180 shared execution-order coordinate.
+	Order         uint64
 	Instance      string
 	Incarnation   uint64
 	ChoiceOrdinal uint64
@@ -206,6 +209,10 @@ func Compare(expected, actual Run) (Report, error) {
 	return Report{Schema: ReportSchema, Status: "diverged", First: &first, Reproducer: reproducer(expected, actual, first)}, nil
 }
 
+func compareCoordinate(a, b Coordinate) int {
+	return cmp.Or(cmp.Compare(a.Shared, b.Shared), cmp.Compare(a.ChoiceOrdinal, b.ChoiceOrdinal))
+}
+
 func compareDivergence(a, b Divergence) int {
 	return cmp.Or(cmp.Compare(a.At.Shared, b.At.Shared), cmp.Compare(a.At.ChoiceOrdinal, b.At.ChoiceOrdinal), cmp.Compare(a.source, b.source),
 		cmp.Compare(a.Instance, b.Instance), cmp.Compare(a.Incarnation, b.Incarnation), cmp.Compare(a.Ordinal, b.Ordinal))
@@ -217,7 +224,7 @@ func divergences(expected, actual Run) ([]Divergence, error) {
 		e, a := at(expected.WorldOrder, step), at(actual.WorldOrder, step)
 		ref := cmp.Or(e, a)
 		found = append(found, Divergence{Kind: KindWorldOrder, Instance: ref.Instance, Incarnation: ref.Incarnation, Ordinal: uint64(step),
-			At: Coordinate{Shared: uint64(step), ChoiceOrdinal: ref.ChoiceOrdinal, VirtualTime: ref.VirtualTime}, Field: "step", Expected: describeStep(e), Actual: describeStep(a)})
+			At: Coordinate{Shared: ref.Order, ChoiceOrdinal: ref.ChoiceOrdinal, VirtualTime: ref.VirtualTime}, Field: "step", Expected: describeStep(e), Actual: describeStep(a)})
 	}
 	type key struct {
 		instance    string
@@ -252,18 +259,15 @@ func divergences(expected, actual Run) ([]Divergence, error) {
 		e, eok := left[k]
 		a, aok := right[k]
 		if !eok || !aok {
-			present := e
+			present, world := e, expected.WorldOrder
 			if !eok {
-				present = a
+				present, world = a, actual.WorldOrder
 			}
-			first := Coordinate{}
-			if len(present.Choices) != 0 {
-				first = present.Choices[0].At
-			}
+			first, _ := span(present, world)
 			found = append(found, Divergence{Kind: KindWorldOrder, Instance: k.instance, Incarnation: k.incarnation, At: first, Field: "incarnation_presence", Expected: strconv.FormatBool(eok), Actual: strconv.FormatBool(aok)})
 			continue
 		}
-		more, err := incarnationDivergences(e, a)
+		more, err := incarnationDivergences(e, a, expected.WorldOrder, actual.WorldOrder)
 		if err != nil {
 			return nil, fmt.Errorf("incarnation %s/%d: %w", k.instance, k.incarnation, err)
 		}
@@ -272,7 +276,28 @@ func divergences(expected, actual Run) ([]Divergence, error) {
 	return found, nil
 }
 
-func incarnationDivergences(expected, actual Incarnation) ([]Divergence, error) {
+// span returns the coordinates of an incarnation's first and last recorded
+// events, from its choices or, without any, from its World steps.
+func span(incarnation Incarnation, world []WorldStep) (Coordinate, Coordinate) {
+	if count := len(incarnation.Choices); count != 0 {
+		last := incarnation.Choices[count-1].At
+		return incarnation.Choices[0].At, Coordinate{last.Shared, uint64(count), last.VirtualTime}
+	}
+	var first, last Coordinate
+	seen := false
+	for _, step := range world {
+		if step.Instance == incarnation.Instance && step.Incarnation == incarnation.Incarnation {
+			at := Coordinate{step.Order, step.ChoiceOrdinal, step.VirtualTime}
+			if !seen {
+				first, seen = at, true
+			}
+			last = at
+		}
+	}
+	return first, last
+}
+
+func incarnationDivergences(expected, actual Incarnation, expectedWorld, actualWorld []WorldStep) ([]Divergence, error) {
 	base := Divergence{Instance: expected.Instance, Incarnation: expected.Incarnation}
 	var found []Divergence
 	add := func(source source, kind EventKind, ordinal uint64, at Coordinate, field, e, a string) {
@@ -303,9 +328,14 @@ func incarnationDivergences(expected, actual Incarnation) ([]Divergence, error) 
 		if ref == nil {
 			ref = difference.Actual
 		}
-		shared := uint64(0)
+		// A trailing extra record has no expected choice; take the actual
+		// run's, else the incarnation's last step.
+		_, last := span(expected, expectedWorld)
+		shared := last.Shared
 		if ordinal := int(difference.Ordinal); ordinal < len(expected.Choices) {
 			shared = expected.Choices[ordinal].At.Shared
+		} else if ordinal < len(actual.Choices) {
+			shared = actual.Choices[ordinal].At.Shared
 		}
 		e, a := describeDiagnostic(difference.Expected), describeDiagnostic(difference.Actual)
 		add(sourceDiagnostic, kind, difference.Ordinal, Coordinate{shared, difference.Ordinal, ref.VirtualTime}, strings.Join(difference.Fields, ","), e, a)
@@ -337,10 +367,9 @@ func incarnationDivergences(expected, actual Incarnation) ([]Divergence, error) 
 	}
 	// Outputs: an output difference without an earlier operation difference
 	// sorts after every recorded event of the incarnation.
-	end := Coordinate{}
-	if count := len(expected.Choices); count != 0 {
-		last := expected.Choices[count-1].At
-		end = Coordinate{last.Shared, uint64(count), last.VirtualTime}
+	_, end := span(expected, expectedWorld)
+	if _, actualEnd := span(actual, actualWorld); compareCoordinate(actualEnd, end) > 0 {
+		end = actualEnd
 	}
 	for _, stream := range []struct {
 		name string

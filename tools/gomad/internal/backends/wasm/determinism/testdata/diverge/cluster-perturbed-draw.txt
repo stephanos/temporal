@@ -3,6 +3,6 @@ first: draw-counter b/1 ordinal=2 shared=1 tape=2 time=946684800000002000 field=
   expected: time=946684800000002000 runq=4 scheduler=3 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0
   actual:   time=946684800000002000 runq=5 scheduler=3 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0
 reproduce: workload=fixture/cluster-perturbed-draw seed=7 cell=draw
-  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/cluster-perturbed-draw (sha256:f29e32862bbe1320178b151fed866e3d68c18a4f57c784cdcf0731176ea3e504)
-  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/cluster-perturbed-draw (sha256:cdff2b03ee71ddb28f09fd93feb1bb40ecb23d0fa1590462590ac544c6aac9a0)
+  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/cluster-perturbed-draw (sha256:fc7c5250889caf36beb4d9d2c07b8444ee9d313f3f84bdea1d3d82e6b674fb00)
+  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/cluster-perturbed-draw (sha256:d90f21d1f8d6ae2f36aa3d3925b0ac0d3a1df952273d00c4e5b067ad5adf4147)
   replay:   gomad replay --stop choice=2 --instance b --incarnation 1 /artifacts/reference

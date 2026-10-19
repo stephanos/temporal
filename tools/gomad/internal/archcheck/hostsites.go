@@ -8,11 +8,13 @@ import (
 	"strings"
 )
 
-// HostSite is one host-effect site in a host file that is outside the pure
-// set: a host clock or timer call, a goroutine start, a range over a map,
-// whose iteration order is randomized, or an unstable sort, whose result
-// depends on input order when keys compare equal. Reviewers dispose of each site in an
-// inventory instead of exempting whole files.
+// HostSite is one host-effect site in a selected host file: a reference to a
+// host clock, timer or deadline entry point, a host entropy source, a
+// goroutine start, a range over a map (directly or through maps.Keys,
+// maps.Values or maps.All), whose order is randomized, or an unstable sort,
+// whose result depends on input order when keys compare equal. Reviewers
+// dispose of each site in an inventory instead of exempting whole files; the
+// pure set keeps the stricter host-effect analysis in calls.go.
 type HostSite struct {
 	File, Function, Kind, Symbol string
 	Count                        int
@@ -27,14 +29,28 @@ func (s HostSite) Key() string {
 // clock or arm a host timer.
 var hostClockFunctions = []string{"Now", "Since", "Until", "Sleep", "After", "AfterFunc", "NewTimer", "NewTicker", "Tick"}
 
+// hostClockMethods are timer methods that re-arm a host timer.
+var hostClockMethods = []string{"Reset"}
+
+// hostDeadlineFunctions derive a context whose deadline is host time.
+var hostDeadlineFunctions = []string{"WithTimeout", "WithDeadline", "WithTimeoutCause", "WithDeadlineCause"}
+
+// entropyPackages are host entropy sources; every package-level function
+// reference counts.
+var entropyPackages = []string{"math/rand", "math/rand/v2", "crypto/rand"}
+
+// mapIterators range over a map in its randomized order.
+var mapIterators = []string{"Keys", "Values", "All"}
+
 // unstableSorts are the sort entry points whose result order for equal keys
 // depends on the input order.
 var unstableSorts = map[string][]string{"sort": {"Slice", "Sort"}, "slices": {"SortFunc"}}
 
 // HostEffectSites type-checks the packages holding the selected files with the
-// purity analyzer's loader and reports every host clock read, goroutine start,
-// map range and unstable sort in those files, aggregated by file, enclosing function, kind
-// and symbol.
+// purity analyzer's loader and reports every host clock, deadline and entropy
+// reference, goroutine start, map range and unstable sort in those files,
+// aggregated by file, enclosing function, kind and symbol. Function values
+// count as well as calls, so `f := time.Now` is a site.
 func HostEffectSites(root, goCommand string, platform Platform, selected func(string) bool) ([]HostSite, error) {
 	p, err := load(root, goCommand, platform, selected)
 	if err != nil {
@@ -59,18 +75,34 @@ func (p *program) hostSites() []HostSite {
 					switch node := node.(type) {
 					case *ast.GoStmt:
 						site.Kind, site.Symbol = "goroutine", goTarget(pkg.info, node.Call)
-					case *ast.CallExpr:
-						if name, ok := packageFunction(pkg.info, node.Fun, "time"); ok && slices.Contains(hostClockFunctions, name) {
+					case *ast.SelectorExpr:
+						if name, ok := packageFunction(pkg.info, node, "time"); ok && slices.Contains(hostClockFunctions, name) {
 							site.Kind, site.Symbol = "clock", "time."+name
-						} else if path, name, ok := sortFunction(pkg.info, node.Fun); ok && len(node.Args) > 0 {
-							site.Kind, site.Symbol = "unstable-sort", path+"."+name+" "+types.ExprString(node.Args[0])
+						} else if name, ok := packageFunction(pkg.info, node, "context"); ok && slices.Contains(hostDeadlineFunctions, name) {
+							site.Kind, site.Symbol = "clock", "context."+name
+						} else if method, ok := timerMethod(pkg.info, node); ok {
+							site.Kind, site.Symbol = "clock", method
+						} else if path, name, ok := entropyFunction(pkg.info, node); ok {
+							site.Kind, site.Symbol = "entropy", path+"."+name
 						} else {
 							return true
 						}
+					case *ast.CallExpr:
+						path, name, ok := sortFunction(pkg.info, node.Fun)
+						if !ok || len(node.Args) == 0 {
+							return true
+						}
+						site.Kind, site.Symbol = "unstable-sort", path+"."+name+" "+types.ExprString(node.Args[0])
 					case *ast.RangeStmt:
 						typ := pkg.info.TypeOf(node.X)
 						if typ == nil {
 							return true
+						}
+						if call, ok := ast.Unparen(node.X).(*ast.CallExpr); ok && len(call.Args) == 1 {
+							if name, ok := packageFunction(pkg.info, call.Fun, "maps"); ok && slices.Contains(mapIterators, name) {
+								site.Kind, site.Symbol = "map-range", "maps."+name+" "+types.ExprString(call.Args[0])
+								break
+							}
 						}
 						if _, ok := typ.Underlying().(*types.Map); !ok {
 							return true
@@ -134,6 +166,28 @@ func packageFunction(info *types.Info, expression ast.Expr, path string) (string
 		return "", false
 	}
 	return function.Name(), true
+}
+
+func entropyFunction(info *types.Info, expression ast.Expr) (string, string, bool) {
+	for _, path := range entropyPackages {
+		if name, ok := packageFunction(info, expression, path); ok {
+			return path, name, true
+		}
+	}
+	return "", "", false
+}
+
+// timerMethod reports a Reset of a host time.Timer or time.Ticker.
+func timerMethod(info *types.Info, selector *ast.SelectorExpr) (string, bool) {
+	function, ok := info.Uses[selector.Sel].(*types.Func)
+	if !ok || function.Pkg() == nil || function.Pkg().Path() != "time" || !slices.Contains(hostClockMethods, function.Name()) {
+		return "", false
+	}
+	receiver := function.Type().(*types.Signature).Recv()
+	if receiver == nil {
+		return "", false
+	}
+	return "time." + symbol(function), true
 }
 
 func sortFunction(info *types.Info, expression ast.Expr) (string, string, bool) {

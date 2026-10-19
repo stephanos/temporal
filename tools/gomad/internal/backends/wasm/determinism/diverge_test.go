@@ -56,10 +56,10 @@ func simulate(t *testing.T, workload string, seed uint64, instances []string, ho
 		if len(instances) > 1 && step < len(instances) {
 			instance = instances[step]
 		}
-		world = append(world, WorldStep{Instance: instance, Incarnation: 1})
+		world = append(world, WorldStep{Order: uint64(step), Instance: instance, Incarnation: 1})
 	}
 	if hook.swapStep >= 0 {
-		world[hook.swapStep], world[hook.swapStep+1] = world[hook.swapStep+1], world[hook.swapStep]
+		world[hook.swapStep].Instance, world[hook.swapStep+1].Instance = world[hook.swapStep+1].Instance, world[hook.swapStep].Instance
 	}
 	type state struct {
 		evidence Incarnation
@@ -294,4 +294,27 @@ func mustDecode(t *testing.T, data []byte) []choice.DiagnosticRecord {
 		t.Fatal(err)
 	}
 	return trace.Records
+}
+
+func TestCompareTrailingDiagnosticRecordKeepsItsClusterCoordinate(t *testing.T) {
+	cluster := []string{"a", "b"}
+	reference := simulate(t, "fixture/trailing", 7, cluster, unperturbed)
+	extended := simulate(t, "fixture/trailing", 7, cluster, unperturbed)
+	records := mustDecode(t, extended.Incarnations[0].Diagnostic)
+	extra := records[len(records)-1]
+	extra.Ordinal++
+	trace, err := choice.BuildDiagnosticTrace(append(records, extra), 1<<16)
+	if err != nil {
+		t.Fatal(err)
+	}
+	extended.Incarnations[0].Diagnostic = trace.Bytes
+	report, err := Compare(reference, extended)
+	if err != nil {
+		t.Fatal(err)
+	}
+	instance := extended.Incarnations[0]
+	last := instance.Choices[len(instance.Choices)-1].At.Shared
+	if report.First == nil || report.First.Field != "record_presence" || report.First.At.Shared != last {
+		t.Fatalf("trailing record placed at %+v, want shared %d", report.First, last)
+	}
 }

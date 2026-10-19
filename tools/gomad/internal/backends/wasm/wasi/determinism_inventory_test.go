@@ -268,7 +268,7 @@ func TestDeterminismInventoryEscapesArePinned(t *testing.T) {
 			file, rest, _ := strings.Cut(site, "|")
 			function, rest, _ := strings.Cut(rest, "|")
 			if file == "wasi/"+test.file && (function == test.function || strings.HasSuffix(function, "."+test.function)) && strings.HasPrefix(rest, "map-range|"+test.ranged+"|") {
-				escaped = row.Disposition == "escape"
+				escaped = escaped || row.Disposition == "escape"
 			}
 		}
 		if !escaped {

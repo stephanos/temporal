@@ -19,8 +19,8 @@
     "workload": "fixture/cluster-reordered-handoff",
     "seed": 7,
     "perturbation": "handoff",
-    "expected_digest": "sha256:32e6470f8a938509b6790b6ede5f13948a7f03a4a0190f39080e4fc4339b1a21",
-    "actual_digest": "sha256:c26b7a44e19eb6a126da61b46eb33e3f8b40ed4d7306f880ebc2b21f4027a3a3",
+    "expected_digest": "sha256:4fba129afbc81aea7165119f54b384df2176e16483aed6809855d8996227a462",
+    "actual_digest": "sha256:d768d40deda1eb1ec4c2680ef69d58341c028cccee9a33f9c301336d125d9bc7",
     "identities": {
       "engine": "e",
       "helper": "h",

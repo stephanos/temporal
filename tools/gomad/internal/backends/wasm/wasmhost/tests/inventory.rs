@@ -77,6 +77,53 @@ fn parse(text: &str) -> Result<Inventory, String> {
         if required.iter().any(|field| field.is_empty()) || entry.evidence.is_empty() {
             return Err(format!("inventory row {:?} incomplete", entry.id));
         }
+        let known = [
+            (
+                &entry.layer,
+                &[
+                    "guest-runtime",
+                    "guest-stdlib",
+                    "helper",
+                    "host-go",
+                    "engine-config",
+                    "host-process",
+                ][..],
+            ),
+            (
+                &entry.class,
+                &[
+                    "clock",
+                    "entropy",
+                    "scheduling",
+                    "gc-finalizer",
+                    "address",
+                    "fs-io",
+                    "network-io",
+                    "thread-order",
+                    "settings",
+                ][..],
+            ),
+            (
+                &entry.disposition,
+                &["controlled", "recorded", "rejected", "escape"][..],
+            ),
+        ];
+        if known
+            .iter()
+            .any(|(value, allowed)| !allowed.contains(&value.as_str()))
+        {
+            return Err(format!(
+                "inventory row {:?} has an unknown enum value",
+                entry.id
+            ));
+        }
+        if entry.evidence.iter().any(|reference| {
+            !["go:", "rust:", "corpus:"]
+                .iter()
+                .any(|kind| reference.starts_with(kind))
+        }) {
+            return Err(format!("inventory row {:?} evidence kind", entry.id));
+        }
         if (entry.disposition == "escape")
             != (!entry.justification.is_empty() && !entry.readme_anchor.is_empty())
         {
@@ -254,6 +301,9 @@ fn inventory_loader_rejects_unknown_fields_and_reused_ids() {
     let mut document = base.clone();
     document["entries"][1]["id"] = document["entries"][0]["id"].clone();
     assert!(parse(&document.to_string()).unwrap_err().contains("reused"));
+    let mut document = base.clone();
+    document["entries"][0]["class"] = "luck".into();
+    assert!(parse(&document.to_string()).unwrap_err().contains("enum"));
     let mut document = base;
     document["entries"][0]["disposition"] = "escape".into();
     assert!(parse(&document.to_string()).unwrap_err().contains("escape"));
@@ -313,6 +363,34 @@ fn strip_literals(line: &str) -> String {
     strip_literals_mode(line, true)
 }
 
+/// Parses `[pub[(..)]] mod name;`. A line that declares a module in any other
+/// form fails, so the reachability walk cannot silently miss a file.
+fn module_declaration(trimmed: &str) -> Result<Option<String>, String> {
+    let rest = if let Some(rest) = trimmed.strip_prefix("pub") {
+        let rest = if rest.starts_with('(') {
+            &rest[rest
+                .find(')')
+                .ok_or_else(|| format!("visibility not closed: {trimmed:?}"))?
+                + 1..]
+        } else {
+            rest
+        };
+        rest.strip_prefix(' ').unwrap_or(rest)
+    } else {
+        trimmed
+    };
+    let Some(declaration) = rest.strip_prefix("mod ") else {
+        return Ok(None);
+    };
+    let Some(name) = declaration.strip_suffix(';') else {
+        return Ok(None);
+    };
+    if name.is_empty() || !name.chars().all(|c| c.is_alphanumeric() || c == '_') {
+        return Err(format!("module declaration not understood: {trimmed:?}"));
+    }
+    Ok(Some(name.to_string()))
+}
+
 /// Returns the production lines of one source file and the child modules it
 /// declares as test-only. A `#[cfg(test)]` item is skipped: a one-line item,
 /// or a braced block that must close on a `}` line at the item's indentation.
@@ -342,17 +420,15 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
         let item = lines.get(start).ok_or("cfg(test) at end of file")?;
         let indent = item.len() - item.trim_start().len();
         let first = strip_literals(item);
-        let balanced = first.matches('{').count() == first.matches('}').count();
-        let end = first.trim_end();
-        if balanced && (end.ends_with(';') || end.ends_with(',')) {
-            if let Some(name) = first.trim().strip_prefix("mod ") {
-                test_modules.push(name.trim_end_matches(';').to_string());
-            }
+        if let Some(name) = module_declaration(first.trim())? {
+            test_modules.push(name);
             index += 1;
             continue;
         }
+        // The item ends on the first line where every bracket is closed and
+        // the line ends the item: `;` or `,` for a statement, field or
+        // expression, `}` for a block.
         let mut depth = 0i64;
-        let mut opened = false;
         loop {
             let line = strip_literals(
                 lines
@@ -361,21 +437,27 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
             );
             for c in line.chars() {
                 match c {
-                    '{' => {
-                        depth += 1;
-                        opened = true;
-                    }
-                    '}' => depth -= 1,
+                    '{' | '(' | '[' => depth += 1,
+                    '}' | ')' | ']' => depth -= 1,
                     _ => {}
                 }
             }
             index += 1;
-            if opened && depth == 0 {
+            let end = line.trim_end();
+            if depth < 0 {
+                return Err(format!("cfg(test) item at line {} unbalanced", start + 1));
+            }
+            if depth == 0 && (end.ends_with(';') || end.ends_with(',') || end.ends_with('}')) {
                 let last = lines[index - 1];
-                if index - 1 != start
-                    && (!last.trim_start().starts_with('}')
-                        || last.len() - last.trim_start().len() != indent)
-                {
+                let closing = last.len() - last.trim_start().len();
+                // A block closes at the item's indentation; a statement may end
+                // on a deeper continuation line, never a shallower one.
+                let aligned = if end.ends_with('}') {
+                    closing == indent
+                } else {
+                    closing >= indent
+                };
+                if index - 1 != start && !aligned {
                     return Err(format!(
                         "cfg(test) item at line {} closes at line {index} out of indentation",
                         start + 1
@@ -410,13 +492,12 @@ fn source_sites(src: &std::path::Path) -> Result<BTreeSet<String>, String> {
         let owns_directory = stem == "main" || stem.ends_with("/mod") || stem == "mod";
         for (index, (_, line)) in lines.iter().enumerate() {
             let trimmed = line.trim();
-            let declared = ["mod ", "pub mod ", "pub(crate) mod "]
-                .iter()
-                .find_map(|prefix| trimmed.strip_prefix(prefix))
-                .and_then(|rest| rest.strip_suffix(';'));
-            let Some(name) = declared else {
+            let Some(name) =
+                module_declaration(trimmed).map_err(|error| format!("{relative}: {error}"))?
+            else {
                 continue;
             };
+            let name = name.as_str();
             if line.len() != line.trim_start().len() {
                 return Err(format!("{relative}: nested module declaration {trimmed:?}"));
             }
@@ -534,6 +615,19 @@ fn helper_source_scan_skips_only_test_items() {
         .sum();
     assert_eq!(hits, 1);
     assert!(production_lines("#[cfg(test)]\nmod m {\n    fn f() {\n").is_err());
+    // A multi-line test-only statement ends at its own `;`, not at a later block.
+    let statement = "fn h() {\n    #[cfg(test)]\n    self.counter\n        .fetch_add(1, Ordering::Relaxed);\n    let head = Bounded {\n        at: Instant::now(),\n    };\n}\n";
+    let (lines, _) = production_lines(statement).unwrap();
+    let hits: usize = lines
+        .iter()
+        .map(|(_, line)| line.matches("Instant::now").count())
+        .sum();
+    assert_eq!(hits, 1);
+    assert_eq!(
+        module_declaration("pub(super) mod inner;").unwrap(),
+        Some("inner".to_string())
+    );
+    assert!(module_declaration("pub mod a::b;").is_err());
 }
 
 const ENGINE: &str = include_str!("../src/engine.rs");

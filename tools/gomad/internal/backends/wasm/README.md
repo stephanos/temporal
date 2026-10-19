@@ -402,9 +402,11 @@ Each escape is outside the deterministic-time guarantee today and is referred
 to a follow-up, because fixing it would rotate the WASM model identity:
 
 - `wasi/cluster.go` `ClusterSession.Shutdown` sends stop control frames to the
-  helper in Go map order. Only programmatic cluster scenarios that end with two
-  or more live WASM nodes reach it; operator scenarios require every node to be
-  terminated first.
+  helper in Go map order, and the stops can reach World and network evidence.
+  This is a defect pending its fix, not a permanent escape. Only programmatic
+  cluster scenarios that end with two or more live WASM nodes reach it, and
+  until the fix they are outside the deterministic guarantee; operator
+  scenarios require every node to be terminated first.
 - `wasi/storage_selection.go` `ValidateStorageCrashSelection` reports the first
   invalid volume in map order, so a request with several invalid volumes can
   get different refusal messages. The refusal class is the same, and nothing

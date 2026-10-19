@@ -53,6 +53,41 @@ wasip1/wasm|runtime/time.go|method.maybeAdd|gomadTimerRand|patch|1|target-ordere
 wasip1/wasm|runtime/time.go|method.updateHeap|gomadTimerRand|patch|1|target-ordered|process-purpose|active|re-queued timers redraw their heap tie-break from the seeded timer stream
 `
 
+// Other patch rows: platform|file|function|kind|count|reason. Every overlay
+// patch that touches no seeded draw and no clock path is reviewed here, so an
+// unclassified patch, including one that calls a new helper, fails.
+const reviewedWasip1OtherPatches = `
+wasip1/wasm|net/net_fake.go|fakeConnect|patch|1|routes Gomad network streams to the net_stream import (network model); no draw or clock
+wasip1/wasm|net/net_fake.go|fakeListen|patch|1|routes Gomad listeners to the net_stream import (network model); no draw or clock
+wasip1/wasm|net/net_fake.go|method.Close|patch|1|network stream close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|method.Read|patch|1|network stream reads go through the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetReadDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.SetWriteDeadline|patch|1|stream deadlines are virtual-time arguments to the net_stream import
+wasip1/wasm|net/net_fake.go|method.Write|patch|1|network stream writes go through the net_stream import
+wasip1/wasm|net/net_fake.go|method.accept|patch|1|accepted streams come from the net_stream import
+wasip1/wasm|net/net_fake.go|method.closeRead|patch|1|half-close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|method.closeWrite|patch|1|half-close goes through the net_stream import
+wasip1/wasm|net/net_fake.go|package|patch|1|adds the stream handle and per-direction mutexes to fakeNetFD
+wasip1/wasm|runtime/lock_wasip1.go|noteclear|patch|1|throws on clearing a note with an active waiter; no draw or clock
+wasip1/wasm|runtime/lock_wasip1.go|notewakeup|patch|1|wakes a parked note waiter in program order; no draw or clock
+wasip1/wasm|runtime/netpoll_wasip1.go|netpoll|patch|1|inspection does not poll; outside inspection netpoll is the stock poll_oneoff on the virtual clock
+wasip1/wasm|runtime/note_other.go|package|patch|1|adds waiter, deadline and status fields to note for virtual-clock parking
+wasip1/wasm|runtime/os_wasip1.go|exit|patch|1|renames the stock exit so the glue's finalizer reports the terminal outcome first
+wasip1/wasm|runtime/proc.go|execute|patch|1|throws if inspection would dispatch application code
+wasip1/wasm|runtime/proc.go|findRunnable|patch|1|inspection runs only inspection goroutines
+wasip1/wasm|runtime/proc.go|main|patch|2|starts the debug registration and seeded user-code identity before main.main
+wasip1/wasm|runtime/proc.go|newproc1|patch|1|assigns each new goroutine a deterministic identity from its creator and call site
+wasip1/wasm|runtime/proc.go|schedinit|patch|1|forces GOMAXPROCS=1 under Gomad, so there is one P and the GC pacer's random P pick is unreachable at startup
+wasip1/wasm|runtime/proc.go|schedule|patch|1|locked-M handoff is skipped during inspection only
+wasip1/wasm|runtime/runtime2.go|package|patch|1|adds goroutine identity fields used by choice records
+wasip1/wasm|runtime/select.go|selectgo|patch|3|records select sites, readiness and results on the choice tape
+wasip1/wasm|runtime/time.go|method.maybeAdd|patch|1|forces timer re-randomization under Gomad so the gomadTimerRand draw rows apply to every timer
+wasip1/wasm|runtime/time.go|method.unlockAndRun|patch|2|records timer firings and their callbacks on the choice tape
+wasip1/wasm|runtime/time.go|newTimer|patch|1|records the creating call site of each timer
+wasip1/wasm|runtime/time.go|package|patch|1|adds creator identity and firing count fields to timers
+`
+
 // Host-clock rows: platform|file|identifier|count|disposition|finding, over
 // every standard-library and overlay file that builds for wasip1/wasm. On
 // wasip1 the only host clock entry points are the clock_time_get and
@@ -288,10 +323,11 @@ func enclosingFunction(source []byte, offset int) (string, error) {
 }
 
 // drawPatchReferences derives one draw-grammar key per overlay patch that
-// touches a seeded draw or a clock path.
-func drawPatchReferences(t *testing.T, stock string, patches []overlayPatch) map[string]int {
+// touches a seeded draw or a clock path, and one other-patch key for every
+// remaining patch.
+func drawPatchReferences(t *testing.T, stock string, patches []overlayPatch) (map[string]int, map[string]int) {
 	t.Helper()
-	got := map[string]int{}
+	got, other := map[string]int{}, map[string]int{}
 	for _, patch := range patches {
 		var symbol string
 		for _, pattern := range []*regexp.Regexp{wasip1DrawPatchIdentifier, wasip1ClockPatchIdentifier} {
@@ -308,9 +344,6 @@ func drawPatchReferences(t *testing.T, stock string, patches []overlayPatch) map
 				symbol = pattern.FindString(patch.from)
 			}
 		}
-		if symbol == "" {
-			continue
-		}
 		source, err := os.ReadFile(filepath.Join(stock, "src", filepath.FromSlash(stockPath(patch.file))))
 		if err != nil {
 			t.Fatal(err)
@@ -323,9 +356,36 @@ func drawPatchReferences(t *testing.T, stock string, patches []overlayPatch) map
 		if err != nil {
 			t.Fatal(err)
 		}
+		if symbol == "" {
+			other[strings.Join([]string{wasip1, stockPath(patch.file), function, "patch"}, " ")] += patch.count
+			continue
+		}
 		got[strings.Join([]string{wasip1, stockPath(patch.file), function, symbol, "patch"}, " ")] += patch.count
 	}
-	return got
+	return got, other
+}
+
+func parseOtherPatchRows(table string) (map[string]int, error) {
+	rows := map[string]int{}
+	for line := range strings.Lines(strings.TrimSpace(table)) {
+		if strings.TrimSpace(line) == "" {
+			continue
+		}
+		fields := strings.Split(strings.TrimSpace(line), "|")
+		if len(fields) != 6 || fields[0] != wasip1 || fields[3] != "patch" || fields[5] == "" {
+			return nil, fmt.Errorf("invalid other-patch row %q", line)
+		}
+		count, err := strconv.Atoi(fields[4])
+		if err != nil || count <= 0 {
+			return nil, fmt.Errorf("invalid other-patch row count %q", line)
+		}
+		key := strings.Join(fields[:4], " ")
+		if _, duplicate := rows[key]; duplicate {
+			return nil, fmt.Errorf("duplicate other-patch row %s", key)
+		}
+		rows[key] = count
+	}
+	return rows, nil
 }
 
 // effectiveSources builds the WASM overlay and returns a build context that
@@ -456,18 +516,32 @@ func TestWasip1RuntimeDrawAndClockReferencesAreReviewed(t *testing.T) {
 	for key, row := range clockRows {
 		reviewedClocks[key] = row.count
 	}
+	otherRows, err := parseOtherPatchRows(reviewedWasip1OtherPatches)
+	if err != nil {
+		t.Fatal(err)
+	}
 	patches := overlayPatches(t)
-	problems := referenceProblems("overlay draw/clock patch", drawPatchReferences(t, stock, patches), reviewedDraws)
+	draws, others := drawPatchReferences(t, stock, patches)
+	problems := referenceProblems("overlay draw/clock patch", draws, reviewedDraws)
+	problems = append(problems, referenceProblems("overlay patch without draw or clock", others, otherRows)...)
 	problems = append(problems, referenceProblems("wasip1 host-clock reference", wasip1HostClockReferences(t, stock, context, replace), reviewedClocks)...)
 	if len(problems) != 0 {
 		t.Fatalf("wasip1 runtime inventory drifted; review each change:\n%s", strings.Join(problems, "\n"))
 	}
 	// A new patch without a row fails by name.
 	added := append(slices.Clone(patches), overlayPatch{"proc.go", "func runqget(pp *p) (gp *g, inheritTime bool) {", "func runqget(pp *p) (gp *g, inheritTime bool) {\n\t_ = cheaprand()", 1})
-	if problems := referenceProblems("overlay draw/clock patch", drawPatchReferences(t, stock, added), reviewedDraws); !slices.ContainsFunc(problems, func(problem string) bool {
+	if draws, _ := drawPatchReferences(t, stock, added); !slices.ContainsFunc(referenceProblems("overlay draw/clock patch", draws, reviewedDraws), func(problem string) bool {
 		return strings.Contains(problem, "unreviewed overlay draw/clock patch: wasip1/wasm runtime/proc.go runqget cheaprand patch")
 	}) {
-		t.Fatalf("new draw patch without a row not reported: %v", problems)
+		t.Fatalf("new draw patch without a row not reported: %v", draws)
+	}
+	// A patch that calls a helper the classifier does not know is still
+	// reviewed, as an other-patch row.
+	unknown := append(slices.Clone(patches), overlayPatch{"proc.go", "func runqget(pp *p) (gp *g, inheritTime bool) {", "func runqget(pp *p) (gp *g, inheritTime bool) {\n\tgomadNewHelper()", 1})
+	if _, others := drawPatchReferences(t, stock, unknown); !slices.ContainsFunc(referenceProblems("overlay patch without draw or clock", others, otherRows), func(problem string) bool {
+		return strings.Contains(problem, "wasip1/wasm runtime/proc.go runqget patch")
+	}) {
+		t.Fatalf("unclassified patch not reported: %v", others)
 	}
 	// Every escape row is an inventory escape row.
 	inventory := loadInventory(t)

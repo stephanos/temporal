@@ -88,10 +88,16 @@ func diagnosticStreams(t *testing.T) []string {
 	t.Helper()
 	recordType := reflect.TypeFor[choice.DiagnosticRecord]()
 	var streams []string
+	// Every other record field is a known runtime-state counter; a new field
+	// must be classified here before it can be skipped.
+	state := []string{"Ordinal", "VirtualTime", "Allocations", "GCCycle", "GCPhase", "RunQueueLength"}
 	for index := range recordType.NumField() {
 		field := recordType.Field(index)
-		if !strings.HasSuffix(field.Name, "Draws") {
+		if slices.Contains(state, field.Name) {
 			continue
+		}
+		if !strings.HasSuffix(field.Name, "Draws") {
+			t.Fatalf("diagnostic record field %s is neither a seeded stream nor a reviewed state counter", field.Name)
 		}
 		var changed choice.DiagnosticRecord
 		reflect.ValueOf(&changed).Elem().Field(index).SetUint(1)
