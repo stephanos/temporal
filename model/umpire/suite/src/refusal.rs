@@ -32,6 +32,20 @@ pub enum Refusal {
         /// The search stopped at its state budget, so a longer search might reach it.
         cut: bool,
     },
+    /// No reached state refutes the predicate.
+    #[error("no counterexample: the predicate holds at all {reached} reached states")]
+    Holds {
+        /// How many states the exploration reached.
+        reached: usize,
+    },
+    /// The exploration was cut before it found a counterexample.
+    #[error(
+        "unknown: no counterexample within the state budget of {budget}, which cut the exploration"
+    )]
+    Unknown {
+        /// The space's state budget.
+        budget: usize,
+    },
     /// The checker refused the request.
     #[error(transparent)]
     Checker(#[from] umpire_checker::Refusal),

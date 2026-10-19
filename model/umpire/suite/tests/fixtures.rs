@@ -5,6 +5,9 @@ mod coin;
 #[path = "support/kettle.rs"]
 #[allow(unreachable_pub, clippy::module_inception)]
 mod kettle;
+#[path = "../../tests/fixtures/sample_kettle/model.rs"]
+#[allow(unreachable_pub)]
+mod sample_kettle;
 
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 

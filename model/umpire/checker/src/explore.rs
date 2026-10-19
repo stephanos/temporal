@@ -74,7 +74,16 @@ impl Checker {
         world: &M,
         budget: usize,
     ) -> std::result::Result<Result<M>, Refusal> {
-        Self::explore_claims(world, budget, &world.invariants(), None)
+        Self::explore_claims(world, world.starts(), budget, &world.invariants(), None)
+    }
+
+    /// Explores the given ordered starts in place of the world's own, under the world's claims.
+    pub fn explore_from<M: Machine>(
+        world: &M,
+        starts: Vec<M::State>,
+        budget: usize,
+    ) -> std::result::Result<Result<M>, Refusal> {
+        Self::explore_claims(world, starts, budget, &world.invariants(), None)
     }
 
     /// Checks an additional state predicate with the default million-state budget.
@@ -85,11 +94,12 @@ impl Checker {
         let mut invariants = world.invariants();
         let supplemental = invariants.len();
         invariants.push(claim);
-        Self::explore_claims(world, Self::BUDGET, &invariants, Some(supplemental))
+        Self::explore_claims(world, world.starts(), Self::BUDGET, &invariants, Some(supplemental))
     }
 
     fn explore_claims<M: Machine>(
         world: &M,
+        starts: Vec<M::State>,
         budget: usize,
         invariants: &[Claim<M>],
         supplemental: Option<usize>,
@@ -102,7 +112,7 @@ impl Checker {
         let progress = world.progress();
         crate::progress::validate_scopes(world, &progress, &actions)?;
         let mut result = Result::new(invariants, &postconditions, &progress);
-        result.seed(world, budget, invariants);
+        result.seed(world, starts, budget, invariants);
         let mut fired = FixedBitSet::with_capacity(actions.len());
         let mut triggered = FixedBitSet::with_capacity(postconditions.len());
         let mut cursor = 0;
@@ -262,8 +272,8 @@ impl<M: Machine> Result<M> {
             warnings: Vec::new(),
         }
     }
-    fn seed(&mut self, world: &M, budget: usize, invariants: &[Claim<M>]) {
-        for start in world.starts() {
+    fn seed(&mut self, world: &M, starts: Vec<M::State>, budget: usize, invariants: &[Claim<M>]) {
+        for start in starts {
             if self.visited.find(&start).is_some() {
                 continue;
             }

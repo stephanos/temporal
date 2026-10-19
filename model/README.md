@@ -165,7 +165,7 @@ asked with it decides what it promises:
   holds, every path the assumption admits reaches the second. A claim has exactly two waypoints:
   `#[machine]` refuses a literal `path!` chain at compile time, and a chain built elsewhere
   panics when the claim is evaluated, so the check reports that claim Refuted.
-- In a search for an example or witness (`find`, `Run::along`, arriving with fn-213), `..` means
+- In a search for an example or witness (`find`, `Run::along`), `..` means
   some path: the checker takes the shortest leg from each reached waypoint to the next, which
   need not be the shortest path through all waypoints at once.
 - A pattern says nothing about what happens between or after its waypoints.
@@ -246,7 +246,14 @@ steps, an unbridgeable gap and a predicate as the first waypoint are `Refusal`s 
 or waypoint and spelling the state. `expect! { s = run.state(); a; b; }` fails the test at the
 first false line with its source text and the state. A run starts from a state alone because
 `#[machine]` registers the state with its world (`Registered`); a manual Model implements that
-trait by hand. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
+trait by hand. An exploration asks the checker about a `Space`, start states and a state budget
+(`Space::from([state]).budget(n)`, by default the checker's): `verify_all(&space)` is the Model's
+own claims from those starts, `refuted(&space, |s| ..)` the shortest path to a state where the
+predicate fails, and `find(&space, path![..])` the shortest leg from the starts to the first
+waypoint, then to each next one. A cut answers unknown (a report outcome, or a `Refusal` when no
+counterexample was found before the cut), never verified; a predicate that holds everywhere and
+an unbridgeable gap are `Refusal`s too. Each leg of a search explores everything reachable from
+its start. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
 
 `umpire-testing` is a development-only dependency. It owns rendering, comparison, snapshot
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery

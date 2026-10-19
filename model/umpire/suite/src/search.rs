@@ -1,18 +1,19 @@
 //! The shortest path through a pattern's waypoints, asked of the checker one leg at a time.
 
 use umpire_checker::Checker;
-use umpire_dsl::{Gap, Machine, Path, StepError, Steps, Waypoint};
+use umpire_dsl::{Claim, Gap, Machine, Path, StepError, Steps, Verdict, Waypoint};
 
 use crate::Refusal;
 
 /// A path as the checker's `paths/` goldens spell it.
 pub(crate) type Trace<M> = umpire_checker::Path<<M as Machine>::State, <M as Machine>::Action>;
 
-/// The world seen from chosen states: the same actions and steps without claims, so exploring
-/// it asks only what is reachable.
-struct Rooted<'a, M: Machine> {
-    world: &'a M,
-    starts: Vec<M::State>,
+/// The world seen from chosen states: the same actions and steps without the world's claims,
+/// so exploring it asks only what is reachable and, given a query, where the query fails.
+pub(crate) struct Rooted<'a, M: Machine> {
+    pub(crate) world: &'a M,
+    pub(crate) starts: Vec<M::State>,
+    pub(crate) query: Option<fn(&M::State) -> bool>,
 }
 
 impl<M: Machine> Machine for Rooted<'_, M> {
@@ -47,6 +48,14 @@ impl<M: Machine> Machine for Rooted<'_, M> {
         action: Self::Action,
     ) -> Result<Steps<Self::State, Self::Outcome, Self::Fact>, StepError> {
         self.world.checked_step(state, action)
+    }
+
+    fn invariants(&self) -> Vec<Claim<Self>> {
+        // A claim is a plain `fn`, so it reads the query back from the world it is given.
+        let judge = |rooted: &Self, state: &M::State| {
+            rooted.query.map_or(Verdict::Holds, |query| query(state).into())
+        };
+        self.query.map(|_| Claim::new("query", judge)).into_iter().collect()
     }
 }
 
@@ -95,7 +104,7 @@ fn leg<M: Machine>(
 where
     M::State: PartialEq,
 {
-    let explored = Checker::explore(&Rooted { world, starts }, budget)?;
+    let explored = Checker::explore(&Rooted { world, starts, query: None }, budget)?;
     // Discovery order is breadth-first, so the first match is a nearest one.
     let Some((id, _)) = explored.states().find(|(_, state)| waypoint.judge(state)) else {
         return Ok(Err(explored.counts.cut));
