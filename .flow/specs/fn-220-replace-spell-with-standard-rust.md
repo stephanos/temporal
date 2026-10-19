@@ -2,12 +2,12 @@
 
 The owner approved Display for Models/actions and standard Debug for their fields, including formatting-only golden changes such as Option::Some { 0: 1 } becoming Some(1).
 
-## Requirements
+## Acceptance Criteria
 
-- R1: Remove the custom Spell trait, implementations, exports and active callers. Machine state and action values use Display; domain outcomes and facts use Debug so unit, Option, Vec and tuples work without custom implementations.
-- R2: State/Action derives and generated aggregate actions provide idiomatic standard formatting. State fields use Debug, supporting ordinary Rust collections and custom Debug-only fields. Preserve action naming where no field-format change is needed. Formatter errors must propagate in fmt implementations.
-- R3: Reports, counterexamples, progress diagnostics and native/Wasm row rendering use standard formatting consistently. Retain ordering, claim semantics, row structure and the distinction between model verdicts and domain outcomes.
-- R4: Migrate manual Models, fixtures, compile-fail tests, macro expansion snapshots and current documentation. Only formatting implementations/derives may change in the independent Temporal Model; no transition, assumption, verdict or protocol semantics changes. Update formatting-only goldens and prove native/Wasm/Go parity.
+- **R1:** Remove the custom Spell trait, implementations, exports and active callers. Machine state and action values use Display; domain outcomes and facts use Debug so unit, Option, Vec and tuples work without custom implementations.
+- **R2:** State/Action derives and generated aggregate actions provide idiomatic standard formatting. State fields use Debug, supporting ordinary Rust collections and custom Debug-only fields. Preserve action naming where no field-format change is needed. Formatter errors must propagate in fmt implementations.
+- **R3:** Reports, counterexamples, progress diagnostics and native/Wasm row rendering use standard formatting consistently. Retain ordering, claim semantics, row structure and the distinction between model verdicts and domain outcomes.
+- **R4:** Migrate manual Models, fixtures, compile-fail tests, macro expansion snapshots and current documentation. Only formatting implementations/derives may change in the independent Temporal Model; no transition, assumption, verdict or protocol semantics changes. Update formatting-only goldens and prove native/Wasm/Go parity.
 
 ## Verification
 
