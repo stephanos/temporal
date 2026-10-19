@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-216-mini-activity-vertical-slice-the-model",
   "spec_path": ".flow/tasks/fn-216-mini-activity-vertical-slice-the-model.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Temporal envelopes, realization and guest over the real API closure",
   "updated_at": "2026-10-19T16:47:32.890493Z"
 }

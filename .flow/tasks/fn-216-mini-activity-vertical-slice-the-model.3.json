@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-216-mini-activity-vertical-slice-the-model",
   "spec_path": ".flow/tasks/fn-216-mini-activity-vertical-slice-the-model.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Go test: in-process server, SDK worker answering from the Model, observations judged",
   "updated_at": "2026-10-19T16:53:56.963630Z"
 }

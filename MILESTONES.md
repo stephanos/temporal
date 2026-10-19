@@ -22,8 +22,9 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution has resumed under the owner's milestone-completion instruction. fn-216.4 is in progress;
-fn-212.1 is running in a separate worktree at the owner's request.
+Execution has resumed under the owner's milestone-completion instruction. fn-216 is complete
+locally, including its completion review. fn-221 is next in the main lane; fn-212 runs in a
+separate worktree at the owner's request. TLC is required for scaling larger Models.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -38,25 +39,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (now) | fn-216 → fn-221 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210 and fn-214 are complete locally with their reviews and gates passed. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (now) | fn-221 → fn-213 → fn-215 → fn-218 → fn-217 → fn-211; fn-212 in parallel | Owner priority order, with fn-212 explicitly parallel. fn-210, fn-214 and fn-216 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 delivers lifting and TLC for larger Models; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
-
-Captured on 2026-10-19, after fn-210.7 and in parallel with the Kettle-only DSL specs. The thinnest
-real Temporal slice, on a new Temporal side of the workspace, `model/temporal/` (nothing Temporal
-ever enters `model/umpire`; a gate check enforces it): the product-level mini activity Model in Rust (one
-enum state, six actions, one safety property) with its `temporal.rs` realization, two Model-interface methods (`judge` an observation by replay, `answer` an SDK callback; the proto
-becomes `umpire.model.v1`) with a Temporal extension of three envelopes over the Temporal API itself (`temporal.api.*` from `proto/api.binpb`), and one Go test against an in-process server where a real Go SDK
-worker's activity body returns what the Model answers and every `DescribeActivityExecution`
-observation is judged by the Model; scenarios completed and failed. No Case, Program, Contract or
-CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds the Case slice.
-[Spec](.flow/specs/fn-216-mini-activity-vertical-slice-the-model.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-216.4 | 🔄 in progress | No-Temporal boundary gate, findings/docs, complete integration evidence, and the `temporal.rs` cleanup (macro-exported `World`, prost type names, generic Any/refusal helpers in umpire) (R4, R5) |
 
 ### fn-221: Rejecting outcomes: reject! steps, Phased closure laws and judged RPC errors (model, temporal)
 
@@ -108,15 +93,16 @@ the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
 
-After fn-210, first decide whether the independent reading and temporal checks justify the
-lifting subset, emitter and JVM gate. On approval, lift shared Models, run pinned TLC and compare
-reachable states and verdicts through the shared fixture consumer.
+The owner requires TLC for scaling larger Models. Lift shared Models with a build-time `syn`
+pass, run pinned TLC and compare reachable states and verdicts through the shared fixture
+consumer. Preserve authored transitions and explicit fairness; the translation must account
+for native maximal paths versus TLA+ idle stuttering. The decision note is in local review.
 [Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-212.1 | 🔄 in progress | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
-| fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
+| fn-212.1 | 🔄 in progress | Record the approved TLC scaling requirement, build-time lifting source and semantic obligations |
+| fn-212.2 | ⬜ todo | Lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

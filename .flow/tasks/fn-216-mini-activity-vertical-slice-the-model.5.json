@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-216-mini-activity-vertical-slice-the-model",
   "spec_path": ".flow/tasks/fn-216-mini-activity-vertical-slice-the-model.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reusable stateful realization core and ABI library",
   "updated_at": "2026-10-19T16:47:32.890303Z"
 }

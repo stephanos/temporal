@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-216-mini-activity-vertical-slice-the-model",
   "spec_path": ".flow/tasks/fn-216-mini-activity-vertical-slice-the-model.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Model protocol rename and core Any messages with Go encoding",
   "updated_at": "2026-10-19T16:47:30.335196Z"
 }
