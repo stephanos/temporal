@@ -1,13 +1,67 @@
 {
   "branch_name": "fn-212-tla-lifting-and-the-tlc-backend-for",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-18T22:10:28.894004Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine"
   ],
   "id": "fn-212-tla-lifting-and-the-tlc-backend-for",
+  "impl_review_rounds": {
+    "fn-212-tla-lifting-and-the-tlc-backend-for.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "745a23f79d818ba4977d3a225e3c6b9bc6576af00d065ea1925507885594c88b",
+      "backend": "codex",
+      "base_sha": "e721b61f6f8b23fbe0c0e379312c0e8c56d0c092",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "4f93a3be4d71898e1fa13077a72c961938ed643c",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "1b3ac0c0604c441e9fc72eaea5562aa1",
+      "round_consumed": true,
+      "scope": "impl:fn-212-tla-lifting-and-the-tlc-backend-for.1",
+      "superseded_by": null,
+      "task": "fn-212-tla-lifting-and-the-tlc-backend-for.1",
+      "timestamp": "2026-10-19T20:50:43.308872Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-212-tla-lifting-and-the-tlc-backend-for.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-212-tla-lifting-and-the-tlc-backend-for.1": 0
+  },
   "spec_path": ".flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md",
   "status": "open",
   "title": "TLA+ lifting and the TLC backend for Umpire in Rust (model2)",
@@ -22,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T15:46:13.550098Z"
+  "updated_at": "2026-10-19T20:50:43.311633Z"
 }

@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-212-tla-lifting-and-the-tlc-backend-for.2.md",
   "status": "todo",
   "title": "Lift, emit TLA+, run TLC; agreement goldens on Kettle and the shared fixtures",
-  "updated_at": "2026-10-18T22:43:12.798300Z"
+  "updated_at": "2026-10-19T20:51:27.102777Z"
 }

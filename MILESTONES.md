@@ -96,12 +96,11 @@ the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
 The owner requires TLC for scaling larger Models. Lift shared Models with a build-time `syn`
 pass, run pinned TLC and compare reachable states and verdicts through the shared fixture
 consumer. Preserve authored transitions and explicit fairness; the translation must account
-for native maximal paths versus TLA+ idle stuttering. The decision note is in local review.
+for native maximal paths versus TLA+ idle stuttering. The decision note passed local review.
 [Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-212.1 | 🔄 in progress | Record the approved TLC scaling requirement, build-time lifting source and semantic obligations |
 | fn-212.2 | ⬜ todo | Lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
