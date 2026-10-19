@@ -138,34 +138,6 @@ fn real_tlc_signed_division_and_remainder_use_rust_rounding()
 
 #[test]
 #[allow(clippy::print_stderr)]
-fn real_tlc_preserves_escaped_fact_values_in_counterexamples()
--> Result<(), Box<dyn std::error::Error>> {
-    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
-        eprintln!("String-value control skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
-        return Ok(());
-    }
-    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
-    let tlc = Tlc::discover(&root)?;
-    let source = include_str!("../../checker/tests/fixtures/choices/model.rs").replacen(
-        "\"accepted\"",
-        r#""a\tb\rc\n\"\\end""#,
-        1,
-    );
-    let module = Tla::emit(&Lift::parse("facts.rs", &source)?)?;
-    let result = tlc.check(&module.name, &module.tla, &module.cfg, &schema(&module))?;
-    let property = result.properties.get("Post_choice_facts").ok_or("missing choice property")?;
-    assert_eq!(property.verdict, umpire_tlc::Verdict::Refuted);
-    let trace = property.trace.as_ref().ok_or("missing string counterexample")?;
-    let last = trace.states.last().ok_or("empty string counterexample")?;
-    assert_eq!(
-        last.observers["__umpire_facts"],
-        Value::Seq(vec![Value::Text("a\tb\rc\n\"\\end".into())])
-    );
-    Ok(())
-}
-
-#[test]
-#[allow(clippy::print_stderr)]
 fn real_tlc_empty_half_open_starts_have_no_checked_underflow()
 -> Result<(), Box<dyn std::error::Error>> {
     if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {

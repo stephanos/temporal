@@ -286,9 +286,9 @@ let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 ```
 
 This checks the source-lifted scope independently. Complete native set/verdict agreement is
-a separate fixture obligation; a cut native exploration cannot establish it. The admitted
-source subset includes scalar/enum attribute Models; no shared fixture still relies on the
-manual-trait subset. Checked integer operations use signed TLC-representable
+a separate fixture obligation; a cut native exploration cannot establish it. The lifter admits
+one source form, `#[machine]` attribute Models with scalar/enum fields; source that implements
+`Machine` by hand is refused at its `impl Machine` item. Checked integer operations use signed TLC-representable
 Rust types (`i8`, `i16`, `i32`, `u8`, `u16`); wider types refuse by source location.
 Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/enum elements:
 `new`/`default`, `len`, `is_empty`, guarded `push_back`, and safe `get` queries

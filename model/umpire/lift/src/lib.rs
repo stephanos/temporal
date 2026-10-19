@@ -13,7 +13,6 @@ use std::{collections::BTreeMap, fmt, path::Path};
 pub mod build;
 mod emit;
 mod leaf;
-mod manual;
 mod names;
 mod parse;
 mod tree;
@@ -208,15 +207,45 @@ impl Lift {
         Self::lift(file, &ast, &Hook::all(file, &ast))
     }
     fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
-        let lifted = if ast.items.iter().any(
+        if !ast.items.iter().any(
             |item| matches!(item, syn::Item::Mod(module) if parse::has(&module.attrs,"machine")),
         ) {
-            parse::parse(file, ast, hooks)
-        } else {
-            manual::parse(file, ast, hooks)
-        }?;
+            return Err(Self::not_attribute(file, ast));
+        }
+        let lifted = parse::parse(file, ast, hooks)?;
         names::validate(file, ast, &lifted)?;
         Ok(lifted)
+    }
+    /// The located refusal for source without a `#[machine]` Model: at a hand-written
+    /// `impl Machine` when there is one, otherwise at the start of the file.
+    fn not_attribute(file: &str, ast: &syn::File) -> Diagnostic {
+        let by_hand = ast.items.iter().find_map(|item| match item {
+            syn::Item::Impl(implementation)
+                if implementation
+                    .trait_
+                    .as_ref()
+                    .and_then(|(path, _)| path.segments.last())
+                    .is_some_and(|segment| segment.ident == "Machine") =>
+            {
+                Some(implementation)
+            }
+            _ => None,
+        });
+        match by_hand {
+            Some(implementation) => Diagnostic::at(
+                file,
+                implementation,
+                format!(
+                    "the lifter reads #[machine] Models; `impl Machine for {}` implements Machine by hand",
+                    implementation.self_ty.to_token_stream().to_string().replace(' ', "")
+                ),
+            ),
+            None => Diagnostic::span(
+                file,
+                Span::call_site(),
+                "the lifter reads #[machine] Models; this source declares none",
+            ),
+        }
     }
 }
 /// A golden hook (`fixture!`) and the file it is written in.

@@ -8,8 +8,12 @@ the command names used when they were recorded, before the workspace move.
 
 `umpire-lift` reads authored source with `syn`; the fixture build scripts publish emitted
 modules, configurations and typed decoding metadata. It never calls the native explorer.
-The supported attribute and manual subsets share the typed tree and emitter; source
-admission, expression/type lowering, progress builders and emission have separate modules.
+It reads one source form, the `#[machine]` attribute subset; source admission,
+expression/type lowering, progress builders and emission have separate modules. fn-223
+deleted the manual-trait lowering (`lift/src/manual*`): the lifter's source went from 5,007
+lines to 3,018 (`cat model/umpire/lift/src/*.rs model/umpire/lift/src/*/*.rs | wc -l`).
+Source that implements `Machine` by hand is refused at its `impl Machine` item
+(`progress_dead_end`'s lift golden pins the message).
 Unsupported syntax, references, conditional compilation and generated-name collisions
 produce located warnings and refuse emission. `#[machine]` remains registration-only.
 
@@ -414,7 +418,7 @@ far more than Kettle: these are module sizes, not equal-feature implementation c
 | Final `sample_kettle/model.rs` | 1 | 106 | 93 | 79 |
 | Manual `sample_kettle_trait/kettle.rs` | 1 | 120 | 106 | 106 |
 | Frozen `Kettle.scala` | 1 | 82 | 71 | 57 |
-| All shared fixture Models (including both Kettles and controls) | 25 | 980 | 862 | — |
+| All shared fixture Models (attribute Kettle and controls, after fn-223) | 12 | 534 | 458 | — |
 | Checked-in formatted macro expansion snapshots | 3 | 561 | 561 | — |
 | Go host handwritten source | 1 | 277 | 262 | — |
 | Go host generated protobuf source | 1 | 625 | 538 | — |

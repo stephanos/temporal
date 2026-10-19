@@ -1,1 +1,0 @@
-conditional_arm.rs:43:13: warning: manual source: unsupported conditional compilation inside consumed code; TLA+ emission refused

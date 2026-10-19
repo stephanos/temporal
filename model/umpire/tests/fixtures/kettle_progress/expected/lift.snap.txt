@@ -1,1 +1,1 @@
-fixtures/kettle_progress/model.rs:1:1: warning: manual source: fixture dependency must declare its Machine directly; TLA+ emission refused
+fixtures/kettle_progress/model.rs:1:1: warning: the lifter reads #[machine] Models; this source declares none; TLA+ emission refused
