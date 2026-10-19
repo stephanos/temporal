@@ -10,8 +10,7 @@ mod model {
 
     #[transitions]
     impl Model {
-        #[on(User::Press)]
-        fn press(&mut self) -> Option<()> { Some(()) }
+        fn user(&mut self, action: User) -> Option<()> { match action { User::Press => Some(()) } }
     }
 }
 

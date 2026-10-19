@@ -9,7 +9,7 @@ pub mod changed_state {
         pub value: bool,
     }
 
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     pub enum User {
         NoChange,
         SameValue,
@@ -19,28 +19,20 @@ pub mod changed_state {
 
     #[transitions]
     impl Model {
-        #[on(User::NoChange)]
-        #[expect(clippy::unused_self, reason = "the no-op control requires a transition receiver")]
-        fn no_change(&mut self) {}
-
-        #[on(User::SameValue)]
-        fn same_value(&mut self) {
-            if !self.value {
-                self.value = false;
-            }
-        }
-
-        #[on(User::MutateRestore)]
-        fn mutate_restore(&mut self) {
-            let before = self.value;
-            self.value = !self.value;
-            self.value = before;
-        }
-
-        #[on(User::ActualChange)]
-        fn actual_change(&mut self) {
-            if !self.value {
-                self.value = true;
+        fn user(&mut self, action: User) {
+            match action {
+                User::SameValue if !self.value => {
+                    self.value = false;
+                }
+                User::MutateRestore => {
+                    let before = self.value;
+                    self.value = !self.value;
+                    self.value = before;
+                }
+                User::ActualChange if !self.value => {
+                    self.value = true;
+                }
+                _ => {}
             }
         }
     }

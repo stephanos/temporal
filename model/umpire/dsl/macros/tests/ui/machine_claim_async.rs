@@ -8,6 +8,11 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
+    #[transitions]
+    impl Model {
+        fn nobody(&mut self, action: Nobody) { match action {} }
+    }
+
     #[invariants]
     impl Model {
         async fn claim(&self) {}

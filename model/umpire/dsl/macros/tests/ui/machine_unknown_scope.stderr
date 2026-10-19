@@ -1,5 +1,5 @@
 error: a progress claim names its assumption with .assuming(..)
-  --> tests/ui/machine_unknown_scope.rs:16:9
+  --> tests/ui/machine_unknown_scope.rs:21:9
    |
-16 |         #[within(Self::unregistered)]
+21 |         #[within(Self::unregistered)]
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -1,3 +1,4 @@
+#[forbid(unsafe_code)]
 mod counter {
     use umpire_dsl::{Action, State, check};
     use std::sync::atomic::{AtomicUsize, Ordering};
@@ -7,37 +8,54 @@ mod counter {
         #[starts(0..= 1)]
         pub value: u8,
     }
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     pub enum User {
         Increment,
         Reset,
         MutateRestore,
     }
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     #[internal]
     pub enum Clock {
         Tick,
     }
-    impl Counter {
-        fn tick(&mut self) {
+    struct Helper {
+        value: u8,
+    }
+    impl Helper {
+        fn advance(&mut self) {
             self.value += 1;
         }
-        fn reset(&mut self) {
-            self.value = 0;
+    }
+    impl Counter {
+        fn advance(&mut self, action: Clock) {
+            match action {
+                Clock::Tick => {
+                    self.value += 1;
+                }
+            }
         }
+        pub fn dispatch(&mut self, action: User) {
+            match action {
+                User::Reset => {
+                    self.value = 0;
+                }
+                User::Increment if self.value < 2 => {
+                    self.increment();
+                }
+                User::MutateRestore if self.value < 2 => {
+                    self.value += 1;
+                    self.value -= 1;
+                }
+                _ => {}
+            }
+        }
+    }
+    impl Counter {
         pub fn increment(&mut self) {
-            if self.value < 2 {
-                self.value += 1;
-            }
-        }
-        fn mutate_restore(&mut self) {
-            if self.value < 2 {
-                self.value += 1;
-                self.value -= 1;
-            }
-        }
-        fn helper(&self) -> bool {
-            self.value <= 2
+            let mut helper = Helper { value: self.value };
+            helper.advance();
+            self.value = helper.value;
         }
     }
     impl Counter {
@@ -70,6 +88,9 @@ mod counter {
         }
     }
     impl Counter {
+        fn helper(&self) -> bool {
+            self.value <= 2
+        }
         pub fn unregistered(&self) -> bool {
             self.helper()
         }
@@ -163,49 +184,23 @@ mod counter {
             action: Self::Action,
         ) -> ::umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact> {
             match action {
-                Action::User(value) => {
-                    match value {
-                        User::Reset => {
-                            let mut next = state.clone();
-                            next.reset();
-                            let mut steps = ::umpire_dsl::Steps::new();
-                            if next != *state {
-                                steps.push(((), ::std::vec::Vec::new(), next));
-                            }
-                            steps
-                        }
-                        User::Increment => {
-                            let mut next = state.clone();
-                            next.increment();
-                            let mut steps = ::umpire_dsl::Steps::new();
-                            if next != *state {
-                                steps.push(((), ::std::vec::Vec::new(), next));
-                            }
-                            steps
-                        }
-                        User::MutateRestore => {
-                            let mut next = state.clone();
-                            next.mutate_restore();
-                            let mut steps = ::umpire_dsl::Steps::new();
-                            if next != *state {
-                                steps.push(((), ::std::vec::Vec::new(), next));
-                            }
-                            steps
-                        }
-                    }
-                }
                 Action::Clock(value) => {
-                    match value {
-                        Clock::Tick => {
-                            let mut next = state.clone();
-                            next.tick();
-                            let mut steps = ::umpire_dsl::Steps::new();
-                            if next != *state {
-                                steps.push(((), ::std::vec::Vec::new(), next));
-                            }
-                            steps
-                        }
+                    let mut next = state.clone();
+                    next.advance(value);
+                    let mut steps = ::umpire_dsl::Steps::new();
+                    if next != *state {
+                        steps.push(((), ::std::vec::Vec::new(), next));
                     }
+                    steps
+                }
+                Action::User(value) => {
+                    let mut next = state.clone();
+                    next.dispatch(value);
+                    let mut steps = ::umpire_dsl::Steps::new();
+                    if next != *state {
+                        steps.push(((), ::std::vec::Vec::new(), next));
+                    }
+                    steps
                 }
             }
         }

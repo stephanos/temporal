@@ -13,7 +13,9 @@ mod model {
     #[invariants]
     impl Model {}
     #[transitions]
-    impl Model {}
+    impl Model {
+        fn nobody(&mut self, action: Nobody) { match action {} }
+    }
 }
 
 fn main() {}

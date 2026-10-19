@@ -1,0 +1,5 @@
+error: actor User has no transitions method
+ --> tests/ui/machine_missing_actor.rs:9:10
+  |
+9 |     enum User { Press }
+  |          ^^^^

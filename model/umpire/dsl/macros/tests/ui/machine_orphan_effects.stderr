@@ -1,0 +1,5 @@
+error: #[effects] requires the preceding #[transitions] group
+  --> tests/ui/machine_orphan_effects.rs:11:5
+   |
+11 |     #[effects]
+   |     ^^^^^^^^^^

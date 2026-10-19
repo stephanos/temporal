@@ -1,5 +1,5 @@
 error: a progress claim names its assumption with .assuming(..)
-  --> tests/ui/machine_within_bare.rs:13:9
+  --> tests/ui/machine_within_bare.rs:18:9
    |
-13 |         #[within]
+18 |         #[within]
    |         ^^^^^^^^^

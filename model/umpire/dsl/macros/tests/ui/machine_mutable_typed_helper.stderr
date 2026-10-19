@@ -1,0 +1,5 @@
+error: helper takes &mut self; only transitions and effects change the state
+  --> tests/ui/machine_mutable_typed_helper.rs:17:12
+   |
+17 |         fn helper(self: &mut Self) {}
+   |            ^^^^^^
