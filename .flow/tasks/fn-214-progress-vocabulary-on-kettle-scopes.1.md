@@ -70,6 +70,8 @@ Tier: session (jev-unavailable(no_key)); explicitprojectroutingpreserved
 
 Two bounded subagents updated the oracle and authored the admission fixture. Both returned before staging and verification. The authoring route now accepts `only([...]).without([...]).fair([...])` inside generated machine modules. No follow-up work is required for R1.
 
+stage: plan-sync - skipped(config: planSync.enabled=false)
+
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits: 79b05c248963a85e098483d9ff20141b5e35994f
