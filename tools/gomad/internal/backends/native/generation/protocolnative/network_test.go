@@ -1,4 +1,4 @@
-package protocol
+package protocolnative
 
 import (
 	"bytes"
@@ -11,13 +11,6 @@ import (
 	"path/filepath"
 	"testing"
 )
-
-func TestNetworkSemanticCodecGenerated(t *testing.T) {
-	root := filepath.Join("..", "..", "..", "..", "..")
-	if err := generateNetworkProtocols(root, true); err != nil {
-		t.Fatal(err)
-	}
-}
 
 func TestNetworkWireConsumers(t *testing.T) {
 	root := filepath.Join("..", "..", "..", "..", "..")

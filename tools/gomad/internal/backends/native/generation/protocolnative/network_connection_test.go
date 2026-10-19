@@ -1,4 +1,4 @@
-package protocol
+package protocolnative
 
 import (
 	"bytes"

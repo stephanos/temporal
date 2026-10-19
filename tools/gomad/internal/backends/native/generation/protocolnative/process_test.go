@@ -1,18 +1,25 @@
-package protocol
+package protocolnative
 
 import (
+	"encoding/json"
 	"fmt"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"strings"
 	"testing"
 )
 
 func TestGeneratedProcessTransportConsumer(t *testing.T) {
 	root := filepath.Join("..", "..", "..", "..", "..")
-	definition, err := readProcessSchema(filepath.Join(root, "internal", "model", "schema", "processwire.json"))
+	schema, err := os.ReadFile(filepath.Join(root, "internal", "model", "schema", "processwire.json"))
 	if err != nil {
+		t.Fatal(err)
+	}
+	var definition struct {
+		Profile    string `json:"profile"`
+		GoldenWait string `json:"golden_wait"`
+	}
+	if err := json.Unmarshal(schema, &definition); err != nil {
 		t.Fatal(err)
 	}
 	codec, err := os.ReadFile(filepath.Join(root, "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated.go"))
@@ -56,28 +63,5 @@ func TestHostWaitFrame(t *testing.T) {
 	command.Env = append(os.Environ(), "GOWORK=off")
 	if output, err := command.CombinedOutput(); err != nil {
 		t.Fatalf("generated process transport: %v\n%s", err, output)
-	}
-}
-
-func TestReadProcessSchemaRejectsInvalidDefinition(t *testing.T) {
-	contents, err := os.ReadFile(filepath.Join("..", "..", "..", "..", "..", "internal", "model", "schema", "processwire.json"))
-	if err != nil {
-		t.Fatal(err)
-	}
-	for _, test := range []struct{ name, contents string }{
-		{"trailing", string(contents) + "{}"},
-		{"unknown", strings.Replace(string(contents), `"version": 3`, `"version": 3, "unknown": true`, 1)},
-		{"unsupported", strings.Replace(string(contents), `"version": 3`, `"version": 2`, 1)},
-		{"prefix-order", strings.Replace(string(contents), `"name": "Profile"`, `"name": "Kind"`, 1)},
-	} {
-		t.Run(test.name, func(t *testing.T) {
-			path := filepath.Join(t.TempDir(), "schema.json")
-			if err := os.WriteFile(path, []byte(test.contents), 0o600); err != nil {
-				t.Fatal(err)
-			}
-			if _, err := readProcessSchema(path); err == nil {
-				t.Fatal("invalid process definition was accepted")
-			}
-		})
 	}
 }

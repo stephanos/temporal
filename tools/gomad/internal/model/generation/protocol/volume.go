@@ -7,10 +7,7 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
-
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
 type volumeWireSchema struct {
@@ -50,44 +47,16 @@ type volumeWireCodec struct {
 	Decode   string
 }
 
-func generateVolumeProtocols(root string, check bool) error {
-	definition, err := readVolumeWireSchema(filepath.Join(root, "internal", "model", "schema", "volumewire.json"))
-	if err != nil {
-		return err
-	}
-	for _, host := range []bool{true, false} {
-		consumer := volumeWireMapping(definition, host)
-		for _, layout := range definition.Layouts {
-			codec, err := volumeWireLayoutCodec(consumer, layout)
-			if err != nil {
-				return err
-			}
-			consumer.Codecs = append(consumer.Codecs, codec)
-		}
-		generated, err := generate(filepath.Join(root, "internal", "model", "schema", "volumewire.go.tmpl"), consumer)
+func volumeWireData(definition volumeWireSchema, host bool) (volumeWireConsumer, error) {
+	consumer := volumeWireMapping(definition, host)
+	for _, layout := range definition.Layouts {
+		codec, err := volumeWireLayoutCodec(consumer, layout)
 		if err != nil {
-			return err
+			return volumeWireConsumer{}, err
 		}
-		if host {
-			generated, err = clusterWireSource(generated)
-			if err != nil {
-				return err
-			}
-		}
-		path := filepath.Join(root, "internal", "backends", "native", "toolchain", "runtime", "overlay", "src", "internal", "gomadfs", "simulation_volume_wire.go")
-		if host {
-			path = filepath.Join(root, "internal", "model", "cluster", "internal", "wire", "volume.go")
-		}
-		if check {
-			current, err := os.ReadFile(path)
-			if err != nil || !bytes.Equal(current, generated) {
-				return fmt.Errorf("generated simulation volume wire codec is stale: %s", path)
-			}
-		} else if err := hostfs.Replace(path, generated, 0o644); err != nil {
-			return fmt.Errorf("write generated simulation volume wire codec: %w", err)
-		}
+		consumer.Codecs = append(consumer.Codecs, codec)
 	}
-	return nil
+	return consumer, nil
 }
 
 func readVolumeWireSchema(path string) (volumeWireSchema, error) {

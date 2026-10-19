@@ -1,4 +1,4 @@
-package protocol
+package protocolnative
 
 import (
 	"bytes"
@@ -8,6 +8,8 @@ import (
 	"go/token"
 	"strings"
 	"testing"
+
+	"go.temporal.io/server/tools/gomad/internal/model/generation/protocol"
 )
 
 func clusterWireFixtureSource(t *testing.T, source []byte) []byte {
@@ -18,11 +20,12 @@ func clusterWireFixtureSource(t *testing.T, source []byte) []byte {
 	if err != nil {
 		t.Fatal(err)
 	}
-	names := make(map[string]string, len(clusterWireNames)+10)
-	for original, exported := range clusterWireNames {
+	functions, types := protocol.ClusterWireRenames()
+	names := make(map[string]string, len(functions)+len(types)+10)
+	for original, exported := range functions {
 		names[exported] = original
 	}
-	for original, lower := range clusterWireTypes {
+	for original, lower := range types {
 		names[lower] = original
 	}
 	for lower, original := range map[string]string{

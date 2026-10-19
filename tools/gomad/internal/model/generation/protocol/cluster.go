@@ -6,6 +6,7 @@ import (
 	"go/format"
 	"go/parser"
 	"go/token"
+	"maps"
 	"strconv"
 	"strings"
 )
@@ -77,4 +78,11 @@ func clusterWireSource(source []byte) ([]byte, error) {
 		return nil, err
 	}
 	return format.Source(output.Bytes())
+}
+
+// ClusterWireRenames returns copies of the identifier renames the cluster
+// wire rewrite applies to function and type names, for consumers that rebuild
+// the unrenamed source in tests.
+func ClusterWireRenames() (functions, types map[string]string) {
+	return maps.Clone(clusterWireNames), maps.Clone(clusterWireTypes)
 }

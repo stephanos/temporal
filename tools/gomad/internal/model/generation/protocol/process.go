@@ -7,11 +7,8 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"slices"
 	"strings"
-
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
 type processSchema struct {
@@ -73,47 +70,14 @@ func readProcessSchema(path string) (processSchema, error) {
 	return definition, nil
 }
 
-func generateProcessProtocols(root string, check bool) error {
-	definition, err := readProcessSchema(filepath.Join(root, "internal", "model", "schema", "processwire.json"))
-	if err != nil {
-		return err
-	}
+func processData(definition processSchema) (processTemplateData, error) {
 	profileJSON, err := json.Marshal(definition.Profile)
 	if err != nil {
-		return fmt.Errorf("encode process profile: %w", err)
+		return processTemplateData{}, fmt.Errorf("encode process profile: %w", err)
 	}
 	waitPrefix := fmt.Sprintf(`{"%s":%s,"%s":"wait",`, definition.Frame[0].JSON, profileJSON, definition.Frame[1].JSON)
 	if !strings.HasPrefix(definition.GoldenWait, waitPrefix) {
-		return errors.New("process wire wait vector does not match frame prefix")
+		return processTemplateData{}, errors.New("process wire wait vector does not match frame prefix")
 	}
-	outputs := []output{
-		{Package: "wire", Template: "processwire.go.tmpl", Path: "internal/model/cluster/internal/wire/process.go"},
-		{Package: "wire", Template: "processwire_test.go.tmpl", Path: "internal/model/cluster/internal/wire/process_generated_test.go"},
-		{Package: "gomadsim", Template: "processwire_transport.go.tmpl", Path: "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated.go"},
-		{Package: "gomadsim_test", Template: "processwire_transport_test.go.tmpl", Path: "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadsim/process_wire_generated_test.go"},
-	}
-	for _, target := range outputs {
-		generated, err := generate(filepath.Join(root, "internal", "model", "schema", target.Template), processTemplateData{Package: target.Package, Schema: definition, WaitPrefix: waitPrefix})
-		if err != nil {
-			return err
-		}
-		if target.Package == "wire" {
-			generated, err = clusterWireSource(generated)
-			if err != nil {
-				return err
-			}
-		}
-		path := filepath.Join(root, filepath.FromSlash(target.Path))
-		if check {
-			current, err := os.ReadFile(path)
-			if err != nil || !bytes.Equal(current, generated) {
-				return fmt.Errorf("generated process wire codec is stale: %s", target.Path)
-			}
-			continue
-		}
-		if err := hostfs.Replace(path, generated, 0o644); err != nil {
-			return fmt.Errorf("write generated process wire codec: %w", err)
-		}
-	}
-	return nil
+	return processTemplateData{Schema: definition, WaitPrefix: waitPrefix}, nil
 }

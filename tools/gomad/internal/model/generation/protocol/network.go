@@ -1,13 +1,9 @@
 package protocol
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
 	"os"
-	"path/filepath"
-
-	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 )
 
 type networkWireSchema struct {
@@ -103,14 +99,14 @@ func networkWireConsumer(host bool, definition networkWireSchema) networkWireTem
 	return data
 }
 
-func generateNetworkProtocols(root string, check bool) error {
-	contents, err := os.ReadFile(filepath.Join(root, "internal/model/schema/networkwire.json"))
+func readNetworkWireSchema(path string) (networkWireSchema, error) {
+	contents, err := os.ReadFile(path)
 	if err != nil {
-		return fmt.Errorf("read network wire schema: %w", err)
+		return networkWireSchema{}, fmt.Errorf("read network wire schema: %w", err)
 	}
 	var definition networkWireSchema
 	if err := json.Unmarshal(contents, &definition); err != nil {
-		return fmt.Errorf("decode network wire schema: %w", err)
+		return networkWireSchema{}, fmt.Errorf("decode network wire schema: %w", err)
 	}
 	if len(definition.ConfigMagic) != 8 || len(definition.FinishMagic) != 8 || len(definition.ErrorMagic) != 8 ||
 		definition.MaximumBytes == 0 || definition.MaximumStringBytes == 0 ||
@@ -118,34 +114,7 @@ func generateNetworkProtocols(root string, check bool) error {
 		definition.MaximumLinks == 0 || definition.MaximumListeners == 0 || definition.MaximumConnections == 0 ||
 		definition.MaximumTransitions == 0 ||
 		definition.MaximumNetworkBytes != 1<<30 || definition.MaximumStallNanos != 9223372036854775806 {
-		return fmt.Errorf("network wire schema has invalid framing or limits")
+		return networkWireSchema{}, fmt.Errorf("network wire schema has invalid framing or limits")
 	}
-	for _, target := range []struct {
-		Path string
-		Host bool
-	}{
-		{"internal/model/cluster/internal/wire/network.go", true},
-		{"internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go", false},
-	} {
-		generated, err := generate(filepath.Join(root, "internal/model/schema/networkwire.go.tmpl"), networkWireConsumer(target.Host, definition))
-		if err != nil {
-			return err
-		}
-		if target.Host {
-			generated, err = clusterWireSource(generated)
-			if err != nil {
-				return err
-			}
-		}
-		path := filepath.Join(root, filepath.FromSlash(target.Path))
-		if check {
-			current, err := os.ReadFile(path)
-			if err != nil || !bytes.Equal(current, generated) {
-				return fmt.Errorf("generated network wire codec is stale: %s", target.Path)
-			}
-		} else if err := hostfs.Replace(path, generated, 0o644); err != nil {
-			return fmt.Errorf("write generated network wire codec: %w", err)
-		}
-	}
-	return nil
+	return definition, nil
 }
