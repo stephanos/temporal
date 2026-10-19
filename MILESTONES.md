@@ -241,6 +241,15 @@ CI, PR, or push authority.
 
 ## WASM
 
+### Bounded harness result retention — [fn-225](.flow/specs/fn-225-gomad-bounded-harness-result-retention.md)
+
+Owner-approved isolated harness work may proceed alongside frozen fn-189
+qualification; integration waits for fn-189 acceptance.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-225.1](.flow/tasks/fn-225-gomad-bounded-harness-result-retention.1.md) | 🚧 In progress | Bound harness outputs with immutable receipt paths and safe latest-result replacement |
+
 ### Upstream sync — [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md)
 
 The integration base is Temporal `main` at

@@ -23,6 +23,7 @@ type Options struct {
 	Inputs  map[string]string
 	Environ []string
 	Log     io.Writer
+	Keep    bool
 }
 
 type runKey struct{}
@@ -118,6 +119,10 @@ func Run(ctx context.Context, name string, options Options) error {
 }
 
 func (scope *runScope) execute(ctx context.Context, producer func(context.Context) error) error {
+	retained, err := scope.beginRetention(ctx)
+	if err != nil {
+		return err
+	}
 	recordFailure(ctx, producer(ctx))
 	for {
 		scope.mu.Lock()
@@ -132,8 +137,12 @@ func (scope *runScope) execute(ctx context.Context, producer func(context.Contex
 		recordFailure(ctx, cleanup(ctx))
 	}
 	scope.mu.Lock()
-	defer scope.mu.Unlock()
-	return errors.Join(scope.failures, ctx.Err())
+	err = errors.Join(scope.failures, ctx.Err())
+	scope.mu.Unlock()
+	if retained != nil {
+		err = errors.Join(err, retained.finish(ctx, err == nil))
+	}
+	return err
 }
 
 func scopeFor(ctx context.Context) *runScope { return ctx.Value(runKey{}).(*runScope) }

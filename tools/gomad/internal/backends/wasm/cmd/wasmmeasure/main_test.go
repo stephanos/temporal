@@ -73,6 +73,22 @@ func TestExecutorRefusesAnotherCheckout(t *testing.T) {
 	}
 }
 
+func TestKeepFlagReachesProducer(t *testing.T) {
+	t.Parallel()
+	called := false
+	start := func(_ context.Context, call invocation, _, _ io.Writer) int {
+		called = true
+		if !call.keep {
+			t.Error("explicit keep was lost")
+		}
+		return 0
+	}
+	code := run(t.Context(), []string{"runtime-cost-profile", "--repo", repoRoot(t), "--stock-go", "/go", "--profile-root", "/evidence", "--test-helper", "/helper", "--keep"}, nil, io.Discard, io.Discard, start)
+	if code != 0 || !called {
+		t.Fatalf("producer called=%t exit=%d", called, code)
+	}
+}
+
 func TestProducerBuildsCommandFromSelectedCheckout(t *testing.T) {
 	t.Parallel()
 	for _, code := range []int{0, measurement.ExitFailed, measurement.ExitRefused, 7} {
@@ -93,6 +109,7 @@ func TestProducerBuildsCommandFromSelectedCheckout(t *testing.T) {
 			call := invocation{name: "runtime-cost-profile", repo: repoRoot(t), goCommand: goCommand,
 				inputs:  map[string]string{"GOMAD_WASM_PROFILE_ROOT": "/a b", "GOMAD_STOCK_GO": "/go"},
 				environ: []string{"BUILD_LOG=" + buildLog, "ENVIRONMENT_LOG=" + environmentLog, "CHILD=" + child, "GOFLAGS=-overlay=/foreign/overlay.json", "GOROOT=/foreign/go", "GOWORK=/foreign/go.work", "GOENV=/foreign/env", "GOTOOLCHAIN=auto"}}
+			call.keep = code == measurement.ExitFailed
 			var stdout, stderr bytes.Buffer
 			wantCode := code
 			if wantCode == 7 {
@@ -116,7 +133,11 @@ func TestProducerBuildsCommandFromSelectedCheckout(t *testing.T) {
 			if string(environment) != "\n\noff\noff\nlocal\n" {
 				t.Fatalf("ambient build inputs redirected executor: %q", environment)
 			}
-			want := strings.Join([]string{module, "--internal-run", call.name, "--repo", call.repo, "--go", goCommand, "--stock-go", "/go", "--profile-root", "/a b", ""}, "\n")
+			wantArgs := []string{module, "--internal-run", call.name, "--repo", call.repo, "--go", goCommand}
+			if code == measurement.ExitFailed {
+				wantArgs = append(wantArgs, "--keep")
+			}
+			want := strings.Join(append(wantArgs, "--stock-go", "/go", "--profile-root", "/a b", ""), "\n")
 			if stdout.String() != want {
 				t.Fatalf("child arguments: %q, want %q", stdout.String(), want)
 			}
