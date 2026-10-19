@@ -35,8 +35,8 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.18, .19 and .7 | The archive, nested attribute Kettle, claim ordering, progress, direct wasm ABI and generic Go host relocation are complete; the authoring follow-ups and comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
-| After the verdict | fn-213 (ModelSuite: examples and explorations), fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| Umpire in Rust (now) | fn-210.19 and .7 | The archive, nested attribute Kettle, changed-state handlers, claim ordering, progress, direct wasm ABI and generic Go host relocation are complete; the claim-authoring follow-up and comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| After the verdict | fn-214 (progress vocabulary on Kettle), fn-215 (`path!` notation), fn-213 (ModelSuite: examples and explorations; .4 after fn-214), fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -72,8 +72,9 @@ What is fixed, all owner decisions of 2026-10-18:
   author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
   API misuse, Model problems as verdicts. A future lifted tree is internal.
 - **Layout (R44).** A Model is one `#[machine] mod` mirroring Scala's nested objects: the state struct, the action
-  enums, then one `impl` per part kind in order (`#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[scopes]`,
-  `#[progress]`), each at most once; the attribute rejects any other order or a duplicate group.
+  enums, then one `impl` per part kind in order (`#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[assumptions]`,
+  `#[progress]`), each at most once; the attribute rejects any other order or a duplicate group. A progress claim
+  names its assumption in its expression (`.assuming(..)`), not in an attribute.
 - **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
@@ -95,9 +96,34 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.18 | 🔄 in progress | After .6: handlers become `fn name(&mut self)`, enabled iff the state changed; refuse a return type; goldens unchanged (R6) |
-| fn-210.19 | ⬜ todo | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); bare `#[within(..)]` (R6) |
-| fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+| fn-210.19 | ⬜ todo | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); no `#[within]` attribute, `.assuming(..)` in the claim (R6) |
+| fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+
+### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
+
+Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
+`Assumption` (renamed from `Scope`; `#[assumptions]`, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
+`#[internal]` (owner); `Progress::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
+missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
+change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-214.1 | ⬜ todo | `Assumption` with `only`/`fair`; fairness from the assumption only (R1) |
+| fn-214.2 | ⬜ todo | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
+| fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
+
+### fn-215: The path! progression notation for progress claims (model)
+
+Captured on 2026-10-19, after fn-214. A progress claim reads as a state progression:
+`path![self.heating_on, .., self.beeping]` (`..` = eventually, on every admitted path) and
+`path![p, ..=n, q]` (within `n` steps), a `macro_rules!` expanding to the fn-214 builder; chains and
+adjacency are compile errors by owner decision. Kettle's goldens do not change.
+[Spec](.flow/specs/fn-215-the-path-progression-notation-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-215.1 | ⬜ todo | `path!` macro with its two refusals; Kettle in `path!` form; reading rules in README (R1, R2, R3) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 
@@ -114,7 +140,7 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 | fn-213.1 | ⬜ todo | Fixture layout: `tests.rs` beside `model.rs`, `build.rs` declares both, golden hook moves, `pub` fields (R1) |
 | fn-213.2 | ⬜ todo | After .1: `umpire-suite` examples: `Run`, `step`, `repeat`, `expect!`, refusal fixtures (R2) |
 | fn-213.3 | ⬜ todo | After .1: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find`, fixtures (R3) |
-| fn-213.4 | ⬜ todo | After .2 and .3: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
+| fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
 

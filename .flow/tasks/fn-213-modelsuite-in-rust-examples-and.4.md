@@ -8,6 +8,7 @@ Kettle's `umpire/tests/fixtures/kettle/tests.rs` with `mod examples` and `mod ex
 
 **Touches:** `model/umpire/tests/fixtures/kettle/tests.rs`, `model/README.md` (how to write a Model's tests).
 
+**Cross-spec prerequisite (2026-10-19):** fn-214 (progress vocabulary: `only`, `fair`, `.within(n)`, named verdicts) must be done first; the deadlock, cycle and missed-deadline questions here use `Model::boils.assuming(..)` and `Model::boils.within(80)` from that spec; write the claims in fn-215's `path!` notation where the tests restate one. Not a Flow dependency because task deps are spec-local.
 ## Acceptance
 - [ ] TBD
 

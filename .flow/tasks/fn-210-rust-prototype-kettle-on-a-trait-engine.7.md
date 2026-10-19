@@ -23,10 +23,13 @@ Write `model/DESIGN.md`: Kettle.rs vs Kettle.scala line by line (constructs bett
 **Files:** model/DESIGN.md, MILESTONES.md.
 
 **Quick commands:** `cd model && mise exec -- cargo test --workspace --release`; `hyperfine` or `time` on the test binary
+
+**Parameterized-Model readiness (owner, 2026-10-19):** DESIGN.md gets a section "Parameterized Models: readiness" recording that the engine is ready by construction (R9: the world is a value implementing `Machine`; parameters are its fields; `starts`, `actions`, `step` and every claim predicate receive `&M`; generic state is admitted by the trait bounds; only `Finite` is missing, R17), and that the attribute surface has five gaps, each to land with the first sample that needs it (the samples port is parked): (1) no declared world struct, `#[machine]` generates a unit `World`; (2) handlers and claims cannot see the world; (3) `#[starts(range)]` is literal, no parameter-dependent starts; (4) actions have no inputs or domains; (5) `#[machine]` refuses generic Models. Record the settled shape for closing them without changing Kettle: a `#[derive(World)]` struct in the module (absent means the unit world); the world as an explicit extra parameter `w: &World<..>` on handlers and claims, present when the method wants it and detected by arity like `before`; a `#[starts]` impl block for computed starts, `#[starts(range)]` kept for literal domains; action variants with fields for inputs, domains from `Finite` or the world; generics accepted on `Model`, `World` and the action enums. Numeric `.within(n)` is planned in fn-214, rather than implemented by fn-210; distinguish it from the current trait builder that supplies an environment assumption. Record that a runtime parameter-derived bound (`w.resource_managers.len()`) needs no further authoring shape once (2) and the bound builder land, and verify the statement against the final code. The write-up claims no more than Kettle proves.
 ## Acceptance
 - Note present with every section and numbers.
 - MILESTONES names the recommendation.
 - `model/options/` is deleted after DESIGN.md carries its comparison.
+- DESIGN.md has a "Parameterized Models: readiness" section: engine ready via R9 (with `Finite` as the one missing piece), the five attribute-surface gaps, and the settled closing shape (`#[derive(World)]`, `w: &World` by arity, `#[starts]` block, action inputs, generics), without claiming any of it is implemented.
 ## Done summary
 TBD
 
