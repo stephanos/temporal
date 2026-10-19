@@ -55,9 +55,11 @@ refusal and has no system TLC agreement evidence. Older source evidence must not
 Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
 artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs
 mandate attribute Kettle and every admitted fixture's selected TLC goldens. Both renders in
-the existing determinism contract execute the backend. The focused 19-fixture required run
-took 99.75 s during implementation; it is outside the default feedback loop. This is execution
-evidence on small Models, not a scaling benchmark or a claim that TLC is faster than native.
+the existing determinism contract execute the backend. The final required full gate took
+144 s, including 101.60 s for the shared fixture double render. The final warm default gate
+took 9.564 s and its edit/test inner loop 4.986 s (pre-edit baseline: 11.086 s / 4.295 s).
+These single cached measurements distinguish the opt-in backend cost from the default
+feedback loop; they are not a scaling benchmark or a claim that TLC is faster than native.
 
 ## Stock-toolchain wasm verdict (fn-210 R24)
 
