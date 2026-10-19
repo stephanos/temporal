@@ -20,6 +20,7 @@ umpire-dsl.workspace = true
 umpire-checker.workspace = true
 umpire-testing.workspace = true
 umpire-lift.workspace = true
+umpire-suite.workspace = true
 
 [build-dependencies]
 umpire-lift.workspace = true

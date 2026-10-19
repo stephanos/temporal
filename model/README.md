@@ -255,6 +255,32 @@ counterexample was found before the cut), never verified; a predicate that holds
 an unbridgeable gap are `Refusal`s too. Each leg of a search explores everything reachable from
 its start. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
 
+To write a Model's tests, add `mod examples` and `mod explorations` to its `tests.rs`, each with
+`use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
+fails the test with its message; `cargo test` and the gate run them, nothing registers them
+(`umpire-suite` is a dev-dependency of the crate that compiles the fixture). Kettle's
+`umpire/tests/fixtures/sample_kettle/tests.rs` is the example: it asks the questions of the archived
+`Kettle.test.scala` that the surface admits (the press/heat/depress table from the coldest and room
+starts, the 99-to-100 boundary and the `>=` failover guard refuting `fails_over_at_boiling` at 101,
+the 81 steps from switching on to the beep, every start from -40 to 40, `never_beeps` refuted by a
+press, 80 heats and the failover, a budget of 10 answering unknown and a counterexample found before
+a cut). From room temperature the beep is the deepest state, so a cut one state short of the whole
+graph misses it; the cut-but-refuted question starts heating at 99 as well. The Scala questions the
+surface does not admit, and why:
+
+- vacuity of `fails_over_at_boiling` with the heater excluded, the boils cycle on the whole Kettle,
+  the deadlock with only the press, the missed 80-step deadline and the unfair `fair(heat)` cycle:
+  a `Space` chooses starts and a budget, never actions or assumptions (scopes are the Model's own),
+  so these stay with the `kettle_progress*` fixtures (fn-214.3), which explore their own worlds;
+- claim truth tables over hand-picked before/after pairs that are not steps (`warms_only_when_on`
+  on quiet-to-hot by heat): a claim is judged only on explored steps; a state invariant can still be
+  asked from a chosen start, as the heating, beeping start refuting `beeps_only_when_off` shows;
+- `boils`'s metadata (name, no bound, the admitted actions of `never_switched_off`): the suite has
+  no claim descriptors;
+- the report's prose line (`budget N states, 82 steps; exploration complete`) and the empty query
+  list: the Rust report spells counts, not that line, and has no queries; the depth and cut are
+  asked instead.
+
 `umpire-testing` is a development-only dependency. It owns rendering, comparison, snapshot
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
 source, avoiding a checker dependency cycle. Fixtures are discovered in name order and must

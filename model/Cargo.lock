@@ -1021,6 +1021,7 @@ dependencies = [
  "umpire-checker",
  "umpire-dsl",
  "umpire-lift",
+ "umpire-suite",
  "umpire-testing",
 ]
 
