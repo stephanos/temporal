@@ -49,16 +49,16 @@ enum Heater {
 pub(crate) fn run() -> umpire_testing::RunResult {
     let mut output = String::new();
     for state in Kettle::starts() {
-        write!(output, "{}", state)?;
+        write!(output, "{state}")?;
         output.push('\n');
     }
     let starts = Product::starts();
     for state in &starts {
-        write!(output, "{}", state)?;
+        write!(output, "{state}")?;
         output.push('\n');
     }
     for state in Defaults::<String>::starts() {
-        write!(output, "{}", state)?;
+        write!(output, "{state}")?;
         output.push('\n');
     }
     writeln!(output, "empty starts: {}", Empty::starts().len())?;
@@ -70,7 +70,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     writeln!(output, "unique cloned states: {}", unique.len())?;
     let users = User::actions();
     for action in &users {
-        write!(output, "{}", action)?;
+        write!(output, "{action}")?;
         writeln!(output, " internal: {}", action.internal())?;
     }
     let mut unique = HashSet::new();
@@ -80,7 +80,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     }
     writeln!(output, "unique cloned actions: {}", unique.len())?;
     for action in Heater::actions() {
-        write!(output, "{}", action)?;
+        write!(output, "{action}")?;
         writeln!(output, " internal: {}", action.internal())?;
     }
     Ok(umpire_testing::Files::from([("values.txt".into(), output)]))

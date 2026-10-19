@@ -11,7 +11,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let cloned = actions.clone();
     let mut output = String::from("actions: [");
     for action in &cloned {
-        write!(output, "{}", action)?;
+        write!(output, "{action}")?;
         write!(output, " internal: {}", action.internal())?;
     }
     output.push_str("]\n");

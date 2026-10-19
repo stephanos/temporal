@@ -154,10 +154,10 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let enabled = direct != before;
     writeln!(output, "direct transition: {enabled} {}", rendered(&direct))?;
     for state in world.starts() {
-        write!(output, "{}", state)?;
+        write!(output, "{state}")?;
         output.push('\n');
         for action in world.actions() {
-            write!(output, "{}", action)?;
+            write!(output, "{action}")?;
             write!(output, " internal: {}", world.internal(&action))?;
             let edges = world.step(&state, action.clone());
             write!(output, " edges: {}", edges.len())?;

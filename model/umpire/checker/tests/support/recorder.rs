@@ -92,7 +92,7 @@ fn evidence_belongs_to_actual_evaluation_and_counterexample_state()
     assert_eq!(edge.steps.last().ok_or("edge missing")?.choice, 1);
     assert_eq!(edge.failure.as_deref(), Some("check!(*outcome) failed at 1"));
     let mut text = report.to_string();
-    write!(text, "{}", path)?;
+    text.push_str(&path.to_string());
     assert_eq!(world.calls.get(), 3);
     let again = Checker::explore(&world, 10)?.verify_all()?;
     assert_eq!(again.claims[1].path.as_ref().ok_or("repeated manual path missing")?.failure, None);

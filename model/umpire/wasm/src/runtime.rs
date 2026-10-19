@@ -184,7 +184,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                 .actions()
                 .into_iter()
                 .filter(|action| !self.machine.step(current, action.clone()).is_empty())
-                .map(|action| spelling(&action))
+                .map(|action| action.to_string())
                 .collect(),
         };
         Ok((
@@ -232,7 +232,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             if !catalog.contains(&transition.action) {
                 return None;
             }
-            let label = spelling(&transition.action);
+            let label = transition.action.to_string();
             let (_, _, next) =
                 self.machine.step(&state, transition.action).into_iter().nth(transition.choice)?;
             state = next;

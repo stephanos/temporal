@@ -103,7 +103,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         };
         world.sealed.set(true);
         let repeated = (result.verify_all()?).to_string();
-        write!(text, "{}", result.verify_all()?)?;
+        text.push_str(&result.verify_all()?.to_string());
         assert!(text.ends_with(&repeated));
     }
     Ok(umpire_testing::Files::from([("report.txt".into(), text)]))

@@ -32,7 +32,7 @@ impl Write for RefusingWriter {
 pub(crate) fn run() -> umpire_testing::RunResult {
     fn empty_formats<T: fmt::Display + fmt::Debug>() {}
     empty_formats::<Empty>();
-    assert!(Empty::actions().is_empty());
+    assert_eq!(Empty::actions(), []);
     let model = Model {
         values: vec![Some(DebugOnly(1)), None],
         map: BTreeMap::from([("key".into(), (DebugOnly(2), true))]),

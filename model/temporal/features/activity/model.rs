@@ -132,8 +132,7 @@ mod tests {
         [Phase::Completed, Phase::Failed, Phase::Canceled, Phase::TimedOut];
 
     fn rendered(value: &impl std::fmt::Display) -> String {
-        let text = value.to_string();
-        text
+        value.to_string()
     }
 
     #[test]
@@ -172,7 +171,7 @@ mod tests {
                     steps.as_slice() == expected,
                     "{} after {}",
                     rendered(action),
-                    rendered(&phase),
+                    format!("{phase:?}"),
                 );
             }
         }

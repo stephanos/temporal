@@ -183,7 +183,7 @@ fn record(text: &mut String, name: &str, world: &World, budget: usize) -> umpire
                 writeln!(text, "hole: {hole}")?;
             }
             if let Some(path) = &claim.path {
-                write!(text, "{}", path)?;
+                write!(text, "{path}")?;
             }
             let before = world.calls.get();
             for claim in &report.claims {

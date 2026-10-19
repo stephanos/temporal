@@ -47,22 +47,27 @@ impl Hash for State {
     }
 }
 
+#[derive(umpire_dsl::Action)]
+enum Action {
+    Advance,
+}
+
 impl Machine for World {
     type State = State;
-    type Action = ();
+    type Action = Action;
     type Outcome = ();
     type Fact = ();
 
     fn starts(&self) -> Vec<State> {
         vec![State { value: 0, clones: self.0.clone() }]
     }
-    fn actions(&self) -> Vec<()> {
-        vec![()]
+    fn actions(&self) -> Vec<Action> {
+        Action::actions()
     }
-    fn internal(&self, (): &()) -> bool {
+    fn internal(&self, _: &Action) -> bool {
         false
     }
-    fn step(&self, state: &State, (): ()) -> Steps<State, (), ()> {
+    fn step(&self, state: &State, _: Action) -> Steps<State, (), ()> {
         let mut steps = Steps::new();
         if state.value < 1000 {
             steps.push(((), vec![], State { value: state.value + 1, clones: self.0.clone() }));
@@ -79,7 +84,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let world = World(Rc::new(Cell::new(0)));
     let result = Checker::explore(&world, 1001)?;
     let work = if world.0.get() <= 4 * result.counts.reached { "linear" } else { "excessive" };
-    let report = (result.verify_all()?).to_string();
+    let mut report = result.verify_all()?.to_string();
     report.push_str("clone_work: ");
     report.push_str(work);
     report.push('\n');
