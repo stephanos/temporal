@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-214-progress-vocabulary-on-kettle-scopes",
   "spec_path": ".flow/tasks/fn-214-progress-vocabulary-on-kettle-scopes.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bounded claims and named progress verdicts with hints",
   "updated_at": "2026-10-19T16:10:39.841806Z"
 }

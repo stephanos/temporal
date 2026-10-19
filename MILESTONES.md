@@ -35,21 +35,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (now) | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210's 22 tasks, completion review and final gates passed; the recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (now) | fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210 and fn-214 are complete locally with their reviews and gates passed. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
-
-Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
-`Assumption` (renamed from `Scope`; `#[assumption]` methods, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
-`#[internal]` (owner); `LeadsTo::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
-missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
-change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-214.3 | 🔄 in progress | Kettle's progress questions over the retained graph; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
 

@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-214-progress-vocabulary-on-kettle-scopes",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T16:43:29.861645Z",
   "created_at": "2026-10-19T00:02:15.983260Z",
   "default_impl": null,
   "default_review": null,
@@ -213,6 +213,42 @@
       "task": "fn-214-progress-vocabulary-on-kettle-scopes.3",
       "timestamp": "2026-10-19T16:37:51.672616Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "b78e2af7d19fb4a0440a61028be50e4db0ddfaa26cc63426f6aa4654915815a0",
+      "backend": "codex",
+      "base_sha": "ef61dcbee323abbe7dc3049d3d1ea25517d9a3fc",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "612bbad7b3a76c54f7c56596f2e773c682fa5b7b",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 454646,
+      "output_sha256": "272f6be3161eaf46035b1cf4ba15c2fa9be5b7198ff7579c5e14fb7f425a3cb0",
+      "reservation_id": "545e7500a7a944d7a35018f436088360",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T16:43:29.840314Z",
+      "tool_calls": 35,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -220,18 +256,19 @@
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.2": 1,
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.3": 1,
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.1": 0,
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.2": 0,
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.3": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md",
-  "status": "open",
+  "status": "done",
   "title": "Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -244,5 +281,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T16:37:51.682171Z"
+  "updated_at": "2026-10-19T16:45:31.707384Z"
 }
