@@ -52,3 +52,5 @@ fn-215 gives tests a pattern over paths with state waypoints and gaps; fn-213 gi
 2026-10-19, owner: tests may describe their space liberally, with actions, outcomes, faults, ranges, sets and permutations, as long as the tool is dense, precise and explainable without doubt. The design answers with Rust's own pattern notation, a finite alternative set computed up front, `cover` failing on any un-witnessed alternative (no silent vacuity), the expansion as a golden a reviewer reads as the list of cases, and a coverage table against the Model's catalog. Alternation is `(a | b)`, Rust's pattern alternation; a braces form was not adopted. The claim form stays two state waypoints.
 
 2026-10-19, owner: the expected number of cases is a required argument of `cover` (`Cases(n)`), so the author states the size of the space before seeing it; a mismatch fails before any search and lists the alternatives. The expansion golden pins which cases, the argument pins how many.
+
+2026-10-19, naming: the claim value type is `LeadsTo` (see fn-210.20); nothing else in this spec changes.
