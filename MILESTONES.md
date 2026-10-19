@@ -53,10 +53,12 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-216.1 | ⬜ todo | Mini activity Model and `temporal.rs` under `model/temporal/features/`, goldens; generic `Realize` trait in umpire; DSL gaps noted (R1) |
-| fn-216.2 | ⬜ todo | After .1: proto renamed `umpire.model.v1` with `Any` payloads; `umpire.temporal.v1` under `model/temporal/proto`: three envelopes over `temporal.api` messages; `umpire-wasm` as a library, Temporal guest in `model/temporal/wasm`; Go host; no-Temporal gate check (R2, R5) |
-| fn-216.3 | ⬜ todo | After .2: Go test, in-process server, SDK worker answering from the Model, observations judged; completed and failed (R3) |
-| fn-216.4 | ⬜ todo | After .3: DESIGN.md "Mini activity slice" findings for the Case slice (R4) |
+| fn-216.1 | ⬜ todo | Independent six-phase Model and goldens; exhaustive terminal-closure controls (R1) |
+| fn-216.2 | ⬜ todo | After .1: rename core to `umpire.model.v1`, pin old wire bytes, add Any messages and generic Go encoding (R2) |
+| fn-216.5 | ⬜ todo | After .2: reusable stateful realization core and ABI library; reset, judgment and answer controls (R2) |
+| fn-216.6 | ⬜ todo | After .1 and .5: three Temporal envelopes, real descriptor generation, realization and guest (R1, R2) |
+| fn-216.3 | ⬜ todo | After .6: real SDK/in-process server test in `tests/`; Model answers, every observation judged (R3) |
+| fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs and complete integration evidence (R4, R5) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 
