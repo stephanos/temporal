@@ -87,6 +87,8 @@ The real test uses one host-owning loop. Register the SDK worker without startin
 
 2026-10-19, planning. Keep existing task IDs and split the old oversized protocol/guest task into protocol encoding, reusable core, and Temporal binding. Combine findings, gate hardening and final wiring in one finalization task. Preserve the existing Model-before-protocol execution order, serializing the workspace/lockfile checkpoint before its namespace migration. The pure Model no longer consumes envelopes from the later binding task. Owners may delegate disjoint implementation surfaces internally.
 
+2026-10-19, owner. Task .4 also shortens `features/activity_mini/temporal.rs` (326 lines) without changing behavior: `#[machine]` exports `World` so the hand-written delegating machine and `Action` carrier go, prost type names replace the Any URL constants, generic Any/refusal plumbing moves into `umpire_wasm`, `project` becomes one status/run-state table and `answer` splits policy parsing from reply construction. Target roughly 150 Temporal-specific lines; tests, goldens and the boundary gate pin the result.
+
 ## Quick commands
 
 ```bash

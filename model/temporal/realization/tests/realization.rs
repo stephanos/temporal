@@ -117,7 +117,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
     };
     assert_eq!(
         exploration.report,
-        include_str!("../../features/activity_mini/expected/report.snap.txt")
+        include_str!("../../features/activity/expected/report.snap.txt")
     );
     let mut rows = String::new();
     for state_id in 0..exploration.reached {
@@ -130,7 +130,7 @@ fn named_guest_adapter_preserves_the_independent_report_and_ordered_rows() {
             rows.push_str(&row);
         }
     }
-    assert_eq!(rows, include_str!("../../features/activity_mini/expected/rows.snap.txt"));
+    assert_eq!(rows, include_str!("../../features/activity/expected/rows.snap.txt"));
 }
 
 #[test]

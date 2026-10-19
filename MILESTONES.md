@@ -55,7 +55,7 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs and complete integration evidence (R4, R5) |
+| fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs, complete integration evidence, and the `temporal.rs` cleanup (macro-exported `World`, prost type names, generic Any/refusal helpers in umpire) (R4, R5) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 

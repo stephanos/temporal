@@ -1,0 +1,24 @@
+{
+  "branch_name": "umpire",
+  "created_at": "2026-10-19T19:16:18.047002Z",
+  "depends_on_epics": [],
+  "id": "fn-219-rename-temporal-activity-feature",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-219-rename-temporal-activity-feature.md",
+  "status": "open",
+  "title": "Rename Temporal activity feature directory",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T19:16:18.047251Z"
+}

@@ -1,6 +1,6 @@
 # Mini activity realization
 
-`umpire-temporal` binds the independent `features/activity_mini/model.rs` to the
+`umpire-temporal` binds the independent `features/activity/model.rs` to the
 real generated Temporal API. `Realization` works with that Model's world; `runtime()`
 supplies a named delegating world for the guest. Each runtime owns one run.
 
