@@ -1,0 +1,18 @@
+error[E0004]: non-exhaustive patterns: `User::Press` not covered
+  --> tests/ui/machine_nonexhaustive_actor.rs:13:50
+   |
+13 |         fn user(&mut self, action: User) { match action {} }
+   |                                                  ^^^^^^ pattern `User::Press` not covered
+   |
+note: `User` defined here
+  --> tests/ui/machine_nonexhaustive_actor.rs:9:10
+   |
+ 9 |     enum User { Press }
+   |          ^^^^   ----- not covered
+   = note: the matched value is of type `User`
+help: ensure that all possible cases are being handled by adding a match arm with a wildcard pattern or an explicit pattern as shown
+   |
+13 ~         fn user(&mut self, action: User) { match action {
+14 +             User::Press => todo!(),
+15 ~         } }
+   |

@@ -10,10 +10,11 @@ mod model {
 
     #[transitions]
     impl Model {
-        #[on(User::Press)]
-        fn first(&mut self) {}
-        #[on(User::Press)]
-        fn second(&mut self) {}
+        fn user(&mut self, action: User) { match action { User::Press => {} } }
+    }
+
+    impl Model {
+        fn helper(&mut self) {}
     }
 }
 

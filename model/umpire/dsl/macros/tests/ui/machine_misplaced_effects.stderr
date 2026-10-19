@@ -1,0 +1,5 @@
+error: out-of-order #[effects] group; must precede #[invariants]
+  --> tests/ui/machine_misplaced_effects.rs:18:5
+   |
+18 |     #[effects]
+   |     ^^^^^^^^^^

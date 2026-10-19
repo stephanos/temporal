@@ -1,0 +1,5 @@
+error: a transitions method takes one actor enum: fn user(&mut self, action: User)
+  --> tests/ui/machine_actor_arity.rs:13:9
+   |
+13 |         fn user(&mut self, action: User, extra: bool) { let _ = (action, extra); }
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -15,35 +15,47 @@ pub struct Counter {
     pub value: u8,
 }
 
-#[derive(Action)]
+#[derive(Action, Copy)]
 pub enum User { Increment, Reset, MutateRestore }
 
-#[derive(Action)]
+#[derive(Action, Copy)]
 #[internal]
 pub enum Clock { Tick }
 
+struct Helper { value: u8 }
+
+impl Helper {
+    fn advance(&mut self) { self.value += 1; }
+}
+
 #[transitions]
 impl Counter {
-    #[on(Clock::Tick)]
-    fn tick(&mut self) { self.value += 1; }
-
-    #[on(User::Reset)]
-    fn reset(&mut self) { self.value = 0; }
-
-    #[on(User::Increment)]
-    pub fn increment(&mut self) {
-        if self.value < 2 { self.value += 1; }
-    }
-
-    #[on(User::MutateRestore)]
-    fn mutate_restore(&mut self) {
-        if self.value < 2 {
-            self.value += 1;
-            self.value -= 1;
+    fn advance(&mut self, action: Clock) {
+        match action {
+            Clock::Tick => { self.value += 1; }
         }
     }
 
-    fn helper(&self) -> bool { self.value <= 2 }
+    pub fn dispatch(&mut self, action: User) {
+        match action {
+            User::Reset => { self.value = 0; }
+            User::Increment if self.value < 2 => { self.increment(); }
+            User::MutateRestore if self.value < 2 => {
+                self.value += 1;
+                self.value -= 1;
+            }
+            _ => {}
+        }
+    }
+}
+
+#[effects]
+impl Counter {
+    pub fn increment(&mut self) {
+        let mut helper = Helper { value: self.value };
+        helper.advance();
+        self.value = helper.value;
+    }
 }
 
 #[invariants]
@@ -80,6 +92,8 @@ impl Counter {
 }
 
 impl Counter {
+    fn helper(&self) -> bool { self.value <= 2 }
+
     pub fn unregistered(&self) -> bool { self.helper() }
 }
 }
@@ -107,9 +121,13 @@ mod public_state {
     #[derive(State)]
     pub struct Public {}
 
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     pub enum Nobody {}
 
+    #[transitions]
+    impl Public {
+        fn nobody(&mut self, action: Nobody) { match (self, action) {} }
+    }
 }
 
 pub(crate) fn run() -> umpire_testing::RunResult {

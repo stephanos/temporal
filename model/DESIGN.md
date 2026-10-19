@@ -58,8 +58,9 @@ Remaining differences from the hypothetical sketch are deliberate:
 
 - Imports name the actual `umpire_dsl` crate instead of a hypothetical prelude.
 - `#[machine]` registers one inline public `kettle` module, with one impl per
-  part kind in transitions, invariants, postconditions, assumptions and progress
-  order, instead of one annotated impl with per-method kind markers.
+  part kind in transitions, optional effects, invariants, postconditions,
+  assumptions and progress order, instead of one annotated impl with per-method
+  kind markers.
 - The state is named `Model` to match Scala's `object Model`, replacing the
   sketch's `Kettle` name while leaving its fields and predicates unchanged.
 - The module discovers action enums in declaration order rather than taking
@@ -92,6 +93,72 @@ Remaining differences from the hypothetical sketch are deliberate:
   refutation of the sketch's `!beeping` predicate.
 - Registration retains no syntax tokens and performs no lifting or subset
   analysis, following R36 rather than the sketch's lifting comment.
+
+Scala's `transitions` block selects an action with `on` and guards its effect:
+
+```scala
+object transitions extends Transitions:
+  on(user.pressButton):
+    if !heatingOn then effects.pressButton()
+  on(heater.failover):
+    if heatingOn && temperature >= boilingTemperature then effects.failover()
+  on(heater.heat):
+    if heatingOn && temperature < boilingTemperature then effects.heat()
+  on(user.depressButton):
+    if heatingOn then effects.depressButton()
+```
+
+Rust groups the same actions into one match per actor, with guards and effects inline:
+
+```rust
+#[transitions]
+impl Model {
+    fn user(&mut self, action: User) {
+        match action {
+            User::PressButton if !self.heating_on => {
+                self.heating_on = true;
+                self.beeping = false;
+            }
+            User::DepressButton if self.heating_on => {
+                self.heating_on = false;
+                self.beeping = false;
+            }
+            _ => {}
+        }
+    }
+
+    fn heater(&mut self, action: Heater) {
+        match action {
+            Heater::Heat if self.heating_on && self.temperature < BOILING_TEMPERATURE => {
+                self.temperature += 1;
+            }
+            Heater::Failover if self.heating_on && self.temperature >= BOILING_TEMPERATURE => {
+                self.heating_on = false;
+                self.beeping = true;
+            }
+            _ => {}
+        }
+    }
+}
+```
+
+`#[machine]` binds each method by its actor parameter type and dispatches `step` through it;
+method names do not register actions. There is no `#[on]` attribute. The fallback leaves the state
+unchanged and disables that action. Omitting it lets rustc check exhaustiveness. Actor declaration
+order still determines catalog order, so grouping the arms changes no canonical payload.
+The concrete unit-only actor enums also derive `Copy`, keeping owned action parameters idiomatic
+under Clippy without changing `derive(Action)` or the lint policy.
+
+Scala's `object effects` corresponds to an optional `#[effects]` impl directly after
+`#[transitions]`. It holds ordinary shared helpers such as `fn switch_off(&mut self, beep: bool)`;
+Kettle needs no such block. Only transitions and effects may take `&mut self`. Every other
+`Model` method, including an unmarked helper, takes `&self` or no receiver, and `#[machine]`
+checks those signatures before generating the adapters. The generated module carries
+`#[forbid(unsafe_code)]`.
+
+The `State: Hash` requirement already excludes standard interior-mutable state such as `Cell`
+and `RefCell`. Thread-locals and atomics in statics fall under the capability Clippy policy,
+rather than the receiver-signature check.
 
 Invariant and postcondition methods are synchronous, return nothing and use `check!`
 and `unknown!` statements, remaining ordinary methods when called directly.

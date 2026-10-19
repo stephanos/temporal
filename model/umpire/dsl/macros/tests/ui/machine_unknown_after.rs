@@ -10,8 +10,7 @@ mod model {
 
     #[transitions]
     impl Model {
-        #[on(User::Press)]
-        fn press(&mut self) {}
+        fn user(&mut self, action: User) { match action { User::Press => {} } }
     }
     #[postconditions]
     impl Model {

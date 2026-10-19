@@ -1,5 +1,5 @@
 error: unknown after action User::Missing
-  --> tests/ui/machine_unknown_after.rs:18:17
+  --> tests/ui/machine_unknown_after.rs:17:17
    |
-18 |         #[after(User::Missing)]
+17 |         #[after(User::Missing)]
    |                 ^^^^^^^^^^^^^

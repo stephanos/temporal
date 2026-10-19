@@ -1,0 +1,5 @@
+error: actor User already has a transitions method
+  --> tests/ui/machine_duplicate_actor.rs:14:12
+   |
+14 |         fn second(&mut self, action: User) { match action { User::Press => {} } }
+   |            ^^^^^^

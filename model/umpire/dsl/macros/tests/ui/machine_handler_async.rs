@@ -10,8 +10,7 @@ mod model {
 
     #[transitions]
     impl Model {
-        #[on(User::Press)]
-        async fn press(&mut self) { self.value = true; }
+        async fn user(&mut self, action: User) { match action { User::Press => { self.value = true; } } }
     }
 }
 

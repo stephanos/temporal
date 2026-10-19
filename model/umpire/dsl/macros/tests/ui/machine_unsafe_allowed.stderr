@@ -1,0 +1,21 @@
+error[E0453]: allow(unsafe_code) incompatible with previous forbid
+  --> tests/ui/machine_unsafe_allowed.rs:17:17
+   |
+ 3 | #[machine]
+   | ---------- `forbid` level set here
+...
+17 |         #[allow(unsafe_code)]
+   |                 ^^^^^^^^^^^ overruled by previous forbid
+
+error: implementation of an `unsafe` method
+  --> tests/ui/machine_unsafe_allowed.rs:18:9
+   |
+18 |         unsafe fn helper(&self) {}
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
+   |
+note: the lint level is defined here
+  --> tests/ui/machine_unsafe_allowed.rs:3:1
+   |
+ 3 | #[machine]
+   | ^^^^^^^^^^
+   = note: this error originates in the attribute macro `machine` (in Nightly builds, run with -Z macro-backtrace for more info)

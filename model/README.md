@@ -56,6 +56,41 @@ loop defaults to touching `umpire/checker/src/lib.rs` and testing `umpire-checke
 crate and source with `UMPIRE_INNER_CRATE` and `UMPIRE_INNER_SOURCE` (relative to `model/`). Timed
 command failures fail the helper; exceeding a time budget prints a warning and succeeds.
 
+## Writing a Model
+
+Inside a `#[machine]` module, `#[transitions]` holds one method per actor enum derived with
+`Action`. The parameter type binds the method to its actor; the method name is ordinary Rust.
+Kettle's user transitions are:
+
+```rust
+#[transitions]
+impl Model {
+    fn user(&mut self, action: User) {
+        match action {
+            User::PressButton if !self.heating_on => {
+                self.heating_on = true;
+                self.beeping = false;
+            }
+            User::DepressButton if self.heating_on => {
+                self.heating_on = false;
+                self.beeping = false;
+            }
+            _ => {}
+        }
+    }
+}
+```
+
+Each match arm combines the action, its guard and its effect. An action is enabled only when the
+final state changes; `_ => {}` disables unmatched actions. Without a fallback, rustc checks match
+exhaustiveness. There is no per-action registration attribute.
+
+Impl groups appear in transitions, optional effects, invariants, postconditions, assumptions and
+progress order. Shared effects are ordinary `&mut self` helper methods in a `#[effects]` impl
+directly after transitions; Kettle keeps its effects inline. All other `Model` methods, including
+unmarked helpers, take `&self` or no receiver. `#[machine]` forbids unsafe code throughout its
+module. See [DESIGN.md](DESIGN.md) for the Scala/Rust comparison and capability boundaries.
+
 ## Testing
 
 End to end, by golden files (fn-210 R8, R23, R29). A test is a fixture, an input plus the output it

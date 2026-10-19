@@ -1,5 +1,5 @@
-error: #[on] handlers must be synchronous
-  --> tests/ui/machine_handler_async.rs:14:9
+error: transitions methods must be synchronous
+  --> tests/ui/machine_handler_async.rs:13:9
    |
-14 |         async fn press(&mut self) { self.value = true; }
+13 |         async fn user(&mut self, action: User) { match action { User::Press => { self.value = true; } } }
    |         ^^^^^

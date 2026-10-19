@@ -1,5 +1,5 @@
-error: #[on] handlers return nothing; enabledness is a changed state
-  --> tests/ui/machine_handler_returns.rs:14:29
+error: transitions methods return nothing; enabledness is a changed state
+  --> tests/ui/machine_handler_returns.rs:13:42
    |
-14 |         fn press(&mut self) -> Option<()> { Some(()) }
-   |                             ^^^^^^^^^^^^^
+13 |         fn user(&mut self, action: User) -> Option<()> { match action { User::Press => Some(()) } }
+   |                                          ^^^^^^^^^^^^^

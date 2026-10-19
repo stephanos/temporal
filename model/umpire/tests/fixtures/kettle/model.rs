@@ -23,7 +23,7 @@ pub mod kettle {
     }
 
     /// Actions controlled by the user.
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     pub enum User {
         /// Enable heating.
         PressButton,
@@ -32,7 +32,7 @@ pub mod kettle {
     }
 
     /// Actions controlled by the heating element.
-    #[derive(Action)]
+    #[derive(Action, Copy)]
     #[internal]
     pub enum Heater {
         /// Raise the temperature.
@@ -43,34 +43,30 @@ pub mod kettle {
 
     #[transitions]
     impl Model {
-        #[on(User::PressButton)]
-        fn press_button(&mut self) {
-            if !self.heating_on {
-                self.heating_on = true;
-                self.beeping = false;
+        fn user(&mut self, action: User) {
+            match action {
+                User::PressButton if !self.heating_on => {
+                    self.heating_on = true;
+                    self.beeping = false;
+                }
+                User::DepressButton if self.heating_on => {
+                    self.heating_on = false;
+                    self.beeping = false;
+                }
+                _ => {}
             }
         }
 
-        #[on(Heater::Failover)]
-        fn failover(&mut self) {
-            if self.heating_on && self.temperature >= BOILING_TEMPERATURE {
-                self.heating_on = false;
-                self.beeping = true;
-            }
-        }
-
-        #[on(Heater::Heat)]
-        fn heat(&mut self) {
-            if self.heating_on && self.temperature < BOILING_TEMPERATURE {
-                self.temperature += 1;
-            }
-        }
-
-        #[on(User::DepressButton)]
-        fn depress_button(&mut self) {
-            if self.heating_on {
-                self.heating_on = false;
-                self.beeping = false;
+        fn heater(&mut self, action: Heater) {
+            match action {
+                Heater::Heat if self.heating_on && self.temperature < BOILING_TEMPERATURE => {
+                    self.temperature += 1;
+                }
+                Heater::Failover if self.heating_on && self.temperature >= BOILING_TEMPERATURE => {
+                    self.heating_on = false;
+                    self.beeping = true;
+                }
+                _ => {}
             }
         }
     }

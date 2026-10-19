@@ -1,5 +1,0 @@
-error: duplicate #[on] for action User::Press
-  --> tests/ui/machine_duplicate_on.rs:15:14
-   |
-15 |         #[on(User::Press)]
-   |              ^^^^^^^^^^^

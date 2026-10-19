@@ -1,5 +1,5 @@
 error: use #[assumptions] instead of #[scopes]
-  --> tests/ui/machine_legacy_scopes.rs:11:5
+  --> tests/ui/machine_legacy_scopes.rs:16:5
    |
-11 |     #[scopes]
+16 |     #[scopes]
    |     ^^^^^^^^^

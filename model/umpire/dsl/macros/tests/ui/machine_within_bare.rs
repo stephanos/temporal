@@ -8,6 +8,11 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
+    #[transitions]
+    impl Model {
+        fn nobody(&mut self, action: Nobody) { match action {} }
+    }
+
     #[progress]
     impl Model {
         #[within]

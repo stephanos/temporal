@@ -1,5 +1,5 @@
 error: invariants and postconditions return nothing; use check!
-  --> tests/ui/machine_claim_returns.rs:13:25
+  --> tests/ui/machine_claim_returns.rs:18:25
    |
-13 |         fn claim(&self) -> bool { true }
+18 |         fn claim(&self) -> bool { true }
    |                         ^^^^^^^

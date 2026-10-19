@@ -6,13 +6,18 @@ mod model {
     #[derive(State)]
     struct Model {}
     #[derive(Action)]
-    enum User { Press, Release }
+    enum User { Press }
 
     #[transitions]
     impl Model {
-        #[on(User::Press)]
-        fn press(&mut self) {}
+        fn user(&mut self, action: User) { match action { User::Press => {} } }
     }
+
+    #[effects]
+    impl Model {}
+    #[effects]
+    impl Model {}
 }
 
 fn main() {}
+
