@@ -1,4 +1,4 @@
-package oracle
+package model
 
 import (
 	"context"
@@ -13,7 +13,7 @@ import (
 	"github.com/tetratelabs/wazero"
 	"github.com/tetratelabs/wazero/api"
 	"google.golang.org/protobuf/proto"
-	oraclev1 "umpire.local/oracle/umpire/oracle/v1"
+	modelv1 "umpire.local/model/umpire/model/v1"
 )
 
 func TestGuestExports(t *testing.T) {
@@ -51,7 +51,7 @@ func TestGuestExports(t *testing.T) {
 
 func TestBoundaryControls(t *testing.T) {
 	ctx := context.Background()
-	row, err := proto.Marshal(&oraclev1.Response{Outcome: &oraclev1.Response_Rows{Rows: &oraclev1.RowsResponse{Rows: []string{"copied\n"}}}})
+	row, err := proto.Marshal(&modelv1.Response{Outcome: &modelv1.Response_Rows{Rows: &modelv1.RowsResponse{Rows: []string{"copied\n"}}}})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -82,13 +82,13 @@ func TestBoundaryControls(t *testing.T) {
 					t.Error(err)
 				}
 			}()
-			response, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: 1})
+			response, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: 1})
 			if tc.want != "" {
 				if err == nil || !strings.Contains(err.Error(), tc.want) {
 					t.Fatalf("got %v, want %s", err, tc.want)
 				}
 				if tc.trap {
-					if _, err := h.Rows(ctx, &oraclev1.RowsRequest{}); err == nil || !strings.Contains(err.Error(), "unusable") {
+					if _, err := h.Rows(ctx, &modelv1.RowsRequest{}); err == nil || !strings.Contains(err.Error(), "unusable") {
 						t.Fatalf("trap reused: %v", err)
 					}
 				}
@@ -162,7 +162,7 @@ func TestRejectsApplicationExports(t *testing.T) {
 			if err == nil {
 				_ = h.Close(context.Background())
 			}
-			if err == nil || !strings.Contains(err.Error(), "unexpected oracle function export "+name) {
+			if err == nil || !strings.Contains(err.Error(), "unexpected model function export "+name) {
 				t.Fatalf("unexpected export accepted or wrong failure: %v", err)
 			}
 		})
@@ -182,7 +182,7 @@ func TestTrapIdentifiesABIAndLogicalMethod(t *testing.T) {
 					t.Error(err)
 				}
 			}()
-			_, err = h.Rows(ctx, &oraclev1.RowsRequest{StateId: 1})
+			_, err = h.Rows(ctx, &modelv1.RowsRequest{StateId: 1})
 			if err == nil || !strings.Contains(err.Error(), "METHOD_ROWS: "+function+":") {
 				t.Fatalf("missing method or ABI context: %v", err)
 			}
@@ -240,7 +240,7 @@ func TestGuestAllocationGuards(t *testing.T) {
 				if pointer == 0 {
 					t.Fatal("allocation exhausted")
 				}
-				result, err := h.call.Call(ctx, uint64(oraclev1.Method_METHOD_ROWS), pointer+1, 15)
+				result, err := h.call.Call(ctx, uint64(modelv1.Method_METHOD_ROWS), pointer+1, 15)
 				if err != nil {
 					t.Fatal(err)
 				}
@@ -249,11 +249,11 @@ func TestGuestAllocationGuards(t *testing.T) {
 				if !ok {
 					t.Fatal("refusal outside memory")
 				}
-				response := new(oraclev1.Response)
+				response := new(modelv1.Response)
 				if err := proto.Unmarshal(data, response); err != nil {
 					t.Fatal(err)
 				}
-				if refusal := response.GetRefusal(); refusal == nil || refusal.Code != oraclev1.RefusalCode_REFUSAL_CODE_ALLOCATION {
+				if refusal := response.GetRefusal(); refusal == nil || refusal.Code != modelv1.RefusalCode_REFUSAL_CODE_ALLOCATION {
 					t.Fatalf("inexact call response %v", response)
 				}
 				if _, err := h.free.Call(ctx, uint64(responsePtr), uint64(length)); err != nil {
@@ -293,26 +293,26 @@ func TestRefusals(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	check := func(code oraclev1.RefusalCode, err error) {
+	check := func(code modelv1.RefusalCode, err error) {
 		t.Helper()
 		var refusal *RefusalError
 		if !errors.As(err, &refusal) || refusal.Code != code || refusal.Message == "" {
 			t.Fatalf("got %v, want %s", err, code)
 		}
 	}
-	_, err = h.Rows(ctx, &oraclev1.RowsRequest{})
-	check(oraclev1.RefusalCode_REFUSAL_CODE_NOT_EXPLORED, err)
-	_, err = h.Call(ctx, oraclev1.Method(999), nil)
-	check(oraclev1.RefusalCode_REFUSAL_CODE_UNKNOWN_METHOD, err)
-	_, err = h.Call(ctx, oraclev1.Method_METHOD_EXPLORE, []byte{255})
-	check(oraclev1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, err)
-	_, err = h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 0})
-	check(oraclev1.RefusalCode_REFUSAL_CODE_BUDGET, err)
-	if _, err = h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 10000}); err != nil {
+	_, err = h.Rows(ctx, &modelv1.RowsRequest{})
+	check(modelv1.RefusalCode_REFUSAL_CODE_NOT_EXPLORED, err)
+	_, err = h.Call(ctx, modelv1.Method(999), nil)
+	check(modelv1.RefusalCode_REFUSAL_CODE_UNKNOWN_METHOD, err)
+	_, err = h.Call(ctx, modelv1.Method_METHOD_EXPLORE, []byte{255})
+	check(modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, err)
+	_, err = h.Explore(ctx, &modelv1.ExploreRequest{Budget: 0})
+	check(modelv1.RefusalCode_REFUSAL_CODE_BUDGET, err)
+	if _, err = h.Explore(ctx, &modelv1.ExploreRequest{Budget: 10000}); err != nil {
 		t.Fatal(err)
 	}
-	_, err = h.Rows(ctx, &oraclev1.RowsRequest{StateId: ^uint32(0)})
-	check(oraclev1.RefusalCode_REFUSAL_CODE_STATE, err)
+	_, err = h.Rows(ctx, &modelv1.RowsRequest{StateId: ^uint32(0)})
+	check(modelv1.RefusalCode_REFUSAL_CODE_STATE, err)
 }
 
 func TestRepeatedAndConcurrentCalls(t *testing.T) {
@@ -326,7 +326,7 @@ func TestRepeatedAndConcurrentCalls(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	report, err := h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 10000})
+	report, err := h.Explore(ctx, &modelv1.ExploreRequest{Budget: 10000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -334,7 +334,7 @@ func TestRepeatedAndConcurrentCalls(t *testing.T) {
 		t.Fatalf("states: %d", report.Reached)
 	}
 	for i := uint32(0); i < report.Reached; i++ {
-		if _, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: i}); err != nil {
+		if _, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: i}); err != nil {
 			t.Fatal(err)
 		}
 	}
@@ -343,7 +343,7 @@ func TestRepeatedAndConcurrentCalls(t *testing.T) {
 	for worker := 0; worker < 8; worker++ {
 		group.Go(func() {
 			for i := 0; i < 128; i++ {
-				if _, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: uint32(i % 283)}); err != nil {
+				if _, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: uint32(i % 283)}); err != nil {
 					t.Error(err)
 					return
 				}
@@ -367,14 +367,14 @@ func TestGuestExhaustionPreservesExploration(t *testing.T) {
 			t.Error(err)
 		}
 	}()
-	if _, err := h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 10000}); err != nil {
+	if _, err := h.Explore(ctx, &modelv1.ExploreRequest{Budget: 10000}); err != nil {
 		t.Fatal(err)
 	}
-	before, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: 282})
+	before, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: 282})
 	if err != nil {
 		t.Fatal(err)
 	}
-	request, err := proto.Marshal(&oraclev1.ExploreRequest{Budget: 1})
+	request, err := proto.Marshal(&modelv1.ExploreRequest{Budget: 1})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -396,7 +396,7 @@ func TestGuestExhaustionPreservesExploration(t *testing.T) {
 		allocate(maxBuffer)
 	}
 	allocate(maxBuffer - uint64(len(request)))
-	result, err := h.call.Call(ctx, uint64(oraclev1.Method_METHOD_EXPLORE), requestPtr, uint64(len(request)))
+	result, err := h.call.Call(ctx, uint64(modelv1.Method_METHOD_EXPLORE), requestPtr, uint64(len(request)))
 	if err != nil || result[0] != 0 {
 		t.Fatalf("exhausted call: %v %v", result, err)
 	}
@@ -405,7 +405,7 @@ func TestGuestExhaustionPreservesExploration(t *testing.T) {
 			t.Fatal(err)
 		}
 	}
-	after, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: 282})
+	after, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: 282})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -547,14 +547,14 @@ func BenchmarkRows(b *testing.B) {
 			b.Error(err)
 		}
 	}()
-	if _, err := h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 10000}); err != nil {
+	if _, err := h.Explore(ctx, &modelv1.ExploreRequest{Budget: 10000}); err != nil {
 		b.Fatal(err)
 	}
 	before := h.Pages()
 	b.ResetTimer()
 	var bytes uint64
 	for i := 0; i < b.N; i++ {
-		rows, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: uint32(i % 283)})
+		rows, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: uint32(i % 283)})
 		if err != nil {
 			b.Fatal(err)
 		}
@@ -597,7 +597,7 @@ func TestKettleParity(t *testing.T) {
 			t.Error(err)
 		}
 	})
-	report, err := h.Explore(ctx, &oraclev1.ExploreRequest{Budget: 10000})
+	report, err := h.Explore(ctx, &modelv1.ExploreRequest{Budget: 10000})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -610,7 +610,7 @@ func TestKettleParity(t *testing.T) {
 	}
 	var rows strings.Builder
 	for state := uint32(0); state < report.Reached; state++ {
-		response, err := h.Rows(ctx, &oraclev1.RowsRequest{StateId: state})
+		response, err := h.Rows(ctx, &modelv1.RowsRequest{StateId: state})
 		if err != nil {
 			t.Fatal(err)
 		}

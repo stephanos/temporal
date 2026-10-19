@@ -13,19 +13,21 @@ use refusal::{checker_refusal, refused};
 #[allow(missing_docs, unreachable_pub)]
 mod kettle;
 
-/// Generated oracle wire contract.
-#[allow(missing_docs, clippy::all, clippy::pedantic)]
-pub mod protocol {
-    include!(concat!(env!("OUT_DIR"), "/umpire.oracle.v1.rs"));
+/// Generated core contract and shared well-known types.
+#[allow(missing_docs, unreachable_pub, clippy::all, clippy::pedantic)]
+mod generated {
+    include!(concat!(env!("OUT_DIR"), "/protocol.rs"));
 }
+
+pub use generated::{google, umpire::model::v1 as protocol};
 
 /// One guest instance's current exploration.
 #[derive(Default)]
-pub struct Oracle {
+pub struct Model {
     exploration: Option<umpire_checker::Result<kettle::KettleWorld>>,
 }
 
-impl Oracle {
+impl Model {
     /// Dispatches a generated request and returns its generated response envelope.
     pub fn dispatch(&mut self, method: u32, request: &[u8]) -> protocol::Response {
         let outcome = match method {
@@ -39,6 +41,13 @@ impl Oracle {
                     refused(protocol::RefusalCode::MalformedRequest, error.to_string())
                 })
                 .and_then(|request| self.rows(request.state_id)),
+            3 => decode_unsupported::<protocol::ResetRequest>(request, |_| true),
+            4 => decode_unsupported::<protocol::JudgeRequest>(request, |request| {
+                request.observation.is_some()
+            }),
+            5 => decode_unsupported::<protocol::AnswerRequest>(request, |request| {
+                request.callback.is_some()
+            }),
             _ => Err(refused(
                 protocol::RefusalCode::UnknownMethod,
                 format!("unknown method: {method}"),
@@ -97,6 +106,21 @@ impl Oracle {
     }
 }
 
+fn decode_unsupported<M: Message + Default>(
+    request: &[u8],
+    complete: impl FnOnce(&M) -> bool,
+) -> Result<protocol::response::Outcome, protocol::response::Outcome> {
+    let request = M::decode(request)
+        .map_err(|error| refused(protocol::RefusalCode::MalformedRequest, error.to_string()))?;
+    if !complete(&request) {
+        return Err(refused(
+            protocol::RefusalCode::MalformedRequest,
+            "required payload is missing".into(),
+        ));
+    }
+    Err(refused(protocol::RefusalCode::Unsupported, "stateful operation unsupported".into()))
+}
+
 fn count(value: usize) -> u32 {
     u32::try_from(value).unwrap_or_else(|_| unreachable!("finite Kettle counts fit u32"))
 }
@@ -106,7 +130,7 @@ const MAX_LIVE: usize = 16 << 20;
 
 #[derive(Default)]
 struct Guest {
-    oracle: Oracle,
+    model: Model,
     buffers: BTreeMap<u32, Vec<u8>>,
     live: usize,
 }
@@ -143,13 +167,13 @@ impl Guest {
     }
 
     fn call(&mut self, method: u32, ptr: u32, len: u32) -> u64 {
-        let previous = if method == 1 { self.oracle.exploration.take() } else { None };
+        let previous = if method == 1 { self.model.exploration.take() } else { None };
         let response = if (ptr, len) == (0, 0) {
-            self.oracle.dispatch(method, &[])
+            self.model.dispatch(method, &[])
         } else if let Some(buffer) =
             self.buffers.get(&ptr).filter(|buffer| buffer.len() == len as usize)
         {
-            self.oracle.dispatch(method, buffer)
+            self.model.dispatch(method, buffer)
         } else {
             protocol::Response {
                 outcome: Some(refused(
@@ -164,7 +188,7 @@ impl Guest {
             && (ptr == 0
                 || !matches!(response.outcome, Some(protocol::response::Outcome::Explore(_))))
         {
-            self.oracle.exploration = previous;
+            self.model.exploration = previous;
         }
         if ptr == 0 {
             return 0;

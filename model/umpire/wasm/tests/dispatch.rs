@@ -2,7 +2,7 @@
 
 use prost::Message;
 use umpire_wasm::{
-    Oracle,
+    Model,
     protocol::{self, response::Outcome},
 };
 
@@ -81,12 +81,12 @@ fn empty_assumption_refusal_survives_generated_protocol() {
     assert_eq!(refusal.message, "assumption admits no actions");
 }
 
-fn explore(oracle: &mut Oracle, budget: u32) -> protocol::Response {
-    oracle.dispatch(1, &protocol::ExploreRequest { budget }.encode_to_vec())
+fn explore(model: &mut Model, budget: u32) -> protocol::Response {
+    model.dispatch(1, &protocol::ExploreRequest { budget }.encode_to_vec())
 }
 
-fn rows(oracle: &mut Oracle, state_id: u32) -> protocol::Response {
-    oracle.dispatch(2, &protocol::RowsRequest { state_id }.encode_to_vec())
+fn rows(model: &mut Model, state_id: u32) -> protocol::Response {
+    model.dispatch(2, &protocol::RowsRequest { state_id }.encode_to_vec())
 }
 
 fn refusal(response: protocol::Response, code: protocol::RefusalCode) {
@@ -97,8 +97,8 @@ fn refusal(response: protocol::Response, code: protocol::RefusalCode) {
 
 #[test]
 fn generated_dispatch_matches_trait_kettle_goldens() {
-    let mut oracle = Oracle::default();
-    let Some(Outcome::Explore(result)) = explore(&mut oracle, 1 << 20).outcome else {
+    let mut model = Model::default();
+    let Some(Outcome::Explore(result)) = explore(&mut model, 1 << 20).outcome else {
         panic!("expected exploration");
     };
     assert_eq!(
@@ -119,7 +119,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     );
     let mut text = String::new();
     for state_id in 0..result.reached {
-        let Some(Outcome::Rows(result)) = rows(&mut oracle, state_id).outcome else {
+        let Some(Outcome::Rows(result)) = rows(&mut model, state_id).outcome else {
             panic!("expected rows")
         };
         for row in result.rows {
@@ -134,27 +134,27 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
 
 #[test]
 fn invalid_requests_have_typed_refusals() {
-    let mut oracle = Oracle::default();
-    refusal(rows(&mut oracle, 0), protocol::RefusalCode::NotExplored);
-    refusal(oracle.dispatch(123, &[]), protocol::RefusalCode::UnknownMethod);
+    let mut model = Model::default();
+    refusal(rows(&mut model, 0), protocol::RefusalCode::NotExplored);
+    refusal(model.dispatch(123, &[]), protocol::RefusalCode::UnknownMethod);
     for method in [1, 2] {
-        refusal(oracle.dispatch(method, &[0xff]), protocol::RefusalCode::MalformedRequest);
+        refusal(model.dispatch(method, &[0xff]), protocol::RefusalCode::MalformedRequest);
     }
-    refusal(explore(&mut oracle, 0), protocol::RefusalCode::Budget);
-    explore(&mut oracle, 1 << 20);
-    refusal(rows(&mut oracle, u32::MAX), protocol::RefusalCode::State);
+    refusal(explore(&mut model, 0), protocol::RefusalCode::Budget);
+    explore(&mut model, 1 << 20);
+    refusal(rows(&mut model, u32::MAX), protocol::RefusalCode::State);
 }
 
 #[test]
 fn successful_explore_replaces_graph_and_refusal_preserves_it() {
-    let mut oracle = Oracle::default();
-    explore(&mut oracle, 1 << 20);
-    refusal(explore(&mut oracle, 0), protocol::RefusalCode::Budget);
-    assert!(matches!(rows(&mut oracle, 282).outcome, Some(Outcome::Rows(_))));
-    let Some(Outcome::Explore(result)) = explore(&mut oracle, 1).outcome else {
+    let mut model = Model::default();
+    explore(&mut model, 1 << 20);
+    refusal(explore(&mut model, 0), protocol::RefusalCode::Budget);
+    assert!(matches!(rows(&mut model, 282).outcome, Some(Outcome::Rows(_))));
+    let Some(Outcome::Explore(result)) = explore(&mut model, 1).outcome else {
         panic!("expected exploration")
     };
     assert_eq!(result.reached, 1);
     assert!(result.cut);
-    refusal(rows(&mut oracle, 282), protocol::RefusalCode::State);
+    refusal(rows(&mut model, 282), protocol::RefusalCode::State);
 }

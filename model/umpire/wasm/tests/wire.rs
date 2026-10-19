@@ -7,11 +7,25 @@ use umpire_wasm::protocol::{self, response::Outcome};
 fn original_wire_bytes_and_values_are_stable() {
     assert_eq!(protocol::Method::Explore as i32, 1);
     assert_eq!(protocol::Method::Rows as i32, 2);
-    for line in include_str!("../../tests/fixtures/shared/protocol-wire.txt").lines() {
+    for (code, number) in [
+        (protocol::RefusalCode::Unspecified, 0),
+        (protocol::RefusalCode::UnknownMethod, 1),
+        (protocol::RefusalCode::MalformedRequest, 2),
+        (protocol::RefusalCode::Budget, 3),
+        (protocol::RefusalCode::State, 4),
+        (protocol::RefusalCode::NotExplored, 5),
+        (protocol::RefusalCode::Allocation, 6),
+        (protocol::RefusalCode::ScopeAction, 7),
+        (protocol::RefusalCode::Unsupported, 8),
+    ] {
+        assert_eq!(code as i32, number);
+    }
+    for line in include_str!("../../proto/tests/protocol-wire.txt").lines() {
         let (name, hex) = line.split_once(' ').unwrap_or_else(|| panic!("invalid vector"));
-        let bytes: Vec<u8> = hex
-            .as_bytes()
-            .chunks_exact(2)
+        let (pairs, remainder) = hex.as_bytes().as_chunks::<2>();
+        assert_eq!(remainder, []);
+        let bytes: Vec<u8> = pairs
+            .iter()
             .map(|pair| {
                 let pair = std::str::from_utf8(pair).unwrap_or_else(|e| panic!("{e}"));
                 u8::from_str_radix(pair, 16).unwrap_or_else(|e| panic!("{e}"))

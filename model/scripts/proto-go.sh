@@ -24,7 +24,7 @@ elif [ "$#" -ne 0 ]; then
   exit 1
 fi
 mise exec -- protoc --plugin="protoc-gen-go=$plugin" --proto_path=umpire/proto \
-  --go_out="$output" --go_opt=paths=source_relative umpire/proto/umpire/oracle/v1/oracle.proto
+  --go_out="$output" --go_opt=paths=source_relative umpire/proto/umpire/model/v1/model.proto
 if [ "${1:-}" = --check ]; then
-  diff -u umpire/hosts/go/umpire/oracle/v1/oracle.pb.go "$output/umpire/oracle/v1/oracle.pb.go"
+  diff -ru umpire/hosts/go/umpire "$output/umpire"
 fi

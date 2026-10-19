@@ -1,0 +1,6 @@
+reset_response 2200
+judge_request 0a070a017812020102
+answer_request 0a070a017812020102
+judge_explained 2a020a00
+judge_unexplained 2a021200
+answer_response 32090a070a017812020102

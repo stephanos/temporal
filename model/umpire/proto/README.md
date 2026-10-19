@@ -1,9 +1,16 @@
-# Oracle ABI v1
+# Model ABI v1
 
-The generated protobuf messages in `umpire/oracle/v1/oracle.proto` are the wire contract.
+The generated protobuf messages in `umpire/model/v1/model.proto` are the wire contract.
 Method enum numbers are stable dispatch IDs. `umpire_call` always returns a `Response` envelope.
 Explore replaces the current exploration only on success; Rows needs a successful Explore.
 Each rows string is one complete Spell-based native golden line, including its newline.
+
+Reset (3), Judge (4) and Answer (5) carry the core run protocol. Judge accepts an opaque
+observation Any and returns either a present Explanation (including zero steps) or
+Unexplained with expected actions. Answer accepts an opaque callback Any and returns an
+opaque reply Any. System payload registries own type-URL admission; the old namespace
+is not an alias for the new one. The Kettle guest currently refuses these three operations
+with Unsupported (8); stateful realization belongs to the reusable guest integration.
 
 The wasm32-wasip1 guest directly exports application functions
 `umpire_buffer_alloc(u32) -> u32`, `umpire_buffer_release(u32, u32)` and
@@ -27,6 +34,11 @@ The host copies response bytes before freeing either allocation, then frees both
 Access to one instance is serialized. An unexpected trap invalidates the host instance.
 
 Rust generates into Cargo's OUT_DIR with prost-build 0.14 and mise's protoc 29.5.
+`umpire_wasm::google::protobuf` owns the generated standard well-known types; bindings
+reuse this owner through prost-build's `extern_path` with default WKT mapping disabled.
+This owner compiles the standard schema inputs independently of any system descriptors.
+Upstream WKT comments contain examples in other languages, so their generated Rust
+comments are suppressed rather than compiled as Rust documentation examples.
 Go uses the repository's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
 The separate Go host module and generated Go messages live at `../hosts/go/`;
 regenerate from the repository root with `bash model/scripts/proto-go.sh`.

@@ -1,4 +1,4 @@
-module umpire.local/oracle
+module umpire.local/model
 
 go 1.27.0
 

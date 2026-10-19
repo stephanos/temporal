@@ -1,8 +1,8 @@
-# Go oracle host
+# Go model host
 
-This isolated module runs the generated oracle v1 contract using wazero v1.12.0
+This isolated module runs the generated model v1 contract using wazero v1.12.0
 with Go 1.27.0 and `CGO_ENABLED=0`. It has no dependency on the server module.
-The protobuf source is `../../proto/umpire/oracle/v1/oracle.proto`;
+The protobuf source is `../../proto/umpire/model/v1/model.proto`;
 generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
 Build the real `umpire-wasm` release artifact before running:
@@ -36,6 +36,14 @@ The real stock Rust artifact imports only `environ_get`, `environ_sizes_get`,
 an empty environment; `fd_write` validates and discards bounded writes to
 descriptor 1 or 2; `proc_exit` traps. Every import signature is checked before
 instantiation.
+
+`Reset`, `Judge` and `Answer` use method numbers 3, 4 and 5. Their typed wrappers
+validate required request messages and Any type URLs; Any payload bytes remain
+opaque to this transport. Judge preserves the distinction between Explained and
+Unexplained, including empty results. Answer requires a reply Any. Unknown refusal
+enum values and response arms that do not match the called method are errors.
+The guest may return Unsupported for a recognized method whose system adapter is
+not installed.
 
 The Rows benchmark includes protobuf marshal, guest allocation, memory write,
 call, copy, free and protobuf unmarshal. It cycles state IDs modulo 283 and

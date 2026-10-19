@@ -1,12 +1,17 @@
 syntax = "proto3";
 
-package umpire.oracle.v1;
-option go_package = "umpire.local/oracle/umpire/oracle/v1;oraclev1";
+package umpire.model.v1;
+option go_package = "umpire.local/model/umpire/model/v1;modelv1";
+
+import "google/protobuf/any.proto";
 
 enum Method {
   METHOD_UNSPECIFIED = 0;
   METHOD_EXPLORE = 1;
   METHOD_ROWS = 2;
+  METHOD_RESET = 3;
+  METHOD_JUDGE = 4;
+  METHOD_ANSWER = 5;
 }
 
 enum RefusalCode {
@@ -18,6 +23,7 @@ enum RefusalCode {
   REFUSAL_CODE_NOT_EXPLORED = 5;
   REFUSAL_CODE_ALLOCATION = 6;
   REFUSAL_CODE_SCOPE_ACTION = 7;
+  REFUSAL_CODE_UNSUPPORTED = 8;
 }
 
 message ExploreRequest { uint32 budget = 1; }
@@ -37,10 +43,28 @@ message Refusal {
   RefusalCode code = 1;
   string message = 2;
 }
+
+message ResetRequest {}
+message ResetResponse {}
+message JudgeRequest { google.protobuf.Any observation = 1; }
+message Explanation { repeated string steps = 1; }
+message Unexplained { repeated string expected_actions = 1; }
+message JudgeResponse {
+  oneof judgment {
+    Explanation explained = 1;
+    Unexplained unexplained = 2;
+  }
+}
+message AnswerRequest { google.protobuf.Any callback = 1; }
+message AnswerResponse { google.protobuf.Any reply = 1; }
+
 message Response {
   oneof outcome {
     ExploreResponse explore = 1;
     RowsResponse rows = 2;
     Refusal refusal = 3;
+    ResetResponse reset = 4;
+    JudgeResponse judge = 5;
+    AnswerResponse answer = 6;
   }
 }
