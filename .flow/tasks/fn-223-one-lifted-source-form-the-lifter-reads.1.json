@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-223-one-lifted-source-form-the-lifter-reads",
   "spec_path": ".flow/tasks/fn-223-one-lifted-source-form-the-lifter-reads.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Trait-form shared fixtures: attribute rewrites or checker-only moves, with a disposition table",
   "updated_at": "2026-10-19T23:01:56.677936Z"
 }

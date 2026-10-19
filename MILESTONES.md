@@ -41,7 +41,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (in progress) | fn-213 → fn-215 → fn-223 → fn-224 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-223 and fn-224 are placed by the root agent. fn-210, fn-212, fn-214, fn-215, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (in progress) | fn-213 → fn-224 → fn-225 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-224 and fn-225 are placed by the root agent. fn-210, fn-212, fn-214, fn-215, fn-216, fn-221 and fn-223 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -57,21 +57,7 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
 | fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
-
-### fn-223: One lifted source form: the lifter reads attribute Models only (model)
-
-Captured on 2026-10-19 at the owner's request. About 2,000 of `umpire-lift`'s 5,000 source lines
-lower the hand-written `Machine` trait form, used only by eight shared test fixtures. Each fixture
-is rewritten as a `#[machine]` Model with unchanged behaviour goldens, or moved checker-only with
-its surface gap recorded; then the trait lowering is deleted and hand-written source is refused
-by location. The `Machine` trait itself stays. Placed after fn-215 and before fn-213.2 so later
-suite, cover and Apalache work builds on one front end.
-[Spec](.flow/specs/fn-223-one-lifted-source-form-the-lifter-reads.md).
-
-| Name | Status | What |
-| --- | --- | --- |
 
 ### fn-224: Accepted self-loops in the attribute surface (model)
 
@@ -86,6 +72,19 @@ Choice, typed outcomes and facts, and computed starts stay gaps until a Temporal
 | Name | Status | What |
 | --- | --- | --- |
 | fn-224.1 | ⬜ todo | After fn-213 and fn-223: self-loop marker, lifter admission, fixtures back on TLC (R1, R2) |
+
+### fn-225: umpire-lift: separate Model shape from body lowering (model)
+
+Captured on 2026-10-19 at the owner's request. A pure refactor of `umpire-lift`: a shape module
+reads the `#[machine]` module's declarations and never lowers statements or expressions; a body
+module lowers expressions, effects, vectors and claim bodies and never walks items; `tree.rs`
+splits into declarations and expressions. Every golden stays byte-identical. Not two crates; a
+shape parser shared with `#[machine]` waits until the two actually drift.
+[Spec](.flow/specs/fn-225-umpire-lift-separate-model-shape-from.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-225.1 | ⬜ todo | After fn-224: shape/body split and tree split, goldens byte-identical (R1) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 
