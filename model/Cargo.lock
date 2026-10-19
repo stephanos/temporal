@@ -879,6 +879,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-lift"
+version = "0.0.1"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 3.0.9",
+ "umpire-tlc",
+]
+
+[[package]]
 name = "umpire-stock-guest"
 version = "0.0.1"
 dependencies = [
@@ -918,6 +928,7 @@ version = "0.0.1"
 dependencies = [
  "umpire-checker",
  "umpire-dsl",
+ "umpire-lift",
  "umpire-testing",
 ]
 
@@ -928,6 +939,8 @@ dependencies = [
  "insta",
  "umpire-checker",
  "umpire-dsl",
+ "umpire-lift",
+ "umpire-tlc",
 ]
 
 [[package]]
@@ -936,7 +949,18 @@ version = "0.0.1"
 dependencies = [
  "umpire-checker",
  "umpire-dsl",
+ "umpire-lift",
  "umpire-testing",
+]
+
+[[package]]
+name = "umpire-tlc"
+version = "0.0.1"
+dependencies = [
+ "thiserror",
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-lift",
 ]
 
 [[package]]

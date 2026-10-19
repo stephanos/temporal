@@ -1,0 +1,1 @@
+fixtures/deep_chain/model.rs:16:5: warning: manual source: unsupported manual state type; TLA+ emission refused

@@ -167,3 +167,35 @@ fn rejects_orphan_snapshot_artifacts() -> Result<(), Box<dyn Error>> {
     fs::remove_dir_all(root)?;
     result
 }
+
+#[test]
+fn skipped_backend_requires_selected_complete_goldens() -> Result<(), Box<dyn Error>> {
+    with_control("skipped-consumer", |root, expected| {
+        let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
+        assert!(updated.status.success());
+        let backend = Consumer {
+            name: "external",
+            expected: &["artifact.tla", "artifact.cfg"],
+            render: |_, _| panic!("skipped backend executed"),
+        };
+        umpire_testing::run_at_skipping(
+            &root.join("fixtures"),
+            vec![("control", || panic!("unselected checker executed"))],
+            &[backend],
+            &["external"],
+        )?;
+        fs::write(expected.join("artifact@cfg.snap.new.cfg"), "orphan\n")?;
+        let result = umpire_testing::run_at_skipping(
+            &root.join("fixtures"),
+            vec![("control", || panic!("unselected checker executed"))],
+            &[Consumer {
+                name: "external",
+                expected: &["artifact.tla", "artifact.cfg"],
+                render: |_, _| panic!("skipped backend executed"),
+            }],
+            &["external"],
+        );
+        assert!(result.is_err(), "an orphan pending snapshot passed while skipped");
+        Ok(())
+    })
+}

@@ -1,5 +1,6 @@
 //! Shared fixture discovery and golden runner for Umpire's tests.
 
+pub mod backend;
 pub mod boundary;
 pub mod discovery;
 
@@ -7,7 +8,7 @@ mod render;
 mod runner;
 
 pub use render::{add_paths, render, render_rows};
-pub use runner::{CHECKER, Consumer, run, run_at};
+pub use runner::{CHECKER, Consumer, run, run_at, run_at_skipping};
 
 /// Deterministic relative golden paths and their payloads.
 pub type Files = std::collections::BTreeMap<String, String>;

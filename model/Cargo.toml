@@ -8,6 +8,8 @@ members = [
     "umpire/checker",
     "umpire/tests",
     "umpire/testing",
+    "umpire/lift",
+    "umpire/backends/tlc",
     "umpire/wasm",
     "umpire/wasm/guests/stock",
     "umpire/wasm/guests/control",
@@ -29,6 +31,8 @@ umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
 umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "umpire/checker" }
 umpire-testing = { version = "0.0.1", path = "umpire/testing" }
+umpire-lift = { version = "0.0.1", path = "umpire/lift" }
+umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
 umpire-wasm = { version = "0.0.1", path = "umpire/wasm" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
 umpire-temporal = { version = "0.0.1", path = "temporal/realization" }
@@ -48,7 +52,7 @@ prost-build = "0.14"
 # proc macros
 syn = { version = "3", features = ["full", "visit", "extra-traits"] }
 quote = "1.0"
-proc-macro2 = "1.0"
+proc-macro2 = { version = "1.0", features = ["span-locations"] }
 darling = "0.24"
 manyhow = "0.14"
 prettyplease = "0.3"

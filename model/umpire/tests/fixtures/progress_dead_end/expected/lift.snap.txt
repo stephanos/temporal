@@ -1,0 +1,1 @@
+fixtures/progress_dead_end/model.rs:46:1: warning: manual source: fixture constructor does not select this Machine implementation; TLA+ emission refused

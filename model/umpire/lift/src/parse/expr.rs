@@ -1,0 +1,405 @@
+use super::{Env, Parser, Result, has, path_name, tail};
+use crate::{
+    Diagnostic, Type,
+    tree::{Expr, ExprKind, Op, Unary},
+};
+use quote::ToTokens;
+use syn::{BinOp, Expr as RustExpr, Item, Pat};
+
+impl Parser<'_> {
+    pub(super) fn ty(&self, ty: &syn::Type) -> Result<Type> {
+        let name = path_name(&ty.to_token_stream().to_string());
+        let bounds = match name.as_str() {
+            "i8" => Some((i128::from(i8::MIN), i128::from(i8::MAX))),
+            "i16" => Some((i128::from(i16::MIN), i128::from(i16::MAX))),
+            "i32" => Some((i128::from(i32::MIN), i128::from(i32::MAX))),
+            "i64" => Some((i128::from(i64::MIN), i128::from(i64::MAX))),
+            "u8" => Some((0, i128::from(u8::MAX))),
+            "u16" => Some((0, i128::from(u16::MAX))),
+            "u32" => Some((0, i128::from(u32::MAX))),
+            "u64" => Some((0, i128::from(u64::MAX))),
+            _ => None,
+        };
+        if let Some((min, max)) = bounds {
+            if min < i128::from(i32::MIN) || max > i128::from(i32::MAX) {
+                return self.err(
+                    ty,
+                    format!("integer type `{name}` exceeds TLC's signed 32-bit integer range"),
+                );
+            }
+            return Ok(Type::Int { min, max });
+        }
+        if name == "bool" {
+            return Ok(Type::Bool);
+        }
+        self.enums
+            .get(&name)
+            .cloned()
+            .ok_or_else(|| Diagnostic::at(self.file, ty, format!("unsupported type `{name}`")))
+    }
+    pub(super) fn default_value(&self, ty: &Type, items: &[Item]) -> Result<Expr> {
+        match ty {
+            Type::Bool => Ok(Expr::bool(false)),
+            Type::Int { .. } => Ok(Expr::int(0, ty.clone())),
+            Type::Enum { name, .. } => {
+                let value = items
+                    .iter()
+                    .find_map(|i| match i {
+                        Item::Enum(e) if e.ident == name => {
+                            e.variants.iter().find(|v| has(&v.attrs, "default"))
+                        }
+                        _ => None,
+                    })
+                    .ok_or_else(|| {
+                        Diagnostic::span(
+                            self.file,
+                            proc_macro2::Span::call_site(),
+                            format!("enum `{name}` has no admitted #[default] variant"),
+                        )
+                    })?;
+                Ok(Expr {
+                    kind: ExprKind::Enum(format!("{name}::{}", value.ident)),
+                    ty: ty.clone(),
+                })
+            }
+            _ => self.err(
+                &syn::Ident::new("Model", proc_macro2::Span::call_site()),
+                "unsupported default value",
+            ),
+        }
+    }
+    pub(super) fn field_env(&self, primed: bool) -> Env {
+        self.fields
+            .iter()
+            .map(|f| (f.name.clone(), Expr::var(&f.name, f.ty.clone(), primed)))
+            .collect()
+    }
+    fn require(&self, node: &impl ToTokens, value: Expr, expected: Option<&Type>) -> Result<Expr> {
+        if expected.is_some_and(|t| *t != value.ty) {
+            return self
+                .err(node, format!("type mismatch: expected {expected:?}, got {:?}", value.ty));
+        }
+        Ok(value)
+    }
+    #[expect(
+        clippy::too_many_lines,
+        reason = "Expression admission follows the syn expression variants"
+    )]
+    pub(super) fn expr(
+        &self,
+        node: &RustExpr,
+        state: &Env,
+        locals: &Env,
+        expected: Option<&Type>,
+        depth: usize,
+    ) -> Result<Expr> {
+        if depth > 32 {
+            return self.err(node, "recursive helper expansion is unsupported");
+        }
+        if let Some((literal, negative)) = integer_literal(node) {
+            let ty = if literal.suffix().is_empty() {
+                expected
+                    .filter(|ty| matches!(ty, Type::Int { .. }))
+                    .cloned()
+                    .unwrap_or(Type::Int { min: i128::from(i32::MIN), max: i128::from(i32::MAX) })
+            } else {
+                self.ty(&syn::parse_str::<syn::Type>(literal.suffix()).map_err(|error| {
+                    Diagnostic::span(self.file, error.span(), error.to_string())
+                })?)
+                .map_err(|error| Diagnostic::at(self.file, node, error.message))?
+            };
+            let mut number = literal
+                .base10_parse::<i128>()
+                .map_err(|error| Diagnostic::at(self.file, node, error.to_string()))?;
+            if negative {
+                number = -number;
+            }
+            if let Type::Int { min, max } = ty
+                && (number < min || number > max)
+            {
+                return self.err(node, "integer literal exceeds its declared type");
+            }
+            return self.require(node, Expr::int(number, ty), expected);
+        }
+        let value = match node {
+            RustExpr::Lit(value) => match &value.lit {
+                syn::Lit::Bool(v) => Expr::bool(v.value),
+                syn::Lit::Int(v) => {
+                    let ty = if v.suffix().is_empty() {
+                        expected.filter(|t| matches!(t, Type::Int { .. })).cloned().unwrap_or(
+                            Type::Int { min: i128::from(i32::MIN), max: i128::from(i32::MAX) },
+                        )
+                    } else {
+                        self.ty(&syn::parse_str::<syn::Type>(v.suffix())
+                            .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?)?
+                    };
+                    let n = v
+                        .base10_parse::<i128>()
+                        .map_err(|e| Diagnostic::at(self.file, v, e.to_string()))?;
+                    if let Type::Int { min, max } = ty
+                        && (n < min || n > max)
+                    {
+                        return self.err(node, "integer literal exceeds its declared type");
+                    }
+                    Expr::int(n, ty)
+                }
+                syn::Lit::Str(v) => Expr::text(v.value()),
+                _ => return self.err(node, "unsupported literal"),
+            },
+            RustExpr::Paren(v) => return self.expr(&v.expr, state, locals, expected, depth),
+            RustExpr::Group(v) => return self.expr(&v.expr, state, locals, expected, depth),
+            RustExpr::Path(path) => {
+                let name = path_name(&path.path.to_token_stream().to_string());
+                if let Some(value) = locals.get(&name).or_else(|| self.constants.get(&name)) {
+                    value.clone()
+                } else if let Some((owner, variant)) = name.split_once("::") {
+                    let owner = if owner == "Self" {
+                        match expected {
+                            Some(Type::Enum { name, .. }) => name.as_str(),
+                            _ => return self.err(node, "Self enum variant has no type context"),
+                        }
+                    } else {
+                        owner
+                    };
+                    let full = format!("{owner}::{variant}");
+                    let ty = self.enums.get(owner).ok_or_else(|| {
+                        Diagnostic::at(self.file, node, format!("unknown name `{name}`"))
+                    })?;
+                    if let Type::Enum { variants, .. } = ty
+                        && !variants.contains(&full)
+                    {
+                        return self.err(node, format!("unknown enum variant `{full}`"));
+                    }
+                    Expr { kind: ExprKind::Enum(full), ty: ty.clone() }
+                } else {
+                    return self.err(node, format!("unresolved name `{name}`"));
+                }
+            }
+            RustExpr::Field(field) => {
+                let key = path_name(&node.to_token_stream().to_string());
+                if let Some(value) = locals.get(&key) {
+                    value.clone()
+                } else if matches!(field.base.as_ref(),RustExpr::Path(p)if p.path.is_ident("self"))
+                {
+                    let member = field.member.to_token_stream().to_string();
+                    state.get(&member).cloned().ok_or_else(|| {
+                        Diagnostic::at(self.file, node, format!("unknown state field `{member}`"))
+                    })?
+                } else {
+                    return self.err(node, format!("unresolved field `{key}`"));
+                }
+            }
+            RustExpr::Unary(unary) => {
+                let op = match unary.op {
+                    syn::UnOp::Not(_) => Unary::Not,
+                    syn::UnOp::Neg(_) => Unary::Neg,
+                    _ => return self.err(node, "unsupported unary operator"),
+                };
+                let value = self.expr(
+                    &unary.expr,
+                    state,
+                    locals,
+                    if op == Unary::Not { Some(&Type::Bool) } else { expected },
+                    depth,
+                )?;
+                if op == Unary::Neg && !matches!(value.ty, Type::Int { .. }) {
+                    return self.err(node, "negation requires an integer");
+                }
+                Expr { ty: value.ty.clone(), kind: ExprKind::Unary(op, Box::new(value)) }
+            }
+            RustExpr::Binary(binary) => {
+                let op = match binary.op {
+                    BinOp::Add(_) => Op::Add,
+                    BinOp::Sub(_) => Op::Sub,
+                    BinOp::Mul(_) => Op::Mul,
+                    BinOp::Div(_) => Op::Div,
+                    BinOp::Rem(_) => Op::Rem,
+                    BinOp::And(_) => Op::And,
+                    BinOp::Or(_) => Op::Or,
+                    BinOp::Eq(_) => Op::Eq,
+                    BinOp::Ne(_) => Op::Ne,
+                    BinOp::Lt(_) => Op::Lt,
+                    BinOp::Le(_) => Op::Le,
+                    BinOp::Gt(_) => Op::Gt,
+                    BinOp::Ge(_) => Op::Ge,
+                    _ => return self.err(node, "unsupported binary operator"),
+                };
+                let bool_op = matches!(op, Op::And | Op::Or);
+                let arithmetic = matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem);
+                let context = if bool_op {
+                    Some(&Type::Bool)
+                } else if arithmetic {
+                    expected
+                } else {
+                    None
+                };
+                let (left, right) = if context.is_none()
+                    && integer_literal(&binary.left)
+                        .is_some_and(|(literal, _)| literal.suffix().is_empty())
+                    && integer_literal(&binary.right).is_none()
+                {
+                    let right = self.expr(&binary.right, state, locals, None, depth)?;
+                    (self.expr(&binary.left, state, locals, Some(&right.ty), depth)?, right)
+                } else {
+                    let left = self.expr(&binary.left, state, locals, context, depth)?;
+                    let right = self.expr(&binary.right, state, locals, Some(&left.ty), depth)?;
+                    (left, right)
+                };
+                if (arithmetic || matches!(op, Op::Lt | Op::Le | Op::Gt | Op::Ge))
+                    && !matches!(left.ty, Type::Int { .. })
+                {
+                    return self.err(node, "integer operator applied to a non-integer");
+                }
+                Expr::binary(op, left, right)
+            }
+            RustExpr::If(condition) => {
+                let cond = self.expr(&condition.cond, state, locals, Some(&Type::Bool), depth)?;
+                let yes = self.expr(
+                    tail(self.file, &condition.then_branch)?,
+                    state,
+                    locals,
+                    expected,
+                    depth,
+                )?;
+                let Some((_, no)) = &condition.else_branch else {
+                    return self.err(node, "value-producing if requires else");
+                };
+                let no = self.expr(no, state, locals, Some(&yes.ty), depth)?;
+                Expr::select(cond, yes, no)
+            }
+            RustExpr::Block(block) => {
+                return self.expr(tail(self.file, &block.block)?, state, locals, expected, depth);
+            }
+            RustExpr::Tuple(tuple) => {
+                if tuple.elems.is_empty() {
+                    Expr::unit()
+                } else {
+                    let values = tuple
+                        .elems
+                        .iter()
+                        .map(|v| self.expr(v, state, locals, None, depth))
+                        .collect::<Result<Vec<_>>>()?;
+                    Expr {
+                        ty: Type::Tuple(values.iter().map(|v| v.ty.clone()).collect()),
+                        kind: ExprKind::Tuple(values),
+                    }
+                }
+            }
+            RustExpr::MethodCall(call) => {
+                if call.method == "into" && call.args.is_empty() {
+                    return self.expr(&call.receiver, state, locals, expected, depth);
+                }
+                if matches!(call.receiver.as_ref(),RustExpr::Path(path)if path.path.is_ident("self"))
+                    && let Some(method) = self.methods.get(&call.method.to_string())
+                {
+                    if !call.args.is_empty()
+                        || method.sig.inputs.len() != 1
+                        || method.sig.receiver().is_none_or(|r| r.mutability.is_some())
+                    {
+                        return self.err(
+                            node,
+                            "only parameterless pure helpers are admitted in expressions",
+                        );
+                    }
+                    return self.expr(
+                        tail(self.file, &method.block)?,
+                        state,
+                        locals,
+                        expected,
+                        depth + 1,
+                    );
+                }
+                let receiver = self.expr(&call.receiver, state, locals, None, depth)?;
+                let Type::Enum { name, .. } = &receiver.ty else {
+                    return self.err(node, format!("unsupported method `{}`", call.method));
+                };
+                let method =
+                    self.helpers.get(&format!("{name}::{}", call.method)).ok_or_else(|| {
+                        Diagnostic::at(
+                            self.file,
+                            node,
+                            format!("unsupported method `{name}::{}`", call.method),
+                        )
+                    })?;
+                if !call.args.is_empty() || method.sig.inputs.len() != 1 {
+                    return self.err(node, "only parameterless pure enum helpers are admitted");
+                }
+                let mut env = locals.clone();
+                env.insert("self".into(), receiver);
+                self.expr(tail(self.file, &method.block)?, state, &env, expected, depth + 1)?
+            }
+            RustExpr::Macro(mac) if mac.mac.path.is_ident("matches") => {
+                return self.matches(mac, state, locals, depth);
+            }
+            _ => {
+                return self
+                    .err(node, format!("unsupported expression `{}`", node.to_token_stream()));
+            }
+        };
+        self.require(node, value, expected)
+    }
+    fn matches(
+        &self,
+        mac: &syn::ExprMacro,
+        state: &Env,
+        locals: &Env,
+        depth: usize,
+    ) -> Result<Expr> {
+        struct Args {
+            value: RustExpr,
+            pat: Pat,
+        }
+        impl syn::parse::Parse for Args {
+            fn parse(input: syn::parse::ParseStream<'_>) -> syn::Result<Self> {
+                let value = input.parse()?;
+                input.parse::<syn::Token![,]>()?;
+                let pat = Pat::parse_multi_with_leading_vert(input)?;
+                if !input.is_empty() {
+                    input.parse::<syn::Token![,]>()?;
+                }
+                Ok(Self { value, pat })
+            }
+        }
+        let args: syn::Result<Args> = syn::parse2(mac.mac.tokens.clone());
+        let args = args.map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+        let value = self.expr(&args.value, state, locals, None, depth)?;
+        self.pattern(&args.pat, &value)
+    }
+    fn pattern(&self, pat: &Pat, value: &Expr) -> Result<Expr> {
+        match pat {
+            Pat::Wild(_) => Ok(Expr::bool(true)),
+            Pat::Or(or) => {
+                let mut out = Expr::bool(false);
+                for case in &or.cases {
+                    out = out.or(self.pattern(case, value)?);
+                }
+                Ok(out)
+            }
+            Pat::Path(path) => {
+                let path: RustExpr = syn::parse2(path.to_token_stream())
+                    .map_err(|e| Diagnostic::span(self.file, e.span(), e.to_string()))?;
+                Ok(Expr::binary(
+                    Op::Eq,
+                    value.clone(),
+                    self.expr(&path, &Env::new(), &Env::new(), Some(&value.ty), 0)?,
+                ))
+            }
+            _ => self.err(pat, "unsupported match pattern"),
+        }
+    }
+}
+
+fn integer_literal(node: &RustExpr) -> Option<(&syn::LitInt, bool)> {
+    match node {
+        RustExpr::Lit(syn::ExprLit { lit: syn::Lit::Int(literal), .. }) => Some((literal, false)),
+        RustExpr::Unary(unary) if matches!(unary.op, syn::UnOp::Neg(_)) => {
+            match unary.expr.as_ref() {
+                RustExpr::Lit(syn::ExprLit { lit: syn::Lit::Int(literal), .. }) => {
+                    Some((literal, true))
+                }
+                _ => None,
+            }
+        }
+        _ => None,
+    }
+}

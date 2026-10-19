@@ -13,4 +13,6 @@ workspace = true
 [dependencies]
 umpire-checker.workspace = true
 umpire-dsl.workspace = true
+umpire-lift.workspace = true
+umpire-tlc.workspace = true
 insta.workspace = true

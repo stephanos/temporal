@@ -161,7 +161,7 @@ first-target distance, and unknown. Caught predicate/effect defects keep their e
 without a temporal classification; the aggregate `Outcome` and default report text are unchanged.
 The supplementary `kettle_progress*` fixtures pin the room/cold longest distances (81/141), cycle,
 deadlock, deadline and budget questions using the original Kettle predicates. Fn-213 retains the
-ergonomic Kettle `tests.rs` presentation. Fn-212's future emitter maps explicit `fair(A)` entries
+ergonomic Kettle `tests.rs` presentation. The TLC emitter maps explicit `fair(A)` entries
 to `WF_vars(A)` and introduces no other fairness.
 See [DESIGN.md](DESIGN.md) for the Scala/Rust
 comparison and capability boundaries.
@@ -216,7 +216,42 @@ Metadata, payloads and pending snapshots belong to one logical expected file. No
 extensions use insta's snapshot suffix to avoid collisions (`Model@tla.snap` and
 `Model@tla.snap.tla` back `Model.tla`; `Model@cfg.snap` separately backs `Model.cfg`). A pending
 snapshot is accepted with `cargo insta accept`, then checked by the same runner.
-The gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
+The default gate builds and checks independently source-lifted TLA+ artifacts and located
+subset refusals, and explicitly reports that TLC execution was skipped. To run the real
+backend, fetch the pinned official tool once, then require its agreement checks:
+
+```sh
+bash model/scripts/fetch-tlc.sh
+UMPIRE_BACKENDS=require make model-check
+```
+
+The backend admits the official `tla2tools` 1.7.4 artifact by SHA-256 and its TLC 2.19
+version, using the repository's mise-pinned Temurin 27. Required runs fail for a missing
+or changed tool, unselected admitted fixtures, incomplete exploration, a state-set or
+property difference, or a counterexample that does not replay through the Model.
+The build-time `syn` lifter reads authored source independently of native exploration;
+unsupported source produces located warnings and refuses emission. Each admitted shared
+fixture owns emitted module/config and `tlc.txt` agreement goldens. Progress uses explicit
+authored fairness and private observers to distinguish real Model edges from idle stuttering.
+
+For a larger Model, the typed backend entry point needs no native exploration:
+
+```rust,ignore
+let module = umpire_lift::Tla::emit(&umpire_lift::Lift::source(source_path)?)?;
+let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
+```
+
+This checks the source-lifted scope independently. Complete native set/verdict agreement is
+a separate fixture obligation; a cut native exploration cannot establish it. The admitted
+source subset includes scalar/enum attribute Models and the shared manual transition-table,
+choice, and progress controls. Checked integer operations use signed TLC-representable
+Rust types (`i8`, `i16`, `i32`, `u8`, `u16`); wider types refuse by source location.
+Generic delegating adapters and arbitrary Rust remain outside the subset. `Phased`,
+`reject!`, and imported generic `closable` laws also currently refuse; that source shape
+has no system TLC agreement evidence. System fixture roots may retain located refusal
+goldens while the required shared gate still mandates attribute Kettle execution.
+
+The default gate needs only the Rust toolchain and workspace dependencies. The optional `cargo-insta`
 CLI supports interactive review and acceptance (`cargo install cargo-insta --locked`). Its real
 pending-to-accept integration control runs explicitly from `model/` with
 `mise exec -- cargo test -p umpire-testing --test consumers accepts_generic_pending_snapshots_with_cli -- --ignored`.

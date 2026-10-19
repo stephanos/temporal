@@ -1,0 +1,106 @@
+//! Manual authored-source controls independent of runtime transition execution.
+use umpire_lift::{Lift, Tla};
+
+#[test]
+fn manual_choices_keep_each_authored_outcome_and_fact() -> Result<(), Box<dyn std::error::Error>> {
+    let source = include_str!("../../tests/fixtures/choices/model.rs");
+    let lifted = Lift::parse("choices/model.rs", source)?;
+    let module = Tla::emit(&lifted)?;
+    assert_eq!(module.metadata.actions.len(), 4);
+    assert_eq!(module.metadata.postconditions[0].name, "choice_facts");
+    assert!(module.tla.contains("accepted"));
+    assert!(module.tla.contains("same_target"));
+    assert!(module.tla.contains("rejected"));
+    let aliased = source
+        .replace("Machine,", "Machine as ModelMachine,")
+        .replace("impl Machine for", "impl ModelMachine for");
+    assert_eq!(Tla::emit(&Lift::parse("alias.rs", &aliased)?)?.tla, module.tla);
+    Ok(())
+}
+
+#[test]
+fn manual_authored_edge_tables_and_mode_wrappers_lift() -> Result<(), Box<dyn std::error::Error>> {
+    let source = include_str!("../../tests/fixtures/progress_graph/model.rs");
+    let lifted = Lift::parse("progress_graph/model.rs", source)?;
+    let module = Tla::emit(&lifted)?;
+    assert_eq!(module.metadata.actions.len(), 4);
+    assert_eq!(module.metadata.progress[0].name, "reaches_target");
+    Ok(())
+}
+
+#[test]
+fn manual_trait_kettle_lifts_starts_effects_and_claims() -> Result<(), Box<dyn std::error::Error>> {
+    let source = include_str!("../../tests/fixtures/sample_kettle_trait/model.rs");
+    let lifted = Lift::parse("sample_kettle_trait/model.rs", source)?;
+    let module = Tla::emit(&lifted)?;
+    assert_eq!(module.metadata.fields.len(), 3);
+    assert_eq!(module.metadata.postconditions.len(), 2);
+    assert_eq!(module.metadata.progress[0].allowed.len(), 3);
+    assert!(module.metadata.actions[2].internal);
+    Ok(())
+}
+
+#[test]
+fn wrappers_keep_their_selected_mode_and_dependency() -> Result<(), Box<dyn std::error::Error>> {
+    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("../tests/fixtures/progress_continuous/model.rs");
+    let lifted = Lift::source(&path)?;
+    let module = Tla::emit(&lifted)?;
+    assert_eq!(module.metadata.inputs.len(), 2);
+    assert_eq!(module.metadata.progress[0].fair, ["Action::Escape"]);
+    assert_eq!(
+        module.metadata.world_path,
+        "crate::fixture_progress_5fgraph::Graph(crate::fixture_progress_5fgraph::Mode::Continuous)"
+    );
+    Ok(())
+}
+
+#[test]
+fn optional_states_preserve_shared_starts_and_step_claims() -> Result<(), Box<dyn std::error::Error>>
+{
+    let source = include_str!("../../tests/fixtures/edge_checks/model.rs");
+    let lifted = Lift::parse("edge_checks/model.rs", source)?;
+    let module = Tla::emit(&lifted)?;
+    assert_eq!(module.metadata.postconditions.len(), 2);
+    let source = include_str!("../../tests/fixtures/vacuity/model.rs");
+    let vacuity = Tla::emit(&Lift::parse("vacuity/model.rs", source)?)?;
+    assert!(vacuity.tla.lines().any(|line| line.starts_with("Post_unused_claim ==")
+        && line.contains("Action::Unused")
+        && line.contains("(FALSE)")));
+    Ok(())
+}
+
+#[test]
+fn manual_source_refuses_untranslated_statements_and_state_calls() {
+    let original = include_str!("../../tests/fixtures/choices/model.rs");
+    for source in [
+        original.replace("impl Machine for Tiny", "impl evil::Machine for Tiny"),
+        original.replace("use umpire_dsl::", "use evil::"),
+        original.replace("Value(2)", "Value(true)"),
+        original.replace("vec![Value(0)]", "panic!(\"not a pure start\"); vec![Value(0)]"),
+        original.replace("Value(2)", "mystery(2)"),
+        original.replace("impl Machine for Tiny", "#[cfg(any())] impl Machine for Tiny"),
+        original.replace("pub struct Tiny;", "pub struct Tiny; const TOO_LARGE: i64 = 2147483648;"),
+    ] {
+        let Err(error) = Lift::parse("unsupported_manual.rs", &source) else {
+            panic!("untranslated source was admitted");
+        };
+        assert_eq!(error.file, "unsupported_manual.rs");
+        assert!(error.line > 1);
+        assert!(error.to_string().contains("refused"));
+    }
+}
+
+#[test]
+fn conditional_pushes_keep_enabled_choice_order() -> Result<(), Box<dyn std::error::Error>> {
+    let original = include_str!("../../tests/fixtures/choices/model.rs");
+    let alternative = original.replace(
+        "        }\n        steps",
+        "        } else { steps.push((true, vec![\"fallback\"], Value(0))); }\n        steps",
+    );
+    let module = Tla::emit(&Lift::parse("alternative.rs", &alternative)?)?;
+    assert!(!module.tla.contains("__umpire_choice' = 3"));
+    let overlapping = original.replace("        }\n        steps", "        }\n        if state.0 == 1 { steps.push((true, vec![], Value(0))); }\n        steps");
+    assert!(Lift::parse("overlapping.rs", &overlapping).is_err());
+    Ok(())
+}
