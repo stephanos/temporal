@@ -28,7 +28,7 @@ are relative to the new Umpire repository.
 
 | Source | Destination and treatment |
 | --- | --- |
-| `model/umpire/{dsl,checker,testing,tests,wasm,proto}/` | Same directories at repository root; preserve complete fixture groups and symlinks |
+| `model/umpire/{dsl,checker,testing,tests,wasm,proto}/` | Same directories at repository root; preserve complete fixture groups |
 | `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
 | `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files; remove the `umpire/` prefix from member and dependency paths |
 | `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
@@ -203,7 +203,7 @@ separate completion claims from preparing this plan.
   dependency downloads may occur during setup, but no Temporal checkout is available.
 - Regenerate protobuf output and require a clean tracked tree afterward. Review the
   module-path metadata delta separately from the unchanged wire contract.
-- Verify every fixture input, snapshot metadata file, payload, symlink alias and
+- Verify every fixture input, snapshot metadata file, payload and
   expected output. No semantic golden refresh is part of extraction.
 - Record `cargo metadata` manifest paths, `go env GOWORK` and `go list -m -json`
   resolution, then the two local-change red/green consumer proofs.
@@ -238,7 +238,7 @@ the source and destination map above.
 - Workspace ownership: `model/Cargo.toml:5` defines six members beneath `umpire/`; shared package metadata, dependencies and lint policies live above that subtree. `model/README.md:20` also identifies external formatting, Clippy, toolchain and dependency-policy files.
 - Tool provisioning: `mise.toml:3` pins protoc and line 6 pins Rust. `Makefile:306` provisions the Go protobuf generator, while `Makefile:1436` supplies the wasm artifact and disables CGO for host tests.
 - Fixture ownership: `model/README.md:77` assigns shared Models to `umpire/tests`, checker-specific fixtures to the checker, and spelling fixtures to the DSL.
-- Golden integrity: `model/README.md:96` defines each expected output as a logical group containing snapshot metadata, payload and symlink alias. Existing relative aliases allow Go parity tests to read the same goldens.
+- Golden integrity: `model/README.md` defines each expected output as snapshot metadata and its payload. Go parity tests read the payloads directly; there are no fixture symlink aliases.
 - Host coupling: `model/hosts/go/host_test.go:578` defaults to `../../target`; lines 604 and 621 read `../../umpire/tests` goldens. Moving the host changes these relative relationships.
 - Go identity: `model/hosts/go/go.mod:1`, `model/umpire/proto/umpire/oracle/v1/oracle.proto:4` and `model/hosts/go/host.go:14` share `umpire.local/oracle`; generated descriptors and imports therefore participate in any module-path change.
 - Archive boundary: `model/README.md:7` explicitly freezes Scala and excludes it from the Rust workspace and gate.

@@ -146,7 +146,7 @@ fn logical_file(path: &Path, root: &Path) -> Result<String, Box<dyn std::error::
     Ok(format!("{stem}.{extension}"))
 }
 
-fn golden_files(path: &Path) -> [PathBuf; 5] {
+fn golden_files(path: &Path) -> [PathBuf; 4] {
     let extension = path.extension().and_then(|s| s.to_str()).unwrap_or("txt");
     let metadata = if extension == "txt" {
         path.with_extension("snap")
@@ -157,7 +157,6 @@ fn golden_files(path: &Path) -> [PathBuf; 5] {
         ))
     };
     [
-        path.into(),
         metadata.clone(),
         metadata.with_extension(format!("snap.{extension}")),
         metadata.with_extension("snap.new"),
@@ -167,25 +166,12 @@ fn golden_files(path: &Path) -> [PathBuf; 5] {
 
 fn snapshot(path: &Path, content: &str) -> crate::TestResult {
     let parent = path.parent().ok_or("golden has no parent")?;
-    let [_, metadata, payload, _, _] = golden_files(path);
-    let target = Path::new(payload.file_name().ok_or("golden has no file name")?);
+    let [metadata, payload, _, _] = golden_files(path);
     if std::env::var("INSTA_UPDATE").as_deref() == Ok("always") {
         fs::create_dir_all(parent)?;
-        if fs::read_link(path).ok().as_deref() != Some(target) {
-            if fs::symlink_metadata(path).is_ok() {
-                fs::remove_file(path)?;
-            }
-            #[cfg(unix)]
-            std::os::unix::fs::symlink(target, path)?;
-            #[cfg(windows)]
-            std::os::windows::fs::symlink_file(target, path)?;
-        }
     } else {
-        if fs::read_link(path).ok().as_deref() != Some(target) {
-            return Err(format!("fixture has no golden alias: {}", path.display()).into());
-        }
-        fs::read(path).map_err(|error| {
-            format!("fixture has no readable golden {}: {error}", path.display())
+        fs::read(&payload).map_err(|error| {
+            format!("fixture has no readable golden {}: {error}", payload.display())
         })?;
         if !metadata.is_file() {
             return Err(format!("fixture has no snapshot metadata: {}", path.display()).into());

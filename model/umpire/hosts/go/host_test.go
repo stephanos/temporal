@@ -601,7 +601,7 @@ func TestKettleParity(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	wantReport, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/report.txt")
+	wantReport, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/report.snap.txt")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -618,7 +618,7 @@ func TestKettleParity(t *testing.T) {
 			rows.WriteString(row)
 		}
 	}
-	wantRows, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/rows.txt")
+	wantRows, err := os.ReadFile("../../tests/fixtures/kettle_trait/expected/rows.snap.txt")
 	if err != nil {
 		t.Fatal(err)
 	}

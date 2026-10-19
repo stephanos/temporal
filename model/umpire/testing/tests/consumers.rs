@@ -59,7 +59,7 @@ fn with_control(
     let expected = root.join("fixtures/control/expected");
     fs::create_dir_all(&expected)?;
     fs::write(root.join("fixtures/control/model.rs"), "")?;
-    fs::write(expected.join("artifact.tla"), "seed\n")?;
+    fs::write(expected.join("artifact@tla.snap.tla"), "seed\n")?;
     let result = check(&root, &expected);
     fs::remove_dir_all(root)?;
     result
@@ -71,22 +71,24 @@ fn consumers_select_generic_snapshot_files() -> Result<(), Box<dyn Error>> {
         let updated = child(&root.join("fixtures"), "always", "first\n", false)?;
         assert!(updated.status.success(), "{}", String::from_utf8_lossy(&updated.stdout));
         for extension in ["tla", "cfg"] {
-            let alias = expected.join(format!("artifact.{extension}"));
+            let payload = expected.join(format!("artifact@{extension}.snap.{extension}"));
             assert_eq!(
-                fs::read_to_string(&alias).map_err(|e| format!(
+                fs::read_to_string(&payload).map_err(|e| format!(
                     "{}: {e}; runner: {}",
-                    alias.display(),
+                    payload.display(),
                     String::from_utf8_lossy(&updated.stdout)
                 ))?,
                 "first\n"
             );
+            assert!(!expected.join(format!("artifact.{extension}")).exists());
         }
         let checked = child(&root.join("fixtures"), "no", "first\n", false)?;
         assert!(checked.status.success(), "{}", String::from_utf8_lossy(&checked.stdout));
-        fs::write(expected.join("report.txt"), "seed\n")?;
+        fs::write(expected.join("report.snap.txt"), "seed\n")?;
         let mixed = child(&root.join("fixtures"), "always", "first\n", true)?;
         assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
-        assert_eq!(fs::read_to_string(expected.join("report.txt"))?, "checker selected\n");
+        assert_eq!(fs::read_to_string(expected.join("report.snap.txt"))?, "checker selected\n");
+        assert!(!expected.join("report.txt").exists());
         let mixed = child(&root.join("fixtures"), "no", "first\n", true)?;
         assert!(mixed.status.success(), "{}", String::from_utf8_lossy(&mixed.stdout));
         Ok(())

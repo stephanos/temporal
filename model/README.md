@@ -62,7 +62,7 @@ End to end, by golden files (fn-210 R8, R23, R29). A test is a fixture, an input
 produces (`model.rs` and `expected/`). "Fixture", not
 "case": Case is Testpilot's term.
 
-- behaviour: each fixture's `expected/report.txt`, `states.txt`, `rows.txt` and `paths/<claim>.txt`
+- behaviour: each fixture's `expected/report.snap.txt`, `states.snap.txt`, `rows.snap.txt` and `paths/<claim>.snap.txt`
   (`insta`; review with `cargo insta review`);
 - refusals: `trybuild` `.rs` + `.stderr` under `umpire/dsl/tests/ui/`;
 - expansion: insta snapshots of each macro's implementation function, formatted by
@@ -90,15 +90,15 @@ select consumers: the checker owns `report.txt`, `states.txt`, `rows.txt`, `nega
 and `paths/*.txt`; a selected consumer renders and checks its outputs twice for determinism.
 The DSL registers its spelling consumer for `values.txt`. Future backends register their own
 filenames and renderer. An unregistered filename, an orphan snapshot artifact, or an empty
-fixture fails naming its folder, including during updates. Seed a new fixture with a declared
-logical output filename before running `make model-update`.
+fixture fails naming its folder, including during updates. Seed a new fixture with a snapshot
+payload such as `report.snap.txt` before running `make model-update`; renderers and consumer
+registrations still use logical names such as `report.txt`.
 
-Behaviour goldens use insta binary snapshots with text payloads. Each `report.txt`, `states.txt`,
-`rows.txt`, or `paths/<claim>.txt` is a symlink to its `.snap.txt` payload; the adjacent `.snap`
-stores insta's review metadata. This keeps the required text paths readable by other hosts and
-lets `cargo insta review` (or `cargo insta accept`) update their single source of expected content.
-Run `make model-update` to create or refresh snapshots and their aliases together.
-Metadata, payloads, aliases and pending snapshots belong to one logical expected file. Non-text
+Behaviour goldens use insta binary snapshots with text payloads. Consumers read `report.snap.txt`,
+`states.snap.txt`, `rows.snap.txt` and `paths/<claim>.snap.txt` directly; the adjacent `.snap`
+stores insta's review metadata. `cargo insta review` (or `cargo insta accept`) updates the payloads.
+Run `make model-update` to create or refresh snapshots.
+Metadata, payloads and pending snapshots belong to one logical expected file. Non-text
 extensions use insta's snapshot suffix to avoid collisions (`Model@tla.snap` and
 `Model@tla.snap.tla` back `Model.tla`; `Model@cfg.snap` separately backs `Model.cfg`). A pending
 snapshot is accepted with `cargo insta accept`, then checked by the same runner.
