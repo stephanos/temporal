@@ -299,8 +299,14 @@ mod tests {
             "8a857b55e2835d563120e045c8ce32d5f0a2ad7488ef404276bda5aa21b13a32"
         );
     }
+    /// Inspecting a pending frozen clock run keeps the run open and its digest
+    /// stable across a flush, for every key variant. That each key (count,
+    /// clock ID, precision, start) changes the digest is asserted by the
+    /// `helper_transcript/model_frozen_clock_{base,count,id,precision,start}`
+    /// corpus cases, whose `replaces` lists this test's former name
+    /// `pending_clock_inspection_preserves_run_and_digest_binds_every_key`.
     #[test]
-    fn pending_clock_inspection_preserves_run_and_digest_binds_every_key() {
+    fn pending_clock_inspection_preserves_run_and_digest() {
         for (count, clock_id, precision, now) in [
             (3, 1, 7, 1),
             (2, 1, 7, 1),
