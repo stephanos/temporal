@@ -57,38 +57,21 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, format!("ModelVars == <<{}>>", fields.join(", ")));
     line(&mut out, "");
     let mut initial = Vec::new();
-    if let Some(starts) = &model.starts {
-        initial.push(disjoin(
-            starts
-                .iter()
-                .map(|start| {
-                    conjoin(
-                        model
-                            .fields
-                            .iter()
-                            .map(|f| format!("{} = {}", f.name, expr(&start[&f.name]))),
-                    )
-                })
-                .collect(),
-        ));
-    } else {
-        for field in &model.fields {
-            initial.push(match &field.start {
-                Start::Value(value) => format!("{} = {}", field.name, expr(value)),
-                Start::Range(lo, hi) => format!("{} \\in ({}..{})", field.name, expr(lo), expr(hi)),
-                Start::ExclusiveRange(lo, hi) => format!(
-                    "(IF {} < {} THEN {} \\in ({}..({} - 1)) ELSE FALSE)",
-                    expr(lo),
-                    expr(hi),
-                    field.name,
-                    expr(lo),
-                    expr(hi)
-                ),
-            });
-        }
+    for field in &model.fields {
+        initial.push(match &field.start {
+            Start::Value(value) => format!("{} = {}", field.name, expr(value)),
+            Start::Range(lo, hi) => format!("{} \\in ({}..{})", field.name, expr(lo), expr(hi)),
+            Start::ExclusiveRange(lo, hi) => format!(
+                "(IF {} < {} THEN {} \\in ({}..({} - 1)) ELSE FALSE)",
+                expr(lo),
+                expr(hi),
+                field.name,
+                expr(lo),
+                expr(hi)
+            ),
+        });
     }
     let outcome_type = model.outcome_type.clone();
-    let fact_type = model.fact_type.clone();
     initial.extend([
         "__umpire_edge_tick = FALSE".into(),
         "__umpire_pending = 0".into(),
@@ -138,12 +121,9 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
                 }
                 terms.extend([
                     format!("__umpire_action' = {}", text(&action.name)),
-                    format!("__umpire_choice' = {}", branch.choice),
+                    "__umpire_choice' = 0".into(),
                     format!("__umpire_outcome' = {}", expr(&branch.outcome)),
-                    format!(
-                        "__umpire_facts' = <<{}>>",
-                        branch.facts.iter().map(expr).collect::<Vec<_>>().join(", ")
-                    ),
+                    "__umpire_facts' = <<>>".into(),
                 ]);
                 conjoin(terms)
             })
@@ -340,16 +320,14 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         .filter_map(|p| p.bound)
         .max()
         .map_or(0, |bound| i128::from(bound) + 1);
-    let max_choice =
-        model.actions.iter().flat_map(|a| &a.branches).map(|b| b.choice).max().unwrap_or(0) as i128;
     let observer_types = BTreeMap::from([
         ("__umpire_edge_tick".into(), Type::Bool),
         ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
         ("__umpire_steps".into(), Type::Int { min: 0, max: max_steps }),
         ("__umpire_action".into(), Type::Text),
-        ("__umpire_choice".into(), Type::Int { min: 0, max: max_choice }),
+        ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
         ("__umpire_outcome".into(), outcome_type.clone()),
-        ("__umpire_facts".into(), Type::Seq(Box::new(fact_type.clone()))),
+        ("__umpire_facts".into(), Type::Seq(Box::new(Type::Unit))),
     ]);
     Ok(Module {
         name: model.name.clone(),
@@ -357,9 +335,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         cfg,
         metadata: Metadata {
             state_name: model.state_name.clone(),
-            state_tuple: model.state_tuple,
             world_path: model.world_path.clone(),
-            inputs: model.inputs.clone(),
             fields: model
                 .fields
                 .iter()
@@ -381,7 +357,6 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             observer_fields: OBSERVERS.iter().map(|s| (*s).into()).collect(),
             observer_types,
             outcome_type,
-            fact_type,
         },
     })
 }

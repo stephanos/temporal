@@ -4,14 +4,10 @@ use std::collections::BTreeMap;
 /// An admitted Model. Its typed expression tree has no public stability promise.
 #[derive(Clone, Debug)]
 pub struct Lifted {
-    pub(crate) inputs: Vec<String>,
-    pub(crate) starts: Option<Vec<BTreeMap<String, Expr>>>,
     pub(crate) file: String,
     pub(crate) name: String,
     pub(crate) state_name: String,
     pub(crate) outcome_type: Type,
-    pub(crate) fact_type: Type,
-    pub(crate) state_tuple: bool,
     pub(crate) world_path: String,
     pub(crate) fields: Vec<FieldDef>,
     pub(crate) constants: BTreeMap<String, Expr>,
@@ -46,9 +42,7 @@ pub(crate) struct Branch {
     pub guard: Expr,
     pub updates: BTreeMap<String, Expr>,
     pub checks: Vec<Expr>,
-    pub choice: usize,
     pub outcome: Expr,
-    pub facts: Vec<Expr>,
     pub preserve_self_loop: bool,
 }
 #[derive(Clone, Debug)]

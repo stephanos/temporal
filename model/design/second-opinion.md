@@ -31,8 +31,8 @@ design history, not evidence of implemented Rust capabilities.
 | [Choices fixture](../umpire/checker/tests/fixtures/choices/model.rs) and [Machine trait](../umpire/dsl/src/machine.rs) | The engine already permits several ordered choices, outcomes and facts, including repeated destinations. The attribute macro currently emits unit outcomes/facts and only changed-state edges. |
 | [Brute-force oracle](../umpire/checker/tests/oracle.rs) | A separate finite-universe reference compares reached sets, rows, safety/progress verdicts and witnesses over 256 generated worlds per property-test run, including exclusions, explicit fairness and numeric bounds. It still executes Rust `Machine::step`. |
 
-The 24 shared fixtures are chiefly Kettle and checker controls, not 24 independent
-product Models. The current native DSL/checker has no refinement-checking API;
+At the pinned tree above (`654d639`), the 24 shared fixtures were chiefly Kettle and checker
+controls, not 24 independent product Models. The current native DSL/checker has no refinement-checking API;
 this decision does not claim the parent spec's anticipated refinement coverage
 has arrived. No current Rust Model here declares a refinement requiring TLC.
 

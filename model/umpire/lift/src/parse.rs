@@ -366,8 +366,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         name,
         state_name: state.ident.to_string(),
         outcome_type: Type::Unit,
-        fact_type: Type::Unit,
-        state_tuple: false,
         world_path: format!("{}::world()", module.ident),
         fields: parser.fields,
         constants: parser.constants,
@@ -377,8 +375,6 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         progress,
         assumptions,
         negative,
-        inputs: vec![file.into()],
-        starts: None,
     })
 }
 
@@ -519,9 +515,7 @@ impl Parser<'_> {
                     guard: effective,
                     updates: state,
                     checks,
-                    choice: 0,
                     outcome: Expr::unit(),
-                    facts: Vec::new(),
                     preserve_self_loop: false,
                 });
             }

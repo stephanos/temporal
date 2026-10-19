@@ -256,3 +256,12 @@ fn path_claims_refuse_builders_chains_and_other_gaps() -> Result<(), Box<dyn std
     assert_eq!(refusals.concat(), include_str!("expected/path_refusals.txt"));
     Ok(())
 }
+
+#[test]
+fn hand_written_machine_refusal_prints_the_type_as_written()
+-> Result<(), Box<dyn std::error::Error>> {
+    let source = "impl<W> Machine for &'static mut W {}";
+    let error = Lift::parse("by_hand.rs", source).err().ok_or("manual Machine was admitted")?;
+    assert!(error.message.contains("`impl Machine for &'static mut W`"), "{error}");
+    Ok(())
+}

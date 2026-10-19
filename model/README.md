@@ -227,7 +227,7 @@ reads, what hosts include); its golden hook (`umpire_testing::fixture!` or a han
 lives in `tests.rs` beside it. The build declares both as sibling modules, `<name>` and
 `<name>_tests`, so `tests.rs` reaches the Model as `crate::<name>` and state fields are `pub`.
 Folder names that are not plain lowercase identifiers compile under an escaped `fixture_` module.
-The lifter reads a hook's supplemental claims and selected mode from `tests.rs`.
+The lifter reads a hook's supplemental claims from `tests.rs`.
 The attribute Kettle lives in its fixture's `model.rs`; native and wasm hosts can include
 that source by path. Checker-specific failures, panics, overflows, holes, budget cuts and
 refusals remain in `umpire/checker/tests/fixtures/`, together with the manual-trait Models the

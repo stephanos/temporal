@@ -47,12 +47,9 @@ fn state_text(module: &Module, state: &State) -> Result<String, Box<dyn std::err
         .metadata
         .fields
         .iter()
-        .enumerate()
-        .map(|(index, field)| {
+        .map(|field| {
             let value = state.get(&field.name).ok_or("missing authored state field")?;
-            let label =
-                if module.metadata.state_tuple { index.to_string() } else { field.name.clone() };
-            Ok(format!("{label}: {}", debug_value(&field.ty, value)?))
+            Ok(format!("{}: {}", field.name, debug_value(&field.ty, value)?))
         })
         .collect::<Result<Vec<_>, Box<dyn std::error::Error>>>()?;
     Ok(format!("{} {{ {} }}", module.metadata.state_name, fields.join(", ")))
@@ -172,9 +169,10 @@ fn replay<M: Machine>(
         }
         let outcome = after.observers.get("__umpire_outcome").ok_or("missing TLC outcome")?;
         let facts = after.observers.get("__umpire_facts").ok_or("missing TLC facts")?;
+        let fact_type =
+            module.metadata.observer_types.get("__umpire_facts").ok_or("missing TLC fact type")?;
         if format!("{:?}", step.0) != debug_value(&module.metadata.outcome_type, outcome)?
-            || format!("{:?}", step.1)
-                != debug_value(&Type::Seq(Box::new(module.metadata.fact_type.clone())), facts)?
+            || format!("{:?}", step.1) != debug_value(fact_type, facts)?
         {
             return Err("TLC counterexample outcome/facts differ from Model replay".into());
         }

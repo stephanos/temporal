@@ -940,6 +940,7 @@ name = "umpire-lift"
 version = "0.0.1"
 dependencies = [
  "imbl",
+ "prettyplease 0.3.0",
  "proc-macro2",
  "quote",
  "syn 3.0.9",

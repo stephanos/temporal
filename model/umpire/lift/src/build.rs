@@ -25,9 +25,6 @@ pub fn generate(
         match crate::Lift::source(&input).and_then(|lifted| crate::Tla::emit(&lifted)) {
             Ok(module) => {
                 admitted.push(name.clone());
-                for input in &module.metadata.inputs {
-                    println!("cargo:rerun-if-changed={input}");
-                }
                 let tla = output.join(format!("{name}.tla"));
                 let cfg = output.join(format!("{name}.cfg"));
                 std::fs::write(&tla, &module.tla)?;
@@ -123,16 +120,13 @@ fn metadata(value: &crate::Metadata) -> String {
         .collect::<Vec<_>>()
         .join(",");
     format!(
-        "umpire_lift::Metadata {{ inputs: {}, state_name: {:?}.into(), state_tuple: {}, world_path: {:?}.into(), fields: vec![{fields}], actions: vec![{actions}], invariants: {}, postconditions: {}, progress: vec![{progress}], negative: {}, observer_fields: {}, observer_types: std::collections::BTreeMap::from([{observers}]), outcome_type: {}, fact_type: {} }}",
-        strings(&value.inputs),
+        "umpire_lift::Metadata {{ state_name: {:?}.into(), world_path: {:?}.into(), fields: vec![{fields}], actions: vec![{actions}], invariants: {}, postconditions: {}, progress: vec![{progress}], negative: {}, observer_fields: {}, observer_types: std::collections::BTreeMap::from([{observers}]), outcome_type: {} }}",
         value.state_name,
-        value.state_tuple,
         value.world_path,
         properties(&value.invariants),
         properties(&value.postconditions),
         properties(&value.negative),
         strings(&value.observer_fields),
-        kind(&value.outcome_type),
-        kind(&value.fact_type)
+        kind(&value.outcome_type)
     )
 }

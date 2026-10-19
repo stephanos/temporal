@@ -10,8 +10,14 @@ the command names used when they were recorded, before the workspace move.
 modules, configurations and typed decoding metadata. It never calls the native explorer.
 It reads one source form, the `#[machine]` attribute subset; source admission,
 expression/type lowering, progress builders and emission have separate modules. fn-223
-deleted the manual-trait lowering (`lift/src/manual*`): the lifter's source went from 5,007
-lines to 3,018 (`cat model/umpire/lift/src/*.rs model/umpire/lift/src/*/*.rs | wc -l`).
+deleted the manual-trait lowering (`lift/src/manual*`): the lifter's source went from 5,048
+lines to 3,022, and its review follow-ups to 2,978
+(`cat model/umpire/lift/src/*.rs model/umpire/lift/src/*/*.rs | wc -l`). The follow-ups
+removed what only the manual form produced: explicit start lists, tuple-state labels,
+multi-file inputs, and per-branch choice indices and facts. The emitted observers keep
+`__umpire_choice = 0` and `__umpire_facts = <<>>`, so modules and replay are unchanged;
+choice and facts must be re-added with the attribute surface that states them. The tree keeps
+`outcome` (`reject!`) and `preserve_self_loop`, which fn-224 sets for accepted self-loops.
 Source that implements `Machine` by hand is refused at its `impl Machine` item
 (`progress_dead_end`'s lift golden pins the message).
 Unsupported syntax, references, conditional compilation and generated-name collisions
@@ -46,7 +52,8 @@ are refusals, never passing or silently skipped checks. Each Java process owns i
 library extraction and state directory, avoiding concurrent JVM extraction races.
 
 The shared fixture corpus admits 8 fixtures: attribute Kettle at 283 projected states,
-`changed_state`, and six attribute progress graphs covering weak fairness and scoped progress;
+`changed_state`, and six attribute progress graphs covering weak fairness (Kettle's `boils`
+is the only scoped progress claim on TLC);
 these are control variants, not 8 independent products. Four sources retain located refusals:
 `kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
 subset, and `rejecting_steps` uses a helper and rejecting outcomes outside the subset.
@@ -68,7 +75,7 @@ are attribute-surface facts for a later spec, not filled here:
 | --- | --- | --- |
 | `sample_kettle_trait` | checker-only | Independent engine reference (owner, fn-210.7); the wasm guest includes its `kettle.rs`. Report byte-identical to `sample_kettle`; its TLC coverage (283 states, same four claims) stays pinned by `sample_kettle`. |
 | `choices` | checker-only | One action yields three ordered choices with `bool` outcomes and string facts, two to the same target; handlers emit one edge with unit or `Outcome` outcomes and no facts. TLC loses choice/outcome/fact replay. |
-| `edge_checks` | checker-only | `bool` outcomes and an authored self-loop (`Idle` at 2); unchanged handlers are disabled. Refuted postconditions with replayed counterexamples stay on TLC through `changed_state`; the `after`-filtered self-loop refutation does not. |
+| `edge_checks` | checker-only | `bool` outcomes and an authored self-loop (`Idle` at 2); unchanged handlers are disabled. `changed_state` keeps an `after`-filtered refuted postcondition with a replayed counterexample on TLC; the unfiltered refuted `never_decreases` and the `after`-filtered self-loop refutation are pinned nowhere on TLC. |
 | `vacuity` | checker-only | Same `bool` outcomes and self-loop as `edge_checks`. Never-triggered `after` claims stay on TLC through `changed_state`. |
 | `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]`, `bool` outcomes and a self-loop; `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
 | `deep_chain` | checker-only | State carries a shared `Rc<Cell>` clone counter and the hook asserts linear clone work; a checker property, already refused by the lifter. |
@@ -88,7 +95,9 @@ are attribute-surface facts for a later spec, not filled here:
 
 The eleven `progress_*` fixtures selected a mode of the trait `progress_graph` Model, so they
 were trait-form too. TLC no longer pins self-loops, nondeterministic choice, non-`()` outcomes,
-facts or starts outside a field range anywhere in the shared corpus.
+facts, starts outside a field range, an unfiltered refuted postcondition (`never_decreases`),
+refuted progress under a `without` scope (`progress_excluded_prefix`) or a fair action that the
+scope excludes (`progress_scope_exit`) anywhere in the shared corpus.
 
 Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
 artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs

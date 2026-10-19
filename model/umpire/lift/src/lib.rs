@@ -136,10 +136,6 @@ pub struct Progress {
 /// Exact decoding and property metadata.
 #[derive(Clone, Debug)]
 pub struct Metadata {
-    /// Whether the authored state has unnamed tuple fields.
-    pub state_tuple: bool,
-    /// Every authored source dependency read by the lifter.
-    pub inputs: Vec<String>,
     /// Authored state struct name.
     pub state_name: String,
     /// Authored world constructor.
@@ -162,8 +158,6 @@ pub struct Metadata {
     pub observer_types: BTreeMap<String, Type>,
     /// Outcome type.
     pub outcome_type: Type,
-    /// Fact type.
-    pub fact_type: Type,
 }
 /// Generated module and decoding contract.
 #[derive(Clone, Debug)]
@@ -237,7 +231,7 @@ impl Lift {
                 implementation,
                 format!(
                     "the lifter reads #[machine] Models; `impl Machine for {}` implements Machine by hand",
-                    implementation.self_ty.to_token_stream().to_string().replace(' ', "")
+                    rust_type(&implementation.self_ty)
                 ),
             ),
             None => Diagnostic::span(
@@ -247,6 +241,11 @@ impl Lift {
             ),
         }
     }
+}
+/// A type as rustfmt would print it; token streams space every token apart.
+fn rust_type(ty: &syn::Type) -> String {
+    let alias = prettyplease::unparse(&syn::parse_quote!(type T = #ty;));
+    alias.trim().trim_start_matches("type T = ").trim_end_matches(';').to_owned()
 }
 /// A golden hook (`fixture!`) and the file it is written in.
 pub(crate) struct Hook<'a> {
