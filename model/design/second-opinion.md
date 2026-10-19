@@ -114,6 +114,10 @@ individual action scheduling guarantee. Count bounded obligations with a capped
 observer updated only on Model edges. Represent terminal completion explicitly
 for TLC's deadlock check, without counting completion as a Model edge. Project
 observer fields and completion steps out of state agreement and replay.
+Reserve `__umpire_edge_tick`, `__umpire_pending` and `__umpire_steps` for this
+candidate, refusing collisions with authored names. Decode by removing exactly
+the declared observer fields and deduplicating projected Model states before the
+283-state comparison; never discard arbitrary fields by a name-prefix rule.
 
 This is a design candidate requiring the controls below, not a verified encoding.
 For scoped claims, preserve unrestricted reachable prefixes before the trigger
@@ -169,7 +173,9 @@ goldens through the shared fixture consumer registry.
 
 Before claiming liveness agreement, settle the maximal-path encoding above with
 controls for no-fairness acyclic progress, finite dead ends, explicit fair cycles,
-intermittent enabledness and authored self-loops. The encoding must preserve
+intermittent enabledness and authored accepted/rejecting self-loops versus idle
+stuttering. Contrast a finite dead end with idling at a state that has enabled
+actions. The encoding must preserve
 authored fairness separately from path maximality. Numeric bounds must count
 Model transitions. Match checked integer behavior and named assumptions before
 admitting the corresponding fixture. Preserve expected termination while leaving
