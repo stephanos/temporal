@@ -76,6 +76,7 @@ fn evidence_belongs_to_actual_evaluation_and_counterexample_state()
     let world = World { calls: Cell::new(0) };
     let result = Checker::explore(&world, 10)?;
     let report = result.verify_all()?;
+    assert!(report.claims.iter().all(|claim| claim.verdict.is_none() && claim.hint.is_none()));
     assert_eq!(world.calls.get(), 3);
     let state = &report.claims[0];
     assert_eq!(state.outcome, Outcome::Refuted);

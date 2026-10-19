@@ -242,7 +242,7 @@ mod counter {
         fn reaches_two(&self) -> LeadsTo {
             PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
             let trigger = self.value == 1;
-            let progress = whenever(trigger);
+            let progress = whenever(trigger).within(2);
             if self.value == 2 {
                 return progress.eventually(true).assuming(Self::never_reset());
             }
@@ -346,17 +346,23 @@ mod counter {
         trigger: bool,
         target: bool,
         assumption: Assumption,
+        bound: Option<u32>,
     }
     fn whenever(trigger: bool) -> LeadsTo {
         LeadsTo {
             trigger,
             target: true,
             assumption: Assumption::default(),
+            bound: None,
         }
     }
     impl LeadsTo {
         fn eventually(mut self, target: bool) -> Self {
             self.target = target;
+            self
+        }
+        fn within(mut self, bound: u32) -> Self {
+            self.bound = Some(bound);
             self
         }
         fn assuming(mut self, assumption: Assumption) -> Self {
@@ -439,7 +445,7 @@ mod counter {
                 ::umpire_dsl::Progress:: < Self > ::evaluated("reaches_two", | _, state |
                 { let value = state.reaches_two(); ::umpire_dsl::ProgressEvaluation {
                 trigger : value.trigger.into(), target : value.target.into(), assumption
-                : value.assumption, } })
+                : value.assumption, bound : value.bound, } })
             ]
         }
         fn assumptions(

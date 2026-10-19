@@ -100,7 +100,7 @@ impl Counter {
     fn reaches_two(&self) -> LeadsTo {
         PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
         let trigger = self.value == 1;
-        let progress = whenever(trigger);
+        let progress = whenever(trigger).within(2);
         if self.value == 2 {
             return progress.eventually(true).assuming(Self::never_reset());
         }
@@ -190,6 +190,8 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         let initial = evaluate(&world, &Counter { value: 1 });
         assert_eq!(counter::PROGRESS_CALLS.load(std::sync::atomic::Ordering::SeqCst), 1);
         let final_state = evaluate(&world, &state);
+        assert_eq!(initial.bound, Some(2));
+        assert_eq!(final_state.bound, Some(2));
         assert_eq!(counter::PROGRESS_CALLS.load(std::sync::atomic::Ordering::SeqCst), 2);
         writeln!(output, "progress {}: {} -> {}; without {}", claim.name,
             judgment(initial.trigger),

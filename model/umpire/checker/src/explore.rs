@@ -122,10 +122,9 @@ impl Checker {
                             panic_message(error.as_ref())
                         ));
                         result.claims.push(ClaimResult {
-                            name: format!("step_{cursor}_{action_index}"),
                             outcome: Outcome::Refuted,
                             path: Some(path),
-                            holes: Vec::new(),
+                            ..unchecked(&format!("step_{cursor}_{action_index}"))
                         });
                         continue;
                     }
@@ -193,7 +192,14 @@ impl Checker {
 }
 
 fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
-    ClaimResult { name: name.into(), outcome: Outcome::Verified, path: None, holes: Vec::new() }
+    ClaimResult {
+        name: name.into(),
+        outcome: Outcome::Verified,
+        verdict: None,
+        hint: None,
+        path: None,
+        holes: Vec::new(),
+    }
 }
 
 pub(crate) fn panic_message(error: &(dyn Any + Send)) -> &str {

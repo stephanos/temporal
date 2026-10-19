@@ -8,6 +8,8 @@ pub struct ProgressEvaluation<A> {
     pub target: Verdict,
     /// The fixed action restriction returned by the claim.
     pub assumption: Assumption<A>,
+    /// The fixed maximum number of transitions to the first target, when bounded.
+    pub bound: Option<u32>,
 }
 
 /// A combined progress predicate evaluated once at each reached state.
@@ -25,6 +27,12 @@ pub struct Progress<M: Machine> {
     pub target: fn(&M, &M::State) -> Verdict,
     /// The actions retained while checking the obligation.
     pub scope: Scope<M::Action>,
+    /// The maximum number of transitions to the first target, when bounded.
+    pub bound: Option<u32>,
+    /// An explicit replacement for the evaluator's authored assumption.
+    pub assumption_override: Option<Assumption<M::Action>>,
+    /// An explicit replacement for the evaluator's authored numeric bound.
+    pub bound_override: Option<u32>,
     /// Combined evaluation for generated claims; manual callbacks remain the fallback.
     pub evaluator: Option<ProgressEvaluator<M>>,
 }
@@ -37,6 +45,9 @@ impl<M: Machine> Progress<M> {
             trigger: |_, _| Verdict::Holds,
             target: |_, _| Verdict::Holds,
             scope: Scope::default(),
+            bound: None,
+            assumption_override: None,
+            bound_override: None,
             evaluator: None,
         }
     }
@@ -60,13 +71,24 @@ impl<M: Machine> Progress<M> {
 
     /// Restricts the actions considered by the eventuality search.
     pub fn within(mut self, scope: Scope<M::Action>) -> Self {
+        self.assumption_override = Some(scope.clone());
         self.scope = scope;
         self
     }
 
-    /// Restricts a manual claim to the supplied assumption's actions.
+    /// Replaces the claim's authored assumption, preserving its predicates.
     pub fn assuming(mut self, assumption: Assumption<M::Action>) -> Self {
+        self.assumption_override = Some(assumption.clone());
         self.scope = assumption;
+        self
+    }
+
+    /// Replaces the numeric bound, counting transitions from the trigger to its first target.
+    ///
+    /// Zero is rejected by the checker rather than panicking during authoring.
+    pub fn within_steps(mut self, bound: u32) -> Self {
+        self.bound = Some(bound);
+        self.bound_override = Some(bound);
         self
     }
 }

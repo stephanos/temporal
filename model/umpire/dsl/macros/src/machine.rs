@@ -512,6 +512,7 @@ fn progress_claims(registration: &Registrations) -> Vec<TokenStream> {
                 trigger: value.trigger.into(),
                 target: value.target.into(),
                 assumption: value.assumption,
+                bound: value.bound,
             }
         })));
     }
@@ -571,12 +572,13 @@ fn assumption_helpers(enabled: bool) -> Option<TokenStream> {
 fn progress_helpers(enabled: bool) -> Option<TokenStream> {
     enabled.then(|| {
         quote! {
-            struct LeadsTo { trigger: bool, target: bool, assumption: Assumption }
+            struct LeadsTo { trigger: bool, target: bool, assumption: Assumption, bound: Option<u32> }
             fn whenever(trigger: bool) -> LeadsTo {
-                LeadsTo { trigger, target: true, assumption: Assumption::default() }
+                LeadsTo { trigger, target: true, assumption: Assumption::default(), bound: None }
             }
             impl LeadsTo {
                 fn eventually(mut self, target: bool) -> Self { self.target = target; self }
+                fn within(mut self, bound: u32) -> Self { self.bound = Some(bound); self }
                 fn assuming(mut self, assumption: Assumption) -> Self {
                     self.assumption = assumption;
                     self

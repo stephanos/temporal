@@ -3,7 +3,7 @@
 use std::collections::{BTreeSet, VecDeque};
 
 use proptest::prelude::*;
-use umpire_checker::Checker;
+use umpire_checker::{Checker, ProgressVerdict};
 use umpire_dsl::{
     Assumption, AssumptionExt, Claim, Hole, Machine, Outcome, Progress, Spell, StepClaim, Steps,
     Verdict,
@@ -29,6 +29,7 @@ struct World {
     fair: u8,
     trigger: u32,
     target: u32,
+    bound: Option<u32>,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -95,25 +96,27 @@ impl Machine for World {
         ]
     }
     fn progress(&self) -> Vec<Progress<Self>> {
-        vec![
-            Progress::<Self>::new("eventually_target")
-                .whenever(|world, state| member(world.trigger, *state).into())
-                .eventually(|world, state| member(world.target, *state).into())
-                .assuming(
-                    Assumption::fair(
-                        &(0..self.actions.len())
-                            .filter(|action| self.fair & (1 << action) != 0)
-                            .map(Action)
-                            .collect::<Vec<_>>(),
-                    )
-                    .without(
-                        (0..self.actions.len())
-                            .filter(|action| self.excluded & (1 << action) != 0)
-                            .map(Action)
-                            .collect::<Vec<_>>(),
-                    ),
+        let claim = Progress::<Self>::new("eventually_target")
+            .whenever(|world, state| member(world.trigger, *state).into())
+            .eventually(|world, state| member(world.target, *state).into())
+            .assuming(
+                Assumption::fair(
+                    &(0..self.actions.len())
+                        .filter(|action| self.fair & (1 << action) != 0)
+                        .map(Action)
+                        .collect::<Vec<_>>(),
+                )
+                .without(
+                    (0..self.actions.len())
+                        .filter(|action| self.excluded & (1 << action) != 0)
+                        .map(Action)
+                        .collect::<Vec<_>>(),
                 ),
-        ]
+            );
+        vec![match self.bound {
+            Some(bound) => claim.within_steps(bound),
+            None => claim,
+        }]
     }
 }
 
@@ -141,9 +144,10 @@ fn worlds() -> impl Strategy<Value = World> {
         any::<u8>(),
         0u32..(1 << 27),
         0u32..(1 << 27),
+        prop::option::of(1u32..=5),
     )
         .prop_map(
-            |(domains, starts, rules, forbidden, hole, excluded, fair, trigger, target)| {
+            |(domains, starts, rules, forbidden, hole, excluded, fair, trigger, target, bound)| {
                 let normalize = |mut values: [u8; 3]| {
                     for (index, value) in values.iter_mut().enumerate() {
                         *value = domains.get(index).map_or(0, |d| *value % d);
@@ -173,6 +177,7 @@ fn worlds() -> impl Strategy<Value = World> {
                     fair,
                     trigger,
                     target,
+                    bound,
                     domains,
                 }
             },
@@ -211,6 +216,26 @@ fn progress_fails(world: &World, reached: &BTreeSet<[u8; 3]>, edges: &[Edge]) ->
         }
     }
     let required = world.fair & !world.excluded & ((1u8 << world.actions.len()) - 1);
+    if let Some(bound) = world.bound {
+        if pending.iter().any(|state| !scoped.iter().any(|(before, _, _, _)| before == state)) {
+            return true;
+        }
+        let mut frontier: BTreeSet<_> = reached
+            .iter()
+            .filter(|state| member(world.trigger, **state) && !member(world.target, **state))
+            .copied()
+            .collect();
+        for _ in 0..bound {
+            frontier = scoped
+                .iter()
+                .filter(|(before, _, _, after)| {
+                    frontier.contains(before) && !member(world.target, *after)
+                })
+                .map(|(_, _, _, after)| *after)
+                .collect();
+        }
+        return !frontier.is_empty();
+    }
     let disabled = |state: &[u8; 3]| {
         scoped
             .iter()
@@ -359,7 +384,8 @@ proptest! {
                         prop_assert!(cycle < path.steps.len());
                         prop_assert_eq!(before, states[cycle]);
                         for action in 0..world.actions.len() {
-                            if world.fair & (1 << action) != 0
+                            if matches!(claim.verdict, Some(ProgressVerdict::Cycle))
+                                && world.fair & (1 << action) != 0
                                 && world.excluded & (1 << action) == 0
                             {
                                 prop_assert!(path.steps[cycle..].iter()
@@ -372,9 +398,17 @@ proptest! {
                             }
                         }
                     } else {
-                        prop_assert!(!expected.edges.iter().any(|(source, action, _, _)| {
+                        let dead_end = !expected.edges.iter().any(|(source, action, _, _)| {
                             *source == before && world.excluded & (1 << action) == 0
-                        }), "finite progress witness ends at a scoped dead end");
+                        });
+                        let missed_bound = world.bound.is_some_and(|bound| {
+                            (0..states.len()).any(|trigger| {
+                                member(world.trigger, states[trigger])
+                                    && states[trigger..].iter().all(|state| !member(world.target, *state))
+                                    && path.steps.len() - trigger >= bound as usize
+                            })
+                        });
+                        prop_assert!(dead_end || missed_bound, "finite progress witness ends at a scoped dead end or misses its bound");
                     }
                 }
             }

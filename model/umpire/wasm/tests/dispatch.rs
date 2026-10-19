@@ -10,6 +10,20 @@ use umpire_wasm::{
 mod refusal_mapping;
 
 #[test]
+fn progress_bound_refusal_survives_generated_protocol() {
+    let error = umpire_checker::Refusal::ProgressBound { claim: "pending".into(), given: 0 };
+    let response = protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };
+    let decoded = protocol::Response::decode(response.encode_to_vec().as_slice())
+        .unwrap_or_else(|error| panic!("generated response must decode: {error}"));
+    let Some(Outcome::Refusal(refusal)) = decoded.outcome else {
+        panic!("expected progress bound refusal")
+    };
+    assert_eq!(refusal.code, 2);
+    assert_eq!(refusal.code(), protocol::RefusalCode::MalformedRequest);
+    assert_eq!(refusal.message, "progress claim pending bound must be at least one (given: 0)");
+}
+
+#[test]
 fn scope_action_refusal_survives_generated_protocol() {
     let error = umpire_checker::Refusal::ScopeAction { action: "User::Missing".into() };
     let response = protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };

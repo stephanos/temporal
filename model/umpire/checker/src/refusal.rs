@@ -1,6 +1,14 @@
 /// An invalid request to the checker, distinct from a Model's verdict.
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Refusal {
+    /// A progress bound must admit at least one transition.
+    #[error("progress claim {claim} bound must be at least one (given: {given})")]
+    ProgressBound {
+        /// The claim whose bound is invalid.
+        claim: String,
+        /// The numeric bound supplied by the author or caller.
+        given: u32,
+    },
     /// The supplied state budget cannot admit any state.
     #[error("state budget must be at least one (given: {given})")]
     Budget {

@@ -55,6 +55,7 @@ impl Machine for World {
             Progress::evaluated("reaches_one", |world: &Self, state| {
                 world.calls.set(world.calls.get() + 1);
                 ProgressEvaluation {
+                    bound: None,
                     trigger: Verdict::Holds,
                     target: (*state == 1).into(),
                     assumption: match world.changing {
@@ -68,6 +69,7 @@ impl Machine for World {
         }];
         if self.second {
             claims.push(Progress::evaluated("other_assumption", |_, state| ProgressEvaluation {
+                bound: None,
                 trigger: Verdict::Holds,
                 target: (*state == 1).into(),
                 assumption: Assumption::without(&[0]),

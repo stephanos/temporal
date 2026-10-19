@@ -8,5 +8,5 @@ mod visited;
 
 pub use explore::{Checker, Counts, Result, Transition};
 pub use refusal::Refusal;
-pub use report::{ClaimResult, Path, PathStep, Report};
+pub use report::{ClaimResult, Path, PathStep, ProgressVerdict, Report};
 pub use visited::{FullStates, StateId, Visited};

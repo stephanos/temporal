@@ -18,6 +18,8 @@ It retains the request and returns a separately owned response allocation, or ze
 Unknown methods, malformed requests and invalid checker queries return typed Refusal envelopes.
 `REFUSAL_CODE_SCOPE_ACTION` (7) covers invalid action admission, including unknown catalog
 actions and explicit restrictions that admit no actions. The message distinguishes these refusals.
+`REFUSAL_CODE_MALFORMED_REQUEST` (2) also covers invalid progress bounds. A zero bound
+names its claim in the diagnostic; it is distinct from a state-budget refusal (3).
 The host copies response bytes before freeing either allocation, then frees both exactly once.
 Access to one instance is serialized. An unexpected trap invalidates the host instance.
 

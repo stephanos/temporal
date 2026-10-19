@@ -79,6 +79,7 @@ impl Machine for World {
                 vec![Progress::evaluated("pending", |world: &Self, _| {
                     world.calls.set(world.calls.get() + 1);
                     ProgressEvaluation {
+                        bound: None,
                         trigger: Verdict::Holds,
                         target: Verdict::Fails,
                         assumption: if matches!(world.source, Source::Generated) {

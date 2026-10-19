@@ -55,6 +55,40 @@ impl<S: Spell, A: Spell> Spell for Path<S, A> {
     }
 }
 
+/// A logical progress claim's temporal classification.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum ProgressVerdict {
+    /// An outstanding obligation reaches a state with no admitted successor.
+    Deadlock,
+    /// A target-avoiding closed walk satisfies the explicit weak fairness assumptions.
+    Cycle,
+    /// A bounded obligation can avoid its target for the declared number of transitions.
+    MissedDeadline,
+    /// Every outstanding obligation reaches its target.
+    Verified {
+        /// Longest first-target distance, absent when fairness allows arbitrary delay.
+        longest: Option<u32>,
+    },
+    /// Missing behavior or inconsistent metadata prevents a conclusion.
+    Unknown,
+}
+
+impl Spell for ProgressVerdict {
+    fn spell(&self, out: &mut String) {
+        match self {
+            Self::Deadlock => out.push_str("Deadlock"),
+            Self::Cycle => out.push_str("Cycle"),
+            Self::MissedDeadline => out.push_str("MissedDeadline"),
+            Self::Verified { longest } => {
+                out.push_str("Verified { longest: ");
+                longest.spell(out);
+                out.push_str(" }");
+            }
+            Self::Unknown => out.push_str("Unknown"),
+        }
+    }
+}
+
 /// A named claim's aggregate verdict and first counterexample.
 #[derive(Clone)]
 pub struct ClaimResult<S, A> {
@@ -62,6 +96,10 @@ pub struct ClaimResult<S, A> {
     pub name: String,
     /// Whether the claim holds, fails, or remains undecided.
     pub outcome: Outcome,
+    /// Temporal classification for a logical progress result; absent for safety or defects.
+    pub verdict: Option<ProgressVerdict>,
+    /// Advice attached to a logical progress refutation.
+    pub hint: Option<String>,
     /// A concrete path witnessing refutation.
     pub path: Option<Path<S, A>>,
     /// Reached hole reasons, in first-observed order.
