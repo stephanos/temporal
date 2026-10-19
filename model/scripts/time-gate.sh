@@ -1,11 +1,10 @@
 #!/usr/bin/env bash
-# Times the model gate (fn-210 R30) and warns when the feedback loop exceeds its budget.
-# Uses bash's `time` so it works on macOS and Linux alike. It warns rather than fails: timing is
-# machine-dependent, and a breach is fixed or excepted by the owner, not retried until green.
+# Times the model gate (fn-210 R30), recording overruns against soft targets.
+# Small isolated overruns do not block completion; investigate substantial or repeated overruns.
 set -euo pipefail
 cd "$(dirname "$0")/.."
 
-INNER_BUDGET=${UMPIRE_INNER_BUDGET:-3}   # seconds: edit one crate, rebuild, run its fixtures
+INNER_BUDGET=${UMPIRE_INNER_BUDGET:-10}  # seconds: edit one crate, rebuild, run its fixtures
 GATE_BUDGET=${UMPIRE_GATE_BUDGET:-30}    # seconds: the whole local gate, warm
 
 TIMEFORMAT=%R
@@ -42,7 +41,7 @@ printf 'inner source: %s\ninner command: mise exec -- cargo test -p %s --quiet\n
 touch "$inner_file"
 out=$(step "inner loop (edit+test)" mise exec -- cargo test -p "$inner_crate" --quiet); echo "${out%$'\n'*}"; inner=${out##*$'\n'}
 
-printf '%-32s %6ss  (budget %ss)\n' "gate total" "$total" "$GATE_BUDGET"
-printf '%-32s %6ss  (budget %ss)\n' "inner loop" "$inner" "$INNER_BUDGET"
-awk -v t="$total" -v g="$GATE_BUDGET" 'BEGIN{ if (t > g) print "warning: gate over budget (fn-210 R30)" }'
-awk -v i="$inner" -v b="$INNER_BUDGET" 'BEGIN{ if (i > b) print "warning: inner loop over budget (fn-210 R30)" }'
+printf '%-32s %6ss  (soft target %ss)\n' "gate total" "$total" "$GATE_BUDGET"
+printf '%-32s %6ss  (soft target %ss)\n' "inner loop" "$inner" "$INNER_BUDGET"
+awk -v t="$total" -v g="$GATE_BUDGET" 'BEGIN{ if (t > g) print "note: gate over soft target (fn-210 R30)" }'
+awk -v i="$inner" -v b="$INNER_BUDGET" 'BEGIN{ if (i > b) print "note: inner loop over soft target (fn-210 R30)" }'

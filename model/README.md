@@ -31,7 +31,7 @@ The gate, from the repository root (`temporal/`):
 ```
 make model-check   # fmt --check, clippy -D warnings on all targets, docs with warnings denied, tests
 make model-fmt     # rustfmt the workspace
-make model-time    # time the actual gate; warns over the 3 s inner-loop and 30 s gate budgets (fn-210 R30)
+make model-time    # time the actual gate; note overruns of 10 s inner-loop / 30 s gate soft targets (R30)
 ```
 
 The gate also checks resolved core capability restrictions and their negative controls,

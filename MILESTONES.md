@@ -17,10 +17,10 @@ As of 2026-10-19.
 ## Direction
 
 On 2026-10-18 the owner paused everything else for one question: should Umpire be built in Rust?
-The Scala framework is frozen under `model/archived/` for reference and is not expected to build. Every spec other
-than fn-210 and its follow-ups fn-212 and fn-211 is deferred in Flow (each carries a dated Decision Context
-line) and is not listed here; the earlier Scala phases and the one-language series live in those
-specs. Those deferred Scala plans retain paths relative to the archived tree.
+The Scala framework is frozen under `model/archived/` for reference and is not expected to build.
+Earlier Scala phases and the one-language series remain deferred in Flow and retain paths relative
+to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
+readiness gates and dependencies still apply.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -36,7 +36,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
 | Umpire in Rust (now) | fn-210.22 and .7 | The archive, flat attribute Kettle with actor-match transitions, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, direct wasm ABI and generic Go host relocation are complete; sample/behavior fixture naming and the final comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
-| After the verdict | fn-216 (mini activity vertical slice, the first Temporal Model and the Model as oracle in a real SDK run), then fn-217 (annotation catalog over the Temporal API with the server-error gap analysis), in parallel with fn-214 (progress vocabulary on Kettle), fn-215 (`path!` notation) and fn-213 (ModelSuite: examples and explorations; .4 after fn-214), then fn-218 (test-space patterns: `cover`); then fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| After the verdict | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice planned by fn-210.7 keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -80,10 +80,10 @@ What is fixed, all owner decisions of 2026-10-18:
 - **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
-- **Feedback loop (R30).** The inner loop (edit one crate, rebuild, run its fixtures) stays at 3 s or
-  less and the full local gate at 30 s or less, warm (baseline 0.8 s and 0.7 s). `make model-time`
-  prints each step and warns over budget; every task reports it when marked done, and a breach is
-  fixed in the task or excepted by the owner. Slow tools (JVM, network) run batched or behind
+- **Feedback loop (R30).** The warm soft targets are 10 s for the inner loop (edit one crate,
+  rebuild, run its fixtures) and 30 s for the full local gate (baseline 0.8 s and 0.7 s). `make model-time`
+  prints each step and notes overruns; every task records the result. Small isolated overruns do
+  not block completion; investigate substantial or repeated overruns. Slow tools (JVM, network) run batched or behind
   `UMPIRE_BACKENDS=require`.
 - **Host interface (R31, R32, R42).** The Model talks to any host through protobuf messages over a
   three-function core-wasm ABI (`umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call`), generated on both sides from one schema in
@@ -98,8 +98,22 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.22 | 🔄 in progress | Renames to `sample_kettle`, `sample_kettle_trait` and `progress_dead_end` are committed with identical payloads and SHIP review; the single 3.038 s inner-loop timing awaits an owner exception or fix |
+| fn-210.22 | 🔄 in progress | Renames to `sample_kettle`, `sample_kettle_trait` and `progress_dead_end` are committed with identical payloads and SHIP review; the recorded 3.038 s inner loop meets the revised 10 s soft target |
 | fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+
+### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
+
+Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
+`Assumption` (renamed from `Scope`; `#[assumption]` methods, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
+`#[internal]` (owner); `Progress::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
+missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
+change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-214.1 | ⬜ todo | `Assumption` with `only`/`fair`; fairness from the assumption only (R1) |
+| fn-214.2 | ⬜ todo | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
+| fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
 
@@ -120,6 +134,64 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 | fn-216.3 | ⬜ todo | After .2: Go test, in-process server, SDK worker answering from the Model, observations judged; completed and failed (R3) |
 | fn-216.4 | ⬜ todo | After .3: DESIGN.md "Mini activity slice" findings for the Case slice (R4) |
 
+### fn-213: ModelSuite in Rust: examples and explorations (model)
+
+Captured on 2026-10-18, after fn-210. Every shared fixture becomes `{model.rs, tests.rs, expected/}`:
+`model.rs` is only the Model, `tests.rs` beside it holds `mod examples` (authored paths: `Run::from`,
+`step`, `repeat`, `expect!`) and `mod explorations` (`Space`, `verify_all`, `refuted`, `find`), as
+plain `#[test]` functions run by `cargo test`; the golden hook moves there too and state fields are
+`pub`. Conformance, Cases and `sample` wait for the Case slice (owner, 2026-10-18). Kettle's
+`tests.rs` asks the questions of the archived `Kettle.test.scala` that the surface admits.
+[Spec](.flow/specs/fn-213-modelsuite-in-rust-examples-and.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-213.1 | ⬜ todo | Fixture layout: `tests.rs` beside `model.rs`, `build.rs` declares both, golden hook moves, `pub` fields (R1) |
+| fn-213.2 | ⬜ todo | After .1 and fn-215: `umpire-suite` examples: `Run`, `step`, `repeat`, `Run::along(path!)`, `expect!`, refusal fixtures (R2, fn-215 R4) |
+| fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
+| fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
+
+### fn-215: The path! pattern: progressions for claims, witnesses and examples (model)
+
+Captured on 2026-10-19, after fn-214. A list with gaps is a pattern over paths:
+`path![self.heating_on, .., self.beeping]` (`..` = any steps, `..=n` = at most `n`). The question
+decides the reading: `#[progress]` (every admitted path; exactly two waypoints, more are refused),
+`find` (some path, shortest leg by leg) and `Run::along` (a milestone story the checker fills in),
+the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
+[Spec](.flow/specs/fn-215-the-path-pattern-progressions-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
+
+### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
+
+After fn-210, first decide whether the independent reading and temporal checks justify the
+lifting subset, emitter and JVM gate. On approval, lift shared Models, run pinned TLC and compare
+reachable states and verdicts through the shared fixture consumer.
+[Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-212.1 | ⬜ todo | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
+| fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
+
+### fn-218: Test-space patterns: cover and the full path! grammar (model)
+
+Captured on 2026-10-19, after fn-215 and fn-213. Tests describe their space in Rust's own pattern
+notation: actions, input ranges, outcomes, faults, alternatives `(a | b)`, repetition `[x; 0..=n]`,
+permutations `unordered![..]`, exclusion gaps `..!(x)`. `cover(&space, Cases(n), ..)` requires the author's expected
+case count, finds one shortest witness per alternative and fails on any alternative without a path (no silent vacuity); the expansion is a
+golden a reviewer reads as the list of cases; a coverage table shows what the tests touched against
+the Model's catalog. The claim form stays two state waypoints.
+[Spec](.flow/specs/fn-218-test-space-patterns-cover-and-the-full.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-218.1 | ⬜ todo | Full `path!` grammar and alternative enumeration; claims refuse it (R1) |
+| fn-218.2 | ⬜ todo | After .1 and fn-213.3: `cover`/`sample` with expansion and coverage goldens (R2, R3, R5) |
+| fn-218.3 | ⬜ todo | After .2: Kettle and mini activity `cover` tests; README grammar (R3, R4) |
+
 ### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
 
 Captured on 2026-10-19, after fn-216. A typed sidecar catalog over the upstream `temporal.api`
@@ -138,78 +210,6 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 | fn-217.3 | ⬜ todo | After .2: mini activity catalog with expected errors; `fill`/`validate` in the slice test (R3, R5) |
 | fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
 | fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
-
-### fn-218: Test-space patterns: cover and the full path! grammar (model)
-
-Captured on 2026-10-19, after fn-215 and fn-213. Tests describe their space in Rust's own pattern
-notation: actions, input ranges, outcomes, faults, alternatives `(a | b)`, repetition `[x; 0..=n]`,
-permutations `unordered![..]`, exclusion gaps `..!(x)`. `cover(&space, Cases(n), ..)` requires the author's expected
-case count, finds one shortest witness per alternative and fails on any alternative without a path (no silent vacuity); the expansion is a
-golden a reviewer reads as the list of cases; a coverage table shows what the tests touched against
-the Model's catalog. The claim form stays two state waypoints.
-[Spec](.flow/specs/fn-218-test-space-patterns-cover-and-the-full.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-218.1 | ⬜ todo | Full `path!` grammar and alternative enumeration; claims refuse it (R1) |
-| fn-218.2 | ⬜ todo | After .1 and fn-213.3: `cover`/`sample` with expansion and coverage goldens (R2, R3, R5) |
-| fn-218.3 | ⬜ todo | After .2: Kettle and mini activity `cover` tests; README grammar (R3, R4) |
-
-### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
-
-Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
-`Assumption` (renamed from `Scope`; `#[assumption]` methods, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
-`#[internal]` (owner); `Progress::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
-missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
-change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-214.1 | ⬜ todo | `Assumption` with `only`/`fair`; fairness from the assumption only (R1) |
-| fn-214.2 | ⬜ todo | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
-| fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
-
-### fn-215: The path! pattern: progressions for claims, witnesses and examples (model)
-
-Captured on 2026-10-19, after fn-214. A list with gaps is a pattern over paths:
-`path![self.heating_on, .., self.beeping]` (`..` = any steps, `..=n` = at most `n`). The question
-decides the reading: `#[progress]` (every admitted path; exactly two waypoints, more are refused),
-`find` (some path, shortest leg by leg) and `Run::along` (a milestone story the checker fills in),
-the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
-[Spec](.flow/specs/fn-215-the-path-pattern-progressions-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
-
-### fn-213: ModelSuite in Rust: examples and explorations (model)
-
-Captured on 2026-10-18, after fn-210. Every shared fixture becomes `{model.rs, tests.rs, expected/}`:
-`model.rs` is only the Model, `tests.rs` beside it holds `mod examples` (authored paths: `Run::from`,
-`step`, `repeat`, `expect!`) and `mod explorations` (`Space`, `verify_all`, `refuted`, `find`), as
-plain `#[test]` functions run by `cargo test`; the golden hook moves there too and state fields are
-`pub`. Conformance, Cases and `sample` wait for the Case slice (owner, 2026-10-18). Kettle's
-`tests.rs` asks the questions of the archived `Kettle.test.scala` that the surface admits.
-[Spec](.flow/specs/fn-213-modelsuite-in-rust-examples-and.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-213.1 | ⬜ todo | Fixture layout: `tests.rs` beside `model.rs`, `build.rs` declares both, golden hook moves, `pub` fields (R1) |
-| fn-213.2 | ⬜ todo | After .1 and fn-215: `umpire-suite` examples: `Run`, `step`, `repeat`, `Run::along(path!)`, `expect!`, refusal fixtures (R2, fn-215 R4) |
-| fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
-| fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
-
-### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)
-
-After fn-210, first decide whether the independent reading and temporal checks justify the
-lifting subset, emitter and JVM gate. On approval, lift shared Models, run pinned TLC and compare
-reachable states and verdicts through the shared fixture consumer.
-[Spec](.flow/specs/fn-212-tla-lifting-and-the-tlc-backend-for.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-212.1 | ⬜ todo | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
-| fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-211: Apalache backend for Umpire in Rust (model)
 

@@ -8,7 +8,7 @@ satisfies: [R7, R24, R30, R34, R35, R37, R38, R39, R40]
 
 **Next slice (R34):** DESIGN.md's recommendation section carries R34's and R35's Testpilot targets (no CEL; generic runtime at most 5,000 lines, Testpilot at most 11,000) into the Case slice's plan.
 
-**Feedback loop (R30):** keep the inner loop at 3 s or less and `make model-check` at 30 s or less, warm; paste `make model-time` output into the done summary; a breach is fixed here or excepted by the owner.
+**Feedback loop (R30, owner amended 2026-10-19):** warm soft targets are 10 s for the inner loop and 30 s for `make model-check`. Paste the actual `make model-time` output into the done summary. Record small isolated overruns without blocking completion; investigate substantial or repeated overruns. Preserve observations without retrying an overrun away.
 
 **Shared fixtures 2026-10-18 (R29):** end-to-end fixtures live in `umpire/tests/fixtures/<name>/` after .13; their expected files select the consumers (checker, TLC, Apalache).
 
