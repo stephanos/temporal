@@ -41,17 +41,50 @@ Missing or changed tools, subprocess failures/limits, incomplete dumps and disag
 are refusals, never passing or silently skipped checks. Each Java process owns its temporary
 library extraction and state directory, avoiding concurrent JVM extraction races.
 
-The shared fixture corpus admits 19 fixtures, including both Kettles at 283 projected states,
-choice/fact controls, weak-fairness controls and scoped progress; these are control variants,
-not 19 independent products. Six sources retain located refusals: `deep_chain` and
-`interleaved_claims` contain manual inherent helpers outside the admitted resolver (and also
-use an unsupported state type or supplemental manual registrations, respectively);
+The shared fixture corpus admits 8 fixtures: attribute Kettle at 283 projected states,
+`changed_state`, and six attribute progress graphs covering weak fairness and scoped progress;
+these are control variants, not 8 independent products. Four sources retain located refusals:
 `kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
-subset. The newer `rejecting_steps` fixture uses a helper and rejecting outcomes outside
-the subset. Some are expressible Models whose Rust source form is not yet admitted.
+subset, and `rejecting_steps` uses a helper and rejecting outcomes outside the subset.
 The system-owned fixture root additionally owns source-dependent artifacts. The newer
 `Phased`/`reject!`/generic `closable` shape is outside this subset: it requires a located
 refusal and has no system TLC agreement evidence. Older source evidence must not certify it.
+
+Trait-form shared fixtures (fn-223). Each manual `Machine` fixture that shared the corpus was
+rewritten as a `#[machine]` Model or moved to `umpire/checker/tests/fixtures/` (no TLC
+goldens), so the lifter needs to read one source form. A rewrite keeps every behaviour
+golden byte-identical except two spellings: state `State { 0: n }` → `Model { value: n }`
+and action `Action::X` → `User::X` (or `Environment::X` for the internal actor). Its TLC
+agreement golden is unchanged; its emitted module and configuration are regenerated
+(`State.tla`/`.cfg` → `Graph.tla`/`.cfg`). A move keeps its checker goldens byte-identical
+and drops its lift, module, configuration and TLC goldens. Nothing was removed. The gaps
+are attribute-surface facts for a later spec, not filled here:
+
+| Fixture | Disposition | Reason or surface gap |
+| --- | --- | --- |
+| `sample_kettle_trait` | checker-only | Independent engine reference (owner, fn-210.7); the wasm guest includes its `kettle.rs`. Report byte-identical to `sample_kettle`; its TLC coverage (283 states, same four claims) stays pinned by `sample_kettle`. |
+| `choices` | checker-only | One action yields three ordered choices with `bool` outcomes and string facts, two to the same target; handlers emit one edge with unit or `Outcome` outcomes and no facts. TLC loses choice/outcome/fact replay. |
+| `edge_checks` | checker-only | `bool` outcomes and an authored self-loop (`Idle` at 2); unchanged handlers are disabled. Refuted postconditions with replayed counterexamples stay on TLC through `changed_state`; the `after`-filtered self-loop refutation does not. |
+| `vacuity` | checker-only | Same `bool` outcomes and self-loop as `edge_checks`. Never-triggered `after` claims stay on TLC through `changed_state`. |
+| `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]`, `bool` outcomes and a self-loop; `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
+| `deep_chain` | checker-only | State carries a shared `Rc<Cell>` clone counter and the hook asserts linear clone work; a checker property, already refused by the lifter. |
+| `interleaved_claims` | checker-only | Claim order interleaves kinds (`claim_order`) and the hook adds a supplemental manual claim; attribute claims are contiguous per kind. Already refused by the lifter. |
+| `progress_graph` (cycle) | attribute | |
+| `progress_continuous` | attribute | |
+| `progress_intermittent` | attribute | |
+| `progress_two_lobes` | attribute | Catalog order is `Enter, Escape, Left, Right` (was `Enter, Left, Right, Escape`); `Enter`/`Escape` never fire, so every golden is unchanged. |
+| `progress_fulfilled` | attribute | |
+| `progress_trigger_stops` | attribute | |
+| `progress_self_loop` | checker-only | Authored self-loop. Holds the trimmed trait `Graph` the other moved progress fixtures use. |
+| `progress_multiple_starts` | checker-only | Starts `[9, 0]` outside a field range, and a self-loop. |
+| `progress_target_barrier` | checker-only | Self-loop after the target. |
+| `progress_excluded_prefix` | checker-only | Self-loop inside the scope. |
+| `progress_scope_exit` | checker-only | Self-loop beside an excluded fair escape. |
+| `progress_action_choices` | checker-only | One fair action with two choices, one a self-loop. |
+
+The eleven `progress_*` fixtures selected a mode of the trait `progress_graph` Model, so they
+were trait-form too. TLC no longer pins self-loops, nondeterministic choice, non-`()` outcomes,
+facts or starts outside a field range anywhere in the shared corpus.
 
 Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
 artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs
@@ -77,7 +110,7 @@ and `umpire_call`. Both sides use
 generated messages from `umpire/proto/umpire/model/v1/model.proto` (renamed from
 the original oracle namespace by fn-216); Refusal is a
 case of the common Response envelope, separate from a checker verdict or trap.
-The guest includes `umpire/tests/fixtures/sample_kettle_trait/model.rs` directly.
+The guest includes `umpire/checker/tests/fixtures/sample_kettle_trait/kettle.rs` directly.
 
 Rust exports these names directly using the stock linker. The buffer-release name
 avoids WASI libc's internal `free` symbol. The default gate compiles and runs the
@@ -378,7 +411,7 @@ far more than Kettle: these are module sizes, not equal-feature implementation c
 | Sample or support surface | Files | Physical | Nonblank | Nonblank excluding whole-line `//` comments |
 | --- | ---: | ---: | ---: | ---: |
 | Final `sample_kettle/model.rs` | 1 | 106 | 93 | 79 |
-| Manual `sample_kettle_trait/model.rs` | 1 | 120 | 106 | 106 |
+| Manual `sample_kettle_trait/kettle.rs` | 1 | 120 | 106 | 106 |
 | Frozen `Kettle.scala` | 1 | 82 | 71 | 57 |
 | All shared fixture Models (including both Kettles and controls) | 25 | 980 | 862 | — |
 | Checked-in formatted macro expansion snapshots | 3 | 561 | 561 | — |

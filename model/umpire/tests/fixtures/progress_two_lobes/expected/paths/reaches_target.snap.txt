@@ -1,8 +1,8 @@
 prefix:
-start: State { 0: 0 }
+start: Model { value: 0 }
 cycle:
-1: Action::Left choice=0 -> State { 0: 1 }
-2: Action::Left choice=0 -> State { 0: 0 }
-3: Action::Right choice=0 -> State { 0: 2 }
-4: Action::Right choice=0 -> State { 0: 0 }
+1: Environment::Left choice=0 -> Model { value: 1 }
+2: Environment::Left choice=0 -> Model { value: 0 }
+3: Environment::Right choice=0 -> Model { value: 2 }
+4: Environment::Right choice=0 -> Model { value: 0 }
 repeat cycle

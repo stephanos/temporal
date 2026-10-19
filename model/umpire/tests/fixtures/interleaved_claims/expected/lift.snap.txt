@@ -1,1 +1,0 @@
-fixtures/interleaved_claims/model.rs:17:5: warning: manual source: authored inherent methods and clone/into overrides require unsupported manual helper resolution; TLA+ emission refused

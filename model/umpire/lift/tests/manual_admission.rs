@@ -126,7 +126,7 @@ fn raw_machine_method_spellings_cannot_hide_overrides_or_claims()
         "fn r#checked_step",
         "raw-identifier",
     )?;
-    let source = include_str!("../../tests/fixtures/choices/model.rs")
+    let source = include_str!("../../checker/tests/fixtures/choices/model.rs")
         .replace("fn invariants", "fn r#invariants");
     located_refusal("raw_invariants.rs", &source, "fn r#invariants", "raw-identifier")
 }

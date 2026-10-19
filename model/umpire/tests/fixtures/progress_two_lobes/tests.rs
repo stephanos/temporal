@@ -1,3 +1,3 @@
-use crate::progress_two_lobes::{Graph, Mode};
+use crate::progress_two_lobes::graph;
 
-umpire_testing::fixture!(Graph(Mode::TwoLobes), 16);
+umpire_testing::fixture!(graph::world(), 16);

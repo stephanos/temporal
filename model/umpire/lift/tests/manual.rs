@@ -3,7 +3,7 @@ use umpire_lift::{Lift, Tla};
 
 #[test]
 fn manual_choices_keep_each_authored_outcome_and_fact() -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../tests/fixtures/choices/model.rs");
+    let source = include_str!("../../checker/tests/fixtures/choices/model.rs");
     let lifted = Lift::parse("choices/model.rs", source)?;
     let module = Tla::emit(&lifted)?;
     assert_eq!(module.metadata.actions.len(), 4);
@@ -21,7 +21,7 @@ fn manual_choices_keep_each_authored_outcome_and_fact() -> Result<(), Box<dyn st
 #[test]
 fn manual_authored_edge_tables_and_mode_wrappers_lift() -> Result<(), Box<dyn std::error::Error>> {
     let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../tests/fixtures/progress_graph/model.rs");
+        .join("../checker/tests/fixtures/progress_self_loop/model.rs");
     let module = Tla::emit(&Lift::source(&path)?)?;
     assert_eq!(module.metadata.actions.len(), 4);
     assert_eq!(module.metadata.progress[0].name, "reaches_target");
@@ -30,7 +30,7 @@ fn manual_authored_edge_tables_and_mode_wrappers_lift() -> Result<(), Box<dyn st
 
 #[test]
 fn manual_trait_kettle_lifts_starts_effects_and_claims() -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../tests/fixtures/sample_kettle_trait/model.rs");
+    let source = include_str!("../../checker/tests/fixtures/sample_kettle_trait/kettle.rs");
     let lifted = Lift::parse("sample_kettle_trait/model.rs", source)?;
     let module = Tla::emit(&lifted)?;
     assert_eq!(module.metadata.fields.len(), 3);
@@ -41,28 +41,13 @@ fn manual_trait_kettle_lifts_starts_effects_and_claims() -> Result<(), Box<dyn s
 }
 
 #[test]
-fn wrappers_keep_their_selected_mode_and_dependency() -> Result<(), Box<dyn std::error::Error>> {
-    let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("../tests/fixtures/progress_continuous/model.rs");
-    let lifted = Lift::source(&path)?;
-    let module = Tla::emit(&lifted)?;
-    assert_eq!(module.metadata.inputs.len(), 2);
-    assert_eq!(module.metadata.progress[0].fair, ["Action::Escape"]);
-    assert_eq!(
-        module.metadata.world_path,
-        "crate::progress_graph::Graph(crate::progress_graph::Mode::Continuous)"
-    );
-    Ok(())
-}
-
-#[test]
 fn optional_states_preserve_shared_starts_and_step_claims() -> Result<(), Box<dyn std::error::Error>>
 {
-    let source = include_str!("../../tests/fixtures/edge_checks/model.rs");
+    let source = include_str!("../../checker/tests/fixtures/edge_checks/model.rs");
     let lifted = Lift::parse("edge_checks/model.rs", source)?;
     let module = Tla::emit(&lifted)?;
     assert_eq!(module.metadata.postconditions.len(), 2);
-    let source = include_str!("../../tests/fixtures/vacuity/model.rs");
+    let source = include_str!("../../checker/tests/fixtures/vacuity/model.rs");
     let vacuity = Tla::emit(&Lift::parse("vacuity/model.rs", source)?)?;
     assert!(vacuity.tla.lines().any(|line| line.starts_with("Post_unused_claim ==")
         && line.contains("Action::Unused")
@@ -72,7 +57,7 @@ fn optional_states_preserve_shared_starts_and_step_claims() -> Result<(), Box<dy
 
 #[test]
 fn manual_source_refuses_untranslated_statements_and_state_calls() {
-    let original = include_str!("../../tests/fixtures/choices/model.rs");
+    let original = include_str!("../../checker/tests/fixtures/choices/model.rs");
     for source in [
         original.replace("impl Machine for Tiny", "impl evil::Machine for Tiny"),
         original.replace("use umpire_dsl::", "use evil::"),
@@ -93,7 +78,7 @@ fn manual_source_refuses_untranslated_statements_and_state_calls() {
 
 #[test]
 fn conditional_pushes_keep_enabled_choice_order() -> Result<(), Box<dyn std::error::Error>> {
-    let original = include_str!("../../tests/fixtures/choices/model.rs");
+    let original = include_str!("../../checker/tests/fixtures/choices/model.rs");
     let alternative = original.replace(
         "        }\n        steps",
         "        } else { steps.push((true, vec![\"fallback\"], Value(0))); }\n        steps",
@@ -106,7 +91,7 @@ fn conditional_pushes_keep_enabled_choice_order() -> Result<(), Box<dyn std::err
 }
 
 fn with_progress(builder: &str) -> String {
-    include_str!("../../tests/fixtures/choices/model.rs")
+    include_str!("../../checker/tests/fixtures/choices/model.rs")
         .replace("{Claim, Machine,", "{Claim, Progress, Scope, Machine,")
         .replace("    fn invariants", &format!("    fn progress(&self) -> Vec<Progress<Self>> {{ vec![{builder}] }}\n    fn invariants"))
 }
@@ -144,7 +129,7 @@ fn manual_progress_assuming_replaces_the_entire_prior_assumption()
 #[test]
 fn manual_overwritten_updates_keep_the_prior_checked_arithmetic()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../tests/fixtures/sample_kettle_trait/model.rs")
+    let source = include_str!("../../checker/tests/fixtures/sample_kettle_trait/kettle.rs")
         .replace("next.temperature += 1;", "next.temperature += 1; next.temperature = 0;");
     let module = Tla::emit(&Lift::parse("overwritten.rs", &source)?)?;
     assert!(module.tla.contains("(temperature) + (1)"));
@@ -153,7 +138,7 @@ fn manual_overwritten_updates_keep_the_prior_checked_arithmetic()
 
 #[test]
 fn manual_start_map_refuses_arithmetic_with_an_unresolved_rust_integer_type() {
-    let source = include_str!("../../tests/fixtures/choices/model.rs")
+    let source = include_str!("../../checker/tests/fixtures/choices/model.rs")
         .replace("vec![Value(0)]", "(255..=255).map(|n| Value(n + 1 - 1)).collect()");
     let Err(error) = Lift::parse("start_inference.rs", &source) else {
         panic!("u8 map arithmetic was silently widened");
@@ -164,7 +149,7 @@ fn manual_start_map_refuses_arithmetic_with_an_unresolved_rust_integer_type() {
 
 #[test]
 fn manual_source_refuses_authored_clone_and_into_overrides() {
-    let original = include_str!("../../tests/fixtures/edge_checks/model.rs");
+    let original = include_str!("../../checker/tests/fixtures/edge_checks/model.rs");
     for source in [
         original.replace(
             "pub struct Tiny;",

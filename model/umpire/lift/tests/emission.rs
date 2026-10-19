@@ -146,7 +146,7 @@ fn real_tlc_preserves_escaped_fact_values_in_counterexamples()
     }
     let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../..");
     let tlc = Tlc::discover(&root)?;
-    let source = include_str!("../../tests/fixtures/choices/model.rs").replacen(
+    let source = include_str!("../../checker/tests/fixtures/choices/model.rs").replacen(
         "\"accepted\"",
         r#""a\tb\rc\n\"\\end""#,
         1,

@@ -1,3 +1,3 @@
-use crate::progress_intermittent::{Graph, Mode};
+use crate::progress_intermittent::graph;
 
-umpire_testing::fixture!(Graph(Mode::Intermittent), 16);
+umpire_testing::fixture!(graph::world(), 16);

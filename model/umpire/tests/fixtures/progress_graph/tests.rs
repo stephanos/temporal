@@ -1,3 +1,3 @@
-use crate::progress_graph::{Graph, Mode};
+use crate::progress_graph::graph;
 
-umpire_testing::fixture!(Graph(Mode::Cycle), 16);
+umpire_testing::fixture!(graph::world(), 16);

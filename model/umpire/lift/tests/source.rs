@@ -205,7 +205,7 @@ fn repeated_progress_builders_refuse_instead_of_reversing_rust_order()
 #[test]
 fn unsupported_control_characters_refuse_at_the_authored_literal()
 -> Result<(), Box<dyn std::error::Error>> {
-    let source = include_str!("../../tests/fixtures/choices/model.rs");
+    let source = include_str!("../../checker/tests/fixtures/choices/model.rs");
     for literal in [r#""a\0b""#, r#""a\u{7f}b""#] {
         let source = source.replace("\"accepted\"", literal);
         let error = Lift::parse("literal.rs", &source)

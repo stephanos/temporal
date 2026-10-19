@@ -216,9 +216,9 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 shared fixture folder without `model.rs`, `tests.rs` or `expected/` fails the build naming it. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-tests` at `umpire/tests/` owns 25 shared fixtures in `fixtures/<name>/`.
-`sample_kettle` and `sample_kettle_trait` are the canonical attribute and manual-trait authoring
-examples; focused controls are named for the behavior they test. `progress_dead_end` refutes
+`umpire-tests` at `umpire/tests/` owns 12 shared fixtures in `fixtures/<name>/`, all
+`#[machine]` Models or adapters of one. `sample_kettle` is the canonical authoring example;
+focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
 action to reach the target. The crate's sole test target is `fixtures.rs`.
 A shared fixture's `model.rs` holds only the Model (what `#[machine]` registers, what the lifter
@@ -227,10 +227,13 @@ lives in `tests.rs` beside it. The build declares both as sibling modules, `<nam
 `<name>_tests`, so `tests.rs` reaches the Model as `crate::<name>` and state fields are `pub`.
 Folder names that are not plain lowercase identifiers compile under an escaped `fixture_` module.
 The lifter reads a hook's supplemental claims and selected mode from `tests.rs`.
-The Kettle Models live in their own fixture's `model.rs`;
-native and wasm hosts can include that source by path. The trait Kettle has executable native
-report, states and rows goldens. Checker-specific failures, panics, overflows, holes, budget cuts
-and refusals remain in `umpire/checker/tests/fixtures/`. DSL formatting fixtures remain with the DSL.
+The attribute Kettle lives in its fixture's `model.rs`; native and wasm hosts can include
+that source by path. Checker-specific failures, panics, overflows, holes, budget cuts and
+refusals remain in `umpire/checker/tests/fixtures/`, together with the manual-trait Models the
+attribute surface cannot state (DESIGN.md lists each with its gap). Among them,
+`sample_kettle_trait` is the independent manual-trait engine reference: its Model is
+`kettle.rs`, which the stock wasm guest includes, and its report, states and rows goldens are
+the Go host's expected payloads. DSL formatting fixtures remain with the DSL.
 The historical authoring sketches have been retired after preserving their comparison in
 [DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
@@ -283,8 +286,8 @@ let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 
 This checks the source-lifted scope independently. Complete native set/verdict agreement is
 a separate fixture obligation; a cut native exploration cannot establish it. The admitted
-source subset includes scalar/enum attribute Models and the shared manual transition-table,
-choice, and progress controls. Checked integer operations use signed TLC-representable
+source subset includes scalar/enum attribute Models; no shared fixture still relies on the
+manual-trait subset. Checked integer operations use signed TLC-representable
 Rust types (`i8`, `i16`, `i32`, `u8`, `u16`); wider types refuse by source location.
 Attribute Models also admit explicitly imported `imbl::Vector<T>` with scalar/enum elements:
 `new`/`default`, `len`, `is_empty`, guarded `push_back`, and safe `get` queries

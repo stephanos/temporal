@@ -7,5 +7,5 @@ depth: 2
 cut: false
 outcome: Verified
 claim reaches_target: Verified
-vacuity: action Action::Right never fired
-vacuity: action Action::Escape never fired
+vacuity: action User::Right never fired
+vacuity: action User::Escape never fired

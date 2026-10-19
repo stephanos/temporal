@@ -103,7 +103,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     };
     assert_eq!(
         result.report,
-        include_str!("../../tests/fixtures/sample_kettle_trait/expected/report.snap.txt")
+        include_str!("../../checker/tests/fixtures/sample_kettle_trait/expected/report.snap.txt")
     );
     assert_eq!(
         (
@@ -128,7 +128,7 @@ fn generated_dispatch_matches_trait_kettle_goldens() {
     }
     assert_eq!(
         text,
-        include_str!("../../tests/fixtures/sample_kettle_trait/expected/rows.snap.txt")
+        include_str!("../../checker/tests/fixtures/sample_kettle_trait/expected/rows.snap.txt")
     );
 }
 

@@ -7,4 +7,4 @@ depth: 2
 cut: false
 outcome: Refuted
 claim reaches_target: Refuted
-vacuity: action Action::Escape never fired
+vacuity: action User::Escape never fired

@@ -1,3 +1,3 @@
-use crate::progress_trigger_stops::{Graph, Mode};
+use crate::progress_trigger_stops::graph;
 
-umpire_testing::fixture!(Graph(Mode::TriggerStops), 16);
+umpire_testing::fixture!(graph::world(), 16);

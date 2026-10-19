@@ -1,6 +1,6 @@
 use crate::{Realize, Runtime, google::protobuf::Any, protocol};
 
-#[path = "../../tests/fixtures/sample_kettle_trait/model.rs"]
+#[path = "../../checker/tests/fixtures/sample_kettle_trait/kettle.rs"]
 #[allow(missing_docs, unreachable_pub)]
 mod kettle;
 
