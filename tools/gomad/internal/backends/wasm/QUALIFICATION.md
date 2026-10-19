@@ -152,7 +152,10 @@ Result and receipt under `GOMAD_WASM_SUPPORT_LIST_ROOTS` (absolute qualification
 roots, path-list separated) and the JSON array of gate records at
 `GOMAD_WASM_SUPPORT_LIST_GATES`. It then writes `<GOMAD_WASM_SUPPORT_LIST_OUTPUT>.json`
 and `.md` in the run's evidence root. The conductor copies both files unchanged
-next to the checkpoint records as `.flow/artifacts/fn222-support-list-<date>.{json,md}`. Each root must hold only support-cell
+next to the checkpoint records as `.flow/artifacts/fn222-support-list-<date>.{json,md}`. A run that
+writes a smoke-only list before trying further rows retains the full list when every
+row passed, and otherwise the smoke-only list; the copied list is the one whose rows
+all passed. Gate logs are referenced by absolute path inside that run's evidence root. Each root must hold only support-cell
 Results; a root that also holds other cells, such as the mandatory corpus root, is
 refused. No list exists yet for the current candidate.
 
