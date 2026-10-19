@@ -41,13 +41,6 @@ pub mod activity {
         }
     }
 
-    /// Model's dynamic state.
-    #[derive(State)]
-    pub struct Model {
-        /// The activity's only dynamic field; Default supplies Scheduled at the start.
-        pub phase: Phase,
-    }
-
     /// Actions controlled by the client.
     #[derive(Action, Copy)]
     pub enum Client {
@@ -74,6 +67,13 @@ pub mod activity {
         ScheduleToStart,
         /// Expire while held by a worker.
         StartToClose,
+    }
+
+    /// Model's dynamic state.
+    #[derive(State)]
+    pub struct Model {
+        /// The activity's only dynamic field; Default supplies Scheduled at the start.
+        pub phase: Phase,
     }
 
     impl Model {

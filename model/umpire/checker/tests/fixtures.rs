@@ -1,5 +1,7 @@
 //! Synthetic checker behavior fixtures.
 
+#[path = "support/formatting.rs"]
+mod formatting;
 #[path = "support/progress_evaluation.rs"]
 mod progress_evaluation;
 #[path = "support/recorder.rs"]
