@@ -76,18 +76,18 @@ the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
 
 ### fn-223: One lifted source form: the lifter reads attribute Models only (model)
 
-Captured on 2026-10-19 at the owner's request. About 2,000 of 's 5,000 source lines
-lower the hand-written  trait form, used only by eight shared test fixtures. Each fixture
-is rewritten as a  Model with unchanged behaviour goldens, or moved checker-only with
+Captured on 2026-10-19 at the owner's request. About 2,000 of `umpire-lift`'s 5,000 source lines
+lower the hand-written `Machine` trait form, used only by eight shared test fixtures. Each fixture
+is rewritten as a `#[machine]` Model with unchanged behaviour goldens, or moved checker-only with
 its surface gap recorded; then the trait lowering is deleted and hand-written source is refused
-by location. The  trait itself stays. Placed after fn-215 and before fn-213.2 so later
+by location. The `Machine` trait itself stays. Placed after fn-215 and before fn-213.2 so later
 suite, cover and Apalache work builds on one front end.
 [Spec](.flow/specs/fn-223-one-lifted-source-form-the-lifter-reads.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-223.1 | ⬜ todo | After fn-215: trait-form fixtures rewritten or moved checker-only; disposition table in DESIGN.md (R1) |
-| fn-223.2 | ⬜ todo | After .1: delete the manual lowering; located refusal for hand-written  source (R2) |
+| fn-223.2 | ⬜ todo | After .1: delete the manual lowering; located refusal for hand-written `Machine` source (R2) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 
