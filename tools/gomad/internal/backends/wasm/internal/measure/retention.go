@@ -49,9 +49,15 @@ func (scope *runScope) beginRetention(ctx context.Context) (_ *retainedRun, retE
 	if !filepath.IsAbs(base) || filepath.Clean(base) != base || base == string(filepath.Separator) {
 		return nil, fmt.Errorf("%w: measurement output root must be an absolute clean non-root path", ErrRefused)
 	}
+	if insideRetentionStore(base) {
+		return nil, fmt.Errorf("%w: measurement output root %s is inside a retained measurement store; pass the originally requested root", ErrRefused, base)
+	}
 	baseRoot, err := retentionBase(base, true)
 	if err != nil {
 		return nil, err
+	}
+	if insideRetentionStore(baseRoot.Name()) {
+		return nil, errors.Join(fmt.Errorf("%w: measurement output root %s is inside a retained measurement store", ErrRefused, base), baseRoot.Close())
 	}
 	store, openErr := retentionDirectory(filepath.Join(baseRoot.Name(), ".gomad-measure", scope.name), true)
 	err = errors.Join(openErr, baseRoot.Close())
@@ -119,7 +125,7 @@ func (scope *runScope) beginRetention(ctx context.Context) (_ *retainedRun, retE
 		return nil, err
 	}
 	if err := run.pinInputs(scope.options.Inputs, variable); err != nil {
-		return nil, fmt.Errorf("%w: retain measurement inputs (hardlinks must share a filesystem): %w", ErrRefused, err)
+		return nil, fmt.Errorf("%w: retain measurement inputs: %w", ErrRefused, err)
 	}
 	if err := ctx.Err(); err != nil {
 		return nil, err
@@ -129,6 +135,24 @@ func (scope *runScope) beginRetention(ctx context.Context) (_ *retainedRun, retE
 	scope.options.Inputs[variable] = run.path
 	logf(ctx, "staged output=%s", run.path)
 	return run, nil
+}
+
+// insideRetentionStore reports whether path, or its nearest existing ancestor's
+// canonical form, lies in a .gomad-measure store, where new runs would nest
+// inside immutable results.
+func insideRetentionStore(path string) bool {
+	for existing := path; ; existing = filepath.Dir(existing) {
+		if slices.Contains(strings.Split(existing, string(filepath.Separator)), ".gomad-measure") {
+			return true
+		}
+		if canonical, err := filepath.EvalSymlinks(existing); err == nil {
+			return slices.Contains(strings.Split(canonical, string(filepath.Separator)), ".gomad-measure") ||
+				slices.Contains(strings.Split(path, string(filepath.Separator)), ".gomad-measure")
+		}
+		if existing == filepath.Dir(existing) {
+			return false
+		}
+	}
 }
 
 func retentionBase(path string, create bool) (*os.Root, error) {
@@ -265,6 +289,15 @@ func (run *retainedRun) pinInput(path string) (retErr error) {
 	if err := validateRetentionPin(root, root.Name()); err != nil {
 		return err
 	}
+	// Collection renames runs aside under their exclusive lease; reject a run moved before we leased it.
+	current, err := os.Lstat(root.Name())
+	if err != nil {
+		return err
+	}
+	opened, err := root.Stat(".")
+	if err != nil || !os.SameFile(current, opened) {
+		return errors.Join(errors.New("retained measurement input was collected"), err)
+	}
 	if err := run.root.Mkdir(".pins", 0700); err != nil && !errors.Is(err, os.ErrExist) {
 		return err
 	}
@@ -332,41 +365,64 @@ func (run *retainedRun) close() error {
 
 func (run *retainedRun) finish(ctx context.Context, success bool) (retErr error) {
 	defer func() { retErr = errors.Join(retErr, run.close()) }()
-	cleanupCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), 10*time.Second)
-	defer cancel()
-	lock, err := retentionStoreLock(cleanupCtx, run.store)
-	if err != nil {
-		return err
-	}
-	defer func() { retErr = errors.Join(retErr, lock.Release()) }()
 	if success {
-		if err := ctx.Err(); err != nil {
-			return err
-		}
-		if _, err := latestRetentionRun(run.store); err != nil {
-			return err
-		}
-		if err := syncRetentionTree(ctx, run.root); err != nil {
-			return err
-		}
-		if err := retentionWrite(run.root, ".complete", nil); err != nil {
-			return err
-		}
-		encoded, err := json.Marshal(run.name)
-		if err != nil {
-			return err
-		}
-		if err := retentionWrite(run.store, "latest.json", append(encoded, '\n')); err != nil {
+		if err := run.publish(ctx); err != nil {
 			return err
 		}
 	}
 	if err := run.lease.Release(); err != nil {
 		return err
 	}
-	if err := lock.Release(); err != nil {
+	reclaimCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), retentionLockTimeout)
+	defer cancel()
+	// Publication (or failure) is already final; a reclaim failure leaves extra runs for the next pass.
+	if err := reclaimRetention(reclaimCtx, run.store.Name()); err != nil {
+		logf(ctx, "retention reclaim deferred: %v", err)
+	}
+	return nil
+}
+
+// retentionLockTimeout bounds waiting for the store lock, which is only held for
+// pointer reads/writes and renames; tree syncs and deletions run outside it.
+const retentionLockTimeout = time.Minute
+
+func (run *retainedRun) publish(ctx context.Context) (retErr error) {
+	if err := ctx.Err(); err != nil {
 		return err
 	}
-	return reclaimRetention(cleanupCtx, run.store.Name())
+	// The run's exclusive lease keeps collectors away while the tree is synced.
+	if err := syncRetentionTree(ctx, run.root); err != nil {
+		return err
+	}
+	if err := retentionWrite(run.root, ".complete", nil); err != nil {
+		return err
+	}
+	defer func() {
+		if retErr != nil {
+			// An unpublished attempt is a failed diagnostic, not a superseded success.
+			if err := run.root.Remove(".complete"); err != nil && !errors.Is(err, os.ErrNotExist) {
+				retErr = errors.Join(retErr, err)
+			}
+		}
+	}()
+	lockCtx, cancel := context.WithTimeout(context.WithoutCancel(ctx), retentionLockTimeout)
+	defer cancel()
+	lock, err := retentionStoreLock(lockCtx, run.store)
+	if err != nil {
+		return err
+	}
+	defer func() { retErr = errors.Join(retErr, lock.Release()) }()
+	if err := ctx.Err(); err != nil {
+		return err
+	}
+	if _, err := latestRetentionRun(run.store); err != nil {
+		return err
+	}
+	encoded, err := json.Marshal(run.name)
+	if err != nil {
+		return err
+	}
+	return retentionWrite(run.store, "latest.json", append(encoded, '\n'))
 }
 
 func syncRetentionTree(ctx context.Context, root *os.Root) error {
@@ -449,9 +505,13 @@ func reclaimRetention(ctx context.Context, path string) error {
 		if err != nil {
 			return errors.Join(err, store.Close())
 		}
-		released, collectErr := collectRetention(store)
-		err = errors.Join(collectErr, lock.Release(), store.Close())
-		if err != nil {
+		trash, released, collectErr := collectRetention(store)
+		err = errors.Join(collectErr, lock.Release())
+		// Trash names are claimed by atomic rename, so deletion needs no store lock.
+		for _, name := range trash {
+			err = errors.Join(err, store.RemoveAll(name))
+		}
+		if err = errors.Join(err, store.Close()); err != nil {
 			return err
 		}
 		pending = append(pending, released...)
@@ -459,110 +519,129 @@ func reclaimRetention(ctx context.Context, path string) error {
 	return nil
 }
 
-func collectRetention(store *os.Root) ([]string, error) {
+func retentionTrashName() string { return ".trash-" + rand.Text() }
+
+func collectRetention(store *os.Root) (trash, released []string, retErr error) {
+	defer func() {
+		if retErr == nil && len(trash) > 0 {
+			retErr = hostfs.SyncRoot(store)
+		}
+	}()
 	latest, err := latestRetentionRun(store)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	directory, err := store.Open(".")
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	entries, readErr := directory.ReadDir(-1)
 	if err := errors.Join(readErr, directory.Close()); err != nil {
-		return nil, err
+		return nil, nil, err
+	}
+	modified := make(map[string]time.Time, len(entries))
+	for _, entry := range entries {
+		if info, err := entry.Info(); err == nil {
+			modified[entry.Name()] = info.ModTime()
+		}
 	}
 	slices.SortFunc(entries, func(a, b os.DirEntry) int {
-		ai, ae := a.Info()
-		bi, be := b.Info()
-		if ae != nil || be != nil {
-			return strings.Compare(a.Name(), b.Name())
+		if order := modified[b.Name()].Compare(modified[a.Name()]); order != 0 {
+			return order
 		}
-		return bi.ModTime().Compare(ai.ModTime())
+		return strings.Compare(a.Name(), b.Name())
 	})
 	failedKept := false
-	var released []string
 	for _, entry := range entries {
-		if entry.IsDir() && strings.HasPrefix(entry.Name(), ".stage-run-") {
-			if err := store.RemoveAll(entry.Name()); err != nil {
-				return nil, err
+		name := entry.Name()
+		if entry.IsDir() && (strings.HasPrefix(name, ".stage-run-") || strings.HasPrefix(name, ".trash-")) {
+			// Claim abandoned staging or partially deleted trash for this pass.
+			claimed := retentionTrashName()
+			if err := store.Rename(name, claimed); err != nil {
+				return trash, released, err
+			}
+			trash = append(trash, claimed)
+			continue
+		}
+		if !entry.IsDir() && strings.HasPrefix(name, ".stage-") {
+			if err := store.Remove(name); err != nil {
+				return trash, released, err
 			}
 			continue
 		}
-		if !entry.IsDir() && strings.HasPrefix(entry.Name(), ".stage-") {
-			if err := store.Remove(entry.Name()); err != nil {
-				return nil, err
-			}
+		if !entry.IsDir() || !strings.HasPrefix(name, "run-") || name == latest {
 			continue
 		}
-		if !entry.IsDir() || !strings.HasPrefix(entry.Name(), "run-") || entry.Name() == latest {
-			continue
-		}
-		inputs, err := collectRetentionRun(store, entry.Name(), &failedKept)
+		claimed, inputs, err := collectRetentionRun(store, name, &failedKept)
 		if err != nil {
-			return nil, err
+			return trash, released, err
 		}
-		released = append(released, inputs...)
+		if claimed != "" {
+			trash = append(trash, claimed)
+			released = append(released, inputs...)
+		}
 	}
-	return released, nil
+	return trash, released, nil
 }
 
-func collectRetentionRun(store *os.Root, name string, failedKept *bool) (_ []string, retErr error) {
+func collectRetentionRun(store *os.Root, name string, failedKept *bool) (_ string, _ []string, retErr error) {
 	root, err := store.OpenRoot(name)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	defer func() { retErr = errors.Join(retErr, root.Close()) }()
 	path := filepath.Join(store.Name(), name)
 	if err := validateRetentionPin(root, path); err != nil {
-		return nil, nil
+		return "", nil, nil
 	}
 	file, _, err := hostfs.OpenRootWritable(root, ".lease")
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	lease, err := hostfs.TryDescriptor(file)
 	if err != nil {
 		closeErr := file.Close()
 		if errors.Is(err, hostfs.ErrContended) {
-			return nil, closeErr
+			return "", nil, closeErr
 		}
-		return nil, errors.Join(err, closeErr)
+		return "", nil, errors.Join(err, closeErr)
 	}
 	defer func() { retErr = errors.Join(retErr, lease.Release()) }()
 	if _, err := root.Lstat(".keep"); err == nil {
-		return nil, nil
+		return "", nil, nil
 	} else if !errors.Is(err, os.ErrNotExist) {
-		return nil, err
+		return "", nil, err
 	}
 	info, err := root.Lstat(".pin")
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	links, known := hostfs.LinkCount(info)
 	if !known || links != 1 {
-		return nil, nil
+		return "", nil, nil
 	}
 	if _, err := root.Lstat(".complete"); errors.Is(err, os.ErrNotExist) {
 		if !*failedKept {
 			*failedKept = true
-			return nil, nil
+			return "", nil, nil
 		}
 	} else if err != nil {
-		return nil, err
+		return "", nil, err
 	}
 	dependencies, err := retentionDependencies(root)
 	if err != nil {
-		return nil, err
+		return "", nil, err
 	}
-	if err := store.RemoveAll(name); err != nil {
-		return nil, err
+	// Move the run out of its authenticated path while holding its lease; deletion follows outside the store lock.
+	claimed := retentionTrashName()
+	if err := store.Rename(name, claimed); err != nil {
+		return "", nil, err
 	}
 	released := []string{store.Name()}
 	for _, path := range dependencies {
 		released = append(released, filepath.Dir(path))
 	}
-	return released, hostfs.SyncRoot(store)
+	return claimed, released, nil
 }
 
 func retentionDependencies(root *os.Root) (_ []string, retErr error) {

@@ -13,6 +13,7 @@ import (
 	"slices"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/measurement"
@@ -467,5 +468,142 @@ func TestHarnessRetentionRejectsSymlinkRoots(t *testing.T) {
 			require.NoError(t, err)
 			require.Len(t, entries, 1)
 		})
+	}
+}
+
+func TestHarnessRetentionPublicationWaitsForStoreLock(t *testing.T) {
+	t.Parallel()
+	base := t.TempDir()
+	produce := func(ctx context.Context) error {
+		return os.WriteFile(filepath.Join(input(ctx, "GOMAD_WASM_PROFILE_ROOT"), "result"), []byte("complete"), 0600)
+	}
+	require.NoError(t, retentionRun(t, base, produce))
+	prior := retentionLatest(t, base)
+	store, err := retentionDirectory(filepath.Dir(prior), false)
+	require.NoError(t, err)
+	defer func() { require.NoError(t, store.Close()) }()
+	running, locked, result := make(chan string, 1), make(chan struct{}), make(chan error, 1)
+	go func() {
+		result <- retentionRun(t, base, func(ctx context.Context) error {
+			running <- input(ctx, "GOMAD_WASM_PROFILE_ROOT")
+			<-locked
+			return produce(ctx)
+		})
+	}()
+	var run string
+	select {
+	case run = <-running:
+	case <-t.Context().Done():
+		t.Fatal(t.Context().Err())
+	}
+	held, err := retentionStoreLock(t.Context(), store)
+	close(locked)
+	require.NoError(t, err)
+	// Tree sync and the completion marker happen under the run's own lease, before the store lock.
+	poll, deadline := time.NewTicker(time.Millisecond), time.After(10*time.Second)
+	defer poll.Stop()
+	for {
+		if _, err := os.Stat(filepath.Join(run, ".complete")); err == nil {
+			break
+		}
+		select {
+		case <-poll.C:
+		case <-deadline:
+			t.Fatal("run was not completed before taking the store lock")
+		}
+	}
+	select {
+	case err := <-result:
+		t.Fatalf("publication finished while the store lock was held: %v", err)
+	default:
+	}
+	require.Equal(t, prior, retentionLatest(t, base))
+	require.NoError(t, held.Release())
+	select {
+	case err := <-result:
+		require.NoError(t, err, "contended publication lost a complete result")
+	case <-t.Context().Done():
+		t.Fatal(t.Context().Err())
+	}
+	require.Equal(t, run, retentionLatest(t, base))
+	_, err = os.Stat(prior)
+	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestHarnessRetentionReclaimFailureKeepsPublishedResultAndRecovers(t *testing.T) {
+	t.Parallel()
+	if os.Geteuid() == 0 {
+		t.Skip("root ignores directory permissions")
+	}
+	base := t.TempDir()
+	locked := ""
+	produce := func(ctx context.Context) error {
+		root := input(ctx, "GOMAD_WASM_PROFILE_ROOT")
+		if locked == "" {
+			locked = filepath.Join(root, "cache")
+			if err := os.Mkdir(locked, 0700); err != nil {
+				return err
+			}
+			if err := os.WriteFile(filepath.Join(locked, "module.cwasm"), []byte("compiled"), 0600); err != nil {
+				return err
+			}
+		}
+		return os.WriteFile(filepath.Join(root, "result"), []byte("complete"), 0600)
+	}
+	require.NoError(t, retentionRun(t, base, produce))
+	prior := retentionLatest(t, base)
+	require.NoError(t, os.Chmod(locked, 0500))
+	t.Cleanup(func() {
+		trash, _ := filepath.Glob(filepath.Join(filepath.Dir(prior), ".trash-*", "cache"))
+		for _, path := range append(trash, locked) {
+			_ = os.Chmod(path, 0700)
+		}
+	})
+	require.NoError(t, retentionRun(t, base, produce), "a published result must not fail on deferred reclaim")
+	latest := retentionLatest(t, base)
+	require.NotEqual(t, prior, latest)
+	_, err := os.Stat(prior)
+	require.ErrorIs(t, err, os.ErrNotExist, "partially reclaimed run kept its authenticated path")
+	trash, err := filepath.Glob(filepath.Join(filepath.Dir(prior), ".trash-*"))
+	require.NoError(t, err)
+	require.Len(t, trash, 1)
+	require.NoError(t, os.Chmod(filepath.Join(trash[0], "cache"), 0700))
+	require.NoError(t, retentionRun(t, base, produce))
+	trash, err = filepath.Glob(filepath.Join(filepath.Dir(prior), ".trash-*"))
+	require.NoError(t, err)
+	require.Empty(t, trash, "partially deleted run was not reclaimed")
+}
+
+func TestHarnessRetentionRefusesOutputRootInsideStore(t *testing.T) {
+	t.Parallel()
+	base := t.TempDir()
+	require.NoError(t, retentionRun(t, base, func(ctx context.Context) error {
+		return os.WriteFile(filepath.Join(input(ctx, "GOMAD_WASM_PROFILE_ROOT"), "result"), []byte("complete"), 0600)
+	}))
+	latest := retentionLatest(t, base)
+	for _, nested := range []string{latest, filepath.Join(latest, "nested"), filepath.Dir(latest)} {
+		err := retentionRun(t, nested, func(context.Context) error {
+			t.Error("producer nested inside a retained run")
+			return nil
+		})
+		require.ErrorIs(t, err, ErrRefused)
+	}
+	_, err := os.Stat(filepath.Join(latest, ".gomad-measure"))
+	require.ErrorIs(t, err, os.ErrNotExist)
+	_, err = os.Stat(filepath.Join(latest, "nested"))
+	require.ErrorIs(t, err, os.ErrNotExist)
+}
+
+func TestHarnessRetentionRerunRecordsUseRequestedRoot(t *testing.T) {
+	t.Parallel()
+	files, err := filepath.Glob("*.go")
+	require.NoError(t, err)
+	for _, file := range files {
+		if strings.HasSuffix(file, "_test.go") || file == "run.go" {
+			continue
+		}
+		data, err := os.ReadFile(file)
+		require.NoError(t, err)
+		require.NotContains(t, string(data), "measurement.RerunRecord(", "%s publishes a rerun of the staged run path; use rerunRecord", file)
 	}
 }

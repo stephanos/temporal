@@ -145,7 +145,10 @@ cleanup, so failed or interrupted replacements leave the previous result availab
 Reuse the same `--*-root` for retries; each different root is an independent retention scope.
 Reports keep their existing filenames inside the reported run directory.
 Published rerun commands keep the original requested output root.
-Superseded runs are reclaimed automatically. Defaults keep one latest success
+Output roots inside a `.gomad-measure` store are refused.
+Superseded runs are reclaimed automatically: they are renamed to `.trash-*` under
+the store lock and deleted afterwards. A reclaim failure is logged, does not fail
+an already published run, and is retried by the next producer run. Defaults keep one latest success
 and one recent failed/interrupted run, plus active runs and inputs referenced by
 retained consumers. Direct hardlink pins preserve authenticated input paths until
 the last retained consumer is collected; managed inputs and outputs must share a
