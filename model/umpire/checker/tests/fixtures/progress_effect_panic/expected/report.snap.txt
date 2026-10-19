@@ -5,9 +5,9 @@ evaluated: 2
 refused: 1
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim reaches_target: Outcome::Unknown
-claim step_0_0: Outcome::Refuted
+outcome: Refuted
+claim reaches_target: Unknown
+claim step_0_0: Refuted
 failure step_0_0: action Action::Advance panicked: broken progress effect
 vacuity: action Action::Advance never fired
 vacuity: action Action::Loop never fired

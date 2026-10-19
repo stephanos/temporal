@@ -46,21 +46,29 @@ where
     }
 }
 #[automatically_derived]
-impl ::umpire_dsl::Spell for Kettle
+impl ::core::fmt::Debug for Kettle
 where
-    i32: ::umpire_dsl::Spell,
-    bool: ::umpire_dsl::Spell,
-    bool: ::umpire_dsl::Spell,
+    i32: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
 {
-    fn spell(&self, out: &mut ::std::string::String) {
-        out.push_str("Kettle {");
-        out.push_str(" temperature: ");
-        ::umpire_dsl::Spell::spell(&self.temperature, out);
-        out.push_str(", heating_on: ");
-        ::umpire_dsl::Spell::spell(&self.heating_on, out);
-        out.push_str(", beeping: ");
-        ::umpire_dsl::Spell::spell(&self.beeping, out);
-        out.push_str(" }");
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        out.debug_struct("Kettle")
+            .field("temperature", &self.temperature)
+            .field("heating_on", &self.heating_on)
+            .field("beeping", &self.beeping)
+            .finish()
+    }
+}
+#[automatically_derived]
+impl ::core::fmt::Display for Kettle
+where
+    i32: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+    bool: ::core::fmt::Debug,
+{
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        ::core::fmt::Debug::fmt(self, out)
     }
 }
 impl Kettle

@@ -5,7 +5,7 @@ evaluated: 1001
 refused: 1
 depth: 1000
 cut: false
-outcome: Outcome::Verified
-claim safe: Outcome::Verified
+outcome: Verified
+claim safe: Verified
 vacuity: none
 clone_work: linear

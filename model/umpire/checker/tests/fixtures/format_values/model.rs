@@ -25,7 +25,7 @@ impl std::fmt::Display for Action {
     fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let Self::Advance { amount } = self;
         out.write_str("Action::Advance { amount: ")?;
-        write!(out, "{:?}", amount)?;
+        write!(out, "{amount:?}")?;
         out.write_str(" }")?;
         Ok(())
     }
@@ -37,7 +37,8 @@ enum Decision {
 }
 
 #[derive(Debug)]
-pub enum Fact {
+#[expect(dead_code, reason = "the fact payload is consumed only by derived Debug formatting")]
+enum Fact {
     Changed { amount: u8 },
 }
 

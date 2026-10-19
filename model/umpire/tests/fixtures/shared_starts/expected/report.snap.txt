@@ -5,6 +5,6 @@ evaluated: 12
 refused: 8
 depth: 1
 cut: false
-outcome: Outcome::Verified
-claim safe: Outcome::Verified
+outcome: Verified
+claim safe: Verified
 vacuity: action Action::Unused never fired

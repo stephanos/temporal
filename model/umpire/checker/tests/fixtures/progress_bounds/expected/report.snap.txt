@@ -1,23 +1,23 @@
-generated_exact_bound: Option::Some { 0: Verified { longest: Option::Some { 0: 2 } } }
+generated_exact_bound: Some(Verified { longest: Some(2) })
 
 finite_longest:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 2 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(2) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 exact_bound:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 2 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(2) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 missed_bound:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a path of 1 steps reaches no target state" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a path of 1 steps reaches no target state")
 start: 0
 1: 0 choice=0 -> 1
 2: 0 choice=0 -> 2
@@ -25,30 +25,30 @@ reached: 4; cached: true
 calls: 4
 
 no_obligation:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 0 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(0) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 target_already_holds:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 0 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(0) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 fair_unbounded:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::None } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: None })
+hint: None
 reached: 2; cached: true
 calls: 2
 
 fair_bounded:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a cycle can avoid a target state for any number of steps" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a cycle can avoid a target state for any number of steps")
 prefix:
 start: 0
 cycle:
@@ -58,9 +58,9 @@ reached: 2; cached: true
 calls: 2
 
 cycle_before_deadline:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Cycle }
-hint: Option::Some { 0: "cycle 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only" }
+outcome: Refuted
+verdict: Some(Cycle)
+hint: Some("cycle 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only")
 prefix:
 start: 0
 cycle:
@@ -70,18 +70,18 @@ reached: 2; cached: true
 calls: 2
 
 deadlock_before_cycle_and_deadline:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Deadlock }
-hint: Option::Some { 0: "deadlock: 1 ends in 4" }
+outcome: Refuted
+verdict: Some(Deadlock)
+hint: Some("deadlock: 1 ends in 4")
 start: 0
 1: 1 choice=1 -> 4
 reached: 5; cached: true
 calls: 5
 
 intermittently_disabled_fair_action:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Cycle }
-hint: Option::Some { 0: "cycle 0, 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only" }
+outcome: Refuted
+verdict: Some(Cycle)
+hint: Some("cycle 0, 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only")
 prefix:
 start: 0
 cycle:
@@ -92,9 +92,9 @@ reached: 3; cached: true
 calls: 3
 
 separate_hole_preserves_cycle:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Cycle }
-hint: Option::Some { 0: "cycle 0: every action enabled on it is taken; admit fewer actions with only" }
+outcome: Refuted
+verdict: Some(Cycle)
+hint: Some("cycle 0: every action enabled on it is taken; admit fewer actions with only")
 hole: separate target hole
 prefix:
 start: 0
@@ -105,18 +105,18 @@ reached: 2; cached: true
 calls: 2
 
 separate_hole_preserves_deadlock:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Deadlock }
-hint: Option::Some { 0: "deadlock:  ends in 0" }
+outcome: Refuted
+verdict: Some(Deadlock)
+hint: Some("deadlock:  ends in 0")
 hole: separate target hole
 start: 0
 reached: 2; cached: true
 calls: 2
 
 separate_hole_preserves_deadline:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a path of 2 steps reaches no target state" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a path of 2 steps reaches no target state")
 hole: separate target hole
 start: 0
 1: 0 choice=0 -> 1
@@ -125,24 +125,24 @@ reached: 5; cached: true
 calls: 5
 
 hole_prevents_success:
-outcome: Outcome::Unknown
-verdict: Option::Some { 0: Unknown }
-hint: Option::None
+outcome: Unknown
+verdict: Some(Unknown)
+hint: None
 hole: separate target hole
 reached: 4; cached: true
 calls: 4
 
 cut_prevents_success:
-outcome: Outcome::Unknown
-verdict: Option::Some { 0: Unknown }
-hint: Option::None
+outcome: Unknown
+verdict: Some(Unknown)
+hint: None
 reached: 1; cached: true
 calls: 1
 
 cut_preserves_cycle:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: Cycle }
-hint: Option::Some { 0: "cycle 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only" }
+outcome: Refuted
+verdict: Some(Cycle)
+hint: Some("cycle 0: 1 stays enabled and is never taken; add fair(1) to the assumption, or admit fewer actions with only")
 prefix:
 start: 0
 cycle:
@@ -152,72 +152,72 @@ reached: 1; cached: true
 calls: 1
 
 cut_preserves_deadline:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a path of 1 steps reaches no target state" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a path of 1 steps reaches no target state")
 start: 0
 1: 0 choice=0 -> 1
 reached: 2; cached: true
 calls: 2
 
 predicate_defect:
-outcome: Outcome::Refuted
-verdict: Option::None
-hint: Option::None
+outcome: Refuted
+verdict: None
+hint: None
 start: 0
 failure: claim reaches_target panicked: predicate defect
 reached: 4; cached: true
 calls: 1
 
 effect_defect:
-outcome: Outcome::Unknown
-verdict: Option::Some { 0: Unknown }
-hint: Option::None
+outcome: Unknown
+verdict: Some(Unknown)
+hint: None
 reached: 1; cached: true
 calls: 1
 
 safety_failure:
-outcome: Outcome::Refuted
-verdict: Option::None
-hint: Option::None
+outcome: Refuted
+verdict: None
+hint: None
 start: 0
 reached: 4; cached: true
 calls: 4
 
 inconsistent_bound:
-outcome: Outcome::Unknown
-verdict: Option::Some { 0: Unknown }
-hint: Option::None
+outcome: Unknown
+verdict: Some(Unknown)
+hint: None
 hole: progress bound differs across reached states
 reached: 4; cached: true
 calls: 4
 
 inconsistent_bound_overridden:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 3 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(3) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 inconsistent_assumption:
-outcome: Outcome::Unknown
-verdict: Option::Some { 0: Unknown }
-hint: Option::None
+outcome: Unknown
+verdict: Some(Unknown)
+hint: None
 hole: progress assumption differs across reached states
 reached: 4; cached: true
 calls: 4
 
 inconsistent_assumption_overridden:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 3 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(3) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 assumption_override_keeps_bound:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a path of 2 steps reaches no target state" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a path of 2 steps reaches no target state")
 start: 0
 1: 0 choice=0 -> 1
 2: 0 choice=0 -> 2
@@ -225,16 +225,16 @@ reached: 4; cached: true
 calls: 4
 
 both_overrides:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 3 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(3) })
+hint: None
 reached: 4; cached: true
 calls: 4
 
 bound_override_keeps_fairness:
-outcome: Outcome::Refuted
-verdict: Option::Some { 0: MissedDeadline }
-hint: Option::Some { 0: "a cycle can avoid a target state for any number of steps" }
+outcome: Refuted
+verdict: Some(MissedDeadline)
+hint: Some("a cycle can avoid a target state for any number of steps")
 prefix:
 start: 0
 cycle:
@@ -252,9 +252,9 @@ refused: progress claim reaches_target bound must be at least one (given: 0)
 calls: 0
 
 zero_bound/starts=false/override=false:
-outcome: Outcome::Verified
-verdict: Option::Some { 0: Verified { longest: Option::Some { 0: 0 } } }
-hint: Option::None
+outcome: Verified
+verdict: Some(Verified { longest: Some(0) })
+hint: None
 reached: 0; cached: true
 calls: 0
 

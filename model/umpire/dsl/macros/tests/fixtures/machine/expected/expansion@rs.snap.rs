@@ -287,7 +287,7 @@ mod counter {
         };
     };
     struct World;
-    #[derive(Clone, PartialEq, Eq, Hash)]
+    #[derive(Clone, Debug, PartialEq, Eq, Hash)]
     enum Action {
         User(User),
         Clock(Clock),
@@ -302,11 +302,11 @@ mod counter {
             Self::Clock(value)
         }
     }
-    impl ::umpire_dsl::Spell for Action {
-        fn spell(&self, out: &mut ::std::string::String) {
-            match self {
-                Self::User(value) => ::umpire_dsl::Spell::spell(value, out),
-                Self::Clock(value) => ::umpire_dsl::Spell::spell(value, out),
+    impl ::core::fmt::Display for Action {
+        fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+            match *self {
+                Self::User(ref value) => ::core::fmt::Display::fmt(value, out),
+                Self::Clock(ref value) => ::core::fmt::Display::fmt(value, out),
             }
         }
     }

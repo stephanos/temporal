@@ -6,14 +6,14 @@ evaluated: 2
 refused: 0
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim step_0_0: Outcome::Refuted
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Verified
-claim step_0_0: Outcome::Refuted
+outcome: Refuted
+claim step_0_0: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Verified
+claim step_0_0: Refuted
 failure step_0_0: action false panicked: first failure
-claim step_0_1: Outcome::Refuted
+claim step_0_1: Refuted
 failure step_0_1: action true panicked: second failure
 vacuity: action false never fired
 vacuity: action true never fired
@@ -25,14 +25,14 @@ evaluated: 2
 refused: 0
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Verified
-claim step_0_0: Outcome::Refuted
-claim step_0_0: Outcome::Refuted
+outcome: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Verified
+claim step_0_0: Refuted
+claim step_0_0: Refuted
 failure step_0_0: action false panicked: first failure
-claim step_0_1: Outcome::Refuted
+claim step_0_1: Refuted
 failure step_0_1: action true panicked: second failure
 vacuity: action false never fired
 vacuity: action true never fired
@@ -44,15 +44,15 @@ evaluated: 2
 refused: 0
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Verified
-claim duplicate: Outcome::Refuted
-claim duplicate: Outcome::Verified
-claim step_0_0: Outcome::Refuted
-claim step_0_0: Outcome::Refuted
+outcome: Refuted
+claim duplicate: Verified
+claim duplicate: Verified
+claim duplicate: Refuted
+claim duplicate: Verified
+claim step_0_0: Refuted
+claim step_0_0: Refuted
 failure step_0_0: action false panicked: first failure
-claim step_0_1: Outcome::Refuted
+claim step_0_1: Refuted
 failure step_0_1: action true panicked: second failure
 vacuity: action false never fired
 vacuity: action true never fired

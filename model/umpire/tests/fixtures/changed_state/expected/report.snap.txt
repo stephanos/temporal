@@ -5,11 +5,11 @@ evaluated: 8
 refused: 7
 depth: 1
 cut: false
-outcome: Outcome::Refuted
-claim no_change_checked: Outcome::Verified
-claim same_value_checked: Outcome::Verified
-claim mutate_restore_checked: Outcome::Verified
-claim actual_change_checked: Outcome::Refuted
+outcome: Refuted
+claim no_change_checked: Verified
+claim same_value_checked: Verified
+claim mutate_restore_checked: Verified
+claim actual_change_checked: Refuted
 failure actual_change_checked: check!(self.value == before.value) failed at Model { value: true }
 vacuity: action User::NoChange never fired
 vacuity: action User::SameValue never fired

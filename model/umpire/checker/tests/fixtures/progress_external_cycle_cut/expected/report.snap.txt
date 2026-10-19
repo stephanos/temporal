@@ -5,6 +5,6 @@ evaluated: 1
 refused: 0
 depth: 0
 cut: true
-outcome: Outcome::Refuted
-claim reaches_target: Outcome::Refuted
+outcome: Refuted
+claim reaches_target: Refuted
 vacuity: action Action::Loop never fired

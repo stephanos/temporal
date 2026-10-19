@@ -5,8 +5,8 @@ evaluated: 12
 refused: 8
 depth: 2
 cut: false
-outcome: Outcome::Refuted
-claim safe: Outcome::Verified
-claim never_decreases: Outcome::Refuted
-claim idle_changes: Outcome::Refuted
+outcome: Refuted
+claim safe: Verified
+claim never_decreases: Refuted
+claim idle_changes: Refuted
 vacuity: action Action::Unused never fired

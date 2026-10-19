@@ -22,11 +22,20 @@ impl ::core::hash::Hash for Heater {
     }
 }
 #[automatically_derived]
-impl ::umpire_dsl::Spell for Heater {
-    fn spell(&self, out: &mut ::std::string::String) {
+impl ::core::fmt::Debug for Heater {
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
         match *self {
-            Self::Heat => out.push_str("Heater::Heat"),
-            Self::Failover => out.push_str("Heater::Failover"),
+            Self::Heat => out.write_str("Heat"),
+            Self::Failover => out.write_str("Failover"),
+        }
+    }
+}
+#[automatically_derived]
+impl ::core::fmt::Display for Heater {
+    fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
+        match *self {
+            Self::Heat => out.write_str("Heater::Heat"),
+            Self::Failover => out.write_str("Heater::Failover"),
         }
     }
 }

@@ -5,6 +5,6 @@ evaluated: 2
 refused: 1
 depth: 1
 cut: false
-outcome: Outcome::Refuted
-claim unchanged: Outcome::Refuted
+outcome: Refuted
+claim unchanged: Refuted
 vacuity: none

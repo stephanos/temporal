@@ -5,8 +5,8 @@ evaluated: 12
 refused: 8
 depth: 2
 cut: false
-outcome: Outcome::Refuted
-claim safe: Outcome::Verified
-claim panicking_edge: Outcome::Refuted
+outcome: Refuted
+claim safe: Verified
+claim panicking_edge: Refuted
 failure panicking_edge: claim panicking_edge panicked: broken postcondition
 vacuity: action Action::Unused never fired

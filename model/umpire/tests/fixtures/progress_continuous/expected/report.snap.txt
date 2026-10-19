@@ -5,6 +5,6 @@ evaluated: 12
 refused: 8
 depth: 1
 cut: false
-outcome: Outcome::Verified
-claim reaches_target: Outcome::Verified
+outcome: Verified
+claim reaches_target: Verified
 vacuity: action Action::Enter never fired

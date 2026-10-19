@@ -1,7 +1,7 @@
-0: Client::Cancel choice=0 outcome=() facts=[] -> Model { phase: Phase::Canceled }
-0: Worker::Poll choice=0 outcome=() facts=[] -> Model { phase: Phase::Started }
-0: Deadline::ScheduleToStart choice=0 outcome=() facts=[] -> Model { phase: Phase::TimedOut }
-2: Client::Cancel choice=0 outcome=() facts=[] -> Model { phase: Phase::Canceled }
-2: Worker::RespondCompleted choice=0 outcome=() facts=[] -> Model { phase: Phase::Completed }
-2: Worker::RespondFailed choice=0 outcome=() facts=[] -> Model { phase: Phase::Failed }
-2: Deadline::StartToClose choice=0 outcome=() facts=[] -> Model { phase: Phase::TimedOut }
+0: Client::Cancel choice=0 outcome=() facts=[] -> Model { phase: Canceled }
+0: Worker::Poll choice=0 outcome=() facts=[] -> Model { phase: Started }
+0: Deadline::ScheduleToStart choice=0 outcome=() facts=[] -> Model { phase: TimedOut }
+2: Client::Cancel choice=0 outcome=() facts=[] -> Model { phase: Canceled }
+2: Worker::RespondCompleted choice=0 outcome=() facts=[] -> Model { phase: Completed }
+2: Worker::RespondFailed choice=0 outcome=() facts=[] -> Model { phase: Failed }
+2: Deadline::StartToClose choice=0 outcome=() facts=[] -> Model { phase: TimedOut }

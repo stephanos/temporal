@@ -5,6 +5,6 @@ evaluated: 1
 refused: 0
 depth: 1
 cut: true
-outcome: Outcome::Unknown
-claim reaches_target: Outcome::Unknown
+outcome: Unknown
+claim reaches_target: Unknown
 vacuity: action Action::Loop never fired

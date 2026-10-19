@@ -5,9 +5,9 @@ evaluated: 4
 refused: 3
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim safe: Outcome::Verified
-claim step_0_0: Outcome::Refuted
+outcome: Refuted
+claim safe: Verified
+claim step_0_0: Refuted
 failure step_0_0: action Action::Advance panicked: attempt to add with overflow
 vacuity: action Action::Advance never fired
 vacuity: action Action::Reset never fired

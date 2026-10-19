@@ -151,7 +151,7 @@ impl<M: Machine> Result<M> {
             if complete[state] && outgoing[state].is_empty() {
                 self.refute_progress(result, state, &parents, &origins, &[]);
                 let path = result.path.as_ref().unwrap_or_else(|| unreachable!());
-                let terminal = (self.state(StateId(state))).to_string();
+                let terminal = self.state(StateId(state)).to_string();
                 result.hint = Some(format!(
                     "deadlock: {} ends in {terminal}",
                     Self::progress_actions(path.steps.iter().map(|step| &step.action))

@@ -5,11 +5,11 @@ evaluated: 2
 refused: 1
 depth: 1
 cut: false
-outcome: Outcome::Refuted
-claim advances: Outcome::Verified
-claim reaches_one: Outcome::Verified
-claim bounded: Outcome::Verified
-claim stays_zero: Outcome::Refuted
-claim starts_zero: Outcome::Refuted
-claim already_fulfilled: Outcome::Verified
+outcome: Refuted
+claim advances: Verified
+claim reaches_one: Verified
+claim bounded: Verified
+claim stays_zero: Refuted
+claim starts_zero: Refuted
+claim already_fulfilled: Verified
 vacuity: none

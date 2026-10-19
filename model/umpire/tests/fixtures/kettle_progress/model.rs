@@ -43,10 +43,7 @@ fn render<S: std::fmt::Display, A: std::fmt::Display>(
         let actions: Vec<_> = path
             .steps
             .iter()
-            .map(|step| {
-                let action = (step.action).to_string();
-                action
-            })
+            .map(|step| step.action.to_string())
             .collect();
         assert_eq!(
             actions,

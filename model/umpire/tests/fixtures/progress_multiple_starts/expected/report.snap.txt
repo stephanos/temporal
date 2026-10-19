@@ -5,8 +5,8 @@ evaluated: 8
 refused: 7
 depth: 0
 cut: false
-outcome: Outcome::Refuted
-claim reaches_target: Outcome::Refuted
+outcome: Refuted
+claim reaches_target: Refuted
 vacuity: action Action::Enter never fired
 vacuity: action Action::Right never fired
 vacuity: action Action::Escape never fired

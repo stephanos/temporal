@@ -131,10 +131,6 @@ mod tests {
     const TERMINALS: [Phase; 4] =
         [Phase::Completed, Phase::Failed, Phase::Canceled, Phase::TimedOut];
 
-    fn rendered(value: &impl std::fmt::Display) -> String {
-        value.to_string()
-    }
-
     #[test]
     fn six_phase_transition_matrix_includes_disabled_actions() {
         use Phase::{Canceled, Completed, Failed, Scheduled, Started, TimedOut};
@@ -151,7 +147,7 @@ mod tests {
         ];
         assert!(actions == expected_actions);
         let starts = world.starts();
-        assert!(starts == [Model { phase: Scheduled }]);
+        assert_eq!(starts, [Model { phase: Scheduled }]);
         for (action, internal) in actions.iter().zip([false, false, false, false, true, true]) {
             assert_eq!(world.internal(action), internal);
         }
@@ -167,12 +163,7 @@ mod tests {
                 let steps = world.step(&Model { phase }, action.clone());
                 let expected: Vec<_> =
                     next.into_iter().map(|phase| ((), Vec::new(), Model { phase })).collect();
-                assert!(
-                    steps.as_slice() == expected,
-                    "{} after {}",
-                    rendered(action),
-                    format!("{phase:?}"),
-                );
+                assert!(steps.as_slice() == expected, "{action} after {phase:?}");
             }
         }
     }

@@ -5,10 +5,10 @@ evaluated: 1132
 refused: 708
 depth: 62
 cut: false
-outcome: Outcome::Refuted
-claim beeps_only_when_off: Outcome::Verified
-claim never_beeps: Outcome::Refuted
-claim warms_only_when_on: Outcome::Verified
-claim fails_over_at_boiling: Outcome::Verified
-claim boils: Outcome::Verified
+outcome: Refuted
+claim beeps_only_when_off: Verified
+claim never_beeps: Refuted
+claim warms_only_when_on: Verified
+claim fails_over_at_boiling: Verified
+claim boils: Verified
 vacuity: none

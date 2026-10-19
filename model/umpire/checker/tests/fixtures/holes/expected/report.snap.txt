@@ -5,9 +5,9 @@ evaluated: 12
 refused: 8
 depth: 2
 cut: false
-outcome: Outcome::Unknown
-claim safe: Outcome::Unknown
+outcome: Unknown
+claim safe: Unknown
 hole safe: temperature unavailable
-claim edge_hole: Outcome::Unknown
+claim edge_hole: Unknown
 hole edge_hole: edge unavailable
 vacuity: action Action::Unused never fired

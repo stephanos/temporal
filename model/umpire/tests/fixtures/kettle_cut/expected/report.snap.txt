@@ -5,11 +5,11 @@ evaluated: 5
 refused: 3
 depth: 1
 cut: true
-outcome: Outcome::Unknown
-claim beeps_only_when_off: Outcome::Unknown
-claim warms_only_when_on: Outcome::Unknown
-claim fails_over_at_boiling: Outcome::Unknown
-claim boils: Outcome::Unknown
+outcome: Unknown
+claim beeps_only_when_off: Unknown
+claim warms_only_when_on: Unknown
+claim fails_over_at_boiling: Unknown
+claim boils: Unknown
 vacuity: action User::DepressButton never fired
 vacuity: action Heater::Heat never fired
 vacuity: action Heater::Failover never fired
