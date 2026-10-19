@@ -1,11 +1,13 @@
-# Native network host projection
+# Network model
 
-`go generate ./simulation/network` projects the authoritative `gomadio`
-simulation into a nonblocking host package. The generator selects declarations,
-removes native diagnostic transport calls, supplies explicit domains and logical
-time, and replaces unlocked waits with immediate pending results. Its checked
-transform counts and preservation tests reject native drift. Native sources stay
-unchanged.
+This package is gomad's own network simulation and the reference the Rust
+helper's network owner is held equal to by the differential corpora. It was
+promoted (fn-219) from a projection of the native `gomadio` overlay; it is now
+ordinary source with no generator and no drift check against the native tree.
+`simulation.go` owns stream queues and replay; `adapter.go` turns blocking waits
+into immediate pending results with explicit domains and logical time.
+`stream_status_generated.go` is the only generated file here, written by the
+protocol generator.
 
 `Model.Dispatch` consumes at most one 64 KiB write chunk. A pending result owns
 its request until `poll` consumes completion or cancellation. `Ready` and

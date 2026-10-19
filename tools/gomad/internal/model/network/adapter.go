@@ -1,8 +1,8 @@
 // Copyright 2026 The Go Authors. All rights reserved.
 // Use of this source code is governed by a BSD-style license.
 
-// Package network projects the native Gomad network model into a nonblocking
-// request interface. The generated implementation owns all stream queues.
+// Package network is gomad's network model behind a nonblocking request
+// interface. The simulation in simulation.go owns all stream queues.
 package network
 
 import (
@@ -16,8 +16,6 @@ import (
 	"syscall"
 	"time"
 )
-
-//go:generate go run ./generate
 
 const Profile = "gomad.simulation-network-stream/v3"
 const MaximumChunkBytes = 64 << 10

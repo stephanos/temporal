@@ -45,8 +45,8 @@ test-wasm: test-wasm-slim-refusals
 	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
-		-run '^TestWASMTestsDoNotImportNativeBuilder$$|^TestGeneratedProjectionMatchesNativeSources$$|^TestGeneratedNetworkIsCurrent$$|^TestProjection' \
-		./internal/backends/wasm ./internal/model/volume ./internal/model/volume/internal/projection ./internal/model/network/generate && \
+		-run '^TestWASMTestsDoNotImportNativeBuilder$$' \
+		./internal/backends/wasm && \
 	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -v -tags test_dep -count=1 -timeout=15m -skip '^TestNamespaceConformance' ./internal/backends/wasm/...

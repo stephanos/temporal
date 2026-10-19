@@ -1,11 +1,9 @@
-// Package volume is the generated host projection of the native durable
-// filesystem model. Application filesystem operations never access host files.
+// Package volume is gomad's durable filesystem model. Application filesystem
+// operations never access host files.
 package volume
 
-//go:generate go run ./cmd/generate
-
 // Work charges every cursor visited, including invalid or duplicate selections.
-// The host projection bounds enumeration without consulting ambient wall time.
+// The model bounds enumeration without consulting ambient wall time.
 type enumerationBudget struct {
 	maximum uint64
 	used    uint64
