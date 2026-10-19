@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T19:43:12.031743Z",
+  "depends_on": [],
+  "id": "fn-222-extract-activity-phase-terminal.1",
+  "priority": null,
+  "spec": "fn-222-extract-activity-phase-terminal",
+  "spec_path": ".flow/tasks/fn-222-extract-activity-phase-terminal.1.md",
+  "status": "todo",
+  "title": "Add Phase::is_terminal and reuse in preservation claim",
+  "updated_at": "2026-10-19T19:43:12.031743Z"
+}

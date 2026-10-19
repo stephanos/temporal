@@ -28,6 +28,13 @@ pub mod activity {
         TimedOut,
     }
 
+    impl Phase {
+        /// Whether the activity has reached a final phase.
+        pub const fn is_terminal(self) -> bool {
+            matches!(self, Self::Completed | Self::Failed | Self::Canceled | Self::TimedOut)
+        }
+    }
+
     /// Actions controlled by the client.
     #[derive(Action, Copy)]
     pub enum Client {
@@ -105,10 +112,7 @@ pub mod activity {
 
         #[postcondition]
         fn terminal_remains(&self, before: &Self) {
-            if matches!(
-                before.phase,
-                Phase::Completed | Phase::Failed | Phase::Canceled | Phase::TimedOut
-            ) {
+            if before.phase.is_terminal() {
                 check!(self.phase == before.phase);
             }
         }
@@ -130,6 +134,20 @@ mod tests {
 
     const TERMINALS: [Phase; 4] =
         [Phase::Completed, Phase::Failed, Phase::Canceled, Phase::TimedOut];
+
+    #[test]
+    fn terminal_classification_covers_every_phase() {
+        for (phase, terminal) in [
+            (Phase::Scheduled, false),
+            (Phase::Started, false),
+            (Phase::Completed, true),
+            (Phase::Failed, true),
+            (Phase::Canceled, true),
+            (Phase::TimedOut, true),
+        ] {
+            assert_eq!(phase.is_terminal(), terminal, "{phase:?}");
+        }
+    }
 
     #[test]
     fn six_phase_transition_matrix_includes_disabled_actions() {
