@@ -9,7 +9,7 @@ use umpire_dsl::Spell;
 mod refusal;
 use refusal::{checker_refusal, refused};
 
-#[path = "../../tests/fixtures/kettle_trait/model.rs"]
+#[path = "../../tests/fixtures/sample_kettle_trait/model.rs"]
 #[allow(missing_docs, unreachable_pub)]
 mod kettle;
 

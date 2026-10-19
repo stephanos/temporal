@@ -18,7 +18,7 @@ The three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`. Both sides use
 generated messages from `umpire/proto/umpire/oracle/v1/oracle.proto`; Refusal is a
 case of the common Response envelope, separate from a checker verdict or trap.
-The guest includes `umpire/tests/fixtures/kettle_trait/model.rs` directly.
+The guest includes `umpire/tests/fixtures/sample_kettle_trait/model.rs` directly.
 
 Rust exports these names directly using the stock linker. The buffer-release name
 avoids WASI libc's internal `free` symbol. The default gate compiles and runs the
@@ -50,7 +50,7 @@ Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 
 ## Attribute Kettle and the authoring sketch (fn-210.6)
 
-The canonical `umpire/tests/fixtures/kettle/model.rs` uses the owner-approved
+The canonical `umpire/tests/fixtures/sample_kettle/model.rs` uses the owner-approved
 flat surface derived from `options/Kettle.attrs.rs`, retaining its separate
 `User` and `Heater` enums, transition bodies and claim predicates.
 
@@ -85,7 +85,7 @@ Remaining differences from the hypothetical sketch are deliberate:
   A stuttering transition emits no edge, so its filtered postconditions are not checked.
 - State fields are public so fixture controls can construct their own starts;
   full and cut producers sit outside the public Model module and use `world()`.
-- The existing no-heat control is generic over that public machine interface,
+- The `progress_dead_end` control is generic over that public machine interface,
   using `From<User>` and `From<Heater>` for actions while preserving its
   single 20-degree start, disabled heat step and scoped progress claim.
 - The shared fixture runner replaces the sketch's hypothetical test APIs,
@@ -182,10 +182,11 @@ The owner approved exactly five canonical payload substitutions on 2026-10-18:
 `User::DepressButton`, `Act::HeaterHeat` → `Heater::Heat`, and
 `Act::HeaterFailover` → `Heater::Failover`, and state prefix `Kettle { ` →
 `Model { `. This includes dependent `kettle_cut`
-vacuity output and `kettle_no_heat` rows and progress counterexample. Counts,
-state values, catalog and discovery order, claims,
-verdicts and counterexample structure stay unchanged. Snapshot metadata and
-symlink targets stay unchanged too. The separate `kettle_trait` fixture and
+vacuity output and `progress_dead_end` rows and progress counterexample. Counts,
+state values, catalog and state discovery order within each Model, claims,
+verdicts and counterexample structure stay unchanged. Snapshot payloads and
+metadata remain byte-identical under the fixture renames; symlink aliases were removed in fn-210.21.
+The separate `sample_kettle_trait` fixture and
 its native/WASM reference payloads remain byte-identical.
 
 ## Measurements

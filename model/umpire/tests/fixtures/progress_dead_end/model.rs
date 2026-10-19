@@ -1,9 +1,9 @@
-use crate::fixture_kettle::kettle::{self, Heater, Model, User};
+use crate::fixture_sample_5fkettle::kettle::{self, Heater, Model, User};
 use umpire_dsl::{Machine, Progress, Scope, Steps};
 
-struct NoHeat<M>(M);
+struct ProgressDeadEnd<M>(M);
 
-impl<M> Machine for NoHeat<M>
+impl<M> Machine for ProgressDeadEnd<M>
 where
     M: Machine<State = Model, Outcome = (), Fact = ()>,
     M::Action: From<User> + From<Heater>,
@@ -43,4 +43,4 @@ where
     }
 }
 
-umpire_testing::fixture!(NoHeat(kettle::world()), 16);
+umpire_testing::fixture!(ProgressDeadEnd(kettle::world()), 16);

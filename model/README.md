@@ -118,9 +118,12 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-tests` at `umpire/tests/` owns the eight shared Models in `fixtures/<name>/`: `kettle`,
-`kettle_trait`, `kettle_cut`, `choices`, `deep_chain`, `edge_checks`, `shared_starts`, and `vacuity`.
-Its sole test target is `fixtures.rs`. The Kettle Models live in their own fixture's `model.rs`;
+`umpire-tests` at `umpire/tests/` owns 23 shared Models in `fixtures/<name>/`.
+`sample_kettle` and `sample_kettle_trait` are the canonical attribute and manual-trait authoring
+examples; focused controls are named for the behavior they test. `progress_dead_end` refutes
+progress on a finite maximal path in the assumption-filtered graph, with no enabled internal
+action to reach the target. The crate's sole test target is `fixtures.rs`.
+The Kettle Models live in their own fixture's `model.rs`;
 native and wasm hosts can include that source by path. The trait Kettle has executable native
 report, states and rows goldens. Checker-specific failures, panics, overflows, holes, budget cuts
 and refusals remain in `umpire/checker/tests/fixtures/`. DSL spelling fixtures remain with the DSL.
