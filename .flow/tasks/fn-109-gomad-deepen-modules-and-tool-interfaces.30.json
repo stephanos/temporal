@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.30.md",
-  "status": "todo",
+  "status": "done",
   "title": "Preserve public artifact copy cleanup and handle lifetime",
   "updated_at": "2026-10-08T05:28:07.896096Z"
 }

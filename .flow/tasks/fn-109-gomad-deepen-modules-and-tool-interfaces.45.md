@@ -39,13 +39,9 @@ Owner amendment (2026-10-07). This task's remaining native darwin/arm64 executio
 
 
 ## Done summary
-Blocked:
-Seven equivalent style forms are repaired and independently reviewed as SOURCE_PROGRESS_ACCEPTABLE. The original full lint gate falls317→310 and scoped lint33→26, removing exactly two QF1003, four QF1001 and one ST1016 findings without new or changed residual blocks after position normalization. Changed-code lint, formatting, standalone affected errortype and check-only validation pass. Matched portable tests cover213 architecture/manifestgen terminals,37 conformance passes with2 actual runtime skips,58 execution cleanup/classification terminals and6 architecture/purity controls.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Formal implementation review remains unavailable while required full lint is red. The original affected-package baseline still fails TestRuntimeOwnedControlProbe because the patched Go driver is absent; it was not retried or relabeled as portable success. Original task19/task21 full/default/functional/affected-consumer/Darwin/fixed-identity/formal qualification stays open. Linux remains deferred and unverified under fn128. Task21 consumes this source correction; retained evidence and independent review are under task-45. This verified source progress is not completed original qualification.
-
-stage: impl-review - skipped(policy: required full lint red; fresh independent source-progress review accepts the bounded correction only)
-stage: plan-sync - skipped(config: disabled; task remains blocked)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

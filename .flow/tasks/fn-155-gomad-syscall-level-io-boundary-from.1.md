@@ -56,8 +56,9 @@ Carry the spike's syscall edge, runtime readiness hook and a virtual descriptor 
 - [ ] Linux syscall-number dispatch tests compile on the platform in use; if that is darwin/arm64, their runtime coverage is recorded as deferred to fn-128.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

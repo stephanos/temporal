@@ -78,46 +78,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Source drift, invalid overlays or replacements, unsafe bridge directives, capacity exhaustion and malformed linked evidence still fail closed with their existing error types.
 - [ ] Exact first-party simulation pins and the allowed bridge directives are unchanged; `make validate-compatibility` passes.
 ## Done summary
-Blocked:
-Blocked: R17 is implemented and reviewed (SHIP). Only native darwin/arm64 and linux/amd64 gates remain, and they belong to task 21.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Done (commits 58095d83a9 and c1cf9565fe on gomad-fn109, base 5d093b214d):
-- Collection (`target/capability_collection.go`) owns every host effect of a review: listing, overlay, sources, adapter replacement digests and compatibility pack loading.
-- Evaluation is pure. `target/internal/capabilitypolicy` makes the policy decisions through the existing `compatibility.SelectPacksForPlatform`, and the exact simulation bridge pins moved unchanged. `target/capability_evaluation.go` validates the evidence shape and projects the decisions.
-- Linked projection (`target/capability_linked.go`) reads and narrows the embedded record.
-- Callers use `reviewRecordedClosure` and `projectCapabilityReview` instead of sequencing the steps, and error order is unchanged.
-- Adapter inventory hashing moved to `internal/sourceinventory`, a new architectural owner that may import only hostfs, which target and deterministicio both use. `target.DigestAdapterSourceInventory` is removed, and the removal is recorded in go-interface-changes.md. The bounded reader moved to `hostfs.ReadBounded`.
-- `TestCapabilityEvaluationHasNoHostEffect` enforces evaluator purity, and `TestExactModuleEdges` enforces the inventory owner.
-
-Local evidence (linux/arm64, developmental only, with the uncommitted shim; details in task-11/local-evidence.json):
-- Golden canonical reviews were captured from the base implementation and are byte-identical after the change. Real-target canonical reviews are also identical before and after.
-- The inventory digest is pinned to the base value.
-- Quick commands: exit 1 at baseline (309s) and after (135s), with the identical set of 12 failures. Ten are shim-induced; two are pre-existing pin drift, see below.
-- Architecture tests: exit 0. `make validate`, which includes validate-compatibility: exit 0. `make test-live-capability`: exit 0. go vet and gofmt: clean.
-- Full `make test-host`: exit 2 (163s and 263s). Every failure reproduces on base sources, apart from three load-timing tests that pass on an isolated rerun.
-- golangci-lint: not run, because the repository binary is a darwin build.
-
-Pre-existing, not fixed by design: `TestBuiltInSimulationLinknamesPinCurrentFirstPartySources` and `TestClosureReviewSupportsSimulationFixtureAndRefusesHarnessTests` fail at base. `tools/gomad3sim/runtime_time_toolchain.go` gained a `gomadSimulationTimeCurrent` directive in ad90b462e0 without a pin update, and acceptance keeps the pins unchanged.
-
-Remaining native gates: on darwin/arm64 and linux/amd64 hosts (task 21), full `make -C tools/gomad3 test-host`, the task Quick commands, `make validate-compatibility`, `make test-live-capability` and scoped golangci-lint.
-
-Blocked:
-ORIGINAL_QUALIFICATION_OPEN: sourceinventory QF1012 has reviewed source progress;
-scoped lint is clean and literal inventory/target, architecture, errortype,
-formatting and check-only validation controls pass. Actual integrated lint
-still reports 318 findings and Make exits 2, leaving integrated errortype
-unreached. Two BASE/FINAL adapter inventory controls fail before hashing because
-the patched Go executable is absent. Original predecessor, matched-first-baseline,
-complete preservation, full/default/functional/affected-consumer/formal/native
-Darwin acceptance remains open where unproved. Linux belongs to fn-128 and
-does not block this task. See task-11/inventory-format-20261005/progress.md.
-Revive for a separately admitted source correction or changed original-gate
-prerequisite; preserve every original requirement.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

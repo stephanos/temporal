@@ -60,47 +60,13 @@ The 2026-10-05 import-only admission explicitly supersedes diagnostics_test.go i
 - [ ] All original R18/R19/R20, task21/predecessor/shared-fn108, matched first-baseline identities, complete/full/formal/affected-consumer/native-default and darwin/arm64 gates pass before completion; unavailable or red source-owned gates keep this task and parent acceptance open. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 - [ ] The separately admitted import-only correction preserves all import identities/comments and the complete diagnostic fixture body byte-for-byte, reproduces the single gci finding before editing and removes it without new findings under the same pinned unfiltered lint, passes current-source package/architecture/errortype/gofmt checks and independent source review, and commits progress with truthful original acceptance gaps.
 ## Done summary
-SOURCE_PROGRESS_ONLY; original acceptance BLOCKED.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The five cleanup calls are checked without changing original production/test
-bodies, cleanup timing, nil-cleanup primary identity or published-path returns.
-Frozen [handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/handover.md),
-[evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/evidence.json) and
-[proof freeze](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/freeze.json)
-retain the exact commands, source/tool bindings, raw residuals and unproved faults.
-Root freshly ran the read-only proof and confirmed saved BASE/final controls 8/8,
-ordinary package 23/23, consumers 60/60, five boundaries and two purity/edge
-controls. Errortype and formatting pass; actual package lint stays red on the
-unchanged diagnostics import-order finding, with five errcheck resolved and none
-introduced. Full-host/root-fast/formal/native qualification remains open.
-
-[Fresh bounded source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/independent-source-review.md)
-and [root final scope gate](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/root-verification.json)
-are separate from formal SHIP and supply no task completion claim. Requested
-reviewer and writer are gpt-6.1-sol/high, same family, in fresh contexts; executed
-model identity is not exposed. Root commits this task's reviewed progress before
-another source writer. Task21's historical blocked reason is unchanged; parent
-remains open with completion review unknown, 2/37 accepted.
-
-Tier: session (jev-unavailable(no_key))
-stage: impl-review - skipped(policy: actual lint and original qualification are not green; formal review deferred)
-stage: plan-sync - skipped(config: planSync.enabled=false; no task completed)
-
-[Outstanding acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-37/acceptance-open.md)
-retains original R18/R19/R20, task21/predecessor/shared-fn108, matched
-first-baseline identities and complete/full/completion/formal/affected-consumer/
-native-default/both-native requirements. Genuine first-Close, simultaneous
-primary/cleanup, Remove and post-Rename directory fault execution is unproved.
-Worker handover lifecycle text is its immutable prior in-progress snapshot, not
-a claim about the later root-owned blocked state.
-
-Blocked:
-ORIGINAL_QUALIFICATION_OPEN: qualification cleanup and the separately admitted diagnostic import-order correction have reviewed source progress; current unfiltered package lint is clean and scoped package/architecture/errortype/gofmt checks pass. Original full/root-fast/native Darwin/formal/predecessor/shared-fn108/matched-first-baseline/affected-consumer/native-default acceptance is still unproved. Genuine cleanup-fault execution remains unproved. Do not substitute focused developmental linux/arm64 evidence or historical receipts for those gates. Linux execution belongs to fn-128 and does not block this task. See task-37/import-order-2026-10-05/progress.md. Commit verified progress while retaining blocked status; revive only for an admitted source correction or a changed original-gate prerequisite.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

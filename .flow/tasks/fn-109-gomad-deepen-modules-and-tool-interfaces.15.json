@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "Characterize simulation progress ordering and choose the lifecycle interface from two designs",
   "updated_at": "2026-10-09T23:34:59.883445Z"
 }

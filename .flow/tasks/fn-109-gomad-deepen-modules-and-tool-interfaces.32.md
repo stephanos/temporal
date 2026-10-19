@@ -50,95 +50,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Verified source progress only; original acceptance remains open. Task is blocked,
-not done. Exact single/multi Unwrap, concrete conversions and fmt writer errors
-now retain reachable callbacks. Six admitted fresh allocation alias pairs pass;
-array/struct conversion copies isolate value cells and nested references still
-reach Dirty -> time.Now. No Program, graph/memo, public API, pin, dependency or
-runtime change; old tracked tests and 1,042 protected inputs remain unchanged.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Final worker and fresh corrective reviewer whole architecture 26 top-level tests,
-focused 16, 67 stock-host fixtures / 134 metadata observations each, five actual
-root boundaries, three broader purity/edge/host-vet boundaries and gomadtool
-consumer 30 all pass. Source-scoped static, errortype and make validate pass without regeneration.
-Actual unfiltered lint exits 1 with four byte-identical inherited findings;
-introduced 0, resolved 0. Full staged diff-check exits 2 solely for the frozen
-historical handover EOF blank; source and newly written root documents have clean
-scoped checks. The archive stays immutable; no passing full-index quality claim.
-Stock linux/arm64 is developmental; supported-platform
-Load/vet is not qualified native execution.
-
-Same original corrective reviewer: SOURCE_PROGRESS_COMMIT_ONLY, no actionable
-introduced defects. Root fresh read-only review audit session87340 exited 0 at
-2026-10-04 20:02:54 UTC against frozen source. The separate authorized AGENTS
-research-routing delta is now committed as e95d9fa1b61951388818715677e5c42b0c03ee0f;
-it changes no product source. Archived admissions/auditors remain immutable and
-the review explicitly binds the historical and current document views.
-
-The invalid unused-import RED and earlier zero-selection probes are inconclusive.
-Prior concurrent-audit failure/stable retry and two writer audit-construction
-failures remain retained, not relabeled as product successes. Seven supplementary
-inherited controls were red on BASE; final candidate resolves them without a
-whole-baseline-green claim. Inherited zero-variable, map-key formatting and
-general assignment/parameter-copy limitations remain; no universal completeness.
-
-Original R8/R18/R19, task19/fn105D4, predecessors/task21, fixed first-baseline
-identities, complete/full/completion/formal and both patched-native/affected-
-consumer qualification stay open. Verified source-progress checkpoint: e429f0a7230ea2d1c56c60fb49cc5cf4c81fa02d. Original acceptance remains open.
-
-Tier: session (jev-unavailable(no_key)).
-Requested writer/reviewer: gpt-6.1-sol at high; same configured Codex family.
-Actual execution model metadata unknown.
-stage: impl-review - skipped(policy: conductor-deferred; fresh corrective source review passed, full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
-Blocked:
-# Task 32 acceptance remains open
-
-The reviewed source candidate preserves concrete error callbacks through exact
-single/multi Unwrap traversal, named conversions and fmt writer-error results.
-Six admitted fresh-allocation alias families now keep existing shared storage;
-array/struct value conversions copy value cells while nested references stay
-shared. The final regression file retains all 39 prior fixture bodies as an exact
-prefix and executes 67 stock-host fixtures with 134 metadata observations.
-
-Worker and fresh corrective reviewer whole architecture, focused, actual root
-public boundaries, broader purity/edges/host-vet, gomadtool consumer, errortype,
-source-scoped static and generator checks pass. Actual pinned unfiltered architecture lint
-remains exit 1 with four byte-identical inherited findings, zero introduced and
-zero resolved. No new whole-Gomad lint count is supplied.
-
-The stock-valid RED records twelve introduced alias failures; Git BASE passes
-those aliases and fails seven supplementary inherited controls. The origin-stage
-repair leaves two value-copy failures; the final candidate resolves them.
-The invalid unused-import fixture and earlier zero-selection commands remain
-inconclusive. Prior concurrency-audit failure plus stable retry and the two
-writer auditor-construction failures remain retained. Archived evidence and
-auditor bytes were not rewritten.
-
-Fresh corrective review permits SOURCE_PROGRESS_COMMIT_ONLY with no actionable
-introduced defects. Root's independent read-only audit session87340 exited 0
-before the separate AGENTS-only research-routing commit e95d9fa1b6. Its narrowly
-counted historical AGENTS view and exact current/index delta are explicit in
-review checks; no product or original requirement changed.
-
-Task 32 remains blocked on original R8/R18/R19, task19/fn105D4,
-predecessors/task21, fixed first-baseline identities, affected consumer/integration,
-complete/full/completion/formal and both patched-native qualification. Stock
-Go1.27.1 linux/arm64 and supported-platform Load/vet are developmental evidence,
-not native acceptance or formal SHIP. Existing zero-variable, map-key formatting
-and general assignment/parameter-copy limits remain. There is no universal
-length/capacity, formatting or copy completeness claim.
-
-Evidence: [handover](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-handover.md),
-[worker](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-repair-evidence.json), [review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-source-review.md),
-[review checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/allocation-source-review-checks.json) and
-[root bindings](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-32/root-source-checks.json).
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: source-progress e429f0a7230ea2d1c56c60fb49cc5cf4c81fa02d; AGENTS-only e95d9fa1b61951388818715677e5c42b0c03ee0f is separate.
-- Tests: See task-32/allocation-repair-evidence.json and allocation-source-review-checks.json for exact commands, exits, logs, tools and source bindings.
-- PRs: none; no push authorized.
-
+- Commits:
+- Tests:
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

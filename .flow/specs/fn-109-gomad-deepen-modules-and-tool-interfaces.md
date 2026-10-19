@@ -1044,3 +1044,7 @@ test sleep, other cleanup sites and residual policy findings remain excluded.
 Task21 consumes the serial correction. Source-progress review may license a
 commit while required red source gates keep acceptance open. Native transfers
 and original preservation/first-baseline/R18/R19 obligations remain unchanged.
+
+## Closure (2026-10-19)
+
+Closed as won't-do on 2026-10-19 by owner decision: the native backend is retired (MILESTONES.md, 2026-10-19 retirement decision) and the Native milestones section was removed. Unfinished tasks were closed without implementation; completed work and artifacts are preserved.

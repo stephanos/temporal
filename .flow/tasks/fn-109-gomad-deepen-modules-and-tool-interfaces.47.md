@@ -57,16 +57,9 @@ make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda
 Retain scoped configured toolchain lint and `GOFLAGS=-tags=test_dep errortype -test=true ./toolchain`. Native Darwin still requires `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`, `make -C tools/gomad3 test-builder`, full `make -C tools/gomad3 test` and each original affected gate under its owner. Unsupported-host guard failures and portable selections do not replace those commands.
 
 ## Done summary
-Blocked:
-Eleven source-archive cleanup omissions now retain genuine failures with primary-first error identity, existing resource lifetimes, retries and completed publication. Raw legacy tar controls preserve pinned reader normalization after removing redundant TypeRegA. Real closed-file, closed-pipe, nonempty-directory and corrupt-deflate cases pass after meaningful exact-BASE failures. The callback control detects the initial close-before-format regression, passes BASE and final source with actual EBADF, and explicitly skips on non-Linux or inaccessible procfs.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Fresh independent source-progress review resolved both P2 findings and reports no introduced P0-P3 issues. Root final checks pass eight new top-level regressions with 27 records, six architecture/purity controls, check-only validation and changed-line fast lint. Portable source/patch consumers pass 38 top-level tests and 98 records with two unchanged missing-pinned-archive skips. Vet and direct errortype pass. Full configured lint falls from 285 to 273 findings, removing exactly the eleven cleanup and one TypeRegA findings with no added/changed residual blocks; scoped toolchain lint falls from 35 to 23. Full lint still exits 2 before errortype.
-
-Actual extraction root/file Close, cache-reader Close, five private temporary Close failures and combinations requiring those faults remain unexecuted. Native Darwin full-host/builder/full/default/functional/affected-consumer, matched-first-baseline, bounded 10/100, formal and predecessor requirements remain open wherever unproved. Linux stays deferred and unverified under fn128. Task21 consumes this correction and implements nothing. Commit verified progress separately; no completion or formal SHIP is claimed. Evidence belongs under task-47.
-
-stage: impl-review - skipped(policy: required full lint red and original qualification incomplete; independent source-progress review accepts this corrected batch)
-stage: plan-sync - skipped(config: disabled; task remains blocked)
-Tracker sync: n/a (bridge inactive)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

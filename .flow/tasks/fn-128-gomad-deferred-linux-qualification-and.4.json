@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-128-gomad-deferred-linux-qualification-and",
   "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Qualify Linux models, architecture, packs and affected workloads",
   "updated_at": "2026-10-14T00:39:35.217449Z"
 }

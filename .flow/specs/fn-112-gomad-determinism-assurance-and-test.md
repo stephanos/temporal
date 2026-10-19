@@ -334,3 +334,7 @@ tasks 4, 5, and 10.
 | R9 | End-to-end CLI and kill-then-resume | .8 | — |
 | R10 | Change-detector tests consolidated | .9 | — |
 | R11 | Docs updated to delivered state | .10 | — |
+
+## Closure (2026-10-19)
+
+Closed as won't-do on 2026-10-19 by owner decision: the native backend is retired (MILESTONES.md, 2026-10-19 retirement decision) and the Native milestones section was removed. Unfinished tasks were closed without implementation; completed work and artifacts are preserved.

@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md",
-  "status": "todo",
+  "status": "done",
   "title": "Select backend-specific filesystem handle and mapping implementations at creation",
   "updated_at": "2026-10-08T05:28:01.557493Z"
 }

@@ -77,23 +77,13 @@ make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda
 From `tools/gomad3`, also run `golangci-lint run --config=../../.github/.golangci.yml --build-tags=test_dep --timeout=10m --fix=false ./cmd/gomadtool` and `GOFLAGS=-tags=test_dep errortype -test=true ./cmd/gomadtool`. Preserve task21's complete command ledger. On native Darwin the frozen batch still requires `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad3 test-host`, the full `make -C tools/gomad3 test`, native/default integration, functional smoke, core/pack qualification and affected suites under their existing owners. These quick commands do not replace those gates.
 
 ## Done summary
-Blocked:
-Seventeen maintainer stdout reports now check write failures while preserving report bytes, completed publications, discovery and operation-error precedence, all-request qualification order and both completed-build report attempts. Ten portable public-command routes observe genuine EBADF and now return status 3; thirteen unchanged primary-error controls retain statuses 1/2 with no stdout attempt. Frozen final tests independently re-RED on exact baseline production and pass on the correction. Fresh same-family review is source-progress-acceptable with no introduced P0-P3 findings.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The original configured full lint gate falls from 302 to 285 findings, removing exactly the 17 stdout findings with no new or changed residual blocks after header-position normalization. Scoped CLI lint falls from 129 to 112; changed-line fast lint, vet/errortype, check-only validation and six architecture/purity controls pass. Portable selection passes 89 top-level tests and 508 records with one existing linux/arm64-profile skip; this is not the full CLI or native suite.
-
-Seven conformance/build/discovery/qualification/dossier success reports and native build/multi-request output-ordering executions remain unproved. Original R18/R19 Darwin/full/default/functional/affected-consumer/matched-first-baseline/bounded 10-and-100/formal and predecessor requirements remain open wherever unproved. Linux remains deferred and unverified under fn128. Task21 consumes this correction and implements nothing. The handover, conductor checks and independent review are retained under task-46. Commit verified progress separately; no task completion or formal SHIP is claimed.
-
-stage: impl-review - skipped(policy: required full lint red and original qualification incomplete; independent source-progress review accepts this bounded correction)
-stage: plan-sync - skipped(config: disabled; task remains blocked)
-Tracker sync: n/a (bridge inactive)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
-
 ## Bounded fixture preservation amendment — 2026-10-09
 
 Task51 owns only reconciliation of the compatibility-pack invalid-input failed-stderr expected status 2→1 with task8’s original checked-usage contract. See task-51/usage-status-20261009/admission.md and the parent’s dated decision. Production and all other assertions remain unchanged; historical task46 status-2 passes remain valid for their original source. All other acceptance, stdout report and authoring owners remain unchanged.

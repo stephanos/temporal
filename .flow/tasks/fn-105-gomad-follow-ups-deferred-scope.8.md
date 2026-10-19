@@ -36,11 +36,10 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 Revival is recorded. Closure-mode analysis of the final downstream Storage-backed workflow target reports supported on qualified Darwin here; Linux supported-analysis reports and native qualification belong to fn-128.6 and fn-128.7. Every reachable metrics adapter is exact, excludes signal registration, has identity-drift negative evidence and passes its Darwin native focused tests; otherwise prove the library was eliminated. Linux native focused tests belong to fn-128.6 and fn-128.7. fn-107.5 consumes the reports.
 
 ## Done summary
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-TBD
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-
 - Commits:
 - Tests:
 - PRs:

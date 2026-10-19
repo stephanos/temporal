@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-155-gomad-syscall-level-io-boundary-from",
   "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure the boundary's size, record the decision and annotate dependent work",
   "updated_at": "2026-10-10T02:12:55.877835Z"
 }

@@ -49,18 +49,9 @@ make --trace lint-code-gomad3 GOLANGCI_LINT_BASE_REV=951c5516e9e7b3066e7e069adda
 Retain configured unfiltered deterministicio lint and `GOFLAGS=-tags=test_dep errortype -test=true ./deterministicio`. Each original native/full/affected gate remains required under its owner; portable controls do not qualify it.
 
 ## Done summary
-Blocked:
-The cached-adapter owner now reports real scratch cleanup failures at its existing deferred lifetime. It retains exact primary identity after successful cleanup, returns a sole *os.PathError directly, joins real additional failures primary-first, and keeps completed publication intact. Registry preparation returns a zero target and no evidence, withholding gomad.mod/sum on cleanup failure; restoring owned permissions permits verified reuse at the literal stable cache path. Existing comments, public signatures, validation, source pins, relocation and dependency files remain unchanged.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Four fault cases failed exact BASE before the production edit. Frozen final tests expose five failing BASE fault subcases and eight passing controls; root final execution passes all 13 subcases and 17 test records without skips on UID 1000. Supplemental portable consumers pass 13 top-level tests. The exact admitted wide Quick remains exit 1 with the same 12 inherited missing-patched-toolchain/unsupported-host failures. Its command and acceptance remain unchanged. Vet and direct errortype pass; architecture/purity, check-only validation and changed-line fast lint pass. Fast lint reaches errortype. Full configured lint falls from 266 to 265, removing the single owned omission with zero added/changed residual blocks; it exits 2 before errortype. Scoped lint falls from 2 to 1 unchanged forbidigo.
-
-Fresh independent source/evidence review accepts this frozen source progress with no actionable Critical, Important or Minor finding. Its BASE/final executable verification reproduces five fault failures/eight controls and all 13 final subcases without skips. The source-review.md and review-observations.json receipts retain exact commands, hashes and unproved gates. Root retains sole lifecycle and commit ownership. Task21 keeps all 26 prior dependencies plus task49 and implements nothing; its original Acceptance-to-EOF bytes remain fixed.
-
-Additional uncached/no-selection controls proposed by the audit were not newly executed. Private callback fixtures establish no public pinned adapter qualification. Original native Darwin/full-host/full/default/integration/functional/affected-consumer, matched-first-baseline, bounded 10/100, formal and predecessor requirements stay required and open wherever unproved. Linux stays deferred and unverified under fn128. Retain this verified source progress separately without task completion or SHIP. Evidence belongs under task-49.
-
-stage: impl-review - skipped(policy: original wide Quick and full lint red; original qualification remains incomplete)
-stage: plan-sync - skipped(config: disabled; task remains blocked)
-Tracker sync: n/a (bridge inactive)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

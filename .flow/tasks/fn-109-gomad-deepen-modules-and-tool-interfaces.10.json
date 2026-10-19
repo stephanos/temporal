@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md",
-  "status": "todo",
+  "status": "done",
   "title": "Supply build, cache and adapter locations from one validated installation description",
   "updated_at": "2026-10-08T05:27:56.970267Z"
 }

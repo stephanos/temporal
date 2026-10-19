@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md",
-  "status": "todo",
+  "status": "done",
   "title": "Preserve lifecycle fault resolution while repairing exhaustive lint",
   "updated_at": "2026-10-08T05:28:04.914900Z"
 }

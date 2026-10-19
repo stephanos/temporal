@@ -66,8 +66,9 @@ One small source-bound handover must separate the existing-fixture RED/GREEN, al
 
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

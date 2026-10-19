@@ -55,15 +55,9 @@ Owner amendment (2026-10-07). This task's remaining native darwin/arm64 executio
 - [ ] Root retains actual source-frozen integrated lint output, residual ownership and stage reachability, then commits independently reviewed verified task progress separately before the next writer. Original first-baseline/preservation/predecessor/full/default/functional/affected-consumer/formal/native-Darwin acceptance remains open wherever unproved; fn128 owns transferred Linux execution.
 - [ ] Task21 consumes this owner's evidence through its added dependency; parent R18/R19 coverage includes this owner and every old task/dependency/acceptance remains intact. Complete this task only after all requirements it still owns pass, using Flow evidence and verified status.
 ## Done summary
-Blocked:
-Verified canonical JSON source progress is ready for its separate checkpoint. The explicit terminal case preserves the original tagged switch, seven branch bodies, visited keys and trailing nil. Literal unchanged-production BASE and final characterization match; all executable scoped tests, lint, errortype, formatting, root/analyzer, consumer and check-only generator controls passed, with the existing unsupported-host pack-profile skip disclosed. Independent source/evidence reviewers found no introduced issues. Root's source-frozen original integrated gate measured 324 remaining findings, with exactly the canonical exhaustive diagnostic removed and no added diagnostic; full errortype was unreached.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Task41 remains blocked for its original matched-first-baseline, preservation/predecessor, full/default/functional/affected-consumer/formal/native-Darwin requirements wherever unproved. Scoped corrective evidence cannot satisfy those broader obligations. The actual execution host is Linux aarch64 and tools/gomad3/.toolchain/bin/go is absent. No current-source-bound native Darwin evidence is available here. All original requirements stay in force; no guard, disposition, pin or expectation is weakened. Linux-only native execution belongs to fn-128 and is not a blocker for this task.
-
-Durable evidence is under .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-41/, including the scope amendment and actual plan-review SHIP, amended worker receipts, source proof, root integrated output and independent progress reviews. Task21 retains its direct dependency and consumes these results. Formal implementation review remains deferred because the original required tree is red and qualification incomplete. Resume the remaining acceptance when its independent corrective owners and native Darwin source-bound gates can qualify the frozen combined candidate.
-
-Blocked:
-Superseded by the fn-109 2026-10-09 amendment. With byte and format compatibility dropped, fn-152 (Runner storage on one append-only log) and fn-153 (retire canonical JSON and private atomic writes) delete the code this task would harden. Not required for fn-109 completion.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.29.md",
-  "status": "todo",
+  "status": "done",
   "title": "D20: make heartbeat rejection deadlines explicit and remove skip",
   "updated_at": "2026-10-02T02:02:47.054704Z"
 }

@@ -31,11 +31,10 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 Revival is recorded. Generic guide satisfies original fn-104 R4 without naming downstream repositories/components. Consumer guide gives concrete repeatable Darwin commands and bounded support claims matching retained measured darwin/arm64 success. Shared contracts and static coverage of both supported source sets remain required. Linux qualification commands and support-claim evidence belong to [fn-128.6](../tasks/fn-128-gomad-deferred-linux-qualification-and.6.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md); missing transferred Linux evidence does not block this task or justify a Linux support claim. No commands rely on undocumented local edits or treat classified failures as passing. fn-107.5 reconciles the roadmap after consuming this guide.
 ## Done summary
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-TBD
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-
 - Commits:
 - Tests:
 - PRs:

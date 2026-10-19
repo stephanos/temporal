@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.13.md",
-  "status": "todo",
+  "status": "done",
   "title": "Generate host and runtime simulation-time codecs from one versioned definition",
   "updated_at": "2026-10-08T08:25:52.817251Z"
 }

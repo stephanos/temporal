@@ -70,57 +70,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Overlay inventories validate, the toolchain rebuilds, and gomad3sim network/process tests pass on darwin/arm64; linux/amd64 is recorded as incomplete.
 
 ## Done summary
-Blocked:
-# Task 17 acceptance awaits qualified native gates
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The network-owner source candidate and canonical simulation-gate correction
-are frozen, independently reviewed and pass feasible conductor checks; see
-handover.md, evidence.json, source-audit.md and conductor-verification.md.
-This is not task completion or R12 acceptance.
-
-Actual host is linux/arm64. The pinned patched executable is absent. With
-stock Go 1.27.1 on PATH, the native builder exits 2 because complete mode
-requires darwin/arm64 or linux/amd64 (native-toolchain.log). The unchanged
-Mach-O linter cannot execute on this host; task-16 metadata remains applicable.
-
-Required patched rebuild, native overlay/network/process tests, real Runner
-transport, full host/test-host and supported-platform qualification remain
-open. Scratch adapters and link-only/compile-only checks are developmental,
-not IPC, timers, replay or isolation proof. Preserve D12, resolved D14 and
-the existing strict-delay watchdog disposition. The scoped filter fix selects
-new process cases without relaxing those expectations.
-
-Keep Flow acceptance blocked until its actual native commands qualify the
-integrated source. MILESTONES item 4 permits downstream source advancement
-after review; it does not permit completion. User owns commits; commits [].
-
-Blocked:
-# Task 17 native acceptance remains open after network checkpoint
-
-The exact corrected network-owner candidate is committed separately as verified
-progress under MILESTONES item 5. All 17 historical source identities match;
-the thirteen actual deltas retain the original independently reviewed behavior
-and canonical process selection. See conductor-checkpoint.md, checkpoint-report.md,
-checkpoint-qualification-inputs-report.md and source-audit.md.
-
-The focused ownership/selection/architecture, generation/version/protocol, vet
-and full validation checks passed on stock linux/arm64. Required patched rebuild,
-native overlay/network/process tests, real Runner transport, whole host and
-native darwin/arm64 plus linux/amd64 qualification remain incomplete. The
-unchanged incompatible linter and native-builder limitation remain recorded.
-
-Developmental adapters and prior compile/link evidence do not prove native
-IPC, timers, hard isolation or exact replay. Preserve D12, resolved D14 and the
-strict-delay watchdog disposition. Keep task 17 and R12 open; no Flow completion
-or push is included.
-
-Blocked:
-Waits for fn-155.7 (syscall-level I/O boundary decision), per the owner's 2026-10-09 choice to gate this task. This task rewrites code the boundary decision may replace; resume once fn-155.7 records its decision and annotates this task. flowctl does not support cross-spec task dependencies, so the gate is recorded as a block.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

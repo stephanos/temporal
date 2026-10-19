@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Drive explore, replay, and kill-then-resume through the built CLI",
   "updated_at": "2026-10-02T11:54:18.221396Z"
 }

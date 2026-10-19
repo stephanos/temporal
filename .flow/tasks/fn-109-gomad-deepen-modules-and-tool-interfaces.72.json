@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.72.md",
-  "status": "todo",
+  "status": "done",
   "title": "Restore explicit scripted seed completion statistics coverage",
   "updated_at": "2026-10-10T03:05:24.632321Z"
 }

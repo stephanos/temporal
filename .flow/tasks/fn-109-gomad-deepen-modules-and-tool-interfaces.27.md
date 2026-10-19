@@ -45,31 +45,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-SOURCE_PROGRESS_ONLY. Root retains blocked qualification rather than a task-completion verdict.
-The fresh independent source review found no introduced Critical, Important or
-Minor finding. Current MILESTONES and the interface inventory link a dated
-three-row disclosure. The v041 characterization now reflects its selected
-pre-retirement fixture; current rootfast guidance retains repaired routing and
-red419 qualification across 31 owners.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Fresh documentary checks pass for 25 local links including five fragments,
-four frozen owned files, 49 protected files against both pre-edit hashes and
-BASE, and three protected sections. Original report, first-task baseline,
-commit captures, localized task19 claims and original API/acceptance/boundaries
-are unchanged. No Go/native/broad gate reran for this documentary change.
-Original R18/R19/task21 format/workload availability, fixed-identity,
-full/native/formal and independent fn113/fn114 requirements remain open.
-
-Tier: session (jev-unavailable(no_key))
-stage: impl-review - skipped(policy: qualification tree red; independent source review supplies no formal SHIP)
-stage: plan-sync - skipped(empty: task not done; no completed wave to project)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: conductor-owned source-progress checkpoint carrying this task record; no task-completion claim.
-- Tests: [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/evidence.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/source-checkpoint-verification.json).
-- Review: [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/independent-source-review.md), [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/independent-source-review-checks.json).
-- PRs: none.
-
+- Commits:
+- Tests:
+- PRs:
 ## Blocked
 [Qualification gaps](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-27/acceptance-open.md) retain original acceptance and required native/formal gates.
 

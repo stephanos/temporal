@@ -29,8 +29,9 @@ Keep deferred until the owner requests Darwin qualification and supplies native 
 - [ ] Native consumer guidance cites retained results and unchanged policy; absent checkout, adapter/source gaps or classified failures keep qualification open.
 
 ## Done summary
-Blocked:
-Deferred by the owner on 2026-10-07. Revival requires an explicit Darwin qualification request, native darwin/arm64 execution, the supported pinned toolchain/profile and a frozen reviewed candidate. Native evidence is unverified. No PR, push or CI action is authorized; scheduled/dispatched soak execution remains deferred pending separate authority. Downstream qualification also needs the reviewed shared D8-D10 candidate and actual consumer checkout. Portable/source requirements stay with the donor tasks; this handoff completes none of them.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

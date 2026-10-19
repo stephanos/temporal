@@ -99,7 +99,7 @@
     "impl:fn-105-gomad-follow-ups-deferred-scope.32": 0
   },
   "spec_path": ".flow/specs/fn-105-gomad-follow-ups-deferred-scope.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad remaining work and decisions",
   "tracker": {
     "baseHashFlow": null,
@@ -112,5 +112,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T10:16:39.963526Z"
+  "updated_at": "2026-10-19T22:37:14.962000Z"
 }

@@ -49,31 +49,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Independent source review finds no actionable introduced defect and verified owned source progress is committed before another implementation task; original task5/predecessor, R18/R19, task21, Darwin native and formal requirements remain open if unproven. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 
 ## Done summary
-SOURCE_PROGRESS_ONLY. Authoritative Flow status is blocked on qualification.
-The fresh independent source review found no actionable introduced defect.
-Actual CLI branches now consume Runner's existing semantic helpers while
-preserving messages, order, presence/zero behavior and checked writers. Runner
-production, public signatures and original task5/predecessor criteria are unchanged.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Current focused CLI passes 34 top-level tests; saved BASE CLI passes the same
-33 behavioral tests. Focused Runner passes 10 with the existing Darwin identity
-golden skipped; architecture and both outside-Runner compilation checks pass.
-Ordinary vet and errortype pass. All 18 worker receipts and current 980-file
-freeze are verified. Unfiltered affected CLI lint retains 54 inherited findings,
-zero introduced/resolved. Complete CLI/end-to-end and expanded portable-plan
-tests retain missing patched-toolchain/unsupported-host failures. Full native,
-formal and original R6/R18/R19/task21 acceptance remain open.
-
-Tier: session (jev-unavailable(no_key))
-stage: impl-review - skipped(policy: qualification tree red; independent source review supplies no formal SHIP)
-stage: plan-sync - skipped(empty: task not done; no completed wave to project)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: conductor-owned source-progress checkpoint carrying this task record; no task-completion claim.
-- Tests: [worker evidence](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/evidence.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/source-checkpoint-verification.json).
-- Review: [independent source review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/independent-source-review.md), [checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/independent-source-review-checks.json).
-- PRs: none.
-
+- Commits:
+- Tests:
+- PRs:
 ## Blocked
 [Qualification gaps](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-26/acceptance-open.md) retain original acceptance and required native/formal gates.
 

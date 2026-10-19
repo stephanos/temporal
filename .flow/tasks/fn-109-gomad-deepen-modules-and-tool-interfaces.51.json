@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.51.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reconcile compatibility-pack usage fixture with original failed-output status",
   "updated_at": "2026-10-09T03:54:05.603450Z"
 }

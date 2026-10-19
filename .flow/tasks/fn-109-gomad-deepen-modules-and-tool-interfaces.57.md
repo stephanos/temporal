@@ -35,8 +35,9 @@ Tasks57-59 are separately reviewed and integrated through a7657365281dccbdcac27f
 - [ ] Root verifies the integrated target, obtains fresh independent review and commits this task separately; Done requires all still-owned source acceptance.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

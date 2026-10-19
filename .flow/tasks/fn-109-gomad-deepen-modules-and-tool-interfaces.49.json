@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md",
-  "status": "todo",
+  "status": "done",
   "title": "Preserve adapter cache cleanup and stable publication",
   "updated_at": "2026-10-08T05:28:18.931322Z"
 }

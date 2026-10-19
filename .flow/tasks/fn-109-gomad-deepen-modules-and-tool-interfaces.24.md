@@ -50,16 +50,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Fresh independent source review assesses the bounded repair; no old report, original criterion, workload expectation or native gate is rewritten or declared complete without actual proof.
 - [ ] Source progress, tests, docs and Flow evidence are committed before the next implementation task; formal review, original R18/R19 and the Darwin native gate remain open whenever their source-owned required checks have not passed. Linux native execution, pack/report/replay and qualification documentation belong to fn-128.1, fn-128.4 and fn-128.7; missing transferred Linux evidence does not block this task.
 ## Done summary
-SOURCE PROGRESS ONLY: repository-relative matching repaired and independently reviewed; qualification remains red. See [acceptance and remaining owners](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/acceptance-open.md). Root will commit this checkpoint before the next implementation task. Original R18/R19, task 21, formal review and both native gates remain open.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-stage: impl-review - skipped(policy: qualification tree red; independent source-progress review is not formal SHIP)
-stage: plan-sync - skipped(empty: task not done; no completed wave to project)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: root-owned source-progress checkpoint in Git history; no worker commit.
-- Tests: [terminal worker receipts](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/evidence.json), [independent checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/independent-source-review-checks.json), [root verification](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-24/source-checkpoint-verification.json).
-- PRs: none; no push authorized.
-
+- Commits:
+- Tests:
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Run the orphaned simulation, overlay, and choice-replay tests in a gate",
   "updated_at": "2026-10-02T03:52:33.047371Z"
 }

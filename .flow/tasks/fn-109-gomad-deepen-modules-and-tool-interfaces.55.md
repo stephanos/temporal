@@ -42,8 +42,9 @@ gates and public/native coverage gaps keep acceptance in_progress.
 - [ ] Fresh independent source-progress review, root verification and separate commit feed task21. No Done/formal SHIP on red source gates or broader/native/publication acceptance is claimed.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

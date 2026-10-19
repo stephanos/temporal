@@ -21,8 +21,9 @@ Add the boundary and adapter exclusion to soak grouping and run the existing soa
 - [ ] The soak report is retained with its platform and toolchain identity; the other platform is recorded as deferred.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
