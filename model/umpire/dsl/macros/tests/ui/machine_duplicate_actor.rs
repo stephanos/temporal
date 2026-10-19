@@ -8,9 +8,10 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn first(&mut self, action: User) { match action { User::Press => {} } }
+        #[on(User)]
         fn second(&mut self, action: User) { match action { User::Press => {} } }
     }
 }

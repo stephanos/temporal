@@ -1,16 +1,16 @@
 error[E0453]: allow(unsafe_code) incompatible with previous forbid
-  --> tests/ui/machine_unsafe_allowed.rs:17:17
+  --> tests/ui/machine_unsafe_allowed.rs:15:17
    |
  3 | #[machine]
    | ---------- `forbid` level set here
 ...
-17 |         #[allow(unsafe_code)]
+15 |         #[allow(unsafe_code)]
    |                 ^^^^^^^^^^^ overruled by previous forbid
 
 error: implementation of an `unsafe` method
-  --> tests/ui/machine_unsafe_allowed.rs:18:9
+  --> tests/ui/machine_unsafe_allowed.rs:16:9
    |
-18 |         unsafe fn helper(&self) {}
+16 |         unsafe fn helper(&self) {}
    |         ^^^^^^^^^^^^^^^^^^^^^^^^^^
    |
 note: the lint level is defined here

@@ -1,0 +1,5 @@
+error: #[on] names an actor enum declared in this module
+  --> tests/ui/machine_unknown_actor.rs:12:9
+   |
+12 |         #[on(Other)]
+   |         ^^^^^^^^^^^^

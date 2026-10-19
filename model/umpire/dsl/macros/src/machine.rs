@@ -1,9 +1,8 @@
 use proc_macro2::TokenStream;
-use quote::quote;
+use quote::{quote, quote_spanned};
 use syn::{ImplItem, Item, ItemImpl, ItemMod, Path, Token, parse::Parser, punctuated::Punctuated};
 
-const GROUPS: [&str; 6] =
-    ["transitions", "effects", "invariants", "postconditions", "assumptions", "progress"];
+const KINDS: [&str; 6] = ["on", "effect", "invariant", "postcondition", "assumption", "progress"];
 
 fn helper(attr: &syn::Attribute, name: &str) -> bool {
     attr.path().segments.last().is_some_and(|segment| segment.ident == name)
@@ -38,17 +37,16 @@ fn key(path: &Path) -> String {
     path.segments.iter().map(|segment| segment.ident.to_string()).collect::<Vec<_>>().join("::")
 }
 
-fn group(input: &ItemImpl) -> manyhow::Result<Option<usize>> {
+fn kind(method: &syn::ImplItemFn) -> manyhow::Result<Option<usize>> {
     let mut found = None;
-    for attr in &input.attrs {
-        if helper(attr, "scopes") {
-            manyhow::bail!(attr, "use #[assumptions] instead of #[scopes]");
-        }
-        if let Some(rank) = GROUPS.iter().position(|name| helper(attr, name)) {
+    for attr in &method.attrs {
+        if let Some(rank) = KINDS.iter().position(|name| helper(attr, name)) {
             if found.is_some() {
-                manyhow::bail!(attr, "an impl requires exactly one machine group");
+                manyhow::bail!(attr, "a method requires exactly one machine kind attribute");
             }
-            attr.meta.require_path_only()?;
+            if rank != 0 && rank != 3 {
+                attr.meta.require_path_only()?;
+            }
             found = Some(rank);
         }
     }
@@ -57,28 +55,15 @@ fn group(input: &ItemImpl) -> manyhow::Result<Option<usize>> {
 
 fn check_impl(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
     if input.trait_.is_some() || !input.generics.params.is_empty() {
-        manyhow::bail!(input, "machine groups require a nongeneric inherent impl");
+        manyhow::bail!(input, "machine methods require one nongeneric inherent impl {}", state);
     }
     let syn::Type::Path(ty) = input.self_ty.as_ref() else {
-        manyhow::bail!(input.self_ty, "machine groups require the module's state type");
+        manyhow::bail!(input.self_ty, "machine methods require the module's state type");
     };
     if ty.qself.is_some() || !ty.path.is_ident(state) {
-        manyhow::bail!(input.self_ty, "machine groups require the module's state type");
+        manyhow::bail!(input.self_ty, "machine methods require the module's state type");
     }
     Ok(())
-}
-
-fn qualifier(method: &syn::ImplItemFn, name: &str) -> manyhow::Result<Option<Path>> {
-    let mut value = None;
-    for attr in &method.attrs {
-        if helper(attr, name) {
-            if value.is_some() {
-                manyhow::bail!(attr, "duplicate #[{}] qualifier", name);
-            }
-            value = Some(attr.parse_args()?);
-        }
-    }
-    Ok(value)
 }
 
 #[derive(Default)]
@@ -113,12 +98,15 @@ fn check_readonly(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
     }
     for item in &input.items {
         let ImplItem::Fn(method) = item else { continue };
+        if matches!(kind(method)?, Some(0 | 1)) {
+            continue;
+        }
         if let Some(receiver) = method.sig.receiver()
             && (receiver.mutability.is_some() || mutable_reference(receiver))
         {
             manyhow::bail!(
                 &method.sig.ident,
-                "{} takes &mut self; only transitions and effects change the state",
+                "{} takes &mut self; only #[on] and #[effect] methods change the state",
                 method.sig.ident
             );
         }
@@ -126,17 +114,156 @@ fn check_readonly(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
     Ok(())
 }
 
+fn readonly_checks(
+    items: &mut Vec<Item>,
+    state: &syn::Ident,
+    depth: usize,
+    registered: bool,
+) -> syn::Result<()> {
+    let mut state_path = quote!(#state);
+    for _ in 0..depth {
+        state_path = quote!(super::#state_path);
+    }
+    if depth == 0 {
+        state_path = quote!(self::#state);
+    }
+    let mut checks = Vec::new();
+    for item in &mut *items {
+        let Item::Impl(input) = item else { continue };
+        let ty = &input.self_ty;
+        let attrs = input
+            .attrs
+            .iter()
+            .filter(|attr| attr.path().is_ident("cfg") || attr.path().is_ident("cfg_attr"));
+        let (generics, arguments, constraints) = input.generics.split_for_impl();
+        let context = input.trait_.as_ref().map(|(path, _)| quote!(: #path));
+        let methods = input.items.iter().filter_map(|item| match item {
+            ImplItem::Fn(method)
+                if !(registered
+                    && method
+                        .attrs
+                        .iter()
+                        .any(|attr| helper(attr, "on") || helper(attr, "effect")))
+                    && method.sig.receiver().is_some_and(|receiver| {
+                        receiver.mutability.is_some() || mutable_reference(receiver)
+                    }) =>
+            {
+                Some(method)
+            }
+            _ => None,
+        });
+        let mut guards = Vec::new();
+        for method in methods {
+            let message = format!(
+                "{} takes &mut self; only #[on] and #[effect] methods change the state",
+                method.sig.ident
+            );
+            guards.push(quote_spanned! {method.sig.ident.span()=>
+                const _: () = {
+                    #[diagnostic::on_unimplemented(message = #message)]
+                    trait __Allowed {}
+                    impl __Allowed for () {}
+                    fn __require(_: impl __Allowed) {}
+                    trait __Guard #generics #context #constraints {
+                        fn __check(&self, _: ::core::marker::PhantomData<#ty>);
+                    }
+                    impl #generics __Guard #arguments for #ty #constraints {
+                        fn __check(&self, _: ::core::marker::PhantomData<#ty>) {
+                            __require((&__Probe::<Self>(::core::marker::PhantomData)).__probe());
+                        }
+                    }
+                };
+            });
+        }
+        if guards.is_empty() {
+            continue;
+        }
+        checks.push(syn::parse2(quote! {
+            #(#attrs)*
+            const _: () = {
+                struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
+                struct __MutableModelMethod;
+                trait __Readonly {
+                    type __Result;
+                    fn __probe(self) -> Self::__Result;
+                }
+                impl __Readonly for &__Probe<#state_path> {
+                    type __Result = __MutableModelMethod;
+                    fn __probe(self) -> Self::__Result { __MutableModelMethod }
+                }
+                impl<T: ?Sized> __Readonly for &&__Probe<T> {
+                    type __Result = ();
+                    fn __probe(self) {}
+                }
+                #(#guards)*
+            };
+        })?);
+    }
+    items.extend(checks);
+    Ok(())
+}
+
+struct LocalReadonly<'a> {
+    state: &'a syn::Ident,
+    depth: usize,
+    error: Option<syn::Error>,
+}
+
+impl syn::visit_mut::VisitMut for LocalReadonly<'_> {
+    fn visit_item_mod_mut(&mut self, module: &mut ItemMod) {
+        self.depth += 1;
+        syn::visit_mut::visit_item_mod_mut(self, module);
+        if let Some((_, items)) = &mut module.content
+            && let Err(error) = readonly_checks(items, self.state, self.depth, false)
+        {
+            self.error = Some(error);
+        }
+        self.depth -= 1;
+    }
+
+    fn visit_block_mut(&mut self, block: &mut syn::Block) {
+        syn::visit_mut::visit_block_mut(self, block);
+        let mut items: Vec<_> = block
+            .stmts
+            .iter()
+            .filter_map(|statement| match statement {
+                syn::Stmt::Item(Item::Impl(input)) => Some(Item::Impl(input.clone())),
+                _ => None,
+            })
+            .collect();
+        let original_count = items.len();
+        if let Err(error) = readonly_checks(&mut items, self.state, self.depth, false) {
+            self.error = Some(error);
+            return;
+        }
+        let statements = std::mem::take(&mut block.stmts);
+        block.stmts.extend(items.into_iter().skip(original_count).map(syn::Stmt::Item));
+        block.stmts.extend(statements);
+    }
+}
+
+fn check_receivers(items: &mut Vec<Item>, state: &syn::Ident) -> syn::Result<()> {
+    let mut local = LocalReadonly { state, depth: 0, error: None };
+    for item in &mut *items {
+        syn::visit_mut::VisitMut::visit_item_mut(&mut local, item);
+    }
+    if let Some(error) = local.error {
+        return Err(error);
+    }
+    readonly_checks(items, state, 0, true)
+}
+
 fn transition_actor<'a>(
     method: &syn::ImplItemFn,
     actors: &'a [syn::Ident],
 ) -> manyhow::Result<&'a syn::Ident> {
     if let Some(asyncness) = method.sig.asyncness {
-        manyhow::bail!(asyncness, "transitions methods must be synchronous");
+        manyhow::bail!(asyncness, "#[on] methods must be synchronous");
     }
     if !matches!(method.sig.output, syn::ReturnType::Default) {
         manyhow::bail!(
             &method.sig.output,
-            "transitions methods return nothing; enabledness is a changed state"
+            "#[on] methods return nothing; enabledness is a changed state"
         );
     }
     let actor = (method.sig.inputs.len() == 2)
@@ -156,7 +283,7 @@ fn transition_actor<'a>(
         Some(actor) if mutable_receiver => Ok(actor),
         _ => manyhow::bail!(
             &method.sig,
-            "a transitions method takes one actor enum: fn user(&mut self, action: User)"
+            "an #[on] method takes its actor enum: fn user(&mut self, action: User)"
         ),
     }
 }
@@ -174,67 +301,148 @@ fn check_claim(method: &syn::ImplItemFn) -> manyhow::Result<()> {
     Ok(())
 }
 
+fn check_legacy(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
+    for attr in &input.attrs {
+        if let Some(name) = [
+            "transitions",
+            "effects",
+            "invariants",
+            "postconditions",
+            "assumptions",
+            "scopes",
+            "progress",
+        ]
+        .iter()
+        .find(|name| helper(attr, name))
+        {
+            manyhow::bail!(
+                attr,
+                "use per-item #[on(Actor)], #[effect], #[invariant], #[postcondition], #[assumption], and #[progress] instead of #[{}]",
+                name
+            );
+        }
+    }
+    if let Some((path, _)) = &input.trait_
+        && path.segments.last().is_some_and(|part| {
+            [
+                "Transitions",
+                "Effects",
+                "Invariants",
+                "Postconditions",
+                "Assumptions",
+                "Scopes",
+                "Progress",
+            ]
+            .iter()
+            .any(|name| part.ident == name)
+        })
+        && matches!(input.self_ty.as_ref(), syn::Type::Path(ty) if ty.path.is_ident(state))
+    {
+        manyhow::bail!(
+            path,
+            "use per-item machine attributes on an inherent impl {} instead of marker traits",
+            state
+        );
+    }
+    Ok(())
+}
+
+fn after_action(attr: &syn::Attribute) -> syn::Result<Option<Path>> {
+    let mut after = None;
+    if matches!(attr.meta, syn::Meta::List(_)) {
+        attr.parse_nested_meta(|meta| {
+            if !meta.path.is_ident("after") {
+                return Err(meta.error("expected after = Actor::Variant"));
+            }
+            if after.is_some() {
+                return Err(meta.error("duplicate after qualifier"));
+            }
+            after = Some(meta.value()?.parse::<Path>()?);
+            Ok(())
+        })?;
+    } else {
+        attr.meta.require_path_only()?;
+    }
+    Ok(after)
+}
+
+fn check_order(attr: &syn::Attribute, rank: usize, previous: Option<usize>) -> manyhow::Result<()> {
+    if previous.is_some_and(|previous| rank < previous) {
+        let before = rank.checked_sub(1).map_or_else(
+            || "the start of the impl".to_owned(),
+            |rank| format!("#[{}]", KINDS[rank]),
+        );
+        let after = KINDS
+            .get(rank + 1)
+            .map_or_else(|| "the end of the impl".to_owned(), |name| format!("#[{name}]"));
+        manyhow::bail!(
+            attr,
+            "#[{}] methods must follow {} and precede {}",
+            KINDS[rank],
+            before,
+            after
+        );
+    }
+    Ok(())
+}
+
 fn registrations(
     items: &mut [Item],
     state: &syn::Ident,
     actors: &[syn::Ident],
 ) -> manyhow::Result<Registrations> {
     let mut registration = Registrations::default();
-    let mut seen = [false; GROUPS.len()];
+    let mut registered_impl = false;
     let mut previous = None;
     for item in items {
         let Item::Impl(input) = item else { continue };
-        let rank = group(input)?;
-        if !matches!(rank, Some(0 | 1)) {
-            check_readonly(input, state)?;
+        check_legacy(input, state)?;
+        check_readonly(input, state)?;
+        let annotated =
+            input.items.iter().try_fold(false, |found, item| -> manyhow::Result<bool> {
+                Ok(found || matches!(item, ImplItem::Fn(method) if kind(method)?.is_some()))
+            })?;
+        if !annotated {
+            continue;
         }
-        let Some(rank) = rank else { continue };
-        let attr = input
-            .attrs
-            .iter()
-            .find(|attr| helper(attr, GROUPS[rank]))
-            .ok_or_else(|| syn::Error::new_spanned(&*input, "missing machine group"))?;
-        if seen[rank] {
-            manyhow::bail!(
-                attr,
-                "duplicate #[{}] group; each machine group may appear only once",
-                GROUPS[rank]
-            );
+        if registered_impl {
+            manyhow::bail!(input, "machine methods belong in one impl {}", state);
         }
-        if let Some(previous) = previous
-            && rank < previous
-        {
-            manyhow::bail!(
-                attr,
-                "out-of-order #[{}] group; must precede #[{}]",
-                GROUPS[rank],
-                GROUPS[previous]
-            );
-        }
-        if rank == 1 && previous != Some(0) {
-            manyhow::bail!(attr, "#[effects] requires the preceding #[transitions] group");
-        }
-        seen[rank] = true;
-        previous = Some(rank);
+        registered_impl = true;
         check_impl(input, state)?;
-        input.attrs.retain(|attr| !helper(attr, GROUPS[rank]));
         for item in &mut input.items {
             let ImplItem::Fn(method) = item else { continue };
-            let after = qualifier(method, "after")?;
-            if after.is_some() && rank != 3 {
-                manyhow::bail!(&method.sig.ident, "#[after] requires the #[postconditions] group");
-            }
+            let Some(rank) = kind(method)? else { continue };
+            let attr = method
+                .attrs
+                .iter()
+                .find(|attr| helper(attr, KINDS[rank]))
+                .ok_or_else(|| syn::Error::new_spanned(&method.sig, "missing machine kind"))?;
+            check_order(attr, rank, previous)?;
+            previous = Some(rank);
             if matches!(rank, 2 | 3) {
                 check_claim(method)?;
             }
             let name = method.sig.ident.clone();
             match rank {
                 0 => {
+                    let named: Path = attr.parse_args()?;
+                    if !actors.iter().any(|actor| named.is_ident(actor)) {
+                        manyhow::bail!(attr, "#[on] names an actor enum declared in this module");
+                    }
                     let actor = transition_actor(method, actors)?;
+                    if !named.is_ident(actor) {
+                        manyhow::bail!(
+                            &method.sig,
+                            "#[on({})] requires a {} parameter",
+                            key(&named),
+                            key(&named)
+                        );
+                    }
                     if registration.handlers.iter().any(|(known, _)| known == actor) {
                         manyhow::bail!(
                             &method.sig.ident,
-                            "actor {} already has a transitions method",
+                            "actor {} already has an #[on] method",
                             actor
                         );
                     }
@@ -243,6 +451,7 @@ fn registrations(
                 1 => {}
                 2 => registration.invariants.push(name),
                 3 => {
+                    let after = after_action(attr)?;
                     let arity = method.sig.inputs.len();
                     if !(1..=2).contains(&arity) || method.sig.receiver().is_none() {
                         manyhow::bail!(
@@ -259,12 +468,12 @@ fn registrations(
             if matches!(rank, 2 | 3 | 5) {
                 registration.order.push(method.sig.ident.to_string());
             }
-            method.attrs.retain(|attr| !helper(attr, "after"));
+            method.attrs.retain(|attr| !helper(attr, KINDS[rank]));
         }
     }
     for actor in actors {
         if !registration.handlers.iter().any(|(known, _)| known == actor) {
-            manyhow::bail!(actor, "actor {} has no transitions method", actor);
+            manyhow::bail!(actor, "actor {} has no #[on] method", actor);
         }
     }
     Ok(registration)
@@ -344,11 +553,11 @@ fn catalog(
 fn progress_helpers(enabled: bool) -> Option<TokenStream> {
     enabled.then(|| {
         quote! {
-            struct Progress { trigger: bool, target: bool, assumption: Assumption }
-            fn whenever(trigger: bool) -> Progress {
-                Progress { trigger, target: true, assumption: Assumption::default() }
+            struct LeadsTo { trigger: bool, target: bool, assumption: Assumption }
+            fn whenever(trigger: bool) -> LeadsTo {
+                LeadsTo { trigger, target: true, assumption: Assumption::default() }
             }
-            impl Progress {
+            impl LeadsTo {
                 fn eventually(mut self, target: bool) -> Self { self.target = target; self }
                 fn assuming(mut self, assumption: Assumption) -> Self {
                     self.assumption = assumption;
@@ -374,6 +583,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         manyhow::bail!(input, "#[machine] requires an inline module");
     };
     let (state, actors, actions) = catalog(items, &input.ident)?;
+    check_receivers(items, &state)?;
     let registration = registrations(items, &state, &actors)?;
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);

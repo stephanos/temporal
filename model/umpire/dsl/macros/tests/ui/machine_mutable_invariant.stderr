@@ -1,5 +1,5 @@
-error: claim takes &mut self; only transitions and effects change the state
-  --> tests/ui/machine_mutable_invariant.rs:18:12
+error: claim takes &mut self; only #[on] and #[effect] methods change the state
+  --> tests/ui/machine_mutable_invariant.rs:16:12
    |
-18 |         fn claim(&mut self) {}
+16 |         fn claim(&mut self) {}
    |            ^^^^^

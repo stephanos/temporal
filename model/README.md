@@ -58,13 +58,13 @@ command failures fail the helper; exceeding a time budget prints a warning and s
 
 ## Writing a Model
 
-Inside a `#[machine]` module, `#[transitions]` holds one method per actor enum derived with
-`Action`. The parameter type binds the method to its actor; the method name is ordinary Rust.
-Kettle's user transitions are:
+Inside a `#[machine]` module, one `impl Model` holds methods with per-item attributes.
+`#[on(Actor)]` selects an actor enum derived with `Action`; its method takes that actor type
+and matches its actions. Kettle's user transitions are:
 
 ```rust
-#[transitions]
 impl Model {
+    #[on(User)]
     fn user(&mut self, action: User) {
         match action {
             User::PressButton if !self.heating_on => {
@@ -83,13 +83,22 @@ impl Model {
 
 Each match arm combines the action, its guard and its effect. An action is enabled only when the
 final state changes; `_ => {}` disables unmatched actions. Without a fallback, rustc checks match
-exhaustiveness. There is no per-action registration attribute.
+exhaustiveness. Attributes preserve authored statements and method/impl headers.
 
-Impl groups appear in transitions, optional effects, invariants, postconditions, assumptions and
-progress order. Shared effects are ordinary `&mut self` helper methods in a `#[effects]` impl
-directly after transitions; Kettle keeps its effects inline. All other `Model` methods, including
-unmarked helpers, take `&self` or no receiver. `#[machine]` forbids unsafe code throughout its
-module. See [DESIGN.md](DESIGN.md) for the Scala/Rust comparison and capability boundaries.
+Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
+`#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action
+with `#[postcondition(after = Heater::Failover)]`. Shared effects are ordinary `#[effect]`
+helper methods; Kettle keeps its effects inline. Only `#[on]` and `#[effect]` methods may take
+`&mut self`. Other `Model` methods take `&self` or no receiver, including unmarked helpers in
+qualified, nested or aliased impls; compiler-resolved checks leave unrelated helper types alone.
+Compiler-only checking declarations may be added inside local function or const scopes to resolve
+aliases and trait projections; they add no runtime guard.
+`#[machine]` forbids unsafe code throughout its module.
+
+Attribute progress methods return `LeadsTo`. The existing
+`whenever(..).eventually(..).assuming(..)` builder remains; `path!` is deferred to fn-215.
+See [DESIGN.md](DESIGN.md) for the Scala/Rust
+comparison and capability boundaries.
 
 ## Testing
 

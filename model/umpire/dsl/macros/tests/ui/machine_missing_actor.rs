@@ -8,7 +8,6 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {}
 }
 

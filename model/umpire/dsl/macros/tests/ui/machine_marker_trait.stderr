@@ -1,0 +1,5 @@
+error: use per-item machine attributes on an inherent impl Model instead of marker traits
+  --> tests/ui/machine_marker_trait.rs:11:10
+   |
+11 |     impl Transitions for Model {
+   |          ^^^^^^^^^^^

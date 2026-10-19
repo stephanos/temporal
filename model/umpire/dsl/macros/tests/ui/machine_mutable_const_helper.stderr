@@ -1,0 +1,22 @@
+error[E0277]: rogue takes &mut self; only #[on] and #[effect] methods change the state
+  --> tests/ui/machine_mutable_const_helper.rs:21:16
+   |
+21 |             fn rogue(&mut self) { self.value = true; }
+   |                ^^^^^ unsatisfied trait bound
+   |
+help: the trait `__Allowed` is not implemented for `__MutableModelMethod`
+  --> tests/ui/machine_mutable_const_helper.rs:3:1
+   |
+ 3 | #[machine]
+   | ^^^^^^^^^^
+help: the trait `__Allowed` is implemented for `()`
+  --> tests/ui/machine_mutable_const_helper.rs:21:16
+   |
+21 |             fn rogue(&mut self) { self.value = true; }
+   |                ^^^^^
+note: required by a bound in `__require`
+  --> tests/ui/machine_mutable_const_helper.rs:21:16
+   |
+21 |             fn rogue(&mut self) { self.value = true; }
+   |                ^^^^^ required by this bound in `__require`
+   = note: this error originates in the attribute macro `machine` (in Nightly builds, run with -Z macro-backtrace for more info)

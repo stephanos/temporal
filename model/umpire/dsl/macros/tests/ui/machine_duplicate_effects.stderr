@@ -1,5 +1,0 @@
-error: duplicate #[effects] group; each machine group may appear only once
-  --> tests/ui/machine_duplicate_effects.rs:18:5
-   |
-18 |     #[effects]
-   |     ^^^^^^^^^^

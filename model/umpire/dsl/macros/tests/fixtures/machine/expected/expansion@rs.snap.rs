@@ -19,12 +19,177 @@ mod counter {
     pub enum Clock {
         Tick,
     }
-    struct Helper {
-        value: u8,
+    mod helpers {
+        pub(super) struct Counter {
+            pub(super) value: u8,
+        }
+        impl std::ops::AddAssign<u8> for Counter {
+            fn add_assign(&mut self, increment: u8) {
+                self.value += increment;
+            }
+        }
+        const _: () = {
+            struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
+            struct __MutableModelMethod;
+            trait __Readonly {
+                type __Result;
+                fn __probe(self) -> Self::__Result;
+            }
+            impl __Readonly for &__Probe<super::Counter> {
+                type __Result = __MutableModelMethod;
+                fn __probe(self) -> Self::__Result {
+                    __MutableModelMethod
+                }
+            }
+            impl<T: ?Sized> __Readonly for &&__Probe<T> {
+                type __Result = ();
+                fn __probe(self) {}
+            }
+            const _: () = {
+                #[diagnostic::on_unimplemented(
+                    message = "add_assign takes &mut self; only #[on] and #[effect] methods change the state"
+                )]
+                trait __Allowed {}
+                impl __Allowed for () {}
+                fn __require(_: impl __Allowed) {}
+                trait __Guard: std::ops::AddAssign<u8> {
+                    fn __check(&self, _: ::core::marker::PhantomData<Counter>);
+                }
+                impl __Guard for Counter {
+                    fn __check(&self, _: ::core::marker::PhantomData<Counter>) {
+                        __require(
+                            (&__Probe::<Self>(::core::marker::PhantomData)).__probe(),
+                        );
+                    }
+                }
+            };
+        };
     }
-    impl Helper {
-        fn advance(&mut self) {
-            self.value += 1;
+    struct Helper<T> {
+        value: T,
+    }
+    impl<T: std::ops::AddAssign<u8>> Helper<T> {
+        fn advance(&mut self)
+        where
+            Self: Sized,
+        {
+            const _: () = {
+                struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
+                struct __MutableModelMethod;
+                trait __Readonly {
+                    type __Result;
+                    fn __probe(self) -> Self::__Result;
+                }
+                impl __Readonly for &__Probe<self::Counter> {
+                    type __Result = __MutableModelMethod;
+                    fn __probe(self) -> Self::__Result {
+                        __MutableModelMethod
+                    }
+                }
+                impl<T: ?Sized> __Readonly for &&__Probe<T> {
+                    type __Result = ();
+                    fn __probe(self) {}
+                }
+                const _: () = {
+                    #[diagnostic::on_unimplemented(
+                        message = "advance takes &mut self; only #[on] and #[effect] methods change the state"
+                    )]
+                    trait __Allowed {}
+                    impl __Allowed for () {}
+                    fn __require(_: impl __Allowed) {}
+                    trait __Guard {
+                        fn __check(&self, _: ::core::marker::PhantomData<Increment>);
+                    }
+                    impl __Guard for Increment {
+                        fn __check(&self, _: ::core::marker::PhantomData<Increment>) {
+                            __require(
+                                (&__Probe::<Self>(::core::marker::PhantomData)).__probe(),
+                            );
+                        }
+                    }
+                };
+            };
+            const _: () = {
+                struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
+                struct __MutableModelMethod;
+                trait __Readonly {
+                    type __Result;
+                    fn __probe(self) -> Self::__Result;
+                }
+                impl __Readonly for &__Probe<self::Counter> {
+                    type __Result = __MutableModelMethod;
+                    fn __probe(self) -> Self::__Result {
+                        __MutableModelMethod
+                    }
+                }
+                impl<T: ?Sized> __Readonly for &&__Probe<T> {
+                    type __Result = ();
+                    fn __probe(self) {}
+                }
+                const _: () = {
+                    #[diagnostic::on_unimplemented(
+                        message = "apply takes &mut self; only #[on] and #[effect] methods change the state"
+                    )]
+                    trait __Allowed {}
+                    impl __Allowed for () {}
+                    fn __require(_: impl __Allowed) {}
+                    trait __Guard: Advance
+                    where
+                        Self::Assoc: Copy,
+                    {
+                        fn __check(
+                            &self,
+                            _: ::core::marker::PhantomData<<Carrier as Resolve>::Target>,
+                        );
+                    }
+                    impl __Guard for <Carrier as Resolve>::Target
+                    where
+                        Self::Assoc: Copy,
+                    {
+                        fn __check(
+                            &self,
+                            _: ::core::marker::PhantomData<<Carrier as Resolve>::Target>,
+                        ) {
+                            __require(
+                                (&__Probe::<Self>(::core::marker::PhantomData)).__probe(),
+                            );
+                        }
+                    }
+                };
+            };
+            struct Increment(u8);
+            impl Increment {
+                fn advance(&mut self) {
+                    self.0 += 1;
+                }
+            }
+            struct Carrier;
+            trait Resolve {
+                type Target;
+            }
+            impl Resolve for Carrier {
+                type Target = Increment;
+            }
+            trait Types {
+                type Assoc;
+            }
+            impl Types for Increment {
+                type Assoc = u8;
+            }
+            trait Advance: Types {
+                fn apply(&mut self);
+            }
+            impl Advance for <Carrier as Resolve>::Target
+            where
+                Self::Assoc: Copy,
+            {
+                fn apply(&mut self) {
+                    self.advance();
+                }
+            }
+            let mut increment = Increment(0);
+            increment.apply();
+            self.value += increment.0;
         }
     }
     impl Counter {
@@ -34,6 +199,9 @@ mod counter {
                     self.value += 1;
                 }
             }
+        }
+        fn helper(&self) -> bool {
+            self.value <= 2
         }
         pub fn dispatch(&mut self, action: User) {
             match action {
@@ -50,34 +218,28 @@ mod counter {
                 _ => {}
             }
         }
-    }
-    impl Counter {
         pub fn increment(&mut self) {
-            let mut helper = Helper { value: self.value };
+            let mut helper = Helper {
+                value: helpers::Counter {
+                    value: self.value,
+                },
+            };
             helper.advance();
-            self.value = helper.value;
+            self.value = helper.value.value;
         }
-    }
-    impl Counter {
         pub fn bounded(&self) {
             check!(self.helper());
         }
-    }
-    impl Counter {
         pub fn reset_clears(&self) {
             check!(self.value == 0);
         }
         fn grows_at_most_one(&self, before: &Self) {
             check!(self.value <= before.value + 1);
         }
-    }
-    impl Counter {
         fn never_reset() -> Assumption {
             without([User::Reset])
         }
-    }
-    impl Counter {
-        fn reaches_two(&self) -> Progress {
+        fn reaches_two(&self) -> LeadsTo {
             PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
             let trigger = self.value == 1;
             let progress = whenever(trigger);
@@ -86,15 +248,44 @@ mod counter {
             }
             progress.eventually(false).assuming(Self::never_reset())
         }
-    }
-    impl Counter {
-        fn helper(&self) -> bool {
-            self.value <= 2
-        }
         pub fn unregistered(&self) -> bool {
             self.helper()
         }
     }
+    const _: () = {
+        struct __Probe<T: ?Sized>(::core::marker::PhantomData<T>);
+        struct __MutableModelMethod;
+        trait __Readonly {
+            type __Result;
+            fn __probe(self) -> Self::__Result;
+        }
+        impl __Readonly for &__Probe<self::Counter> {
+            type __Result = __MutableModelMethod;
+            fn __probe(self) -> Self::__Result {
+                __MutableModelMethod
+            }
+        }
+        impl<T: ?Sized> __Readonly for &&__Probe<T> {
+            type __Result = ();
+            fn __probe(self) {}
+        }
+        const _: () = {
+            #[diagnostic::on_unimplemented(
+                message = "advance takes &mut self; only #[on] and #[effect] methods change the state"
+            )]
+            trait __Allowed {}
+            impl __Allowed for () {}
+            fn __require(_: impl __Allowed) {}
+            trait __Guard<T: std::ops::AddAssign<u8>> {
+                fn __check(&self, _: ::core::marker::PhantomData<Helper<T>>);
+            }
+            impl<T: std::ops::AddAssign<u8>> __Guard<T> for Helper<T> {
+                fn __check(&self, _: ::core::marker::PhantomData<Helper<T>>) {
+                    __require((&__Probe::<Self>(::core::marker::PhantomData)).__probe());
+                }
+            }
+        };
+    };
     struct World;
     #[derive(Clone, PartialEq, Eq, Hash)]
     enum Action {
@@ -127,19 +318,19 @@ mod counter {
             excluded: actions.into_iter().map(::core::convert::Into::into).collect(),
         }
     }
-    struct Progress {
+    struct LeadsTo {
         trigger: bool,
         target: bool,
         assumption: Assumption,
     }
-    fn whenever(trigger: bool) -> Progress {
-        Progress {
+    fn whenever(trigger: bool) -> LeadsTo {
+        LeadsTo {
             trigger,
             target: true,
             assumption: Assumption::default(),
         }
     }
-    impl Progress {
+    impl LeadsTo {
         fn eventually(mut self, target: bool) -> Self {
             self.target = target;
             self

@@ -8,9 +8,9 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
-    #[transitions]
     impl Model {
-        fn nobody(&mut self, action: Nobody) { match action {} }
+        #[on(Nobody)]
+        fn nobody(&mut self, action: Nobody) { match (self, action) {} }
     }
 
     #[scopes]

@@ -1,0 +1,5 @@
+error: a method requires exactly one machine kind attribute
+  --> tests/ui/machine_duplicate_kind.rs:16:9
+   |
+16 |         #[postcondition]
+   |         ^^^^^^^^^^^^^^^^

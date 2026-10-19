@@ -17,8 +17,8 @@ pub mod changed_state {
         ActualChange,
     }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn user(&mut self, action: User) {
             match action {
                 User::SameValue if !self.value => {
@@ -35,26 +35,23 @@ pub mod changed_state {
                 _ => {}
             }
         }
-    }
 
-    #[postconditions]
-    impl Model {
-        #[after(User::NoChange)]
+        #[postcondition(after = User::NoChange)]
         fn no_change_checked(&self, before: &Self) {
             check!(self.value != before.value);
         }
 
-        #[after(User::SameValue)]
+        #[postcondition(after = User::SameValue)]
         fn same_value_checked(&self, before: &Self) {
             check!(self.value != before.value);
         }
 
-        #[after(User::MutateRestore)]
+        #[postcondition(after = User::MutateRestore)]
         fn mutate_restore_checked(&self, before: &Self) {
             check!(self.value != before.value);
         }
 
-        #[after(User::ActualChange)]
+        #[postcondition(after = User::ActualChange)]
         fn actual_change_checked(&self, before: &Self) {
             check!(self.value == before.value);
         }

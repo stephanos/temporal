@@ -1,4 +1,4 @@
-error: a transitions method takes one actor enum: fn user(&mut self, action: User)
+error: an #[on] method takes its actor enum: fn user(&mut self, action: User)
   --> tests/ui/machine_actor_receiver.rs:13:9
    |
 13 |         fn user(&self, action: User) { match action { User::Press => {} } }

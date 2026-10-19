@@ -1,0 +1,5 @@
+error: use per-item #[on(Actor)], #[effect], #[invariant], #[postcondition], #[assumption], and #[progress] instead of #[invariants]
+  --> tests/ui/machine_legacy_invariants.rs:11:5
+   |
+11 |     #[invariants]
+   |     ^^^^^^^^^^^^^

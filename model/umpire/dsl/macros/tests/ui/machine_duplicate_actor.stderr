@@ -1,5 +1,5 @@
-error: actor User already has a transitions method
-  --> tests/ui/machine_duplicate_actor.rs:14:12
+error: actor User already has an #[on] method
+  --> tests/ui/machine_duplicate_actor.rs:15:12
    |
-14 |         fn second(&mut self, action: User) { match action { User::Press => {} } }
+15 |         fn second(&mut self, action: User) { match action { User::Press => {} } }
    |            ^^^^^^

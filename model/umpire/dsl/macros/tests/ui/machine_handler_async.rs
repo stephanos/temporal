@@ -8,8 +8,8 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         async fn user(&mut self, action: User) { match action { User::Press => { self.value = true; } } }
     }
 }
