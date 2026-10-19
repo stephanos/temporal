@@ -1,8 +1,8 @@
 # model: Umpire in Rust
 
 The Umpire framework as a Cargo workspace mirroring `model/archived/framework`'s layout. Its current scope is
-what `model/archived/framework/samples/Kettle.scala` uses today; see `options/README.md` for the
-authoring-surface options under discussion.
+what `model/archived/framework/samples/Kettle.scala` uses today; see [DESIGN.md](DESIGN.md) for the
+final authoring comparison, measurements and retained seven-option decision record.
 
 `archived/` holds the former Scala tree unchanged for reference, including its retained build
 caches. Its internal paths describe the old layout, and its Scala targets are unmaintained and
@@ -127,7 +127,8 @@ The Kettle Models live in their own fixture's `model.rs`;
 native and wasm hosts can include that source by path. The trait Kettle has executable native
 report, states and rows goldens. Checker-specific failures, panics, overflows, holes, budget cuts
 and refusals remain in `umpire/checker/tests/fixtures/`. DSL spelling fixtures remain with the DSL.
-Authoring sketches stay in `options/` through the design comparison; there is no samples crate.
+The historical authoring sketches have been retired after preserving their comparison in
+[DESIGN.md](DESIGN.md#historical-authoring-options); there is no samples crate.
 
 `umpire-testing` is a development-only dependency. It owns rendering, comparison, snapshot
 updates, discovery and the consumer registry. Build scripts share its dependency-free discovery
