@@ -35,8 +35,8 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.19 and .7 | The archive, nested attribute Kettle, changed-state handlers, claim ordering, progress, direct wasm ABI and generic Go host relocation are complete; the claim-authoring follow-up and comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
-| After the verdict | fn-214 (progress vocabulary on Kettle), fn-215 (`path!` notation), fn-213 (ModelSuite: examples and explorations; .4 after fn-214), fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| Umpire in Rust (now) | fn-210.20, .22 and .7 | The archive, nested attribute Kettle, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, direct wasm ABI and generic Go host relocation are complete; actor-match transitions, sample/behavior fixture naming and the final comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| After the verdict | fn-216 (mini activity vertical slice, the first Temporal Model and the Model as oracle in a real SDK run), then fn-217 (annotation catalog over the Temporal API with the server-error gap analysis), in parallel with fn-214 (progress vocabulary on Kettle), fn-215 (`path!` notation) and fn-213 (ModelSuite: examples and explorations; .4 after fn-214), then fn-218 (test-space patterns: `cover`); then fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
 
@@ -72,9 +72,10 @@ What is fixed, all owner decisions of 2026-10-18:
   author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
   API misuse, Model problems as verdicts. A future lifted tree is internal.
 - **Layout (R44).** A Model is one `#[machine] mod` mirroring Scala's nested objects: the state struct, the action
-  enums, then one `impl` per part kind in order (`#[transitions]`, `#[invariants]`, `#[postconditions]`, `#[assumptions]`,
-  `#[progress]`), each at most once; the attribute rejects any other order or a duplicate group. A progress claim
-  names its assumption in its expression (`.assuming(..)`), not in an attribute.
+  enums, then one `impl` per part kind in order (`#[transitions]`, optional `#[effects]`, `#[invariants]`, `#[postconditions]`,
+  `#[assumptions]`, `#[progress]`), each at most once; only transitions and effects take `&mut self`; the attribute rejects any other order or a duplicate group. A progress claim
+  names its assumption in its expression (`.assuming(..)`), not in an attribute. Transitions are one `match`
+  method per actor with match guards (.20); claims are `check!` statements (.19).
 - **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
@@ -97,7 +98,62 @@ What is fixed, all owner decisions of 2026-10-18:
 | Name | Status | What |
 | --- | --- | --- |
 | fn-210.19 | 🔄 in progress | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); no `#[within]` attribute, `.assuming(..)` in the claim (R6) |
-| fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+| fn-210.20 | ⬜ todo | After .18: `#[transitions]` as one `match` method per actor with match guards; no `#[on]`; optional `#[effects]`; `&mut self` refused elsewhere; `forbid(unsafe_code)`; goldens unchanged (R6) |
+| fn-210.7 | ⬜ todo | After .19 and .20: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+
+### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
+
+Captured on 2026-10-19, after fn-210.7 and in parallel with the Kettle-only DSL specs. The thinnest
+real Temporal slice, on a new Temporal side of the workspace, `model/temporal/` (nothing Temporal
+ever enters `model/umpire`; a gate check enforces it): the product-level mini activity Model in Rust (one
+enum state, six actions, one safety property) with its `temporal.rs` realization, two Model-interface methods (`judge` an observation by replay, `answer` an SDK callback; the proto
+becomes `umpire.model.v1`) with a Temporal extension of three envelopes over the Temporal API itself (`temporal.api.*` from `proto/api.binpb`), and one Go test against an in-process server where a real Go SDK
+worker's activity body returns what the Model answers and every `DescribeActivityExecution`
+observation is judged by the Model; scenarios completed and failed. No Case, Program, Contract or
+CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds the Case slice.
+[Spec](.flow/specs/fn-216-mini-activity-vertical-slice-the-model.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-216.1 | ⬜ todo | Mini activity Model and `temporal.rs` under `model/temporal/features/`, goldens; generic `Realize` trait in umpire; DSL gaps noted (R1) |
+| fn-216.2 | ⬜ todo | After .1: proto renamed `umpire.model.v1` with `Any` payloads; `umpire.temporal.v1` under `model/temporal/proto`: three envelopes over `temporal.api` messages; `umpire-wasm` as a library, Temporal guest in `model/temporal/wasm`; Go host; no-Temporal gate check (R2, R5) |
+| fn-216.3 | ⬜ todo | After .2: Go test, in-process server, SDK worker answering from the Model, observations judged; completed and failed (R3) |
+| fn-216.4 | ⬜ todo | After .3: DESIGN.md "Mini activity slice" findings for the Case slice (R4) |
+
+### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
+
+Captured on 2026-10-19, after fn-216. A typed sidecar catalog over the upstream `temporal.api`
+messages (one kind per field, any tags with consequences, JSON Schema presence rules, AIP
+`field_behavior` roles, protovalidate constraint names), exhaustive by construction at four levels
+(fields, enum values, RPC methods, Model actions) so an `api.binpb` bump fails the build until
+classified; every request-side rule maps to the server's expected error and a probe produces
+`gaps.txt` (`Confirmed`/`Mismatch`/`Accepted`/`Unverifiable`) plus reverse coverage of the server's
+validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/temporal`.
+[Spec](.flow/specs/fn-217-annotation-catalog-over-the-temporal.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-217.1 | ⬜ todo | `umpire-annotations`: kinds, tags, rules, expectations, `validate`, `fill` (R2, R6) |
+| fn-217.2 | ⬜ todo | After .1: `annotate!` with four-level exhaustiveness and the descriptor-set build check (R1, R2) |
+| fn-217.3 | ⬜ todo | After .2: mini activity catalog with expected errors; `fill`/`validate` in the slice test (R3, R5) |
+| fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
+| fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
+
+### fn-218: Test-space patterns: cover and the full path! grammar (model)
+
+Captured on 2026-10-19, after fn-215 and fn-213. Tests describe their space in Rust's own pattern
+notation: actions, input ranges, outcomes, faults, alternatives `(a | b)`, repetition `[x; 0..=n]`,
+permutations `unordered![..]`, exclusion gaps `..!(x)`. `cover(&space, Cases(n), ..)` requires the author's expected
+case count, finds one shortest witness per alternative and fails on any alternative without a path (no silent vacuity); the expansion is a
+golden a reviewer reads as the list of cases; a coverage table shows what the tests touched against
+the Model's catalog. The claim form stays two state waypoints.
+[Spec](.flow/specs/fn-218-test-space-patterns-cover-and-the-full.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-218.1 | ⬜ todo | Full `path!` grammar and alternative enumeration; claims refuse it (R1) |
+| fn-218.2 | ⬜ todo | After .1 and fn-213.3: `cover`/`sample` with expansion and coverage goldens (R2, R3, R5) |
+| fn-218.3 | ⬜ todo | After .2: Kettle and mini activity `cover` tests; README grammar (R3, R4) |
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 

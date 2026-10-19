@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-218-test-space-patterns-cover-and-the-full",
+  "created_at": "2026-10-19T02:28:03.049485Z",
+  "depends_on_epics": [
+    "fn-215-the-path-pattern-progressions-for",
+    "fn-213-modelsuite-in-rust-examples-and"
+  ],
+  "id": "fn-218-test-space-patterns-cover-and-the-full",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-218-test-space-patterns-cover-and-the-full.md",
+  "status": "open",
+  "title": "Test-space patterns: cover and the full path! grammar (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T02:31:05.341013Z"
+}

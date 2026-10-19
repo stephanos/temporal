@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T01:23:36.545370Z",
+  "depends_on": [
+    "fn-216-mini-activity-vertical-slice-the-model.1"
+  ],
+  "id": "fn-216-mini-activity-vertical-slice-the-model.2",
+  "priority": null,
+  "spec": "fn-216-mini-activity-vertical-slice-the-model",
+  "spec_path": ".flow/tasks/fn-216-mini-activity-vertical-slice-the-model.2.md",
+  "status": "todo",
+  "title": "Oracle judge/answer/reset with the minimal Temporal extension; guest and Go host",
+  "updated_at": "2026-10-19T01:46:30.412324Z"
+}

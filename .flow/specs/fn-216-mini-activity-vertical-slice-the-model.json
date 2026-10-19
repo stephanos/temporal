@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-216-mini-activity-vertical-slice-the-model",
+  "created_at": "2026-10-19T01:23:35.795398Z",
+  "depends_on_epics": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine"
+  ],
+  "id": "fn-216-mini-activity-vertical-slice-the-model",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-216-mini-activity-vertical-slice-the-model.md",
+  "status": "open",
+  "title": "Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T01:46:29.728130Z"
+}
