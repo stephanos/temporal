@@ -53,7 +53,7 @@ The `conformance` feature remains necessary: besides selecting its entry point,
 it enables `serde_json/raw_value`, controls module availability and includes the
 namespace `Unsupported` operation. Two binary entry points alone would not
 preserve that contract. Dead-code exceptions apply to individual retained model
-entry points; complete volume-projection operations exceed the WASI subset, while
+entry points; complete volume-model operations exceed the WASI subset, while
 the World port excludes Go replay plans and recordings.
 
 The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.99.1 and Wasmtime
@@ -66,10 +66,15 @@ Clippy. Run `mise install rust` from `tools/gomad` to install it, and
 
 The merged module carries the Temporal guest fixture dependency through one
 local `go.temporal.io/server => ../..` replacement; shared core imports remain
-server-free. Shared volume and network models are generated projections of
-specific native overlay inputs; CI selects both backends when those inputs
-change. This is a source dependency, not a native toolchain prerequisite for
-`test-wasm`.
+server-free. The shared volume (`internal/model/volume`) and network
+(`internal/model/network`) models are owned source in the parent module; they
+were promoted from projections of the native overlay in fn-219 and no longer
+read or track it. Their generated wire codecs come from
+`internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
+with stock Go and no build tag. Nothing in the WASM build or `test-wasm` reads
+`internal/backends/native`, which stays in the tree as a frozen consumer that
+still generates and validates under its own selection (`make generate-native
+validate-native` with `GOFLAGS=-tags=gomad_native`).
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
 (`backend.SlimGuestBuildTag`). It reuses the native `gomad` provider seams to
@@ -149,10 +154,11 @@ are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
 `GOMAD_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
-Before running the WASM packages, that target regenerates the volume and network
-projections from their native sources and requires the checked-in outputs to
-match, runs the projection generators' drift-rejection tests and checks that WASM
-tests import no native builder; it has no native toolchain build prerequisites.
+Before running the WASM packages, that target checks that WASM tests reference
+no pre-move native toolchain path or binary; it has no native toolchain build
+prerequisites. Module-wide, archcheck's default run refuses any default-set file
+that names the native tree and any native package reachable from default
+dependencies.
 The backend-local targets also accept `GOMAD_WASM_STOCK_GO`; their `make test`
 combines the helper and Go suites. Writable stock Go copies are shared under `tools/gomad/.toolchain/stock`.
 
@@ -272,9 +278,9 @@ implementation identities for execution and replay.
 | Explicit model | Contract boundary |
 | --- | --- |
 | Default namespace | Captured inputs and writable files, helper-owned in clusters and cooperative runs without broker or network v2 (split-owned in the per-process storage reference); no durability claim |
-| `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states; the Rust helper model is held equal to the generated Go projection by the volume conformance corpus |
+| `Storage` volumes | Persistence operations of the Go volume model (`internal/model/volume`) and bounded dependency-closed crash states; the Rust helper model is held equal to the Go model by the volume conformance corpus |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
-| `NetworkV2` | Generated host stream model (Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
+| `NetworkV2` | Go network model (`internal/model/network`, Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
 
 The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
 parity. Raw persistent files retain their existing behavior, including stale locks

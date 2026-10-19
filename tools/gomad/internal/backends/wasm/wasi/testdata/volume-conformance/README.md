@@ -1,6 +1,6 @@
 # Volume conformance corpus
 
-These fixtures run the generated Go `internal/model/volume` projection through
+These fixtures run the Go volume model `internal/model/volume` through
 the real WASI storage environment. `TestVolumeConformanceCorpus` replays the
 scripted, seeded and recorded-operation cases and rejects the first drift with
 seed and step. `TestVolumeConformance` (part of `make test-conformance`) sends
@@ -60,7 +60,7 @@ namespace operation. Rust must preserve that flat durable state, not reject it
 as a malformed tree.
 
 The handwritten accessor is bound by `volume.ImplementationSHA256`. It does not
-change generated projection bytes or native overlays.
+change the model's other sources.
 
 Regenerate into an existing external directory for review:
 
@@ -69,8 +69,8 @@ go test -tags test_dep -p 1 -run '^TestVolumeConformanceCorpus$' ./internal/back
 ```
 
 Copy reviewed fixture changes into this tree through the normal patch workflow.
-The corpus does not qualify native execution; native parity is transitive
-through the drift-tested projection.
+The corpus does not qualify native execution. The model was promoted from a
+projection of the native overlay (fn-219) and no longer tracks it.
 
 R3 adds hand-named configuration, fault, cursor, filesystem and rename-recovery
 scripts, plus pure API steps in `vectors/core.json`. API steps retain errors,

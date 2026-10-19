@@ -350,6 +350,14 @@ express. Measurement producers run through the explicit `wasmmeasure` command,
 not test targets. The [WASM implementation guide](internal/backends/wasm/README.md)
 documents regeneration commands, retained invariants and measurement admission.
 
+Shared wire codecs are generated from the schemas under `internal/model` by
+`make generate` (`internal/model/cmd/protocolgen`, stock Go, no build tag);
+`make validate` reports each stale output and fails. The volume and network
+models are owned source with no generator. The native backend tree is frozen:
+it is neither executed nor qualified, and its generators and validators run
+only under its own selection, `GOFLAGS=-tags=gomad_native make generate-native
+validate-native`. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
+
 ## Further reading
 
 - [WASM operator guide](internal/backends/wasm/CLI.md) for installed commands and flags.
