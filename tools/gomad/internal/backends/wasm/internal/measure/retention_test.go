@@ -10,10 +10,76 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"slices"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/measurement"
 )
+
+func TestHarnessRetentionPublishedRerunUsesRequestedRoot(t *testing.T) {
+	t.Parallel()
+	for _, producer := range []struct {
+		name, root string
+		shell      bool
+	}{
+		{"guest-profile", "GOMAD_WASM_GUEST_PROFILE_ROOT", true},
+		{"guest-variants", "GOMAD_WASM_GUEST_PROFILE_ROOT", true},
+		{"diagnostic-cluster-baseline", "GOMAD_WASM_TEMPORAL_RECOVERY_ROOT", true},
+		{"matched-release-candidate", "GOMAD_WASM_CLUSTER_MEASUREMENT_ROOT", false},
+	} {
+		t.Run(producer.name, func(t *testing.T) {
+			t.Parallel()
+			base := filepath.Join(t.TempDir(), "output root")
+			fixture := t.TempDir()
+			recorder, arguments := filepath.Join(fixture, "record-arguments"), filepath.Join(fixture, "arguments")
+			require.NoError(t, os.WriteFile(recorder, []byte("#!/bin/sh\nprintf '%s\\n' \"$@\" > \"$RERUN_ARGUMENTS\"\n"), 0700))
+			current := base
+			for range 3 {
+				scope := &runScope{runResources: &runResources{}, name: producer.name, options: Options{Repo: fixture, Log: io.Discard, Inputs: map[string]string{producer.root: current}}}
+				ctx := context.WithValue(t.Context(), runKey{}, scope)
+				require.NoError(t, scope.execute(ctx, func(ctx context.Context) error {
+					root := input(ctx, producer.root)
+					record := rerunRecord(ctx, recorder, fixture, producer.name, map[string]string{producer.root: root}, producer.shell)
+					return temporalJSON(ctx, filepath.Join(root, "report.json"), map[string]any{"rerun": record})
+				}))
+				path := retentionLatestFor(t, current, producer.name)
+				data, err := os.ReadFile(filepath.Join(path, "report.json"))
+				require.NoError(t, err)
+				var report struct {
+					Rerun struct{ Command json.RawMessage }
+				}
+				require.NoError(t, json.Unmarshal(data, &report))
+				var command *exec.Cmd
+				if producer.shell {
+					var shell string
+					require.NoError(t, json.Unmarshal(report.Rerun.Command, &shell))
+					command = exec.CommandContext(t.Context(), "/bin/sh", "-c", shell)
+				} else {
+					var argv []string
+					require.NoError(t, json.Unmarshal(report.Rerun.Command, &argv))
+					command = exec.CommandContext(t.Context(), argv[0], argv[1:]...)
+				}
+				command.Env = append(os.Environ(), "RERUN_ARGUMENTS="+arguments)
+				output, err := command.CombinedOutput()
+				require.NoError(t, err, "%s", output)
+				argv, err := os.ReadFile(arguments)
+				require.NoError(t, err)
+				args := strings.Split(strings.TrimSuffix(string(argv), "\n"), "\n")
+				index := slices.Index(args, "--"+measurement.Flag(producer.root))
+				require.GreaterOrEqual(t, index, 0)
+				require.Less(t, index+1, len(args))
+				current = args[index+1]
+				t.Logf("published report %s: %s", path, data)
+				require.Equal(t, base, current, "rerun nests retention below the immutable result")
+				entries, err := filepath.Glob(filepath.Join(base, ".gomad-measure", producer.name, "run-*"))
+				require.NoError(t, err)
+				require.Len(t, entries, 1)
+			}
+		})
+	}
+}
 
 func retentionRun(t *testing.T, base string, producer func(context.Context) error) error {
 	t.Helper()

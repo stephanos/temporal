@@ -124,6 +124,7 @@ func (scope *runScope) beginRetention(ctx context.Context) (_ *retainedRun, retE
 	if err := ctx.Err(); err != nil {
 		return nil, err
 	}
+	scope.outputVariable, scope.requestedRoot = variable, base
 	scope.options.Inputs = maps.Clone(scope.options.Inputs)
 	scope.options.Inputs[variable] = run.path
 	logf(ctx, "staged output=%s", run.path)

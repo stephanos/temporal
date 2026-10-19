@@ -24,6 +24,8 @@ The shared measurement runner stages each producer's explicit output root under
 `.gomad-measure/<producer>/run-*`. These paths never move. Authenticated reports
 and admission receipts continue naming the original bytes. `latest.json` in that
 producer directory atomically selects a completed run after producer cleanup.
+Published rerun metadata keeps the original requested output root, so reruns
+replace results in that same store instead of nesting stores inside prior runs.
 Internal namespace samples retain their parent's authenticated index paths.
 The default retains the latest success and one recent failed/interrupted run;
 active runs, direct managed-input pins and explicit `--keep` runs are exempt.

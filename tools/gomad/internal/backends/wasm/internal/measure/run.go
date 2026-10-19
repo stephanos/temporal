@@ -30,11 +30,12 @@ type runKey struct{}
 
 type runScope struct {
 	*runResources
-	options  Options
-	name     string
-	mu       sync.Mutex
-	failures error
-	cleanups []func(context.Context) error
+	options                       Options
+	name                          string
+	outputVariable, requestedRoot string
+	mu                            sync.Mutex
+	failures                      error
+	cleanups                      []func(context.Context) error
 }
 
 type runResources struct {
@@ -209,6 +210,15 @@ func environ(ctx context.Context) []string {
 
 func runName(ctx context.Context) string { return scopeFor(ctx).name }
 
+func rerunRecord(ctx context.Context, goCommand, repo, name string, inputs map[string]string, shell bool) map[string]any {
+	scope := scopeFor(ctx)
+	if scope.outputVariable != "" {
+		inputs = maps.Clone(inputs)
+		inputs[scope.outputVariable] = scope.requestedRoot
+	}
+	return measurement.RerunRecord(goCommand, repo, name, inputs, shell)
+}
+
 func addCleanup(ctx context.Context, cleanup func(context.Context) error) {
 	scope := scopeFor(ctx)
 	scope.mu.Lock()
@@ -248,7 +258,7 @@ func writeLog(ctx context.Context, message string) {
 
 func runStep(ctx context.Context, name string, step func(context.Context) error) (bool, error) {
 	parent := scopeFor(ctx)
-	child := &runScope{runResources: parent.runResources, options: parent.options, name: parent.name + "/" + name}
+	child := &runScope{runResources: parent.runResources, options: parent.options, name: parent.name + "/" + name, outputVariable: parent.outputVariable, requestedRoot: parent.requestedRoot}
 	child.options.Inputs = maps.Clone(parent.options.Inputs)
 	err := child.execute(context.WithValue(ctx, runKey{}, child), step)
 	recordFailure(ctx, err)
