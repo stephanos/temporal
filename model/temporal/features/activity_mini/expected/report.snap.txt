@@ -1,0 +1,10 @@
+starts: 1
+reached: 6
+emitted: 7
+evaluated: 36
+refused: 29
+depth: 2
+cut: false
+outcome: Outcome::Verified
+claim terminal_remains: Outcome::Verified
+vacuity: none

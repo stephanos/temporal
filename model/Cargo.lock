@@ -871,6 +871,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-temporal-tests"
+version = "0.0.1"
+dependencies = [
+ "umpire-checker",
+ "umpire-dsl",
+ "umpire-testing",
+]
+
+[[package]]
 name = "umpire-testing"
 version = "0.0.1"
 dependencies = [

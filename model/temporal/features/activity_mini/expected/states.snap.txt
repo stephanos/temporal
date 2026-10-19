@@ -1,0 +1,6 @@
+0: Model { phase: Phase::Scheduled }
+1: Model { phase: Phase::Canceled }
+2: Model { phase: Phase::Started }
+3: Model { phase: Phase::TimedOut }
+4: Model { phase: Phase::Completed }
+5: Model { phase: Phase::Failed }
