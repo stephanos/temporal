@@ -7,9 +7,11 @@ satisfies: [R1]
 Write `model/design/second-opinion.md`: what TLC adds over the native checker on the Models then available (independent reading, exhaustive agreement, liveness), what it costs (`umpire-lift`, the subset's constraint on authors, `umpire-tlc`, a JVM in the gate, upkeep), and the choice of lifting source (`#[machine]` token recording or a build-time `syn` pass). On "no": close this spec and fn-211 citing the note.
 
 **Files:** model/design/second-opinion.md.
+**Touches:** [model/design/second-opinion.md]
 
 **Quick commands:** none
 
+Parallel execution authorized by the owner on 2026-10-19. Implement the decision note in an isolated worktree; the conductor owns review, task completion, and any consequent spec closures after local integration.
 ## Acceptance
 - Note with cost, benefit, lifting-source choice and a yes or no.
 - On no: fn-212 and fn-211 closed with a reference.

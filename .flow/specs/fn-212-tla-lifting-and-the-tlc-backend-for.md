@@ -5,6 +5,10 @@
 > user (2026-10-18), accepting the proposal "move .8 out of fn-210 into its own post-verdict spec next to fn-211, and decide there whether the second opinion is worth the machinery": "yes"
 > user (2026-10-18), on dropping `#[machine]` without lifting: "we'll still need it later right?" — answered: yes for registration; token recording and the liftable-subset warnings move here.
 
+> user (2026-10-19): "we'll need TLC for scaling our models; our own model checker is a simple, non-scalable version that won't hold"
+
+The owner has settled the decision to **yes**: TLC is required for larger Models. Task .1 records the lifting-source choice, costs and semantic obligations; task .2 implements the backend. The earlier option to close fn-212 and fn-211 without a backend is superseded. The native checker remains the fast local engine and agreement reference; the small current fixture corpus is not a reason to defer the scaling backend.
+
 ## Goal & Context
 
 fn-210 decides whether Umpire is built in Rust on the wasm slice alone (fn-210 R24). Lifting a Model to TLA+ and agreeing with TLC was planned as a second vertical slice inside fn-210 (its R19, task .8), but it does not inform that verdict, and it brings the most machinery: a lifted tree, a TLA+ emitter, a liftable subset that constrains what authors may write, a TLC runner and a dump decoder. This spec takes that slice out of fn-210 and starts after the verdict. Its first question is whether an independent second reading of the Model, plus TLC's temporal checks, is worth that machinery once the native checker covers progress and refinement; only if yes does it build the slice. fn-211 (Apalache) builds on this spec's emitter.
