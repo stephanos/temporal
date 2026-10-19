@@ -57,7 +57,6 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-213.2 | ⬜ todo | After .1 and fn-215: `umpire-suite` examples: `Run`, `step`, `repeat`, `Run::along(path!)`, `expect!`, refusal fixtures (R2, fn-215 R4) |
 | fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
 | fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
