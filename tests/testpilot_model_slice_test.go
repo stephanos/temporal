@@ -50,8 +50,8 @@ func modelSliceAny(t *testing.T, message proto.Message) *anypb.Any {
 func modelSliceJudge(ctx context.Context, t *testing.T, host *model.Host, response *workflowservice.DescribeActivityExecutionResponse) *modelv1.JudgeResponse {
 	t.Helper()
 	observation := modelSliceAny(t, &temporalv1.Observation{
-		Method:   workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
-		Response: modelSliceAny(t, response),
+		Method: workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
+		Result: &temporalv1.Observation_Response{Response: modelSliceAny(t, response)},
 	})
 	judgment, err := host.Judge(ctx, &modelv1.JudgeRequest{Observation: observation})
 	require.NoError(t, err, "Describe observation: %v", response)

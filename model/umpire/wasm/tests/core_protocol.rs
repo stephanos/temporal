@@ -8,6 +8,17 @@ use umpire_wasm::{
 };
 
 #[test]
+fn explanation_outcomes_are_additive_at_tag_two() {
+    for (outcomes, bytes) in
+        [(vec![], vec![10, 1, b'x']), (vec!["()".into()], vec![10, 1, b'x', 18, 2, b'(', b')'])]
+    {
+        let explanation = protocol::Explanation { steps: vec!["x".into()], outcomes };
+        assert_eq!(explanation.encode_to_vec(), bytes);
+        assert_eq!(protocol::Explanation::decode(bytes.as_slice()), Ok(explanation));
+    }
+}
+
+#[test]
 fn new_core_messages_match_shared_literal_bytes() {
     let payload = Any { type_url: "x".into(), value: vec![1, 2] };
     for line in include_str!("../../proto/tests/protocol-core-wire.txt").lines() {
@@ -24,7 +35,7 @@ fn new_core_messages_match_shared_literal_bytes() {
                     "reset_response" => Outcome::Reset(protocol::ResetResponse {}),
                     "judge_explained" => Outcome::Judge(protocol::JudgeResponse {
                         judgment: Some(protocol::judge_response::Judgment::Explained(
-                            protocol::Explanation { steps: vec![] },
+                            protocol::Explanation::default(),
                         )),
                     }),
                     "judge_unexplained" => Outcome::Judge(protocol::JudgeResponse {
@@ -58,6 +69,7 @@ fn explained_zero_steps_is_present_and_distinct_from_unexplained() {
     let explained = protocol::JudgeResponse {
         judgment: Some(protocol::judge_response::Judgment::Explained(protocol::Explanation {
             steps: vec![],
+            outcomes: vec![],
         })),
     };
     assert_eq!(explained.encode_to_vec(), [10, 0]);

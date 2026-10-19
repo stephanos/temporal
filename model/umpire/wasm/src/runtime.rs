@@ -44,8 +44,13 @@ pub trait Realize<M: Machine> {
         state: &M::State,
     ) -> Result<Projection<M::Action>, protocol::Refusal>;
 
-    /// Positively matches an observation against an actual replay endpoint.
-    fn matches(&self, observation: &Any, state: &M::State) -> Result<bool, protocol::Refusal>;
+    /// Matches an endpoint and its final edge outcome; only a zero-step check has no outcome.
+    fn matches(
+        &self,
+        observation: &Any,
+        state: &M::State,
+        outcome: Option<&M::Outcome>,
+    ) -> Result<bool, protocol::Refusal>;
 
     /// Validates the complete callback and selects its delivery path and response.
     fn answer(
@@ -75,6 +80,13 @@ enum Change<M: Machine> {
 }
 
 type Prepared<M> = Result<(protocol::response::Outcome, Option<Transaction<M>>), protocol::Refusal>;
+
+struct Replay<M: Machine> {
+    state: M::State,
+    steps: Vec<String>,
+    outcomes: Vec<String>,
+    outcome: Option<M::Outcome>,
+}
 
 impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     /// Creates a private run. Stateful calls refuse zero or multiple declared starts.
@@ -161,23 +173,29 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             return Ok((judgment(Judgment::Unexplained(frozen.clone())), None));
         }
         match projection {
-            Projection::Current if self.realization.matches(observation, current)? => {
-                return Ok((
-                    judgment(Judgment::Explained(protocol::Explanation { steps: Vec::new() })),
-                    None,
-                ));
+            Projection::Current if self.realization.matches(observation, current, None)? => {
+                return Ok((judgment(Judgment::Explained(protocol::Explanation::default())), None));
             }
             Projection::Candidates(paths) => {
                 for path in paths {
                     if path.is_empty() {
                         continue;
                     }
-                    if let Some((state, steps)) = self.replay(current, path)?
-                        && self.realization.matches(observation, &state)?
+                    if let Some(replay) = self.replay(current, path)?
+                        && self.realization.matches(
+                            observation,
+                            &replay.state,
+                            replay.outcome.as_ref(),
+                        )?
                     {
                         return Ok((
-                            judgment(Judgment::Explained(protocol::Explanation { steps })),
-                            Some(Transaction { change: Change::Run { state, frozen: None } }),
+                            judgment(Judgment::Explained(protocol::Explanation {
+                                steps: replay.steps,
+                                outcomes: replay.outcomes,
+                            })),
+                            Some(Transaction {
+                                change: Change::Run { state: replay.state, frozen: None },
+                            }),
                         ));
                     }
                 }
@@ -208,7 +226,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             ));
         }
         let plan = self.realization.answer(callback, current)?;
-        let (state, _) = self.replay(current, plan.delivery)?.ok_or_else(|| {
+        let Replay { state, .. } = self.replay(current, plan.delivery)?.ok_or_else(|| {
             protocol::Refusal::new(protocol::RefusalCode::State, "callback delivery is not enabled")
         })?;
         if plan.reply.type_url.is_empty() {
@@ -237,24 +255,28 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         &self,
         current: &M::State,
         path: Vec<Transition<M::Action>>,
-    ) -> Result<Option<(M::State, Vec<String>)>, protocol::Refusal> {
+    ) -> Result<Option<Replay<M>>, protocol::Refusal> {
         let mut state = current.clone();
         let mut steps = Vec::new();
+        let mut outcomes = Vec::new();
+        let mut outcome = None;
         let catalog = self.machine.actions();
         for transition in path {
             if !catalog.contains(&transition.action) {
                 return Ok(None);
             }
             let label = transition.action.to_string();
-            let Some((_, _, next)) =
+            let Some((emitted, _, next)) =
                 self.checked_step(&state, transition.action)?.into_iter().nth(transition.choice)
             else {
                 return Ok(None);
             };
             state = next;
             steps.push(label);
+            outcomes.push(format!("{emitted:?}"));
+            outcome = Some(emitted);
         }
-        Ok(Some((state, steps)))
+        Ok(Some(Replay { state, steps, outcomes, outcome }))
     }
 
     fn checked_step(

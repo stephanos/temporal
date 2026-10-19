@@ -47,7 +47,10 @@ message Refusal {
 message ResetRequest {}
 message ResetResponse {}
 message JudgeRequest { google.protobuf.Any observation = 1; }
-message Explanation { repeated string steps = 1; }
+message Explanation {
+  repeated string steps = 1;
+  repeated string outcomes = 2;
+}
 message Unexplained { repeated string expected_actions = 1; }
 message JudgeResponse {
   oneof judgment {

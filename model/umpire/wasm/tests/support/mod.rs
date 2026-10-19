@@ -16,7 +16,7 @@ pub(crate) enum Action {
 }
 
 #[derive(Debug)]
-pub(crate) struct Outcome;
+pub(crate) struct Outcome(pub(crate) u8);
 #[derive(Debug)]
 pub(crate) struct Fact;
 
@@ -65,7 +65,7 @@ impl Machine for World {
             _ => return Steps::new(),
         };
         let mut steps = Steps::new();
-        steps.push((Outcome, vec![Fact], State(next)));
+        steps.push((Outcome(next), vec![Fact], State(next)));
         steps
     }
 }
@@ -93,8 +93,19 @@ pub(crate) fn transition(action: Action) -> Transition<Action> {
 }
 
 impl Realize<World> for Realization {
-    fn matches(&self, observation: &Any, state: &State) -> Result<bool, protocol::Refusal> {
+    fn matches(
+        &self,
+        observation: &Any,
+        state: &State,
+        outcome: Option<&Outcome>,
+    ) -> Result<bool, protocol::Refusal> {
         let value = payload(observation)?;
+        if value == 10 {
+            assert_eq!(outcome.map(|outcome| outcome.0), Some(2));
+        }
+        if value == 0 {
+            assert!(outcome.is_none());
+        }
         Ok(match value {
             15 => panic!("final projection failed"),
             10 | 11 => state.0 == 2,

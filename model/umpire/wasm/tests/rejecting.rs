@@ -61,7 +61,12 @@ impl Realize<invalid::World> for Binding {
         })
     }
 
-    fn matches(&self, _: &Any, state: &invalid::Model) -> Result<bool, protocol::Refusal> {
+    fn matches(
+        &self,
+        _: &Any,
+        state: &invalid::Model,
+        _: Option<&umpire_dsl::Outcome>,
+    ) -> Result<bool, protocol::Refusal> {
         Ok(state.value == 0)
     }
 

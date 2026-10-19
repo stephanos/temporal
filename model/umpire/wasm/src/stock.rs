@@ -23,7 +23,12 @@ impl Realize<kettle::KettleWorld> for Unsupported {
         Err(unsupported())
     }
 
-    fn matches(&self, _: &Any, _: &kettle::Kettle) -> Result<bool, protocol::Refusal> {
+    fn matches(
+        &self,
+        _: &Any,
+        _: &kettle::Kettle,
+        _: Option<&()>,
+    ) -> Result<bool, protocol::Refusal> {
         Err(unsupported())
     }
 

@@ -42,6 +42,91 @@ fn explained(response: protocol::Response) -> Vec<String> {
 }
 
 #[test]
+fn explanations_carry_all_replayed_non_clone_outcomes() {
+    let mut runtime = runtime();
+    let Some(Outcome::Judge(result)) = judge(&mut runtime, 10).outcome else {
+        panic!("expected Judge response")
+    };
+    let Some(protocol::judge_response::Judgment::Explained(result)) = result.judgment else {
+        panic!("expected explanation")
+    };
+    assert_eq!(result.steps, ["Deliver", "Respond"]);
+    assert_eq!(result.outcomes, ["Outcome(1)", "Outcome(2)"]);
+}
+
+#[test]
+fn runtime_formats_unit_outcomes_with_debug() {
+    use umpire_dsl::{Machine, Steps};
+    use umpire_wasm::{AnswerPlan, Projection, Realize, Runtime};
+
+    struct UnitWorld;
+    impl Machine for UnitWorld {
+        type State = support::State;
+        type Action = support::Action;
+        type Outcome = ();
+        type Fact = support::Fact;
+
+        fn starts(&self) -> Vec<Self::State> {
+            vec![support::State(0)]
+        }
+        fn actions(&self) -> Vec<Self::Action> {
+            vec![support::Action::Deliver]
+        }
+        fn internal(&self, _: &Self::Action) -> bool {
+            false
+        }
+        fn step(
+            &self,
+            state: &Self::State,
+            action: Self::Action,
+        ) -> Steps<Self::State, (), Self::Fact> {
+            support::World { starts: 1 }
+                .step(state, action)
+                .into_iter()
+                .map(|(_, facts, state)| ((), facts, state))
+                .collect()
+        }
+    }
+    impl Realize<UnitWorld> for support::Realization {
+        fn observe(
+            &self,
+            observation: &umpire_wasm::google::protobuf::Any,
+            state: &support::State,
+        ) -> Result<Projection<support::Action>, protocol::Refusal> {
+            <Self as Realize<support::World>>::observe(self, observation, state)
+        }
+        fn matches(
+            &self,
+            _: &umpire_wasm::google::protobuf::Any,
+            state: &support::State,
+            outcome: Option<&()>,
+        ) -> Result<bool, protocol::Refusal> {
+            assert!(outcome.is_some());
+            Ok(state.0 == 1)
+        }
+        fn answer(
+            &self,
+            callback: &umpire_wasm::google::protobuf::Any,
+            state: &support::State,
+        ) -> Result<AnswerPlan<support::Action>, protocol::Refusal> {
+            <Self as Realize<support::World>>::answer(self, callback, state)
+        }
+    }
+    let mut runtime = Runtime::new(UnitWorld, support::Realization);
+    let Some(Outcome::Judge(result)) = runtime
+        .dispatch(4, &protocol::JudgeRequest { observation: Some(any(1)) }.encode_to_vec())
+        .outcome
+    else {
+        panic!("expected Judge")
+    };
+    let Some(protocol::judge_response::Judgment::Explained(result)) = result.judgment else {
+        panic!("expected explanation")
+    };
+    assert_eq!(result.steps, ["Deliver"]);
+    assert_eq!(result.outcomes, ["()"]);
+}
+
+#[test]
 fn judge_replays_model_steps_and_repeated_current_observations_are_positive() {
     let mut runtime = runtime();
     assert_eq!(explained(judge(&mut runtime, 0)), [] as [String; 0]);

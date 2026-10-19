@@ -550,6 +550,7 @@ func (x *JudgeRequest) GetObservation() *anypb.Any {
 type Explanation struct {
 	state         protoimpl.MessageState `protogen:"open.v1"`
 	Steps         []string               `protobuf:"bytes,1,rep,name=steps,proto3" json:"steps,omitempty"`
+	Outcomes      []string               `protobuf:"bytes,2,rep,name=outcomes,proto3" json:"outcomes,omitempty"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -587,6 +588,13 @@ func (*Explanation) Descriptor() ([]byte, []int) {
 func (x *Explanation) GetSteps() []string {
 	if x != nil {
 		return x.Steps
+	}
+	return nil
+}
+
+func (x *Explanation) GetOutcomes() []string {
+	if x != nil {
+		return x.Outcomes
 	}
 	return nil
 }
@@ -977,9 +985,10 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\fResetRequest\"\x0f\n" +
 	"\rResetResponse\"F\n" +
 	"\fJudgeRequest\x126\n" +
-	"\vobservation\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\vobservation\"#\n" +
+	"\vobservation\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\vobservation\"?\n" +
 	"\vExplanation\x12\x14\n" +
-	"\x05steps\x18\x01 \x03(\tR\x05steps\"8\n" +
+	"\x05steps\x18\x01 \x03(\tR\x05steps\x12\x1a\n" +
+	"\boutcomes\x18\x02 \x03(\tR\boutcomes\"8\n" +
 	"\vUnexplained\x12)\n" +
 	"\x10expected_actions\x18\x01 \x03(\tR\x0fexpectedActions\"\x9b\x01\n" +
 	"\rJudgeResponse\x12<\n" +

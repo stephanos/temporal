@@ -23,9 +23,13 @@ const (
 )
 
 type Observation struct {
-	state         protoimpl.MessageState `protogen:"open.v1"`
-	Method        string                 `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
-	Response      *anypb.Any             `protobuf:"bytes,2,opt,name=response,proto3" json:"response,omitempty"`
+	state  protoimpl.MessageState `protogen:"open.v1"`
+	Method string                 `protobuf:"bytes,1,opt,name=method,proto3" json:"method,omitempty"`
+	// Types that are valid to be assigned to Result:
+	//
+	//	*Observation_Response
+	//	*Observation_Error
+	Result        isObservation_Result `protobuf_oneof:"result"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
 }
@@ -67,11 +71,97 @@ func (x *Observation) GetMethod() string {
 	return ""
 }
 
-func (x *Observation) GetResponse() *anypb.Any {
+func (x *Observation) GetResult() isObservation_Result {
 	if x != nil {
-		return x.Response
+		return x.Result
 	}
 	return nil
+}
+
+func (x *Observation) GetResponse() *anypb.Any {
+	if x != nil {
+		if x, ok := x.Result.(*Observation_Response); ok {
+			return x.Response
+		}
+	}
+	return nil
+}
+
+func (x *Observation) GetError() *Error {
+	if x != nil {
+		if x, ok := x.Result.(*Observation_Error); ok {
+			return x.Error
+		}
+	}
+	return nil
+}
+
+type isObservation_Result interface {
+	isObservation_Result()
+}
+
+type Observation_Response struct {
+	Response *anypb.Any `protobuf:"bytes,2,opt,name=response,proto3,oneof"`
+}
+
+type Observation_Error struct {
+	Error *Error `protobuf:"bytes,3,opt,name=error,proto3,oneof"`
+}
+
+func (*Observation_Response) isObservation_Result() {}
+
+func (*Observation_Error) isObservation_Result() {}
+
+type Error struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Code          int32                  `protobuf:"varint,1,opt,name=code,proto3" json:"code,omitempty"`
+	Message       string                 `protobuf:"bytes,2,opt,name=message,proto3" json:"message,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *Error) Reset() {
+	*x = Error{}
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[1]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *Error) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*Error) ProtoMessage() {}
+
+func (x *Error) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[1]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use Error.ProtoReflect.Descriptor instead.
+func (*Error) Descriptor() ([]byte, []int) {
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{1}
+}
+
+func (x *Error) GetCode() int32 {
+	if x != nil {
+		return x.Code
+	}
+	return 0
+}
+
+func (x *Error) GetMessage() string {
+	if x != nil {
+		return x.Message
+	}
+	return ""
 }
 
 type Callback struct {
@@ -83,7 +173,7 @@ type Callback struct {
 
 func (x *Callback) Reset() {
 	*x = Callback{}
-	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[1]
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[2]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -95,7 +185,7 @@ func (x *Callback) String() string {
 func (*Callback) ProtoMessage() {}
 
 func (x *Callback) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[1]
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[2]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -108,7 +198,7 @@ func (x *Callback) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Callback.ProtoReflect.Descriptor instead.
 func (*Callback) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{1}
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{2}
 }
 
 func (x *Callback) GetTask() *anypb.Any {
@@ -127,7 +217,7 @@ type Reply struct {
 
 func (x *Reply) Reset() {
 	*x = Reply{}
-	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[2]
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[3]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -139,7 +229,7 @@ func (x *Reply) String() string {
 func (*Reply) ProtoMessage() {}
 
 func (x *Reply) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[2]
+	mi := &file_umpire_temporal_v1_temporal_proto_msgTypes[3]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -152,7 +242,7 @@ func (x *Reply) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Reply.ProtoReflect.Descriptor instead.
 func (*Reply) Descriptor() ([]byte, []int) {
-	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{2}
+	return file_umpire_temporal_v1_temporal_proto_rawDescGZIP(), []int{3}
 }
 
 func (x *Reply) GetRequest() *anypb.Any {
@@ -166,10 +256,15 @@ var File_umpire_temporal_v1_temporal_proto protoreflect.FileDescriptor
 
 const file_umpire_temporal_v1_temporal_proto_rawDesc = "" +
 	"\n" +
-	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\"W\n" +
+	"!umpire/temporal/v1/temporal.proto\x12\x12umpire.temporal.v1\x1a\x19google/protobuf/any.proto\"\x96\x01\n" +
 	"\vObservation\x12\x16\n" +
-	"\x06method\x18\x01 \x01(\tR\x06method\x120\n" +
-	"\bresponse\x18\x02 \x01(\v2\x14.google.protobuf.AnyR\bresponse\"4\n" +
+	"\x06method\x18\x01 \x01(\tR\x06method\x122\n" +
+	"\bresponse\x18\x02 \x01(\v2\x14.google.protobuf.AnyH\x00R\bresponse\x121\n" +
+	"\x05error\x18\x03 \x01(\v2\x19.umpire.temporal.v1.ErrorH\x00R\x05errorB\b\n" +
+	"\x06result\"5\n" +
+	"\x05Error\x12\x12\n" +
+	"\x04code\x18\x01 \x01(\x05R\x04code\x12\x18\n" +
+	"\amessage\x18\x02 \x01(\tR\amessage\"4\n" +
 	"\bCallback\x12(\n" +
 	"\x04task\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x04task\"7\n" +
 	"\x05Reply\x12.\n" +
@@ -187,22 +282,24 @@ func file_umpire_temporal_v1_temporal_proto_rawDescGZIP() []byte {
 	return file_umpire_temporal_v1_temporal_proto_rawDescData
 }
 
-var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 3)
+var file_umpire_temporal_v1_temporal_proto_msgTypes = make([]protoimpl.MessageInfo, 4)
 var file_umpire_temporal_v1_temporal_proto_goTypes = []any{
 	(*Observation)(nil), // 0: umpire.temporal.v1.Observation
-	(*Callback)(nil),    // 1: umpire.temporal.v1.Callback
-	(*Reply)(nil),       // 2: umpire.temporal.v1.Reply
-	(*anypb.Any)(nil),   // 3: google.protobuf.Any
+	(*Error)(nil),       // 1: umpire.temporal.v1.Error
+	(*Callback)(nil),    // 2: umpire.temporal.v1.Callback
+	(*Reply)(nil),       // 3: umpire.temporal.v1.Reply
+	(*anypb.Any)(nil),   // 4: google.protobuf.Any
 }
 var file_umpire_temporal_v1_temporal_proto_depIdxs = []int32{
-	3, // 0: umpire.temporal.v1.Observation.response:type_name -> google.protobuf.Any
-	3, // 1: umpire.temporal.v1.Callback.task:type_name -> google.protobuf.Any
-	3, // 2: umpire.temporal.v1.Reply.request:type_name -> google.protobuf.Any
-	3, // [3:3] is the sub-list for method output_type
-	3, // [3:3] is the sub-list for method input_type
-	3, // [3:3] is the sub-list for extension type_name
-	3, // [3:3] is the sub-list for extension extendee
-	0, // [0:3] is the sub-list for field type_name
+	4, // 0: umpire.temporal.v1.Observation.response:type_name -> google.protobuf.Any
+	1, // 1: umpire.temporal.v1.Observation.error:type_name -> umpire.temporal.v1.Error
+	4, // 2: umpire.temporal.v1.Callback.task:type_name -> google.protobuf.Any
+	4, // 3: umpire.temporal.v1.Reply.request:type_name -> google.protobuf.Any
+	4, // [4:4] is the sub-list for method output_type
+	4, // [4:4] is the sub-list for method input_type
+	4, // [4:4] is the sub-list for extension type_name
+	4, // [4:4] is the sub-list for extension extendee
+	0, // [0:4] is the sub-list for field type_name
 }
 
 func init() { file_umpire_temporal_v1_temporal_proto_init() }
@@ -210,13 +307,17 @@ func file_umpire_temporal_v1_temporal_proto_init() {
 	if File_umpire_temporal_v1_temporal_proto != nil {
 		return
 	}
+	file_umpire_temporal_v1_temporal_proto_msgTypes[0].OneofWrappers = []any{
+		(*Observation_Response)(nil),
+		(*Observation_Error)(nil),
+	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
 		File: protoimpl.DescBuilder{
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_temporal_v1_temporal_proto_rawDesc), len(file_umpire_temporal_v1_temporal_proto_rawDesc)),
 			NumEnums:      0,
-			NumMessages:   3,
+			NumMessages:   4,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

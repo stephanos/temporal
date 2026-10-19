@@ -1,6 +1,7 @@
 package model
 
 import (
+	"bytes"
 	"encoding/hex"
 	"fmt"
 	"os"
@@ -12,6 +13,26 @@ import (
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/umpire/model/v1"
 )
+
+func TestExplanationOutcomeWireCompatibility(t *testing.T) {
+	for _, tc := range []struct {
+		outcomes []string
+		wire     []byte
+	}{
+		{nil, []byte{10, 1, 'x'}},
+		{[]string{"()"}, []byte{10, 1, 'x', 18, 2, '(', ')'}},
+	} {
+		want := &modelv1.Explanation{Steps: []string{"x"}, Outcomes: tc.outcomes}
+		encoded, err := proto.Marshal(want)
+		if err != nil || !bytes.Equal(encoded, tc.wire) {
+			t.Fatalf("encoded %x, %v; want %x", encoded, err, tc.wire)
+		}
+		var decoded modelv1.Explanation
+		if err := proto.Unmarshal(tc.wire, &decoded); err != nil || !proto.Equal(want, &decoded) {
+			t.Fatalf("decoded %v, %v; want %v", &decoded, err, want)
+		}
+	}
+}
 
 func TestProtocolWireCompatibility(t *testing.T) {
 	if modelv1.Method_METHOD_EXPLORE != 1 || modelv1.Method_METHOD_ROWS != 2 {

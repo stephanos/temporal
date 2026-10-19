@@ -50,6 +50,22 @@ func controlJudge(t *testing.T, host *Host, value byte, steps ...string) {
 	if err != nil || response.GetExplained() == nil || !slices.Equal(response.GetExplained().Steps, steps) {
 		t.Fatalf("Judge(%d): %v %v, want explained steps %v", value, response, err, steps)
 	}
+	outcomes := make([]string, len(steps))
+	for i, step := range steps {
+		switch step {
+		case "Deliver":
+			outcomes[i] = "Outcome(1)"
+		case "Respond":
+			outcomes[i] = "Outcome(2)"
+		case "Finish":
+			outcomes[i] = "Outcome(3)"
+		default:
+			t.Fatalf("unknown control step %q", step)
+		}
+	}
+	if !slices.Equal(response.GetExplained().Outcomes, outcomes) {
+		t.Fatalf("outcomes = %v, want %v", response.GetExplained().Outcomes, outcomes)
+	}
 }
 
 func TestStatefulGuestReplayFreezeResetAndIsolation(t *testing.T) {

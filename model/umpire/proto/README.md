@@ -14,8 +14,10 @@ is not an alias for the new one. The Kettle guest currently refuses these three 
 with Unsupported (8). The export-free `umpire-wasm` library supplies the transactional
 runtime and ABI; system guests supply a `Machine` and `Realize` binding. Reset restores
 the unique start and clears frozen evidence. Judge replays actual Model steps; the
-first Unexplained freezes advancement until Reset. Answer validates delivery and its
-enabled response action before committing. Failed response publication commits nothing.
+Explanation lists Debug-formatted outcomes in parallel with its steps, including `()`
+for unit outcomes. The binding matches the final replayed outcome; a zero-step current
+check has no outcome. The first Unexplained freezes advancement until Reset. Answer validates
+delivery and its enabled response action before committing. Failed response publication commits nothing.
 `Any::pack`/`unpack` use generated `prost::Name` canonical URLs and typed Refusal
 constructors; the registry remains system-owned. Existing method IDs and old wire bytes
 remain pinned by host tests.
