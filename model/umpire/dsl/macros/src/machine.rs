@@ -143,6 +143,9 @@ fn registrations(
             match rank {
                 0 => {
                     if let Some(path) = on {
+                        if let Some(asyncness) = method.sig.asyncness {
+                            manyhow::bail!(asyncness, "#[on] handlers must be synchronous");
+                        }
                         if !matches!(method.sig.output, syn::ReturnType::Default) {
                             manyhow::bail!(
                                 &method.sig.output,
