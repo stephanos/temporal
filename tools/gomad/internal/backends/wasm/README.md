@@ -145,6 +145,30 @@ or identity inputs refuse before execution. The command builds its executor from
 the checkout selected by `--repo`; inherited measurement environment variables
 are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules.
 
+The fn-221 functional-suite triage sweep is the developer command
+`./internal/backends/wasm/cmd/wasmsweep` (library `internal/sweep`), chosen over
+a test-only producer because it runs for hours and must resume. It drives a
+prebuilt `gomad` binary as a subprocess, one `explore --json` campaign per
+top-level test function under `./tests` (seed `--seed`, `--parallel=1`,
+`--choices`, the slim `TemporalGuestBuildTags()`), so the explore path it
+observes is the operator's. Enumeration parses the `go list` test files and must
+equal `go test -list ^Test` for the same packages and tags, or the sweep stops.
+Each function gets one class: pass (with `skipped`), guest failure, refused
+import, capacity exceeded, timeout, build failure, infrastructure (retried
+once), replay divergence, or not-run (cut by the overall budget or
+`--max-tests`), with a normalized reason for every non-pass. `GOMAD_*`
+variables and missing or unbounded budgets are refused. Each package gets its own
+installation: `--config-source=throwaway` writes a sweep-local `wasi.Config` with
+the measure-fixture parameters and runs `gomad install --config`, labelled
+`throwaway` in every row; `temporal-install` uses fn-220's
+`install --temporal-checkout/--temporal-package` once it exists. Preparation
+caches are deleted after each function and the engine cache after each package;
+one failure artifact per distinct reason is kept under `--retain-bytes`. Rows go
+to an append-only `sweep.jsonl` keyed by candidate identity, so a rerun with the
+same `--out` skips classified functions, and `sweep.json` is the sidecar that
+`wasmsweep --verify` checks. Sweep rows are observations on one candidate, not
+support or qualification.
+
 `test-model` runs the focused Go model
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
