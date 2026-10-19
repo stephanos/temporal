@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-224-accepted-self-loops-in-the-attribute",
+  "created_at": "2026-10-19T23:34:30.417940Z",
+  "depends_on_epics": [
+    "fn-223-one-lifted-source-form-the-lifter-reads",
+    "fn-213-modelsuite-in-rust-examples-and"
+  ],
+  "id": "fn-224-accepted-self-loops-in-the-attribute",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-224-accepted-self-loops-in-the-attribute.md",
+  "status": "open",
+  "title": "Accepted self-loops in the attribute surface (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T23:34:41.280066Z"
+}
