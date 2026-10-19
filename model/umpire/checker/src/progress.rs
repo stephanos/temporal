@@ -4,7 +4,7 @@ use std::{
 };
 
 use petgraph::{algo::tarjan_scc, graph::DiGraph};
-use umpire_dsl::{Assumption, Machine, Outcome, Progress, Verdict};
+use umpire_dsl::{Assumption, CheckOutcome, Machine, Progress, Verdict};
 
 use crate::{
     ClaimResult, Path, PathStep, ProgressVerdict, Refusal, Result, StateId, Visited,
@@ -146,7 +146,7 @@ impl<M: Machine> Result<M> {
         }
         while let Some(state) = queue.pop_front() {
             if !complete[state] {
-                result.outcome = Outcome::Unknown;
+                result.outcome = CheckOutcome::Unknown;
             }
             if complete[state] && outgoing[state].is_empty() {
                 self.refute_progress(result, state, &parents, &origins, &[]);
@@ -302,8 +302,8 @@ impl<M: Machine> Result<M> {
     }
 
     fn finish_progress(&self, result: &mut ClaimResult<M::State, M::Action>, longest: Option<u32>) {
-        if self.counts.cut || result.outcome == Outcome::Unknown {
-            result.outcome = Outcome::Unknown;
+        if self.counts.cut || result.outcome == CheckOutcome::Unknown {
+            result.outcome = CheckOutcome::Unknown;
             result.verdict = Some(ProgressVerdict::Unknown);
         } else {
             result.verdict = Some(ProgressVerdict::Verified { longest });
@@ -490,7 +490,7 @@ impl<M: Machine> Result<M> {
                         Verdict::Holds => values[state] = !target,
                         Verdict::Fails => values[state] = target,
                         Verdict::Unknown(hole) => {
-                            result.outcome = Outcome::Unknown;
+                            result.outcome = CheckOutcome::Unknown;
                             if !result.holes.contains(&hole.reason) {
                                 result.holes.push(hole.reason);
                             }
@@ -530,7 +530,7 @@ impl<M: Machine> Result<M> {
                     Verdict::Holds => values[state] = !target,
                     Verdict::Fails => values[state] = target,
                     Verdict::Unknown(hole) => {
-                        result.outcome = Outcome::Unknown;
+                        result.outcome = CheckOutcome::Unknown;
                         if !result.holes.contains(&hole.reason) {
                             result.holes.push(hole.reason);
                         }
@@ -539,7 +539,7 @@ impl<M: Machine> Result<M> {
             }
         }
         if inconsistent_assumption || inconsistent_bound {
-            result.outcome = Outcome::Unknown;
+            result.outcome = CheckOutcome::Unknown;
             result.verdict = Some(ProgressVerdict::Unknown);
             if inconsistent_assumption {
                 result.holes.push("progress assumption differs across reached states");
@@ -570,7 +570,7 @@ impl<M: Machine> Result<M> {
                 let mut path = self.path(state);
                 path.failure =
                     Some(format!("claim {name} panicked: {}", panic_message(error.as_ref())));
-                result.outcome = Outcome::Refuted;
+                result.outcome = CheckOutcome::Refuted;
                 result.path = Some(path);
                 None
             }
@@ -652,7 +652,7 @@ impl<M: Machine> Result<M> {
             path.cycle_start = Some(path.steps.len());
             self.append_progress(&mut path, cycle);
         }
-        result.outcome = Outcome::Refuted;
+        result.outcome = CheckOutcome::Refuted;
         result.path = Some(path);
     }
 }

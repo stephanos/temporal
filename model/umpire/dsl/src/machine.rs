@@ -34,6 +34,19 @@ pub trait Machine: Sized {
         action: Self::Action,
     ) -> Steps<Self::State, Self::Outcome, Self::Fact>;
 
+    /// Evaluates enabled choices, refusing an invalid Model step before publishing any edge.
+    /// Engines use this method; `step` is the unchecked interface for direct callers.
+    ///
+    /// # Errors
+    /// Returns a Model error when a rejecting handler changed its state.
+    fn checked_step(
+        &self,
+        state: &Self::State,
+        action: Self::Action,
+    ) -> Result<Steps<Self::State, Self::Outcome, Self::Fact>, StepError> {
+        Ok(self.step(state, action))
+    }
+
     /// Registers predicates checked at each reachable state.
     fn invariants(&self) -> Vec<Claim<Self>> {
         Vec::new()
@@ -71,3 +84,20 @@ pub type Step<S, O, F> = (O, Vec<F>, S);
 
 /// Enabled edges in written order, storing one edge inline; empty disables the action.
 pub type Steps<S, O, F> = SmallVec<[Step<S, O, F>; 1]>;
+
+/// An invalid Model implementation, distinct from an enabled rejecting edge.
+#[derive(Clone, Copy, Debug, PartialEq, Eq)]
+pub enum StepError {
+    /// A handler both rejected the request and changed its state.
+    RejectedAfterMutation,
+}
+
+impl Display for StepError {
+    fn fmt(&self, out: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::RejectedAfterMutation => out.write_str("rejecting step changed state"),
+        }
+    }
+}
+
+impl std::error::Error for StepError {}

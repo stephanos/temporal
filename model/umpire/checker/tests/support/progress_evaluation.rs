@@ -4,7 +4,7 @@ use std::cell::Cell;
 
 use umpire_checker::{Checker, ProgressVerdict, Refusal};
 use umpire_dsl::{
-    Assumption, AssumptionExt, Machine, Outcome, Progress, ProgressEvaluation, Steps, Verdict,
+    Assumption, AssumptionExt, CheckOutcome, Machine, Progress, ProgressEvaluation, Steps, Verdict,
 };
 
 struct World {
@@ -102,8 +102,8 @@ fn simultaneous_claims_can_use_different_fixed_assumptions() {
     world.second = true;
     let result = Checker::explore(&world, 8).unwrap_or_else(|error| panic!("{error}"));
     let report = result.verify_all().unwrap_or_else(|error| panic!("{error}"));
-    assert_eq!(report.claims[0].outcome, Outcome::Verified);
-    assert_eq!(report.claims[1].outcome, Outcome::Refuted);
+    assert_eq!(report.claims[0].outcome, CheckOutcome::Verified);
+    assert_eq!(report.claims[1].outcome, CheckOutcome::Refuted);
     assert!(report.claims.iter().all(|claim| claim.holes.is_empty()));
 }
 
@@ -114,18 +114,18 @@ fn combined_evaluation_runs_once_per_reached_state_and_rendering_reuses_results(
     assert_eq!(world.calls.get(), 2);
     assert_eq!(
         result.verify_all().unwrap_or_else(|error| panic!("{error}")).outcome(),
-        Outcome::Verified
+        CheckOutcome::Verified
     );
     assert_eq!(
         result.verify_all().unwrap_or_else(|error| panic!("{error}")).outcome(),
-        Outcome::Verified
+        CheckOutcome::Verified
     );
     assert_eq!(world.calls.get(), 2);
 }
 
 #[test]
 fn assumptions_are_fixed_per_exploration_rather_than_across_worlds() {
-    for (excluded, expected) in [(1, Outcome::Verified), (0, Outcome::Refuted)] {
+    for (excluded, expected) in [(1, CheckOutcome::Verified), (0, CheckOutcome::Refuted)] {
         let world = World::new(vec![0], excluded);
         let result = Checker::explore(&world, 8).unwrap_or_else(|error| panic!("{error}"));
         assert_eq!(
@@ -138,7 +138,7 @@ fn assumptions_are_fixed_per_exploration_rather_than_across_worlds() {
         world.changing = changing;
         let result = Checker::explore(&world, 8).unwrap_or_else(|error| panic!("{error}"));
         let report = result.verify_all().unwrap_or_else(|error| panic!("{error}"));
-        assert_eq!(report.outcome(), Outcome::Unknown);
+        assert_eq!(report.outcome(), CheckOutcome::Unknown);
         assert!(report.claims[0].holes.iter().any(|reason| reason.contains("assumption")));
         assert_eq!(world.calls.get(), 2);
     }
@@ -153,7 +153,7 @@ fn dynamic_invalid_actions_are_refused_only_after_real_state_evaluation() {
             let result = result.unwrap_or_else(|error| panic!("{error}"));
             assert_eq!(
                 result.verify_all().unwrap_or_else(|error| panic!("{error}")).outcome(),
-                Outcome::Verified
+                CheckOutcome::Verified
             );
             assert_eq!(world.calls.get(), 0);
         } else {

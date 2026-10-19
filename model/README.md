@@ -126,6 +126,15 @@ Each match arm combines the action, its guard and its effect. An action is enabl
 final state changes; `_ => {}` disables unmatched actions. Without a fallback, rustc checks match
 exhaustiveness. Attributes preserve authored statements and method/impl headers.
 
+A module containing `reject!(Rejection::NotFound)` uses the shared step `Outcome`: changed states
+emit `Accepted`, and rejected requests emit a `Rejected(rejection)` self-loop. An unchanged handler
+without rejection remains disabled. `reject!` records the first rejection and returns from its
+enclosing function; a rejecting helper returns only from the helper. Rejection outside evaluation
+has no effect. A postcondition can take `(&self, before: &Self, outcome: &Outcome)`.
+Engines call `Machine::checked_step`, which refuses a rejecting handler that changed state before
+publishing an edge. Direct `step` calls are unchecked and panic on that invalid implementation.
+Modules without `reject!` keep unit outcomes and their existing rows.
+
 Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
 `#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action
 with `#[postcondition(after = Heater::Failover)]`. Shared effects are ordinary `#[effect]`
@@ -158,7 +167,8 @@ a reached state. Reached assumption/bound disagreement is Unknown unless that me
 
 `ProgressVerdict` distinguishes deadlock, cycle, missed deadline, verified with an optional longest
 first-target distance, and unknown. Caught predicate/effect defects keep their existing outcomes
-without a temporal classification; the aggregate `Outcome` and default report text are unchanged.
+without a temporal classification; the aggregate `CheckOutcome` retains `Verified`, `Refuted` and
+`Unknown`, and default report text is unchanged.
 The supplementary `kettle_progress*` fixtures pin the room/cold longest distances (81/141), cycle,
 deadlock, deadline and budget questions using the original Kettle predicates. Fn-213 retains the
 ergonomic Kettle `tests.rs` presentation. Fn-212's future emitter maps explicit `fair(A)` entries

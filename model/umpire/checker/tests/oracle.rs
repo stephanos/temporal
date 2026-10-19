@@ -5,7 +5,8 @@ use std::collections::{BTreeSet, VecDeque};
 use proptest::prelude::*;
 use umpire_checker::{Checker, ProgressVerdict};
 use umpire_dsl::{
-    Assumption, AssumptionExt, Claim, Hole, Machine, Outcome, Progress, StepClaim, Steps, Verdict,
+    Assumption, AssumptionExt, CheckOutcome, Claim, Hole, Machine, Progress, StepClaim, Steps,
+    Verdict,
 };
 
 #[derive(Clone, Debug)]
@@ -198,7 +199,7 @@ type Edge = ([u8; 3], usize, usize, [u8; 3]);
 #[derive(Debug)]
 struct Reference {
     reached: BTreeSet<[u8; 3]>,
-    outcomes: Vec<(&'static str, Outcome)>,
+    outcomes: Vec<(&'static str, CheckOutcome)>,
     edges: Vec<Edge>,
 }
 
@@ -316,17 +317,17 @@ fn reference(world: &World) -> Reference {
         }
     }
     edges.retain(|(before, _, _, _)| reached.contains(before));
-    let outcome = |fails| if fails { Outcome::Refuted } else { Outcome::Verified };
+    let outcome = |fails| if fails { CheckOutcome::Refuted } else { CheckOutcome::Verified };
     Reference {
         outcomes: vec![
             (
                 "not_forbidden",
                 if reached.contains(&world.forbidden) {
-                    Outcome::Refuted
+                    CheckOutcome::Refuted
                 } else if reached.contains(&world.hole) {
-                    Outcome::Unknown
+                    CheckOutcome::Unknown
                 } else {
-                    Outcome::Verified
+                    CheckOutcome::Verified
                 },
             ),
             (
@@ -339,7 +340,7 @@ fn reference(world: &World) -> Reference {
                     edges.iter().any(|(before, action, _, after)| *action == 0 && before == after),
                 ),
             ),
-            ("choice_facts", Outcome::Verified),
+            ("choice_facts", CheckOutcome::Verified),
             ("eventually_target", outcome(progress_fails(world, &reached, &edges))),
         ],
         reached,
@@ -367,7 +368,7 @@ proptest! {
         }
         for claim in report.claims {
             if claim.name == "eventually_target" {
-                prop_assert_eq!(claim.path.is_some(), claim.outcome == Outcome::Refuted);
+                prop_assert_eq!(claim.path.is_some(), claim.outcome == CheckOutcome::Refuted);
             }
             if let Some(path) = claim.path {
                 prop_assert!(world.starts.contains(&path.start.0));

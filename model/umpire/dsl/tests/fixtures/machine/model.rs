@@ -1,6 +1,6 @@
 use std::fmt::Write;
 
-use umpire_dsl::{Machine, Outcome, Verdict, machine};
+use umpire_dsl::{Machine, CheckOutcome, Verdict, machine};
 
 #[machine]
 mod counter {
@@ -118,9 +118,9 @@ fn rendered(value: &impl std::fmt::Display) -> String {
 
 fn judgment(verdict: Verdict) -> String {
     format!("{:?}", match verdict {
-        Verdict::Holds => Outcome::Verified,
-        Verdict::Fails => Outcome::Refuted,
-        Verdict::Unknown(_) => Outcome::Unknown,
+        Verdict::Holds => CheckOutcome::Verified,
+        Verdict::Fails => CheckOutcome::Refuted,
+        Verdict::Unknown(_) => CheckOutcome::Unknown,
     })
 }
 

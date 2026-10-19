@@ -4,18 +4,20 @@
 
 pub mod claim;
 mod machine;
+pub mod outcome;
 mod progress;
 mod scope;
 
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
-pub use machine::{Machine, Step, Steps};
+pub use machine::{Machine, Step, StepError, Steps};
+pub use outcome::{Outcome, Rejection};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};
 pub use umpire_dsl_macros::{Action, State, machine};
 
 /// The checker's aggregate claim result, distinct from a domain's step outcome.
 #[derive(Clone, Copy, Debug, PartialEq, Eq)]
-pub enum Outcome {
+pub enum CheckOutcome {
     /// The claim holds throughout the explored machine.
     Verified,
     /// A counterexample refutes the claim.

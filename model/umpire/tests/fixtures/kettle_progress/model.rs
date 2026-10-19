@@ -1,7 +1,7 @@
 use crate::fixture_sample_5fkettle::kettle;
 use std::fmt::Write;
 use umpire_checker::{Checker, ClaimResult, ProgressVerdict};
-use umpire_dsl::{Assumption, Machine, Outcome};
+use umpire_dsl::{Assumption, Machine, CheckOutcome};
 use umpire_testing::Files;
 
 #[path = "../../support/progress_starts.rs"]
@@ -30,7 +30,7 @@ fn render<S: std::fmt::Display, A: std::fmt::Display>(
     report: &mut String,
     question: &str,
     result: ClaimResult<S, A>,
-    expected: &(Outcome, ProgressVerdict),
+    expected: &(CheckOutcome, ProgressVerdict),
 ) -> umpire_testing::TestResult {
     assert_eq!(
         (result.outcome, result.verdict.as_ref()),
@@ -75,27 +75,27 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         (
             "room_never_switched_off",
             room.progress().remove(0),
-            (Outcome::Verified, ProgressVerdict::Verified { longest: Some(81) }),
+            (CheckOutcome::Verified, ProgressVerdict::Verified { longest: Some(81) }),
         ),
         (
             "room_unrestricted",
             room.progress().remove(0).assuming(Assumption::default()),
-            (Outcome::Refuted, ProgressVerdict::Cycle),
+            (CheckOutcome::Refuted, ProgressVerdict::Cycle),
         ),
         (
             "room_press_only",
             room.progress().remove(0).assuming(Assumption::only(&[kettle::User::PressButton])),
-            (Outcome::Refuted, ProgressVerdict::Deadlock),
+            (CheckOutcome::Refuted, ProgressVerdict::Deadlock),
         ),
         (
             "room_within_80",
             room.progress().remove(0).within_steps(80),
-            (Outcome::Refuted, ProgressVerdict::MissedDeadline),
+            (CheckOutcome::Refuted, ProgressVerdict::MissedDeadline),
         ),
         (
             "room_fair_heat",
             room.progress().remove(0).assuming(Assumption::fair(&[kettle::Heater::Heat])),
-            (Outcome::Refuted, ProgressVerdict::Cycle),
+            (CheckOutcome::Refuted, ProgressVerdict::Cycle),
         ),
     ] {
         render(&mut files, &mut report, question, graph.verify_progress(&room, &claim)?, &expected)?;
@@ -107,7 +107,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         &mut report,
         "cold_never_switched_off",
         cold_graph.verify_progress(&cold, &cold.progress().remove(0))?,
-        &(Outcome::Verified, ProgressVerdict::Verified { longest: Some(141) }),
+        &(CheckOutcome::Verified, ProgressVerdict::Verified { longest: Some(141) }),
     )?;
     let cut = Checker::explore(&room, 10)?;
     render(
@@ -115,7 +115,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
         &mut report,
         "room_budget_10",
         cut.verify_progress(&room, &room.progress().remove(0))?,
-        &(Outcome::Unknown, ProgressVerdict::Unknown),
+        &(CheckOutcome::Unknown, ProgressVerdict::Unknown),
     )?;
     files.insert("report.txt".into(), report);
     Ok(files)

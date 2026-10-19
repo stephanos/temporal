@@ -4,7 +4,9 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use umpire_dsl::{Claim, Machine, Outcome, Progress, Step, StepClaim, Verdict, claim::Evaluation};
+use umpire_dsl::{
+    CheckOutcome, Claim, Machine, Progress, Step, StepClaim, Verdict, claim::Evaluation,
+};
 
 use crate::{
     ClaimResult, FullStates, Path, PathStep, Refusal, Report, StateId, Visited, report::aggregate,
@@ -19,7 +21,7 @@ pub struct Counts {
     pub reached: usize,
     /// Emitted choices, including rejecting outcomes and repeated destinations.
     pub emitted: usize,
-    /// Calls to `Machine::step`, including disabled actions and caught panics.
+    /// Calls to `Machine::checked_step`, including disabled actions and caught panics.
     pub evaluated: usize,
     /// Step evaluations returning no choices (disabled actions).
     pub refused: usize,
@@ -110,9 +112,13 @@ impl Checker {
             for (action_index, action) in actions.iter().enumerate() {
                 result.counts.evaluated += 1;
                 let emitted =
-                    catch_unwind(AssertUnwindSafe(|| world.step(&before, action.clone())));
+                    catch_unwind(AssertUnwindSafe(|| world.checked_step(&before, action.clone())));
                 let choices = match emitted {
-                    Ok(choices) => choices,
+                    Ok(choices) => choices.map_err(|error| Refusal::Step {
+                        action: action.to_string(),
+                        before: before.to_string(),
+                        error,
+                    })?,
                     Err(error) => {
                         let mut path = result.path(source);
                         let action_text = action.to_string();
@@ -121,7 +127,7 @@ impl Checker {
                             panic_message(error.as_ref())
                         ));
                         result.claims.push(ClaimResult {
-                            outcome: Outcome::Refuted,
+                            outcome: CheckOutcome::Refuted,
                             path: Some(path),
                             ..unchecked(&format!("step_{cursor}_{action_index}"))
                         });
@@ -191,7 +197,7 @@ impl Checker {
 pub(crate) fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
     ClaimResult {
         name: name.into(),
-        outcome: Outcome::Verified,
+        outcome: CheckOutcome::Verified,
         verdict: None,
         hint: None,
         path: None,
@@ -280,8 +286,8 @@ impl<M: Machine> Result<M> {
         self.counts.reached = self.visited.len();
         if self.counts.cut {
             for claim in &mut self.claims {
-                if claim.outcome != Outcome::Refuted {
-                    claim.outcome = Outcome::Unknown;
+                if claim.outcome != CheckOutcome::Refuted {
+                    claim.outcome = CheckOutcome::Unknown;
                 }
             }
         }
@@ -323,7 +329,7 @@ impl<M: Machine> Result<M> {
     }
 
     /// The aggregate claim verdict for this exploration.
-    pub fn outcome(&self) -> Outcome {
+    pub fn outcome(&self) -> CheckOutcome {
         aggregate(self.counts.cut, &self.claims)
     }
 
@@ -350,7 +356,7 @@ impl<M: Machine> Result<M> {
 
     fn check_state(&mut self, world: &M, state: StateId, invariants: &[Claim<M>]) {
         for (index, claim) in invariants.iter().enumerate() {
-            if self.claims[index].outcome == Outcome::Refuted {
+            if self.claims[index].outcome == CheckOutcome::Refuted {
                 continue;
             }
             let verdict =
@@ -372,7 +378,7 @@ impl<M: Machine> Result<M> {
                 continue;
             }
             triggered.insert(index);
-            if self.claims[offset + index].outcome == Outcome::Refuted {
+            if self.claims[offset + index].outcome == CheckOutcome::Refuted {
                 continue;
             }
             let verdict = catch_unwind(AssertUnwindSafe(|| {
@@ -406,7 +412,7 @@ impl<M: Machine> Result<M> {
         match verdict {
             Ok(Evaluation { verdict: Verdict::Holds, .. }) => {}
             Ok(Evaluation { verdict: Verdict::Unknown(hole), .. }) => {
-                claim.outcome = Outcome::Unknown;
+                claim.outcome = CheckOutcome::Unknown;
                 if !claim.holes.contains(&hole.reason) {
                     claim.holes.push(hole.reason);
                 }
@@ -417,7 +423,7 @@ impl<M: Machine> Result<M> {
                     let state_text = state.to_string();
                     path.failure = Some(format!("check!({expression}) failed at {state_text}"));
                 }
-                claim.outcome = Outcome::Refuted;
+                claim.outcome = CheckOutcome::Refuted;
                 claim.path = path;
             }
             Err(error) => {
@@ -428,7 +434,7 @@ impl<M: Machine> Result<M> {
                         panic_message(error.as_ref())
                     ));
                 }
-                claim.outcome = Outcome::Refuted;
+                claim.outcome = CheckOutcome::Refuted;
                 claim.path = path;
             }
         }

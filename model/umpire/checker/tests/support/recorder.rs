@@ -3,7 +3,7 @@
 use std::cell::Cell;
 
 use umpire_checker::Checker;
-use umpire_dsl::{Claim, Machine, Outcome, StepClaim, Steps, Verdict, check, claim};
+use umpire_dsl::{CheckOutcome, Claim, Machine, StepClaim, Steps, Verdict, check, claim};
 
 struct World {
     calls: Cell<usize>,
@@ -79,7 +79,7 @@ fn evidence_belongs_to_actual_evaluation_and_counterexample_state()
     assert!(report.claims.iter().all(|claim| claim.verdict.is_none() && claim.hint.is_none()));
     assert_eq!(world.calls.get(), 3);
     let state = &report.claims[0];
-    assert_eq!(state.outcome, Outcome::Refuted);
+    assert_eq!(state.outcome, CheckOutcome::Refuted);
     let path = state.path.as_ref().ok_or("state counterexample missing")?;
     assert_eq!(path.steps.last().ok_or("state edge missing")?.after, 1);
     assert_eq!(path.failure.as_deref(), Some("check!(state == 0) failed at 1"));

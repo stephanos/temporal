@@ -1,6 +1,6 @@
 use std::fmt::{self, Display};
 
-use umpire_dsl::{Machine, Outcome};
+use umpire_dsl::{CheckOutcome, Machine};
 
 use crate::Counts;
 
@@ -87,7 +87,7 @@ pub struct ClaimResult<S, A> {
     /// The model's declaration name, or an effect failure's discovery identity.
     pub name: String,
     /// Whether the claim holds, fails, or remains undecided.
-    pub outcome: Outcome,
+    pub outcome: CheckOutcome,
     /// Progress classification for a logical progress result; absent for safety or defects.
     pub verdict: Option<ProgressVerdict>,
     /// Advice attached to a logical progress refutation.
@@ -109,19 +109,19 @@ pub struct Report<M: Machine> {
     pub warnings: Vec<String>,
 }
 
-pub(crate) fn aggregate<S, A>(cut: bool, claims: &[ClaimResult<S, A>]) -> Outcome {
-    if claims.iter().any(|claim| claim.outcome == Outcome::Refuted) {
-        Outcome::Refuted
-    } else if cut || claims.iter().any(|claim| claim.outcome == Outcome::Unknown) {
-        Outcome::Unknown
+pub(crate) fn aggregate<S, A>(cut: bool, claims: &[ClaimResult<S, A>]) -> CheckOutcome {
+    if claims.iter().any(|claim| claim.outcome == CheckOutcome::Refuted) {
+        CheckOutcome::Refuted
+    } else if cut || claims.iter().any(|claim| claim.outcome == CheckOutcome::Unknown) {
+        CheckOutcome::Unknown
     } else {
-        Outcome::Verified
+        CheckOutcome::Verified
     }
 }
 
 impl<M: Machine> Report<M> {
     /// The aggregate verdict, preserving refutations despite cuts or holes.
-    pub fn outcome(&self) -> Outcome {
+    pub fn outcome(&self) -> CheckOutcome {
         aggregate(self.counts.cut, &self.claims)
     }
 }
@@ -129,11 +129,12 @@ impl<M: Machine> Report<M> {
 impl<M: Machine> Report<M> {
     /// Panics for refuted or unknown verification, printing the first refutation's path.
     pub fn assert_verified(&self) {
-        if let Some(claim) = self.claims.iter().find(|claim| claim.outcome == Outcome::Refuted) {
+        if let Some(claim) = self.claims.iter().find(|claim| claim.outcome == CheckOutcome::Refuted)
+        {
             let path = claim.path.as_ref().map(ToString::to_string).unwrap_or_default();
             panic!("claim {} refuted:\n{path}", claim.name);
         }
-        assert!(self.outcome() == Outcome::Verified, "verification unknown:\n{self}");
+        assert!(self.outcome() == CheckOutcome::Verified, "verification unknown:\n{self}");
     }
 }
 

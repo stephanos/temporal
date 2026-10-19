@@ -172,7 +172,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                     if path.is_empty() {
                         continue;
                     }
-                    if let Some((state, steps)) = self.replay(current, path)
+                    if let Some((state, steps)) = self.replay(current, path)?
                         && self.realization.matches(observation, &state)?
                     {
                         return Ok((
@@ -184,15 +184,13 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             }
             Projection::Current => {}
         }
-        let frozen = protocol::Unexplained {
-            expected_actions: self
-                .machine
-                .actions()
-                .into_iter()
-                .filter(|action| !self.machine.step(current, action.clone()).is_empty())
-                .map(|action| action.to_string())
-                .collect(),
-        };
+        let mut expected_actions = Vec::new();
+        for action in self.machine.actions() {
+            if !self.checked_step(current, action.clone())?.is_empty() {
+                expected_actions.push(action.to_string());
+            }
+        }
+        let frozen = protocol::Unexplained { expected_actions };
         Ok((
             judgment(Judgment::Unexplained(frozen.clone())),
             Some(Transaction {
@@ -210,7 +208,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             ));
         }
         let plan = self.realization.answer(callback, current)?;
-        let (state, _) = self.replay(current, plan.delivery).ok_or_else(|| {
+        let (state, _) = self.replay(current, plan.delivery)?.ok_or_else(|| {
             protocol::Refusal::new(protocol::RefusalCode::State, "callback delivery is not enabled")
         })?;
         if plan.reply.type_url.is_empty() {
@@ -220,7 +218,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             ));
         }
         if !self.machine.actions().contains(&plan.response_action)
-            || self.machine.step(&state, plan.response_action).is_empty()
+            || self.checked_step(&state, plan.response_action)?.is_empty()
         {
             return Err(protocol::Refusal::new(
                 protocol::RefusalCode::State,
@@ -239,21 +237,39 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         &self,
         current: &M::State,
         path: Vec<Transition<M::Action>>,
-    ) -> Option<(M::State, Vec<String>)> {
+    ) -> Result<Option<(M::State, Vec<String>)>, protocol::Refusal> {
         let mut state = current.clone();
         let mut steps = Vec::new();
         let catalog = self.machine.actions();
         for transition in path {
             if !catalog.contains(&transition.action) {
-                return None;
+                return Ok(None);
             }
             let label = transition.action.to_string();
-            let (_, _, next) =
-                self.machine.step(&state, transition.action).into_iter().nth(transition.choice)?;
+            let Some((_, _, next)) =
+                self.checked_step(&state, transition.action)?.into_iter().nth(transition.choice)
+            else {
+                return Ok(None);
+            };
             state = next;
             steps.push(label);
         }
-        Some((state, steps))
+        Ok(Some((state, steps)))
+    }
+
+    fn checked_step(
+        &self,
+        state: &M::State,
+        action: M::Action,
+    ) -> Result<umpire_dsl::Steps<M::State, M::Outcome, M::Fact>, protocol::Refusal> {
+        let label = action.to_string();
+        self.machine.checked_step(state, action).map_err(|error| {
+            checker_error(&umpire_checker::Refusal::Step {
+                action: label,
+                before: state.to_string(),
+                error,
+            })
+        })
     }
 
     fn explore(&self, budget: u32) -> Prepared<M> {

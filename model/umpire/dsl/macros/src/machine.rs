@@ -19,6 +19,19 @@ impl<'ast> syn::visit::Visit<'ast> for WithinAttribute<'ast> {
     }
 }
 
+fn rejects(tokens: TokenStream) -> bool {
+    let tokens: Vec<_> = tokens.into_iter().collect();
+    tokens.windows(2).any(|pair| {
+        matches!(pair,
+            [proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Punct(mark)]
+                if name == "reject" && mark.as_char() == '!'
+        )
+    }) || tokens.into_iter().any(|token| match token {
+        proc_macro2::TokenTree::Group(group) => rejects(group.stream()),
+        _ => false,
+    })
+}
+
 fn derives(attrs: &[syn::Attribute], name: &str) -> syn::Result<bool> {
     for attr in attrs.iter().filter(|attr| attr.path().is_ident("derive")) {
         let paths = Punctuated::<Path, Token![,]>::parse_terminated
@@ -70,7 +83,7 @@ fn check_impl(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
 struct Registrations {
     handlers: Vec<(syn::Ident, syn::Ident)>,
     invariants: Vec<syn::Ident>,
-    posts: Vec<(syn::Ident, Option<Path>, bool)>,
+    posts: Vec<(syn::Ident, Option<Path>, usize)>,
     assumptions: Vec<syn::Ident>,
     progresses: Vec<syn::Ident>,
     order: Vec<String>,
@@ -453,13 +466,19 @@ fn registrations(
                 3 => {
                     let after = after_action(attr)?;
                     let arity = method.sig.inputs.len();
-                    if !(1..=2).contains(&arity) || method.sig.receiver().is_none() {
+                    if !(1..=3).contains(&arity) || method.sig.receiver().is_none() {
                         manyhow::bail!(
                             &method.sig,
-                            "postconditions require &self and an optional before: &Self"
+                            "postconditions require &self, optional before: &Self, then optional outcome: &Outcome"
                         );
                     }
-                    registration.posts.push((name, after, arity == 2));
+                    registration.posts.push((name, after, arity));
+                    if arity == 3 {
+                        method.attrs.push(syn::parse_quote!(#[allow(
+                            clippy::trivially_copy_pass_by_ref,
+                            reason = "postconditions borrow the emitted edge outcome"
+                        )]));
+                    }
                 }
                 4 => registration.assumptions.push(name),
                 5 => registration.progresses.push(name),
@@ -484,9 +503,17 @@ fn postconditions(
     actions: &[Path],
 ) -> manyhow::Result<Vec<TokenStream>> {
     let mut output = Vec::new();
-    for (method, after, before) in &registration.posts {
-        let args = before.then(|| quote!(_before));
-        let predicate = quote!(|_, _before, after, _, _, _| after.#method(#args));
+    for (method, after, arity) in &registration.posts {
+        let args = match arity {
+            1 => quote!(),
+            2 => quote!(_before),
+            _ => quote!(_before, outcome),
+        };
+        let predicate = if *arity == 3 {
+            quote!(|_, _before, after, _, outcome, _| after.#method(#args))
+        } else {
+            quote!(|_, _before, after, _, _, _| after.#method(#args))
+        };
         let label = method.to_string();
         if let Some(path) = after {
             if !actions.iter().any(|known| key(known) == key(path)) {
@@ -588,6 +615,57 @@ fn progress_helpers(enabled: bool) -> Option<TokenStream> {
     })
 }
 
+fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool) -> TokenStream {
+    let dispatch = handlers.iter().map(|(actor, method)| {
+        if rejecting {
+            return quote!(Action::#actor(value) => {
+                let mut next = state.clone();
+                let outcome = ::umpire_dsl::outcome::evaluate(|| next.#method(value));
+                if matches!(outcome, ::umpire_dsl::Outcome::Rejected(_)) && next != *state {
+                    return ::core::result::Result::Err(::umpire_dsl::StepError::RejectedAfterMutation);
+                }
+                let mut steps = ::umpire_dsl::Steps::new();
+                if next != *state || matches!(outcome, ::umpire_dsl::Outcome::Rejected(_)) {
+                    steps.push((outcome, ::std::vec::Vec::new(), next));
+                }
+                ::core::result::Result::Ok(steps)
+            });
+        }
+        quote!(Action::#actor(value) => {
+            let mut next = state.clone();
+            next.#method(value);
+            let mut steps = ::umpire_dsl::Steps::new();
+            if next != *state { steps.push(((), ::std::vec::Vec::new(), next)); }
+            steps
+        })
+    });
+    if rejecting {
+        quote! {
+            fn step(&self, state: &Self::State, action: Self::Action)
+                -> ::umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact>
+            {
+                match <Self as ::umpire_dsl::Machine>::checked_step(self, state, action) {
+                    ::core::result::Result::Ok(steps) => steps,
+                    ::core::result::Result::Err(error) => panic!("unchecked Model step: {}", error),
+                }
+            }
+            fn checked_step(&self, state: &Self::State, action: Self::Action)
+                -> ::core::result::Result<::umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact>, ::umpire_dsl::StepError>
+            {
+                match action { #(#dispatch),* }
+            }
+        }
+    } else {
+        quote! {
+            fn step(&self, state: &Self::State, action: Self::Action)
+                -> ::umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact>
+            {
+                match action { #(#dispatch),* }
+            }
+        }
+    }
+}
+
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
     if !args.is_empty() {
         manyhow::bail!(args, "#[machine] takes no arguments");
@@ -597,6 +675,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     if let Some(attr) = within.0 {
         manyhow::bail!(attr, "a progress claim names its assumption with .assuming(..)");
     }
+    let rejecting = rejects(quote!(#input));
+    let outcome_type = if rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
     let mut input = input.clone();
     input.attrs.insert(0, syn::parse_quote!(#[forbid(unsafe_code)]));
     let Some((_, items)) = &mut input.content else {
@@ -608,15 +688,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);
     let Registrations { handlers, invariants, assumptions, order, .. } = registration;
-    let dispatch = handlers.iter().map(|(actor, method)| {
-        quote!(Action::#actor(value) => {
-            let mut next = state.clone();
-            next.#method(value);
-            let mut steps = ::umpire_dsl::Steps::new();
-            if next != *state { steps.push(((), ::std::vec::Vec::new(), next)); }
-            steps
-        })
-    });
+    let stepping = stepping(&handlers, rejecting);
     let invariant_tokens = invariants.iter().map(|method| {
         let label = method.to_string();
         quote!(::umpire_dsl::Claim::<Self>::with_checks(
@@ -635,7 +707,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let world_type = if matches!(visibility, syn::Visibility::Public(_)) {
         quote!(World)
     } else {
-        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = (), Fact = (), Action: #(::core::convert::From<#actors>)+*>)
+        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = #outcome_type, Fact = (), Action: #(::core::convert::From<#actors>)+*>)
     };
     let generated = quote! {
         #[doc = "The module's registered state machine."]
@@ -666,7 +738,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         impl ::umpire_dsl::Machine for World {
             type State = #state;
             type Action = Action;
-            type Outcome = ();
+            type Outcome = #outcome_type;
             type Fact = ();
             fn starts(&self) -> ::std::vec::Vec<Self::State> { #state::starts() }
             fn actions(&self) -> ::std::vec::Vec<Self::Action> {
@@ -677,11 +749,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
             fn internal(&self, action: &Self::Action) -> bool {
                 match action { #(Action::#actors(value) => value.internal()),* }
             }
-            fn step(&self, state: &Self::State, action: Self::Action)
-                -> ::umpire_dsl::Steps<Self::State, Self::Outcome, Self::Fact>
-            {
-                match action { #(#dispatch),* }
-            }
+            #stepping
             fn invariants(&self) -> ::std::vec::Vec<::umpire_dsl::Claim<Self>> { ::std::vec![#(#invariant_tokens),*] }
             fn postconditions(&self) -> ::std::vec::Vec<::umpire_dsl::StepClaim<Self>> { ::std::vec![#(#post_tokens),*] }
             fn progress(&self) -> ::std::vec::Vec<::umpire_dsl::Progress<Self>> { ::std::vec![#(#progress_tokens),*] }

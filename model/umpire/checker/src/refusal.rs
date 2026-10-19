@@ -1,6 +1,16 @@
 /// An invalid request to the checker, distinct from a Model's verdict.
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Refusal {
+    /// A Model step was invalid and produced no admitted edge.
+    #[error("invalid action {action} from {before}: {error}")]
+    Step {
+        /// The action whose handler was invalid.
+        action: String,
+        /// The source state's canonical spelling.
+        before: String,
+        /// The invalid step's cause.
+        error: umpire_dsl::StepError,
+    },
     /// The requested name was not registered during exploration.
     #[error("unknown registered progress claim: {claim}")]
     ProgressRegistrationMissing {

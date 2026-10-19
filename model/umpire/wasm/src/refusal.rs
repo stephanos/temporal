@@ -6,6 +6,7 @@ pub(crate) fn refused(code: protocol::RefusalCode, message: String) -> protocol:
 
 pub(crate) fn checker_refusal(error: &umpire_checker::Refusal) -> protocol::response::Outcome {
     let code = match error {
+        umpire_checker::Refusal::Step { .. } => protocol::RefusalCode::MalformedRequest,
         umpire_checker::Refusal::ProgressBound { .. }
         | umpire_checker::Refusal::ProgressRegistrationMissing { .. }
         | umpire_checker::Refusal::ProgressRegistrationAmbiguous { .. }
