@@ -199,6 +199,11 @@ gomad-qualification: gomad-runner
 		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/temporal-qualification" \
 		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/temporal-qualification-set.json"
 
+# Informational: standard library tests under the activated deterministic
+# runtime (tools/gomad/internal/backends/native/qualification/stdlib.json).
+gomad-stdlib-qualification: gomad-runner
+	@$(MAKE) -C tools/gomad stdlib-qualification-set GOMAD_QUALIFICATION_PRUNE=1
+
 # The smoke selection is the required CI gate for functional tests; its suites
 # are copied verbatim from temporal.json, which gomad-integration-test checks.
 gomad-smoke-qualification: gomad-runner

@@ -174,6 +174,17 @@ core-qualification-set: qualification-set
 
 core-qualification: compatibility-pack-qualification core-qualification-set
 
+# The standard library set runs upstream runtime, sync, time and context tests
+# with the deterministic runtime activated, repeated and replayed. test-upstream
+# runs the same packages with it off. The working directory is the installed
+# toolchain's GOROOT/src (module std), so this needs no checkout or pack.
+stdlib-qualification-set: runner
+	@$(MAKE) qualification-set \
+		GOMAD_QUALIFICATION_MANIFEST="$(CURDIR)/internal/backends/native/qualification/stdlib.json" \
+		GOMAD_QUALIFICATION_WORKDIR="$$(.toolchain/bin/go env GOROOT)/src" \
+		GOMAD_QUALIFICATION_ARTIFACTS="$(CURDIR)/.toolchain/stdlib-qualification" \
+		GOMAD_QUALIFICATION_OUTPUT="$(CURDIR)/.toolchain/stdlib-qualification-set.json"
+
 upgrade-dossier: core-qualification
 	GOWORK=off go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool upgrade-dossier \
 		-baseline-ref="$(GOMAD_BASELINE_REF)" -corpus-report=".toolchain/core-qualification-set.json" $(if $(GOMAD_APPROVED_BOUNDARY_DIFF_SHA256),-approve-boundary-diff="$(GOMAD_APPROVED_BOUNDARY_DIFF_SHA256)",)

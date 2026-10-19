@@ -1441,9 +1441,10 @@ func TestQualificationManifestsUsePortableV3(t *testing.T) {
 		seeds     []uint64
 		workloads int
 	}{
-		{path: filepath.Join("..", "..", "..", "..", "..", "qualification", "core.json"), module: "gomad.core.corpus", seeds: []uint64{17}, workloads: 7},
+		{path: filepath.Join("..", "..", "..", "..", "..", "internal", "evidence", "qualification", "core.json"), module: "gomad.core.corpus", seeds: []uint64{17}, workloads: 7},
 		{path: filepath.Join("..", "temporal.json"), module: "go.temporal.io/server", seeds: []uint64{11, 17}, workloads: 28},
 		{path: filepath.Join("..", "smoke.json"), module: "go.temporal.io/server", seeds: []uint64{11}, workloads: 4},
+		{path: filepath.Join("..", "stdlib.json"), module: "std", seeds: []uint64{11, 17}, workloads: 27},
 	} {
 		contents, err := os.ReadFile(test.path)
 		if err != nil {

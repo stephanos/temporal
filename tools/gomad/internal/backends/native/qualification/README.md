@@ -230,3 +230,27 @@ linknames, and procfs reads that stay. On darwin/arm64,
 process-collector `syscall` and `golang.org/x/sys/unix` imports. The manifest's tier 2 suites keep their
 untagged expectations because their darwin/arm64 counterparts have not been
 observed; MILESTONES.md F4 records the tagged linux results per suite.
+
+## Standard library set (`stdlib.json`)
+
+`stdlib.json` is an informational set, not a release gate. It qualifies 27
+tier 2 tests from the upstream `context`, `runtime`, `sync` and `time` packages
+with the deterministic runtime activated, two seeds, two repetitions and exact
+replay. `make test-upstream` runs the same packages on the patched toolchain
+with the runtime off, so the pair separates "the patch keeps upstream behavior"
+from "upstream's own concurrency tests are deterministic under Gomad". Every
+workload is guarded mode: the test packages import `internal/testenv`, which
+links `os/exec`, and the selected tests never call it.
+
+Run it from the repository root with `make gomad-stdlib-qualification`. The
+working directory is the installed toolchain's `GOROOT/src`, whose `go.mod`
+declares module `std`, so the set needs no external checkout and no
+compatibility pack. The `test-upstream` driver pins `GOROOT` to a link outside
+this module because that `GOROOT` lives inside the module tree; if `go list`
+from `GOROOT/src` resolves `std` against this module, give the set the same
+link as its working directory.
+
+Every expectation is `qualified` as the hypothesis of the first run. The set
+has not been executed yet; the first darwin/arm64 and linux/amd64 reports set
+the real per-platform expectations, and any mismatch is the finding the set
+exists to surface (the select and timer fairness tests are the likely ones).

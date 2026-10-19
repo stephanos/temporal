@@ -5,6 +5,180 @@ not integrated. All qualification budgets and final acceptance gates remain inta
 
 ## Latest continuation checkpoint
 
+### Current primary host gates — 2026-10-19
+
+Owned session44332 terminated exit0. On primary HEADd200fb9be2, stock Go1.27.1
+default build, vet with test_dep and integrated `make -C tools/gomad validate`
+all passed, each with retained command/exit/log and a passing5394-entry source
+check. This current roster includes the earlier5393 source paths plus the owner's
+new native stdlib manifest; primary unrelated dirty files were preserved.
+Evidence is `/home/agent/wt/evidence/fn189/host-gates-current-2026-10-19/`.
+Validation includes generated/toolchain/pack/inventory source checks, not deferred
+native backend qualification. Harness/architecture and World race gates remain
+separate until actual terminal evidence is recorded.
+
+Harness session33534 and World session56071 have now both terminated exit0 with
+5394/5394 source hashes passing after each. Archcheck actually executes in31.533s;
+ordinary package results include valid Go cache hits, and all three World race
+package results are cached. These canonical command passes are not fresh World
+process/race executions or native qualification. Their complete logs/exits remain
+beside build/vet/validate evidence. No source change or commit accompanied them.
+
+Fresh World race execution is now proved separately: session13147 terminated0,
+running `go test -race -tags=test_dep -p=1 -parallel=1 -count=1
+./internal/model/world/...` with stock Go1.27.1 and sanitized overrides.
+World, mailbox and process pass uncached in2.816s/1.031s/1.021s respectively.
+`world-fresh.exit`, `world-fresh.log` and `world-fresh.source-check.log` retain
+the actual result and5394/5394 passing source hashes in the same evidence root.
+This supersedes the cached-only World limitation, not deferred native qualification.
+
+### R3 broker fixture provenance correction and fresh default freeze
+
+Continuation: session57726 is terminal exit1, not live. Its fresh Rust full,
+corpus and134-invariant arms pass, but candidate Go full exposed the same stale
+109cabe… digest in62 added network-adapter and51 added network-cluster cases.
+The existing Go oracles regenerated those113 files. Every exact preimage SHA256
+is reconstructed by reversing only the digest; a second regeneration is byte
+identical. Together with the10 broker cases, all123 added identity-bearing cases
+now bind9b087b96…. The separate183 original network cases remain unchanged.
+The complete63-root Go candidate preflight passes with zero failures, using the
+frozen ordinary/conformance helpers and a separate profile directory:
+`go-metadata-preflight-2026-10-19/test.jsonl`. Failed coverage phases remain intact;
+neither has been relabeled as a successful conservation certificate.
+
+Before another full freeze, source research found nondefault feature gaps.
+Actual fresh Rust1.99.1 diagnostic-profile helper-corpus execution confirms RED,
+session10159 terminal101, under `diagnostic-corpus-preflight-2026-10-19/test.log`:
+missing explicit feature profile expectations and a cluster guard treating raw
+profile stderr as empty. No production guard, profile projection or original
+assertion has been relaxed. A bounded implementation subagent is preparing
+additive feature expectations and exact public scenario mappings, preserving
+original fixture bytes and all original tests. Root remains sole runtime owner.
+Explicit per-feature tool-root copies are prepared by an unexecuted launcher,
+not changes to frozen canonical tools; public roots are not being blanket-added
+to private invariants. Final corpus/conservation execution remains outstanding.
+
+The feature repair adds11 public scenario cases and source-SHA-pinned sidecars
+outside the original helper-case directory. Core frames/evidence and preexisting
+exact profile counters are checked against the original semantic baseline before
+sidecar comparison or regeneration; only declared feature configuration/fuel
+differences and the diagnostic profile addition are permitted. New negative
+controls pass in the actual diagnostic preflight. Session69769 ended101 with
+22 passing guard roots and the expected missing-sidecar corpus failure.
+First regeneration session49462 ended1 after26.38s:367 partial sidecars were
+retained, but the handoff-boundary fixture still applied its default completion
+guard to a diagnostic refusal. Source/root index and215 original helper hashes
+remain unchanged except the explicitly owned test-side correction.
+
+Context-only reproduction session17547 ended101 and retains the actual refusal
+in `diagnostic-handoff-context-2026-10-19/test.log`: exit0, exactly one
+`cluster_result`, termination unsupported, no instances, zero virtual elapsed,
+empty evidence/residual stderr, with the diagnostic message that clusters are
+not executed. The narrow feature guard now asserts that exact response; all
+default completion/World/network/inspection assertions remain intact. A mutation
+control rejects process/frame/evidence drift. Original JSON bytes and every
+original test remain; no production behavior or admission policy changed.
+A fresh sidecar-regeneration retry runs serially under root ownership, retaining
+both failed attempts. It requires two byte-identical regenerations and a normal
+check for each mode, preserving original source/index bytes. Full coverage and
+independent review are still unproved.
+
+Retry session91832 is now terminal1. Diagnostic-profile passes all24 helper roots
+for both regenerations and the normal check, with byte-identical sidecars and
+source/index preservation checks. The next fuel-off regeneration exposes a
+test-side semantic-adapter error: it rewrites offered fuel into early refusal
+results, whereas production `Outcome::new` correctly leaves fuel0 before store
+execution; `terminal_outcome` assigns offered fuel only at the actual terminal
+store boundary. The preserved default execution-stage metrics distinguish those
+paths. Its23 guard roots pass, but the corpus records102 literal fuel mismatches.
+The agent is narrowing that test-side eligibility rule with explicit negative
+controls; production and original expected bytes are not changing. Retain all
+partial fuel-off sidecars and the passing diagnostic-mode evidence. No full
+feature or conservation acceptance is claimed.
+
+The corrected classifier uses the preserved instantiation/store stage, not the
+observed output or execution timing alone: failed instantiation also reaches
+terminal_outcome. Early results keep literal fuel0; store-terminal results must
+retain offered fuel. Unknown/inconsistent baseline shapes refuse. Mutation guards
+cover both directions. Session95347 now terminates0: fuel-off26 roots,
+guest-profile25 roots and combined26 roots each pass first regeneration, a
+byte-identical second regeneration and normal checking. Sidecar counts are
+368/373/190 respectively. Each step checks original source/index preservation.
+The earlier diagnostic pass has368 sidecars; its24-root result predates the added
+fuel-classifier unit controls, so final current-source all-feature execution is
+still required. Original215 helper SHA checks pass again.
+
+`assertion-conservation.json` under `.flow/tmp/fn187-feature-corpus/` maps five
+original public roots to11 added cases plus the existing cluster-refusal case.
+Its22 source hashes verify; no originals have been deleted. Canonical lint-rust
+then finds four local pedantic/style issues (single-match, boolean simplification,
+101-line function and redundant clone). The scoped agent is correcting those
+without allowances, fixture changes or weakened checks before the final freeze.
+
+The four style fixes are now verified: session93845 terminated0 for canonical
+`make -C tools/gomad/internal/backends/wasm lint-rust`. Rustfmt and all six
+strict Clippy configurations pass with no added exemptions. Evidence is
+`feature-corpus-lint-rust-retry-2026-10-19.log`. The feature helper module is
+SHA25600630eeb555870bdaa035ab487fb6a4388755acf9d8c52d32d56aed547214670;
+the refreshed assertion mapping binds22 files and99 line references, SHA256
+8c59ccc3fe4ecb750fa4cfa807970dd590613484b85a0022dc532450485faf29.
+Staged diff remains0a343ce3… unchanged. Current-source compiled test rosters and
+coverage inventories are being refreshed before new immutable phase captures;
+no final coverage certificate, deletion permission or integration is claimed.
+
+The previous default phases completed baseline Rust corpus9 roots, candidate
+Rust corpus28 roots and candidate invariants134 roots. Baseline Go full and
+corpus arms also passed. Candidate Go full failed its two broker-lifecycle
+roots: all10 added generated fixtures still carried implementation109cabe…,
+predating the reviewed process/measurement ownership change to9b087b96….
+The failed command, raw profiles and source manifest remain in the old phase;
+it is not a final current-candidate conservation certificate.
+
+The existing Go `TestBrokerLifecycleCorpusIsCurrent` oracle regenerated those
+10 fixtures in the R3 checkout. Replacing only the new digest with the old digest
+reconstructs every exact old SHA256 from the frozen source manifest: no request,
+observation, ordering, capacity or assertion byte changed. Both broker roots and
+the compiled-model identity control pass without regeneration enabled; a second
+oracle regeneration is byte-identical across all10 files. Evidence is
+`/home/agent/wt/evidence/fn187/r3-current/broker-lifecycle-rust199-*2026-10-19*`.
+No generator, identity check or production source was modified. Staged diff
+remains0a343ce3… unchanged. The correction uses the existing Go oracle, not edited
+expected outcomes or a weakened identity gate.
+
+Fresh candidate phase `r3-rust199-broker-identity-2026-10-19/default` is now running
+under owned session57726 via `run-rust199-identity-freeze.py`. It captures fresh
+source/tool pins, builds matching instrumented Rust1.99.1 objects, and serially
+runs all Rust/Go full, corpus and invariant arms with strict exports. The earlier
+baseline phase is unchanged and verifies. Comparisons and nondefault feature
+configurations remain required; no task completion or integration is claimed.
+
+### Matched-release candidate stopped: required memory admission failed
+
+This terminal checkpoint supersedes the live session9428 descriptions below.
+The historical baseline passed all12 scenarios and its retained report remains
+valid. The candidate command terminated exit1 after repeated unchanged8GiB
+MemAvailable admission failures; the root safely interrupted its owned CLI once
+failed rows were confirmed. No successful candidate comparison or speedup exists.
+Raw errors and partial rows remain under
+`/home/agent/wt/evidence/fn189/matched-release-current-2026-10-18/`.
+No comparison helper remains running.
+
+Read-only source investigation confirms that all four phase-boundary admission
+checks are intentional: `TestDiagnosticClusterPairAdmission` requires refusal
+with8GiB minus1KiB and no dispatch/measurement for each phase. They must not be
+moved or relaxed to pass this run. The separate helper RSS limit is not an
+exception to the minimum available-memory policy. Generic collection continuing
+after an ordinary failed sample is also explicitly tested; no runner policy was
+changed. Source inspection cannot attribute the shortage to a specific process
+because refusal receipts do not retain the sampled available-byte value.
+
+Post-cancel host memory is approximately9.11GiB available out of19.78GiB total.
+Process cwd/ancestry inspection identifies most other large CLI processes with
+the separate `umpire` project. The remaining Gomad Claude process is attached to
+an interactive terminal, not a positively owned completed headless review. None
+was terminated. The memory guard stays intact; fn187 coverage work can proceed
+serially without restarting the failed cluster producer into the same window.
+
 ### Approved namespace-readiness qualification — current execution
 
 The owner approved register-namespace, verify real standby readiness, then start
@@ -29,16 +203,139 @@ attempted exact replays with match=true. All20 samples are present. Budget passe
 with zero violations, helper peak3379494912 bytes and operator peak1143832576,
 below its recommendation. Four pre/post-crash observations and history/convergence
 oracles pass. Actual module is `sha256:b1ac4d230191fa3a52623f05aa165a2625816303d7bc46f76c8402790c5283ba`.
-Canary is now live in a fresh process with the same module and budgets, warm
+Canary completed successfully as a negative-control gate in578.20s; the child
+and owned session5455 terminated exit0. Its retained result is
+`cluster/wasm-qualifications/v1/result-205794ab1a14ccddd807dde377d93910003cff48fbfeedb4b0ef3e77bdf240d1.json`.
+As expected, qualified=false and target_success=false: the intended target
+oracle failure is deterministic, with both exact replays attempted and matching.
+All20 samples are present, WithinBudget=true and violations are empty. Helper
+peak is3375185920 bytes and operator peak1064353792 bytes; neither exceeds its
+budget/recommendation. The post-run5393-file source check also passes.
+The same module and budgets were used, with warm
 preparation2.682811418s. The launcher uses new staged fixture copies,
 unchanged detached request/broker inputs and budgets, the stock standalone Go,
 unchanged3700def4… helper and an8GiB pre-helper safety observation. It is the
-sole compiler/runtime owner. Canary and the complete ten-cell corpus are not
-claimed passed. The earlier failures and diagnostic captures remain intact.
-`complete-workload-corpus.sh` is prepared and syntax checked but unexecuted. It
-requires both zero-exit cluster cells, then runs the other eight exact Makefile
-cells in separate processes on this same freeze and invokes the unchanged
-mandatory ten-cell aggregate. No old-source partial results are imported.
+sole compiler/runtime owner. The earlier failures and diagnostic captures
+remain intact. `complete-workload-corpus.sh` completed under owned session9477,
+terminal exit0: the other eight exact Makefile cells passed in separate fresh
+processes, followed by the unchanged mandatory ten-cell aggregate. Every cell
+is deterministic with two matching exact replays, the expected success/canary
+outcome and WithinBudget=true. The final5393-file source check passes. No
+old-source partial results were imported. `matrix/aggregate.log` records10
+cells, producer/publication CPU2434670252000ns, checker CPU181603000ns and
+checker lifetime RSS41910272 bytes. Both onebox cells use module
+`sha256:962406ec671028e2a5e1fc11d82fa6950b1cdfc21cafc5137f765a30fe2a4963`;
+SQLite uses `sha256:53cf282fa4b64776501b064fb7c0f8dd649b292590c64b82d0823221151ac3d4`.
+
+The first supplementary SQLite attempt, owned session45395, terminated exit1
+before executing selection0: the separate preparation root changed the
+path-aware runtime inventory fingerprint. Retained source/provenance comparison
+shows identical helper/compiler/model/engine and module; after normalizing only
+the preparation-root prefix, the only inventory content difference is the
+path-bearing generated `overlay.json`. The primary inventory fingerprint is
+`88fce42bd5856fd2a0688df8ba9de19f3a8fa20bd610b0b31a631d39143ecbdb`;
+the distinct-root inventory reproduces as
+`e4e1840dd4698c5de5f6b808a4686820623245648b82102338eb62be2dc7e09e`.
+No source, report bytes, comparison or guard was changed to absorb this refusal.
+
+A fresh supplementary four-state SQLite attempt completed under owned
+session87330, terminal exit0, via `run-sqlite-selections-shared-preparation.sh`. It binds the current durable
+success result `result-855d64bf8f2e1030fefc0fa97c29cfdfdc740bbf592506021e85c31221e2c278.json`,
+runs each selection in its own process using the primary preparation/cache
+location, then relocates only the newly published content-addressed Result and
+receipt pair into `sqlite-selections-shared-preparation/wasm-qualifications/v1`.
+Artifact paths and immutable report bytes remain unchanged, with a relocation
+hash journal. The exact catalogue gate validates those four supplementary pairs.
+The launcher also requires the original ten publication pairs to be byte-exact
+and reruns the mandatory corpus gate on the original ten-cell tree. This is no
+claim of native backend qualification. All four selections pass; the exact
+catalogue gate passes with four reviewed states/four measured cells, producer
+and terminal-publication CPU114323487000ns, reader CPU552630000ns and reader
+lifetime RSS38256640 bytes. The original publication hashes and all5393 source
+hashes verify. The original ten-cell mandatory corpus recheck also passes.
+`run-temporal-inspection.sh` has now started the retained
+shard/workflow/onebox inspection gate under owned session58874, now terminal
+exit0. All three subtests passed: shard120.14s, workflow122.25s and
+onebox1138.35s (whole gate1380.74s). Exact retained replay, inspected-prefix
+verification, witness matching, stacks, heap, probes and Temporal snapshot
+assertions pass, with evidence bytes unchanged. All5393 post-run source hashes
+verify, and the temporary fixture copies were cleaned up. Shard/workflow
+retained record hashes are respectively
+`sha256:961e3605020fb1b4df6b4ebc288cc6cd1ceca1bc4aadc51e2cf489dcc621c050`
+and `sha256:9deee67c963bc3aa5f1e9c82a4083ba071f1caa24c387f78da5278fec210c795`.
+The inspection gate passes; neither spec is done.
+The onebox recording has reached the intended inspection canary after workflow
+timers and activity retries complete, with retained stdout
+`workflow completed [step 0 attempt 2 step 1 attempt 2]` and the explicit canary
+message. Its retained artifact is
+`temporal-inspection/onebox/artifacts/v1/campaign-20261019T000453.949249338Z-8b08d10bdcef10d98eeafee9d5e71dc7/failures/sha256-5d52b590e4781e6931a82752600f4df3`,
+record `sha256:ca5704fa71a5607ec16993c878d350d40d2642d25661e85f58384cdeebb8e003`.
+The completed onebox inspection resolved history incarnation1 at choice30197,
+trace45706, order489457, virtual time180009000000ns. Its ordinary recording,
+exact replay and inspection assertions all passed; no source or budget changes
+were made during the gate.
+Current HEAD is `d200fb9be26b916fab433db1ebe882eb54e06e31`, another externally
+created checkpoint; the actual source manifest remains unchanged. Both current
+fn-187 default source/tool snapshots verify, and its staged patch remains
+`0a343ce3549c1b7ed42146caf23c7800f2cd48f9a60c78ebfd3954036833d299`.
+
+The required matched release comparison has now started via
+`/home/agent/wt/evidence/fn189/matched-release-current-2026-10-18/run.sh`.
+Owned session9428 is live. Both baseline source controls pass (compiled model
+identity and complete/nonpositive authorization-envelope controls). The
+authentic historical baseline release-helper build passed in193.59s with child
+exit0; admitted helper SHA256 is
+`8f576c508cc5fe81680d6eae79e839f562e5777194953dcda7c33b6e575771a2`.
+Its build/admission receipts remain under
+`baseline-build/release-helper-3849881496/` in the measurement evidence directory.
+`TestMatchedReleaseClusterBaseline` passed in2099.80s, child exit0: all12
+scenarios, one warmup and three measured repetitions per seed7/19/42, passed
+modeled whole-cluster crash, durable reopen, interrupted-prefix replay, full
+replay and the recovery oracle. The final report confirms scenario_passed=true,
+all12 rows passed and3 distinct choice traces. Its retained path is
+`baseline-measure/matched-release-baseline-2534281347/matched-release-report.json`,
+SHA256 `d1d7ab0879f9d862a5d9f85c6244969c408bc91518ef9fd967ec89a6f28a3b60`.
+Authorized-envelope medians for seeds7/19/42 are125.304/116.882/114.205 seconds;
+separate parent-CPU medians are93.290/87.075/84.296 seconds. Raw samples, ranges,
+compiler and helper observations remain in the report and original producer
+artifacts; these numbers are not a speedup claim.
+The candidate measurement command build and authentic Rust1.99.1 release-helper
+build both passed, child exits0. The independently built/admitted measurement
+helper SHA256 is `53d1167e004c921beec8db79e9c304183790e45a5ab8670d5e91502942cd9743`,
+with original receipts under `candidate-build/release-helper-1261089091/`.
+This is a distinct measurement helper identity, not a relabeling of the earlier
+qualified3700def4… helper; both identities and their source/build evidence remain
+retained. The actual `matched-release-candidate` command is now live under the
+same owned session9428. Guest preparation completed and the actual
+`seed7-rep0` warmup directory and live cluster helper are observed; no candidate
+scenario completion or complete comparison is yet claimed. Its authentic module
+admission binds source HEADd200fb9be2, module
+`2c6433d52554097ebdd597a272a426ff89403ba18adf3e52f107c4eaea47e7bb`,
+runtime key7c220e2c…, runtime implementation6940d421… and model9b087b96…;
+the raw receipt is
+`candidate-measure/matched-release-candidate-186343486/module-build-3821070380/module-admission.json`.
+These are the measurement producer's actual identities, not renamed qualification
+module identities. Primary and
+clean-candidate5393-file source checks passed before dispatch. The producer's
+`native-tmp` scratch root under that evidence directory is retained while its
+builds/executions are live; this does not execute the deferred native backend.
+It serializes authentic helper builds and actual12-scenario baseline/candidate
+producers (seeds7/19/42, one warmup plus three measured repetitions each), with
+separate parent/compiler/helper costs and real authorization/classified-reaped
+boundaries. This is retained fn-178 R4/R8 acceptance, not fn-185 profiling.
+The historical baseline keeps its pinned Rust1.94.1; the current candidate uses
+Rust1.99.1, both on the same authenticated stock Go1.27.1 and host. Record this
+toolchain difference with the results, not as an isolated attribution of speedup
+to only the broker implementation. No candidate measurement pass or speedup is claimed.
+
+Git worktree creation session32193 terminated exit0. New clean detached checkout
+`/home/agent/wt/fn189-release-candidate` is held at `d200fb9be2` because measurement
+admission requires a clean tree; it has no source changes. All5393 source entries
+match the qualified primary candidate after remapping only the root path, recorded
+in `qualification/release-candidate-source-check.log`. It is retained until its
+pending measurement and evidence retention finish; the existing20 worktrees and
+their documented retention reasons remain unchanged (21 total now). Primary
+evidence notes remain dirty here; no commit, push or PR was made by this run.
 
 The paired default Rust full-coverage owner61194 is terminal exit0, baseline352
 passed/2ignored and candidate201passed/2ignored. Both strict exports pass with
