@@ -406,16 +406,16 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 
 The independent `temporal/features/activity/model.rs` fixes a six-phase restriction
 of the archived Product: Scheduled, Started, Completed, Failed, Canceled and TimedOut.
-Its six actions give one start, six reached states, seven edges, 36 evaluated actions,
-29 refusals and depth two without a cut. Cancellation is atomic and failure fatal-only;
+Its six actions now give one start, six reached states, 11 edges, 36 evaluated actions,
+25 refusals and depth two without a cut. Cancellation is atomic and failure fatal-only;
 there is no cancelRequested state, retry branch or real clock. Successful Start supplies
 Scheduled outside this graph. This is not an exact port of the archived seven-phase Model.
 
-`terminal_remains` is registered as a postcondition. Its rendered Verified result and
-`vacuity: none` do not establish its terminal antecedent: terminal states emit no step
-on which that antecedent could be checked. The supplementary control enumerates every
-terminal phase/action, applies the same preservation predicate and proves that a test-only
-reopening edge refutes it. No production edge was added to manufacture coverage.
+`terminal_remains` and `closed_rejects` are registered postconditions, delegating to the
+shared closure laws. Fn-221 adds a rejected cancel self-loop at each of the four terminal
+phases, giving both laws terminal edges to check. The controls also enumerate every
+terminal phase/action and prove that a hypothetical reopening, accepted closed step or
+wrong rejection refutes the corresponding law.
 
 The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
@@ -425,11 +425,11 @@ For public states, `#[machine]` exports `World` and `Action`, and `world()` retu
 the state's visibility. The public activity world removes
 the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
-Describe RPC method path is a binding constant. The policy parser and reply constructor
+Describe and cancel RPC method paths are binding constants. The policy parser and reply constructor
 keep the remaining binding specific to Temporal.
 
 Exactly three envelopes live under `temporal/proto`: Observation carries a method and
-response Any, Callback a task Any, Reply a request Any. The real upstream API descriptor
+a response Any or error, Callback a task Any, Reply a request Any. The real upstream API descriptor
 closure is compiled natively and for WASM, with generated well-known types owned once
 by `umpire_wasm::google::protobuf`. The closure's file count is not a schema invariant.
 No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker
@@ -454,10 +454,8 @@ real server/SDK controls. The worker returns only decoded Model reply data and u
 SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
 Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
 
-Remaining DSL gaps include parameterized inputs/facts, outcome declarations and typed
-projection authoring. In particular, `#[machine]` fixes `Outcome = ()`: cancellation of
-a closed activity collapses to a disabled action rather than an explicit rejecting
-outcome. Fn-221 owns that rejecting-outcome gap after this slice. No Model transition
+Remaining DSL gaps include parameterized inputs/facts and typed projection authoring.
+Fn-221 closes the rejecting-outcome gap described below. No Model transition
 was changed to fit server evidence. Fn-213 must include the Temporal fixture root;
 fn-218 retains Cases(8), resolving impossible alternatives as a downstream grammar
 decision rather than inventing edges or silently shrinking coverage.
@@ -496,6 +494,67 @@ The comparison in `.flow/tmp/fn-216-4/legacy-comparison.md` retains this task's
 before/after identities and assertion causes, matching predecessor .3's comparison.
 This umbrella is red; the dedicated slice passing does not make it green. The frozen
 Scala tree was not revived to repair those legacy expectations.
+
+## Rejecting outcomes and live cancellation (fn-221)
+
+The first evidence-driven DSL expansion distinguishes an answered error from a disabled
+action. In an ordinary unit-returning handler, `reject!(Rejection::NotFound)` records a
+rejection and returns. A module containing `reject!` uses `Outcome::Accepted` for changed
+states and `Outcome::Rejected(rejection)` for unchanged rejecting edges. An unchanged
+handler without rejection remains disabled; a rejection that changes state is a Model
+error. Modules without `reject!`, including Kettle, keep unit outcomes and their goldens.
+Outcome-taking postconditions receive the emitted edge's outcome.
+
+The hand-implemented `Phase` and `Phased` traits name terminal phases once.
+`closable::terminal_remains` prevents leaving or changing a terminal phase, and
+`closable::closed_rejects` requires unchanged state and the entity's declared rejection.
+The activity delegates both laws with NotFound. This supplies a shared foundation without
+a new attribute or capability registry. Request-ID deduplication, repeated cancellation
+and late worker replies remain outside the six-phase Model.
+
+The live slice retains Complete, Fail, HostRefusal and context Cancellation and adds
+CancelAfterCompletion and CancelBeforeWorkerStart. After real completion and terminal
+Describe, a fresh-request-ID cancel returns NotFound. The test transports the returned
+service error's actual code/message using `serviceerror.ToStatus`; Judge explains exactly
+one `Client::Cancel` with `Rejected(NotFound)`. Another genuine Describe remains Completed
+with empty steps/outcomes. A cloned error changed to the recognized FailedPrecondition
+code is Unexplained with exactly `Client::Cancel` expected; subsequent genuine error and
+Describe observations retain that frozen result.
+
+Before worker startup, a fresh-request-ID cancel returns the actual successful RPC response.
+Judge explains one `Client::Cancel` with `Accepted`, then the real Canceled Describe and
+its repeat match with empty steps/outcomes. Activity-body calls remain zero. Live Started
+cancellation is excluded because the server passes through CancelRequested, omitted by
+this atomic six-phase restriction. The Model and realization were unchanged for this proof.
+The Go host continues to transport opaque Any values without Temporal imports.
+
+The Observation result oneof keeps response tag 2 and adds error tag 3. It uses the local
+two-field `umpire.temporal.v1.Error` because `google.rpc.Status` is absent from the actual
+upstream descriptor closure. `Explanation.outcomes` parallels `steps`; replay supplies the
+final actual outcome to matching and supplies None for zero-step current checks.
+
+The first successful expanded `make umpire-check-model-slice` run on 2026-10-19 took
+339.680626 ms including cleanup, excluding compilation. Its Answer and Judge samples are
+recorded below. These are individual calls on linux/arm64, Go 1.27.0, Rust 1.99.1,
+SDK 1.48.0 and `CGO_ENABLED=0`, with the inherited Cargo target at
+`/home/agent/.cache/codex-build/cargo-target`; they establish no scaling or percentile claim.
+Raw command output is `.flow/tmp/fn2214/green-slice-status.log`. The initial adapter run
+failed because `status.FromError` did not recognize the client's serviceerror; the corrected
+run uses the existing serviceerror conversion and preserves the observed status.
+
+| Live call | Latency (µs) |
+| --- | ---: |
+| Answer Complete | 62.750 |
+| Answer Fail | 52.208 |
+| Answer HostRefusal | 84.250 |
+| Answer CancelAfterCompletion | 67.917 |
+| Judge actual NotFound cancel after completion | 75.708 |
+| Judge successful cancel before worker startup | 28.042 |
+| Judge Canceled Describe after accepted cancel | 47.875 |
+
+The R33-R40 and Case obligations above remain deferred. This proof covers these two RPC
+scenarios through the existing SDK/server slice; it does not execute a Testpilot Case or
+establish general Temporal conformance.
 
 ## Final measurements and editor evidence
 

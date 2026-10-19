@@ -16,12 +16,14 @@ import (
 	"github.com/stretchr/testify/require"
 	commonpb "go.temporal.io/api/common/v1"
 	enumspb "go.temporal.io/api/enums/v1"
+	"go.temporal.io/api/serviceerror"
 	"go.temporal.io/api/workflowservice/v1"
 	sdkactivity "go.temporal.io/sdk/activity"
 	"go.temporal.io/sdk/client"
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
+	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	"google.golang.org/protobuf/types/known/timestamppb"
@@ -49,12 +51,19 @@ func modelSliceAny(t *testing.T, message proto.Message) *anypb.Any {
 
 func modelSliceJudge(ctx context.Context, t *testing.T, host *model.Host, response *workflowservice.DescribeActivityExecutionResponse) *modelv1.JudgeResponse {
 	t.Helper()
-	observation := modelSliceAny(t, &temporalv1.Observation{
+	return modelSliceJudgeObservation(ctx, t, host, &temporalv1.Observation{
 		Method: workflowservice.WorkflowService_DescribeActivityExecution_FullMethodName,
 		Result: &temporalv1.Observation_Response{Response: modelSliceAny(t, response)},
 	})
-	judgment, err := host.Judge(ctx, &modelv1.JudgeRequest{Observation: observation})
-	require.NoError(t, err, "Describe observation: %v", response)
+}
+
+func modelSliceJudgeObservation(ctx context.Context, t *testing.T, host *model.Host, observation *temporalv1.Observation) *modelv1.JudgeResponse {
+	t.Helper()
+	request := &modelv1.JudgeRequest{Observation: modelSliceAny(t, observation)}
+	judgeStart := time.Now()
+	judgment, err := host.Judge(ctx, request)
+	t.Logf("Judge latency=%s method=%s", time.Since(judgeStart), observation.GetMethod())
+	require.NoError(t, err, "observation: %v", observation)
 	return judgment
 }
 
@@ -62,6 +71,11 @@ func modelSliceExplained(t *testing.T, judgment *modelv1.JudgeResponse, response
 	t.Helper()
 	require.NotNil(t, judgment.GetExplained(), "first unexplained Describe observation: %v; judgment: %v", response, judgment)
 	require.Equal(t, steps, judgment.GetExplained().GetSteps(), "Describe observation: %v", response)
+	var outcomes []string
+	for range steps {
+		outcomes = append(outcomes, "Accepted")
+	}
+	require.Equal(t, outcomes, judgment.GetExplained().GetOutcomes(), "Describe observation: %v", response)
 }
 
 func modelSliceReturn(reply *temporalv1.Reply, dc converter.DataConverter) ([]byte, error) {
@@ -124,7 +138,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 	sdkClient := env.SdkClient()
 	dc := converter.GetDefaultDataConverter()
 
-	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation"} {
+	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation", "CancelAfterCompletion", "CancelBeforeWorkerStart"} {
 		t.Run(scenario, func(t *testing.T) {
 			ctx, cancel := context.WithTimeout(t.Context(), 30*time.Second)
 			defer cancel()
@@ -186,7 +200,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 				}
 			}()
 			input := scenario
-			if scenario == "Cancellation" {
+			if scenario == "Cancellation" || scenario == "CancelAfterCompletion" || scenario == "CancelBeforeWorkerStart" {
 				input = "Complete"
 			}
 			handle, err := sdkClient.ExecuteActivity(ctx, client.StartActivityOptions{
@@ -201,6 +215,24 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.NoError(t, err)
 				return response
 			}
+			cancelActivity := func() (*temporalv1.Observation, error) {
+				response, err := env.FrontendClient().RequestCancelActivityExecution(ctx, &workflowservice.RequestCancelActivityExecutionRequest{
+					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(),
+					Identity: "model-slice", RequestId: uuid.NewString(), Reason: scenario,
+				})
+				observation := &temporalv1.Observation{Method: workflowservice.WorkflowService_RequestCancelActivityExecution_FullMethodName}
+				if err != nil {
+					rpcStatus := serviceerror.ToStatus(err)
+					observation.Result = &temporalv1.Observation_Error{Error: &temporalv1.Error{
+						Code: int32(rpcStatus.Code()), Message: rpcStatus.Message(),
+					}}
+				} else {
+					require.NotNil(t, response)
+					observation.Result = &temporalv1.Observation_Response{Response: modelSliceAny(t, response)}
+				}
+				t.Logf("actual cancel observation: %v", observation)
+				return observation, err
+			}
 			scheduled := describe()
 			require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_RUNNING, scheduled.GetInfo().GetStatus())
 			require.Equal(t, enumspb.PENDING_ACTIVITY_STATE_SCHEDULED, scheduled.GetInfo().GetRunState())
@@ -208,6 +240,23 @@ func TestTestpilotModelSlice(t *testing.T) {
 			repeated := describe()
 			modelSliceExplained(t, modelSliceJudge(ctx, t, host, repeated), repeated)
 			require.Zero(t, calls.Load(), "worker must remain stopped until Scheduled observations are judged")
+			if scenario == "CancelBeforeWorkerStart" {
+				observation, err := cancelActivity()
+				require.NoError(t, err)
+				judgment := modelSliceJudgeObservation(ctx, t, host, observation)
+				require.NotNil(t, judgment.GetExplained(), "cancel judgment: %v", judgment)
+				require.Equal(t, []string{"Client::Cancel"}, judgment.GetExplained().GetSteps())
+				require.Equal(t, []string{"Accepted"}, judgment.GetExplained().GetOutcomes())
+				canceled := describe()
+				require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_CANCELED, canceled.GetInfo().GetStatus())
+				require.Equal(t, enumspb.PENDING_ACTIVITY_STATE_UNSPECIFIED, canceled.GetInfo().GetRunState())
+				modelSliceExplained(t, modelSliceJudge(ctx, t, host, canceled), canceled)
+				repeated = describe()
+				modelSliceExplained(t, modelSliceJudge(ctx, t, host, repeated), repeated)
+				require.False(t, started)
+				require.Zero(t, calls.Load(), "cancel before worker startup must not execute the activity body")
+				return
+			}
 			require.NoError(t, w.Start())
 			started = true
 			var delivery modelSliceDelivery
@@ -305,12 +354,34 @@ func TestTestpilotModelSlice(t *testing.T) {
 				require.NoError(t, resultErr)
 				require.Equal(t, []byte("Complete"), result)
 			}
-			impossible := proto.Clone(terminalResponse).(*workflowservice.DescribeActivityExecutionResponse)
-			impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED
-			if wantStatus == enumspb.ACTIVITY_EXECUTION_STATUS_FAILED {
-				impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
+			var frozen *modelv1.JudgeResponse
+			if scenario == "CancelAfterCompletion" {
+				observation, err := cancelActivity()
+				require.Error(t, err)
+				require.Equal(t, codes.NotFound, serviceerror.ToStatus(err).Code())
+				require.Equal(t, int32(codes.NotFound), observation.GetError().GetCode())
+				require.NotEmpty(t, observation.GetError().GetMessage())
+				judgment := modelSliceJudgeObservation(ctx, t, host, observation)
+				require.NotNil(t, judgment.GetExplained(), "cancel judgment: %v", judgment)
+				require.Equal(t, []string{"Client::Cancel"}, judgment.GetExplained().GetSteps())
+				require.Equal(t, []string{"Rejected(NotFound)"}, judgment.GetExplained().GetOutcomes())
+				repeated = describe()
+				require.Equal(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, repeated.GetInfo().GetStatus())
+				modelSliceExplained(t, modelSliceJudge(ctx, t, host, repeated), repeated)
+				mutated := proto.Clone(observation).(*temporalv1.Observation)
+				mutated.GetError().Code = int32(codes.FailedPrecondition)
+				frozen = modelSliceJudgeObservation(ctx, t, host, mutated)
+				require.Equal(t, int32(codes.NotFound), observation.GetError().GetCode())
+				require.True(t, proto.Equal(frozen, modelSliceJudgeObservation(ctx, t, host, observation)))
+				require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, describe())))
+			} else {
+				impossible := proto.Clone(terminalResponse).(*workflowservice.DescribeActivityExecutionResponse)
+				impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_FAILED
+				if wantStatus == enumspb.ACTIVITY_EXECUTION_STATUS_FAILED {
+					impossible.Info.Status = enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED
+				}
+				frozen = modelSliceJudge(ctx, t, host, impossible)
 			}
-			frozen := modelSliceJudge(ctx, t, host, impossible)
 			require.NotNil(t, frozen.GetUnexplained())
 			require.Equal(t, []string{"Client::Cancel"}, frozen.GetUnexplained().GetExpectedActions())
 			require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, terminalResponse)))
