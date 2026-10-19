@@ -41,7 +41,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (in progress) | fn-213 → fn-215 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210, fn-212, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (in progress) | fn-213 → fn-215 → fn-223 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-223 is placed after fn-215 by the root agent. fn-210, fn-212, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -73,6 +73,21 @@ the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
+
+### fn-223: One lifted source form: the lifter reads attribute Models only (model)
+
+Captured on 2026-10-19 at the owner's request. About 2,000 of 's 5,000 source lines
+lower the hand-written  trait form, used only by eight shared test fixtures. Each fixture
+is rewritten as a  Model with unchanged behaviour goldens, or moved checker-only with
+its surface gap recorded; then the trait lowering is deleted and hand-written source is refused
+by location. The  trait itself stays. Placed after fn-215 and before fn-213.2 so later
+suite, cover and Apalache work builds on one front end.
+[Spec](.flow/specs/fn-223-one-lifted-source-form-the-lifter-reads.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-223.1 | ⬜ todo | After fn-215: trait-form fixtures rewritten or moved checker-only; disposition table in DESIGN.md (R1) |
+| fn-223.2 | ⬜ todo | After .1: delete the manual lowering; located refusal for hand-written  source (R2) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

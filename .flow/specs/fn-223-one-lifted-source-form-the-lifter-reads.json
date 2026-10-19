@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-223-one-lifted-source-form-the-lifter-reads",
+  "created_at": "2026-10-19T23:01:38.895785Z",
+  "depends_on_epics": [
+    "fn-215-the-path-pattern-progressions-for"
+  ],
+  "id": "fn-223-one-lifted-source-form-the-lifter-reads",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-223-one-lifted-source-form-the-lifter-reads.md",
+  "status": "open",
+  "title": "One lifted source form: the lifter reads attribute Models only (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T23:01:50.120775Z"
+}

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T23:01:56.678160Z",
+  "depends_on": [
+    "fn-223-one-lifted-source-form-the-lifter-reads.1"
+  ],
+  "id": "fn-223-one-lifted-source-form-the-lifter-reads.2",
+  "priority": null,
+  "spec": "fn-223-one-lifted-source-form-the-lifter-reads",
+  "spec_path": ".flow/tasks/fn-223-one-lifted-source-form-the-lifter-reads.2.md",
+  "status": "todo",
+  "title": "Delete the manual lowering from umpire-lift; one located refusal for hand-written Machine source",
+  "updated_at": "2026-10-19T23:01:56.678160Z"
+}
