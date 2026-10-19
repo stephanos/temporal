@@ -118,8 +118,10 @@ impl Model {
 }
 ```
 
-The macro exports `World` and its `Action` carrier; `world()` returns `World`, so a
+For a public Model, the macro exports `World` and its `Action` carrier; `world()` returns `World`, so a
 realization and guest can name the registered machine without a delegating adapter.
+Non-public states retain the opaque return interface and their generated types follow
+the state's visibility, preserving module-local Models without leaking private types.
 Each match arm combines the action, its guard and its effect. An action is enabled only when the
 final state changes; `_ => {}` disables unmatched actions. Without a fallback, rustc checks match
 exhaustiveness. Attributes preserve authored statements and method/impl headers.

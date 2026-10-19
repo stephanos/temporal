@@ -26,3 +26,8 @@ fn fixtures() -> umpire_testing::TestResult {
 fn refusals() {
     trybuild::TestCases::new().compile_fail("tests/ui/*.rs");
 }
+
+#[test]
+fn private_state() {
+    trybuild::TestCases::new().pass("tests/pass/private_state.rs");
+}

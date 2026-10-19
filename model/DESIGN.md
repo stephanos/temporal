@@ -16,7 +16,8 @@ TLC second opinion remain deferred to fn-212; neither is part of this verdict.
 
 The three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`. Both sides use
-generated messages from `umpire/proto/umpire/oracle/v1/oracle.proto`; Refusal is a
+generated messages from `umpire/proto/umpire/model/v1/model.proto` (renamed from
+the original oracle namespace by fn-216); Refusal is a
 case of the common Response envelope, separate from a checker verdict or trap.
 The guest includes `umpire/tests/fixtures/sample_kettle_trait/model.rs` directly.
 
@@ -78,7 +79,9 @@ Remaining differences from the hypothetical sketch are deliberate:
   builds a module-local `LeadsTo` value with boolean trigger and target and
   names its assumption in the expression. This builder remains; `path!` is deferred to fn-215.
 - Public generated `World` and `Action` implement the existing `Machine`
-  protocol; `world()` returns `World`. The activity guest names that world directly.
+  protocol for public states; `world()` returns `World`. Non-public states retain
+  the opaque return interface and their generated types follow the state's visibility.
+  The activity guest names its public world directly.
 - Each transition runs on a clone and emits one successor with unit outcome
   and no facts only when its final state differs from the original state.
   A stuttering transition emits no edge, so its filtered postconditions are not checked.
@@ -470,6 +473,11 @@ model gate took 9.746/1.819 s. Task .4's pre-edit warm gate measured 8.061/1.738
 against the 30/10 s soft targets; its dedicated real run took 269.983 ms. These are
 individual observations on linux/arm64, Go 1.27.0, Rust 1.99.1 and SDK 1.48.0,
 excluding compilation from the live test timer, not percentiles or idle-host claims.
+The post-change warm gate measured 11.856 s full and 2.526 s inner while clean-build
+and live verification were also active; both stay below the soft targets. Fresh
+descriptor generation produced the same 57 file descriptors, equal by file name;
+raw descriptor-set byte order differs because getproto iterates a Go map. Its ignored
+cache is not a canonical wire artifact. The original descriptor/cache was preserved.
 Raw commands and logs live under `.flow/tmp/fn-216-4/`; predecessor records remain
 under `.flow/tmp/fn216-3-*`.
 

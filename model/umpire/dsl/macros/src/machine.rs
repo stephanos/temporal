@@ -522,7 +522,7 @@ fn progress_claims(registration: &Registrations) -> Vec<TokenStream> {
 fn catalog(
     items: &[Item],
     module: &syn::Ident,
-) -> manyhow::Result<(syn::Ident, Vec<syn::Ident>, Vec<Path>)> {
+) -> manyhow::Result<(syn::Ident, syn::Visibility, Vec<syn::Ident>, Vec<Path>)> {
     let mut state = None;
     let mut actors = Vec::new();
     let mut actions = Vec::new();
@@ -532,7 +532,7 @@ fn catalog(
                 if state.is_some() {
                     manyhow::bail!(item, "#[machine] requires exactly one #[derive(State)] struct");
                 }
-                state = Some(item.ident.clone());
+                state = Some((item.ident.clone(), item.vis.clone()));
             }
             Item::Enum(item) if derives(&item.attrs, "Action")? => {
                 let actor = &item.ident;
@@ -545,10 +545,10 @@ fn catalog(
             _ => {}
         }
     }
-    let state = state.ok_or_else(|| {
+    let (state, visibility) = state.ok_or_else(|| {
         syn::Error::new_spanned(module, "#[machine] requires exactly one #[derive(State)] struct")
     })?;
-    Ok((state, actors, actions))
+    Ok((state, visibility, actors, actions))
 }
 
 fn assumption_helpers(enabled: bool) -> Option<TokenStream> {
@@ -602,7 +602,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let Some((_, items)) = &mut input.content else {
         manyhow::bail!(input, "#[machine] requires an inline module");
     };
-    let (state, actors, actions) = catalog(items, &input.ident)?;
+    let (state, visibility, actors, actions) = catalog(items, &input.ident)?;
     check_receivers(items, &state)?;
     let registration = registrations(items, &state, &actors)?;
     let post_tokens = postconditions(&registration, &actions)?;
@@ -632,13 +632,18 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let assumption_helpers =
         assumption_helpers(!assumptions.is_empty() || !progress_tokens.is_empty());
     let progress_helpers = progress_helpers(!progress_tokens.is_empty());
+    let world_type = if matches!(visibility, syn::Visibility::Public(_)) {
+        quote!(World)
+    } else {
+        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = (), Fact = (), Action: #(::core::convert::From<#actors>)+*>)
+    };
     let generated = quote! {
         #[doc = "The module's registered state machine."]
-        pub struct World;
+        #visibility struct World;
 
         #[derive(Clone, Debug, PartialEq, Eq, Hash)]
         #[doc = "The registered actors' action carrier."]
-        pub enum Action { #(#[doc = stringify!(#actors)] #actors(#actors)),* }
+        #visibility enum Action { #(#[doc = stringify!(#actors)] #actors(#actors)),* }
 
         #(impl ::core::convert::From<#actors> for Action {
             fn from(value: #actors) -> Self { Self::#actors(value) }
@@ -654,7 +659,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         #progress_helpers
 
         #[doc = "Builds the module's registered state machine."]
-        pub fn world() -> World {
+        pub fn world() -> #world_type {
             World
         }
 
