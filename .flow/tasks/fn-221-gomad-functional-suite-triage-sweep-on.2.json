@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T16:08:09.729876Z",
+  "depends_on": [
+    "fn-221-gomad-functional-suite-triage-sweep-on.1"
+  ],
+  "id": "fn-221-gomad-functional-suite-triage-sweep-on.2",
+  "priority": null,
+  "spec": "fn-221-gomad-functional-suite-triage-sweep-on",
+  "spec_path": ".flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md",
+  "status": "todo",
+  "title": "Run the full sweep and retain the support matrix",
+  "updated_at": "2026-10-19T16:08:09.729876Z"
+}

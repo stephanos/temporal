@@ -19,90 +19,115 @@ import (
 	"gopkg.in/yaml.v3"
 )
 
-func TestLintPolicyPathExpressions(t *testing.T) {
-	t.Parallel()
+type lintPolicyRule struct {
+	Path       string
+	PathExcept string `yaml:"path-except"`
+	Source     string
+	Text       string
+	Linters    []string
+}
+
+type lintPolicyRuleID struct {
+	text, linter, path string
+}
+
+func readLintPolicy(t *testing.T) ([]lintPolicyRule, []string) {
+	t.Helper()
 	data, err := os.ReadFile("../../../.github/.golangci.yml")
 	require.NoError(t, err)
 	var policy struct {
 		Linters struct {
 			Exclusions struct {
 				Paths []string
-				Rules []struct {
-					Path       string
-					PathExcept string `yaml:"path-except"`
-				}
+				Rules []lintPolicyRule
 			}
 		}
 	}
 	require.NoError(t, yaml.Unmarshal(data, &policy))
 	require.Len(t, policy.Linters.Exclusions.Rules, 19)
+	return policy.Linters.Exclusions.Rules, policy.Linters.Exclusions.Paths
+}
+
+func lintPolicyRuleByIdentity(t *testing.T, rules []lintPolicyRule, id lintPolicyRuleID, except bool) lintPolicyRule {
+	t.Helper()
+	var matches []lintPolicyRule
+	for _, rule := range rules {
+		if rule.Text != id.text || len(rule.Linters) != 1 || rule.Linters[0] != id.linter || (rule.PathExcept != "") != except {
+			continue
+		}
+		path := rule.Path
+		if except {
+			path = rule.PathExcept
+		}
+		if id.path == "" || path == id.path {
+			matches = append(matches, rule)
+		}
+	}
+	require.Len(t, matches, 1, "unique exclusion for %+v, path-except=%t", id, except)
+	return matches[0]
+}
+
+func TestLintPolicyPathExpressions(t *testing.T) {
+	t.Parallel()
+	rules, paths := readLintPolicy(t)
 	for _, tc := range []struct {
 		name    string
-		rules   []int
+		rules   []lintPolicyRuleID
 		except  bool
 		matches []string
 		misses  []string
 	}{
-		{"sleep tests", []int{0}, true, []string{"ordinary/value_test.go", "tests/testcore/value.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt"}},
-		{"chasm clock", []int{1}, true, []string{"chasm/lib/value.go", "chasm/lib/model/value.go"}, []string{"chasm/library/value.go", "chasm/lib/valueXgo", "chasm/lib/value.go.txt"}},
-		{"chasm clock tests", []int{2}, false, []string{"chasm/lib/value_test.go", "chasm/lib/model/value_test.go"}, []string{"chasm/lib/value.go", "chasm/lib/value_testXgo", "chasm/lib/value_test.go.txt"}},
-		{"cassandra timestamps", []int{3}, true, []string{"common/persistence/cassandra/value.go", "common/persistence/cassandra/model/value.go"}, []string{"common/persistence/cassandra_extra/value.go", "common/persistence/cassandra/valueXgo", "common/persistence/cassandra/value.go.txt"}},
-		{"timestamp tests", []int{4}, false, []string{"ordinary/value_test.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "ordinary/value_test.go.txt"}},
-		{"test and testing helpers", []int{5, 13, 14}, false, []string{"ordinary/value_test.go", "tests/testcore/value.go", "common/testing/helper.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt", "common/testing_extra/value.go"}},
-		{"activity model", []int{6}, false, []string{"chasm/lib/activity/model/value.go", "chasm/lib/activity/model/nested/value.go"}, []string{"chasm/lib/activity/model_extra/value.go", "chasm/lib/activity/model/valueXgo", "chasm/lib/activity/model/value.go.txt"}},
-		{"testcore", []int{7}, false, []string{"tests/testcore/value.go", "tests/testcore/nested/value.go"}, []string{"tests/testcore_extra/value.go", "tests/testcore/valueXgo", "tests/testcore/value.go.txt"}},
-		{"namespace definitions", []int{8}, false, []string{"common/namespace/namespace.go", "common/namespace/namespace_test.go", "common/namespace/replication_resolver.go", "common/namespace/replication_resolver_test.go"}, []string{"common/namespace/namespace_extra.go", "common/namespace/namespaceXgo", "common/namespace/replication_resolver.go.txt", "common/namespace_extra/namespace.go"}},
-		{"functional test context", []int{9}, true, []string{"tests/value_test.go", "tests/nested/value_test.go"}, []string{"tests/value.go", "ordinary/value_test.go", "tests/value_testXgo", "tests/value.txt"}},
-		{"legacy eventually", []int{10}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go", "tests/schedule_test.go", "tests/schedule_migration_test.go"}, []string{"tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
-		{"legacy collect", []int{11}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
-		{"tools revive", []int{15}, false, []string{"tools/gomad/policy.go", "tools/gomad/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad/policy.go", "tools/helperXgo", "tools/helper.txt"}},
-		{"campaign completion invariants", []int{17}, false, []string{"tools/gomad/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad/internal/runner/internal/campaign/other.go", "tools/gomad/internal/runner/internal/campaign/controller_test.go", "tools/gomad/internal/runner/internal/campaign/controllerXgo", "tools/gomad/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad/internal/runner/internal/campaign/controller.go", "../tools/gomad/internal/runner/internal/campaign/controller.go"}},
-		{"inspection choice invariants", []int{18}, false, []string{"tools/gomad/internal/runner/inspect/inspect.go"}, []string{"tools/gomad/internal/runner/inspect/other.go", "tools/gomad/internal/runner/inspect/inspect_test.go", "tools/gomad/internal/runner/inspect/inspectXgo", "tools/gomad/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad/internal/runner/inspect/inspect.go", "../tools/gomad/internal/runner/inspect/inspect.go"}},
+		{"sleep tests", []lintPolicyRuleID{{text: "time.Sleep", linter: "forbidigo"}}, true, []string{"ordinary/value_test.go", "tests/testcore/value.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt"}},
+		{"chasm clock", []lintPolicyRuleID{{text: "time.Now", linter: "forbidigo"}}, true, []string{"chasm/lib/value.go", "chasm/lib/model/value.go"}, []string{"chasm/library/value.go", "chasm/lib/valueXgo", "chasm/lib/value.go.txt"}},
+		{"chasm clock tests", []lintPolicyRuleID{{text: "time.Now", linter: "forbidigo"}}, false, []string{"chasm/lib/value_test.go", "chasm/lib/model/value_test.go"}, []string{"chasm/lib/value.go", "chasm/lib/value_testXgo", "chasm/lib/value_test.go.txt"}},
+		{"cassandra timestamps", []lintPolicyRuleID{{text: "Unix|UnixMilli|UnixNano", linter: "forbidigo"}}, true, []string{"common/persistence/cassandra/value.go", "common/persistence/cassandra/model/value.go"}, []string{"common/persistence/cassandra_extra/value.go", "common/persistence/cassandra/valueXgo", "common/persistence/cassandra/value.go.txt"}},
+		{"timestamp tests", []lintPolicyRuleID{{text: "Unix|UnixMilli|UnixNano", linter: "forbidigo"}}, false, []string{"ordinary/value_test.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "ordinary/value_test.go.txt"}},
+		{"test and testing helpers", []lintPolicyRuleID{{text: "panic", linter: "forbidigo", path: "_test\\.go|tests/.+\\.go|common/testing/"}, {text: "(cyclomatic|cognitive)", linter: "revive"}, {text: "(dot-imports|unchecked-type-assertion)", linter: "revive"}}, false, []string{"ordinary/value_test.go", "tests/testcore/value.go", "common/testing/helper.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt", "common/testing_extra/value.go"}},
+		{"test names", []lintPolicyRuleID{{text: "ST1003: should not use underscores in Go names; (func|method) ", linter: "staticcheck"}}, false, []string{"ordinary/value_test.go", "tests/testcore/value.go", "common/testing/helper.go", "tools/gomad/value_test.go"}, []string{"ordinary/value.go", "ordinary/value_testXgo", "tests/value.txt", "common/testing_extra/value.go"}},
+		{"activity model", []lintPolicyRuleID{{text: "panic", linter: "forbidigo", path: "chasm/lib/activity/model/.*\\.go$"}}, false, []string{"chasm/lib/activity/model/value.go", "chasm/lib/activity/model/nested/value.go"}, []string{"chasm/lib/activity/model_extra/value.go", "chasm/lib/activity/model/valueXgo", "chasm/lib/activity/model/value.go.txt"}},
+		{"testcore through broad panic rule", []lintPolicyRuleID{{text: "panic", linter: "forbidigo", path: "_test\\.go|tests/.+\\.go|common/testing/"}}, false, []string{"tests/testcore/value.go", "tests/testcore/nested/value.go", "tests/testcore_extra/value.go", "tests/testcore/value.go.txt"}, []string{"tests/testcore/valueXgo"}},
+		{"namespace definitions", []lintPolicyRuleID{{text: "ActiveInCluster", linter: "forbidigo"}}, false, []string{"common/namespace/namespace.go", "common/namespace/namespace_test.go", "common/namespace/replication_resolver.go", "common/namespace/replication_resolver_test.go"}, []string{"common/namespace/namespace_extra.go", "common/namespace/namespaceXgo", "common/namespace/replication_resolver.go.txt", "common/namespace_extra/namespace.go"}},
+		{"functional test context", []lintPolicyRuleID{{text: "context.Background", linter: "forbidigo"}}, true, []string{"tests/value_test.go", "tests/nested/value_test.go"}, []string{"tests/value.go", "ordinary/value_test.go", "tests/value_testXgo", "tests/value.txt"}},
+		{"legacy eventually", []lintPolicyRuleID{{text: "Eventually", linter: "forbidigo"}}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/schedule_migration_test.go", "tests/nexus_standalone_testXgo", "tests/schedule_test.go.txt", "tests/schedule_extra_test.go", "tests/nested/schedule_test.go"}},
+		{"legacy collect", []lintPolicyRuleID{{text: "assert\\.CollectT", linter: "forbidigo"}}, false, []string{"tests/nexus_standalone_test.go", "tests/nexus_workflow_test.go"}, []string{"tests/schedule_test.go", "tests/nexus_workflow_testXgo", "tests/nexus_workflow_test.go.txt", "tests/nested/nexus_workflow_test.go"}},
+		{"tools revive", []lintPolicyRuleID{{text: "", linter: "revive"}}, false, []string{"tools/gomad/policy.go", "tools/gomad/internal/model/cluster/policy_test.go", "tools/helper.go"}, []string{"tools_extra/helper.go", "ordinary/tools/helper.go", "../tools/gomad/policy.go", "tools/helperXgo", "tools/helper.txt"}},
+		{"campaign completion invariants", []lintPolicyRuleID{{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/internal/campaign/controller\\.go$"}}, false, []string{"tools/gomad/internal/runner/internal/campaign/controller.go"}, []string{"tools/gomad/internal/runner/internal/campaign/other.go", "tools/gomad/internal/runner/internal/campaign/controller_test.go", "tools/gomad/internal/runner/internal/campaign/controllerXgo", "tools/gomad/internal/runner/internal/campaign/controller.go.txt", "ordinary/tools/gomad/internal/runner/internal/campaign/controller.go", "../tools/gomad/internal/runner/internal/campaign/controller.go"}},
+		{"inspection choice invariants", []lintPolicyRuleID{{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/inspect/inspect\\.go$"}}, false, []string{"tools/gomad/internal/runner/inspect/inspect.go"}, []string{"tools/gomad/internal/runner/inspect/other.go", "tools/gomad/internal/runner/inspect/inspect_test.go", "tools/gomad/internal/runner/inspect/inspectXgo", "tools/gomad/internal/runner/inspect/inspect.go.txt", "ordinary/tools/gomad/internal/runner/inspect/inspect.go", "../tools/gomad/internal/runner/inspect/inspect.go"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
-			for _, index := range tc.rules {
-				rule := policy.Linters.Exclusions.Rules[index]
+			for _, id := range tc.rules {
+				rule := lintPolicyRuleByIdentity(t, rules, id, tc.except)
 				pattern := rule.Path
 				if tc.except {
 					pattern = rule.PathExcept
 				}
 				require.NotEmpty(t, pattern)
-				t.Logf("rule=%d path-except=%t parsed-expression=%q", index, tc.except, pattern)
+				t.Logf("rule=%+v path-except=%t parsed-expression=%q", id, tc.except, pattern)
 				compiled, err := regexp.Compile(pattern)
 				require.NoError(t, err)
 				for _, path := range tc.matches {
-					require.True(t, compiled.MatchString(path), "rule %d: %q must match %q", index, pattern, path)
+					require.True(t, compiled.MatchString(path), "rule %+v: %q must match %q", id, pattern, path)
 				}
 				for _, path := range tc.misses {
-					require.False(t, compiled.MatchString(path), "rule %d: %q must not match %q", index, pattern, path)
+					require.False(t, compiled.MatchString(path), "rule %+v: %q must not match %q", id, pattern, path)
 				}
 			}
 		})
 	}
-	for index, paths := range [][]string{{"api/policy.go", "service/policy.go"}, {"proto/policy.go", "service/policy.go"}, {".github/actions/policy.go", "service/policy.go"}} {
-		compiled, err := regexp.Compile(policy.Linters.Exclusions.Paths[index])
+	for _, tc := range []struct{ pattern, match, miss string }{{"^api", "api/policy.go", "service/policy.go"}, {"^proto", "proto/policy.go", "service/policy.go"}, {"^.git", ".github/actions/policy.go", "service/policy.go"}} {
+		require.Contains(t, paths, tc.pattern)
+		compiled, err := regexp.Compile(tc.pattern)
 		require.NoError(t, err)
-		require.True(t, compiled.MatchString(paths[0]))
-		require.False(t, compiled.MatchString(paths[1]))
+		require.True(t, compiled.MatchString(tc.match))
+		require.False(t, compiled.MatchString(tc.miss))
 	}
 }
 
 func TestLintPolicyCampaignInvariantSourceBinding(t *testing.T) {
 	t.Parallel()
-	config, err := os.ReadFile("../../../.github/.golangci.yml")
-	require.NoError(t, err)
-	var policy struct {
-		Linters struct {
-			Exclusions struct {
-				Rules []struct {
-					Source string
-				}
-			}
-		}
-	}
-	require.NoError(t, yaml.Unmarshal(config, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 19)
-	pattern, err := regexp.Compile(policy.Linters.Exclusions.Rules[17].Source)
+	rules, _ := readLintPolicy(t)
+	rule := lintPolicyRuleByIdentity(t, rules, lintPolicyRuleID{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/internal/campaign/controller\\.go$"}, false)
+	pattern, err := regexp.Compile(rule.Source)
 	require.NoError(t, err)
 	data, err := os.ReadFile("../../../tools/gomad/internal/runner/internal/campaign/controller.go")
 	require.NoError(t, err)
@@ -282,21 +307,8 @@ func TestLintPolicyRealGolangci(t *testing.T) {
 
 func TestLintPolicyInspectionInvariantSourceBinding(t *testing.T) {
 	t.Parallel()
-	config, err := os.ReadFile("../../../.github/.golangci.yml")
-	require.NoError(t, err)
-	var policy struct {
-		Linters struct {
-			Exclusions struct {
-				Rules []struct {
-					Source, Text string
-					Linters      []string
-				}
-			}
-		}
-	}
-	require.NoError(t, yaml.Unmarshal(config, &policy))
-	require.Len(t, policy.Linters.Exclusions.Rules, 19)
-	rule := policy.Linters.Exclusions.Rules[18]
+	rules, _ := readLintPolicy(t)
+	rule := lintPolicyRuleByIdentity(t, rules, lintPolicyRuleID{text: "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", linter: "forbidigo", path: "^tools/gomad/internal/runner/inspect/inspect\\.go$"}, false)
 	require.Equal(t, []string{"forbidigo"}, rule.Linters)
 	require.Equal(t, "^use of `panic` forbidden because \"Please avoid using panic in application code\"$", rule.Text)
 	pattern, err := regexp.Compile(rule.Source)

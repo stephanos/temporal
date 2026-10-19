@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T16:08:09.380474Z",
+  "depends_on": [
+    "fn-220-gomad-one-command-temporal-test-setup.1"
+  ],
+  "id": "fn-220-gomad-one-command-temporal-test-setup.2",
+  "priority": null,
+  "spec": "fn-220-gomad-one-command-temporal-test-setup",
+  "spec_path": ".flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md",
+  "status": "todo",
+  "title": "Expose the one-command setup and run TestFrontendSystemInfo end to end",
+  "updated_at": "2026-10-19T16:08:09.380474Z"
+}

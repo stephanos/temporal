@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-221-gomad-functional-suite-triage-sweep-on",
+  "created_at": "2026-10-19T16:07:09.483648Z",
+  "depends_on_epics": [],
+  "id": "fn-221-gomad-functional-suite-triage-sweep-on",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md",
+  "status": "open",
+  "title": "Gomad: functional-suite triage sweep on WASM",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T16:07:09.507455Z"
+}

@@ -1,1317 +1,360 @@
 # Gomad architecture
 
-This document records the design decisions that are not obvious from the code.
-The [SPEC](SPEC.md) owns product requirements and the
-[canonical vocabulary](SPEC.md#productvocabulary-ubiquitous-language).
-The [README](README.md) describes supported commands and current behavior.
-Internal types, wire schemas, defaults, and limits are authoritative in the
-implementation and its tests.
+Gomad explores Go tests under deterministic models. The WASM backend compiles a
+test to WebAssembly and executes it with a Rust helper. The cooperative profile
+adds a pinned runtime overlay for guest scheduling; the helper models supported
+clock, filesystem, entropy and network operations. Failures and selected
+successes are retained as immutable artifacts for inspection and replay, with
+capabilities bounded by the selected profile and qualification evidence.
+Running a cooperative test under many seeds explores different goroutine
+schedules, timer orders and modeled network and storage behaviors.
 
-## Build selection
+This document is the map. The [README](README.md) is the operator walkthrough,
+the [WASM operator guide](internal/backends/wasm/CLI.md) has every command, the
+[qualification contract](internal/backends/wasm/QUALIFICATION.md) says what is
+proven, and [SPEC.md](SPEC.md) defines the vocabulary used below.
 
-The parent module owns the portable CLI, WASM and shared models. The native
-child module stays at `internal/backends/native`, preserving source and overlay
-paths. Parent/child local replacements retain internal import identities without
-a Go workspace or dependency updates. The `gomad_native` CLI seam alone registers
-the native provider, capabilities and private protocols. Default package, build,
-vet and portable-test graphs contain no native packages. Selected source checks
-include native host test-only packages, excluding raw toolchain overlay assets
-from host compilation rather than changing those assets.
+## The big picture
 
-Mixed tests retain portable cases in the parent selection and native-specific
-cases under `gomad_native`. Test-only neutral fixture helpers cannot enter
-production imports; selected fixture shims preserve the native implementations.
-Maintainer generators use qualified child import paths and explicit selection
-while retaining Gomad-root working directories. Adapter regeneration stages
-original outer module metadata around the child/parent module copy; that read-only
-envelope never enters the publication journal. Module and helper identity changes
-require fresh candidate provenance; source isolation is not native qualification
-or a performance claim.
-
-## System boundary
-
-Gomad makes runtime-controlled choices repeatable when the toolchain, target,
-architecture, deterministic inputs, and seed are unchanged. It does not claim
-schedule stability across source or toolchain changes, exhaustive exploration,
-or deterministic execution of arbitrary host I/O.
-
-The native boundary manifest declares `darwin/arm64` and `linux/amd64` as
-qualification platforms; native execution qualification remains deferred under
-fn-128/fn-149. Artifacts replay only on their recorded platform. Qualification
-applies to declared workloads, rather than proving
-arbitrary Go programs deterministic. The
-[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105) record remaining
-functional-suite replay divergences and known host-clock escapes, including
-`MemStats.LastGC`. Garbage-collector timing is not fully controlled.
-
-The system separates these ownership boundaries:
-
-```text
-Runner ---- prepares a Target and supervises each isolated Execution
-  |
-  +---- Guide ---- bounded semantic corpus and seed selection
-  |
-  +---- Record/Artifact ---- identity, persistence, and replay envelope
-  |
-  +---- target process ---- runtime choices and native virtual time
-                              |
-                              +---- deterministic I/O ---- transparent reviewed boundary
-                              |
-                              +---- World ---- explicit external-event model
+```mermaid
+flowchart LR
+    Op[Operator] -->|gomad explore / replay / inspect| CLI
+    CLI --> Runner
+    Runner -->|Prepare once,<br/>Execute per seed| Backend[WASM backend]
+    Backend -->|go build GOOS=wasip1<br/>+ runtime overlay| Module[(guest.wasm)]
+    Backend -->|request| Helper[Rust helper<br/>gomad-wasmhost]
+    Helper -->|runs| Guest[Guest: the test]
+    Guest -->|host imports:<br/>scheduling, clock,<br/>files, network, entropy| Helper
+    Helper -->|result + evidence| Backend
+    Backend --> Runner
+    Runner -->|Record| Artifact[(Artifact store)]
+    Artifact -->|inspect / replay / minimize| CLI
 ```
 
-These boundaries intentionally do not collapse into one controller:
-
-- the runtime owns goroutine scheduling, native timers, maps, and synchronization;
-- Runner owns host process lifetime, resource bounds, scheduling, and failure policy;
-- Guide owns corpus identity, semantic prioritization, and atomic corpus updates;
-- Campaign owns durable execution journaling; Artifact owns durable publication;
-- Record owns raw bytes, hashes, and the outer replay envelope;
-- World owns external-event identities, ordering, state, and semantic digests;
-- each adapter owns its domain semantics; and
-- deterministic I/O owns the reviewed transparent boundary for every
-  Runner-managed target on one qualified toolchain and platform.
-
-Within Runner, the seed campaign is a pure control state machine over pending
-ordinals, parallel slots, aggregate counters, resume state, and failure-policy
-stops. Its `Complete(Completion)` transition updates attempted, active, and
-classified counters together, with distinct-failure count explicit. The
-orchestration loop owns process launches and hands completed results
-to artifact publication; the campaign never prepares targets or writes files.
-Parallel results enter semantic publication in selection-ordinal order, so host
-completion timing cannot change the Campaign journal or guided corpus.
-
-The mode is for trusted tests. The process boundary and fail-closed shims reduce
-accidental host dependence; they are not an operating-system sandbox against a
-target deliberately issuing raw syscalls.
-
-## Cluster simulation
-
-WASM simulation clusters run in one helper process, with a fresh Wasmtime store
-for each incarnation and a shared engine and prepared modules. The helper owns
-the broker, clock, World and network; Go remains authoritative for the native
-and Runner models. Checked-in differential corpora keep the Rust World and clock
-copies equal to Go, and the helper digest binds their implementation. This path
-claims Model Fidelity, not process-level Hard Isolation between incarnations.
-The per-process Go-broker path remains a private differential-test selection;
-installation and model configuration cannot select it. Standalone cooperative
-network v2 and stock execution retain their existing Go owners. Go model sources,
-generated native projections and strict retained-evidence decoders remain live
-consumers even when a cooperative cluster executes those models in Rust.
-
-The Rust helper's `model.rs` keeps its guest-state types and private fields as
-the facade. Private `model/guest_state.rs` owns input admission and guest
-lifetime setup, `model/imports.rs` owns typed host-import routing, and
-`model/reply.rs` owns transcript and evidence encoding. `protocol.rs` owns
-execution requests, outcomes, continuation replies and remote transcript chunks;
-`engine.rs` retains store state, limits and snapshots. The namespace model,
-typed call admission, image decoder and framed input transport live together
-under `namespace/`.
-
-`cluster/handoff/` is the single continuation owner. Its coordinator selects the
-in-order baton or broker; its private broker owns acquisition, idle transfer and
-finish cleanup, including World cancellation, network revocation, clock removal
-and session completion. `cluster/execution/` owns automatic and manual guest
-lifecycle and transport, while `cluster/network/` owns shared endpoints, network
-transitions and evidence. Automatic execution publishes its result before
-finishing; manual execution finishes before publishing its result. Idle and
-terminal boundaries eagerly commit and check network inspection state before
-another incarnation can observe it. These orderings remain part of the corpus
-contract.
-
-The `conformance` feature also enables raw JSON dependencies, selects module
-availability and admits the namespace's explicit `Unsupported` operation. It
-therefore remains a feature rather than a two-binary main-function replacement.
-Dead-code exceptions name individual retained model entry points, including
-volume-projection operations outside the WASI subset; the World implementation
-does not port Go replay plans or recordings. The older Rust evidence path cited
-by the identity-bound Go network decoder, `src/network/cluster/evidence.rs`, now
-maps to `src/cluster/network/evidence.rs`; its Go source bytes stay unchanged.
-
-`tools/gomad/internal/model/cluster` owns the application-facing cluster seam. An Execution selects one
-backend and records bounded node, topology, lifecycle, output, network, volume,
-fault, scenario, history, and oracle evidence. The in-process backend assigns
-inheritable runtime domains to logical
-node incarnations; stale domains fail before model mutation. Package globals
-and computationally live crashed goroutines remain shared-process limitations,
-so fresh initialization and hard cleanup are provided only by the process
-backend.
-
-The virtual network is a separate Execution-scoped deep module below ordinary `net`
-TCP calls. It owns node addresses, deterministic ports, directional links,
-fixed delay, partition/heal, listeners, FIFO byte streams, lifecycle revocation,
-capacity, snapshots, and replay. Endpoints and retained bytes are
-incarnation-bound. Graceful stop discards queued and held bytes, closes the local
-side and exposes EOF; crash discards them and resets both sides before restart
-can reuse the stable node address. The approved fn-154 migration and its open
-integration/qualification gates are described in the
-[README](README.md#network-streams-partitions-and-replay).
-
-Network transitions are partitioned into canonical causal lanes. Operations on
-one connection or listener retain order, and all topology changes share one
-ordered lane; arrival order between independent resources is normalized.
-Replay validates the next transition in the affected lane before mutation and
-also requires the recorded terminal structure and byte occupancy. Delivery is
-derived during reexecution without per-delivery/release records or network
-payload hashes. Direct network-only replay therefore loses guaranteed detection
-of same-length payload changes. Composed Runner replay retains the separately
-bounded generic I/O content checks and first mismatch ordinal. Volume hashes,
-controller identities and artifact authentication remain. This network identity
-remains independent from runtime choice, lifecycle, output, volume, fault,
-scenario, and oracle identities.
-
-The durable-volume and fault controllers are separate deep modules. Volume
-owns persisted and volatile views, dependency-aware operations, sync, crash
-selection, enumeration, snapshots, and replay. Fault plans own stable matching,
-occurrence counting, target selection, application bounds, and fail-before-
-mutation replay. Typed scenarios and semantic oracles consume those modules
-through the Cluster seam without taking ownership of their state machines.
-
-The Rust recovery-image decoder retains validated durable volume state and
-fault occurrences. It does not reconstruct durable namespace nodes or their
-byte accounting before recovery: the lifecycle rebuild constructs those once.
-Structural validation still precedes acceptance, including image authentication,
-inode uniqueness, counter headroom, sorted records and process-owned lock
-refusal. A dependency-closed durable child can lack its parent's path; that
-valid partial persistence is preserved. Recovery image, complete evidence and
-refused-history limits remain independent.
-
-### WASM corpus and measurement ownership
-
-The helper transcript corpus under
-`internal/backends/wasm/wasmhost/tests/testdata/helper_transcript` is the shared
-Rust/Go behavior contract. The Rust loader executes the real helper; the Go
-consumer reads the same cases. Reviewed expectations pin the projected reply
-stream, terminal outcome and evidence. Differential model corpora separately
-bind Rust model behavior to the Go oracles. Neither kind of corpus is a
-performance qualification.
-
-Helper expectation regeneration is explicit and rejects output that varies
-between repeated executions. Review the resulting expectation diff and require
-a second regeneration to leave the files byte-identical. Existing Go corpus
-cases remain unchanged; new behavior coverage uses added cases. An inline test
-can be removed only when named corpus replacements and recorded coverage prove
-its assertions survive. Keep and document tests for invariants a corpus cannot
-state. A module move cannot justify changing expected behavior.
-The [WASM README](internal/backends/wasm/README.md) gives the loader and
-regeneration commands.
-
-`internal/backends/wasm/cmd/wasmmeasure` owns measurement producer invocation;
-`internal/backends/wasm/internal/measure` owns their execution. Test targets do
-not invoke producers. Explicit flags select the checkout, helper, compiler and
-evidence inputs; inherited measurement variables are refused. The command
-builds its executor from the selected checkout and preserves admission,
-identity and host-evidence checks. Moving the producer does not qualify a new
-candidate or relabel historical artifacts. The
-[qualification contract](internal/backends/wasm/QUALIFICATION.md) owns those
-requirements.
-
-### Incarnation, backend, and fidelity
-
-A cluster selects one backend and declares its fidelity for its lifetime.
-Backend specifies the execution mechanism; Fidelity specifies the guarantee
-being claimed. The in-process backend supports Model Fidelity; the process
-backend supports Model Fidelity or Hard Isolation. Node IDs are stable and
-incarnations increase monotonically. Restart retains configured addresses, boot
-identity, and declared durable volumes while revoking old handles, mappings,
-connections, and model access. Stale work fails before consuming fault/replay
-entries or mutating model state.
-
-In-process revocation cannot reset arbitrary package globals or terminate a CPU
-loop. Graceful Stop checks cancellation before admission, then waits for the
-boot's terminal commit; boot code that ignores cancellation requires the outer
-watchdog. Fresh package initialization and hard crash/reap belong to the process
-backend. Invalid lifecycle transitions cannot partially commit model state.
-
-### Network and persistence semantics
-
-Each direction distinguishes received unread bytes from undelivered FIFO bytes.
-Partition holds every undelivered suffix, including traffic queued before the
-link changed. A scheduled ready time alone does not establish receipt.
-Already-received bytes remain readable; the enabled reverse link can progress
-until pair termination. Effective heal ends the continuous stall and makes the
-held FIFO eligible after normal link delay, with fresh writes behind it.
-Repartition holds the remaining suffix and the next effective heal applies a
-fresh delay. Redundant heal does not reschedule bytes, and redundant disable
-does not restart a continuous interval.
-
-Positive undelivered occupancy first encountering a disabled link starts the
-interval. Expiry is due at `start + limit + 1ns`, never at the exact limit.
-Either direction can reset the pair permanently with a timeout reason, freeing
-bytes once and waking waiters. Caller deadlines remain recoverable; clearing
-them cannot undo reset. Idle connections create no data-stall work. Native
-timers, the existing process time/progress arbiter and the host model's
-`NextDeadline`/`Advance` path drive expiry without requiring active application
-I/O. These owners retain scheduling and clock ownership.
-
-Each live data-stall pair reserves one terminal history slot across its two
-directions; a pending disabled-link dial reserves its own timeout slot. Held-write
-admission commits the ordinary write record and any new reservation atomically.
-Effective grouped partition similarly admits its topology record and all needed
-reservations before mutation. Committed transitions plus live reservations stay
-within the transition ceiling, and competing operations cannot spend reserved
-slots. Expiry consumes the slot; heal or terminal cleanup releases unused slots.
-Stale work can neither add a timeout nor release a replacement reservation.
-
-A pending dial observes its own disabled-link interval, separate from caller
-deadline/context and without an established connection. Effective heal ends it;
-effective repartition starts another. Its strict expiry uses the same threshold
-as data stalls. Completed caller context precedes admission; existing refusal,
-stale-endpoint, capacity and process cancellation contracts remain. Equal-time
-actions use seeded execution and serialized model order. Heal committed before
-due expiry invalidates the epoch; expiry committed first remains terminal.
-Close, stop, crash and restart invalidate obsolete epochs and incarnations.
-Delayed data cannot reach a restarted node through an old connection or reused
-address/port.
-
-History records operations, held-write outcomes, topology/fault changes and
-timeout resets, removing the former partition-drop outcome. Snapshots retain
-endpoint byte occupancy and bounded metadata,
-with no delivery inventory, delivery count admission or replacement payload hash.
-The affected model, transition, snapshot and config/record identities migrate
-together through the one generated semantic codec; old identities reject before
-activation. Explicit fault matching on `deliver` keeps its occurrence semantics.
-Structural replay validation, full consumption, identity preflight and nested
-model/controller/fault corruption checks retain their owners.
-
-A volume write updates the volatile view and adds dependency-tracked pending
-operations. File sync persists required data, size, allocation, and their
-dependency closure; directory sync persists namespace changes. Graceful stop
-flushes pending operations. Crash restores a selected dependency-closed
-persistence outcome, and restart creates fresh handles and mappings.
-
-Crash-state enumeration is canonical, bounded, and resumable. Reaching a state,
-operation, depth, byte, or time bound produces explicit incomplete evidence and
-remaining work. Captured read-only mounts are replay inputs; restarted nodes
-never reopen their original host paths.
-
-### Process arbitration and model evidence
-
-Process nodes submit model operations and native timer/quiescence reports through
-private bounded IPC. The coordinator owns shared model state and logical-time
-advancement. Request identities correlate bounded IPC exchanges. Time advances
-to the earliest participant deadline only after runnable work, in-flight handlers,
-and delivered-but-unconsumed model operations are accounted for. Participants
-blocked on external model work are excluded until their results arrive. Replay
-validates semantic transitions rather than raw IPC arrival order. A node that
-spins prevents quiescence and reaches the wall watchdog. Process death must leave
-an operation classified as committed or uncommitted, with no ambiguous partial
-model transition.
-
-`internal/model/clock/simulation_progress.go` owns complete typed progress
-transitions under the arbiter mutex (`SIMULATION.BACKENDS`). Admission,
-forwarding, response reservation/delivery, arrival consumption, abandonment
-accounting, and participant removal validate participant incarnation, response
-identity, epochs, and aggregate arrival credits before changing state or waking
-waiters. Aggregate credits identify no individual operation. Coordinator response
-IDs and model request IDs have separate namespaces. Model transport owns pending
-and abandoned correlation and late-response discard; domain handlers own the
-committed/uncommitted model result, and process supervision owns crash and reap.
-The coordinator carries no parallel response-barrier state machine. Concurrent
-blocking operations remain possible, and host IPC arrival order supplies no
-semantic replay identity.
-
-Network `Listener` and `Conn` factories select a private standalone, in-process,
-or process implementation once (`SIMULATION.NETWORK`). Both simulation paths use
-the shared network model. Standalone and multi-node connections share one local
-owner for FIFO storage, read/write/deadline/close, half-close and nonblocking
-readiness. Process implementations own remote identities and typed commands;
-descriptors consume the local owner's primitives and notifications. Direction
-locks cover each complete Read or Write. Transport may chunk commands, while
-payload admission uses bytes only. Explicit `NetworkConnectionBytes` and
-`NetworkStallNanos` defaults are 4 MiB per direction and 10 virtual seconds;
-omitted/zero values reject. Held, received unread and short-read tail bytes count
-against the direction and preserved global byte budget until consumed or
-discarded. Local fullness blocks; global exhaustion returns resource-exhausted.
-Pending-operation, listener, connection, history and frame ceilings remain.
-Invalid limits or overflowing expiry arithmetic reject before mutation.
-
-For nonempty I/O, terminal read state precedes readable bytes, EOF and caller
-deadline. Writes check terminal state, available-capacity admission, then caller
-deadline. Empty I/O and partial-result contracts remain. Full close discards local
-unread bytes and partition-held outbound suffixes, preserving normal enabled-link
-delayed draining and the peer's received tail before EOF. An effective later
-partition discards only the still-undelivered suffix from an already full-closed
-source; it does not revive timeout work or discard write-half-close bytes.
-`CloseRead` discards local unread bytes, while `CloseWrite` retains accepted
-outbound bytes for draining before EOF, including held bytes after heal. These
-model boundaries do not imply identical host behavior.
-
-Runtime, scenario, network, storage, and fault evidence retain independent
-identities. Replay validates static inputs before node activation, validates
-choices and transitions before mutation, requires complete tape consumption, and
-checks terminal model states, histories, output, and outcomes. Count/byte limits
-belong to the recorded identity; overflow is a typed capacity result.
-
-Backend conformance compares detached model transitions, topology, volume state,
-histories, oracles, and normalized outcomes. Runtime tapes, raw logs, process
-exits, and diagnostic timing need not match across backends. An artifact replays
-only on its recorded backend and platform.
-
-Oracles consume detached values without holding model locks, calling back from
-World, or reading host time. Their histories and search work have separate bounds.
-An explicit-model digest cannot establish equivalence of arbitrary native Go
-execution state or justify pruning its schedule frontier.
-
-## Runtime choices and virtual time
-
-### Activation
-
-A directly launched target activates Gomad with `GOMADSEED`. A Runner-managed
-target instead supplies the seed in an inherited, identity-bound bootstrap
-configuration and uses the private `GOMAD_IO_PROFILE` marker only to select
-that bootstrap path. The marker names a versioned artifact identity, not a
-user-selectable or target-specific profile. Both paths converge before package
-initialization on the same runtime state.
-
-Activation forces the initial `GOMAXPROCS` to one, disables asynchronous
-preemption and the system monitor, initializes the seeded runtime choice state,
-and starts the process clock at midnight UTC on 2000-01-01. Disabled execution
-retains the upstream runtime paths.
-
-Darwin CI also runs a privileged DTrace escape audit. A marker in
-an unsigned probe binary activates observation only after runtime startup; an
-unseeded positive control must reach both `clock_gettime` and
-`mach_absolute_time`, while the seeded execution must reach neither. Missing
-privileges, missing probes, or an unobserved marker fail the gate rather than
-silently skipping it.
-
-Both qualified platforms also pin standard-library host-clock references to a
-reviewed static inventory. On Linux the vDSO clock path is not observable by a
-syscall tracer, so static inventory is the current escape gate. The inventory
-classifies known escapes; it does not claim they have all been removed.
-
-### Why process faketime
-
-Gomad activates the dormant process-wide `faketime` machinery in the pinned Go
-runtime. This preserves ordinary `runtime.main`, package initialization,
-binaries, and the `testing` harness while covering standard `time` and context
-deadlines transparently.
-
-The rejected alternatives have materially larger or weaker boundaries:
-
-- wrapping the process in a `testing/synctest` bubble changes main-goroutine and
-  initialization structure and conflicts with tests that create nested bubbles;
-- injecting a clock misses package initialization, third-party `time` calls,
-  standard-library deadlines, and the test harness; and
-- source or package rewriting has incomplete coverage and introduces a second
-  timer controller.
-
-Explicit `testing/synctest` bubbles keep their private clocks and take precedence
-over the process clock.
-
-The default `strict` clock-tick policy leaves `time.Now` unchanged while work is
-runnable. The optional `forward` policy advances the process virtual clock by
-1–1024 nanoseconds at each `time.Now` read, using a separate seed-derived stream
-that consumes no scheduling draws. `gomadTimeNow` adds each draw directly to
-`faketime`; `time.Now`, monotonic elapsed time, native timers, sleeps, context
-deadlines, and simulation time observe that shared clock. A draw can make a
-timer due while work is runnable; the runtime delivers it at its next timer
-check without skipping runnable work. Runtime-internal clock reads do not
-tick. Distinct readings are a nanosecond-resolution property of process
-`time.Now`; a `testing/synctest` bubble keeps its own clock, and timestamps
-truncated to a coarser unit can still tie. The recorded environment binds the
-policy into Campaign, Artifact, and portable-plan identity, and replay
-restores it. These source semantics do not establish workload repeatability
-or exact replay; the remaining qualification is recorded in the
-[milestones](../../MILESTONES.md#f10-follow-ups-deferred-scope--fn-105).
-
-### Quiescence and native timers
-
-The native runtime timer heaps remain the only queues for `time.Sleep`, timers,
-tickers, callbacks, and context deadlines. The runtime advances directly to the
-earliest deadline only after its deadlock accounting proves that no goroutine is
-runnable. All timers at that instant become eligible before scheduling resumes.
-
-A runnable goroutine, including a busy loop or polling `select`, prevents an
-idle jump to a future timer deadline. Without forward `time.Now` draws, it also
-prevents clock advancement; even with those draws, timer delivery requires the
-next timer check at a cooperative scheduling point. Unsupported blocking host
-I/O also cannot be converted into a
-logical clock event. Runner's wall watchdog bounds both cases without letting
-host elapsed time affect supported timer delivery.
-
-Timers with equal deadlines use a seeded runtime tie-break. The tie-break may
-change when unrelated runtime choices are added to the program; reproducibility
-is for an unchanged target, not a stable global choice numbering scheme.
-
-Native timers must not be copied into World. If an external adapter needs to
-compete with a native deadline, a runtime hook is justified only by a minimized
-case that cannot be coordinated outside the runtime. Such a hook must compare
-the earliest native and World events at the existing quiescence point, advance
-one logical instant, and make every event at that instant eligible without
-moving external payload or adapter policy into the runtime.
-
-### Choice traces, decision tapes, and exploration
-
-When choice recording is enabled, the runtime records a bounded Choice Trace
-containing logical decisions and observations. Exact runtime replay projects a
-complete v3 trace into a Decision Tape containing only branching decisions;
-observations and single-alternative decisions remain trace evidence. The tape
-binds the Prepared Target, toolchain build key, platform, and choice
-implementation. Stable logical alternative
-identities and canonical alternative sets avoid treating physical run-queue
-order as replay identity. Replay validates a decision before applying it,
-requires complete tape consumption, and still compares the final Record.
-
-`internal/model/choice/trace.go` explicitly refuses stored v1 and v2 traces by profile name:
-v1 lacks stable logical alternatives and v2 select results carry no readiness.
-For v3, `ProjectReplayPlan` uses `projectSelectReadiness` to
-carry each final `select` result's readiness onto its matching poll decisions.
-A poll decision named by no result keeps unknown readiness. Readiness annotates
-the tape without becoming a forced decision.
-
-Choice Exploration uses forced prefixes from one base Seed. A forced-prefix
-candidate divergence invalidates search confidence and returns CLI status 3,
-including mixed failures. Ordinary seeded and World replay divergence retain
-status 1. Its pure controller
-orders candidates by prefix length and identity in bounded breadth-first
-rounds. Runner executes candidates in fresh processes and commits completed
-results in candidate order; host completion order cannot alter the frontier.
-Forced-prefix divergence is a typed candidate result, committed with completed
-siblings and retained divergence evidence. The failure policy controls whether
-the search continues; divergence consumes no target-failure signature budget.
-Each completed round is an immutable, hash-linked transaction. Resume archives
-an interrupted round and reruns it in full, keeping recovery attempts separate
-from completed logical work. Outcome deduplication affects retained evidence
-without pruning distinct prefixes.
-
-The plan's start ordinal limits expansion to later replay-plan decisions while
-preserving earlier decisions in forced prefixes. Select readiness is trace
-evidence. Polls of the seven proven shapes with two polled non-nil cases and
-fewer than two ready cases do not expand the frontier; unknown readiness,
-unlisted shapes, and selects with three or more polled cases stay expanded.
-Source clauses with nil channels do not count as polled cases.
-`choice.NoOpSelectShapes` lists blocking zero/one-ready, nonblocking
-default, timer not due, timer due, closed-channel, and nil-channel cases.
-The controller counts their omitted alternatives separately. Resume keeps
-both decisions under the frozen plan and controller identity.
-
-Combined Exploration keeps runtime, scenario, network, storage, fault, and
-crash decisions in separate dimensions with explicit global and per-dimension
-bounds. A detached model digest cannot establish native-state
-equivalence or justify pruning an unexplored runtime prefix. Bound exhaustion
-reports the incomplete search envelope; completion is a claim only about the
-declared envelope.
-
-### Diagnostic traces and the determinism soak
-
-The diagnostic trace localises a difference between fresh same-seed
-Executions, which exact replay cannot do because replay forces the run-queue
-and select alternatives that would otherwise expose it. At every choice point
-the runtime appends a fixed-size digest of state the overlay can read without
-editing a collector file: virtual time, allocation count, GC cycle and phase,
-run-queue length, and per-purpose seeded draw counters. Draws without a choice
-record, such as timer ties and run-queue shuffles, therefore appear as a
-counter delta at the next choice point. The record goes to its own inherited,
-byte-bounded descriptor rather than the Choice Trace, its capacity is derived
-from the choice capacity so that it cannot fill before the Choice Trace, and
-recording neither allocates on the Go heap nor draws from the seeded stream,
-so the mode does not move the state it measures. A workload that
-qualifies with diagnostics off and diverges with them on is a diagnostics
-defect. The trace is part of execution identity when enabled and absent from
-it otherwise. Runner retains each complete trace as a Campaign sidecar; the
-differ validates both traces whole before naming the first differing ordinal
-and fields.
-
-The seeded-stream inventory (`toolchain/draw_inventory_test.go`) classifies
-every draw site as target-ordered or host-timed, and a per-M host scope lets
-the diagnostic mode fail the process when a host-timed path reaches the seeded
-stream.
-
-The determinism soak sits above qualification. A `qualify` batch compares its
-repetitions only with its own first Execution, so `gomadtool soak` also
-compares each clean batch's evidence digest with its cohort's baseline. A
-cohort is one workload, seed, platform, and execution identity; the identity
-hashes the Runner and toolchain builds, target, I/O profile, environment,
-limits, mounts, and choice and diagnostic profiles, so a toolchain change
-starts a new cohort instead of reporting a false divergence. Baselines and
-cumulative counts live in a ledger that each scheduled run restores from the
-previous run's artifact, so the comparison and the bound span runs. Batches
-are classified before comparison: an overflowed trace, then a runner or
-deadline failure, then disagreeing repetitions, then a target failure. Only a
-clean batch establishes or matches a baseline.
-
-## Runner and process containment
-
-### Campaign intent and operation construction
-
-`internal/runner/campaign_options.go` owns serializable `campaignOptions`, grouped into
-identity, target, search, resource, observation, retention, and guidance settings
-(`CAMPAIGN.SELECTION`, `CAMPAIGN.EXECUTION`, `PLATFORM.IDENTITY`). A private
-`campaignRequest` combines that intent with `campaignRuntime` dependencies,
-callbacks, resolved commands, and private resume/guidance state. These runtime
-values stay outside serialized campaign intent. Public request fields retain
-their existing names; immutable portable plans and replay records retain their
-own versioned contracts.
-
-`coordinatorConfig` embeds those same options with the resolved supervisor
-command and Runner build identity. It carries `MaxForcedDecisions`,
-`MaxExplorationResultBytes`, and every `SimulationDimensionLimits` field to
-isolated execution. Reconstruction uses the same semantic normalization as
-local execution; the coordinator's child timeout replaces the overall bound at
-the existing supervision boundary.
-
-The CLI constructs one private application per invocation, resolves installation,
-Runner identity and private child modes there, and shares campaign parsing
-between `plan` and `explore`. Each command calls its own Runner operation.
-Explicit flag-presence checks and presentation stay in the CLI; Runner owns
-semantic normalization. Production operations select process execution through
-private `executionDependencies`; usable public `Preparer` and `ArtifactReplayer`
-substitutions remain available. [Go caller migrations](README.md#go-caller-migrations)
-describe the intentional source changes.
-
-### Complete preparation and inspection
-
-`internal/backends/native/preparation` composes target and deterministic-I/O adapter owners
-without reversing their dependencies (`TARGET.PREPARATION`, `TARGET.CAPABILITY`).
-`Prepare` returns a validated `target.Prepared` with selected adapter identities
-attached. It owns temporary adapter-workspace cleanup; Campaign and portable
-bundle owners keep their durable destinations and journal transitions.
-`Inspect` returns capability evidence and owns its private workspace until
-`Inspection.Close`. Closure inspection lists and reviews without compiling or
-launching; linked/guarded inspection compiles without launching. Qualification
-repetitions prepare independently, and custom preparers still pass complete
-prepared-target validation.
-
-Capability collection, pure policy evaluation, and linked projection have
-separate private ownership in `internal/backends/target`, behind the existing review operations.
-`internal/backends/native/sourceinventory` hashes bounded adapter source inventories for both
-target and adapter preparation. Public `target.CompatibilityPackEvidence` and
-its complete nested target-owned graph project detached report data from private
-policy evidence. Runner's public journal and Artifact capacity inspection values
-likewise report private campaign plans without owning their transitions
-(`EVIDENCE.INSPECTION`).
-
-Runner prepares a Target once and launches each Execution of that Prepared
-Target in a fresh process and working directory. Building once makes target
-identity independent of seed; fresh processes prevent globals, goroutines,
-descriptors, allocator state, and runtime randomness from leaking between
-seeds. Parallelism is across processes, not through multiple Ps inside one
-target.
-
-The Go build driver runs outside deterministic mode. `go-run` and `go-test`
-produce a target first. `exec` requires canonical v3 provenance containing the
-same policy-versioned package-closure review: direct and test-only imports,
-foreign sources, overlay-resolved source hashes, module identities, and the
-generated test main are all explicit evidence. Runner checks standard-package
-claims against the pinned toolchain and module claims against the executable's
-embedded build information before accepting the binary. The provenance remains
-a declaration made by trusted build tooling; its binary hash binds that
-declaration to the exact supplied bytes. Runner validates and hashes the
-prepared bytes before execution and again before publication.
-Preparation, provenance validation and replay reject coverage instrumentation,
-whose host counter flushing lies outside deterministic I/O. Build-info checks
-also refuse cgo, the race detector, non-executable modes, shared-library,
-external and plugin linking.
-
-The target environment starts empty. Runner adds only its activation values,
-UTC, and explicitly supplied validated entries; runtime, toolchain, and dynamic
-loader controls are reserved. Ambient credentials and host configuration
-therefore cannot enter a deterministic Execution or Artifact accidentally.
-
-On Unix, a supervisor places the target at the head of a new process group. A
-liveness channel and an independently known absolute deadline allow the
-supervisor to terminate the group if Runner cancels, stalls, or exits. Shutdown
-sends `SIGTERM`, waits only within the existing deadline, escalates to `SIGKILL`,
-reaps the leader, and verifies that the group is gone. This contains ordinary
-bugs and unsupported subprocess use, not adversarial descendants that escape
-their session.
-
-Per-Execution and overall deadlines are host safeguards. They never advance logical
-time. A logical `go test` timeout is a target result; a wall watchdog expiry is a
-bounded diagnostic observation; failure to terminate or reap the target is a
-Runner/host failure.
-
-Runner drains stdout and stderr concurrently, hashes every byte, and retains a
-bounded head and tail. Output timing and host completion order are diagnostics
-and never enter runtime or World decisions.
-
-`internal/backends/native/execution.Spec` groups World and deterministic-I/O inputs as typed execution
-capabilities. On Unix, one process-owned launch-resource plan creates the pipes
-and backings, fixes every stage's descriptor numbers and inheritance order, and
-defines which ends close after each process start. The supervisor and bootstrap
-remain separate containment stages; neither caller reconstructs `ExtraFiles` or
-the final `dup2` layout independently. Host launch orchestration and output
-collection live in `process_unix.go`; supervisor activation, process-group
-termination, reaping, and cleanup live in `supervisor_unix.go` while sharing
-that unchanged launch plan.
-
-World transport remains enabled for every Runner-managed target. Although the
-launch plan now represents World explicitly, making its descriptors optional is
-deferred until external targets have been audited for calls to
-`internal/model/world/process.Open` and migrated to an explicit declaration. Until then, an empty
-child record continues to become the canonical `none` World record. This keeps
-the descriptor refactor compatible rather than silently disconnecting an
-existing World-aware target.
-
-### Targets outside this repository
-
-A target may live in any module, including one that depends on the server
-through a local `replace`. `--working-dir` names its module root; build
-adapters are selected from the go.mod of the module that owns the target, and
-the build environment is the same forced one (no workspaces, no vendoring).
-Packs for that module's own dependencies stay in its tree: an external pack
-root is authored with `--compatibility-root` and loaded with
-`GOMAD_COMPATIBILITY_PACKS` under the same validation as embedded packs, and
-each selected pack's identity binds the target, so replay without it fails
-closed. Adapters stay embedded and exact, one version per module. What a
-downstream module must still supply itself are source seams for its own
-subprocess, signal, and host-filesystem calls and in-process substitutes for
-services that run outside the process; Gomad does not model them.
-
-## Records, artifacts, and replay
-
-Record (`record.ExecutionRecord` in the implementation) defines the outer
-versioned envelope and canonical identities. It treats
-World snapshots, transitions, adapter data, and I/O transcripts as validated
-payloads owned by their respective modules rather than reimplementing their
-semantics. `record.go` owns the public hashing and manifest finalization entry
-points, `validation.go` owns envelope validation, and `identity.go` owns the
-record and failure identity projections. These remain files in one package so
-the internal split does not add forwarding APIs.
-
-Ordinary JSON writers use `encoding/json`. The architecture deliberately has
-no generic canonical-JSON layer: versioned typed projections and complete
-producer identities define semantic stability, while wire-specific packages
-define any required byte identity. The functional production users of
-`internal/model/strictjson` span the native build, compatibility-pack, native
-qualification, captured-state, qualification-report, Record, Runner
-simulation/minimizer/plan, World recording/replay, and the WASM protocol,
-qualification-spec, installation, and oracle readers. The WASI model identity
-also binds the decoder implementation. The architecture checker is the
-remaining production import and enforces that ownership. The pinned
-experimental decoder rejects malformed input, invalid UTF-8, duplicate names,
-trailing data, and unknown typed members; it accepts case aliases but not
-changed delimiter spelling, and it preserves `encoding/json` array input for
-fixed byte arrays. Maps and raw JSON remain caller-validated open projections
-rather than gaining a fictitious closed schema.
-
-Artifact storage envelopes (`internal/evidence/artifact/lineage.go`), Campaign log payloads
-(`internal/runner/internal/logstore/json.go`), and native installation manifests
-(`internal/backends/native/toolchain/installation.go`) still use standard-library
-decoders. Their unknown-field and single-value checks do not reject duplicate
-names or invalid raw UTF-8; these older readers were not canonical-JSON users
-and are outside the migrated-reader guarantee.
-
-Record and failure identity projections retain semantic values while
-deliberately excluding diagnostic paths and host timestamps. The corresponding
-validation still checks original domain strings, numeric and shape bounds,
-complete hashes, and current approvals. World evidence snapshots are generated
-compressed binary envelopes, not protobuf or ordinary JSON. The closed World
-transition/model JSON helpers, live-capability header plus authenticated raw
-JSON payload, `GMLG` append-log frames around typed JSON payloads, generated
-deterministic-I/O/Choice/simulation/time codecs, and paired simulation identity
-formulas remain protocol-owned carve-outs. Unsupported prior lineages are
-identified only to return refusal; none is decoded or migrated.
-
-Record and failure hashes exclude diagnostic host timestamps and paths. Failure
-signatures also exclude the seed so byte-equivalent observations from different
-seeds can be grouped. Full stream hashes, not retained output fragments, enter
-the identity.
-
-Manifest schema v2 keeps its existing JSON shape but requires the universal
-deterministic-I/O identity and matching `GOMAD_IO_PROFILE` environment entry
-for every artifact. Previously accepted profile-less v2 data is treated as an
-incomplete artifact and rejected rather than migrated or replayed through host
-I/O. Artifacts emitted with the deterministic-I/O identity retain their schema
-and identity compatibility.
-
-Artifact publication uses private staging, bounded files, content hashes,
-durability operations, and a no-replace rename. Every payload, then the
-storage envelope `storage.json`, then the manifest is written and synced; then
-each staging directory, the rename, and the store root (and any directory
-publication created above it). `PublishArtifact` returns a reference only
-after all of them, so an owner records a reference in its durable state only
-after the artifact is durable; a crash at any step leaves at most an
-unreferenced artifact or staging directory. Interrupted work may leave
-explicit partial diagnostics but can never appear as a complete replayable
-artifact. Existing content-addressed artifacts are reused only after complete
-validation and a store sync.
-
-Artifact storage lineage is separate from the execution record. The storage
-envelope declares `gomad.artifact-storage/v1`; `OpenArtifact` checks it before
-reading or decoding the manifest, which keeps `record.SchemaVersion`,
-`RecordContract` and the runtime internal/model/choice/World/I/O/simulation encodings
-unchanged. An artifact of an earlier Gomad has no envelope and is refused as
-the unsupported format `pre-lineage`; a malformed envelope or another declared
-format is refused the same way (`artifact.UnsupportedFormatError`, matching
-`artifact.ErrUnsupportedFormat`). Nothing decodes or migrates older artifacts.
-`gomad inspect`, `replay` and `minimize` report the refusal as invalid input
-with status 2. The envelope is reserved like the manifest; it is not counted
-in an artifact's stored bytes, so artifact capacities and recorded byte counts
-keep their meaning.
-
-Ordinary whole-file replacement is centralized in `internal/host/fs`, shared
-directly by its consumers. The five publication contracts are the qualification and
-soak reports, streamed toolchain source archive, validated regenerated patch,
-and the builder's ordered stamp-and-launcher transaction. The shared primitive
-creates a same-directory stage with its requested mode, streams the contents,
-syncs and closes it, exposes its path for caller validation, and then performs
-replace or no-replace rename plus directory sync. Cleanup is repeatable. Before
-rename, any error leaves the destination unchanged. After rename,
-`PublishContext` returns `published=true` even if directory sync fails, so a
-caller preserves publication disposition without asserting durability.
-Caller-owned validation, unique paths, guards, and transaction ordering remain
-outside the helper. Append-log mutation, immutable directory publication,
-content-addressed artifact publication, and direct provenance streams keep
-their existing owners.
-
-Cleanup is owned. `artifact.SweepOwnedRoot` takes one payload root its caller
-exclusively owns (holding the owner's lock) and the references the owner's
-final committed state still requires: artifacts, execution-owned files such as
-diagnostic sidecars and pending-result payloads, and borrowed artifacts that
-another owner holds. It validates every reference first; a missing or corrupt
-one is an `artifact.ReferenceError` (`artifact.ErrCorruptReference`) and nothing
-is removed. It then removes only unreferenced artifact directories, staging
-directories, and single-link regular files. A target pool, a pool entry, a
-file with other links, a symbolic link or any other entry fails the sweep
-before any removal: pools are pruned only by `PruneTargetPool`, and borrowed
-shard evidence only by its own owner. Removal failures keep their error
-identity. `artifact.PublishOwnedFile` publishes an execution-owned file durably
-before the caller references it.
-
-`artifact.Artifact` is a detached reference (`EVIDENCE.ARTIFACT`), including a
-manifest snapshot and publication accounting. `OpenArtifact` returns an owned
-`*artifact.Opened`, which pins the directory and keeps its validated manifest
-private. `Manifest()` and `Snapshot()` deep-copy nested state; a snapshot transfers
-no resource ownership. The opener closes the handle. Payload methods validate
-inventory, bounds, mode, size, hashes, links, and path containment through that
-pinned root. Closing prevents payload access while detached metadata remains
-available. Publication still returns a detached reference.
-
-Campaign, corpus, and minimizer stores keep a content-addressed target pool
-outside staged Campaign directories. Artifacts hard-link their prepared binary
-from the pool, retain ordinary payload manifests, and validate the same bytes
-on open and replay. Corpus accounting charges an actual shared pool target
-once and each private fallback in full. Merge charges each target hash once
-as one hypothetical store and copies no payloads, so separate shard roots keep
-separate copies. Each Artifact's stored bytes and a Campaign's byte limits
-continue to charge the full target per Artifact. The Campaign's recorded
-success-byte sum and record-only validation require that standalone accounting.
-
-`internal/runner/internal/logstore` owns the one append-only storage engine shared by
-Campaign, merged-Campaign, and guided-corpus owners. A private store contains a
-single-link 0600 `log` and `lock` beneath a 0700 directory. Each append is one
-typed, length-bounded frame with versioned `GMLG` header CRC32C and payload
-CRC32C, written and synced before acknowledgement. Uncertain appends poison the
-writer. Writer open exclusively locks, replays, and may truncate and sync only a
-recognized torn final frame; read-only replay takes no lock and never mutates.
-Unknown kinds or versions, oversized declarations, invalid complete frames,
-consumer-invalid records, and earlier damage are corruption.
-
-`internal/runner/internal/campaign` owns the durable Campaign state machine: planned,
-prepared, running, published, and recoverable-failure state; the frozen plan;
-durable ordinal admissions and terminal receipts; committed outcomes and
-exploration rounds; preparation and per-Execution partial directories;
-inspection; locked recovery; and resume preflight. Publication is a committed
-log record rather than a separately authoritative manifest. Resume replays that
-prefix, validates every referenced payload, reruns only admissions without a
-receipt, and commits outcomes in ordinal order. Recovery removes unreferenced
-owned payloads and repairs only a recognized torn tail or interrupted cleanup.
-The retired segmented journal, index, and `campaign.json` are unsupported
-lineages detected only to return a named refusal; they are never decoded or
-migrated. Runner advances semantic Execution states while the Campaign owner
-controls publication and integrity decisions.
-
-The portable campaign-plan module separates immutable work identity from
-execution. A `gomad.portable-campaign-plan/v1` file names its
-`gomad.campaign-log/v1` storage and binds the Runner, toolchain,
-deterministic profiles, environment, complete selection, ordinal mapping,
-bounds, prepared target, and captured read-only mount digest. Its adjacent
-private bundle contains only the verified target and path-independent numbered
-mount trees; the plan file is published last. Static seed shards own disjoint
-global ordinals by `ordinal % count`, and resume preserves that assignment.
-Merge validates every Campaign v1 source log and its live evidence through the
-Campaign module before creating output, requires one plan identity, and rejects
-overlap or unexplained gaps. It publishes one immutable merged log: an envelope
-with the aggregate summary and each source's path and record identity, each
-source's own records replayed in an isolated scope, and content-deduplicated
-evidence attributions. Source artifacts, diagnostics and target pools stay
-owned by their shards; the aggregate only borrows them by reference.
-
-Replay performs all identity and payload validation before starting the stored
-target. It never rebuilds from source, substitutes a local binary, silently
-migrates a schema, or falls back to live host input. Exact replay compares the
-new semantic result with the artifact. Watchdog replay remains diagnostic
-because host elapsed time is not deterministic.
-
-Minimization persists one state per parent below its output root, binding
-attempt order, budget, implementation, and accepted artifacts. Resume validates
-that state and its replay evidence before continuing; it preserves consumed
-attempts and never mutates the parent. Exclusive ownership prevents concurrent
-minimizers from advancing the same parent.
-The CLI output root is `ARTIFACTS/minimized`; state is under
-`.minimize/sha256-<parent record hash>/` and the lock is its sibling `.lock`
-file. Completion removes that parent's state but keeps the empty lock file.
-State belonging to another parent cannot block a new run or satisfy resume.
-
-### Guided semantic exploration
-
-Guide is a deep module around a private bounded corpus. Runner opens it only
-after preparing the target, then selects the complete Campaign from that one
-immutable snapshot. Rarity within higher-value semantic domains orders retained
-seeds. Ordinary guidance excludes answered requested seeds and substitutes
-nothing; a fully answered selection executes no seeds. Regression guidance
-reuses corpus cases for no more than three quarters of a Campaign, leaving at
-least `ceil(count/4)` requested seeds unguided. The recorded Campaign plan binds
-the mode, snapshot hash, and final selection. Resume and shards use that
-selection without consulting a later snapshot for scheduling.
-
-A corpus identity binds the execution-relevant target projection, explicit
-environment and clock-tick policy, toolchain,
-generated boundary manifest, semantic probe instrumentation, manifest schema,
-and record contract. Each entry binds its seed and record hash to the retained
-exact-replay artifact, payload size, I/O transcript, World inputs and
-transitions, read-only mounts, semantic coverage, novelty reasons, and verified
-matching replay. The corpus owner stores its envelope and every admitted live
-snapshot in one `gomad.guide-corpus-log/v1` append log and rebuilds the current
-snapshot and in-memory indexes by strict replay. Opening validates every live
-referenced artifact before exposing any seeds. One nonblocking filesystem lock
-permits a single writer. Fixed live limits of 1,024 entries and 1 GiB bound
-validation and selection; historical append-log bytes are reported separately
-and grow with admissions and evictions until external storage management
-removes the corpus.
-
-Candidate artifacts are durably content-addressed before replay. Only an
-interesting candidate whose exact replay verifies and matches can enter the
-next committed corpus snapshot. A crash may therefore leave an unreferenced
-immutable case but cannot claim its coverage; the next writer open removes such
-cases after replay. Parallel candidates merge in selection order.
-
-Features use stable failure identities, abstract World state changes and
-transition outcomes, operation and transition pairs, I/O names and results,
-and generated boundary-probe IDs. World features omit seeds, sequence and
-request/event identities, logical times, resource keys, and payloads. The
-feature schema and probe instrumentation jointly enter the corpus identity.
-Observation consumes neither runtime randomness nor host time. Reproducible
-failures outrank invariant and terminal states, World and I/O outcomes,
-operation pairs, and boundary probes; payload size breaks remaining ties and
-rewards smaller reproductions. Code-edge coverage remains a separate,
-lower-priority input for a future independent producer rather than changing the
-versioned semantic-probe contract.
-
-Guidance reuses realized seeds and captured transcripts; it does not synthesize
-World scenarios, faults, or inputs and never forces runtime choices. Choice
-Exploration and Combined Exploration have separate bounded controllers
-and journals rather than extending the corpus selector. This keeps corpus
-admission and seed ranking independent from forced-decision frontier ownership.
-
-## World
-
-World is a pure in-memory model for deterministic events outside the runtime.
-It performs no host I/O, starts no goroutines, invokes no callbacks, and does not
-read the runtime's random state or clock. Its public methods accept and return
-detached data under one mutex, allowing adapters to wake application code only
-after World releases its lock.
-
-Recorder error completion follows the same boundary. `FinishError` recognizes
-original immutable model sentinels, concrete capacity/replay errors, and private
-model-produced context errors without dispatching arbitrary callbacks. Custom
-errors, external wrappers, and rebound public sentinels are not model inputs.
-`FinishTerminal` accepts detached capacity, replay-divergence, or invalid-input
-kind/detail data; invalid data leaves recording active. `Finish` alone infers
-quiescence. `internal/model/world/process.Session.FinishError` performs general error reporting
-after session validation and captures `Error` detail before ordered `Is`/`Unwrap`
-classification and descriptor cleanup. The process boundary may execute those
-callbacks; the pure model does not.
-
-### Lifecycle and identity
-
-Requests and readiness events receive monotonically increasing identities that
-are never reused during a run. A request progresses from pending to queued and
-then delivered, or cancellation wins before delivery. Duplicate readiness,
-unknown identities, time regression, invalid input, and exhausted identity
-space fail without partially mutating state or consuming replay entries.
-
-World retains terminal metadata so duplicate operations and replay results stay
-stable. Recorded lifetime limits bound that retention; capacity failure never
-permits dropping history or falling back to host behavior.
-
-### Event ordering
-
-World orders queued events lexicographically by:
-
-1. logical time;
-2. semantic priority;
-3. canonical adapter, resource kind, and resource key;
-4. request and event kinds;
-5. equivalence class; and
-6. registration sequence or a seed-derived choice rank, followed by registration
-   sequence as the collision fallback.
-
-Ordinary events retain semantic/FIFO order. An adapter may assign a nonempty
-equivalence class only when exchanging those events cannot change its semantics
-apart from the intentional choice being explored. The choice rank is a
-stateless, versioned, domain-separated HMAC over the seed and stable event
-identity. It never consumes the runtime's private random stream.
-
-Pointers, goroutine identities, host timestamps, callback arrival order, map
-iteration, heap position, and OS resource numbers are not ordering inputs.
-
-### Quiescence
-
-`World.Quiesce` is an assertion by its caller that application work in the
-claimed deterministic region cannot proceed. The standalone module cannot prove
-runtime quiescence.
-
-When events are queued, World advances to the earliest event time and atomically
-delivers every event at that instant in queue order. With pending requests but
-no queued events it reports World deadlock. With neither it reports idle. These
-results remain distinct from native runtime deadlock and Runner's wall timeout.
-
-### Snapshots and replay
-
-Snapshots contain only versioned, bounded, serializable data. Collections are
-canonically sorted; implementation maps, heap positions, pointers, callbacks,
-and channels are excluded. Restore validates the complete schema, ordering,
-cross-references, capacity accounting, sequence space, and semantic digest
-before publishing a usable World.
-
-External-event replay validates each requested transition before applying it.
-The first incompatible input, result, order, missing operation, or extra
-operation reports a stable divergence without advancing state or the replay
-cursor. Runner separately validates exhaustion and the final state digest at
-process exit.
-
-Adapter state is not an opaque registry inside World. Each adapter defines its
-own versioned snapshot, and Runner composes adapter and World data into one
-record generation. This keeps the event core deep without making it responsible
-for filesystem, network, persistence, or process semantics.
-
-## Transparent deterministic I/O
-
-World is an explicit event model; transparent deterministic I/O is a different
-integration boundary. Every Runner-managed target uses the same versioned
-boundary for the qualified toolchain and platform. Standard-library shims cover
-the inventoried operations independently of the target package or arguments,
-bind their implementation and inventory identities into the artifact, and fail
-closed at unsupported reviewed entry points.
-
-`boundary/manifest.json` is the canonical inventory of the currently reviewed
-standard-library entry points. It records each target's signature, semantic
-operation, stable probe, disposition, hook or delegated boundary, permitted
-adapter closure, and fixtures. Generation emits the version-specific compiler
-table, applied-interception report, and human-readable inventory; validation
-rejects malformed, duplicate, or stale declarations before a toolchain build.
-The generated compiler table also carries the formatted declaration fingerprint
-of every intercepted definition. The compiler rereads and hashes the selected
-source declaration before inserting a prologue, so a signature-compatible body
-change cannot silently retain an obsolete interception decision.
-Qualification also discovers public callers of host-capability sinks and
-methods on capability-bearing handles. Every discovered target must be directly
-intercepted or carry an explicit transitive, dynamic, unreachable, patch, or
-upstream disposition; static delegates must still reach a declared hook.
-
-Each compiler prologue records its generated stable probe ID once per process,
-before hook dispatch. The generated semantic-canary test runs the filesystem
-and network fixtures and fails if any manifest hook is unobserved, while the
-fixtures independently assert the modeled result or stable rejection.
-
-The manifest also generates uniform denial hooks only when an interception
-names a complete hook policy. That policy fixes disabled execution as an
-upstream fallback, transcript observation as the compiler probe, zero result
-values, the exact unsupported error, and error wrapping. Stateful denials and
-modeled operations remain handwritten; adding `disposition: deny` alone never
-opts a hook into generation.
-
-The implementation retains one immutable internal profile specification because
-bootstrap frames and existing artifact schemas need a stable name, target
-contract, inventory, identities, and build-overlay policy. It has no name-based
-selection path and is not a public registry or extension mechanism.
-Foreign-runtime adapters form a separate,
-closed, version-pinned registry selected from target build metadata. The current
-`modernc.org/libc` adapter is generic to that reviewed dependency version; it is
-not keyed to SQLite, Temporal, or an individual test.
-
-Modeled I/O is appended to a bounded deterministic transcript. Replay supplies
-the recorded transcript and stops at the first mismatching operation. Host data
-that is intentionally imported, such as a read-only mount, is captured through
-a Runner-owned boundary and must replay from artifact data without reopening the
-original host source.
-
-Deterministic I/O need not route operations through World when a synchronous,
-explicitly ordered transcript is sufficient. An adapter should adopt World only
-when it needs modeled external readiness, competing events, cancellation, or
-logical time coordination. This avoids imposing a speculative event scheduler
-on simple deterministic shims while preserving one World contract for adapters
-that do need those semantics.
-
-### Filesystem and mount ownership
-
-`internal/gomadfs` is a purpose-built in-memory filesystem shared by the `os`
-adapter and reviewed foreign-runtime adapters. It owns namespace and handle
-semantics, deterministic timestamps, stable directory order, mount
-immutability, and explicit capacity accounting behind a small operation
-interface. Gomad does not use Afero here: Afero imports `os`, cannot sit below a
-patched `os` package without a cycle, and does not cover unchanged libc callers
-or Gomad's transcript, replay, and capacity contracts. The mount loader accepts
-the generated mount wire value types directly, so `os` does not copy every
-field between identical transport and filesystem structures. The `os` adapter
-also owns one `gomadfs.Entry`-to-`FileInfo` projection shared by path stat,
-handle stat, and directory reads; the filesystem keeps its richer stat result
-and operation semantics private.
-
-Handle and Mapping creation selects one of two private representations for the
-three execution paths (`SIMULATION.STORAGE`). Standalone and in-process execution
-use local owners carrying filesystem, node, and generation; process execution
-uses remote typed-command identities and copied-byte cache state. Facades
-delegate to the selected owner, and local indexes retain concrete local owners.
-Path operations select their route separately. Identical local mapping regions
-share one buffer and one byte charge, which surviving aliases retain after the
-charged owner closes. Process writable Map returns `ENOTSUP` before closed,
-access, or bounds checks. Process read-only mappings cache copies; nonnil cached
-bytes return without revalidation, while nil cache state refetches. Neither
-copied process mappings nor in-process handles imply Hard Isolation.
-
-Explicit read-only mounts are the only brokered host filesystem input. A
-Runner-owned broker pins each approved root, resolves descendants without
-following symlinks, validates stable bounded captures, and sends typed entries
-to the target. The target installs each first observation as an immutable
-in-memory node. Replay serves only the artifact's captured entries and never
-reopens the original host path; an uncaptured lookup diverges instead of falling
-back to live input.
-
-### Binary protocol ownership
-
-The deterministic-I/O protocols retain transports selected for their distinct
-runtime properties: fixed shared-memory transcript records, fixed bootstrap and
-terminal frames, and bounded synchronous pipes for lazy read-only mounts. World
-configuration and recording remain separately owned, explicit encodings; they
-are not part of a universal serialization layer.
-
-Cross-endpoint layouts are declared once in the deterministic-I/O, Choice, and
-simulation schemas under their respective `schema` directories. The protocol
-generator emits dependency-free typed codecs and the same golden, truncation,
-validation, allocation-bound, and fuzz tests for the Runner module and patched
-standard library. `make -C tools/gomad generate` updates checked-in output,
-while `make -C tools/gomad validate` rejects drift. Protocol changes require an explicit version and
-compatibility decision.
-
-`internal/model/schema/timewire.json` defines the versioned simulation-time layout
-and generates host codecs in `internal/backends/native/execution/simulation_time_wire_generated.go`
-and allocation-free runtime codecs (`RUNTIME.TIME`, `SIMULATION.BACKENDS`, `MAINTENANCE.GOVERNANCE`). Golden
-vectors bind magic, kinds, reserved fields, correlation, and byte order. Runtime
-descriptor I/O, native timers, quiescence hooks, and host arbitration remain
-handwritten owners; generated layout code does not replace their lifecycle.
-
-Typed network and volume commands in the overlay's `internal/gomadio` and
-`internal/gomadfs` own operation arguments and response interpretation
-(`SIMULATION.NETWORK`, `SIMULATION.STORAGE`). Their translation owners map to
-the generated compact `gomadmodelwire` envelope. Callers do not choose generic
-string/integer slots, while wire framing and shared domain semantics retain
-their existing owners, bytes, accepted shapes, and partial-I/O error information.
-
-Callers do not own offsets, byte order, magic, reserved bytes, or enum checks.
-Runner-side bootstrap, transcript, and mount packages use the generated host
-codec. In the target, `internal/gomadwire` owns the layouts,
-`internal/gomadtrace` owns typed transcript recording and replay, and the typed
-`internal/gomadio/mount` client owns descriptors, framing, bounds, serialization,
-and request ordinals below the `os` adapter. This keeps the patched dependency
-closure small while making malformed input fail before allocation or exposure.
-
-## Failure domains
-
-Gomad keeps these outcomes distinct:
-
-- target failure: the process completed with a deterministic exit, signal,
-  logical test timeout, runtime fatal, or structured World/I/O failure;
-- watchdog timeout: host time bounded a process that did not produce a complete
-  target result;
-- replay divergence: current deterministic interaction differs from the record;
-- capacity or invalid input: a modeled boundary rejected an operation before
-  partial mutation; and
-- Runner/host failure: preparation, launch, containment, capture, integrity, or
-  publication failed, so the Campaign cannot be claimed trustworthy.
-
-No error path silently falls back to host time, host readiness, live replay
-input, an approximate schema, or an unbounded allocation.
-
-## Host tooling boundary
-
-Host policy is split into deep, typed modules: source archives, patch sets,
-toolchain publication, command supervision, bounded output capture, and the
-black-box test campaign each expose a narrow Go interface.
-`internal/backends/native/cmd/gomadtool` is their command adapter; Make retains stable target names but does not own
-lifecycle or result-classification policy. The test driver records one bounded
-case result per external command and keeps equality, diversity, diagnostics,
-timeouts, and mandatory semantic markers as distinct oracles.
-
-`internal/backends/native/build/internal/gocommand` uses supervised `internal/host/exec` processes for
-target compilation, Go identity queries, and package/module listing
-(`TARGET.PREPARATION`). Both output contracts retain context cancellation,
-finite watchdogs, process-group cleanup, and command exit classification.
-`Structured` requires complete bounded stdout and stderr and rejects either
-stream's overflow before parsing. `Diagnostic` keeps bounded head/tail output
-with complete byte counts and hashes, so truncation remains usable diagnostic
-evidence. Truncated diagnostics cannot stand in for structured package data.
-Identity/cache queries and module download use `StructuredCommand` to keep
-complete bounded output and the actual command error separate from operation
-failures. Module download's original JSON
-decoder, reported module error, command error and checksum ordering applies even
-after caller cancellation. Infrastructure/cleanup, stdout overflow, stderr
-overflow and watchdog failures refuse stdout before that decoder runs. This
-does not change `Structured`'s context-sentinel policy or `Diagnostic` capture.
-Identity/cache queries refuse command errors before decoding and project their
-complete bounded stderr into the actual `exec.ExitError`, matching `Cmd.Output`.
-Standard-package inventory retains literal argv and inherited cwd, using the
-same operation and actual error. Its `Cmd.Output` stderr projection keeps the
-first and last 32 KiB with the original omitted-byte marker above 64 KiB.
-Capability listing preserves actual command errors without that projection and
-retains its original caller-context override on any failure. Both listings
-refuse incomplete streams before decoding; these bounded refusals do not claim
-literal equality with originally unbounded standard inventory.
-Compilation uses `DiagnosticCommand`: both child output descriptors share one
-real pipe, preserving ordinary combined-output order and raw command errors.
-Its single diagnostic capture retains bounded head/tail and full byte counts
-and hashes; infrastructure/cleanup and watchdog failures remain distinct.
-The cache lock is released before either operation or command errors are
-projected. Preparation's identity query retains its original background context;
-listing and compilation retain the caller context. Default host commands and
-the existing `Diagnostic` operation keep separate output streams.
-Adapter prepared-source listing uses `Compatibility`, retaining raw Go-command
-errors and bounded stderr through the existing public helper. It refuses either
-stream above 4 MiB before decoding and uses the 15-minute watchdog, bounded by
-an earlier caller deadline. The measured stock-Go listings reached 4,075 bytes;
-that sample establishes headroom, not qualification of every prepared adapter.
-Command infrastructure/cleanup errors precede stdout overflow, stderr overflow,
-watchdog and raw command outcomes; failed stdout never reaches source projection.
-
-`internal/backends/native/toolchain/installation.Layout` names locations for the builder, while
-`Description` validates the executable launcher, build key, and pinned build
-(`PLATFORM.INSTALLATION`, `PLATFORM.IDENTITY`). Consumers obtain target caches,
-prepared-target caches, and adapter locations from these values. CLI resolution
-still follows explicit root, environment, adjacent manifest, then adjacent
-installation. Adapter replacement locations remain stable identity inputs
-because Go records replacement paths in binary build information.
-
-Shell is limited to reviewed argv and platform boundaries. The patch-regeneration
-scripts are owned by `internal/backends/native/conformance/scripts`: `exec.sh` and
-`compiler_test_exec.sh` adapt upstream Go hooks, while `clock_audit_test.sh` owns the
-Darwin DTrace invocation. A Go-owned content check rejects new script owners,
-Bash outside the explicit platform adapter, and Perl policy. Platform-neutral
-host-tool tests and the complete runtime qualification gate run on both
-`darwin/arm64` and `linux/amd64`. The macOS sandbox test and privileged DTrace
-audit remain Darwin-specific.
-
-## Maintenance gates
-
-`internal/backends/native/toolchain/version/version.json` is the canonical release descriptor. It owns
-the Go archive and digest, supported platforms, patch name, boundary-manifest
-version, adapter versions, and exact patch/overlay source sets. Generation
-produces its Make, Go, and human-guide consumers; validation requires the
-allowlists to equal the actual patch and overlay tree rather than merely
-containing them.
-
-Gates follow the build selection. Default targets (`test-harness`,
-`world-test`, `test-wasm`, `lint-code`, `validate`) and the `wasm-linux` and
-`host-tools-linux` workflow jobs check the default set. The only native code
-they compile is what `validate` runs with `-tags gomad_native`: the native
-generators and the `TestHostPacksBindCurrentProfile` compatibility-pack test.
-When native sources change, `host-tools-linux` lints with the selection, which
-covers the native child module.
-Native Make targets and native workflow jobs set the selection themselves, so
-every native test, generator, fixture and ledger still runs under it.
-A default binary given a native installation header exits with status 2,
-the unsupported-configuration status, and names `-tags gomad_native`; it never
-falls back to WASM. Native execution remains deferred under fn-128/fn-149.
-
-`internal/archcheck` inventories actual host packages, source
-files, and nested modules for the `darwin/arm64` and `linux/amd64` source sets
-(`MAINTENANCE.GOVERNANCE`, `VERIFICATION.TRACEABILITY`). The default run
-inventories the default set and fails on a native import reachable from it;
-native child packages are inventoried only under `gomad_native`. Explicit overlay,
-fixture, and module exclusions are checked for stale entries. Ownership and
-module edges operate on listed imports; uncovered source and package-list/type
-errors are findings rather than silently uninspected packages.
-
-The module is a tool with one user entry point, `cmd/gomad`. Its six internal
-groups are Runner, backends, evidence, models, host operations and architecture
-checks. Backend-neutral targets remain below `internal/backends/target` so the
-provider contract and artifact owner can both use them without an import cycle.
-
-`internal/archcheck` checks every declaration in the original World, mailbox,
-Record, exploration, capability-policy, controller, capability-evaluation and
-simulation-progress pure files. An exact reviewed dependency-file inventory
-makes their formerly implicit pure helpers explicit; host-loading siblings stay
-outside it. The WASM subtree owns its separate pure-file and backend-boundary
-tests while using the same folded module inventory.
-
-Typing uses compiler export data from actual `go list` metadata and parses only
-module sources. A Go-minor-versioned stdlib table admits reviewed memory APIs;
-it never reads or hashes standard-library sources. Local-timezone APIs are host
-effects: parsing and Date construction require literal `time.UTC`.
-Concrete `time.Time` JSON/format callbacks are conservatively rejected even
-when their runtime value is UTC; the checker does not infer receiver provenance.
-The only third-party boundary is `golang.org/x/mod/module.Check` and `CheckImportPath` at
-the reviewed version, closed source inventories and exact validator-source
-hashes. This is a callable boundary, not a package-startup purity claim:
-lazyregexp's reviewed initialization reads `os.Args` to choose regexp
-compilation timing, without changing either admitted validator's result.
-
-Static calls outside the pure set and goroutines are findings even with review
-marks. Function values, callback boundaries and interfaces lacking exclusively
-pure concrete implementations require a same-line or previous-line
-`//gomad:dynamic reviewed YYYY-MM-DD reason` mark. Unused or malformed marks
-fail; marks older than one year warn. These explicit reviews replace recursive
-ownership/provenance inference, not runtime isolation or general checker
-soundness. Pure-file imports and initialization receive structural checks on
-both qualified source platforms. Typed checks default to the host; CI or
-`GOMAD_ARCH_ALL_PLATFORMS=1` also checks both qualified platforms. Host vet and
-patched-runtime/native qualification remain separate gates.
-
-`pin-impact` compares complete candidate and baseline module identities
-against adapter, compatibility-pack, interception, and clock-inventory pins.
-It reports an unavailable identity as unknown and therefore invalidated.
-`adapter-regenerate` derives rewrites with exact-occurrence anchors in a
-private cache, binds the changed source and proposed anchors to a review digest,
-and publishes the descriptor, adapter, fixtures, and generated consumers only
-after matching approval. Publication checks the input snapshot under an
-exclusive lock and recovers an interrupted transaction before another apply.
-`compatibility-pack refresh` reads the same request-to-target table as the
-qualification Make target; it batches fresh discovery and review while leaving
-generation behind each request's exact approval. Other-platform requests remain
-untouched, and a changed review invalidates its former approval. Both supported
-hosts must run validation, pack qualification, core qualification, and the
-complete test gate for an accepted pin update.
-
-The runtime patch and transparent I/O overlays are pinned implementation costs.
-Every Go upgrade runs the typed `gomadtool upgrade-dossier` host command, which records the
-complete upstream patch, semantic boundary diff, interception evidence,
-archive-based overlay collision audit, disabled-mode upstream compatibility,
-mandatory probes, the required checked core-corpus report, and platform qualification
-in one JSON dossier. The supported-host gate must also rerun the
-platform's host-clock inventory and, on Darwin, the positive-controlled clock
-trace because dynamic imports and probe names are platform implementation
-details. The dossier is published on failure and uploaded by CI, so a rejected
-upgrade retains its first failing gate and bounded output. Publication uses the
-shared host-filesystem replacement primitive, so a failed write, file or
-directory synchronization, rename, or temporary-file cleanup is returned as a
-host error ahead of the gate result, and a partial dossier never replaces the
-prior complete one. Boundary comparison
-canonicalizes complete manifest metadata, intercepts, and hook policies so a
-field unknown to an older comparator cannot disappear
-from upgrade evidence.
-
-Dependency bumps reuse the build's own pin owners rather than a second
-description of them. `upgrade/pinimpact` imports the adapter registry and the
-compatibility-pack loader and reads the boundary manifest and host-clock
-inventory, resolving the baseline and candidate module graphs in a scratch copy
-with a private module cache, so its verdict for each pin is the identity
-comparison the build makes. `upgrade/adapterregen` re-applies each adapter
-rewrite by its existing exact-occurrence anchor, computes every platform's
-prepared source set from build constraints, and publishes the adapter
-constants, descriptor entry, fixture modules, and generated outputs together
-from a verified scratch copy under a lock and a committed journal, only with
-the approval digest of the reviewed sources and anchors. Pack refresh runs
-the pin impact report per mapped working directory over the refreshed root's
-packs before validating and merging any saved report for its scoped module.
-The saved report supplements live discovery and cannot suppress a mapped
-module. Refresh reuses discovery, review, and exact-approval generation unchanged;
-it never approves. None of these widens a pin or grants a capability.
-
-Broader runtime or compiler changes require a minimized real workload showing
-that Runner, World, adapters, and records cannot satisfy the contract.
-Deterministic GC control, compiler checkpoints, multi-P execution, DPOR, and
-preemption bounding remain separate research projects rather than guarantees
-of bounded choice tracing and exploration.
+Four ideas carry the whole system:
+
+- **Seeded execution.** One seed fixes every choice Gomad makes for one
+  execution: which goroutine runs next, which select case wins, how timers tie,
+  what random bytes the guest sees, how the modeled network and storage behave.
+- **Sealed guest.** The test never touches the host. Files come from captured
+  immutable bytes and an in-memory namespace, network links are modeled, the
+  clock is virtual, and entropy derives from the seed. Anything else is refused
+  before execution, never emulated.
+- **Evidence first.** Every execution produces a Record; failures and selected
+  successes are published as content-addressed Artifacts that bind the module,
+  helper, inputs and decisions by digest. Replay validates those identities
+  before re-executing.
+- **Model fidelity by differential testing.** The Rust helper owns the clock,
+  World, volume and network models at run time. Go keeps reference
+  implementations of the same models, and checked-in conformance corpora hold
+  the two equal.
+
+## Module map
+
+```mermaid
+flowchart TB
+    subgraph CLI["cmd/gomad"]
+        cli[internal/cli: verbs, flags, installation selection]
+    end
+    subgraph RUN["internal/runner"]
+        runner[campaigns, seeds, parallel slots,<br/>failure policy, resume, minimize, inspect]
+    end
+    subgraph BE["internal/backends"]
+        contract[Provider contract<br/>Prepare / Execute / Replay]
+        subgraph WASM["wasm/"]
+            backend[backend: build, cache, provenance]
+            wasi[wasi: helper transport, limits, config]
+            cluster[cluster: multi-guest scenarios]
+            command[command: operator verbs]
+            installation[installation: pinned manifests]
+            toolchain[toolchain: runtime overlay]
+            qualification[qualification: cells and reports]
+            wasmhost[wasmhost: Rust helper]
+        end
+    end
+    subgraph MODEL["internal/model"]
+        choice[choice: traces, tapes, exploration]
+        clock[clock: virtual time]
+        world[world: external events]
+        volume[volume: durable filesystem]
+        network[network: links, streams, partitions]
+        clustermodel[cluster: nodes, incarnations, scenarios]
+        runtimesource[runtimesource: overlay sources]
+    end
+    subgraph EV["internal/evidence"]
+        record[record: Execution Record, identities]
+        artifact[artifact: content-addressed store]
+        qual[qualification: reports]
+    end
+    CLI --> RUN --> BE
+    WASM --> MODEL
+    RUN --> EV
+    WASM --> EV
+```
+
+| Layer | Owns | Does not own |
+| --- | --- | --- |
+| `cmd/gomad` | Parsing, installation resolution, exit statuses, presentation | Any semantics |
+| `internal/runner` | Campaign control: which seeds run, how many in parallel, when to stop, how to resume, how to minimize | Executing a guest, building a module |
+| `internal/backends` | The neutral `Provider` contract; the WASM implementation of it | Campaign policy |
+| `internal/model` | The deterministic models and their reference implementations | Host I/O, goroutines, callbacks |
+| `internal/evidence` | Records, artifacts, identities, qualification reports | Model semantics |
+| `internal/host` | The only host filesystem and process primitives | Anything above |
+
+The Runner imports no concrete backend. The backend imports models and
+evidence contracts. Models perform no host I/O and start no goroutines. The
+architecture checker in `internal/archcheck` enforces these edges.
+
+## One execution, end to end
+
+```mermaid
+sequenceDiagram
+    participant CLI
+    participant Runner
+    participant Backend as WASM backend
+    participant Helper as Rust helper
+    participant Guest
+    CLI->>Runner: explore go-test ./pkg --seeds=1..N
+    Runner->>Backend: Prepare(target)
+    Backend->>Backend: go list + go build (wasip1, overlay, tags)
+    Backend-->>Runner: Prepared target: module digest, build key, provenance
+    loop each seed
+        Runner->>Backend: Execute(prepared, seed, limits, choice mode)
+        Backend->>Helper: request: module, config, seed, tape?
+        Helper->>Guest: instantiate fresh store, start
+        loop until guest exits
+            Guest->>Helper: host import (decision, clock, fd_read, net_stream, ...)
+            Helper-->>Guest: seeded answer, recorded
+        end
+        Helper-->>Backend: termination, stdout/stderr, choice trace, transcripts, evidence
+        Backend-->>Runner: ExecutionResult
+        Runner->>Runner: Record, classify outcome, apply failure policy
+        Runner->>Runner: publish Artifact if failure or retained success
+    end
+    Runner-->>CLI: campaign summary, exit status
+```
+
+**Prepare** happens once per target. The backend verifies the pinned compiler
+and helper by digest, applies the cooperative runtime overlay from
+`internal/model/runtimesource`, builds the module with the declared build tags,
+and records provenance: every source file hash, the module digest, the compiler
+and helper identities, and the immutable guest configuration. The build key
+derived from that provenance is part of every later identity, so a changed
+source or toolchain is a different target, never a divergence.
+
+**Execute** happens once per seed in a fresh helper store. The helper answers
+every import the guest makes. A result carries a termination class, the
+captured output, the choice trace, the I/O, storage and network transcripts,
+and model evidence.
+
+| Termination | Meaning |
+| --- | --- |
+| `exit` | The guest ran to completion; its exit code is the application outcome |
+| `unsupported` | The guest asked for something outside the sealed boundary; refused before any emulation |
+| `capacity` | A declared limit was hit: fuel, memory, calls, output, transcript bytes |
+| `divergence` | Replay observed a decision or input that does not match the retained artifact |
+| `trap` | The WebAssembly engine trapped |
+| `infrastructure` | The helper, cache or host failed; not an application outcome |
+
+## Where determinism comes from
+
+Three things can make a Go test behave differently from run to run: goroutine
+scheduling, time, and the outside world. Gomad controls each at a different
+boundary.
+
+```mermaid
+flowchart TB
+    subgraph Guest["Guest (cooperative Go runtime)"]
+        sched[Scheduler reaches a choice point:<br/>runnable goroutines, select, timer tie]
+        idle[Nothing runnable:<br/>guest reports idle + earliest deadline]
+    end
+    subgraph Helper["Rust helper"]
+        decide[Answer from seed, or from the tape on replay]
+        clockm[Virtual clock: frozen while runnable,<br/>jumps to earliest deadline on idle]
+        ns[Namespace: captured immutable files<br/>+ in-memory writable volumes]
+        net[Network model: links, delay,<br/>partition, heal, FIFO streams]
+        rnd[Entropy: derived from seed]
+    end
+    sched -->|decision import| decide --> sched
+    idle -->|idle import| clockm --> sched
+    Guest -->|fd_*, path_* imports| ns
+    Guest -->|net_stream import| net
+    Guest -->|random_get, clock_time_get| rnd & clockm
+```
+
+**Scheduling.** The cooperative profile compiles the test against a small
+runtime overlay. The overlay keeps one logical processor, disables
+asynchronous preemption, and at each choice point asks the helper which
+alternative to take. The helper draws from the seed and records the decision.
+The recorded sequence is the Choice Trace; its branching decisions form the
+Decision Tape that exact replay feeds back in. Readiness and
+single-alternative decisions are kept as evidence but never forced.
+
+**Time.** The guest clock is virtual and starts at a fixed epoch. While any
+goroutine is runnable the clock does not move. When the runtime proves nothing
+is runnable, the guest reports idle and its earliest timer deadline, the helper
+advances the clock to that instant, and every timer due at that instant
+becomes eligible. A busy loop therefore never lets time pass, and a wall-clock
+watchdog in the Runner bounds it.
+
+**Outside world.** The helper implements a closed subset of WASI preview1 plus
+the `gomad_wasm_v1` and `v2` import modules. Unknown imports, wrong signatures
+and operations outside the subset are refused at module load. Files resolve
+against captured immutable inputs and in-memory volumes; sockets resolve
+against the network model; random bytes come from the seed. Nothing reaches
+the host.
+
+Two profiles exist. `gomad.wasi-stock-exploratory/v1` runs an unmodified Go
+build with modeled imports and supports observed replay only.
+`gomad.wasi-cooperative/v1` adds the runtime overlay and is the profile that
+supports exact replay, choice exploration, and typed scenarios. Everything
+below assumes the cooperative profile.
+
+## Clusters and scenarios
+
+A single guest is one process. Temporal tests need several: nodes that crash
+and restart, links that partition and heal, volumes that survive a crash. A
+typed scenario declares that topology, and one helper process runs every
+incarnation of every node in its own fresh store.
+
+```mermaid
+flowchart LR
+    scenario[Scenario file:<br/>nodes, links, volumes,<br/>boot args, lifecycle actions] --> Helper
+    subgraph Helper["One Rust helper process"]
+        broker[Broker: which incarnation runs next]
+        clock[Shared virtual clock]
+        world[World: ordered external events]
+        netm[Network: directed links,<br/>partition / heal / delay]
+        vol[Volumes: durable + volatile views,<br/>crash selection, recovery image]
+        a1[Node a, incarnation 1]
+        a2[Node a, incarnation 2]
+        b1[Node b, incarnation 1]
+    end
+    a1 -. crash at marker .-> a2
+    a1 & a2 & b1 --- netm
+    a1 & a2 --- vol
+    broker --> a1 & a2 & b1
+```
+
+- **Node and incarnation.** A node has a stable identity and address. Each
+  boot is a new incarnation with a fresh store; restart keeps the address and
+  the durable volumes and revokes every old handle, connection and mapping.
+- **Broker.** Only one incarnation runs at a time. The broker hands the baton
+  in a deterministic order derived from the seed and the World event queue.
+- **World.** A pure event queue for everything outside the runtime: ordered by
+  logical time, priority, resource and a seed-derived rank. Pointers, host
+  timestamps and map order are never ordering inputs.
+- **Network.** Directed links with fixed delay. Partition holds every
+  undelivered byte; heal releases them in order. Graceful stop drains and
+  closes; crash resets both sides.
+- **Volumes.** Writes land in a volatile view; sync moves them to the durable
+  view. A crash selects which unsynced writes survive, and the recovery image
+  is what the next incarnation boots from.
+
+The Go packages under `internal/model` hold reference implementations of the
+clock, World, volume, network and namespace models. They are not on the
+execution path for clusters; they are the oracles the Rust implementations are
+checked against by the conformance corpora under
+`internal/backends/wasm/wasmhost/tests/testdata` and `wasi/testdata`. A change
+to a model is a change to a corpus, reviewed as an expectation diff.
+
+The helper transcript corpus is the shared Rust/Go wire and evidence contract.
+Regeneration compares repeated executions, and a second pass must leave the
+fixtures byte-identical. Unit tests retain invariants that fixtures cannot
+express, such as lock handling, overlap counters and allocation-free probes;
+coverage must establish replacement before a test is deleted.
+
+Measurement producers live behind the explicit `wasmmeasure` command, outside
+test targets. They retain their host-admission, identity and resource checks.
+The [WASM implementation guide](internal/backends/wasm/README.md) documents the
+regeneration workflow and command invocation.
+
+## Evidence: records, artifacts, replay
+
+```mermaid
+flowchart LR
+    exec[Execution result] --> rec[Record:<br/>versioned envelope, outcome,<br/>hashes of every payload]
+    rec --> id[Identities:<br/>record, failure signature,<br/>execution identity]
+    rec --> art[(Artifact:<br/>manifest.json, storage.json,<br/>choices.bin, payloads)]
+    art --> inspect[inspect: read without executing]
+    art --> replay[replay: validate identities,<br/>re-execute under the tape]
+    art --> minimize[minimize: smaller input,<br/>same failure signature]
+    replay -->|matches| ok[Confirmed]
+    replay -->|differs| div[Divergence at first<br/>mismatching decision]
+```
+
+A **Record** is the canonical description of one execution: outcome, output
+hashes, the choice trace, model evidence and the identities of everything that
+produced it. Diagnostic paths and host timestamps are excluded so byte-equal
+behavior yields byte-equal records. The **failure signature** also excludes the
+seed, so the same bug found under different seeds groups together.
+
+An **Artifact** packages a Record with the inputs needed to replay it. It is
+written by staging, syncing and a no-replace rename, so a crash can leave an
+unreferenced directory but never a half-published artifact. Artifacts are
+content-addressed and carry a storage lineage; an artifact from an earlier
+lineage is refused, never migrated.
+
+**Exact replay** first validates that the installed helper, module and runtime
+identities match the artifact, then re-executes with the retained Decision
+Tape. Every decision is validated before it is applied; the first mismatch is
+reported as a divergence with its ordinal. The stock profile offers observed
+replay: a fresh execution compared with the retained outcome and evidence,
+without forcing the recorded scheduling decisions.
+
+**Choice exploration** takes one base seed and systematically forces
+alternative decisions at increasing prefixes, in bounded breadth-first rounds.
+Each round is a hash-linked transaction so an interrupted campaign resumes from
+its last complete round. Bounds on executions, depth and bytes are required;
+exhausting them reports the explored envelope, not a proof of coverage.
+
+## Operator surface
+
+```mermaid
+flowchart LR
+    install[install<br/>pin compiler, helper,<br/>runtime sources, config] --> manifest[(installation manifest)]
+    manifest --> discover[discover<br/>validate identities]
+    manifest --> explore[explore<br/>seed campaign or<br/>choice exploration]
+    explore --> artifacts[(artifacts)]
+    artifacts --> inspect & replay & minimize
+    explore -. interrupted .-> recover --> resume
+    manifest --> qualify[qualify<br/>retained repetition gates] --> report
+```
+
+`install` never downloads anything. It pins existing tools by digest and writes
+a manifest with the complete immutable guest configuration. `discover` checks
+the manifest and helper bytes without opening the compiler or sources, so
+retained replay still works after build inputs are gone. The CLI resolves the
+installation from `--installation`, then `GOMAD_WASM_INSTALLATION`, then a
+manifest beside the binary, and never falls back from an invalid one.
+
+## Qualification
+
+Nothing in the code claims support; the retained qualification record does.
+`qualify` runs a workload under repeated seeds and fresh instances, replays
+every retained execution, and binds the result to the exact candidate: source,
+helper, module, model, compiler, host, profile and limits. The current cells
+are a small fixture, a SQLite storage workload, a one-box Temporal workload and
+a multi-instance cluster scenario. A passing cell qualifies that cell on that
+candidate; it is not a claim about arbitrary tests, other hosts, or
+performance. See the [qualification contract](internal/backends/wasm/QUALIFICATION.md).
+
+## What is not claimed
+
+- Determinism of arbitrary host I/O. Anything outside the sealed boundary is
+  refused, not simulated.
+- Schedule stability across source or toolchain changes. Identity binds the
+  target; a different build is a different target.
+- Exhaustive exploration. Every search is bounded and reports its envelope.
+- Cross-host replay. Artifacts replay on their recorded profile and identities.
+- Data-race detection or weak-memory coverage.
+
+## Where to read next
+
+- [README](README.md): installation to a retained failure, step by step.
+- [WASM operator guide](internal/backends/wasm/CLI.md): every verb and flag.
+- [WASM README](internal/backends/wasm/README.md): helper layout, corpora,
+  regeneration.
+- [Qualification](internal/backends/wasm/QUALIFICATION.md): cells, gates,
+  measured costs.
+- [SPEC](SPEC.md): definitions and product claims.

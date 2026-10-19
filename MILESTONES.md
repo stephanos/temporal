@@ -28,6 +28,8 @@ Both platforms remain unverified for the current candidate until their owners re
 No PR, push or CI action is authorized by the deferral or its revival.
 The [2026-10-14 native hibernation decision](#native-backend-hibernation-owner-decision-2026-10-14)
 extends this acceptance deferral to the new shared-owner native execution gates.
+The [2026-10-19 retirement decision](#native-backend-retirement-and-the-functional-test-goal-owner-decision-2026-10-19)
+retires the native backend: fn-128 and fn-149 close as won't-do when fn-223 lands.
 Both backends are developed together here, and `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
 remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
@@ -62,7 +64,7 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 
 1. Complete [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md) upstream sync: merge `temporalio/temporal` `main` into `gomad` (merge, not rebase, so retained evidence SHAs stay valid) and requalify.
 2. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
-3. Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187. Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
+3. ~~Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187.~~ Superseded on 2026-10-19: fn-185 moves below the goal-path work (see the retirement decision below). Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 ### Native backend isolation (owner decision, 2026-10-16)
 
@@ -83,6 +85,21 @@ The owner answered, "since this is WASM, we don't need a particular env. that wa
 ### Performance checks deferred to fn-185 (owner decision, 2026-10-17)
 
 The owner asked, "can we defer the perf checks to fn-185 and then close out fn-182 and fn-184?" The wall-clock measurements of fn-182 R4 (cold compilation, warm preparation/load, fresh-instance startup, execution wall time and helper peak RSS for full versus slim guests) and fn-184 R5 (build, vet, lint and default test target wall times for the default and selected sets) move to [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) R6, task .2. The matched same-host baseline/candidate contract, repetitions, median/range, gain-versus-spread labels, identities and rerun commands are unchanged. fn-182 and fn-184 close with the byte and count measurements that already exist (module and compiled-cache bytes; package and line counts), recorded in their close-out artifacts. No performance gain is claimed until fn-185 measures it.
+
+### Native backend retirement and the functional-test goal (owner decision, 2026-10-19)
+
+The owner decided, "we want to retire the native backend (not delete yet)", "our goal is definitely to run arbitrary functional tests with gomad (wasm)", and "yes file flow spec for promotion". Native is retiring: it stays in the tree under its fn-184 selection until [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) removes it, and no native qualification is pursued. The shared model and the WASM backend stop depending on native sources by promoting the generated volume and network projections to owned source and relocating the protocol generator into the parent module ([fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)); relocating the overlay packages as a retained reference was rejected because nobody executes them once native is retired. The product goal is deterministic execution of arbitrary Temporal functional tests on the cooperative WASM profile. This decision grants no PR, push or CI authority.
+
+Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 2026-10-19 to move [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) below the goal-path work so it profiles sweep workloads rather than fixtures; this supersedes the 2026-10-16 placement of fn-185 directly after fn-187. fn-185.1's attribution tooling is not gated; fn-185.2 is re-scoped to wait for fn-221.2 and include sweep workloads; the ordering is recorded in the task because Flow task dependencies cannot cross specs.
+
+1. [fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md) projection promotion and [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md) functional-suite triage sweep run in parallel; they touch disjoint code.
+2. [fn-220](.flow/specs/fn-220-gomad-one-command-temporal-test-setup.md) one-command Temporal test setup; fn-221 uses its installation if landed, otherwise a throwaway configuration.
+3. [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile on sweep workloads, so timeout and capacity classes can be judged before refusal-closing specs are filed.
+4. Refusal-closing specs are filed from fn-221's ranked classification and fn-185's cost verdict; none is filed in advance.
+   [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop membership within reason is already filed and follows the sweep; its unstub gate may land earlier if the sweep wants it.
+5. [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) qualifies the one-box cell and defines the per-test support claim, after fn-220.
+6. [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md) determinism boundary audit continues alongside; it must hold for a testcore-sized guest.
+7. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219 and closes fn-128 and fn-149 as won't-do.
 
 ## Batch-first execution strategy
 
@@ -251,9 +268,72 @@ separates the merge and source evidence from still-open qualification.
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
+### Model projection promotion — [fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-219.1](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md) | ⬜ Todo | Promote the volume and network projections to owned source |
+| [fn-219.2](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.2.md) | ⬜ Todo | Relocate the protocol generator and I/O wire schema into the parent module |
+| [fn-219.3](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.3.md) | ⬜ Todo | Rewire Makefile, archcheck and CI to the default set |
+| [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | ⬜ Todo | Record the identity ledger, requalify rotated identities and refresh documentation |
+
+### One-command Temporal test setup — [fn-220](.flow/specs/fn-220-gomad-one-command-temporal-test-setup.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | ⬜ Todo | Factor the fixture configuration derivation into shared code and choose the verb |
+| [fn-220.2](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md) | ⬜ Todo | Expose the one-command setup and run TestFrontendSystemInfo end to end |
+| [fn-220.3](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.3.md) | ⬜ Todo | Document the one-command workflow |
+
+### Functional-suite triage sweep — [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | ⬜ Todo | Build the sweep harness and prove it on two packages |
+| [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⬜ Todo | Run the full sweep and retain the support matrix |
+| [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
+
+### One-box qualification and per-test support claim — [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⬜ Todo | Qualify the one-box cell on the current candidate |
+| [fn-222.2](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.2.md) | ⬜ Todo | Define the per-test support list and produce the first one |
+
+### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | ⬜ Todo | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
+| [fn-188.2](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.2.md) | ⬜ Todo | Complete the site classes: runtime clock/draw patches, helper source scan, archcheck rule, engine settings |
+| [fn-188.3](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.3.md) | ⬜ Todo | Fail-closed request, reply and engine-setting boundaries on both sides |
+| [fn-188.4](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.4.md) | ⬜ Todo | First-divergence report across incarnations and World order, with reproducer |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⬜ Todo | Same-seed stress producer with host perturbation axes and retained report |
+| [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
+
+### Ringpop membership on WASM within reason — [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md)
+
+Owner decision 2026-10-19: support ringpop enough to verify a multi-node membership ring under gomad, without modeling tchannel internals or changing testcore. Follows fn-221.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-224.1](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.1.md) | ⬜ Todo | Unstub ringpop in the slim guest and record the module size delta |
+| [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⬜ Todo | Run the ringpop unit tests under the cooperative profile and classify every outcome |
+| [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | ⬜ Todo | Add a multi-node ringpop partition/heal scenario and document it |
+
+### Native backend deletion — [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md)
+
+Runs after fn-219. Retains historical artifacts and ledgers under `.flow/artifacts`; changes no WASM semantics.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-223.1](.flow/tasks/fn-223-gomad-delete-the-native-backend.1.md) | ⬜ Todo | Remove the nested native module and prove the default set builds |
+| [fn-223.2](.flow/tasks/fn-223-gomad-delete-the-native-backend.2.md) | ⬜ Todo | Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags |
+| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record unchanged WASM identities, close fn-128 and fn-149, refresh docs |
+
 ## Native
 
-Deferred by owner decision: all unfinished specs and tasks below are outside the active WASM delivery queue. Completed work and recorded Flow states are preserved. Changes to shared Gomad owners still require WASM acceptance; this deferral does not revive native qualification.
+Retiring by the 2026-10-19 owner decision and scheduled for removal under fn-223; all unfinished specs and tasks below are outside the active WASM delivery queue and close as won't-do when fn-223 lands. Completed work and recorded Flow states are preserved. Changes to shared Gomad owners still require WASM acceptance; this deferral does not revive native qualification.
 
 ### Deferred delivery order
 

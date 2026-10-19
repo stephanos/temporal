@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-19T16:08:09.378925Z",
+  "depends_on": [],
+  "id": "fn-220-gomad-one-command-temporal-test-setup.1",
+  "priority": null,
+  "spec": "fn-220-gomad-one-command-temporal-test-setup",
+  "spec_path": ".flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md",
+  "status": "todo",
+  "title": "Factor the fixture configuration derivation into shared code and choose the verb",
+  "updated_at": "2026-10-19T16:08:09.378925Z"
+}
