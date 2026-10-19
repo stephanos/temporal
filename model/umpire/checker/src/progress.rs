@@ -4,7 +4,7 @@ use std::{
 };
 
 use petgraph::{algo::tarjan_scc, graph::DiGraph};
-use umpire_dsl::{Machine, Outcome, Progress, Spell, Verdict};
+use umpire_dsl::{Assumption, Machine, Outcome, Progress, Spell, Verdict};
 
 use crate::{Path, PathStep, Refusal, Result, StateId, Visited, explore::panic_message};
 
@@ -13,15 +13,31 @@ pub(crate) fn validate_scopes<M: Machine>(
     actions: &[M::Action],
 ) -> std::result::Result<(), Refusal> {
     for claim in progress {
-        for action in &claim.scope.excluded {
-            if !actions.contains(action) {
-                let mut name = String::new();
-                action.spell(&mut name);
-                return Err(Refusal::ScopeAction { action: name });
-            }
+        if claim.evaluator.is_none() {
+            validate_assumption(&claim.scope, actions)?;
         }
     }
     Ok(())
+}
+
+fn validate_assumption<A: Spell + PartialEq>(
+    assumption: &Assumption<A>,
+    actions: &[A],
+) -> std::result::Result<(), Refusal> {
+    for action in &assumption.excluded {
+        if !actions.contains(action) {
+            let mut name = String::new();
+            action.spell(&mut name);
+            return Err(Refusal::ScopeAction { action: name });
+        }
+    }
+    Ok(())
+}
+
+struct ProgressPredicates<A> {
+    triggers: Vec<bool>,
+    avoids: Vec<bool>,
+    assumption: Assumption<A>,
 }
 
 impl<M: Machine> Result<M> {
@@ -31,12 +47,14 @@ impl<M: Machine> Result<M> {
         claim: &Progress<M>,
         index: usize,
         actions: &[M::Action],
-    ) {
+    ) -> std::result::Result<(), Refusal> {
         let count = self.visited.len();
-        let Some((triggers, avoids)) = self.progress_predicates(world, claim, index) else {
-            return;
+        let Some(ProgressPredicates { triggers, avoids, assumption }) =
+            self.progress_predicates(world, claim, index, actions)?
+        else {
+            return Ok(());
         };
-        let allowed: Vec<_> = actions.iter().map(|action| claim.scope.allows(action)).collect();
+        let allowed: Vec<_> = actions.iter().map(|action| assumption.allows(action)).collect();
         let fair_actions: Vec<_> = actions
             .iter()
             .enumerate()
@@ -73,7 +91,7 @@ impl<M: Machine> Result<M> {
             }
             if complete[state] && outgoing[state].is_empty() {
                 self.refute_progress(index, state, &parents, &origins, &[]);
-                return;
+                return Ok(());
             }
             for &edge_index in &outgoing[state] {
                 if let Some(target) = self.transitions[edge_index].target
@@ -116,9 +134,10 @@ impl<M: Machine> Result<M> {
             }
             if let Some(cycle) = self.fair_cycle(&component, &outgoing, &enabled, &fair_actions) {
                 self.refute_progress(index, entry, &parents, &origins, &cycle);
-                return;
+                return Ok(());
             }
         }
+        Ok(())
     }
 
     fn fair_cycle(
@@ -193,40 +212,97 @@ impl<M: Machine> Result<M> {
         world: &M,
         claim: &Progress<M>,
         index: usize,
-    ) -> Option<(Vec<bool>, Vec<bool>)> {
+        actions: &[M::Action],
+    ) -> std::result::Result<Option<ProgressPredicates<M::Action>>, Refusal> {
         let count = self.visited.len();
         let mut triggers = vec![false; count];
         let mut avoids = vec![false; count];
+        let mut assumption = claim.evaluator.is_none().then(|| claim.scope.clone());
+        let mut inconsistent = false;
         for state in 0..count {
-            for (predicate, values, target) in
-                [(claim.trigger, &mut triggers, false), (claim.target, &mut avoids, true)]
+            let Some(evaluator) = claim.evaluator else {
+                for (predicate, values, target) in
+                    [(claim.trigger, &mut triggers, false), (claim.target, &mut avoids, true)]
+                {
+                    let Some(verdict) =
+                        self.progress_evaluation(claim.name, index, StateId(state), |state| {
+                            predicate(world, state)
+                        })
+                    else {
+                        return Ok(None);
+                    };
+                    match verdict {
+                        Verdict::Holds => values[state] = !target,
+                        Verdict::Fails => values[state] = target,
+                        Verdict::Unknown(hole) => {
+                            self.claims[index].outcome = Outcome::Unknown;
+                            if !self.claims[index].holes.contains(&hole.reason) {
+                                self.claims[index].holes.push(hole.reason);
+                            }
+                        }
+                    }
+                }
+                continue;
+            };
+            let Some(evaluation) =
+                self.progress_evaluation(claim.name, index, StateId(state), |state| {
+                    evaluator(world, state)
+                })
+            else {
+                return Ok(None);
+            };
+            validate_assumption(&evaluation.assumption, actions)?;
+            if assumption.as_ref().is_some_and(|fixed| fixed != &evaluation.assumption) {
+                inconsistent = true;
+            }
+            if assumption.is_none() {
+                assumption = Some(evaluation.assumption);
+            }
+            for (verdict, values, target) in
+                [(evaluation.trigger, &mut triggers, false), (evaluation.target, &mut avoids, true)]
             {
-                match catch_unwind(AssertUnwindSafe(|| {
-                    predicate(world, self.state(StateId(state)))
-                })) {
-                    Ok(Verdict::Holds) => values[state] = !target,
-                    Ok(Verdict::Fails) => values[state] = target,
-                    Ok(Verdict::Unknown(hole)) => {
+                match verdict {
+                    Verdict::Holds => values[state] = !target,
+                    Verdict::Fails => values[state] = target,
+                    Verdict::Unknown(hole) => {
                         self.claims[index].outcome = Outcome::Unknown;
                         if !self.claims[index].holes.contains(&hole.reason) {
                             self.claims[index].holes.push(hole.reason);
                         }
                     }
-                    Err(error) => {
-                        let mut path = self.path(StateId(state));
-                        path.failure = Some(format!(
-                            "claim {} panicked: {}",
-                            claim.name,
-                            panic_message(error.as_ref())
-                        ));
-                        self.claims[index].outcome = Outcome::Refuted;
-                        self.claims[index].path = Some(path);
-                        return None;
-                    }
                 }
             }
         }
-        Some((triggers, avoids))
+        if inconsistent {
+            self.claims[index].outcome = Outcome::Unknown;
+            self.claims[index].holes.push("progress assumption differs across reached states");
+            return Ok(None);
+        }
+        Ok(Some(ProgressPredicates {
+            triggers,
+            avoids,
+            assumption: assumption.unwrap_or_default(),
+        }))
+    }
+
+    fn progress_evaluation<T>(
+        &mut self,
+        name: &str,
+        index: usize,
+        state: StateId,
+        evaluate: impl FnOnce(&M::State) -> T,
+    ) -> Option<T> {
+        match catch_unwind(AssertUnwindSafe(|| evaluate(self.state(state)))) {
+            Ok(value) => Some(value),
+            Err(error) => {
+                let mut path = self.path(state);
+                path.failure =
+                    Some(format!("claim {name} panicked: {}", panic_message(error.as_ref())));
+                self.claims[index].outcome = Outcome::Refuted;
+                self.claims[index].path = Some(path);
+                None
+            }
+        }
     }
 
     fn progress_route(

@@ -24,7 +24,7 @@ pub struct Path<S, A> {
     pub steps: Vec<PathStep<S, A>>,
     /// Index of the first edge in a repeating closed walk, when this is a lasso.
     pub cycle_start: Option<usize>,
-    /// A caught effect or predicate panic following the trace, if any.
+    /// A failed check or caught effect or predicate panic at the end of the trace, if any.
     pub failure: Option<String>,
 }
 

@@ -11,9 +11,9 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
-    #[scopes]
+    #[assumptions]
     impl Model {
-        fn unknown_actor() -> Scope { without([super::Other::Unknown]) }
+        fn unknown_actor() -> Assumption { without([super::Other::Unknown]) }
     }
 }
 

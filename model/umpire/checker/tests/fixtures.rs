@@ -1,5 +1,9 @@
 //! Synthetic checker behavior fixtures.
 
+#[path = "support/progress_evaluation.rs"]
+mod progress_evaluation;
+#[path = "support/recorder.rs"]
+mod recorder;
 mod support;
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 

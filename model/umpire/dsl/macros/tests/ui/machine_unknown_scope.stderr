@@ -1,5 +1,5 @@
-error: unknown scope unregistered in within
-  --> tests/ui/machine_unknown_scope.rs:16:18
+error: a progress claim names its assumption with .assuming(..)
+  --> tests/ui/machine_unknown_scope.rs:16:9
    |
 16 |         #[within(Self::unregistered)]
-   |                  ^^^^^^^^^^^^^^^^^^
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

@@ -5,7 +5,7 @@ use umpire_dsl::{Claim, machine};
 /// A kettle controlled by its user and heating element.
 #[machine]
 pub mod kettle {
-    use umpire_dsl::{Action, State};
+    use umpire_dsl::{Action, State, check};
 
     const BOILING_TEMPERATURE: i32 = 100;
     const COLDEST_TEMPERATURE: i32 = -40;
@@ -77,27 +77,32 @@ pub mod kettle {
 
     #[invariants]
     impl Model {
-        fn beeps_only_when_off(&self) -> bool {
-            !self.beeping || !self.heating_on
+        fn beeps_only_when_off(&self) {
+            if self.beeping {
+                check!(!self.heating_on);
+            }
         }
     }
 
     #[postconditions]
     impl Model {
-        fn warms_only_when_on(&self, before: &Self) -> bool {
-            before.heating_on || self.temperature <= before.temperature
+        fn warms_only_when_on(&self, before: &Self) {
+            if !before.heating_on {
+                check!(self.temperature <= before.temperature);
+            }
         }
 
         #[after(Heater::Failover)]
-        fn fails_over_at_boiling(&self) -> bool {
-            self.temperature == BOILING_TEMPERATURE && self.beeping
+        fn fails_over_at_boiling(&self) {
+            check!(self.temperature == BOILING_TEMPERATURE);
+            check!(self.beeping);
         }
     }
 
-    #[scopes]
+    #[assumptions]
     impl Model {
         /// The user switches the kettle on but never off.
-        fn never_switched_off() -> Scope {
+        fn never_switched_off() -> Assumption {
             without([User::DepressButton])
         }
     }
@@ -105,9 +110,8 @@ pub mod kettle {
     #[progress]
     impl Model {
         /// Switched on and left on, the water boils and the kettle beeps.
-        #[within(Self::never_switched_off)]
         fn boils(&self) -> Progress {
-            whenever(self.heating_on).eventually(self.beeping)
+            whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())
         }
     }
 }

@@ -4,7 +4,10 @@ use umpire_dsl::{Machine, Outcome, Spell, Verdict, machine};
 
 #[machine]
 mod counter {
-use umpire_dsl::{Action, State};
+use umpire_dsl::{Action, State, check};
+use std::sync::atomic::{AtomicUsize, Ordering};
+
+pub static PROGRESS_CALLS: AtomicUsize = AtomicUsize::new(0);
 
 #[derive(State)]
 pub struct Counter {
@@ -45,29 +48,34 @@ impl Counter {
 
 #[invariants]
 impl Counter {
-    fn bounded(&self) -> bool { self.helper() }
+    pub fn bounded(&self) { check!(self.helper()); }
 }
 
 #[postconditions]
 impl Counter {
     #[after(User::Reset)]
-    fn reset_clears(&self) -> bool { self.value == 0 }
+    pub fn reset_clears(&self) { check!(self.value == 0); }
 
-    fn grows_at_most_one(&self, before: &Self) -> bool { self.value <= before.value + 1 }
+    fn grows_at_most_one(&self, before: &Self) { check!(self.value <= before.value + 1); }
 }
 
-#[scopes]
+#[assumptions]
 impl Counter {
-    fn never_reset() -> Scope {
+    fn never_reset() -> Assumption {
         without([User::Reset])
     }
 }
 
 #[progress]
 impl Counter {
-    #[within(Self::never_reset)]
     fn reaches_two(&self) -> Progress {
-        whenever(self.value == 1).eventually(self.value == 2)
+        PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
+        let trigger = self.value == 1;
+        let progress = whenever(trigger);
+        if self.value == 2 {
+            return progress.eventually(true).assuming(Self::never_reset());
+        }
+        progress.eventually(false).assuming(Self::never_reset())
     }
 }
 
@@ -110,6 +118,9 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     writeln!(output, "public state starts: {}", public_state::world().starts().len())?;
     let mut direct = Counter { value: 0 };
     assert!(direct.unregistered());
+    direct.bounded();
+    direct.reset_clears();
+    Counter { value: 2 }.reset_clears();
     let before = direct.clone();
     direct.increment();
     let enabled = direct != before;
@@ -140,13 +151,19 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     for claim in world.invariants() {
         writeln!(output, "{}: {}", claim.name, judgment((claim.predicate)(&world, &state)))?;
     }
-    for (name, scope) in world.scopes() {
-        writeln!(output, "scope {name}: {}", spelled(&scope.excluded[0]))?;
+    for (name, assumption) in world.assumptions() {
+        writeln!(output, "scope {name}: {}", spelled(&assumption.excluded[0]))?;
     }
     for claim in world.progress() {
+        let evaluate = claim.evaluator.ok_or("missing generated progress evaluator")?;
+        counter::PROGRESS_CALLS.store(0, std::sync::atomic::Ordering::SeqCst);
+        let initial = evaluate(&world, &Counter { value: 1 });
+        assert_eq!(counter::PROGRESS_CALLS.load(std::sync::atomic::Ordering::SeqCst), 1);
+        let final_state = evaluate(&world, &state);
+        assert_eq!(counter::PROGRESS_CALLS.load(std::sync::atomic::Ordering::SeqCst), 2);
         writeln!(output, "progress {}: {} -> {}; without {}", claim.name,
-            judgment((claim.trigger)(&world, &Counter { value: 1 })),
-            judgment((claim.target)(&world, &state)), spelled(&claim.scope.excluded[0]))?;
+            judgment(initial.trigger),
+            judgment(final_state.target), spelled(&initial.assumption.excluded[0]))?;
     }
     Ok(umpire_testing::Files::from([("values.txt".into(), output)]))
 }

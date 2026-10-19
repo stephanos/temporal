@@ -8,9 +8,9 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
-    impl Model {
-        fn unregistered() -> Scope { without([] as [Nobody; 0]) }
-    }
+
+
+
     #[progress]
     impl Model {
         #[within(Self::unregistered)]

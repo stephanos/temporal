@@ -2,7 +2,7 @@ use umpire_dsl::machine;
 
 #[machine]
 pub mod changed_state {
-    use umpire_dsl::{Action, State};
+    use umpire_dsl::{Action, State, check};
 
     #[derive(State)]
     pub struct Model {
@@ -48,23 +48,23 @@ pub mod changed_state {
     #[postconditions]
     impl Model {
         #[after(User::NoChange)]
-        fn no_change_checked(&self, before: &Self) -> bool {
-            self.value != before.value
+        fn no_change_checked(&self, before: &Self) {
+            check!(self.value != before.value);
         }
 
         #[after(User::SameValue)]
-        fn same_value_checked(&self, before: &Self) -> bool {
-            self.value != before.value
+        fn same_value_checked(&self, before: &Self) {
+            check!(self.value != before.value);
         }
 
         #[after(User::MutateRestore)]
-        fn mutate_restore_checked(&self, before: &Self) -> bool {
-            self.value != before.value
+        fn mutate_restore_checked(&self, before: &Self) {
+            check!(self.value != before.value);
         }
 
         #[after(User::ActualChange)]
-        fn actual_change_checked(&self, before: &Self) -> bool {
-            self.value == before.value
+        fn actual_change_checked(&self, before: &Self) {
+            check!(self.value == before.value);
         }
     }
 }
