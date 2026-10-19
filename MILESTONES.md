@@ -35,7 +35,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.22 and .7 | The archive, flat attribute Kettle with actor-match transitions, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, direct wasm ABI and generic Go host relocation are complete; sample/behavior fixture naming and the final comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| Umpire in Rust (now) | fn-210.7 | The archive, flat attribute Kettle with actor-match transitions, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, sample/behavior fixture naming, direct wasm ABI and generic Go host relocation are complete; the final comparison remains. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
 | After the verdict | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice planned by fn-210.7 keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
@@ -98,7 +98,6 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.22 | 🔄 in progress | Renames to `sample_kettle`, `sample_kettle_trait` and `progress_dead_end` are committed with identical payloads and SHIP review; the recorded 3.038 s inner loop meets the revised 10 s soft target |
 | fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
