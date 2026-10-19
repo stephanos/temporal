@@ -95,7 +95,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.18 | ⬜ todo | After .6: handlers become `fn name(&mut self)`, enabled iff the state changed; refuse a return type; goldens unchanged (R6) |
+| fn-210.18 | 🔄 in progress | After .6: handlers become `fn name(&mut self)`, enabled iff the state changed; refuse a return type; goldens unchanged (R6) |
 | fn-210.19 | ⬜ todo | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); bare `#[within(..)]` (R6) |
 | fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
