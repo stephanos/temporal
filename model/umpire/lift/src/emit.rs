@@ -459,8 +459,18 @@ fn checked(raw: String, ty: &Type) -> String {
         raw
     }
 }
-fn quotient(left: &str, right: &str) -> String {
-    format!("__umpire_Div(({left}), ({right}))")
+fn quotient(left: &str, right: &str, ty: &Type) -> String {
+    let quotient = format!("__umpire_Div(({left}), ({right}))");
+    if let Type::Int { min, .. } = ty
+        && *min < 0
+    {
+        format!(
+            "(IF Assert(~(({left}) = {} /\\ ({right}) = -1), \"Rust signed division/remainder overflow\") THEN {quotient} ELSE 0)",
+            integer(*min)
+        )
+    } else {
+        quotient
+    }
 }
 fn expr(value: &Expr) -> String {
     match &value.kind {
@@ -521,8 +531,10 @@ fn expr(value: &Expr) -> String {
                 Op::Div | Op::Rem => "",
             };
             let raw = match op {
-                Op::Div => quotient(&left, &right),
-                Op::Rem => format!("({left}) - ({}) * ({right})", quotient(&left, &right)),
+                Op::Div => quotient(&left, &right, &value.ty),
+                Op::Rem => {
+                    format!("({left}) - ({}) * ({right})", quotient(&left, &right, &value.ty))
+                }
                 _ => format!("({left}) {symbol} ({right})"),
             };
             if matches!(op, Op::Add | Op::Sub | Op::Mul | Op::Div | Op::Rem) {

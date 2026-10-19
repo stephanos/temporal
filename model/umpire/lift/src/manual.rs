@@ -24,8 +24,7 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
             for member in &implementation.items {
                 if let ImplItem::Fn(method) = member
                     && (implementation.trait_.is_none()
-                        || method.sig.ident == "clone"
-                        || method.sig.ident == "into")
+                        || matches!(plain_ident(&method.sig.ident).as_str(), "clone" | "into"))
                 {
                     return Err(refusal(
                         file,
@@ -62,6 +61,24 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
                 for member in &item.items {
                     if let ImplItem::Fn(method) = member {
                         attributes(file, &method.attrs)?;
+                        if method.sig.ident.to_string().starts_with("r#") {
+                            return Err(refusal(
+                                file,
+                                method,
+                                &format!(
+                                    "raw-identifier Machine methods are unsupported: {}",
+                                    method.sig.ident
+                                ),
+                            ));
+                        }
+                        if method.sig.ident == "checked_step" {
+                            return Err(refusal(
+                                file,
+                                method,
+                                "manual checked_step overrides are unsupported",
+                            ));
+                        }
+                        reject_conditionals(file, &method.block)?;
                         if method.sig.asyncness.is_some()
                             || matches!(method.sig.safety, syn::Safety::Unsafe(_))
                             || !method.sig.generics.params.is_empty()
@@ -87,7 +104,10 @@ fn parse_selected(file: &str, ast: &syn::File, mode: Option<String>) -> Result<L
                     attributes(file, &variant.attrs)?;
                 }
             }
-            Item::Const(item) => attributes(file, &item.attrs)?,
+            Item::Const(item) => {
+                attributes(file, &item.attrs)?;
+                reject_conditionals(file, &item.expr)?;
+            }
             _ => {}
         }
     }
@@ -492,6 +512,58 @@ fn refusal(file: &str, node: &impl Spanned, message: &str) -> Diagnostic {
     }
 }
 
+fn reject_conditionals(file: &str, node: &impl ToTokens) -> Result<(), Diagnostic> {
+    fn find(tokens: proc_macro2::TokenStream) -> Option<proc_macro2::Span> {
+        use proc_macro2::{Delimiter, TokenTree};
+        let mut tokens = tokens.into_iter().peekable();
+        while let Some(token) = tokens.next() {
+            if matches!(&token, TokenTree::Punct(punct) if punct.as_char() == '#') {
+                if matches!(tokens.peek(), Some(TokenTree::Punct(punct)) if punct.as_char() == '!')
+                {
+                    tokens.next();
+                }
+                if let Some(TokenTree::Group(group)) = tokens.peek()
+                    && group.delimiter() == Delimiter::Bracket
+                    && matches!(group.stream().into_iter().next(), Some(TokenTree::Ident(name)) if matches!(plain_ident(&name).as_str(), "cfg" | "cfg_attr"))
+                {
+                    return Some(token.span());
+                }
+            }
+            if let TokenTree::Group(group) = token
+                && let Some(span) = find(group.stream())
+            {
+                return Some(span);
+            }
+        }
+        None
+    }
+    if let Some(span) = find(node.to_token_stream()) {
+        return Err(Diagnostic::span(
+            file,
+            span,
+            "manual source: unsupported conditional compilation inside consumed code",
+        ));
+    }
+    Ok(())
+}
+
+fn plain_ident(ident: &syn::Ident) -> String {
+    let name = ident.to_string();
+    name.strip_prefix("r#").unwrap_or(&name).to_owned()
+}
+
+fn guarded_pattern(pattern: &syn::Pat) -> bool {
+    struct Guarded(bool);
+    impl<'ast> syn::visit::Visit<'ast> for Guarded {
+        fn visit_pat_guard(&mut self, _: &'ast syn::PatGuard) {
+            self.0 = true;
+        }
+    }
+    let mut guarded = Guarded(false);
+    syn::visit::Visit::visit_pat(&mut guarded, pattern);
+    guarded.0
+}
+
 fn canonical_machine(ast: &syn::File, path: &syn::Path) -> bool {
     canonical_dsl_symbol(ast, path, "Machine")
 }
@@ -596,6 +668,17 @@ fn single_statement(file: &str, block: &syn::Block) -> Result<(), Diagnostic> {
 
 fn attributes(file: &str, attributes: &[syn::Attribute]) -> Result<(), Diagnostic> {
     for attribute in attributes {
+        if attribute
+            .path()
+            .get_ident()
+            .is_some_and(|name| matches!(plain_ident(name).as_str(), "cfg" | "cfg_attr"))
+        {
+            return Err(refusal(
+                file,
+                attribute,
+                "unsupported conditional compilation inside manual source",
+            ));
+        }
         if attribute.path().is_ident("doc") || attribute.path().is_ident("starts") {
             continue;
         }
@@ -732,6 +815,15 @@ impl Manual<'_> {
     }
     fn select<'a>(&self, expression: &'a RustExpr) -> Result<&'a RustExpr, Diagnostic> {
         if let RustExpr::Match(expression) = expression {
+            for arm in &expression.arms {
+                if guarded_pattern(&arm.pat) {
+                    return Err(refusal(
+                        self.file,
+                        &arm.pat,
+                        "guarded world-parameter matches are unsupported",
+                    ));
+                }
+            }
             if !matches!(expression.expr.as_ref(), RustExpr::Field(field) if matches!(&field.member, syn::Member::Unnamed(index) if index.index == 0) && matches!(path_name(&field.base).as_deref(), Some("self" | "world")))
             {
                 return Err(refusal(
