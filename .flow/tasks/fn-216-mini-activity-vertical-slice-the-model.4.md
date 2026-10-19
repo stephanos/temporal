@@ -92,10 +92,34 @@ Run the scanner's negative/selftest suite, generation freshness and both Go-modu
 - [ ] No Model change was made to fit runtime evidence, no Testpilot dependency boundary was weakened, and no remote extraction/publication occurred.
 - [ ] `temporal.rs` uses the macro-exported `activity::World` directly with no delegating machine, derives Any type URLs from `prost::Name`, and keeps only Temporal-specific code; the realization, parity and real SDK tests, the goldens and the boundary gate pass unchanged.
 ## Done summary
-TBD
+Implemented R4/R5: a reusable lexical boundary scanner with system-owned policy/negative controls, direct macro-exported activity World, generated prost type URLs and shared Any/Refusal plumbing. Reconciled DESIGN/README/MIGRATE with the real SDK slice, extraction ownership, projection/DSL limits and retained downstream obligations. The binding is 171 lines versus 333; refusal codes, reply bytes, Model transitions and report/rows goldens remain unchanged.
 
+baseline: green for model-check, model-time, dedicated slice and exact SDK command. The umbrella is separately inherited red: this task's before/after logs contain exactly the same seven failure identities and assertion causes as predecessor .3. Its final Go suite took 404.885s; no green umbrella receipt was written. Complete command/exit/log ledger: `.flow/tmp/fn-216-4/commands.md`; comparison: `.flow/tmp/fn-216-4/legacy-comparison.md`.
+
+The scanner controls first failed against the no-op implementation, then the real scanner named precisely report.rs:60/:91 and kettle_progress/model.rs:57 before their authorized progress-wording cleanup. Its final two controls pin all four extensions, lowercase/uppercase identifier substrings, API source/import/module prefixes, deterministic multiple file/line diagnostics and the exact organization-path exception with near misses. `make model-check` invokes the controls and real-tree scan without source exclusions.
+
+Clean verification used a disposable clone with no descriptor and a new Cargo target: pinned generation, real native/WASM API closure, stock/control/Temporal guests, old wire controls, both Go modules and freshness all passed. A final-source recheck passed too. Generated descriptor bytes differ only in Go-map file ordering: both independently generated sets equal the original's 57 files by name and message content. Original descriptor SHA remains d8b5530e9f75a9f624b6a7f6f43422f9ab3e379d3a4201b86491bdb9175b7fd3. Disposable checkout/target remain at `/tmp/umpire-fn2164-clean.OGxRrh` for conductor inspection; user's caches were preserved.
+
+All six existing realization controls passed unchanged, including required malformed/unsupported inputs, callback policy, terminal ordering, impossible observations/freeze, Reset/isolation, publication rollback and report/rows parity. The owner-authorized test-only scope expansion replaces `assert!(actions == expected_actions)` with `assert_eq!` at activity/model.rs:166 because exposing Debug triggered Clippy; no Model rule changed. Macro snapshot changes deliberately pin exported World/Action and concrete public-state return.
+
+The root correctness audit caught an introduced private-State E0446 before formal review. Generated World/Action now follow the state's visibility; non-public states retain the original opaque return. The same module-local control passes the original base macro, fails the initial checkpoint with E0446 and passes the fix. Logs are private-state-base.log, private-state-checkpoint-red.log and private-state-fixed.log. Earlier failed external-call harness attempts remain recorded, not labeled passing. Verbatim root quality reports and closure: `.flow/tmp/fn-216-4/quality-audits.md`.
+
+Final Verify model-check and dedicated SDK slice pass; the final dedicated live run took 257.404 ms including cleanup. The measured warm gate was 11.856s full / 2.526s inner against 30s/10s soft targets with concurrent verification. Final umbrella Model runs took 502.668ms/296.593ms; Answer Complete/Fail/HostRefusal calls were 134.958/65.583/168.333µs and 103.834/57/32.958µs. Exact SDK command also passed. Timings exclude build time from live measurements and make no idle-host claim.
+
+The repository-required default `make lint-code-fast` selected the historical broad Go diff and failed existing unrelated lint issues, auto-fixing 10 unrelated Go files. The complete patch/log is retained; every tool-authored Go edit was exactly restored (zero Go diff). Task-scoped non-fixing lint with GOLANGCI_LINT_BASE_REV=3cf4aeb4648959c3ccc43a935a389bd63ea42f4a passes with no changed Go packages. This broad lint observation remains red, distinct from the green Rust lint gate.
+
+Three fresh read-only Codex contexts returned SHIP with zero findings at reviewed head 585c56e980301ad37bcbd610ee85219764d162a6. Backend and rollout turn_context evidence confirm gpt-6.1-sol at high; writer/reviewer share the Codex family. Fresh reviewer Cargo execution was blocked by read-only build locks; reviewers ran cached controls and inspected worker logs. Receipt: `/tmp/impl-review-receipt-8f37faba39e2-fn-216-mini-activity-vertical-slice-the-model.4.json`; execution/fanout evidence is linked from review-execution.json. The later 70de4ffc8b checkpoint carries only review lifecycle records and the conductor-requested DESIGN qualification, fn-221 ordering and final measured documentation; the conductor explicitly assigned those docs to whole-spec completion review.
+
+stage: impl-review - ran [2026-10-19T20:35:08Z..2026-10-19T20:36:57Z] (model: gpt-6.1-sol at high)
+
+Tier: session (jev-unavailable(no_key))
+
+No remote extraction/publication, Testpilot dependency change, frozen Scala repair, new Model transition or coverage reduction occurred. R33's broader Case work and R34-R40 remain open; fn-213 must include the Temporal fixture root and fn-218 retains Cases(8). MILESTONES edits carried by task commits were root-authored; this worker did not edit it. No mapped user route changed.
+
+Tracker sync: n/a (bridge inactive).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bf5382deefe55d66047d2d9e5ea483200cd54a1e, 585c56e980301ad37bcbd610ee85219764d162a6, 70de4ffc8bb739c3d84da52b3b83a8836c32a609
+- Tests: make model-check, make model-time, make umpire-check-model-slice, UMPIRE_TEMPORAL_WASM=/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/release/umpire_temporal_guest.wasm CGO_ENABLED=0 mise exec -- go test -tags 'test_dep integration' ./tests -run '^TestTestpilotModelSlice$' -count=1, cd model && mise exec -- cargo test -p umpire-temporal-tests --test boundary -p umpire-temporal --test realization, cd model && mise exec -- cargo test -p umpire-dsl-macros --test fixtures private_state, CARGO_TARGET_DIR=/tmp/umpire-fn2164-clean.OGxRrh/target make model-check (disposable clone; empty target and missing descriptor initially), CGO_ENABLED=0 mise exec -- go run .flow/tmp/fn-216-4/compare-descriptors.go proto/api.binpb /tmp/umpire-fn2164-clean.OGxRrh/repo/proto/api.binpb, make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=3cf4aeb4648959c3ccc43a935a389bd63ea42f4a lint-code-fast, make umpire-check-live-tests, INHERITED_RED: umbrella exit2; identical seven legacy failure identities and assertion causes before/after; no green receipt, UNRELATED_RED: default historical-base make lint-code-fast exit2; all10 tool-authored unrelated Go edits exactly restored; scoped nonfixing lint passes, Evidence: .flow/tmp/fn-216-4/commands.md and quality-audits.md
 - PRs:
-
