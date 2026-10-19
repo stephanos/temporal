@@ -50,7 +50,7 @@ func runUpgradeDossier(arguments []string, stdout, stderr io.Writer) int {
 		}
 	}
 	gates := []upgrade.Gate{
-		{Name: "manifest-validation", Command: []string{"make", "validate"}},
+		{Name: "manifest-validation", Command: []string{"make", "validate-native"}},
 		{Name: "toolchain-and-compiler", Command: []string{"make", "test-toolchain", "intercept-test"}},
 		{Name: "host-world-and-probes", Command: []string{"make", "test-host", "overlay-test", "world-test"}},
 		{Name: "builder", Command: []string{"make", "test-builder"}},
