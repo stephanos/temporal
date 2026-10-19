@@ -8,7 +8,7 @@ use umpire_dsl::machine;
 /// One activity's finite lifecycle, independent of any SDK or server observation.
 #[machine]
 pub mod activity {
-    use umpire_dsl::{Action, State, check};
+    use umpire_dsl::{Action, Outcome, Phased, Rejection, State, closable, reject};
 
     /// The phase of the activity.
     #[derive(Clone, Copy, Debug, Default, PartialEq, Eq, Hash)]
@@ -28,9 +28,8 @@ pub mod activity {
         TimedOut,
     }
 
-    impl Phase {
-        /// Whether the activity has reached a final phase.
-        pub const fn is_terminal(self) -> bool {
+    impl umpire_dsl::Phase for Phase {
+        fn closed(&self) -> bool {
             matches!(self, Self::Completed | Self::Failed | Self::Canceled | Self::TimedOut)
         }
     }
@@ -38,7 +37,7 @@ pub mod activity {
     /// Actions controlled by the client.
     #[derive(Action, Copy)]
     pub enum Client {
-        /// Cancel a scheduled or started activity.
+        /// Request cancellation of the activity.
         Cancel,
     }
 
@@ -70,14 +69,22 @@ pub mod activity {
         pub phase: Phase,
     }
 
+    impl Phased for Model {
+        type Phase = Phase;
+
+        fn phase(&self) -> Self::Phase {
+            self.phase
+        }
+    }
+
     impl Model {
         #[on(Client)]
         fn client(&mut self, action: Client) {
             match action {
-                Client::Cancel if matches!(self.phase, Phase::Scheduled | Phase::Started) => {
+                Client::Cancel if self.closed() => reject!(Rejection::NotFound),
+                Client::Cancel => {
                     self.phase = Phase::Canceled;
                 }
-                Client::Cancel => {}
             }
         }
 
@@ -112,9 +119,12 @@ pub mod activity {
 
         #[postcondition]
         fn terminal_remains(&self, before: &Self) {
-            if before.phase.is_terminal() {
-                check!(self.phase == before.phase);
-            }
+            closable::terminal_remains(self, before);
+        }
+
+        #[postcondition]
+        fn closed_rejects(&self, before: &Self, outcome: &Outcome) {
+            closable::closed_rejects(self, before, outcome, Rejection::NotFound);
         }
     }
 }
@@ -130,10 +140,33 @@ pub(crate) fn run() -> umpire_testing::RunResult {
 #[cfg(test)]
 mod tests {
     use super::activity::{Client, Deadline, Model, Phase, Worker, world};
-    use umpire_dsl::{Machine, Verdict};
+    use umpire_dsl::{Machine, Outcome, Phase as _, Rejection, Verdict};
 
-    const TERMINALS: [Phase; 4] =
-        [Phase::Completed, Phase::Failed, Phase::Canceled, Phase::TimedOut];
+    const PHASES: [Phase; 6] = [
+        Phase::Scheduled,
+        Phase::Started,
+        Phase::Completed,
+        Phase::Failed,
+        Phase::Canceled,
+        Phase::TimedOut,
+    ];
+
+    fn terminals() -> impl Iterator<Item = Phase> {
+        PHASES.into_iter().filter(umpire_dsl::Phase::closed)
+    }
+
+    #[test]
+    fn closed_cancel_emits_a_rejected_self_loop() {
+        let world = world();
+        for phase in terminals() {
+            let before = Model { phase };
+            let steps = world.step(&before, Client::Cancel.into());
+            assert_eq!(steps.len(), 1, "cancel after {phase:?}");
+            assert_eq!(steps[0].0, Outcome::Rejected(Rejection::NotFound));
+            assert_eq!(steps[0].2, before);
+            assert_eq!(steps[0].1, Vec::<()>::new());
+        }
+    }
 
     #[test]
     fn terminal_classification_covers_every_phase() {
@@ -145,7 +178,7 @@ mod tests {
             (Phase::Canceled, true),
             (Phase::TimedOut, true),
         ] {
-            assert_eq!(phase.is_terminal(), terminal, "{phase:?}");
+            assert_eq!(phase.closed(), terminal, "{phase:?}");
         }
     }
 
@@ -172,53 +205,86 @@ mod tests {
         for (phase, expected) in [
             (Scheduled, [Some(Canceled), Some(Started), None, None, Some(TimedOut), None]),
             (Started, [Some(Canceled), None, Some(Completed), Some(Failed), None, Some(TimedOut)]),
-            (Completed, [None; 6]),
-            (Failed, [None; 6]),
-            (Canceled, [None; 6]),
-            (TimedOut, [None; 6]),
+            (Completed, [Some(Completed), None, None, None, None, None]),
+            (Failed, [Some(Failed), None, None, None, None, None]),
+            (Canceled, [Some(Canceled), None, None, None, None, None]),
+            (TimedOut, [Some(TimedOut), None, None, None, None, None]),
         ] {
             for (action, next) in actions.iter().zip(expected) {
                 let steps = world.step(&Model { phase }, action.clone());
+                let outcome = if phase.closed() {
+                    Outcome::Rejected(Rejection::NotFound)
+                } else {
+                    Outcome::Accepted
+                };
                 let expected: Vec<_> =
-                    next.into_iter().map(|phase| ((), Vec::new(), Model { phase })).collect();
+                    next.into_iter().map(|phase| (outcome, Vec::new(), Model { phase })).collect();
                 assert!(steps.as_slice() == expected, "{action} after {phase:?}");
             }
         }
     }
 
     #[test]
-    fn registered_terminal_preservation_checks_every_terminal_action_pair() {
+    fn registered_closure_laws_check_every_phase_action_pair() {
         let world = world();
         let claims = world.postconditions();
-        assert_eq!(claims.len(), 1);
-        let claim = &claims[0];
-        assert_eq!(claim.name, "terminal_remains");
-        assert!(claim.action.is_none());
+        assert_eq!(
+            claims.iter().map(|claim| claim.name).collect::<Vec<_>>(),
+            ["terminal_remains", "closed_rejects",]
+        );
+        assert!(claims.iter().all(|claim| claim.action.is_none()));
         let mut checked = 0;
-        for phase in TERMINALS {
+        for phase in PHASES {
             let before = Model { phase };
             for action in world.actions() {
-                assert!(world.step(&before, action.clone()).is_empty());
-                // Disabled actions emit no edge; invoke the registered callback on preservation
-                // directly so the terminal antecedent is exercised beyond the emitted-step report.
-                let preserved = ((), Vec::new(), before.clone());
-                assert_eq!(claim.holds(&world, &before, &action, &preserved), Verdict::Holds);
-                checked += 1;
+                let steps = world.step(&before, action.clone());
+                let preserved =
+                    (Outcome::Rejected(Rejection::NotFound), Vec::new(), before.clone());
+                let emitted = steps.first().unwrap_or(&preserved);
+                for claim in &claims {
+                    assert_eq!(claim.holds(&world, &before, &action, emitted), Verdict::Holds);
+                    checked += 1;
+                }
             }
         }
-        assert_eq!(checked, 24);
+        assert_eq!(checked, 72);
     }
 
     #[test]
-    fn hypothetical_reopening_refutes_the_same_registered_preservation_callback() {
+    fn hypothetical_reopening_and_terminal_moves_refute_registered_closure_laws() {
         let world = world();
         let claims = world.postconditions();
-        let claim = &claims[0];
-        for phase in TERMINALS {
+        for phase in terminals() {
             let before = Model { phase };
             for action in world.actions() {
-                let reopened = ((), Vec::new(), Model { phase: Phase::Scheduled });
-                assert_eq!(claim.holds(&world, &before, &action, &reopened), Verdict::Fails);
+                for destination in PHASES.into_iter().filter(|destination| *destination != phase) {
+                    let changed = (
+                        Outcome::Rejected(Rejection::NotFound),
+                        Vec::new(),
+                        Model { phase: destination },
+                    );
+                    for claim in &claims {
+                        assert_eq!(claim.holds(&world, &before, &action, &changed), Verdict::Fails);
+                    }
+                }
+            }
+        }
+    }
+
+    #[test]
+    fn hypothetical_accepted_and_wrong_rejection_refute_registered_closed_rejection() {
+        let world = world();
+        let claims = world.postconditions();
+        let claim = &claims[1];
+        assert_eq!(claim.name, "closed_rejects");
+        for phase in terminals() {
+            let before = Model { phase };
+            for action in world.actions() {
+                for outcome in [Outcome::Accepted, Outcome::Rejected(Rejection::FailedPrecondition)]
+                {
+                    let emitted = (outcome, Vec::new(), before.clone());
+                    assert_eq!(claim.holds(&world, &before, &action, &emitted), Verdict::Fails);
+                }
             }
         }
     }

@@ -3,14 +3,17 @@
 #![warn(missing_docs)]
 
 pub mod claim;
+pub mod closable;
 mod machine;
 pub mod outcome;
+mod phased;
 mod progress;
 mod scope;
 
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
 pub use machine::{Machine, Step, StepError, Steps};
 pub use outcome::{Outcome, Rejection};
+pub use phased::{Phase, Phased};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};
 pub use umpire_dsl_macros::{Action, State, machine};

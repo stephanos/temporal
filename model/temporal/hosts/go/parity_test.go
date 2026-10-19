@@ -207,7 +207,7 @@ func TestImpossibleObservationFreezesUntilReset(t *testing.T) {
 		{"opposite terminal after closure", func(t *testing.T, h *model.Host) {
 			answer(t, h, "Complete")
 			explained(t, judge(t, h, observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_COMPLETED, 0)), "Worker::RespondCompleted")
-		}, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0) }, nil},
+		}, func(t *testing.T) *anypb.Any { return observation(t, enumspb.ACTIVITY_EXECUTION_STATUS_FAILED, 0) }, []string{"Client::Cancel"}},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			h := guest(t)

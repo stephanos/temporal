@@ -157,7 +157,7 @@ fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step
         refused(answer(&mut guest, callback(policy)), protocol::RefusalCode::State);
         assert_eq!(
             unexplained(judge(&mut guest, observation(5 - terminal, 0))),
-            Vec::<String>::new()
+            ["Client::Cancel"]
         );
     }
 }

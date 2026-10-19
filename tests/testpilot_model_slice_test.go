@@ -312,7 +312,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 			}
 			frozen := modelSliceJudge(ctx, t, host, impossible)
 			require.NotNil(t, frozen.GetUnexplained())
-			require.Empty(t, frozen.GetUnexplained().GetExpectedActions())
+			require.Equal(t, []string{"Client::Cancel"}, frozen.GetUnexplained().GetExpectedActions())
 			require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, terminalResponse)))
 			require.True(t, proto.Equal(frozen, modelSliceJudge(ctx, t, host, scheduled)))
 			_, err = host.Answer(ctx, &modelv1.AnswerRequest{Callback: callback})

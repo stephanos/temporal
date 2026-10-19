@@ -7,7 +7,7 @@ satisfies: [R2]
 Add `Phase`, `Phased` and `closable::{terminal_remains, closed_rejects}` to `umpire_dsl`, carrying the archived closure laws and their caveats. Convert the current mini activity Model at `model/temporal/features/activity/model.rs`: `Phase::closed` names the terminal set once, closed `Client::Cancel` emits `Rejected(NotFound)`, and delegating postconditions register both shared laws. Regenerate only the activity goldens; retain the existing six phases and atomic Scheduled/Started cancellation.
 
 **Size:** S
-**Touches:** [model/umpire/dsl/src/**, model/umpire/dsl/tests/**, model/temporal/features/activity/model.rs, model/temporal/features/activity/expected/**, model/temporal/testing/**]
+**Touches:** [model/umpire/dsl/src/**, model/umpire/dsl/tests/**, model/temporal/features/activity/model.rs, model/temporal/features/activity/expected/**, model/temporal/testing/**, model/temporal/realization/tests/realization.rs, model/temporal/hosts/go/parity_test.go, tests/testpilot_model_slice_test.go]
 
 ### Approach
 - Hand-write `impl umpire_dsl::Phase for Phase` and `impl Phased for Model` inside the module; no new attributes or capability registry. Use the current standard formatting contract: `Phase: Copy + Eq + Hash + Debug`, not removed `Spell`. `Phased::closed` delegates to `self.phase().closed()`.
@@ -16,6 +16,7 @@ Add `Phase`, `Phased` and `closable::{terminal_remains, closed_rejects}` to `ump
 - Enumerate phases in the activity controls, deriving the terminal set by the single `Phase::closed` classification instead of duplicating a hand-maintained terminal list. Retain positive checks for all six phases and every action, and exercise the registered callbacks directly where actions are disabled so the laws are not merely vacuously green.
 - Test genuine emitted rejected cancel self-loops from all four terminal phases. Hypothetical controls refute reopening and transitions between closed phases; accepted, wrong-rejection and state-changing edges from closure refute `closed_rejects`. Add a generic multi-field control distinguishing phase preservation from whole-state preservation.
 - Kettle remains unphased and existing generic goldens unchanged. This task changes the independent activity Model contract according to R2; later tasks carry outcomes through the protocol and judge real cancel errors. Do not fit these laws to runtime behavior.
+- Existing native realization, WASM/Go parity and live-slice controls assert no expected actions after terminal contradictory Describe. The newly specified rejected cancel self-loop makes `Client::Cancel` enabled even there. Capture those assertion failures after the Model change, then require exactly `["Client::Cancel"]` instead of empty while retaining the freeze checks. Only those assertion migrations are in scope in the three added test paths; protocol/binding changes and new live cancel scenarios remain .3/.4. Do not remove or weaken the existing controls.
 - Verify the parent Quick commands using the existing Make-provided `UMPIRE_TEMPORAL_WASM` guest path for the direct Go integration command; preserve evidence that an unconfigured invocation is not an implementation regression. No protocol or realization changes in this task.
 ## Acceptance
 - [ ] `closable` laws registered by delegating postconditions; both refuted by the hypothetical controls.
