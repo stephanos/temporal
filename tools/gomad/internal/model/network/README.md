@@ -6,8 +6,8 @@ promoted (fn-219) from a projection of the native `gomadio` overlay; it is now
 ordinary source with no generator and no drift check against the native tree.
 `simulation.go` owns stream queues and replay; `adapter.go` turns blocking waits
 into immediate pending results with explicit domains and logical time.
-`stream_status_generated.go` is the only generated file here, written by the
-protocol generator.
+`stream_status_generated.go` is the only generated file here, written by
+`internal/model/cmd/protocolgen`.
 
 `Model.Dispatch` consumes at most one 64 KiB write chunk. A pending result owns
 its request until `poll` consumes completion or cancellation. `Ready` and

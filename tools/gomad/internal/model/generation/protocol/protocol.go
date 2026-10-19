@@ -167,13 +167,13 @@ type choiceTemplateData struct {
 }
 
 type choiceImplementationInputs struct {
-	Schema          []byte
-	CodecTemplate   []byte
-	RuntimeTemplate []byte
-	RuntimeOverlay  []byte
-	ToolchainPatch  []byte
-	HostTrace       []byte
-	HostTape        []byte
+	Schema           []byte
+	CodecTemplate    []byte
+	RuntimeTemplate  []byte
+	TestTemplate     []byte
+	RuntimeSemantics []byte
+	HostTrace        []byte
+	HostTape         []byte
 }
 
 type simulationModelSchema struct {
@@ -345,17 +345,16 @@ type simulationTimeTemplateData struct {
 }
 
 // choiceImplementationSources are the inputs of the choice codec's
-// ImplementationSourceSHA256, in hashing order; gomad_semantics.go.txt is
-// appended to the runtime instrumentation input.
+// ImplementationSourceSHA256 (gomad-choice-implementation-source-v3), in
+// hashing order. All of them belong to the parent module.
 var choiceImplementationSources = []string{
 	"internal/model/choice/schema/choicewire.json",
 	"internal/model/choice/schema/choicewire.go.tmpl",
 	"internal/model/choice/schema/choicewire_runtime.go.tmpl",
-	"internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go",
-	"internal/backends/native/toolchain/runtime/go1.27.1.patch",
+	"internal/model/choice/schema/choicewire_test.go.tmpl",
+	"internal/model/runtimesource/gomad_semantics.go.txt",
 	"internal/model/choice/trace.go",
 	"internal/model/choice/tape.go",
-	"internal/model/runtimesource/gomad_semantics.go.txt",
 }
 
 func readChoiceImplementationInputs(root string) (choiceImplementationInputs, error) {
@@ -367,17 +366,16 @@ func readChoiceImplementationInputs(root string) (choiceImplementationInputs, er
 		}
 		values[index] = value
 	}
-	values[3] = append(append(values[3], '\n'), values[7]...)
 	return choiceImplementationInputs{
-		Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], RuntimeOverlay: values[3], ToolchainPatch: values[4],
-		HostTrace: values[5], HostTape: values[6],
+		Schema: values[0], CodecTemplate: values[1], RuntimeTemplate: values[2], TestTemplate: values[3],
+		RuntimeSemantics: values[4], HostTrace: values[5], HostTape: values[6],
 	}, nil
 }
 
 func choiceImplementationIdentity(inputs choiceImplementationInputs) [sha256.Size]byte {
 	hasher := sha256.New()
-	_, _ = hasher.Write([]byte("gomad-choice-implementation-source-v2"))
-	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch, inputs.HostTrace, inputs.HostTape} {
+	_, _ = hasher.Write([]byte("gomad-choice-implementation-source-v3"))
+	for _, input := range [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.TestTemplate, inputs.RuntimeSemantics, inputs.HostTrace, inputs.HostTape} {
 		var size [8]byte
 		binary.BigEndian.PutUint64(size[:], uint64(len(input)))
 		_, _ = hasher.Write(size[:])

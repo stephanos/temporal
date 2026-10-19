@@ -9,43 +9,37 @@ import (
 	"testing"
 )
 
-func TestChoiceImplementationIdentityBindsGeneratedAndInstrumentedInputs(t *testing.T) {
+func TestChoiceImplementationIdentityBindsEveryParentInput(t *testing.T) {
 	inputs := choiceImplementationInputs{
-		Schema:          []byte("schema"),
-		CodecTemplate:   []byte("codec"),
-		RuntimeTemplate: []byte("runtime-codec"),
-		RuntimeOverlay:  []byte("runtime-instrumentation"),
-		ToolchainPatch:  []byte("toolchain-patch"),
-		HostTrace:       []byte("host-trace"),
-		HostTape:        []byte("host-tape"),
+		Schema:           []byte("schema"),
+		CodecTemplate:    []byte("codec"),
+		RuntimeTemplate:  []byte("runtime-codec"),
+		TestTemplate:     []byte("codec-test"),
+		RuntimeSemantics: []byte("runtime-semantics"),
+		HostTrace:        []byte("host-trace"),
+		HostTape:         []byte("host-tape"),
 	}
 	want := choiceImplementationIdentity(inputs)
 	if want == ([32]byte{}) {
 		t.Fatal("choice implementation identity is empty")
 	}
-	mutations := [][]byte{inputs.Schema, inputs.CodecTemplate, inputs.RuntimeTemplate, inputs.RuntimeOverlay, inputs.ToolchainPatch, inputs.HostTrace, inputs.HostTape}
-	for index, original := range mutations {
-		changed := inputs
-		value := append(bytes.Clone(original), '!')
-		switch index {
-		case 0:
-			changed.Schema = value
-		case 1:
-			changed.CodecTemplate = value
-		case 2:
-			changed.RuntimeTemplate = value
-		case 3:
-			changed.RuntimeOverlay = value
-		case 4:
-			changed.ToolchainPatch = value
-		case 5:
-			changed.HostTrace = value
-		case 6:
-			changed.HostTape = value
+	fields := []*[]byte{&inputs.Schema, &inputs.CodecTemplate, &inputs.RuntimeTemplate, &inputs.TestTemplate, &inputs.RuntimeSemantics, &inputs.HostTrace, &inputs.HostTape}
+	if len(fields) != len(choiceImplementationSources) {
+		t.Fatalf("identity binds %d inputs, sources list %d", len(fields), len(choiceImplementationSources))
+	}
+	for index, field := range fields {
+		original := *field
+		*field = append(bytes.Clone(original), '!')
+		if got := choiceImplementationIdentity(inputs); got == want {
+			t.Fatalf("identity did not bind input %d (%s)", index, choiceImplementationSources[index])
 		}
-		if got := choiceImplementationIdentity(changed); got == want {
-			t.Fatalf("identity did not bind input %d", index)
-		}
+		*field = original
+	}
+	// Moving bytes between adjacent inputs must change the identity.
+	shifted := inputs
+	shifted.Schema, shifted.CodecTemplate = []byte("schemac"), []byte("odec")
+	if choiceImplementationIdentity(shifted) == want {
+		t.Fatal("identity does not length-prefix its inputs")
 	}
 }
 
