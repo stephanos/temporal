@@ -1,5 +1,5 @@
 use crate::Files;
-use std::collections::BTreeMap;
+use std::{collections::BTreeMap, fmt::Write};
 use umpire_checker::Result as Exploration;
 use umpire_dsl::Machine;
 
@@ -9,7 +9,8 @@ pub fn render<M: Machine>(result: &Exploration<M>) -> Result<Files, umpire_check
     let mut files = BTreeMap::from([("report.txt".into(), report.to_string())]);
     let mut states = String::new();
     for (id, state) in result.states() {
-        states.push_str(&format!("{}: {state}\n", id.0));
+        writeln!(states, "{}: {state}", id.0)
+            .unwrap_or_else(|error| panic!("state formatting failed: {error}"));
     }
     files.insert("states.txt".into(), states);
     if result.counts.reached <= 3 {
@@ -24,10 +25,12 @@ pub fn render_rows<M: Machine>(result: &Exploration<M>) -> Result<String, umpire
     let mut rows = String::new();
     for (id, _) in result.states() {
         for edge in result.rows(id)? {
-            rows.push_str(&format!(
-                "{}: {} choice={} outcome={:?} facts={:?} -> {}\n",
+            writeln!(
+                rows,
+                "{}: {} choice={} outcome={:?} facts={:?} -> {}",
                 id.0, edge.action, edge.choice, edge.emitted.0, edge.emitted.1, edge.emitted.2
-            ));
+            )
+            .unwrap_or_else(|error| panic!("row formatting failed: {error}"));
         }
     }
     Ok(rows)
