@@ -240,10 +240,7 @@ separates the merge and source evidence from still-open qualification.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-187.1](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.1.md) | ✅ Done | Add the helper transcript corpus and convert the engine scenarios |
-| [fn-187.2](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.2.md) | ✅ Done | Move measurement producers out of test files into wasmmeasure |
-| [fn-187.3](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md) | 🚧 In progress | Delete inline tests the corpora already cover after a coverage check |
-| [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | ⬜ Todo | Restructure model, engine, namespace and cluster modules behind the corpus |
+| [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | 🚧 In progress | Restructure model, engine, namespace and cluster modules behind the corpus |
 | [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
