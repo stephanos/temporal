@@ -5,11 +5,11 @@ with Go 1.27.0 and `CGO_ENABLED=0`. It has no dependency on the server module.
 The protobuf source is `../../proto/umpire/model/v1/model.proto`;
 generated Go uses protoc 29.5, protoc-gen-go v1.36.6 and protobuf v1.36.11.
 
-Build the real `umpire-wasm` release artifact before running:
+Build the stock and generic control guests before running:
 
 ```sh
 # From model/:
-mise exec -- cargo build -p umpire-wasm --target wasm32-wasip1 --release --locked
+mise exec -- cargo build -p umpire-stock-guest -p umpire-control-guest --target wasm32-wasip1 --release --locked
 # From model/umpire/hosts/go:
 CGO_ENABLED=0 mise exec -- go test -tags test_dep -count=1 ./...
 CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkColdLoad$' -benchtime=5x -count=1
@@ -17,9 +17,12 @@ CGO_ENABLED=0 mise exec -- go test -run '^$' -bench '^BenchmarkRows$' -benchtime
 ```
 
 Tests resolve `UMPIRE_WASM` first, then
-`$CARGO_TARGET_DIR/wasm32-wasip1/release/umpire_wasm.wasm`, then the same path
+`$CARGO_TARGET_DIR/wasm32-wasip1/release/umpire_stock_guest.wasm`, then the same path
 under `../../../target`. A missing artifact is an error. The parity test compares
 the report and every ordered row against the native trait Kettle fixtures.
+Stateful controls resolve `UMPIRE_STATEFUL_WASM` first, then
+`$CARGO_TARGET_DIR/wasm32-wasip1/release/stateful_control.wasm`, with the same
+local-target fallback. Both guest crates link the export-free `umpire-wasm` library.
 
 Rust directly exports `umpire_buffer_alloc(u32) -> u32`,
 `umpire_buffer_release(u32, u32)` and `umpire_call(u32, u32, u32) -> u64`.

@@ -577,7 +577,7 @@ func guestBytes(t testing.TB) []byte {
 		if target == "" {
 			target = "../../../target"
 		}
-		path = filepath.Join(target, "wasm32-wasip1/release/umpire_wasm.wasm")
+		path = filepath.Join(target, "wasm32-wasip1/release/umpire_stock_guest.wasm")
 	}
 	data, err := os.ReadFile(path)
 	if err != nil {

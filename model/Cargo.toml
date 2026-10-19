@@ -2,7 +2,7 @@
 # uses today. Shared Models and their end-to-end goldens live in umpire/tests.
 [workspace]
 resolver = "3"
-members = ["umpire/dsl", "umpire/dsl/macros", "umpire/checker", "umpire/tests", "umpire/testing", "umpire/wasm", "temporal/testing"]
+members = ["umpire/dsl", "umpire/dsl/macros", "umpire/checker", "umpire/tests", "umpire/testing", "umpire/wasm", "umpire/wasm/guests/stock", "umpire/wasm/guests/control", "temporal/testing"]
 
 [workspace.package]
 version = "0.0.1"
@@ -16,6 +16,7 @@ umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
 umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "umpire/checker" }
 umpire-testing = { version = "0.0.1", path = "umpire/testing" }
+umpire-wasm = { version = "0.0.1", path = "umpire/wasm" }
 
 # Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.
 indexmap = "2.14"

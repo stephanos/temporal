@@ -1,0 +1,161 @@
+use umpire_dsl::{Machine, Spell, Steps};
+use umpire_wasm::{
+    AnswerPlan, Projection, Realize, Runtime, Transition, google::protobuf::Any, protocol,
+};
+
+pub(crate) const TYPE: &str = "type.googleapis.com/umpire.control.Value";
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub(crate) struct State(pub(crate) u8);
+
+#[derive(Clone, PartialEq, Eq, Hash)]
+pub(crate) enum Action {
+    Deliver,
+    Respond,
+    Finish,
+}
+
+pub(crate) struct Outcome;
+pub(crate) struct Fact;
+
+impl Spell for State {
+    fn spell(&self, out: &mut String) {
+        self.0.spell(out);
+    }
+}
+
+impl Spell for Action {
+    fn spell(&self, out: &mut String) {
+        out.push_str(match self {
+            Self::Deliver => "Deliver",
+            Self::Respond => "Respond",
+            Self::Finish => "Finish",
+        });
+    }
+}
+
+impl Spell for Outcome {
+    fn spell(&self, out: &mut String) {
+        out.push_str("outcome");
+    }
+}
+
+impl Spell for Fact {
+    fn spell(&self, out: &mut String) {
+        out.push_str("fact");
+    }
+}
+
+pub(crate) struct World {
+    pub(crate) starts: usize,
+}
+
+impl Machine for World {
+    type State = State;
+    type Action = Action;
+    type Outcome = Outcome;
+    type Fact = Fact;
+
+    fn starts(&self) -> Vec<State> {
+        (0..self.starts).map(|_| State(0)).collect()
+    }
+    fn actions(&self) -> Vec<Action> {
+        vec![Action::Deliver, Action::Respond, Action::Finish]
+    }
+    fn internal(&self, _: &Action) -> bool {
+        false
+    }
+    fn step(&self, state: &State, action: Action) -> Steps<State, Outcome, Fact> {
+        let next = match (state.0, action) {
+            (0, Action::Deliver) => 1,
+            (1, Action::Respond) => 2,
+            (2, Action::Finish) => 3,
+            _ => return Steps::new(),
+        };
+        let mut steps = Steps::new();
+        steps.push((Outcome, vec![Fact], State(next)));
+        steps
+    }
+}
+
+pub(crate) struct Realization;
+
+fn payload(value: &Any) -> Result<u8, protocol::Refusal> {
+    if value.type_url != TYPE {
+        return Err(protocol::Refusal {
+            code: protocol::RefusalCode::Unsupported as i32,
+            message: "unknown type".into(),
+        });
+    }
+    match value.value.as_slice() {
+        [value] => Ok(*value),
+        _ => Err(protocol::Refusal {
+            code: protocol::RefusalCode::MalformedRequest as i32,
+            message: "expected one byte".into(),
+        }),
+    }
+}
+
+pub(crate) fn transition(action: Action) -> Transition<Action> {
+    Transition { action, choice: 0 }
+}
+
+impl Realize<World> for Realization {
+    fn matches(&self, observation: &Any, state: &State) -> Result<bool, protocol::Refusal> {
+        let value = payload(observation)?;
+        Ok(match value {
+            15 => panic!("final projection failed"),
+            10 | 11 => state.0 == 2,
+            13 => state.0 == 0,
+            _ => value == state.0,
+        })
+    }
+
+    fn observe(
+        &self,
+        observation: &Any,
+        state: &State,
+    ) -> Result<Projection<Action>, protocol::Refusal> {
+        let value = payload(observation)?;
+        Ok(match value {
+            value if value == state.0 => Projection::Current,
+            1 | 11 | 15 => Projection::Candidates(vec![vec![transition(Action::Deliver)]]),
+            2 => Projection::Candidates(vec![vec![transition(Action::Respond)]]),
+            3 => Projection::Candidates(vec![vec![transition(Action::Finish)]]),
+            8 | 13 => Projection::Candidates(vec![Vec::new()]),
+            9 => Projection::Candidates(vec![vec![Transition {
+                action: Action::Deliver,
+                choice: 1,
+            }]]),
+            10 => Projection::Candidates(vec![vec![
+                transition(Action::Deliver),
+                transition(Action::Respond),
+            ]]),
+            12 => Projection::Current,
+            14 => panic!("realization failed"),
+            _ => Projection::Candidates(Vec::new()),
+        })
+    }
+
+    fn answer(&self, callback: &Any, _: &State) -> Result<AnswerPlan<Action>, protocol::Refusal> {
+        let value = payload(callback)?;
+        let response_action = if value == 5 { Action::Finish } else { Action::Respond };
+        let mut delivery = transition(Action::Deliver);
+        if value == 8 {
+            delivery.choice = 1;
+        }
+        let reply = match value {
+            6 => Any { type_url: TYPE.into(), value: vec![0; 1 << 20] },
+            7 => Any { type_url: String::new(), value: vec![42] },
+            _ => any(42),
+        };
+        Ok(AnswerPlan { delivery: vec![delivery], response_action, reply })
+    }
+}
+
+pub(crate) fn any(value: u8) -> Any {
+    Any { type_url: TYPE.into(), value: vec![value] }
+}
+pub(crate) fn runtime() -> Runtime<World, Realization> {
+    Runtime::new(World { starts: 1 }, Realization)
+}
