@@ -15,7 +15,7 @@ commit, push or pull request is authorized by this inventory.
 | 1 | [Eager workflow-task retries](service/history/api/startworkflow/api.go) | Stops retried starts from returning an already-expired eager workflow task. | Candidate; add a focused regression test. |
 | 2 | [Activity timer ordering](service/history/workflow/timer_sequence.go) | Makes ScheduleToClose win when activity deadlines coincide. Includes a regression test. | Candidate; confirm intended timeout precedence. |
 | 3 | [Workflow update ordering](service/history/workflow/update/registry.go), [admission sequence](service/history/workflow/update/update.go) | Adds an admission sequence to break equal-timestamp ties. | Candidate; review process-wide sequence ownership. |
-| 4 | [Matching metadata persistence](service/matching/db.go) | Uses an explicit dirty flag so same-clock-tick changes aren't missed. | Candidate; add a clock-tie regression test. |
+| 4 | [Matching metadata persistence](service/matching/db.go) | Uses an explicit dirty flag so same-clock-tick changes aren't missed; a task append that persists the metadata (Cassandra) clears it, so SyncState skips the redundant write as upstream does. Includes clock-tie and no-redundant-write regression tests. | Candidate. |
 | 5 | [Enhanced DescribeTaskQueue cache](service/matching/matching_engine.go) | Includes report flags in cache keys and prevents double-counting cached results during partial-cache refreshes. Includes regression tests. | Strong candidate for a standalone fix. |
 | 6 | [Tracing initialization](temporal/fx.go) | Skips resource detection when no span processors are configured. Includes a test. | Review separately for other resource consumers. |
 

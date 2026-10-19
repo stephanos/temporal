@@ -547,7 +547,10 @@ func (db *taskQueueDB) CreateTasks(
 		// Only update lastWrite for persistence implementations that update metadata on CreateTasks,
 		// otherwise we have a change to ApproximateBacklogCount we need to write.
 		if resp.UpdatedMetadata {
+			// The append persisted cachedQueueInfo(), which includes every change made so far
+			// under this lock, so nothing is left for SyncState to write.
 			db.lastWrite = time.Now()
+			db.changed = false
 		} else {
 			db.changed = true
 		}
@@ -623,7 +626,10 @@ func (db *taskQueueDB) CreateFairTasks(
 		// Only update lastWrite for persistence implementations that update metadata on CreateTasks,
 		// otherwise we have a change to ApproximateBacklogCount we need to write.
 		if resp.UpdatedMetadata {
+			// The append persisted cachedQueueInfo(), which includes every change made so far
+			// under this lock, so nothing is left for SyncState to write.
 			db.lastWrite = time.Now()
+			db.changed = false
 		} else {
 			db.changed = true
 		}
