@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.55.md",
-  "status": "todo",
+  "status": "done",
   "title": "Check verify-only replay report delivery",
   "updated_at": "2026-10-09T20:56:27.233864Z"
 }

@@ -336,3 +336,7 @@ New tick policies carry execution identity and the
 [COMPAT-5 evidence set](../../.plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 Downstream packs/adapters bind exact versions; dependency drift reopens their
 qualification. On revival, use the origin spec's requirement text as acceptance.
+
+## Closure (2026-10-19)
+
+Closed as won't-do on 2026-10-19 by owner decision: the native backend is retired (MILESTONES.md, 2026-10-19 retirement decision) and the Native milestones section was removed. Unfinished tasks were closed without implementation; completed work and artifacts are preserved.

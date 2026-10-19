@@ -10,7 +10,7 @@
   "review": null,
   "spec": "fn-105-gomad-follow-ups-deferred-scope",
   "spec_path": ".flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md",
-  "status": "todo",
+  "status": "done",
   "sync": null,
   "title": "D6: seeded and fixed virtual-clock tick policies",
   "updated_at": "2026-09-30T21:34:50.971603Z"

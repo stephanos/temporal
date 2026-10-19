@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Preserve parent cancellation classification when an exploration round finishes",
   "updated_at": "2026-10-02T15:51:02.791674Z"
 }

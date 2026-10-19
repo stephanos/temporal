@@ -97,20 +97,13 @@ Owner amendment (2026-10-07). This task's remaining native darwin/arm64 executio
 - [ ] Required original R18/R19 and predecessor/full/default/functional/affected-consumer/formal/native Darwin acceptance is proved before task completion. Task21 consumes this evidence; task21 completion is not a prerequisite for starting this corrective source work. Missing or red source-owned gates keep acceptance open; transferred Linux proof is nonblocking.
 - [ ] The two capabilitypolicy import aliases preserve every other source byte and the existing package namespace. Matched BASE/final policy and target controls, architecture/purity/edge checks, unfiltered two-package lint, errortype, formatting and check-only validation pass on frozen sources. Retain fresh bindings, immutable historical receipts, the actual integrated gate inventory/output and a fresh independent source-progress review; original qualification remains open where unproved.
 ## Done summary
-Blocked:
-Reviewed source progress repairs eight target lint findings; nine unchanged cleanup findings remain owned by fn109.39. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin gates remain required and unproved wherever recorded. Native Darwin and full qualification are unavailable on this developmental linux/arm64 host. Do not repeat unchanged host failures. Native Linux execution is deferred under fn128 and is not this task's blocker. Resume acceptance after task39 and the required source-bound supported-host evidence; source progress is not task completion.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Blocked:
-Task39's independently reviewed linked source candidate repairs all nine inherited cleanup findings; combined focused controls and unfiltered target lint now pass with zero target issues. Source progress is committed without claiming task completion. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirements remain required and unproved wherever recorded. No original gate is waived. This developmental linux/arm64 host cannot provide supported native Darwin/full qualification; do not repeat unchanged host failures. Native Linux execution is deferred under fn128 and is not a blocker here.
-
-Blocked:
-ORIGINAL_QUALIFICATION_OPEN: The seven existing target aliases (including the two capabilitypolicy leaf imports) and prior eight-statement digest correction are source-reviewed progress, not task completion. Current scoped policy/canonical/digest, architecture/purity/edge, lint, errortype, formatting and check-only validation pass. The actual integrated 55-package lint gate reports 325 findings and fails before its full errortype stage. Every unproved original R18/R19, predecessor, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirement remains owned by task38. Native Darwin/full qualification is unavailable on this developmental linux/arm64 host; do not retry unchanged host failures. Linux execution remains transferred to fn128 and nonblocking. Resume original acceptance after the residuals are corrected by their admitted owners and source-bound supported-host evidence is available; see task-38/import-alias-2026-10-05/progress.md and integrated-delta.json. Historical receipts remain immutable.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
-
 ## Format-compatibility amendment (2026-10-09)
 
 Per the spec's 2026-10-09 amendment, byte-for-byte and format compatibility is no longer required. Capability and cache digests need only be stable within one Gomad build; golden canonical bytes are no longer required. Preserve the digest's role (cache hits and misses on the same inputs).

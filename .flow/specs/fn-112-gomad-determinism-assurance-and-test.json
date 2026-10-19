@@ -1071,7 +1071,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-112-gomad-determinism-assurance-and-test.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad determinism assurance and test strategy",
   "tracker": {
     "baseHashFlow": null,
@@ -1084,5 +1084,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T16:05:47.686602Z"
+  "updated_at": "2026-10-19T22:37:35.526717Z"
 }

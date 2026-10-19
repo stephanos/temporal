@@ -95,27 +95,13 @@ Owner amendment (2026-10-07). This task's remaining native darwin/arm64 executio
 - [ ] Task40's mechanism-owned R10/R18/R19 contracts and required predecessor/matched-first-baseline, full/default/functional/affected-consumer/formal/native Darwin and static both-source-set verification are proved before its completion. Missing/red source-owned gates keep this owner open. Aggregate adapter integration, nonempty source-set and pin evidence and complete R10 fulfillment remain with task9/fn113/task21; task40 completion requires no task9 integration or completion and claims no aggregate R10 pass. Those owners retain every original requirement. Transferred Linux execution under fn128 is nonblocking.
 - [ ] The inherited lint amendment resolves the four deferred Close findings and test polling sleep with no introduced diagnostics. Checked nil cleanup preserves exact primary identity and the full Result; only expected deferred writer os.ErrClosed is excluded. Baseline/final controls preserve the admitted lifetimes, projection precedence and ESRCH assertion. Unexecuted genuine cleanup-fault paths remain disclosed and cannot establish acceptance.
 ## Done summary
-Blocked:
-Task 40 has reviewed command-compatibility source progress with C1/C2 corrected. The frozen evidence and zero-introduced-finding source reviews are retained in .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/command-compatibility-2026-10-05/progress.md.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Required source-owned acceptance remains red or unavailable. Actual unfiltered lint still reports four inherited unchecked pipe Close defers and one inherited test-helper sleep. Predecessor/matched-first-baseline, complete original patched/full/default/functional/smoke/affected-native gates, native Darwin qualification and full exact-input adapter regeneration remain unproved. Formal implementation review is withheld until those gates are green. This developmental linux/arm64 host has no patched runtime.
-
-Revive this task when a lawful correction for the inherited lint failures is admitted and the original source-owned baseline/qualification inputs become available on native Darwin. Do not rerun unchanged missing-toolchain or native-host failures. Source progress does not unblock dependency-gated task 9 or waive its helper integration and aggregate requirements.
-
-Transferred Linux execution remains under fn-128 and is nonblocking. No formal SHIP, task completion, actual OS cleanup-fault proof or aggregate R10 pass is claimed.
-
-Blocked:
-Task40's bounded command compatibility and inherited pipe-cleanup/polling corrections have reviewed source progress. Current unfiltered pinned lint is green (five findings resolved, none introduced), worker and conductor focused tests pass 57/57, and available architecture, errortype, formatting, race, generator validation and six consumer groups pass. Both fresh source reviews find zero introduced findings. Evidence is retained in .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-40/lint-cleanup-2026-10-05/progress.md. Earlier source receipts remain historical.
-
-Original predecessor/matched-first-baseline, complete original patched/full/default/functional/smoke/affected-native gates, native Darwin qualification, static full both-source-set and exact-input adapter regeneration obligations remain unproved. Genuine deferred OS-close faults and simultaneous cleanup-failure paths remain unexecuted. Formal implementation review remains withheld until every original required gate is green. This developmental linux/arm64 stock-Go host supplies no native Darwin or patched-runtime qualification.
-
-Revive completion when those exact source-owned inputs and native Darwin execution are available. A separately reviewed, bounded source correction may advance under its explicit admission without manufacturing task completion. Do not rerun unchanged missing-input failures. Task9 retains its task8/task40 dependencies, helper integration and aggregate R10 obligations; task21/fn113 retain their original ownership. Transferred Linux execution remains fn128-owned and nonblocking. No formal implementation SHIP, actual OS-close-fault proof or aggregate qualification is claimed.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
-
 ## Original-base lint clarification (2026-10-09)
 
 The readiness packet's 24 integrated findings use the later `d635e23f00d926a43b942f25a9d05bd0ccb72025` revision filter. Root now records the original `951c5516e9e7b3066e7e069adda9565cfd68844c` comparison as authoritative for retained source acceptance. Task19's fresh before/after receipts report 215 to 213 findings across 55 host packages; integrated errortype remains unreached. [Baseline accounting](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-19/digest-lint-20261009/lint-baseline-accounting.md) retains both scopes and exact ownership counts. Historical raw packets remain unchanged. Task40 scoped lint remains clean, and its admitted default readiness failures remain repaired. Genuine deferred/simultaneous pipe-close fault proof, the historical watchdog winner, prior upgrade publication RED and all other unproved source acceptance requirements remain open. Task40 stays in_progress with native fn128/fn149 deferred/unverified.

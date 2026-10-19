@@ -84,8 +84,9 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] Milestone status and README/CLI regeneration guidance are updated; D12/D14 text is unchanged; every existing comment, negative test, and retained contract from the spec's Edge Cases is confirmed present
 - [ ] Required native `darwin/arm64` gates (R7) and Darwin's `-U3`/`-U1` equivalence (R4) have source-bound results, or remain explicitly incomplete with the native commands/CI jobs that close them; unsupported-host or historical results do not close Darwin qualification. Linux R7 gates and R4 equivalence belong to fn-128.1, fn-128.4 and fn-128.7 and do not block this task
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

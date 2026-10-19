@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.66.md",
-  "status": "todo",
+  "status": "done",
   "title": "Restore explicit scripted progress and retention assertions",
   "updated_at": "2026-10-10T01:16:23.796109Z"
 }

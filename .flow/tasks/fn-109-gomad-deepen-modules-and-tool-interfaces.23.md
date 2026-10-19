@@ -108,20 +108,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Source progress only; acceptance remains open. Module-aware root/nested lint routing and local CI commands are implemented and independently source-reviewed with no actionable findings. Helper contracts, unfiltered helper lint, errortype, Make ownership and generated validation passed. Actual root/Gomad lint remains red; inherited path-policy repair needs a separate R19 owner. Mixedbrain and the separately retained exact tagged integration batch passed within their documented scopes. Native gates, D5 and original R18/R19 remain open.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The worker handover/evidence are pre-lifecycle snapshots. See task-23/acceptance-open.md for terminal results, source binding and qualification owners. Root commits this verified progress before admitting the next implementation task.
-
-stage: impl-review - skipped(policy: qualification tree red; independent source-progress review is not formal SHIP)
-stage: plan-sync - skipped(empty: task not done; no completed wave to project)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: root source-progress checkpoint carrying this record; not a task completion receipt.
-- Tests: task-23/evidence.json and integration-tag-correction/verified/ command receipts; independent-source-review-checks.json.
-- Review: task-23/independent-source-review.md, SOURCE PROGRESS COMMIT ready; no formal SHIP.
-- Acceptance: task-23/acceptance-open.md; task remains blocked on qualification.
-- PRs: none.
-
+- Commits:
+- Tests:
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

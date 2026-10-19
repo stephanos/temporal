@@ -21,8 +21,9 @@ Quick commands (pinned documented Go environment; all tests include `test_dep`):
 
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

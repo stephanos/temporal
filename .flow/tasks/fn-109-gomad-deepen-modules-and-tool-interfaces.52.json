@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.52.md",
-  "status": "todo",
+  "status": "done",
   "title": "Check remaining maintainer diagnostics while preserving primary outcomes",
   "updated_at": "2026-10-09T19:46:00.562293Z"
 }

@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-155-gomad-syscall-level-io-boundary-from",
   "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Serve multi-node simulation traffic through virtual descriptors in both backends",
   "updated_at": "2026-10-10T02:14:10.766047Z"
 }

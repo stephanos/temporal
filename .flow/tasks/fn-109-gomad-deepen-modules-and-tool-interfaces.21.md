@@ -118,23 +118,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] 10-job and 100-job control cases are measured and show bounded policy state and no added full-payload copy.
 - [ ] Unfinished source-owned fn-108 evidence and any D12/D14-owned failure are listed as incomplete acceptance with the command to run. Transferred linux/amd64 gates are referenced under [fn-128.1](../tasks/fn-128-gomad-deferred-linux-qualification-and.1.md), [fn-128.4](../tasks/fn-128-gomad-deferred-linux-qualification-and.4.md), [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md), with Linux qualification remaining unverified until native evidence exists; missing transferred Linux evidence does not keep this task's acceptance open. Nothing is reported as passing that was not run.
 ## Done summary
-Blocked on R18 preservation reconciliation, required lint and both native platform gates.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The matched developmental 10/100 campaigns, sixteen-finding matrix and exact native-command ledger are frozen against source candidate 8604c07def0f97b63cbca3864b4c286d6803c4b1. Fresh read-only integrity checks passed. Independent evidence review found no introduced findings and recommends committing verified progress; it is not a formal SHIP or qualification verdict.
-
-[Checkpoint and remaining acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/acceptance-open.md) retains the scope, checks and owner handbacks. [Independent review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/current-checkpoint-independent-review.md) retains actual raw-profile and gate-ledger verification. The frozen worker handover records its earlier in-progress snapshot; current Flow state is blocked. Original acceptance criteria, native expectations and D3-D5 closure remain unchanged.
-
-The [additive R18 accountability supplement](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-21/r18-accountability-2026-10-04/accountability.md) binds the named campaign helper/type set to task 5/R6 and its WIP introduction, with task 26's real CLI consumer correction. It links task 20's nine-flag correction and separately owned API/CLI changes. This supersedes only those historical inventory/ownership and missing-flag status statements at checkpoint 0988ab1041c5580b2d02763088d5048d6ee70586; the frozen audit, qualification evidence, measurements and original blocked checkpoint remain unchanged. Format/workload availability, changed guidance defaults, matched first-baseline identities, full/formal/affected-consumer and both native acceptance gates remain required and open.
-
-stage: impl-review - deferred(policy: required lint is red; native qualification and preservation acceptance are incomplete)
-
-stage: plan-sync - skipped(config: disabled; task remains blocked)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

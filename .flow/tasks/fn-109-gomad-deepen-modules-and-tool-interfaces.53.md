@@ -41,8 +41,9 @@ gaps remain explicit. Task acceptance stays in_progress: no Done or formal SHIP.
 - [ ] Fresh independent review, root verification and a separate task commit feed task21. Formal implementation acceptance remains open while its required source gate is red. Original R18/R19, first-baseline/preservation and native fn149/fn128 obligations are unchanged; this correction grants no qualification, native pass or publication authority.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

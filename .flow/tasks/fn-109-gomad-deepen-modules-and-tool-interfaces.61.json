@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.61.md",
-  "status": "todo",
+  "status": "done",
   "title": "Observe real competing-build lock contention instead of sleeping",
   "updated_at": "2026-10-09T23:12:41.156767Z"
 }

@@ -29,8 +29,9 @@ Measure patch and overlay size against the fn-110.1 baseline, write the go/no-go
 - [ ] Docs describe the opt-in boundary and adapter exclusion; MILESTONES.md fn-155 table lists all tasks.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

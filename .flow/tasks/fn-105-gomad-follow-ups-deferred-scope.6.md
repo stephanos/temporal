@@ -10,8 +10,9 @@ Origin: fn-103 R1/R3. The user explicitly keeps this deferred on 2026-09-30. For
 Implementation remains deferred until a specific bug class and its need for deliberate ties or constant increments are recorded. On revival, each policy repeats and replays exactly on a runtime fixture and a core workload, with manifest settings, execution identity, and COMPAT-5 evidence. Preserve strict and forward behavior. Recording the deferral does not claim implementation or close the task as implemented.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

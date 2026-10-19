@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Give local and isolated campaigns one normalized options owner",
   "updated_at": "2026-10-08T10:54:25.867470Z"
 }

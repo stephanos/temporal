@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.65.md",
-  "status": "todo",
+  "status": "done",
   "title": "Restore explicit scripted Runner preparation and bootstrap coverage",
   "updated_at": "2026-10-10T00:41:52.807767Z"
 }

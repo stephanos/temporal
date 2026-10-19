@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.56.md",
-  "status": "todo",
+  "status": "done",
   "title": "Check builder cleanup while preserving publication outcomes",
   "updated_at": "2026-10-09T21:10:27.901046Z"
 }

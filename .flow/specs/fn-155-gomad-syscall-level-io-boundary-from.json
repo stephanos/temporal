@@ -241,7 +241,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-155-gomad-syscall-level-io-boundary-from.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: syscall-level I/O boundary, from spike to decision",
   "tracker": {
     "baseHashFlow": null,
@@ -254,5 +254,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-10T02:13:59.147405Z"
+  "updated_at": "2026-10-19T22:37:43.949854Z"
 }

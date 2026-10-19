@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.73.md",
-  "status": "todo",
+  "status": "done",
   "title": "Restore explicit scripted Unix campaign-mode coverage",
   "updated_at": "2026-10-10T03:32:45.769068Z"
 }

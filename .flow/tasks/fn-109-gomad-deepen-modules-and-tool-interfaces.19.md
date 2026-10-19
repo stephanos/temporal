@@ -93,79 +93,13 @@ stage: impl-review - skipped(policy: configured product lint remains red; fresh 
 stage: plan-sync - skipped(policy: planSync disabled and no task completed)
 
 ## Done summary
-Blocked:
-# Task 19 acceptance remains open
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The source candidate is committed at `4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7`.
-Its round-four development gates and bounded independent corrective source review
-are retained in `handover.md`, `evidence.json`, and
-`round4-independent-source-review.md`. This is source progress, not formal SHIP
-or supported-platform qualification.
-
-Formal Codex fan-out on 2026-10-04 at 07:48:08Z failed before reviewer dispatch
-with `sidecar_publish_failed`. Reservation
-`28918d38c5ed438ea2933f6402f7a28d` was refunded. The Flow spec records a transport
-failure with `round_consumed=false`, null verdict, zero task-19 rounds, and no
-pending round or live reservation. No reviewer output or receipt exists.
-The selected model was `gpt-6.1-sol` at high; no model executed that review.
-
-`review-publication-debug.md` retains 40 successful original-helper scratch
-replays. `review-handler-publication-debug.md` retains two successful isolated
-CLI-handler metadata runs, with every mocked external boundary disclosed and
-execution stopped before dispatch. These checks do not recover the exception
-discarded by the original caller. The cause remains unreproduced. The installed
-tool is unchanged; no actual review state, backend, model, sandbox or round
-counter was reset or bypassed during diagnosis.
-
-On 2026-10-04 the conductor freshly verified all 978 entries of
-`round4-final-source.sha256`, all 109 entries of
-`round4-task-owned-source.sha256`, and all 138 entries of
-`round4-command-logs.sha256`. Every check exited 0. This establishes unchanged
-source and retained local evidence, not a rerun of those commands or native
-execution. The earlier omitted bulk logs remain local exactly as inventoried.
-Flow validation also passed for all 22 tasks.
-
-Keep task 19 and fn-105.4 acceptance open. Task 20 remains unclaimed, and task
-21's current-tree comparison and final qualification are not admitted yet.
-Resume formal review only after the failure's cause or relevant inputs change;
-capture its original exception at the metadata boundary if an authorized real
-invocation fails again. Do not substitute scratch metadata success for review.
-Native darwin/arm64 and linux/amd64 gates, predecessor acceptance, and the
-milestone's original requirements remain incomplete on this linux/arm64 host.
-
-stage: impl-review - failed(sidecar_publish_failed: no draw dispatched; round refunded; no verdict)
-stage: plan-sync - skipped(policy: no task reached accepted done)
-
-Blocked:
-# Task 19 acceptance remains open after guidance source admission
-
-The task-19 source checkpoint is
-`4a646710d15148f1a3cf75bdeba7bdfd2fd2edf7`. Development gates and the
-independent source review/fix chain are retained under task 19. Formal fan-out
-failed before dispatch with `sidecar_publish_failed`; no reviewer ran, no
-receipt or verdict exists, and the reservation was refunded. The tool is
-unchanged and the cause remains unreproduced. See `review-blocked.md` for the
-original failure, diagnostics and ledger identities. No retry or reset occurred.
-
-Native darwin/arm64 and linux/amd64 qualification, predecessor acceptance and
-fn-105.4 closure remain incomplete. Connected GitHub inspection found historical
-native runs only; none qualifies this unpublished source checkpoint.
-
-On 2026-10-04 the conductor corrected its earlier successor restriction and
-claimed task 20 for documentation-only source work under MILESTONES immediate
-delivery item 4, after the integrated predecessor's independent source review
-and fresh source-hash verification. The task dependency is retained; this is
-not formal SHIP, task-19 completion, or an acceptance waiver. See
-`../task-20/source-admission.md`. Earlier statements that task 20 is unclaimed
-are historical. Task 21's current-tree comparison is not admitted yet.
-
-stage: impl-review - failed(sidecar_publish_failed: no draw dispatched; no verdict; unchanged failure not retried)
-stage: plan-sync - skipped(policy: no task reached accepted done)
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Current acceptance blocker (2026-10-05)
 
 Task 19 has a bounded verified World lint source correction. Original task-18/predecessor acceptance, complete R8/R18/R19 preservation and affected-consumer requirements, current Darwin/full/default/functional gates and formal review remain open. Actual scoped lint remains exit 1 with 26 unchanged ST1005/forbidigo findings. The historical formal dispatch sidecar_publish_failed supplied no verdict. A fresh source-progress review does not replace formal SHIP. Missing transferred Linux evidence is not a blocker; fn-128 owns that qualification.

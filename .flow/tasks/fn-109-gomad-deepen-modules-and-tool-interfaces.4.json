@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Resolve CLI installation and private child modes through one application construction path",
   "updated_at": "2026-10-08T12:31:15.861096Z"
 }

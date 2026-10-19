@@ -1487,7 +1487,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad deepen modules and tool interfaces",
   "tracker": {
     "baseHashFlow": null,
@@ -1500,5 +1500,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-13T16:46:16.734386Z"
+  "updated_at": "2026-10-19T22:37:32.208781Z"
 }

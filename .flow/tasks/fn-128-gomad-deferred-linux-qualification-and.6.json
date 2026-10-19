@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-128-gomad-deferred-linux-qualification-and",
   "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Qualify downstream Linux analyses, packs and exact replay",
   "updated_at": "2026-10-05T05:42:06.150787Z"
 }

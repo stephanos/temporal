@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md",
-  "status": "todo",
+  "status": "done",
   "title": "Check CLI private-mode fixture reader cleanup",
   "updated_at": "2026-10-08T05:28:10.057720Z"
 }

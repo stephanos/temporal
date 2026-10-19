@@ -29,15 +29,14 @@ No PR, push or CI action is authorized by the deferral or its revival.
 The [2026-10-14 native hibernation decision](#native-backend-hibernation-owner-decision-2026-10-14)
 extends this acceptance deferral to the new shared-owner native execution gates.
 The [2026-10-19 retirement decision](#native-backend-retirement-and-the-functional-test-goal-owner-decision-2026-10-19)
-retires the native backend: fn-128 and fn-149 close as won't-do when fn-223 lands.
+retires the native backend. The deferred native specs (fn-105, fn-109, fn-110, fn-112, fn-128, fn-149, fn-155) were closed as won't-do on 2026-10-19.
 Both backends are developed together here, and `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed tasks and their evidence
 remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
 a committed source candidate is not completed acceptance.
 
-Status: 🚧 In progress · ⛔ Blocked · ⬜ Todo · ⏸ Deferred.
-Native deferral labels preserve the previously recorded task state; they do not rewrite Flow history.
+Status: 🚧 In progress · ⛔ Blocked · ⬜ Todo.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
@@ -100,7 +99,7 @@ Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 20
    [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop membership within reason is already filed and follows the sweep; its unstub gate may land earlier if the sweep wants it.
 5. [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) qualifies the one-box cell and defines the per-test support claim, after fn-220.
 6. [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md) determinism boundary audit continues alongside; it must hold for a testcore-sized guest.
-7. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219 and closes fn-128 and fn-149 as won't-do.
+7. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219; fn-128 and fn-149 are already closed as won't-do.
 
 ## Batch-first execution strategy
 
@@ -340,132 +339,4 @@ Runs after fn-219. Retains historical artifacts and ledgers under `.flow/artifac
 | --- | --- | --- |
 | [fn-223.1](.flow/tasks/fn-223-gomad-delete-the-native-backend.1.md) | ⬜ Todo | Remove the nested native module and prove the default set builds |
 | [fn-223.2](.flow/tasks/fn-223-gomad-delete-the-native-backend.2.md) | ⬜ Todo | Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags |
-| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record unchanged WASM identities, close fn-128 and fn-149, refresh docs |
-
-## Native
-
-Retiring by the 2026-10-19 owner decision and scheduled for removal under fn-223; all unfinished specs and tasks below are outside the active WASM delivery queue and close as won't-do when fn-223 lands. Completed work and recorded Flow states are preserved. Changes to shared Gomad owners still require WASM acceptance; this deferral does not revive native qualification.
-
-### Deferred delivery order
-
-Historical native priority (2026-10-10; deferred). Finish the already-running fn-109 task 72 verification,
-then take fn-155 next, ahead of the remaining source queue below. Begin with
-fn-155 `.1 → .2 → .8 → .3`, then follow its dependencies
-through `.7`'s boundary decision. fn-109.17/.18 and fn-110.3 still wait for fn-155.7.
-The execution proof needs darwin/arm64 or linux/amd64. Preserve retained acceptance
-and native deferrals; this priority grants no PR, push or CI authority.
-
-1. Finish fn-112 task 10's retained source acceptance for the delivered soak gate and shared documentation. Actual native soak runs and measured bounds remain with fn-149.4 and fn-128.5/.7; no workflow dispatch is authorized.
-2. Reconcile the combined D26/fn-110 source candidate, fn-112 tasks 5/16/9, D27 and fn-109 tasks 2-6 against their retained source checks, preservation and source reviews. Keep lint, both-source-set static checks, generated validation, first-baseline and preservation requirements open wherever unproved. Native runtime/clock proof belongs to deferred fn-149.1 and fn-128.1/.4/.7.
-3. Continue fn-109 tasks 7-11, fn-110 tasks 3-4, then fn-109 tasks 17-21 (tasks 12-16 and the other shared-owner tasks moved to the WASM section) and fn-110 task 5 in coherent implementation batches, including the admitted correction owners. Respect implementation dependencies within each batch; validate and review the integrated batch before completing its tasks. Missing native qualification now owned by fn-149 or fn-128 cannot block source admission or completion; unproved source requirements still do.
-4. Resume fn-105 D8-D10's shared source work when the real checkout is available. Native Darwin consumer analyses/packs/replay/guidance belong to fn-149.3; Linux execution belongs to fn-128.6. Neither native owner removes the actual-checkout/source-review prerequisite.
-5. Keep fn-149 deferred until an explicit Darwin qualification request and native darwin/arm64 execution are available. Then establish its pinned candidate/runtime, retain inherited integration/model/pack and downstream evidence, and reconcile an actual scheduled/dispatched soak plus final matrix. Publication and CI actions need separate authority.
-6. Keep fn-128 and its Linux CI work deferred until an explicit Linux qualification request and native linux/amd64 execution are available. Its eventual sequence remains baseline, causal D12 strict-replay fix, D21-triggered D11 audit, native model/consumer/soak evidence and final Linux matrix. No PR or CI run is part of the current work.
-
-### F10: follow-ups (deferred scope) — [fn-105](.flow/specs/fn-105-gomad-follow-ups-deferred-scope.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-105.4](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | D4: architecture fitness checks for package coverage, purity, and signature visibility |
-| [fn-105.5](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | D5: reconcile architecture, platform, and determinism documentation |
-| [fn-105.6](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | D6: seeded and fixed virtual-clock tick policies |
-| [fn-105.8](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.8.md) | ⏸ Deferred (recorded: 🚧 In progress) | D8: closure-mode support for downstream targets |
-| [fn-105.9](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.9.md) | ⏸ Deferred (recorded: ⬜ Todo) | D9: shared downstream packs/source checks; native qualification moved to fn-149.3/fn-128.6 |
-| [fn-105.10](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | D10: downstream-seam guide |
-| [fn-105.15](.flow/tasks/fn-105-gomad-follow-ups-deferred-scope.15.md) | ⏸ Deferred (recorded: ⬜ Todo) | D15: support larger choice traces when a workload needs them |
-
-### Deep modules and tool interfaces — [fn-109](.flow/specs/fn-109-gomad-deepen-modules-and-tool-interfaces.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-109.9](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.9.md) | ⏸ Deferred (recorded: 🚧 In progress) | Bounded adapter listing integrated; original acceptance gates remain open |
-| [fn-109.10](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.10.md) | ⏸ Deferred (recorded: ⬜ Todo) | Supply build, cache and adapter locations from one validated installation description |
-| [fn-109.11](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.11.md) | ⏸ Deferred (recorded: ⬜ Todo) | Capability/source-inventory owners integrated; inventory lint fixed, qualification pending |
-| [fn-109.17](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.17.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Select backend-specific network listener and connection implementations at creation; waits for fn-155.7 |
-| [fn-109.18](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.18.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Select backend-specific filesystem handle and mapping implementations at creation; waits for fn-155.7 |
-| [fn-109.19](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.19.md) | ⏸ Deferred (recorded: 🚧 In progress) | Architecture digest lint repaired; original acceptance remains open |
-| [fn-109.20](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.20.md) | ⏸ Deferred (recorded: ⬜ Todo) | Reconcile architectural guidance with delivered owners and interfaces (D5). |
-| [fn-109.21](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.21.md) | ⏸ Deferred (recorded: ⬜ Todo) | Run final qualification and retain the finding completion matrix |
-| [fn-109.23](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.23.md) | ⏸ Deferred (recorded: 🚧 In progress) | Repair module-aware lint routing and supply the nested host gates |
-| [fn-109.24](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.24.md) | ⏸ Deferred (recorded: ⬜ Todo) | Restore repository-relative lint exclusion matching |
-| [fn-109.25](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.25.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve lifecycle fault resolution while repairing exhaustive lint |
-| [fn-109.26](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.26.md) | ⏸ Deferred (recorded: ⬜ Todo) | Restore Runner semantic ownership in CLI callers |
-| [fn-109.27](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.27.md) | ⏸ Deferred (recorded: ⬜ Todo) | Correct current R18 preservation disclosures |
-| [fn-109.32](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.32.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve concrete error callback provenance in architecture checks |
-| [fn-109.33](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.33.md) | ⏸ Deferred (recorded: ⬜ Todo) | Preserve artifact reflection helper coverage and clone isolation |
-| [fn-109.34](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.34.md) | ⏸ Deferred (recorded: ⬜ Todo) | Check CLI private-mode fixture reader cleanup |
-| [fn-109.35](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.35.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Preserve corpus reader cleanup and publication failures |
-| [fn-109.37](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.37.md) | ⏸ Deferred (recorded: ⬜ Todo) | Qualification cleanup and import lint clean; original qualification open |
-| [fn-109.38](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.38.md) | ⏸ Deferred (recorded: ⬜ Todo) | Target and pure-policy lint clean; original qualification remains open |
-| [fn-109.39](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.39.md) | ⏸ Deferred (recorded: ⬜ Todo) | Cleanup lint repaired; fault, pin and original qualification remain open |
-| [fn-109.40](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.40.md) | ⏸ Deferred (recorded: 🚧 In progress) | Command-test readiness repaired; retained mechanism acceptance remains open |
-| [fn-109.41](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.41.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Canonical JSON exhaustive lint repaired; original qualification remains open |
-| [fn-109.42](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.42.md) | ⏸ Deferred (recorded: ⬜ Todo) | Exact-pack exhaustive lint repaired; original qualification remains open |
-| [fn-109.43](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md) | ⏸ Deferred (recorded: ⬜ Todo) | Five-import admission repaired; original qualification remains open |
-| [fn-109.44](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.44.md) | ⏸ Deferred (recorded: ⬜ Todo) | Four mechanical lint findings repaired; original qualification remains open |
-| [fn-109.45](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.45.md) | ⏸ Deferred (recorded: ⬜ Todo) | Seven mechanical lint findings repaired; full lint and qualification remain open |
-| [fn-109.46](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.46.md) | ⏸ Deferred (recorded: ⬜ Todo) | Stdout reports repaired; full lint and original qualification remain open |
-| [fn-109.47](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.47.md) | ⏸ Deferred (recorded: ⬜ Todo) | Archive cleanup repaired; full lint and original qualification remain open |
-| [fn-109.48](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.48.md) | ⏸ Deferred (recorded: ⬜ Todo) | Patch cleanup repaired; full lint and original qualification remain open |
-| [fn-109.49](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.49.md) | ⏸ Deferred (recorded: ⬜ Todo) | Adapter cache cleanup repaired; full lint and original qualification remain open |
-| [fn-109.50](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.50.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check five terminal generator diagnostics without changing statuses |
-| [fn-109.51](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.51.md) | ⏸ Deferred (recorded: 🚧 In progress) | Reconcile one usage-status fixture with the preserved original contract |
-| [fn-109.53](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.53.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check CLI diagnostics while preserving primary outcomes |
-| [fn-109.54](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.54.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check doctor reports and classify output failures |
-| [fn-109.55](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.55.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check verify-only replay report delivery |
-| [fn-109.56](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.56.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check builder cleanup while preserving publication outcomes |
-| [fn-109.57](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.57.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check test cleanup results without changing resource lifetimes |
-| [fn-109.58](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.58.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check inspection and invalid compiler-fixture cleanup |
-| [fn-109.59](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.59.md) | ⏸ Deferred (recorded: 🚧 In progress) | Make preserved test-switch no-op cases explicit |
-| [fn-109.60](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.60.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check six child-fixture outputs without changing process outcomes |
-| [fn-109.61](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.61.md) | ⏸ Deferred (recorded: 🚧 In progress) | Observe competing-build lock contention instead of sleeping |
-| [fn-109.62](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.62.md) | ⏸ Deferred (recorded: 🚧 In progress) | Bound progress-test startup and observe early completion |
-| [fn-109.64](.flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.64.md) | ⏸ Deferred (recorded: 🚧 In progress) | Check watchdog fixture readiness writes without masking setup failure |
-
-### Runtime patch minimization — [fn-110](.flow/specs/fn-110-gomad-minimize-the-runtime-patch.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-110.3](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Relocate crypto initialization and syscall declarations to overlays; waits for fn-155.7 |
-| [fn-110.4](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Emit the canonical one-context-line patch and pin regeneration to the descriptor |
-| [fn-110.5](.flow/tasks/fn-110-gomad-minimize-the-runtime-patch.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Qualify the final candidate and publish measurements and guidance |
-
-### Syscall-level I/O boundary — [fn-155](.flow/specs/fn-155-gomad-syscall-level-io-boundary-from.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-155.1](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.1.md) | ⏸ Deferred (recorded: 🚧 In progress) | Port the virtual descriptor layer and syscall edge onto the Gomad toolchain |
-| [fn-155.2](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.2.md) | ⏸ Deferred (recorded: ⬜ Todo) | Select the boundary and adapter exclusions per run; bind into artifact identity |
-| [fn-155.3](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.3.md) | ⏸ Deferred (recorded: ⬜ Todo) | Record descriptor I/O; prove same-seed determinism for a single-process gRPC workload |
-| [fn-155.4](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.4.md) | ⏸ Deferred (recorded: ⬜ Todo) | Serve multi-node simulation traffic through virtual descriptors in both backends |
-| [fn-155.5](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.5.md) | ⏸ Deferred (recorded: ⬜ Todo) | Soak single-process and multi-node workloads with the boundary on |
-| [fn-155.6](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.6.md) | ⏸ Deferred (recorded: ⬜ Todo) | Classify the 15 adapters and run network adapters excluded |
-| [fn-155.7](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.7.md) | ⏸ Deferred (recorded: ⬜ Todo) | Measure size, record the files/DNS decision and annotate dependent work |
-| [fn-155.8](.flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.8.md) | ⏸ Deferred (recorded: ⬜ Todo) | Admit the edge's socket entry points in capability guard and closure policy |
-
-### Determinism assurance and test strategy — [fn-112](.flow/specs/fn-112-gomad-determinism-assurance-and-test.md) — Deferred
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-112.10](.flow/tasks/fn-112-gomad-determinism-assurance-and-test.10.md) | ⏸ Deferred (recorded: 🚧 In progress) | Finish retained source acceptance for the soak gate and shared documentation |
-
-### Deferred Linux qualification and repairs — [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-128.1](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Native Linux candidate and runtime/host evidence |
-| [fn-128.2](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.2.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Causal Linux replay fix and strict CI restoration |
-| [fn-128.3](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Conditional Linux host-clock audit or owner disposition |
-| [fn-128.4](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.4.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Linux model/pack/workload qualification, including new shared-owner native gates |
-| [fn-128.5](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.5.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Actual Linux determinism soak and measured bound |
-| [fn-128.6](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.6.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Downstream Linux analyses, packs, exact replay and guidance |
-| [fn-128.7](.flow/tasks/fn-128-gomad-deferred-linux-qualification-and.7.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Final source-bound Linux matrix, review and documentation |
-
-### Deferred Darwin qualification - [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-149.1](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.1.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Native Darwin baseline, runtime and clock evidence |
-| [fn-149.2](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.2.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Darwin model/pack/integration qualification, including new shared-owner native gates |
-| [fn-149.3](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.3.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Real downstream Darwin qualification and guidance |
-| [fn-149.4](.flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md) | ⏸ Deferred (recorded: ⛔ Blocked) | Scheduled/dispatched Darwin soak and final qualification matrix |
+| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record unchanged WASM identities and refresh docs |

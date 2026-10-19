@@ -55,3 +55,7 @@ Use each donor's pinned command ledger. Flow validation checks the ownership rec
 ## Execution waves
 
 Task 1 precedes tasks 2 and 3; task 4 follows all three. Tasks 2 and 3 are dependency-eligible together, but shared toolchain/qualification resources require serialized writers and disjoint output directories for read-only runs. All four tasks remain blocked until the recorded revival prerequisites are met.
+
+## Closure (2026-10-19)
+
+Closed as won't-do on 2026-10-19 by owner decision: the native backend is retired (MILESTONES.md, 2026-10-19 retirement decision) and the Native milestones section was removed. Unfinished tasks were closed without implementation; completed work and artifacts are preserved.

@@ -27,8 +27,9 @@ Owner requests qualification and supplies a native linux/amd64 host or CI and a 
 - [ ] Retain exact commands, exit codes, source/build identities and an independent review for accepted changes; commit task progress before completing it.
 
 ## Done summary
-Blocked:
-Deferred by owner-authorized Linux scope transfer on 2026-10-04. No native linux/amd64 host or CI is available. Revival requires an owner request, native execution, pinned supported toolchain/profile and a frozen source candidate. This task owns R5; Linux evidence is incomplete and no pass or waiver is claimed.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

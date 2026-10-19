@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Resolve the native model compiler from the standard host-test entrypoint",
   "updated_at": "2026-10-02T12:03:28.416864Z"
 }

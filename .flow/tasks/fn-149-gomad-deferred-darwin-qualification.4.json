@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-149-gomad-deferred-darwin-qualification",
   "spec_path": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retain Darwin scheduled soak and final qualification matrix",
   "updated_at": "2026-10-14T00:39:36.937126Z"
 }

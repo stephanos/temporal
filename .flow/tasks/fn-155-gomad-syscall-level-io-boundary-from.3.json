@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-155-gomad-syscall-level-io-boundary-from",
   "spec_path": ".flow/tasks/fn-155-gomad-syscall-level-io-boundary-from.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record virtual-descriptor I/O and prove same-seed determinism for a single-process gRPC workload",
   "updated_at": "2026-10-10T02:14:10.268055Z"
 }

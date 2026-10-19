@@ -162,7 +162,7 @@
     "impl:fn-110-gomad-minimize-the-runtime-patch.4": 0
   },
   "spec_path": ".flow/specs/fn-110-gomad-minimize-the-runtime-patch.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: minimize the runtime patch without losing functionality",
   "tracker": {
     "baseHashFlow": null,
@@ -175,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-08T05:54:59.540332Z"
+  "updated_at": "2026-10-19T22:37:34.491104Z"
 }

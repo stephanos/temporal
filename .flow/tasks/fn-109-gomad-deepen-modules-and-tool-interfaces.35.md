@@ -39,48 +39,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Corpus cleanup source progress is independently reviewed and retained for its
-separate commit. The two production releases and four original fixture releases
-stay at their lifetime boundaries. Nil Close preserves original results/errors;
-a genuine cleanup failure clears the result and returns a raw sole error or
-primary-first joined errors. Original operations/assertions/comments reconstruct
-to BASE; all 1,043 protected inputs remain unchanged. Four real-file controls
-preserve helper error order, snapshot/publication state and fixed nonempty BASE
-canonical bytes/digests.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Fresh independent serial checks pass corpus 24/24, focused 14/14, five actual
-boundaries, errortype and formatting. Actual configured unfiltered corpus lint
-falls from six findings to zero with none introduced. Stock linux/arm64 checks
-are developmental. Generator inputs are unaffected; validate was not required.
-
-The source review permits a source-progress checkpoint only. Genuine first-Close
-and simultaneous operation/Close failure execution remain unproved. Original
-R3/R13/R18/R19, shared fn108, task12/predecessors/task21, matched original
-first-baseline identities and complete/full/completion/formal/both-native/
-affected-consumer qualification remain required and open. Task35/task21 stay
-blocked; parent stays open with 2/35 done. Root commits this reviewed source,
-proof and Flow/docs before another writer. No acceptance or SHIP claim.
-
-Product/document and all other scoped diff checks pass. Full staged diff-check
-exits 2 only for the immutable audit-environment.log's final empty-GOFLAGS line.
-The raw log, receipt and worker freeze retain their bytes; the archive warning
-is disclosed rather than rewritten.
-
-Requested writer/reviewer models were gpt-6.1-sol/high, same requested family;
-actual model metadata is unavailable. The root receipt-audit bookkeeping
-preflight and corrected read-only pass are disclosed in acceptance-open.md.
-
-stage: impl-review - skipped(policy: conductor-deferred; fresh source review passed, full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
-Blocked:
-Superseded by the fn-109 2026-10-09 amendment. With byte and format compatibility dropped, fn-152 (Runner storage on one append-only log) and fn-153 (retire canonical JSON and private atomic writes) delete the code this task would harden. Not required for fn-109 completion.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: Source-progress commit containing this task's corpus source/tests and frozen proof; resolve from Git history. No push.
-- Tests: Worker handover.md/evidence.json, independent-source-review.md/json and root-reaudit.json under .flow/artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/.
-- PRs: None.
-- Acceptance: [.flow task35 open gates](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-35/acceptance-open.md).
-
+- Commits:
+- Tests:
+- PRs:
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Consolidate the change-detector tests with a retained mapping",
   "updated_at": "2026-10-08T15:00:53.216546Z"
 }

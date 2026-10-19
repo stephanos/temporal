@@ -87,25 +87,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 - [ ] No unmeasured support or performance claim, obsolete delivery-state claim, or failure described as qualification success is present; local links and code fences resolve.
 - [ ] fn-105.5 is closed by reference to this task (one owner).
 ## Done summary
-Blocked on inherited D5 and final qualification; nine-flag CLI documentation correction source-reviewed.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-The earlier three-draw formal SHIP covers its recorded source checkpoint only. The current correction passed independent source review and a bounded corrective review with zero remaining findings. Focused tests, make validate and all 19 document/preservation checks passed; unavailable native gates remain incomplete.
-
-[Current correction and open acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-20/cli-inventory-correction/acceptance-open.md) links the exact reviewed hashes and immutable prior captures. Task 21's developmental 10/100 controls are retained, but R18 reconciliation, both native gates, task 19 formal review and fn-105.5 closure remain open. Original acceptance and dependencies are unchanged.
-
-stage: impl-review - skipped(policy: red root lint and incomplete qualification; source-progress checkpoint only)
-
-Blocked:
-ORIGINAL_QUALIFICATION_OPEN. Six stale Choice Trace/replay version claims now match current v3 readers. The three guides explain readiness projection, unknown readiness, explicit v2 refusal and legacy-v1 inspection without a replay tape. Fresh BASE, FINAL and conductor checks pass the two vocabulary/Make tests, three reader/readiness/legacy controls and generator validation. All 25 final document checks pass; 1,105 other inventoried paths retain their BASE bytes.
-
-This documentation checkpoint implements no legacy-format support and proves no current native replay or full R9/R18 reconciliation. The actual classifier returns FULL for the three guides and two unrelated user scratch files; it is not a docs-only tier-B pass. Original full/native/affected gates remain open. The prior actual lint receipt retains 317 diagnostics and integrated errortype UNREACHED; no fresh lint run or green result is claimed.
-
-Keep dependency .19, original task acceptance, formal review, required Darwin/full/affected qualification and fn-105.5 D5 closure open where unproved. Transferred Linux execution remains nonblocking under fn-128. Historical completion/evidence stays historical and unchanged.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

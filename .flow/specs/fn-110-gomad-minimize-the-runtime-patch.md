@@ -225,3 +225,7 @@ qualification questions beyond the measured core candidate.
 The owner instructed "ignore 642 bytes larger". For the retained current candidate, R8's extraction-size comparison accepts the measured U3 patch of 33,294 bytes against the original 32,652-byte U3 baseline. This 642-byte excess no longer blocks this spec or the corresponding size clauses in tasks .2 and .5. The measurements remain an increase; the waiver supplies no claim of an actual U3 reduction.
 
 The canonical U1 comparison, retained counts, source equivalence, preservation, identities, review and all other acceptance requirements remain unchanged. Historical reports retain their original source-bound size judgments. This amendment changes neither platform scope nor qualification status and grants no publication authority.
+
+## Closure (2026-10-19)
+
+Closed as won't-do on 2026-10-19 by owner decision: the native backend is retired (MILESTONES.md, 2026-10-19 retirement decision) and the Native milestones section was removed. Unfinished tasks were closed without implementation; completed work and artifacts are preserved.

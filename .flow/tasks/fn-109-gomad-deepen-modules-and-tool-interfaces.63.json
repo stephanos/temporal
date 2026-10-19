@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.63.md",
-  "status": "todo",
+  "status": "done",
   "title": "Decompose the local campaign orchestration before further Runner changes",
   "updated_at": "2026-10-10T15:42:11.976132Z"
 }

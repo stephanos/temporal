@@ -35,8 +35,9 @@ Scope extension (owner decision, 2026-10-14): retain the additional native oblig
 - [ ] Final matrix accounts for every transferred native command and task on the same source/toolchain/profile/module closure with passing results, preserved dispositions, refreshed identities, independent review and checked documentation. Any missing required result keeps overall Darwin qualification open.
 
 ## Done summary
-Blocked:
-Deferred by the owner on 2026-10-07. Revival requires an explicit Darwin qualification request, native darwin/arm64 execution, the supported pinned toolchain/profile and a frozen reviewed candidate. Native evidence is unverified. No PR, push or CI action is authorized; scheduled/dispatched soak execution remains deferred pending separate authority. Downstream qualification also needs the reviewed shared D8-D10 candidate and actual consumer checkout. Portable/source requirements stay with the donor tasks; this handoff completes none of them.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

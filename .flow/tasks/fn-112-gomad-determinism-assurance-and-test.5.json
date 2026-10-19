@@ -7,7 +7,7 @@
   "priority": null,
   "spec": "fn-112-gomad-determinism-assurance-and-test",
   "spec_path": ".flow/tasks/fn-112-gomad-determinism-assurance-and-test.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Inventory seeded-stream draw sites and check host-timed paths at runtime",
   "updated_at": "2026-10-08T08:27:59.090140Z"
 }

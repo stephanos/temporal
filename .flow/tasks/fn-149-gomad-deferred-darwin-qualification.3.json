@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-149-gomad-deferred-darwin-qualification",
   "spec_path": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retain real downstream Darwin qualification and guidance",
   "updated_at": "2026-10-08T03:58:26.552546Z"
 }

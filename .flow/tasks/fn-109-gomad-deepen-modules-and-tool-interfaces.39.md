@@ -71,8 +71,9 @@ Owner amendment (2026-10-07). This task's remaining native darwin/arm64 executio
 
 
 ## Done summary
-Blocked:
-Independently reviewed source progress removes all nine cleanup lint findings; target lint is now zero. Adapter pin proof is unavailable because the patched .toolchain/bin/go is absent. Genuine first-Close, simultaneous/multiple cleanup, post-open Chmod/Write/Sync and RemoveAll failure execution remains unproved. Original R18/R19, predecessor/task21, matched first-baseline, full/default/functional/affected-consumer/formal/native Darwin requirements remain open where recorded. This developmental linux/arm64 host cannot supply required native Darwin/full qualification. Do not repeat unchanged unsupported-host or missing-toolchain checks. Native Linux remains transferred to fn128 and is nonblocking. Resume acceptance only with the missing lawful fault/adapter and original source-bound qualification evidence.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

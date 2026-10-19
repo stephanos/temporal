@@ -114,7 +114,7 @@
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-128-gomad-deferred-linux-qualification-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad deferred Linux qualification and repairs",
   "tracker": {
     "baseHashFlow": null,
@@ -127,5 +127,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-14T00:39:23.696865Z"
+  "updated_at": "2026-10-19T22:37:38.613061Z"
 }

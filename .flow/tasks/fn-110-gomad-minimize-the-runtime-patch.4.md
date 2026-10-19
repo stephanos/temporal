@@ -95,63 +95,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Blocked:
-Blocked: implementation, local developmental verification, and review (SHIP) are complete; only native darwin/arm64 and linux/amd64 gates remain.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Done (commit fab9378c79 on gomad-fn110):
-- RegeneratePatch passes --unified=1 explicitly through canonicalPatchContext. No CLI flag was added, and the canonical headers, validatePatch, git apply --check, and zero-fuzz materialization are unchanged. The unexported regeneratePatch seam gives tests the -U3 form.
-- The checked-in patch was regenerated from the final task 3 source: -U3 38,362 B / 1,112 lines (sha256 86def26a…76ea5c) to -U1 29,015 B / 778 lines (sha256 8497f885…6a90b), -24.4% bytes. Repeated regeneration is byte-identical. Allowlists are unchanged. The choice implementation digest was regenerated. make generate validate is clean without the shim.
-- TestRegenerateMatchesCheckedPatchForPinnedArchive reads the archive and patch from the descriptor, fails on a checksum mismatch (TestPinnedArchiveFollowsDescriptorAndRejectsChecksumMismatch), and requires byte-identical repeats. It went red before regeneration and green after, with PASS rather than SKIP. TestPinnedContextRepresentationsMaterializeIdenticalSource proves -U3/-U1 zero-fuzz file equivalence in the toolchain package for Linux CI. TestRegenerateEmitsOneContextLine covers the synthetic hunk shape. The negative tests are unmodified and pass.
-
-Local evidence (linux/arm64 development host; the uncommitted shim was used only for builds and shim gates):
-- -U3 and -U1 applied with builder zero-fuzz commands to fresh extractions; diff -r found the trees identical.
-- Toolchain rebuild key 60e4051c…, 191 s, exit 0, collision check passed.
-- No-shim committed state: go test ./toolchain PASS (355 s) and make test-builder PASS.
-- With the shim, test-toolchain and test-builder fail only on the linux/arm64 inventory tests, and the baseline fails identically. test-host failures are a subset of the baseline+shim failures.
-- Evidence file: .flow/artifacts/fn-110-gomad-minimize-the-runtime-patch/task4-canonical-patch-evidence.md.
-
-Non-blocking review notes (P3, not applied): diff.interHunkContext would be caught by the pinned test as drift, and the spec says not to widen scope until a test shows drift. The two pinned tests overlap in extraction cost, and one helper could be shared.
-
-Remaining native gates: -U3/-U1 zero-fuzz equivalence plus toolchain rebuild, test-toolchain (pinned tests), and test-builder on darwin/arm64 and linux/amd64. linux/amd64 equivalence is incomplete.
-
-Blocked:
-Native Linux execution stays transferred to fn-128 and does not block this source task. Current-source Darwin build/runtime/upstream/live-capability/process-simulation, baseline/candidate fixture comparisons, full/affected and formal review gates remain incomplete. R8 is independently unmet. Canonical U3 now measures 34,148 bytes after fn-112.5 private host-draw field compaction, against the unchanged original task-1 U3 baseline of 32,652 bytes, a 1,496-byte increase. U1 measures 24,894 bytes and its representation savings do not satisfy R8. Source preservation, pinned regeneration/checksum/rejection and both-source-set inventory receipts are in the fn-112.5 host-draw-field-compact-20261005 checkpoint. Historical larger candidate measurements retain their original source scope.
-
-Blocked:
-Private-g-field compaction is verified source progress. Canonical U1 measures
-24,117 bytes / 692 lines; U3 measures 33,294 bytes / 1,026 lines. This removes
-777 U1 bytes and 854 U3 bytes from 1b0bc27758. The original U3 baseline remains
-32,652 bytes, leaving R8 unmet by 642 bytes. Seven otherwise unchanged g fields
-no longer carry alignment-only edits. The five private field names and 30 sites
-preserve complete alpha-gofmt source equivalence, field layout and 20/79 allowlists.
-
-The frozen original pinned-regeneration, checksum/rejection, U1/U3 zero-fuzz
-equivalence, both-source-set inventories and negative checks pass. Independent
-identity calculation preserves all owner contracts and exactly seven derived
-fixture pointers. These checks do not qualify runtime behavior on a native host.
-Runtime debug field names and build-derived identities necessarily change.
-
-Current-source native Darwin build/runtime/upstream/live-capability/process-
-simulation, baseline/candidate behavioral fixture comparisons, full/affected and
-formal qualification remain unproved. The developmental host is Linux/arm64.
-The narrowed pure-host selection passes, but three diagnostic controls cannot
-reach runtime assertions without the patched driver and the native identity
-test skips. Existing full-host failures and 317 full-lint findings remain open;
-changed-line lint is a separate source scope. No unchanged unsupported-host
-full-gate timeout is retried or relabeled as passing evidence.
-
-A fixed-source audit found no further authorized alignment correction or remaining
-approved scheduler body extraction that closes R8. Further relocation needs a
-separate bounded admission preserving protected scheduler/GC machinery and the
-original comparator. Native Linux execution remains transferred to fn-128,
-nonblocking here and explicitly unverified. Retain all original acceptance and
-historical evidence. Evidence is in task-2/gfield-compact-20261005; source-only
-review does not constitute formal SHIP or completed native acceptance.
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Representation/overlay implementation, byte equivalence, pinned checks, preservation, review, Darwin gates and unmet R8 size reduction. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

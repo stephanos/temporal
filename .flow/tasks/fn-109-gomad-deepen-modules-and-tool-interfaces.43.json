@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-109-gomad-deepen-modules-and-tool-interfaces",
   "spec_path": ".flow/tasks/fn-109-gomad-deepen-modules-and-tool-interfaces.43.md",
-  "status": "todo",
+  "status": "done",
   "title": "Enforce the documented five-import compatibility-pack admission boundary",
   "updated_at": "2026-10-08T05:28:15.206974Z"
 }

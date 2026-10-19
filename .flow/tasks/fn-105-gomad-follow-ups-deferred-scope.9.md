@@ -31,11 +31,10 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 Revival is recorded. Final downstream target is supported in closure and linked static analysis for both supported source sets and qualifies on darwin/arm64 with matching same-seed execution evidence and exact replay for all required observations. Native linux/amd64 packs, execution and exact replay belong to [fn-128.6](../tasks/fn-128-gomad-deferred-linux-qualification-and.6.md), with Linux guidance/evidence reconciliation in [fn-128.7](../tasks/fn-128-gomad-deferred-linux-qualification-and.7.md); missing transferred Linux evidence does not block this task. A classified failure does not satisfy the fn-107 consuming gate. Downstream owns reproducible packs and reports, with invalid/missing/drifted identities rejected. fn-107.5 consumes the evidence.
 ## Done summary
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-TBD
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-
 - Commits:
 - Tests:
 - PRs:

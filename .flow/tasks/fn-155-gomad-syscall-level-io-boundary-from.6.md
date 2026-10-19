@@ -30,8 +30,9 @@ Classify every adapter with evidence, and for the networking-only ones run their
 - [ ] The report lists static escapes found in the evaluated closures.
 
 ## Done summary
-TBD
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
 - Commits:
 - Tests:

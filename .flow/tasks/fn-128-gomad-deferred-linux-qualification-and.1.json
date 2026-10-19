@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-128-gomad-deferred-linux-qualification-and",
   "spec_path": ".flow/tasks/fn-128-gomad-deferred-linux-qualification-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Establish native Linux candidate and runtime/host evidence",
   "updated_at": "2026-10-14T00:39:34.896701Z"
 }

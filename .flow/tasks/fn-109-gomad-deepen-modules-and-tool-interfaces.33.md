@@ -39,39 +39,13 @@ Current native-execution acceptance is Darwin-only here. The corresponding Linux
 
 
 ## Done summary
-Reviewed source progress only; acceptance remains blocked. Both helpers cover
-27 Kinds, preserve all existing branches/values/assertions, and recurse arrays.
-Three characterization controls retain copy/scalar/nil-empty and eight production
-panic cases. Serial independent artifact 49/49, focused 23/23, five boundaries,
-errortype, source/static and generator checks pass. Actual unfiltered artifact
-lint falls from four to two unchanged production findings, with none introduced.
-Production and 1,044 protected inputs remain unchanged. Helper Fatalf and
-intentionally shared-array rejection execution remain unproved.
+Won't do: native backend retired by the 2026-10-19 owner decision; closed without implementation.
 
-Fresh source review: SOURCE_PROGRESS_COMMIT_ONLY, no introduced findings.
-[Review](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/independent-source-review.md),
-[checks](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/independent-source-review.json),
-[acceptance](../artifacts/fn-109-gomad-deepen-modules-and-tool-interfaces/task-33/acceptance-open.md).
-Root independently reaudited preserved writer and serialized reviewer receipts.
-The generated review-output file is separately hash-bound and excluded only
-from command-receipt interpretation; archived audit bytes remain unchanged.
-Reviewer/root preflight failures and superseded concurrent checks are retained.
-
-Original R13/R18/R19, task12/predecessors/task21, matched first-baseline fixed
-identities and complete/full/completion/formal/both-native/affected-consumer
-qualification remain required and open. No native or formal SHIP is claimed.
-Root's reviewed source-progress checkpoint is e521cbd2e39e8521bff013de19e569eff8a1392c.
-
-Tier: session (jev-unavailable(no_key))
-Requested writer/reviewer: gpt-6.1-sol at high, same family; actual models unknown.
-stage: impl-review - skipped(policy: conductor-deferred; fresh source review passed, full/native qualification remains red)
-stage: plan-sync - skipped(config: disabled; task remains blocked rather than done)
-
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: e521cbd2e39e8521bff013de19e569eff8a1392c
-- Tests: serial artifact49/49, focused23/23, boundaries5/5; errortype/static/generator exit0; lint exit1 two unchanged findings.
+- Commits:
+- Tests:
 - PRs:
-
 ## Linux ownership blocker (2026-10-04)
 
 Linux ownership amendment (2026-10-04): all native Linux execution obligations moved to fn-128. Missing transferred Linux evidence no longer blocks this task. Source-owned acceptance remains incomplete for Implementation, both-source-set static coverage, R18 preservation, admission dependencies, lint, formal review and Darwin/full/affected gates. Keep the task blocked for those independent requirements, with current-source evidence required by its original acceptance. See the scoped Description/Acceptance and .flow/artifacts/linux-scope-transfer-2026-10-04.md.

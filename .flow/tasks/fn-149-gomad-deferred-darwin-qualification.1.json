@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-149-gomad-deferred-darwin-qualification",
   "spec_path": ".flow/tasks/fn-149-gomad-deferred-darwin-qualification.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Retain native Darwin baseline, runtime and clock evidence",
   "updated_at": "2026-10-14T00:39:36.314081Z"
 }
