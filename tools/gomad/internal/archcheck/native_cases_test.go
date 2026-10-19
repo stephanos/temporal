@@ -143,7 +143,7 @@ func TestInspectionSourceOwnershipDelegation(t *testing.T) {
 // test-builder runs the native builder under stock Go through gomadtool, so the
 // Makefile names the native toolchain package once, for the patched toolchain.
 func TestMakefileTestsNativeToolchainOnce(t *testing.T) {
-	data, err := os.ReadFile("../../Makefile")
+	data, err := os.ReadFile("Makefile")
 	if err != nil {
 		t.Fatal(err)
 	}
