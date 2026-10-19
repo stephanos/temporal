@@ -49,8 +49,7 @@ change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-214.2 | 🔄 in progress | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
-| fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
+| fn-214.3 | 🔄 in progress | Kettle's progress questions over the retained graph; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
 
