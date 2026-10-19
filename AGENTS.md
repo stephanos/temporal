@@ -83,6 +83,7 @@ Before starting the implementation of any request, you MUST REVIEW the following
 - Always include `-tags test_dep` when running tests
 - Include the `integration` tag only for integration tests
 - Do not introduce new third party libraries unless specifically requested.
+- Write `rm` with literal paths or guarded expansions (`rm "${DIR:?}"/*`), never a bare `$DIR/...`. Claude Code asks the owner to approve an unguarded removal even in bypass mode, which stalls unattended agents.
 
 ## Error Handling:
 
