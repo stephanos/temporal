@@ -96,7 +96,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.19 | ⬜ todo | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); no `#[within]` attribute, `.assuming(..)` in the claim (R6) |
+| fn-210.19 | 🔄 in progress | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); no `#[within]` attribute, `.assuming(..)` in the claim (R6) |
 | fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
