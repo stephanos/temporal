@@ -1,5 +1,8 @@
 //! Canonical spelling of the DSL's leaf values.
 
+#[path = "support/recorder.rs"]
+mod recorder;
+
 include!(concat!(env!("OUT_DIR"), "/fixtures.rs"));
 
 #[test]

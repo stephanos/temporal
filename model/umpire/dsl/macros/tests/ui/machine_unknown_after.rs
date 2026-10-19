@@ -16,7 +16,7 @@ mod model {
     #[postconditions]
     impl Model {
         #[after(User::Missing)]
-        fn claim(&self) -> bool { true }
+        fn claim(&self) {}
     }
 }
 

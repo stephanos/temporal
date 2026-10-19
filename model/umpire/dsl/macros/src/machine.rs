@@ -2,10 +2,22 @@ use proc_macro2::TokenStream;
 use quote::quote;
 use syn::{ImplItem, Item, ItemImpl, ItemMod, Path, Token, parse::Parser, punctuated::Punctuated};
 
-const GROUPS: [&str; 5] = ["transitions", "invariants", "postconditions", "scopes", "progress"];
+const GROUPS: [&str; 5] =
+    ["transitions", "invariants", "postconditions", "assumptions", "progress"];
 
 fn helper(attr: &syn::Attribute, name: &str) -> bool {
     attr.path().segments.last().is_some_and(|segment| segment.ident == name)
+}
+
+#[derive(Default)]
+struct WithinAttribute<'ast>(Option<&'ast syn::Attribute>);
+
+impl<'ast> syn::visit::Visit<'ast> for WithinAttribute<'ast> {
+    fn visit_attribute(&mut self, attr: &'ast syn::Attribute) {
+        if helper(attr, "within") && self.0.is_none() {
+            self.0 = Some(attr);
+        }
+    }
 }
 
 fn derives(attrs: &[syn::Attribute], name: &str) -> syn::Result<bool> {
@@ -36,6 +48,9 @@ fn owner(path: &Path) -> Path {
 fn group(input: &ItemImpl) -> manyhow::Result<Option<usize>> {
     let mut found = None;
     for attr in &input.attrs {
+        if helper(attr, "scopes") {
+            manyhow::bail!(attr, "use #[assumptions] instead of #[scopes]");
+        }
         if let Some(rank) = GROUPS.iter().position(|name| helper(attr, name)) {
             if found.is_some() {
                 manyhow::bail!(attr, "an impl requires exactly one machine group");
@@ -78,9 +93,22 @@ struct Registrations {
     handlers: Vec<(Path, syn::Ident)>,
     invariants: Vec<syn::Ident>,
     posts: Vec<(syn::Ident, Option<Path>, bool)>,
-    scopes: Vec<syn::Ident>,
-    progresses: Vec<(syn::Ident, Option<Path>)>,
+    assumptions: Vec<syn::Ident>,
+    progresses: Vec<syn::Ident>,
     order: Vec<String>,
+}
+
+fn check_claim(method: &syn::ImplItemFn) -> manyhow::Result<()> {
+    if let Some(asyncness) = method.sig.asyncness {
+        manyhow::bail!(asyncness, "invariants and postconditions must be synchronous");
+    }
+    if !matches!(method.sig.output, syn::ReturnType::Default) {
+        manyhow::bail!(
+            &method.sig.output,
+            "invariants and postconditions return nothing; use check!"
+        );
+    }
+    Ok(())
 }
 
 fn registrations(
@@ -124,12 +152,9 @@ fn registrations(
             let ImplItem::Fn(method) = item else { continue };
             let on = qualifier(method, "on")?;
             let after = qualifier(method, "after")?;
-            let within = qualifier(method, "within")?;
-            for (name, present, expected) in [
-                ("on", on.is_some(), 0),
-                ("after", after.is_some(), 2),
-                ("within", within.is_some(), 4),
-            ] {
+            for (name, present, expected) in
+                [("on", on.is_some(), 0), ("after", after.is_some(), 2)]
+            {
                 if present && rank != expected {
                     manyhow::bail!(
                         &method.sig.ident,
@@ -138,6 +163,9 @@ fn registrations(
                         GROUPS[expected]
                     );
                 }
+            }
+            if matches!(rank, 1 | 2) {
+                check_claim(method)?;
             }
             let name = method.sig.ident.clone();
             match rank {
@@ -172,16 +200,14 @@ fn registrations(
                     }
                     registration.posts.push((name, after, arity == 2));
                 }
-                3 => registration.scopes.push(name),
-                4 => registration.progresses.push((name, within)),
+                3 => registration.assumptions.push(name),
+                4 => registration.progresses.push(name),
                 _ => unreachable!(),
             }
             if matches!(rank, 1 | 2 | 4) {
                 registration.order.push(method.sig.ident.to_string());
             }
-            method
-                .attrs
-                .retain(|attr| !["on", "after", "within"].iter().any(|name| helper(attr, name)));
+            method.attrs.retain(|attr| !["on", "after"].iter().any(|name| helper(attr, name)));
         }
     }
     Ok(registration)
@@ -191,51 +217,36 @@ fn postconditions(registration: &Registrations) -> manyhow::Result<Vec<TokenStre
     let mut output = Vec::new();
     for (method, after, before) in &registration.posts {
         let args = before.then(|| quote!(_before));
-        let predicate = quote!(|_, _before, after, _, _, _| after.#method(#args).into());
+        let predicate = quote!(|_, _before, after, _, _, _| after.#method(#args));
         let label = method.to_string();
         if let Some(path) = after {
             if !registration.handlers.iter().any(|(known, _)| key(known) == key(path)) {
                 manyhow::bail!(path, "unknown after action {}", key(path));
             }
             output.push(
-                quote!(::umpire_dsl::StepClaim::<Self>::after(#label, #path.into(), #predicate)),
+                quote!(::umpire_dsl::StepClaim::<Self>::after_checks(#label, #path.into(), #predicate)),
             );
         } else {
-            output.push(quote!(::umpire_dsl::StepClaim::<Self>::new(#label, #predicate)));
+            output.push(quote!(::umpire_dsl::StepClaim::<Self>::with_checks(#label, #predicate)));
         }
     }
     Ok(output)
 }
 
-fn progress_claims(
-    registration: &Registrations,
-    state: &syn::Ident,
-) -> manyhow::Result<Vec<TokenStream>> {
+fn progress_claims(registration: &Registrations) -> Vec<TokenStream> {
     let mut output = Vec::new();
-    for (method, within) in &registration.progresses {
+    for method in &registration.progresses {
         let label = method.to_string();
-        let within = if let Some(path) = within {
-            if path.segments.len() != 2
-                || (path.segments[0].ident != "Self" && path.segments[0].ident != *state)
-            {
-                manyhow::bail!(
-                    path,
-                    "within requires a registered scope function path: Self::scope"
-                );
+        output.push(quote!(::umpire_dsl::Progress::<Self>::evaluated(#label, |_, state| {
+            let value = state.#method();
+            ::umpire_dsl::ProgressEvaluation {
+                trigger: value.trigger.into(),
+                target: value.target.into(),
+                assumption: value.assumption,
             }
-            let scope = &path.segments[1].ident;
-            if !registration.scopes.contains(scope) {
-                manyhow::bail!(path, "unknown scope {} in within", scope);
-            }
-            quote!(.within(#state::#scope()))
-        } else {
-            TokenStream::new()
-        };
-        output.push(quote!(::umpire_dsl::Progress::<Self>::new(#label)
-            .whenever(|_, state| state.#method().trigger.into())
-            .eventually(|_, state| state.#method().target.into()) #within));
+        })));
     }
-    Ok(output)
+    output
 }
 
 fn catalog(items: &[Item], module: &syn::Ident) -> manyhow::Result<(syn::Ident, Vec<syn::Ident>)> {
@@ -259,9 +270,32 @@ fn catalog(items: &[Item], module: &syn::Ident) -> manyhow::Result<(syn::Ident, 
     Ok((state, actors))
 }
 
+fn progress_helpers(enabled: bool) -> Option<TokenStream> {
+    enabled.then(|| {
+        quote! {
+            struct Progress { trigger: bool, target: bool, assumption: Assumption }
+            fn whenever(trigger: bool) -> Progress {
+                Progress { trigger, target: true, assumption: Assumption::default() }
+            }
+            impl Progress {
+                fn eventually(mut self, target: bool) -> Self { self.target = target; self }
+                fn assuming(mut self, assumption: Assumption) -> Self {
+                    self.assumption = assumption;
+                    self
+                }
+            }
+        }
+    })
+}
+
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
     if !args.is_empty() {
         manyhow::bail!(args, "#[machine] takes no arguments");
+    }
+    let mut within = WithinAttribute::default();
+    syn::visit::Visit::visit_item_mod(&mut within, input);
+    if let Some(attr) = within.0 {
+        manyhow::bail!(attr, "a progress claim names its assumption with .assuming(..)");
     }
     let mut input = input.clone();
     let Some((_, items)) = &mut input.content else {
@@ -270,8 +304,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let (state, actors) = catalog(items, &input.ident)?;
     let registration = registrations(items, &state, &actors)?;
     let post_tokens = postconditions(&registration)?;
-    let progress_tokens = progress_claims(&registration, &state)?;
-    let Registrations { handlers, invariants, scopes, order, .. } = registration;
+    let progress_tokens = progress_claims(&registration);
+    let Registrations { handlers, invariants, assumptions, order, .. } = registration;
     let dispatch = actors.iter().map(|actor| {
         let arms = handlers.iter().filter(|(path, _)| owner(path).is_ident(actor)).map(
             |(path, method)| {
@@ -288,29 +322,25 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     });
     let invariant_tokens = invariants.iter().map(|method| {
         let label = method.to_string();
-        quote!(::umpire_dsl::Claim::<Self>::new(#label, |_, state| state.#method().into()))
+        quote!(::umpire_dsl::Claim::<Self>::with_checks(
+            #label,
+            |_, state| state.#method(),
+            |_, state| ::umpire_dsl::claim::evaluate(|| state.#method()).verdict,
+        ))
     });
-    let scope_tokens = scopes.iter().map(|method| {
+    let assumption_tokens = assumptions.iter().map(|method| {
         let label = method.to_string();
         quote!((#label, #state::#method()))
     });
-    let scope_helpers = (!scopes.is_empty()).then(|| {
+    let assumption_helpers = (!assumptions.is_empty() || !progress_tokens.is_empty()).then(|| {
         quote! {
-            type Scope = ::umpire_dsl::Scope<Action>;
-            fn without<A: ::core::convert::Into<Action>, const N: usize>(actions: [A; N]) -> Scope {
-                Scope { excluded: actions.into_iter().map(::core::convert::Into::into).collect() }
+            type Assumption = ::umpire_dsl::Assumption<Action>;
+            fn without<A: ::core::convert::Into<Action>, const N: usize>(actions: [A; N]) -> Assumption {
+                Assumption { excluded: actions.into_iter().map(::core::convert::Into::into).collect() }
             }
         }
     });
-    let progress_helpers = (!progress_tokens.is_empty()).then(|| {
-        quote! {
-            struct Progress { trigger: bool, target: bool }
-            fn whenever(trigger: bool) -> Progress { Progress { trigger, target: true } }
-            impl Progress {
-                fn eventually(mut self, target: bool) -> Self { self.target = target; self }
-            }
-        }
-    });
+    let progress_helpers = progress_helpers(!progress_tokens.is_empty());
     let generated = quote! {
         struct World;
 
@@ -327,7 +357,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
             }
         }
 
-        #scope_helpers
+        #assumption_helpers
         #progress_helpers
 
         #[doc = "Builds the module's registered state machine."]
@@ -357,7 +387,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
             fn invariants(&self) -> ::std::vec::Vec<::umpire_dsl::Claim<Self>> { ::std::vec![#(#invariant_tokens),*] }
             fn postconditions(&self) -> ::std::vec::Vec<::umpire_dsl::StepClaim<Self>> { ::std::vec![#(#post_tokens),*] }
             fn progress(&self) -> ::std::vec::Vec<::umpire_dsl::Progress<Self>> { ::std::vec![#(#progress_tokens),*] }
-            fn scopes(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Scope<Self::Action>)> { ::std::vec![#(#scope_tokens),*] }
+            fn assumptions(&self) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Assumption<Self::Action>)> { ::std::vec![#(#assumption_tokens),*] }
             fn claim_order(&self) -> ::std::vec::Vec<&'static str> { ::std::vec![#(#order),*] }
         }
     };

@@ -1,2 +1,3 @@
 start: Model { value: false }
 1: User::ActualChange choice=0 -> Model { value: true }
+failure: check!(self.value == before.value) failed at Model { value: true }

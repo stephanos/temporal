@@ -1,0 +1,5 @@
+error: use #[assumptions] instead of #[scopes]
+  --> tests/ui/machine_legacy_scopes.rs:11:5
+   |
+11 |     #[scopes]
+   |     ^^^^^^^^^

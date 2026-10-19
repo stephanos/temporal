@@ -1,5 +1,7 @@
 mod counter {
-    use umpire_dsl::{Action, State};
+    use umpire_dsl::{Action, State, check};
+    use std::sync::atomic::{AtomicUsize, Ordering};
+    pub static PROGRESS_CALLS: AtomicUsize = AtomicUsize::new(0);
     #[derive(State)]
     pub struct Counter {
         #[starts(0..= 1)]
@@ -39,26 +41,32 @@ mod counter {
         }
     }
     impl Counter {
-        fn bounded(&self) -> bool {
-            self.helper()
+        pub fn bounded(&self) {
+            check!(self.helper());
         }
     }
     impl Counter {
-        fn reset_clears(&self) -> bool {
-            self.value == 0
+        pub fn reset_clears(&self) {
+            check!(self.value == 0);
         }
-        fn grows_at_most_one(&self, before: &Self) -> bool {
-            self.value <= before.value + 1
+        fn grows_at_most_one(&self, before: &Self) {
+            check!(self.value <= before.value + 1);
         }
     }
     impl Counter {
-        fn never_reset() -> Scope {
+        fn never_reset() -> Assumption {
             without([User::Reset])
         }
     }
     impl Counter {
         fn reaches_two(&self) -> Progress {
-            whenever(self.value == 1).eventually(self.value == 2)
+            PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
+            let trigger = self.value == 1;
+            let progress = whenever(trigger);
+            if self.value == 2 {
+                return progress.eventually(true).assuming(Self::never_reset());
+            }
+            progress.eventually(false).assuming(Self::never_reset())
         }
     }
     impl Counter {
@@ -90,24 +98,33 @@ mod counter {
             }
         }
     }
-    type Scope = ::umpire_dsl::Scope<Action>;
+    type Assumption = ::umpire_dsl::Assumption<Action>;
     fn without<A: ::core::convert::Into<Action>, const N: usize>(
         actions: [A; N],
-    ) -> Scope {
-        Scope {
+    ) -> Assumption {
+        Assumption {
             excluded: actions.into_iter().map(::core::convert::Into::into).collect(),
         }
     }
     struct Progress {
         trigger: bool,
         target: bool,
+        assumption: Assumption,
     }
     fn whenever(trigger: bool) -> Progress {
-        Progress { trigger, target: true }
+        Progress {
+            trigger,
+            target: true,
+            assumption: Assumption::default(),
+        }
     }
     impl Progress {
         fn eventually(mut self, target: bool) -> Self {
             self.target = target;
+            self
+        }
+        fn assuming(mut self, assumption: Assumption) -> Self {
+            self.assumption = assumption;
             self
         }
     }
@@ -194,28 +211,30 @@ mod counter {
         }
         fn invariants(&self) -> ::std::vec::Vec<::umpire_dsl::Claim<Self>> {
             ::std::vec![
-                ::umpire_dsl::Claim:: < Self > ::new("bounded", | _, state | state
-                .bounded().into())
+                ::umpire_dsl::Claim:: < Self > ::with_checks("bounded", | _, state |
+                state.bounded(), | _, state | ::umpire_dsl::claim::evaluate(|| state
+                .bounded()).verdict,)
             ]
         }
         fn postconditions(&self) -> ::std::vec::Vec<::umpire_dsl::StepClaim<Self>> {
             ::std::vec![
-                ::umpire_dsl::StepClaim:: < Self > ::after("reset_clears", User::Reset
-                .into(), | _, _before, after, _, _, _ | after.reset_clears().into()),
-                ::umpire_dsl::StepClaim:: < Self > ::new("grows_at_most_one", | _,
-                _before, after, _, _, _ | after.grows_at_most_one(_before).into())
+                ::umpire_dsl::StepClaim:: < Self > ::after_checks("reset_clears",
+                User::Reset.into(), | _, _before, after, _, _, _ | after.reset_clears()),
+                ::umpire_dsl::StepClaim:: < Self > ::with_checks("grows_at_most_one", |
+                _, _before, after, _, _, _ | after.grows_at_most_one(_before))
             ]
         }
         fn progress(&self) -> ::std::vec::Vec<::umpire_dsl::Progress<Self>> {
             ::std::vec![
-                ::umpire_dsl::Progress:: < Self > ::new("reaches_two").whenever(| _,
-                state | state.reaches_two().trigger.into()).eventually(| _, state | state
-                .reaches_two().target.into()).within(Counter::never_reset())
+                ::umpire_dsl::Progress:: < Self > ::evaluated("reaches_two", | _, state |
+                { let value = state.reaches_two(); ::umpire_dsl::ProgressEvaluation {
+                trigger : value.trigger.into(), target : value.target.into(), assumption
+                : value.assumption, } })
             ]
         }
-        fn scopes(
+        fn assumptions(
             &self,
-        ) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Scope<Self::Action>)> {
+        ) -> ::std::vec::Vec<(&'static str, ::umpire_dsl::Assumption<Self::Action>)> {
             ::std::vec![("never_reset", Counter::never_reset())]
         }
         fn claim_order(&self) -> ::std::vec::Vec<&'static str> {

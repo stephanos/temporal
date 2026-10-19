@@ -1,10 +1,10 @@
 error[E0277]: the trait bound `Action: From<Other>` is not satisfied
-  --> tests/ui/machine_scope_actor.rs:16:47
+  --> tests/ui/machine_scope_actor.rs:16:52
    |
-16 |         fn unknown_actor() -> Scope { without([super::Other::Unknown]) }
-   |                                       ------- ^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
-   |                                       |
-   |                                       required by a bound introduced by this call
+16 |         fn unknown_actor() -> Assumption { without([super::Other::Unknown]) }
+   |                                            ------- ^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |                                            |
+   |                                            required by a bound introduced by this call
    |
 help: the trait `From<Other>` is not implemented for `Action`
       but trait `From<Nobody>` is implemented for it

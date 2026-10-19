@@ -58,7 +58,7 @@ Remaining differences from the hypothetical sketch are deliberate:
 
 - Imports name the actual `umpire_dsl` crate instead of a hypothetical prelude.
 - `#[machine]` registers one inline public `kettle` module, with one impl per
-  part kind in transitions, invariants, postconditions, scopes and progress
+  part kind in transitions, invariants, postconditions, assumptions and progress
   order, instead of one annotated impl with per-method kind markers.
 - The state is named `Model` to match Scala's `object Model`, replacing the
   sketch's `Kettle` name while leaving its fields and predicates unchanged.
@@ -70,12 +70,12 @@ Remaining differences from the hypothetical sketch are deliberate:
   equality, hashing, spelling and ordered enumeration.
 - `#[after(Heater::Failover)]` replaces the postcondition's `after` argument,
   and its unused `before` parameter is omitted while the warming claim keeps it.
-- The named scope is a static function returning a module-local `Scope`
+- The named assumption is a static function returning a module-local `Assumption`
   value through `without([User::DepressButton])`, replacing the associated
   constant and hiding action adaptation.
-- `#[within(Self::never_switched_off)]` names that scope function, and
-  `whenever(self.heating_on).eventually(self.beeping)` builds a plain
-  module-local `Progress` value with boolean trigger and target.
+- `whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())`
+  builds a module-local `Progress` value with boolean trigger and target and
+  names its assumption in the expression.
 - Private generated world/action adapters implement the existing `Machine`
   protocol; the public `world()` function returns an opaque machine exposing
   its state and actor conversions without exposing generated type names.
@@ -92,6 +92,17 @@ Remaining differences from the hypothetical sketch are deliberate:
   refutation of the sketch's `!beeping` predicate.
 - Registration retains no syntax tokens and performs no lifting or subset
   analysis, following R36 rather than the sketch's lifting comment.
+
+Invariant and postcondition methods are synchronous, return nothing and use `check!`
+and `unknown!` statements, remaining ordinary methods when called directly.
+A scoped per-evaluation recorder collects failed check expressions and holes without
+panics or unwinding, and generated predicates turn the recorded result into a verdict.
+Progress methods run once per real reached state; each claim's assumption must stay
+fixed within one exploration, with a mismatch reported as Unknown with a diagnostic.
+An empty world evaluates no progress method and is vacuously Verified; manual fixed
+assumptions are still validated before exploration.
+The legacy `Scope` alias and trait builders remain for manual trait sources only;
+the attribute surface exposes `Assumption`, `#[assumptions]` and `.assuming(..)`.
 
 The owner approved exactly five canonical payload substitutions on 2026-10-18:
 `Act::UserPressButton` → `User::PressButton`, `Act::UserDepressButton` →

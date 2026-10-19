@@ -4,7 +4,9 @@ use std::{
 };
 
 use fixedbitset::FixedBitSet;
-use umpire_dsl::{Claim, Machine, Outcome, Progress, Spell, Step, StepClaim, Verdict};
+use umpire_dsl::{
+    Claim, Machine, Outcome, Progress, Spell, Step, StepClaim, Verdict, claim::Evaluation,
+};
 
 use crate::{
     ClaimResult, FullStates, Path, PathStep, Refusal, Report, StateId, Visited, report::aggregate,
@@ -178,7 +180,7 @@ impl Checker {
                 claim,
                 invariants.len() + postconditions.len() + index,
                 &actions,
-            );
+            )?;
         }
         result.finish(&actions, &postconditions, &fired, &triggered);
         result.order_claims(
@@ -348,7 +350,7 @@ impl<M: Machine> Result<M> {
                 continue;
             }
             let verdict =
-                catch_unwind(AssertUnwindSafe(|| (claim.predicate)(world, self.state(state))));
+                catch_unwind(AssertUnwindSafe(|| claim.evaluate(world, self.state(state))));
             self.record(index, verdict, |result| result.path(state));
         }
     }
@@ -370,7 +372,7 @@ impl<M: Machine> Result<M> {
                 continue;
             }
             let verdict = catch_unwind(AssertUnwindSafe(|| {
-                claim.holds(world, self.state(edge.source), &edge.action, &edge.emitted)
+                claim.evaluate(world, self.state(edge.source), &edge.action, &edge.emitted)
             }));
             self.record(offset + index, verdict, |result| {
                 let mut path = result.path(edge.source);
@@ -387,24 +389,31 @@ impl<M: Machine> Result<M> {
     fn record(
         &mut self,
         index: usize,
-        verdict: std::result::Result<Verdict, Box<dyn Any + Send>>,
+        verdict: std::result::Result<Evaluation, Box<dyn Any + Send>>,
         make_path: impl FnOnce(&Self) -> Path<M::State, M::Action>,
     ) {
-        let mut path = if matches!(verdict, Ok(Verdict::Fails) | Err(_)) {
+        let mut path = if matches!(verdict, Ok(Evaluation { verdict: Verdict::Fails, .. }) | Err(_))
+        {
             Some(make_path(self))
         } else {
             None
         };
         let claim = &mut self.claims[index];
         match verdict {
-            Ok(Verdict::Holds) => {}
-            Ok(Verdict::Unknown(hole)) => {
+            Ok(Evaluation { verdict: Verdict::Holds, .. }) => {}
+            Ok(Evaluation { verdict: Verdict::Unknown(hole), .. }) => {
                 claim.outcome = Outcome::Unknown;
                 if !claim.holes.contains(&hole.reason) {
                     claim.holes.push(hole.reason);
                 }
             }
-            Ok(Verdict::Fails) => {
+            Ok(Evaluation { verdict: Verdict::Fails, failure }) => {
+                if let (Some(path), Some(expression)) = (&mut path, failure) {
+                    let state = path.steps.last().map_or(&path.start, |step| &step.after);
+                    let mut state_text = String::new();
+                    state.spell(&mut state_text);
+                    path.failure = Some(format!("check!({expression}) failed at {state_text}"));
+                }
                 claim.outcome = Outcome::Refuted;
                 claim.path = path;
             }
