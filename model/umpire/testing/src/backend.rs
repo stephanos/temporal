@@ -163,7 +163,7 @@ fn replay<M: Machine>(
             .ok_or("TLC action is not in Model catalog")?;
         let state =
             native.get(&before_text).ok_or("TLC trace predecessor is not reachable natively")?;
-        let steps = native_steps(world, state, action);
+        let steps = native_steps(world, state, action)?;
         let step = steps
             .get(usize::try_from(*choice)?)
             .ok_or("TLC trace choice is not emitted by Model")?;
@@ -209,8 +209,13 @@ fn native_steps<M: Machine>(
     world: &M,
     state: &M::State,
     action: M::Action,
-) -> umpire_dsl::Steps<M::State, M::Outcome, M::Fact> {
-    world.step(state, action)
+) -> Result<umpire_dsl::Steps<M::State, M::Outcome, M::Fact>, umpire_checker::Refusal> {
+    let action_name = action.to_string();
+    world.checked_step(state, action).map_err(|error| umpire_checker::Refusal::Step {
+        action: action_name,
+        before: state.to_string(),
+        error,
+    })
 }
 
 /// Compare complete reached sets and every registered property, retaining differences.
@@ -295,6 +300,49 @@ fn agreement(
 mod tests {
     use super::*;
     use crate::Files;
+
+    struct Invalid;
+
+    impl Machine for Invalid {
+        type State = bool;
+        type Action = u8;
+        type Outcome = ();
+        type Fact = ();
+
+        fn starts(&self) -> Vec<bool> {
+            vec![false]
+        }
+        fn actions(&self) -> Vec<u8> {
+            vec![1]
+        }
+        fn internal(&self, _: &u8) -> bool {
+            false
+        }
+        fn step(&self, _: &bool, _: u8) -> umpire_dsl::Steps<bool, (), ()> {
+            panic!("unchecked invalid Model step")
+        }
+        fn checked_step(
+            &self,
+            _: &bool,
+            _: u8,
+        ) -> Result<umpire_dsl::Steps<bool, (), ()>, umpire_dsl::StepError> {
+            Err(umpire_dsl::StepError::RejectedAfterMutation)
+        }
+    }
+
+    #[test]
+    fn replay_uses_checked_steps_without_panicking() -> crate::TestResult {
+        let result = std::panic::catch_unwind(|| native_steps(&Invalid, &false, 1));
+        assert_eq!(
+            result.map_err(|_| "backend replay bypassed checked_step")?,
+            Err(umpire_checker::Refusal::Step {
+                action: "1".into(),
+                before: "false".into(),
+                error: umpire_dsl::StepError::RejectedAfterMutation,
+            })
+        );
+        Ok(())
+    }
 
     #[test]
     fn agreement_compares_complete_sets_and_every_verdict() -> crate::TestResult {

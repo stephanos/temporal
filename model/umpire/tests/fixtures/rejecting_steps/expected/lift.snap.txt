@@ -1,0 +1,1 @@
+fixtures/rejecting_steps/model.rs:16:5: warning: unsupported declaration in machine module; TLA+ emission refused

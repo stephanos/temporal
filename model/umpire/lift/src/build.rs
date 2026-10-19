@@ -46,7 +46,11 @@ pub fn generate(
         }
     }
     source.push_str("_ => Err(format!(\"unregistered source fixture: {name}\")), } }\n");
-    replay.push_str("_ => Err(format!(\"unselected backend coverage: {name}\").into()), } }\n");
+    if admitted.is_empty() {
+        replay = "fn check_backend(name: &str, _module: &umpire_lift::Module, _folder: &std::path::Path, _native: &umpire_testing::Files) -> umpire_testing::RunResult { Err(format!(\"unselected backend coverage: {name}\").into()) }\n".into();
+    } else {
+        replay.push_str("_ => Err(format!(\"unselected backend coverage: {name}\").into()), } }\n");
+    }
     source.push_str(&replay);
     writeln!(source, "fn admitted() -> &'static [&'static str] {{ &{admitted:?} }}")
         .map_err(std::io::Error::other)?;

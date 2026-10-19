@@ -43,11 +43,12 @@ library extraction and state directory, avoiding concurrent JVM extraction races
 
 The shared fixture corpus admits 19 fixtures, including both Kettles at 283 projected states,
 choice/fact controls, weak-fairness controls and scoped progress; these are control variants,
-not 19 independent products. Five sources retain located refusals: `deep_chain` and
+not 19 independent products. Six sources retain located refusals: `deep_chain` and
 `interleaved_claims` contain manual inherent helpers outside the admitted resolver (and also
 use an unsupported state type or supplemental manual registrations, respectively);
 `kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
-subset. Some are expressible Models whose Rust source form is not yet admitted.
+subset. The newer `rejecting_steps` fixture uses a helper and rejecting outcomes outside
+the subset. Some are expressible Models whose Rust source form is not yet admitted.
 The system-owned fixture root additionally owns source-dependent artifacts. The newer
 `Phased`/`reject!`/generic `closable` shape is outside this subset: it requires a located
 refusal and has no system TLC agreement evidence. Older source evidence must not certify it.
