@@ -1,4 +1,4 @@
-use umpire_dsl::{Machine, Progress, Scope, Spell, Steps};
+use umpire_dsl::{Assumption, AssumptionExt, Machine, Progress, Scope, Spell, Steps};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct State(pub u8);
@@ -114,8 +114,12 @@ impl Machine for Graph {
             })
             .eventually(|world, state| (state.0 == 9 || matches!(world.0, Mode::Fulfilled)).into());
         claim = match self.0 {
+            Mode::Continuous | Mode::Intermittent | Mode::Choices => {
+                claim.within(Assumption::fair(&[Action::Escape]))
+            }
+            Mode::TwoLobes => claim.within(Assumption::fair(&[Action::Left, Action::Right])),
             Mode::Prefix => claim.within(Scope::without(&[Action::Enter])),
-            Mode::ExcludedEscape => claim.within(Scope::without(&[Action::Escape])),
+            Mode::ExcludedEscape => claim.within(Assumption::fair(&[Action::Escape]).without([Action::Escape])),
             _ => claim,
         };
         vec![claim]

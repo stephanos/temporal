@@ -19,4 +19,7 @@ pub enum Refusal {
         /// The unknown action's canonical spelling.
         action: String,
     },
+    /// An explicit action restriction retains no catalog action.
+    #[error("assumption admits no actions")]
+    EmptyAssumption,
 }

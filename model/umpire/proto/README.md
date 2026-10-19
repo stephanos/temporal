@@ -16,6 +16,8 @@ Allocation exhaustion returns zero; invalid frees trap without dereferencing the
 `umpire_call` accepts only an exact live allocation range, with `(0, 0)` representing an empty request.
 It retains the request and returns a separately owned response allocation, or zero on exhaustion.
 Unknown methods, malformed requests and invalid checker queries return typed Refusal envelopes.
+`REFUSAL_CODE_SCOPE_ACTION` (7) covers invalid action admission, including unknown catalog
+actions and explicit restrictions that admit no actions. The message distinguishes these refusals.
 The host copies response bytes before freeing either allocation, then frees both exactly once.
 Access to one instance is serialized. An unexpected trap invalidates the host instance.
 

@@ -310,13 +310,37 @@ mod counter {
             }
         }
     }
+    use ::umpire_dsl::AssumptionExt as _;
     type Assumption = ::umpire_dsl::Assumption<Action>;
     fn without<A: ::core::convert::Into<Action>, const N: usize>(
         actions: [A; N],
     ) -> Assumption {
-        Assumption {
-            excluded: actions.into_iter().map(::core::convert::Into::into).collect(),
-        }
+        Assumption::without(
+            &actions
+                .into_iter()
+                .map(::core::convert::Into::into)
+                .collect::<::std::vec::Vec<Action>>(),
+        )
+    }
+    fn only<A: ::core::convert::Into<Action>, const N: usize>(
+        actions: [A; N],
+    ) -> Assumption {
+        Assumption::only(
+            &actions
+                .into_iter()
+                .map(::core::convert::Into::into)
+                .collect::<::std::vec::Vec<Action>>(),
+        )
+    }
+    fn fair<A: ::core::convert::Into<Action>, const N: usize>(
+        actions: [A; N],
+    ) -> Assumption {
+        Assumption::fair(
+            &actions
+                .into_iter()
+                .map(::core::convert::Into::into)
+                .collect::<::std::vec::Vec<Action>>(),
+        )
     }
     struct LeadsTo {
         trigger: bool,

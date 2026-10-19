@@ -5,7 +5,8 @@ use std::collections::{BTreeSet, VecDeque};
 use proptest::prelude::*;
 use umpire_checker::Checker;
 use umpire_dsl::{
-    Claim, Hole, Machine, Outcome, Progress, Scope, Spell, StepClaim, Steps, Verdict,
+    Assumption, AssumptionExt, Claim, Hole, Machine, Outcome, Progress, Spell, StepClaim, Steps,
+    Verdict,
 };
 
 #[derive(Clone, Debug)]
@@ -25,6 +26,7 @@ struct World {
     forbidden: [u8; 3],
     hole: [u8; 3],
     excluded: u8,
+    fair: u8,
     trigger: u32,
     target: u32,
 }
@@ -97,12 +99,20 @@ impl Machine for World {
             Progress::<Self>::new("eventually_target")
                 .whenever(|world, state| member(world.trigger, *state).into())
                 .eventually(|world, state| member(world.target, *state).into())
-                .within(Scope::without(
-                    &(0..self.actions.len())
-                        .filter(|action| self.excluded & (1 << action) != 0)
-                        .map(Action)
-                        .collect::<Vec<_>>(),
-                )),
+                .assuming(
+                    Assumption::fair(
+                        &(0..self.actions.len())
+                            .filter(|action| self.fair & (1 << action) != 0)
+                            .map(Action)
+                            .collect::<Vec<_>>(),
+                    )
+                    .without(
+                        (0..self.actions.len())
+                            .filter(|action| self.excluded & (1 << action) != 0)
+                            .map(Action)
+                            .collect::<Vec<_>>(),
+                    ),
+                ),
         ]
     }
 }
@@ -128,39 +138,45 @@ fn worlds() -> impl Strategy<Value = World> {
         any::<[u8; 3]>(),
         any::<[u8; 3]>(),
         any::<u8>(),
+        any::<u8>(),
         0u32..(1 << 27),
         0u32..(1 << 27),
     )
-        .prop_map(|(domains, starts, rules, forbidden, hole, excluded, trigger, target)| {
-            let normalize = |mut values: [u8; 3]| {
-                for (index, value) in values.iter_mut().enumerate() {
-                    *value = domains.get(index).map_or(0, |d| *value % d);
+        .prop_map(
+            |(domains, starts, rules, forbidden, hole, excluded, fair, trigger, target)| {
+                let normalize = |mut values: [u8; 3]| {
+                    for (index, value) in values.iter_mut().enumerate() {
+                        *value = domains.get(index).map_or(0, |d| *value % d);
+                    }
+                    values
+                };
+                let catalog = (1u8 << rules.len()) - 1;
+                let excluded = if excluded & catalog == catalog { excluded & !1 } else { excluded };
+                World {
+                    starts: starts.into_iter().map(normalize).collect(),
+                    actions: rules
+                        .into_iter()
+                        .map(|(guard_var, guard_value, effect_var, increments, internal)| {
+                            let guard_var = guard_var % domains.len();
+                            Rule {
+                                guard_var,
+                                guard_value: guard_value % domains[guard_var],
+                                effect_var: effect_var % domains.len(),
+                                increments,
+                                internal,
+                            }
+                        })
+                        .collect(),
+                    forbidden: normalize(forbidden),
+                    hole: normalize(hole),
+                    excluded,
+                    fair,
+                    trigger,
+                    target,
+                    domains,
                 }
-                values
-            };
-            World {
-                starts: starts.into_iter().map(normalize).collect(),
-                actions: rules
-                    .into_iter()
-                    .map(|(guard_var, guard_value, effect_var, increments, internal)| {
-                        let guard_var = guard_var % domains.len();
-                        Rule {
-                            guard_var,
-                            guard_value: guard_value % domains[guard_var],
-                            effect_var: effect_var % domains.len(),
-                            increments,
-                            internal,
-                        }
-                    })
-                    .collect(),
-                forbidden: normalize(forbidden),
-                hole: normalize(hole),
-                excluded,
-                trigger,
-                target,
-                domains,
-            }
-        })
+            },
+        )
 }
 
 type Edge = ([u8; 3], usize, usize, [u8; 3]);
@@ -194,13 +210,7 @@ fn progress_fails(world: &World, reached: &BTreeSet<[u8; 3]>, edges: &[Edge]) ->
             break;
         }
     }
-    let required = world.actions.iter().enumerate().fold(0u8, |mask, (action, rule)| {
-        if rule.internal && world.excluded & (1 << action) == 0 {
-            mask | (1 << action)
-        } else {
-            mask
-        }
-    });
+    let required = world.fair & !world.excluded & ((1u8 << world.actions.len()) - 1);
     let disabled = |state: &[u8; 3]| {
         scoped
             .iter()
@@ -348,15 +358,17 @@ proptest! {
                     if let Some(cycle) = path.cycle_start {
                         prop_assert!(cycle < path.steps.len());
                         prop_assert_eq!(before, states[cycle]);
-                        for (action, rule) in world.actions.iter().enumerate() {
-                            if rule.internal && world.excluded & (1 << action) == 0 {
+                        for action in 0..world.actions.len() {
+                            if world.fair & (1 << action) != 0
+                                && world.excluded & (1 << action) == 0
+                            {
                                 prop_assert!(path.steps[cycle..].iter()
                                     .any(|step| step.action.0 == action)
                                     || states[cycle..path.steps.len()].iter().any(|state| {
                                         !expected.edges.iter().any(|(source, candidate, _, _)| {
                                             source == state && *candidate == action
                                         })
-                                }), "cycle satisfies each internal action's weak fairness");
+                                }), "cycle satisfies each explicitly fair action's weak fairness");
                             }
                         }
                     } else {

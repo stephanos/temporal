@@ -550,6 +550,24 @@ fn catalog(
     Ok((state, actors, actions))
 }
 
+fn assumption_helpers(enabled: bool) -> Option<TokenStream> {
+    enabled.then(|| {
+        let constructors = ["without", "only", "fair"].map(|name| {
+            let name = syn::Ident::new(name, proc_macro2::Span::call_site());
+            quote! {
+                fn #name<A: ::core::convert::Into<Action>, const N: usize>(actions: [A; N]) -> Assumption {
+                    Assumption::#name(&actions.into_iter().map(::core::convert::Into::into).collect::<::std::vec::Vec<Action>>())
+                }
+            }
+        });
+        quote! {
+            use ::umpire_dsl::AssumptionExt as _;
+            type Assumption = ::umpire_dsl::Assumption<Action>;
+            #(#constructors)*
+        }
+    })
+}
+
 fn progress_helpers(enabled: bool) -> Option<TokenStream> {
     enabled.then(|| {
         quote! {
@@ -609,14 +627,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         let label = method.to_string();
         quote!((#label, #state::#method()))
     });
-    let assumption_helpers = (!assumptions.is_empty() || !progress_tokens.is_empty()).then(|| {
-        quote! {
-            type Assumption = ::umpire_dsl::Assumption<Action>;
-            fn without<A: ::core::convert::Into<Action>, const N: usize>(actions: [A; N]) -> Assumption {
-                Assumption { excluded: actions.into_iter().map(::core::convert::Into::into).collect() }
-            }
-        }
-    });
+    let assumption_helpers =
+        assumption_helpers(!assumptions.is_empty() || !progress_tokens.is_empty());
     let progress_helpers = progress_helpers(!progress_tokens.is_empty());
     let generated = quote! {
         struct World;

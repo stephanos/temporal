@@ -3,12 +3,14 @@
 use std::cell::Cell;
 
 use umpire_checker::{Checker, Refusal};
-use umpire_dsl::{Assumption, Machine, Outcome, Progress, ProgressEvaluation, Steps, Verdict};
+use umpire_dsl::{
+    Assumption, AssumptionExt, Machine, Outcome, Progress, ProgressEvaluation, Steps, Verdict,
+};
 
 struct World {
     starts: Vec<u8>,
     excluded: u8,
-    changing: bool,
+    changing: u8,
     manual: bool,
     second: bool,
     calls: Cell<usize>,
@@ -16,14 +18,7 @@ struct World {
 
 impl World {
     fn new(starts: Vec<u8>, excluded: u8) -> Self {
-        Self {
-            starts,
-            excluded,
-            changing: false,
-            manual: false,
-            second: false,
-            calls: Cell::new(0),
-        }
+        Self { starts, excluded, changing: 0, manual: false, second: false, calls: Cell::new(0) }
     }
 }
 
@@ -62,11 +57,12 @@ impl Machine for World {
                 ProgressEvaluation {
                     trigger: Verdict::Holds,
                     target: (*state == 1).into(),
-                    assumption: Assumption::without(&[if world.changing {
-                        *state
-                    } else {
-                        world.excluded
-                    }]),
+                    assumption: match world.changing {
+                        1 => Assumption::without(&[*state]),
+                        2 => Assumption::only(&[*state]),
+                        3 => Assumption::without(&[world.excluded]).fair([*state]),
+                        _ => Assumption::without(&[world.excluded]),
+                    },
                 }
             })
         }];
@@ -118,13 +114,15 @@ fn assumptions_are_fixed_per_exploration_rather_than_across_worlds() {
             expected
         );
     }
-    let mut world = World::new(vec![0], 0);
-    world.changing = true;
-    let result = Checker::explore(&world, 8).unwrap_or_else(|error| panic!("{error}"));
-    let report = result.verify_all().unwrap_or_else(|error| panic!("{error}"));
-    assert_eq!(report.outcome(), Outcome::Unknown);
-    assert!(report.claims[0].holes.iter().any(|reason| reason.contains("assumption")));
-    assert_eq!(world.calls.get(), 2);
+    for changing in [1, 2, 3] {
+        let mut world = World::new(vec![0], 0);
+        world.changing = changing;
+        let result = Checker::explore(&world, 8).unwrap_or_else(|error| panic!("{error}"));
+        let report = result.verify_all().unwrap_or_else(|error| panic!("{error}"));
+        assert_eq!(report.outcome(), Outcome::Unknown);
+        assert!(report.claims[0].holes.iter().any(|reason| reason.contains("assumption")));
+        assert_eq!(world.calls.get(), 2);
+    }
 }
 
 #[test]

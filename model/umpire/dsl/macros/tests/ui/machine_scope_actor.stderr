@@ -14,7 +14,7 @@ help: the trait `From<Other>` is not implemented for `Action`
    | ^^^^^^^^^^
    = help: for that trait implementation, expected `Nobody`, found `Other`
    = note: required for `Other` to implement `Into<Action>`
-note: required by a bound in `without`
+note: required by a bound in `model::without`
   --> tests/ui/machine_scope_actor.rs:6:1
    |
  6 | #[machine]

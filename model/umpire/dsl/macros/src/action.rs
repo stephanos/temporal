@@ -65,7 +65,7 @@ pub(crate) fn expand(input: &syn::DeriveInput) -> manyhow::Result<TokenStream> {
         impl #impl_generics #name #type_generics #where_clause {
             /// Enumerates actions in their declaration order.
             pub fn actions() -> ::std::vec::Vec<Self> { ::std::vec![#(Self::#names),*] }
-            /// Identifies actions marked internal for weak fairness.
+            /// Identifies environment-independent actions; this does not imply fairness.
             pub fn internal(&self) -> bool { #internal }
         }
     })

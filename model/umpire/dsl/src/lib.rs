@@ -11,7 +11,7 @@ mod spell;
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
 pub use machine::{Machine, Step, Steps};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
-pub use scope::{Assumption, Scope};
+pub use scope::{Assumption, AssumptionExt, Scope};
 pub use spell::Spell;
 pub use umpire_dsl_macros::{Action, State, machine};
 

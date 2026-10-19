@@ -9,7 +9,7 @@ This task owns the shared assumption representation and fairness integration bef
 
 **Size:** M
 **Files:** existing DSL assumption/machine APIs, macro helpers, progress admission, oracle and focused fixtures.
-**Touches:** [model/umpire/dsl/src/scope.rs, model/umpire/dsl/src/lib.rs, model/umpire/dsl/src/machine.rs, model/umpire/dsl/macros/src/machine.rs, model/umpire/dsl/macros/src/action.rs, model/umpire/dsl/macros/tests/fixtures/**, model/umpire/dsl/tests/**, model/umpire/checker/src/progress.rs, model/umpire/checker/src/refusal.rs, model/umpire/checker/tests/**, model/umpire/tests/fixtures/progress*/**]
+**Touches:** [model/umpire/dsl/src/scope.rs, model/umpire/dsl/src/lib.rs, model/umpire/dsl/src/machine.rs, model/umpire/dsl/macros/src/machine.rs, model/umpire/dsl/macros/src/action.rs, model/umpire/dsl/macros/tests/fixtures/**, model/umpire/dsl/macros/tests/ui/machine_scope_actor.stderr, model/umpire/dsl/tests/**, model/umpire/checker/src/explore.rs, model/umpire/checker/src/progress.rs, model/umpire/checker/src/refusal.rs, model/umpire/checker/tests/**, model/umpire/tests/fixtures/progress*/**, model/umpire/wasm/src/refusal.rs, model/umpire/wasm/tests/dispatch.rs, model/umpire/proto/README.md]
 
 ### Approach
 
@@ -20,6 +20,7 @@ This task owns the shared assumption representation and fairness integration bef
 - Refuse empty admission only for an explicit restriction (`only` specified or nonempty exclusions). An unrestricted zero-action Model remains valid and can yield a deadlock. A valid press-only assumption with a disabled press is a deadlock, not an admission error.
 - Update the independent brute-force oracle's fairness input and generated assumptions; it currently encodes implicit internal fairness in multiple places. Existing fairness-specific fixtures must explicitly declare their fair actions when their purpose needs them.
 - Correct `Machine::internal` and derive documentation to mean environment-independent only. No new dependencies or workspace wiring.
+- Carry the new EmptyAssumption refusal through the existing WASM bridge. Code 7 (`ScopeAction`) categorizes action-admission errors; preserve distinct unknown-action and empty-restriction diagnostics. Pin the empty-admission response through generated protobuf encode/decode and document this category in the protocol README. No schema, method ID or ABI change is needed.
 
 ### Investigation targets
 

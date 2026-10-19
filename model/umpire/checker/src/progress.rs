@@ -9,27 +9,36 @@ use umpire_dsl::{Assumption, Machine, Outcome, Progress, Spell, Verdict};
 use crate::{Path, PathStep, Refusal, Result, StateId, Visited, explore::panic_message};
 
 pub(crate) fn validate_scopes<M: Machine>(
+    world: &M,
     progress: &[Progress<M>],
     actions: &[M::Action],
 ) -> std::result::Result<(), Refusal> {
+    for (_, assumption) in world.assumptions() {
+        validate_assumption(&assumption, actions)?;
+    }
     for claim in progress {
-        if claim.evaluator.is_none() {
-            validate_assumption(&claim.scope, actions)?;
-        }
+        validate_assumption(&claim.scope, actions)?;
     }
     Ok(())
 }
 
-fn validate_assumption<A: Spell + PartialEq>(
+fn validate_assumption<A: Spell + Clone + PartialEq>(
     assumption: &Assumption<A>,
     actions: &[A],
 ) -> std::result::Result<(), Refusal> {
-    for action in &assumption.excluded {
+    for action in
+        assumption.only.iter().flatten().chain(&assumption.excluded).chain(&assumption.fair)
+    {
         if !actions.contains(action) {
             let mut name = String::new();
             action.spell(&mut name);
             return Err(Refusal::ScopeAction { action: name });
         }
+    }
+    if (assumption.only.is_some() || !assumption.excluded.is_empty())
+        && !actions.iter().any(|action| assumption.allows(action))
+    {
+        return Err(Refusal::EmptyAssumption);
     }
     Ok(())
 }
@@ -58,7 +67,7 @@ impl<M: Machine> Result<M> {
         let fair_actions: Vec<_> = actions
             .iter()
             .enumerate()
-            .filter(|(index, action)| allowed[*index] && world.internal(action))
+            .filter(|(index, action)| allowed[*index] && assumption.is_fair(action))
             .collect();
         let complete: Vec<_> = self
             .completed

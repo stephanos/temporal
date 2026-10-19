@@ -1,4 +1,4 @@
-use umpire_dsl::{Hole, Machine, Progress, Scope, Spell, Steps, Verdict};
+use umpire_dsl::{Assumption, Hole, Machine, Progress, Scope, Spell, Steps, Verdict};
 
 #[derive(Clone, PartialEq, Eq, Hash)]
 pub struct State(pub u8);
@@ -143,6 +143,8 @@ impl Machine for Graph {
         let claim = Progress::<Self>::new("reaches_target").eventually(|_, _| Verdict::Fails);
         vec![if matches!(self.0, Mode::UnknownScope) {
             claim.within(Scope::without(&[Action::Absent]))
+        } else if matches!(self.0, Mode::InternalCycleCut) {
+            claim.within(Assumption::fair(&[Action::Advance]))
         } else {
             claim
         }]

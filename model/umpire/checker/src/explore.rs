@@ -95,7 +95,7 @@ impl Checker {
         let postconditions = world.postconditions();
         let actions = world.actions();
         let progress = world.progress();
-        crate::progress::validate_scopes(&progress, &actions)?;
+        crate::progress::validate_scopes(world, &progress, &actions)?;
         let mut result = Result::new(invariants, &postconditions, &progress);
         result.seed(world, budget, invariants);
         let mut fired = FixedBitSet::with_capacity(actions.len());

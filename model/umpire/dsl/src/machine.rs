@@ -21,7 +21,7 @@ pub trait Machine: Sized {
     /// Enumerates the finite action catalog in declaration order, including disabled actions.
     fn actions(&self) -> Vec<Self::Action>;
 
-    /// Identifies internal actions subject to weak fairness.
+    /// Identifies environment-independent actions; this does not imply fairness.
     fn internal(&self, action: &Self::Action) -> bool;
 
     /// Returns enabled choices in written order; an empty list disables the action.

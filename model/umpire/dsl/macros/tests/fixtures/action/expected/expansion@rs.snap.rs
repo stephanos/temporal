@@ -35,7 +35,7 @@ impl Heater {
     pub fn actions() -> ::std::vec::Vec<Self> {
         ::std::vec![Self::Heat, Self::Failover]
     }
-    /// Identifies actions marked internal for weak fairness.
+    /// Identifies environment-independent actions; this does not imply fairness.
     pub fn internal(&self) -> bool {
         true
     }
