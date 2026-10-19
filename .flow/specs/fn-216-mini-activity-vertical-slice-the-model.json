@@ -10,7 +10,9 @@
     "fn-210-rust-prototype-kettle-on-a-trait-engine"
   ],
   "id": "fn-216-mini-activity-vertical-slice-the-model",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-216-mini-activity-vertical-slice-the-model.1": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "ship",
@@ -104,15 +106,52 @@
       "task": null,
       "timestamp": "2026-10-19T16:54:49.875995Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "ff9cfede4ada95c665139dcc629ec45fe45bdd510e2574e29944fcd253cb00fe",
+      "backend": "codex",
+      "base_sha": "9728439465d16f723a224d67e2fb456a4c2f9d15",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "45760a8d20d058e26bef54f86875c242b8453792",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e955786548184f9085d611a027ba5252",
+      "round_consumed": true,
+      "scope": "impl:fn-216-mini-activity-vertical-slice-the-model.1",
+      "superseded_by": null,
+      "task": "fn-216-mini-activity-vertical-slice-the-model.1",
+      "timestamp": "2026-10-19T17:09:47.562103Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-216-mini-activity-vertical-slice-the-model.1": 1,
     "plan": 1,
     "plan#completion": 0
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "impl:fn-216-mini-activity-vertical-slice-the-model.1": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-216-mini-activity-vertical-slice-the-model.md",
@@ -129,5 +168,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T16:54:49.923889Z"
+  "updated_at": "2026-10-19T17:09:47.574220Z"
 }
