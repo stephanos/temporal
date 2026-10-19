@@ -35,7 +35,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.20, .22 and .7 | The archive, nested attribute Kettle, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, direct wasm ABI and generic Go host relocation are complete; actor-match transitions, sample/behavior fixture naming and the final comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| Umpire in Rust (now) | fn-210.22 and .7 | The archive, flat attribute Kettle with actor-match transitions, changed-state handlers, statement claims, fixed progress assumptions, payload-only fixtures, direct wasm ABI and generic Go host relocation are complete; sample/behavior fixture naming and the final comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
 | After the verdict | fn-216 (mini activity vertical slice, the first Temporal Model and the Model as oracle in a real SDK run), then fn-217 (annotation catalog over the Temporal API with the server-error gap analysis), in parallel with fn-214 (progress vocabulary on Kettle), fn-215 (`path!` notation) and fn-213 (ModelSuite: examples and explorations; .4 after fn-214), then fn-218 (test-space patterns: `cover`); then fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
@@ -98,7 +98,6 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.20 | 🔄 in progress | After .18 and the completed .19 claim recorder: flat form, one `impl Model` with per-item attributes; `#[on(Actor)]` match methods with match guards; optional `#[effect]`; `&mut self` refused elsewhere; `forbid(unsafe_code)`; goldens unchanged (R6) |
 | fn-210.22 | ⬜ todo | After .20: rename authoring examples to `sample_kettle` / `sample_kettle_trait` and the finite progress-refutation control to `progress_dead_end`; preserve behavior payloads |
 | fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
