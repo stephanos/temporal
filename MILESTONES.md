@@ -86,7 +86,6 @@ suite, cover and Apalache work builds on one front end.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-223.1 | ⬜ todo | After fn-215: trait-form fixtures rewritten or moved checker-only; disposition table in DESIGN.md (R1) |
 | fn-223.2 | ⬜ todo | After .1: delete the manual lowering; located refusal for hand-written `Machine` source (R2) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
