@@ -28,9 +28,26 @@ Focused native fixtures/macro/negative controls first, then `make model-check`. 
 - [ ] `make model-check` passes.
 
 ## Done summary
-TBD
+Model authors can record accepted or rejected step outcomes with statement-form `reject!` and inspect them in postconditions. Checker exploration and every runtime replay or enabledness path use `checked_step` to refuse rejected mutations with the action and source state before publishing changes.
 
+R1 is covered by the shared `rejecting_steps` rows/report fixture, the checker `rejecting_mutation` refusal fixture, five scoped-outcome/activation tests, and the runtime refusal/rollback table covering Explore, Judge replay, expected-action enumeration, Answer delivery and response validation. Existing goldens and the nonrejecting macro snapshot remain byte-identical to the base. The aggregate result is now `CheckOutcome`; rendered aggregate variants remain unchanged.
+
+baseline: green for `make model-check` and `make umpire-check-model-slice`. baseline: red (the raw Go selector failed pre-edit because `UMPIRE_TEMPORAL_WASM` was unset). Supplying the built guest path repaired the invocation and passed before edits. Baseline observations are retained in `baseline-model.log`, `baseline-slice.log`, `baseline-live.log` and `baseline-live-configured.log` beside this summary.
+
+Verification passed after the final code change: five outcome tests, workspace clippy with warnings denied, `make model-check`, `make umpire-check-model-slice`, and the configured raw `TestTestpilotModelSlice` selector. Final formatting and clippy passed; Go lint reported no changed Go packages. Raw observations are in `green-reject-comparison.log`, `verify-model-fix.log`, `verify-slice-fix.log`, `verify-live-fix.log` and `final-lint.log`.
+
+The integration review found that `reject != value` incorrectly activated typed outcomes. The associated-type control failed with E0271 before commit `e1fae10f8a`, then passed after requiring a delimited macro argument group. The same-receipt second review returned SHIP. Codex reviewer `gpt-6.1-sol` at high is from the writer's model family. Reviewer Cargo reruns were blocked by its read-only cache; worker gate runs above supplied executable verification. Review receipt: `/tmp/impl-review-receipt-8f37faba39e2-fn-221-rejecting-outcomes-reject-steps-phased.1.json`.
+
+Fresh correctness/standards audits and the correctness recheck of the fix are preserved in `quality-audits.md`. The review fix was captured as `bug/integration/match-complete-macro-invocations-when-2026-10-19`. The conductor's task .2 description-only preparation was included in the implementation checkpoint. No feature-entry route changed.
+
+GATE_SKIPPED:unittest:green-receipt e1fae10f - verified post-change model gate reused at final verification
+GATE_SKIPPED:smoke:green-receipt e1fae10f - verified post-change slice gate reused at final verification
+
+stage: impl-review - ran [2026-10-19T21:04:35Z..2026-10-19T21:10:19Z] (NEEDS_WORK then SHIP; two rounds)
+Tier session (jev-unavailable(no_key))
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: d368e1ce6a9248fa4745e19a5ba268d35a3185bc, e1fae10f8ae5342e6063bdabcf78e0d2a2553186
+- Tests: make model-check, make umpire-check-model-slice, mise exec -- cargo test -p umpire-dsl --test outcome, mise exec -- cargo clippy --workspace --all-targets -- -D warnings, UMPIRE_TEMPORAL_WASM=/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/release/umpire_temporal_guest.wasm CGO_ENABLED=0 mise exec -- go test -tags "test_dep integration" ./tests -run "^TestTestpilotModelSlice$" -count=1, GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=7c89c8855e make lint-code-fast, GATE_SKIPPED:unittest:green-receipt e1fae10f - verified post-change model gate reused at final verification, GATE_SKIPPED:smoke:green-receipt e1fae10f - verified post-change slice gate reused at final verification
 - PRs:

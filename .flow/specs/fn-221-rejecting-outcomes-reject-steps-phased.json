@@ -11,7 +11,7 @@
   ],
   "id": "fn-221-rejecting-outcomes-reject-steps-phased",
   "impl_review_rounds": {
-    "fn-221-rejecting-outcomes-reject-steps-phased.1": 1
+    "fn-221-rejecting-outcomes-reject-steps-phased.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -61,9 +61,55 @@
       "task": "fn-221-rejecting-outcomes-reject-steps-phased.1",
       "timestamp": "2026-10-19T21:07:35.529085Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "5b6b40b960820e1ad004d8bb68eb97b68f8eeccb25c93c839d6030019a41528c",
+      "backend": "codex",
+      "base_sha": "7c89c8855e1ebe2fdd896b1e892a95363ba10df2",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-c3c7a68a6ba202b82716ec2d47fef146",
+            "classification": "introduced",
+            "findingId": "finding-c3c7a68a6ba202b82716ec2d47fef146",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e1fae10f8ae5342e6063bdabcf78e0d2a2553186",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 723,
+      "output_sha256": "dcf3bf246a6a9fb7b6acd9c40c9ccb77f0a7d9210c91f93ca7e43e57abc533ea",
+      "reservation_id": "ce46fab28e3e45398ff889a6f194ea15",
+      "round_consumed": true,
+      "scope": "impl:fn-221-rejecting-outcomes-reject-steps-phased.1",
+      "superseded_by": null,
+      "task": "fn-221-rejecting-outcomes-reject-steps-phased.1",
+      "timestamp": "2026-10-19T21:10:18.967092Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-221-rejecting-outcomes-reject-steps-phased.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -83,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T21:07:35.533990Z"
+  "updated_at": "2026-10-19T21:10:18.970925Z"
 }
