@@ -57,6 +57,8 @@ pub struct Result<M: Machine> {
     depths: Vec<usize>,
     pub(crate) transitions: Vec<Transition<M>>,
     pub(crate) completed: Vec<Vec<bool>>,
+    pub(crate) actions: Vec<M::Action>,
+    pub(crate) progress: Vec<Progress<M>>,
     pub(crate) claims: Vec<ClaimResult<M::State, M::Action>>,
     warnings: Vec<String>,
 }
@@ -174,12 +176,8 @@ impl Checker {
         }
         result.completed.resize(result.visited.len(), vec![false; actions.len()]);
         for (index, claim) in progress.iter().enumerate() {
-            result.check_progress(
-                world,
-                claim,
-                invariants.len() + postconditions.len() + index,
-                &actions,
-            )?;
+            let checked = result.evaluate_progress(world, claim, &actions)?;
+            result.claims[invariants.len() + postconditions.len() + index] = checked;
         }
         result.finish(&actions, &postconditions, &fired, &triggered);
         result.order_claims(
@@ -187,11 +185,13 @@ impl Checker {
             invariants.len() + postconditions.len() + progress.len(),
             supplemental,
         );
+        result.actions = actions;
+        result.progress = progress;
         Ok(result)
     }
 }
 
-fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
+pub(crate) fn unchecked<S, A>(name: &str) -> ClaimResult<S, A> {
     ClaimResult {
         name: name.into(),
         outcome: Outcome::Verified,
@@ -245,6 +245,8 @@ impl<M: Machine> Result<M> {
             depths: Vec::new(),
             transitions: Vec::new(),
             completed: Vec::new(),
+            actions: Vec::new(),
+            progress: Vec::new(),
             claims: invariants
                 .iter()
                 .map(|claim| unchecked(claim.name))

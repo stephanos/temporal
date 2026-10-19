@@ -1,0 +1,11 @@
+room_never_switched_off: Outcome::Verified; Verified { longest: Option::Some { 0: 81 } }
+room_unrestricted: Outcome::Refuted; Cycle
+hint: cycle User::DepressButton, User::PressButton: Heater::Heat stays enabled and is never taken; add fair(Heater::Heat) to the assumption, or admit fewer actions with only
+room_press_only: Outcome::Refuted; Deadlock
+hint: deadlock: User::PressButton ends in Model { temperature: 20, heating_on: true, beeping: false }
+room_within_80: Outcome::Refuted; MissedDeadline
+hint: a path of 80 steps reaches no target state
+room_fair_heat: Outcome::Refuted; Cycle
+hint: cycle User::DepressButton, User::PressButton: Heater::Heat stays enabled and is never taken; add fair(Heater::Heat) to the assumption, or admit fewer actions with only
+cold_never_switched_off: Outcome::Verified; Verified { longest: Option::Some { 0: 141 } }
+room_budget_10: Outcome::Unknown; Unknown

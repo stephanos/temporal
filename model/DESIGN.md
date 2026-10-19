@@ -169,13 +169,50 @@ Invariant and postcondition methods are synchronous, return nothing and use `che
 and `unknown!` statements, remaining ordinary methods when called directly.
 A scoped per-evaluation recorder collects failed check expressions and holes without
 panics or unwinding, and generated predicates turn the recorded result into a verdict.
-Progress methods run once per real reached state; each claim's assumption must stay
-fixed within one exploration, with a mismatch reported as Unknown with a diagnostic.
-An exploration with no reached states evaluates no progress method and is vacuously Verified; manual fixed
-assumptions are still validated before exploration.
+Progress methods run once per real reached state; each claim's assumption and numeric bound must
+stay fixed, with a mismatch reported as Unknown with a diagnostic. Exploration and queries validate
+available registration metadata and explicit overrides even with zero starts, but invoke no
+progress method without a real reached state. Valid zero-start claims are vacuously Verified.
 The legacy `Scope` alias and trait builders remain for manual trait sources only;
 the attribute surface exposes `Assumption`, `#[assumption]`, `LeadsTo` and `.assuming(..)`.
-The core `Progress` builder remains unchanged for manual trait Models.
+The core `Progress` builder preserves `.within(scope)` for manual trait Models; numeric bounds use
+`.within_steps(n)` there.
+
+Assumptions explicitly select `only`, exclude `without`, and declare weak fairness with `fair`.
+Nothing is fair by default; `#[internal]` means environment-independent, not fair. Selection is
+the last `only` list minus accumulated exclusions, regardless of chaining order. Fair entries
+accumulate without admitting actions. Every list is validated, including excluded fair entries;
+an explicit restriction admitting no catalog action is refused. A valid selection whose actions
+are disabled in an obligation state produces a deadlock.
+
+`LeadsTo::within(n)` counts transitions from an obligation state to the first target, excluding
+the incoming transition that made the trigger true. The positive bound includes its endpoint:
+a target at exactly `n` passes. Bounds do not benefit from fairness. Progress verdict precedence
+is Deadlock, Cycle, MissedDeadline, Verified with an optional longest distance, then Unknown.
+Reached holes and cuts prevent unproved success while concrete refutations survive. Safety and
+caught predicate/effect defects have no fabricated temporal verdict. Default report spelling and
+aggregate outcomes remain compatible.
+
+`Result::verify_progress(&self, world, &registered_claim)` answers another question over the retained
+graph through the same borrowed progress evaluator as exploration. It returns a fresh `ClaimResult`,
+without re-exploration, retained-row cloning or cached-result mutation. A unique original registration
+is selected by name; its canonical callbacks execute, with only the supplied explicit assumption
+and bound overrides applied. Each replacement discards only that metadata and its consistency checks.
+Unknown/ambiguous names and changed ordered action catalogs are refused before action-column indexing.
+The caller must provide the same unchanged world used for exploration. Neither public descriptors
+nor function-pointer equality establish world provenance or unchanged behavior.
+
+Supplementary Kettle fixtures import the canonical attribute Model and use a generic delegating
+adapter for room (20) and cold (-40) starts through its public state fields. They use the original
+registered `boils` callbacks and the existing checker `report.txt`/`paths/*.txt` consumer. Canonical
+sources and snapshots stay unchanged. The questions pin longest 81/141, the unrestricted
+depress/press cycle, the press-only deadlock, bound-80 missed deadline and budget-10 Unknown.
+Fn-213 still owns their ergonomic `tests.rs` presentation and illustrated `Model::boils` selection.
+
+Fn-212's future emitter translates each explicit `fair(A)` entry to `WF_vars(A)`; it emits no fairness
+for internal actions or any undeclared action. The generic cycle hint suggests `fair` or fewer
+admitted actions, but it is not proof that `fair(heat)` repairs Kettle: heat is disabled while the
+element is off, so weak fairness permits its press/depress cycle.
 
 The owner approved exactly five canonical payload substitutions on 2026-10-18:
 `Act::UserPressButton` → `User::PressButton`, `Act::UserDepressButton` →
@@ -299,10 +336,9 @@ Kettle itself proves only its unit-world, nongeneric, unit-action use case.
 | `derive(Action)` requires unit variants; no input fields or domains. | Action variants carry inputs; domains come from `Finite` or the world. |
 | `#[machine]` rejects generic registered impls and its generated adapters name bare nongeneric types. | Accept generics on `Model`, `World` and action enums and propagate their bounds. Standalone State derive's existing generic support does not close this gap. |
 
-Numeric `.within(n)` is planned in fn-214. The current manual trait's `.within(scope)` takes
-an environment assumption, not a numeric bound; its legacy `Progress` compatibility remains.
-The attribute `LeadsTo` has `whenever`, `eventually` and `assuming`, with no `within` method.
-Once world access and the numeric bound builder land, `w.resource_managers.len()` needs no
+Numeric `.within(n)` is available on `LeadsTo`; the manual trait's `.within(scope)` retains its
+environment-assumption meaning and uses `.within_steps(n)` for numeric bounds.
+Once world access lands, `w.resource_managers.len()` needs no
 additional authoring form to supply a runtime parameter-derived bound. This follows from the
 planned explicit Rust parameter and expression argument; no such bound is evaluated by today's
 Kettle or generated code. `path!` remains fn-215.

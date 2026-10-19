@@ -96,7 +96,32 @@ aliases and trait projections; they add no runtime guard.
 `#[machine]` forbids unsafe code throughout its module.
 
 Attribute progress methods return `LeadsTo`. The existing
-`whenever(..).eventually(..).assuming(..)` builder remains; `path!` is deferred to fn-215.
+`whenever(..).eventually(..).assuming(..)` builder accepts a positive transition bound with
+`.within(n)`. Reaching the first target at exactly `n` transitions passes; the transition that
+made the trigger true is excluded. `path!` is deferred to fn-215.
+Assumptions compose `only([..])`, `without([..])` and explicit `fair([..])` action lists.
+Nothing is fair by default: `#[internal]` marks environment-independent actions only.
+`only` replaces the selection, `without` and `fair` accumulate, and fair membership does not
+admit an excluded action. Numeric bounds receive no benefit from fairness.
+
+After `Checker::explore`, select a registration from `world.progress()` and call
+`result.verify_progress(&world, &claim)`. The query returns a fresh `ClaimResult` using retained
+states and rows, without stepping again or changing cached reports. A selector may replace the
+assumption with `.assuming(..)` and the bound with `.within_steps(n)` independently. Manual
+`Progress::within(scope)` and `Scope::without(&[..])` remain compatible. The query resolves the
+unique original registration by name and uses its original callbacks; it refuses unknown or
+ambiguous names and changed ordered action catalogs. The caller must supply the same unchanged
+world used for exploration; public descriptors cannot prove world identity or unchanged behavior.
+Available metadata is validated even with zero starts, but no progress method is invoked without
+a reached state. Reached assumption/bound disagreement is Unknown unless that metadata was replaced.
+
+`ProgressVerdict` distinguishes deadlock, cycle, missed deadline, verified with an optional longest
+first-target distance, and unknown. Caught predicate/effect defects keep their existing outcomes
+without a temporal classification; the aggregate `Outcome` and default report text are unchanged.
+The supplementary `kettle_progress*` fixtures pin the room/cold longest distances (81/141), cycle,
+deadlock, deadline and budget questions using the original Kettle predicates. Fn-213 retains the
+ergonomic Kettle `tests.rs` presentation. Fn-212's future emitter maps explicit `fair(A)` entries
+to `WF_vars(A)` and introduces no other fairness.
 See [DESIGN.md](DESIGN.md) for the Scala/Rust
 comparison and capability boundaries.
 
@@ -118,7 +143,7 @@ Goldens are deterministic, human-readable and timing-free. `make model-update` r
 fixture folder without `model.rs` or without `expected/` fails the build. Unit tests only when a defect cannot be
 written as a fixture.
 
-`umpire-tests` at `umpire/tests/` owns 23 shared Models in `fixtures/<name>/`.
+`umpire-tests` at `umpire/tests/` owns 24 shared fixtures in `fixtures/<name>/`.
 `sample_kettle` and `sample_kettle_trait` are the canonical attribute and manual-trait authoring
 examples; focused controls are named for the behavior they test. `progress_dead_end` refutes
 progress on a finite maximal path in the assumption-filtered graph, with no enabled internal

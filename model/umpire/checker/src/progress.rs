@@ -7,7 +7,8 @@ use petgraph::{algo::tarjan_scc, graph::DiGraph};
 use umpire_dsl::{Assumption, Machine, Outcome, Progress, Spell, Verdict};
 
 use crate::{
-    Path, PathStep, ProgressVerdict, Refusal, Result, StateId, Visited, explore::panic_message,
+    ClaimResult, Path, PathStep, ProgressVerdict, Refusal, Result, StateId, Visited,
+    explore::{panic_message, unchecked},
 };
 
 pub(crate) fn validate_scopes<M: Machine>(
@@ -61,16 +62,65 @@ struct ProgressPredicates<A> {
 }
 
 impl<M: Machine> Result<M> {
-    pub(crate) fn check_progress(
-        &mut self,
+    /// Checks an original registered progress claim against this retained exploration.
+    ///
+    /// The caller must supply the same unchanged world used for exploration. The ordered
+    /// action catalog is checked, but world identity and unchanged behavior cannot be proven.
+    /// The selector's name resolves a unique original registration; only its explicit
+    /// assumption and numeric-bound overrides are applied to the original callbacks.
+    pub fn verify_progress(
+        &self,
+        world: &M,
+        selector: &Progress<M>,
+    ) -> std::result::Result<ClaimResult<M::State, M::Action>, Refusal> {
+        if world.actions() != self.actions {
+            return Err(Refusal::ProgressCatalogChanged);
+        }
+        let mut matches = self.progress.iter().filter(|claim| claim.name == selector.name);
+        let original = matches
+            .next()
+            .ok_or_else(|| Refusal::ProgressRegistrationMissing { claim: selector.name.into() })?;
+        if matches.next().is_some() {
+            return Err(Refusal::ProgressRegistrationAmbiguous { claim: selector.name.into() });
+        }
+        let claim = Progress {
+            name: original.name,
+            trigger: original.trigger,
+            target: original.target,
+            scope: original.scope.clone(),
+            bound: original.bound,
+            assumption_override: selector
+                .assumption_override
+                .clone()
+                .or_else(|| original.assumption_override.clone()),
+            bound_override: selector.bound_override.or(original.bound_override),
+            evaluator: original.evaluator,
+        };
+        validate_scopes(world, std::slice::from_ref(&claim), &self.actions)?;
+        self.evaluate_progress(world, &claim, &self.actions)
+    }
+
+    pub(crate) fn evaluate_progress(
+        &self,
         world: &M,
         claim: &Progress<M>,
-        index: usize,
+        actions: &[M::Action],
+    ) -> std::result::Result<ClaimResult<M::State, M::Action>, Refusal> {
+        let mut result = unchecked(claim.name);
+        self.check_progress(world, claim, &mut result, actions)?;
+        Ok(result)
+    }
+
+    fn check_progress(
+        &self,
+        world: &M,
+        claim: &Progress<M>,
+        result: &mut ClaimResult<M::State, M::Action>,
         actions: &[M::Action],
     ) -> std::result::Result<(), Refusal> {
         let count = self.visited.len();
         let Some(ProgressPredicates { triggers, avoids, assumption, bound }) =
-            self.progress_predicates(world, claim, index, actions)?
+            self.progress_predicates(world, claim, result, actions)?
         else {
             return Ok(());
         };
@@ -97,18 +147,18 @@ impl<M: Machine> Result<M> {
         }
         while let Some(state) = queue.pop_front() {
             if !complete[state] {
-                self.claims[index].outcome = Outcome::Unknown;
+                result.outcome = Outcome::Unknown;
             }
             if complete[state] && outgoing[state].is_empty() {
-                self.refute_progress(index, state, &parents, &origins, &[]);
-                let path = self.claims[index].path.as_ref().unwrap_or_else(|| unreachable!());
+                self.refute_progress(result, state, &parents, &origins, &[]);
+                let path = result.path.as_ref().unwrap_or_else(|| unreachable!());
                 let mut terminal = String::new();
                 self.state(StateId(state)).spell(&mut terminal);
-                self.claims[index].hint = Some(format!(
+                result.hint = Some(format!(
                     "deadlock: {} ends in {terminal}",
                     Self::progress_actions(path.steps.iter().map(|step| &step.action))
                 ));
-                self.claims[index].verdict = Some(ProgressVerdict::Deadlock);
+                result.verdict = Some(ProgressVerdict::Deadlock);
                 return Ok(());
             }
             for &edge_index in &outgoing[state] {
@@ -124,7 +174,12 @@ impl<M: Machine> Result<M> {
         }
         let components = self.progress_components(&origins, &avoids, &outgoing);
         let mut cyclic = None;
-        for component in components {
+        for mut component in components {
+            if let Some(obligation) =
+                component.iter().position(|&state| origins[state] == Some(state))
+            {
+                component.rotate_left(obligation);
+            }
             let entry = component[0];
             if origins[entry].is_none() {
                 continue;
@@ -139,9 +194,9 @@ impl<M: Machine> Result<M> {
             }
             if let Some(cycle) = self.fair_cycle(&component, &outgoing, &enabled, &fair_actions) {
                 let hint = self.progress_cycle_hint(&cycle, actions, &allowed, &enabled);
-                self.refute_progress(index, entry, &parents, &origins, &cycle);
-                self.claims[index].hint = Some(hint);
-                self.claims[index].verdict = Some(ProgressVerdict::Cycle);
+                self.refute_progress(result, entry, &parents, &origins, &cycle);
+                result.hint = Some(hint);
+                result.verdict = Some(ProgressVerdict::Cycle);
                 return Ok(());
             }
         }
@@ -150,22 +205,22 @@ impl<M: Machine> Result<M> {
                 let cycle = self
                     .fair_cycle(&component, &outgoing, &enabled, &[])
                     .unwrap_or_else(|| unreachable!("cyclic components have a closed walk"));
-                self.refute_progress(index, component[0], &parents, &origins, &cycle);
-                self.claims[index].hint =
+                self.refute_progress(result, component[0], &parents, &origins, &cycle);
+                result.hint =
                     Some("a cycle can avoid a target state for any number of steps".into());
-                self.claims[index].verdict = Some(ProgressVerdict::MissedDeadline);
+                result.verdict = Some(ProgressVerdict::MissedDeadline);
                 return Ok(());
             }
-            self.finish_progress(index, None);
+            self.finish_progress(result, None);
             return Ok(());
         }
-        self.check_finite_progress(index, bound, &origins, &parents, &outgoing);
+        self.check_finite_progress(result, bound, &origins, &parents, &outgoing);
         Ok(())
     }
 
     fn check_finite_progress(
-        &mut self,
-        index: usize,
+        &self,
+        result: &mut ClaimResult<M::State, M::Action>,
         bound: Option<u32>,
         origins: &[Option<usize>],
         parents: &[Option<usize>],
@@ -184,17 +239,16 @@ impl<M: Machine> Result<M> {
                 edges.push(edge);
                 state = self.progress_target(edge);
             }
-            self.refute_progress(index, first, parents, origins, &[]);
-            let mut path = self.claims[index].path.take().unwrap_or_else(|| unreachable!());
+            self.refute_progress(result, first, parents, origins, &[]);
+            let mut path = result.path.take().unwrap_or_else(|| unreachable!());
             self.append_progress(&mut path, &edges);
-            self.claims[index].path = Some(path);
-            self.claims[index].hint =
-                Some(format!("a path of {steps} steps reaches no target state"));
-            self.claims[index].verdict = Some(ProgressVerdict::MissedDeadline);
+            result.path = Some(path);
+            result.hint = Some(format!("a path of {steps} steps reaches no target state"));
+            result.verdict = Some(ProgressVerdict::MissedDeadline);
             return;
         }
         let longest = if start.is_none() { 0 } else { steps + 1 };
-        self.finish_progress(index, u32::try_from(longest).ok());
+        self.finish_progress(result, u32::try_from(longest).ok());
     }
 
     fn progress_outgoing(
@@ -249,12 +303,12 @@ impl<M: Machine> Result<M> {
         components
     }
 
-    fn finish_progress(&mut self, index: usize, longest: Option<u32>) {
-        if self.counts.cut || self.claims[index].outcome == Outcome::Unknown {
-            self.claims[index].outcome = Outcome::Unknown;
-            self.claims[index].verdict = Some(ProgressVerdict::Unknown);
+    fn finish_progress(&self, result: &mut ClaimResult<M::State, M::Action>, longest: Option<u32>) {
+        if self.counts.cut || result.outcome == Outcome::Unknown {
+            result.outcome = Outcome::Unknown;
+            result.verdict = Some(ProgressVerdict::Unknown);
         } else {
-            self.claims[index].verdict = Some(ProgressVerdict::Verified { longest });
+            result.verdict = Some(ProgressVerdict::Verified { longest });
         }
     }
 
@@ -411,10 +465,10 @@ impl<M: Machine> Result<M> {
     }
 
     fn progress_predicates(
-        &mut self,
+        &self,
         world: &M,
         claim: &Progress<M>,
-        index: usize,
+        result: &mut ClaimResult<M::State, M::Action>,
         actions: &[M::Action],
     ) -> std::result::Result<Option<ProgressPredicates<M::Action>>, Refusal> {
         let count = self.visited.len();
@@ -436,7 +490,7 @@ impl<M: Machine> Result<M> {
                     [(claim.trigger, &mut triggers, false), (claim.target, &mut avoids, true)]
                 {
                     let Some(verdict) =
-                        self.progress_evaluation(claim.name, index, StateId(state), |state| {
+                        self.progress_evaluation(claim.name, result, StateId(state), |state| {
                             predicate(world, state)
                         })
                     else {
@@ -446,9 +500,9 @@ impl<M: Machine> Result<M> {
                         Verdict::Holds => values[state] = !target,
                         Verdict::Fails => values[state] = target,
                         Verdict::Unknown(hole) => {
-                            self.claims[index].outcome = Outcome::Unknown;
-                            if !self.claims[index].holes.contains(&hole.reason) {
-                                self.claims[index].holes.push(hole.reason);
+                            result.outcome = Outcome::Unknown;
+                            if !result.holes.contains(&hole.reason) {
+                                result.holes.push(hole.reason);
                             }
                         }
                     }
@@ -456,7 +510,7 @@ impl<M: Machine> Result<M> {
                 continue;
             };
             let Some(evaluation) =
-                self.progress_evaluation(claim.name, index, StateId(state), |state| {
+                self.progress_evaluation(claim.name, result, StateId(state), |state| {
                     evaluator(world, state)
                 })
             else {
@@ -486,22 +540,22 @@ impl<M: Machine> Result<M> {
                     Verdict::Holds => values[state] = !target,
                     Verdict::Fails => values[state] = target,
                     Verdict::Unknown(hole) => {
-                        self.claims[index].outcome = Outcome::Unknown;
-                        if !self.claims[index].holes.contains(&hole.reason) {
-                            self.claims[index].holes.push(hole.reason);
+                        result.outcome = Outcome::Unknown;
+                        if !result.holes.contains(&hole.reason) {
+                            result.holes.push(hole.reason);
                         }
                     }
                 }
             }
         }
         if inconsistent_assumption || inconsistent_bound {
-            self.claims[index].outcome = Outcome::Unknown;
-            self.claims[index].verdict = Some(ProgressVerdict::Unknown);
+            result.outcome = Outcome::Unknown;
+            result.verdict = Some(ProgressVerdict::Unknown);
             if inconsistent_assumption {
-                self.claims[index].holes.push("progress assumption differs across reached states");
+                result.holes.push("progress assumption differs across reached states");
             }
             if inconsistent_bound {
-                self.claims[index].holes.push("progress bound differs across reached states");
+                result.holes.push("progress bound differs across reached states");
             }
             return Ok(None);
         }
@@ -514,9 +568,9 @@ impl<M: Machine> Result<M> {
     }
 
     fn progress_evaluation<T>(
-        &mut self,
+        &self,
         name: &str,
-        index: usize,
+        result: &mut ClaimResult<M::State, M::Action>,
         state: StateId,
         evaluate: impl FnOnce(&M::State) -> T,
     ) -> Option<T> {
@@ -526,8 +580,8 @@ impl<M: Machine> Result<M> {
                 let mut path = self.path(state);
                 path.failure =
                     Some(format!("claim {name} panicked: {}", panic_message(error.as_ref())));
-                self.claims[index].outcome = Outcome::Refuted;
-                self.claims[index].path = Some(path);
+                result.outcome = Outcome::Refuted;
+                result.path = Some(path);
                 None
             }
         }
@@ -592,8 +646,8 @@ impl<M: Machine> Result<M> {
     }
 
     fn refute_progress(
-        &mut self,
-        index: usize,
+        &self,
+        result: &mut ClaimResult<M::State, M::Action>,
         state: usize,
         parents: &[Option<usize>],
         origins: &[Option<usize>],
@@ -608,7 +662,7 @@ impl<M: Machine> Result<M> {
             path.cycle_start = Some(path.steps.len());
             self.append_progress(&mut path, cycle);
         }
-        self.claims[index].outcome = Outcome::Refuted;
-        self.claims[index].path = Some(path);
+        result.outcome = Outcome::Refuted;
+        result.path = Some(path);
     }
 }

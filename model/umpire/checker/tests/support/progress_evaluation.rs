@@ -2,7 +2,7 @@
 
 use std::cell::Cell;
 
-use umpire_checker::{Checker, Refusal};
+use umpire_checker::{Checker, ProgressVerdict, Refusal};
 use umpire_dsl::{
     Assumption, AssumptionExt, Machine, Outcome, Progress, ProgressEvaluation, Steps, Verdict,
 };
@@ -13,12 +13,25 @@ struct World {
     changing: u8,
     manual: bool,
     second: bool,
+    duplicate: bool,
+    actions: Vec<u8>,
+    steps: Cell<usize>,
     calls: Cell<usize>,
 }
 
 impl World {
     fn new(starts: Vec<u8>, excluded: u8) -> Self {
-        Self { starts, excluded, changing: 0, manual: false, second: false, calls: Cell::new(0) }
+        Self {
+            starts,
+            excluded,
+            changing: 0,
+            manual: false,
+            second: false,
+            duplicate: false,
+            actions: vec![0, 1],
+            steps: Cell::new(0),
+            calls: Cell::new(0),
+        }
     }
 }
 
@@ -33,7 +46,7 @@ impl Machine for World {
     }
 
     fn actions(&self) -> Vec<u8> {
-        vec![0, 1]
+        self.actions.clone()
     }
 
     fn internal(&self, action: &u8) -> bool {
@@ -41,6 +54,7 @@ impl Machine for World {
     }
 
     fn step(&self, state: &u8, action: u8) -> Steps<u8, (), ()> {
+        self.steps.set(self.steps.get() + 1);
         let mut steps = Steps::new();
         steps.push(((), vec![], if action == 0 { 1 } else { *state }));
         steps
@@ -74,6 +88,9 @@ impl Machine for World {
                 target: (*state == 1).into(),
                 assumption: Assumption::without(&[0]),
             }));
+        }
+        if self.duplicate {
+            claims.push(Progress::new("reaches_one"));
         }
         claims
     }
@@ -152,4 +169,111 @@ fn manual_invalid_actions_are_refused_even_without_reached_states() {
     world.manual = true;
     assert!(matches!(Checker::explore(&world, 8), Err(Refusal::ScopeAction { .. })));
     assert_eq!(world.calls.get(), 0);
+}
+
+#[test]
+fn registered_queries_reuse_graph_and_canonical_callbacks_without_mutating_cache()
+-> umpire_testing::TestResult {
+    for manual in [false, true] {
+        let mut world = World::new(vec![0], 1);
+        world.manual = manual;
+        let result = Checker::explore(&world, 8)?;
+        let before = umpire_testing::render(&result)?;
+        let counts = result.counts;
+        let steps = world.steps.get();
+        let calls = world.calls.get();
+        let mut selector =
+            Progress::evaluated("reaches_one", |_, _| panic!("fabricated evaluator"))
+                .whenever(|_, _| panic!("fabricated trigger"))
+                .eventually(|_, _| panic!("fabricated target"));
+        selector.scope = Assumption::only(&[9]);
+        selector.bound = Some(0);
+        for round in 1..=2 {
+            let queried = result.verify_progress(&world, &selector)?;
+            assert_eq!(queried.verdict, Some(ProgressVerdict::Verified { longest: Some(1) }));
+            assert_eq!(world.calls.get(), calls + if manual { 0 } else { round * 2 });
+            assert_eq!(world.steps.get(), steps);
+            assert_eq!(result.counts, counts);
+            assert_eq!(umpire_testing::render(&result)?, before);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn registered_queries_refuse_missing_ambiguous_and_changed_catalogs() -> umpire_testing::TestResult
+{
+    let mut world = World::new(vec![0], 1);
+    let result = Checker::explore(&world, 8)?;
+    assert!(
+        matches!(result.verify_progress(&world, &Progress::new("absent")), Err(Refusal::ProgressRegistrationMissing { claim }) if claim == "absent")
+    );
+    let selector = Progress::new("reaches_one");
+    let calls = world.calls.get();
+    for actions in [vec![], vec![0], vec![1, 0], vec![0, 1, 2], vec![0, 2]] {
+        world.actions = actions;
+        assert!(matches!(
+            result.verify_progress(&world, &selector),
+            Err(Refusal::ProgressCatalogChanged)
+        ));
+    }
+    assert_eq!(world.calls.get(), calls);
+    world.actions = vec![0, 1];
+    world.duplicate = true;
+    let ambiguous = Checker::explore(&world, 8)?;
+    assert!(
+        matches!(ambiguous.verify_progress(&world, &selector), Err(Refusal::ProgressRegistrationAmbiguous { claim }) if claim == "reaches_one")
+    );
+    Ok(())
+}
+
+#[test]
+fn zero_start_queries_validate_overrides_without_evaluating_a_state() -> umpire_testing::TestResult
+{
+    for manual in [false, true] {
+        let mut world = World::new(vec![], 1);
+        world.manual = manual;
+        let result = Checker::explore(&world, 8)?;
+        let claim = result.verify_progress(&world, &Progress::new("reaches_one"))?;
+        assert_eq!(claim.verdict, Some(ProgressVerdict::Verified { longest: Some(0) }));
+        for assumption in
+            [Assumption::only(&[9]), Assumption::without(&[9]), Assumption::fair(&[9])]
+        {
+            let selector = Progress::new("reaches_one").assuming(assumption);
+            assert!(matches!(
+                result.verify_progress(&world, &selector),
+                Err(Refusal::ScopeAction { .. })
+            ));
+        }
+        assert!(matches!(
+            result.verify_progress(
+                &world,
+                &Progress::new("reaches_one").assuming(Assumption::only(&[] as &[u8]))
+            ),
+            Err(Refusal::EmptyAssumption)
+        ));
+        assert!(matches!(
+            result.verify_progress(&world, &Progress::new("reaches_one").within_steps(0)),
+            Err(Refusal::ProgressBound { .. })
+        ));
+        assert_eq!(world.calls.get(), 0);
+        assert_eq!(world.steps.get(), 0);
+    }
+    Ok(())
+}
+
+#[test]
+fn query_assumption_override_replaces_inconsistent_metadata() -> umpire_testing::TestResult {
+    for changing in [1, 2, 3] {
+        let mut world = World::new(vec![0], 1);
+        world.changing = changing;
+        let result = Checker::explore(&world, 8)?;
+        let selector = Progress::new("reaches_one").assuming(Assumption::only(&[0]));
+        assert_eq!(
+            result.verify_progress(&world, &selector)?.verdict,
+            Some(ProgressVerdict::Verified { longest: Some(1) })
+        );
+        assert_eq!(result.verify_all()?.claims[0].verdict, Some(ProgressVerdict::Unknown));
+    }
+    Ok(())
 }

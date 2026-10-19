@@ -1,6 +1,21 @@
 /// An invalid request to the checker, distinct from a Model's verdict.
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Refusal {
+    /// The requested name was not registered during exploration.
+    #[error("unknown registered progress claim: {claim}")]
+    ProgressRegistrationMissing {
+        /// The requested registration name.
+        claim: String,
+    },
+    /// More than one original progress registration has the requested name.
+    #[error("ambiguous registered progress claim: {claim}")]
+    ProgressRegistrationAmbiguous {
+        /// The ambiguous registration name.
+        claim: String,
+    },
+    /// Completed-action columns require the original ordered action catalog.
+    #[error("progress query action catalog differs from exploration")]
+    ProgressCatalogChanged,
     /// A progress bound must admit at least one transition.
     #[error("progress claim {claim} bound must be at least one (given: {given})")]
     ProgressBound {

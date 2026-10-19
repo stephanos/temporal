@@ -10,6 +10,35 @@ use umpire_wasm::{
 mod refusal_mapping;
 
 #[test]
+fn progress_query_refusals_survive_generated_protocol() {
+    for (error, message) in [
+        (
+            umpire_checker::Refusal::ProgressRegistrationMissing { claim: "missing".into() },
+            "unknown registered progress claim: missing",
+        ),
+        (
+            umpire_checker::Refusal::ProgressRegistrationAmbiguous { claim: "duplicate".into() },
+            "ambiguous registered progress claim: duplicate",
+        ),
+        (
+            umpire_checker::Refusal::ProgressCatalogChanged,
+            "progress query action catalog differs from exploration",
+        ),
+    ] {
+        let response =
+            protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };
+        let decoded = protocol::Response::decode(response.encode_to_vec().as_slice())
+            .unwrap_or_else(|error| panic!("generated response must decode: {error}"));
+        let Some(Outcome::Refusal(refusal)) = decoded.outcome else {
+            panic!("expected progress query refusal")
+        };
+        assert_eq!(refusal.code, 2);
+        assert_eq!(refusal.code(), protocol::RefusalCode::MalformedRequest);
+        assert_eq!(refusal.message, message);
+    }
+}
+
+#[test]
 fn progress_bound_refusal_survives_generated_protocol() {
     let error = umpire_checker::Refusal::ProgressBound { claim: "pending".into(), given: 0 };
     let response = protocol::Response { outcome: Some(refusal_mapping::checker_refusal(&error)) };

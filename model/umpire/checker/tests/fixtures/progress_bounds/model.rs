@@ -154,6 +154,25 @@ fn record(text: &mut String, name: &str, world: &World, budget: usize) -> umpire
         Err(error) => writeln!(text, "refused: {error}")?,
         Ok(result) => {
             let report = result.verify_all()?;
+            let before_query = world.calls.get();
+            let queried = result.verify_progress(world, &world.progress().remove(0))?;
+            let original = report.claims.iter().find(|claim| claim.name == "reaches_target").ok_or("missing original progress claim")?;
+            let mut expected = String::new();
+            let mut actual = String::new();
+            original.path.spell(&mut expected);
+            queried.path.spell(&mut actual);
+            assert_eq!(actual, expected, "query preserves {name}");
+            assert_eq!((queried.outcome, &queried.verdict, &queried.hint, &queried.holes), (original.outcome, &original.verdict, &original.hint, &original.holes));
+            assert_eq!(world.calls.get() - before_query, if matches!(world.metadata, Metadata::PredicatePanic) { 1 } else { result.counts.reached });
+            if matches!(world.metadata, Metadata::ChangingBound) {
+                let overridden = result.verify_progress(world, &Progress::new("reaches_target").within_steps(3))?;
+                assert_eq!(overridden.verdict, Some(umpire_checker::ProgressVerdict::Verified { longest: Some(3) }));
+            }
+            if matches!(world.metadata, Metadata::ChangingAssumption) {
+                let overridden = result.verify_progress(world, &Progress::new("reaches_target").assuming(Assumption::default()))?;
+                assert_eq!(overridden.verdict, Some(umpire_checker::ProgressVerdict::Verified { longest: Some(3) }));
+            }
+            world.calls.set(before_query);
             let claim = &report.claims[0];
             text.push_str("outcome: ");
             claim.outcome.spell(text);
@@ -182,7 +201,28 @@ fn record(text: &mut String, name: &str, world: &World, budget: usize) -> umpire
     Ok(())
 }
 
+fn query_contracts() -> umpire_testing::TestResult {
+    let mut obligation_cycle = World::new(&[(0, 0, 1), (1, 1, 0)], None);
+    obligation_cycle.trigger = 1;
+    let cycle = Checker::explore(&obligation_cycle, 8)?;
+    let query = cycle.verify_progress(&obligation_cycle, &Progress::new("reaches_target"))?;
+    let path = query.path.as_ref().ok_or("cycle has no witness")?;
+    assert_eq!(path.cycle_start, Some(1));
+    assert_eq!(path.steps.iter().map(|step| step.action).collect::<Vec<_>>(), [0, 1, 0]);
+    assert_eq!(path.steps.iter().map(|step| step.after).collect::<Vec<_>>(), [1, 0, 1]);
+    let independent = World::new(&[(0, 0, 0), (0, 1, 3)], Some(1));
+    let retained = Checker::explore(&independent, 8)?;
+    let fair = Progress::new("reaches_target").assuming(Assumption::fair(&[1]));
+    assert_eq!(retained.verify_progress(&independent, &fair)?.verdict, Some(umpire_checker::ProgressVerdict::MissedDeadline));
+    let mut fair_world = World::new(&[(0, 0, 0), (0, 1, 3)], None);
+    fair_world.fair = true;
+    let retained = Checker::explore(&fair_world, 8)?;
+    assert_eq!(retained.verify_progress(&fair_world, &Progress::new("reaches_target").within_steps(2))?.verdict, Some(umpire_checker::ProgressVerdict::MissedDeadline));
+    Ok(())
+}
+
 pub(crate) fn run() -> umpire_testing::RunResult {
+    query_contracts()?;
     let mut text = String::new();
     let generated = Checker::explore(&generated::world(), 16)?.verify_all()?;
     text.push_str("generated_exact_bound: ");
