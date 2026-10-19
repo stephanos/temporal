@@ -1,8 +1,10 @@
 # Mini activity realization
 
 `umpire-temporal` binds the independent `features/activity/model.rs` to the
-real generated Temporal API. `Realization` works with that Model's world; `runtime()`
-supplies a named delegating world for the guest. Each runtime owns one run.
+real generated Temporal API. `Realization` implements `Realize<activity::World>`;
+`runtime()` uses the macro-exported world directly. Each runtime owns one run.
+Generated `prost::Name` implementations supply canonical Any URLs through the
+generic `Any::pack`/`unpack` helpers; no hand-maintained type URL registry is needed.
 
 Judge accepts `umpire.temporal.v1.Observation` containing the exact Describe RPC
 method `/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution`

@@ -633,10 +633,12 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         assumption_helpers(!assumptions.is_empty() || !progress_tokens.is_empty());
     let progress_helpers = progress_helpers(!progress_tokens.is_empty());
     let generated = quote! {
-        struct World;
+        #[doc = "The module's registered state machine."]
+        pub struct World;
 
         #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-        enum Action { #(#actors(#actors)),* }
+        #[doc = "The registered actors' action carrier."]
+        pub enum Action { #(#[doc = stringify!(#actors)] #actors(#actors)),* }
 
         #(impl ::core::convert::From<#actors> for Action {
             fn from(value: #actors) -> Self { Self::#actors(value) }
@@ -652,7 +654,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         #progress_helpers
 
         #[doc = "Builds the module's registered state machine."]
-        pub fn world() -> impl ::umpire_dsl::Machine<State = #state, Outcome = (), Fact = (), Action: #(::core::convert::From<#actors>)+*> {
+        pub fn world() -> World {
             World
         }
 

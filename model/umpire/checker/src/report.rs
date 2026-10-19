@@ -57,7 +57,7 @@ impl<S: Display, A: Display> Display for Path<S, A> {
     }
 }
 
-/// A logical progress claim's temporal classification.
+/// A logical progress claim's progress classification.
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub enum ProgressVerdict {
     /// An outstanding obligation reaches a state with no admitted successor.
@@ -88,7 +88,7 @@ pub struct ClaimResult<S, A> {
     pub name: String,
     /// Whether the claim holds, fails, or remains undecided.
     pub outcome: Outcome,
-    /// Temporal classification for a logical progress result; absent for safety or defects.
+    /// Progress classification for a logical progress result; absent for safety or defects.
     pub verdict: Option<ProgressVerdict>,
     /// Advice attached to a logical progress refutation.
     pub hint: Option<String>,

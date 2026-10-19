@@ -25,6 +25,8 @@ fn main() -> io::Result<()> {
         .load_fds(&[] as &[&str], &[] as &[&str])?;
     let mut config = prost_build::Config::new();
     config
+        .enable_type_names()
+        .type_name_domain(["."], "type.googleapis.com")
         .compile_well_known_types()
         .btree_map(["."])
         .extern_path(".google.protobuf", "::umpire_wasm::google::protobuf")

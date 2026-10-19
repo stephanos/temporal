@@ -17,8 +17,9 @@ The target repository puts the contents of
 
 Keep checker behavior, macro authoring, fixtures, protobuf messages and ABI unchanged.
 The application exports remain `umpire_buffer_alloc`, `umpire_buffer_release` and
-`umpire_call`. The guest currently contains the trait Kettle; extraction does not make
-it a generic loader for arbitrary Models. Prebuilt wasm distribution is a separate
+`umpire_call`. The stock guest contains the trait Kettle; the reusable `umpire-wasm`
+library is export-free and separate guests select their Model and realization.
+Extraction does not make a guest a generic loader for arbitrary Models. Prebuilt wasm distribution is a separate
 decision, not a reason to check `target/` artifacts into Git during this migration.
 
 ## Source and destination map
@@ -30,16 +31,17 @@ are relative to the new Umpire repository.
 | --- | --- |
 | `model/umpire/{dsl,checker,testing,tests,wasm,proto}/` | Same directories at repository root; preserve complete fixture groups |
 | `model/umpire/hosts/go/` | `hosts/go/`, including its separate Go module and generated protobuf code |
-| `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files; remove the `umpire/` prefix from member and dependency paths |
+| `model/Cargo.toml`, `model/Cargo.lock` | Root workspace files containing only generic members/dependencies; remove their `umpire/` prefix and retain a separate Temporal consumer workspace |
 | `model/{rust-toolchain,rustfmt,clippy,deny}.toml`, `model/.cargo/` | Root tooling configuration, preserving existing policies |
-| `model/scripts/` | `scripts/`, adapted to the standalone root |
+| `model/scripts/` | Generic generation/capability/timing scripts become `scripts/`; Temporal generation and its boundary policy remain in Temporal |
 | `model/README.md`, `model/DESIGN.md` | Root documentation with working local links and preserved measurement provenance |
 | Rust targets in root `Makefile` | Small standalone root `Makefile`, including generator provisioning |
 | Rust, Go and protoc pins in root `mise.toml` | Standalone `mise.toml`; omit Scala/JVM tools |
 | `model/.gitignore`, necessary root ignore rules, root `LICENSE` | Standalone ignores and license/attribution; retain existing copyright notices |
 | Root `AGENTS.md` | Write Umpire-specific instructions for the extracted layout and gates; do not copy Temporal server instructions wholesale |
 
-Leave `model/archived/`, its ignored caches, `tools/umpire/`, Testpilot, the Temporal
+Leave `model/temporal/` (Models/goldens, API generation, realization, guest, tests and
+the separate extension Go module), `model/archived/`, its ignored caches, `tools/umpire/`, Testpilot, the Temporal
 server, and unrelated `.flow/` history in Temporal. Preserve the decisions needed to
 understand the exported interface in Umpire documentation without copying the entire
 monorepo tracker. Repair comparison-document links to Scala with source-revision
@@ -55,6 +57,13 @@ Use sibling checkouts under a developer-chosen parent:
   umpire/
   go.work
 ```
+
+Today Cargo workspace `path` dependencies link the in-tree generic and Temporal
+crates. Root `go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal`
+with `model/umpire/hosts/go` and `model/temporal/hosts/go`; the extension module also
+replaces the generic host locally. The real server/SDK slice already consumes both.
+These local references require no publication. The post-extraction setup below preserves
+that development property; extraction and publication have not run.
 
 Rust consumers use Cargo `path` dependencies pointing to the exact Umpire crate
 directories. For example, from a consumer manifest at `temporal/model/Cargo.toml`,
@@ -207,8 +216,8 @@ separate completion claims from preparing this plan.
   expected output. No semantic golden refresh is part of extraction.
 - Record `cargo metadata` manifest paths, `go env GOWORK` and `go list -m -json`
   resolution, then the two local-change red/green consumer proofs.
-- Preserve fn-210's warm budgets: at most 3 seconds for the inner loop and 30 seconds
-  for the full gate; investigate or obtain an explicit exception for a breach.
+- Preserve the current warm soft targets: 10 seconds for the inner loop and 30 seconds
+  for the full gate. Record minor noise and investigate material overruns.
 - Compare archived tracked-tree identity and cache inventory before/after Temporal
   cutover. Report baseline failures separately; never relax gates to label migration
   green. Capture exact commands, revisions, results and remaining limitations.

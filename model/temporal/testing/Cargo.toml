@@ -12,6 +12,10 @@ autotests = false
 name = "fixtures"
 path = "fixtures.rs"
 
+[[test]]
+name = "boundary"
+path = "boundary.rs"
+
 [lints]
 workspace = true
 

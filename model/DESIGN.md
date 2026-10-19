@@ -77,9 +77,8 @@ Remaining differences from the hypothetical sketch are deliberate:
 - `whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())`
   builds a module-local `LeadsTo` value with boolean trigger and target and
   names its assumption in the expression. This builder remains; `path!` is deferred to fn-215.
-- Private generated world/action adapters implement the existing `Machine`
-  protocol; the public `world()` function returns an opaque machine exposing
-  its state and actor conversions without exposing generated type names.
+- Public generated `World` and `Action` implement the existing `Machine`
+  protocol; `world()` returns `World`. The activity guest names that world directly.
 - Each transition runs on a clone and emits one successor with unit outcome
   and no facts only when its final state differs from the original state.
   A stuttering transition emits no edge, so its filtered postconditions are not checked.
@@ -391,7 +390,7 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 
 | Requirement | Case-plan obligation |
 | --- | --- |
-| R33, later owner amendment | Keep today's proto limited to Explore, Rows and Refusal. Umpire copies useful Testpilot messages into its own proto and owns the copy; no schema move/import. The `umpire.model.v1` namespace rename is fn-216.2 future work. The Program remains data the Model replays; observations enter the Model and its judgment supplies the Verdict. Remove Contract/correlated-clause/CEL verification. Case identity names the Model content hash, Model and protocol version. |
+| R33, later owner amendment | The owner superseded schema-copy guidance with `umpire.model.v1` and Reset/Judge/Answer over opaque Any, plus exactly three Temporal envelopes over the upstream API. Fn-216 delivers that protocol slice without copying/importing Testpilot's schema. The broader Program remains data the Model replays; remove Contract/correlated-clause/CEL verification and bind Case identity to the Model content hash, Model and protocol version in the later Case plan. |
 | R34, tightened by R35/R37 | Target at most **5,000 generic** and **11,000 total non-test Go lines** in Testpilot, down from the historical approximately 20,000 / 29,000 inventory. Remove `internal/verification` (2,725) and `evaluation` (849); shrink `internal/ir` (4,105) to instruction decoding, `internal/execution` (6,575) to act-and-observe, `replay` (1,513) to Model search, and `campaign` (1,261) to the host loop. Retain needed recording/storage and most Temporal driver work (about 8,600 before callback simplification); report achieved sizes. Older 6,000/14,000 and 5,000/13,000 targets are superseded. |
 | R35 | Remove all CEL, `cel`/`predicate`, the IR CEL bridge and `cel-go`. The Model decides read completion on each observation. Instructions contain interval/timeout/backoff mechanics; capture and redaction are field paths. A read timeout without Model acceptance is an incomplete read in the Run, judged by the Model. Execution checks still enforce RPC completion, evidence well-formedness and redaction. |
 | R36 | Keep `#[machine]` registration-only. Lifted trees, subset diagnostics and TLC's second opinion belong to fn-212, which first judges whether their machinery is worthwhile. |
@@ -399,6 +398,88 @@ The post-verdict Case plan must carry these requirements; none is implemented by
 | R38 | Replace the separate run/fuzz/replay/assess/repeat commands with one host loop and modes/drivers for a Model question, exploration, reduction, recorded Run or many Runs. Remove the NDJSON campaign/replay bridge. |
 | R39 | A Run contains its observation log and Model judgment. Remove evaluation profiles, receipts and provenance documents. Keep `publish` as a never-overwrite store and keep only the canary's lease and policy. |
 | R40 | Host exactly one Model per Run in the Go runner. Go callbacks stay in process; other SDK workers use the runner's local gRPC/HTTP endpoint with protobuf messages and a thin forwarding shim returning result/failure/heartbeat/delay. Workers never embed another Model. Record unreachable endpoints and callback timeouts in the Run for Model judgment; refuse unknown shim protocol versions with Refusal. |
+
+## Mini activity slice (fn-216)
+
+The independent `temporal/features/activity/model.rs` fixes a six-phase restriction
+of the archived Product: Scheduled, Started, Completed, Failed, Canceled and TimedOut.
+Its six actions give one start, six reached states, seven edges, 36 evaluated actions,
+29 refusals and depth two without a cut. Cancellation is atomic and failure fatal-only;
+there is no cancelRequested state, retry branch or real clock. Successful Start supplies
+Scheduled outside this graph. This is not an exact port of the archived seven-phase Model.
+
+`terminal_remains` is registered as a postcondition. Its rendered Verified result and
+`vacuity: none` do not establish its terminal antecedent: terminal states emit no step
+on which that antecedent could be checked. The supplementary control enumerates every
+terminal phase/action, applies the same preservation predicate and proves that a test-only
+reopening edge refutes it. No production edge was added to manufacture coverage.
+
+The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
+Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
+binding proposes paths; the runtime validates those paths through actual Model steps.
+`#[machine]` now exports `World` and `Action`, and `world()` returns `World`, removing
+the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
+Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
+Describe RPC method path is a binding constant. The policy parser and reply constructor
+keep the remaining binding specific to Temporal.
+
+Exactly three envelopes live under `temporal/proto`: Observation carries a method and
+response Any, Callback a task Any, Reply a request Any. The real upstream API descriptor
+closure is compiled natively and for WASM, with generated well-known types owned once
+by `umpire_wasm::google::protobuf`. The closure's file count is not a schema invariant.
+No Testpilot schema is moved, imported or copied. Shared WKT ownership means checker
+rebuilds can trigger generated-API compilation; a separate owner is a possible later
+build optimization, not a new dependency admitted here.
+
+Describe projects actual Info.Status and Info.RunState: Running/Scheduled or
+Running/Started, and terminal status/Unspecified. There is no Started execution-status
+enum. Only a valid callback evidences Poll. Repeated current observations are zero-step
+Explained; premature terminal and stale Scheduled observations are Unexplained, freezing
+the run until Reset. The SDK callback supplies a partial poll projection containing
+exactly one binary/plain Complete or Fail payload. Answer selects a partial completed
+or non-retryable failed RPC request, leaving the Model Started until terminal observation.
+Task token, identity, timestamps and whole-request equality are outside this projection.
+
+The live owner judges Scheduled with its registered worker stopped, answers delivery
+through that run's one Model instance, then synchronously reads and judges Describe.
+This ordering prevents a pre-delivery read from arriving after delivery; it does not
+solve general concurrent read-window inference. Complete and Fail, reset/isolation,
+repeat observations, opposite-terminal mutation, host refusal and cancellation all have
+real server/SDK controls. The worker returns only decoded Model reply data and uses the
+SDK failure converter. This is a bespoke SDK/server/Model proof, not execution through
+Testpilot Prepare/PreparedCase.Run, Case, Program or Contract.
+
+Remaining DSL gaps include parameterized inputs/facts, outcome declarations and typed
+projection authoring. In particular, `#[machine]` fixes `Outcome = ()`: cancellation of
+a closed activity collapses to a disabled action rather than an explicit rejecting
+outcome. Fn-221 owns that rejecting-outcome gap after this slice. No Model transition
+was changed to fit server evidence. Fn-213 must include the Temporal fixture root;
+fn-218 retains Cases(8), resolving impossible alternatives as a downstream grammar
+decision rather than inventing edges or silently shrinking coverage.
+
+For R33 this proves the Model protocol and opaque payload seam, preserving old wire
+bytes and refusal codes. Broader Case identity/versioning, Program replay and removal
+of Contract/CEL remain open. R34's size reduction, R35's CEL removal, R36's deferred
+lifting decision, R37's general callback replacement, R38's unified host loop, R39's
+Run/storage redesign and R40's polyglot forwarding remain the obligations in the table
+above; this slice does not discharge them.
+
+Predecessor .3's final dedicated run took 381.104 ms including cleanup, with Answer
+calls of 55.417 µs Complete, 48.750 µs Fail and 31.166 µs HostRefusal. Its full/inner
+model gate took 9.746/1.819 s. Task .4's pre-edit warm gate measured 8.061/1.738 s
+against the 30/10 s soft targets; its dedicated real run took 269.983 ms. These are
+individual observations on linux/arm64, Go 1.27.0, Rust 1.99.1 and SDK 1.48.0,
+excluding compilation from the live test timer, not percentiles or idle-host claims.
+Raw commands and logs live under `.flow/tmp/fn-216-4/`; predecessor records remain
+under `.flow/tmp/fn216-3-*`.
+
+The unchanged-scope umbrella invokes the dedicated slice and retains all legacy checks.
+Its seven inherited failures are AssessRecordedRuns, ExplorationDiscoversUnpinnedExecution,
+GeneratedCases, NexusControlForgedCompletionIsViolated, NexusControlReplaysThroughTheCommand,
+NexusPairCase and UmpireRunRunsACheckedInCaseAgainstAnyEndpoint (all TestTestpilot-prefixed).
+The comparison in `.flow/tmp/fn216-3-legacy-comparison.md` retains assertion causes.
+This umbrella is red; the dedicated slice passing does not make it green. The frozen
+Scala tree was not revived to repair those legacy expectations.
 
 ## Final measurements and editor evidence
 

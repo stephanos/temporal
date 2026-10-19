@@ -11,7 +11,14 @@ observation Any and returns either a present Explanation (including zero steps) 
 Unexplained with expected actions. Answer accepts an opaque callback Any and returns an
 opaque reply Any. System payload registries own type-URL admission; the old namespace
 is not an alias for the new one. The Kettle guest currently refuses these three operations
-with Unsupported (8); stateful realization belongs to the reusable guest integration.
+with Unsupported (8). The export-free `umpire-wasm` library supplies the transactional
+runtime and ABI; system guests supply a `Machine` and `Realize` binding. Reset restores
+the unique start and clears frozen evidence. Judge replays actual Model steps; the
+first Unexplained freezes advancement until Reset. Answer validates delivery and its
+enabled response action before committing. Failed response publication commits nothing.
+`Any::pack`/`unpack` use generated `prost::Name` canonical URLs and typed Refusal
+constructors; the registry remains system-owned. Existing method IDs and old wire bytes
+remain pinned by host tests.
 
 The wasm32-wasip1 guest directly exports application functions
 `umpire_buffer_alloc(u32) -> u32`, `umpire_buffer_release(u32, u32)` and
@@ -43,3 +50,7 @@ comments are suppressed rather than compiled as Rust documentation examples.
 Go uses the repository's pinned protoc-gen-go v1.36.6 and protobuf runtime v1.36.11.
 The separate Go host module and generated Go messages live at `../hosts/go/`;
 regenerate from the repository root with `bash model/scripts/proto-go.sh`.
+Use `--check` for byte-for-byte freshness; `make model-check` provisions the pinned
+generator and runs freshness, native controls, both guests and both Go modules.
+The system extension and its reproduction commands are documented in `model/README.md`
+relative to the server root; its upstream schemas never become generic protocol inputs.

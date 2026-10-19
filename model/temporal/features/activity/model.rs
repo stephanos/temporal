@@ -163,7 +163,7 @@ mod tests {
             Deadline::ScheduleToStart.into(),
             Deadline::StartToClose.into(),
         ];
-        assert!(actions == expected_actions);
+        assert_eq!(actions, expected_actions);
         let starts = world.starts();
         assert_eq!(starts, [Model { phase: Scheduled }]);
         for (action, internal) in actions.iter().zip([false, false, false, false, true, true]) {

@@ -1,8 +1,9 @@
 # model: Umpire in Rust
 
-The Umpire framework as a Cargo workspace mirroring `model/archived/framework`'s layout. Its current scope is
-what `model/archived/framework/samples/Kettle.scala` uses today; see [DESIGN.md](DESIGN.md) for the
-final authoring comparison, measurements and retained seven-option decision record.
+The Cargo workspace contains the system-independent framework under `umpire/` and the
+Temporal extension under `temporal/`. The Kettle fixtures establish the generic authoring
+and checker surface; the activity slice additionally hosts one real SDK run through a Model.
+See [DESIGN.md](DESIGN.md) for the scope, measurements and retained authoring decisions.
 
 `archived/` holds the former Scala tree unchanged for reference, including its retained build
 caches. Its internal paths describe the old layout, and its Scala targets are unmaintained and
@@ -35,11 +36,40 @@ make model-time    # time the actual gate; note overruns of 10 s inner-loop / 30
 ```
 
 The gate also checks resolved core capability restrictions and their negative controls,
-protobuf freshness, the wasm32-wasip1 core and guest builds, and CGO-disabled Go host parity.
+the generic source boundary, both protobuf modules' freshness, the wasm32-wasip1 core
+and guest builds, and CGO-disabled Go host parity for both modules.
 It provisions the pinned `protoc-gen-go v1.36.6` through the repository's existing Make
 target on first use; warm runs need no network. Rust generation uses prost-build and
 the mise-pinned protoc 29.5. To regenerate Go after editing the single schema, run
-`bash model/scripts/proto-go.sh` from the repository root.
+`bash model/scripts/proto-go.sh` from the repository root. The three Temporal envelopes
+use `bash model/scripts/proto-temporal-go.sh`; both scripts support `--check`.
+
+`umpire/` owns the DSL, checker, reusable testing tools, Model protocol, transactional
+runtime/ABI library, stock/control guests and transport-only Go host. `temporal/` owns
+the activity Model and goldens, generated upstream API closure, realization, guest and
+its separate Go envelope module. The source scanner is generic; its deny policy and
+negative controls live in `temporal/testing/boundary.rs`, outside the scanned tree.
+Every `.rs`, `.proto`, `.go` and `.toml` file is scanned, including comments and literals.
+Only the exact `temporalio` organization segment in a `github.com/temporalio/<module>`
+path is allowed. Offenses report deterministic relative file/line diagnostics.
+
+Cargo resolves all crates through local workspace `path` dependencies. The server's
+`go.mod` requires/replaces `umpire.local/model` and `umpire.local/temporal` with the
+two in-tree host modules; the latter replaces the former locally as well. No publication
+is needed for uncommitted local changes. Extraction remains a plan in `../MIGRATE.md`;
+Temporal's Models, generated API and realization stay in the server repository.
+
+The real in-process server/SDK check is separate from the fast model gate:
+
+```sh
+make umpire-check-model-slice
+make umpire-check-live-tests
+```
+
+The first target builds `umpire_temporal_guest.wasm` and requires Complete, Fail,
+HostRefusal and Cancellation to pass. The umbrella invokes it before its existing
+legacy selector. Seven inherited legacy failures remain explicitly red; see DESIGN's
+Mini activity slice section. This bespoke proof does not execute a Testpilot Case.
 
 The guest's three application exports are `umpire_buffer_alloc`, `umpire_buffer_release`
 and `umpire_call`; see
@@ -88,6 +118,8 @@ impl Model {
 }
 ```
 
+The macro exports `World` and its `Action` carrier; `world()` returns `World`, so a
+realization and guest can name the registered machine without a delegating adapter.
 Each match arm combines the action, its guard and its effect. An action is enabled only when the
 final state changes; `_ => {}` disables unmatched actions. Without a fallback, rustc checks match
 exhaustiveness. Attributes preserve authored statements and method/impl headers.

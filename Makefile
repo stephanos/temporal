@@ -1450,6 +1450,7 @@ model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
 	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
+	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet
 	@$(call RUST_MODEL_STEP,protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-go.sh --check
 	@$(call RUST_MODEL_STEP,temporal-protobuf-freshness) /bin/bash $(CURDIR)/model/scripts/proto-temporal-go.sh --check
 	@cd model && $(call RUST_MODEL_STEP,fmt) mise exec -- cargo fmt --all --check

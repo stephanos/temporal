@@ -88,7 +88,7 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         let (response, transaction) = self.prepare(method, request);
         if crate::abi::encode_response(&response).is_none() {
             return protocol::Response {
-                outcome: Some(protocol::response::Outcome::Refusal(failure(
+                outcome: Some(protocol::response::Outcome::Refusal(protocol::Refusal::new(
                     protocol::RefusalCode::Allocation,
                     "response encoding or allocation failed",
                 ))),
@@ -115,17 +115,17 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             }
             4 => {
                 let request = decode::<protocol::JudgeRequest>(request)?;
-                let observation = required(request.observation)?;
+                let observation = Any::required(request.observation)?;
                 self.require_binding()?;
                 self.judge(&observation)
             }
             5 => {
                 let request = decode::<protocol::AnswerRequest>(request)?;
-                let callback = required(request.callback)?;
+                let callback = Any::required(request.callback)?;
                 self.require_binding()?;
                 self.answer(&callback)
             }
-            _ => Err(failure(
+            _ => Err(protocol::Refusal::new(
                 protocol::RefusalCode::UnknownMethod,
                 format!("unknown method: {method}"),
             )),
@@ -136,13 +136,19 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         if self.realization.enabled() {
             Ok(())
         } else {
-            Err(failure(protocol::RefusalCode::Unsupported, "stateful operation unsupported"))
+            Err(protocol::Refusal::new(
+                protocol::RefusalCode::Unsupported,
+                "stateful operation unsupported",
+            ))
         }
     }
 
     fn current(&self) -> Result<&M::State, protocol::Refusal> {
         self.state.as_ref().ok_or_else(|| {
-            failure(protocol::RefusalCode::State, "stateful run requires exactly one start")
+            protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "stateful run requires exactly one start",
+            )
         })
     }
 
@@ -198,19 +204,28 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     fn answer(&self, callback: &Any) -> Prepared<M> {
         let current = self.current()?;
         if self.frozen.is_some() {
-            return Err(failure(protocol::RefusalCode::State, "run is frozen until Reset"));
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "run is frozen until Reset",
+            ));
         }
         let plan = self.realization.answer(callback, current)?;
         let (state, _) = self.replay(current, plan.delivery).ok_or_else(|| {
-            failure(protocol::RefusalCode::State, "callback delivery is not enabled")
+            protocol::Refusal::new(protocol::RefusalCode::State, "callback delivery is not enabled")
         })?;
         if plan.reply.type_url.is_empty() {
-            return Err(failure(protocol::RefusalCode::MalformedRequest, "reply type is missing"));
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::MalformedRequest,
+                "reply type is missing",
+            ));
         }
         if !self.machine.actions().contains(&plan.response_action)
             || self.machine.step(&state, plan.response_action).is_empty()
         {
-            return Err(failure(protocol::RefusalCode::State, "selected response is not enabled"));
+            return Err(protocol::Refusal::new(
+                protocol::RefusalCode::State,
+                "selected response is not enabled",
+            ));
         }
         Ok((
             protocol::response::Outcome::Answer(protocol::AnswerResponse {
@@ -264,7 +279,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
 
     fn rows(&self, state_id: u32) -> Prepared<M> {
         let result = self.exploration.as_ref().ok_or_else(|| {
-            failure(protocol::RefusalCode::NotExplored, "Rows requires a successful Explore")
+            protocol::Refusal::new(
+                protocol::RefusalCode::NotExplored,
+                "Rows requires a successful Explore",
+            )
         })?;
         let mut rows = Vec::new();
         for edge in
@@ -311,7 +329,7 @@ fn judgment(value: protocol::judge_response::Judgment) -> protocol::response::Ou
 fn unique_start<M: Machine>(machine: &M) -> Result<M::State, protocol::Refusal> {
     let mut starts = machine.starts();
     if starts.len() != 1 {
-        return Err(failure(
+        return Err(protocol::Refusal::new(
             protocol::RefusalCode::State,
             "stateful run requires exactly one start",
         ));
@@ -320,18 +338,9 @@ fn unique_start<M: Machine>(machine: &M) -> Result<M::State, protocol::Refusal> 
 }
 
 fn decode<M: Message + Default>(request: &[u8]) -> Result<M, protocol::Refusal> {
-    M::decode(request)
-        .map_err(|error| failure(protocol::RefusalCode::MalformedRequest, error.to_string()))
-}
-
-fn required(payload: Option<Any>) -> Result<Any, protocol::Refusal> {
-    payload.ok_or_else(|| {
-        failure(protocol::RefusalCode::MalformedRequest, "required payload is missing")
+    M::decode(request).map_err(|error| {
+        protocol::Refusal::new(protocol::RefusalCode::MalformedRequest, error.to_string())
     })
-}
-
-fn failure(code: protocol::RefusalCode, message: impl Into<String>) -> protocol::Refusal {
-    protocol::Refusal { code: code as i32, message: message.into() }
 }
 
 fn checker_error(error: &umpire_checker::Refusal) -> protocol::Refusal {

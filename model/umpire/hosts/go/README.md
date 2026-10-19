@@ -48,6 +48,13 @@ enum values and response arms that do not match the called method are errors.
 The guest may return Unsupported for a recognized method whose system adapter is
 not installed.
 
+The reusable runtime and ABI live in the export-free `umpire-wasm` crate. A system
+guest supplies its own Model and realization through `export_guest!`; this Go host
+transports their opaque Any payloads without importing their schemas. Native and Go
+controls pin old message bytes, refusal codes, independent instances and publication
+rollback. Run the complete reproduction from the server root with `make model-check`;
+`bash model/scripts/proto-go.sh --check` independently checks pinned Go generation.
+
 The Rows benchmark includes protobuf marshal, guest allocation, memory write,
 call, copy, free and protobuf unmarshal. It cycles state IDs modulo 283 and
 reports memory pages plus a byte-count sink. ColdLoad includes compilation,

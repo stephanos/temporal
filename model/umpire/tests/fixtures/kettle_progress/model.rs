@@ -54,7 +54,7 @@ fn render<S: std::fmt::Display, A: std::fmt::Display>(
     write!(report, "{question}: ")?;
     write!(report, "{:?}", result.outcome)?;
     report.push_str("; ");
-    write!(report, "{}", result.verdict.as_ref().ok_or("Kettle progress has no temporal verdict")?)?;
+    write!(report, "{}", result.verdict.as_ref().ok_or("Kettle progress has no progress verdict")?)?;
     report.push('\n');
     if let Some(hint) = result.hint {
         writeln!(report, "hint: {hint}")?;

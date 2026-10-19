@@ -286,10 +286,14 @@ mod counter {
             }
         };
     };
-    struct World;
+    ///The module's registered state machine.
+    pub struct World;
     #[derive(Clone, Debug, PartialEq, Eq, Hash)]
-    enum Action {
+    ///The registered actors' action carrier.
+    pub enum Action {
+        #[doc = stringify!(User)]
         User(User),
+        #[doc = stringify!(Clock)]
         Clock(Clock),
     }
     impl ::core::convert::From<User> for Action {
@@ -371,12 +375,7 @@ mod counter {
         }
     }
     ///Builds the module's registered state machine.
-    pub fn world() -> impl ::umpire_dsl::Machine<
-        State = Counter,
-        Outcome = (),
-        Fact = (),
-        Action: ::core::convert::From<User> + ::core::convert::From<Clock>,
-    > {
+    pub fn world() -> World {
         World
     }
     impl ::umpire_dsl::Machine for World {

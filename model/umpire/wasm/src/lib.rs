@@ -2,6 +2,7 @@
 #![cfg(not(test))]
 
 mod abi;
+mod any;
 mod refusal;
 mod runtime;
 mod stock;
@@ -16,6 +17,23 @@ pub use abi::Guest;
 pub use generated::{google, umpire::model::v1 as protocol};
 pub use runtime::{AnswerPlan, Projection, Realize, Runtime, Transaction, Transition};
 pub use stock::Model;
+
+impl protocol::Refusal {
+    /// Construct a refusal with a stable protocol code.
+    pub fn new(code: protocol::RefusalCode, message: impl Into<String>) -> Self {
+        Self { code: code as i32, message: message.into() }
+    }
+
+    /// Refuse malformed input.
+    pub fn malformed(message: impl Into<String>) -> Self {
+        Self::new(protocol::RefusalCode::MalformedRequest, message)
+    }
+
+    /// Refuse a well-formed but unsupported input.
+    pub fn unsupported(message: impl Into<String>) -> Self {
+        Self::new(protocol::RefusalCode::Unsupported, message)
+    }
+}
 
 /// A dispatcher whose effects remain private until its response is published.
 pub trait Dispatch {

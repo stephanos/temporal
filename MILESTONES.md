@@ -22,7 +22,7 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution is stopped at the owner's request. No tasks are in progress; fn-216.4 is the next ready task.
+Execution has resumed under the owner's milestone-completion instruction. fn-216.4 is in progress.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -55,7 +55,7 @@ CEL; nothing from Testpilot's proto is used (R33 amended). The write-up feeds th
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-216.4 | ⬜ todo | After .3: no-Temporal boundary gate, findings/docs, complete integration evidence, and the `temporal.rs` cleanup (macro-exported `World`, prost type names, generic Any/refusal helpers in umpire) (R4, R5) |
+| fn-216.4 | 🔄 in progress | No-Temporal boundary gate, findings/docs, complete integration evidence, and the `temporal.rs` cleanup (macro-exported `World`, prost type names, generic Any/refusal helpers in umpire) (R4, R5) |
 
 ### fn-221: Rejecting outcomes: reject! steps, Phased closure laws and judged RPC errors (model, temporal)
 

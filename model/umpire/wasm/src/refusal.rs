@@ -1,7 +1,7 @@
 use crate::protocol;
 
 pub(crate) fn refused(code: protocol::RefusalCode, message: String) -> protocol::response::Outcome {
-    protocol::response::Outcome::Refusal(protocol::Refusal { code: code as i32, message })
+    protocol::response::Outcome::Refusal(protocol::Refusal::new(code, message))
 }
 
 pub(crate) fn checker_refusal(error: &umpire_checker::Refusal) -> protocol::response::Outcome {
