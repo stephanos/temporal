@@ -143,6 +143,12 @@ fn registrations(
             match rank {
                 0 => {
                     if let Some(path) = on {
+                        if !matches!(method.sig.output, syn::ReturnType::Default) {
+                            manyhow::bail!(
+                                &method.sig.output,
+                                "#[on] handlers return nothing; enabledness is a changed state"
+                            );
+                        }
                         if registration.handlers.iter().any(|(known, _)| key(known) == key(&path)) {
                             manyhow::bail!(&path, "duplicate #[on] for action {}", key(&path));
                         }
@@ -268,9 +274,9 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
             |(path, method)| {
                 quote!(#path => {
                     let mut next = state.clone();
-                    let enabled: ::core::option::Option<()> = next.#method();
+                    next.#method();
                     let mut steps = ::umpire_dsl::Steps::new();
-                    if enabled.is_some() { steps.push(((), ::std::vec::Vec::new(), next)); }
+                    if next != *state { steps.push(((), ::std::vec::Vec::new(), next)); }
                     steps
                 })
             },

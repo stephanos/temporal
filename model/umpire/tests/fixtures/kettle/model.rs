@@ -44,34 +44,34 @@ pub mod kettle {
     #[transitions]
     impl Model {
         #[on(User::PressButton)]
-        fn press_button(&mut self) -> Option<()> {
-            (!self.heating_on).then(|| {
+        fn press_button(&mut self) {
+            if !self.heating_on {
                 self.heating_on = true;
                 self.beeping = false;
-            })
+            }
         }
 
         #[on(Heater::Failover)]
-        fn failover(&mut self) -> Option<()> {
-            (self.heating_on && self.temperature >= BOILING_TEMPERATURE).then(|| {
+        fn failover(&mut self) {
+            if self.heating_on && self.temperature >= BOILING_TEMPERATURE {
                 self.heating_on = false;
                 self.beeping = true;
-            })
+            }
         }
 
         #[on(Heater::Heat)]
-        fn heat(&mut self) -> Option<()> {
-            (self.heating_on && self.temperature < BOILING_TEMPERATURE).then(|| {
+        fn heat(&mut self) {
+            if self.heating_on && self.temperature < BOILING_TEMPERATURE {
                 self.temperature += 1;
-            })
+            }
         }
 
         #[on(User::DepressButton)]
-        fn depress_button(&mut self) -> Option<()> {
-            self.heating_on.then(|| {
+        fn depress_button(&mut self) {
+            if self.heating_on {
                 self.heating_on = false;
                 self.beeping = false;
-            })
+            }
         }
     }
 

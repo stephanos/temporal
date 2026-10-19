@@ -79,9 +79,9 @@ Remaining differences from the hypothetical sketch are deliberate:
 - Private generated world/action adapters implement the existing `Machine`
   protocol; the public `world()` function returns an opaque machine exposing
   its state and actor conversions without exposing generated type names.
-- Each transition runs on a clone, with `Some(())` emitting one successor
-  with unit outcome and no facts and `None` emitting none, while boolean
-  claims and progress values adapt to the protocol's verdict predicates.
+- Each transition runs on a clone and emits one successor with unit outcome
+  and no facts only when its final state differs from the original state.
+  A stuttering transition emits no edge, so its `#[after]` claims are not checked.
 - State fields are public so fixture controls can construct their own starts;
   full and cut producers sit outside the public Model module and use `world()`.
 - The existing no-heat control is generic over that public machine interface,

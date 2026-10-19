@@ -13,7 +13,7 @@ pub struct Counter {
 }
 
 #[derive(Action)]
-pub enum User { Increment, Reset }
+pub enum User { Increment, Reset, MutateRestore }
 
 #[derive(Action)]
 #[internal]
@@ -22,15 +22,22 @@ pub enum Clock { Tick }
 #[transitions]
 impl Counter {
     #[on(Clock::Tick)]
-    fn tick(&mut self) -> Option<()> { self.value += 1; None }
+    fn tick(&mut self) { self.value += 1; }
 
     #[on(User::Reset)]
-    #[allow(clippy::unnecessary_wraps, reason = "transition handlers return Option even when always enabled")]
-    fn reset(&mut self) -> Option<()> { self.value = 0; Some(()) }
+    fn reset(&mut self) { self.value = 0; }
 
     #[on(User::Increment)]
-    pub fn increment(&mut self) -> Option<()> {
-        (self.value < 2).then(|| { self.value += 1; })
+    pub fn increment(&mut self) {
+        if self.value < 2 { self.value += 1; }
+    }
+
+    #[on(User::MutateRestore)]
+    fn mutate_restore(&mut self) {
+        if self.value < 2 {
+            self.value += 1;
+            self.value -= 1;
+        }
     }
 
     fn helper(&self) -> bool { self.value <= 2 }
@@ -103,7 +110,9 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     writeln!(output, "public state starts: {}", public_state::world().starts().len())?;
     let mut direct = Counter { value: 0 };
     assert!(direct.unregistered());
-    let enabled = direct.increment().is_some();
+    let before = direct.clone();
+    direct.increment();
+    let enabled = direct != before;
     writeln!(output, "direct transition: {enabled} {}", spelled(&direct))?;
     for state in world.starts() {
         state.spell(&mut output);
