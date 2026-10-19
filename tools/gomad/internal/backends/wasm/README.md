@@ -142,6 +142,7 @@ Measurement output roots retain immutable runs under
 `.gomad-measure/<producer>/run-*`; the producer directory's `latest.json` contains
 the relative name of its latest complete run. Publication follows all producer
 cleanup, so failed or interrupted replacements leave the previous result available.
+Reuse the same `--*-root` for retries; each different root is an independent retention scope.
 Reports keep their existing filenames inside the reported run directory.
 Published rerun commands keep the original requested output root.
 Superseded runs are reclaimed automatically. Defaults keep one latest success
