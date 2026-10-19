@@ -409,7 +409,9 @@ func wasip1HostClockReferences(t *testing.T, stock string, context build.Context
 			t.Fatal(err)
 		}
 		contents, err := io.ReadAll(reader)
-		reader.Close()
+		if closeErr := reader.Close(); err == nil {
+			err = closeErr
+		}
 		if err != nil {
 			t.Fatal(err)
 		}
