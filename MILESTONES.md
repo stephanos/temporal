@@ -98,7 +98,7 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+| fn-210.7 | 🔄 in progress | `model/DESIGN.md` with the verdict and final-source comparison; then delete `options/` (R7, R24); record parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 
