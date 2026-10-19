@@ -12,7 +12,7 @@
   "id": "fn-212-tla-lifting-and-the-tlc-backend-for",
   "impl_review_rounds": {
     "fn-212-tla-lifting-and-the-tlc-backend-for.1": 0,
-    "fn-212-tla-lifting-and-the-tlc-backend-for.2": 1
+    "fn-212-tla-lifting-and-the-tlc-backend-for.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -121,10 +121,79 @@
       "task": "fn-212-tla-lifting-and-the-tlc-backend-for.2",
       "timestamp": "2026-10-19T22:02:28.719371Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "43f57456909d63fbaab383fbff4c0bd9c9a776796a7231df0ba1967db26fcea7",
+      "backend": "codex",
+      "base_sha": "5c1e8cd19c5268232755359e0b79c1146863b24c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-3e7af777eb76715c0d1b6300050e82b6",
+            "classification": "introduced",
+            "findingId": "finding-3e7af777eb76715c0d1b6300050e82b6",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-e37e597f1dbc04d7974a7c527be0d73a",
+            "classification": "introduced",
+            "findingId": "finding-e37e597f1dbc04d7974a7c527be0d73a",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b8a30ec17f8b6d374b2bb68a456938c9",
+            "classification": "introduced",
+            "findingId": "finding-b8a30ec17f8b6d374b2bb68a456938c9",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-32dc98f18e59e92d98113ea1b1edb147",
+            "classification": "introduced",
+            "findingId": "finding-32dc98f18e59e92d98113ea1b1edb147",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "afecc53237befc50b426faa30ece9526f5ab60eb",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1256,
+      "output_sha256": "2f8f216c19b0aa6c0f5e17e8c2c9921938257a741c0ae6d938f73bc5daa24714",
+      "reservation_id": "77d138ab31c04eed808a852520a5c741",
+      "round_consumed": true,
+      "scope": "impl:fn-212-tla-lifting-and-the-tlc-backend-for.2",
+      "superseded_by": null,
+      "task": "fn-212-tla-lifting-and-the-tlc-backend-for.2",
+      "timestamp": "2026-10-19T22:23:01.107418Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-212-tla-lifting-and-the-tlc-backend-for.1": 1
+    "impl:fn-212-tla-lifting-and-the-tlc-backend-for.1": 1,
+    "impl:fn-212-tla-lifting-and-the-tlc-backend-for.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -146,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T22:02:28.722252Z"
+  "updated_at": "2026-10-19T22:23:01.114683Z"
 }
