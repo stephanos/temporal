@@ -1,13 +1,120 @@
 {
   "branch_name": "fn-216-mini-activity-vertical-slice-the-model",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T01:23:35.795398Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine"
   ],
   "id": "fn-216-mini-activity-vertical-slice-the-model",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-19T16:54:49.913850Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "0b1429c4067a48fa31d36a74ec5e12ba4dab08a3500d77316c020e7d92fa9224",
+      "backend": "codex",
+      "base_sha": "b5eb769406e0dc0192f2e71c9e8d85b46ca65985",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-557e88db109306d67c38cb8cd9ab0ba7",
+            "classification": "introduced",
+            "findingId": "finding-557e88db109306d67c38cb8cd9ab0ba7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "692c32c204ebd1f365df352f6b28068537be744f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 428598,
+      "output_sha256": "148822f741947fba66220795437c9b4cbff5b81986827f45b8465c085bf1610f",
+      "reservation_id": "8f69446f92c849fc8564ba3623bf8983",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T16:51:16.375508Z",
+      "tool_calls": 22,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "cf9e89b9b66f5bd8cdebff03e01020c2ab7b2803cf0e07a8d49c7223c2edc96c",
+      "backend": "codex",
+      "base_sha": "b5eb769406e0dc0192f2e71c9e8d85b46ca65985",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-557e88db109306d67c38cb8cd9ab0ba7",
+            "classification": "introduced",
+            "findingId": "finding-557e88db109306d67c38cb8cd9ab0ba7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "692c32c204ebd1f365df352f6b28068537be744f",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 609,
+      "output_sha256": "499f5f4468aa0af65c63f6e658f6fa2089cdf68681b72d713ceb8270dfef496d",
+      "reservation_id": "bae08819e34d4892bf465b5493eb3386",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T16:54:49.875995Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-216-mini-activity-vertical-slice-the-model.md",
   "status": "open",
   "title": "Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)",
@@ -22,5 +129,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T16:48:10.565163Z"
+  "updated_at": "2026-10-19T16:54:49.923889Z"
 }
