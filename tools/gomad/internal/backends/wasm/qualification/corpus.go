@@ -116,6 +116,9 @@ func ValidateCorpus(results []Result, receipts ...PublicationReceipt) error {
 				return errors.New("mandatory SQLite actual matched reviewed four-state catalogue missing")
 			}
 		}
+		if err := validateMatchedReplays(result, key); err != nil {
+			return err
+		}
 		if integrated == "" {
 			integrated, compiler, helper, engine, model = m.IntegratedSourceSHA256, m.CompilerSHA256, m.HelperSHA256, m.EngineSHA256, m.ModelSHA256
 			hostOS, hostArch = m.HostOS, m.HostArch
@@ -141,8 +144,7 @@ func ValidateCorpus(results []Result, receipts ...PublicationReceipt) error {
 
 // validateMeasuredCell is the per-cell outcome gate shared by the mandatory
 // corpus and the per-test support list: deterministic, measured within budget,
-// the expected success or replayable canary outcome, and every execution's
-// retained artifact replayed to a match.
+// and the expected success or replayable canary outcome.
 func validateMeasuredCell(result Result, key string) error {
 	m := result.Manifest
 	if !result.Qualification.Deterministic || result.Qualification.Failure != nil || result.Cost == nil || result.CostFailure != "" || result.Budget == nil || !result.Budget.WithinBudget || result.BudgetFailure != "" {
@@ -151,6 +153,12 @@ func validateMeasuredCell(result Result, key string) error {
 	if result.Qualification.TargetSuccess != (m.Cell == "success") || m.Cell == "canary" && result.Cost.ReplayableBugs != 1 {
 		return fmt.Errorf("expected workload outcome or replayable canary missing for %s", key)
 	}
+	return nil
+}
+
+// validateMatchedReplays requires every execution's retained artifact to have
+// replayed to a match.
+func validateMatchedReplays(result Result, key string) error {
 	for _, execution := range result.Qualification.Executions {
 		if execution.Replay == nil || !execution.Replay.Match || !execution.Replay.Attempted || execution.ArtifactPath == "" {
 			return fmt.Errorf("retained matched execution replay missing for %s", key)

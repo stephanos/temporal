@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
+	"maps"
 	"os"
 	"path/filepath"
 	"slices"
@@ -141,6 +142,9 @@ func BuildSupportList(cells []SupportCellInput, gates []SupportGate) (SupportLis
 		if err := validateMeasuredCell(cell.Result, key+"/"+m.Profile+"/"+m.Cell); err != nil {
 			return SupportList{}, err
 		}
+		if err := validateMatchedReplays(cell.Result, key+"/"+m.Profile+"/"+m.Cell); err != nil {
+			return SupportList{}, err
+		}
 		if uint64(len(cell.Result.Qualification.Executions)) != m.Repeat {
 			return SupportList{}, fmt.Errorf("support cell %s/%s retains fewer executions than its repeat", key, m.Cell)
 		}
@@ -152,7 +156,7 @@ func BuildSupportList(cells []SupportCellInput, gates []SupportGate) (SupportLis
 		if err != nil {
 			return SupportList{}, fmt.Errorf("support cell %s/%s: %w", key, m.Cell, err)
 		}
-		if target.Source != selection.Package || !slices.Contains(target.Argv, "-test.run="+run) {
+		if target.Source != selection.Package || supportRunSelection(target.Argv) != run {
 			return SupportList{}, fmt.Errorf("support cell %s/%s did not run %s -test.run=%s", key, m.Cell, selection.Package, run)
 		}
 		identity := SupportCandidate{IntegratedSourceSHA256: m.IntegratedSourceSHA256, CompilerSHA256: m.CompilerSHA256, RuntimeSHA256: m.RuntimeSHA256, HelperSHA256: m.HelperSHA256, EngineSHA256: m.EngineSHA256, ModelSHA256: m.ModelSHA256, HostOS: m.HostOS, HostArch: m.HostArch}
@@ -175,8 +179,9 @@ func BuildSupportList(cells []SupportCellInput, gates []SupportGate) (SupportLis
 		}
 		*slot = cell
 	}
-	for key, pair := range pairs {
-		if pair.success == nil || pair.canary == nil {
+	keys := slices.Sorted(maps.Keys(pairs))
+	for _, key := range keys {
+		if pair := pairs[key]; pair.success == nil || pair.canary == nil {
 			return SupportList{}, fmt.Errorf("support cell %s requires both a success and a canary Result", key)
 		}
 	}
@@ -185,7 +190,8 @@ func BuildSupportList(cells []SupportCellInput, gates []SupportGate) (SupportLis
 		return SupportList{}, err
 	}
 	list := SupportList{Schema: SupportListSchema, Statement: SupportListStatement, Candidate: *candidate, Rows: []SupportRow{}}
-	for key, pair := range pairs {
+	for _, key := range keys {
+		pair := pairs[key]
 		success, canary := pair.success.Result, pair.canary.Result
 		if err := Matched(success.Manifest, canary.Manifest); err != nil {
 			return SupportList{}, fmt.Errorf("support cell %s: %w", key, err)
@@ -235,7 +241,7 @@ func supportGateExits(pairs map[string]*supportPair, gates []SupportGate) (map[s
 		recorded[gate.Cell][gate.Name] = gate
 	}
 	exits := map[string][]SupportGateExit{}
-	for key := range pairs {
+	for _, key := range slices.Sorted(maps.Keys(pairs)) {
 		for _, name := range supportGateOrder {
 			gate, ok := recorded[key][name]
 			if !ok {
@@ -272,6 +278,27 @@ func supportResultTarget(result Result) (record.Target, error) {
 		return record.Target{}, fmt.Errorf("prepared module identity: %w", err)
 	}
 	return *target, nil
+}
+
+// supportRunSelection returns the single -test.run selection of argv, or ""
+// when it is absent or repeated (the go test flag parser keeps the last one).
+func supportRunSelection(argv []string) string {
+	selection, found := "", 0
+	for _, argument := range argv {
+		for _, prefix := range []string{"-test.run=", "--test.run=", "-run=", "--run="} {
+			if value, ok := strings.CutPrefix(argument, prefix); ok {
+				selection = value
+				found++
+			}
+		}
+		if argument == "-test.run" || argument == "--test.run" || argument == "-run" || argument == "--run" {
+			found += 2
+		}
+	}
+	if found != 1 {
+		return ""
+	}
+	return selection
 }
 
 func supportReference(cell SupportCellInput) SupportResultReference {
@@ -311,6 +338,9 @@ func ValidateSupportList(list SupportList) error {
 				return fmt.Errorf("support row %s identity: %w", row.Function, err)
 			}
 		}
+		if row.Repeat < 2 || row.Success.ResultSHA256 == row.Canary.ResultSHA256 || !filepath.IsAbs(row.Success.Path) || !filepath.IsAbs(row.Canary.Path) {
+			return fmt.Errorf("support row %s requires distinct retained success and canary Results", row.Function)
+		}
 		if row.Success.Executions != row.Repeat || row.Success.MatchedReplays != row.Repeat || row.Canary.Executions != row.Repeat || row.Canary.MatchedReplays != row.Repeat || row.Canary.ReplayableBugs != 1 || row.Success.ReplayableBugs != 0 {
 			return fmt.Errorf("support row %s lacks complete matched replays or its replayable canary", row.Function)
 		}
@@ -318,7 +348,7 @@ func ValidateSupportList(list SupportList) error {
 			return fmt.Errorf("support row %s requires every cell gate", row.Function)
 		}
 		for gateIndex, gate := range row.Gates {
-			if gate.Name != supportGateOrder[gateIndex] || gate.Command == "" || gate.Log == "" || gate.Exit != 0 {
+			if gate.Name != supportGateOrder[gateIndex] || gate.Command == "" || !filepath.IsAbs(gate.Log) || gate.Exit != 0 {
 				return fmt.Errorf("support row %s gate %s has no passing recorded exit", row.Function, gate.Name)
 			}
 		}
@@ -358,13 +388,17 @@ func RenderSupportListMarkdown(list SupportList) ([]byte, error) {
 	for _, row := range list.Rows {
 		fmt.Fprintf(&b, "\n### `%s` `%s`\n\n", row.Package, row.Function)
 		fmt.Fprintf(&b, "Selection `-test.run=%s`; build tags `%s`; workload source `%s`; host config `%s`.\n\n", row.Run, strings.Join(row.BuildTags, ","), row.WorkloadSourceSHA256, row.HostConfigSHA256)
-		fmt.Fprintf(&b, "Retained Results: success `%s`, canary `%s`.\n\n", row.Success.Path, row.Canary.Path)
+		fmt.Fprintf(&b, "Retained Results: success `%s`, canary `%s`.\n\n", markdownCell(row.Success.Path), markdownCell(row.Canary.Path))
 		b.WriteString("| Gate | Exit | Command | Log |\n| --- | --- | --- | --- |\n")
 		for _, gate := range row.Gates {
-			fmt.Fprintf(&b, "| %s | %d | `%s` | `%s` |\n", gate.Name, gate.Exit, strings.ReplaceAll(gate.Command, "|", `\|`), gate.Log)
+			fmt.Fprintf(&b, "| %s | %d | `%s` | `%s` |\n", gate.Name, gate.Exit, markdownCell(gate.Command), markdownCell(gate.Log))
 		}
 	}
 	return []byte(b.String()), nil
+}
+
+func markdownCell(value string) string {
+	return strings.NewReplacer("|", `\|`, "`", "'", "\n", " ").Replace(value)
 }
 
 // WriteSupportList publishes base+".json" and base+".md" without replacing

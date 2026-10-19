@@ -24,6 +24,8 @@ type supportFixture struct {
 	module      string
 	run         string
 	provisional bool
+	manifest    func(*Manifest)
+	extraArgs   []string
 }
 
 // supportTestCell synthesizes a Result that passes ValidateResult with costs
@@ -50,12 +52,20 @@ func supportTestCell(t *testing.T, fixture supportFixture) SupportCellInput {
 	}
 	sourceManifest := []byte(strings.TrimPrefix(string(digest("file")), "sha256:") + "  /workspace/tools/gomad/go.mod\n")
 	manifest := Manifest{Provisional: fixture.provisional, IntegratedSourceManifestPath: "/evidence/source.sha256", Schema: ManifestSchema, ID: id, Workload: workload, Profile: "cooperative", Cell: fixture.cell, IntegratedSourceSHA256: record.HashBytes(sourceManifest), CompilerSHA256: digest("compiler"), RuntimeSHA256: digest("runtime"), HelperSHA256: digest(fixture.helper), EngineSHA256: digest("engine"), ModelSHA256: digest("model"), HostConfigSHA256: digest("config-" + fixture.key), WorkloadSourceSHA256: digest("source-" + fixture.key), HostOS: "linux", HostArch: "arm64", Seed: 7, Repeat: 2, Fuel: 1 << 50, MemoryBytes: 4 << 30}
+	if fixture.manifest != nil {
+		fixture.manifest(&manifest)
+		if manifest.IntegratedSourceManifestPath != "/evidence/source.sha256" {
+			sourceManifest = []byte(strings.TrimPrefix(string(digest("other-file")), "sha256:") + "  /workspace/tools/gomad/go.mod\n")
+			manifest.IntegratedSourceSHA256 = record.HashBytes(sourceManifest)
+		}
+	}
 	domain := "success"
 	if fixture.cell == "canary" {
 		domain = "target_failure"
 	}
 	evidence := workloadEvidence(7)
 	evidence.Target = record.Target{Kind: "go-test", Source: selection.Package, SHA256: digest(fixture.module), Size: 306428662, Argv: []string{"gomad-target", "-test.v", "-test.count=1", "-test.timeout=72h", "-test.run=" + fixture.run, "-persistenceType=sql", "-persistenceDriver=sqlite"}, BuildTags: backend.TemporalGuestBuildTags()}
+	evidence.Target.Argv = append(evidence.Target.Argv, fixture.extraArgs...)
 	evidence.Outcome.Domain = domain
 	executions := []gomadqualification.QualificationExecution{}
 	for iteration := range 2 {
@@ -239,6 +249,15 @@ func TestSupportListRefusesUnqualifiedEvidence(t *testing.T) {
 		{"unknown-workload-family", func() []SupportCellInput {
 			return append([]SupportCellInput{supportTestCell(t, supportFixture{key: "fixture/ready-select-timer", cell: "success", pid: 21})}, valid...)
 		}, gates, "unknown support cell"},
+		{"wrong-canary-selection", func() []SupportCellInput {
+			return []SupportCellInput{valid[0], supportTestCell(t, supportFixture{key: smokeCell, cell: "canary", pid: 12, run: "^TestFrontendSystemInfo$"})}
+		}, gates, "did not run"},
+		{"repeated-selection", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, extraArgs: []string{"-test.run=^TestActivityTestSuite$"}}), valid[1]}
+		}, gates, "did not run"},
+		{"mismatched-host-config", func() []SupportCellInput {
+			return []SupportCellInput{valid[0], supportTestCell(t, supportFixture{key: smokeCell, cell: "canary", pid: 12, manifest: func(m *Manifest) { m.HostConfigSHA256 = record.HashBytes([]byte("other-config")) }})}
+		}, gates, "host config"},
 		{"wrong-selection", func() []SupportCellInput {
 			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, run: "^TestActivityTestSuite$"}), valid[1]}
 		}, gates, "did not run"},
@@ -247,9 +266,9 @@ func TestSupportListRefusesUnqualifiedEvidence(t *testing.T) {
 		}, gates, "distinct"},
 		{"tampered-result", func() []SupportCellInput {
 			tampered := slices.Clone(valid)
-			tampered[0].Result.Manifest.Seed = 8
+			tampered[0].Result.QualificationPath = "/elsewhere/qualification.json"
 			return tampered
-		}, gates, ""},
+		}, gates, "content binding"},
 		{"missing-gate", func() []SupportCellInput { return valid }, gates[1:], "no recorded"},
 		{"failed-gate", func() []SupportCellInput { return valid }, append([]SupportGate{{Cell: smokeCell, Name: SupportGatePreparation, Command: "prepare", Exit: 1, Log: "/evidence/prepare.log"}}, gates[1:]...), "passing"},
 		{"unknown-gate", func() []SupportCellInput { return valid }, append(slices.Clone(gates), SupportGate{Cell: smokeCell, Name: "sweep-pass", Command: "sweep", Log: "/evidence/sweep.log"}), "unknown support gate"},
@@ -259,6 +278,23 @@ func TestSupportListRefusesUnqualifiedEvidence(t *testing.T) {
 			_, err := BuildSupportList(test.cells(), test.gates)
 			if err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("unqualified evidence: error = %v, want %q", err, test.want)
+			}
+		})
+	}
+	for name, mutate := range map[string]func(*Manifest){
+		"integrated-source": func(m *Manifest) {
+			m.IntegratedSourceManifestPath = "/other/source.sha256"
+		},
+		"compiler":  func(m *Manifest) { m.CompilerSHA256 = record.HashBytes([]byte("other")) },
+		"runtime":   func(m *Manifest) { m.RuntimeSHA256 = record.HashBytes([]byte("other")) },
+		"engine":    func(m *Manifest) { m.EngineSHA256 = record.HashBytes([]byte("other")) },
+		"model":     func(m *Manifest) { m.ModelSHA256 = record.HashBytes([]byte("other")) },
+		"host-arch": func(m *Manifest) { m.HostArch = "amd64" },
+	} {
+		t.Run("mismatched-"+name, func(t *testing.T) {
+			_, err := BuildSupportList([]SupportCellInput{valid[0], supportTestCell(t, supportFixture{key: smokeCell, cell: "canary", pid: 12, manifest: mutate})}, gates)
+			if err == nil || !strings.Contains(err.Error(), "one candidate") {
+				t.Fatalf("mismatched %s identity: error = %v", name, err)
 			}
 		})
 	}
