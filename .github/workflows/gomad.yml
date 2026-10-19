@@ -70,31 +70,10 @@ jobs:
               if git diff --no-renames --name-only -z "$diff_base" "$HEAD_SHA" -- > "$paths_file"; then
                 native=false
                 wasm=false
-                runtime=tools/gomad/internal/backends/native/toolchain/runtime
                 while IFS= read -r -d '' path; do
                   case "$path" in
                     tools/gomad/internal/backends/wasm/*|tools/gomad/mise.toml) wasm=true ;;
-                    tools/gomad/internal/backends/native/*)
-                      native=true
-                      # These native sources also feed the WASM runtime and projected models.
-                      case "$path" in
-                        "$runtime/overlay/src/internal/gomadfs/fs.go"|\
-                        "$runtime/overlay/src/internal/gomadfs/handles.go"|\
-                        "$runtime/overlay/src/internal/gomadfs/local_handles.go"|\
-                        "$runtime/overlay/src/internal/gomadfs/volume.go"|\
-                        "$runtime/overlay/src/internal/gomadchoicewire/hash.go"|\
-                        "$runtime/overlay/src/internal/gomadchoicewire/wire_generated.go"|\
-                        "$runtime/overlay/src/internal/gomadio/network.go"|\
-                        "$runtime/overlay/src/internal/gomadio/network_connection.go"|\
-                        "$runtime/overlay/src/internal/gomadio/simulation_network.go"|\
-                        "$runtime/overlay/src/internal/gomadio/simulation_handles.go"|\
-                        "$runtime/overlay/src/internal/gomadio/simulation_wire.go"|\
-                        "$runtime/overlay/src/runtime/gomad.go"|\
-                        "$runtime/go1.27.1.patch"|\
-                        tools/gomad/internal/backends/native/transcript/schema/*|\
-                        tools/gomad/internal/backends/native/generation/protocol/*) wasm=true ;;
-                      esac
-                      ;;
+                    tools/gomad/internal/backends/native/*) native=true ;;
                     # internal/backends/wasm/cluster and qualification import tools/gomad/internal/model/cluster.
                     # The gomad_wasm_slim provider seams carry the WASM slim refusal tests.
                     tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/workflows/gomad-smoke.yml|Makefile|go.mod|go.sum|\
@@ -181,9 +160,16 @@ jobs:
         working-directory: tools/gomad
         run: go build ./... && go vet ./...
 
-      - name: Validate generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest
+      - name: Validate the shared generated protocol outputs
         working-directory: tools/gomad
         run: make validate
+
+      - name: Validate native generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest
+        if: ${{ needs.changes.outputs.native == 'true' }}
+        working-directory: tools/gomad
+        env:
+          GOFLAGS: -tags=gomad_native
+        run: make validate-native
 
       - name: Lint Gomad host module
         env:

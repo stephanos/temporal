@@ -22,16 +22,19 @@ func TestSharedSetIsCurrent(t *testing.T) {
 }
 
 func TestSharedSetStaysInTheParentModule(t *testing.T) {
+	// Shared inputs live under internal/model; shared outputs land in the
+	// model or the WASM backend, never in another backend's tree.
 	for _, target := range SharedTargets() {
-		for _, path := range []string{target.Template, target.Path} {
-			if strings.HasPrefix(path, "internal/backends/native/") {
-				t.Errorf("shared target %s reads or writes the native tree: %s", target.Path, path)
-			}
+		if !strings.HasPrefix(target.Template, "internal/model/") {
+			t.Errorf("shared target %s reads a template outside internal/model: %s", target.Path, target.Template)
+		}
+		if !strings.HasPrefix(target.Path, "internal/model/") && !strings.HasPrefix(target.Path, "internal/backends/wasm/") {
+			t.Errorf("shared target writes outside internal/model and the WASM backend: %s", target.Path)
 		}
 	}
 	for _, path := range choiceImplementationSources {
-		if strings.HasPrefix(path, "internal/backends/native/") {
-			t.Errorf("choice implementation input is in the native tree: %s", path)
+		if !strings.HasPrefix(path, "internal/model/") {
+			t.Errorf("choice implementation input is outside internal/model: %s", path)
 		}
 	}
 }

@@ -85,14 +85,14 @@ func TestProtocolgenExitStatuses(t *testing.T) {
 
 func TestModuleRootSkipsNestedModules(t *testing.T) {
 	root := t.TempDir()
-	nested := filepath.Join(root, "internal", "backends", "native")
+	nested := filepath.Join(root, "internal", "backends", "legacy")
 	if err := os.MkdirAll(filepath.Join(nested, "cmd"), 0o755); err != nil {
 		t.Fatal(err)
 	}
 	if err := os.WriteFile(filepath.Join(root, "go.mod"), []byte("module "+modulePath+"\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if err := os.WriteFile(filepath.Join(nested, "go.mod"), []byte("module "+modulePath+"/internal/backends/native\n"), 0o600); err != nil {
+	if err := os.WriteFile(filepath.Join(nested, "go.mod"), []byte("module "+modulePath+"/internal/backends/legacy\n"), 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if found, err := moduleRoot(filepath.Join(nested, "cmd")); err != nil || found != root {
