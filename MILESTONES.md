@@ -57,7 +57,6 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
 ### fn-224: Accepted self-loops in the attribute surface (model)
 
@@ -71,7 +70,7 @@ Choice, typed outcomes and facts, and computed starts stay gaps until a Temporal
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-224.1 | ⬜ todo | After fn-213 and fn-223: self-loop marker, lifter admission, fixtures back on TLC (R1, R2) |
+| fn-224.1 | 🔄 in progress | self-loop marker, lifter admission, fixtures back on TLC (R1, R2) |
 
 ### fn-225: umpire-lift: separate Model shape from body lowering (model)
 

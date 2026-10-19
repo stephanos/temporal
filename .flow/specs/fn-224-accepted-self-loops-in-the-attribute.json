@@ -2,8 +2,7 @@
   "branch_name": "fn-224-accepted-self-loops-in-the-attribute",
   "created_at": "2026-10-19T23:34:30.417940Z",
   "depends_on_epics": [
-    "fn-223-one-lifted-source-form-the-lifter-reads",
-    "fn-213-modelsuite-in-rust-examples-and"
+    "fn-223-one-lifted-source-form-the-lifter-reads"
   ],
   "id": "fn-224-accepted-self-loops-in-the-attribute",
   "next_task": 1,
@@ -23,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T23:34:41.280066Z"
+  "updated_at": "2026-10-19T23:58:59.013959Z"
 }
