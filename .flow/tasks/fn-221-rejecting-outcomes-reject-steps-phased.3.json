@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-221-rejecting-outcomes-reject-steps-phased",
   "spec_path": ".flow/tasks/fn-221-rejecting-outcomes-reject-steps-phased.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Protocol and realization: Explanation.outcomes, matches with outcome, error observations and the cancel projection",
   "updated_at": "2026-10-19T21:26:27.144400Z"
 }

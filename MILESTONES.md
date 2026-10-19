@@ -23,8 +23,9 @@ to the archived tree. The Rust follow-ups below use the owner's priority order; 
 readiness gates and dependencies still apply.
 
 Execution has resumed under the owner's milestone-completion instruction. fn-216 is complete
-locally, including its completion review. fn-221.1–.3 are complete; fn-221.4 runs in the main lane; fn-212.2 runs in a
-separate worktree at the owner's request. TLC is required for scaling larger Models.
+locally, including its completion review. fn-221 is complete locally, with all four tasks and
+its completion review passed. fn-212.2 is being prepared for integration from its separate
+worktree at the owner's request. TLC is required for scaling larger Models.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -39,24 +40,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (now) | fn-221 → fn-213 → fn-215 → fn-218 → fn-217 → fn-211; fn-212 in parallel | Owner priority order, with fn-212 explicitly parallel. fn-210, fn-214 and fn-216 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 delivers lifting and TLC for larger Models; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (now) | fn-213 → fn-215 → fn-218 → fn-217 → fn-211; fn-212 in parallel | Owner priority order, with fn-212 explicitly parallel. fn-210, fn-214, fn-216 and fn-221 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 delivers lifting and TLC for larger Models; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-221: Rejecting outcomes: reject! steps, Phased closure laws and judged RPC errors (model, temporal)
-
-Captured on 2026-10-19, after the fn-216 review of `Client::Cancel => {}`. A legal request the system
-answers with an error becomes a Model step distinct from a disabled action: `reject!(Rejection::NotFound)`
-as a statement in a unit-returning handler, mirroring `check!`, emits a self-loop edge with
-`Rejected(NotFound)`; `#[machine]` switches `Outcome` on only for modules that use it, so existing goldens
-stand. A hand-implemented `Phased` trait carries the archive's two `Closable` laws as shared functions.
-`Explanation` gains parallel `outcomes`, `Observation` gains an error result, and the realization judges
-`RequestCancelActivityExecution` success and NotFound by replay. Two live cancel scenarios prove it.
-Depends on fn-216. [Spec](.flow/specs/fn-221-rejecting-outcomes-reject-steps-phased.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-221.4 | 🔄 in progress | Live cancel scenarios, gates, DESIGN and README (R4) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 

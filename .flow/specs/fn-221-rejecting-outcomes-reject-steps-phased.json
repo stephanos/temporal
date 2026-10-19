@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-221-rejecting-outcomes-reject-steps-phased",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T21:50:24.671782Z",
   "created_at": "2026-10-19T19:33:17.760059Z",
   "default_impl": null,
   "default_review": null,
@@ -275,24 +275,62 @@
       "task": "fn-221-rejecting-outcomes-reject-steps-phased.4",
       "timestamp": "2026-10-19T21:46:45.452043Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e8caee5108a23c04adc6669d73624568621fa519e82df34ef2093e3837604ece",
+      "backend": "codex",
+      "base_sha": "7c89c8855e1ebe2fdd896b1e892a95363ba10df2",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3c588a2b35287ef50c04baaa8cd6d2d0c58407d0",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 369094,
+      "output_sha256": "790974165ca2622097ab068309eb2a5e8d9328921aa20672c65720ef7b6fb98a",
+      "reservation_id": "6ee0d327882544d8b1e3ff10f0f25b27",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T21:50:24.663248Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.1": 1,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.2": 1,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.3": 2,
-    "impl:fn-221-rejecting-outcomes-reject-steps-phased.4": 1
+    "impl:fn-221-rejecting-outcomes-reject-steps-phased.4": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.1": 0,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.2": 0,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.3": 0,
     "impl:fn-221-rejecting-outcomes-reject-steps-phased.4": 0
   },
   "spec_path": ".flow/specs/fn-221-rejecting-outcomes-reject-steps-phased.md",
-  "status": "open",
+  "status": "done",
   "title": "Rejecting outcomes: reject! steps, Phased closure laws and judged RPC errors (model, temporal)",
   "tracker": {
     "baseHashFlow": null,
@@ -305,5 +343,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T21:46:45.454632Z"
+  "updated_at": "2026-10-19T21:50:56.653901Z"
 }

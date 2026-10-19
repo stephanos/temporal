@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-221-rejecting-outcomes-reject-steps-phased",
   "spec_path": ".flow/tasks/fn-221-rejecting-outcomes-reject-steps-phased.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Live cancel scenarios, gates and records",
   "updated_at": "2026-10-19T21:40:18.667449Z"
 }
