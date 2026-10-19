@@ -1,0 +1,5 @@
+error: a progress claim has one trigger and one target; ask a longer progression with find or Run::along
+  --> tests/ui/machine_progress_chain.rs:16:38
+   |
+16 |         fn claim(&self) -> LeadsTo { path![self.value == 0, .., self.value == 1, ..=2, self.value == 2] }
+   |                                      ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

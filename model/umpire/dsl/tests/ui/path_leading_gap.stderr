@@ -1,0 +1,7 @@
+error: a path starts with a waypoint, not a gap: write [p, .., q]
+ --> tests/ui/path_leading_gap.rs:4:23
+  |
+4 |     let _: Path<u8> = path![.., true, false];
+  |                       ^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -4,7 +4,7 @@ use umpire_dsl::{Machine, CheckOutcome, Verdict, machine};
 
 #[machine]
 mod counter {
-use umpire_dsl::{Action, State, check};
+use umpire_dsl::{Action, State, check, path};
 use std::sync::atomic::{AtomicUsize, Ordering};
 
 pub static PROGRESS_CALLS: AtomicUsize = AtomicUsize::new(0);
@@ -99,12 +99,7 @@ impl Counter {
     #[progress]
     fn reaches_two(&self) -> LeadsTo {
         PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
-        let trigger = self.value == 1;
-        let progress = whenever(trigger).within(2);
-        if self.value == 2 {
-            return progress.eventually(true).assuming(Self::never_reset());
-        }
-        progress.eventually(false).assuming(Self::never_reset())
+        path![self.value == 1, ..=2, self.value == 2].assuming(Self::never_reset())
     }
     pub fn unregistered(&self) -> bool { self.helper() }
 }

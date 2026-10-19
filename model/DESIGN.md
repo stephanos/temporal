@@ -133,9 +133,9 @@ Remaining differences from the hypothetical sketch are deliberate:
 - The named assumption is a static function returning a module-local `Assumption`
   value through `without([User::DepressButton])`, replacing the associated
   constant and hiding action adaptation.
-- `whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())`
-  builds a module-local `LeadsTo` value with boolean trigger and target and
-  names its assumption in the expression. This builder remains; `path!` is deferred to fn-215.
+- `path![self.heating_on, .., self.beeping].assuming(Self::never_switched_off())`
+  builds a module-local `LeadsTo` value from a two-waypoint path and names its assumption
+  in the expression. The `whenever(..).eventually(..)` builder it expands to remains public.
 - Public generated `World` and `Action` implement the existing `Machine`
   protocol for public states; `world()` returns `World`. Non-public states retain
   the opaque return interface and their generated types follow the state's visibility.
@@ -221,6 +221,37 @@ and trait projections. Original authored statements and method/impl headers rema
 these declarations add no runtime guard. The generated module carries
 `#[forbid(unsafe_code)]`.
 
+Scala states the progress claim as a block with an `in` clause:
+
+```scala
+val boils =
+  (whenever(heatingOn):
+    eventually(beeping)
+  ) in neverSwitchedOff
+```
+
+Rust writes it as a state progression, read "heating on, then any number of steps, then
+beeping", with the assumption named in the expression:
+
+```rust
+#[progress]
+fn boils(&self) -> LeadsTo {
+    path![self.heating_on, .., self.beeping].assuming(Self::never_switched_off())
+}
+```
+
+`path!` builds a `Path<S>`, a pattern of two or more waypoints (`bool`s, closures over the
+state, or states) with a gap between each pair: `..` for any number of steps, `..=n` for at
+most `n`. The pattern says nothing about whether it holds on every path or on some path; the
+question asked with it does (see the reading rules in [README.md](README.md)). A claim takes
+exactly two waypoints: `#[machine]` refuses a literal `path!` chain at compile time and
+`Path::claim` refuses one built elsewhere, because the universal reading of a chain is
+ambiguous and no surveyed claim needed one. Adjacent waypoints without a gap are refused
+rather than read as "next step"; `..=1` says that. The ceiling is concatenation and bounded
+wildcards; alternation of sub-sequences, repetition and negation are not part of the pattern.
+`#[machine]` wraps each progress body in `From::from`, so a body returns either a `Path` or a
+built `LeadsTo`, and the lifter reads `path![p, ..=n, q]` as `whenever(p).eventually(q).within(n)`.
+
 The `State: Hash` requirement already excludes standard interior-mutable state such as `Cell`
 and `RefCell`. Thread-locals and atomics in statics fall under the capability Clippy policy,
 rather than the receiver-signature check.
@@ -303,7 +334,7 @@ declarations. They compare authored constructs, not a claim of general front-end
 | Before-state postcondition | 62–65 | 81–86 | Rust makes `before: &Self` explicit; Scala supplies it implicitly. The comparison itself is unchanged. |
 | Action-filtered postcondition | 66–69 | 88–92 | Scala nests `after(action)`; Rust places the filter on the method attribute and omits an unused before parameter. Both check boiling and beeping. |
 | Environment assumption | 73–74 | 94–98 | Scala has a val; Rust has a named static method returning module-local `Assumption`. Both exclude the user's depress action. |
-| Progress | 76–82 | 100–104 | Rust uses `whenever(bool).eventually(bool).assuming(...) -> LeadsTo`; Scala uses its block syntax and `in`. Neither the future `path!` form nor numeric bounds are implemented here. |
+| Progress | 76–82 | 100–104 | Scala nests `eventually` inside a `whenever` block and attaches the assumption with `in`; Rust writes `path![self.heating_on, .., self.beeping].assuming(...) -> LeadsTo`, a list read as a state progression. Kettle's claim is unbounded; `..=n` would bound it. |
 | Fixture entrypoint | Separate test file | `tests.rs` | Both keep tests beside the Model: Rust's golden hook and the negative `never_beeps` claim live in the fixture's `tests.rs`, outside the counts below. |
 
 The final source has one invariant, two postconditions and one progress claim. No
@@ -401,7 +432,7 @@ environment-assumption meaning and uses `.within_steps(n)` for numeric bounds.
 Once world access lands, `w.resource_managers.len()` needs no
 additional authoring form to supply a runtime parameter-derived bound. This follows from the
 planned explicit Rust parameter and expression argument; no such bound is evaluated by today's
-Kettle or generated code. `path!` remains fn-215.
+Kettle or generated code.
 
 ## Historical authoring options
 

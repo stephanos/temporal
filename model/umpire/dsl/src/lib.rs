@@ -6,6 +6,7 @@ pub mod claim;
 pub mod closable;
 mod machine;
 pub mod outcome;
+mod path;
 mod phased;
 mod progress;
 mod scope;
@@ -13,6 +14,9 @@ mod scope;
 pub use claim::{Claim, Hole, StepCheckPredicate, StepClaim, StepPredicate, Verdict};
 pub use machine::{Machine, Step, StepError, Steps};
 pub use outcome::{Outcome, Rejection};
+#[doc(hidden)]
+pub use path::kind as waypoint_kind;
+pub use path::{Gap, IntoWaypoint, Path, Waypoint};
 pub use phased::{Phase, Phased};
 pub use progress::{Progress, ProgressEvaluation, ProgressEvaluator};
 pub use scope::{Assumption, AssumptionExt, Scope};

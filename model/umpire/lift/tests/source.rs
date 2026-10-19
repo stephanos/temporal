@@ -162,19 +162,13 @@ fn generated_tla_names_refuse_authored_namespace_collisions()
 fn progress_bounds_and_machine_identity_are_fail_closed() -> Result<(), Box<dyn std::error::Error>>
 {
     for bound in ["0", "2147483647", "18446744073709551615u64"] {
-        let source = KETTLE.replace(
-            ".assuming(Self::never_switched_off())",
-            &format!(".assuming(Self::never_switched_off()).within({bound})"),
-        );
+        let source = KETTLE.replace(", .., self.beeping]", &format!(", ..={bound}, self.beeping]"));
         let error = Lift::parse("bound.rs", &source)
             .err()
             .ok_or("unsupported progress bound was admitted")?;
         assert!(error.line > 1, "{error}");
     }
-    let source = KETTLE.replace(
-        ".assuming(Self::never_switched_off())",
-        ".assuming(Self::never_switched_off()).within(2147483646)",
-    );
+    let source = KETTLE.replace(", .., self.beeping]", ", ..=2147483646, self.beeping]");
     let module = Tla::emit(&Lift::parse("bound.rs", &source)?)?;
     assert!(matches!(
         module.metadata.observer_types["__umpire_steps"],
@@ -191,10 +185,15 @@ fn repeated_progress_builders_refuse_instead_of_reversing_rust_order()
     for suffix in
         [".eventually(false)", ".within(3).within(4)", ".assuming(Self::never_switched_off())"]
     {
-        let source = KETTLE.replace(
-            ".assuming(Self::never_switched_off())",
-            &format!(".assuming(Self::never_switched_off()){suffix}"),
-        );
+        let source = KETTLE
+            .replace(
+                "path![self.heating_on, .., self.beeping]",
+                "whenever(self.heating_on).eventually(self.beeping)",
+            )
+            .replace(
+                ".assuming(Self::never_switched_off())",
+                &format!(".assuming(Self::never_switched_off()){suffix}"),
+            );
         let error = Lift::parse("repeated.rs", &source)
             .err()
             .ok_or("repeated builder was silently reordered")?;

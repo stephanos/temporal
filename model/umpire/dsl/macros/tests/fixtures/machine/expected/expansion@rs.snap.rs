@@ -1,6 +1,6 @@
 #[forbid(unsafe_code)]
 mod counter {
-    use umpire_dsl::{Action, State, check};
+    use umpire_dsl::{Action, State, check, path};
     use std::sync::atomic::{AtomicUsize, Ordering};
     pub static PROGRESS_CALLS: AtomicUsize = AtomicUsize::new(0);
     #[derive(State)]
@@ -240,13 +240,11 @@ mod counter {
             without([User::Reset])
         }
         fn reaches_two(&self) -> LeadsTo {
-            PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
-            let trigger = self.value == 1;
-            let progress = whenever(trigger).within(2);
-            if self.value == 2 {
-                return progress.eventually(true).assuming(Self::never_reset());
-            }
-            progress.eventually(false).assuming(Self::never_reset())
+            ::core::convert::From::from({
+                PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
+                path![self.value == 1, ..= 2, self.value == 2]
+                    .assuming(Self::never_reset())
+            })
         }
         pub fn unregistered(&self) -> bool {
             self.helper()
@@ -347,22 +345,19 @@ mod counter {
         )
     }
     struct LeadsTo {
-        trigger: bool,
-        target: bool,
+        trigger: ::umpire_dsl::Waypoint<Counter>,
+        target: ::umpire_dsl::Waypoint<Counter>,
         assumption: Assumption,
         bound: Option<u32>,
     }
+    #[allow(dead_code, reason = "a claim may be written as path! instead")]
     fn whenever(trigger: bool) -> LeadsTo {
-        LeadsTo {
-            trigger,
-            target: true,
-            assumption: Assumption::default(),
-            bound: None,
-        }
+        ::umpire_dsl::path![trigger, .., true].into()
     }
+    #[allow(dead_code, reason = "a claim may be written as path! instead")]
     impl LeadsTo {
         fn eventually(mut self, target: bool) -> Self {
-            self.target = target;
+            self.target = ::umpire_dsl::Waypoint::Holds(target);
             self
         }
         fn within(mut self, bound: u32) -> Self {
@@ -372,6 +367,26 @@ mod counter {
         fn assuming(mut self, assumption: Assumption) -> Self {
             self.assumption = assumption;
             self
+        }
+    }
+    impl ::core::convert::From<::umpire_dsl::Path<Counter>> for LeadsTo {
+        fn from(path: ::umpire_dsl::Path<Counter>) -> Self {
+            let (trigger, gap, target) = path.claim();
+            LeadsTo {
+                trigger,
+                target,
+                assumption: Assumption::default(),
+                bound: gap.bound(),
+            }
+        }
+    }
+    #[allow(dead_code, reason = "a path! claim may carry no assumption")]
+    trait ClaimedPath {
+        fn assuming(self, assumption: Assumption) -> LeadsTo;
+    }
+    impl ClaimedPath for ::umpire_dsl::Path<Counter> {
+        fn assuming(self, assumption: Assumption) -> LeadsTo {
+            LeadsTo::from(self).assuming(assumption)
         }
     }
     ///Builds the module's registered state machine.
@@ -443,8 +458,9 @@ mod counter {
             ::std::vec![
                 ::umpire_dsl::Progress:: < Self > ::evaluated("reaches_two", | _, state |
                 { let value = state.reaches_two(); ::umpire_dsl::ProgressEvaluation {
-                trigger : value.trigger.into(), target : value.target.into(), assumption
-                : value.assumption, bound : value.bound, } })
+                trigger : value.trigger.judge(state).into(), target : value.target
+                .judge(state).into(), assumption : value.assumption, bound : value.bound,
+                } })
             ]
         }
         fn assumptions(

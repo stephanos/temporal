@@ -145,10 +145,32 @@ Compiler-only checking declarations may be added inside local function or const 
 aliases and trait projections; they add no runtime guard.
 `#[machine]` forbids unsafe code throughout its module.
 
-Attribute progress methods return `LeadsTo`. The existing
-`whenever(..).eventually(..).assuming(..)` builder accepts a positive transition bound with
-`.within(n)`. Reaching the first target at exactly `n` transitions passes; the transition that
-made the trigger true is excluded. `path!` is deferred to fn-215.
+Attribute progress methods return `LeadsTo`, written as a two-waypoint `path!`. Kettle's claim is:
+
+```rust
+/// Switched on and left on, the water boils and the kettle beeps.
+#[progress]
+fn boils(&self) -> LeadsTo {
+    path![self.heating_on, .., self.beeping].assuming(Self::never_switched_off())
+}
+```
+
+A `path!` is a list of waypoints with a gap between each pair. A waypoint is a `bool` (evaluated
+per state inside a Model method), a closure over the state, or a state. `..` is any number of
+steps; `..=n` is at most `n` steps. Reaching the target at exactly `n` steps passes; the step
+that made the trigger true is not counted. The list reads the same everywhere; the question
+asked with it decides what it promises:
+
+- In a `#[progress]` claim, `..` means on every admitted path: whenever the first waypoint
+  holds, every path the assumption admits reaches the second. A claim has exactly two waypoints;
+  a longer chain is refused.
+- In a search for an example or witness (`find`, `Run::along`, arriving with fn-213), `..` means
+  some path: the checker takes the shortest leg from each reached waypoint to the next, which
+  need not be the shortest path through all waypoints at once.
+- A pattern says nothing about what happens between or after its waypoints.
+
+Two waypoints without a gap, or a leading or trailing gap, do not compile; `..=1` is the next
+step. `whenever(..).eventually(..).within(n)` builds the same claim and remains public.
 Assumptions compose `only([..])`, `without([..])` and explicit `fair([..])` action lists.
 Nothing is fair by default: `#[internal]` marks environment-independent actions only.
 `only` replaces the selection, `without` and `fair` accumulate, and fair membership does not

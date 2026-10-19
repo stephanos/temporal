@@ -315,6 +315,33 @@ fn check_claim(method: &syn::ImplItemFn) -> manyhow::Result<()> {
     Ok(())
 }
 
+/// Refuses a claim returning a literal `path!` chain, possibly under `.assuming(..)`; a `Path`
+/// built elsewhere is refused by `Path::claim` when evaluated.
+fn check_progress(method: &syn::ImplItemFn) -> manyhow::Result<()> {
+    let Some(syn::Stmt::Expr(tail, None)) = method.block.stmts.last() else { return Ok(()) };
+    let mut tail = tail;
+    while let syn::Expr::MethodCall(call) = tail {
+        tail = &call.receiver;
+    }
+    let syn::Expr::Macro(call) = tail else { return Ok(()) };
+    if call.mac.path.segments.last().is_none_or(|segment| segment.ident != "path") {
+        return Ok(());
+    }
+    let Ok(parts) =
+        Punctuated::<syn::Expr, Token![,]>::parse_terminated.parse2(call.mac.tokens.clone())
+    else {
+        return Ok(());
+    };
+    let gap = |part: &syn::Expr| matches!(part, syn::Expr::Range(range) if range.start.is_none());
+    if parts.iter().filter(|part| !gap(part)).count() > 2 {
+        manyhow::bail!(
+            call,
+            "a progress claim has one trigger and one target; ask a longer progression with find or Run::along"
+        );
+    }
+    Ok(())
+}
+
 fn check_legacy(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
     for attr in &input.attrs {
         if let Some(name) = [
@@ -482,7 +509,12 @@ fn registrations(
                     }
                 }
                 4 => registration.assumptions.push(name),
-                5 => registration.progresses.push(name),
+                5 => {
+                    check_progress(method)?;
+                    let body = &method.block;
+                    method.block = syn::parse_quote!({ ::core::convert::From::from(#body) });
+                    registration.progresses.push(name);
+                }
                 _ => unreachable!(),
             }
             if matches!(rank, 2 | 3 | 5) {
@@ -537,8 +569,8 @@ fn progress_claims(registration: &Registrations) -> Vec<TokenStream> {
         output.push(quote!(::umpire_dsl::Progress::<Self>::evaluated(#label, |_, state| {
             let value = state.#method();
             ::umpire_dsl::ProgressEvaluation {
-                trigger: value.trigger.into(),
-                target: value.target.into(),
+                trigger: value.trigger.judge(state).into(),
+                target: value.target.judge(state).into(),
                 assumption: value.assumption,
                 bound: value.bound,
             }
@@ -597,19 +629,44 @@ fn assumption_helpers(enabled: bool) -> Option<TokenStream> {
     })
 }
 
-fn progress_helpers(enabled: bool) -> Option<TokenStream> {
+fn progress_helpers(enabled: bool, state: &syn::Ident) -> Option<TokenStream> {
     enabled.then(|| {
         quote! {
-            struct LeadsTo { trigger: bool, target: bool, assumption: Assumption, bound: Option<u32> }
-            fn whenever(trigger: bool) -> LeadsTo {
-                LeadsTo { trigger, target: true, assumption: Assumption::default(), bound: None }
+            struct LeadsTo {
+                trigger: ::umpire_dsl::Waypoint<#state>,
+                target: ::umpire_dsl::Waypoint<#state>,
+                assumption: Assumption,
+                bound: Option<u32>,
             }
+            #[allow(dead_code, reason = "a claim may be written as path! instead")]
+            fn whenever(trigger: bool) -> LeadsTo {
+                ::umpire_dsl::path![trigger, .., true].into()
+            }
+            #[allow(dead_code, reason = "a claim may be written as path! instead")]
             impl LeadsTo {
-                fn eventually(mut self, target: bool) -> Self { self.target = target; self }
+                fn eventually(mut self, target: bool) -> Self {
+                    self.target = ::umpire_dsl::Waypoint::Holds(target);
+                    self
+                }
                 fn within(mut self, bound: u32) -> Self { self.bound = Some(bound); self }
                 fn assuming(mut self, assumption: Assumption) -> Self {
                     self.assumption = assumption;
                     self
+                }
+            }
+            impl ::core::convert::From<::umpire_dsl::Path<#state>> for LeadsTo {
+                fn from(path: ::umpire_dsl::Path<#state>) -> Self {
+                    let (trigger, gap, target) = path.claim();
+                    LeadsTo { trigger, target, assumption: Assumption::default(), bound: gap.bound() }
+                }
+            }
+            #[allow(dead_code, reason = "a path! claim may carry no assumption")]
+            trait ClaimedPath {
+                fn assuming(self, assumption: Assumption) -> LeadsTo;
+            }
+            impl ClaimedPath for ::umpire_dsl::Path<#state> {
+                fn assuming(self, assumption: Assumption) -> LeadsTo {
+                    LeadsTo::from(self).assuming(assumption)
                 }
             }
         }
@@ -704,7 +761,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     });
     let assumption_helpers =
         assumption_helpers(!assumptions.is_empty() || !progress_tokens.is_empty());
-    let progress_helpers = progress_helpers(!progress_tokens.is_empty());
+    let progress_helpers = progress_helpers(!progress_tokens.is_empty(), &state);
     let world_type = if matches!(visibility, syn::Visibility::Public(_)) {
         quote!(World)
     } else {

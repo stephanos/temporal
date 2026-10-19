@@ -5,7 +5,7 @@ use crate::{
 };
 use quote::ToTokens;
 use std::collections::BTreeSet;
-use syn::Expr as RustExpr;
+use syn::{Expr as RustExpr, RangeLimits, Token, parse::Parser as _, punctuated::Punctuated};
 
 impl Parser<'_> {
     pub(super) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
@@ -115,21 +115,18 @@ impl Parser<'_> {
                     )?);
                 }
                 "assuming" => assumption = self.assumption(&call.args[0], actions, 0)?,
-                "within" => {
-                    let value = self.expr(&call.args[0], &Env::new(), &Env::new(), None, 0)?;
-                    let ExprKind::Int(n) = value.kind else {
-                        return self.err(node, "progress bound must be a positive literal");
-                    };
-                    if n <= 0 || n >= i128::from(i32::MAX) {
-                        return self.err(node, "progress bound must be in 1..2147483647 for TLC's capped transition observer");
-                    }
-                    bound = Some(u64::try_from(n).map_err(|_| {
-                        Diagnostic::at(self.file, node, "progress bound exceeds u64")
-                    })?);
-                }
+                "within" => bound = Some(self.progress_bound(node, &call.args[0])?),
                 _ => return self.err(node, "unsupported progress builder"),
             }
             node = &call.receiver;
+        }
+        if let RustExpr::Macro(call) = node
+            && path_name(&call.mac.path.to_token_stream().to_string()).ends_with("path")
+        {
+            if target.is_some() || bound.is_some() {
+                return self.err(node, "a path! claim takes only .assuming(..)");
+            }
+            return self.path_claim(method, call, assumption);
         }
         let RustExpr::Call(call) = node else {
             return self.err(node, "progress requires whenever");
@@ -150,6 +147,50 @@ impl Parser<'_> {
             target: target.ok_or_else(|| {
                 Diagnostic::at(self.file, node, "progress requires eventually(target)")
             })?,
+            assumption,
+            bound,
+        })
+    }
+    fn progress_bound(&self, node: &impl ToTokens, value: &RustExpr) -> Result<u64> {
+        let value = self.expr(value, &Env::new(), &Env::new(), None, 0)?;
+        let ExprKind::Int(n) = value.kind else {
+            return self.err(node, "progress bound must be a positive literal");
+        };
+        if n <= 0 || n >= i128::from(i32::MAX) {
+            return self.err(
+                node,
+                "progress bound must be in 1..2147483647 for TLC's capped transition observer",
+            );
+        }
+        u64::try_from(n).map_err(|_| Diagnostic::at(self.file, node, "progress bound exceeds u64"))
+    }
+    /// `path![trigger, .., target]` or `path![trigger, ..=n, target]`.
+    fn path_claim(
+        &self,
+        method: &syn::ImplItemFn,
+        call: &syn::ExprMacro,
+        assumption: AssumptionDef,
+    ) -> Result<ProgressDef> {
+        let parts = Punctuated::<RustExpr, Token![,]>::parse_terminated
+            .parse2(call.mac.tokens.clone())
+            .map_err(|error| Diagnostic::at(self.file, call, error.to_string()))?;
+        let [trigger, RustExpr::Range(gap), target] = parts.iter().collect::<Vec<_>>()[..] else {
+            return self.err(
+                call,
+                "a progress claim has one trigger and one target; ask a longer progression with find or Run::along",
+            );
+        };
+        let bound = match (&gap.start, &gap.limits, &gap.end) {
+            (None, RangeLimits::HalfOpen(_), None) => None,
+            (None, RangeLimits::Closed(_), Some(bound)) => Some(self.progress_bound(call, bound)?),
+            _ => return self.err(gap, "a path gap is .. or ..=n"),
+        };
+        let predicate =
+            |node| self.expr(node, &self.field_env(false), &Env::new(), Some(&Type::Bool), 0);
+        Ok(ProgressDef {
+            name: method.sig.ident.to_string(),
+            trigger: predicate(trigger)?,
+            target: predicate(target)?,
             assumption,
             bound,
         })

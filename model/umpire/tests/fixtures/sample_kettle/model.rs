@@ -5,7 +5,7 @@ use umpire_dsl::machine;
 /// A kettle controlled by its user and heating element.
 #[machine]
 pub mod kettle {
-    use umpire_dsl::{Action, State, check};
+    use umpire_dsl::{Action, State, check, path};
 
     const BOILING_TEMPERATURE: i32 = 100;
     const COLDEST_TEMPERATURE: i32 = -40;
@@ -100,7 +100,7 @@ pub mod kettle {
         /// Switched on and left on, the water boils and the kettle beeps.
         #[progress]
         fn boils(&self) -> LeadsTo {
-            whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())
+            path![self.heating_on, .., self.beeping].assuming(Self::never_switched_off())
         }
     }
 }
