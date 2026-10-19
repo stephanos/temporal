@@ -11,7 +11,8 @@
   ],
   "id": "fn-214-progress-vocabulary-on-kettle-scopes",
   "impl_review_rounds": {
-    "fn-214-progress-vocabulary-on-kettle-scopes.1": 0
+    "fn-214-progress-vocabulary-on-kettle-scopes.1": 0,
+    "fn-214-progress-vocabulary-on-kettle-scopes.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -141,10 +142,46 @@
       "task": "fn-214-progress-vocabulary-on-kettle-scopes.1",
       "timestamp": "2026-10-19T16:06:19.557384Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "c02d355f9f609dafd7d76f57f8dedad5e52943d7c24f2c99e6446fbfdf3207ad",
+      "backend": "codex",
+      "base_sha": "4047dfaf6135f8fdc77769379dfd6dad1c12fe54",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ad9aec6ffc23dbc02c343a46f3f98f8b6507132e",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1107,
+      "output_sha256": "d78e8451484d599e441b2af614b86827e418d6355b5fe40dcd30926c96558b4a",
+      "reservation_id": "fdb56388b69547ff81b71a22d6026052",
+      "round_consumed": true,
+      "scope": "impl:fn-214-progress-vocabulary-on-kettle-scopes.2",
+      "superseded_by": null,
+      "task": "fn-214-progress-vocabulary-on-kettle-scopes.2",
+      "timestamp": "2026-10-19T16:24:17.807182Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.1": 1,
+    "impl:fn-214-progress-vocabulary-on-kettle-scopes.2": 1,
     "plan": 1,
     "plan#completion": 0
   },
@@ -152,6 +189,7 @@
   "review_reservations": {},
   "review_transport_failures": {
     "impl:fn-214-progress-vocabulary-on-kettle-scopes.1": 0,
+    "impl:fn-214-progress-vocabulary-on-kettle-scopes.2": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md",
@@ -168,5 +206,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T16:06:19.568017Z"
+  "updated_at": "2026-10-19T16:24:17.818200Z"
 }

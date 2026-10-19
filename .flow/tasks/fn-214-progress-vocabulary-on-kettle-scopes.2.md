@@ -46,9 +46,32 @@ From the repository root, run `make model-check` and record one `make model-time
 - [ ] Evaluated claims honor replacement assumptions without losing original trigger/target callbacks or evaluating a progress body more than once per reached state. Safety and predicate/effect defects retain their existing Outcome and do not acquire a fabricated temporal verdict.
 - [ ] Canonical report rendering stays byte-identical. Focused tests, `make model-check` and the recorded `make model-time` pass.
 ## Done summary
-TBD
+Model authors can bound generated LeadsTo claims with within(n), and checker clients can replace registered bounds with within_steps(n) while retaining legacy within(scope). Progress results now expose named verdicts, longest first-target distances and deterministic refutation hints without changing Report::spell.
 
+R2/R3 coverage lives in checker fixture progress_bounds, the generated DSL machine fixture, the existing recorder controls and the single independent brute_force_oracle property test. They cover zero refusal, equality at n transitions, exclusion of the incoming trigger transition, metadata inconsistency, independent assumption/bound replacement, callback counts, verdict precedence, finite/zero/unbounded longest values, explicit escaping fairness, intermittent enabledness, cuts, separate reached holes and caught defects. The finite-distance calculation uses reverse graph traversal and constructs paths only for refutations. The native generated-protobuf roundtrip maps zero bounds to malformed request code 2 with a claim-specific diagnostic.
+
+Both complete sample_kettle and sample_kettle_trait inventories and every file's Git blob hash match base 4047dfaf6135f8fdc77769379dfd6dad1c12fe54. The generated fixture registries under /home/agent/.cache/codex-build/cargo-target point to this checkout. Macro snapshot changes pin the new helper and bound propagation; existing canonical report, state, row and path goldens remain unchanged.
+
+baseline: green. The focused suite, make model-check and make model-time exited 0 before implementation. Logs are .flow/tmp/fn214-2-baseline-focused.log, fn214-2-baseline-model-check.log and fn214-2-baseline-model-time.log. Baseline timing was 2.638 s inner and 3.717 s full. The baseline timing command briefly overlapped the preceding gate's tail; all post-change builds and gates were serialized after both child authors stopped.
+
+RED evidence is retained in .flow/tmp/fn214-2-red-dsl.log, fn214-2-red-checker-api.log and fn214-2-red-wasm-api.log. They observed missing numeric authoring/registration APIs, result fields and the refusal variant before production changes. Initial fixture setup and snapshot mismatches remain in fn214-2-first-focused.log, fn214-2-red-golden.log and fn214-2-snapshots.log. The first full gate's function-size lint failure remains in fn214-2-model-check-initial.log; the final helpers pass the unchanged lint policy.
+
+The final focused suite and full make model-check passed. The full gate includes formatting, denied-warning clippy/docs, native fixtures, stock WASI guest/core checks and CGO-disabled wazero Go-host parity. Post-change make model-time exited 0 at 2.066 s inner and 5.152 s full against the 10 s / 30 s soft targets. Logs are .flow/tmp/fn214-2-final-focused.log, fn214-2-model-check.log, fn214-2-final-fixture.log and fn214-2-model-time.log.
+
+GATE_SKIPPED:unittest:green-receipt ad9aec6f - verification reused the current task's post-gate pass
+GATE_SKIPPED:model-check:green-receipt ad9aec6f - verification reused the current task's post-gate pass
+GATE_SKIPPED:model-time:green-receipt ad9aec6f - verification reused the current task's post-gate pass
+
+stage: impl-review - ran [2026-10-19T16:21:58Z..2026-10-19T16:24:17Z] (codex:gpt-6.1-sol:high, SHIP on all three axes, zero findings)
+
+Review receipt: /tmp/impl-review-receipt-8f37faba39e2-fn-214-progress-vocabulary-on-kettle-scopes.2.json. The writer and reviewers use the same model family under explicit project routing. Read-only Cargo build-lock failures limited the reviewers to static inspection; the worker's actual gates passed. The original foreground review session 55100 and PID 3967613 completed with exit 0 despite the transient fanout_abandoned journal. The contracts draw's formatting prevented merge-plan parsing, so the documented merged-file repair finalized the same three SHIP results without redispatch. Clean first-pass review required no memory capture.
+
+Tier: session (jev-unavailable(no_key)); explicit project routing preserved
+
+Two child agents implemented the checker algorithm and authored the disjoint bound fixture/oracle extension. Both returned before final staging, verification and review. Tracker inactive; planSync.enabled=false. Task .3 retains the registered query, Kettle question fixtures and emitter documentation. No follow-up work is required for R2/R3.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: ad9aec6ffc23dbc02c343a46f3f98f8b6507132e
+- Tests: mise exec -- cargo test -p umpire-dsl -p umpire-dsl-macros -p umpire-checker -p umpire-tests, make model-check, make model-time, bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn214-2-protected.sh, GATE_SKIPPED:unittest:green-receipt ad9aec6f - verification reused the current task’s post-gate pass, GATE_SKIPPED:model-check:green-receipt ad9aec6f - verification reused the current task’s post-gate pass, GATE_SKIPPED:model-time:green-receipt ad9aec6f - verification reused the current task’s post-gate pass
 - PRs:
