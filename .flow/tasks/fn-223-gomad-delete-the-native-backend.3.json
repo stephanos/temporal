@@ -11,6 +11,6 @@
   "spec": "fn-223-gomad-delete-the-native-backend",
   "spec_path": ".flow/tasks/fn-223-gomad-delete-the-native-backend.3.md",
   "status": "todo",
-  "title": "Record unchanged WASM identities, close fn-128 and fn-149, refresh docs",
-  "updated_at": "2026-10-19T16:08:10.365460Z"
+  "title": "Record unchanged WASM identities and refresh docs",
+  "updated_at": "2026-10-19T22:56:32.901318Z"
 }
