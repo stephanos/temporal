@@ -14,6 +14,10 @@ Implement one small integrated change in the existing WASM measurement/qualifica
 
 Existing external evidence is cleaned separately only after its consumers finish. Do not mutate the frozen upstream-sync candidate or its active inputs. Implement in the isolated worktree, integrate after fn-189 qualification and review. Tests and lint should cover the changed harness owner; rerun expensive WASM gates only for a concrete affected contract.
 
+Owner decision, 2026-10-19. Prioritize fn-225 immediately after fn-189, before
+fn-187 and the remaining milestones. The current run stops after fn-225 and
+cleanup of released artifacts/worktrees.
+
 ## Verification
 
 Use test-first filesystem/integration tests with -tags test_dep, affected package tests, affected lint, and source/diff checks. Show repeated-run storage remains bounded without performing another multi-gigabyte qualification solely for this feature.
