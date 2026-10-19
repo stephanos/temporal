@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.18.md",
   "status": "todo",
   "title": "Handlers as fn(&mut self): enabled iff the state changed",
-  "updated_at": "2026-10-18T23:59:48.089263Z"
+  "updated_at": "2026-10-19T00:02:40.126891Z"
 }

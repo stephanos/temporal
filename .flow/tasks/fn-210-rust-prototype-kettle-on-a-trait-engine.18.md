@@ -20,11 +20,12 @@ impl Model {
 
 Do: change the dispatch in `dsl/macros/src/machine.rs`; refuse a handler with a return type (`#[on] handlers return nothing; enabledness is a changed state`) with a trybuild `.stderr` fixture `machine_handler_returns`; rewrite Kettle's four handlers and the `machine` macro fixture; the canonical goldens must not change (same enabled set for Kettle); update .6's "kept" note in DESIGN.md. `kettle_trait` is untouched.
 
-**Touches:** `model/umpire/dsl/macros/**`, `model/umpire/dsl/tests/fixtures/machine/**`, `model/umpire/tests/fixtures/kettle/model.rs`, `model/DESIGN.md`
+**Touches:** `model/umpire/dsl/macros/**`, `model/umpire/dsl/tests/fixtures/machine/**`, `model/umpire/tests/fixtures/kettle/model.rs`, `model/umpire/tests/fixtures/changed_state/**`, `model/DESIGN.md`
 
 **Integration clarification:** the macro expansion fixture reads the runtime DSL fixture at `dsl/tests/fixtures/machine/model.rs`; adapt that fixture and its values golden to the changed-state rule too. All existing refusal fixtures must continue to pin their intended error after handler signatures change. Canonical Kettle and trait-reference goldens remain byte-identical; DSL expansion/runtime fixture deltas are reviewed separately.
 
 **Feedback loop (R30):** paste `make model-time` into the done summary.
+**Checker-level control:** add a shared `changed_state` fixture using existing consumers: no-op, same-value assignment and mutate-then-restore actions emit no edges and leave matching false postconditions untriggered; a real state change emits an edge and triggers a false postcondition as a positive control. Keep the existing trait `edge_checks` self-edge/refutation goldens unchanged.
 ## Acceptance
 - Transition handlers are `fn name(&mut self)` with no return type; `#[machine]` emits a step iff the handler changed the state.
 - A handler with a return type is refused by `#[machine]` with a message naming the rule, pinned by a trybuild `.stderr` fixture.
