@@ -1,0 +1,5 @@
+error: #[invariant] methods must follow #[effect] and precede #[postcondition]
+  --> tests/ui/machine_noncontiguous_kind.rs:19:9
+   |
+19 |         #[invariant]
+   |         ^^^^^^^^^^^^

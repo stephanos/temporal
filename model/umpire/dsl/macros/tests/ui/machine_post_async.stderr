@@ -1,5 +1,5 @@
 error: invariants and postconditions must be synchronous
-  --> tests/ui/machine_post_async.rs:18:9
+  --> tests/ui/machine_post_async.rs:16:9
    |
-18 |         async fn claim(&self) {}
+16 |         async fn claim(&self) {}
    |         ^^^^^

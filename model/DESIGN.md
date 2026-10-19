@@ -51,16 +51,16 @@ Invalid budgets and state IDs remain generated typed refusals, not panic tests.
 ## Attribute Kettle and the authoring sketch (fn-210.6)
 
 The canonical `umpire/tests/fixtures/kettle/model.rs` uses the owner-approved
-R44 nested surface derived from `options/Kettle.attrs.rs`, retaining its separate
+flat surface derived from `options/Kettle.attrs.rs`, retaining its separate
 `User` and `Heater` enums, transition bodies and claim predicates.
 
 Remaining differences from the hypothetical sketch are deliberate:
 
 - Imports name the actual `umpire_dsl` crate instead of a hypothetical prelude.
-- `#[machine]` registers one inline public `kettle` module, with one impl per
-  part kind in transitions, optional effects, invariants, postconditions,
-  assumptions and progress order, instead of one annotated impl with per-method
-  kind markers.
+- `#[machine]` registers one inline public `kettle` module with one `impl Model`.
+  Per-item attributes mark methods, grouped contiguously in on, effect, invariant,
+  postcondition, assumption and progress order. There are no group attributes or
+  marker traits; attributes preserve authored statements and method/impl headers.
 - The state is named `Model` to match Scala's `object Model`, replacing the
   sketch's `Kettle` name while leaving its fields and predicates unchanged.
 - The module discovers action enums in declaration order rather than taking
@@ -69,20 +69,20 @@ Remaining differences from the hypothetical sketch are deliberate:
 - `State` supplies clone, equality, hashing, canonical `Spell` and ordered
   starts with defaults for unannotated booleans; `Action` supplies clone,
   equality, hashing, spelling and ordered enumeration.
-- `#[after(Heater::Failover)]` replaces the postcondition's `after` argument,
-  and its unused `before` parameter is omitted while the warming claim keeps it.
+- `#[postcondition(after = Heater::Failover)]` selects the failover action;
+  its unused `before` parameter is omitted while the warming claim keeps it.
 - The named assumption is a static function returning a module-local `Assumption`
   value through `without([User::DepressButton])`, replacing the associated
   constant and hiding action adaptation.
 - `whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())`
-  builds a module-local `Progress` value with boolean trigger and target and
-  names its assumption in the expression.
+  builds a module-local `LeadsTo` value with boolean trigger and target and
+  names its assumption in the expression. This builder remains; `path!` is deferred to fn-215.
 - Private generated world/action adapters implement the existing `Machine`
   protocol; the public `world()` function returns an opaque machine exposing
   its state and actor conversions without exposing generated type names.
 - Each transition runs on a clone and emits one successor with unit outcome
   and no facts only when its final state differs from the original state.
-  A stuttering transition emits no edge, so its `#[after]` claims are not checked.
+  A stuttering transition emits no edge, so its filtered postconditions are not checked.
 - State fields are public so fixture controls can construct their own starts;
   full and cut producers sit outside the public Model module and use `world()`.
 - The existing no-heat control is generic over that public machine interface,
@@ -111,8 +111,8 @@ object transitions extends Transitions:
 Rust groups the same actions into one match per actor, with guards and effects inline:
 
 ```rust
-#[transitions]
 impl Model {
+    #[on(User)]
     fn user(&mut self, action: User) {
         match action {
             User::PressButton if !self.heating_on => {
@@ -127,6 +127,7 @@ impl Model {
         }
     }
 
+    #[on(Heater)]
     fn heater(&mut self, action: Heater) {
         match action {
             Heater::Heat if self.heating_on && self.temperature < BOILING_TEMPERATURE => {
@@ -142,18 +143,22 @@ impl Model {
 }
 ```
 
-`#[machine]` binds each method by its actor parameter type and dispatches `step` through it;
-method names do not register actions. There is no `#[on]` attribute. The fallback leaves the state
+`#[machine]` binds each `#[on(Actor)]` method to the named actor, checks its parameter type,
+and dispatches `step` through it. The fallback leaves the state
 unchanged and disables that action. Omitting it lets rustc check exhaustiveness. Actor declaration
 order still determines catalog order, so grouping the arms changes no canonical payload.
 The concrete unit-only actor enums also derive `Copy`, keeping owned action parameters idiomatic
 under Clippy without changing `derive(Action)` or the lint policy.
 
-Scala's `object effects` corresponds to an optional `#[effects]` impl directly after
-`#[transitions]`. It holds ordinary shared helpers such as `fn switch_off(&mut self, beep: bool)`;
-Kettle needs no such block. Only transitions and effects may take `&mut self`. Every other
-`Model` method, including an unmarked helper, takes `&self` or no receiver, and `#[machine]`
-checks those signatures before generating the adapters. The generated module carries
+Scala's `object effects` corresponds to optional `#[effect]` methods immediately after the
+`#[on]` methods. These are ordinary shared helpers such as
+`fn switch_off(&mut self, beep: bool)`; Kettle needs none. Only `#[on]` and `#[effect]` methods
+may take `&mut self`. Every other `Model` method, including an unmarked helper, takes `&self`
+or no receiver. Compiler-resolved read-only checks cover qualified, nested, imported and aliased
+`Model` impls while leaving unrelated helper types usable. Under the approved checking exception,
+compiler-only declarations may be added inside local function or const scopes to resolve aliases
+and trait projections. Original authored statements and method/impl headers remain unchanged;
+these declarations add no runtime guard. The generated module carries
 `#[forbid(unsafe_code)]`.
 
 The `State: Hash` requirement already excludes standard interior-mutable state such as `Cell`
@@ -169,7 +174,8 @@ fixed within one exploration, with a mismatch reported as Unknown with a diagnos
 An empty world evaluates no progress method and is vacuously Verified; manual fixed
 assumptions are still validated before exploration.
 The legacy `Scope` alias and trait builders remain for manual trait sources only;
-the attribute surface exposes `Assumption`, `#[assumptions]` and `.assuming(..)`.
+the attribute surface exposes `Assumption`, `#[assumption]`, `LeadsTo` and `.assuming(..)`.
+The core `Progress` builder remains unchanged for manual trait Models.
 
 The owner approved exactly five canonical payload substitutions on 2026-10-18:
 `Act::UserPressButton` → `User::PressButton`, `Act::UserDepressButton` →

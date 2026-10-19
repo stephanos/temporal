@@ -1,0 +1,5 @@
+error: #[on(User)] requires a User parameter
+  --> tests/ui/machine_actor_mismatch.rs:16:9
+   |
+16 |         fn user(&mut self, action: Clock) { match action { Clock::Tick => {} } }
+   |         ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

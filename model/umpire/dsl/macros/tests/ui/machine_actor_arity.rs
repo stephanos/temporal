@@ -8,8 +8,8 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn user(&mut self, action: User, extra: bool) { let _ = (action, extra); }
     }
 }

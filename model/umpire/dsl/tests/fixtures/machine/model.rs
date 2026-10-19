@@ -22,20 +22,50 @@ pub enum User { Increment, Reset, MutateRestore }
 #[internal]
 pub enum Clock { Tick }
 
-struct Helper { value: u8 }
+mod helpers {
+    pub(super) struct Counter { pub(super) value: u8 }
 
-impl Helper {
-    fn advance(&mut self) { self.value += 1; }
+    impl std::ops::AddAssign<u8> for Counter {
+        fn add_assign(&mut self, increment: u8) { self.value += increment; }
+    }
 }
 
-#[transitions]
+struct Helper<T> { value: T }
+
+impl<T: std::ops::AddAssign<u8>> Helper<T> {
+    fn advance(&mut self)
+    where Self: Sized {
+        struct Increment(u8);
+        impl Increment {
+            fn advance(&mut self) { self.0 += 1; }
+        }
+        struct Carrier;
+        trait Resolve { type Target; }
+        impl Resolve for Carrier { type Target = Increment; }
+        trait Types { type Assoc; }
+        impl Types for Increment { type Assoc = u8; }
+        trait Advance: Types { fn apply(&mut self); }
+        impl Advance for <Carrier as Resolve>::Target
+        where Self::Assoc: Copy {
+            fn apply(&mut self) { self.advance(); }
+        }
+        let mut increment = Increment(0);
+        increment.apply();
+        self.value += increment.0;
+    }
+}
+
 impl Counter {
+    #[on(Clock)]
     fn advance(&mut self, action: Clock) {
         match action {
             Clock::Tick => { self.value += 1; }
         }
     }
 
+    fn helper(&self) -> bool { self.value <= 2 }
+
+    #[on(User)]
     pub fn dispatch(&mut self, action: User) {
         match action {
             User::Reset => { self.value = 0; }
@@ -47,40 +77,27 @@ impl Counter {
             _ => {}
         }
     }
-}
-
-#[effects]
-impl Counter {
+    #[effect]
     pub fn increment(&mut self) {
-        let mut helper = Helper { value: self.value };
+        let mut helper = Helper { value: helpers::Counter { value: self.value } };
         helper.advance();
-        self.value = helper.value;
+        self.value = helper.value.value;
     }
-}
-
-#[invariants]
-impl Counter {
+    #[invariant]
     pub fn bounded(&self) { check!(self.helper()); }
-}
 
-#[postconditions]
-impl Counter {
-    #[after(User::Reset)]
+    #[postcondition(after = User::Reset)]
     pub fn reset_clears(&self) { check!(self.value == 0); }
 
+    #[postcondition]
     fn grows_at_most_one(&self, before: &Self) { check!(self.value <= before.value + 1); }
-}
 
-#[assumptions]
-impl Counter {
+    #[assumption]
     fn never_reset() -> Assumption {
         without([User::Reset])
     }
-}
-
-#[progress]
-impl Counter {
-    fn reaches_two(&self) -> Progress {
+    #[progress]
+    fn reaches_two(&self) -> LeadsTo {
         PROGRESS_CALLS.fetch_add(1, Ordering::SeqCst);
         let trigger = self.value == 1;
         let progress = whenever(trigger);
@@ -89,11 +106,6 @@ impl Counter {
         }
         progress.eventually(false).assuming(Self::never_reset())
     }
-}
-
-impl Counter {
-    fn helper(&self) -> bool { self.value <= 2 }
-
     pub fn unregistered(&self) -> bool { self.helper() }
 }
 }
@@ -124,8 +136,8 @@ mod public_state {
     #[derive(Action, Copy)]
     pub enum Nobody {}
 
-    #[transitions]
     impl Public {
+        #[on(Nobody)]
         fn nobody(&mut self, action: Nobody) { match (self, action) {} }
     }
 }

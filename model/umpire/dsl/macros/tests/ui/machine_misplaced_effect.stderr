@@ -1,0 +1,5 @@
+error: #[effect] methods must follow #[on] and precede #[invariant]
+  --> tests/ui/machine_misplaced_effect.rs:17:9
+   |
+17 |         #[effect]
+   |         ^^^^^^^^^

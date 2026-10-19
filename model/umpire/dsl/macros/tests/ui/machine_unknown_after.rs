@@ -8,13 +8,11 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn user(&mut self, action: User) { match action { User::Press => {} } }
-    }
-    #[postconditions]
-    impl Model {
-        #[after(User::Missing)]
+
+        #[postcondition(after = User::Missing)]
         fn claim(&self) {}
     }
 }

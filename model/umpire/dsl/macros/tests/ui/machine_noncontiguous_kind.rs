@@ -8,16 +8,17 @@ mod model {
     #[derive(Action)]
     enum User { Press }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn user(&mut self, action: User) { match action { User::Press => {} } }
-    }
 
-    #[invariants]
-    impl Model {}
-    #[effects]
-    impl Model {}
+        #[invariant]
+        fn first(&self) {}
+        #[postcondition]
+        fn middle(&self) {}
+        #[invariant]
+        fn last(&self) {}
+    }
 }
 
 fn main() {}
-

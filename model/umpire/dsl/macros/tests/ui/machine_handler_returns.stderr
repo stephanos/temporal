@@ -1,4 +1,4 @@
-error: transitions methods return nothing; enabledness is a changed state
+error: #[on] methods return nothing; enabledness is a changed state
   --> tests/ui/machine_handler_returns.rs:13:42
    |
 13 |         fn user(&mut self, action: User) -> Option<()> { match action { User::Press => Some(()) } }

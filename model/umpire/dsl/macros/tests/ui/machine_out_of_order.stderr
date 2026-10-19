@@ -1,5 +1,5 @@
-error: out-of-order #[invariants] group; must precede #[progress]
-  --> tests/ui/machine_out_of_order.rs:13:5
+error: #[invariant] methods must follow #[effect] and precede #[postcondition]
+  --> tests/ui/machine_out_of_order.rs:18:9
    |
-13 |     #[invariants]
-   |     ^^^^^^^^^^^^^
+18 |         #[invariant]
+   |         ^^^^^^^^^^^^

@@ -6,15 +6,12 @@ mod model {
     #[derive(State)]
     struct Model {}
     #[derive(Action)]
-    enum Nobody {}
+    enum User { Press }
 
-    #[invariants]
-    impl Model {}
-    #[invariants]
-    impl Model {}
-    #[transitions]
+    #[effects]
     impl Model {
-        fn nobody(&mut self, action: Nobody) { match action {} }
+        #[on(User)]
+        fn user(&mut self, action: User) { match action { User::Press => {} } }
     }
 }
 

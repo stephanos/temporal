@@ -1,0 +1,5 @@
+error: unexpected token in attribute
+  --> tests/ui/machine_effect_arguments.rs:15:17
+   |
+15 |         #[effect(User)]
+   |                 ^

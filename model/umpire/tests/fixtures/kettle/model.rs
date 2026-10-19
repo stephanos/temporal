@@ -41,8 +41,8 @@ pub mod kettle {
         Failover,
     }
 
-    #[transitions]
     impl Model {
+        #[on(User)]
         fn user(&mut self, action: User) {
             match action {
                 User::PressButton if !self.heating_on => {
@@ -57,6 +57,7 @@ pub mod kettle {
             }
         }
 
+        #[on(Heater)]
         fn heater(&mut self, action: Heater) {
             match action {
                 Heater::Heat if self.heating_on && self.temperature < BOILING_TEMPERATURE => {
@@ -69,44 +70,36 @@ pub mod kettle {
                 _ => {}
             }
         }
-    }
 
-    #[invariants]
-    impl Model {
+        #[invariant]
         fn beeps_only_when_off(&self) {
             if self.beeping {
                 check!(!self.heating_on);
             }
         }
-    }
 
-    #[postconditions]
-    impl Model {
+        #[postcondition]
         fn warms_only_when_on(&self, before: &Self) {
             if !before.heating_on {
                 check!(self.temperature <= before.temperature);
             }
         }
 
-        #[after(Heater::Failover)]
+        #[postcondition(after = Heater::Failover)]
         fn fails_over_at_boiling(&self) {
             check!(self.temperature == BOILING_TEMPERATURE);
             check!(self.beeping);
         }
-    }
 
-    #[assumptions]
-    impl Model {
         /// The user switches the kettle on but never off.
+        #[assumption]
         fn never_switched_off() -> Assumption {
             without([User::DepressButton])
         }
-    }
 
-    #[progress]
-    impl Model {
         /// Switched on and left on, the water boils and the kettle beeps.
-        fn boils(&self) -> Progress {
+        #[progress]
+        fn boils(&self) -> LeadsTo {
             whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())
         }
     }

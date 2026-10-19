@@ -8,18 +8,13 @@ mod model {
     #[derive(Action)]
     enum Nobody {}
 
-    #[transitions]
     impl Model {
-        fn nobody(&mut self, action: Nobody) { match action {} }
-    }
+        #[on(Nobody)]
+        fn nobody(&mut self, action: Nobody) { match (self, action) {} }
 
-
-
-
-    #[progress]
-    impl Model {
+        #[progress]
         #[within(Self::unregistered)]
-        fn eventual(&self) -> Progress { whenever(true).eventually(true) }
+        fn eventual(&self) -> LeadsTo { whenever(true).eventually(true) }
     }
 }
 
