@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-210-rust-prototype-kettle-on-a-trait-engine",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-19T15:36:21.556960Z",
   "created_at": "2026-10-18T19:34:15.130367Z",
   "default_impl": null,
   "default_review": null,
@@ -1222,6 +1222,42 @@
       "task": "fn-210-rust-prototype-kettle-on-a-trait-engine.7",
       "timestamp": "2026-10-19T15:28:02.036565Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "8d32623bf0dc8bfd4a8ed629ebf0c624aeb52ac94af2a1d1873919d6f2ef656f",
+      "backend": "codex",
+      "base_sha": "038ac1c6ce271ec704a625f8644bba957c4e6790",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "ef5eb2837c71328b538d4ede52c6c92823c296c4",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1110652,
+      "output_sha256": "1c552b8bf9b6bf9977126f447e1ed33e41b69ddf8e8fc70a87143244eea4bb40",
+      "reservation_id": "d8edd674cf89427cafcac9f448464920",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-19T15:36:21.532795Z",
+      "tool_calls": 42,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
@@ -1244,11 +1280,13 @@
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.5": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.6": 1,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.7": 1,
-    "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.9": 1
+    "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.9": 1,
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.1": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.10": 0,
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.11": 0,
@@ -1271,7 +1309,7 @@
     "impl:fn-210-rust-prototype-kettle-on-a-trait-engine.9": 0
   },
   "spec_path": ".flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md",
-  "status": "open",
+  "status": "done",
   "title": "Rust prototype: Kettle on a trait engine with an attribute surface (model2)",
   "tracker": {
     "baseHashFlow": null,
@@ -1284,5 +1322,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T15:28:02.044081Z"
+  "updated_at": "2026-10-19T15:39:42.123104Z"
 }

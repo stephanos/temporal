@@ -16,7 +16,7 @@
   "priority": 4,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.7.md",
-  "status": "todo",
+  "status": "done",
   "title": "DESIGN.md: authoring, size, speed, tooling comparison and the recommendation",
   "updated_at": "2026-10-19T15:10:46.275919Z"
 }

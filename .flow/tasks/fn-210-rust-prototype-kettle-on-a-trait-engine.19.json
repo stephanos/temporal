@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.19.md",
-  "status": "todo",
+  "status": "done",
   "title": "Claims as check! statements; bare #[within(..)]",
   "updated_at": "2026-10-19T02:53:04.262509Z"
 }

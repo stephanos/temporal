@@ -10,7 +10,7 @@
   "priority": 0,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.14.md",
-  "status": "todo",
+  "status": "done",
   "title": "Pre-wire scope refusals through the generated host protocol",
   "updated_at": "2026-10-18T21:36:06.471571Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.21.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove fixture snapshot symlink aliases",
   "updated_at": "2026-10-19T01:31:44.342299Z"
 }

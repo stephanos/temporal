@@ -35,70 +35,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210 final review | All implementation tasks and the measured DESIGN comparison are complete. Recommendation: Rust, under stock WASM/Go parity alone. Cross-task spec review and final quality audits remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
-| After the verdict | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice planned by fn-210.7 keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
+| After the Rust verdict (now) | fn-214 → fn-216 → fn-213 → fn-215 → fn-212 → fn-218 → fn-217 → fn-211 | Owner priority order. fn-210's 22 tasks, completion review and final gates passed; the recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 decides whether lifting and TLC justify their machinery; fn-211 adds Apalache if approved. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-210: Rust prototype: Kettle on a trait engine with an attribute surface (model)
-
-Captured on 2026-10-18. Scope is Kettle's constructs only: vars with a `oneOf` start, actors with
-actions and internal steps, guarded transitions with effects, invariants, postconditions with
-`before` and `after`, one `without` scope, one `whenever … eventually … in` progress claim, and the
-questions `explore`, `verifyAll` and `refuted`. Gate: `make model-check` (local); goldens update
-with `make model-update`. [Spec](.flow/specs/fn-210-rust-prototype-kettle-on-a-trait-engine.md).
-
-What is fixed, all owner decisions of 2026-10-18:
-
-- **Shape (R9 to R17).** A world value implements `Machine` with associated `State` and `Action`;
-  `step` returns an ordered list of (outcome, facts, next), empty meaning disabled; overflow checks
-  in every profile and a panicking effect refutes its step; verdicts are holds, fails or unknown;
-  determinism is structural; dsl and checker build for
-  `wasm32-wasip1` in the gate; the visited set sits behind a `Visited` seam; `imbl` collections and
-  `Finite`-derived inputs are recorded for Bank.
-- **Dependencies (R18).** Only admitted crates (a release in the last 12 months, or finished and
-  very widely used): `indexmap`, `petgraph`, `smallvec`, `rustc-hash`, `fixedbitset`,
-  `enum-iterator`, `imbl`, `thiserror`, the `syn` 3 macro stack with `darling`, `manyhow` and
-  `prettyplease`, and `insta`, `trybuild`, `proptest`. Unmaintained alternatives are banned in
-  `deny.toml`.
-- **Testing (R8, R22, R23, R29).** End to end by golden files, no unit tests by default, one
-  brute-force oracle property test. A fixture is a folder with its `model.rs` and `expected/`
-  ("fixture", since Case is Testpilot's term). Fixtures every backend must agree on live in
-  `umpire/tests/fixtures/<name>/`, and their expected files select the consumers (checker, TLC,
-  Apalache); checker-only fixtures (panics, overflow, holes, budget cuts, refusals) stay in
-  `umpire/checker/tests/fixtures/`. A Model's source is its fixture's `model.rs`; there is no
-  `samples` crate.
-- **Conventions (R25 to R28).** One `Spell` text form for every value in every output; the
-  author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
-  API misuse, Model problems as verdicts. A future lifted tree is internal.
-- **Layout (R44, flat form since 2026-10-19).** A Model is one `#[machine] mod` with the state struct, the action
-  enums and one `impl Model` whose methods carry per-item attributes (`#[on(Actor)]` match methods, optional
-  `#[effect]`, `#[invariant]`, `#[postcondition]`, `#[assumption]`, `#[progress]`); `#[machine]` enforces that
-  kinds are grouped and in that order, that only `#[on]`/`#[effect]` take `&mut self`, and emits
-  `#[forbid(unsafe_code)]`; every attribute is pass-through. Claims are `check!` statements (.19); a progress claim
-  names its assumption in its expression (`.assuming(..)`).
-- **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
-  which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
-  `#[machine]` stays here as registration only, without token recording or subset warnings.
-- **Feedback loop (R30).** The warm soft targets are 10 s for the inner loop (edit one crate,
-  rebuild, run its fixtures) and 30 s for the full local gate (baseline 0.8 s and 0.7 s). `make model-time`
-  prints each step and notes overruns; every task records the result. Small isolated overruns do
-  not block completion; investigate substantial or repeated overruns. Slow tools (JVM, network) run batched or behind
-  `UMPIRE_BACKENDS=require`.
-- **Host interface (R31, R32, R42).** The Model talks to any host through protobuf messages over a
-  three-function core-wasm ABI (`umpire_buffer_alloc`, `umpire_buffer_release`, `umpire_call`), generated on both sides from one schema in
-  `model/umpire/proto/` (`prost` in Rust, `protoc-gen-go` in Go). The Go host is wazero, so Go
-  stays at `CGO_ENABLED=0`; the module targets `wasm32-wasip1`. wasmtime remains the simulation's
-  host; the same module loads in both.
-  `oracle.proto` stays minimal (explore, rows, refusal) until the Case slice merges it with
-  Testpilot's schema into one vocabulary (R33).
-- **Process.** Parallel tasks touch disjoint crates; shared files (`Cargo.toml`, `Cargo.lock`,
-  `Makefile`, `README.md`) are edited by one task at a time; a task that moves paths runs alone and
-  every session re-reads its task after it.
-
-All implementation tasks are complete. DESIGN records the Rust recommendation, final measurements,
-parameterized-Model readiness and the historical options comparison; `options/` is removed.
-Cross-task spec review and final quality audits remain before the local spec closure.
 
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 

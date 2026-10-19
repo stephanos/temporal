@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.20.md",
-  "status": "todo",
+  "status": "done",
   "title": "Flat form: per-item attributes on one impl, match per actor, grouping enforced",
   "updated_at": "2026-10-19T05:19:55.792947Z"
 }

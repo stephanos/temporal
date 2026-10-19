@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.17.md",
-  "status": "todo",
+  "status": "done",
   "title": "Move the generic Go wasm host inside model/umpire",
   "updated_at": "2026-10-18T23:15:16.831559Z"
 }

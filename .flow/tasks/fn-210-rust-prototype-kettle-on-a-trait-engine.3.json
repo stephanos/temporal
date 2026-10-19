@@ -15,7 +15,7 @@
   "priority": 2,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Progress: whenever/eventually within a scope, weak fairness on internal steps, lasso counterexamples",
   "updated_at": "2026-10-18T21:36:20.234120Z"
 }

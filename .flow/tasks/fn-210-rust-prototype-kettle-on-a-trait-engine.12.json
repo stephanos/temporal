@@ -11,7 +11,7 @@
   "priority": 1,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.12.md",
-  "status": "todo",
+  "status": "done",
   "title": "Spell and Refusal: canonical value spelling in every output; misuse returns Result",
   "updated_at": "2026-10-18T20:41:30.829641Z"
 }

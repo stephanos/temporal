@@ -11,7 +11,7 @@
   "priority": 1,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.15.md",
-  "status": "todo",
+  "status": "done",
   "title": "Archive the Scala model under model/archived and rename model2 to model",
   "updated_at": "2026-10-18T22:24:40.434389Z"
 }

@@ -12,7 +12,7 @@
   "priority": null,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.22.md",
-  "status": "todo",
+  "status": "done",
   "title": "Name sample fixtures explicitly and rename progress dead-end control",
   "updated_at": "2026-10-19T01:34:59.533277Z"
 }

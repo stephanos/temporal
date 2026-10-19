@@ -10,7 +10,7 @@
   "priority": 1,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.16.md",
-  "status": "todo",
+  "status": "done",
   "title": "Name the wasm ABI explicitly and remove export rewriting",
   "updated_at": "2026-10-18T22:24:34.887068Z"
 }

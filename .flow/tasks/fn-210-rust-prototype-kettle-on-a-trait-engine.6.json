@@ -14,7 +14,7 @@
   "priority": 3,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.6.md",
-  "status": "todo",
+  "status": "done",
   "title": "Kettle in surface C with its test; parity with the Scala suite",
   "updated_at": "2026-10-19T00:20:05.163530Z"
 }

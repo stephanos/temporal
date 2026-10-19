@@ -11,7 +11,7 @@
   "priority": 3,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.8.md",
-  "status": "todo",
+  "status": "done",
   "title": "Slice 1: lift Kettle to TLA+ and agree with TLC",
   "updated_at": "2026-10-18T20:53:44.231910Z"
 }

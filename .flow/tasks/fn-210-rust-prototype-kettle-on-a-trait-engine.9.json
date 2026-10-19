@@ -12,7 +12,7 @@
   "priority": 3,
   "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.9.md",
-  "status": "todo",
+  "status": "done",
   "title": "Decisive slice: the checker as wasm in a wazero Go host, generated protobuf interface, on the trait Kettle",
   "updated_at": "2026-10-18T21:46:36.286866Z"
 }
