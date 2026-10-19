@@ -268,10 +268,26 @@ fn go_network_cluster_corpus() {
             assert_eq!(actual, step["expected"], "{path:?} step {index}");
         }
         if corpus["name"] == "cross-node-ready-poll-and-stale-cancel-binary-fixture" {
+            // These files are the only writer-backed fixtures for the Go
+            // decoder tests (`wasi/cluster_network_test.go`); after a reviewed
+            // evidence or scenario change, regenerate them here and rerun Go.
+            let directory = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+                .join("tests/testdata/cluster_network");
+            let regenerate =
+                std::env::var("GOMAD_CLUSTER_NETWORK_FIXTURE_REGENERATE").as_deref() == Ok("1");
             for (id, endpoint) in &endpoints {
-                let path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-                    .join(format!("tests/testdata/cluster_network/{id}.gmnetev1"));
-                assert_eq!(endpoint.evidence().unwrap(), std::fs::read(path).unwrap());
+                let path = directory.join(format!("{id}.gmnetev1"));
+                let evidence = endpoint.evidence().unwrap();
+                if regenerate {
+                    std::fs::create_dir_all(&directory).unwrap();
+                    std::fs::write(&path, &evidence).unwrap();
+                    continue;
+                }
+                assert_eq!(
+                    evidence,
+                    std::fs::read(&path).unwrap(),
+                    "stale {path:?}; rerun with GOMAD_CLUSTER_NETWORK_FIXTURE_REGENERATE=1 and the Go decoder tests"
+                );
             }
         }
         if corpus["name"] == "own-server-dial-and-bytes" {
