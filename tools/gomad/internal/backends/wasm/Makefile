@@ -27,7 +27,8 @@ helper:
 		cmp "$$helper_source" "$$helper_tmp" && \
 		mv -f "$$helper_tmp" wasmhost/target/release/gomad-wasmhost
 
-test: helper test-helper test-go
+test: test-helper
+	$(MAKE) test-go
 
 # The helper transcript corpus also runs on the diagnostic builds (fn-187); they
 # change the helper binary, so they build in their own target directory.
@@ -64,6 +65,7 @@ test-conformance:
 		-run '^(TestNamespaceConformance|TestVolumeConformance)' ./wasi
 
 test-go:
+	$(MAKE) helper
 	$(MAKE) -C ../../.. test-wasm GOMAD_STOCK_GO='$(GOMAD_WASM_STOCK_GO)'
 
 test-model:
