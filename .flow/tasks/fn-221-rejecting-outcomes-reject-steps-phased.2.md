@@ -24,9 +24,25 @@ Add `Phase`, `Phased` and `closable::{terminal_remains, closed_rejects}` to `ump
 - [ ] `make model-check` passes.
 
 ## Done summary
-TBD
+Model authors can share phase-preservation and entity-specific closed-rejection laws through `Phase`, `Phased` and unit-returning `closable` checks. The activity Model registers both laws and emits `Rejected(NotFound)` cancel self-loops from all four closed phases, while Scheduled and Started cancellation stays atomic.
 
+R2 is covered by the generic multi-field `closure_checks_separate_phase_state_and_entity_specific_rejection` control and six activity controls. They distinguish phase preservation from whole-state preservation, check every phase/action pair through the registered callbacks, exercise emitted rejected cancels, and refute reopening, moves between terminal phases, accepted outcomes and wrong rejections. Only activity goldens changed. Three authorized downstream test assertions now require exactly `["Client::Cancel"]` after a contradictory terminal Describe and retain the freeze checks. No feature-entry route changed.
+
+baseline: green for `make model-check`, `make umpire-check-model-slice`, and the configured direct Go selector. The initial direct invocation failed before edits because it used a nonexistent default guest path; `baseline-live.log` retains that failure. `baseline-live-configured.log` records the corrected green run using the inherited `CARGO_TARGET_DIR` guest. The preceding task's `fn2211/baseline-live.log` retains the unconfigured-selector failure. Baseline logs are beside this summary.
+
+The new cancel reproduction failed with zero emitted steps before the Model change (`red-terminal-cancel.log`); the generic API control failed on missing phase APIs (`red-closable.log`). Native, live and Go-host parity controls then failed at the exact obsolete empty expected-action assertions (`red-native-expectation.log`, `red-live-expectation.log`, `verify-model-final.log`) before their authorized migration. Final model verification, all four live slice scenarios, the configured direct Go selector and nonfixing Go lint passed (`verify-model-parity.log`, `verify-slice.log`, `verify-live.log`, `final-lint.log`). The model gate includes formatting, clippy, documentation, generic boundary checks, native fixtures and wasm/Go parity. Kettle and all existing generic goldens remain unchanged.
+
+The first review attempt failed before dispatch while publishing sidecars and was refunded. Publication probes succeeded; one normal retry produced three SHIP draws with no findings. Correctness, contracts and integration all ran `codex:gpt-6.1-sol:high`, from the writer's model family. Reviewer test attempts were blocked by read-only caches; worker gate logs above supply executable evidence. The merged receipt is `/tmp/impl-review-receipt-8f37faba39e2-fn-221-rejecting-outcomes-reject-steps-phased.2.json`; draw evidence is `.flow/review-fanout/afe4cf3a6c804de0a467111a0d3e0487/`.
+
+GATE_SKIPPED:unittest:green-receipt bdaab350 - verified post-change model gate reused at final verification
+GATE_SKIPPED:smoke:green-receipt bdaab350 - verified post-change slice gate reused at final verification
+GATE_SKIPPED:live:green-receipt bdaab350 - verified configured direct Go selector reused at final verification
+
+stage: impl-review - ran [2026-10-19T21:21:43Z..2026-10-19T21:24:40Z] (one refunded pre-dispatch transport failure, then three SHIP draws; model: gpt-6.1-sol at high)
+stage: plan-sync - skipped(config: planSync.enabled != true)
+Tier: session (jev-unavailable(no_key))
+Tracker sync: n/a (bridge inactive)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: bdaab35025b7bef6c95fd22ad4c15e20996bb385
+- Tests: mise exec -- cargo test -p umpire-dsl --test closable, mise exec -- cargo test -p umpire-temporal-tests --test fixtures, make model-check, make umpire-check-model-slice, UMPIRE_TEMPORAL_WASM=/home/agent/.cache/codex-build/cargo-target/wasm32-wasip1/release/umpire_temporal_guest.wasm CGO_ENABLED=0 mise exec -- go test -tags 'test_dep integration' ./tests -run '^TestTestpilotModelSlice$' -count=1, GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=2487b1f7b9 make lint-code-fast, GATE_SKIPPED:unittest:green-receipt bdaab350 - verified post-change model gate reused at final verification, GATE_SKIPPED:smoke:green-receipt bdaab350 - verified post-change slice gate reused at final verification, GATE_SKIPPED:live:green-receipt bdaab350 - verified configured direct Go selector reused at final verification
 - PRs:
