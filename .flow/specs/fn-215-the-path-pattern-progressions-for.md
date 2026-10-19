@@ -45,3 +45,5 @@ A developer with no temporal logic reads a list with gaps as a state progression
 ## Decision Context
 
 2026-10-19, owner: the list-with-gap notation is adopted as the canonical spelling of a progress claim because it reads as a state progression to a developer with no temporal logic; the builder remains as its expansion. Then generalized the same day: the list is a pattern over paths, and the question (`#[progress]`, `find`, `Run::along`) decides universal versus existential, so the neutral name `path!` stands (after the checker's `paths/` goldens, which show exactly such progressions); `leads_to!` was considered and rejected because it is wrong for `find`. Chains are allowed in the pattern and refused only in a claim, where the universal reading of a chain is ambiguous and no real claim needs one; adjacency without a gap is refused rather than meaning "next step".
+
+2026-10-19, naming: `Progress` as the claim value type in this spec is `LeadsTo` (`Progress` is the attribute `#[progress]`, not a type); `LeadsTo: From<Path>` for two waypoints, `.assuming(..)` and `.within(n)` unchanged.
