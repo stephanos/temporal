@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-18T23:51:07.448723Z",
+  "depends_on": [
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.6"
+  ],
+  "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.18",
+  "priority": null,
+  "spec": "fn-210-rust-prototype-kettle-on-a-trait-engine",
+  "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.18.md",
+  "status": "todo",
+  "title": "Handlers as fn(&mut self): enabled iff the state changed",
+  "updated_at": "2026-10-18T23:59:48.089263Z"
+}

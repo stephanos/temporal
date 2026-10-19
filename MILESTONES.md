@@ -35,7 +35,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| Umpire in Rust (now) | fn-210.6 and .7 | The archive, registration, progress, direct wasm ABI and generic Go host relocation are complete; attribute Kettle and the comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
+| Umpire in Rust (now) | fn-210.18, .19 and .7 | The archive, nested attribute Kettle, claim ordering, progress, direct wasm ABI and generic Go host relocation are complete; the authoring follow-ups and comparison remain. Standalone extraction is planned, not executed, in `MIGRATE.md`. |
 | After the verdict | fn-213 (ModelSuite: examples and explorations), fn-212, then fn-211 if approved; Case slice planned by fn-210.7 | fn-212 first decides whether lifting and TLC's second opinion justify their machinery; fn-211 adds Apalache over that emitter if it proceeds. The Case slice makes the Model the oracle, with one system-agnostic protobuf vocabulary and a Temporal extension (R33). Program and evidence capture stay; the Contract and all CEL go; the Model decides read completion and SDK callback responses (R35, R37); workers in other languages, such as a Java SDK worker, reach the run's single Model through the runner's local endpoint with a thin shim per SDK (R40). One host-loop command replaces run/fuzz/replay/assess/repeat modes (R38). A Run is observations plus the Model's judgment; profiles, receipts and provenance go, while the never-overwrite publish store stays (R39). Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. |
 
 ## Specs
@@ -95,8 +95,9 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.6 | 🔄 in progress | Parallel lanes: attribute Kettle with separate User/Heater enums and checker claim ordering; `#[machine]` enforces the Scala part order as an error and the approved nested surface (`#[machine] mod` with one impl per part kind, actor-level `#[internal]`, optional `before`, `without([..])` scopes, `whenever(..).eventually(..)` progress as per-state booleans); state struct `kettle::Model`; only the four approved action spellings and `Kettle { .. }` to `Model { .. }` change in canonical goldens; trait reference stays unchanged (R6, R14, R44) |
-| fn-210.7 | ⬜ todo | After .6: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
+| fn-210.18 | ⬜ todo | After .6: handlers become `fn name(&mut self)`, enabled iff the state changed; refuse a return type; goldens unchanged (R6) |
+| fn-210.19 | ⬜ todo | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); bare `#[within(..)]` (R6) |
+| fn-210.7 | ⬜ todo | After .19: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 

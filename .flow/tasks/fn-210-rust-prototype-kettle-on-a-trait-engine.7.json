@@ -6,7 +6,9 @@
   "depends_on": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine.6",
     "fn-210-rust-prototype-kettle-on-a-trait-engine.8",
-    "fn-210-rust-prototype-kettle-on-a-trait-engine.9"
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.9",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.18",
+    "fn-210-rust-prototype-kettle-on-a-trait-engine.19"
   ],
   "id": "fn-210-rust-prototype-kettle-on-a-trait-engine.7",
   "priority": 4,
@@ -14,5 +16,5 @@
   "spec_path": ".flow/tasks/fn-210-rust-prototype-kettle-on-a-trait-engine.7.md",
   "status": "todo",
   "title": "DESIGN.md: authoring, size, speed, tooling comparison and the recommendation",
-  "updated_at": "2026-10-18T22:43:08.556530Z"
+  "updated_at": "2026-10-18T23:56:40.804029Z"
 }
