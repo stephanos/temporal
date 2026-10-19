@@ -1,0 +1,8 @@
+status: diverged
+first: clock guest/1 ordinal=1 shared=0 tape=2 time=946684800000001000 field=operation
+  expected: clock_time_get(clock_id=1)=946684800000002000
+  actual:   clock_time_get(clock_id=1)=946684800000002001
+reproduce: workload=fixture/single-shifted-clock seed=7 cell=clock
+  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:eaf6e031e55880db2a6438bb02489caf16628442bab699f51e2acd3048e07129)
+  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:b61be9b3a868326f66af4f887034ad594f470cec6d7a8392abedaca350bcb58c)
+  replay:   gomad replay --stop choice=2 /artifacts/reference

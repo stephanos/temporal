@@ -1,0 +1,81 @@
+{
+  "schema": "gomad.wasm-first-divergence/v1",
+  "status": "diverged",
+  "first": {
+    "kind": "draw-counter",
+    "instance": "b",
+    "incarnation": 1,
+    "ordinal": 2,
+    "coordinate": {
+      "Shared": 1,
+      "ChoiceOrdinal": 2,
+      "VirtualTime": 946684800000002000
+    },
+    "field": "runq_draws",
+    "expected": "time=946684800000002000 runq=4 scheduler=3 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0",
+    "actual": "time=946684800000002000 runq=5 scheduler=3 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0"
+  },
+  "reproducer": {
+    "workload": "fixture/cluster-perturbed-draw",
+    "seed": 7,
+    "perturbation": "draw",
+    "expected_digest": "sha256:f29e32862bbe1320178b151fed866e3d68c18a4f57c784cdcf0731176ea3e504",
+    "actual_digest": "sha256:cdff2b03ee71ddb28f09fd93feb1bb40ecb23d0fa1590462590ac544c6aac9a0",
+    "identities": {
+      "engine": "e",
+      "helper": "h",
+      "model": "d",
+      "module": "m",
+      "source": "s"
+    },
+    "expected_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/cluster-perturbed-draw"
+    ],
+    "actual_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/cluster-perturbed-draw"
+    ],
+    "stop": {
+      "instance": "b",
+      "incarnation": 1,
+      "stop": {
+        "kind": "choice",
+        "value": 2
+      },
+      "dumps": [
+        "stacks",
+        "heap"
+      ],
+      "probes": null,
+      "maximum_bytes": 67108864,
+      "per_dump_bytes": 67108864,
+      "output_directory": ""
+    },
+    "replay_command": [
+      "gomad",
+      "replay",
+      "--stop",
+      "choice=2",
+      "--instance",
+      "b",
+      "--incarnation",
+      "1",
+      "/artifacts/reference"
+    ]
+  }
+}
