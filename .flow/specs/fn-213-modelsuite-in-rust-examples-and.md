@@ -50,3 +50,5 @@ Everything is plain Rust: `#[test]` functions in two modules, `cargo test` as th
 ## Decision Context
 
 2026-10-18, owner: the ModelSuite equivalent is planned now but after fn-210.7; conformance waits ("let's wait with conformance for now"); the test file lives next to `model.rs`, not inside it, so the Model file stays the whole liftable unit and the fixture folder is model + tests + goldens; `pub` fields are the accepted consequence.
+
+2026-10-19, owner: fn-215's `Path` is the suite's pattern too; `find` takes a `path!` through waypoints and `Run::along` fills a milestone story (fn-215 R4, delivered by .3 and .2). Tasks .2/.3 wait for fn-215 R1.

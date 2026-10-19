@@ -10,6 +10,7 @@ In `umpire-suite`: `Space::from(starts)` with `.budget(n)` (default the checker'
 
 **Feedback loop (R30):** paste `make model-time` into the done summary.
 
+**Added 2026-10-19 (fn-215 R4):** `find(&space, path: Path<State>)` replaces the single-predicate form: the shortest admitted path through the waypoints in order, leg by leg (BFS from each reached waypoint state to the next, `..=n` honoured), actions spelled as the checker's `paths/` goldens; an unbridgeable gap is a `Refusal` naming the waypoint index and the last reached state. A one-predicate `find` is `path![start, .., pred]`. Needs fn-215 R1 first.
 ## Acceptance
 - [ ] TBD
 

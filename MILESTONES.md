@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-18.
+As of 2026-10-19.
 
 ## Keeping this page current
 
@@ -113,17 +113,18 @@ change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).
 | fn-214.2 | ⬜ todo | `.within(n)`; named verdicts and hints in the checker (R2, R3) |
 | fn-214.3 | ⬜ todo | After .1 and .2: Kettle's progress questions as fixtures; DESIGN.md fairness and `WF_vars` contract (R4, R5) |
 
-### fn-215: The path! progression notation for progress claims (model)
+### fn-215: The path! pattern: progressions for claims, witnesses and examples (model)
 
-Captured on 2026-10-19, after fn-214. A progress claim reads as a state progression:
-`path![self.heating_on, .., self.beeping]` (`..` = eventually, on every admitted path) and
-`path![p, ..=n, q]` (within `n` steps), a `macro_rules!` expanding to the fn-214 builder; chains and
-adjacency are compile errors by owner decision. Kettle's goldens do not change.
-[Spec](.flow/specs/fn-215-the-path-progression-notation-for.md).
+Captured on 2026-10-19, after fn-214. A list with gaps is a pattern over paths:
+`path![self.heating_on, .., self.beeping]` (`..` = any steps, `..=n` = at most `n`). The question
+decides the reading: `#[progress]` (every admitted path; exactly two waypoints, more are refused),
+`find` (some path, shortest leg by leg) and `Run::along` (a milestone story the checker fills in),
+the latter two delivered by fn-213.3/.2. Kettle's goldens do not change.
+[Spec](.flow/specs/fn-215-the-path-pattern-progressions-for.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-215.1 | ⬜ todo | `path!` macro with its two refusals; Kettle in `path!` form; reading rules in README (R1, R2, R3) |
+| fn-215.1 | ⬜ todo | `Path`/`path!` with refusals; `#[progress]` refuses >2 waypoints; Kettle in `path!` form; reading rules (R1, R2, R3) |
 
 ### fn-213: ModelSuite in Rust: examples and explorations (model)
 
@@ -138,8 +139,8 @@ plain `#[test]` functions run by `cargo test`; the golden hook moves there too a
 | Name | Status | What |
 | --- | --- | --- |
 | fn-213.1 | ⬜ todo | Fixture layout: `tests.rs` beside `model.rs`, `build.rs` declares both, golden hook moves, `pub` fields (R1) |
-| fn-213.2 | ⬜ todo | After .1: `umpire-suite` examples: `Run`, `step`, `repeat`, `expect!`, refusal fixtures (R2) |
-| fn-213.3 | ⬜ todo | After .1: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find`, fixtures (R3) |
+| fn-213.2 | ⬜ todo | After .1 and fn-215: `umpire-suite` examples: `Run`, `step`, `repeat`, `Run::along(path!)`, `expect!`, refusal fixtures (R2, fn-215 R4) |
+| fn-213.3 | ⬜ todo | After .1 and fn-215: `umpire-suite` explorations: `Space`, `verify_all`, `refuted`, `find` through `path!` waypoints, fixtures (R3, fn-215 R4) |
 | fn-213.4 | ⬜ todo | After .2, .3 and fn-214: Kettle's `tests.rs` with the Scala suite's questions; gate and model-time (R4, R5) |
 
 ### fn-212: TLA+ lifting and the TLC backend for Umpire in Rust (model)

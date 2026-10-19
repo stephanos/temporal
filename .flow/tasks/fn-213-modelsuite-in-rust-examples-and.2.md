@@ -10,6 +10,7 @@ New crate `model/umpire/suite/` (`umpire-suite`, depends on `umpire-dsl` and `um
 
 **Feedback loop (R30):** paste `make model-time` into the done summary.
 
+**Added 2026-10-19 (fn-215 R4):** `Run::along(path: Path<State>) -> Result<Run, Refusal>`: the first waypoint must be a concrete state (else refused); each gap is bridged by the shortest admitted path to the next waypoint (`..=n` bounds it), then replayed through `Machine::step`, so the result is an ordinary `Run`; an unbridgeable gap is a `Refusal` naming the waypoint index and the last reached state. Needs fn-215 R1 (`Path`) first; parallel with .3 otherwise.
 ## Acceptance
 - [ ] TBD
 

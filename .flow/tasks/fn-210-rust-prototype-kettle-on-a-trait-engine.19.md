@@ -45,12 +45,15 @@ Do: `check!`/`unknown!` and the recorder in `umpire-dsl` (`claim.rs`); the gener
 The shared `changed_state` attribute fixture introduced by .18 must adopt the new claim signatures too; its action/step semantics stay unchanged. Other manual trait fixtures remain unchanged. Test the recorder with crate-owned fixtures for failed checks, holes, exact-once evaluation, direct calls and isolation across evaluations.
 
 **Feedback loop (R30):** paste `make model-time` into the done summary.
+**Owner-approved assumption consistency:** within one exploration, each progress claim must return the same assumption across reached states. A mismatch makes that progress claim Unknown with a diagnostic. Do not silently use the first value while ignoring mismatches. The rule is per claim and per exploration; different world instances may supply different fixed assumptions.
+**Owner-approved legacy compatibility:** retain a legacy `Scope` type alias so the separate trait Kettle and other manual trait sources remain unchanged. The attribute surface exposes `Assumption`, `#[assumptions]` and `.assuming(..)` only. Preserve the legacy trait builder calls needed by the unchanged reference; document this compatibility boundary.
 ## Acceptance
 - Invariant and postcondition methods have no return type and use `check!` / `unknown!`; a claim holds iff no check failed; the recorder never panics or unwinds, and the wasm guest's behaviour is unchanged.
-- A `#[within(..)]` attribute is refused naming `.assuming(..)`; a claim method with a return type is refused; both pinned by trybuild `.stderr` fixtures; `Scope`/`#[scopes]` no longer exist, `Assumption`/`#[assumptions]` replace them.
+- A `#[within(..)]` attribute is refused naming `.assuming(..)`; a claim method with a return type is refused; both pinned by trybuild `.stderr` fixtures; the attribute surface replaces `Scope`/`#[scopes]` with `Assumption`/`#[assumptions]`; the owner-approved legacy `Scope` alias preserves unchanged manual trait sources.
 - Kettle's claims and the `machine` macro fixture use the new form; the only golden change is the failing-check text in counterexamples; `kettle_trait` and its goldens are byte-identical.
 - A claim method called directly in a unit test behaves as an ordinary method.
 - DESIGN.md records the shape and the recorder; the full local gate passes within R30.
+- Each progress claim's assumption stays fixed across reached states in one exploration; a mismatch yields Unknown with a diagnostic.
 ## Done summary
 TBD
 

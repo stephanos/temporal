@@ -1,0 +1,33 @@
+{
+  "branch_name": "fn-215-the-path-pattern-progressions-for",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
+  "created_at": "2026-10-19T00:21:07.169846Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
+  "depends_on_epics": [
+    "fn-214-progress-vocabulary-on-kettle-scopes"
+  ],
+  "id": "fn-215-the-path-pattern-progressions-for",
+  "impl_review_rounds": {},
+  "next_task": 1,
+  "plan_review_rounds": 0,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-215-the-path-pattern-progressions-for.md",
+  "status": "open",
+  "title": "The path! pattern: progressions for claims, witnesses and examples (model)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-19T00:31:16.085833Z"
+}
