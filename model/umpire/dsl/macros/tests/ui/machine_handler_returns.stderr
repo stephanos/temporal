@@ -1,0 +1,5 @@
+error: #[on] handlers return nothing; enabledness is a changed state
+  --> tests/ui/machine_handler_returns.rs:14:29
+   |
+14 |         fn press(&mut self) -> Option<()> { Some(()) }
+   |                             ^^^^^^^^^^^^^

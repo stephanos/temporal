@@ -11,9 +11,9 @@ mod model {
     #[transitions]
     impl Model {
         #[on(User::Press)]
-        fn first(&mut self) -> Option<()> { Some(()) }
+        fn first(&mut self) {}
         #[on(User::Press)]
-        fn second(&mut self) -> Option<()> { Some(()) }
+        fn second(&mut self) {}
     }
 }
 

@@ -1,0 +1,18 @@
+starts: 1
+reached: 2
+emitted: 1
+evaluated: 8
+refused: 7
+depth: 1
+cut: false
+outcome: Outcome::Refuted
+claim no_change_checked: Outcome::Verified
+claim same_value_checked: Outcome::Verified
+claim mutate_restore_checked: Outcome::Verified
+claim actual_change_checked: Outcome::Refuted
+vacuity: action User::NoChange never fired
+vacuity: action User::SameValue never fired
+vacuity: action User::MutateRestore never fired
+vacuity: after claim no_change_checked never triggered
+vacuity: after claim same_value_checked never triggered
+vacuity: after claim mutate_restore_checked never triggered

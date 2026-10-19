@@ -9,6 +9,7 @@ mod counter {
     pub enum User {
         Increment,
         Reset,
+        MutateRestore,
     }
     #[derive(Action)]
     #[internal]
@@ -16,23 +17,22 @@ mod counter {
         Tick,
     }
     impl Counter {
-        fn tick(&mut self) -> Option<()> {
+        fn tick(&mut self) {
             self.value += 1;
-            None
         }
-        #[allow(
-            clippy::unnecessary_wraps,
-            reason = "transition handlers return Option even when always enabled"
-        )]
-        fn reset(&mut self) -> Option<()> {
+        fn reset(&mut self) {
             self.value = 0;
-            Some(())
         }
-        pub fn increment(&mut self) -> Option<()> {
-            (self.value < 2)
-                .then(|| {
-                    self.value += 1;
-                })
+        pub fn increment(&mut self) {
+            if self.value < 2 {
+                self.value += 1;
+            }
+        }
+        fn mutate_restore(&mut self) {
+            if self.value < 2 {
+                self.value += 1;
+                self.value -= 1;
+            }
         }
         fn helper(&self) -> bool {
             self.value <= 2
@@ -150,18 +150,27 @@ mod counter {
                     match value {
                         User::Reset => {
                             let mut next = state.clone();
-                            let enabled: ::core::option::Option<()> = next.reset();
+                            next.reset();
                             let mut steps = ::umpire_dsl::Steps::new();
-                            if enabled.is_some() {
+                            if next != *state {
                                 steps.push(((), ::std::vec::Vec::new(), next));
                             }
                             steps
                         }
                         User::Increment => {
                             let mut next = state.clone();
-                            let enabled: ::core::option::Option<()> = next.increment();
+                            next.increment();
                             let mut steps = ::umpire_dsl::Steps::new();
-                            if enabled.is_some() {
+                            if next != *state {
+                                steps.push(((), ::std::vec::Vec::new(), next));
+                            }
+                            steps
+                        }
+                        User::MutateRestore => {
+                            let mut next = state.clone();
+                            next.mutate_restore();
+                            let mut steps = ::umpire_dsl::Steps::new();
+                            if next != *state {
                                 steps.push(((), ::std::vec::Vec::new(), next));
                             }
                             steps
@@ -172,9 +181,9 @@ mod counter {
                     match value {
                         Clock::Tick => {
                             let mut next = state.clone();
-                            let enabled: ::core::option::Option<()> = next.tick();
+                            next.tick();
                             let mut steps = ::umpire_dsl::Steps::new();
-                            if enabled.is_some() {
+                            if next != *state {
                                 steps.push(((), ::std::vec::Vec::new(), next));
                             }
                             steps

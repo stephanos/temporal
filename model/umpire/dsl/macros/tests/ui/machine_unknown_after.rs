@@ -11,7 +11,7 @@ mod model {
     #[transitions]
     impl Model {
         #[on(User::Press)]
-        fn press(&mut self) -> Option<()> { Some(()) }
+        fn press(&mut self) {}
     }
     #[postconditions]
     impl Model {
