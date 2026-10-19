@@ -71,11 +71,12 @@ What is fixed, all owner decisions of 2026-10-18:
 - **Conventions (R25 to R28).** One `Spell` text form for every value in every output; the
   author's Rust names in outputs, mapped only at a future Case boundary; `Result<_, Refusal>` for
   API misuse, Model problems as verdicts. A future lifted tree is internal.
-- **Layout (R44).** A Model is one `#[machine] mod` mirroring Scala's nested objects: the state struct, the action
-  enums, then one `impl` per part kind in order (`#[transitions]`, optional `#[effects]`, `#[invariants]`, `#[postconditions]`,
-  `#[assumptions]`, `#[progress]`), each at most once; only transitions and effects take `&mut self`; the attribute rejects any other order or a duplicate group. A progress claim
-  names its assumption in its expression (`.assuming(..)`), not in an attribute. Transitions are one `match`
-  method per actor with match guards (.20); claims are `check!` statements (.19).
+- **Layout (R44, flat form since 2026-10-19).** A Model is one `#[machine] mod` with the state struct, the action
+  enums and one `impl Model` whose methods carry per-item attributes (`#[on(Actor)]` match methods, optional
+  `#[effect]`, `#[invariant]`, `#[postcondition]`, `#[assumption]`, `#[progress]`); `#[machine]` enforces that
+  kinds are grouped and in that order, that only `#[on]`/`#[effect]` take `&mut self`, and emits
+  `#[forbid(unsafe_code)]`; every attribute is pass-through. Claims are `check!` statements (.19); a progress claim
+  names its assumption in its expression (`.assuming(..)`).
 - **Decisive slice and follow-up (R20, R24, R36).** The checker runs as wasm in a wazero Go host,
   which decides the Rust verdict. Lifting, subset warnings and TLC agreement move to fn-212;
   `#[machine]` stays here as registration only, without token recording or subset warnings.
@@ -97,9 +98,9 @@ What is fixed, all owner decisions of 2026-10-18:
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-210.19 | 🔄 in progress | After .18: invariants and postconditions as `check!` statements (no return type, failing check named in counterexamples); no `#[within]` attribute, `.assuming(..)` in the claim (R6) |
-| fn-210.20 | ⬜ todo | After .18: `#[transitions]` as one `match` method per actor with match guards; no `#[on]`; optional `#[effects]`; `&mut self` refused elsewhere; `forbid(unsafe_code)`; goldens unchanged (R6) |
-| fn-210.7 | ⬜ todo | After .19 and .20: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
+| fn-210.20 | 🔄 in progress | After .18 and the completed .19 claim recorder: flat form, one `impl Model` with per-item attributes; `#[on(Actor)]` match methods with match guards; optional `#[effect]`; `&mut self` refused elsewhere; `forbid(unsafe_code)`; goldens unchanged (R6) |
+| fn-210.22 | ⬜ todo | After .20: rename authoring examples to `sample_kettle` / `sample_kettle_trait` and the finite progress-refutation control to `progress_dead_end`; preserve behavior payloads |
+| fn-210.7 | ⬜ todo | After .20 and .22: `model/DESIGN.md` with the verdict and the comparison; then delete `options/` (R7, R24); DESIGN.md records parameterized-Model readiness (engine ready, five surface gaps, `w: &World` shape) |
 
 ### fn-216: Mini activity vertical slice: the Model judges and answers one real SDK run (model, testpilot)
 
@@ -158,7 +159,7 @@ the Model's catalog. The claim form stays two state waypoints.
 ### fn-214: Progress vocabulary on Kettle: scopes, bounds, fairness and verdicts (model)
 
 Captured on 2026-10-19, after fn-210.19. Kettle parity with its archived test's progress questions:
-`Assumption` (renamed from `Scope`; `#[assumptions]`, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
+`Assumption` (renamed from `Scope`; `#[assumption]` methods, `.assuming(..)`) gains `only` and `fair` beside `without`; fairness is explicit, never implied by
 `#[internal]` (owner); `Progress::within(n)` bounds a claim; verdicts are named (deadlock, cycle,
 missed deadline, verified with longest, unknown) with Scala's hint lines. Kettle's goldens do not
 change. [Spec](.flow/specs/fn-214-progress-vocabulary-on-kettle-scopes.md).

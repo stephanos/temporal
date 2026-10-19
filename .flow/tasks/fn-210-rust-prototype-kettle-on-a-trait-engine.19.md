@@ -4,11 +4,11 @@ satisfies: [R6]
 # fn-210-rust-prototype-kettle-on-a-trait-engine.19 Claims as check! statements; bare #[within(..)]
 
 ## Description
-**Owner decision (2026-10-18):** invariants and postconditions are methods with no return type whose body makes `check!` statements, as Scala's `check`; a claim holds on a state or edge iff no check failed. `check!(e)` expands to `if !(e) { ::umpire_dsl::claim::fail(stringify!(e)) }` and records the failure (expression text) in a per-evaluation recorder that the generated predicate reads after calling the method; `unknown!("reason")` records a `Hole` the same way. No panics and no unwinding, since the wasm guest is `panic=abort`; a claim method stays an ordinary method callable from a unit test (the recorder is simply empty there). Counterexamples name the failing check: `fails_over_at_boiling: check!(self.beeping) failed at Model { .. }`. Also (owner 2026-10-19): there is no `#[within(..)]` attribute at all; a progress claim names its assumption in its expression, `.assuming(Self::never_switched_off())`, and `#[machine]` registers the `#[assumptions]` block's names for reports. `#[after(..)]` keeps its variant path.
+**Owner decision (2026-10-18):** invariants and postconditions are methods with no return type whose body makes `check!` statements, as Scala's `check`; a claim holds on a state or edge iff no check failed. `check!(e)` expands to `if !(e) { ::umpire_dsl::claim::fail(stringify!(e)) }` and records the failure (expression text) in a per-evaluation recorder that the generated predicate reads after calling the method; `unknown!("reason")` records a `Hole` the same way. No panics and no unwinding, since the wasm guest is `panic=abort`; a claim method stays an ordinary method callable from a unit test (the recorder is simply empty there). Counterexamples name the failing check: `fails_over_at_boiling: check!(self.beeping) failed at Model { .. }`. Also (owner 2026-10-19): there is no `#[within(..)]` attribute at all; a progress claim names its assumption in its expression, `.assuming(Self::never_switched_off())`, and `#[machine]` registers the `#[assumption]` methods' names for reports (flat form, owner 2026-10-19: per-item attributes, no group impls). `#[after(..)]` keeps its variant path.
 
 ```rust
-#[invariants]
 impl Model {
+    #[invariant]
     fn beeps_only_when_off(&self) {
         if self.beeping {
             check!(!self.heating_on);
@@ -16,22 +16,22 @@ impl Model {
     }
 }
 
-#[postconditions]
 impl Model {
+    #[postcondition]
     fn warms_only_when_on(&self, before: &Self) {
         if !before.heating_on {
             check!(self.temperature <= before.temperature);
         }
     }
-    #[after(Heater::Failover)]
+    #[postcondition(after = Heater::Failover)]
     fn fails_over_at_boiling(&self) {
         check!(self.temperature == BOILING_TEMPERATURE);
         check!(self.beeping);
     }
 }
 
-#[progress]
 impl Model {
+    #[progress]
     fn boils(&self) -> Progress {
         whenever(self.heating_on).eventually(self.beeping).assuming(Self::never_switched_off())
     }
