@@ -1448,6 +1448,7 @@ RUST_MODEL_STEP = $(if $(filter 1,$(UMPIRE_TIME_STEPS)),/bin/bash $(CURDIR)/mode
 .PHONY: model-check model-fmt model-update model-time
 model-check: $(PROTOC_GEN_GO) $(API_BINPB)
 	@printf $(COLOR) "Check model (fmt, clippy, docs, tests)..."
+	@if [ "$${UMPIRE_BACKENDS:-}" = require ]; then printf '%s\n' 'TLC backend required: real source-lifted agreement and semantic controls'; else printf '%s\n' 'TLC backend skipped: no execution/agreement evidence; use UMPIRE_BACKENDS=require'; fi
 	@$(call RUST_MODEL_STEP,timing-controls) /bin/bash $(CURDIR)/model/scripts/test-time-gate.sh
 	@$(call RUST_MODEL_STEP,capability-controls) /bin/bash $(CURDIR)/model/scripts/test-capabilities.sh
 	@cd model && $(call RUST_MODEL_STEP,source-boundary) mise exec -- cargo test -p umpire-temporal-tests --test boundary --quiet

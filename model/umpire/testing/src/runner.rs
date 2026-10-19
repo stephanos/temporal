@@ -47,6 +47,25 @@ pub fn run_at(
     fixtures: Vec<crate::Fixture>,
     consumers: &[Consumer],
 ) -> crate::TestResult {
+    run_at_skipping(root, fixtures, consumers, &[])
+}
+
+/// Validate selected optional backend artifacts without claiming execution evidence.
+#[allow(clippy::print_stderr)]
+pub fn run_at_skipping(
+    root: &Path,
+    fixtures: Vec<crate::Fixture>,
+    consumers: &[Consumer],
+    skipped: &[&str],
+) -> crate::TestResult {
+    for name in skipped {
+        if !consumers.iter().any(|consumer| consumer.name == *name) {
+            return Err(format!("unknown skipped consumer: {name}").into());
+        }
+        eprintln!(
+            "backend {name}: skipped; no execution or agreement evidence (UMPIRE_BACKENDS=require runs it)"
+        );
+    }
     let discovered: BTreeSet<_> =
         crate::discovery::discover(root)?.into_iter().map(|(name, _)| name).collect();
     let registered: BTreeSet<_> = fixtures.iter().map(|(name, _)| (*name).to_owned()).collect();
@@ -55,6 +74,7 @@ pub fn run_at(
     }
     let mut actual = BTreeMap::new();
     let mut existing = Vec::new();
+    let mut skipped_artifacts = BTreeSet::new();
     for (name, run) in fixtures {
         let folder = root.join(name);
         let expected = folder.join("expected");
@@ -85,6 +105,10 @@ pub fn run_at(
         }
         for index in selected {
             let consumer = &consumers[index];
+            if skipped.contains(&consumer.name) {
+                skipped_artifacts.extend(skipped_files(&files, &expected, consumer)?);
+                continue;
+            }
             let output = (consumer.render)(run, &folder)?;
             if output != (consumer.render)(run, &folder)? {
                 return Err(format!(
@@ -108,7 +132,8 @@ pub fn run_at(
         }
         existing.extend(files);
     }
-    let permitted: BTreeSet<_> = actual.keys().flat_map(|path| golden_files(path)).collect();
+    let mut permitted: BTreeSet<_> = actual.keys().flat_map(|path| golden_files(path)).collect();
+    permitted.extend(skipped_artifacts);
     for path in existing {
         if !permitted.contains(&path) {
             return Err(format!("golden has no fixture: {}", path.display()).into());
@@ -118,6 +143,30 @@ pub fn run_at(
         snapshot(&path, &content)?;
     }
     Ok(())
+}
+
+fn skipped_files(
+    files: &[PathBuf],
+    expected: &Path,
+    consumer: &Consumer,
+) -> Result<BTreeSet<PathBuf>, Box<dyn std::error::Error>> {
+    let mut artifacts = BTreeSet::new();
+    for path in files {
+        let logical = logical_file(path, expected)?;
+        if !consumer.owns(&logical) {
+            continue;
+        }
+        let [metadata, payload, pending_metadata, pending_payload] =
+            golden_files(&expected.join(&logical));
+        if !metadata.is_file() || !payload.is_file() {
+            return Err(format!("skipped backend has incomplete golden: {}", path.display()).into());
+        }
+        if pending_metadata.exists() || pending_payload.exists() {
+            return Err(format!("skipped backend has pending golden: {}", path.display()).into());
+        }
+        artifacts.extend([metadata, payload]);
+    }
+    Ok(artifacts)
 }
 
 fn logical_file(path: &Path, root: &Path) -> Result<String, Box<dyn std::error::Error>> {

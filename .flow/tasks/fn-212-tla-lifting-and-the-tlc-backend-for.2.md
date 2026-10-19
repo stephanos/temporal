@@ -6,7 +6,7 @@ satisfies: [R2, R3]
 ## Description
 Implement the owner-required TLC scaling backend using `model/design/second-opinion.md` and the parent spec. The owner settled yes on 2026-10-19; the small current corpus supplies agreement controls, not a reason to defer the backend.
 
-**Touches:** [model/umpire/lift/**, model/umpire/backends/tlc/**, model/umpire/testing/**, model/umpire/tests/Cargo.toml, model/umpire/tests/build.rs, model/umpire/tests/fixtures.rs, model/umpire/tests/fixtures/*/expected/**, model/Cargo.toml, model/Cargo.lock, model/scripts/**, Makefile, model/README.md, model/DESIGN.md, model/design/second-opinion.md]
+**Touches:** [model/umpire/lift/**, model/umpire/backends/tlc/**, model/umpire/testing/**, model/umpire/tests/Cargo.toml, model/umpire/tests/build.rs, model/umpire/tests/fixtures.rs, model/umpire/tests/fixtures/*/expected/**, model/Cargo.toml, model/Cargo.lock, model/.gitignore, model/temporal/testing/Cargo.toml, model/temporal/testing/fixtures.rs, model/temporal/testing/build.rs, model/temporal/features/activity/expected/**, model/scripts/**, Makefile, model/README.md, model/DESIGN.md, model/design/second-opinion.md]
 
 ### Approach
 

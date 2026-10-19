@@ -4,6 +4,63 @@ The workspace now lives at `model/`, with the frozen Scala reference under `mode
 Run `make model-check` and `make model-time` from the repository root. Measurements below retain
 the command names used when they were recorded, before the workspace move.
 
+## TLC source backend (fn-212)
+
+`umpire-lift` reads authored source with `syn`; the fixture build scripts publish emitted
+modules, configurations and typed decoding metadata. It never calls the native explorer.
+The supported attribute and manual subsets share the typed tree and emitter; source
+admission, expression/type lowering, progress builders and emission have separate modules.
+Unsupported syntax, references, conditional compilation and generated-name collisions
+produce located warnings and refuse emission. `#[machine]` remains registration-only.
+
+`umpire-tlc::Tlc::check_module` executes that module without requiring a native graph.
+It retains the unrestricted complete reached set and separately checks every registered
+safety, postcondition, scoped progress and supplemental negative property. Property-specific
+observer scopes do not replace the unrestricted set. Native agreement is a separate testing
+layer: it requires complete sets and every verdict to agree, and replays returned traces
+through actual Model steps, including action, choice, outcome and facts. A native cut cannot
+certify agreement. A control deliberately cuts native exploration at one state while the
+same independently lifted source reaches its complete four-state set in TLC.
+
+The observer encoding from [the decision](design/second-opinion.md) is exercised with real
+TLC controls for idle versus maximal paths, acyclic progress without fairness, finite dead
+ends, authored self-loops, rejecting outcomes and facts, continuous/intermittent enabling,
+unrestricted prefixes and transition bounds. Only authored fair actions receive weak
+fairness. Terminal completion keeps deadlock checking enabled without counting a Model edge.
+Decoding removes exactly the declared private fields, refuses collisions and unknown fields,
+and deduplicates the projected set. Arithmetic controls cover ordered updates, checked
+overflow, signed division/remainder including minimum integers, and empty starts.
+The fixed `imbl::Vector` table covers scalar/enum elements, empty construction, length,
+emptiness, bounded guarded appends and explicitly safe lookup. A separately authored
+collection control compares the complete native/TLC sets and verified/refuted properties;
+unsupported methods and unguarded growth retain located refusals.
+
+The pinned official artifact is `tla2tools` 1.7.4 (TLC 2.19), SHA-256
+`936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88`, on mise Temurin 27.
+Missing or changed tools, subprocess failures/limits, incomplete dumps and disagreement
+are refusals, never passing or silently skipped checks. Each Java process owns its temporary
+library extraction and state directory, avoiding concurrent JVM extraction races.
+
+The shared fixture corpus admits 19 fixtures, including both Kettles at 283 projected states,
+choice/fact controls, weak-fairness controls and scoped progress; these are control variants,
+not 19 independent products. Five sources retain located refusals: `deep_chain` and
+`interleaved_claims` contain manual inherent helpers outside the admitted resolver (and also
+use an unsupported state type or supplemental manual registrations, respectively);
+`kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
+subset. Some are expressible Models whose Rust source form is not yet admitted.
+The system-owned fixture root additionally owns source-dependent artifacts. The newer
+`Phased`/`reject!`/generic `closable` shape is outside this subset: it requires a located
+refusal and has no system TLC agreement evidence. Older source evidence must not certify it.
+
+Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
+artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs
+mandate attribute Kettle and every admitted fixture's selected TLC goldens. Both renders in
+the existing determinism contract execute the backend. The final required full gate took
+144 s, including 101.60 s for the shared fixture double render. The final warm default gate
+took 9.564 s and its edit/test inner loop 4.986 s (pre-edit baseline: 11.086 s / 4.295 s).
+These single cached measurements distinguish the opt-in backend cost from the default
+feedback loop; they are not a scaling benchmark or a claim that TLC is faster than native.
+
 ## Stock-toolchain wasm verdict (fn-210 R24)
 
 Recommendation: **Rust**. On 2026-10-18 the trait-shaped Kettle compiled with stock
@@ -211,7 +268,7 @@ sources and snapshots stay unchanged. The questions pin longest 81/141, the unre
 depress/press cycle, the press-only deadlock, bound-80 missed deadline and budget-10 Unknown.
 Fn-213 still owns their ergonomic `tests.rs` presentation and illustrated `Model::boils` selection.
 
-Fn-212's future emitter translates each explicit `fair(A)` entry to `WF_vars(A)`; it emits no fairness
+The TLC emitter translates each explicit `fair(A)` entry to `WF_vars(A)`; it emits no fairness
 for internal actions or any undeclared action. The generic cycle hint suggests `fair` or fewer
 admitted actions, but it is not proof that `fair(heat)` repairs Kettle: heat is disabled while the
 element is off, so weak fairness permits its press/depress cycle.

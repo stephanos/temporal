@@ -1,0 +1,260 @@
+//! Real TLC controls for native maximal emitted-edge semantics.
+
+use std::{collections::BTreeMap, fs, path::Path};
+
+use umpire_tlc::{Refusal, Schema, Tlc, Type, Value, Verdict};
+
+fn schema() -> Schema {
+    Schema {
+        fields: BTreeMap::from([("x".into(), Type::Int { min: 0, max: 3 })]),
+        observers: BTreeMap::from([
+            ("__umpire_edge_tick".into(), Type::Bool),
+            ("__umpire_pending".into(), Type::Int { min: 0, max: 2 }),
+            ("__umpire_steps".into(), Type::Int { min: 0, max: 4 }),
+            ("__umpire_action".into(), Type::Text),
+            ("__umpire_choice".into(), Type::Int { min: 0, max: 0 }),
+            ("__umpire_outcome".into(), Type::Bool),
+            ("__umpire_facts".into(), Type::Seq(Box::new(Type::Text))),
+        ]),
+    }
+}
+
+fn module(
+    edges: &[(u8, u8, &str)],
+    fair: Option<&str>,
+    bound: Option<u8>,
+    trigger: u8,
+    target: u8,
+    allowed: Option<&str>,
+) -> String {
+    let actions: Vec<_> = edges.iter().enumerate().map(|(index, (from, to, action))| {
+        let distance = bound.map_or("__umpire_steps".into(), |bound| format!("IF __umpire_steps < {} THEN __umpire_steps + 1 ELSE __umpire_steps", bound + 1));
+        let outcome = if *action == "Reject" { "FALSE" } else { "TRUE" };
+        format!("Edge{index} == /\\ x = {from} /\\ x' = {to}\n /\\ __umpire_pending # 2 /\\ __umpire_pending' = (IF __umpire_pending = 1 /\\ x' = {target} THEN 2 ELSE __umpire_pending)\n /\\ __umpire_edge_tick' = ~__umpire_edge_tick /\\ __umpire_steps' = (IF __umpire_pending = 1 THEN ({distance}) ELSE __umpire_steps)\n /\\ __umpire_action' = \"{action}\" /\\ __umpire_choice' = 0 /\\ __umpire_outcome' = {outcome} /\\ __umpire_facts' = <<\"{action}\">>\n")
+    }).collect();
+    let next =
+        (0..edges.len()).map(|index| format!("Edge{index}")).collect::<Vec<_>>().join(" \\/ ");
+    let scoped = edges
+        .iter()
+        .enumerate()
+        .filter(|(_, (_, _, action))| allowed.is_none_or(|allowed| allowed == *action))
+        .map(|(index, _)| format!("Edge{index}"))
+        .collect::<Vec<_>>()
+        .join(" \\/ ");
+    let fairness = fair.map_or(String::new(), |action| {
+        let relation = edges
+            .iter()
+            .enumerate()
+            .filter(|(_, (_, _, name))| *name == action)
+            .map(|(index, _)| format!("Edge{index}"))
+            .collect::<Vec<_>>()
+            .join(" \\/ ");
+        format!(" /\\ WF_vars((__umpire_pending = 1) /\\ ({relation}))")
+    });
+    let bounded =
+        bound.map_or(String::new(), |bound| format!("Bound == [](__umpire_steps <= {bound})\n"));
+    format!(
+        r#"---- MODULE Control ----
+EXTENDS Integers
+VARIABLES x, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts
+vars == <<x, __umpire_edge_tick, __umpire_pending, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
+Init == x = 0 /\ __umpire_edge_tick = FALSE /\ __umpire_pending = 0 /\ __umpire_steps = 0 /\ __umpire_action = "" /\ __umpire_choice = 0 /\ __umpire_outcome = TRUE /\ __umpire_facts = <<>>
+{actions}
+ModelNext == {next}
+ScopedNext == {scoped}
+RealNext == ((__umpire_pending = 0) /\ ModelNext) \/ ((__umpire_pending = 1) /\ ScopedNext)
+Activate == /\ x = {trigger} /\ __umpire_pending = 0 /\ __umpire_pending' = 1
+ /\ UNCHANGED <<x, __umpire_edge_tick, __umpire_steps, __umpire_action, __umpire_choice, __umpire_outcome, __umpire_facts>>
+Complete == (__umpire_pending = 2 \/ ~ENABLED RealNext) /\ UNCHANGED vars
+Next == RealNext \/ Activate \/ Complete
+Spec == Init /\ [][Next]_vars{fairness}
+Maximal == ([]<>__umpire_edge_tick /\ []<>(~__umpire_edge_tick)) \/ <>[](__umpire_pending = 1 /\ ~ENABLED ScopedNext)
+Progress == Maximal => (__umpire_pending = 1 ~> __umpire_pending = 2)
+Naive == __umpire_pending = 1 ~> __umpire_pending = 2
+Post == [][~(__umpire_edge_tick' # __umpire_edge_tick /\ __umpire_action' = "A") \/ x' >= x]_vars
+InitialBad == x # 0
+{bounded}
+====
+"#,
+        actions = actions.join("\n")
+    )
+}
+
+type Control = (
+    &'static str,
+    Vec<(u8, u8, &'static str)>,
+    Option<&'static str>,
+    Option<u8>,
+    &'static str,
+    Verdict,
+);
+
+fn controls() -> [Control; 14] {
+    [
+        ("acyclic", vec![(0, 1, "A"), (1, 2, "A")], None, None, "Progress", Verdict::Verified),
+        ("idle_is_not_maximal", vec![(0, 2, "A")], None, None, "Progress", Verdict::Verified),
+        ("naive_idle", vec![(0, 2, "A")], None, None, "Naive", Verdict::Refuted),
+        ("finite_dead_end", vec![(0, 1, "A")], None, None, "Progress", Verdict::Refuted),
+        (
+            "authored_self_loop",
+            vec![(0, 0, "A"), (0, 2, "B")],
+            None,
+            None,
+            "Progress",
+            Verdict::Refuted,
+        ),
+        (
+            "rejecting_self_loop",
+            vec![(0, 0, "Reject"), (0, 2, "B")],
+            None,
+            None,
+            "Progress",
+            Verdict::Refuted,
+        ),
+        (
+            "fair_exit",
+            vec![(0, 0, "A"), (0, 2, "B")],
+            Some("B"),
+            None,
+            "Progress",
+            Verdict::Verified,
+        ),
+        (
+            "intermittently_enabled",
+            vec![(0, 1, "A"), (1, 0, "B"), (1, 2, "C")],
+            Some("C"),
+            None,
+            "Progress",
+            Verdict::Refuted,
+        ),
+        ("exact_bound", vec![(0, 1, "A"), (1, 2, "A")], None, Some(2), "Bound", Verdict::Verified),
+        ("missed_bound", vec![(0, 1, "A"), (1, 2, "A")], None, Some(1), "Bound", Verdict::Refuted),
+        ("postcondition", vec![(0, 1, "A"), (1, 2, "A")], None, None, "Post", Verdict::Verified),
+        (
+            "postcondition_refuted",
+            vec![(0, 1, "A"), (1, 0, "A")],
+            None,
+            None,
+            "Post",
+            Verdict::Refuted,
+        ),
+        (
+            "unrestricted_prefix",
+            vec![(0, 1, "A"), (1, 2, "B")],
+            None,
+            None,
+            "Progress",
+            Verdict::Refuted,
+        ),
+        (
+            "bound_excludes_incoming_edge",
+            vec![(0, 1, "A"), (1, 2, "B")],
+            None,
+            Some(1),
+            "Bound",
+            Verdict::Verified,
+        ),
+    ]
+}
+
+#[test]
+#[allow(clippy::print_stderr)]
+fn real_tlc_maximality_fairness_bounds_and_action_properties() -> Result<(), Refusal> {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        eprintln!("TLC controls skipped: no TLC evidence (set UMPIRE_BACKENDS=require)");
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tlc = Tlc::discover(&root)?;
+    let evidence = root.join(".flow/tmp/tlc-controls");
+    fs::create_dir_all(&evidence)?;
+    for (name, edges, fair, bound, property, expected) in controls() {
+        let (trigger, target, allowed) = match name {
+            "unrestricted_prefix" => (1, 3, Some("B")),
+            "bound_excludes_incoming_edge" => (1, 2, None),
+            _ => (0, 2, None),
+        };
+        let result = tlc.check(
+            "Control",
+            &module(&edges, fair, bound, trigger, target, allowed),
+            &format!("SPECIFICATION Spec\nPROPERTY {property}\n"),
+            &schema(),
+        )?;
+        fs::write(
+            evidence.join(format!("{name}.txt")),
+            format!(
+                "control: {name}\nverdict: {:?}\nprojected states: {}\nraw states: {}\n{}",
+                result.properties[property].verdict,
+                result.states.len(),
+                result.raw_state_count,
+                result.output
+            ),
+        )?;
+        assert_eq!(result.properties[property].verdict, expected, "{name}: {}", result.output);
+        assert!(!result.states.is_empty(), "{name}");
+        assert_eq!(
+            result.properties[property].trace.is_some(),
+            expected == Verdict::Refuted,
+            "{name}"
+        );
+        if name == "rejecting_self_loop" {
+            assert!(result.properties[property].trace.as_ref().is_some_and(|trace| {
+                trace.states.iter().any(|state| {
+                    state.observers["__umpire_outcome"] == Value::Bool(false)
+                        && state.observers["__umpire_facts"]
+                            == Value::Seq(vec![Value::Text("Reject".into())])
+                })
+            }));
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn real_tlc_initial_invariant_has_a_typed_counterexample() -> Result<(), Refusal> {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tlc = Tlc::discover(&root)?;
+    let result = tlc.check(
+        "Control",
+        &module(&[(0, 1, "A")], None, None, 0, 2, None),
+        "SPECIFICATION Spec\nINVARIANT InitialBad\n",
+        &schema(),
+    )?;
+    assert_eq!(result.properties["InitialBad"].verdict, Verdict::Refuted);
+    assert_eq!(
+        result.properties["InitialBad"].trace.as_ref().map(|trace| trace.states.len()),
+        Some(1)
+    );
+    Ok(())
+}
+
+#[test]
+fn real_tlc_keeps_deadlock_checks_and_refuses_tool_errors() -> Result<(), Refusal> {
+    if std::env::var("UMPIRE_BACKENDS").as_deref() != Ok("require") {
+        return Ok(());
+    }
+    let root = Path::new(env!("CARGO_MANIFEST_DIR")).join("../../../..");
+    let tlc = Tlc::discover(&root)?;
+    let source = module(&[(0, 1, "A")], None, None, 0, 2, None);
+    let deadlock = source
+        .replace("Next == RealNext \\/ Activate \\/ Complete", "Next == RealNext \\/ Activate");
+    let error = tlc
+        .check("Control", &deadlock, "SPECIFICATION Spec\n", &schema())
+        .err()
+        .ok_or_else(|| Refusal("TLC admitted a deadlocked completion relation".into()))?;
+    assert!(error.0.contains("Deadlock reached"), "{error}");
+    let error = tlc
+        .check(
+            "Control",
+            "---- MODULE Control ----\nthis is invalid\n====\n",
+            "SPECIFICATION Spec\n",
+            &schema(),
+        )
+        .err()
+        .ok_or_else(|| Refusal("TLC admitted invalid syntax".into()))?;
+    assert!(error.0.contains("error") || error.0.contains("failed"), "{error}");
+    Ok(())
+}

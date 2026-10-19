@@ -1,0 +1,1 @@
+fixtures/kettle_cut/model.rs:1:1: warning: manual source: fixture dependency must declare its Machine directly; TLA+ emission refused

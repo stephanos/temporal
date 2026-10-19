@@ -1,0 +1,1 @@
+unsupported.rs:64:40: warning: unsupported expression `mystery (self . temperature)`; TLA+ emission refused

@@ -1,0 +1,23 @@
+[package]
+name = "umpire-lift"
+description = "Independent authored-source lifting and TLA+ emission for Umpire"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+
+[lints]
+workspace = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2 = { workspace = true, features = ["span-locations"] }
+
+[dev-dependencies]
+umpire-tlc.workspace = true
+umpire-dsl.workspace = true
+umpire-checker.workspace = true
+imbl.workspace = true
+

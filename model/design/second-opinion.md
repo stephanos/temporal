@@ -208,3 +208,19 @@ so this note counts none as implementation evidence. That assessment should name
 the first larger Temporal claim, supported dependency closure, measured limits,
 required backend runs and any semantic gaps. It refines the required backend's
 scope and operation rather than reopening the owner's decision to provide TLC.
+
+## Implemented proof scope
+
+Fn-212.2 implements the selected build-time source reader and pinned real TLC runner.
+The observer proposal above now has executable controls for maximality, scoped dead ends,
+explicit weak fairness, self-loops with outcomes/facts and real-edge bounds. The admitted
+shared corpus compares complete sets and verdicts, including both 283-state Kettles and
+negative trace replay. [DESIGN.md](../DESIGN.md#tlc-source-backend-fn-212) records the
+supported source forms and remaining refusals. The standalone typed Module entry point
+does not explore natively; a cut native reference supplies no agreement evidence.
+
+This proof remains source-dependent. New `Phased`, rejection and imported law syntax
+must either be admitted with new agreement evidence or retain its located refusal;
+earlier activity evidence cannot certify a changed Model. The required backend run is
+explicitly selected with `UMPIRE_BACKENDS=require`, and an omitted run reports no TLC
+evidence. No larger-Model scaling benchmark or Apalache result is claimed here.
