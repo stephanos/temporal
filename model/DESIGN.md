@@ -387,7 +387,7 @@ and timings size the follow-up work; they do not introduce a second language-sel
 Bank and Voting remain parked until the sample port is resumed; extend them only with their
 needed parameter/domain gaps, rather than claiming Kettle establishes their readiness.
 
-The owner-approved priority is fn-214, fn-216, fn-213, fn-215, fn-212, fn-218, fn-217, then
+The owner-approved priority is fn-214, fn-216, fn-221, fn-213, fn-215, fn-212, fn-218, fn-217, then
 fn-211. This is scheduling order, preserving each spec's prerequisites and approval boundaries.
 The post-verdict Case plan must carry these requirements; none is implemented by fn-210:
 
@@ -420,7 +420,9 @@ reopening edge refutes it. No production edge was added to manufacture coverage.
 The reusable `umpire-wasm` library owns state, replay, first-Unexplained freezing,
 Reset, response-publication transactions and ABI buffers. A system-owned `Realize`
 binding proposes paths; the runtime validates those paths through actual Model steps.
-`#[machine]` now exports `World` and `Action`, and `world()` returns `World`, removing
+For public states, `#[machine]` exports `World` and `Action`, and `world()` returns
+`World`. Non-public states retain the opaque interface with generated types following
+the state's visibility. The public activity world removes
 the binding's duplicate action carrier, delegating machine and claim-index re-wrap.
 Generic Any helpers derive canonical type URLs from generated `prost::Name`; only the
 Describe RPC method path is a binding constant. The policy parser and reply constructor
@@ -481,11 +483,17 @@ cache is not a canonical wire artifact. The original descriptor/cache was preser
 Raw commands and logs live under `.flow/tmp/fn-216-4/`; predecessor records remain
 under `.flow/tmp/fn216-3-*`.
 
+Task .4's final umbrella measured 502.668 ms for its dedicated slice and 296.593 ms
+for the broad-selector invocation. Their Complete/Fail/HostRefusal Answer calls were
+134.958/65.583/168.333 µs and 103.834/57.000/32.958 µs respectively. Concurrent clean
+compilation and Go linting ran during verification; these samples make no idle-host claim.
+
 The unchanged-scope umbrella invokes the dedicated slice and retains all legacy checks.
 Its seven inherited failures are AssessRecordedRuns, ExplorationDiscoversUnpinnedExecution,
 GeneratedCases, NexusControlForgedCompletionIsViolated, NexusControlReplaysThroughTheCommand,
 NexusPairCase and UmpireRunRunsACheckedInCaseAgainstAnyEndpoint (all TestTestpilot-prefixed).
-The comparison in `.flow/tmp/fn216-3-legacy-comparison.md` retains assertion causes.
+The comparison in `.flow/tmp/fn-216-4/legacy-comparison.md` retains this task's
+before/after identities and assertion causes, matching predecessor .3's comparison.
 This umbrella is red; the dedicated slice passing does not make it green. The frozen
 Scala tree was not revived to repair those legacy expectations.
 

@@ -22,7 +22,8 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution has resumed under the owner's milestone-completion instruction. fn-216.4 is in progress.
+Execution has resumed under the owner's milestone-completion instruction. fn-216.4 is in progress;
+fn-212.1 is running in a separate worktree at the owner's request.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
 (`rust = "1.99.1"`), with crates under `model/umpire/`: `dsl` (with `dsl/macros`), `checker`,
@@ -114,7 +115,7 @@ reachable states and verdicts through the shared fixture consumer.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-212.1 | ⬜ todo | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
+| fn-212.1 | 🔄 in progress | Decide cost, benefit and lifting source; on no, close fn-212 and fn-211 with the note |
 | fn-212.2 | ⬜ todo | On yes: lift, emit TLA+, run TLC and require agreement on shared fixtures |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
