@@ -13,9 +13,41 @@ satisfies: [R1, R2, R3]
 - [ ] TBD
 
 ## Done summary
-TBD
+`Path<S>`, `Waypoint<S>` (`bool` | closure | state), `Gap` (`..` | `..=n`) and `path!` (`macro_rules!`) in `umpire-dsl` (`dsl/src/path.rs`). The macro refuses no gap between waypoints, a leading gap and a trailing gap, each with a trybuild `.stderr` in `dsl/tests/ui/path_*.rs`. Closure waypoints go straight to `then_judged`, so `|k| ..` infers its parameter type from an earlier waypoint.
 
+`#[machine]`: the module-local `LeadsTo` now holds trigger and target `Waypoint<State>`s, judged per state by the evaluator. `From<Path<State>>` and a local `.assuming(..)` on `Path` are generated, and every progress body is wrapped in `From::from`, so a body returns a `path!` or a built `LeadsTo`. `whenever(..).eventually(..).within(n)` stays public. A literal chain in a claim is refused at compile time (`dsl/macros/tests/ui/machine_progress_chain.rs`). A chain built elsewhere is refused by `Path::claim` with the same message, which the checker reports as a claim panic.
+
+Kettle's `boils` is `path![self.heating_on, .., self.beeping].assuming(Self::never_switched_off())`. Every Kettle golden is byte-identical, including the lift and TLA goldens. The lifter reads `path![p, ..=n, q]` as `whenever(p).eventually(q).within(n)`. The machine fixture's `reaches_two` is `path![self.value == 1, ..=2, self.value == 2]`, and its `values.txt` is unchanged. Only its expansion golden changed. The new `dsl/tests/fixtures/path` golden pins all three waypoint kinds, both gaps, a chain, and the chain-as-claim refusal.
+
+README: the reading rules beside Kettle's claim. DESIGN: the Scala and `path!` claims side by side, plus the updated comparison row.
+
+Deviations:
+- Two extra refusals beyond the spec: two gaps in a row, and fewer than two waypoints.
+- Two lift source tests that edited Kettle's builder text now edit the `path!` form (bound test) or switch back to the builder first (repeated-builder test).
+
+make model-time:
+```
+timing-controls                   0.015s
+capability-controls               0.110s
+source-boundary                   0.209s
+protobuf-freshness                0.107s
+temporal-protobuf-freshness       0.070s
+fmt                               0.286s
+clippy                            0.127s
+docs                              0.165s
+tests                             2.641s
+wasm32-wasip1                     0.060s
+core-wasm-clippy                  0.085s
+wasm-guest                        0.097s
+go-host                           1.344s
+temporal-go-host                  6.447s
+inner loop (edit+test)            6.356s
+gate total                       12.026s  (soft target 30s)
+inner loop                        6.356s  (soft target 10s)
+```
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 4c18870070
+- Tests: make model-check, make model-time
 - PRs:
