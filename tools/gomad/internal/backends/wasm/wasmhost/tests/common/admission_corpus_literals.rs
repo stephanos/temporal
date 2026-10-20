@@ -101,6 +101,8 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
         if result["termination"]
             != if name == "admission_storage_image_capacity" {
                 "capacity"
+            } else if name == "admission_storage_unknown_field" {
+                "unsupported"
             } else {
                 "invalid"
             }
