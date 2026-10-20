@@ -302,7 +302,6 @@ Runs after fn-219, in parallel with fn-232 as pure deletion. Closed-spec cleanup
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-223.2](.flow/tasks/fn-223-gomad-delete-the-native-backend.2.md) | 🚧 In progress | Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags |
 | [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | 🚧 In progress | Record deletion identities, transfer final Rust qualification and refresh docs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)

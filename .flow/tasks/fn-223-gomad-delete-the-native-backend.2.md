@@ -18,9 +18,12 @@ Delete the native go:linkname glue in internal/model/cluster/runtime_domain.go, 
 - [ ] All native smoke jobs/routing retired, every retained workflow structurally valid; source validation only, no CI run
 
 ## Done summary
-TBD
+R1/R2: Removed native glue, targets, CI/smoke jobs/routing, archcheck inventories and native-only selections; retained WASM instrumentation/slim seams and source-hash coverage. Exact tracked native tree/tag reference scan exits1 with no matches, not an error. Build-tag inventory classifies every site. Architecture/model/router/workflow source checks exit0; no CI dispatched. Review found lint-only routing regression, fixed91abbc3051; both real-switch regressions pass on root. Independent combined source review SHIP at07ebfdb4ee; final runtime qualification remains pending under fn232.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/README.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cafabfb200, 46ce5a58bb, 91abbc3051
+- Tests: go test -tags test_dep ./internal/archcheck ./internal/model/cluster/... (retained frozen source receipts), workflow YAML/needs validation; exact tracked native reference scan; build-tag site inventory, root pinned Go TestCIBackendGatesRoutePaths exit0
 - PRs:
