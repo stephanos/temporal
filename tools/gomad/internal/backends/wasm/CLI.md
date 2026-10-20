@@ -185,17 +185,22 @@ can override those two bounds. These capacities are not consumption guarantees;
 exhaustion uses the existing capacity termination. Standalone campaigns retain
 their existing 64 MiB transcript limit even with a larger configuration bound.
 
-The prototype fixture and install command share the same canonical base
-configuration for the same checkout, guest directory and arguments. Their final
-configurations use explicit, different policies: the prototype retains its
-legacy nil network, while installation adds the bounded one-box network above.
-The inspection fixture retains its preexisting directory, writable roots, nil
-arguments, zero entropy key and debug environment, and overrides the base output
-and transcript bounds to 16 MiB and 256 MiB. The one-box qualification fixture
-retains the prototype base with nil network and clears arguments because Runner
-supplies the prepared target's arguments. Tests compare canonical base bytes and
-independently pin the final network policy and each historical fixture shape;
-these different final configurations are not claimed to be byte-identical.
+`wasi.TemporalConfig` takes an explicit complete `TemporalPolicy` alongside the
+checkout, guest directory and arguments. The command selects
+`TemporalInstallation`; the prototype, inspection and one-box qualification
+fixtures select `TemporalPrototype`, `TemporalInspection` and
+`TemporalQualification`. The shared production derivation applies every policy
+field, including network, environment, entropy, arguments, writable roots and
+output/transcript bounds. Consumers do not adjust the resulting configuration.
+For identical complete inputs, command and fixture derivation produce identical
+final serialized configuration bytes; the equality test removes no fields.
+
+Historical-policy tests separately preserve the prototype's nil network, the
+inspection fixture's existing directory/writable roots, nil arguments, zero
+entropy key, debug environment and 16 MiB output/256 MiB transcript, and the
+qualification fixture's nil network and nil arguments supplied independently
+by Runner. The installation policy retains the bounded network and capacities
+listed above. Different explicit policies can produce different final bytes.
 
 Support here is limited to `TestFrontendSystemInfo` in `tests/gomadfunctional`.
 The setup path grants no additional guest capability or support for other tests.
