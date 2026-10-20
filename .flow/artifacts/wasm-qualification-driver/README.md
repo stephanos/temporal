@@ -18,14 +18,15 @@ only the order and overlap of stages change.
 ```bash
 cd .flow/artifacts/wasm-qualification-driver/parallel
 bash run-validation.sh --plan                                   # equivalence check, DAG, estimate; runs nothing
-bash run-validation.sh HEAD LINT_BASE FRESH_EVIDENCE FRESH_NATIVE_SCRATCH   # same arguments as the serial driver
-bash run-perf.sh VALIDATION_ROOT FRESH_PERF_ROOT                # matched-release pair, alone, after a PASS
+bash run-validation.sh --config CANDIDATE_ENV HEAD LINT_BASE FRESH_EVIDENCE FRESH_NATIVE_SCRATCH
+bash run-perf.sh --config CANDIDATE_ENV VALIDATION_ROOT FRESH_PERF_ROOT # alone, after a PASS
 python3 -m unittest discover -s tests -v                        # scheduler/equivalence tests (stub runners)
 ```
 
-Options: `--config FILE` binds the candidate (default `config/q1.env`: frozen
-worktree, freeze root, expected HEAD and manifest digest, staged fixture, perf
-baseline). `--allow-background` (default off) lets `bg` stages overlap exclusive
+Options: `--config FILE` is required except for `run-validation.sh --plan`. It
+binds the frozen worktree, freeze root, expected HEAD and manifest digest,
+staged fixture and optional performance baseline. Candidate configurations belong
+to their open owner. `--allow-background` (default off) lets `bg` stages overlap exclusive
 ones (see "Reaching one hour"). `--deadline-s` (default 3600),
 `--mem-margin-gib` (default 2).
 

@@ -4,13 +4,17 @@
 # run-validation.sh. Same producers, admission checks (incl. the 8 GiB
 # MemAvailable boundaries), seeds and repetitions as ../q1-serial/run-matched-pair.sh;
 # this script only binds paths from the candidate config and arguments.
-# Usage: run-perf.sh [--config FILE] VALIDATION_ROOT FRESH_PERF_ROOT
+# Usage: run-perf.sh --config FILE VALIDATION_ROOT FRESH_PERF_ROOT
 # Config (in addition to run-validation.sh's): PERF_BASELINE_REPO, PERF_BASELINE_HEAD,
 # PERF_BASELINE_ADMISSION, PERF_GOCACHE.
 set -euo pipefail
 driver_dir="$(cd -- "${BASH_SOURCE[0]%/*}" && pwd -P)"
-config="$driver_dir/config/q1.env"
-if [[ "${1:-}" == --config ]]; then config="$2"; shift 2; fi
+if [[ "${1:-}" != --config || "$#" -lt 2 || -z "${2:-}" ]]; then
+  echo '--config FILE is required' >&2
+  exit 2
+fi
+config="$2"
+shift 2
 test "$#" -eq 2
 # shellcheck source=/dev/null
 source "$config"

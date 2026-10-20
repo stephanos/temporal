@@ -8,7 +8,7 @@
 #   run-validation.sh [options] HEAD LINT_BASE FRESH_EVIDENCE FRESH_NATIVE_SCRATCH
 #   run-validation.sh --plan [options]      DAG, equivalence check and wall-time estimate; runs nothing
 # Options:
-#   --config FILE          candidate binding (default config/q1.env)
+#   --config FILE          candidate binding (required except with --plan)
 #   --allow-background     let `bg` stages overlap exclusive ones (owner decision; default off)
 #   --deadline-s N         wall-clock limit in seconds (default 3600)
 #   --stop-at-deadline     start no stage after the limit (default: finish, exit 3)
@@ -19,7 +19,7 @@
 set -euo pipefail
 QUALDRV_DIR="$(cd -- "${BASH_SOURCE[0]%/*}" && pwd -P)"
 export QUALDRV_DIR
-QUALDRV_CONFIG="$QUALDRV_DIR/config/q1.env"
+QUALDRV_CONFIG=
 plan=false background=() deadline_s=3600 mem_margin=2
 while [[ "${1:-}" == --* ]]; do
   case "$1" in
@@ -45,6 +45,10 @@ if [[ "$plan" == true ]]; then
   exit 0
 fi
 
+if [[ -z "$QUALDRV_CONFIG" ]]; then
+  echo '--config FILE is required' >&2
+  exit 2
+fi
 set -o noclobber
 shopt -s nullglob dotglob
 export LC_ALL=C

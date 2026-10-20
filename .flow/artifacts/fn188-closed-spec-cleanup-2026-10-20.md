@@ -61,3 +61,12 @@ The previously prepared qualification freeze is obsolete after tracked cleanup.
 Prepare a new clean source manifest and binding before resuming references and
 the unchanged 96-stage, at-most-3600-second qualification. No qualification pass,
 full stress pass or full sweep completion is claimed by this cleanup.
+
+The reusable validation/performance entry points now require an explicit
+candidate config; config-free `--plan` still works. The stale q1/cand2 binding
+files are deleted, not relabeled. New admission regressions first failed twice
+on the old default behavior, then all 34 driver tests passed (7.271 s).
+Shell syntax and static equivalence pass: 96 required/DAG stages, identical
+commands and no problems. Stage bodies, DAG and serial reference are unchanged.
+Logs: `evidence/fn219/qualification-inputs/config-{red,and-driver-green}.log`
+and `config-stage-equivalence.json`. These tests use no real guests.
