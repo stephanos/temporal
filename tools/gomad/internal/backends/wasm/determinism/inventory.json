@@ -8,6 +8,26 @@
  },
  "entries": [
   {
+   "id": "helper.event-order-diagnostics",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "diagnostic:event-order-commit-stream",
+   "disposition": "recorded",
+   "owner": "feature-gated event_order recorder and modeled commit sites",
+   "rule": "Explicit diagnostic roles emit bounded helper commit receipts and authentic inspection boundary markers on helper stderr only; missing owner context, capacity or truncation cannot establish complete ordering. Release helpers compile the recorder out and canonical evidence formats do not change.",
+   "evidence": ["rust:src/event_order.rs:event_order_records_full_values_and_actual_coordinates_in_commit_order", "rust:src/event_order.rs:event_order_never_marks_a_dropped_or_disabled_stream_complete", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+  },
+  {
+   "id": "fixture.output-before-clock",
+   "layer": "guest-runtime",
+   "class": "fs-io",
+   "site": "fixture:output-before-clock",
+   "disposition": "rejected",
+   "owner": "determinism-fixture helper and copied runtime overlay",
+   "rule": "The feature helper privately selects changed guest output and arms a later clock shift only after actual output commit, proving exact earliest-event reporting within one retained inspection interval. The signal is removed before seeding and is absent from guest declared environment and release helpers.",
+   "evidence": ["go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts", "go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"]
+  },
+  {
    "id": "fixture.runtime-seeded-draw",
    "layer": "guest-runtime",
    "class": "entropy",
