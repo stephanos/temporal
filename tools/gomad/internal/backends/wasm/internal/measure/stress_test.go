@@ -47,9 +47,13 @@ func TestStressMatrix(t *testing.T) {
 func TestStressSummariesExcludeHelperEventOrder(t *testing.T) {
 	t.Parallel()
 	observation := stressFixture()
+	observation.HelperPeakRSSBytes, observation.HelperExecutionNanos = 123, 456
 	observation.Run.OrderLog = &determinism.EventOrder{}
 	observation.Run.InspectionEvidence = &cluster.WASMInspectionEvidence{}
 	summary := stressSummary(observation)
+	if summary.HelperPeakRSSBytes != 123 || summary.HelperExecutionNanos != 456 {
+		t.Fatal("summary dropped the physical helper admission telemetry")
+	}
 	if summary.Run.OrderLog != nil || observation.Run.OrderLog == nil {
 		t.Fatal("summary retained or consumed the raw helper event order")
 	}
