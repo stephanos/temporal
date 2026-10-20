@@ -56,3 +56,16 @@ The diagnostic completed before disk cleanup; source remained frozen at
 `a23540b5446e834df6fc1e478aae093d991fb38f`. Evidence is retained in
 `.flow/tmp/fn2173-reviewfix-nested-request-enum-probe.go` and its `.log`.
 This finding is open pending the worker's narrow fix and regression controls.
+
+## Focused enum follow-up
+
+Focused enum follow-up: resolved. Critical 0 · Should Fix 0 · Consider 0.
+
+- Walked: all four fields retain enum validation with qualified `Accepts` expectations. `api_transport.rs:173` suppresses only request findings explicitly marked `Accepts`; response findings remain. Start/shared constraints are unchanged.
+- Walked: `service/frontend/workflow_handler.go:1835` recursively checks application retry delays, while the failed-request handler requires top-level application info without rejecting these nested enum values. CHASM’s failure path introduces no nested enum rejection.
+- Cited: `model/temporal/realization/tests/catalog.rs:150` covers all four request acceptances, response findings, exact byte preservation and secret-safe diagnostics. The focused log records 27 native tests, three compile-failure controls, five API/descriptor tests and Clippy passing. RED evidence demonstrates only the Activity retry-state case.
+- Executed: two-file diff inspection, `git diff --check`, frozen HEAD and clean-tree checks. No builds, tests or writes performed here; live/full gates remain outside this evidence.
+
+Writer and reviewer are the same Codex family.
+
+Conductor disposition: resolved at source `9baf1f772e79f4332fb20906fc5b7af0432224f4`, integrated as `f65a1f356851fc3885be946f6c136e31b64c9ceb`. This follow-up has zero findings and no remaining tier. Final full gates, timing and single-session formal re-review remain required.
