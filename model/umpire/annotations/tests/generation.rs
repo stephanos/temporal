@@ -87,6 +87,85 @@ fn required_substring_can_be_supplied_by_the_suffix() -> Result<(), Box<dyn std:
 }
 
 #[test]
+fn exact_length_anchors_preserve_partial_overlap() -> Result<(), Box<dyn std::error::Error>> {
+    for (prefix, suffix, contains, expected) in [
+        ("ab", "bc", "", "abbc"),
+        ("αβ", "βγ", "", "αββγ"),
+        ("ab", "bc", "bb", "abbc"),
+        ("ab", "bc", "ab", "abbc"),
+    ] {
+        let catalog = catalog::<String>(
+            Kind::Text(StringRules {
+                prefix: Some(prefix.into()),
+                suffix: Some(suffix.into()),
+                contains: Some(contains.into()),
+                min_len: Some(4),
+                max_len: Some(4),
+            }),
+            None,
+            None,
+        )?;
+        assert_eq!(validate(&Message { value: expected.into() }, &catalog), []);
+        for seed in 0..8 {
+            let mut a = Message::default();
+            let mut b = Message::default();
+            fill(&mut a, &catalog, &mut Rng::new(seed))?;
+            fill(&mut b, &catalog, &mut Rng::new(seed))?;
+            assert_eq!(a.value, expected);
+            assert_eq!(a.value, b.value);
+            assert_eq!(validate(&a, &catalog), []);
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn anchored_generation_matches_small_exhaustive_string_domains()
+-> Result<(), Box<dyn std::error::Error>> {
+    let anchors = ["", "a", "b", "aa", "ab", "ba", "bb"];
+    for len in 0..=5 {
+        let words: Vec<String> = (0..(1_usize << len))
+            .map(|bits| (0..len).map(|i| if bits & (1 << i) == 0 { 'a' } else { 'b' }).collect())
+            .collect();
+        for prefix in anchors {
+            for suffix in anchors {
+                for contains in anchors {
+                    let possible = words.iter().any(|word| {
+                        word.starts_with(prefix)
+                            && word.ends_with(suffix)
+                            && word.contains(contains)
+                    });
+                    let catalog = catalog::<String>(
+                        Kind::Text(StringRules {
+                            prefix: Some(prefix.into()),
+                            suffix: Some(suffix.into()),
+                            contains: Some(contains.into()),
+                            min_len: Some(len),
+                            max_len: Some(len),
+                        }),
+                        None,
+                        None,
+                    )?;
+                    for seed in 0..3 {
+                        let mut message = Message::default();
+                        let result = fill(&mut message, &catalog, &mut Rng::new(seed));
+                        assert_eq!(
+                            result.is_ok(),
+                            possible,
+                            "len={len}, prefix={prefix:?}, suffix={suffix:?}, contains={contains:?}, seed={seed}: {result:?}"
+                        );
+                        if possible {
+                            assert_eq!(validate(&message, &catalog), []);
+                        }
+                    }
+                }
+            }
+        }
+    }
+    Ok(())
+}
+
+#[test]
 fn unique_repeated_times_sample_the_allowed_domain() -> Result<(), Box<dyn std::error::Error>> {
     let rules = NumberRules { gte: Some(0), lte: Some(1), ..Default::default() };
     let repeated = RepeatedRules { min_items: Some(2), max_items: Some(2), unique: true };
