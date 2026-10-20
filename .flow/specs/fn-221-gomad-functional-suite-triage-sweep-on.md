@@ -15,6 +15,8 @@ This spec measures the gap instead of guessing. It runs every test function in `
 
 **Harness.** A sweep driver, living under `internal/backends/wasm` as a developer command or test-only producer (task .1 decides and records the location, following the `wasmmeasure` precedent of explicit flags and refused inherited variables), that enumerates test functions in `tests`, builds the guest once per package with the slim tags, and runs each function through the existing `gomad explore ... go-test <package> -- -test.run=^Name$` path with one seed, `--parallel=1`, and a per-test execution timeout and overall budget. If the one-command setup spec has not landed, the sweep uses a throwaway configuration derived from the existing integration fixtures and records that fact.
 
+**Enumeration and compile reuse.** Test functions include registered suite methods, including nested suite registrations. Preserve the mapping from each method to its top-level wrapper and exact `-test.run` path; require the selected method's terminal verdict rather than accepting the wrapper's pass. Reconcile top-level functions with `go test -list`, and reconcile method declarations against the registration inventory with explicit exclusions. A single global deadline bounds enumeration, preparation, retries and execution. To fulfill the existing build-once requirement, the backend may reuse an authenticated module by compile-only inputs while preserving the full per-execution provenance and BuildKey. Runtime arguments and configuration must never be copied from a different cached execution. Tests must prove selector reuse avoids compilation, compilation inputs invalidate reuse, and different runtime inputs retain distinct execution provenance.
+
 **Classification.** Each outcome maps to exactly one class, derived from the existing `backends.Termination` values and build results:
 
 | Class | Source |
@@ -59,6 +61,8 @@ This spec measures the gap instead of guessing. It runs every test function in `
 - No CI run, PR or push.
 
 ## Decision Context
+
+Conductor decision (2026-10-20), under the owner's instruction to follow recommendations autonomously: wrapper-only classification does not satisfy the per-function matrix, and recompiling each argument-dependent preparation does not satisfy building once per package. Task .1 therefore includes method/registration discovery and a backend compilation-cache seam, preserving the CLI, recorded provenance, capabilities, model semantics and refusal behavior. This is the implementation needed by the existing acceptance criteria; it does not reduce the sweep scope.
 
 Owner decision (2026-10-19): size the gap before closing it. The sweep is ordered before or alongside the one-command setup spec because its output changes what that setup must capture; a throwaway configuration is acceptable for the sweep. Refusal-closing specs are filed from the sweep's reason classes. Host-side execution cost belongs to open spec fn-185 and the determinism contract to open spec fn-188; this spec feeds both with real workload data but does not take over their scope.
 

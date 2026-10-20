@@ -4,6 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"slices"
+	"strconv"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
@@ -20,6 +23,9 @@ func decodeInput(data []byte, target any, keys ...string) error {
 }
 
 func decodeFields(data []byte, fields map[string]json.RawMessage, target any, keys ...string) error {
+	if err := refuseUnknownFields(fields, keys); err != nil {
+		return err
+	}
 	if fields == nil || len(fields) != len(keys) {
 		return invalid("operation fields")
 	}
@@ -30,7 +36,23 @@ func decodeFields(data []byte, fields map[string]json.RawMessage, target any, ke
 		}
 	}
 	if err := strictjson.Decode(data, target); err != nil {
+		if strings.HasPrefix(err.Error(), "json: unknown field ") {
+			return &BoundaryError{Kind: "unsupported", Dimension: err.Error()}
+		}
 		return invalid("operation JSON types")
+	}
+	return nil
+}
+
+func refuseUnknownFields(fields map[string]json.RawMessage, keys []string) error {
+	unknown, found := "", false
+	for key := range fields {
+		if !slices.Contains(keys, key) && (!found || key < unknown) {
+			unknown, found = key, true
+		}
+	}
+	if found {
+		return &BoundaryError{Kind: "unsupported", Dimension: "unknown field " + strconv.Quote(unknown)}
 	}
 	return nil
 }
@@ -79,6 +101,23 @@ func (frame *validatedFrame) decodeCall(local bool) (validatedCall, *helperLocal
 		call, state = value.Call, &value.LocalState
 	} else if err := frame.decode(&call, "type", "id", "op", "input"); err != nil {
 		return validatedCall{}, nil, err
+	}
+	for _, operation := range transcriptOperations {
+		if operation.name != call.Op {
+			continue
+		}
+		var fields map[string]json.RawMessage
+		if err := strictjson.Decode(call.Input, &fields); err != nil {
+			break
+		}
+		keys := strings.Fields(operation.input)
+		for i, field := range keys {
+			keys[i], _, _ = strings.Cut(field, ":")
+		}
+		if err := refuseUnknownFields(fields, keys); err != nil {
+			return validatedCall{}, nil, err
+		}
+		break
 	}
 	return validatedCall{call: call, input: &validatedInput{data: frame.fields["input"]}}, state, nil
 }

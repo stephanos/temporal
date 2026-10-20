@@ -177,7 +177,12 @@ func prepareClusterBoot(id string, request Request) (*clusterBoot, error) {
 	if err := ValidateStorageCrashSelection(request); err != nil {
 		return nil, err
 	}
-	if request.Broker != nil || request.StorageImage != nil || request.Config.Profile != CooperativeProfile || request.Runtime == nil || request.Runtime.Choice == nil || request.Config.Clock.ReadStepNanos != 0 || request.Engine != PinnedEngine() || request.Timeout <= 0 || request.InitialMemoryPages == 0 || request.MemoryBytes == 0 || request.MemoryBytes > 1<<32 || request.MemoryBytes%65536 != 0 || request.Fuel == 0 {
+	engine := PinnedEngine()
+	if request.diagnosticConfigurationRevision == engine.Configuration+"-stress-jitter" && request.Engine == engine {
+		request.Engine.Configuration = request.diagnosticConfigurationRevision
+		engine.Configuration = request.diagnosticConfigurationRevision
+	}
+	if request.Broker != nil || request.StorageImage != nil || request.Config.Profile != CooperativeProfile || request.Runtime == nil || request.Runtime.Choice == nil || request.Config.Clock.ReadStepNanos != 0 || request.Engine != engine || request.Timeout <= 0 || request.InitialMemoryPages == 0 || request.MemoryBytes == 0 || request.MemoryBytes > 1<<32 || request.MemoryBytes%65536 != 0 || request.Fuel == 0 {
 		return nil, invalid("cluster boot configuration")
 	}
 	if err := validateInputIdentity(request.ModulePath, request.ModuleSHA256); err != nil {
@@ -358,7 +363,7 @@ func appendClusterTag(output []byte, node string, incarnation uint64, frame []by
 
 func (session *ClusterSession) run(request Request) {
 	stream := &clusterStream{session: session}
-	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	session.input.closeInput()
 	closeErr := session.input.finish()
 	session.mu.Lock()
@@ -996,11 +1001,14 @@ func (stream *clusterStream) frame(data []byte) error {
 	case "cluster_result":
 		return s.collect(frame)
 	default:
-		return invalid("unknown cluster frame")
+		return &BoundaryError{Kind: "unsupported", Dimension: "unknown cluster frame " + kind}
 	}
 }
 
 func validateClusterStarted(started Started, request Request) error {
+	if err := validateEngineConfiguration(started.Engine, request); err != nil {
+		return err
+	}
 	if started.Schema != "gomad.wasm-host/v1" || started.Engine != request.Engine || started.ModuleSHA256 != request.ModuleSHA256 || started.InitialMemoryPages != request.InitialMemoryPages || !sameImports(started.Imports, request.Imports) {
 		return invalid("cluster engine/module/import identity mismatch before authorization")
 	}

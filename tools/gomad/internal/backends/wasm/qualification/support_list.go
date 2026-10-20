@@ -156,8 +156,14 @@ func BuildSupportList(cells []SupportCellInput, gates []SupportGate) (SupportLis
 		if err != nil {
 			return SupportList{}, fmt.Errorf("support cell %s/%s: %w", key, m.Cell, err)
 		}
-		if target.Source != selection.Package || supportRunSelection(target.Argv) != run {
+		expectedArgv := []string{"gomad-target", "-test.v", "-test.count=1", "-test.timeout=72h", "-test.run=" + run, "-persistenceType=sql", "-persistenceDriver=sqlite"}
+		if target.Kind != "go-test" || target.Source != selection.Package || !slices.Equal(target.Argv, expectedArgv) {
 			return SupportList{}, fmt.Errorf("support cell %s/%s did not run %s -test.run=%s", key, m.Cell, selection.Package, run)
+		}
+		if m.Cell == "success" {
+			if err := validateSupportTestWitness(cell.Result, selection.Function); err != nil {
+				return SupportList{}, fmt.Errorf("support cell %s: %w", key, err)
+			}
 		}
 		identity := SupportCandidate{IntegratedSourceSHA256: m.IntegratedSourceSHA256, CompilerSHA256: m.CompilerSHA256, RuntimeSHA256: m.RuntimeSHA256, HelperSHA256: m.HelperSHA256, EngineSHA256: m.EngineSHA256, ModelSHA256: m.ModelSHA256, HostOS: m.HostOS, HostArch: m.HostArch}
 		if candidate == nil {
@@ -280,25 +286,41 @@ func supportResultTarget(result Result) (record.Target, error) {
 	return *target, nil
 }
 
-// supportRunSelection returns the single -test.run selection of argv, or ""
-// when it is absent or repeated (the go test flag parser keeps the last one).
-func supportRunSelection(argv []string) string {
-	selection, found := "", 0
-	for _, argument := range argv {
-		for _, prefix := range []string{"-test.run=", "--test.run=", "-run=", "--run="} {
-			if value, ok := strings.CutPrefix(argument, prefix); ok {
-				selection = value
-				found++
+func validateSupportTestWitness(result Result, function string) error {
+	for _, execution := range result.Qualification.Executions {
+		evidence := execution.Evidence
+		if evidence == nil && execution.EvidenceDigest == result.Qualification.EvidenceDigest {
+			evidence = result.Qualification.Evidence
+		}
+		if evidence == nil {
+			return errors.New("passing test witness requires retained execution evidence")
+		}
+		stream := evidence.Stdout
+		if stream.File != "stdout" || stream.Truncated || stream.DiscardedBytes != 0 || stream.TotalBytes != stream.RetainedBytes || stream.FullSHA256 != stream.RetainedSHA256 {
+			return errors.New("passing test witness requires complete retained stdout")
+		}
+		output, err := hostfs.ReadBounded(filepath.Join(execution.ArtifactPath, stream.File), 256<<20)
+		if err != nil {
+			return fmt.Errorf("passing test witness stdout: %w", err)
+		}
+		if uint64(len(output)) != uint64(stream.RetainedBytes) || record.HashBytes(output) != stream.FullSHA256 {
+			return errors.New("passing test witness stdout identity mismatch")
+		}
+		passed := 0
+		for line := range strings.SplitSeq(string(output), "\n") {
+			line = strings.TrimSpace(line)
+			if strings.HasPrefix(line, "--- SKIP: "+function+" (") {
+				return errors.New("passing test witness is skipped")
+			}
+			if strings.HasPrefix(line, "--- PASS: "+function+" (") && strings.HasSuffix(line, "s)") {
+				passed++
 			}
 		}
-		if argument == "-test.run" || argument == "--test.run" || argument == "-run" || argument == "--run" {
-			found += 2
+		if passed != 1 {
+			return errors.New("passing test witness requires exactly one selected test pass per execution")
 		}
 	}
-	if found != 1 {
-		return ""
-	}
-	return selection
+	return nil
 }
 
 func supportReference(cell SupportCellInput) SupportResultReference {

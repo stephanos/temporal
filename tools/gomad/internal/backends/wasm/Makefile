@@ -1,4 +1,4 @@
-.PHONY: helper conformance-helper test test-helper test-conformance test-go test-model qualify-runtime qualify-workloads prototype lint-code lint-rust fmt fmt-check
+.PHONY: helper conformance-helper test test-helper test-conformance test-go test-model test-determinism qualify-runtime qualify-workloads prototype lint-code lint-rust fmt fmt-check
 
 GOMAD_WASM_STOCK_GO ?= $(GOMAD_STOCK_GO)
 
@@ -9,7 +9,7 @@ fmt-check:
 	cargo +1.99.1 fmt --manifest-path wasmhost/Cargo.toml -- --check
 
 lint-rust: fmt-check
-	@for features in '' conformance diagnostic-profile diagnostic-fuel-off guest-profile guest-profile,diagnostic-fuel-off; do \
+	@for features in '' conformance diagnostic-profile diagnostic-fuel-off guest-profile guest-profile,diagnostic-fuel-off stress-jitter; do \
 		CARGO_BUILD_WARNINGS=deny cargo +1.99.1 clippy --manifest-path wasmhost/Cargo.toml --release --locked \
 			--all-targets --no-deps --features "$$features" -- -D warnings || exit $$?; \
 	done
@@ -27,8 +27,27 @@ helper:
 		cmp "$$helper_source" "$$helper_tmp" && \
 		mv -f "$$helper_tmp" wasmhost/target/release/gomad-wasmhost
 
-test: test-helper
+test: test-helper test-determinism
 	$(MAKE) test-go
+
+# Source inventories and the transport boundary corpus run without long
+# runtime qualification or the opt-in stress producer.
+test-determinism:
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test inventory --test helper_corpus
+	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test engine determinism_refuses
+	@stock_go='$(GOMAD_WASM_STOCK_GO)'; \
+	if test -z "$$stock_go"; then \
+		stock_root="$$(env -u GOROOT GOENV=off GOTOOLCHAIN=go1.27.1 go env GOROOT)" || exit 1; \
+		stock_go="$$stock_root/bin/go"; \
+	fi; \
+	cd ../../.. && env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
+		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
+		./internal/backends/wasm/determinism/... ./internal/archcheck ./internal/backends/wasm && \
+	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
+		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
+		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
+		-run '^TestDeterminism|^TestTransportInputValidation$$' ./internal/backends/wasm/wasi
 
 # The helper transcript corpus also runs on the diagnostic builds (fn-187); they
 # change the helper binary, so they build in their own target directory.

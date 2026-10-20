@@ -16,9 +16,10 @@ tools/gomad/Makefile: generate and validate-toolchain run protocolgen without ta
 - [ ] gomad.yml filter and host-tools-linux steps updated as source; no CI run, PR or push
 
 ## Done summary
-TBD
+Moved native Make generators/validators, ownership tables and inventories behind explicit selection; default generation/validation and CI routing no longer read the native tree. Added rejecting default-source path checks and default Make dry-run checks; retained native-absent generate/validate/build/vet/model/architecture checks. Fixed the lint router to read split native tables and classified split native module-contract tests consistently with their original excluded counterparts, preserving checker code/test limits and oversized negative tests. Fresh integrated lint-router tests and full default archcheck exit 0 (integrated-archcheck-fixed.log, 70.541s); default/native generation validation exit 0. Independent source review SHIP, including the budget classification correction. Native selected archcheck/gomadtool baseline failures remain recorded; no runtime, CI, PR or push claim. Evidence: .flow/artifacts/fn219-acceptance-audit-2026-10-20.md and /home/agent/wt/evidence/fn219/.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aa43211daf, ab052d04e9, b6a8296c1f, 5f9e92af84, 8aca21a9df, cbfd5f75a3, a84a807829, 38b4c5c6f2
+- Tests: go test -tags test_dep -count=1 ./internal/model/volume/... ./internal/model/network/... ./internal/model/generation/protocol/... ./internal/model/cmd/protocolgen/... ./internal/archcheck (exit 0), make generate validate (exit 0), GOFLAGS='-tags=gomad_native -p=2' make generate-native validate-native (exit 0), go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate -check (exit 0), required-helper TestNamespaceConformance and TestVolumeConformance (exit 0), cargo +1.99.1 test --release --locked --test network_corpus --test world_conformance --test clock_conformance (exit 0), integrated go test -p=1 -tags test_dep ./cmd/tools/lintcode (exit 0), integrated go test -p=1 -tags test_dep ./internal/archcheck (exit 0; integrated-archcheck-fixed.log), independent source review and budget correction review: SHIP
 - PRs:

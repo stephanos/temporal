@@ -59,6 +59,8 @@ impl Baton {
         match state.active {
             Some(next) => {
                 state.status[next] = Status::Active;
+                #[cfg(feature = "stress-jitter")]
+                crate::stress_jitter::delay();
                 self.wake[next].notify_one();
             }
             None => self.idle.notify_all(),

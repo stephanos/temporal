@@ -210,6 +210,23 @@ build with modeled imports and supports observed replay only.
 supports exact replay, choice exploration, and typed scenarios. Everything
 below assumes the cooperative profile.
 
+The [WASM determinism inventory](internal/backends/wasm/determinism/inventory.json)
+records each reviewed influence as controlled, recorded, rejected or escaped.
+Source-derived completeness checks cover imports, runtime patches, seeded
+streams, host effects and engine settings. The inventory binds its review to
+the pinned compiler, Wasmtime and Rust versions. Its
+[documented escapes](internal/backends/wasm/README.md#known-determinism-escapes)
+bound the guarantee.
+
+Diagnostic traces retain seeded draw counters at choice points. Same-seed
+stress compares fresh recordings while changing host load, concurrency, helper
+process layout or handoff timing. Forced replay answers a different question:
+it validates a retained tape, while same-seed recordings check whether the seed
+and declared inputs determine the observed execution. Stress reports must bind
+the actual host, workload and identities; native soak reports do not qualify
+WASM. First-divergence reports require diagnostic evidence and use retained
+execution coordinates to identify a replay prefix.
+
 ## Clusters and scenarios
 
 A single guest is one process. Temporal tests need several: nodes that crash

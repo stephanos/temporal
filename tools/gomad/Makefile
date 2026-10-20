@@ -65,7 +65,7 @@ wasm-test-helper:
 generate:
 	go run ./internal/model/cmd/protocolgen
 
-validate: validate-protocol
+validate: validate-protocol validate-wasm-determinism
 
 validate-protocol:
 	go run ./internal/model/cmd/protocolgen -check
@@ -255,6 +255,10 @@ world-test:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -race -tags test_dep ./internal/model/world/...
 
 validate-native: validate-toolchain validate-compatibility validate-qualification
+
+.PHONY: validate-wasm-determinism
+validate-wasm-determinism:
+	$(MAKE) -C internal/backends/wasm test-determinism GOMAD_WASM_STOCK_GO='$(GOMAD_STOCK_GO)'
 
 validate-toolchain: validate-protocol
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate -check
