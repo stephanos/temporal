@@ -166,7 +166,8 @@ Independent three-draw review finalized NEEDS_WORK, RID
 
 - R1: new choice-stream hashing in `model/reply.rs` lacks a transcript/evidence
   owner span, so reconciliation passes while its cost is assigned to scheduler.
-  A narrow Rust-only repair and actual-helper regression are in progress.
+  The narrow Rust-only repair and actual-helper regression are integrated as
+  `c32957c54b` (worker `0ee0ebd6ef`).
 - R4: the original proofs do not establish current qualified-workload
   preservation. Task .1 remains in progress. Its pending dependency now names
   fn232.13's final frozen Rust runtime-cost-equivalent behavior and qualified
@@ -175,3 +176,23 @@ Independent three-draw review finalized NEEDS_WORK, RID
 
 No new Go-only profiling or full qualification is authorized. The reviewer and
 writers are from the same model family (`gpt-6.1-sol`, reviewer effort high).
+
+The repair attributes only the choice hash to `Owner::Transcript` under
+`diagnostic-profile`; existing ABI/phase/nested meanings remain unchanged.
+The actual-helper regression failed before the fix (101, count1 rather than2)
+and passed afterward. All four diagnostic corpus modes regenerated twice
+byte-identically; the29 changed sidecars differ only in transcript-owner count.
+Default143 unit/26 corpus/12 inventory tests passed, with two existing ignored;
+all seven feature lint modes passed. Pins, Cargo.lock and default fixtures did
+not change. Raw commands/exits and the one handover are
+`/home/agent/wt/evidence/fn185/attribution-hash-fix/HANDOVER.md`.
+
+The worker's explicit empty-feature build produced helper SHA256
+`faaba5ec70e48d992388002d1170bfa07cd4f38aa117b9b0b8a3dfa0ff3125ed`;
+its earlier test-built helper was
+`28012287354f6c524c07e0d7bb8ffc69765f41c61e96c53506e3c89f95fc9c63`.
+Neither equals retained `ab405…`; these distinct build contexts remain recorded
+separately, and the exact binary-difference cause is not established. This is
+not a root rebuild, byte-equivalence or qualification claim. The shared target
+passed to the foundation worker for its extracted-library integration checks.
+R4 remains open regardless of these focused results.
