@@ -317,26 +317,38 @@ The Rust-host plan passed re-review in session
 `.flow/tmp/plan-review-receipt-fn-232-gomad-rewrite-the-host-side-in-rust.json`.
 It preserves pinned-root containment, platform-native no-replace publication,
 bounded authenticated payloads and exact per-verb diagnostic projections.
-Tasks .1-.4 are now admitted provisionally alongside fn-228, as the merged
-first-batch order permits. `rust_foundation_impl` owns new host/evidence/store
-modules in `fn232-foundation`; its one isolated child owns parity scaffolding in
-`fn232-parity`. Existing helper files remain reserved to fn-228 until its green
-reviewed source is released. There is no public helper library yet: extraction
-belongs to fn-232.1 after that release. The light target is
-`/home/agent/.cache/fn232-foundation-light-target`, not another Wasmtime build.
+Tasks .1-.4 are admitted provisionally alongside fn-228, as the merged first-batch
+order permits. `rust_foundation_impl` owns the isolated host/evidence/store and
+helper-library extraction in `fn232-foundation`; its parity child has delivered.
+Development may proceed there, but root integration waits for fn-228 closure.
+Actual linked execution, abrupt publication-crash recovery and fresh Go/Rust
+behavioral comparison are under verification, not completed acceptance. The one
+heavy release target belongs to `qualification-final-frozen`; the completed light
+target was removed after its receipts were retained.
 
 Sweep `97951` (owned PID `879280`) continues the resumed journal. Latest
-reported 169/1488 classifications comprise 158 observed passes, one explicit
-skip, five unresolved capacity observations, four timeouts and one guest
-failure. Poll the same handle rather than restarting it. Shared-host triage
+reported 248/1488 classifications comprise 220 observed passes, four explicit
+skips, 17 unresolved capacity observations, five timeouts and two guest
+failures. Poll the same handle rather than restarting it. Shared-host triage
 supplies neither quiet-host performance evidence nor a support claim.
 
-Open implementation ownership: `replay_tape_impl` owns Rust/WASI transport in
-`/home/agent/wt/fn228`, and its `runner_bridge` child owns Go producers/adapters
-in `/home/agent/wt/fn228-runner`. Their interface is
-`/home/agent/wt/evidence/fn228/handover/batch-interface.md`. Their later transport,
-Runner and corpus checkpoints through `12cdc81672` remain outside the integration
-branch pending combined gates and independent review.
+The full replay batch through `12cdc81672`, including the initially missed
+controller-adapter checkpoint, is integrated. Combined source admission at
+`0561e32514` passed canonical Quick, 24 Go packages (1,133 top-level tests), focused
+source/corpus checks and serial read-only lint. The 71 helper inputs reproduce
+`ab4059583f7d3ca265cdbce2de064cd2e54b744b9943cf38e2addf45e1825193`;
+prior full Rust results are reused only with equivalent-input proof, not called
+fresh combined execution. Measured identity causes and exact raw logs are indexed
+by `.flow/artifacts/fn228-replay-identity-ledger-2026-10-20.md` and the independent
+receiver `/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md`.
+Root verified both receiver manifests. Final Rust qualification remains pending.
+
+Combined independent review finalized NEEDS_WORK at `6d5c570f88`, RID
+`a6a7f787c6adb67b96029734bc43ca8a`: lint-only paths lost CI validation routing,
+and `replay --verify-only` bypassed the semantic checks moved into helper preflight.
+The native and replay owners are fixing these independently with regression
+tests. The same review receipt will receive one re-review after integration;
+all seven source tasks remain open until acceptance and whole-spec closure gates.
 
 fn-219's ledger/audit continuation is integrated as `9d62ddadc1`. Its task .4
 passed all three independent review draws and was completed with root-reachable
@@ -354,8 +366,9 @@ fn-223's amended pure-deletion plan passed re-review. The conductor reran
 after fn-219 closed, then admitted tasks .1-.3 as one batch. Implementation
 worker `native_deletion_impl` owns `/home/agent/wt/fn223`, base `18e5e7cac7`,
 including deletion-only identity accounting and complete pending Rust gate
-transfer. Source checkpoint `f76f6263b1` is integrated as `cafabfb200`; ledger,
-independent review and acceptance remain open. Root repeated architecture,
+transfer. Source checkpoint `f76f6263b1` is integrated as `cafabfb200`, and the
+separate deletion ledger as `46ce5a58bb`; review fixes and acceptance remain open.
+Root repeated architecture,
 cluster-model and CLI package checks on this integrated source: all exit 0.
 The exact source/live test partition passed same-receipt plan re-review round 4
 at `761f11c9fe`: nine pinned-input source checks remain required, while 39
