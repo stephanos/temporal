@@ -16,10 +16,8 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
-	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster"
-	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
@@ -52,13 +50,15 @@ func TestTemporalInspectionRetainedFailure(t *testing.T) {
 			original := filepath.Join(server, "service/history", fixture.owner)
 			if fixture.owner == "onebox" {
 				original = filepath.Join(server, "tools/gomad/internal/backends/wasm/testdata/prototype_temporal")
-				inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(server, "schema/sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+				temporalConfig, err := wasi.TemporalConfig(server, provider.options.Config.WorkingDirectory)
 				require.NoError(t, err)
-				provider.options.Config.CapturedInputs = inputs
-				provider.options.Config.Environment = append(provider.options.Config.Environment, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn")
+				provider.options.Config.CapturedInputs = temporalConfig.CapturedInputs
+				provider.options.Config.Environment = append(provider.options.Config.Environment, temporalConfig.Environment[1:]...)
 				environment = append(environment, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TEMPORAL_TEST_LOG_LEVEL=warn")
-				provider.options.Config.Limits = wasi.Limits{OutputBytes: 16 << 20, TranscriptBytes: 256 << 20, Calls: 1 << 28, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096}
-				provider.options.Config.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: uint64(10 * time.Second), Transitions: 1 << 20}}
+				provider.options.Config.Limits = temporalConfig.Limits
+				provider.options.Config.Limits.OutputBytes = 16 << 20
+				provider.options.Config.Limits.TranscriptBytes = 256 << 20
+				provider.options.Config.NetworkV2 = wasi.TemporalNetwork()
 				provider.options.MemoryBytes = 4 << 30
 				provider.options.Fuel = 1 << 50
 				executionTimeout, overallTimeout = 30*time.Minute, 45*time.Minute
