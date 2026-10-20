@@ -254,7 +254,11 @@ impl Model {
             return Err(Error::msg("WASI capacity: runtime-choice-bytes"));
         }
         self.queue("choice", record);
+        #[cfg(feature = "diagnostic-profile")]
+        let hash = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Transcript);
         self.choice_hash.update(record);
+        #[cfg(feature = "diagnostic-profile")]
+        drop(hash);
         if record[9] & 1 != 0 && super::get32(record, 12) > 1 {
             self.branching_records += 1;
         }

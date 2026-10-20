@@ -926,6 +926,19 @@ fn residual_regeneration_selection_is_exact_and_generation_only() {
     residual_helper_literals::residual_regeneration_selection_is_exact_and_generation_only();
 }
 
+#[cfg(feature = "diagnostic-profile")]
+#[test]
+fn runtime_choice_hash_is_attributed_to_transcript() {
+    let (_, case) = read_case(&corpus_dir().join("model_runtime_record.json")).unwrap();
+    let actual = stable_expected(&case, expected_of, 2).unwrap();
+    let profile = &actual["diagnostic_profile"];
+    assert_eq!(profile["owners"]["transcript"]["count"], 2);
+    assert_eq!(profile["nested"]["alternative_hash"]["count"], 1);
+    assert_eq!(profile["nested"]["transcript_hash"]["count"], 0);
+    assert_eq!(profile["span_errors"], 0);
+    assert_eq!(profile["abi_overlap_errors"], 0);
+}
+
 #[test]
 fn helper_transcript_corpus_reproduces_expected_outcomes() {
     let regenerate = std::env::var("GOMAD_HELPER_CORPUS_REGENERATE").as_deref() == Ok("1");
