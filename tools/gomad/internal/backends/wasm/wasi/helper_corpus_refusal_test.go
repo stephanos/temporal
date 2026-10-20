@@ -113,7 +113,7 @@ func helperCorpusRefusalLiteral(name string, actual any) error {
 			termination = "debug_error"
 		} else if name == "admission_storage_image_capacity" || name == "admission_exact_remote_json_short" {
 			termination = "capacity"
-		} else if name == "admission_exact_cpu_max_id" || name == "admission_exact_cpu_two" || name == "admission_exact_clock_remote_tuple" {
+		} else if name == "admission_storage_unknown_field" || name == "admission_exact_cpu_max_id" || name == "admission_exact_cpu_two" || name == "admission_exact_clock_remote_tuple" {
 			termination = "unsupported"
 		}
 		if result["termination"] != termination {
@@ -194,6 +194,37 @@ func TestHelperCorpusAdmissionRefusalsRejectWrongStageMessages(t *testing.T) {
 			}}}
 			if err := helperCorpusRefusalLiteral(name, actual); err == nil {
 				t.Fatal("wrong-stage admission refusal accepted")
+			}
+		})
+	}
+}
+
+func TestHelperCorpusStorageUnknownFieldTermination(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		termination string
+		wantError   bool
+	}{
+		{termination: "unsupported"},
+		{termination: "invalid", wantError: true},
+		{termination: "capacity", wantError: true},
+	} {
+		t.Run(test.termination, func(t *testing.T) {
+			t.Parallel()
+			data, err := os.ReadFile(filepath.Join(helperCorpusDirectory, "admission_storage_unknown_field.json"))
+			if err != nil {
+				t.Fatal(err)
+			}
+			value, err := decodeCorpusJSON(data)
+			if err != nil {
+				t.Fatal(err)
+			}
+			actual := value.(map[string]any)["expected"].(map[string]any)
+			frames := actual["frames"].([]any)
+			frames[len(frames)-1].(map[string]any)["termination"] = test.termination
+			err = helperCorpusRefusalLiteral("admission_storage_unknown_field", actual)
+			if (err != nil) != test.wantError {
+				t.Fatalf("termination %s: error = %v, want error = %v", test.termination, err, test.wantError)
 			}
 		})
 	}
