@@ -173,18 +173,23 @@ fn cancel_projection_checks_the_actual_outcome_in_every_phase() {
             panic!("cancel must replay")
         };
         assert_eq!(paths.len(), 1);
-        assert_eq!(paths[0].len(), 1);
+        assert_eq!(paths[0].path.len(), 1);
         let (outcome, _, after) = activity::World
-            .checked_step(&before, paths[0][0].action.clone())
+            .checked_step(&before, paths[0].path[0].action.clone())
             .unwrap_or_else(|error| panic!("{error:?}"))
             .into_iter()
             .next()
             .unwrap_or_else(|| panic!("cancel must be enabled"));
         let closed = umpire_dsl::Phase::closed(&phase);
-        assert_eq!(Realization.matches(&cancel(Some(5)), &after, Some(&outcome)), Ok(closed));
-        assert_eq!(Realization.matches(&cancel(None), &after, Some(&outcome)), Ok(!closed));
-        assert_eq!(Realization.matches(&cancel(Some(5)), &after, None), Ok(false));
-        assert_eq!(Realization.matches(&cancel(None), &after, None), Ok(false));
+        assert_eq!(paths[0].outcome.as_ref() == Some(&outcome), closed);
+        assert_eq!(paths[0].outcome, Some(StepOutcome::Rejected(Rejection::NotFound)));
+        let Projection::Candidates(success) =
+            Realization.observe(&cancel(None), &before).unwrap_or_else(|error| panic!("{error:?}"))
+        else {
+            panic!("cancel must replay")
+        };
+        assert_eq!(success[0].outcome.as_ref() == Some(&outcome), !closed);
+        assert_eq!(success[0].outcome, Some(StepOutcome::Accepted));
         assert_eq!(after.phase, if closed { phase } else { activity::Phase::Canceled });
         assert_eq!(
             outcome,

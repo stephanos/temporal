@@ -12,12 +12,38 @@ pub struct Transition<A> {
     pub choice: usize,
 }
 
+impl<A> From<A> for Transition<A> {
+    fn from(action: A) -> Self {
+        Self { action, choice: 0 }
+    }
+}
+
+/// A proposed path and the optional expected outcome of its final edge.
+pub struct Candidate<A, O = umpire_dsl::Outcome> {
+    /// Model transitions to replay in order.
+    pub path: Vec<Transition<A>>,
+    /// Required final outcome; absent means any outcome matches.
+    pub outcome: Option<O>,
+}
+
 /// A validated observation's positive current match or proposed transition paths.
-pub enum Projection<A> {
+pub enum Projection<A, O = umpire_dsl::Outcome> {
     /// The observation positively matches the current state.
     Current,
     /// Candidate nonempty paths; none matching is an unexplained observation.
-    Candidates(Vec<Vec<Transition<A>>>),
+    Candidates(Vec<Candidate<A, O>>),
+}
+
+impl<A, O> Projection<A, O> {
+    /// Proposes one action using its first enabled choice and any outcome.
+    pub fn step(action: A) -> Self {
+        Self::steps([vec![action.into()]])
+    }
+
+    /// Proposes paths in order, accepting any final outcome.
+    pub fn steps(paths: impl IntoIterator<Item = Vec<Transition<A>>>) -> Self {
+        Self::Candidates(paths.into_iter().map(|path| Candidate { path, outcome: None }).collect())
+    }
 }
 
 /// A validated callback's delivery evidence and selected response.
@@ -28,6 +54,13 @@ pub struct AnswerPlan<A> {
     pub response_action: A,
     /// The system-owned reply envelope.
     pub reply: Any,
+}
+
+impl<A> AnswerPlan<A> {
+    /// Creates a delivery path and response with an already packed system reply.
+    pub fn new(delivery: Vec<Transition<A>>, response_action: A, reply: Any) -> Self {
+        Self { delivery, response_action, reply }
+    }
 }
 
 /// A system-owned payload registry and projection binding for one Model.
@@ -42,15 +75,7 @@ pub trait Realize<M: Machine> {
         &self,
         observation: &Any,
         state: &M::State,
-    ) -> Result<Projection<M::Action>, protocol::Refusal>;
-
-    /// Matches an endpoint and its final edge outcome; only a zero-step check has no outcome.
-    fn matches(
-        &self,
-        observation: &Any,
-        state: &M::State,
-        outcome: Option<&M::Outcome>,
-    ) -> Result<bool, protocol::Refusal>;
+    ) -> Result<Projection<M::Action, M::Outcome>, protocol::Refusal>;
 
     /// Validates the complete callback and selects its delivery path and response.
     fn answer(
@@ -96,7 +121,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     }
 
     /// Dispatches natively, committing after the response encodes successfully.
-    pub fn dispatch(&mut self, method: u32, request: &[u8]) -> protocol::Response {
+    pub fn dispatch(&mut self, method: u32, request: &[u8]) -> protocol::Response
+    where
+        M::Outcome: PartialEq,
+    {
         let (response, transaction) = self.prepare(method, request);
         if crate::abi::encode_response(&response).is_none() {
             return protocol::Response {
@@ -112,7 +140,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         response
     }
 
-    fn prepare_method(&self, method: u32, request: &[u8]) -> Prepared<M> {
+    fn prepare_method(&self, method: u32, request: &[u8]) -> Prepared<M>
+    where
+        M::Outcome: PartialEq,
+    {
         match method {
             1 => self.explore(decode::<protocol::ExploreRequest>(request)?.budget),
             2 => self.rows(decode::<protocol::RowsRequest>(request)?.state_id),
@@ -164,7 +195,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
         })
     }
 
-    fn judge(&self, observation: &Any) -> Prepared<M> {
+    fn judge(&self, observation: &Any) -> Prepared<M>
+    where
+        M::Outcome: PartialEq,
+    {
         use protocol::judge_response::Judgment;
 
         let current = self.current()?;
@@ -173,20 +207,19 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
             return Ok((judgment(Judgment::Unexplained(frozen.clone())), None));
         }
         match projection {
-            Projection::Current if self.realization.matches(observation, current, None)? => {
+            Projection::Current => {
                 return Ok((judgment(Judgment::Explained(protocol::Explanation::default())), None));
             }
             Projection::Candidates(paths) => {
-                for path in paths {
-                    if path.is_empty() {
+                for candidate in paths {
+                    if candidate.path.is_empty() {
                         continue;
                     }
-                    if let Some(replay) = self.replay(current, path)?
-                        && self.realization.matches(
-                            observation,
-                            &replay.state,
-                            replay.outcome.as_ref(),
-                        )?
+                    if let Some(replay) = self.replay(current, candidate.path)?
+                        && candidate
+                            .outcome
+                            .as_ref()
+                            .is_none_or(|expected| Some(expected) == replay.outcome.as_ref())
                     {
                         return Ok((
                             judgment(Judgment::Explained(protocol::Explanation {
@@ -200,7 +233,6 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
                     }
                 }
             }
-            Projection::Current => {}
         }
         let mut expected_actions = Vec::new();
         for action in self.machine.actions() {
@@ -335,7 +367,10 @@ impl<M: Machine, R: Realize<M>> Runtime<M, R> {
     }
 }
 
-impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R> {
+impl<M: Machine, R: Realize<M>> Dispatch for Runtime<M, R>
+where
+    M::Outcome: PartialEq,
+{
     type Transaction = Transaction<M>;
 
     fn prepare(
