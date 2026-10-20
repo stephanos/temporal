@@ -296,14 +296,6 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 | [fn-224.2](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.2.md) | ⬜ Todo | Run the ringpop unit tests under the cooperative profile and classify every outcome |
 | [fn-224.3](.flow/tasks/fn-224-gomad-ringpop-membership-on-wasm-within.3.md) | ⬜ Todo | Add a multi-node ringpop partition/heal scenario and document it |
 
-### Native backend deletion — [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md)
-
-Runs after fn-219, in parallel with fn-232 as pure deletion. Closed-spec cleanup follows AGENTS.md; changes no WASM semantics.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | 🚧 In progress | Record deletion identities, transfer final Rust qualification and refresh docs |
-
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |

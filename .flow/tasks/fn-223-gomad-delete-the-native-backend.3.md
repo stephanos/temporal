@@ -25,9 +25,12 @@ Independent fn-219 closeout review provenance now belongs to this open owner at 
 - [ ] All retained README, ARCHITECTURE, CLI and WASM guides, MILESTONES and AGENTS describe native only as removed history; task .2's zero-reference check remains green
 
 ## Done summary
-TBD
+R3/R4: Recorded exact deletion-only source pair18e5e7cac7→f76f6263b1 and identity/preparation causes in .flow/artifacts/fn223-closeout-2026-10-20.md. Combined replay identities remain separate. Guides/MILESTONES/AGENTS describe native as removed history. Verified receiver /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/README.md retains ledger, source inventories, gate/subgate/fixture map,39 live roots and inherited promotion inputs. fn232.13 explicitly accepts pending complete runtime/workload/test-wasm/replay coverage under unchanged3600s. No transfer is a pass. Independent combined review SHIP07ebfdb4ee; required source gates retained0, failed unselected attempt unchanged.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/README.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cafabfb200, 46ce5a58bb, 91abbc3051, eee312b9a0
+- Tests: identity pair/binding verification and frozen source gate receipts (handover README), independent receiver inputs.sha256 verification exit0, combined independent source review round2 SHIP
 - PRs:
