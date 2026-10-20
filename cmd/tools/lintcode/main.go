@@ -304,35 +304,62 @@ func gitPaths(ctx context.Context, root string, args ...string) ([]string, error
 	return slices.Compact(paths), nil
 }
 
+// Gomad source classifications live in archcheck: the default lists in
+// inventory.go and the native-only lists in native_enabled.go (gomad_native).
+// The router owns every checked-out source, so it merges both when the native
+// classification file is present.
+type classificationFile struct{ path, exclusions, modules, hosts string }
+
+var (
+	defaultClassifications = classificationFile{gomadModule + "/internal/archcheck/inventory.go", "sourceExclusions", "expectedModules", ""}
+	nativeClassifications  = classificationFile{gomadModule + "/internal/archcheck/native_enabled.go", "nativeSourceExclusions", "nativeExpectedModules", "nativeHostSourcePackages"}
+)
+
 func loadOwnership(root string) (ownership, error) {
 	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}, hostPackages: map[string]bool{}}
-	path := filepath.Join(root, gomadModule, "internal/archcheck/inventory.go")
-	file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
-	if err != nil {
-		return policy, fmt.Errorf("read Gomad source classifications: %w", err)
+	classifications := []classificationFile{defaultClassifications}
+	if info, err := os.Lstat(filepath.Join(root, nativeClassifications.path)); err == nil {
+		if !info.Mode().IsRegular() {
+			return policy, fmt.Errorf("gomad native source classification is not a regular file: %s", nativeClassifications.path)
+		}
+		classifications = append(classifications, nativeClassifications)
+	} else if !errors.Is(err, os.ErrNotExist) {
+		return policy, err
 	}
-	for _, name := range []string{"sourceExclusions", "expectedModules", "hostSourcePackages"} {
-		entries, err := classificationPaths(file, name)
+	for _, classification := range classifications {
+		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, classification.path), nil, 0)
+		if err != nil {
+			return policy, fmt.Errorf("read Gomad source classifications: %w", err)
+		}
+		entries, err := classificationPaths(file, classification.exclusions)
 		if err != nil {
 			return policy, err
 		}
-		switch name {
-		case "sourceExclusions":
-			policy.fixtures = entries
-		case "expectedModules":
-			for _, entry := range entries {
-				policy.modules[gomadModule+"/"+entry] = true
+		policy.fixtures = append(policy.fixtures, entries...)
+		if entries, err = classificationPaths(file, classification.modules); err != nil {
+			return policy, err
+		}
+		for _, entry := range entries {
+			if policy.modules[gomadModule+"/"+entry] {
+				return policy, fmt.Errorf("gomad module %q is classified twice", entry)
 			}
-		case "hostSourcePackages":
-			if err := policy.registerHostPackages(root, entries); err != nil {
-				return policy, err
-			}
-		default:
-			return policy, fmt.Errorf("unknown Gomad source classification %q", name)
+			policy.modules[gomadModule+"/"+entry] = true
+		}
+		if classification.hosts == "" {
+			continue
+		}
+		if entries, err = classificationPaths(file, classification.hosts); err != nil {
+			return policy, err
+		}
+		if len(entries) == 0 {
+			return policy, fmt.Errorf("gomad source classification %s is empty", classification.hosts)
+		}
+		if err := policy.registerHostPackages(root, entries); err != nil {
+			return policy, err
 		}
 	}
-	if len(policy.fixtures) == 0 || len(policy.modules) == 0 || len(policy.hostPackages) == 0 {
-		return policy, errors.New("gomad source classifications need literal sourceExclusions, expectedModules and hostSourcePackages")
+	if len(policy.fixtures) == 0 || len(policy.modules) == 0 {
+		return policy, errors.New("gomad source classifications need literal sourceExclusions and expectedModules")
 	}
 	data, err := os.ReadFile(filepath.Join(root, gomadModule, "internal/backends/native/toolchain/version/version.json"))
 	if err != nil {
@@ -389,7 +416,7 @@ func literalPaths(name string, expression ast.Expr) ([]string, error) {
 	}
 	var paths []string
 	for _, expression := range list.Elts {
-		if name == "expectedModules" {
+		if name == "expectedModules" || name == "nativeExpectedModules" {
 			pair, ok := expression.(*ast.KeyValueExpr)
 			if !ok {
 				return nil, fmt.Errorf("gomad %s has a nonliteral entry", name)

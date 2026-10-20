@@ -19,10 +19,11 @@ func TestNestedNativeLintSelection(t *testing.T) {
 		t.Run(map[bool]string{false: "default", true: "selected"}[selected], func(t *testing.T) {
 			repo := newLintRepo(t)
 			repo.write(nativeModule+"/go.mod", "module example.invalid/native\n\ngo 1.27.0\n")
-			inventoryPath := "tools/gomad/internal/archcheck/inventory.go"
-			inventory, err := os.ReadFile(filepath.Join(repo.root, inventoryPath))
+			classificationPath := "tools/gomad/internal/archcheck/native_enabled.go"
+			classifications, err := os.ReadFile(filepath.Join(repo.root, classificationPath))
 			require.NoError(t, err)
-			repo.write(inventoryPath, strings.Replace(string(inventory), "map[string]bool{", `map[string]bool{"internal/backends/native/go.mod":true,`, 1))
+			require.Contains(t, string(classifications), "nativeExpectedModules = map[string]bool{")
+			repo.write(classificationPath, strings.Replace(string(classifications), "nativeExpectedModules = map[string]bool{", `nativeExpectedModules = map[string]bool{"internal/backends/native/go.mod":true,`, 1))
 			args := []string{"lint-code-gomad"}
 			if selected {
 				args = append(args, "ALL_TEST_TAGS=test_dep,gomad_native")
