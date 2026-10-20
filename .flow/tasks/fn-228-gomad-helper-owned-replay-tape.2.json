@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-228-gomad-helper-owned-replay-tape",
   "spec_path": ".flow/tasks/fn-228-gomad-helper-owned-replay-tape.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Helper preflight: accept trace frames, verify digests and counts, refuse before guest start",
   "updated_at": "2026-10-20T21:08:06.376251Z"
 }

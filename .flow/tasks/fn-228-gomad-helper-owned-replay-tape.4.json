@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-228-gomad-helper-owned-replay-tape",
   "spec_path": ".flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Reference session, corpora and docs: keep split-owned mode, regenerate transcripts, document the contract",
   "updated_at": "2026-10-20T21:08:07.072271Z"
 }

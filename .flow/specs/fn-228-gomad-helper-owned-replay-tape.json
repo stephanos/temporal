@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-228-gomad-helper-owned-replay-tape",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T22:56:18.946023Z",
   "created_at": "2026-10-20T20:28:44.249075Z",
   "default_impl": null,
   "default_review": null,
@@ -134,19 +134,56 @@
       "task": null,
       "timestamp": "2026-10-20T21:09:32.380439Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "6123d5d4874613e787ea31346e027ff5c8d51ff5088c5f5adeff5d162f93b6fe",
+      "backend": "codex",
+      "base_sha": "0b55f8bf7a319254c4f56916b0df45f5d20fe256",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3eac989d406f92dd3bb12c4436c35ecba67becbe",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 614348,
+      "output_sha256": "c67ea43c0e800f916492b38cc0e7399af8f222c97c1efbd6153511f933d64243",
+      "reservation_id": "1cfe4491c813485a9371a055371f10dd",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T22:56:18.922337Z",
+      "tool_calls": 35,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 1,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-228-gomad-helper-owned-replay-tape.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: helper-owned replay tape validation",
   "tracker": {
     "baseHashFlow": null,
@@ -159,5 +196,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:09:32.391538Z"
+  "updated_at": "2026-10-20T22:57:51.235719Z"
 }
