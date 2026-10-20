@@ -33,6 +33,8 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 	for _, test := range []struct {
 		path, want string
 	}{
+		{".github/.golangci.yml", "wasm=true\n"},
+		{"cmd/tools/lintcode/main.go", "wasm=true\n"},
 		{"tools/gomad/internal/model/cluster/simulation.go", "wasm=true\n"},
 		{"tools/gomad/internal/backends/wasm/backend/provider.go", "wasm=true\n"},
 		{"tools/gomad/internal/evidence/record/record.go", "wasm=true\n"},

@@ -70,7 +70,7 @@ jobs:
                     tools/gomad/internal/backends/wasm/*|tools/gomad/mise.toml) wasm=true ;;
                     # internal/backends/wasm/cluster and qualification import tools/gomad/internal/model/cluster.
                     # The gomad_wasm_slim provider seams carry the WASM slim refusal tests.
-                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|Makefile|go.mod|go.sum|\
+                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/.golangci.yml|cmd/tools/lintcode/*|Makefile|go.mod|go.sum|\
                     common/archiver/provider/provider_cloud*|temporal/membership*|tests/testcore/flag_sql*)
                       wasm=true
                       ;;
