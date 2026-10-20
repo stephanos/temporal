@@ -30,6 +30,16 @@ func (request *Request) SetDiagnosticConfigurationRevision(revision string) {
 	request.diagnosticConfigurationRevision = revision
 }
 
+// SetStressHostConditions opts a measurement into the distinct stress helper.
+// These variables belong to the helper process, never to the guest namespace.
+func (request *Request) SetStressHostConditions(padding string, jitter bool) {
+	request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-stress-jitter"
+	request.stressHostEnvironment = []string{"GOMAD_WASM_STRESS_LAYOUT=" + padding}
+	if jitter {
+		request.stressHostEnvironment = append(request.stressHostEnvironment, "GOMAD_WASM_STRESS_JITTER=1")
+	}
+}
+
 func (result Result) RuntimeTerminal() [16]byte { return result.runtimeTerminal }
 
 func (result *Result) SetRuntimeTerminal(terminal [16]byte) { result.runtimeTerminal = terminal }

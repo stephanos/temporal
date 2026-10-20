@@ -328,6 +328,7 @@ const SOURCE_PATTERNS: &[&str] = &[
     "SystemTime",
     "/dev/urandom",
     "thread::spawn",
+    "thread::sleep",
     "thread::Builder",
     "HashMap",
     "HashSet",

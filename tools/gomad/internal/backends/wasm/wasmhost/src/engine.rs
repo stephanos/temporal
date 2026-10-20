@@ -730,6 +730,8 @@ impl State {
                 }
                 break protocol::decode_boundary(&bytes)?;
             };
+            #[cfg(feature = "stress-jitter")]
+            crate::stress_jitter::delay();
             if reply.kind != "reply" {
                 return Err(Error::new(protocol::Unsupported(format!(
                     "unknown callback reply kind {}",
@@ -777,6 +779,10 @@ impl State {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
 }
+#[cfg(feature = "stress-jitter")]
+pub(crate) const CONFIGURATION_REVISION: &str =
+    "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter";
+#[cfg(not(feature = "stress-jitter"))]
 pub(crate) const CONFIGURATION_REVISION: &str = match (
     cfg!(feature = "guest-profile"),
     cfg!(feature = "diagnostic-fuel-off"),

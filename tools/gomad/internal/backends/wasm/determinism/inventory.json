@@ -2523,6 +2523,32 @@
    ]
   },
   {
+   "id": "helper.stress-jitter.entropy",
+   "layer": "helper",
+   "class": "entropy",
+   "site": "helper-source:stress_jitter.rs|/dev/urandom|1",
+   "disposition": "controlled",
+   "owner": "stress-jitter diagnostic feature",
+   "rule": "Host entropy selects only bounded host delays in the optional stress helper; release builds compile out the module and qualification refuses its distinct engine identity.",
+   "evidence": [
+    "rust:src/stress_jitter.rs:stress_jitter_is_a_distinct_engine_identity",
+    "go:internal/backends/wasm/wasi:TestStressJitterHelperRefusedForQualification"
+   ]
+  },
+  {
+   "id": "helper.stress-jitter.delay",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:stress_jitter.rs|thread::sleep|1",
+   "disposition": "controlled",
+   "owner": "stress-jitter diagnostic feature",
+   "rule": "A feature-gated host sleep perturbs baton and reply timing by at most one millisecond without changing guest inputs, modeled virtual time or decision streams.",
+   "evidence": [
+    "rust:src/stress_jitter.rs:stress_jitter_is_a_distinct_engine_identity",
+    "go:internal/backends/wasm/wasi:TestStressHostConditionsStayOutsideGuestInputs"
+   ]
+  },
+  {
    "id": "finding.simd-nan-canonicalization",
    "layer": "engine-config",
    "class": "settings",

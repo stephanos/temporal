@@ -37,7 +37,7 @@ func TestGoOwnedInspectionRefusedBeforeExecution(t *testing.T) {
 
 func TestDiagnosticTransportRequiresPrivateRevisionOptIn(t *testing.T) {
 	pinned := PinnedEngine()
-	for _, suffix := range []string{"-guest-profile", "-fuel-off", "-guest-profile-fuel-off"} {
+	for _, suffix := range []string{"-guest-profile", "-fuel-off", "-guest-profile-fuel-off", "-stress-jitter"} {
 		request := Request{Engine: pinned}
 		request.Engine.Configuration += suffix
 		_, err := Run(context.Background(), request)

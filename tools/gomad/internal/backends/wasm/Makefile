@@ -9,7 +9,7 @@ fmt-check:
 	cargo +1.99.1 fmt --manifest-path wasmhost/Cargo.toml -- --check
 
 lint-rust: fmt-check
-	@for features in '' conformance diagnostic-profile diagnostic-fuel-off guest-profile guest-profile,diagnostic-fuel-off; do \
+	@for features in '' conformance diagnostic-profile diagnostic-fuel-off guest-profile guest-profile,diagnostic-fuel-off stress-jitter; do \
 		CARGO_BUILD_WARNINGS=deny cargo +1.99.1 clippy --manifest-path wasmhost/Cargo.toml --release --locked \
 			--all-targets --no-deps --features "$$features" -- -D warnings || exit $$?; \
 	done

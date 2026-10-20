@@ -140,6 +140,7 @@ type Request struct {
 	remoteModel                     bool
 	diagnosticConfigurationRevision string
 	guestProfile                    *guestProfileConfig
+	stressHostEnvironment           []string
 }
 type guestProfileConfig struct {
 	Path           string `json:"path"`
@@ -267,7 +268,7 @@ func verifyFile(name, digest string) error {
 func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	pinned := PinnedEngine()
 	diagnostic := func(revision string) bool {
-		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off"
+		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off" || revision == pinned.Configuration+"-stress-jitter"
 	}
 	if request.diagnosticConfigurationRevision != "" {
 		if request.Engine != pinned || !diagnostic(request.diagnosticConfigurationRevision) {
@@ -453,7 +454,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 	}()
 	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage, storageContext: storageContext}
-	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
 	closeErr := input.finish()
