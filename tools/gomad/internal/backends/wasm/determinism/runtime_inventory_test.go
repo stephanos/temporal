@@ -32,22 +32,60 @@ const wasip1 = "wasip1/wasm"
 
 func TestRuntimeInventoryRequiresPerSiteRows(t *testing.T) {
 	t.Parallel()
-	for _, test := range []struct{ kind, site string }{
-		{"runtime-draw", "wasip1/wasm runtime/proc.go runqget gomadChoiceRunqIndex patch"},
-		{"runtime-clock", "wasip1/wasm runtime/gomad_wasm.go nanotime"},
-		{"runtime-other", "wasip1/wasm runtime/proc.go execute patch"},
-	} {
-		t.Run(test.kind, func(t *testing.T) {
+	checkRuntimePerSiteRows(t, loadInventory(t), runtimeSiteSets(t))
+}
+
+func runtimeSiteSets(t *testing.T) map[string]map[string]int {
+	t.Helper()
+	stock, context, replace := effectiveSources(t)
+	draws, others := drawPatchReferences(t, stock, overlayPatches(t))
+	return map[string]map[string]int{"runtime-draw": draws, "runtime-clock": wasip1HostClockReferences(t, stock, context, replace), "runtime-other": others}
+}
+
+func checkRuntimePerSiteRows(t *testing.T, inventory Inventory, derived map[string]map[string]int) {
+	t.Helper()
+	for kind, active := range derived {
+		t.Run(kind, func(t *testing.T) {
 			t.Parallel()
-			inventory := loadInventory(t)
-			rows := inventory.Sites(test.kind)
-			require.Contains(t, rows, test.site)
-			sites := make([]string, 0, len(rows))
-			for site := range rows {
+			rows := inventory.Sites(kind)
+			sites := make([]string, 0, len(active))
+			for site := range active {
 				sites = append(sites, site)
 			}
-			require.ErrorContains(t, inventory.Without(test.kind+":"+test.site).Complete(test.kind, sites), test.site+`" has no inventory row`)
-			require.ErrorContains(t, inventory.Complete(test.kind, slices.DeleteFunc(slices.Clone(sites), func(site string) bool { return site == test.site })), "no longer has")
+			require.NoError(t, inventory.Complete(kind, sites))
+			for site := range active {
+				require.Contains(t, rows, site)
+				require.ErrorContains(t, inventory.Without(kind+":"+site).Complete(kind, sites), site+`" has no inventory row`)
+				require.ErrorContains(t, inventory.Complete(kind, slices.DeleteFunc(slices.Clone(sites), func(other string) bool { return other == site })), "no longer has")
+			}
+		})
+	}
+}
+
+func TestRuntimeInventoryAllowsHistoricalRetirement(t *testing.T) {
+	t.Parallel()
+	inventory := loadInventory(t)
+	derived := runtimeSiteSets(t)
+	for kind := range derived {
+		t.Run(kind, func(t *testing.T) {
+			t.Parallel()
+			retired := inventory
+			retired.Entries = slices.Clone(inventory.Entries)
+			for index := range retired.Entries {
+				if strings.HasPrefix(retired.Entries[index].Site, kind+":") {
+					retired.Entries[index].Disposition = "rejected"
+				}
+			}
+			changed := make(map[string]map[string]int, len(derived))
+			for name, original := range derived {
+				changed[name] = make(map[string]int, len(original))
+				for site, count := range original {
+					changed[name][site] = count
+				}
+			}
+			clear(changed[kind])
+			require.NoError(t, runtimeInventoryCoverage(retired, changed["runtime-draw"], changed["runtime-clock"], changed["runtime-other"]))
+			checkRuntimePerSiteRows(t, retired, changed)
 		})
 	}
 }

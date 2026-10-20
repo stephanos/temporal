@@ -811,6 +811,11 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         .collect();
     let allowed: BTreeSet<&str> = entries
         .iter()
+        .filter(|entry| entry.disposition != "rejected")
+        .filter_map(|entry| entry.site.strip_prefix("helper-allow:"))
+        .collect();
+    let all_allowlists: BTreeSet<&str> = entries
+        .iter()
         .filter_map(|entry| entry.site.strip_prefix("helper-allow:"))
         .collect();
     let mut gaps = Vec::new();
@@ -832,7 +837,7 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
             ));
         }
     }
-    for file in &allowed {
+    for file in &all_allowlists {
         if !sites
             .iter()
             .any(|site| site.starts_with(&format!("{file}|")))
@@ -862,6 +867,33 @@ fn helper_source_scan_sites_are_inventoried() {
     assert_eq!(
         source_gaps(&inventory.entries, &added),
         vec!["helper source site engine.rs|SystemTime|1 has no inventory row".to_string()]
+    );
+}
+
+#[test]
+fn retired_helper_allowlist_does_not_cover_new_sites() {
+    let inventory = parse(INVENTORY).unwrap();
+    let mut retired = inventory
+        .entries
+        .iter()
+        .find(|entry| entry.site == "helper-allow:diagnostic.rs")
+        .unwrap()
+        .clone();
+    retired.disposition = "rejected".into();
+    assert!(retired_identity(&retired, IDENTITY_HISTORY));
+    assert_eq!(
+        source_gaps(std::slice::from_ref(&retired), &BTreeSet::new()),
+        Vec::<String>::new()
+    );
+    let sites = BTreeSet::from(["diagnostic.rs|/dev/urandom|1".into()]);
+    assert_eq!(
+        source_gaps(std::slice::from_ref(&retired), &sites),
+        vec!["helper source site diagnostic.rs|/dev/urandom|1 has no inventory row".to_string()]
+    );
+    retired.id = "invented.allowlist".into();
+    assert_eq!(
+        source_gaps(&[retired], &BTreeSet::new()),
+        vec!["allowlisted helper file diagnostic.rs has no site".to_string()]
     );
 }
 

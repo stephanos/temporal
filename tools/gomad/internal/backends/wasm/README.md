@@ -509,6 +509,8 @@ exception before review accepts that prefix. Active sites still require rows and
 stale controlled rows still fail. Runtime draw, clock and other overlay patches
 each have a JSON row keyed by the reviewed grammar, checked against the
 source-derived site sets.
+Retired helper file allowlists retain their history but grant no wildcard
+coverage to current source hits.
 `make test-determinism` checks the inventory, helper source sites, architecture
 and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers
