@@ -5,7 +5,6 @@ import (
 	"go/ast"
 	"go/parser"
 	"go/token"
-	"go/types"
 	"slices"
 	"strconv"
 	"strings"
@@ -249,55 +248,21 @@ func TestDeterminismInventoryCooperativeImportsRefuseUnlisted(t *testing.T) {
 	}
 }
 
-// TestDeterminismInventoryEscapesArePinned keeps the inventory's escape rows
-// honest: each escape names code that still iterates a map without sorting.
-// When a follow-up fixes the order, this test fails until the row becomes
-// controlled.
-func TestDeterminismInventoryEscapesArePinned(t *testing.T) {
+func TestDeterminismInventoryMapOrderControls(t *testing.T) {
 	inventory, err := determinism.Load()
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, test := range []struct{ file, function, ranged string }{
-		{"cluster.go", "Shutdown", "session.states"},
-		{"storage_selection.go", "ValidateStorageCrashSelection", "request.StorageCrashContext"},
-		{"storage_selection.go", "ValidateStorageCrashSelection", "request.StorageCrashSelection"},
+	for _, test := range []struct{ site, evidence string }{
+		{"wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1", "TestClusterShutdownControlOrder"},
+		{"wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1", "TestClusterShutdownLiveNodesEvidenceOrder"},
+		{"wasi/cluster.go|ClusterSession.Shutdown|unstable-sort|sort.Slice live|1", "TestClusterShutdownControlOrder"},
+		{"wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashContext|1", "TestStorageCrashValidationVolumeOrder"},
+		{"wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashSelection|1", "TestStorageCrashValidationVolumeOrder"},
 	} {
-		escaped := false
-		for site, row := range inventory.Sites("host-go") {
-			file, rest, _ := strings.Cut(site, "|")
-			function, rest, _ := strings.Cut(rest, "|")
-			if file == "wasi/"+test.file && (function == test.function || strings.HasSuffix(function, "."+test.function)) && strings.HasPrefix(rest, "map-range|"+test.ranged+"|") {
-				escaped = escaped || row.Disposition == "escape"
-			}
-		}
-		if !escaped {
-			t.Errorf("%s %s range over %s is not an escape row", test.file, test.function, test.ranged)
-		}
-		file, err := parser.ParseFile(token.NewFileSet(), test.file, nil, 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-		ranges, sorts := false, false
-		for _, declaration := range file.Decls {
-			function, ok := declaration.(*ast.FuncDecl)
-			if !ok || function.Name.Name != test.function {
-				continue
-			}
-			ast.Inspect(function.Body, func(node ast.Node) bool {
-				switch node := node.(type) {
-				case *ast.RangeStmt:
-					ranges = ranges || types.ExprString(node.X) == test.ranged
-				case *ast.SelectorExpr:
-					if ident, ok := node.X.(*ast.Ident); ok && (ident.Name == "sort" || ident.Name == "slices") && strings.HasPrefix(node.Sel.Name, "Sort") {
-						sorts = true
-					}
-				}
-				return true
-			})
-		}
-		if !ranges || sorts {
-			t.Errorf("%s %s no longer ranges over %s unsorted; re-review the escape row", test.file, test.function, test.ranged)
+		row, exists := inventory.Sites("host-go")[test.site]
+		if !exists || row.Disposition != "controlled" || !slices.Contains(row.Evidence, "go:internal/backends/wasm/wasi:"+test.evidence) {
+			t.Errorf("%s must be controlled with behavioral evidence %s", test.site, test.evidence)
 		}
 	}
 }

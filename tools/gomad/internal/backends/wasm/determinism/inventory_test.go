@@ -275,18 +275,13 @@ func TestInventoryEscapeAnchorsResolve(t *testing.T) {
 			headings["README.md#"+strings.ReplaceAll(title, " ", "-")] = true
 		}
 	}
-	escapes := 0
 	for _, entry := range inventory.Entries {
 		if entry.Disposition != "escape" {
 			continue
 		}
-		escapes++
 		if !headings[entry.ReadmeAnchor] {
 			t.Errorf("escape row %q anchor %q is not a WASM README heading", entry.ID, entry.ReadmeAnchor)
 		}
-	}
-	if escapes == 0 {
-		t.Fatal("no escape rows; drop this check or the README section deliberately")
 	}
 }
 

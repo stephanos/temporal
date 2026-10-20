@@ -718,6 +718,12 @@ func (session *ClusterSession) Shutdown(ctx context.Context) error {
 		}
 	}
 	session.mu.Unlock()
+	sort.Slice(live, func(i, j int) bool {
+		if live[i].ID != live[j].ID {
+			return live[i].ID < live[j].ID
+		}
+		return live[i].Incarnation < live[j].Incarnation
+	})
 	for _, handle := range live {
 		if err := session.Revoke(ctx, "stop", handle.ID, handle.Incarnation); err != nil {
 			if _, waitErr := session.Wait(ctx, handle.ID, handle.Incarnation); waitErr == nil {

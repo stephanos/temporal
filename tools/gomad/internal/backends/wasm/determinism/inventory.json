@@ -2041,48 +2041,57 @@
    "layer": "host-go",
    "class": "entropy",
    "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1",
-   "disposition": "escape",
+   "disposition": "controlled",
    "owner": "wasm wasi package",
-   "rule": "Stop control frames are sent to the helper in map order before Finish encodes World and network evidence.",
+   "rule": "Live handles are collected without effects and sorted by unique (ID, Incarnation) before stop control frames reach World and network evidence.",
    "evidence": [
     "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
-   ],
-   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort shutdown by (ID, Incarnation), add behavioral regression coverage and requalify the rotated model identity. Stop frames can reach World and network evidence for programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated. Until fixed, live-node shutdown scenarios remain outside the deterministic guarantee and the stress matrix.",
-   "readme_anchor": "README.md#known-determinism-escapes"
+    "go:internal/backends/wasm/wasi:TestClusterShutdownControlOrder",
+    "go:internal/backends/wasm/wasi:TestClusterShutdownLiveNodesEvidenceOrder"
+   ]
+  },
+  {
+   "id": "host-go.wasi.cluster.clustersession.shutdown.unstable-sort.sort.slice.live",
+   "layer": "host-go",
+   "class": "entropy",
+   "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|unstable-sort|sort.Slice live|1",
+   "disposition": "controlled",
+   "owner": "wasm wasi package",
+   "rule": "The comparator orders by ID then Incarnation; handles are unique map keys, so unequal handles never compare equal.",
+   "evidence": [
+    "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
+    "go:internal/backends/wasm/wasi:TestClusterShutdownControlOrder",
+    "go:internal/backends/wasm/wasi:TestClusterShutdownLiveNodesEvidenceOrder"
+   ]
   },
   {
    "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashcontext",
    "layer": "host-go",
    "class": "entropy",
    "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashContext|1",
-   "disposition": "escape",
+   "disposition": "controlled",
    "owner": "wasm wasi package",
-   "rule": "With more than one invalid volume, map order chooses which pre-execution refusal dimension is reported.",
+   "rule": "Context volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution.",
    "evidence": [
     "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
-   ],
-   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort volume validation, add behavioral regression coverage and requalify the rotated model identity. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
-   "readme_anchor": "README.md#known-determinism-escapes"
+    "go:internal/backends/wasm/wasi:TestStorageCrashValidationVolumeOrder"
+   ]
   },
   {
    "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashselection",
    "layer": "host-go",
    "class": "entropy",
    "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashSelection|1",
-   "disposition": "escape",
+   "disposition": "controlled",
    "owner": "wasm wasi package",
-   "rule": "With more than one invalid volume, map order chooses which pre-execution refusal dimension is reported.",
+   "rule": "Selection volume keys are collected without validation effects, sorted lexically, then validated so the first refusal is stable before execution.",
    "evidence": [
     "go:internal/backends/wasm:TestWASMHostEffectSitesAreInventoried",
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
-    "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
-   ],
-   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort volume validation, add behavioral regression coverage and requalify the rotated model identity. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
-   "readme_anchor": "README.md#known-determinism-escapes"
+    "go:internal/backends/wasm/wasi:TestStorageCrashValidationVolumeOrder"
+   ]
   },
   {
    "id": "host-go.cluster.provider.execution.shutdown.clock.context.withtimeout",

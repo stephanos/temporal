@@ -529,22 +529,14 @@ opt-in. Ordinary release helpers do not collect these diagnostics.
 | Address and thread order | Controlled where values enter evidence: guest identity uses recorded runtime identities, and cluster threads execute under the baton. |
 | Filesystem and network I/O | Recorded captured inputs and controlled namespace, volume and network models; unsupported imports and operations are rejected. |
 | Settings | Recorded version and engine identities with pinned settings; unlisted imports and unsupported configurations are rejected. |
-| Known escapes | Explicitly excluded cases below, with named regression checks and a tracked owner for closure. |
 
-### Known determinism escapes
-
-Each escape is outside the deterministic-time guarantee today and is referred
-to [fn-227](../../../../../.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md),
-owned by the WASM `wasi` package. Closing them requires behavioral regressions
-and qualification after the WASM model identity rotates:
-
-- `wasi/cluster.go` `ClusterSession.Shutdown` sends stop control frames to the
-  helper in Go map order, and the stops can reach World and network evidence.
-  This is a defect pending its fix, not a permanent escape. Only programmatic
-  cluster scenarios that end with two or more live WASM nodes reach it, and
-  until the fix they are outside the deterministic guarantee; operator
-  scenarios require every node to be terminated first.
-- `wasi/storage_selection.go` `ValidateStorageCrashSelection` reports the first
-  invalid volume in map order, so a request with several invalid volumes can
-  get different refusal messages. The refusal class is the same, and nothing
-  executes.
+Cluster shutdown sorts live handles by node ID and incarnation before sending
+stop controls. `TestClusterShutdownControlOrder` checks control ordering, including
+incarnation ties and completed nodes; `TestClusterShutdownLiveNodesEvidenceOrder`
+compares World and network evidence across fresh same-seed live-node shutdowns
+with varied state-map insertion order. Storage crash admission validates selection
+and context volumes in lexical ID order before execution;
+`TestStorageCrashValidationVolumeOrder` checks stable refusal messages with several
+invalid volumes. These regressions close the inventory's three map-order escapes.
+The changed model still requires its own frozen-candidate qualification; historical
+qualification does not qualify the repaired source.

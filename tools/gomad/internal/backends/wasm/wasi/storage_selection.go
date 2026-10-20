@@ -4,6 +4,7 @@ import (
 	"encoding/hex"
 	"encoding/json"
 	"slices"
+	"sort"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/model/volume"
@@ -34,7 +35,13 @@ func ValidateStorageCrashSelection(request Request) error {
 	if request.Config.Storage == nil && (request.StorageCrashSelection != nil || request.StorageCrashLimits != nil || request.StorageCrashContext != nil) {
 		return invalid("storage crash controls without storage model")
 	}
-	for id, selected := range request.StorageCrashSelection {
+	var selectedVolumes []string
+	for id := range request.StorageCrashSelection {
+		selectedVolumes = append(selectedVolumes, id)
+	}
+	sort.Strings(selectedVolumes)
+	for _, id := range selectedVolumes {
+		selected := request.StorageCrashSelection[id]
 		if !slices.ContainsFunc(request.Config.Storage.Volumes, func(config volume.VolumeConfig) bool { return config.ID == id }) {
 			return invalid("storage crash selection volume")
 		}
@@ -78,7 +85,13 @@ func ValidateStorageCrashSelection(request Request) error {
 	if err != nil || uint64(len(encoded)) > storageCrashContextLimit(request.Config) {
 		return invalid("storage crash context capacity")
 	}
-	for id, context := range request.StorageCrashContext {
+	var contextVolumes []string
+	for id := range request.StorageCrashContext {
+		contextVolumes = append(contextVolumes, id)
+	}
+	sort.Strings(contextVolumes)
+	for _, id := range contextVolumes {
+		context := request.StorageCrashContext[id]
 		if !slices.ContainsFunc(request.Config.Storage.Volumes, func(config volume.VolumeConfig) bool { return config.ID == id }) {
 			return invalid("storage crash context volume")
 		}

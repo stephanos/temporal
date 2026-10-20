@@ -54,6 +54,51 @@ func TestStorageCrashContextAdmission(t *testing.T) {
 	}
 }
 
+func TestStorageCrashValidationVolumeOrder(t *testing.T) {
+	t.Parallel()
+	for _, kind := range []string{"selection", "context"} {
+		t.Run(kind, func(t *testing.T) {
+			t.Parallel()
+			for iteration := range 64 {
+				request := Request{Config: storageConfig()}
+				request.Config.Storage.Volumes = []volume.VolumeConfig{{ID: "a"}, {ID: "b"}}
+				ids := []string{"a", "b"}
+				if iteration%2 != 0 {
+					ids = []string{"b", "a"}
+				}
+				want := "WASI invalid: storage crash selection zero operation"
+				if kind == "selection" {
+					request.StorageCrashSelection = make(map[string][]uint64)
+					for _, id := range ids {
+						if id == "a" {
+							request.StorageCrashSelection[id] = []uint64{0}
+						} else {
+							request.StorageCrashSelection[id] = []uint64{1, 1}
+						}
+					}
+				} else {
+					want = "WASI invalid: storage crash context inventory"
+					request.StorageCrashContext = make(map[string]StorageCrashContext)
+					for _, id := range ids {
+						context := StorageCrashContext{PendingSHA256: "sha256:" + strings.Repeat("a", 64), Operations: []volume.Operation{{ID: 0}}}
+						if id == "a" {
+							context.PendingSHA256 = "invalid"
+						}
+						request.StorageCrashContext[id] = context
+					}
+				}
+				err := ValidateStorageCrashSelection(request)
+				if err == nil || err.Error() != want {
+					t.Fatalf("iteration %d validation = %v, want %q", iteration, err, want)
+				}
+				if _, err := prepareClusterBoot("a", request); err == nil || err.Error() != want {
+					t.Fatalf("iteration %d boot admission = %v, want %q", iteration, err, want)
+				}
+			}
+		})
+	}
+}
+
 func TestClusterBootAdmitsStorageCrashSelectionBeforeSealing(t *testing.T) {
 	request := Request{Config: storageConfig(), StorageCrashSelection: map[string][]uint64{"data": {1}}}
 	if _, err := prepareClusterBoot("a", request); err == nil || !strings.Contains(err.Error(), "prior observation") {

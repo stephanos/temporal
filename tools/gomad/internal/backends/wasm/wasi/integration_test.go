@@ -1354,6 +1354,67 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 	}
 }
 
+func TestClusterShutdownLiveNodesEvidenceOrder(t *testing.T) {
+	request := cooperativeRequest(t, "../cluster/testdata/service")
+	request.Config.Clock.ReadStepNanos = 0
+	request.Config.NetworkV2 = &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 128, Bytes: 8 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 10000}}
+	configuration := brokerTestConfig()
+	configuration.Network = request.Config.NetworkV2
+	var wantWorld, wantNetwork []byte
+	for iteration := range 16 {
+		session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: request}, {ID: "b", Request: request}}})
+		if err != nil {
+			t.Fatal(err)
+		}
+		t.Cleanup(func() {
+			ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+			defer cancel()
+			if err := session.Shutdown(ctx); err != nil {
+				t.Error(err)
+			}
+		})
+		for _, id := range []string{"a", "b"} {
+			if err := session.Start(t.Context(), id, 1, id, request.Runtime); err != nil {
+				t.Fatal(err)
+			}
+		}
+		session.mu.Lock()
+		states := session.states
+		session.states = make(map[BrokerNode]*clusterState)
+		ids := []string{"a", "b"}
+		if iteration%2 != 0 {
+			ids = []string{"b", "a"}
+		}
+		for _, id := range ids {
+			handle := BrokerNode{ID: id, Incarnation: 1}
+			select {
+			case <-states[handle].done:
+				session.mu.Unlock()
+				t.Fatalf("node %s finished before shutdown", id)
+			default:
+			}
+			session.states[handle] = states[handle]
+		}
+		session.mu.Unlock()
+		if err := session.Shutdown(t.Context()); err != nil {
+			t.Fatal(err)
+		}
+		result, err := session.Finish(t.Context())
+		if err != nil || len(result.World) == 0 {
+			t.Fatalf("shutdown did not retain World evidence: %v", err)
+		}
+		network, err := json.Marshal(result.Network)
+		if err != nil {
+			t.Fatal(err)
+		}
+		if iteration == 0 {
+			wantWorld, wantNetwork = bytes.Clone(result.World), network
+		} else if !bytes.Equal(result.World, wantWorld) || !bytes.Equal(network, wantNetwork) {
+			t.Fatalf("iteration %d shutdown changed World or network evidence", iteration)
+		}
+	}
+}
+
 func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 	request := cooperativeRequest(t, "../cluster/testdata/service")
 	baselines := map[string]map[uint64]Result{}

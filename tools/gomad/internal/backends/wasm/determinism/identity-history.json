@@ -1050,5 +1050,9 @@
  {
   "id": "runtime.other.runtime.time.go.package.patch",
   "site": "runtime-other:wasip1/wasm runtime/time.go package patch"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.shutdown.unstable-sort.sort.slice.live",
+  "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|unstable-sort|sort.Slice live|1"
  }
 ]

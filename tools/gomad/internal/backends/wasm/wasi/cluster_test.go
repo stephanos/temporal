@@ -6,8 +6,10 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
+	"reflect"
 	"strings"
 	"testing"
 	"time"
@@ -132,6 +134,50 @@ type clusterTestControl struct {
 	Node        string `json:"node"`
 	Incarnation uint64 `json:"incarnation"`
 	Command     string `json:"command"`
+}
+
+func TestClusterShutdownControlOrder(t *testing.T) {
+	t.Parallel()
+	want := []BrokerNode{{ID: "a", Incarnation: 1}, {ID: "a", Incarnation: 2}, {ID: "b", Incarnation: 1}}
+	for iteration := range 32 {
+		t.Run(fmt.Sprint(iteration), func(t *testing.T) {
+			var session *ClusterSession
+			session, controls := clusterControlSessionRefusing(t, func(control clusterTestControl) string {
+				session.mu.Lock()
+				defer session.mu.Unlock()
+				if control.Command == "stop" {
+					close(session.states[BrokerNode{ID: control.Node, Incarnation: control.Incarnation}].done)
+				} else if control.Type == "finish" {
+					close(session.done)
+				}
+				return ""
+			})
+			for index := range want {
+				handle := want[(index+iteration)%len(want)]
+				session.states[handle] = &clusterState{done: make(chan struct{})}
+			}
+			completed := make(chan struct{})
+			close(completed)
+			session.states[BrokerNode{ID: "0-completed", Incarnation: 1}] = &clusterState{done: completed}
+			if err := session.Shutdown(t.Context()); err != nil {
+				t.Fatal(err)
+			}
+			var got []BrokerNode
+			for range want {
+				control := nextClusterControl(t, controls)
+				if control.Command != "stop" {
+					t.Fatalf("shutdown control = %+v", control)
+				}
+				got = append(got, BrokerNode{ID: control.Node, Incarnation: control.Incarnation})
+			}
+			if !reflect.DeepEqual(got, want) {
+				t.Fatalf("stop order = %+v, want %+v", got, want)
+			}
+			if control := nextClusterControl(t, controls); control.Type != "finish" {
+				t.Fatalf("shutdown did not finish after live nodes: %+v", control)
+			}
+		})
+	}
 }
 
 func clusterControlSession(t *testing.T) (*ClusterSession, <-chan clusterTestControl) {
