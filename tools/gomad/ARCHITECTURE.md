@@ -258,6 +258,20 @@ checked against by the conformance corpora under
 `internal/backends/wasm/wasmhost/tests/testdata` and `wasi/testdata`. A change
 to a model is a change to a corpus, reviewed as an expectation diff.
 
+The volume and network models are gomad's own source, not derived from the
+native backend: fn-219 promoted them from projections of the native runtime
+overlay, so the Go model is the single reference. The wire codecs shared by Go
+models, the WASM toolchain overlay and the Rust helper are rendered from the
+schemas under `internal/model/schema`, `internal/model/choice/schema` and
+`internal/model/world/schema` by `internal/model/generation/protocol`, run as
+`internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
+with stock Go and no build tag. The native backend under
+`internal/backends/native` is a frozen consumer of the same schemas: retired
+from execution (fn-128/fn-149), not deleted and not qualified, it still writes
+its own generated outputs and validates under `gomad_native` through
+`make generate-native validate-native`. No default-set source, Make target or
+CI WASM gate reads the native tree; archcheck enforces this.
+
 The helper transcript corpus is the shared Rust/Go wire and evidence contract.
 Regeneration compares repeated executions, and a second pass must leave the
 fixtures byte-identical. Unit tests retain invariants that fixtures cannot

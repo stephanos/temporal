@@ -231,7 +231,7 @@ gomad-soak: gomad-runner
 		$(if $(GOMAD_SOAK_BATCHES),--batches="$(GOMAD_SOAK_BATCHES)")
 
 # Regenerating first puts every test in ./tests in the set, including one added
-# without regenerating the checked-in manifest; `make -C tools/gomad validate`
+# without regenerating the checked-in manifest; `make -C tools/gomad validate-native`
 # still fails on the stale checked-in copy.
 # GOMAD_QUALIFICATION_SHARD=INDEX/COUNT runs one shard of the set into
 # shard-suffixed artifact and report paths; gomad-tests-qualification-merge

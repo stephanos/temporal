@@ -76,7 +76,7 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Workload cell | Source / owner | Qualification gate |
 | --- | --- | --- |
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
-| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | fn-176 retains durable crash/missing-sync and selected-state acceptance; changed candidates require their own identity-bound replay and measured-cost gates |
+| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; Go volume model `internal/model/volume` as differential oracle) | fn-176 retains durable crash/missing-sync and selected-state acceptance; changed candidates require their own identity-bound replay and measured-cost gates |
 | One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
 | Multi-instance | Single Rust helper with Rust broker/clock/World/network; selectable per-process Go reference | Partition/heal/crash/restart artifact qualification and repeated measured cells required for each frozen candidate |
 
@@ -96,7 +96,7 @@ Each selection replays within its own recorded module and execution identities.
 The [fn-183 cleanup record](../../../../../.flow/artifacts/fn183-batch-2026-10-15.md)
 records the production/reference route inventory and the recovery decoder's
 removed temporary namespace copies. Differential namespace, volume, network and
-World models remain required, including generated-source drift checks, actual
+World models remain required, including generated wire-codec checks (`make validate`), actual
 storage recovery, independent evidence bounds and retained lifecycle replay.
 Reference selection is private to differential tests; ordinary installation and
 configuration cannot change a cluster's execution owner.

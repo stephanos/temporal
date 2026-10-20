@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"io"
 
-	"go.temporal.io/server/tools/gomad/internal/backends/native/generation/protocol"
+	"go.temporal.io/server/tools/gomad/internal/backends/native/generation/protocolnative"
 )
 
 func runProtocolGenerate(arguments []string, stderr io.Writer) int {
@@ -16,10 +16,15 @@ func runProtocolGenerate(arguments []string, stderr io.Writer) int {
 	if err := flags.Parse(arguments); err != nil {
 		return 2
 	}
-	if err := protocol.GenerateProtocols(*root, *check); err != nil {
-		if _, writeErr := fmt.Fprintln(stderr, err); writeErr != nil {
-			return 1
-		}
+	stale, err := protocolnative.Generate(*root, *check)
+	if err != nil {
+		_, _ = fmt.Fprintln(stderr, err)
+		return 1
+	}
+	for _, path := range stale {
+		_, _ = fmt.Fprintf(stderr, "generated native protocol output is stale: %s\n", path)
+	}
+	if len(stale) != 0 {
 		return 1
 	}
 	return 0

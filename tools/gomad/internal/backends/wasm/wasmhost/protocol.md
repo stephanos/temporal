@@ -443,7 +443,7 @@ filesystem calls its own namespace served; owned runs report an empty map.
 ## Helper-owned storage
 
 With a storage model the helper also owns the volume model (fn-176), a port of
-the generated Go projection `internal/model/volume` plus the WASI fault engine.
+the Go volume model `internal/model/volume` plus the WASI fault engine.
 Optional execute field `storage` requires `namespace` and contains `model` (Go's
 `StorageModel` JSON), `model_identity` (`sha256:` plus the hexadecimal SHA-256
 of Go's `json.Marshal(StorageModel)`; the helper recomputes it and refuses a
@@ -651,7 +651,7 @@ the `image` name) and `recover` (`image`; a fresh environment from the saved
 image). Each reply is one Go `volumeConformanceObservation`: reply bytes, the
 appended storage event lines, snapshots, operations, enumeration, selections,
 image digest and bytes, and the namespace digest. `TestVolumeConformance`
-compares it with the Go projection over the checked-in corpus
+compares it with the Go model over the checked-in corpus
 (`wasi/testdata/volume-conformance`); plain `cargo test` replays the corpus too.
 
 ## Cluster execution

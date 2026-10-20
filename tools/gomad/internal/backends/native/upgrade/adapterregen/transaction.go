@@ -35,9 +35,10 @@ const (
 // toolchains, binaries, and caches that no generator reads.
 var skippedDirectories = map[string]bool{".toolchain": true, ".bin": true}
 
-// DefaultGenerators are the gomad-local steps of make generate. The
+// DefaultGenerators are the gomad-local steps of make generate-native. The
 // qualification manifest step reads the repository outside the Gomad module
-// and does not consume adapter pins, so the staged copy omits it.
+// and does not consume adapter pins, so the staged copy omits it; the shared
+// protocolgen outputs of make generate do not consume adapter pins either.
 var DefaultGenerators = [][]string{
 	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "version-generate"},
 	{"{go}", "run", "-tags", "gomad_native", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool", "protocol-generate"},

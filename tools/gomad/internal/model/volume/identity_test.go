@@ -44,7 +44,7 @@ func TestImplementationIdentityDoesNotDispatchMissingSourceError(t *testing.T) {
 	}
 }
 
-func TestImplementationIdentityBindsProjectedModelAndHostAdapters(t *testing.T) {
+func TestImplementationIdentityBindsModelAndHostAdapters(t *testing.T) {
 	identity := ImplementationSHA256()
 	if len(identity) != len("sha256:")+64 || !strings.HasPrefix(identity, "sha256:") {
 		t.Fatalf("invalid implementation identity: %q", identity)
@@ -53,7 +53,7 @@ func TestImplementationIdentityBindsProjectedModelAndHostAdapters(t *testing.T) 
 	if err != nil || unchanged != identity {
 		t.Fatalf("unchanged identity = %q, %v", unchanged, err)
 	}
-	for _, path := range []string{"runtime.go", "metadata.go", "clock.go", "captured.go", "recorder.go", "types_generated.go", "fs_generated.go", "provenance_generated.go", "internal/hashwire/hash_generated.go", "internal/hashwire/wire_generated.go", "identity.go"} {
+	for _, path := range []string{"runtime.go", "metadata.go", "clock.go", "captured.go", "recorder.go", "types.go", "fs.go", "internal/hashwire/hash.go", "internal/hashwire/wire_generated.go", "identity.go"} {
 		t.Run(path, func(t *testing.T) {
 			modified, err := implementationSHA256(mutatedImplementationFS{ReadFileFS: implementationSources, path: path})
 			if err != nil {

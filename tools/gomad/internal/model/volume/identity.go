@@ -9,29 +9,28 @@ import (
 	"slices"
 )
 
-//go:embed conformance_state.go fs_generated.go handles_generated.go local_handles_generated.go volume_generated.go provenance_generated.go types_generated.go runtime.go metadata.go clock.go captured.go recorder.go identity.go internal/hashwire/hash_generated.go internal/hashwire/wire_generated.go
+//go:embed conformance_state.go fs.go handles.go local_handles.go volume.go types.go runtime.go metadata.go clock.go captured.go recorder.go identity.go internal/hashwire/hash.go internal/hashwire/wire_generated.go
 var implementationSources embed.FS
 
 var implementationPaths = []string{
 	"captured.go",
 	"clock.go",
 	"conformance_state.go",
-	"fs_generated.go",
-	"handles_generated.go",
+	"fs.go",
+	"handles.go",
 	"identity.go",
-	"internal/hashwire/hash_generated.go",
+	"internal/hashwire/hash.go",
 	"internal/hashwire/wire_generated.go",
-	"local_handles_generated.go",
+	"local_handles.go",
 	"metadata.go",
-	"provenance_generated.go",
 	"recorder.go",
 	"runtime.go",
-	"types_generated.go",
-	"volume_generated.go",
+	"types.go",
+	"volume.go",
 }
 
-// ImplementationSHA256 binds the compiled projection, host adapters, clock shim,
-// and complete private hash codec independently of their original native inputs.
+// ImplementationSHA256 binds the compiled filesystem model, host adapters, clock
+// shim, and complete private hash codec.
 func ImplementationSHA256() string {
 	identity, err := implementationSHA256(implementationSources)
 	if err != nil {

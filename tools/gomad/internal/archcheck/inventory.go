@@ -46,9 +46,9 @@ func List(root, goCommand string, platform Platform, dependencies bool) ([]HostP
 	args = append(args, "./...")
 	child := nativeModulePresent(root)
 	if child && NativeSelected {
-		args = append(args, "go.temporal.io/server/tools/gomad/internal/backends/native/...")
+		args = append(args, nativeModulePath+"/...")
 	}
-	for _, directory := range hostSourcePackages {
+	for _, directory := range nativeHostSourcePackages {
 		if child && !NativeSelected {
 			continue
 		}
@@ -59,7 +59,7 @@ func List(root, goCommand string, platform Platform, dependencies bool) ([]HostP
 			return nil, err
 		case info.IsDir():
 			if child {
-				args = append(args, "go.temporal.io/server/tools/gomad/internal/backends/native"+strings.TrimPrefix(directory, "internal/backends/native"))
+				args = append(args, nativeModulePath+strings.TrimPrefix(directory, nativeDirectory))
 			} else {
 				args = append(args, "./"+directory)
 			}
@@ -121,7 +121,14 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	if err != nil {
 		return Inventory{}, nil, err
 	}
-	closure := !NativeSelected && nativeModulePresent(moduleRoot)
+	// Without the native selection, every nested module the parent go.mod
+	// replaces with an in-tree directory is foreign to the default set: none
+	// of its packages may be reachable and its tree is not inventoried.
+	locals, err := localModules(moduleRoot)
+	if err != nil {
+		return Inventory{}, nil, err
+	}
+	closure := !NativeSelected && len(locals) != 0
 	packages, err := List(root, goCommand, platform, closure)
 	if err != nil {
 		return Inventory{}, nil, err
@@ -134,10 +141,10 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	add := func(category, path, detail string) { findings = append(findings, Finding{category, path, detail}) }
 	listed, matched := map[string]HostPackage{}, map[string]bool{}
 	for _, pkg := range packages {
-		if closure && Within(pkg.ImportPath, "go.temporal.io/server/tools/gomad/internal/backends/native") {
-			add("default-native-dependency", pkg.ImportPath, "native package is reachable from default production or test dependencies")
+		if closure && slices.ContainsFunc(locals, func(local localModule) bool { return Within(pkg.ImportPath, local.Path) }) {
+			add("default-native-dependency", pkg.ImportPath, "nested local module package is reachable from default production or test dependencies")
 		}
-		if !Within(pkg.ImportPath, "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/runtime/overlay") {
+		if nativeOverlay == "" || !Within(pkg.ImportPath, nativeModulePath+strings.TrimPrefix(nativeOverlay, nativeDirectory)) {
 			if pkg.Error != nil {
 				add("package-error", pkg.ImportPath, pkg.Error.Err)
 			}
@@ -151,7 +158,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative = filepath.ToSlash(relative)
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || Within(moduleRelative, "internal/backends/native/toolchain/runtime/overlay") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
+		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || nativeOverlay != "" && Within(moduleRelative, nativeOverlay) || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
 			continue
 		}
 		inventory.Packages = append(inventory.Packages, pkg)
@@ -172,6 +179,9 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "internal/backends/wasm/wasmhost/target") {
 			return filepath.SkipDir
 		}
+		if entry.IsDir() && !NativeSelected && slices.ContainsFunc(locals, func(local localModule) bool { return moduleRelative == local.Dir }) {
+			return filepath.SkipDir
+		}
 		if entry.IsDir() {
 			return nil
 		}
@@ -184,7 +194,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		if filepath.Base(relative) == "go.mod" && relative != "go.mod" {
 			inventory.Modules = append(inventory.Modules, relative)
-			if !expectedModules[moduleRelative] {
+			if !expectedModules[moduleRelative] && !nativeExpectedModules[moduleRelative] {
 				add("unclassified-module", relative, "nested module needs an explicit classification")
 			}
 		}
@@ -192,14 +202,11 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 			return nil
 		}
 		inventory.Sources = append(inventory.Sources, relative)
-		for _, excluded := range sourceExclusions {
+		for _, excluded := range slices.Concat(sourceExclusions, nativeSourceExclusions) {
 			if Within(moduleRelative, excluded) {
 				matched[excluded] = true
 				return nil
 			}
-		}
-		if !NativeSelected && nativeModulePresent(moduleRoot) && Within(moduleRelative, "internal/backends/native") {
-			return nil
 		}
 		pkg, found := listed[filepath.ToSlash(filepath.Dir(relative))]
 		if !found {
@@ -216,12 +223,12 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		return inventory, findings, err
 	}
 	if _, err := os.Stat(filepath.Join(root, "go.mod")); legacy && err == nil {
-		for _, excluded := range sourceExclusions {
+		for _, excluded := range slices.Concat(sourceExclusions, nativeSourceExclusions) {
 			if !matched[excluded] {
 				add("stale-exclusion", excluded, "required excluded source is absent")
 			}
 		}
-		for expected := range expectedModules {
+		for expected := range nativeOrDefault(expectedModules, nativeExpectedModules) {
 			ownSource := slices.Contains(inventory.Modules, expected) && slices.ContainsFunc(inventory.Sources, func(source string) bool {
 				return Within(source, filepath.Dir(expected)) && !slices.ContainsFunc(inventory.Modules, func(nested string) bool {
 					return nested != expected && Within(filepath.Dir(nested), filepath.Dir(expected)) && Within(source, filepath.Dir(nested))
@@ -245,18 +252,13 @@ func Within(path, root string) bool { return within(path, root) }
 
 var sourceExclusions = []string{
 	"internal/model/cluster/testdata/simulation_exploration", "internal/model/cluster/testdata/simulation_replay",
-	"internal/backends/native/toolchain/runtime/overlay", "internal/backends/native/transcript/testdata", "internal/backends/native/conformance/testdata", "internal/backends/native/qualification/testdata/tagged",
-	"cmd/gomad/testdata", "internal/backends/native/compatibilitypack/testdata", "internal/evidence/qualification/corpus",
+	"cmd/gomad/testdata", "internal/evidence/qualification/corpus",
 	"internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/command/testdata",
 }
 
-var hostSourcePackages = []string{"internal/backends/native/toolchain/runtime/testdata/vfdpointer", "internal/backends/native/toolchain/runtime/testdata/vfdnative"}
-
 var expectedModules = map[string]bool{
-	"internal/backends/native/go.mod": true, "internal/backends/native/transcript/testdata/cactusstatsd/go.mod": true, "internal/backends/native/transcript/testdata/hashicorpmetrics/go.mod": true, "internal/backends/native/transcript/testdata/memberlist/go.mod": true, "internal/backends/native/transcript/testdata/pebble/go.mod": true,
-	"internal/backends/native/transcript/testdata/sentry/go.mod": true, "internal/backends/native/transcript/testdata/sockaddr/go.mod": true, "internal/backends/native/transcript/testdata/sprig/go.mod": true, "internal/backends/native/transcript/testdata/validator/go.mod": true,
-	"internal/backends/native/compatibilitypack/testdata/v041/go.mod": true, "internal/backends/native/compatibilitypack/testdata/xsys/go.mod": true, "internal/backends/native/conformance/testdata/go.mod": true, "internal/backends/native/conformance/testdata/libc_adapter/go.mod": true, "internal/backends/native/conformance/testdata/sqlite_adapter/go.mod": true,
 	"internal/evidence/qualification/corpus/go.mod": true, "internal/backends/wasm/qualification/testdata/fixture/go.mod": true,
+	"internal/backends/wasm/testdata/io_failure_module/go.mod": true,
 }
 
 func SelectionTags() string {
@@ -264,9 +266,4 @@ func SelectionTags() string {
 		return "test_dep,gomad_native"
 	}
 	return "test_dep"
-}
-
-func nativeModulePresent(root string) bool {
-	data, err := os.ReadFile(filepath.Join(root, "internal/backends/native/go.mod"))
-	return err == nil && modfile.ModulePath(data) == "go.temporal.io/server/tools/gomad/internal/backends/native"
 }
