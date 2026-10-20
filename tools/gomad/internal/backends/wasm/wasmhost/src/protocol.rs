@@ -542,6 +542,7 @@ impl Outcome {
             metrics: None,
         }
     }
+    #[must_use]
     pub fn refusal(error: &Error) -> Self {
         let mut outcome = Self::new(classification(error), error.to_string());
         if let Some(preflight) = error.downcast_ref::<crate::model::replay::Preflight>() {

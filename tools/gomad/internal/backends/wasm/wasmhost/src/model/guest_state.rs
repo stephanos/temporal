@@ -10,6 +10,31 @@ use std::io::BufRead;
 use wasmtime::{Error, Result};
 
 impl StringDeclaration {
+    pub(crate) fn from_values(values: &[String]) -> Result<Self> {
+        let mut packed = Vec::new();
+        let mut offsets = Vec::new();
+        for value in values {
+            if value.contains('\0')
+                || packed
+                    .len()
+                    .checked_add(value.len())
+                    .and_then(|bytes| bytes.checked_add(1))
+                    .is_none_or(|bytes| bytes > 4 * 1024 * 1024)
+            {
+                return Err(Error::msg("invalid local model string inputs"));
+            }
+            offsets.push(u32::try_from(packed.len()).map_err(Error::new)?);
+            packed.extend_from_slice(value.as_bytes());
+            packed.push(0);
+        }
+        Ok(Self {
+            bytes: packed.len(),
+            count: values.len(),
+            chunks: packed.len().div_ceil(CHUNK),
+            packed,
+            offsets,
+        })
+    }
     fn validate(&self) -> bool {
         self.bytes <= 4 * 1024 * 1024
             && self.count <= self.bytes
@@ -62,6 +87,8 @@ impl StringDeclaration {
     }
 }
 impl Config {
+    /// # Errors
+    /// Refuses inconsistent model declarations, unsupported modes and invalid bounds.
     pub fn validate(&self) -> Result<()> {
         if !(1..=3).contains(&self.mode)
             || !self.arguments.validate()
@@ -104,6 +131,8 @@ impl Config {
         }
         Ok(())
     }
+    /// # Errors
+    /// Refuses malformed bounded argument/environment frames or their working-directory identity.
     pub fn read_inputs(&mut self, input: &mut dyn BufRead) -> Result<()> {
         #[derive(Deserialize)]
         #[serde(deny_unknown_fields)]
@@ -117,6 +146,21 @@ impl Config {
         if end.kind != "model_inputs_end" {
             return Err(Error::msg("invalid local model input end"));
         }
+        self.validate_environment()
+    }
+
+    pub(crate) fn set_inputs(
+        &mut self,
+        arguments: &[String],
+        environment: &[String],
+    ) -> Result<()> {
+        self.arguments = StringDeclaration::from_values(arguments)?;
+        self.environment = StringDeclaration::from_values(environment)?;
+        self.validate()?;
+        self.validate_environment()
+    }
+
+    fn validate_environment(&self) -> Result<()> {
         let mut names = std::collections::HashSet::new();
         let mut pwd = None;
         for entry in self.environment.packed.split_inclusive(|byte| *byte == 0) {
@@ -145,6 +189,8 @@ impl Config {
         }
         Ok(())
     }
+    /// # Errors
+    /// Refuses replay framing or the helper-owned trace preflight.
     pub fn read_tape(&mut self, input: &mut dyn BufRead) -> Result<()> {
         if let Some(request) = &self.replay {
             let plan = super::replay::read(input, request, self.mode, self.limit, None)?;
@@ -161,6 +207,7 @@ impl Model {
         let mut inspection = inspection::Transport::default();
         inspection.request.clone_from(&config.inspection);
         Self {
+            linked_evidence: None,
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             event_decisions: 0,
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]

@@ -70,7 +70,7 @@ validate-replay-plan:
 	done; \
 	diff -ru internal/backends/wasm/wasmhost/tests/testdata/replay_plan "$$corpus_tmp/first" && \
 		diff -ru "$$corpus_tmp/first" "$$corpus_tmp/second"
-	cargo +1.99.1 test --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --bin gomad-wasmhost replay_plan
+	cargo +1.99.1 test --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --lib replay_plan
 
 .PHONY: lint-code
 lint-code:

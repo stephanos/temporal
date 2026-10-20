@@ -1205,6 +1205,16 @@ pub(crate) fn prepare(
 ) -> std::result::Result<(Engine, Module, Value), Outcome> {
     #[cfg(feature = "diagnostic-profile")]
     let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::EngineInit);
+    let config = configuration(false);
+    let engine = Engine::new(&config)
+        .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
+    #[cfg(feature = "diagnostic-profile")]
+    drop(diagnostic_phase);
+    let (module, started) = prepare_module(request, &engine, metrics)?;
+    Ok((engine, module, started))
+}
+
+pub(crate) fn configuration(watchdog: bool) -> Config {
     let mut config = Config::new();
     config
         .consume_fuel(!cfg!(feature = "diagnostic-fuel-off"))
@@ -1212,15 +1222,9 @@ pub(crate) fn prepare(
         .cranelift_nan_canonicalization(true)
         .wasm_relaxed_simd(false)
         .wasm_memory64(false)
-        .wasm_multi_memory(false);
-    #[cfg(feature = "guest-profile")]
-    config.epoch_interruption(true);
-    let engine = Engine::new(&config)
-        .map_err(|error| Outcome::new("infrastructure", format!("{error:#}")))?;
-    #[cfg(feature = "diagnostic-profile")]
-    drop(diagnostic_phase);
-    let (module, started) = prepare_module(request, &engine, metrics)?;
-    Ok((engine, module, started))
+        .wasm_multi_memory(false)
+        .epoch_interruption(watchdog || cfg!(feature = "guest-profile"));
+    config
 }
 
 pub(crate) fn prepare_module(
@@ -1238,6 +1242,13 @@ pub(crate) fn prepare_module(
         )?,
         None => compile(engine, &module_bytes(request)?, metrics)?,
     };
+    describe_module(request, module)
+}
+
+pub(crate) fn describe_module(
+    request: &Execute,
+    module: Module,
+) -> std::result::Result<(Module, Value), Outcome> {
     let resources = module.resources_required();
     if resources.num_tables > 8
         || resources

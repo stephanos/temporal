@@ -89,6 +89,11 @@ impl Model {
             if let Some(bytes) = self.pending.get_mut(stream) {
                 while bytes.len() >= CHUNK || all && !bytes.is_empty() {
                     let count = bytes.len().min(CHUNK);
+                    if let Some(sink) = &self.linked_evidence {
+                        sink.append(stream, &bytes[..count])?;
+                        bytes.drain(..count);
+                        continue;
+                    }
                     protocol::send_frame(
                         output,
                         &json!({"type":"evidence","stream":stream,

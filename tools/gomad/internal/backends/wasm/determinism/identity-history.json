@@ -1054,5 +1054,25 @@
  {
   "id": "host-go.wasi.cluster.clustersession.shutdown.unstable-sort.sort.slice.live",
   "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|unstable-sort|sort.Slice live|1"
+ },
+ {
+  "id": "helper.linked.scoped-watchdog",
+  "site": "helper-source:linked.rs|thread::scope|1"
+ },
+ {
+  "id": "helper.linked.watchdog-timeout",
+  "site": "helper-source:linked.rs|recv_timeout|1"
+ },
+ {
+  "id": "helper.guest-profile.recv-timeout",
+  "site": "helper-source:guest_profile.rs|recv_timeout|1"
+ },
+ {
+  "id": "helper.build.compiler-identity",
+  "site": "helper-source:../build.rs|std::process::Command|1"
+ },
+ {
+  "id": "engine.linked-epoch-watchdog",
+  "site": "engine-setting:epoch_interruption(watchdog || cfg!(feature = \"guest-profile\"))"
  }
 ]

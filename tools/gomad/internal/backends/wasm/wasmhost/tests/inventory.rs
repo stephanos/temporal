@@ -569,6 +569,9 @@ const SOURCE_PATTERNS: &[&str] = &[
     "thread::spawn",
     "thread::sleep",
     "thread::Builder",
+    "thread::scope",
+    "recv_timeout",
+    "std::process::Command",
     "HashMap",
     "HashSet",
 ];
@@ -723,12 +726,16 @@ fn production_lines(text: &str) -> Result<ProductionLines, String> {
 }
 
 /// Counts pattern hits in the helper's production sources, keyed
-/// `file|pattern|count`. Production files are those reachable from `main.rs`
+/// `file|pattern|count`. Production files are the build script and those reachable from `main.rs`/`lib.rs`
 /// through `mod` declarations outside `#[cfg(test)]` items; test-only modules
 /// are never reached.
 fn source_sites(src: &std::path::Path) -> Result<BTreeSet<String>, String> {
     let mut sites = BTreeSet::new();
-    let mut pending = vec!["main.rs".to_string()];
+    let mut pending = vec![
+        "main.rs".to_string(),
+        "lib.rs".to_string(),
+        "../build.rs".to_string(),
+    ];
     let mut seen = BTreeSet::new();
     while let Some(relative) = pending.pop() {
         if !seen.insert(relative.clone()) {
@@ -741,7 +748,7 @@ fn source_sites(src: &std::path::Path) -> Result<BTreeSet<String>, String> {
             .rsplit_once('/')
             .map_or("", |(directory, _)| directory);
         let stem = relative.strip_suffix(".rs").unwrap();
-        let owns_directory = stem == "main" || stem.ends_with("/mod") || stem == "mod";
+        let owns_directory = matches!(stem, "main" | "lib" | "mod") || stem.ends_with("/mod");
         for (index, (_, line)) in lines.iter().enumerate() {
             let trimmed = line.trim();
             let Some(name) =
@@ -927,16 +934,16 @@ const ENGINE: &str = include_str!("../src/engine.rs");
 const MANIFEST: &str = include_str!("../Cargo.toml");
 
 /// Derives every Wasmtime setting the helper engine applies: each builder
-/// call on the `Config` in `engine::prepare` (with its arguments and any
+/// call on the shared `Config` in `engine::configuration` (with its arguments and any
 /// `cfg` attribute) and the wasmtime Cargo feature set.
 fn engine_settings(engine: &str, manifest: &str) -> Result<Vec<String>, String> {
     let start = engine
-        .find("pub(crate) fn prepare(")
-        .ok_or("engine.rs has no prepare")?;
+        .find("pub(crate) fn configuration(")
+        .ok_or("engine.rs has no configuration")?;
     let body = &engine[start..];
     let end = body
-        .find("Engine::new(&config)")
-        .ok_or("prepare builds no Engine")?;
+        .find("\n    config\n}")
+        .ok_or("configuration returns no Config")?;
     let mut settings = Vec::new();
     let mut attribute = None;
     let mut created = false;
@@ -967,7 +974,7 @@ fn engine_settings(engine: &str, manifest: &str) -> Result<Vec<String>, String> 
         }
     }
     if !created {
-        return Err("prepare creates no Config".into());
+        return Err("configuration creates no Config".into());
     }
     let features = manifest
         .lines()
@@ -1012,8 +1019,8 @@ fn engine_settings_are_inventoried() {
             .any(|setting| !rows.contains(setting.as_str()))
     );
     let added = ENGINE.replacen(
-        ".wasm_multi_memory(false);",
-        ".wasm_multi_memory(false)\n        .wasm_threads(true);",
+        ".wasm_multi_memory(false)",
+        ".wasm_multi_memory(false)\n        .wasm_threads(true)",
         1,
     );
     assert!(

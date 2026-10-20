@@ -102,6 +102,7 @@ pub struct PollResult {
 }
 
 pub struct Model {
+    pub(crate) linked_evidence: Option<crate::linked::Sink>,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     event_decisions: u64,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]

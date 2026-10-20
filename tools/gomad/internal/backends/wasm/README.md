@@ -150,7 +150,7 @@ The binary cluster-network evidence fixtures
 tests also read, are written by the `go_network_cluster_corpus` Rust test under
 `GOMAD_CLUSTER_NETWORK_FIXTURE_REGENERATE=1 cargo +1.99.1 test --release
 --locked --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml
---bin gomad-wasmhost go_network_cluster_corpus`; rerun the Go WASI tests
+--lib go_network_cluster_corpus`; rerun the Go WASI tests
 afterwards.
 Original scenarios without an equivalent corpus assertion remain Rust tests,
 including cache filesystem/concurrency, diagnostic hooks and profile invariants.

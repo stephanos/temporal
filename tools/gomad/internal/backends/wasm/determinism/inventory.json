@@ -8,6 +8,56 @@
  },
  "entries": [
   {
+   "id": "engine.linked-epoch-watchdog",
+   "layer": "engine-config",
+   "class": "clock",
+   "site": "engine-setting:epoch_interruption(watchdog || cfg!(feature = \"guest-profile\"))",
+   "disposition": "controlled",
+   "owner": "wasmhost engine.rs configuration",
+   "rule": "Linked executions enable epoch interruption for their declared host watchdog; framed transport enables it only for the existing guest-profile sampler. Guest virtual clocks remain model-owned.",
+   "evidence": ["rust:tests/inventory.rs:engine_settings_are_inventoried"]
+  },
+  {
+   "id": "helper.linked.scoped-watchdog",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "helper-source:linked.rs|thread::scope|1",
+   "disposition": "controlled",
+   "owner": "wasmhost linked.rs",
+   "rule": "Each fresh execution owns one scoped watchdog, cancels it on completion and joins it before returning; it cannot mutate guest model clocks or scheduling.",
+   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+  },
+  {
+   "id": "helper.linked.watchdog-timeout",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:linked.rs|recv_timeout|1",
+   "disposition": "controlled",
+   "owner": "wasmhost linked.rs",
+   "rule": "Only the declared host wall bound advances the engine epoch and yields watchdog_timeout; the timeout never advances virtual time or enters canonical records as host metadata.",
+   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+  },
+  {
+   "id": "helper.guest-profile.recv-timeout",
+   "layer": "helper",
+   "class": "clock",
+   "site": "helper-source:guest_profile.rs|recv_timeout|1",
+   "disposition": "recorded",
+   "owner": "wasmhost guest_profile.rs",
+   "rule": "The existing diagnostic profiling interval wakes the profiling sampler only; it does not supply guest model time or evidence.",
+   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+  },
+  {
+   "id": "helper.build.compiler-identity",
+   "layer": "helper",
+   "class": "settings",
+   "site": "helper-source:../build.rs|std::process::Command|1",
+   "disposition": "recorded",
+   "owner": "wasmhost build.rs",
+   "rule": "Build time queries the selected Rust compiler version and hashes it with sorted source bytes, Cargo inputs, target, profile and feature bindings into the actual linked implementation identity; no execution starts a subprocess.",
+   "evidence": ["rust:tests/inventory.rs:helper_source_scan_sites_are_inventoried"]
+  },
+  {
    "id": "helper.event-order-diagnostics",
    "layer": "helper",
    "class": "thread-order",
@@ -2460,9 +2510,9 @@
    "layer": "engine-config",
    "class": "clock",
    "site": "engine-setting:#[cfg(feature = \"guest-profile\")] epoch_interruption(true)",
-   "disposition": "controlled",
+   "disposition": "rejected",
    "owner": "wasmhost engine.rs prepare",
-   "rule": "Host-timed epochs drive guest-profile sampling only; guest-profile helpers are refused for every qualification role.",
+   "rule": "The profile-only epoch builder call is retired by the shared linked/transport configuration; its replacement explicitly enables epochs for a linked watchdog or guest profiling.",
    "evidence": [
     "rust:tests/inventory.rs:engine_settings_are_inventoried",
     "go:internal/backends/wasm/wasi:TestDiagnosticTransportRequiresPrivateRevisionOptIn"

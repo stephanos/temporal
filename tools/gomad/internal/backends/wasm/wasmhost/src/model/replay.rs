@@ -45,6 +45,8 @@ pub(super) fn failure(check: &'static str, message: impl Into<String>) -> Error 
 }
 
 impl Request {
+    /// # Errors
+    /// Refuses unsupported replay schemas or inconsistent bounded frame declarations.
     pub fn validate(&self, limit: u64) -> Result<()> {
         if self.schema != SCHEMA {
             return Err(failure(
@@ -147,9 +149,25 @@ pub fn read(
             .map_err(|error| failure("framing", error.to_string()))?;
     }
     read_marker(input, "replay_trace_end", request, tag)?;
+    preflight(&trace, request, mode, limit)
+}
+
+pub(crate) fn preflight(
+    trace: &[u8],
+    request: &Request,
+    mode: u8,
+    limit: u64,
+) -> Result<ReplayPlan> {
+    request.validate(limit)?;
+    if trace.len() as u64 != request.trace_bytes {
+        return Err(failure(
+            "framing",
+            "replay trace length differs from declaration",
+        ));
+    }
     super::replay_plan::toolchain_key(&request.execution_identity)
         .map_err(|error| failure("execution_identity", error))?;
-    if format!("{:x}", Sha256::digest(&trace)) != request.trace_sha256 {
+    if format!("{:x}", Sha256::digest(trace)) != request.trace_sha256 {
         return Err(failure("trace_sha256", "replay trace digest mismatch"));
     }
     if request
@@ -162,7 +180,7 @@ pub fn read(
             "replay trace exceeds its mapping limit",
         ));
     }
-    let mut plan = super::replay_plan::project(&trace, &request.execution_identity)
+    let mut plan = super::replay_plan::project(trace, &request.execution_identity)
         .map_err(|error| failure("trace_decode", error))?;
     if let Some(control) = &request.prefix_control {
         if mode != 3 {
