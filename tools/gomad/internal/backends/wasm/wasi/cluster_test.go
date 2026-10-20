@@ -56,6 +56,24 @@ func TestClusterHostTerminationStatus(t *testing.T) {
 	}
 }
 
+func TestCompletedClusterResultRetainsDetachedDiagnosticStderr(t *testing.T) {
+	t.Parallel()
+	done := make(chan struct{})
+	session := &ClusterSession{done: done, result: ClusterResult{helperStderr: []byte("diagnostic profile")}}
+	if session.CompletedResult() != nil {
+		t.Fatal("published a result before the helper was reaped")
+	}
+	close(done)
+	result := session.CompletedResult()
+	if string(result.HelperStderr()) != "diagnostic profile" {
+		t.Fatal("completed result lost helper diagnostics")
+	}
+	result.HelperStderr()[0] = 'x'
+	if string(session.CompletedResult().HelperStderr()) != "diagnostic profile" {
+		t.Fatal("completed result shares diagnostic bytes with the session")
+	}
+}
+
 func TestClusterInternalDeadlineIsWatchdog(t *testing.T) {
 	helper := filepath.Join(t.TempDir(), "helper")
 	if err := os.WriteFile(helper, []byte("#!/bin/sh\nexec /bin/sleep 30\n"), 0700); err != nil {
