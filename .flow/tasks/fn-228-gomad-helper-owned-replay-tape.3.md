@@ -13,9 +13,12 @@ Change `ChoiceRequest` to carry trace bytes, trace digest, expected tape digest 
 Fresh baseline and candidate executions of every runner replay corpus scenario, each replaying its own identity-matching artifacts, yield the same match/divergence string and status; storage-crash cases with partial consumption preserve the complete Expected decision and unconsumed divergence, end-of-tape cases have no next decision, and out-of-range/missing/inconsistent next-decision terminals refuse; `go test -tags test_dep ./internal/runner/... ./internal/backends/wasm/...` passes; no call to `ProjectReplayPlan` remains on the replay execution path (grep in a test). Historical helper/model identity mismatches remain refusals; no expected digest is frozen to bypass changed source.
 
 ## Done summary
-TBD
+R1/R4/R5/R6: Execution requests now pass raw trace/expectations with helper terminal digest/count/cursor/complete next-decision validation; evidence decoders and full interrupted divergence remain. Review discovered verify-only bypass;07ebfdb4ee restores semantic decode/project ONLY there, with resealed malformed trace/tape/count negatives and zero executor calls. RED proves all3 corruptions; focused replay suite46top-level/138events0, whole Runner239top-level/1128events0 with oneexisting skip, read-only lint0. Root reran Replay runner/... exit0. Existing407corpus terminal/full-divergence values unchanged. Same-receipt independent re-review SHIP; execution remains helper-owned.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1ef7bd73b5, 0561e32514, 07ebfdb4ee
+- Tests: root pinned Go test -p=1 -tags test_dep -run Replay ./internal/runner/... exit0, verify-only red1/green0; whole Runner package0; changed-source lint0 (retained receipts), 407-case complete terminal/divergence comparison0
 - PRs:

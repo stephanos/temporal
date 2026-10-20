@@ -310,7 +310,6 @@ First batch of fn-232; the Rust binary links the helper library it extends.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-228-gomad-helper-owned-replay-tape.3](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.3.md) | 🚧 In progress | Runner stops projecting; compares helper terminal counts |
 | [fn-228-gomad-helper-owned-replay-tape.4](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md) | 🚧 In progress | Keep split-owned reference session, regenerate corpora, document the contract |
 
 ### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
