@@ -14,9 +14,39 @@ func validSidecar() Sidecar {
 		BuildTags: GuestTags(), PerTestTimeout: "10m0s", PrepareTimeout: "30m0s", HarnessSHA256: "sha256:w", ExploreFlags: fixedExploreFlags(),
 		MemoryBytes: 4 << 30, Fuel: 1 << 50, GuestConfigSHA256: "sha256:cfg"}
 	return Sidecar{Schema: SidecarSchema, Statement: ObservationStatement, Candidate: candidate, CandidateKey: candidate.Key(), Hosts: []Host{{Hostname: "h"}},
-		Packages: []Package{{Pattern: "./tests", Tests: []string{"TestA", "TestB", "TestC"}, ListCount: 3, ParsedCount: 3}},
+		Packages: []Package{{Pattern: "./tests", TopLevelTests: []string{"TestA", "TestB", "TestC"}, Tests: []string{"TestA", "TestB", "TestC"}, ListCount: 3, ParsedCount: 3}},
 		Rows: []TestEntry{{Package: "./tests", Name: "TestA", Class: ClassPass}, {Package: "./tests", Name: "TestB", Class: ClassPass, Skipped: true},
 			{Package: "./tests", Name: "TestC", Class: ClassRefusedImport, Reason: "execute: sock_accept"}}}
+}
+
+func TestVerifyMethodInventoryCoverage(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name   string
+		change func(*Package)
+		want   string
+	}{
+		{"valid", func(*Package) {}, ""},
+		{"missing-method-unit", func(p *Package) { p.Methods[0].Units = nil }, "method has no units"},
+		{"unknown-method-unit", func(p *Package) { p.Methods[0].Units = []string{"TestWrapper/TestLost"} }, "method unit not enumerated"},
+		{"unknown-wrapper", func(p *Package) { p.Registrations[0].Wrapper = "TestLost" }, "registration wrapper not enumerated"},
+		{"bulk-suite-unit", func(p *Package) { p.Tests[0] = "TestWrapper" }, "suite wrapper is a runnable unit"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			sidecar := validSidecar()
+			sidecar.Packages = []Package{{Pattern: "./tests", TopLevelTests: []string{"TestPlain", "TestWrapper"}, ParsedCount: 2, ListCount: 2,
+				Tests:         []string{"TestWrapper/TestOne", "TestPlain"},
+				Methods:       []SuiteMethod{{Suite: "S", Name: "TestOne", File: "suite_test.go", Units: []string{"TestWrapper/TestOne"}}},
+				Registrations: []SuiteRegistration{{Wrapper: "TestWrapper", Suite: "S", Path: "TestWrapper", File: "suite_test.go"}}}}
+			sidecar.Rows = []TestEntry{{Package: "./tests", Name: "TestWrapper/TestOne", Class: ClassPass}, {Package: "./tests", Name: "TestPlain", Class: ClassPass}}
+			test.change(&sidecar.Packages[0])
+			findings := Verify(sidecar)
+			if test.want == "" && len(findings) != 0 || test.want != "" && !strings.Contains(strings.Join(findings, "\n"), test.want) {
+				t.Fatalf("findings %v, want %q", findings, test.want)
+			}
+		})
+	}
 }
 
 func TestVerifyFindsEveryR2Violation(t *testing.T) {

@@ -60,7 +60,7 @@ func TestBeta(t *testing.T) {}
 func Testlower(t *testing.T) {}
 func helper(t *testing.T) {}
 type S struct{}
-func (S) TestMethod(t *testing.T) {}
+func (S) HelperMethod(t *testing.T) {}
 func BenchmarkX(b *testing.B) {}
 `, 0o600)
 	write(filepath.Join(checkout, "tests", "alpha", "unix_test.go"), "package alpha_test\nimport \"testing\"\nfunc TestUnixOnly(t *testing.T) {}\n", 0o600)
@@ -459,6 +459,11 @@ func TestMaxTestsCapsEachPackageInSortedOrder(t *testing.T) {
 	sidecar := readSidecar(t, f.options.Out)
 	if sidecar.ByClass[ClassNotRun] != 2 {
 		t.Fatalf("capped tests must be not-run rows: %v", sidecar.ByClass)
+	}
+	for _, row := range sidecar.Rows {
+		if row.ConfigSource != ConfigThrowaway {
+			t.Fatalf("row lacks configuration source: %+v", row)
+		}
 	}
 }
 

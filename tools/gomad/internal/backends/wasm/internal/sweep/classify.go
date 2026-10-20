@@ -277,9 +277,14 @@ func artifactSuffix(facts ArtifactFacts) string {
 }
 
 func verdictLine(stdout []byte, verdict, test string) bool {
-	prefix := []byte("--- " + verdict + ": " + test + " (")
+	prefix := "--- " + verdict + ": "
 	for line := range bytes.SplitSeq(stdout, []byte("\n")) {
-		if bytes.HasPrefix(line, prefix) {
+		name, ok := strings.CutPrefix(strings.TrimSpace(string(line)), prefix)
+		if !ok {
+			continue
+		}
+		name, _, ok = strings.Cut(name, " (")
+		if ok && selectedTest(test, name) {
 			return true
 		}
 	}
@@ -327,9 +332,14 @@ var subtestVerdict = regexp.MustCompile(`^\s+--- (PASS|FAIL|SKIP): (\S+)`)
 
 func parseSubtests(test string, stdout []byte) *Subtests {
 	summary := &Subtests{}
+	depth := len(strings.Split(test, "/"))
 	for line := range strings.SplitSeq(string(stdout), "\n") {
 		match := subtestVerdict.FindStringSubmatch(line)
-		if match == nil || !strings.HasPrefix(match[2], test+"/") {
+		if match == nil {
+			continue
+		}
+		parts := strings.Split(match[2], "/")
+		if len(parts) <= depth || !selectedTest(test, strings.Join(parts[:depth], "/")) {
 			continue
 		}
 		switch match[1] {
@@ -375,7 +385,7 @@ func Normalize(message string) string {
 	message = normalizeUUID.ReplaceAllString(message, "<uuid>")
 	message = normalizeHexAddress.ReplaceAllString(message, "0x?")
 	message = normalizeDigest.ReplaceAllStringFunc(message, func(value string) string {
-		if strings.IndexAny(strings.TrimPrefix(value, "sha256:"), "abcdef") < 0 && !strings.HasPrefix(value, "sha256:") {
+		if !strings.ContainsAny(strings.TrimPrefix(value, "sha256:"), "abcdef") && !strings.HasPrefix(value, "sha256:") {
 			return value // a long decimal number; normalized below
 		}
 		return "<hex>"

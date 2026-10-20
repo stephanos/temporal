@@ -17,7 +17,7 @@ import (
 
 const (
 	JournalSchema = "gomad-wasm.sweep-journal/v1"
-	SidecarSchema = "gomad-wasm.sweep/v1"
+	SidecarSchema = "gomad-wasm.sweep/v2"
 	// ObservationStatement is the first statement of every sidecar and
 	// matrix: rows are observations on one candidate, never support claims.
 	ObservationStatement = "Observation on one candidate only. A pass is an observed outcome of one seed under a bounded budget, not support or qualification."
@@ -279,7 +279,7 @@ func BuildSidecar(rows []Row) (Sidecar, error) {
 		for _, name := range pkg.Tests {
 			entry, ok := latest[pkg.Pattern+"\x00"+name]
 			if !ok {
-				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "not reached by this sweep (budget or --max-tests)"}
+				entry = TestEntry{Package: pkg.Pattern, Name: name, ConfigSource: header.Candidate.ConfigSource, Class: ClassNotRun, Reason: "not reached by this sweep (budget or --max-tests)"}
 			}
 			sidecar.Rows = append(sidecar.Rows, entry)
 			sidecar.ByClass[entry.Class]++
@@ -330,11 +330,52 @@ func Verify(sidecar Sidecar) []string {
 	}
 	enumerated := map[string]bool{}
 	for _, pkg := range sidecar.Packages {
-		if pkg.ListCount != pkg.ParsedCount || pkg.ParsedCount != len(pkg.Tests) {
-			findings = append(findings, fmt.Sprintf("%s: enumeration not reconciled (parsed %d, go test -list %d, tests %d)", pkg.Pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.Tests)))
+		if pkg.ListCount != pkg.ParsedCount || pkg.ParsedCount != len(pkg.TopLevelTests) {
+			findings = append(findings, fmt.Sprintf("%s: enumeration not reconciled (parsed %d, go test -list %d, top-level tests %d)", pkg.Pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.TopLevelTests)))
+		}
+		units := map[string]bool{}
+		for _, name := range pkg.Tests {
+			if units[name] {
+				findings = append(findings, pkg.Pattern+" "+name+": duplicate enumerated unit")
+			}
+			units[name] = true
+			enumerated[pkg.Pattern+"\x00"+name] = true
+		}
+		covered := map[string]bool{}
+		wrappers := map[string]bool{}
+		for _, registration := range pkg.Registrations {
+			wrappers[registration.Wrapper] = true
+			if !slices.Contains(pkg.TopLevelTests, registration.Wrapper) {
+				findings = append(findings, pkg.Pattern+" "+registration.Wrapper+": registration wrapper not enumerated")
+			}
+			if units[registration.Wrapper] {
+				findings = append(findings, pkg.Pattern+" "+registration.Wrapper+": suite wrapper is a runnable unit")
+			}
+		}
+		for _, method := range pkg.Methods {
+			label := pkg.Pattern + " " + method.Suite + "." + method.Name
+			if len(method.Units) == 0 {
+				findings = append(findings, label+": method has no units")
+			}
+			for _, unit := range method.Units {
+				covered[unit] = true
+				if !units[unit] {
+					findings = append(findings, label+": method unit not enumerated: "+unit)
+				}
+			}
+		}
+		for _, name := range pkg.TopLevelTests {
+			if !wrappers[name] {
+				covered[name] = true
+				if !units[name] {
+					findings = append(findings, pkg.Pattern+" "+name+": standalone test has no unit")
+				}
+			}
 		}
 		for _, name := range pkg.Tests {
-			enumerated[pkg.Pattern+"\x00"+name] = true
+			if !covered[name] {
+				findings = append(findings, pkg.Pattern+" "+name+": unit has no source declaration")
+			}
 		}
 	}
 	seen := map[string]int{}

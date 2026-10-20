@@ -49,7 +49,7 @@ type Sweeper struct {
 	HarnessSHA256 string
 }
 
-// Paths of the sweep's outputs under --out.
+// JournalPath and SidecarPath are the sweep's outputs under --out.
 func JournalPath(out string) string { return filepath.Join(out, "sweep.jsonl") }
 func SidecarPath(out string) string { return filepath.Join(out, "sweep.json") }
 
@@ -58,11 +58,13 @@ func GuestTags() []string { return backend.TemporalGuestBuildTags() }
 
 // Run enumerates, installs, runs every selected test once and writes the
 // journal and sidecar. It returns verification findings of the sidecar.
-func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
+func (sweeper *Sweeper) Run(parent context.Context) (findings []string, runErr error) {
 	options := sweeper.Options
 	if err := options.Validate(); err != nil {
 		return nil, err
 	}
+	ctx, cancel := context.WithTimeout(parent, options.OverallBudget)
+	defer cancel()
 	if err := requireRegularFiles(options); err != nil {
 		return nil, err
 	}
@@ -86,21 +88,21 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 	}
 	tags := GuestTags()
 	packages, err := Enumerate(ctx, sweeper.Executor, options, tags, sweeper.Log)
-	if err != nil {
-		return nil, err
+	if err != nil || ctx.Err() != nil {
+		return nil, fmt.Errorf("enumerate sweep: %w", errors.Join(err, ctx.Err()))
 	}
 	candidate, err := sweeper.baseCandidate(ctx, tags)
 	candidate.HarnessSHA256 = sweeper.HarnessSHA256
 	candidate.ExploreFlags = fixedExploreFlags()
-	if err != nil {
-		return nil, err
+	if err != nil || ctx.Err() != nil {
+		return nil, fmt.Errorf("identify sweep candidate: %w", errors.Join(err, ctx.Err()))
 	}
 	manifests := map[string]string{}
 	for index, pkg := range packages {
 		dirs := dirsFor(options.Work, pkg.Pattern)
 		manifest, err := installPackage(ctx, sweeper.Executor, options, pkg.Pattern, dirs)
-		if err != nil {
-			return nil, err
+		if err != nil || ctx.Err() != nil {
+			return nil, fmt.Errorf("install sweep package %s: %w", pkg.Pattern, errors.Join(err, ctx.Err()))
 		}
 		installed := candidate
 		fillFromManifest(&installed, manifest)
@@ -120,7 +122,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer journal.Close()
+	defer func() { runErr = errors.Join(runErr, journal.Close()) }()
 	if err := journal.Append(Row{Kind: "header", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Header: &Header{
 		Statement: ObservationStatement, Candidate: candidate, Host: currentHost(), Packages: packages,
 		OverallBudget: options.OverallBudget.String(), MaxTests: options.MaxTests, RetainBytes: options.RetainBytes, Command: sweeper.Command,
@@ -133,37 +135,56 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 		dirs := dirsFor(options.Work, pkg.Pattern)
 		warmed := false
 		for index, name := range pkg.Tests {
+			if err := parent.Err(); err != nil {
+				return nil, err
+			}
 			if options.MaxTests != 0 && index >= options.MaxTests {
 				break
 			}
 			if entry, ok := latest[pkg.Pattern+"\x00"+name]; ok && entry.Class != ClassNotRun {
-				fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class)
+				if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class); err != nil {
+					return nil, err
+				}
 				continue
 			}
 			var entry TestEntry
 			switch {
 			case pkg.GuestExcluded[name] != "":
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassBuildFailure, Reason: "guest-file-set: " + pkg.GuestExcluded[name] + " is excluded from the wasip1 guest build under the slim tags"}
-			case !sweeper.fits(started, 1):
+			case ctx.Err() != nil || !sweeper.fits(started, 1):
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted before start"}
 			default:
-				if !warmed && sweeper.fits(started, 2) {
+				if !warmed && sweeper.Now().Sub(started)+options.PerTestTimeout+3*options.PrepareTimeout <= options.OverallBudget {
 					// The helper compiles the module (Cranelift) inside the
 					// execution timeout. One unrecorded run selecting no test
 					// fills this package's engine cache, so the first row's
 					// budget is not spent compiling.
 					warmup, err := sweeper.warm(ctx, pkg.Pattern, manifests[pkg.Pattern], dirs)
 					if err != nil {
+						if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
+							entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted during warm-up"}
+							break
+						}
 						return nil, err
 					}
 					if err := journal.Append(Row{Kind: "warmup", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &warmup}); err != nil {
 						return nil, err
 					}
-					fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded)
+					if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded); err != nil {
+						return nil, err
+					}
 				}
 				warmed = true
+				if ctx.Err() != nil || !sweeper.fits(started, 1) {
+					entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted after warm-up"}
+					break
+				}
 				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention, started)
 				if err != nil {
+					if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
+						entry.Class, entry.Reason = ClassNotRun, "overall budget exhausted during test"
+						break
+					}
 					return nil, err
 				}
 			}
@@ -171,9 +192,11 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 			if err := journal.Append(Row{Kind: "test", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &entry}); err != nil {
 				return nil, err
 			}
-			fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason)
-			if ctx.Err() != nil {
-				return nil, ctx.Err()
+			if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason); err != nil {
+				return nil, err
+			}
+			if parent.Err() != nil {
+				return nil, parent.Err()
 			}
 		}
 		// The engine cache serves only this package's modules.
@@ -212,7 +235,7 @@ func fixedExploreFlags() []string {
 
 // ExploreArgs is the gomad command line for one test function.
 func ExploreArgs(manifest, artifacts string, options Options, pattern, test string) []string {
-	return exploreArgs(manifest, artifacts, options, pattern, "^"+test+"$", options.PerTestTimeout)
+	return exploreArgs(manifest, artifacts, options, pattern, testRunPattern(test), options.PerTestTimeout)
 }
 
 func exploreArgs(manifest, artifacts string, options Options, pattern, run string, executionTimeout time.Duration) []string {
@@ -255,7 +278,7 @@ func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs
 	if completed.Err != nil {
 		entry.Reason += ": " + Normalize(completed.Err.Error())
 	}
-	return entry, errors.Join(os.RemoveAll(runRoot), resetDirectory(dirs.preparation))
+	return entry, os.RemoveAll(runRoot)
 }
 
 func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
@@ -264,15 +287,13 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 	var runRoot string
 	var outcome Outcome
 	for attempt := 1; attempt <= 2; attempt++ {
-		if err := resetDirectory(dirs.preparation); err != nil {
-			return entry, err
-		}
 		runRoot = filepath.Join(dirs.runs, fmt.Sprintf("%s-%d", name, attempt))
 		if err := resetDirectory(runRoot); err != nil {
 			return entry, err
 		}
 		_, entriesBefore := treeSize(dirs.engine)
 		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
+		entry.Attempts, entry.GomadExit, entry.WallSeconds = attempt, completed.Exit, completed.Elapsed.Seconds()
 		if ctx.Err() != nil {
 			// An interrupted sweep records nothing for this function; a
 			// resumed sweep runs it again.
@@ -290,7 +311,6 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			}
 		}
 		outcome = Classify(observation)
-		entry.Attempts, entry.GomadExit, entry.WallSeconds = attempt, completed.Exit, completed.Elapsed.Seconds()
 		entry.PreparationBytes, _ = treeSize(dirs.preparation)
 		entry.ArtifactBytes, _ = treeSize(runRoot)
 		var entriesAfter int
@@ -316,7 +336,7 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			return entry, err
 		}
 	}
-	return entry, resetDirectory(dirs.preparation)
+	return entry, nil
 }
 
 // retention keeps one exemplar artifact root per distinct non-pass reason
@@ -455,9 +475,9 @@ func fileSHA256(path string) (string, error) {
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
 	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
+	_, copyErr := io.Copy(hash, file)
+	if err := errors.Join(copyErr, file.Close()); err != nil {
 		return "", err
 	}
 	return "sha256:" + hex.EncodeToString(hash.Sum(nil)), nil
@@ -470,7 +490,6 @@ func ReadArtifact(path string) ArtifactFacts {
 	if err != nil {
 		return ArtifactFacts{ReadError: err.Error()}
 	}
-	defer opened.Close()
 	manifest := opened.Manifest()
 	facts := ArtifactFacts{Kind: manifest.ArtifactKind, ModuleSHA256: string(manifest.Target.SHA256), Domain: manifest.Outcome.Domain, Reason: manifest.Outcome.Reason, Termination: manifest.Outcome.Termination, StoredBytes: opened.StoredBytes()}
 	if manifest.Outcome.ExitCode != nil {
@@ -490,6 +509,7 @@ func ReadArtifact(path string) ArtifactFacts {
 		*stream.target = data
 	}
 	facts.StdoutTruncated = manifest.Streams.Stdout.Truncated
+	readErrors = append(readErrors, opened.Close())
 	if err := errors.Join(readErrors...); err != nil {
 		facts.ReadError = err.Error()
 	}
