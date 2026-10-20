@@ -86,14 +86,14 @@ the patched native host toolchain is a separate workflow.
 
 ## Keep and replay a first failure
 
-Start with Gomad's intentional failure fixture. Although its source lives in
-the retained native tree, this command builds and executes it through WASM:
+Start with Gomad's intentional failure fixture, a WASM-owned test module under
+`internal/backends/wasm/testdata/io_failure_module`:
 
 ```sh
 cd "$GOMAD_CHECKOUT"
 "$GOMAD_OPERATOR/bin/gomad" explore \
   --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/native/conformance/testdata" \
+  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/testdata/io_failure_module" \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --execution-timeout=30s --overall-timeout=5m \
   --artifacts "$GOMAD_OPERATOR/canary-artifacts" \

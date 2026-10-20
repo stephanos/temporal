@@ -44,7 +44,7 @@ func TestImplementationIdentityDoesNotDispatchMissingSourceError(t *testing.T) {
 	}
 }
 
-func TestImplementationIdentityBindsProjectedModelAndHostAdapters(t *testing.T) {
+func TestImplementationIdentityBindsModelAndHostAdapters(t *testing.T) {
 	identity := ImplementationSHA256()
 	if len(identity) != len("sha256:")+64 || !strings.HasPrefix(identity, "sha256:") {
 		t.Fatalf("invalid implementation identity: %q", identity)

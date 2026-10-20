@@ -170,3 +170,26 @@ func TestNativeGenerateWritesAndChecksEveryOutput(t *testing.T) {
 		}
 	}
 }
+
+func TestNativeGenerateReportsSharedSchemaErrors(t *testing.T) {
+	root := t.TempDir()
+	for _, relative := range nativeInputs() {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, filepath.FromSlash(relative)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		path := filepath.Join(root, filepath.FromSlash(relative))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if relative == "internal/model/schema/iowire.json" {
+			contents = append(contents, "\n{}\n"...)
+		}
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if stale, err := Generate(root, true); err == nil || !strings.Contains(err.Error(), "I/O wire schema has trailing data") {
+		t.Fatalf("corrupt shared schema = %v, %v", stale, err)
+	}
+}

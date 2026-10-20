@@ -36,6 +36,12 @@ var nativeCIRoutes = []struct{ path, want string }{
 	{"tools/gomad/internal/backends/native/transcript/schema/iowire_runtime.go.tmpl", "native=true\nwasm=false\n"},
 }
 
+func TestNativeRootPackageOwner(t *testing.T) {
+	if packageOwner(modulePath+"/internal/backends/native") != "native" || packageOwner(modulePath+"/internal/backends/native/execution") != "native" {
+		t.Fatal("native root packages lost their native owner")
+	}
+}
+
 var nativePureImports = []string{modulePath + "/internal/backends/native/compatibilitypack"}
 
 var nativePureDependencyFiles = []string{

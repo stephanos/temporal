@@ -14,8 +14,7 @@ import (
 )
 
 // nestedModuleDirectories returns the in-tree directories root's go.mod
-// replaces nested modules with (today only the retired native backend), so
-// the rule below needs no literal path of its own.
+// replaces nested modules with (today only the native backend).
 func nestedModuleDirectories(t *testing.T, root string) []string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(root, "go.mod"))
@@ -36,8 +35,7 @@ func nestedModuleDirectories(t *testing.T, root string) []string {
 	return directories
 }
 
-// requiresNativeSelection reports whether a Go file's build constraint is
-// false whenever gomad_native is off, whatever the other tags are.
+// requiresNativeSelection: the build constraint is false whenever gomad_native is off.
 func requiresNativeSelection(source []byte) bool {
 	for _, line := range strings.Split(string(source), "\n") {
 		line = strings.TrimSpace(line)
@@ -72,10 +70,9 @@ func requiresNativeSelection(source []byte) bool {
 	return false
 }
 
-// defaultSetReferences lists files in the default set that name a nested
-// module's tree: everything outside those trees except Markdown, go.mod and
-// go.sum (fn-223 drops the require), Make files (TestDefaultMakeTargetsSelectNoNative
-// covers them), build outputs, and Go files that only build under gomad_native.
+// defaultSetReferences lists default-set files naming a nested module's tree,
+// exempting Markdown, go.mod/go.sum, Make files (see
+// TestDefaultMakeTargetsSelectNoNative), build outputs and gomad_native-only Go.
 func defaultSetReferences(t *testing.T, root string) []string {
 	t.Helper()
 	needles := nestedModuleDirectories(t, root)
@@ -107,7 +104,9 @@ func defaultSetReferences(t *testing.T, root string) []string {
 			return nil
 		}
 		for _, needle := range needles {
-			if bytes.Contains(contents, []byte(needle)) {
+			// Also catch the path spelled as separate filepath.Join arguments.
+			split := strings.Join(strings.Split(needle, "/"), `", "`)
+			if bytes.Contains(contents, []byte(needle)) || bytes.Contains(contents, []byte(split)) {
 				found = append(found, relative+": "+needle)
 			}
 		}
@@ -121,7 +120,10 @@ func defaultSetReferences(t *testing.T, root string) []string {
 
 func TestNoDefaultSourceNamesNativeTree(t *testing.T) {
 	if len(nestedModuleDirectories(t, ".")) == 0 {
-		t.Skip("no nested in-tree module is replaced; nothing to keep out of the default set")
+		if nested, _ := filepath.Glob("internal/backends/*/go.mod"); len(nested) != 0 {
+			t.Fatalf("nested backend modules %v are not replaced by go.mod; the native-path rule has no needle", nested)
+		}
+		t.Skip("no nested in-tree module is checked out; nothing to keep out of the default set")
 	}
 	for _, reference := range defaultSetReferences(t, ".") {
 		t.Errorf("default-set file names a nested module tree: %s", reference)
@@ -139,6 +141,7 @@ func TestNativePathRuleRejectsNewOccurrence(t *testing.T) {
 		"Makefile":                     "x:\n\techo " + nested + "\n",
 		"tagged.go":                    "//go:build gomad_native && linux\n\npackage rule // " + nested + "\n",
 		"untagged.go":                  "package rule // " + nested + "\n",
+		"joined.go":                    "package rule\nvar _ = []string{\"internal\", \"backends\", \"legacy\", \"x\"}\n",
 		"default_only.go":              "//go:build !gomad_native\n\npackage rule // " + nested + "\n",
 		"either.go":                    "//go:build gomad_native || linux\n\npackage rule // " + nested + "\n",
 		"testdata/corpus.json":         `{"path": "` + nested + `"}`,
@@ -154,7 +157,7 @@ func TestNativePathRuleRejectsNewOccurrence(t *testing.T) {
 		}
 	}
 	got := defaultSetReferences(t, root)
-	want := []string{"default_only.go: " + nested, "either.go: " + nested, "testdata/corpus.json: " + nested, "untagged.go: " + nested}
+	want := []string{"default_only.go: " + nested, "either.go: " + nested, "joined.go: " + nested, "testdata/corpus.json: " + nested, "untagged.go: " + nested}
 	slices.Sort(got)
 	if !slices.Equal(got, want) {
 		t.Fatalf("references = %q, want %q", got, want)

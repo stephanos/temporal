@@ -257,7 +257,7 @@ From a source checkout, an unchanged Gomad canary demonstrates the workflow:
 
 ```sh
 gomad explore --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir /absolute/checkout/tools/gomad/internal/backends/native/conformance/testdata \
+  --working-dir /absolute/checkout/tools/gomad/internal/backends/wasm/testdata/io_failure_module \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --artifacts /absolute/operator/artifacts \
   go-test ./io_failure -- -test.run=^TestDeterministicIOFailure$ -test.v
