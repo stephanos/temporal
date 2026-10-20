@@ -298,6 +298,8 @@ pub struct Namespace {
     offered_output: u64,
     stdout: Vec<u8>,
     stderr: Vec<u8>,
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    output_committed: [u64; 2],
     #[cfg_attr(feature = "conformance", allow(dead_code))]
     writable: Vec<Vec<u8>>,
     storage: Option<Storage>,
@@ -330,6 +332,8 @@ impl Namespace {
             offered_output: 0,
             stdout: Vec::new(),
             stderr: Vec::new(),
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            output_committed: [0; 2],
             writable: image.writable_directories.clone(),
             storage: None,
             handles: BTreeMap::new(),
@@ -1078,12 +1082,16 @@ impl Namespace {
         }
         if d.std == 2 {
             self.stdout.extend_from_slice(data);
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            {
+                self.output_committed[0] += data.len() as u64;
+            }
             #[cfg(feature = "determinism-fixture")]
             crate::determinism_fixture::output_committed();
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             crate::event_order::emit_current(
                 "output",
-                self.stdout.len() as u64,
+                self.output_committed[0],
                 now.cast_signed(),
                 serde_json::json!({"stream": "stdout", "data": crate::event_order::bytes_value(data)}),
             );
@@ -1092,9 +1100,13 @@ impl Namespace {
         if d.std == 3 {
             self.stderr.extend_from_slice(data);
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            {
+                self.output_committed[1] += data.len() as u64;
+            }
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             crate::event_order::emit_current(
                 "output",
-                self.stderr.len() as u64,
+                self.output_committed[1],
                 now.cast_signed(),
                 serde_json::json!({"stream": "stderr", "data": crate::event_order::bytes_value(data)}),
             );
@@ -1738,6 +1750,24 @@ mod tests {
             Output::Fd(fd) => fd,
             other => panic!("{other:?}"),
         }
+    }
+
+    #[test]
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn diagnostic_output_ordinals_survive_draining_each_stream() {
+        let mut n = Namespace::new(image()).unwrap();
+        for fd in [1, 2, 1, 2] {
+            run(
+                &mut n,
+                Operation::Write {
+                    fd,
+                    data: b"four".to_vec(),
+                    offset: None,
+                },
+            );
+            let _ = n.take_output();
+        }
+        assert_eq!(n.output_committed, [8, 8]);
     }
 
     #[test]

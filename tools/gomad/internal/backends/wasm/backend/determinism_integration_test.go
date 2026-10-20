@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
+	"os/exec"
 	"path/filepath"
 	"strings"
 	"testing"
@@ -24,6 +25,38 @@ import (
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
 
+func determinismRetainedDirectory(t *testing.T, prefix string) string {
+	t.Helper()
+	root := os.Getenv("GOMAD_WASM_DETERMINISM_EVIDENCE_ROOT")
+	if root == "" {
+		return t.TempDir()
+	}
+	require.True(t, filepath.IsAbs(root))
+	base := filepath.Join(root, t.Name())
+	require.NoError(t, os.MkdirAll(base, 0700))
+	directory, err := os.MkdirTemp(base, prefix)
+	require.NoError(t, err)
+	return directory
+}
+
+func determinismReplayPrefix(t *testing.T, provider *Provider) []string {
+	t.Helper()
+	directory := determinismRetainedDirectory(t, "operator-")
+	binary := filepath.Join(directory, "gomad")
+	build := exec.CommandContext(t.Context(), provider.options.CompilerPath, "build", "-p=1", "-trimpath", "-o", binary, "../../../../cmd/gomad")
+	output, err := build.CombinedOutput()
+	require.NoError(t, err, "build actual replay CLI: %s", output)
+	config, err := json.Marshal(provider.options.Config)
+	require.NoError(t, err)
+	configPath := filepath.Join(directory, "config.json")
+	require.NoError(t, os.WriteFile(configPath, config, 0600))
+	manifest := filepath.Join(directory, "gomad-wasm.json")
+	install := exec.CommandContext(t.Context(), binary, "install", "--compiler", provider.options.CompilerPath, "--helper", provider.options.HelperPath, "--runtime-root", provider.options.RuntimeRoot, "--cache", provider.options.CacheRoot, "--profile", wasi.CooperativeProfile, "--config", configPath, "--memory-bytes", fmt.Sprint(provider.options.MemoryBytes), "--fuel", fmt.Sprint(provider.options.Fuel), "--output", manifest)
+	output, err = install.CombinedOutput()
+	require.NoError(t, err, "install actual replay CLI: %s", output)
+	return []string{binary, "--installation", manifest, "replay", "--determinism-fixture"}
+}
+
 func determinismArtifactFixture(t *testing.T) (*Provider, target.Spec) {
 	t.Helper()
 	if os.Getenv("GOMAD_WASM_DETERMINISM_FIXTURES") != "1" {
@@ -34,12 +67,14 @@ func determinismArtifactFixture(t *testing.T) (*Provider, target.Spec) {
 	provider := integrationProvider(t)
 	helperBytes, err := os.ReadFile(helper)
 	require.NoError(t, err)
-	provider.options.HelperPath, provider.options.HelperSHA256 = helper, string(record.HashBytes(helperBytes))
+	pinnedHelper := filepath.Join(determinismRetainedDirectory(t, "helper-"), "gomad-wasmhost")
+	require.NoError(t, os.WriteFile(pinnedHelper, helperBytes, 0700))
+	provider.options.HelperPath, provider.options.HelperSHA256 = pinnedHelper, string(record.HashBytes(helperBytes))
 	provider.options.Config.Profile = wasi.CooperativeProfile
 	provider.options.Config.Clock.ReadStepNanos = 0
 	provider.options.Config.Limits.Calls = 1 << 20
 	provider.options.Fuel = 1 << 60
-	provider.options.RuntimeRoot = t.TempDir()
+	provider.options.RuntimeRoot = determinismRetainedDirectory(t, "runtime-")
 	for _, name := range []string{"gomad_semantics.go.txt", "gomad_choicewire_generated.go.txt"} {
 		data, err := os.ReadFile(filepath.Join("../../../model/runtimesource", name))
 		require.NoError(t, err)
@@ -73,12 +108,12 @@ func gomadDeterminismFixtureDraw() {
 	return provider, target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, BuildTags: []string{"gomad", "test_dep"}}
 }
 
-func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spec, fault string) determinism.Run {
+func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spec, fault string, replayPrefix []string) determinism.Run {
 	t.Helper()
 	var execution ExecutionObservation
 	var configurationErr error
 	provider.options.ObserveResults = func(result ExecutionObservation) { execution = result }
-	provider.options.StressExecution = &StressExecution{Diagnostics: true, ConfigureRequest: func(request *wasi.Request) {
+	provider.options.StressExecution = &StressExecution{Diagnostics: true, EventOrder: true, ChoiceTraceLimit: 1 << 20, ConfigureRequest: func(request *wasi.Request) {
 		configurationErr = request.SetDeterminismFixtureConditions(fault)
 	}}
 	choices, diagnostics := uint64(4<<20), true
@@ -114,6 +149,7 @@ func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spe
 	module, err := filepath.Abs("../../../..")
 	require.NoError(t, err)
 	run := determinism.Run{Workload: spec.Source, Seed: 7, Perturbation: fault, ArtifactDir: campaign.Artifacts[0],
+		ReplayPrefix:   replayPrefix,
 		Command:        []string{"env", "GOMAD_WASM_DETERMINISM_FIXTURES=1", "GOMAD_WASM_DETERMINISM_HELPER=" + provider.options.HelperPath, "GOMAD_WASM_TEST_HELPER=" + provider.options.HelperPath, "GOMAD_STOCK_GO=" + os.Getenv("GOMAD_STOCK_GO"), "go", "-C", module, "test", "-tags", "test_dep", "./internal/backends/wasm/backend", "-run", "^" + t.Name() + "$", "-count=1"},
 		Identities:     map[string]string{"module": execution.Target.SHA256, "source": execution.Target.BuildKey, "helper": provider.options.HelperSHA256, "model": provider.options.ModelSHA256, "engine": fmt.Sprint(provider.options.Engine)},
 		EvidenceDigest: string(record.HashBytes(metadata)),
@@ -125,12 +161,14 @@ func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spe
 	}
 	run, err = observed.FromInspection(run, metadata)
 	require.NoError(t, err)
-	if execution.Cluster == nil {
-		log, err := determinism.ParseEventOrder(execution.Incarnations[0].Result.HelperStderr())
-		require.NoError(t, err)
-		require.True(t, log.Complete, "%s", log.Reason)
-		run.OrderLog = &log
+	stderr := execution.Incarnations[0].Result.HelperStderr()
+	if execution.Cluster != nil {
+		stderr = execution.Cluster.HelperStderr()
 	}
+	log, err := determinism.ParseEventOrder(stderr)
+	require.NoError(t, err)
+	require.True(t, log.Complete, "%s", log.Reason)
+	run.OrderLog = &log
 	return run
 }
 
@@ -157,8 +195,9 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 				spec.Scenario, err = json.Marshal(scenario)
 				require.NoError(t, err)
 			}
-			expected := recordDeterminismArtifact(t, provider, spec, "")
-			actual := recordDeterminismArtifact(t, provider, spec, test.fault)
+			replayPrefix := determinismReplayPrefix(t, provider)
+			expected := recordDeterminismArtifact(t, provider, spec, "", replayPrefix)
+			actual := recordDeterminismArtifact(t, provider, spec, test.fault, replayPrefix)
 			report, err := determinism.Compare(expected, actual)
 			require.NoError(t, err)
 			require.NotNil(t, report.First, "%s", report.Format())
@@ -228,11 +267,22 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 			require.True(t, inspection.PrefixVerified)
 			require.True(t, inspection.WitnessMatch)
 			require.Equal(t, report.Reproducer.Stop.Stop.Value, inspection.Resolved.Choice)
+			cliCommand := report.Reproducer.ReplayCommand
+			cli := exec.CommandContext(t.Context(), cliCommand[0], cliCommand[1:]...)
+			cliOutput, err := cli.CombinedOutput()
+			require.NoError(t, err, "literal emitted replay command %q: %s", cliCommand, cliOutput)
+			var cliInspection backends.InspectionResult
+			require.NoError(t, json.Unmarshal(cliOutput, &cliInspection))
+			require.Equal(t, backends.InspectionStatusInspectedPrefix, cliInspection.Status)
+			require.True(t, cliInspection.PrefixVerified)
+			require.True(t, cliInspection.WitnessMatch)
+			require.Equal(t, report.Reproducer.Stop.Stop.Value, cliInspection.Resolved.Choice)
 			if root := os.Getenv("GOMAD_WASM_DETERMINISM_EVIDENCE_ROOT"); root != "" {
 				receipt, err := json.MarshalIndent(struct {
-					Report     determinism.Report
-					Inspection backends.InspectionResult
-				}{report, inspection}, "", "  ")
+					Report        determinism.Report
+					Inspection    backends.InspectionResult
+					CLIInspection backends.InspectionResult
+				}{report, inspection, cliInspection}, "", "  ")
 				require.NoError(t, err)
 				require.NoError(t, os.WriteFile(filepath.Join(root, t.Name(), "prefix-receipt.json"), receipt, 0600))
 			}

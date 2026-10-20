@@ -621,6 +621,8 @@ impl Model {
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         {
             let transition = self.history.last().unwrap();
+            // The broker's shared clock timestamps the commit. World.now is
+            // only its delivery cursor and can lag until quiesce commits.
             crate::event_order::emit_current_context(
                 "world-order",
                 transition.sequence,

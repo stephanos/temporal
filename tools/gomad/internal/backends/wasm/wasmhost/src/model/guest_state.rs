@@ -167,6 +167,8 @@ impl Model {
         Self {
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             event_decisions: 0,
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            event_owner: None,
             #[cfg(feature = "determinism-fixture")]
             fixture_fault: crate::determinism_fixture::Fault::from_environment(),
             now: config.now,
