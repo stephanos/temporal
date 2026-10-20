@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-223-gomad-delete-the-native-backend",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T22:56:48.232492Z",
   "created_at": "2026-10-19T16:07:10.534119Z",
   "default_impl": null,
   "default_review": null,
@@ -288,19 +288,56 @@
       "task": null,
       "timestamp": "2026-10-20T21:59:04.100758Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2c281563f41df5ab7cb9ed3e956d4faa73450983b697c44ad8a84cbbb4e8b420",
+      "backend": "codex",
+      "base_sha": "0b55f8bf7a319254c4f56916b0df45f5d20fe256",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3eac989d406f92dd3bb12c4436c35ecba67becbe",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 874370,
+      "output_sha256": "62fcf9259cc57098a6b2f1df9fb5e22bf36841bafda268c9e29b8232650336a2",
+      "reservation_id": "dc984e1b485a44aa840ba5422ff86271",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T22:56:47.996476Z",
+      "tool_calls": 26,
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "plan": 3,
-    "plan#completion": 0
+    "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
+    "completion": 0,
     "plan": 0
   },
   "spec_path": ".flow/specs/fn-223-gomad-delete-the-native-backend.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: delete the native backend",
   "tracker": {
     "baseHashFlow": null,
@@ -313,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:59:04.125748Z"
+  "updated_at": "2026-10-20T22:57:47.766434Z"
 }

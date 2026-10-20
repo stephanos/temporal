@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-223-gomad-delete-the-native-backend",
   "spec_path": ".flow/tasks/fn-223-gomad-delete-the-native-backend.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove the nested native module and prove the default set builds",
   "updated_at": "2026-10-20T22:48:26.684196Z"
 }

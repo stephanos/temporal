@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-223-gomad-delete-the-native-backend",
   "spec_path": ".flow/tasks/fn-223-gomad-delete-the-native-backend.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags",
   "updated_at": "2026-10-19T16:08:10.365335Z"
 }
