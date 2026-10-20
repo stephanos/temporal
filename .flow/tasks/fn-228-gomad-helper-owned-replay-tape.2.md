@@ -13,9 +13,12 @@ Replace `tape_chunks` in the helper model config with a versioned replay request
 A replay with a tampered trace byte, a wrong expected tape digest, a wrong decision count, an oversized, zero-length, truncated or extra frame, wrong total/count/end marker, arithmetic overflow, or a mismatched schema version fails preflight with the named check and the Runner's existing status code; a valid replay starts the guest; record mode with a trace is refused. Test payloads containing LF and arbitrary binary bytes, exact chunk boundaries and zero-byte replay; none of the invalid cases may instantiate or start a guest. Exercise actual standalone and cluster exact/prefix replay, including manual start/restart, shortened prefixes and forced rank, LF bytes inside binary payloads, wrong/stale attribution and malformed frames.
 
 ## Done summary
-TBD
+R2/R3/R10/R11: Added helper-owned preflight for raw trace framing, digest/count/tape/schema checks, typed exact/prefix/rank admission and atomic node/incarnation transactions. Per-decision comparison unchanged. Retained22actual-helper refusal cases,17terminal negatives, fivecluster transaction cases and fourfresh nonzero oracle comparisons pass; malformed input cannot start guest. Combined source/helper Go gates at0561 passed24packages/1133top-level tests. Helper71inputs/digest remain unchanged by later Go-only fixes. Independent review SHIP07ebfdb4ee. Final Rust runtime qualification pending232R12/.13.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1ef7bd73b5, 0561e32514, 95caeab345
+- Tests: actual standalone/cluster preflight and terminal negative suites, retained raw receipts, combined go test -tags test_dep ./internal/runner/... ./internal/backends/wasm/... exit0, canonical Quick and serial read-only changed-source lint exit0
 - PRs:
