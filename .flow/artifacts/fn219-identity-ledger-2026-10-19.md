@@ -77,7 +77,12 @@ the separate bindings below.
 | WASM cluster implementation | pending current probe | Rotates after promotion through the changed WASI identity and embedded `cluster/retained.go` host-configuration admission. Record the actual value from the current cluster-provider gate. |
 | WASM overlay implementation | `sha256:4ac4238ff22066e38a7e67356f1388bb8d09995a3fc9f2bea2c57fce8c284ac4` | Actual early provenance, matching the unchanged promotion inputs. |
 | Runtime overlay identity | `sha256:6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506` | Actual early provenance with stock Go 1.27.1 and the frozen runtime source root. |
+| Choice source identity | `669bc871eba0cbee514290183ba2e8e78f44b91f34cd26300fb8916eff5327aa` | Unchanged since promotion. Read-only SHA-256 reconstruction using the generator's ordered v3 inventory reproduces the generated shared and private hashwire literal. Inputs are the schema, three templates, shared runtime semantics, `trace.go` and `tape.go`. |
 | Choice implementation with zero BuildKey | `8dd54e14f8a56f5c41ec71eec5417dd233eaaf217c77e0f3c4af690a243f2706` | Historical measured probe; unchanged choice source inputs. This is a characterization input, not a prepared target's execution identity. |
+| Broker clock implementation | `sha256:8885de543420cd75326c12f9c9cda1a1ac6bde1fdab3a01bf721c5435dc488e6` | Historical measured value, unchanged before and after promotion; complete identity inputs unchanged on this candidate. |
+| Strict JSON implementation | `sha256:ae4ebc32fe732238be38b99759c5989893e5311eafe5331eb20365df610b5795` | Historical measured value, unchanged before and after promotion; complete identity inputs unchanged on this candidate. |
+| Interrupted replay implementation | `sha256:fcf851ca51d3fd6053ad66e224ea773a05a81a1a0be88a9e987248213bcbbf20` | Historical measured value, unchanged before and after promotion; complete identity inputs unchanged on this candidate. |
+| Soft-assertion implementation | `sha256:586f591fb2edc4c72a74e2d533d27472bf589e607d7620104c80f023b4b6a3e6` | Historical measured value, unchanged before and after promotion; complete identity inputs unchanged on this candidate. |
 | Helper source inventory digest | `1fe667637f277a0bd90a1c88a1095664a4646f0c7d7a8d2893982f32736f86f7` | Current `qual-3f532910be/helper-source-files.sha256`. The matching historical inventory reconstructed at `28c8c33729` is `helper-source-at-fn219.sha256`, digest `b4442d1e83677ff0ab4d8b798012fb0cf9473dd5a4c05041838d5f825331e1b7`. Later fn-188 helper ABI, event-order, diagnostics, stress-jitter and cluster-handoff changes rotate the source inventory beyond fn-219's generated-header change. |
 | Early-preparation helper binary | `sha256:8956496039ed213d2c1d0e88266bb2f7a9f2c9916e299ae8b734387f2a6dbe5f` | `early-onebox-3f532910be/prepare-only-producer.json`, sibling of the qualification root. This exact helper bound the preparation below. |
 | Admitted measurement helper binary | `sha256:b25439140f0c850a82f99471c9fd48ac864569a75e407a76850873f6ece055a1` | `qual-3f532910be/state/helper.env` names the executable and its build/admission receipts. Same frozen sources, distinct build location from the early helper. Final workload and runtime reports must name their actual helper. |
@@ -89,9 +94,10 @@ above. Its compiler digest is
 `sha256:1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`.
 Its engine is Wasmtime `47.0.3`, configuration
 `cranelift-fuel-nan-canonical-nounwind-v2`, on `linux/aarch64`; the profile is
-`gomad.wasi-cooperative/v1`. Clock, strict JSON, interrupted replay and
-soft-assertion identities retain their full unchanged values in the historical
-TSV measurements. Qualification remains pending for this integrated source.
+`gomad.wasi-cooperative/v1`. Qualification remains pending for this integrated
+source. Before closed-owner cleanup, the conductor must transfer any raw
+acceptance inputs still required by open fn-223 to that owner and verify the
+new references under AGENTS.md.
 
 ## Pins and corpora regenerated (unchanged expectations)
 
