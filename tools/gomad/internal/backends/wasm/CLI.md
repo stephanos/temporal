@@ -185,6 +185,18 @@ can override those two bounds. These capacities are not consumption guarantees;
 exhaustion uses the existing capacity termination. Standalone campaigns retain
 their existing 64 MiB transcript limit even with a larger configuration bound.
 
+The prototype fixture and install command share the same canonical base
+configuration for the same checkout, guest directory and arguments. Their final
+configurations use explicit, different policies: the prototype retains its
+legacy nil network, while installation adds the bounded one-box network above.
+The inspection fixture retains its preexisting directory, writable roots, nil
+arguments, zero entropy key and debug environment, and overrides the base output
+and transcript bounds to 16 MiB and 256 MiB. The one-box qualification fixture
+retains the prototype base with nil network and clears arguments because Runner
+supplies the prepared target's arguments. Tests compare canonical base bytes and
+independently pin the final network policy and each historical fixture shape;
+these different final configurations are not claimed to be byte-identical.
+
 Support here is limited to `TestFrontendSystemInfo` in `tests/gomadfunctional`.
 The setup path grants no additional guest capability or support for other tests.
 One-box qualification and per-test support evidence are owned separately by
