@@ -1,0 +1,6 @@
+---
+source: umpire/testing/src/runner.rs
+assertion_line: 243
+extension: txt
+snapshot_kind: binary
+---

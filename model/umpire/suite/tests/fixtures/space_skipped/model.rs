@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use umpire_dsl::{Machine, Registered, Steps};
-use umpire_suite::{Space, find, path, refuted};
+use umpire_suite::{Run, Space, find, path, refuted};
 
 /// A dial turned from 0 up to 3 whose turn panics at 2, so 3 is never admitted.
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
@@ -66,5 +66,13 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     write!(out, "never 3:\n{}", outcome(refuted(&space, |dial| dial.0 < 3)))?;
     write!(out, "to 3:\n{}", outcome(find(&space, path![Dial(0), .., |dial: &Dial| dial.0 == 3])))?;
     write!(out, "to 1:\n{}", outcome(find(&space, path![Dial(0), .., |dial: &Dial| dial.0 == 1])))?;
+    write!(out, "to 2 (panic at equal depth):\n{}", outcome(find(&space, path![Dial(0), .., Dial(2)])))?;
+    write!(out, "refuted at 1:\n{}", outcome(refuted(&space, |dial| dial.0 < 1)))?;
+    write!(out, "refuted at 2:\n{}", outcome(refuted(&space, |dial| dial.0 < 2)))?;
+    write!(out, "along to 1:\n{}", outcome(Run::along(path![Dial(0), .., Dial(1)])))?;
+    write!(out, "along to 2:\n{}", outcome(Run::along(path![Dial(0), .., Dial(2)])))?;
+    let shallow = Space::from([Dial(2), Dial(0)]);
+    write!(out, "to 1, panic at a shallower start:\n{}", outcome(find(&shallow, path![Dial(0), .., Dial(1)])))?;
+    write!(out, "refuted at 1, panic at a shallower start:\n{}", outcome(refuted(&shallow, |dial| dial.0 != 1)))?;
     Ok(umpire_testing::Files::from([("messages.txt".into(), out)]))
 }

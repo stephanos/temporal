@@ -1,0 +1,10 @@
+unreachable, bounded by a billion steps, budget 3:
+refused: waypoint 1 is not reached from Node(0, open=false)
+twelve steps around three Model states, budget 3: 12 steps
+loop witness can hide shorter escape, budget 3:
+refused: waypoint 4 is not reached from Node(0, open=true) within the state budget
+loop witness can hide shorter escape, budget 4:
+start: Node(0, open=true)
+1: Turn choice=0 -> Node(1, open=true)
+2: Turn choice=0 -> Node(2, open=true)
+3: Escape choice=0 -> Node(3, open=true)

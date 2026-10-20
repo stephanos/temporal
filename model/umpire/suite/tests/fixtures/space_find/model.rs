@@ -33,5 +33,19 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     write!(out, "beeping within 2, from 20, budget 10:\n{}", outcome(settled))?;
     let starts = find(&either, path![|k: &Model| k.temperature < 0, .., |k| k.beeping]);
     write!(out, "below freezing, from 20 or 98:\n{}", outcome(starts))?;
+    let duplicate = Space::from([at(20, false, false), at(20, false, false), at(98, false, false)]).budget(1);
+    write!(out, "duplicate starts, below freezing, budget 1:\n{}", outcome(find(&duplicate, path![false, .., true])))?;
+    for (name, pattern) in [
+        ("predicate at start", path![|_: &Model| panic!("start predicate"), .., true]),
+        ("predicate after a step", path![at(97, false, false), .., |k: &Model| {
+            assert!(k.temperature != 98, "later predicate");
+            false
+        }]),
+        ("non-string predicate panic", path![at(97, false, false), .., |_: &Model| std::panic::panic_any(7u8)]),
+    ] {
+        let answer = std::panic::catch_unwind(std::panic::AssertUnwindSafe(|| find(&near, pattern)));
+        let text = answer.map_or_else(|_| "escaped predicate panic\n".into(), outcome);
+        write!(out, "{name}:\n{text}")?;
+    }
     Ok(umpire_testing::Files::from([("messages.txt".into(), out)]))
 }

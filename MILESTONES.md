@@ -25,7 +25,7 @@ readiness gates and dependencies still apply.
 Execution resumed under the owner's active milestone-completion goal (2026-10-20).
 fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion reviews.
 fn-225 is complete locally: its single task passed implementation review, correctness and
-standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is next.
+standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is in progress.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -57,7 +57,7 @@ the search. [Spec](.flow/specs/fn-226-suite-search-follow-ups-model.md).
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-226.1 | ⬜ todo | Predicate panics, Model-state budget, panic relevance, cosmetics (R1, R2, R3) |
+| fn-226.1 | 🔄 in progress | Predicate panics, Model-state budget, panic relevance, cosmetics (R1, R2, R3) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 
