@@ -54,3 +54,34 @@ fn-215 gives tests a pattern over paths with state waypoints and gaps; fn-213 gi
 2026-10-19, owner: the expected number of cases is a required argument of `cover` (`Cases(n)`), so the author states the size of the space before seeing it; a mismatch fails before any search and lists the alternatives. The expansion golden pins which cases, the argument pins how many.
 
 2026-10-19, naming: the claim value type is `LeadsTo` (see fn-210.20); nothing else in this spec changes.
+
+## Implementation decisions (2026-10-20)
+
+The root agent settled these details under the owner's standing instruction to follow its recommendations.
+They preserve R1–R5 and the existing state-waypoint and claim meanings.
+
+- The normal Action derive must support payload fields, not only manual Machine examples. The current
+  Rust workspace has no Finite trait. Each payload field declares a finite `#[inputs(0..=3)]` range
+  or `#[inputs([Account::King, Account::Queen])]` set. Missing/open domains refuse naming the
+  actor, action and field. The Model enumerates its complete declared input catalog independently
+  of a requested path; explicit impossible path values remain alternatives and fail witness search.
+  Payload equality, hashing, cloning and formatting distinguish complete values.
+- R3 requires declared outcome/fault metadata; observed graph rows alone cannot enumerate untouched
+  kinds. Generated worlds supply complete stock/unit outcome classes and a fault subset from
+  explicitly marked fault actors (`#[fault]`, independent of `#[internal]`). Borrowed typed outcome
+  classifiers avoid requiring Clone or Eq on every outcome. Manual worlds may declare catalogs;
+  undeclared metadata is reported as unknown, never as complete empty coverage. Claim coverage is
+  tied to witness evaluations/triggers and registration identity, not whole-graph verdicts.
+- The literal adjacent Kettle example in task .3 contains eighty disabled failover alternatives.
+  Insert an explicit gap after the repeated Heat prefix and before the ending alternatives to
+  retain all 162 authored alternatives. Expansions show every additional heat in that gap; the
+  repetition count describes the explicit prefix. Keep the literal adjacent form as a refusal
+  control rather than changing Model enabledness. Likewise the activity's zero-poll Complete/Fail
+  branches need an explicit gap before closing actions; retain eight authored alternatives and
+  use the appropriate declared deadline action. Actual paths are `fixtures/sample_kettle` and
+  `temporal/features/activity`, not the stale illustrative task paths.
+- `sample` performs reproducible finite random walks within the admitted pattern. Randomly
+  selecting cover's shortest witnesses alone does not implement that contract. State the walk
+  bound and cut behavior explicitly, and report the seed and experiment size with its expansion.
+- Task .1 owns the supporting DSL catalogs/actor projections as well as grammar and enumeration;
+  .2 consumes them for matching, cover/sample and coverage; .3 supplies the real Model examples.
