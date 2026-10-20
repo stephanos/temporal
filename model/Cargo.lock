@@ -886,6 +886,13 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-annotations"
+version = "0.0.1"
+dependencies = [
+ "insta",
+]
+
+[[package]]
 name = "umpire-checker"
 version = "0.0.1"
 dependencies = [
