@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T16:52:26.884907Z",
+  "depends_on": [],
+  "id": "fn-220-gomad-one-command-temporal-test-setup.4",
+  "priority": null,
+  "spec": "fn-220-gomad-one-command-temporal-test-setup",
+  "spec_path": ".flow/tasks/fn-220-gomad-one-command-temporal-test-setup.4.md",
+  "status": "todo",
+  "title": "Restore the pure WASI setup boundary without changing configuration bytes",
+  "updated_at": "2026-10-20T16:52:26.884907Z"
+}
