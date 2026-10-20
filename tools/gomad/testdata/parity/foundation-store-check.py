@@ -145,4 +145,8 @@ with (lockstore/'.lock').open('rb') as lock:
     out,err=waiter.communicate(timeout=10)
     assert waiter.returncode==0,err
 cases.extend(['root-link','pinned-path-replacement','root-substitution','caller-bound','budget','retained-budget','non-equivalent-collision','pool-links','pool-root-inode-substitution','pool-root-symlink','same-bytes-module-pool-mismatch','concurrent-collision','lock-contention'])
+review=subprocess.run([sys.executable,str(pathlib.Path(__file__).with_name('foundation-store-review-check.py')),binary,str(root/'review-regressions')],capture_output=True,text=True)
+(root/'review-regressions.log').write_text(review.stdout+review.stderr)
+assert review.returncode==0,review.stderr
+cases.extend(['sparse-pool-caller-bound','interrupted-ancestor-recovery-sync','concurrent-ancestor-sync'])
 print(json.dumps({'passed':cases,'count':len(cases)},sort_keys=True))

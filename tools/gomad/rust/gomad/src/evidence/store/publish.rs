@@ -31,7 +31,10 @@ pub struct Published {
     pub stored_bytes: u64,
 }
 
-pub(crate) fn durable_directory(path: &Path) -> Result<File, String> {
+pub(crate) fn durable_directory(
+    path: &Path,
+    mut checkpoint: impl FnMut(&str) -> Result<(), String>,
+) -> Result<File, String> {
     let mut missing = Vec::new();
     let mut current = path;
     while !current.exists() {
@@ -40,18 +43,37 @@ pub(crate) fn durable_directory(path: &Path) -> Result<File, String> {
     }
     for directory in missing.iter().rev() {
         match DirBuilder::new().mode(0o700).create(directory) {
-            Ok(()) => {}
+            Ok(()) => checkpoint("directory_created")?,
             Err(error) if error.kind() == std::io::ErrorKind::AlreadyExists => {}
             Err(error) => return Err(error.to_string()),
         }
-        open::pin(directory)?
-            .sync_all()
-            .map_err(|error| error.to_string())?;
-        let parent = File::open(directory.parent().ok_or("store directory has no parent")?)
-            .map_err(|error| error.to_string())?;
-        parent.sync_all().map_err(|error| error.to_string())?;
     }
-    open::pin(path)
+    let root = open::pin(path)?;
+    let mut directory = root.try_clone().map_err(|error| error.to_string())?;
+    // Existing entries may belong to an interrupted creator. Pin and sync every
+    // ancestor, rather than relying on who happened to observe a missing path.
+    loop {
+        directory.sync_all().map_err(|error| error.to_string())?;
+        let parent = File::from(
+            fs::openat(
+                &directory,
+                "..",
+                OFlags::RDONLY | OFlags::DIRECTORY | OFlags::CLOEXEC | OFlags::NOFOLLOW,
+                Mode::empty(),
+            )
+            .map_err(|error| error.to_string())?,
+        );
+        checkpoint("before_parent_sync")?;
+        parent.sync_all().map_err(|error| error.to_string())?;
+        checkpoint("parent_durable")?;
+        let current = fs::fstat(&directory).map_err(|error| error.to_string())?;
+        let above = fs::fstat(&parent).map_err(|error| error.to_string())?;
+        if current.st_dev == above.st_dev && current.st_ino == above.st_ino {
+            break;
+        }
+        directory = parent;
+    }
+    Ok(root)
 }
 
 pub(crate) fn lock(root: &File) -> Result<File, String> {
@@ -181,6 +203,23 @@ impl Store {
     )]
     fn checkpoint(&self, point: &str) -> Result<(), String> {
         #[cfg(feature = "determinism-fixture")]
+        if self.fault.as_deref() == Some(&format!("pause:{point}")) {
+            std::fs::write(self.root.with_extension("paused"), b"paused")
+                .map_err(|error| error.to_string())?;
+            let deadline = std::time::Instant::now() + std::time::Duration::from_secs(10);
+            while !self.root.with_extension("release").exists() {
+                if std::time::Instant::now() >= deadline {
+                    return Err("fixture pause expired".into());
+                }
+                std::thread::sleep(std::time::Duration::from_millis(1));
+            }
+        }
+        #[cfg(feature = "determinism-fixture")]
+        if self.fault.as_deref() == Some(&format!("audit:{point}")) {
+            std::fs::write(self.root.with_extension("parent-synced"), b"synced")
+                .map_err(|error| error.to_string())?;
+        }
+        #[cfg(feature = "determinism-fixture")]
         if self
             .fault
             .as_deref()
@@ -236,7 +275,11 @@ impl Store {
     pub fn publish(&self, publication: Publication) -> Result<Published, String> {
         #[cfg(feature = "determinism-fixture")]
         if let Some(fault) = &self.fault {
-            let point = fault.strip_prefix("crash:").unwrap_or(fault);
+            let point = fault
+                .strip_prefix("crash:")
+                .or_else(|| fault.strip_prefix("pause:"))
+                .or_else(|| fault.strip_prefix("audit:"))
+                .unwrap_or(fault);
             if ![
                 "stage_created",
                 "payloads_durable",
@@ -250,17 +293,20 @@ impl Store {
                 "after_reuse_sync",
                 "store_sync_error",
                 "rename_unsupported",
+                "directory_created",
+                "before_parent_sync",
+                "parent_durable",
             ]
             .contains(&point)
             {
                 return Err("unknown publication fault".into());
             }
         }
-        let root = durable_directory(&self.root)?;
+        let root = durable_directory(&self.root, |point| self.checkpoint(point))?;
         let shared_pool = self
             .target_pool
             .as_deref()
-            .map(durable_directory)
+            .map(|path| durable_directory(path, |point| self.checkpoint(point)))
             .transpose()?;
         match fs::mkdirat(&root, ".targets", Mode::from_raw_mode(0o700)) {
             Ok(()) => root.sync_all().map_err(|error| error.to_string())?,

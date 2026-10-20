@@ -157,7 +157,15 @@ fn read_authorized(
     {
         module_link(&before, pool, entry)?;
     }
-    read_handle(&mut file, bound, || Ok(()))
+    read_handle(&mut file, bound, || Ok(())).and_then(|bytes| {
+        if !same(
+            &before,
+            &fs::fstat(&file).map_err(|error| error.to_string())?,
+        ) {
+            return Err("artifact file changed while reading".into());
+        }
+        Ok(bytes)
+    })
 }
 
 fn read_handle(
@@ -188,6 +196,9 @@ fn read_handle(
 }
 
 fn module_link(module: &Stat, pool: Option<&File>, entry: &FileEntry) -> Result<(), String> {
+    if u64::try_from(module.st_size) != Ok(entry.bytes) {
+        return Err("artifact payload size mismatch".into());
+    }
     if module.st_nlink == 1 {
         return Ok(());
     }
@@ -197,28 +208,14 @@ fn module_link(module: &Stat, pool: Option<&File>, entry: &FileEntry) -> Result<
         true,
         false,
     )?;
-    let mut file = child(pool, &entry.sha256, false, true)?;
+    let file = child(pool, &entry.sha256, false, true)?;
     let before = fs::fstat(&file).map_err(|error| error.to_string())?;
     if before.st_dev != module.st_dev || before.st_ino != module.st_ino {
         return Err("module target pool inode mismatch".into());
     }
-    let mut bytes = Vec::new();
-    (&mut file)
-        .take(
-            entry
-                .bytes
-                .checked_add(1)
-                .ok_or("module pool size overflow")?,
-        )
-        .read_to_end(&mut bytes)
-        .map_err(|error| error.to_string())?;
-    if bytes.len() as u64 != entry.bytes
-        || canonical::digest(&bytes) != entry.sha256
-        || !same(
-            &before,
-            &fs::fstat(&file).map_err(|error| error.to_string())?,
-        )
-    {
+    // The contained pool name and inode authorize this link. Content is hashed
+    // only by payload(), after the caller's bound, on that same opened inode.
+    if !same(module, &before) {
         return Err("module target pool identity mismatch".into());
     }
     Ok(())
@@ -312,11 +309,11 @@ fn walk(
                 .ok_or("unlisted artifact payload")?;
             let file = child(root, &name, false, expected.module)?;
             let opened = fs::fstat(&file).map_err(|error| error.to_string())?;
-            if expected.module {
-                module_link(&opened, pool, expected)?;
-            }
             if u64::try_from(opened.st_size) != Ok(expected.bytes) {
                 return Err("artifact payload size mismatch".into());
+            }
+            if expected.module {
+                module_link(&opened, pool, expected)?;
             }
             seen.insert(relative);
         }
