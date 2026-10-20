@@ -496,6 +496,8 @@ impl State {
         if !self.model.as_ref().is_some_and(|model| model.sync_pending) {
             return Ok(());
         }
+        #[cfg(feature = "diagnostic-profile")]
+        let _remote = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Remote);
         let result = (|| -> Result<()> {
             let model = self.model.as_mut().unwrap();
             model.flush_output(&mut self.output)?;

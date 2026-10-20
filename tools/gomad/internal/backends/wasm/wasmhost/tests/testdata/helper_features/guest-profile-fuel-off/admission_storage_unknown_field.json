@@ -17,11 +17,11 @@
     "evidence": {},
     "exit_code": 0,
     "frames": [
-      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `model`, `model_identity`, `crash_limits`, `crash_selection`, `crash_context`, `return_image`, `image` at line 1 column 1016","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `model`, `model_identity`, `crash_limits`, `crash_selection`, `crash_context`, `return_image`, `image` at line 1 column 1016","output_bytes":0,"peak_memory_bytes":0,"termination":"unsupported","type":"result"}
     ],
     "stderr": "",
-    "termination": "invalid"
+    "termination": "unsupported"
   },
   "schema": "gomad.helper-feature-expectation/v1",
-  "source_sha256": "a868d0752709d5aef0f1dd61fc6255c5f38baad799a0182dc94c3a9b3cfb95b8"
+  "source_sha256": "b428b35070cf2d1a4ff51f0c81ecd2b87cf92e0440a4d2474a3b6cbae43c08bb"
 }

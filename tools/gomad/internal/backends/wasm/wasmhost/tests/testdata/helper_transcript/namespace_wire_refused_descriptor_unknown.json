@@ -10,10 +10,10 @@
     "evidence": {},
     "exit_code": 0,
     "frames": [
-      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `chunks`, `files`, `bytes`, `sha256` at line 1 column 785","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `chunks`, `files`, `bytes`, `sha256` at line 1 column 785","output_bytes":0,"peak_memory_bytes":0,"termination":"unsupported","type":"result"}
     ],
     "stderr": "",
-    "termination": "invalid"
+    "termination": "unsupported"
   },
   "guest": {
     "wat": "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))"

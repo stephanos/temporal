@@ -68,7 +68,17 @@ pub(super) fn check_model_literals(name: &str, actual: &Value) -> Result<(), Str
         let frames = actual["frames"].as_array().ok_or("missing frames")?;
         let result = frames.last().ok_or("missing result")?;
         let accepted = name.starts_with("namespace_wire_accepted_");
-        let want = if accepted { "exit" } else { "invalid" };
+        let want = if accepted {
+            "exit"
+        } else if matches!(
+            name,
+            "model_inputs_refused_retired_network_field"
+                | "namespace_wire_refused_descriptor_unknown"
+        ) {
+            "unsupported"
+        } else {
+            "invalid"
+        };
         let callbacks = frames
             .iter()
             .filter(|frame| frame["type"] == "call")

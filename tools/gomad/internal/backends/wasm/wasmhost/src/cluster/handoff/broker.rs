@@ -873,6 +873,9 @@ impl Broker {
         let Some((input, output)) = inner.pause.clone() else {
             return Ok(());
         };
+        // A settle pause is a Go round trip, charged like any remote wait.
+        #[cfg(feature = "diagnostic-profile")]
+        let _remote = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Remote);
         let frame = serde_json::json!({"type":"pause","reason":"settle","at":at});
         crate::protocol::send_frame(&mut **lock(&output), &frame)
             .map_err(|error| ("infrastructure", format!("pause transport: {error:#}")))?;
@@ -916,6 +919,8 @@ impl Broker {
         let mut inner = lock(&self.inner);
         Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let key = inner.sessions[me].key.clone();
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let id = inner
             .world
             .register(world::Request {
@@ -935,6 +940,8 @@ impl Broker {
 
     /// Go `BrokerSession.ready`: ready at the clock's time, exactly one delivery.
     fn ready(&self, me: usize, op: &str) -> Result<(), Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let mut inner = lock(&self.inner);
         Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let pending = inner.sessions[me].pending;
@@ -1001,6 +1008,8 @@ impl Broker {
         session.resume = None;
         inner.active = None;
         self.schedule(&mut inner);
+        #[cfg(feature = "diagnostic-profile")]
+        let clock_span = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Clock);
         let quiesced = inner.clock.quiesce(Some(handle), request);
         match quiesced {
             Ok(Quiesced::Answered(response)) => inner.sessions[me].resume = Some(Ok(response)),
@@ -1008,8 +1017,14 @@ impl Broker {
             Err(error) => inner.sessions[me].resume = Some(Err(error)),
         }
         Self::deliver_answers(&mut inner);
+        #[cfg(feature = "diagnostic-profile")]
+        drop(clock_span);
         self.schedule(&mut inner);
         self.check_stall(&mut inner);
+        // Blocked until this instance holds the baton again: waiting time
+        // while other instances run, never this instance's host work.
+        #[cfg(feature = "diagnostic-profile")]
+        let waiting = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::HandoffWait);
         while inner.active != Some(me)
             && inner.aborted.is_none()
             && (inner.manual || inner.sessions[me].revoked.is_none())
@@ -1018,6 +1033,8 @@ impl Broker {
                 .wait(inner)
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
+        #[cfg(feature = "diagnostic-profile")]
+        drop(waiting);
         if let Some((_, message)) = inner.aborted.clone() {
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
@@ -1049,15 +1066,17 @@ impl Broker {
             return;
         }
         let pending = std::mem::take(&mut inner.sessions[me].pending);
-        if pending != 0
-            && let Err(error) = inner.world.cancel(pending)
-        {
-            self.raise(
-                &mut inner,
-                "infrastructure",
-                format!("broker World: {error}"),
-            );
-            return;
+        if pending != 0 {
+            #[cfg(feature = "diagnostic-profile")]
+            let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
+            if let Err(error) = inner.world.cancel(pending) {
+                self.raise(
+                    &mut inner,
+                    "infrastructure",
+                    format!("broker World: {error}"),
+                );
+                return;
+            }
         }
         let session = &inner.sessions[me];
         let handle = session.hold.unwrap_or(session.handle);
@@ -1104,6 +1123,8 @@ impl Broker {
         &self,
         network: Option<([u8; 32], Option<&[u8]>)>,
     ) -> Result<Option<[u8; 32]>, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let mut inner = lock(&self.inner);
         // Every successful World mutation commits a transition; refusals precede state writes.
         let revision = inner.world.next_ids().2;
@@ -1163,6 +1184,8 @@ impl Broker {
         inner: &mut Inner,
         maximum: usize,
     ) -> Result<InspectionWire, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         #[cfg(test)]
         self.world_materializations
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -1211,6 +1234,8 @@ impl Broker {
         )
     )]
     fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         #[cfg(test)]
         self.world_materializations
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -1419,6 +1444,8 @@ impl Member {
         }
         *clock.now = now;
         if let Some(endpoint) = &mut self.network {
+            #[cfg(feature = "diagnostic-profile")]
+            let _network = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Network);
             endpoint.settle(now)?;
             data[4..8].copy_from_slice(&1u32.to_be_bytes());
         }

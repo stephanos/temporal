@@ -327,7 +327,15 @@ pub fn execute(
             ));
         }
     };
-    if cfg!(feature = "diagnostic-profile") {
+    // Fuel-off engines cannot meter store threads; only the timing
+    // diagnostic build profiles clusters (fn-185).
+    if cfg!(feature = "diagnostic-fuel-off") {
+        return send(&ClusterResult::new(
+            "unsupported",
+            "diagnostic fuel-off helper builds do not run clusters",
+        ));
+    }
+    if cfg!(feature = "guest-profile") {
         return send(&ClusterResult::new(
             "unsupported",
             "diagnostic helper builds do not run clusters",
@@ -627,6 +635,10 @@ fn run_instance(
     storage: Option<crate::storage_transport::StorageDescriptor>,
     measured: bool,
 ) -> std::result::Result<Report, (&'static str, String)> {
+    // Each store thread profiles into its own thread profile, merged into
+    // the process report when the session closes (fn-185).
+    #[cfg(feature = "diagnostic-profile")]
+    let _profile = crate::diagnostic::ThreadSession::start(slot, incarnation);
     let endpoint = match (&network, &instance.network_v2, &instance.local_model) {
         (Some(shared), Some(profile), Some(model)) => Some(
             Endpoint::new(
@@ -682,7 +694,11 @@ fn run_instance(
     } else {
         Ok(())
     };
+    #[cfg(feature = "diagnostic-profile")]
+    let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Instantiate);
     let instantiated = checked.and_then(|()| pre.instantiate(&mut store));
+    #[cfg(feature = "diagnostic-profile")]
+    drop(diagnostic_phase);
     let instantiate_nanos = crate::metrics::elapsed(phase);
     let mut execute_nanos = 0;
     let executed = instantiated.and_then(|instance| {
@@ -691,7 +707,11 @@ fn run_instance(
             store.data_mut().host_nanos = Some(0);
         }
         let phase = Instant::now();
+        #[cfg(feature = "diagnostic-profile")]
+        let diagnostic_phase = crate::diagnostic::PhaseSpan::new(crate::diagnostic::Phase::Execute);
         let execution = start.call(&mut store, ());
+        #[cfg(feature = "diagnostic-profile")]
+        drop(diagnostic_phase);
         execute_nanos = crate::metrics::elapsed(phase);
         execution
     });

@@ -166,7 +166,9 @@ pub(super) fn derive(case: &Value, derived: &Value) -> Result<Option<Value>, Str
 }
 pub(super) fn assets(case: &Value, path: &Path) -> Result<Value, String> {
     let mut out = case.clone();
-    if case["request"]["type"] == "cluster_execute" && cfg!(feature = "diagnostic-profile") {
+    if case["request"]["type"] == "cluster_execute"
+        && (cfg!(feature = "diagnostic-fuel-off") || cfg!(feature = "guest-profile"))
+    {
         out["replies"] = json!([]);
         out["close_input"] = json!(true);
     }
@@ -257,7 +259,7 @@ pub(super) fn check(case: &Value, run: &Run) -> Result<(), String> {
         .last()
         .ok_or("cluster helper emitted no frames")?;
     if name == "closed_cluster_diagnostic_refusal" {
-        if cfg!(feature = "diagnostic-profile") {
+        if cfg!(feature = "diagnostic-fuel-off") || cfg!(feature = "guest-profile") {
             return require(
                 run.frames.len() == 1 && last["termination"] == "unsupported",
                 "diagnostic cluster refusal stage differs",

@@ -317,9 +317,10 @@ The cluster speedup comparison requires fresh baseline and candidate release
 measurements on the same host at each measured seed, retaining
 the fn-172 baseline revision, inputs, identities and rerun commands. Record
 authorization-to-terminal wall, full wall, parent Go self CPU, helper CPU and
-compiler CPU separately. Diagnostic-profile and guest-profile helpers refuse
-cluster execution, so diagnostic timings cannot substitute for matched release
-costs. Missing measurements remain open acceptance work.
+compiler CPU separately. Diagnostic-profile helpers can
+attribute cluster execution, but diagnostic timings cannot substitute for
+matched release costs. Guest-profile and diagnostic fuel-off helpers refuse clusters.
+Missing measurements remain open acceptance work.
 
 ## Measurement producers
 
@@ -355,6 +356,7 @@ in `internal/measure`, and their regression tests remain ordinary tests.
 
 | Subcommand | Former test producer |
 | --- | --- |
+| `cluster-owner-profile` | none (fn-185) |
 | `compiled-identity-owners` | `TestDiagnosticCompiledIdentityOwners` |
 | `diagnostic-cluster-baseline` | `TestDiagnosticClusterBaseline` |
 | `diagnostic-helper-build` | `TestBuildDiagnostic{Profile,GuestProfile,FuelOff}Helper` |
@@ -362,6 +364,7 @@ in `internal/measure`, and their regression tests remain ordinary tests.
 | `guest-profile` | `TestDiagnosticGuestProfile` |
 | `guest-variants` | `TestDiagnosticGuestVariants` |
 | `host-call-profile` | `TestHostCallActivityProfile` |
+| `host-owner-profile` | none (fn-185) |
 | `legacy-workflow-profile` | `TestHelperLegacyWorkflowProfile` |
 | `matched-release-candidate` | `TestMatchedReleaseClusterCandidate` |
 | `matched-suite` | `TestHelperMatchedSuiteQualification` |

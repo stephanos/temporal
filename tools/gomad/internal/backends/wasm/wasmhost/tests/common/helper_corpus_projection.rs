@@ -75,7 +75,7 @@ pub(super) fn split_profile(stderr: &str) -> Result<(String, Value), String> {
     Ok((rest, profile))
 }
 
-/// `gomad.wasm-profile/v1`: event counts stay exact; every duration, CPU,
+/// `gomad.wasm-profile/v2`: event counts stay exact; every duration, CPU,
 /// RSS and residual figure keeps only that it was measured (nested spans can
 /// read zero nanoseconds, so not even zero/nonzero is stable).
 fn project_profile(value: &Value) -> Value {
@@ -93,6 +93,7 @@ fn project_profile(value: &Value) -> Value {
             }
             Value::Object(out)
         }
+        Value::Array(items) => Value::Array(items.iter().map(project_profile).collect()),
         other => other.clone(),
     }
 }

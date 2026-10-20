@@ -150,6 +150,21 @@ or identity inputs refuse before execution. The command builds its executor from
 the checkout selected by `--repo`; inherited measurement environment variables
 are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules.
 
+The diagnostic-profile helper reports `gomad.wasm-profile/v2` in its bounded
+stderr line. Existing phase, ABI-kind and nested buckets keep their meanings.
+`abi_ops` adds exact `module.op` counts and serving owners; `owners` records
+inclusive and exclusive wall time and bounded per-call quantiles (relative
+error below 6.25%). Nested spans are subtracted from their parent's exclusive
+wall. `host-owner-profile` and `cluster-owner-profile` reject unattributed
+imports, span errors and reconciliation misses beyond max(50 µs, 0.5% of execute
+wall), and compare choices and canonical evidence with release runs.
+The `instrumentation` owner measures profiler overhead; `handoff_wait` measures
+time waiting for another cluster instance. Neither is a host-work optimization
+lever. Cluster profiles retain reconciliation for each store thread.
+Guest-profile and diagnostic fuel-off helpers continue refusing clusters. These profiles supply
+diagnostic evidence only; current-candidate release preservation and the
+single-guest activity proof remain required before fn-185.1 acceptance.
+
 Measurement output roots retain immutable runs under
 `.gomad-measure/<producer>/run-*`; the producer directory's `latest.json` contains
 the relative name of its latest complete run. Publication follows all producer

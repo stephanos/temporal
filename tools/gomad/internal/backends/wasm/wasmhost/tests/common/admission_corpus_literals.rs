@@ -101,6 +101,8 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
         if result["termination"]
             != if name == "admission_storage_image_capacity" {
                 "capacity"
+            } else if name == "admission_storage_unknown_field" {
+                "unsupported"
             } else {
                 "invalid"
             }
@@ -577,7 +579,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             ));
         }
     } else if name == "admission_handoff_boundary_documents" {
-        if cfg!(feature = "diagnostic-profile") {
+        if cfg!(feature = "diagnostic-fuel-off") || cfg!(feature = "guest-profile") {
             if actual["exit_code"] != 0
                 || actual["stderr"] != ""
                 || actual["evidence"] != json!({})
@@ -585,7 +587,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
                 || frames.len() != 1
                 || result
                     != &json!({"type":"cluster_result","instances":[],
-                        "message":"diagnostic helper builds do not run clusters",
+                        "message":if cfg!(feature = "diagnostic-fuel-off") {"diagnostic fuel-off helper builds do not run clusters"} else {"diagnostic helper builds do not run clusters"},
                         "termination":"unsupported","virtual_elapsed_nanos":0})
             {
                 return Err(format!(
@@ -696,7 +698,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             ));
         }
     } else if name == "admission_terminal_network_document" {
-        if cfg!(feature = "diagnostic-profile") {
+        if cfg!(feature = "diagnostic-fuel-off") || cfg!(feature = "guest-profile") {
             if frames.len() != 1 || result["termination"] != "unsupported" {
                 return Err(format!(
                     "{name}: diagnostic cluster admission differs: {result}"
@@ -818,13 +820,13 @@ pub(super) fn namespace_ownership_literal_rejects_wrong_admission_stage() {
     assert!(check_admission_literals(name, &actual).is_err());
 }
 
-#[cfg(feature = "diagnostic-profile")]
+#[cfg(feature = "diagnostic-fuel-off")]
 #[test]
 fn diagnostic_handoff_refusal_rejects_changed_frame_process_or_evidence() {
     let name = "admission_handoff_boundary_documents";
     let actual = json!({"exit_code":0,"stderr":"","evidence":{},"termination":"unsupported",
         "frames":[{"type":"cluster_result","instances":[],
-        "message":"diagnostic helper builds do not run clusters",
+        "message":if cfg!(feature = "diagnostic-fuel-off") {"diagnostic fuel-off helper builds do not run clusters"} else {"diagnostic helper builds do not run clusters"},
         "termination":"unsupported","virtual_elapsed_nanos":0}]});
     check_admission_literals(name, &actual).unwrap();
     for (pointer, value) in [

@@ -17,11 +17,11 @@
     "evidence": {},
     "exit_code": 0,
     "frames": [
-      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `chunks`, `files`, `bytes`, `sha256` at line 1 column 785","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+      {"fuel_remaining":0,"message":"unknown field `extra`, expected one of `chunks`, `files`, `bytes`, `sha256` at line 1 column 785","output_bytes":0,"peak_memory_bytes":0,"termination":"unsupported","type":"result"}
     ],
     "stderr": "",
-    "termination": "invalid"
+    "termination": "unsupported"
   },
   "schema": "gomad.helper-feature-expectation/v1",
-  "source_sha256": "931091e7aedadcb5be390816354c8b0329ad11aef5640fde47ddcf92c594b713"
+  "source_sha256": "5a91ce173b9dd627744a050c0fdd7e95d80f75a19f78b43c7aee0565d3a644ea"
 }

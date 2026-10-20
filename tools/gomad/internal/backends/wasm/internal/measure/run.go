@@ -51,6 +51,7 @@ type runResources struct {
 }
 
 var producers = map[string]func(context.Context) error{
+	"cluster-owner-profile":         measureClusterOwnerProfile,
 	"compiled-identity-owners":      measureCompiledIdentityOwners,
 	"diagnostic-cluster-baseline":   measureDiagnosticClusterBaseline,
 	"diagnostic-helper-build":       measureDiagnosticHelperBuild,
@@ -58,6 +59,7 @@ var producers = map[string]func(context.Context) error{
 	"guest-profile":                 measureGuestProfile,
 	"guest-variants":                measureGuestVariants,
 	"host-call-profile":             measureHostCallProfile,
+	"host-owner-profile":            measureHostOwnerProfile,
 	"legacy-workflow-profile":       measureLegacyWorkflowProfile,
 	"matched-release-candidate":     measureMatchedReleaseCandidate,
 	"matched-suite":                 measureMatchedSuite,

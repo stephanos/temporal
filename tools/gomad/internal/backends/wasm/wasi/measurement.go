@@ -59,6 +59,8 @@ func (result *Result) SetRuntimeTerminal(terminal [16]byte) { result.runtimeTerm
 
 func (result Result) HelperStderr() []byte { return result.helperStderr }
 
+func (result ClusterResult) HelperStderr() []byte { return result.helperStderr }
+
 func MeasurementLegacyTranscript(data []byte, config Config) ([]byte, error) {
 	environment, err := NewEnvironment(config)
 	if err != nil {

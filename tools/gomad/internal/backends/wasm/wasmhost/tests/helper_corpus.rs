@@ -568,9 +568,60 @@ fn expected_of(run: &Run) -> Result<Value, String> {
         "stderr": stderr,
     });
     if !profile.is_null() {
+        profile_invariants(&profile)?;
         expected["diagnostic_profile"] = profile;
     }
     Ok(expected)
+}
+
+/// fn-185: every import of every case is framed and attributed to an owner,
+/// and the exact op table agrees with the v1 kind buckets it refines.
+fn profile_invariants(profile: &Value) -> Result<(), String> {
+    for counter in [
+        "unattributed_imports",
+        "unframed_imports",
+        "span_errors",
+        "abi_overlap_errors",
+    ] {
+        if profile[counter] != 0 {
+            return Err(format!(
+                "diagnostic profile {counter}: {}",
+                profile[counter]
+            ));
+        }
+    }
+    let count = |value: &Value| value["count"].as_u64().unwrap_or(u64::MAX);
+    let ops = profile["abi_ops"]
+        .as_object()
+        .ok_or("profile without abi_ops")?;
+    let mut total = 0;
+    for (name, op) in ops {
+        let served: u64 = op["served_by"]
+            .as_object()
+            .ok_or("op without served_by")?
+            .values()
+            .map(|count| count.as_u64().unwrap_or(u64::MAX))
+            .sum();
+        if served != count(op) || count(op) == 0 {
+            return Err(format!(
+                "diagnostic op {name}: served_by does not cover its calls"
+            ));
+        }
+        total += count(op);
+    }
+    let legacy: u64 = profile["abi"]
+        .as_object()
+        .ok_or("profile without abi")?
+        .values()
+        .map(count)
+        .sum::<u64>()
+        + count(&profile["abi_excluded"]);
+    if total != legacy {
+        return Err(format!(
+            "diagnostic op calls {total} differ from abi buckets {legacy}"
+        ));
+    }
+    Ok(())
 }
 
 /// Runs a case `runs` times and returns its projected record, refusing a
