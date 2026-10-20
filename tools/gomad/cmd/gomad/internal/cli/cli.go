@@ -1244,6 +1244,7 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	nativeFlags, _, _, _ := featureFlags(flags, dependencies.capabilities)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
 	stressJitter := flags.Bool("stress-jitter", false, "explicitly replay with the distinct WASM stress helper")
+	determinismFixture := flags.Bool("determinism-fixture", false, "explicitly inspect a retained WASM determinism fixture")
 	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	observedDir := flags.String("observed", "", "directory that receives the replayed target's stdout and stderr")
 	inspectionFlags := newReplayInspectionFlags(flags)
@@ -1268,6 +1269,9 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 2
 	}
 	config.Inspection = inspection
+	if *determinismFixture && (*stressJitter || inspection == nil) {
+		return writeCommandError(stderr, 2, "--determinism-fixture requires replay inspection with --stop and cannot combine with --stress-jitter\n")
+	}
 	if *stressJitter && inspection == nil {
 		return writeCommandError(stderr, 2, "--stress-jitter requires replay inspection with --stop\n")
 	}
@@ -1292,6 +1296,16 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 				return writeCommandError(stderr, 2, "--stress-jitter requires a WASM cooperative replay installation\n")
 			}
 			config.Backend, err = provider.ForStressReplay()
+			if err != nil {
+				return writeCommandError(stderr, 2, "%v\n", err)
+			}
+		}
+		if *determinismFixture {
+			provider, ok := config.Backend.(determinismFixtureReplayProvider)
+			if !ok {
+				return writeCommandError(stderr, 2, "--determinism-fixture requires a WASM cooperative replay installation\n")
+			}
+			config.Backend, err = provider.ForDeterminismFixtureReplay()
 			if err != nil {
 				return writeCommandError(stderr, 2, "%v\n", err)
 			}

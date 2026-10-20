@@ -618,6 +618,19 @@ impl Model {
         self.transcript = transition.digest;
         self.history.push(transition);
         self.next_transition = self.next_transition.saturating_add(1);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        {
+            let transition = self.history.last().unwrap();
+            crate::event_order::emit_current_context(
+                "world-order",
+                transition.sequence,
+                serde_json::json!({
+                    "transition": transition.body.kind(),
+                    "digest": transition.digest,
+                    "world_time_nanos": self.now - INITIAL_TIME,
+                }),
+            );
+        }
     }
 
     pub fn register(&mut self, request: Request) -> Result<u64> {

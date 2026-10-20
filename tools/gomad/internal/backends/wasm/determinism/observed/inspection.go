@@ -32,6 +32,7 @@ func FromInspection(run determinism.Run, metadata []byte) (determinism.Run, erro
 }
 
 func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence) (determinism.Run, error) {
+	run.InspectionEvidence = evidence
 	diagnostics := map[cluster.NodeHandle][]byte{}
 	for _, incarnation := range run.Incarnations {
 		diagnostics[cluster.NodeHandle{Node: cluster.NodeID(incarnation.Instance), Incarnation: incarnation.Incarnation}] = incarnation.Diagnostic

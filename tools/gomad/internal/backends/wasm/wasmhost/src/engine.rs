@@ -413,6 +413,17 @@ impl State {
         }
         self.calls += 1;
         let model = self.model.as_mut().unwrap();
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(model.event_context());
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if !model.inspection.started {
+            crate::event_order::emit(
+                &model.event_context(),
+                "model-transition",
+                0,
+                serde_json::json!({"model":"lifecycle","event":"start"}),
+            );
+        }
         model.inspection.started = true;
         model
             .inspection
@@ -1138,6 +1149,13 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
                 None
             }
         };
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        crate::event_order::emit(
+            &model.event_context(),
+            "model-transition",
+            model.event_context().trace,
+            serde_json::json!({"model":"lifecycle","event":"terminal","termination":outcome.termination,"exit_code":outcome.exit_code}),
+        );
         model.inspection_evidence(metadata);
         model.flush(&mut state.output, true)?;
         outcome.local_model = Some(Box::new(model.metadata(state.completed_calls)));

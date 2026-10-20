@@ -974,6 +974,23 @@ impl Model {
     }
 
     fn commit(&mut self, transition: history::Transition) -> Result<(), String> {
+        self.commit_silent(transition)?;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        self.emit_transition(self.transitions.len() - 1);
+        Ok(())
+    }
+
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn emit_transition(&self, index: usize) {
+        crate::event_order::emit_current(
+            "model-transition",
+            index as u64,
+            self.now.cast_signed(),
+            serde_json::json!({"model": "network", "transition": &self.transitions[index]}),
+        );
+    }
+
+    fn commit_silent(&mut self, transition: history::Transition) -> Result<(), String> {
         if !history::valid_transition(&transition) {
             return Err("simulation network transition is invalid".into());
         }
@@ -1022,12 +1039,16 @@ impl Model {
         let previous_replay = self.replay_next.clone();
         self.history_reserved = next;
         for transition in transitions {
-            if let Err(error) = self.commit(transition.clone()) {
+            if let Err(error) = self.commit_silent(transition.clone()) {
                 self.transitions.truncate(start);
                 self.history_reserved = previous_reserved;
                 self.replay_next = previous_replay;
                 return Err(error);
             }
+        }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        for index in start..self.transitions.len() {
+            self.emit_transition(index);
         }
         Ok(())
     }

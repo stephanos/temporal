@@ -219,6 +219,30 @@ struct Control {
 }
 
 impl Broker {
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn event_context(inner: &Inner, me: usize) -> crate::event_order::Context {
+        let session = &inner.sessions[me];
+        crate::event_order::owner(
+            &session.id,
+            session.incarnation,
+            inner.clock.current() - INITIAL_TIME,
+        )
+    }
+
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn event(inner: &Inner, me: usize, action: &str) {
+        crate::event_order::emit(
+            &Self::event_context(inner, me),
+            if matches!(action, "grant" | "acquire" | "resume") {
+                "world-order"
+            } else {
+                "model-transition"
+            },
+            inner.sessions[me].generation,
+            serde_json::json!({"action": action}),
+        );
+    }
+
     /// `ids` are the instances in sorted order, all at incarnation 1.
     pub fn new(
         config: &Config,
@@ -357,6 +381,12 @@ impl Broker {
                 inner.commands.push_front((command, reply));
                 break;
             }
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            let _event_scope = crate::event_order::enter(crate::event_order::owner(
+                "controller",
+                0,
+                inner.clock.current() - INITIAL_TIME,
+            ));
             let result = match command {
                 Command::Restart { index, incarnation } => {
                     self.restart_locked(inner, index, incarnation).map(|_| ())
@@ -381,6 +411,17 @@ impl Broker {
                 },
             };
             if result.is_ok() {
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                crate::event_order::emit(
+                    &crate::event_order::owner(
+                        "controller",
+                        0,
+                        inner.clock.current() - INITIAL_TIME,
+                    ),
+                    "model-transition",
+                    0,
+                    serde_json::json!({"action": "controller_effect"}),
+                );
                 lock(&self.inspection).event(
                     "controller_effect",
                     &crate::model::inspection::Handle {
@@ -521,6 +562,12 @@ impl Broker {
                 participant: Some(session.handle),
             })
             .map_err(Failure::Infrastructure)?;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(crate::event_order::owner(
+            &session.id,
+            session.incarnation,
+            inner.clock.current() - INITIAL_TIME,
+        ));
         if let Some(network) = &inner.network {
             lock(network)
                 .revoke(&session.id, session.incarnation, kind == "stop")
@@ -544,6 +591,8 @@ impl Broker {
         if inner.manual && session.state == State::Idle {
             session.state = State::Runnable;
         }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        Self::event(inner, me, kind);
         Self::deliver_answers(inner);
         self.wake[me].notify_all();
         Ok(())
@@ -580,6 +629,12 @@ impl Broker {
             .clock
             .register(&key)
             .map_err(Failure::Infrastructure)?;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(crate::event_order::owner(
+            &id,
+            incarnation,
+            inner.clock.current() - INITIAL_TIME,
+        ));
         if let Some(network) = &inner.network {
             lock(network)
                 .register(&id, incarnation)
@@ -601,6 +656,8 @@ impl Broker {
             generation: 0,
             pending: 0,
         };
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        Self::event(inner, me, "restart");
         lock(&self.inspection).event(
             "restart",
             &crate::model::inspection::Handle {
@@ -656,6 +713,8 @@ impl Broker {
             return Err(invalid("broker start lifecycle"));
         }
         inner.sessions[me].state = State::Runnable;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        Self::event(&inner, me, "activate");
         self.schedule(&mut inner);
         Ok(())
     }
@@ -676,6 +735,13 @@ impl Broker {
         {
             inner.metrics.handoff_nanos += crate::metrics::elapsed(granted);
             inner.metrics.handoff_samples += 1;
+        }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if inner.aborted.is_none()
+            && inner.active == Some(me)
+            && inner.sessions[me].revoked.is_none()
+        {
+            Self::event(&inner, me, "acquire");
         }
         inner.aborted.is_none()
     }
@@ -783,6 +849,8 @@ impl Broker {
         if let Some(next) = next {
             inner.sessions[next].state = State::Active;
             inner.active = Some(next);
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            Self::event(inner, next, "grant");
             if inner.metrics.handoffs != 0 {
                 inner.granted_at = Some(Instant::now());
             }
@@ -806,6 +874,12 @@ impl Broker {
         }
         let current = (inner.clock.current() - INITIAL_TIME).cast_unsigned();
         if let Some(network) = &inner.network {
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            let _event_scope = crate::event_order::enter(crate::event_order::owner(
+                "controller",
+                0,
+                inner.clock.current() - INITIAL_TIME,
+            ));
             let advanced = lock(network).advance(current);
             if let Err(failure) = advanced {
                 for session in &mut inner.sessions {
@@ -887,6 +961,12 @@ impl Broker {
             match (control.kind.as_str(), control.command.as_str()) {
                 ("resume", "") => return Ok(()),
                 ("control", "link") => {
+                    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                    let _event_scope = crate::event_order::enter(crate::event_order::owner(
+                        "controller",
+                        0,
+                        inner.clock.current() - INITIAL_TIME,
+                    ));
                     let network = inner.network.clone().ok_or((
                         "invalid",
                         "cluster control: link without a network".to_owned(),
@@ -902,6 +982,12 @@ impl Broker {
                         .map_err(|failure| {
                             ("invalid", format!("cluster control: {}", failure.message()))
                         })?;
+                    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                    crate::event_order::emit_current_context(
+                        "model-transition",
+                        0,
+                        serde_json::json!({"action": "controller_effect"}),
+                    );
                 }
                 _ => return Err(("invalid", "cluster control: unknown frame".into())),
             }
@@ -921,6 +1007,8 @@ impl Broker {
         let key = inner.sessions[me].key.clone();
         #[cfg(feature = "diagnostic-profile")]
         let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(Self::event_context(&inner, me));
         let id = inner
             .world
             .register(world::Request {
@@ -946,6 +1034,8 @@ impl Broker {
         Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let pending = inner.sessions[me].pending;
         let at = inner.clock.current();
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(Self::event_context(&inner, me));
         inner
             .world
             .ready(world::Readiness {
@@ -1054,6 +1144,17 @@ impl Broker {
                 "WASM broker global deadlock".into(),
             ));
         }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        crate::event_order::emit(
+            &crate::event_order::owner(
+                &inner.sessions[me].id,
+                inner.sessions[me].incarnation,
+                response.time - INITIAL_TIME,
+            ),
+            "model-transition",
+            inner.sessions[me].generation,
+            serde_json::json!({"action": "resume"}),
+        );
         Ok((response.time - INITIAL_TIME).cast_unsigned())
     }
 
@@ -1065,6 +1166,8 @@ impl Broker {
         if inner.sessions[me].state == State::Finished {
             return;
         }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(Self::event_context(&inner, me));
         let pending = std::mem::take(&mut inner.sessions[me].pending);
         if pending != 0 {
             #[cfg(feature = "diagnostic-profile")]
@@ -1098,6 +1201,8 @@ impl Broker {
         Self::deliver_answers(&mut inner);
         inner.sessions[me].hold = None;
         inner.sessions[me].state = State::Finished;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        Self::event(&inner, me, "finish");
         if inner.driver == Some((me, inner.sessions[me].incarnation)) {
             inner.driver = None;
         }

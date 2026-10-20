@@ -1,3 +1,7 @@
+#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+#[allow(dead_code)]
+#[path = "../src/event_order.rs"]
+mod event_order;
 #[allow(dead_code)]
 #[path = "../src/network/mod.rs"]
 mod network;

@@ -30,6 +30,8 @@ mod determinism_fixture;
 mod diagnostic;
 #[cfg(not(feature = "conformance"))]
 mod engine;
+#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+mod event_order;
 #[cfg(all(not(feature = "conformance"), feature = "guest-profile"))]
 mod guest_profile;
 mod local_model;
@@ -65,6 +67,8 @@ fn main() {
     #[cfg(feature = "diagnostic-profile")]
     let session = diagnostic::Session::start();
     let result = engine::execute();
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    event_order::finish();
     #[cfg(feature = "diagnostic-profile")]
     drop(session);
     if let Err(error) = result {

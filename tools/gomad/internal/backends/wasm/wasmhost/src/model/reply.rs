@@ -238,16 +238,32 @@ impl Model {
             self.transcript(crate::transcript::HEADER);
         }
         self.transcript(bytes);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        self.event(
+            "wasi-op",
+            self.transcript_bytes,
+            crate::event_order::bytes_value(bytes),
+        );
     }
     pub(super) fn append(&mut self, record: &[u8], diagnostic: &[u8]) -> Result<()> {
         if 64 + (self.records + 1) * 96 > self.config.limit {
             return Err(Error::msg("WASI capacity: runtime-choice-bytes"));
         }
         self.queue("choice", record);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        self.event(
+            "choice",
+            self.records,
+            crate::event_order::bytes_value(record),
+        );
         if self.config.diagnostics {
             self.queue("diagnostic", diagnostic);
         }
         self.records += 1;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if record[9] & 1 != 0 {
+            self.event_decisions += 1;
+        }
         Ok(())
     }
     pub(super) fn diverge(

@@ -68,7 +68,7 @@ func TestCompletedClusterResultRetainsDetachedDiagnosticStderr(t *testing.T) {
 	if string(result.HelperStderr()) != "diagnostic profile" {
 		t.Fatal("completed result lost helper diagnostics")
 	}
-	result.HelperStderr()[0] = 'x'
+	result.helperStderr[0] = 'x'
 	if string(session.CompletedResult().HelperStderr()) != "diagnostic profile" {
 		t.Fatal("completed result shares diagnostic bytes with the session")
 	}

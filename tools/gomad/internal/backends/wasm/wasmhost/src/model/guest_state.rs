@@ -165,6 +165,8 @@ impl Model {
         let mut inspection = inspection::Transport::default();
         inspection.request.clone_from(&config.inspection);
         Self {
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            event_decisions: 0,
             #[cfg(feature = "determinism-fixture")]
             fixture_fault: crate::determinism_fixture::Fault::from_environment(),
             now: config.now,

@@ -100,6 +100,8 @@ pub struct PollResult {
 }
 
 pub struct Model {
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    event_decisions: u64,
     #[cfg(feature = "determinism-fixture")]
     fixture_fault: crate::determinism_fixture::Fault,
     config: Config,
@@ -121,6 +123,27 @@ pub struct Model {
     /// A revocable remote reply awaits confirmation before a local effect.
     pub sync_pending: bool,
     pub inspection: inspection::Transport,
+}
+
+#[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+impl Model {
+    pub fn event_context(&self) -> crate::event_order::Context {
+        crate::event_order::Context {
+            instance: self.inspection.handle.node.clone(),
+            incarnation: self.inspection.handle.incarnation,
+            trace: self.records,
+            decision: self.event_decisions,
+            time_nanos: self.now.cast_signed(),
+        }
+    }
+    fn event(&self, kind: &str, ordinal: u64, value: serde_json::Value) {
+        crate::event_order::emit(&self.event_context(), kind, ordinal, value);
+    }
+    fn witness_event(&self, witness: &inspection::Witness) {
+        let state = &witness.runtime_state;
+        self.event("draw-counter",self.records,serde_json::json!({"runq_draws":get64(state,40),"scheduler_draws":get64(state,48),"select_draws":get64(state,56),"runtime_rand_draws":get64(state,64),"runtime_cheaprand_draws":get64(state,72),"timer_draws":get64(state,80),"clock_tick_draws":get64(state,88)}));
+        self.event("model-transition",self.records,serde_json::json!({"model":"runtime-witness","state":crate::event_order::bytes_value(state)}));
+    }
 }
 fn get32(data: &[u8], at: usize) -> u32 {
     u32::from_be_bytes(data[at..at + 4].try_into().unwrap())

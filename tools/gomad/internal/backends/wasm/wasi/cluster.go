@@ -10,7 +10,6 @@ import (
 	"hash"
 	"io"
 	"path/filepath"
-	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -365,7 +364,7 @@ func appendClusterTag(output []byte, node string, incarnation uint64, frame []by
 
 func (session *ClusterSession) run(request Request) {
 	stream := &clusterStream{session: session}
-	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: request.helperOutputLimit(), CollectResourceUsage: true})
 	session.input.closeInput()
 	closeErr := session.input.finish()
 	session.mu.Lock()
@@ -427,8 +426,8 @@ func (session *ClusterSession) CompletedResult() *ClusterResult {
 		return nil
 	}
 	result := ClusterResult{VirtualElapsedNanos: session.result.VirtualElapsedNanos, Frames: session.counts, WallElapsedNanos: session.result.WallElapsedNanos, AuthorizationToTerminalNanos: session.result.AuthorizationToTerminalNanos, AuthorizationStartedAt: session.result.AuthorizationStartedAt, TerminalObservedAt: session.result.TerminalObservedAt}
-	result.helperStderr = slices.Clone(session.result.helperStderr)
 	result.Cancelled, result.WatchdogTimeout, result.GroupGone = session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone
+	result.helperStderr = bytes.Clone(session.result.helperStderr)
 	if session.result.Metrics != nil {
 		metrics := *session.result.Metrics
 		result.Metrics = &metrics

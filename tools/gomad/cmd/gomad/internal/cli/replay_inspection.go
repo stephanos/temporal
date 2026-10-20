@@ -25,6 +25,10 @@ type stressReplayProvider interface {
 	ForStressReplay() (backends.Provider, error)
 }
 
+type determinismFixtureReplayProvider interface {
+	ForDeterminismFixtureReplay() (backends.Provider, error)
+}
+
 func newReplayInspectionFlags(flags *flag.FlagSet) *replayInspectionFlags {
 	options := &replayInspectionFlags{maximumBytes: backends.DefaultInspectionBytes, perDumpBytes: backends.DefaultInspectionDumpBytes}
 	flags.StringVar(&options.stop, "stop", "", "inspection boundary: choice=N, time=DURATION (or nanoseconds), or failure")

@@ -495,6 +495,9 @@ reviewing the rows and updating the versions and review date together.
 The append-only `determinism/review-history.json` ledger binds each review to
 an advancing UTC timestamp and version tuple; changing pins alone fails the
 inventory gate. A second review on the same day uses a later timestamp.
+The test's accepted initial review anchors the ledger prefix independently of
+Git history. Updating that anchor is itself an explicit source review action;
+routine pin changes append to the ledger and preserve the accepted prefix.
 `make test-determinism` checks the inventory, helper source sites, architecture
 and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers

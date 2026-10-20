@@ -32,6 +32,8 @@ struct State {
     active: Option<usize>,
     scheduler: Box<dyn Scheduler>,
     aborted: bool,
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    event_owners: Vec<crate::event_order::Context>,
 }
 
 pub struct Baton {
@@ -48,9 +50,28 @@ impl Baton {
                 active: None,
                 scheduler,
                 aborted: false,
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                event_owners: Vec::new(),
             }),
             wake: (0..instances).map(|_| Condvar::new()).collect(),
             idle: Condvar::new(),
+        }
+    }
+
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    pub fn set_event_owners(&self, owners: Vec<crate::event_order::Context>) {
+        lock(&self.state).event_owners = owners;
+    }
+
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn event(state: &State, me: usize, action: &str) {
+        if let Some(owner) = state.event_owners.get(me) {
+            crate::event_order::emit(
+                &crate::event_order::latest(owner),
+                "world-order",
+                0,
+                serde_json::json!({"model":"baton","action":action}),
+            );
         }
     }
 
@@ -59,6 +80,8 @@ impl Baton {
         match state.active {
             Some(next) => {
                 state.status[next] = Status::Active;
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                Self::event(state, next, "grant");
                 #[cfg(feature = "stress-jitter")]
                 crate::stress_jitter::delay();
                 self.wake[next].notify_one();
@@ -83,6 +106,10 @@ impl Baton {
                 .wait(state)
                 .unwrap_or_else(std::sync::PoisonError::into_inner);
         }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if !state.aborted {
+            Self::event(&state, me, "acquire");
+        }
         !state.aborted
     }
 
@@ -90,6 +117,8 @@ impl Baton {
     pub fn finish(&self, me: usize) {
         let mut state = lock(&self.state);
         state.status[me] = Status::Finished;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        Self::event(&state, me, "finish");
         if state.active == Some(me) {
             self.pass(&mut state);
         }

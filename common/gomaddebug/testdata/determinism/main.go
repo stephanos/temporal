@@ -15,6 +15,9 @@ import (
 //go:linkname fixtureDraw runtime.gomadDeterminismFixtureDraw
 func fixtureDraw()
 
+//go:linkname fixtureOutputFault runtime.gomadDeterminismFixtureOutput
+func fixtureOutputFault() bool
+
 func init() {
 	gomaddebug.RegisterDump("fixture.determinism", func(w *gomaddebug.DumpWriter) { w.String("executed seeded fixture\n") })
 }
@@ -54,6 +57,11 @@ func main() {
 	for range 8 {
 		readyChoice()
 		runtime.Gosched()
+	}
+	if fixtureOutputFault() {
+		fmt.Println("perturbed fixture output")
+	} else {
+		fmt.Println("reference fixture output")
 	}
 	fixtureDraw()
 	close(ready)

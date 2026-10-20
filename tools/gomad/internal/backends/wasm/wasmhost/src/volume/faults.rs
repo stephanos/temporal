@@ -154,6 +154,13 @@ impl Storage {
         self.log.extend_from_slice(line.as_bytes());
         self.log.push(b'\n');
         self.sequence += 1;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        crate::event_order::emit_current(
+            "model-transition",
+            self.sequence - 1,
+            self.clock,
+            serde_json::json!({"model": "storage", "line": line}),
+        );
         match crash {
             Some(fault) => Err(Stop::Crash(fault)),
             None => Ok((count, errno)),
