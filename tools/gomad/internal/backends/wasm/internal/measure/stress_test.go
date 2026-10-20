@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
@@ -46,9 +47,13 @@ func TestStressSummariesExcludeHelperEventOrder(t *testing.T) {
 	t.Parallel()
 	observation := stressFixture()
 	observation.Run.OrderLog = &determinism.EventOrder{}
+	observation.Run.InspectionEvidence = &cluster.WASMInspectionEvidence{}
 	summary := stressSummary(observation)
 	if summary.Run.OrderLog != nil || observation.Run.OrderLog == nil {
 		t.Fatal("summary retained or consumed the raw helper event order")
+	}
+	if summary.Run.InspectionEvidence != nil || observation.Run.InspectionEvidence == nil {
+		t.Fatal("summary retained or consumed the decoded inspection evidence")
 	}
 	encoded, err := json.Marshal(summary)
 	if err != nil {
@@ -73,8 +78,15 @@ func TestStressRetainsCompleteEventOrderWithoutWallTelemetryDigest(t *testing.T)
 	if err != nil || !bytes.Equal(data, retained) || observation.Run.OrderLog == nil || len(observation.Run.OrderLog.Events) != 1 {
 		t.Fatalf("missing retained supplemental event evidence: %v", err)
 	}
-	if _, found := observation.Digests["event-order"]; found {
-		t.Fatal("wall telemetry entered canonical digest")
+	commitment := observation.Digests["event-order"]
+	if commitment == "" {
+		t.Fatal("parsed event-order evidence lacks a commitment")
+	}
+	if err := stressEventOrder(t.Context(), root, bytes.Replace(data, []byte("host wall time: 123"), []byte("host wall time: 999"), 1), &observation); err != nil {
+		t.Fatal(err)
+	}
+	if observation.Digests["event-order"] != commitment {
+		t.Fatal("wall telemetry entered the parsed event-order digest")
 	}
 	if err := stressEventOrder(t.Context(), root, []byte(header), &observation); err == nil {
 		t.Fatal("accepted truncated supplemental event order")
