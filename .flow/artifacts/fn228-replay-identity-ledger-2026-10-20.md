@@ -56,4 +56,47 @@ Native deletion has its own source pair `18e5e7cac713b899b794cb23b9e4db863d913b8
 
 fn-232 R12/task .13 accepts fn-228 R7's final frozen Rust-candidate runtime, mandatory workload and retained-replay qualification, with actual commands, numeric exits and source/helper/runtime/module/model/compiler/engine/host bindings under the unchanged 3,600-second limit. Status remains PENDING. The receiver must retain the raw handover/R7 inputs and frozen Go baseline while needed; custody must survive donor cleanup.
 
-The integrated native-deletion + fn-228 source/helper/model/composed-cluster/preparation bindings are not measured by this ledger. The replay integration owner must measure and reconcile them from the actual combined frozen source. In particular, the deletion-free 18a887 model and ab405 helper are not asserted globally current after reconciliation. No separately measured global standalone-replay digest or deletion-free composed WASM-cluster digest was supplied. No source/full qualification success is manufactured from those missing values.
+Combined-source measurements and admission are now recorded below for frozen root 0561e32514. They preserve both isolated source pairs and do not qualify the later library/Rust host. Raw replay inputs and completed integration receipts have independent fn-232 receiving custody at `/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/README.md`; use that index after donor retirement. No separately invented global replay digest substitutes for actual measured bindings.
+
+## Combined fn223 + fn228 measured admission
+
+Source: root `0561e32514a2a2cf64d1a2840315e8f030ae9799`. These are measured source-admission results, not a task completion, independent review or final Rust qualification receipt.
+
+The non-Flow tracked source inventory covers 8,263 files / 226,345,246 bytes; manifest `integration-source.sha256`, SHA256 `b846af88cd68a20e32e0e2e05849d329547c55f7a479a7b1b17bf2e0fb35bbe9`. Untracked user `.turbo`, test-owned temporary fixtures and probe overlays are not tracked source. Repository probe sources were removed before frozen gates.
+
+## Separate source causes
+
+| Context | WASI model | Shared cluster | Composed WASM cluster |
+| --- | --- | --- | --- |
+| Before both changes, native-owner base18e5 (source-equivalent relevant inputs to c36) | `73c1a4f3f64dedd4c18dad47849f6dcc8bc04d08e27067dedd096acde05e2e60` | `d62d0fe6ed1fe7b9efa628e1ecf18c90cfefaac4f561fb62229fa56bb95c9430` | `63d6734ceb36e1b6dfa99084dc711cb9f071519a7c70dd10491c8c8e045c3930` |
+| fn223 deletion-only input pair f76f6263 | same `73c1a4…` | `891c336f2b0a943b4a36e7f4568b744ac41857d7a7190d298b2fb76d3f0ca003` | `8ee01c049ce397bb6cf7458b84f5a37c1c8e552b92e7be38440cc2dd0d96fe95` |
+| fn228 deletion-free12cdc | `18a88761bf147ca7436ffe0782e6a4c6f9ddf816e782bd42a90ea41a492987b7` | same `d62d0f…` | `f5629f4d63d90c623e829da5148e9c89ee9989c5a5065630e745a1c8bd437056` |
+| Combined0561 | same `18a887…` | same `891c33…` | `a25134c081e544f944ed54c7ae65b5de8e4e3d36570842f87720e28e6885c619` |
+
+Values are hexadecimal portions of `sha256:` implementation identities. Full exact strings are in `integration-identities.tsv`, `integration-pre-native-identities.tsv` and the authenticated native-deletion pair's base/candidate TSVs. The old contexts remain history, not identities to relabel onto the combined candidate.
+
+The fn228 WASI rotation is still caused by exactly cluster.go, helper_model.go, process.go and runtime.go; their deletion-free old/new hashes remain `batch-model-identities.txt`. Combined0561 changes none of those WASI implementation inputs relative to12cdc. The native retirement changes the shared-cluster inventory and removes native interception glue. Every WASM-cluster owned source file is byte-identical to12cdc; the further composed identity change is solely the transitive shared-cluster component, not a new helper or tape algorithm change. Volume, network, World, clock, strictjson, softassert, interrupted-replay and WASM runtime/toolchain identities are unchanged across these measured contexts.
+
+Standalone Runner replay source digest (a file digest, not a global implementation identity): oldc36 `b31b8e3f2f90133d75cf90d1cd31d475e93e6e18bb32c6139689ce81f1a425af`; deletion-free12cdc and combined0561 both `55be9e0bc79990b4b69e79fa95bc1d160fd022267ef615770ccb6dd05d81f805` for `internal/runner/replay_operation.go`.
+
+## Helper identity and reusable proof
+
+All 71 Rust helper src-and-pin inventory entries in combined0561 equal deletion-free12cdc byte-for-byte; both complete manifests hash to `879d4890ec7472aa8c9994632befb1cdb99e5b5122e7a7dffce253eaa9cde80c`. A fresh root ordinary-helper build exited0 and produced SHA256 `ab4059583f7d3ca265cdbce2de064cd2e54b744b9943cf38e2addf45e1825193`, equal to the retained12cdc ordinary helper. Root's previous unverified local helper `cd9bfdb5…` was not used for admission; the normal helper target replaced that build artifact with the verified current output.
+
+Actual helper path: `/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost`, private nlink1, 17,307,120 bytes. The retained fn228 `runner-helper-final` copy is identical and remains immutable. Source, Cargo.lock/toolchain pins, helper bytes and compiler selection support reuse of the prior Rust223/2-existing-ignored and seven-feature lint observations as historical equivalent-input proof. Fresh combined canonical make validation and Go/helper corpus/oracle tests remain separate actual observations; reuse is not described as a new full Rust run.
+
+## Controlled preparation, Choice and boot bindings
+
+`integration-binding-probe_test.go` reuses the native owner's buildKey/compilationFor/Choice implementation/BootConfiguration algorithm, compiled separately in the actual12cdc and combined0561 packages via external Go overlays. Each phase ran one named test, emitted eight rows and performed no runtime/guest execution. The module is a fixed eight-byte synthetic WASM input. Compiler/runtime inputs and bounds are the native owner's fixed controls, not claims about an admitted executable. One helper dimension retains that fixed synthetic control; the other hashes the actual private helper bytes. No stale identity was injected into the compiled BootConfiguration result.
+
+Reports: `integration-bindings-pre-native.json`, `integration-bindings-combined.json`, `integration-binding-comparison.json`. All eight pairwise expectation checks passed. For both helper dimensions:
+
+- Independent-module, no scenario: preparation, compilation and Choice binding equal; boot identity changes with the composed cluster identity.
+- Independent-module, scenario: compilation equal; preparation, Choice and boot bindings change with the scenario implementation.
+- Parent-module scope: go.mod/go.sum source changes alter compilation/preparation/Choice bindings; boot also changes. This is distinct from a guest-byte or helper-byte change.
+
+The zero-build-key Choice implementation control remains `sha256:8dd54e14f8a56f5c41ec71eec5417dd233eaaf217c77e0f3c4af690a243f2706`; actual execution identities remain keyed by their own preparation context. Do not use this control as an artifact identity.
+
+## Required receiving obligation
+
+Final runtime, mandatory workload and retained-replay qualification of the eventual frozen Rust candidate remains PENDING under fn232 R12/task .13. This combined source/helper admission does not substitute for that ladder, does not qualify an extracted library/Rust host, does not migrate historical artifacts, and makes no timing claim. Preserve both the original deletion pair and deletion-free fn228/R7 custody histories. Root owns the ledger/receiving-task commit and release after review.

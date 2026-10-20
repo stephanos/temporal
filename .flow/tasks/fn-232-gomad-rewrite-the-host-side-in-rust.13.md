@@ -58,6 +58,51 @@ In addition to the full qualification/test-wasm transfer, accept the following e
 - `TestHelperModelPreservesGoOwnerEvidence`
 - `TestNamespaceOwnerFilesystemParity`
 - `TestBrokerCrashRetainsInterruptedRuntimePrefix`
+### fn-223 full-module live-behavior receiver
+
+In addition to the full qualification/test-wasm transfer, accept the following exact 39 actual live-guest roots from the deletion batch's former unselected full-module test command. Preserve /home/agent/wt/evidence/fn223/live-gate-names.txt, the disjoint nine-source list, selectors and original failed command/log/classification under receiver custody before donor cleanup. The nine source/admission/preparation roots remain required Go source checks in fn-223.1 and are not transferred. Record a one-to-one behavioral/subtest/fixture/bounds mapping to the final Rust lanes, even if tests are renamed or regrouped; no blanket unsupported/skip disposition, weakened assertion or budget increase. Keep the original Go failure and invalidated probe-race observations as history; this receiver remains pending, not a Go execution or qualification pass.
+
+- `TestInspectionRetainedArtifactWithoutSourceOrCompiler`
+- `TestInspectionRetainedClusterNetworkStoppedPrefix`
+- `TestInspectionRetainedClusterTargetsRestartedIncarnation`
+- `TestIntegratedIntentionalFailureObservedReplay`
+- `TestReplayRejectsChangedArtifactIdentityBeforeGuest`
+- `TestObservedCampaignResumeRetainsBackendAndOrdinals`
+- `TestIntegratedCooperativeFailureArtifactDetachedReplay`
+- `TestWASMChoiceCampaignCanonicalRoundsAndDetachedReplay`
+- `TestWASMChoiceCampaignInterruptedRoundRecoveryNoDuplicates`
+- `TestWASMChoiceCampaignFuelCapacityIsNotApplicationFailure`
+- `TestWASMCooperativeCampaignWithExplicitEnvironment`
+- `TestWASMMinimizeEssentialPrefixDetachedReplayRepeatAndResume`
+- `TestScenarioPreservesChoiceCapacityBeforeDeclaredMarker`
+- `TestScenarioPreservesUnsupportedBeforeDeclaredMarker`
+- `TestScenarioPreservesChoiceCapacityBeforeRetention`
+- `TestSoftAssertionActualPassingGuestArtifactReplay`
+- `TestSoftAssertionChoiceCampaignReportsCommittedRounds`
+- `TestProviderDetachedOracleCanarySourceLessReplay`
+- `TestProviderClusterStartsOnlyRequestedIncarnations`
+- `TestProviderMandatoryCleanupReapsWithoutLifecycleActions`
+- `TestProviderStopReapsGuestAndPeerContinues`
+- `TestProviderGroupedAcknowledgmentCrashSourceLessReplay`
+- `TestProviderActualCrashDurableRestart`
+- `TestProviderIndependentGuestsLifecycleReplay`
+- `TestProviderCompressedIndependentGuestsLifecycleReplay`
+- `TestProviderUnboundRevocationOfSplitStorageNodeRestarts`
+- `TestSoftAssertionActualClusterGuestAndRetainedReplay`
+- `TestSoftAssertionActualClusterOutputCapacityRemainsInfrastructureFailure`
+- `TestCooperativeInspectionEveryDecision`
+- `TestCooperativeGoGuestForcesExactReplay`
+- `TestCooperativeRuntimeProbes`
+- `TestBrokerCrashRecoveryFreshGuest`
+- `TestClusterOutputBoundaryParity`
+- `TestClusterBrokerDurableRestartParity`
+- `TestClusterShutdownLiveNodesEvidenceOrder`
+- `TestBrokerIndependentGuestStreamsReplay`
+- `TestHelperModelPreservesGoOwnerEvidence`
+- `TestNamespaceOwnerFilesystemParity`
+- `TestBrokerCrashRetainsInterruptedRuntimePrefix`
+
+Fn-228 replay inputs and completed combined-source admission receipts now have independent custody at `/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/README.md`. Preserve its exact source/identity manifests, candidate executable bindings, both raw fresh R7 lineages, zero-choice limitation and combined measured helper/WASI/shared-cluster/composed-cluster/preparation bindings. The combined source admission passed at 0561e32514; final qualification of the later extracted library and Rust host remains pending under this task. No donor path must remain for future acceptance.
 ## fn-223 full-module live-behavior receiver
 
 In addition to the full qualification/test-wasm transfer, accept the following exact 39 actual live-guest roots from the deletion batch's former unselected full-module test command. Preserve /home/agent/wt/evidence/fn223/live-gate-names.txt, the disjoint nine-source list, selectors and original failed command/log/classification under receiver custody before donor cleanup. The nine source/admission/preparation roots remain required Go source checks in fn-223.1 and are not transferred. Record a one-to-one behavioral/subtest/fixture/bounds mapping to the final Rust lanes, even if tests are renamed or regrouped; no blanket unsupported/skip disposition, weakened assertion or budget increase. Keep the original Go failure and invalidated probe-race observations as history; this receiver remains pending, not a Go execution or qualification pass.
