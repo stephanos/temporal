@@ -13,9 +13,12 @@ Add a `replay_plan` module to the helper crate that projects a complete v3 choic
 Every fixture projects to byte-equal plan bytes and equal digest on both sides, including zero/short/full prefixes, final forced rank and reconstruction intent, and rejected out-of-range/incorrectly placed controls; corrupt fixtures (result naming decisions before origin, broken poll pattern, double-named decision) are rejected on both sides with the same classification; `make validate` regenerates the corpus byte-identically on a second pass.
 
 ## Done summary
-TBD
+R8: Rust projects the complete choice trace with shared Decision/readiness rules and typed prefix/final-rank controls. Go/Rust corpus59fixtures agrees on bytes/digests and refusals; two-pass corpus regeneration is byte-identical. Combined canonical Quick at0561 passed; all71 helper inputs match deletion-free12cdc and fresh helper digestab405. Prior full Rust223pass/2existingignored and seven-mode lint are equivalent-input reused evidence, not claimed freshcombined fullsuite. Independent combined source review SHIP07ebfdb4ee. See receiver FINAL_CUSTODY.md and tracked replay identity ledger.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 8d37d31bc9, 1ef7bd73b5, 0561e32514
+- Tests: make validate; Go replay-plan conformance corpus59; Rust replay_plan, two-pass corpus regeneration byte comparison, combined Quick exit0; helper source/pin manifest verification
 - PRs:
