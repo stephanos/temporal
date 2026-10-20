@@ -1,11 +1,150 @@
 {
   "branch_name": "fn-228-gomad-helper-owned-replay-tape",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T20:28:44.249075Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-228-gomad-helper-owned-replay-tape",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-20T21:09:32.389912Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "979a3215b6d185ad89b4121fde4661a381df43017f320bdf9375700489ed4468",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a839a0fbfcf48159cf5ee82daa994823",
+            "classification": "introduced",
+            "findingId": "finding-a839a0fbfcf48159cf5ee82daa994823",
+            "firstSeenThisRound": true,
+            "severity": "P0",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-16d491deebc9e2d3e196e873fe67d4cf",
+            "classification": "introduced",
+            "findingId": "finding-16d491deebc9e2d3e196e873fe67d4cf",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-4391f94cef907c5d3434f9c16954c9df",
+            "classification": "introduced",
+            "findingId": "finding-4391f94cef907c5d3434f9c16954c9df",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c36dddcb3e29498d36ed207d2a5b9f4013b32cb2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 335129,
+      "output_sha256": "a4e2a50c2ca72100ff37e1b2888bd2acdb5a1a25454ff24ad52a229a33f575aa",
+      "reservation_id": "798b5350199b4f8fb5c9b2c3050cec22",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T21:05:47.977288Z",
+      "tool_calls": 20,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "59d46402258da9d293e964e2a4042dcd5b3c6b5f16606af1299367f20824c701",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-a839a0fbfcf48159cf5ee82daa994823",
+            "classification": "introduced",
+            "findingId": "finding-a839a0fbfcf48159cf5ee82daa994823",
+            "firstSeenThisRound": false,
+            "severity": "P0",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-16d491deebc9e2d3e196e873fe67d4cf",
+            "classification": "introduced",
+            "findingId": "finding-16d491deebc9e2d3e196e873fe67d4cf",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-4391f94cef907c5d3434f9c16954c9df",
+            "classification": "introduced",
+            "findingId": "finding-4391f94cef907c5d3434f9c16954c9df",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c36dddcb3e29498d36ed207d2a5b9f4013b32cb2",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 859,
+      "output_sha256": "03fcb69fcf30725c0230619727d51a785903c60e729dae09f1539f5154e17371",
+      "reservation_id": "8823a17b473a48b2b9243340c61dd0fb",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T21:09:32.380439Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-228-gomad-helper-owned-replay-tape.md",
   "status": "open",
   "title": "Gomad: helper-owned replay tape validation",
@@ -20,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T20:28:44.258338Z"
+  "updated_at": "2026-10-20T21:09:32.391538Z"
 }
