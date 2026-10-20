@@ -1,13 +1,89 @@
 {
   "branch_name": "fn-232-gomad-rewrite-the-host-side-in-rust",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T20:31:21.935414Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-228-gomad-helper-owned-replay-tape"
   ],
   "id": "fn-232-gomad-rewrite-the-host-side-in-rust",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 1,
+  "plan_review_status": "needs_work",
+  "plan_reviewed_at": "2026-10-20T21:19:45.304264Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "fc3b05d174ca056d6c94b417afe71eaffa2ad3143beea2d11d1b7af5ca571497",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-f3b20712482ffde403a956942a2da5be",
+            "classification": "introduced",
+            "findingId": "finding-f3b20712482ffde403a956942a2da5be",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-82d7da88f26413baf81f830741008e0c",
+            "classification": "introduced",
+            "findingId": "finding-82d7da88f26413baf81f830741008e0c",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-25d2db8b2181dec74f7d03610487c211",
+            "classification": "introduced",
+            "findingId": "finding-25d2db8b2181dec74f7d03610487c211",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "5cbfc5c7517e890da36d7665a0a5d06628acea4d",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 500769,
+      "output_sha256": "9c4908776eb980ee833314b77bc26e6ade9c91097374cde0584997c18892b804",
+      "reservation_id": "b819c8b5227f45b0be8208df232fce68",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T21:19:45.294023Z",
+      "tool_calls": 30,
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md",
   "status": "open",
   "title": "Gomad: rewrite the host side in Rust",
@@ -22,5 +98,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:12:25.797204Z"
+  "updated_at": "2026-10-20T21:26:58.060640Z"
 }

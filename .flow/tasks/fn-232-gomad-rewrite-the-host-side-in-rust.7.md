@@ -10,7 +10,7 @@ Port campaign control and `execute-shard` for seed strategy: deterministic seed 
 
 ## Acceptance
 The owned behavior has reviewed golden fixtures, repeated-execution agreement and byte-identical second regeneration (R14); public verbs also run their fresh Go/Rust semantic parity lane (R13).
-Harness explore lane matches selection order, outcome classes and failure grouping; interrupted campaign resumes from the last complete round; changed bounds refused; execute-shard and merge of two shards equal one unsharded run's ledger; all three public lanes plus resume have parity and golden fixtures.
+Harness explore lane matches selection order, outcome classes and failure grouping; interrupted campaign resumes from the last complete round; changed bounds refused; execute-shard and merge of two shards equal one unsharded run's authenticated semantic ledger view under task .4, not raw diagnostic bytes; independently verify both original ledgers' hash links, record references, order and bounds; all three public lanes plus resume have parity and golden fixtures.
 
 ## Done summary
 TBD
