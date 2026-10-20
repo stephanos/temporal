@@ -6,6 +6,7 @@ use std::collections::HashMap;
 mod guest_state;
 mod imports;
 pub mod inspection;
+pub mod replay;
 pub mod replay_plan;
 mod reply;
 
@@ -24,10 +25,10 @@ pub struct Config {
     pub mode: u8,
     pub limit: u64,
     pub diagnostics: bool,
-    #[serde(default)]
+    #[serde(skip)]
     pub tape: Option<Vec<Decision>>,
     #[serde(default)]
-    pub tape_chunks: u64,
+    pub replay: Option<replay::Request>,
     pub epoch_nanos: u64,
     pub read_step_nanos: u64,
     pub now: u64,
@@ -114,6 +115,8 @@ pub struct Model {
     transcript_hash: Sha256,
     transcript_encoder: crate::transcript::Encoder,
     records: u64,
+    branching_records: u64,
+    choice_hash: Sha256,
     cursor: usize,
     configured: bool,
     finished: bool,

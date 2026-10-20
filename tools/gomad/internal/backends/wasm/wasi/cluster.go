@@ -547,16 +547,9 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 		session.mu.Unlock()
 		return err
 	}
-	var tape bytes.Buffer
-	sink.input = &tape
-	if err := sink.sendHelperTape(); err != nil {
+	tagged, err := helperReplayBlock(e.runtime.control.Choice, node, incarnation)
+	if err != nil {
 		return rollback(err)
-	}
-	var tagged []byte
-	for _, frame := range bytes.Split(bytes.TrimSpace(tape.Bytes()), []byte{'\n'}) {
-		if len(frame) != 0 {
-			tagged = appendClusterTag(tagged, node, incarnation, frame)
-		}
 	}
 	kind := "start"
 	if incarnation > 1 {
@@ -564,10 +557,10 @@ func (session *ClusterSession) Start(ctx context.Context, node string, incarnati
 	}
 	model := helperConfig(e, request.DigestTranscript)
 	err = session.command(ctx, map[string]any{"type": kind, "node": node, "incarnation": incarnation, "boot": bootID, "runtime": struct {
-		Mode       choice.Mode     `json:"mode"`
-		TapeChunks uint64          `json:"tape_chunks"`
-		Inspection json.RawMessage `json:"inspection,omitempty"`
-	}{model.Mode, model.TapeChunks, model.Inspection}}, tagged, state)
+		Mode       choice.Mode          `json:"mode"`
+		Replay     *helperReplayRequest `json:"replay,omitempty"`
+		Inspection json.RawMessage      `json:"inspection,omitempty"`
+	}{model.Mode, model.Replay, model.Inspection}}, tagged, state)
 	if refused := (clusterControlRefused{}); errors.As(err, &refused) {
 		return rollback(err)
 	}
@@ -969,8 +962,16 @@ func (stream *clusterStream) frame(data []byte) error {
 			ID          uint64 `json:"id"`
 			Termination string `json:"termination"`
 			Message     string `json:"message"`
+			Error       string `json:"error,omitempty"`
+			Check       string `json:"check,omitempty"`
 		}
-		if err := frame.decode(&ack, "type", "id", "termination", "message"); err != nil {
+		keys := []string{"type", "id", "termination", "message"}
+		for _, key := range []string{"error", "check"} {
+			if _, found := frame.fields[key]; found {
+				keys = append(keys, key)
+			}
+		}
+		if err := frame.decode(&ack, keys...); err != nil {
 			return err
 		}
 		if len(ack.Message) > 65536 || ack.ID == 0 {
@@ -981,7 +982,12 @@ func (stream *clusterStream) frame(data []byte) error {
 			return invalid("unknown cluster control acknowledgement")
 		}
 		delete(s.pending, ack.ID)
-		if ack.Termination != "" {
+		if ack.Error != "" || ack.Check != "" {
+			if ack.Error != "replay_preflight" || ack.Check == "" || ack.Termination != "invalid" {
+				return invalid("cluster replay preflight acknowledgement")
+			}
+			pending <- clusterControlRefused{&ReplayPreflightError{Check: ack.Check, Message: ack.Message}}
+		} else if ack.Termination != "" {
 			pending <- clusterControlRefused{invalid("cluster control: " + ack.Termination + ": " + ack.Message)}
 		} else {
 			pending <- nil
@@ -1039,13 +1045,19 @@ func validateClusterStarted(started Started, request Request) error {
 func (state *clusterState) collect(frame *validatedFrame, config BrokerConfig, inspecting bool) error {
 	var terminal resultFrame
 	keys := []string{"type", "termination", "message", "fuel_remaining", "peak_memory_bytes", "output_bytes"}
-	for _, key := range []string{"exit_code", "local_model", "divergence", "metrics"} {
+	for _, key := range []string{"exit_code", "local_model", "divergence", "metrics", "error", "check"} {
 		if _, ok := frame.fields[key]; ok {
 			keys = append(keys, key)
 		}
 	}
 	if err := frame.decode(&terminal, keys...); err != nil {
 		return err
+	}
+	if terminal.Error != "" || terminal.Check != "" {
+		if terminal.Error != "replay_preflight" || terminal.Check == "" || terminal.Termination != "invalid" || terminal.LocalModel != nil || terminal.PeakMemoryBytes != 0 || terminal.Metrics != nil && terminal.Metrics.InstantiateNanos != 0 {
+			return invalid("cluster replay preflight terminal")
+		}
+		return &ReplayPreflightError{Check: terminal.Check, Message: terminal.Message}
 	}
 	request := state.sink.request
 	switch terminal.Termination {

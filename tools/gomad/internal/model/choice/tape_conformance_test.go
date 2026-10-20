@@ -15,13 +15,25 @@ import (
 )
 
 type replayPlanCorpus struct {
-	Schema      string            `json:"schema"`
-	Name        string            `json:"name"`
-	Source      string            `json:"source"`
-	Identity    ExecutionIdentity `json:"identity"`
-	Trace       []byte            `json:"trace"`
-	Interrupted bool              `json:"interrupted"`
-	Expected    replayPlanResult  `json:"expected"`
+	Schema        string            `json:"schema"`
+	Name          string            `json:"name"`
+	Source        string            `json:"source"`
+	Identity      ExecutionIdentity `json:"identity"`
+	Trace         []byte            `json:"trace"`
+	Interrupted   bool              `json:"interrupted"`
+	PrefixControl *replayPlanPrefix `json:"prefix_control,omitempty"`
+	Expected      replayPlanResult  `json:"expected"`
+}
+
+type replayPlanPrefix struct {
+	Cutoff   uint64              `json:"cutoff"`
+	Override *replayPlanOverride `json:"override,omitempty"`
+}
+
+type replayPlanOverride struct {
+	Ordinal     uint64 `json:"ordinal"`
+	Rank        uint32 `json:"rank"`
+	Reconstruct bool   `json:"reconstruct"`
 }
 
 type replayPlanResult struct {
@@ -47,6 +59,20 @@ func projectReplayPlanCorpus(corpus replayPlanCorpus) replayPlanResult {
 		})
 		if err == nil {
 			plan, err = ProjectReplayPlan(trace, corpus.Identity)
+		}
+	}
+	if err == nil && corpus.PrefixControl != nil {
+		control := corpus.PrefixControl
+		if override := control.Override; override != nil {
+			if control.Cutoff == 0 || override.Ordinal != control.Cutoff-1 {
+				err = ErrInvalidReplayPlan
+			} else if override.Reconstruct {
+				plan, err = BuildForcedRankPrefix(plan, override.Ordinal, override.Rank)
+			} else {
+				plan, err = BuildRankPrefix(plan, override.Ordinal, override.Rank)
+			}
+		} else {
+			plan, err = plan.Prefix(control.Cutoff)
 		}
 	}
 	if err != nil {
@@ -255,5 +281,43 @@ func replayPlanFixtures(t *testing.T) []replayPlanCorpus {
 		fixtures = append(fixtures, replayPlanCorpus{Schema: "gomad.replay-plan-conformance/v1", Name: "identity-" + mutation.name, Source: "tape_test.go",
 			Identity: identity, Trace: slices.Clone(fixtures[3].Trace), Expected: replayPlanResult{Error: "invalid_replay_plan"}})
 	}
+	base := fixtures[4]
+	plan, err := ProjectReplayPlan(mustReplayPlanTrace(t, base.Trace), base.Identity)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observed := plan.Decisions[3].Selected
+	for _, test := range []struct {
+		name           string
+		control        replayPlanPrefix
+		classification string
+	}{
+		{"zero", replayPlanPrefix{Cutoff: 0}, ""},
+		{"short", replayPlanPrefix{Cutoff: 2}, ""},
+		{"full", replayPlanPrefix{Cutoff: uint64(len(plan.Decisions))}, ""},
+		{"too-long", replayPlanPrefix{Cutoff: uint64(len(plan.Decisions)) + 1}, "invalid_replay_plan"},
+		{"rank", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 3, Rank: (observed + 1) % 3}}, ""},
+		{"forced", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 3, Rank: observed, Reconstruct: true}}, ""},
+		{"rank-observed", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 3, Rank: observed}}, "invalid_replay_plan"},
+		{"forced-unobserved", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 3, Rank: (observed + 1) % 3, Reconstruct: true}}, "invalid_replay_plan"},
+		{"rank-outside", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 3, Rank: 3}}, "invalid_replay_plan"},
+		{"rank-not-final", replayPlanPrefix{Cutoff: 4, Override: &replayPlanOverride{Ordinal: 2, Rank: 0}}, "invalid_replay_plan"},
+		{"rank-empty", replayPlanPrefix{Cutoff: 0, Override: &replayPlanOverride{}}, "invalid_replay_plan"},
+		{"rank-beyond", replayPlanPrefix{Cutoff: 100, Override: &replayPlanOverride{Ordinal: 99}}, "invalid_replay_plan"},
+	} {
+		fixture := base
+		fixture.Name, fixture.Source = "prefix-"+test.name, "readiness_test.go/tape_test.go"
+		fixture.PrefixControl, fixture.Expected = &test.control, replayPlanResult{Error: test.classification}
+		fixtures = append(fixtures, fixture)
+	}
 	return fixtures
+}
+
+func mustReplayPlanTrace(t *testing.T, payload []byte) Trace {
+	t.Helper()
+	trace, err := DecodeStoredTrace(Profile, payload, TerminalMetadata{State: TerminalComplete, Limit: 8192, Records: uint64(len(payload) / traceRecordBytes), SHA256: sha256.Sum256(payload)})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return trace
 }

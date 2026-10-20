@@ -494,6 +494,10 @@ pub struct Outcome {
     #[serde(skip_serializing_if = "Option::is_none")]
     pub exit_code: Option<u32>,
     pub message: String,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub error: Option<&'static str>,
+    #[serde(skip_serializing_if = "Option::is_none")]
+    pub check: Option<&'static str>,
     pub fuel_remaining: u64,
     pub peak_memory_bytes: usize,
     pub output_bytes: u64,
@@ -525,6 +529,8 @@ impl Outcome {
             termination,
             exit_code: None,
             message,
+            error: None,
+            check: None,
             fuel_remaining: 0,
             peak_memory_bytes: 0,
             output_bytes: 0,
@@ -532,6 +538,14 @@ impl Outcome {
             divergence: None,
             metrics: None,
         }
+    }
+    pub fn refusal(error: &Error) -> Self {
+        let mut outcome = Self::new(classification(error), error.to_string());
+        if let Some(preflight) = error.downcast_ref::<crate::model::replay::Preflight>() {
+            outcome.error = Some("replay_preflight");
+            outcome.check = Some(preflight.check);
+        }
+        outcome
     }
 }
 pub fn read_frame(input: &mut dyn BufRead) -> Result<Vec<u8>> {

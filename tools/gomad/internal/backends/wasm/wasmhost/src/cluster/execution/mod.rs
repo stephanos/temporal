@@ -11,7 +11,7 @@ use crate::engine::State;
 use crate::protocol::{self, Execute, Outcome};
 use serde::{Deserialize, Serialize};
 use std::collections::BTreeSet;
-use std::io::{BufRead, Cursor, Write};
+use std::io::{BufRead, Write};
 use std::panic::{AssertUnwindSafe, catch_unwind};
 use std::sync::{Arc, Mutex};
 use std::time::Instant;
@@ -258,29 +258,12 @@ pub fn requested(frame: &[u8]) -> bool {
 fn read_instance_tape(
     model: &mut crate::model::Config,
     tagged: &mut TaggedInput,
-    transport_failure: &Broken,
+    _transport_failure: &Broken,
 ) -> Result<()> {
-    let chunks = model.tape_chunks;
-    model.tape_chunks = u64::from(chunks != 0);
-    let mut read = if chunks == 0 {
-        model.read_tape(&mut Cursor::new(Vec::new()))
-    } else {
-        Ok(())
-    };
-    for _ in 0..chunks {
-        match protocol::read_frame(tagged) {
-            Ok(frame) if read.is_ok() => read = model.read_tape(&mut Cursor::new(frame)),
-            Ok(_) => {}
-            Err(_) if transport_failure.get().is_some() => break,
-            Err(error) => {
-                if read.is_ok() {
-                    read = Err(error);
-                }
-            }
-        }
+    if let Some(request) = &model.replay {
+        model.tape = Some(tagged.replay(request, model.mode, model.limit)?.decisions);
     }
-    model.tape_chunks = chunks;
-    read
+    Ok(())
 }
 
 /// What a store thread reports back to the coordinator.
@@ -421,10 +404,7 @@ pub fn execute(
                 );
             }
             if let Err(error) = read {
-                outcome = Some(Outcome::new(
-                    protocol::classification(&error),
-                    error.to_string(),
-                ));
+                outcome = Some(Outcome::refusal(&error));
             }
         }
         refused.push(outcome);

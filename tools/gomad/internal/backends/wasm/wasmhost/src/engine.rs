@@ -833,10 +833,7 @@ pub fn execute() -> Result<()> {
     let mut request = match parsed {
         Ok(request) => request,
         Err(error) => {
-            return protocol::send_frame(
-                &mut output,
-                &Outcome::new(protocol::classification(&error), error.to_string()),
-            );
+            return protocol::send_frame(&mut output, &Outcome::refusal(&error));
         }
     };
     let mut metrics = crate::metrics::Metrics::default();
@@ -861,7 +858,7 @@ pub fn execute() -> Result<()> {
         return Err(error);
     }
     if let Err(error) = authorize(&mut *input, &request.module_sha256) {
-        let mut outcome = Outcome::new(protocol::classification(&error), error.to_string());
+        let mut outcome = Outcome::refusal(&error);
         metrics.sample_process();
         outcome.metrics = Some(Box::new(metrics));
         return protocol::send_frame(&mut output, &outcome);
@@ -869,7 +866,7 @@ pub fn execute() -> Result<()> {
     if let Some(model) = &mut request.local_model
         && let Err(error) = model.read_tape(&mut *input)
     {
-        let mut outcome = Outcome::new(protocol::classification(&error), error.to_string());
+        let mut outcome = Outcome::refusal(&error);
         metrics.sample_process();
         outcome.metrics = Some(Box::new(metrics));
         return protocol::send_frame(&mut output, &outcome);

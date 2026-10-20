@@ -5,7 +5,7 @@ use sha2::{Digest, Sha256};
 const RECORD_BYTES: usize = 96;
 const HEADER_BYTES: usize = 264;
 
-#[derive(Deserialize)]
+#[derive(Clone, Deserialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
 pub struct ExecutionIdentity {
     #[serde(rename = "TargetSHA256")]
@@ -27,6 +27,65 @@ pub struct ReplayPlan {
     pub decisions: Vec<Decision>,
     pub bytes: Vec<u8>,
     pub sha256: [u8; 32],
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct PrefixControl {
+    pub cutoff: u64,
+    pub r#override: Option<RankOverride>,
+}
+
+#[derive(Clone, Deserialize)]
+#[serde(deny_unknown_fields)]
+pub struct RankOverride {
+    pub ordinal: u64,
+    pub rank: u32,
+    pub reconstruct: bool,
+}
+
+impl ReplayPlan {
+    pub fn prefix(mut self, control: &PrefixControl) -> Result<Self, &'static str> {
+        let cutoff = usize::try_from(control.cutoff).map_err(|_| "invalid_replay_plan")?;
+        if cutoff > self.decisions.len() {
+            return Err("invalid_replay_plan");
+        }
+        self.decisions.truncate(cutoff);
+        self.bytes.truncate(HEADER_BYTES + cutoff * RECORD_BYTES);
+        if let Some(rank) = &control.r#override {
+            if cutoff == 0 || rank.ordinal != control.cutoff - 1 {
+                return Err("invalid_replay_plan");
+            }
+            let last = self.decisions.last_mut().ok_or("invalid_replay_plan")?;
+            if rank.rank >= last.alternatives || (rank.rank == last.selected) != rank.reconstruct {
+                return Err("invalid_replay_plan");
+            }
+            last.selected = rank.rank;
+            last.selected_identity = [0; 32];
+            last.rank_override = true;
+            let offset = HEADER_BYTES + (cutoff - 1) * RECORD_BYTES;
+            self.bytes[offset + 9] |= 8;
+            set32(&mut self.bytes, offset + 16, rank.rank);
+            self.bytes[offset + 32..offset + 64].fill(0);
+            let mut source = Sha256::new();
+            source.update(b"gomad-choice-rank-prefix/v1\0");
+            for bytes in self.bytes[HEADER_BYTES..].as_chunks::<RECORD_BYTES>().0 {
+                let mut record = *bytes;
+                record[10..12].fill(0);
+                source.update(record);
+            }
+            self.bytes[40..72].copy_from_slice(&source.finalize());
+        }
+        let length = self.bytes.len() as u64;
+        set64(&mut self.bytes, 24, length);
+        set64(&mut self.bytes, 32, control.cutoff);
+        let payload = Sha256::digest(&self.bytes[HEADER_BYTES..]);
+        self.bytes[200..232].copy_from_slice(&payload);
+        let checksum = Sha256::digest(&self.bytes[..232]);
+        self.bytes[232..264].copy_from_slice(&checksum);
+        self.sha256 = Sha256::digest(&self.bytes).into();
+        Ok(self)
+    }
 }
 
 struct Record {
@@ -88,7 +147,7 @@ fn decode_record(bytes: &[u8; RECORD_BYTES], ordinal: usize) -> Result<Record, &
     })
 }
 
-fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'static str> {
+pub(super) fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'static str> {
     if identity.target_sha256 == [0; 32]
         || identity.implementation_sha256 == [0; 32]
         || identity.goos.is_empty()
@@ -229,7 +288,14 @@ mod tests {
             let identity = serde_json::from_value(corpus["identity"].clone()).unwrap();
             let trace = STANDARD.decode(corpus["trace"].as_str().unwrap()).unwrap();
             let expected = &corpus["expected"];
-            match project(&trace, &identity) {
+            let projected = project(&trace, &identity).and_then(|plan| {
+                if let Some(control) = corpus.get("prefix_control") {
+                    plan.prefix(&serde_json::from_value(control.clone()).unwrap())
+                } else {
+                    Ok(plan)
+                }
+            });
+            match projected {
                 Err(error) => assert_eq!(error, expected["error"].as_str().unwrap(), "{name}"),
                 Ok(plan) => {
                     assert_eq!(expected["error"], "", "{name}");
@@ -267,6 +333,12 @@ mod tests {
             "double-named",
             "before-origin",
             "storage-crash-interrupted",
+            "prefix-zero",
+            "prefix-full",
+            "prefix-short",
+            "prefix-rank",
+            "prefix-forced",
+            "prefix-rank-not-final",
         ] {
             assert!(names.contains(required), "missing {required}");
         }

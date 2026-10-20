@@ -50,28 +50,21 @@ func newRuntimeSession(control *RuntimeControl) (*runtimeSession, error) {
 	if err := choice.ValidateTraceLimit(request.Limit); err != nil {
 		return nil, err
 	}
-	var tape *choice.ReplayPlan
 	switch request.Mode {
 	case choice.ModeRecord:
-		if request.Tape != nil {
-			return nil, invalid("record mode has a tape")
+		if len(request.Trace) != 0 || request.TraceSHA256 != ([32]byte{}) || request.TapeSHA256 != ([32]byte{}) || request.Decisions != 0 || request.PrefixControl != nil {
+			return nil, invalid("record mode has replay input")
 		}
 	case choice.ModeReplay, choice.ModePrefix:
-		if request.Tape == nil {
-			return nil, invalid("forced mode has no tape")
+		request.Trace = slices.Clone(request.Trace)
+		if control := request.PrefixControl; control != nil {
+			cloned := *control
+			if override := control.Override; override != nil {
+				copyOverride := *override
+				cloned.Override = &copyOverride
+			}
+			request.PrefixControl = &cloned
 		}
-		validate := choice.ValidateReplayPlan
-		if request.Mode == choice.ModePrefix {
-			validate = choice.ValidatePrefixReplayPlan
-		}
-		validated, err := validate(*request.Tape, request.ExecutionIdentity)
-		if err != nil {
-			return nil, err
-		}
-		if !slices.Equal(validated.Decisions, request.Tape.Decisions) || !slices.Equal(validated.Readiness, request.Tape.Readiness) {
-			return nil, invalid("tape projection differs from canonical bytes")
-		}
-		tape = &validated
 	default:
 		return nil, invalid("cooperative choice mode")
 	}
@@ -86,10 +79,57 @@ func newRuntimeSession(control *RuntimeControl) (*runtimeSession, error) {
 		return nil, invalid("inspection requires exact replay")
 	}
 	cloned.Choice = &request
-	return &runtimeSession{control: cloned, tape: tape}, nil
+	return &runtimeSession{control: cloned}, nil
+}
+
+func (session *runtimeSession) prepareOracleTape() error {
+	request := session.control.Choice
+	if session.tape != nil || request.Mode == choice.ModeRecord {
+		return nil
+	}
+	count, err := choice.TraceRecordCount(request.Trace)
+	if err != nil {
+		return err
+	}
+	trace, err := choice.DecodeStoredTrace(choice.Profile, request.Trace, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: request.Limit, Records: count, SHA256: request.TraceSHA256})
+	if err != nil {
+		return err
+	}
+	plan, err := choice.ProjectReplayPlan(trace, request.ExecutionIdentity)
+	if err != nil {
+		return err
+	}
+	if control := request.PrefixControl; control != nil {
+		if request.Mode != choice.ModePrefix {
+			return invalid("exact replay has prefix controls")
+		}
+		if override := control.Override; override != nil {
+			if control.Cutoff == 0 || override.Ordinal != control.Cutoff-1 {
+				return invalid("prefix override is not final")
+			}
+			if override.Reconstruct {
+				plan, err = choice.BuildForcedRankPrefix(plan, override.Ordinal, override.Rank)
+			} else {
+				plan, err = choice.BuildRankPrefix(plan, override.Ordinal, override.Rank)
+			}
+		} else {
+			plan, err = plan.Prefix(control.Cutoff)
+		}
+		if err != nil {
+			return err
+		}
+	}
+	if plan.SHA256 != request.TapeSHA256 || uint64(len(plan.Decisions)) != request.Decisions {
+		return invalid("oracle replay plan differs from expectations")
+	}
+	session.tape = &plan
+	return nil
 }
 
 func (session *runtimeSession) handle(op string, input json.RawMessage) (bytesOutput, error) {
+	if err := session.prepareOracleTape(); err != nil {
+		return bytesOutput{}, err
+	}
 	var request bytesOutput
 	if err := decodeInput(input, &request, "data_base64"); err != nil {
 		return bytesOutput{}, err

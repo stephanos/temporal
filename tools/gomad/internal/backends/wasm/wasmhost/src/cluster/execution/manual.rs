@@ -193,7 +193,7 @@ impl Boot {
 #[serde(deny_unknown_fields)]
 struct Runtime {
     mode: u8,
-    tape_chunks: u64,
+    replay: Option<crate::model::replay::Request>,
     #[serde(default)]
     inspection: Option<crate::model::inspection::Request>,
 }
@@ -440,6 +440,16 @@ pub(super) fn execute(
                 &json!({"type":"control_result","id":control.id,"termination":termination,"message":message}),
             )
         };
+        let refuse = |error: &Error| {
+            if let Some(preflight) = error.downcast_ref::<crate::model::replay::Preflight>() {
+                protocol::send_frame(
+                    &mut **lock(&output),
+                    &json!({"type":"control_result","id":control.id,"termination":"invalid","message":error.to_string(),"error":"replay_preflight","check":preflight.check}),
+                )
+            } else {
+                ack(Some((protocol::classification(error), error.to_string())))
+            }
+        };
         if control.kind == "finish" {
             let inspected = broker.inspection_stopped();
             if !inspected
@@ -515,11 +525,11 @@ pub(super) fn execute(
                     continue;
                 };
                 model.mode = runtime.mode;
-                model.tape_chunks = runtime.tape_chunks;
+                model.replay = runtime.replay;
                 model.tape = None;
                 model.inspection = runtime.inspection;
                 if let Err(error) = model.validate() {
-                    ack(Some(("invalid", error.to_string())))?;
+                    refuse(&error)?;
                     continue;
                 }
             }
@@ -536,7 +546,7 @@ pub(super) fn execute(
                     break;
                 }
                 if let Err(error) = read {
-                    ack(Some((protocol::classification(&error), error.to_string())))?;
+                    refuse(&error)?;
                     continue;
                 }
             }

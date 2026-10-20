@@ -5,6 +5,7 @@ import (
 	"context"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -18,6 +19,7 @@ import (
 	"sync"
 	"time"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
@@ -167,6 +169,8 @@ type Result struct {
 	ChoiceTrace                                        choice.Trace
 	DiagnosticTrace                                    choice.DiagnosticTrace
 	ChoiceDivergence                                   *choice.Divergence
+	InputTapeSHA256                                    [32]byte
+	InputDecisions                                     uint64
 	RuntimeInterrupted                                 bool
 	InterruptedChoiceBytes, InterruptedDiagnosticBytes []byte
 	VirtualTimeElapsedNanos                            uint64
@@ -219,6 +223,8 @@ type resultFrame struct {
 	Termination     string             `json:"termination"`
 	ExitCode        *uint32            `json:"exit_code,omitempty"`
 	Message         string             `json:"message"`
+	Error           string             `json:"error,omitempty"`
+	Check           string             `json:"check,omitempty"`
 	FuelRemaining   uint64             `json:"fuel_remaining"`
 	PeakMemoryBytes uint64             `json:"peak_memory_bytes"`
 	OutputBytes     uint64             `json:"output_bytes"`
@@ -389,7 +395,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		// Broker storage runs split ownership: the broker keeps the
 		// runtime session and clock, the helper the namespace and volume.
 		execute.LocalModel = helperConfig(environment, request.DigestTranscript)
-		execute.LocalModel.Mode, execute.LocalModel.TapeChunks, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, 0, false, true
+		execute.LocalModel.Mode, execute.LocalModel.Replay, execute.LocalModel.Diagnostics, execute.LocalModel.Split = choice.ModeRecord, nil, false, true
 		environment.splitOwned = true
 		request.Broker.localCalls = true
 		// The broker may restart any incarnation, so split runs always
@@ -545,6 +551,9 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 		result.collectInterrupted(environment.runtime)
 		return result, nil
+	}
+	if preflight := (*ReplayPreflightError)(nil); host.GroupGone && errors.As(stream.err, &preflight) {
+		return result, preflight
 	}
 	if hostErr != nil || closeErr != nil || !host.GroupGone {
 		result.Termination = "infrastructure"
@@ -821,20 +830,74 @@ func (sink *frameSink) send(value any) error {
 	return nil
 }
 
-func (sink *frameSink) sendHelperTape() error {
-	if !sink.environment.helperOwned || sink.environment.runtime.tape == nil {
-		return nil
+type ReplayPreflightError struct{ Check, Message string }
+
+func (failure *ReplayPreflightError) Error() string {
+	return "replay preflight " + failure.Check + ": " + failure.Message
+}
+func (failure *ReplayPreflightError) Is(target error) bool {
+	return target == backends.ErrChoiceReplayPreflight
+}
+
+func helperReplayBlock(request *backends.ChoiceRequest, node string, incarnation uint64) ([]byte, error) {
+	if request.Mode == choice.ModeRecord {
+		return nil, nil
 	}
-	decisions := sink.environment.runtime.tape.Decisions
-	for start := 0; start < len(decisions); start += helperTapeChunk {
-		if err := sink.send(struct {
-			Type      string            `json:"type"`
-			Decisions []choice.Decision `json:"decisions"`
-		}{"tape", decisions[start:min(start+helperTapeChunk, len(decisions))]}); err != nil {
+	if uint64(len(request.Trace)) > request.Limit {
+		return nil, &ReplayPreflightError{Check: "framing", Message: "trace exceeds choice limit"}
+	}
+	frames := uint64(len(request.Trace)) / 65536
+	if len(request.Trace)%65536 != 0 {
+		frames++
+	}
+	var block bytes.Buffer
+	marker := struct {
+		Type        string `json:"type"`
+		Schema      string `json:"schema"`
+		TraceBytes  uint64 `json:"trace_bytes"`
+		TraceFrames uint64 `json:"trace_frames"`
+		Instance    string `json:"instance,omitempty"`
+		Incarnation uint64 `json:"incarnation,omitempty"`
+	}{"replay_trace", helperReplaySchema, uint64(len(request.Trace)), frames, node, incarnation}
+	appendMarker := func() error {
+		data, err := json.Marshal(marker)
+		if err != nil {
 			return err
 		}
+		block.Write(data)
+		block.WriteByte('\n')
+		return nil
 	}
-	return nil
+	if err := appendMarker(); err != nil {
+		return nil, err
+	}
+	for start := 0; start < len(request.Trace); start += 65536 {
+		chunk := request.Trace[start:min(start+65536, len(request.Trace))]
+		var length [4]byte
+		binary.BigEndian.PutUint32(length[:], uint32(len(chunk)))
+		block.Write(length[:])
+		block.Write(chunk)
+	}
+	marker.Type = "replay_trace_end"
+	if err := appendMarker(); err != nil {
+		return nil, err
+	}
+	return block.Bytes(), nil
+}
+
+func (sink *frameSink) sendHelperReplay() error {
+	if !sink.environment.helperOwned {
+		return nil
+	}
+	block, err := helperReplayBlock(sink.environment.runtime.control.Choice, "", 0)
+	if err != nil || len(block) == 0 {
+		return err
+	}
+	written, err := sink.input.Write(block)
+	if err == nil && written != len(block) {
+		return io.ErrShortWrite
+	}
+	return err
 }
 
 func (sink *frameSink) helperCallback(owned validatedCall, state helperLocalState) error {
@@ -998,7 +1061,7 @@ func (sink *frameSink) frame(data []byte) error {
 		}{"authorize", started.ModuleSHA256, started.Engine.Configuration}); err != nil {
 			return err
 		}
-		if err := sink.sendHelperTape(); err != nil {
+		if err := sink.sendHelperReplay(); err != nil {
 			return err
 		}
 		return sink.sendHelperNamespace()
@@ -1061,13 +1124,19 @@ func (sink *frameSink) frame(data []byte) error {
 		if _, found := fields["exit_code"]; found {
 			keys = append(keys, "exit_code")
 		}
-		for _, key := range []string{"local_model", "divergence", "metrics"} {
+		for _, key := range []string{"local_model", "divergence", "metrics", "error", "check"} {
 			if _, found := fields[key]; found {
 				keys = append(keys, key)
 			}
 		}
 		if err := frame.decode(&result, keys...); err != nil {
 			return err
+		}
+		if result.Error != "" || result.Check != "" {
+			if result.Error != "replay_preflight" || result.Termination != "invalid" || result.Check == "" || result.LocalModel != nil || result.Divergence != nil || result.PeakMemoryBytes != 0 || result.OutputBytes != 0 || result.Metrics != nil && result.Metrics.InstantiateNanos != 0 {
+				return invalid("invalid replay preflight terminal")
+			}
+			return &ReplayPreflightError{Check: result.Check, Message: result.Message}
 		}
 		switch result.Termination {
 		case "exit":

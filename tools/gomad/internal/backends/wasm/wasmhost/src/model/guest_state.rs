@@ -1,4 +1,4 @@
-use super::{CHUNK, Config, Decision, MAX_TIME, Model, StringDeclaration, inspection};
+use super::{CHUNK, Config, MAX_TIME, Model, StringDeclaration, inspection};
 use crate::protocol;
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde::Deserialize;
@@ -72,9 +72,7 @@ impl Config {
                 .bytes()
                 .all(|byte| byte.is_ascii_digit() || (b'a'..=b'f').contains(&byte))
             || !(160..=1 << 30).contains(&self.limit)
-            || self.mode == 1 && (self.tape.is_some() || self.tape_chunks != 0)
             || self.inspection.is_some() && self.mode != 2
-            || self.tape_chunks > (self.limit - 64) / 96
             || self.epoch_nanos > MAX_TIME
             || self.now > MAX_TIME - self.epoch_nanos
             || self.read_step_nanos > 1_000_000_000
@@ -87,6 +85,22 @@ impl Config {
             || self.diagnostics && 64 + (self.limit - 64) / 96 * 96 > 64 * 1024 * 1024
         {
             return Err(Error::msg("invalid local model configuration"));
+        }
+        match (&self.replay, self.mode) {
+            (Some(_), 1) => {
+                return Err(super::replay::failure(
+                    "framing",
+                    "record mode forbids a replay trace",
+                ));
+            }
+            (None, 2 | 3) => {
+                return Err(super::replay::failure(
+                    "schema",
+                    format!("missing replay schema; expected {}", super::replay::SCHEMA),
+                ));
+            }
+            (Some(request), _) => request.validate(self.limit)?,
+            _ => {}
         }
         Ok(())
     }
@@ -132,27 +146,9 @@ impl Config {
         Ok(())
     }
     pub fn read_tape(&mut self, input: &mut dyn BufRead) -> Result<()> {
-        #[derive(Deserialize)]
-        #[serde(deny_unknown_fields)]
-        struct Tape {
-            #[serde(rename = "type")]
-            kind: String,
-            decisions: Vec<Decision>,
-        }
-        if self.mode != 1 && self.tape.is_none() {
-            self.tape = Some(Vec::new());
-        }
-        for _ in 0..self.tape_chunks {
-            let chunk: Tape =
-                serde_json::from_slice(&protocol::read_frame(input)?).map_err(Error::new)?;
-            if chunk.kind != "tape" || chunk.decisions.is_empty() {
-                return Err(Error::msg("invalid tape chunk"));
-            }
-            let decisions = self.tape.get_or_insert_with(Vec::new);
-            if (decisions.len() + chunk.decisions.len()) as u64 > (self.limit - 64) / 96 {
-                return Err(Error::msg("tape decision capacity"));
-            }
-            decisions.extend(chunk.decisions);
+        if let Some(request) = &self.replay {
+            let plan = super::replay::read(input, request, self.mode, self.limit, None)?;
+            self.tape = Some(plan.decisions);
         }
         Ok(())
     }
@@ -178,6 +174,8 @@ impl Model {
             transcript_hash: Sha256::new(),
             transcript_encoder: crate::transcript::Encoder::default(),
             records: 0,
+            branching_records: 0,
+            choice_hash: Sha256::new(),
             cursor: 0,
             configured: false,
             finished: false,

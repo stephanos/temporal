@@ -104,6 +104,8 @@ pub struct TaggedInput {
     frame: Vec<u8>,
     consumed: usize,
     broken: Broken,
+    instance: String,
+    incarnation: u64,
 }
 
 impl TaggedInput {
@@ -118,7 +120,40 @@ impl TaggedInput {
             frame: Vec::new(),
             consumed: 0,
             broken,
+            instance: id.into(),
+            incarnation,
         }
+    }
+
+    pub fn replay(
+        &mut self,
+        request: &crate::model::replay::Request,
+        mode: u8,
+        limit: u64,
+    ) -> wasmtime::Result<crate::model::replay_plan::ReplayPlan> {
+        if self.consumed != self.frame.len() {
+            return Err(wasmtime::Error::new(self.unattributable(
+                "replay block overlaps a pending JSON frame".into(),
+            )));
+        }
+        let result = {
+            let mut input = lock(&self.shared);
+            crate::model::replay::read(
+                &mut **input,
+                request,
+                mode,
+                limit,
+                Some((&self.instance, self.incarnation)),
+            )
+        };
+        if let Err(error) = &result
+            && error
+                .downcast_ref::<crate::model::replay::Preflight>()
+                .is_some_and(|failure| matches!(failure.check, "framing" | "schema"))
+        {
+            self.broken.set(error.to_string());
+        }
+        result
     }
 
     fn unattributable(&self, message: String) -> io::Error {

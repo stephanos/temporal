@@ -8,28 +8,40 @@ import (
 	"math"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
-const helperTapeChunk = 512
+const helperReplaySchema = "gomad.replay-trace/v1"
+
+type helperReplayRequest struct {
+	Schema            string                        `json:"schema"`
+	ExecutionIdentity choice.ExecutionIdentity      `json:"execution_identity"`
+	TraceSHA256       string                        `json:"trace_sha256"`
+	TapeSHA256        string                        `json:"tape_sha256"`
+	Decisions         uint64                        `json:"decisions"`
+	TraceBytes        uint64                        `json:"trace_bytes"`
+	TraceFrames       uint64                        `json:"trace_frames"`
+	PrefixControl     *backends.ChoicePrefixControl `json:"prefix_control,omitempty"`
+}
 
 type helperModelConfig struct {
-	Seed                   uint64          `json:"seed"`
-	Mode                   choice.Mode     `json:"mode"`
-	Limit                  uint64          `json:"limit"`
-	Diagnostics            bool            `json:"diagnostics"`
-	TapeChunks             uint64          `json:"tape_chunks"`
-	EpochNanos             uint64          `json:"epoch_nanos"`
-	ReadStepNanos          uint64          `json:"read_step_nanos"`
-	Now                    uint64          `json:"now"`
-	Limits                 helperLimits    `json:"limits"`
-	DigestOnly             bool            `json:"digest_only"`
-	EntropyKey             [32]byte        `json:"entropy_key"`
-	WorkingDirectorySHA256 string          `json:"working_directory_sha256"`
-	Arguments              helperStrings   `json:"arguments"`
-	Environment            helperStrings   `json:"environment"`
-	Split                  bool            `json:"split,omitempty"`
-	Inspection             json.RawMessage `json:"inspection,omitempty"`
+	Seed                   uint64               `json:"seed"`
+	Mode                   choice.Mode          `json:"mode"`
+	Limit                  uint64               `json:"limit"`
+	Diagnostics            bool                 `json:"diagnostics"`
+	Replay                 *helperReplayRequest `json:"replay,omitempty"`
+	EpochNanos             uint64               `json:"epoch_nanos"`
+	ReadStepNanos          uint64               `json:"read_step_nanos"`
+	Now                    uint64               `json:"now"`
+	Limits                 helperLimits         `json:"limits"`
+	DigestOnly             bool                 `json:"digest_only"`
+	EntropyKey             [32]byte             `json:"entropy_key"`
+	WorkingDirectorySHA256 string               `json:"working_directory_sha256"`
+	Arguments              helperStrings        `json:"arguments"`
+	Environment            helperStrings        `json:"environment"`
+	Split                  bool                 `json:"split,omitempty"`
+	Inspection             json.RawMessage      `json:"inspection,omitempty"`
 }
 type helperStrings struct {
 	Bytes  uint64 `json:"bytes"`
@@ -95,19 +107,24 @@ type helperCall struct {
 	LocalState helperLocalState `json:"local_state"`
 }
 type helperModelResult struct {
-	Now              uint64 `json:"now"`
-	Advances         uint64 `json:"advances"`
-	Calls            uint64 `json:"calls"`
-	Records          uint64 `json:"records"`
-	Cursor           uint64 `json:"cursor"`
-	Configured       bool   `json:"configured"`
-	Finished         bool   `json:"finished"`
-	Peak             uint32 `json:"peak"`
-	Elapsed          uint64 `json:"elapsed"`
-	Terminal         []byte `json:"terminal_base64"`
-	TranscriptBytes  uint64 `json:"transcript_bytes"`
-	TranscriptSHA256 string `json:"transcript_sha256"`
-	InspectionSealed bool   `json:"inspection_sealed"`
+	Now              uint64           `json:"now"`
+	Advances         uint64           `json:"advances"`
+	Calls            uint64           `json:"calls"`
+	Records          uint64           `json:"records"`
+	TraceSHA256      string           `json:"trace_sha256"`
+	BranchingRecords uint64           `json:"branching_records"`
+	TapeRecords      uint64           `json:"tape_records"`
+	TapeSHA256       string           `json:"tape_sha256"`
+	NextExpected     *choice.Decision `json:"next_expected"`
+	Cursor           uint64           `json:"cursor"`
+	Configured       bool             `json:"configured"`
+	Finished         bool             `json:"finished"`
+	Peak             uint32           `json:"peak"`
+	Elapsed          uint64           `json:"elapsed"`
+	Terminal         []byte           `json:"terminal_base64"`
+	TranscriptBytes  uint64           `json:"transcript_bytes"`
+	TranscriptSHA256 string           `json:"transcript_sha256"`
+	InspectionSealed bool             `json:"inspection_sealed"`
 }
 type helperEvidence struct {
 	choice, diagnostic, transcript, stdout, stderr []byte
@@ -127,12 +144,16 @@ type helperReply struct {
 
 func helperConfig(e *Environment, digestOnly bool) *helperModelConfig {
 	r := e.runtime
-	var chunks uint64
-	if r.tape != nil {
-		chunks = uint64((len(r.tape.Decisions) + helperTapeChunk - 1) / helperTapeChunk)
+	var replay *helperReplayRequest
+	if request := r.control.Choice; request.Mode != choice.ModeRecord {
+		frames := uint64(len(request.Trace)) / 65536
+		if len(request.Trace)%65536 != 0 {
+			frames++
+		}
+		replay = &helperReplayRequest{Schema: helperReplaySchema, ExecutionIdentity: request.ExecutionIdentity, TraceSHA256: hex.EncodeToString(request.TraceSHA256[:]), TapeSHA256: hex.EncodeToString(request.TapeSHA256[:]), Decisions: request.Decisions, TraceBytes: uint64(len(request.Trace)), TraceFrames: frames, PrefixControl: request.PrefixControl}
 	}
 	directory := sha256.Sum256([]byte(e.config.WorkingDirectory))
-	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, TapeChunks: chunks, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly, EntropyKey: e.config.EntropyKey, WorkingDirectorySHA256: hex.EncodeToString(directory[:]), Arguments: helperStringDeclaration(e.config.Args), Environment: helperStringDeclaration(e.config.Environment), Inspection: r.control.Inspection}
+	return &helperModelConfig{Seed: r.control.Seed, Mode: r.control.Choice.Mode, Limit: r.control.Choice.Limit, Diagnostics: r.control.Diagnostics, Replay: replay, EpochNanos: e.config.Clock.EpochNanos, ReadStepNanos: e.config.Clock.ReadStepNanos, Now: e.now, Limits: helperLimits{e.config.Limits.Calls, e.config.Limits.TranscriptBytes, e.config.Limits.PendingEvents}, DigestOnly: digestOnly, EntropyKey: e.config.EntropyKey, WorkingDirectorySHA256: hex.EncodeToString(directory[:]), Arguments: helperStringDeclaration(e.config.Args), Environment: helperStringDeclaration(e.config.Environment), Inspection: r.control.Inspection}
 }
 
 func (e *Environment) helperCallbackReply(owned validatedCall, state helperLocalState) (helperReply, error) {
@@ -330,6 +351,37 @@ func inspectionTermination(termination string) bool {
 	}
 }
 
+func validateHelperInputTape(model *helperModelResult, request *backends.ChoiceRequest) error {
+	if request.Mode == choice.ModeRecord {
+		if model.TapeRecords != 0 || model.TapeSHA256 != "" || model.Cursor != 0 || model.NextExpected != nil {
+			return invalid("record terminal has replay state")
+		}
+		return nil
+	}
+	if model.TapeRecords != request.Decisions || model.TapeSHA256 != hex.EncodeToString(request.TapeSHA256[:]) || model.Cursor > model.TapeRecords {
+		return invalid("helper input tape identity/count/cursor")
+	}
+	if model.Cursor == model.TapeRecords {
+		if model.NextExpected != nil {
+			return invalid("helper next decision after tape end")
+		}
+		return nil
+	}
+	next := model.NextExpected
+	if next == nil || next.Ordinal != model.Cursor || next.Kind != choice.KindRunnable && next.Kind != choice.KindSelectPoll || next.Alternatives < 2 || next.Selected >= next.Alternatives || next.SiteMissing && next.SiteOffset != 0 || next.AlternativeSetDigest == ([32]byte{}) {
+		return invalid("helper next unconsumed decision")
+	}
+	var override *backends.ChoiceRankOverride
+	if control := request.PrefixControl; control != nil {
+		override = control.Override
+	}
+	wantOverride := override != nil && override.Ordinal == model.Cursor
+	if next.RankOverride != wantOverride || next.RankOverride && (next.SelectedIdentity != ([32]byte{}) || next.Selected != override.Rank) || !next.RankOverride && next.SelectedIdentity == ([32]byte{}) {
+		return invalid("helper next decision identity/rank")
+	}
+	return nil
+}
+
 func (sink *frameSink) collectHelper(result *Result) error {
 	result.InspectionMetadata = append([]byte(nil), sink.helperEvidence.inspection...)
 	result.DebugOutput = append([]byte(nil), sink.helperEvidence.debug...)
@@ -353,6 +405,21 @@ func (sink *frameSink) collectHelper(result *Result) error {
 	if model.Calls < e.nextCall-1 || model.Calls > e.config.Limits.Calls || model.Now < e.now || model.Now > math.MaxInt64-e.config.Clock.EpochNanos || model.Advances < e.advances || model.TranscriptBytes < e.transcriptLength || model.Records != uint64(len(sink.helperEvidence.choice))/96 || len(sink.helperEvidence.choice)%96 != 0 {
 		return invalid("helper model terminal counts")
 	}
+	traceDigest, err := hex.DecodeString(model.TraceSHA256)
+	if err != nil || len(traceDigest) != sha256.Size || hex.EncodeToString(traceDigest) != model.TraceSHA256 || sha256.Sum256(sink.helperEvidence.choice) != [32]byte(traceDigest) || model.BranchingRecords > model.Records {
+		return invalid("helper choice trace identity/counts")
+	}
+	input := e.runtime.control.Choice
+	if e.splitOwned {
+		if err := validateHelperInputTape(model, &backends.ChoiceRequest{Mode: choice.ModeRecord}); err != nil {
+			return err
+		}
+	} else if err := validateHelperInputTape(model, input); err != nil {
+		return err
+	}
+	if input.Mode != choice.ModeRecord {
+		result.InputTapeSHA256, result.InputDecisions = input.TapeSHA256, input.Decisions
+	}
 	digest, err := hex.DecodeString(model.TranscriptSHA256)
 	if err != nil || len(digest) != sha256.Size || hex.EncodeToString(digest) != model.TranscriptSHA256 {
 		return invalid("helper transcript digest")
@@ -373,12 +440,12 @@ func (sink *frameSink) collectHelper(result *Result) error {
 		if model.Finished {
 			return invalid("completed runtime on storage interruption")
 		}
-		if tape := e.runtime.tape; tape != nil && model.Cursor != uint64(len(tape.Decisions)) {
-			if model.Cursor > uint64(len(tape.Decisions)) {
-				return invalid("interrupted tape cursor")
-			}
-			expected := tape.Decisions[model.Cursor]
-			return &RuntimeReplayError{Divergence: choice.Divergence{Ordinal: model.Cursor, Reason: choice.DivergenceTapeUnconsumed, Expected: &expected, TapeRecords: uint64(len(tape.Decisions))}}
+		if !e.splitOwned && input.Mode != choice.ModeRecord && model.Cursor < model.TapeRecords {
+			return &RuntimeReplayError{Divergence: choice.Divergence{Ordinal: model.Cursor, Reason: choice.DivergenceTapeUnconsumed, Expected: model.NextExpected, TapeRecords: model.TapeRecords}}
+		}
+		if e.splitOwned && e.runtime.tape != nil && e.runtime.cursor < uint64(len(e.runtime.tape.Decisions)) {
+			expected := e.runtime.tape.Decisions[e.runtime.cursor]
+			return &RuntimeReplayError{Divergence: choice.Divergence{Ordinal: e.runtime.cursor, Reason: choice.DivergenceTapeUnconsumed, Expected: &expected, TapeRecords: uint64(len(e.runtime.tape.Decisions))}}
 		}
 		if _, err := choice.ProjectInterruptedReplayPlan(sink.helperEvidence.choice, sink.request.Runtime.Choice.Limit, sink.request.Runtime.Choice.ExecutionIdentity); err != nil {
 			return err
@@ -395,11 +462,7 @@ func (sink *frameSink) collectHelper(result *Result) error {
 	}
 	copy(result.runtimeTerminal[:], model.Terminal)
 	result.VirtualTimeElapsedNanos = model.Elapsed
-	result.ChoiceTrace, err = choice.DecodeStoredTrace(choice.Profile, sink.helperEvidence.choice, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: sink.request.Runtime.Choice.Limit, Records: model.Records, SHA256: sha256.Sum256(sink.helperEvidence.choice)})
-	if err != nil {
-		return err
-	}
-	result.ChoiceTrace.Summary.PeakGoroutines = model.Peak
+	result.ChoiceTrace = choice.Trace{Version: choice.Version3, Bytes: sink.helperEvidence.choice, SHA256: [32]byte(traceDigest), Summary: choice.Summary{Terminal: choice.TerminalComplete, Records: model.Records, Branching: model.BranchingRecords, PeakGoroutines: model.Peak}}
 	if sink.request.Runtime.Diagnostics {
 		if len(sink.helperEvidence.diagnostic) != len(sink.helperEvidence.choice) {
 			return invalid("helper diagnostic count")

@@ -34,6 +34,10 @@ impl Model {
             hash.update(bytes);
         }
         json!({"now":self.now,"advances":self.advances,"calls":calls,"records":self.records,
+            "trace_sha256":format!("{:x}",self.choice_hash.clone().finalize()),"branching_records":self.branching_records,
+            "tape_records":self.config.tape.as_ref().map_or(0,Vec::len),
+            "tape_sha256":self.config.replay.as_ref().map_or("",|replay|replay.tape_sha256.as_str()),
+            "next_expected":self.config.tape.as_ref().and_then(|tape|tape.get(self.cursor)),
             "cursor":self.cursor,"configured":self.configured,"finished":self.finished,"inspection_sealed":self.inspection.sealed,
             "peak":self.peak,"elapsed":self.elapsed,"terminal_base64":STANDARD.encode(&self.terminal),
             "transcript_bytes":self.transcript_bytes,
@@ -250,6 +254,10 @@ impl Model {
             return Err(Error::msg("WASI capacity: runtime-choice-bytes"));
         }
         self.queue("choice", record);
+        self.choice_hash.update(record);
+        if record[9] & 1 != 0 && super::get32(record, 12) > 1 {
+            self.branching_records += 1;
+        }
         #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
         self.event(
             "choice",
