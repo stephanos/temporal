@@ -65,7 +65,7 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-217.3 | ⬜ todo | After .2: mini activity catalog with expected errors; `fill`/`validate` in the slice test (R3, R5) |
+| fn-217.3 | 🔄 in progress | Mini activity catalog with expected errors; actual SDK transport `fill`/`validate` in the slice test (R3, R5) |
 | fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
 | fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
 
