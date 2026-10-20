@@ -312,24 +312,54 @@ The preserved Go behavioral baseline now belongs to open fn-232 at
 manifests pass independent verification; the bundle includes executable/helper
 copies and a tracked-source archive, not a qualification or migration claim.
 
-Current command handles: sweep `97951` (owned PID `879280`, resumed journal,
-latest reported 70/1488 classifications: 69 pass and one unresolved capacity
-observation); fn-232 plan review `23300` (still running, no verdict). Poll these
-same handles rather than restarting them. The sweep is shared-host triage,
-not quiet-host performance evidence or a support claim.
+The Rust-host plan passed re-review in session
+`01a15b2b-f30d-7083-b216-4528db5bcf4e`; its SHIP receipt is
+`.flow/tmp/plan-review-receipt-fn-232-gomad-rewrite-the-host-side-in-rust.json`.
+It preserves pinned-root containment, platform-native no-replace publication,
+bounded authenticated payloads and exact per-verb diagnostic projections.
+Implementation has not started; the fn-228 coherent batch is still active.
+
+Sweep `97951` (owned PID `879280`) continues the resumed journal. Latest
+reported 164/1488 classifications comprise 158 observed passes, one explicit
+skip, three unresolved capacity observations, one timeout and one guest
+failure. Poll the same handle rather than restarting it. Shared-host triage
+supplies neither quiet-host performance evidence nor a support claim.
 
 Open implementation ownership: `replay_tape_impl` owns Rust/WASI transport in
 `/home/agent/wt/fn228`, and its `runner_bridge` child owns Go producers/adapters
 in `/home/agent/wt/fn228-runner`. Their interface is
-`/home/agent/wt/evidence/fn228/handover/batch-interface.md`. `promotion_closeout`
-owns the fn-219 ledger/audit continuation in `/home/agent/wt/fn219-closeout`;
-the conductor owns review, integration and Flow completion. None may push or
-dispatch CI.
+`/home/agent/wt/evidence/fn228/handover/batch-interface.md`. Their later transport,
+Runner and corpus checkpoints through `28dc4b4464` remain outside the integration
+branch pending combined gates and independent review.
 
-Retained worktrees: `fn228` and `fn228-runner` for the active replay batch;
-`fn219-closeout` for the ledger continuation; `fn221` for the live sweep;
-`qualification-final-frozen` for still-referenced failed/interrupted evidence;
-`fn219-ledger-reconcile`, `fn188` and `fn227-map-order` for their still-open
-owners' evidence and commits. Remove only after ownership transfer and the
-closed-spec checks required by AGENTS.md. Unrelated `tools/gomad/.turbo/`
+fn-219's ledger/audit continuation is integrated as `9d62ddadc1`. Its task .4
+passed all three independent review draws and was completed with root-reachable
+evidence. Whole-spec completion review returned SHIP in
+`.flow/tmp/completion-review-receipt-fn-219-gomad-promote-the-model-projections-and.json`;
+the conductor verified all four tasks done and closed the spec in `18e5e7cac7`.
+Final changed-candidate runtime/workload/replay qualification remains explicitly
+pending under fn-232 R12/.13, not passed by this closeout. Required promotion
+inputs and historical Go attempts have independent hash-verified copies under
+`evidence/fn223/fn219-inputs-2026-10-20` and
+`evidence/fn232/fn219-go-attempts-2026-10-20` respectively.
+
+fn-223's amended pure-deletion plan passed re-review. The conductor reran
+`TestNoDefaultSourceNamesNativeTree` with pinned Go and `-tags test_dep` (exit 0)
+after fn-219 closed, then admitted tasks .1-.3 as one batch. Implementation
+worker `native_deletion_impl` owns `/home/agent/wt/fn223`, base `18e5e7cac7`,
+including deletion-only identity accounting and complete pending Rust gate
+transfer. No new full Go qualification ladder is authorized. The conductor owns
+review, integration and Flow completion; workers may not push or dispatch CI.
+
+Retained worktrees: root `gomad` for integration; `fn228` and `fn228-runner` for
+the active replay batch; `fn223` for native deletion; `fn221` for the live sweep;
+`qualification-final-frozen` for its actively referenced compiler/Cargo inputs;
+`fn219-closeout` and `fn219-review` temporarily pending the closed-owner custody
+and Git-history audit. Retired clean `fn219-ledger-reconcile`, `fn188` and
+`fn227-map-order` worktrees were removed, with branch/history and required inputs
+preserved. Two targeted cleanup rounds removed approximately 13 GiB of generated
+scratch, obsolete proof copies and unused caches; receipts are
+`evidence/qualification-final/obsolete-scratch-purge.json` and
+`evidence/qualification-final/retired-workspaces-cleanup.json`. Removed generated
+bytes are not recoverable but can be rebuilt. Unrelated `tools/gomad/.turbo/`
 remains untouched. Nothing has been pushed.
