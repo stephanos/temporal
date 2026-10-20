@@ -30,11 +30,11 @@
     "frames": [
       {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2-guest-profile-fuel-off","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"gomad_wasm_v1","name":"config","params":["i32","i32"],"results":["i32"]},{"module":"gomad_wasm_v1","name":"decision","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"9212df2c3677771bbcabb22be4b6e3092fc0d04f26affa6d74cfeb2ac3f38c77","schema":"gomad.wasm-host/v1","type":"started"},
       {"data_base64":"AAAAAAAAAAABAQAAAAAAAgAAAAAAAAAAAAAAAAAAACoBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAQEBAeAFQsvpnR0pqSh4OlV6bKT25MxPfsSB/7XuIn1UpLyA","stream":"choice","type":"evidence"},
-      {"fuel_remaining":1000000,"local_model":{"advances":0,"calls":2,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":1,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"WASI capacity: runtime-choice-bytes","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
+      {"fuel_remaining":1000000,"local_model":{"advances":0,"branching_records":1,"calls":2,"configured":true,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"next_expected":null,"now":1,"peak":0,"records":1,"tape_records":0,"tape_sha256":"","terminal_base64":"","trace_sha256":"2514e35e18d0e48b9645005201523f5d86f02e71c15ff2ae83413940bb409baa","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"WASI capacity: runtime-choice-bytes","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"capacity","type":"result"}
     ],
     "stderr": "",
     "termination": "capacity"
   },
   "schema": "gomad.helper-feature-expectation/v1",
-  "source_sha256": "9f3b22387e098a843f7e06fbfecb25e6f8afcd7e2f5c2cdd129e6470117a0d6e"
+  "source_sha256": "84eb4ddc3f90922c7ad86f1040d9fe592c5ad93801008ea62b9356c1fa5bc297"
 }

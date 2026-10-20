@@ -27,11 +27,11 @@
     "exit_code": 0,
     "frames": [
       {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2-fuel-off","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"random_get","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":1,"module_sha256":"d6b97a418b7a0a3caf3c390585343db80a041a28041908aabb0c2b68592da1f4","schema":"gomad.wasm-host/v1","type":"started"},
-      {"fuel_remaining":1000000,"local_model":{"advances":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"guest memory range out of bounds","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"trap","type":"result"}
+      {"fuel_remaining":1000000,"local_model":{"advances":0,"branching_records":0,"calls":0,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"next_expected":null,"now":1,"peak":0,"records":0,"tape_records":0,"tape_sha256":"","terminal_base64":"","trace_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","transcript_bytes":0,"transcript_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},"message":"guest memory range out of bounds","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":65536,"termination":"trap","type":"result"}
     ],
     "stderr": "",
     "termination": "trap"
   },
   "schema": "gomad.helper-feature-expectation/v1",
-  "source_sha256": "362acbabbffffd8654cc100eade1203a3a6685bd446491a1c34fe9a5ced52178"
+  "source_sha256": "c7ac1415c9dcc8047b1645e761c3521302ec40b37afc874e7b8fb1867d9de995"
 }

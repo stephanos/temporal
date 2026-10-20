@@ -30,11 +30,11 @@
     "frames": [
       {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2-fuel-off","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[{"module":"wasi_snapshot_preview1","name":"args_sizes_get","params":["i32","i32"],"results":["i32"]},{"module":"wasi_snapshot_preview1","name":"args_get","params":["i32","i32"],"results":["i32"]}],"initial_memory_pages":65,"module_sha256":"d2ec220a6031f8a6ec36e17410ea75e07ee40b192ec5150a69716192d752371e","schema":"gomad.wasm-host/v1","type":"started"},
       {"data_base64":"R01XVAEAAAADAAAAAQAAAAAAAAAAAAAABAAAAAIAAAAAAAAAAAAAAA==","stream":"transcript","type":"evidence"},
-      {"exit_code":0,"fuel_remaining":100000000,"local_model":{"advances":0,"calls":2,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,"terminal_base64":"","transcript_bytes":40,"transcript_sha256":"e90407233b228556d861da63cbb9650d10cc7850d79d17bcc8f61bde151a6067"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":4259840,"termination":"exit","type":"result"}
+      {"exit_code":0,"fuel_remaining":100000000,"local_model":{"advances":0,"branching_records":0,"calls":2,"configured":false,"cursor":0,"elapsed":0,"finished":false,"inspection_sealed":false,"next_expected":null,"now":1,"peak":0,"records":0,"tape_records":0,"tape_sha256":"","terminal_base64":"","trace_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855","transcript_bytes":40,"transcript_sha256":"e90407233b228556d861da63cbb9650d10cc7850d79d17bcc8f61bde151a6067"},"message":"","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":"nonzero","instantiate_nanos":"nonzero","peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":4259840,"termination":"exit","type":"result"}
     ],
     "stderr": "",
     "termination": "exit"
   },
   "schema": "gomad.helper-feature-expectation/v1",
-  "source_sha256": "e8bfebb2940980b2af6fd8ab5ca7860083575a418672d1b4a917a88d5d98215c"
+  "source_sha256": "c3cb6bcf1670969d4ee9e26f08a49587879f10cb3a70bd5659878aa34ea7a0c4"
 }
