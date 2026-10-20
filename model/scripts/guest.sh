@@ -14,13 +14,17 @@ cd "$(dirname "$0")/.."
 workspace=$(pwd -P)
 sysroot=$(mise exec -- rustc --print sysroot) || exit 1
 cargo_home=${CARGO_HOME:-$HOME/.cargo}
+target=${CARGO_TARGET_DIR:-$workspace/target}
+mkdir -p "$target"
+export CARGO_TARGET_DIR
+CARGO_TARGET_DIR=$(cd "$target" && pwd -P)
 flags=${CARGO_ENCODED_RUSTFLAGS:-}
 if [ -z "$flags" ] && [ -n "${RUSTFLAGS:-}" ]; then
   read -r -a rustflags <<< "$RUSTFLAGS"
   printf -v flags '%s\x1f' "${rustflags[@]}"
   flags=${flags%$'\x1f'}
 fi
-for mapping in "$workspace=/workspace" "$cargo_home/registry=/cargo/registry" "$sysroot=/rust/sysroot"; do
+for mapping in "$workspace=/workspace" "$cargo_home/registry=/cargo/registry" "$sysroot=/rust/sysroot" "$CARGO_TARGET_DIR=/target"; do
   flags="${flags:+$flags$'\x1f'}--remap-path-prefix=$mapping"
 done
 artifacts=$(mktemp)

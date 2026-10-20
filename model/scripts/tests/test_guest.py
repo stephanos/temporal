@@ -36,12 +36,14 @@ class GuestBuild(unittest.TestCase):
                 "    assert any(f.startswith('--remap-path-prefix=') and '/sysroot=' in f for f in flags), flags\n"
                 "    assert any(f.startswith('--remap-path-prefix=') and '/registry=' in f for f in flags), flags\n"
                 "    assert any(f.startswith('--remap-path-prefix=') and f.endswith('=/workspace') for f in flags), flags\n"
+                "    assert '--remap-path-prefix=' + os.environ['CARGO_TARGET_DIR'] + '=/target' in flags, flags\n"
                 "    sys.exit(37) if os.environ.get('FAIL_BUILD') else None\n"
                 "    print(json.dumps({'reason': 'compiler-artifact', 'target': {'crate_types': ['cdylib']}, 'filenames': [os.environ['ARTIFACT']]}))\n"
             )
             mise.chmod(0o755)
             env = dict(os.environ, PATH=f"{root}:{os.environ['PATH']}",
-                       ARTIFACT=str(artifact), CARGO_HOME=str(root / "cargo"))
+                       ARTIFACT=str(artifact), CARGO_HOME=str(root / "cargo"),
+                       CARGO_TARGET_DIR=str(root / "target"))
             output = root / "output.wasm"
 
             def run(*args, **extra):
