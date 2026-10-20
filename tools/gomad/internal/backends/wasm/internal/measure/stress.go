@@ -23,7 +23,10 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism/observed"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/measurement"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
 var stressAxes = []string{"cpu", "concurrent", "layout", "handoff"}
@@ -62,12 +65,45 @@ type stressCell struct {
 	stressCase
 	Axis         string               `json:"axis"`
 	Requested    int                  `json:"requested"`
+	Rounds       int                  `json:"rounds"`
+	Fanout       int                  `json:"fanout"`
 	Completed    int                  `json:"completed"`
 	Status       string               `json:"status"`
 	Inapplicable bool                 `json:"inapplicable,omitempty"`
 	Reason       string               `json:"reason,omitempty"`
 	Runs         []stressObservation  `json:"runs"`
 	Comparisons  []determinism.Report `json:"comparisons"`
+}
+
+// Concurrent repetitions are full cohorts; every member is retained and compared.
+func stressNewCell(test stressCase, axis string, repetitions, parallel int) stressCell {
+	fanout := 1
+	if axis == "concurrent" {
+		fanout = parallel
+	}
+	return stressCell{stressCase: test, Axis: axis, Requested: repetitions * fanout, Rounds: repetitions, Fanout: fanout}
+}
+
+type stressCohortKey struct{}
+
+func stressCohortContext(ctx context.Context, fanout int) (context.Context, context.CancelFunc) {
+	ctx, cancel := context.WithCancel(ctx)
+	var mu sync.Mutex
+	arrived := 0
+	ready := make(chan struct{})
+	wait := func() {
+		mu.Lock()
+		arrived++
+		if arrived == fanout {
+			close(ready)
+		}
+		mu.Unlock()
+		select {
+		case <-ready:
+		case <-ctx.Done():
+		}
+	}
+	return context.WithValue(ctx, stressCohortKey{}, wait), cancel
 }
 
 func stressCompare(reference, actual stressObservation) (determinism.Report, error) {
@@ -207,7 +243,8 @@ func measureStress(ctx context.Context) (runErr error) {
 		for _, test := range stressCases() {
 			for _, axis := range stressAxes {
 				if !seen[fmt.Sprintf("%s/%d/%s", test.Workload, test.Seed, axis)] {
-					cell := stressCell{stressCase: test, Axis: axis, Requested: repetitions, Reason: "producer stopped before execution"}
+					cell := stressNewCell(test, axis, repetitions, parallel)
+					cell.Reason = "producer stopped before execution"
 					cell.finish()
 					cells = append(cells, cell)
 				}
@@ -232,7 +269,8 @@ func measureStress(ctx context.Context) (runErr error) {
 	for _, test := range stressCases() {
 		if only, seed := input(ctx, "GOMAD_WASM_STRESS_ONLY"), input(ctx, "GOMAD_WASM_STRESS_SEED"); only != "" && only != test.Workload || seed != "" && seed != strconv.FormatUint(test.Seed, 10) {
 			for _, axis := range stressAxes {
-				cell := stressCell{stressCase: test, Axis: axis, Requested: repetitions, Reason: "excluded by --stress-only"}
+				cell := stressNewCell(test, axis, repetitions, parallel)
+				cell.Reason = "excluded by --stress-only"
 				cell.finish()
 				cells = append(cells, cell)
 			}
@@ -254,7 +292,7 @@ func measureStress(ctx context.Context) (runErr error) {
 		}
 		references = append(references, stressSummary(reference))
 		for _, axis := range stressAxes {
-			cell := stressCell{stressCase: test, Axis: axis, Requested: repetitions}
+			cell := stressNewCell(test, axis, repetitions, parallel)
 			if selected := input(ctx, "GOMAD_WASM_STRESS_AXIS"); selected != "" && selected != axis {
 				cell.Reason = "excluded by --stress-axis"
 				cell.finish()
@@ -272,20 +310,21 @@ func measureStress(ctx context.Context) (runErr error) {
 			if axis == "cpu" {
 				stop = stressCPULoad(ctx, workers)
 			}
-			results := make([]stressObservation, repetitions)
-			errorsByRun := make([]error, repetitions)
-			limit := 1
-			if axis == "concurrent" {
-				limit = min(parallel, repetitions)
-			}
-			for first := 0; first < repetitions; first += limit {
+			results := make([]stressObservation, cell.Requested)
+			errorsByRun := make([]error, cell.Requested)
+			for first := 0; first < cell.Requested; first += cell.Fanout {
+				cohort, cancel := stressCohortContext(ctx, cell.Fanout)
 				var group sync.WaitGroup
-				for index := first; index < min(first+limit, repetitions); index++ {
+				for index := first; index < first+cell.Fanout; index++ {
 					group.Go(func() {
-						results[index], errorsByRun[index] = stressExecute(ctx, test, request, sourceID, axis, index, base, runCommand)
+						results[index], errorsByRun[index] = stressExecute(cohort, test, request, sourceID, axis, index, base, runCommand)
+						if errorsByRun[index] != nil {
+							cancel()
+						}
 					})
 				}
 				group.Wait()
+				cancel()
 			}
 			stop()
 			for index, observation := range results {
@@ -440,10 +479,14 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 		return observation, err
 	}
 	stress := wasmbackend.StressExecution{Padding: padding, Jitter: axis == "handoff"}
+	if wait, ok := ctx.Value(stressCohortKey{}).(func()); ok {
+		stress.ConfigureRequest = func(*wasi.Request) { wait() }
+	}
 	if test.Workload == "two-cluster" {
 		stress.BindScenario = stressBindCluster
 	}
 	var collectErr error
+	canary := false
 	provider, err := stressRunnerProvider(ctx, input(ctx, "GOMAD_WASM_STRESS_ROOT"), request, stress, func(execution wasmbackend.ExecutionObservation) {
 		observation.Run.Identities["declared_inputs"] = string(execution.DeclaredInputsSHA256)
 		observation.Run.Identities["module"] = strings.TrimPrefix(execution.Target.SHA256, "sha256:")
@@ -496,10 +539,11 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 				collectErr = errors.New("single guest stress run has wrong incarnation cardinality")
 				return
 			}
-			if err := requireExit(ctx, test.Workload, execution.Incarnations[0].Result, 0); err != nil {
+			if err := stressRequireExit(ctx, test.Workload, execution.Incarnations[0].Result); err != nil {
 				collectErr = err
 				return
 			}
+			canary = test.Workload == "runtime" && *execution.Incarnations[0].Result.ExitCode == 17
 			metadata = execution.Incarnations[0].Result.InspectionMetadata
 		}
 		if err := temporalWrite(ctx, filepath.Join(root, "inspection.json"), metadata); err != nil {
@@ -522,16 +566,72 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	if collectErr != nil {
 		return observation, collectErr
 	}
-	if campaign.Attempted != 1 || campaign.Succeeded != 1 || len(campaign.SuccessArtifacts) != 1 || len(observation.Run.Incarnations) == 0 {
-		return observation, errors.New("stress campaign did not retain exactly one fresh successful execution")
+	if len(observation.Run.Incarnations) == 0 {
+		return observation, errors.New("stress campaign did not observe its fresh execution")
 	}
-	observation.Run.ArtifactDir = campaign.SuccessArtifacts[0]
+	observation.Run.ArtifactDir, err = stressArtifactPath(campaign, canary)
+	if err != nil {
+		return observation, err
+	}
+	opened, err := artifact.OpenArtifact(observation.Run.ArtifactDir)
+	if err != nil {
+		return observation, err
+	}
+	manifest := opened.Manifest()
+	if err := opened.Close(); err != nil {
+		return observation, err
+	}
+	if err := stressArtifactOutcome(manifest, canary); err != nil {
+		return observation, err
+	}
 	encoded, err := json.Marshal(observation.Digests)
 	if err != nil {
 		return observation, err
 	}
 	observation.Run.EvidenceDigest = digest(encoded)
 	return observation, temporalJSON(ctx, filepath.Join(root, "run.json"), stressSummary(observation))
+}
+
+func stressRequireExit(ctx context.Context, workload string, result wasi.Result) error {
+	if result.Cancelled || result.WatchdogTimeout {
+		return errors.New("stress execution was cancelled or timed out")
+	}
+	codes := []uint32{0}
+	if workload == "runtime" {
+		codes = append(codes, 17)
+	}
+	if err := requireExit(ctx, workload, result, codes...); err != nil {
+		return err
+	}
+	if workload == "runtime" && *result.ExitCode == 17 && !bytes.Contains(result.Stdout, []byte("canary 2\n")) {
+		return errors.New("runtime exit17 lacks its intentional canary witness")
+	}
+	return nil
+}
+
+func stressArtifactPath(campaign runner.CampaignResult, canary bool) (string, error) {
+	if campaign.Attempted == 1 && campaign.Watchdogs == 0 && campaign.Cancelled == 0 && campaign.ReplayDivergences == 0 {
+		if !canary && campaign.Succeeded == 1 && campaign.Failures == 0 && len(campaign.SuccessArtifacts) == 1 && len(campaign.Artifacts) == 0 {
+			return campaign.SuccessArtifacts[0], nil
+		}
+		if canary && campaign.Succeeded == 0 && campaign.Failures == 1 && len(campaign.Artifacts) == 1 && len(campaign.SuccessArtifacts) == 0 {
+			return campaign.Artifacts[0], nil
+		}
+	}
+	return "", errors.New("stress campaign did not retain exactly one expected application outcome")
+}
+
+func stressArtifactOutcome(manifest record.ExecutionRecord, canary bool) error {
+	outcome := manifest.Outcome
+	if outcome.Termination == "exit" && outcome.ExitCode != nil {
+		if !canary && manifest.ArtifactKind == record.ArtifactSuccess && outcome.Domain == "success" && *outcome.ExitCode == 0 {
+			return nil
+		}
+		if canary && manifest.ArtifactKind == record.ArtifactTargetFailure && outcome.Domain == "target" && outcome.Reason == "nonzero_exit" && *outcome.ExitCode == 17 {
+			return nil
+		}
+	}
+	return errors.New("retained stress artifact does not contain the expected application outcome")
 }
 
 func stressCollect(ctx context.Context, root, name string, incarnation uint64, result wasi.Result, control *runnerbackend.ChoiceRequest, observation *stressObservation) error {

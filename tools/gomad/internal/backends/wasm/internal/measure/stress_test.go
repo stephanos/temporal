@@ -2,6 +2,7 @@ package measure
 
 import (
 	"bytes"
+	"context"
 	"crypto/sha256"
 	"errors"
 	"maps"
@@ -9,11 +10,14 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
 func TestStressMatrix(t *testing.T) {
@@ -33,6 +37,108 @@ func TestStressMatrix(t *testing.T) {
 		if cases[index].Seed != uint64(index)*1000003 {
 			t.Fatal(cases[index])
 		}
+	}
+}
+
+func TestStressCohortBarrierReleasesAllMembersAndCancelledPreparation(t *testing.T) {
+	t.Parallel()
+	for _, cancelEarly := range []bool{false, true} {
+		ctx, stop := context.WithTimeout(t.Context(), time.Second)
+		cohort, cancel := stressCohortContext(ctx, 2)
+		wait := cohort.Value(stressCohortKey{}).(func())
+		started, done := make(chan struct{}), make(chan struct{})
+		go func() { close(started); wait(); close(done) }()
+		<-started
+		select {
+		case <-done:
+			t.Fatal("cohort began before its peer was prepared")
+		default:
+		}
+		if cancelEarly {
+			cancel()
+		} else {
+			wait()
+		}
+		select {
+		case <-done:
+		case <-ctx.Done():
+			t.Fatal("cohort preparation barrier did not release")
+		}
+		cancel()
+		stop()
+	}
+}
+
+func TestStressConcurrentRepetitionsAreFullCohorts(t *testing.T) {
+	t.Parallel()
+	for _, parallel := range []int{2, 5} {
+		cell := stressNewCell(stressCase{Workload: "runtime"}, "concurrent", 3, parallel)
+		if cell.Rounds != 3 || cell.Fanout != parallel || cell.Requested != 3*parallel || cell.Requested%cell.Fanout != 0 {
+			t.Fatalf("partial or unrealized fan-out: %+v", cell)
+		}
+	}
+	cell := stressNewCell(stressCase{}, "cpu", 3, 5)
+	if cell.Requested != 3 || cell.Fanout != 1 {
+		t.Fatalf("non-concurrent repetitions changed: %+v", cell)
+	}
+}
+
+func TestStressRuntimeCanaryIsOnlyAnExpectedApplicationExit(t *testing.T) {
+	t.Parallel()
+	zero, seventeen := uint32(0), uint32(17)
+	for _, result := range []wasi.Result{{Termination: "exit", ExitCode: &zero, Reaped: true}, {Termination: "exit", ExitCode: &seventeen, Reaped: true, Stdout: []byte("canary 2\n")}} {
+		if err := stressRequireExit(t.Context(), "runtime", result); err != nil {
+			t.Fatal(err)
+		}
+	}
+	for _, test := range []struct {
+		workload string
+		result   wasi.Result
+	}{
+		{"runtime", wasi.Result{Termination: "exit", ExitCode: &seventeen, Reaped: true}},
+		{"workflow", wasi.Result{Termination: "exit", ExitCode: &seventeen, Reaped: true, Stdout: []byte("canary 2\n")}},
+		{"runtime", wasi.Result{Termination: "capacity", ExitCode: &seventeen, Reaped: true, Stdout: []byte("canary 2\n")}},
+		{"runtime", wasi.Result{Termination: "infrastructure", ExitCode: &seventeen, Reaped: true, Stdout: []byte("canary 2\n")}},
+		{"runtime", wasi.Result{Termination: "exit", ExitCode: &zero, Reaped: true, Cancelled: true}},
+		{"runtime", wasi.Result{Termination: "exit", ExitCode: &zero, Reaped: true, WatchdogTimeout: true}},
+	} {
+		if err := stressRequireExit(t.Context(), test.workload, test.result); err == nil {
+			t.Fatalf("accepted unexpected outcome: %+v", test)
+		}
+	}
+}
+
+func TestStressCanaryRetainsNormalFailureArtifact(t *testing.T) {
+	t.Parallel()
+	success := runner.CampaignResult{Attempted: 1, Succeeded: 1, SuccessArtifacts: []string{"success"}}
+	if path, err := stressArtifactPath(success, false); err != nil || path != "success" {
+		t.Fatalf("success artifact lost: %s %v", path, err)
+	}
+	zero := record.Uint64String(0)
+	if err := stressArtifactOutcome(record.ExecutionRecord{ArtifactKind: record.ArtifactSuccess, Outcome: record.Outcome{Domain: "success", Termination: "exit", ExitCode: &zero}}, false); err != nil {
+		t.Fatal(err)
+	}
+	failure := runner.CampaignResult{Attempted: 1, Failures: 1, Artifacts: []string{"failure"}}
+	if path, err := stressArtifactPath(failure, true); err != nil || path != "failure" {
+		t.Fatalf("canary failure artifact lost: %s %v", path, err)
+	}
+	if _, err := stressArtifactPath(failure, false); err == nil {
+		t.Fatal("ordinary workload accepted a failure")
+	}
+	seventeen := record.Uint64String(17)
+	manifest := record.ExecutionRecord{ArtifactKind: record.ArtifactTargetFailure, Outcome: record.Outcome{Domain: "target", Reason: "nonzero_exit", Termination: "exit", ExitCode: &seventeen}}
+	if err := stressArtifactOutcome(manifest, true); err != nil {
+		t.Fatal(err)
+	}
+	for _, domain := range []string{"runner", "watchdog", "capacity"} {
+		manifest.Outcome.Domain = domain
+		if err := stressArtifactOutcome(manifest, true); err == nil {
+			t.Fatalf("accepted %s artifact as a canary", domain)
+		}
+	}
+	failure.Watchdogs = 1
+	if _, err := stressArtifactPath(failure, true); err == nil {
+		t.Fatal("accepted watchdog outcome as a canary")
 	}
 }
 
