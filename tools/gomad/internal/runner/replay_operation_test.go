@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"crypto/sha256"
 	"debug/buildinfo"
@@ -84,7 +85,7 @@ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 	if !result.Match || result.ChoiceReplayStatus != ChoiceReplayExact {
 		t.Fatalf("replay result = %#v", result)
 	}
-	if executor.request.Choice == nil || executor.request.Choice.Mode != choice.ModeReplay || executor.request.Choice.ReplayPlan == nil || len(executor.request.Choice.ReplayPlan.Decisions) != 1 {
+	if executor.request.Choice == nil || executor.request.Choice.Mode != choice.ModeReplay || executor.request.Choice.ReplayPlan != nil || !bytes.Equal(executor.request.Choice.Trace, expected.ChoiceTrace.Trace.Bytes) || executor.request.Choice.TraceSHA256 != expected.ChoiceTrace.Trace.SHA256 || executor.request.Choice.Decisions != 1 || executor.request.Choice.PrefixControl != nil {
 		t.Fatalf("replay choice capability = %#v", executor.request.Choice)
 	}
 }

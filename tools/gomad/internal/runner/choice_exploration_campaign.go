@@ -75,7 +75,7 @@ func choiceExplorationJobs(state exploration.ChoiceState, round exploration.Choi
 			tape = &prefix
 			mode = choice.ModePrefix
 		}
-		jobs[index] = runJob{ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape}
+		jobs[index] = runJob{ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape, choiceSourceTrace: candidate.SourceTrace}
 	}
 	return jobs, nil
 }
@@ -135,7 +135,7 @@ func processExplorationCompletion(round *explorationRound[exploration.ChoiceStat
 	if err := completeCandidate(completion); err != nil {
 		return exploration.ChoiceResult{}, run, err
 	}
-	result := exploration.ChoiceResult{CandidateSHA256: candidate.SHA256, OutcomeSHA256: outcomeSHA256, Failed: assessed.outcome.Domain == "target" || assessed.outcome.Domain == "watchdog", Trace: &tape}
+	result := exploration.ChoiceResult{CandidateSHA256: candidate.SHA256, OutcomeSHA256: outcomeSHA256, Failed: assessed.outcome.Domain == "target" || assessed.outcome.Domain == "watchdog", Trace: &tape, SourceTrace: completion.result.ChoiceTrace.Trace.Bytes}
 	if run.FailureSignature != nil {
 		result.FailureSHA256 = *run.FailureSignature
 	}

@@ -35,9 +35,10 @@ type rootOverride struct {
 }
 
 type CandidateExecution struct {
-	SimulationPlan   []byte
-	ChoiceMode       choice.Mode
-	ChoiceReplayPlan *choice.ReplayPlan
+	SimulationPlan    []byte
+	ChoiceMode        choice.Mode
+	ChoiceReplayPlan  *choice.ReplayPlan
+	ChoiceSourceTrace []byte
 }
 
 func CandidateForArtifact(profile record.SimulationProfile, planBytes []byte, exactTape *choice.ReplayPlan) (SimulationConfig, SimulationCandidate, error) {
@@ -260,6 +261,7 @@ func ExecutionForCandidate(config SimulationConfig, candidate SimulationCandidat
 	}
 	execution.ChoiceMode = choice.ModePrefix
 	execution.ChoiceReplayPlan = &selected
+	execution.ChoiceSourceTrace = append([]byte(nil), forced[longest].SourceTrace...)
 	return execution, nil
 }
 

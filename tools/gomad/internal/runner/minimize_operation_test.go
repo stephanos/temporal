@@ -611,14 +611,13 @@ func (p *prefixFailureProvider) Run(ctx context.Context, request backend.Request
 		return backend.Result{}, errors.New("missing choice controls")
 	}
 	length := 0
-	if request.Choice.Tape != nil {
-		length = len(request.Choice.Tape.Decisions)
-	}
+	length = int(request.Choice.Decisions)
 	p.controls = append(p.controls, length)
 	if request.Target.Backend == nil || !reflect.DeepEqual(request.Target.BackendPayloads, p.prepared.BackendPayloads) || !reflect.DeepEqual(request.Target.Argv, p.prepared.Argv) || !reflect.DeepEqual(request.Environment, p.environment) || request.Seed != 7 || request.Timeout != time.Second || request.OutputBytes != 4096 || request.TranscriptBytes != 64<<20 {
 		return backend.Result{}, errors.New("minimization changed retained backend inputs or limits")
 	}
 	result := p.result
+	result.InputTapeSHA256, result.InputDecisions = request.Choice.TapeSHA256, request.Choice.Decisions
 	if p.replayMismatch && request.Choice.Mode == choice.ModeReplay {
 		result.Evidence = []byte("different replay observations")
 	}

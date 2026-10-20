@@ -3,6 +3,7 @@ package backend
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"encoding/json"
 	"errors"
 	"fmt"
@@ -319,9 +320,8 @@ func (p *Provider) standaloneInspection(opened *artifact.Opened, pr provenance, 
 	if err != nil {
 		return nil, wasi.Request{}, err
 	}
-	trace, err := choice.DecodeStoredTrace(profile.Name, traceBytes, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: uint64(profile.Trace.Limit), Records: uint64(profile.Trace.Records), SHA256: digest})
-	if err != nil {
-		return nil, wasi.Request{}, err
+	if sha256.Sum256(traceBytes) != digest {
+		return nil, wasi.Request{}, errors.New("inspection retained trace identity")
 	}
 	implementation, err := choice.ImplementationIdentity(pr.BuildKey)
 	if err != nil {
@@ -332,12 +332,9 @@ func (p *Provider) standaloneInspection(opened *artifact.Opened, pr provenance, 
 		return nil, wasi.Request{}, err
 	}
 	identity := choice.ExecutionIdentity{TargetSHA256: targetDigest, ToolchainBuildKey: pr.BuildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation}
-	tape, err := choice.ProjectReplayPlan(trace, identity)
+	tapeDigest, err := profile.Trace.TapeSHA256.Bytes()
 	if err != nil {
 		return nil, wasi.Request{}, err
-	}
-	if record.SHA256FromSum(tape.SHA256) != profile.Trace.TapeSHA256 {
-		return nil, wasi.Request{}, errors.New("inspection retained tape identity")
 	}
 	n := metadata.Incarnations[0]
 	for _, stream := range []struct {
@@ -362,7 +359,7 @@ func (p *Provider) standaloneInspection(opened *artifact.Opened, pr provenance, 
 	}
 	config.Environment = append(config.Environment, "PWD="+config.WorkingDirectory)
 	config.Limits.OutputBytes, config.Limits.TranscriptBytes = uint64(manifest.Limits.OutputBytes), uint64(manifest.Limits.IOTranscriptBytes)
-	request := wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: time.Duration(manifest.Limits.ExecutionTimeoutNanos), Runtime: &wasi.RuntimeControl{Seed: uint64(manifest.Seed), Choice: &backends.ChoiceRequest{Mode: choice.ModeReplay, ExecutionIdentity: identity, Limit: uint64(profile.Trace.Limit), Tape: &tape}, Diagnostics: false}}
+	request := wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: time.Duration(manifest.Limits.ExecutionTimeoutNanos), Runtime: &wasi.RuntimeControl{Seed: uint64(manifest.Seed), Choice: &backends.ChoiceRequest{Mode: choice.ModeReplay, ExecutionIdentity: identity, Limit: uint64(profile.Trace.Limit), Trace: traceBytes, TraceSHA256: digest, TapeSHA256: tapeDigest, Decisions: uint64(profile.Trace.Decisions)}, Diagnostics: false}}
 	if err := p.stressRequest(&request); err != nil {
 		return nil, wasi.Request{}, err
 	}

@@ -69,6 +69,7 @@ type ChoiceCandidate struct {
 	ForcedDepth       uint64        `json:"forced_depth"`
 	PrefixSHA256      record.SHA256 `json:"prefix_sha256,omitempty"`
 	PrefixBytes       []byte        `json:"prefix_bytes,omitempty"`
+	SourceTrace       []byte        `json:"source_trace,omitempty"`
 }
 
 type ChoiceResult struct {
@@ -78,6 +79,7 @@ type ChoiceResult struct {
 	FailureSHA256   record.SHA256
 	Divergence      *choice.Divergence
 	Trace           *choice.ReplayPlan
+	SourceTrace     []byte
 }
 
 type ChoiceState struct {
@@ -114,6 +116,7 @@ type ChoiceSegmentResult struct {
 	TraceSHA256       record.SHA256              `json:"trace_sha256,omitempty"`
 	TraceSourceSHA256 record.SHA256              `json:"trace_source_sha256,omitempty"`
 	TraceBytes        []byte                     `json:"trace_bytes,omitempty"`
+	SourceTrace       []byte                     `json:"source_trace,omitempty"`
 }
 
 type ChoiceRoundSegment struct {
@@ -292,8 +295,9 @@ func CommitChoiceRound(state ChoiceState, round ChoiceRound, results []ChoiceRes
 			segmentResult.TraceSHA256 = record.SHA256FromSum(trace.SHA256)
 			segmentResult.TraceSourceSHA256 = record.SHA256FromSum(trace.SourceTraceSHA256)
 			segmentResult.TraceBytes = append([]byte(nil), trace.Bytes...)
+			segmentResult.SourceTrace = append([]byte(nil), result.SourceTrace...)
 			if !policyStopped {
-				if err := choiceExpandCandidate(&next, candidate, trace, newChildren); err != nil {
+				if err := choiceExpandCandidate(&next, candidate, trace, result.SourceTrace, newChildren); err != nil {
 					return ChoiceState{}, ChoiceRoundSegment{}, err
 				}
 			}
@@ -370,6 +374,7 @@ func ChoiceReplaySegment(state ChoiceState, segment ChoiceRoundSegment) (ChoiceS
 				return ChoiceState{}, errors.Join(errors.New("choice exploration segment trace is invalid"), validateErr)
 			}
 			result.Trace = &validated
+			result.SourceTrace = append([]byte(nil), stored.SourceTrace...)
 		}
 		results[index] = result
 	}
@@ -411,7 +416,7 @@ func ValidateCandidateDivergence(candidate ChoiceCandidate, identity choice.Exec
 	return choice.ValidatePrefixReplayDivergence(prefix, divergence)
 }
 
-func choiceExpandCandidate(state *ChoiceState, parent ChoiceCandidate, trace choice.ReplayPlan, children map[record.SHA256]ChoiceCandidate) error {
+func choiceExpandCandidate(state *ChoiceState, parent ChoiceCandidate, trace choice.ReplayPlan, sourceTrace []byte, children map[record.SHA256]ChoiceCandidate) error {
 	noOp := noOpSelectPolls(trace)
 	for ordinal, decision := range trace.Decisions {
 		if uint64(ordinal) < max(parent.ForcedDepth, state.Config.StartOrdinal) {
@@ -442,6 +447,7 @@ func choiceExpandCandidate(state *ChoiceState, parent ChoiceCandidate, trace cho
 			if err != nil {
 				return err
 			}
+			child.SourceTrace = append([]byte(nil), sourceTrace...)
 			if choiceContainsIdentity(state.Seen, child.SHA256) {
 				continue
 			}
@@ -649,11 +655,12 @@ func choiceSameCandidates(left, right []ChoiceCandidate) bool {
 }
 
 func choiceSameCandidate(left, right ChoiceCandidate) bool {
-	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && left.SourceTraceSHA256 == right.SourceTraceSHA256 && left.ForcedDepth == right.ForcedDepth && left.PrefixSHA256 == right.PrefixSHA256 && bytes.Equal(left.PrefixBytes, right.PrefixBytes)
+	return left.SHA256 == right.SHA256 && left.ParentSHA256 == right.ParentSHA256 && left.SourceTraceSHA256 == right.SourceTraceSHA256 && left.ForcedDepth == right.ForcedDepth && left.PrefixSHA256 == right.PrefixSHA256 && bytes.Equal(left.PrefixBytes, right.PrefixBytes) && bytes.Equal(left.SourceTrace, right.SourceTrace)
 }
 
 func choiceCloneCandidate(candidate ChoiceCandidate) ChoiceCandidate {
 	candidate.PrefixBytes = append([]byte(nil), candidate.PrefixBytes...)
+	candidate.SourceTrace = append([]byte(nil), candidate.SourceTrace...)
 	return candidate
 }
 

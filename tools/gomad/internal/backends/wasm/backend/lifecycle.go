@@ -67,7 +67,11 @@ func observedRequest(request backends.ExecutionRequest) (backends.Request, error
 		}
 	}
 	if request.Choice != nil {
-		converted.Choice = &backends.ChoiceRequest{Mode: request.Choice.Mode, ExecutionIdentity: request.Choice.ExecutionIdentity, Limit: request.Choice.Limit, Tape: request.Choice.ReplayPlan}
+		var err error
+		converted.Choice, err = backends.ChoiceRequestForCapability(request.Choice)
+		if err != nil {
+			return backends.Request{}, err
+		}
 	}
 	return converted, nil
 }

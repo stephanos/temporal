@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"os"
@@ -44,24 +45,25 @@ type MinimizeResult struct {
 }
 
 type minimizationSession struct {
-	config          MinimizeSpec
-	dependencies    executionDependencies
-	opened          *artifact.Opened
-	workDirectory   string
-	prepared        target.Prepared
-	campaign        CampaignSpec
-	profile         execution.Description
-	baseEnvironment []record.Environment
-	mappings        []captured.Mapping
-	mountLimits     captured.Limits
-	mountSnapshot   *captured.Snapshot
-	mountArtifact   *captured.CapturedInputs
-	choiceIdentity  choice.ExecutionIdentity
-	exactChoiceTape *choice.ReplayPlan
-	executor        executionRunner
-	replayer        ArtifactReplayer
-	temporaryRoot   string
-	workspace       *minimizer.Workspace
+	config           MinimizeSpec
+	dependencies     executionDependencies
+	opened           *artifact.Opened
+	workDirectory    string
+	prepared         target.Prepared
+	campaign         CampaignSpec
+	profile          execution.Description
+	baseEnvironment  []record.Environment
+	mappings         []captured.Mapping
+	mountLimits      captured.Limits
+	mountSnapshot    *captured.Snapshot
+	mountArtifact    *captured.CapturedInputs
+	choiceIdentity   choice.ExecutionIdentity
+	exactChoiceTape  *choice.ReplayPlan
+	exactChoiceTrace []byte
+	executor         executionRunner
+	replayer         ArtifactReplayer
+	temporaryRoot    string
+	workspace        *minimizer.Workspace
 }
 
 type minimizationTrial struct {
@@ -329,8 +331,21 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 		return nil, errors.New("minimization requires an exact retained choice tape")
 	}
 	session.choiceIdentity = choiceCapability.ExecutionIdentity
-	tape := *choiceCapability.ReplayPlan
+	trace, err := choice.DecodeStoredTrace(choiceCapability.Profile, choiceCapability.Trace, choice.TerminalMetadata{
+		State: choice.TerminalComplete, Limit: choiceCapability.Limit, Records: uint64(manifest.ChoiceProfile.Trace.Records), SHA256: choiceCapability.TraceSHA256,
+	})
+	if err != nil {
+		return nil, err
+	}
+	tape, err := choice.ProjectReplayPlan(trace, session.choiceIdentity)
+	if err != nil {
+		return nil, err
+	}
+	if tape.SHA256 != choiceCapability.TapeSHA256 || uint64(len(tape.Decisions)) != choiceCapability.Decisions {
+		return nil, errors.New("artifact choice tape identity does not match its trace")
+	}
 	session.exactChoiceTape = &tape
+	session.exactChoiceTrace = append([]byte(nil), trace.Bytes...)
 	var initial minimizer.State
 	if backendChoice {
 		initial, err = minimizer.NewChoice(tape, config.AttemptBudget)
@@ -342,6 +357,11 @@ func openMinimizationSession(ctx context.Context, config MinimizeSpec, dependenc
 		explorationConfig, candidate, candidateErr := exploration.CandidateForArtifact(*manifest.SimulationProfile, plan, session.exactChoiceTape)
 		if candidateErr != nil {
 			return nil, fmt.Errorf("reconstruct minimization candidate: %w", candidateErr)
+		}
+		for index := range candidate.Overrides {
+			if candidate.Overrides[index].Dimension == exploration.DimensionRuntime {
+				candidate.Overrides[index].SourceTrace = append([]byte(nil), session.exactChoiceTrace...)
+			}
 		}
 		initial, err = minimizer.New(explorationConfig, candidate, config.AttemptBudget)
 	}
@@ -464,6 +484,7 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 		Mode: executionForCandidate.ChoiceMode, Profile: choice.Profile,
 		ImplementationSHA256: session.choiceIdentity.ImplementationSHA256, ExecutionIdentity: session.choiceIdentity,
 		Limit: uint64(manifest.Limits.ChoiceTraceBytes), ReplayPlan: executionForCandidate.ChoiceReplayPlan,
+		Trace: executionForCandidate.ChoiceSourceTrace, TraceSHA256: sha256.Sum256(executionForCandidate.ChoiceSourceTrace),
 	}
 	startedAt := time.Now().UTC()
 	request := execution.ExecutionRequest{

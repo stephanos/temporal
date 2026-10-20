@@ -75,6 +75,11 @@ type ChoiceCapability struct {
 	ExecutionIdentity    choice.ExecutionIdentity
 	Limit                uint64
 	ReplayPlan           *choice.ReplayPlan
+	Trace                []byte
+	TraceSHA256          [sha256.Size]byte
+	TapeSHA256           [sha256.Size]byte
+	Decisions            uint64
+	PrefixControl        *ChoicePrefixControl
 }
 
 type SimulationRole string

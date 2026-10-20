@@ -665,6 +665,7 @@ func (p *Provider) Run(ctx context.Context, request runnerbackend.Request) (runn
 		})
 	}
 	observed := runnerbackend.Result{Termination: runnerbackend.Termination(result.Termination), Message: result.Message, Stdout: result.Stdout, Stderr: result.Stderr, Evidence: result.Transcript, Reaped: result.Reaped, Cancelled: result.Cancelled, WatchdogTimeout: result.WatchdogTimeout, ChoiceTrace: result.ChoiceTrace, DiagnosticTrace: result.DiagnosticTrace, ChoiceDivergence: result.ChoiceDivergence}
+	observed.InputTapeSHA256, observed.InputDecisions = result.InputTapeSHA256, result.InputDecisions
 	observed.Evidence, err = modelEvidence(result, request.TranscriptBytes)
 	if err != nil {
 		return runnerbackend.Result{Termination: runnerbackend.Capacity, Message: err.Error(), Reaped: result.Reaped}, nil

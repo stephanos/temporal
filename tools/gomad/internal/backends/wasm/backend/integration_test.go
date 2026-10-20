@@ -1341,9 +1341,7 @@ func (p *minimizationProvider) Run(ctx context.Context, request runnerbackend.Re
 	}
 	if request.Choice.Mode != choice.ModeReplay {
 		length := 0
-		if request.Choice.Tape != nil {
-			length = len(request.Choice.Tape.Decisions)
-		}
+		length = int(request.Choice.Decisions)
 		p.controls = append(p.controls, length)
 	}
 	return p.Provider.Run(ctx, request)

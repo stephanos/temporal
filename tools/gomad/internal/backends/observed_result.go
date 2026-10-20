@@ -22,12 +22,18 @@ func ProjectObservedResult(request Request, observed Result, stdout, stderr *os.
 		if observed.ImplementationSHA256 != request.Choice.ExecutionIdentity.ImplementationSHA256 {
 			return ExecutionResult{}, ErrChoiceTraceMalformed
 		}
-		trace, err := choice.DecodeStoredTrace(choice.Profile, observed.ChoiceTrace.Bytes, choice.TerminalMetadata{
-			State: observed.ChoiceTrace.Summary.Terminal, Limit: request.Choice.Limit,
-			Records: observed.ChoiceTrace.Summary.Records, SHA256: observed.ChoiceTrace.SHA256,
-		})
-		if err != nil {
-			return ExecutionResult{}, err
+		trace := observed.ChoiceTrace
+		if request.Choice.Mode == choice.ModeRecord {
+			var err error
+			trace, err = choice.DecodeStoredTrace(choice.Profile, observed.ChoiceTrace.Bytes, choice.TerminalMetadata{
+				State: observed.ChoiceTrace.Summary.Terminal, Limit: request.Choice.Limit,
+				Records: observed.ChoiceTrace.Summary.Records, SHA256: observed.ChoiceTrace.SHA256,
+			})
+			if err != nil {
+				return ExecutionResult{}, err
+			}
+		} else if observed.InputTapeSHA256 != request.Choice.TapeSHA256 || observed.InputDecisions != request.Choice.Decisions {
+			return ExecutionResult{}, ErrChoiceTraceMalformed
 		}
 		if trace.Summary.Terminal != choice.TerminalComplete {
 			return ExecutionResult{}, ErrChoiceTraceMalformed

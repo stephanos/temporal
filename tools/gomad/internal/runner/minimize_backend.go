@@ -2,6 +2,7 @@ package runner
 
 import (
 	"context"
+	"crypto/sha256"
 	"fmt"
 	"time"
 
@@ -21,6 +22,8 @@ func (session *minimizationSession) evaluateBackendChoice(ctx context.Context, c
 			return minimizationTrial{}, err
 		}
 		capability.Mode, capability.ReplayPlan = choice.ModePrefix, &prefix
+		capability.Trace = append([]byte(nil), session.exactChoiceTrace...)
+		capability.TraceSHA256 = sha256.Sum256(capability.Trace)
 	}
 	startedAt := time.Now().UTC()
 	request := execution.ExecutionRequest{

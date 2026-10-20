@@ -3,6 +3,7 @@ package runner
 import (
 	"context"
 	"crypto/rand"
+	"crypto/sha256"
 	"encoding/hex"
 	"errors"
 	"fmt"
@@ -301,6 +302,7 @@ type runJob struct {
 	seed                  uint64
 	choiceMode            choice.Mode
 	choiceReplayPlan      *choice.ReplayPlan
+	choiceSourceTrace     []byte
 	simulationPlan        string
 	simulationRecordLimit uint64
 	simulationRecordCount uint64
@@ -877,6 +879,8 @@ func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, jo
 	if job.choiceReplayPlan != nil {
 		replayPlan := *job.choiceReplayPlan
 		capability.ReplayPlan = &replayPlan
+		capability.Trace = append([]byte(nil), job.choiceSourceTrace...)
+		capability.TraceSHA256 = sha256.Sum256(capability.Trace)
 	}
 	return capability, nil
 }
@@ -890,6 +894,16 @@ func validateObservedChoiceTrace(limit uint64, capability *backend.ChoiceCapabil
 	}
 	if capability == nil || observed.Profile != choice.Profile || observed.ImplementationSHA256 != capability.ImplementationSHA256 || observed.Limit != limit || observed.Trace.Summary.Terminal != choice.TerminalComplete {
 		return backend.ErrChoiceTraceMalformed
+	}
+	if observed.Trace.Summary.Records != uint64(len(observed.Trace.Records)) {
+		decoded, err := choice.DecodeStoredTrace(observed.Profile, observed.Trace.Bytes, choice.TerminalMetadata{
+			State: observed.Trace.Summary.Terminal, Limit: limit, Records: observed.Trace.Summary.Records, SHA256: observed.Trace.SHA256,
+		})
+		if err != nil {
+			return errors.Join(backend.ErrChoiceTraceMalformed, err)
+		}
+		decoded.Summary.PeakGoroutines = observed.Trace.Summary.PeakGoroutines
+		observed.Trace = decoded
 	}
 	tape, err := choice.ProjectReplayPlan(observed.Trace, capability.ExecutionIdentity)
 	if err != nil {

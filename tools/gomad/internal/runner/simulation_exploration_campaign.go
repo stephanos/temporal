@@ -86,7 +86,8 @@ func simulationExplorationJobs(state exploration.SimulationState, round explorat
 		jobs[index] = runJob{
 			ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed,
 			choiceMode: candidateExecution.ChoiceMode, choiceReplayPlan: candidateExecution.ChoiceReplayPlan,
-			simulationPlan: string(candidateExecution.SimulationPlan), simulationRecordLimit: combinedExplorationRecordLimit, simulationRecordCount: 1,
+			choiceSourceTrace: candidateExecution.ChoiceSourceTrace,
+			simulationPlan:    string(candidateExecution.SimulationPlan), simulationRecordLimit: combinedExplorationRecordLimit, simulationRecordCount: 1,
 		}
 	}
 	return jobs, nil
@@ -162,6 +163,9 @@ func simulationExplorationResult(state exploration.SimulationState, candidate ex
 	runtimeDecisions, err := exploration.RuntimeDecisions(tape)
 	if err != nil {
 		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_runtime", Err: err}
+	}
+	for index := range runtimeDecisions {
+		runtimeDecisions[index].SourceTrace = append([]byte(nil), completion.result.ChoiceTrace.Trace.Bytes...)
 	}
 	if len(completion.result.SimulationRecords) != 1 {
 		return exploration.SimulationResult{}, record.SimulationProfile{}, &HostError{Reason: "simulation_exploration_record", Err: fmt.Errorf("simulation exploration records = %d, want 1", len(completion.result.SimulationRecords))}

@@ -1,6 +1,7 @@
 package runner
 
 import (
+	"bytes"
 	"context"
 	"encoding/json"
 	"errors"
@@ -107,7 +108,11 @@ func (p *boundaryProvider) Execute(ctx context.Context, request backend.Executio
 }
 
 func executeBoundaryFixture(ctx context.Context, provider backend.Provider, request backend.ExecutionRequest) (backend.ExecutionResult, error) {
-	projected := backend.Request{Target: request.Target, Seed: request.Seed, Environment: request.Env, Timeout: request.ExecutionTimeout, OutputBytes: request.OutputLimit, Choice: backendChoiceRequest(request.Choice)}
+	choiceRequest, err := backend.ChoiceRequestForCapability(request.Choice)
+	if err != nil {
+		return backend.ExecutionResult{}, err
+	}
+	projected := backend.Request{Target: request.Target, Seed: request.Seed, Environment: request.Env, Timeout: request.ExecutionTimeout, OutputBytes: request.OutputLimit, Choice: choiceRequest}
 	if request.IO != nil && request.IO.Transcript != nil {
 		projected.TranscriptBytes = request.IO.Transcript.Limit
 	}
@@ -188,6 +193,7 @@ func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing
 		t.Fatal(err)
 	}
 	base := backend.Result{Termination: backend.Exit, Reaped: true, ExitCode: 1, Stdout: []byte("done"), Evidence: []byte("run"), ChoiceTrace: trace.Trace, ImplementationSHA256: trace.ImplementationSHA256}
+	base.InputTapeSHA256, base.InputDecisions = trace.TapeSHA256, trace.Decisions
 	for _, test := range []struct {
 		name           string
 		change         func(*backend.Result)
@@ -233,11 +239,8 @@ func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing
 				return
 			}
 			request := provider.request.Choice
-			if provider.calls != 1 || request == nil || request.Mode != choice.ModeReplay || request.Tape == nil || len(request.Tape.Decisions) != 1 || provider.request.Diagnostics {
-				t.Fatalf("exact tape was not supplied: %+v", provider.request)
-			}
-			if _, err := choice.ValidateReplayPlan(*request.Tape, request.ExecutionIdentity); err != nil {
-				t.Fatal(err)
+			if provider.calls != 1 || request == nil || request.Mode != choice.ModeReplay || !bytes.Equal(request.Trace, trace.Trace.Bytes) || request.TraceSHA256 != trace.Trace.SHA256 || request.TapeSHA256 != trace.TapeSHA256 || request.Decisions != 1 || request.PrefixControl != nil || provider.request.Diagnostics {
+				t.Fatalf("retained trace expectations were not supplied: %+v", provider.request)
 			}
 		})
 	}
@@ -520,7 +523,11 @@ func TestExternalExecutionValidatesChoiceAndDiagnosticTransport(t *testing.T) {
 		t.Fatal(err)
 	}
 	base := backend.Result{Termination: backend.Exit, Reaped: true, Evidence: []byte("fixture"), ChoiceTrace: trace.Trace, DiagnosticTrace: diagnostics, ImplementationSHA256: capability.ImplementationSHA256}
-	request := backend.Request{Target: prepared, OutputBytes: 1024, Choice: backendChoiceRequest(capability), Diagnostics: true}
+	choiceRequest, err := backend.ChoiceRequestForCapability(capability)
+	if err != nil {
+		t.Fatal(err)
+	}
+	request := backend.Request{Target: prepared, OutputBytes: 1024, Choice: choiceRequest, Diagnostics: true}
 	result, err := runBackend(t.Context(), &boundaryProvider{result: base}, request, nil, nil)
 	if err != nil {
 		t.Fatal(err)

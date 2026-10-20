@@ -3,6 +3,7 @@ package runner
 import (
 	"bytes"
 	"context"
+	"crypto/sha256"
 	"errors"
 	"fmt"
 	"math"
@@ -255,6 +256,9 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		}
 	}
 	if err != nil {
+		if errors.Is(err, execution.ErrChoiceReplayPreflight) {
+			return ReplayResult{}, &ReplayPreflightError{Err: err}
+		}
 		if divergence, controlled := onlyChoiceReplayDivergence(err); controlled {
 			result.ChoiceReplayStatus = ChoiceReplayDiverged
 			result.Divergence = fmt.Sprintf("choice_profile.divergence.ordinal[%d].%s", divergence.Divergence.Ordinal, choice.DivergenceReasonName(divergence.Divergence.Reason))
@@ -400,11 +404,8 @@ func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapa
 	if err != nil {
 		return nil, false, fmt.Errorf("decode choice trace identity: %w", err)
 	}
-	trace, err := choice.DecodeStoredTrace(choices.Name, payload, choice.TerminalMetadata{
-		State: choice.TerminalComplete, Limit: uint64(choices.Trace.Limit), Records: uint64(choices.Trace.Records), SHA256: digest,
-	})
-	if err != nil {
-		return nil, false, fmt.Errorf("validate choice trace: %w", err)
+	if sha256.Sum256(payload) != digest {
+		return nil, false, errors.New("validate choice trace: digest mismatch")
 	}
 	targetSHA256, err := manifest.Target.SHA256.Bytes()
 	if err != nil {
@@ -414,16 +415,14 @@ func choiceCapabilityForArtifact(opened *artifact.Opened) (*execution.ChoiceCapa
 		TargetSHA256: targetSHA256, ToolchainBuildKey: manifest.Toolchain.BuildKey,
 		GOOS: manifest.Toolchain.TargetGOOS, GOARCH: manifest.Toolchain.TargetGOARCH, ImplementationSHA256: implementation,
 	}
-	tape, err := choice.ProjectReplayPlan(trace, executionIdentity)
+	tapeDigest, err := choices.Trace.TapeSHA256.Bytes()
 	if err != nil {
-		return nil, false, fmt.Errorf("derive choice replay tape: %w", err)
-	}
-	if choices.Trace.TapeSHA256 != record.SHA256FromSum(tape.SHA256) || uint64(choices.Trace.Decisions) != uint64(len(tape.Decisions)) {
-		return nil, false, errors.New("artifact choice tape identity does not match its trace")
+		return nil, false, fmt.Errorf("decode choice replay tape identity: %w", err)
 	}
 	return &execution.ChoiceCapability{
 		Mode: choice.ModeReplay, Profile: choices.Name, ImplementationSHA256: implementation,
-		ExecutionIdentity: executionIdentity, Limit: uint64(choices.Trace.Limit), ReplayPlan: &tape,
+		ExecutionIdentity: executionIdentity, Limit: uint64(choices.Trace.Limit), Trace: payload, TraceSHA256: digest,
+		TapeSHA256: tapeDigest, Decisions: uint64(choices.Trace.Decisions),
 	}, false, nil
 }
 

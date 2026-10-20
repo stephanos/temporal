@@ -36,13 +36,6 @@ func recordedBackend(prepared target.Prepared, result backend.ExecutionResult) *
 	return metadata
 }
 
-func backendChoiceRequest(capability *backend.ChoiceCapability) *backend.ChoiceRequest {
-	if capability == nil {
-		return nil
-	}
-	return &backend.ChoiceRequest{Mode: capability.Mode, ExecutionIdentity: capability.ExecutionIdentity, Limit: capability.Limit, Tape: capability.ReplayPlan}
-}
-
 func runBackend(ctx context.Context, provider backend.Provider, request backend.Request, stdout, stderr *os.File) (backend.ExecutionResult, error) {
 	if provider == nil {
 		return backend.ExecutionResult{}, errors.New("backend provider is required")

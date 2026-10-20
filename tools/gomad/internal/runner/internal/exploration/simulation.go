@@ -76,6 +76,7 @@ type Decision struct {
 	SiteSHA256           record.SHA256   `json:"site_sha256"`
 	Alternatives         []record.SHA256 `json:"alternatives"`
 	AlternativeControls  [][]byte        `json:"alternative_controls,omitempty"`
+	SourceTrace          []byte          `json:"source_trace,omitempty"`
 	AlternativeSetSHA256 record.SHA256   `json:"alternative_set_sha256"`
 	Selected             uint32          `json:"selected"`
 	Identity             record.SHA256   `json:"identity"`
@@ -90,6 +91,7 @@ type ForcedDecision struct {
 	Selected             uint32        `json:"selected"`
 	SelectedSHA256       record.SHA256 `json:"selected_sha256"`
 	Control              []byte        `json:"control,omitempty"`
+	SourceTrace          []byte        `json:"source_trace,omitempty"`
 	Identity             record.SHA256 `json:"identity"`
 }
 
@@ -561,6 +563,7 @@ func forcedDecisionFor(decision Decision, selected uint32) (ForcedDecision, erro
 	}
 	if decision.Dimension == DimensionRuntime {
 		forced.Control = append([]byte(nil), decision.AlternativeControls[selected]...)
+		forced.SourceTrace = append([]byte(nil), decision.SourceTrace...)
 	}
 	var err error
 	forced.Identity, err = forcedDecisionIdentity(forced)
@@ -942,6 +945,7 @@ func cloneForcedDecisions(decisions []ForcedDecision) []ForcedDecision {
 	for index, decision := range decisions {
 		cloned[index] = decision
 		cloned[index].Control = append([]byte(nil), decision.Control...)
+		cloned[index].SourceTrace = append([]byte(nil), decision.SourceTrace...)
 	}
 	return cloned
 }
@@ -952,6 +956,7 @@ func cloneDecisions(decisions []Decision) []Decision {
 		cloned[index] = decision
 		cloned[index].Alternatives = append([]record.SHA256(nil), decision.Alternatives...)
 		cloned[index].AlternativeControls = cloneControls(decision.AlternativeControls)
+		cloned[index].SourceTrace = append([]byte(nil), decision.SourceTrace...)
 	}
 	return cloned
 }

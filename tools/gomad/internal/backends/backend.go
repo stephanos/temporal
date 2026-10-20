@@ -57,7 +57,22 @@ type ChoiceRequest struct {
 	Mode              choice.Mode
 	ExecutionIdentity choice.ExecutionIdentity
 	Limit             uint64
-	Tape              *choice.ReplayPlan
+	Trace             []byte
+	TraceSHA256       [32]byte
+	TapeSHA256        [32]byte
+	Decisions         uint64
+	PrefixControl     *ChoicePrefixControl
+}
+
+type ChoicePrefixControl struct {
+	Cutoff   uint64              `json:"cutoff"`
+	Override *ChoiceRankOverride `json:"override,omitempty"`
+}
+
+type ChoiceRankOverride struct {
+	Ordinal     uint64 `json:"ordinal"`
+	Rank        uint32 `json:"rank"`
+	Reconstruct bool   `json:"reconstruct"`
 }
 
 type Result struct {
@@ -71,6 +86,8 @@ type Result struct {
 	DiagnosticTrace                    choice.DiagnosticTrace
 	ImplementationSHA256               [32]byte
 	ChoiceDivergence                   *choice.Divergence
+	InputTapeSHA256                    [32]byte
+	InputDecisions                     uint64
 }
 
 type Termination string

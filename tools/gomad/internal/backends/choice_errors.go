@@ -19,6 +19,7 @@ var (
 	ErrChoiceTraceMalformed    = errors.New("choice trace malformed")
 	ErrChoiceTraceOverflow     = errors.New("choice trace overflow")
 	ErrChoiceReplayDivergence  = errors.New("choice replay divergence")
+	ErrChoiceReplayPreflight   = errors.New("choice replay preflight")
 	ErrChoiceTraceUnterminated = errors.New("choice trace unterminated")
 )
 
