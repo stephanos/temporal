@@ -17,17 +17,20 @@ This spec measures the gap instead of guessing. It runs every test function in `
 
 **Enumeration and compile reuse.** Test functions include registered suite methods, including nested suite registrations. Preserve the mapping from each method to its top-level wrapper and exact `-test.run` path; require the selected method's terminal verdict rather than accepting the wrapper's pass. Reconcile top-level functions with `go test -list`, and reconcile method declarations against the registration inventory with explicit exclusions. A single global deadline bounds enumeration, preparation, retries and execution. To fulfill the existing build-once requirement, the backend may reuse an authenticated module by compile-only inputs while preserving the full per-execution provenance and BuildKey. Runtime arguments and configuration must never be copied from a different cached execution. Tests must prove selector reuse avoids compilation, compilation inputs invalidate reuse, and different runtime inputs retain distinct execution provenance.
 
-**Classification.** Each outcome maps to exactly one class, derived from the existing `backends.Termination` values and build results:
+**Classification.** Each executed outcome maps to exactly one class, derived from the explore event stream, existing `backends.Termination` values, retained artifact outcome and build results:
 
 | Class | Source |
 | --- | --- |
-| pass | exit termination, test exit code 0 |
-| guest failure | exit termination, nonzero test exit code, or trap |
-| refused import | unsupported termination naming an import or operation |
-| capacity exceeded | capacity termination |
-| timeout | watchdog or execution timeout |
-| build failure | guest did not compile under the slim tags |
+| pass | exit termination, test exit code 0 and the selected function's verbose PASS; an explicit selected SKIP is marked skipped and reported separately |
+| guest failure | nonzero test exit code, soft-assertion failure or trap |
+| refused import | preparation or execution unsupported refusal naming an import or operation, with the phase retained in the reason |
+| capacity exceeded | capacity termination, World/choice-trace overflow or artifact/journal capacity |
+| timeout | watchdog, execution timeout or that function's explore overall timeout |
+| build failure | guest compilation failure under the slim tags or the function outside the wasip1 guest file set, with the diagnostic or guest-file-set reason |
 | infrastructure | helper or host failure, retried once, then recorded |
+| replay divergence | observed replay, backend or World divergence; reported to fn-188 as a determinism finding |
+
+Budget/cap cuts are recorded as `not run` with a reason and retried on resume; they are never failures or successful executions. A missing selected verdict or `no tests to run` is never a pass. The method-aware sidecar is `gomad-wasm.sweep/v2`; retained wrapper-only v1 proofs cannot establish complete method coverage.
 
 **Artifact.** `.flow/artifacts/fn-<id>-support-matrix-<date>.md` plus a machine-readable sidecar (JSON, shape decided in task .2) listing per test function: package, name, class, reason string, seed, budget, candidate identity (helper digest, compiler, module identity). Aggregates per class and per package, and a ranked list of distinct reason strings with counts.
 
@@ -40,6 +43,9 @@ This spec measures the gap instead of guessing. It runs every test function in `
 ## Edge Cases & Constraints
 
 - Budget: one seed per test, bounded per-test timeout, and an overall wall budget; tests cut off by the overall budget are recorded as not run, never as failures.
+- Each function records choices under a 64 MiB bound and uses `-test.timeout=72h`, matching the existing Temporal consumer workflow. Host per-test, explore and global watchdog budgets remain enforced and unchanged; individual test contexts are not altered. No choice-guided exploration or coverage claim is added.
+- A bounded package warm-up selects no test and charges engine compilation to preparation before timed test execution. Retain the package's authenticated compilation and engine caches until its functions finish; each function still starts a fresh guest.
+- Guest output is bounded at 256 MiB. Report the effective transcript capacity (currently explore's 64 MiB default), rather than borrowing the configuration's larger limit. Do not pass testcore persistence flags to unrelated packages; record their existing SQL/SQLite defaults.
 - Order: packages run in a fixed sorted order so a rerun produces a comparable matrix; the sweep is not a determinism check and does not compare repetitions.
 - Isolation: each test function runs in its own guest execution; a package-level fixture that cannot start is recorded once per function with the same reason.
 - Host load: the sweep is heavy; run on a quiet host and record host identity, as the WASM qualification gates do.
@@ -49,7 +55,7 @@ This spec measures the gap instead of guessing. It runs every test function in `
 ## Acceptance Criteria
 
 - **R1:** The harness enumerates every test function under `tests` (count recorded and reconciled against a `go test -list` of the same packages) and runs each through the existing explore path with explicit inputs and bounded budgets. Errors: an inherited configuration variable or an unbounded run is refused.
-- **R2:** Every enumerated test function has exactly one class in the retained matrix, with a reason string for every non-pass class and the candidate identity recorded. Errors: a test without a class, or a class without a reason, is a finding.
+- **R2:** Every enumerated test function has exactly one row in the retained matrix, with one of the eight execution classes or the explicit not-run state, a reason for every non-pass state and the candidate identity recorded. Errors: missing/duplicate rows, unknown classes, missing reasons or identity fields, or a row key inconsistent with its recorded identity are findings. The verifier checks the method-aware v2 inventory and candidate-key binding; v1 wrapper evidence does not satisfy this requirement.
 - **R3:** The report ranks distinct reasons by count, names the known suspects' actual outcome (freeport port allocation, os/exec, cgo, ringpop, cloud archivers, non-SQLite persistence), and recommends follow-on specs per reason class with an estimate of how many tests each would unblock. Errors: a recommendation without a reason mapping is a finding.
 - **R4:** The matrix states that it is an observation on one candidate and not a support claim; QUALIFICATION.md is unchanged by this spec. Errors: any support wording is a finding.
 
@@ -63,6 +69,8 @@ This spec measures the gap instead of guessing. It runs every test function in `
 ## Decision Context
 
 Conductor decision (2026-10-20), under the owner's instruction to follow recommendations autonomously: wrapper-only classification does not satisfy the per-function matrix, and recompiling each argument-dependent preparation does not satisfy building once per package. Task .1 therefore includes method/registration discovery and a backend compilation-cache seam, preserving the CLI, recorded provenance, capabilities, model semantics and refusal behavior. This is the implementation needed by the existing acceptance criteria; it does not reduce the sweep scope.
+
+The same decision makes replay divergence explicit rather than misclassifying it as a guest failure, and records skipped/no-test/budget-cut dispositions separately. The 72-hour Go global virtual timeout matches the documented consumer invocation; host watchdogs retain the original execution bounds. Nested modules under `tests` are included rather than silently omitted by the parent module's `go list ./tests/...`.
 
 Owner decision (2026-10-19): size the gap before closing it. The sweep is ordered before or alongside the one-command setup spec because its output changes what that setup must capture; a throwaway configuration is acceptable for the sweep. Refusal-closing specs are filed from the sweep's reason classes. Host-side execution cost belongs to open spec fn-185 and the determinism contract to open spec fn-188; this spec feeds both with real workload data but does not take over their scope.
 
