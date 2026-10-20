@@ -143,6 +143,11 @@ rows. Its input types carry only qualification Results, receipts and gate exits,
 so a sweep or triage pass alone can never add a row. Anything else is refused,
 not dropped.
 
+| Registered cell | Package | Named test / success selection |
+| --- | --- | --- |
+| `onebox/unchanged-workflow-type-smoke` | `./tests` | `TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds` / `^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` |
+| `onebox/frontend-system-info` | `./tests/gomadfunctional` | `TestFrontendSystemInfo` / `^TestFrontendSystemInfo$` |
+
 A list records the candidate identities, then one row per supported test: package,
 function, selection, cell, module identity and size, workload source, host
 configuration, seed, repeats, both retained Result references with matched-replay
@@ -162,6 +167,23 @@ row passed, and otherwise the smoke-only list; the copied list is the one whose 
 all passed. Gate logs are referenced by absolute path inside that run's evidence root. Each root must hold only support-cell
 Results; a root that also holds other cells, such as the mandatory corpus root, is
 refused. No list exists yet for the current candidate.
+
+The [Go preparatory disposition report](../../../../../.flow/artifacts/fn222-go-support-pending-2026-10-20.md)
+records zero qualified rows and the historical receipts available to fn-222.2.
+It is a pending report, not a `gomad.wasm-support-list/v1` publication:
+`BuildSupportList` and `ValidateSupportList` refuse an empty list. Missing gates
+have no numeric exit; they must not be encoded as exit 0 or supplied to the
+producer. Historical preparation and inspection observations retain their own
+source/helper identities and cannot be combined into a current-candidate row.
+
+Under the merged [milestone order](../../../../../MILESTONES.md#rust-host-rewrite-owner-decision-2026-10-20),
+fn-222.2 owns this preparatory Go contract and truthful dispositions. After
+fn-232.10 implements qualification in Rust, fn-222.1 owns the final frozen
+Rust candidate's gates and first accepted list. That list requires both registered
+selections above; a smoke-only interim publication does not satisfy fn-222 R2.
+The Go producer names and commands here preserve the semantics for that port;
+they do not authorize another Go qualification ladder. Changed source, helper,
+runtime, engine, model, compiler or host identities must earn their rows again.
 
 ## Post-migration cleanup
 
