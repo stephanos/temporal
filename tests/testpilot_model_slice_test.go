@@ -23,6 +23,8 @@ import (
 	"go.temporal.io/sdk/converter"
 	"go.temporal.io/sdk/temporal"
 	"go.temporal.io/sdk/worker"
+	"go.temporal.io/server/common/log"
+	"google.golang.org/grpc"
 	"google.golang.org/grpc/codes"
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
@@ -63,19 +65,19 @@ func modelSliceJudgeObservation(ctx context.Context, t *testing.T, host *model.H
 	judgeStart := time.Now()
 	judgment, err := host.Judge(ctx, request)
 	t.Logf("Judge latency=%s method=%s", time.Since(judgeStart), observation.GetMethod())
-	require.NoError(t, err, "observation: %v", observation)
+	require.NoError(t, err, "observation method: %s", observation.GetMethod())
 	return judgment
 }
 
 func modelSliceExplained(t *testing.T, judgment *modelv1.JudgeResponse, response *workflowservice.DescribeActivityExecutionResponse, steps ...string) {
 	t.Helper()
-	require.NotNil(t, judgment.GetExplained(), "first unexplained Describe observation: %v; judgment: %v", response, judgment)
-	require.Equal(t, steps, judgment.GetExplained().GetSteps(), "Describe observation: %v", response)
+	require.NotNil(t, judgment.GetExplained(), "unexplained Describe status: %s", response.GetInfo().GetStatus())
+	require.Equal(t, steps, judgment.GetExplained().GetSteps())
 	var outcomes []string
 	for range steps {
 		outcomes = append(outcomes, "Accepted")
 	}
-	require.Equal(t, outcomes, judgment.GetExplained().GetOutcomes(), "Describe observation: %v", response)
+	require.Equal(t, outcomes, judgment.GetExplained().GetOutcomes())
 }
 
 func modelSliceReturn(reply *temporalv1.Reply, dc converter.DataConverter) ([]byte, error) {
@@ -120,6 +122,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 	require.NotEmpty(t, guestPath, "UMPIRE_TEMPORAL_WASM must name the built Temporal guest; run make umpire-check-model-slice")
 	wasm, err := os.ReadFile(guestPath)
 	require.NoError(t, err)
+	t.Run("Annotations", func(t *testing.T) { modelSliceAnnotationControls(t, wasm) })
 	host, err := model.New(t.Context(), wasm)
 	require.NoError(t, err)
 	t.Cleanup(func() {
@@ -135,7 +138,14 @@ func TestTestpilotModelSlice(t *testing.T) {
 		require.NoError(t, isolated.Close(ctx))
 	})
 	env := activityEnvironment(t)
-	sdkClient := env.SdkClient()
+	annotations := &modelSliceAnnotations{host: host}
+	t.Cleanup(func() { annotations.assert(t) })
+	sdkClient, err := client.Dial(client.Options{
+		HostPort: env.FrontendGRPCAddress(), Namespace: env.Namespace().String(), Logger: log.NewSdkLogger(env.Logger),
+		ConnectionOptions: client.ConnectionOptions{DialOptions: []grpc.DialOption{grpc.WithChainUnaryInterceptor(annotations.intercept)}},
+	})
+	require.NoError(t, err)
+	t.Cleanup(sdkClient.Close)
 	dc := converter.GetDefaultDataConverter()
 
 	for _, scenario := range []string{"Complete", "Fail", "HostRefusal", "Cancellation", "CancelAfterCompletion", "CancelBeforeWorkerStart"} {
@@ -209,14 +219,14 @@ func TestTestpilotModelSlice(t *testing.T) {
 			}, "ModelSlice", []byte(input))
 			require.NoError(t, err)
 			describe := func() *workflowservice.DescribeActivityExecutionResponse {
-				response, err := env.FrontendClient().DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{
+				response, err := sdkClient.WorkflowService().DescribeActivityExecution(ctx, &workflowservice.DescribeActivityExecutionRequest{
 					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(), IncludeOutcome: true,
 				})
 				require.NoError(t, err)
 				return response
 			}
 			cancelActivity := func() (*temporalv1.Observation, error) {
-				response, err := env.FrontendClient().RequestCancelActivityExecution(ctx, &workflowservice.RequestCancelActivityExecutionRequest{
+				response, err := sdkClient.WorkflowService().RequestCancelActivityExecution(ctx, &workflowservice.RequestCancelActivityExecutionRequest{
 					Namespace: env.Namespace().String(), ActivityId: handle.GetID(), RunId: handle.GetRunID(),
 					Identity: "model-slice", RequestId: uuid.NewString(), Reason: scenario,
 				})
@@ -230,7 +240,7 @@ func TestTestpilotModelSlice(t *testing.T) {
 					require.NotNil(t, response)
 					observation.Result = &temporalv1.Observation_Response{Response: modelSliceAny(t, response)}
 				}
-				t.Logf("actual cancel observation: %v", observation)
+				t.Logf("actual cancel observation method=%s code=%d", observation.GetMethod(), observation.GetError().GetCode())
 				return observation, err
 			}
 			scheduled := describe()

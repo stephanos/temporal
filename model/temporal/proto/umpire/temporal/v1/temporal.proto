@@ -26,3 +26,16 @@ message Callback {
 message Reply {
   google.protobuf.Any request = 1;
 }
+
+message AnnotationRequest {
+  string method = 1;
+  bool response = 2;
+  bytes message = 3;
+  uint64 seed = 4;
+}
+
+message AnnotationResponse {
+  bytes message = 1;
+  repeated string violations = 2;
+  string out_of_scope = 3;
+}

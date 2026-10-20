@@ -236,6 +236,21 @@ func (h *Host) Answer(ctx context.Context, request *modelv1.AnswerRequest) (*mod
 	return response.GetAnswer(), nil
 }
 
+func (h *Host) Annotate(ctx context.Context, request *modelv1.AnnotateRequest) (*modelv1.AnnotateResponse, error) {
+	if request.GetInput() == nil || request.GetInput().TypeUrl == "" {
+		return nil, &RefusalError{Code: modelv1.RefusalCode_REFUSAL_CODE_MALFORMED_REQUEST, Message: "Annotate requires an input Any type URL"}
+	}
+	data, err := proto.Marshal(request)
+	if err != nil {
+		return nil, err
+	}
+	response, err := h.Call(ctx, modelv1.Method_METHOD_ANNOTATE, data)
+	if err != nil {
+		return nil, err
+	}
+	return response.GetAnnotate(), nil
+}
+
 func (h *Host) Call(ctx context.Context, method modelv1.Method, request []byte) (response *modelv1.Response, err error) {
 	h.mu.Lock()
 	defer h.mu.Unlock()
@@ -332,6 +347,12 @@ func (h *Host) Call(ctx context.Context, method modelv1.Method, request []byte) 
 	if method == modelv1.Method_METHOD_ANSWER && response.GetAnswer() != nil {
 		if reply := response.GetAnswer().GetReply(); reply == nil || reply.TypeUrl == "" {
 			return nil, fmt.Errorf("%s: missing Answer reply Any type URL", name)
+		}
+		return response, nil
+	}
+	if method == modelv1.Method_METHOD_ANNOTATE && response.GetAnnotate() != nil {
+		if output := response.GetAnnotate().GetOutput(); output == nil || output.TypeUrl == "" {
+			return nil, fmt.Errorf("%s: missing Annotate output Any type URL", name)
 		}
 		return response, nil
 	}

@@ -22,6 +22,11 @@ delivery and its enabled response action before committing. Failed response publ
 constructors; the registry remains system-owned. Existing method IDs and old wire bytes
 remain pinned by host tests.
 
+Annotate (7) carries an opaque input Any and returns an opaque output Any at
+Response tag 8. System dispatchers own annotation schemas and handle this stateless
+operation independently of Judge's frozen run. Method 6 and Response tag 7 remain
+reserved for Propose; every existing method and field number is unchanged.
+
 The wasm32-wasip1 guest directly exports application functions
 `umpire_buffer_alloc(u32) -> u32`, `umpire_buffer_release(u32, u32)` and
 `umpire_call(u32, u32, u32) -> u64`, plus memory and toolchain lifecycle exports.
