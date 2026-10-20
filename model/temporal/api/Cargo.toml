@@ -13,6 +13,14 @@ prost.workspace = true
 
 [build-dependencies]
 prost-build.workspace = true
+umpire-temporal-annotate-syntax.workspace = true
+
+[dev-dependencies]
+umpire-temporal-annotate-syntax.workspace = true
+
+[[test]]
+name = "descriptor"
+path = "../annotate/syntax/tests/descriptor.rs"
 
 [lints]
 workspace = true

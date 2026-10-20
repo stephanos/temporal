@@ -1,0 +1,305 @@
+---
+source: temporal/annotate/syntax/tests/expansion.rs
+expression: "prettyplease::unparse(&file)"
+---
+mod controls {
+    #[allow(unused_imports)]
+    use super::*;
+    #[doc = concat!("Declarative `", stringify!(Visibility), "` annotation tag.")]
+    pub struct Visibility;
+    impl ::umpire_annotations::Tag for Visibility {
+        fn name(&self) -> &str {
+            stringify!(Visibility)
+        }
+        fn consequence(&self) -> ::umpire_annotations::Consequence {
+            ::umpire_annotations::Consequence::EventuallyConsistent {
+                polls: 3,
+            }
+        }
+        fn applies_to(&self, kind: &::umpire_annotations::Kind) -> bool {
+            matches!(kind, ::umpire_annotations::Kind::Timestamp(_))
+        }
+    }
+    #[doc = concat!("Converts a known `", "test.Status", "` discriminant.")]
+    pub fn status(
+        value: i32,
+    ) -> ::core::result::Result<Status, ::umpire_temporal_annotate::UnknownEnum> {
+        let variant = <Status as ::core::convert::TryFrom<i32>>::try_from(value)
+            .map_err(|_| ::umpire_temporal_annotate::UnknownEnum {
+                value,
+                enum_name: "test.Status",
+            })?;
+        match variant {
+            Status::Ready => {}
+            Status::Done => {}
+        }
+        Ok(variant)
+    }
+    #[doc = concat!("Lists declared `", "test.Status", "` discriminants.")]
+    pub fn status_values() -> ::std::vec::Vec<i32> {
+        ::std::vec![Status::Ready as i32, Status::Done as i32]
+    }
+    #[doc = concat!("Admits the exhaustive catalog for `", "test.Request", "`.")]
+    pub fn request() -> ::core::result::Result<
+        ::umpire_annotations::Catalog<Request>,
+        ::umpire_annotations::AdmissionErrors,
+    > {
+        let _: fn(&Request) = |message| {
+            let Request { id: _, count: _, status: _ } = message;
+            ::umpire_annotations::types::check::<
+                ::umpire_annotations::types::Uuid,
+                _,
+            >(&message.id);
+            ::umpire_annotations::types::check::<
+                ::umpire_annotations::types::Counter,
+                _,
+            >(&message.count);
+            ::umpire_annotations::types::check::<
+                ::umpire_annotations::types::Enum,
+                _,
+            >(&message.status);
+        };
+        ::umpire_annotations::Catalog::<Request>::request("test.Request")
+            .field(
+                ::umpire_annotations::Field::new(
+                        "test.Request.id",
+                        ::umpire_annotations::Kind::Uuid,
+                        |message: &Request| &message.id,
+                        |message: &mut Request| &mut message.id,
+                    )
+                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .expects(
+                        &::umpire_annotations::Expected {
+                            expectation: ::umpire_annotations::Expectation::Accepts,
+                            covers: "validator".to_owned(),
+                        },
+                    ),
+            )
+            .field(
+                ::umpire_annotations::Field::new(
+                        "test.Request.count",
+                        ::umpire_annotations::Kind::Counter(::umpire_annotations::NumberRules {
+                            gte: Some(1),
+                            ..::core::default::Default::default()
+                        }),
+                        |message: &Request| &message.count,
+                        |message: &mut Request| &mut message.count,
+                    )
+                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .expects(
+                        &::umpire_annotations::Expected {
+                            expectation: ::umpire_annotations::Expectation::Rejects {
+                                code: 3,
+                                message_pattern: "bad".to_owned(),
+                                details_type: None,
+                            },
+                            covers: "validator".to_owned(),
+                        },
+                    ),
+            )
+            .field(
+                ::umpire_annotations::Field::new(
+                        "test.Request.status",
+                        ::umpire_annotations::Kind::Enum(::umpire_annotations::EnumRules {
+                            defined_only: true,
+                            values: status_values(),
+                        }),
+                        |message: &Request| &message.status,
+                        |message: &mut Request| &mut message.status,
+                    )
+                    .tag(&::umpire_annotations::Consequence::Decided)
+                    .expects(
+                        &::umpire_annotations::Expected {
+                            expectation: ::umpire_annotations::Expectation::Accepts,
+                            covers: "validator".to_owned(),
+                        },
+                    ),
+            )
+            .rule(::umpire_annotations::Rule {
+                presence: ::umpire_annotations::Presence::Required(
+                    ::std::vec!["id".to_owned()],
+                ),
+                expected: Some(::umpire_annotations::Expected {
+                    expectation: ::umpire_annotations::Expectation::Accepts,
+                    covers: "validator".to_owned(),
+                }),
+            })
+            .build()
+    }
+    #[doc = concat!("Admits the exhaustive catalog for `", "test.Response", "`.")]
+    pub fn response() -> ::core::result::Result<
+        ::umpire_annotations::Catalog<Response>,
+        ::umpire_annotations::AdmissionErrors,
+    > {
+        let _: fn(&Response) = |message| {
+            let Response {
+                id: _,
+                timestamp: _,
+                flag: _,
+                labels: _,
+                opaque: _,
+                choice: _,
+            } = message;
+            ::umpire_annotations::types::check::<
+                ::umpire_annotations::types::Uuid,
+                _,
+            >(&message.id);
+            ::umpire_annotations::types::check::<
+                ::umpire_annotations::types::Timestamp,
+                _,
+            >(
+                &(|m: &Response| {
+                    m
+                        .timestamp
+                        .as_ref()
+                        .map(|v| Timestamp {
+                            seconds: v.seconds,
+                            nanos: v.nanos,
+                        })
+                        .unwrap_or_default()
+                })(message),
+            );
+            match message.choice.as_ref() {
+                Some(value) => {
+                    match value {
+                        Choice::Text(_) => {}
+                        Choice::Flag(_) => {}
+                    }
+                }
+                None => {}
+            }
+        };
+        ::umpire_annotations::Catalog::<Response>::response("test.Response")
+            .field(
+                ::umpire_annotations::Field::new(
+                    "test.Response.id",
+                    ::umpire_annotations::Kind::Uuid,
+                    |message: &Response| &message.id,
+                    |message: &mut Response| &mut message.id,
+                ),
+            )
+            .field(
+                ::umpire_annotations::Field::<
+                    Response,
+                    Timestamp,
+                >::projected(
+                        "test.Response.timestamp",
+                        ::umpire_annotations::Kind::Timestamp(::umpire_annotations::NumberRules {
+                            gte: Some(1),
+                            ..::core::default::Default::default()
+                        }),
+                        |m: &Response| {
+                            m
+                                .timestamp
+                                .as_ref()
+                                .map(|v| Timestamp {
+                                    seconds: v.seconds,
+                                    nanos: v.nanos,
+                                })
+                                .unwrap_or_default()
+                        },
+                        |m: &mut Response, v: Timestamp| {
+                            m.timestamp = Some(WireTime {
+                                seconds: v.seconds,
+                                nanos: v.nanos,
+                            });
+                        },
+                    )
+                    .tag(&Visibility),
+            )
+            .ignored(
+                ::umpire_annotations::IgnoredField::new(
+                    "test.Response.flag",
+                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                        ..::core::default::Default::default()
+                    }),
+                    |message: &Response| &message.flag,
+                    |message: &mut Response| &mut message.flag,
+                    "boolean outside the model",
+                ),
+            )
+            .ignored(
+                ::umpire_annotations::IgnoredField::new(
+                    "test.Response.labels",
+                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                        ..::core::default::Default::default()
+                    }),
+                    |message: &Response| &message.labels,
+                    |message: &mut Response| &mut message.labels,
+                    "map outside the model",
+                ),
+            )
+            .ignored(
+                ::umpire_annotations::IgnoredField::new(
+                    "test.Response.opaque",
+                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                        ..::core::default::Default::default()
+                    }),
+                    |message: &Response| &message.opaque,
+                    |message: &mut Response| &mut message.opaque,
+                    "nested message outside the model",
+                ),
+            )
+            .ignored(
+                ::umpire_annotations::IgnoredField::projected(
+                    "test.Response.text",
+                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                        ..::core::default::Default::default()
+                    }),
+                    |message: &Response| match message.choice.as_ref() {
+                        Some(Choice::Text(value)) => Some(value.clone()),
+                        _ => None,
+                    },
+                    |message: &mut Response, value| {
+                        message.choice = value.map(Choice::Text);
+                    },
+                    "oneof outside the model",
+                ),
+            )
+            .ignored(
+                ::umpire_annotations::IgnoredField::projected(
+                    "test.Response.choice_flag",
+                    ::umpire_annotations::Kind::Bytes(::umpire_annotations::BytesRules {
+                        ..::core::default::Default::default()
+                    }),
+                    |message: &Response| match message.choice.as_ref() {
+                        Some(Choice::Flag(value)) => Some(value.clone()),
+                        _ => None,
+                    },
+                    |message: &mut Response, value| {
+                        message.choice = value.map(Choice::Flag);
+                    },
+                    "oneof outside the model",
+                ),
+            )
+            .build()
+    }
+    /// Classifies every declared model action.
+    pub fn bind(action: &Action) -> ::umpire_temporal_annotate::Binding {
+        match action {
+            Action::Client(actor) => {
+                match actor {
+                    Client::Start => {
+                        ::umpire_temporal_annotate::Binding::Rpc("test.Service.Start")
+                    }
+                    Client::Cancel { .. } => {
+                        ::umpire_temporal_annotate::Binding::Environmental(
+                            "cancellation",
+                        )
+                    }
+                }
+            }
+            Action::Worker(actor) => {
+                match actor {
+                    Worker::Poll => ::umpire_temporal_annotate::Binding::Observed("poll"),
+                }
+            }
+        }
+    }
+    /// Explicit protobuf RPC classifications.
+    pub const RPC_BINDINGS: &[(&str, &str, &str)] = &[
+        ("test.Service.Start", "Action", "Client::Start"),
+        ("test.Service.Poll", "Observed", "poll"),
+        ("test.Service.Other", "OutOfScope", "not represented by this model"),
+    ];
+}

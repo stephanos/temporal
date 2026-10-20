@@ -1,6 +1,15 @@
 //! Generate the upstream descriptor closure with shared well-known types.
 
-use std::{env, io, path::PathBuf, process::Command};
+use std::{
+    env, fs, io,
+    path::{Path, PathBuf},
+    process::Command,
+};
+
+use umpire_temporal_annotate_syntax::{
+    catalogs,
+    descriptor::{self, Coverage},
+};
 
 fn main() -> io::Result<()> {
     let root = PathBuf::from(
@@ -18,6 +27,26 @@ fn main() -> io::Result<()> {
     let schema = "../proto/umpire/temporal/v1/temporal.proto";
     println!("cargo:rerun-if-changed={}", upstream.display());
     println!("cargo:rerun-if-changed={schema}");
+    let linked = PathBuf::from(
+        env::var_os("OUT_DIR").ok_or_else(|| io::Error::other("OUT_DIR is missing"))?,
+    )
+    .join("annotation-api.binpb");
+    if !Command::new("sh")
+        .current_dir(&root)
+        .arg("cmd/tools/getproto/run.sh")
+        .arg("--linked-api")
+        .arg(&upstream)
+        .arg("--out")
+        .arg(&linked)
+        .status()?
+        .success()
+    {
+        return Err(io::Error::other("linking annotation API descriptors failed"));
+    }
+    let mut coverage = Coverage::default();
+    catalog_inputs(&root.join("model/temporal/features"), false, &mut coverage)?;
+    catalog_inputs(&root.join("model/temporal/annotate/catalogs"), true, &mut coverage)?;
+    descriptor::check(&fs::read(&linked)?, &coverage).map_err(io::Error::other)?;
 
     let mut files = prost_build::Config::new()
         .file_descriptor_set_path(&upstream)
@@ -40,4 +69,33 @@ fn main() -> io::Result<()> {
         }
     }
     config.compile_fds(files)
+}
+
+fn catalog_inputs(path: &Path, owned: bool, coverage: &mut Coverage) -> io::Result<()> {
+    println!("cargo:rerun-if-changed={}", path.display());
+    if !path.exists() {
+        return Ok(());
+    }
+    let mut entries: Vec<_> = fs::read_dir(path)?.collect::<Result<_, _>>()?;
+    entries.sort_by_key(fs::DirEntry::path);
+    for entry in entries {
+        let path = entry.path();
+        if entry.file_type()?.is_dir() {
+            catalog_inputs(&path, owned, coverage)?;
+        } else if (owned && path.extension().is_some_and(|extension| extension == "rs"))
+            || path.file_name().is_some_and(|name| name == "api.rs")
+        {
+            println!("cargo:rerun-if-changed={}", path.display());
+            let source = fs::read_to_string(&path)?;
+            for catalog in catalogs(&source)
+                .map_err(|error| io::Error::other(format!("{}: {error}", path.display())))?
+            {
+                let projected = catalog.coverage();
+                coverage.messages.extend(projected.messages);
+                coverage.enums.extend(projected.enums);
+                coverage.services.extend(projected.services);
+            }
+        }
+    }
+    Ok(())
 }

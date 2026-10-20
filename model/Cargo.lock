@@ -984,11 +984,44 @@ dependencies = [
 ]
 
 [[package]]
+name = "umpire-temporal-annotate"
+version = "0.0.1"
+dependencies = [
+ "insta",
+ "trybuild",
+ "umpire-annotations",
+ "umpire-temporal-annotate-macros",
+ "umpire-temporal-api",
+]
+
+[[package]]
+name = "umpire-temporal-annotate-macros"
+version = "0.0.1"
+dependencies = [
+ "syn 3.0.9",
+ "umpire-temporal-annotate-syntax",
+]
+
+[[package]]
+name = "umpire-temporal-annotate-syntax"
+version = "0.0.1"
+dependencies = [
+ "insta",
+ "prettyplease 0.3.0",
+ "proc-macro2",
+ "prost",
+ "quote",
+ "syn 3.0.9",
+ "umpire-wasm",
+]
+
+[[package]]
 name = "umpire-temporal-api"
 version = "0.0.1"
 dependencies = [
  "prost",
  "prost-build",
+ "umpire-temporal-annotate-syntax",
  "umpire-wasm",
 ]
 

@@ -39,3 +39,11 @@ impl<T: SupportsKind<K>, K> SupportsKind<K> for Vec<T> {}
 /// types::check::<Uuid, _>(&42_i32);
 /// ```
 pub fn check<K, T: SupportsKind<K>>(_field: &T) {}
+
+/// A carrier with repeated element semantics, excluding scalar byte strings.
+pub trait SupportsRepeated: crate::FieldValue {}
+
+impl<T: crate::FieldValue> SupportsRepeated for Vec<T> {}
+
+/// Enforces repeated constraint applicability on a concrete typed field.
+pub fn check_repeated<T: SupportsRepeated>(_field: &T) {}

@@ -1,0 +1,32 @@
+[package]
+name = "umpire-temporal-annotate-syntax"
+description = "API-independent annotation parser, expansion and descriptor check"
+version.workspace = true
+edition.workspace = true
+publish.workspace = true
+license.workspace = true
+rust-version.workspace = true
+autotests = false
+
+[[test]]
+name = "admission"
+path = "tests/admission.rs"
+
+[[test]]
+name = "expansion"
+path = "tests/expansion.rs"
+
+[lints]
+workspace = true
+
+[dependencies]
+syn.workspace = true
+quote.workspace = true
+proc-macro2.workspace = true
+umpire-wasm.workspace = true
+prost.workspace = true
+
+[dev-dependencies]
+insta.workspace = true
+prettyplease.workspace = true
+
