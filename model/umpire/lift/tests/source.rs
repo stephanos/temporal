@@ -73,6 +73,7 @@ fn admission_refuses_type_cfg_resolution_and_observer_collisions()
         ("self.temperature = true;", "type mismatch"),
         ("#[cfg(feature = \"changed\")] self.temperature += 1;", "unsupported"),
         ("self.temperature = self.temperature.abs();", "unsupported method"),
+        ("if self.beeping { stay!(); }", "unsupported effect statement"),
     ] {
         let source = KETTLE.replace("self.temperature += 1;", replacement);
         let error =

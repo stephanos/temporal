@@ -509,14 +509,15 @@ impl Parser<'_> {
                 let mut state = self.field_env(false);
                 let mut locals = Env::new();
                 let mut checks = Vec::new();
-                self.effects(&arm.body, &mut state, &mut locals, &mut checks, 0)?;
-                self.bounded_vector_growth(&arm.body, &state, &effective)?;
+                let (body, stays) = without_stay(&arm.body);
+                self.effects(&body, &mut state, &mut locals, &mut checks, 0)?;
+                self.bounded_vector_growth(&body, &state, &effective)?;
                 action.branches.push(Branch {
                     guard: effective,
                     updates: state,
                     checks,
                     outcome: Expr::unit(),
-                    preserve_self_loop: false,
+                    preserve_self_loop: stays,
                 });
             }
         }
@@ -714,6 +715,27 @@ impl Parser<'_> {
             checks.push(value);
         }
         Ok(Expr { kind: ExprKind::Checks(checks), ty: Type::Bool })
+    }
+}
+fn is_stay(mac: &syn::Macro) -> bool {
+    mac.path.is_ident("stay") && mac.tokens.is_empty()
+}
+/// Strips `stay!()` from an arm's top level; one nested in a condition stays and is refused.
+fn without_stay(body: &RustExpr) -> (RustExpr, bool) {
+    match body {
+        RustExpr::Macro(mac) if is_stay(&mac.mac) => (syn::parse_quote!({}), true),
+        RustExpr::Block(block) => {
+            let mut block = block.clone();
+            let before = block.block.stmts.len();
+            block.block.stmts.retain(|statement| match statement {
+                Stmt::Macro(mac) => !is_stay(&mac.mac),
+                Stmt::Expr(RustExpr::Macro(mac), _) => !is_stay(&mac.mac),
+                _ => true,
+            });
+            let stays = block.block.stmts.len() != before;
+            (RustExpr::Block(block), stays)
+        }
+        _ => (body.clone(), false),
     }
 }
 fn default_expr(ty: &Type) -> Expr {

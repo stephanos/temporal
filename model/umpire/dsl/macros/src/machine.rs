@@ -19,18 +19,61 @@ impl<'ast> syn::visit::Visit<'ast> for WithinAttribute<'ast> {
     }
 }
 
-fn rejects(tokens: TokenStream) -> bool {
+fn invokes(tokens: TokenStream, macro_name: &str) -> bool {
     let tokens: Vec<_> = tokens.into_iter().collect();
     tokens.windows(3).any(|pair| {
         matches!(pair,
             [proc_macro2::TokenTree::Ident(name), proc_macro2::TokenTree::Punct(mark), proc_macro2::TokenTree::Group(group)]
-                if name == "reject" && mark.as_char() == '!'
+                if name == macro_name && mark.as_char() == '!'
                     && group.delimiter() != proc_macro2::Delimiter::None
         )
     }) || tokens.into_iter().any(|token| match token {
-        proc_macro2::TokenTree::Group(group) => rejects(group.stream()),
+        proc_macro2::TokenTree::Group(group) => invokes(group.stream(), macro_name),
         _ => false,
     })
+}
+
+/// Admits `stay!()` in a handler body; the macro's plain arm is a compile error everywhere else.
+fn admit_stay(tokens: TokenStream) -> TokenStream {
+    let mut tokens: Vec<_> = tokens.into_iter().collect();
+    for index in 0..tokens.len() {
+        let admitted = match &tokens[index..] {
+            [
+                proc_macro2::TokenTree::Ident(name),
+                proc_macro2::TokenTree::Punct(mark),
+                proc_macro2::TokenTree::Group(group),
+                ..,
+            ] => name == "stay" && mark.as_char() == '!' && group.stream().is_empty(),
+            _ => false,
+        };
+        if let proc_macro2::TokenTree::Group(group) = &tokens[index] {
+            let mut nested = proc_macro2::Group::new(group.delimiter(), admit_stay(group.stream()));
+            nested.set_span(group.span());
+            tokens[index] = nested.into();
+        }
+        if admitted && let proc_macro2::TokenTree::Group(group) = &tokens[index + 2] {
+            let mut marked =
+                proc_macro2::Group::new(group.delimiter(), quote!(__umpire_on_handler));
+            marked.set_span(group.span());
+            tokens[index + 2] = marked.into();
+        }
+    }
+    tokens.into_iter().collect()
+}
+
+fn admit_handler_stays(items: &mut [Item]) -> syn::Result<()> {
+    for item in items {
+        let Item::Impl(input) = item else { continue };
+        for item in &mut input.items {
+            if let ImplItem::Fn(method) = item
+                && method.attrs.iter().any(|attr| helper(attr, "on"))
+            {
+                let block = &method.block;
+                method.block = syn::parse2(admit_stay(quote!(#block)))?;
+            }
+        }
+    }
+    Ok(())
 }
 
 fn derives(attrs: &[syn::Attribute], name: &str) -> syn::Result<bool> {
@@ -673,8 +716,23 @@ fn progress_helpers(enabled: bool, state: &syn::Ident) -> Option<TokenStream> {
     })
 }
 
-fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool) -> TokenStream {
+fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: bool) -> TokenStream {
     let dispatch = handlers.iter().map(|(actor, method)| {
+        if rejecting && staying {
+            return quote!(Action::#actor(value) => {
+                let mut next = state.clone();
+                let (outcome, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value));
+                let rejected = matches!(outcome, ::umpire_dsl::Outcome::Rejected(_));
+                if rejected && next != *state {
+                    return ::core::result::Result::Err(::umpire_dsl::StepError::RejectedAfterMutation);
+                }
+                let mut steps = ::umpire_dsl::Steps::new();
+                if next != *state || rejected || stayed {
+                    steps.push((outcome, ::std::vec::Vec::new(), next));
+                }
+                ::core::result::Result::Ok(steps)
+            });
+        }
         if rejecting {
             return quote!(Action::#actor(value) => {
                 let mut next = state.clone();
@@ -687,6 +745,15 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool) -> TokenStre
                     steps.push((outcome, ::std::vec::Vec::new(), next));
                 }
                 ::core::result::Result::Ok(steps)
+            });
+        }
+        if staying {
+            return quote!(Action::#actor(value) => {
+                let mut next = state.clone();
+                let (_, stayed) = ::umpire_dsl::outcome::evaluate_staying(|| next.#method(value));
+                let mut steps = ::umpire_dsl::Steps::new();
+                if next != *state || stayed { steps.push(((), ::std::vec::Vec::new(), next)); }
+                steps
             });
         }
         quote!(Action::#actor(value) => {
@@ -733,7 +800,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     if let Some(attr) = within.0 {
         manyhow::bail!(attr, "a progress claim names its assumption with .assuming(..)");
     }
-    let rejecting = rejects(quote!(#input));
+    let rejecting = invokes(quote!(#input), "reject");
+    let staying = invokes(quote!(#input), "stay");
     let outcome_type = if rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
     let mut input = input.clone();
     input.attrs.insert(0, syn::parse_quote!(#[forbid(unsafe_code)]));
@@ -741,12 +809,13 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         manyhow::bail!(input, "#[machine] requires an inline module");
     };
     let (state, visibility, actors, actions) = catalog(items, &input.ident)?;
+    admit_handler_stays(items)?;
     check_receivers(items, &state)?;
     let registration = registrations(items, &state, &actors)?;
     let post_tokens = postconditions(&registration, &actions)?;
     let progress_tokens = progress_claims(&registration);
     let Registrations { handlers, invariants, assumptions, order, .. } = registration;
-    let stepping = stepping(&handlers, rejecting);
+    let stepping = stepping(&handlers, rejecting, staying);
     let invariant_tokens = invariants.iter().map(|method| {
         let label = method.to_string();
         quote!(::umpire_dsl::Claim::<Self>::with_checks(

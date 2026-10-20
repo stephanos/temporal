@@ -135,6 +135,13 @@ Engines call `Machine::checked_step`, which refuses a rejecting handler that cha
 publishing an edge. Direct `step` calls are unchecked and panic on that invalid implementation.
 Modules without `reject!` keep unit outcomes and their existing rows.
 
+`stay!()` in a handler arm keeps the step enabled when the state is unchanged: an accepted
+self-loop, such as a heartbeat or an idempotent request answered OK. It does not return; an arm
+that also changes state is an ordinary step, and a rejection in the same step wins. Its outcome is
+`Accepted` in a module with `reject!` and unit otherwise. Only `#[on]` handler bodies admit it;
+in an `#[effect]`, claim, helper or outside `#[machine]` it is a compile error. The lifter admits
+it at an arm's top level and refuses it nested in a condition.
+
 Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
 `#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action
 with `#[postcondition(after = Heater::Failover)]`. Shared effects are ordinary `#[effect]`

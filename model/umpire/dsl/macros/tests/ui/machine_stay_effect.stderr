@@ -1,0 +1,7 @@
+error: stay!() marks a self-loop only inside an #[on] handler
+  --> tests/ui/machine_stay_effect.rs:17:13
+   |
+17 |             stay!();
+   |             ^^^^^^^
+   |
+   = note: this error originates in the macro `stay` (in Nightly builds, run with -Z macro-backtrace for more info)

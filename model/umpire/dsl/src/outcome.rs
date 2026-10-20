@@ -28,11 +28,17 @@ pub enum Outcome {
     Rejected(Rejection),
 }
 
-thread_local! {
-    static FRAME: Cell<Option<Outcome>> = const { Cell::new(None) };
+#[derive(Clone, Copy)]
+struct Frame {
+    outcome: Outcome,
+    stayed: bool,
 }
 
-struct Restore(Option<Outcome>);
+thread_local! {
+    static FRAME: Cell<Option<Frame>> = const { Cell::new(None) };
+}
+
+struct Restore(Option<Frame>);
 
 impl Drop for Restore {
     fn drop(&mut self) {
@@ -42,15 +48,31 @@ impl Drop for Restore {
 
 /// Runs a unit-returning handler in an isolated frame, restoring its parent even on unwind.
 pub fn evaluate(handler: impl FnOnce()) -> Outcome {
-    let _restore = Restore(FRAME.replace(Some(Outcome::Accepted)));
+    evaluate_staying(handler).0
+}
+
+/// Runs a handler like [`evaluate`] and also reports whether it marked a self-loop with `stay!()`.
+pub fn evaluate_staying(handler: impl FnOnce()) -> (Outcome, bool) {
+    let _restore =
+        Restore(FRAME.replace(Some(Frame { outcome: Outcome::Accepted, stayed: false })));
     handler();
-    FRAME.get().unwrap_or(Outcome::Accepted)
+    FRAME.get().map_or((Outcome::Accepted, false), |frame| (frame.outcome, frame.stayed))
 }
 
 /// Records the first rejection; calls outside a handler evaluation have no effect.
 pub fn reject(rejection: Rejection) {
-    if FRAME.get() == Some(Outcome::Accepted) {
-        FRAME.set(Some(Outcome::Rejected(rejection)));
+    if let Some(frame) = FRAME.get()
+        && frame.outcome == Outcome::Accepted
+    {
+        FRAME.set(Some(Frame { outcome: Outcome::Rejected(rejection), ..frame }));
+    }
+}
+
+/// Marks the running handler's step enabled even if it leaves the state unchanged.
+#[doc(hidden)]
+pub fn stay() {
+    if let Some(frame) = FRAME.get() {
+        FRAME.set(Some(Frame { stayed: true, ..frame }));
     }
 }
 
@@ -62,4 +84,17 @@ macro_rules! reject {
         $crate::outcome::reject($rejection);
         return;
     }};
+}
+
+/// Marks an enabled self-loop: the handler's step is emitted even if the state is unchanged.
+/// It does not return, and a rejection in the same step wins. `#[machine]` admits it only in
+/// `#[on]` handler bodies; anywhere else it is a compile error.
+#[macro_export]
+macro_rules! stay {
+    () => {
+        ::core::compile_error!("stay!() marks a self-loop only inside an #[on] handler")
+    };
+    (__umpire_on_handler) => {
+        $crate::outcome::stay()
+    };
 }

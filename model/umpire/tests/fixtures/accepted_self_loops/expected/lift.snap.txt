@@ -1,0 +1,1 @@
+fixtures/accepted_self_loops/model.rs:28:21: warning: unsupported effect statement; TLA+ emission refused

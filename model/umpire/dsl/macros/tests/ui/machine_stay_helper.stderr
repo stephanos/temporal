@@ -1,0 +1,7 @@
+error: stay!() marks a self-loop only inside an #[on] handler
+  --> tests/ui/machine_stay_helper.rs:12:9
+   |
+12 |         umpire_dsl::stay!();
+   |         ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `umpire_dsl::stay` (in Nightly builds, run with -Z macro-backtrace for more info)
