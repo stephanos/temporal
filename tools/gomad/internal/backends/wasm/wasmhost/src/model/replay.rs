@@ -212,7 +212,7 @@ mod tests {
 
     fn block(request: &Request, payload: &[u8], tag: Option<(&str, u64)>) -> Vec<u8> {
         let mut bytes = marker("replay_trace", request, tag);
-        for chunk in payload.chunks(CHUNK as usize) {
+        for chunk in payload.chunks(usize::try_from(CHUNK).unwrap()) {
             bytes.extend(u32::try_from(chunk.len()).unwrap().to_be_bytes());
             bytes.extend(chunk);
         }
@@ -236,6 +236,10 @@ mod tests {
     }
 
     #[test]
+    #[expect(
+        clippy::too_many_lines,
+        reason = "One table keeps the complete ordered preflight refusal checks together."
+    )]
     fn replay_preflight_refuses_malformed_blocks_and_expectations() {
         for name in [
             "schema",
@@ -379,7 +383,7 @@ mod tests {
 
     #[test]
     fn replay_preflight_binary_lf_and_chunk_boundaries_reach_trace_validation() {
-        for length in [65535, 65536, 65537, 131072] {
+        for length in [65535, 65536, 65537, 131_072] {
             let mut request = request();
             let payload = vec![b'\n'; length];
             request.trace_bytes = length as u64;

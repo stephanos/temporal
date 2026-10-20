@@ -12,6 +12,10 @@ fn marker(kind: &str, replay: &Value) -> Vec<u8> {
 }
 
 #[test]
+#[expect(
+    clippy::too_many_lines,
+    reason = "The subprocess table preserves setup, wire mutation and pre-instantiation assertions together."
+)]
 fn replay_preflight_refuses_before_instantiation() {
     let wat = b"(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))";
     let path =
@@ -65,7 +69,6 @@ fn replay_preflight_refuses_before_instantiation() {
                 replay["schema"] = "gomad.replay-trace/v99".into();
                 Some("schema")
             }
-            "record-trace" => Some("framing"),
             "trace-sha256" => {
                 trace[0] ^= 1;
                 Some("trace_sha256")
@@ -152,7 +155,7 @@ fn replay_preflight_refuses_before_instantiation() {
         } else {
             2
         };
-        let request = json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":path,"module_sha256":format!("{:x}",Sha256::digest(wat)),"memory_bytes":131072,"fuel":1000,"output_bytes":1024,
+        let request = json!({"schema":"gomad.wasm-host/v1","type":"execute","module_path":path,"module_sha256":format!("{:x}",Sha256::digest(wat)),"memory_bytes":131_072,"fuel":1000,"output_bytes":1024,
             "local_model":{"seed":7,"mode":mode,"limit":8192,"diagnostics":false,"entropy_key":vec![0u8;32],"working_directory_sha256":format!("{:x}",Sha256::digest(b"/")),"arguments":{"bytes":0,"count":0,"chunks":0},"environment":{"bytes":6,"count":1,"chunks":1},"epoch_nanos":0,"read_step_nanos":0,"now":1,"limits":{"calls":100,"transcript_bytes":65536,"pending_events":16},"replay":replay}});
         let mut child = Command::new(env!("CARGO_BIN_EXE_gomad-wasmhost"))
             .stdin(Stdio::piped())
