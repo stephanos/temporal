@@ -23,7 +23,7 @@ This is the first step toward arbitrary functional tests on WASM. It does not wi
 - default file, descriptor, call and modeled network limits, with the defaults taken from the existing fixtures and recorded in the task;
 - the slim guest build tags from `backend.TemporalGuestBuildTags()`.
 
-**Ownership.** Capture of schema bytes and mount declaration belongs to the WASM installation/configuration owners (`internal/backends/wasm/installation`, `internal/backends/wasm/wasi`), the build-tag selection to `internal/backends/wasm/backend`, and the operator grammar to `internal/backends/wasm/command` and `cmd/gomad/internal/cli`. The derived configuration is an ordinary installation input: identity, caching, discovery and explore treat it exactly as a hand-written one.
+**Ownership.** Host capture of immutable schema bytes and its single mapping definition belongs to `internal/backends/wasm/internal/temporalinput`, independent of WASI types. Complete guest policy assembly belongs to the pure `internal/backends/wasm/wasi` owner and consumes already captured inputs. Installation, measurement, inspection and qualification callers perform the shared host capture and pure derivation without post-hoc overrides; white-box WASI fixtures use the same definitions without an import cycle. Build-tag selection remains with `internal/backends/wasm/backend`, and operator grammar with `internal/backends/wasm/command` and `cmd/gomad/internal/cli`. Existing complete configuration bytes, capture errors and CLI contracts are preserved. This ownership repair follows the actual both-platform architecture failure found by integrated validation on 2026-10-20; the pure import boundary is not widened.
 
 **Reuse.** The two integration fixtures are the implementation references and must end up calling the same derivation code rather than keeping a private copy, so that the fixture and the consumer command cannot drift.
 
@@ -80,5 +80,5 @@ GOMAD_WASM_INSTALLATION=/absolute/operator/bin/gomad-temporal.json /absolute/ope
 | --- | --- | --- | --- |
 | R1 | One install-side command derives the complete cooperative configuration. | fn-220-gomad-one-command-temporal-test-setup.1, fn-220-gomad-one-command-temporal-test-setup.2 | — |
 | R2 | TestFrontendSystemInfo passes and replays from the derived installation. | fn-220-gomad-one-command-temporal-test-setup.2 | — |
-| R3 | Fixtures and command share the derivation code with identical bytes. | fn-220-gomad-one-command-temporal-test-setup.1 | — |
+| R3 | Fixtures and command share the derivation code with identical bytes. | fn-220-gomad-one-command-temporal-test-setup.1, fn-220-gomad-one-command-temporal-test-setup.4 | — |
 | R4 | Docs describe the one-command workflow without over-claiming. | fn-220-gomad-one-command-temporal-test-setup.3 | — |
