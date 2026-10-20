@@ -94,13 +94,13 @@ class SchedulerSimTest(unittest.TestCase):
 
     def test_background_overlaps_only_bg_and_not_cleantree(self):
         path = dag(self.tmp, row("start", est=1), row("bg", "start", est=50, flags="bg", scratch="tmp/*"),
-                   row("x", "start", cls="exclusive", est=4), row("y", "x", cls="exclusive", est=4, flags="cleantree"),
+                   row("x", "start", cls="exclusive", est=4, flags="bgok"), row("y", "x", cls="exclusive", est=4),
                    row("n", "start", est=3))
         result, _ = simulate(path, background=True)
         records = result["stages"]
         self.assertTrue(overlaps(records, "x", "bg"))
         self.assertFalse(overlaps(records, "x", "n"))
-        self.assertFalse(overlaps(records, "y", "bg"), "cleantree exclusive must not overlap in-tree scratch")
+        self.assertFalse(overlaps(records, "y", "bg"), "exclusive without bgok never overlaps")
         strict, _ = simulate(path, background=False)
         self.assertFalse(overlaps(strict["stages"], "x", "bg"))
 
@@ -168,15 +168,20 @@ class SchedulerSimTest(unittest.TestCase):
         self.assertEqual(result["stages"]["static"]["start"], 0)
         self.assertGreater(result["stages"]["heavy"]["start"], 0)
 
-    def test_exclusive_reservation_backfills_only_short_work(self):
-        # bg-less exclusive x (top priority) waits for `running`; short n1 may backfill, long n2 may not.
-        path = dag(self.tmp, row("running", est=10), row("gate", est=1), row("x", "gate", cls="exclusive", est=30),
-                   row("n1", "gate", est=5), row("n2", "gate", est=20))
-        result, _ = simulate(path)
+    def test_shared_work_first_then_exclusive_reserves_host(self):
+        # Exclusive time is serial wherever it runs: ready shared stages go first; once none
+        # is ready, the top exclusive stage waits for the host to drain and no other
+        # exclusive stage overtakes it.
+        path = dag(self.tmp, row("gate", est=1), row("x", "gate", cls="exclusive", est=30),
+                   row("n1", "gate", est=5), row("n2", "gate", est=20, mem=14), row("y", "gate", cls="exclusive", est=1),
+                   row("after", "x", est=2))
+        result, _ = simulate(path, mem=15)
         records = result["stages"]
-        self.assertEqual(records["x"]["start"], 10)
-        self.assertLess(records["n1"]["start"], 10)
-        self.assertGreaterEqual(records["n2"]["start"], records["x"]["end"])
+        self.assertEqual(records["n1"]["start"], 1)
+        self.assertEqual(records["n2"]["start"], 1)
+        self.assertEqual(records["x"]["start"], 21, "exclusive waits until no shared stage is ready or running")
+        self.assertGreaterEqual(records["y"]["start"], records["x"]["end"])
+        self.assertEqual(result["wall_s"], 21 + 30 + 2 + 1)
 
     def test_deadline_exit_code(self):
         path = dag(self.tmp, row("a", est=5), row("b", "a", est=5), row("c", "b", est=5))

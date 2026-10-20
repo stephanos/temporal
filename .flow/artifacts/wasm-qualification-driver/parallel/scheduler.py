@@ -12,11 +12,12 @@ Admission rules (see README.md "Scheduling policy"):
   * named locks are mutually exclusive;
   * while a `memguard` stage runs, the others leave it 8 GiB of the cap;
   * `solo` stages run with nothing else; `exclusive` stages run with no other
-    stage, except `bg` stages when --allow-background is given and the
-    exclusive stage is not `cleantree`;
+    stage, except that with --allow-background a `bgok` exclusive stage may
+    overlap `bg` stages;
   * a stage with in-tree scratch never overlaps a `cleantree` stage;
-  * when the highest-priority ready stage is exclusive/solo and blocked, no
-    lower-priority stage is admitted (drain), so exclusives cannot starve.
+  * exclusive/solo time is serial wherever it runs, so normal stages go
+    first; an exclusive stage is considered only when no normal stage is
+    ready, and the top one then waits for the host to drain.
 Fail-fast: after the first non-zero exit no new stage starts; running stages
 finish and are recorded. Past the wall-clock deadline the run continues to
 completion (complete evidence) and exits 3; --stop-at-deadline stops admitting.
@@ -34,7 +35,7 @@ import time
 
 EXIT_OK, EXIT_STAGE_FAILED, EXIT_USAGE, EXIT_WALL = 0, 1, 2, 3
 CLASSES = ("normal", "exclusive", "solo")
-FLAGS = ("bg", "cleantree", "memguard")
+FLAGS = ("bg", "bgok", "cleantree", "memguard")
 # A `memguard` stage refuses to dispatch unless MemAvailable >= 8 GiB (the
 # matched-preparation cold memory guard): other stages may then use at most
 # cap - 8 GiB while it runs.
@@ -99,7 +100,9 @@ def finalize(stages):
     for label in reversed(order):
         stage = stages[label]
         successors = [s.rank for s in stages.values() if label in s.deps]
-        stage.rank = stage.est + max(successors, default=0.0)
+        # Priority among shared stages: exclusive time is serial anyway (see select),
+        # so only shared work on the remaining path counts.
+        stage.rank = (stage.est if stage.cls == "normal" else 0.0) + max(successors, default=0.0)
     return stages
 
 
@@ -160,14 +163,14 @@ def can_start(stage, running, policy):
     if stage.cls == "exclusive":
         if exclusive_running:
             return False
-        if not policy.allow_background or "cleantree" in stage.flags:
+        if not policy.allow_background or "bgok" not in stage.flags:
             return False
         if any("bg" not in r.flags for r in running):
             return False
     elif exclusive_running:
         if not policy.allow_background or "bg" not in stage.flags:
             return False
-        if any("cleantree" in r.flags for r in exclusive_running):
+        if any("bgok" not in r.flags for r in exclusive_running):
             return False
     if "cleantree" in stage.flags and any(r.scratch for r in running):
         return False
@@ -200,26 +203,25 @@ def priority(stage):
 def select(stages, done, running, started, policy, now=0.0, started_at=None):
     """Return the stages to start now, in priority order.
 
-    When the highest-priority ready stage is exclusive/solo and blocked, it
-    reserves the host: other stages are admitted only if their estimated end
-    does not pass the moment the running stages are expected to finish
-    (backfilling that cannot delay the exclusive stage)."""
-    started_at = started_at or {}
+    Exclusive and solo stages cannot overlap anything, so their time adds up
+    serially wherever they run: shared (normal) work goes first, and an
+    exclusive stage is considered only when no normal stage is ready. The
+    highest-priority exclusive stage then reserves the host (no other exclusive
+    stage overtakes it) until the running stages finish."""
+    del now, started_at  # kept for callers; the policy needs no estimates
     ready = sorted((s for s in stages.values() if s.label not in started and all(d in done for d in s.deps)),
                    key=priority)
     chosen = []
     active = list(running)
-    shadow = None
-    for index, stage in enumerate(ready):
-        if shadow is not None and (stage.cls != "normal" or now + stage.est > shadow):
+    normal_ready = any(s.cls == "normal" for s in ready)
+    for stage in ready:
+        if stage.cls != "normal" and normal_ready:
             continue
         if can_start(stage, active, policy):
             chosen.append(stage)
             active.append(stage)
-            continue
-        if stage.cls in ("exclusive", "solo") and index == 0 and not chosen:
-            shadow = max((started_at.get(r.label, now) + r.est for r in running), default=now)
-            shadow = max(shadow, now)
+        elif stage.cls != "normal":
+            break  # reserve the host for the top exclusive stage
     return chosen
 
 

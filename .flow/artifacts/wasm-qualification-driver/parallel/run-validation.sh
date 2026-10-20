@@ -145,6 +145,18 @@ mkdir "$QUAL_ROOT/bin"
 # create its missing parents with a non-idempotent Mkdir; create it once here.
 git check-ignore -q .tmp/wasm-backend-temporal/probe
 mkdir -p .tmp/wasm-backend-temporal
+# `ordinary` and `clusters` both stage the broker fixture with create-if-missing
+# writes that a concurrent reader can observe half-written. Stage it once here with
+# the bytes the tests write (each test still verifies them), so neither creates it.
+broker_digest="$(cat -- "$wasm/testdata/temporal_storage/recovery_test.go" "$wasm/testdata/temporal_broker/replication_test.go" | sha256sum | cut -c1-16)"
+broker_stage=".tmp/wasm-backend-temporal/temporal_broker-$broker_digest"
+mkdir -p -m 700 "$broker_stage"
+for staged_source in "$wasm/testdata/temporal_storage/recovery_test.go" "$wasm/testdata/temporal_broker/replication_test.go"; do
+  staged="$broker_stage/$(basename "$staged_source")"
+  if [[ -e "$staged" ]]; then test -f "$staged" && test ! -L "$staged" && cmp -- "$staged_source" "$staged"
+  else install -m 600 -- "$staged_source" "$staged"; fi
+done
+test "$(find "$broker_stage" -mindepth 1 | wc -l)" -eq 2
 
 # ------------------------------------------------------------ parallel stages
 python3 "$QUALDRV_DIR/scheduler.py" run --dag "$QUALDRV_DIR/dag.tsv" --state-dir "$QUAL_ROOT/sched" \
