@@ -1,0 +1,14 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T15:28:57.484995Z",
+  "depends_on": [],
+  "id": "fn-227-gomad-close-wasm-map-order-determinism.1",
+  "priority": null,
+  "spec": "fn-227-gomad-close-wasm-map-order-determinism",
+  "spec_path": ".flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md",
+  "status": "todo",
+  "title": "Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification",
+  "updated_at": "2026-10-20T15:28:57.484995Z"
+}

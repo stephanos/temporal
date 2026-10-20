@@ -396,10 +396,29 @@ clock, goroutine, map-range and unstable-sort sites, and the Wasmtime
 configuration) and fail when a site has no row. This is a tested contract,
 not a claim that all nondeterminism is eliminated.
 
+The inventory pins the cooperative compiler guard, Cargo.lock Wasmtime version
+and Rust toolchain, with an explicit review date. Dependency updates require
+reviewing the rows and updating the versions and review date together.
+`make test-determinism` checks the inventory, helper source sites, architecture
+and transport boundaries; both this directory's `make test` and the Gomad
+module's `make validate` include it. The long qualification and stress producers
+remain explicit operations.
+
+| Class | Disposition and boundary |
+| --- | --- |
+| Clock and entropy | Controlled by virtual time and seeded streams; clock operations and application entropy are transcribed. Host metrics and cache names remain outside execution evidence. |
+| Scheduling and GC/finalizers | Controlled by the single-P cooperative runtime and its seeded scheduler, select and timer draws; diagnostic counters witness the streams. |
+| Address and thread order | Controlled where values enter evidence: guest identity uses recorded runtime identities, and cluster threads execute under the baton. |
+| Filesystem and network I/O | Recorded captured inputs and controlled namespace, volume and network models; unsupported imports and operations are rejected. |
+| Settings | Recorded version and engine identities with pinned settings; unlisted imports and unsupported configurations are rejected. |
+| Known escapes | Explicitly excluded cases below, with named regression checks and a tracked owner for closure. |
+
 ### Known determinism escapes
 
 Each escape is outside the deterministic-time guarantee today and is referred
-to a follow-up, because fixing it would rotate the WASM model identity:
+to [fn-227](../../../../../.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md),
+owned by the WASM `wasi` package. Closing them requires behavioral regressions
+and qualification after the WASM model identity rotates:
 
 - `wasi/cluster.go` `ClusterSession.Shutdown` sends stop control frames to the
   helper in Go map order, and the stops can reach World and network evidence.

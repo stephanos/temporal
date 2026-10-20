@@ -64,7 +64,7 @@ func TestInventoryLoaderRejectsMalformedRows(t *testing.T) {
 	}{
 		{"unknown top-level field", `unknown field "extra"`, mutate(func(d map[string]any) { d["extra"] = true })},
 		{"unknown entry field", `unknown field "note"`, mutate(func(d map[string]any) { entry(d, 0)["note"] = "x" })},
-		{"unknown reviewed field", `unknown field "date"`, mutate(func(d map[string]any) { d["reviewed"].(map[string]any)["date"] = "x" })},
+		{"unknown reviewed field", `unknown field "note"`, mutate(func(d map[string]any) { d["reviewed"].(map[string]any)["note"] = "x" })},
 		{"reused id", "reused", mutate(func(d map[string]any) { entry(d, 1)["id"] = entry(d, 0)["id"] })},
 		{"duplicate site", "has rows", mutate(func(d map[string]any) { entry(d, 1)["site"] = entry(d, 0)["site"] })},
 		{"no evidence", "no evidence", mutate(func(d map[string]any) { entry(d, 0)["evidence"] = []any{} })},

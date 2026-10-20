@@ -318,6 +318,20 @@ replayable application failures. Native qualification remains deferred. The
 gates and unresolved cells. This guide supplies no current qualification result,
 performance gain or numeric determinism bound.
 
+The [WASM determinism inventory](internal/backends/wasm/README.md#determinism-contract)
+classifies each reviewed influence and names its enforcement tests. Native
+escape findings have the following wasip1 disposition; native qualification
+does not establish these rules.
+
+| Native finding | Cooperative wasip1 rule |
+| --- | --- |
+| GC `LastGC` and `PauseEnd` stamps | Read the transcribed virtual wall clock. |
+| FIPS `monoTime` | Reaches the virtual clock through `time_now`. |
+| Tracer clock snapshot | Reads the virtual clock. |
+| `Gettimeofday` | WASI libc reaches the modeled `clock_time_get`; host syscall access is unavailable. |
+| `cputicks` | Returns virtual `nanotime` on wasm. |
+| GC pacer `enlistWorker` | The single-P guard avoids its random P pick at startup; any later draw uses seeded `cheaprand`. |
+
 ### Deterministic I/O
 
 The WASM namespace uses captured files, writable directories and explicit

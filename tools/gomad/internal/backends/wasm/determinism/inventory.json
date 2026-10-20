@@ -1,6 +1,7 @@
 {
  "schema": "gomad.wasm-determinism-inventory/v1",
  "reviewed": {
+  "date": "2026-10-20",
   "go_toolchain": "go1.27.1",
   "wasmtime": "47.0.3",
   "rust": "1.99.1"
@@ -1938,7 +1939,7 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. This is a defect pending that fix, not an admissible permanent escape: stop frames can reach World and network evidence for programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated and never reach it. Until fixed, such scenarios are outside the deterministic guarantee and the fn-188.5 stress matrix must not include them.",
+   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort shutdown by (ID, Incarnation), add behavioral regression coverage and requalify the rotated model identity. Stop frames can reach World and network evidence for programmatic cluster scenarios that end with two or more live WASM nodes; operator scenarios require every node terminated. Until fixed, live-node shutdown scenarios remain outside the deterministic guarantee and the stress matrix.",
    "readme_anchor": "README.md#known-determinism-escapes"
   },
   {
@@ -1954,7 +1955,7 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
+   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort volume validation, add behavioral regression coverage and requalify the rotated model identity. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
    "readme_anchor": "README.md#known-determinism-escapes"
   },
   {
@@ -1970,7 +1971,7 @@
     "go:internal/archcheck:TestHostEffectSitesReportsClockGoroutineAndMapRange",
     "go:internal/backends/wasm/wasi:TestDeterminismInventoryEscapesArePinned"
    ],
-   "justification": "Referred to the conductor for a follow-up spec (none filed yet): the fix, iterating in sorted (ID, Incarnation) or volume order, edits a file hashed into the WASM model identity, which fn-188.2 may not rotate. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
+   "justification": "Tracked by fn-227-gomad-close-wasm-map-order-determinism (WASM wasi owner): sort volume validation, add behavioral regression coverage and requalify the rotated model identity. Affects only the refusal message for an input with several invalid volumes; the refusal class and the absence of execution are order-independent, so no bounded evidence is reached.",
    "readme_anchor": "README.md#known-determinism-escapes"
   },
   {

@@ -19,6 +19,7 @@ import (
 	"regexp"
 	"slices"
 	"strings"
+	"time"
 )
 
 // Schema is the inventory format identifier.
@@ -37,6 +38,7 @@ type Inventory struct {
 // Reviewed records the toolchain, engine and Rust versions the rows were
 // reviewed against.
 type Reviewed struct {
+	Date        string `json:"date"`
 	GoToolchain string `json:"go_toolchain"`
 	Wasmtime    string `json:"wasmtime"`
 	Rust        string `json:"rust"`
@@ -83,6 +85,9 @@ func Parse(data []byte) (Inventory, error) {
 	}
 	if inventory.Reviewed.GoToolchain == "" || inventory.Reviewed.Wasmtime == "" || inventory.Reviewed.Rust == "" {
 		return Inventory{}, errors.New("inventory reviewed versions incomplete")
+	}
+	if _, err := time.Parse(time.DateOnly, inventory.Reviewed.Date); err != nil {
+		return Inventory{}, errors.New("inventory reviewed date must be YYYY-MM-DD")
 	}
 	if len(inventory.Entries) == 0 {
 		return Inventory{}, errors.New("inventory has no entries")

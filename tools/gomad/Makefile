@@ -239,7 +239,11 @@ test-simulation: toolchain
 world-test:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -race -tags test_dep ./internal/model/world/...
 
-validate: validate-toolchain validate-compatibility validate-qualification
+validate: validate-toolchain validate-compatibility validate-qualification validate-wasm-determinism
+
+.PHONY: validate-wasm-determinism
+validate-wasm-determinism:
+	$(MAKE) -C internal/backends/wasm test-determinism GOMAD_WASM_STOCK_GO='$(GOMAD_STOCK_GO)'
 
 validate-toolchain:
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate -check
