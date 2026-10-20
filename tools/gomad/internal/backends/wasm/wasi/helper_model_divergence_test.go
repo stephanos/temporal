@@ -5,14 +5,16 @@ import (
 	"encoding/hex"
 	"testing"
 
+	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
 func TestHelperOrdinaryDivergenceDoesNotRequireInspection(t *testing.T) {
 	environment := newTestEnvironment(t, testConfig())
+	environment.runtime = &runtimeSession{control: RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord}}}
 	digest := sha256.Sum256(nil)
 	divergence := &choice.Divergence{Reason: choice.DivergenceTapeExhausted}
-	sink := &frameSink{environment: environment, terminal: &resultFrame{Termination: "divergence", Divergence: divergence, LocalModel: &helperModelResult{Now: environment.now, TranscriptSHA256: hex.EncodeToString(digest[:])}}}
+	sink := &frameSink{environment: environment, terminal: &resultFrame{Termination: "divergence", Divergence: divergence, LocalModel: &helperModelResult{Now: environment.now, TraceSHA256: hex.EncodeToString(digest[:]), TranscriptSHA256: hex.EncodeToString(digest[:])}}}
 	result := Result{Termination: "divergence"}
 	if err := sink.collectHelper(&result); err != nil {
 		t.Fatal(err)

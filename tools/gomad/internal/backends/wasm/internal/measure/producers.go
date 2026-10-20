@@ -8486,6 +8486,10 @@ func measureNamespaceActivity(runCtx context.Context) (measureErr error) {
 			measureErr = writeReportErr3
 			return
 		}
+		if err := temporalWrite(runCtx, tapePath+".trace", first.ChoiceTrace.Bytes); err != nil {
+			return err
+		}
+		inputs[tapePath+".trace"] = fmt.Sprintf("sha256:%x", sha256.Sum256(first.ChoiceTrace.Bytes))
 		tapePathSHA256, tapePathSHA256Err := fileHash(runCtx, tapePath)
 		if tapePathSHA256Err != nil {
 			measureErr = tapePathSHA256Err

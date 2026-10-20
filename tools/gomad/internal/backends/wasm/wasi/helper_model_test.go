@@ -1,13 +1,16 @@
 package wasi
 
 import (
+	"bufio"
 	"bytes"
 	"crypto/sha256"
 	"encoding/base64"
+	"encoding/binary"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
 	"fmt"
+	"io"
 	"math"
 	"reflect"
 	"slices"
@@ -349,7 +352,7 @@ func TestHelperBridgeModelLiteralPayloadAndState(t *testing.T) {
 			e := newTestEnvironment(t, config)
 			e.helperOwned = true
 			if test.runtime {
-				e.runtime = &runtimeSession{}
+				e.runtime = &runtimeSession{control: RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord}}}
 			}
 			payload, err := helperBridgeModel(t, e).helperCallbackReply(helperBridgeCall(3, test.op, test.input), helperLocalState{Now: 20, Advances: 2, TranscriptBytes: 9})
 			if err != nil {
@@ -513,44 +516,61 @@ func TestHelperBridgeTransportChunkOrderAndWriteErrorPrecedence(t *testing.T) {
 	}
 }
 
-func TestHelperBridgeTapeChunkBoundary(t *testing.T) {
-	for _, count := range []int{512, 513} {
+func TestHelperBridgeReplayTraceFrameBoundary(t *testing.T) {
+	for _, count := range []int{0, 65536, 65537} {
 		t.Run(fmt.Sprint(count), func(t *testing.T) {
-			decisions := make([]choice.Decision, count)
-			for index := range decisions {
-				decisions[index].Ordinal = uint64(index)
-			}
+			source := bytes.Repeat([]byte{'\n'}, count)
 			e := newTestEnvironment(t, testConfig())
 			e.helperOwned = true
-			e.runtime = &runtimeSession{tape: &choice.ReplayPlan{Decisions: decisions}}
+			e.runtime = &runtimeSession{control: RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeReplay, Limit: 128 << 10, Trace: source}}}
 			var wire bytes.Buffer
 			sink := frameSink{environment: e, input: &wire}
-			if err := sink.sendHelperTape(); err != nil {
+			if err := sink.sendHelperReplay(); err != nil {
 				t.Fatal(err)
 			}
-			frames := bytes.Split(bytes.TrimSuffix(wire.Bytes(), []byte{'\n'}), []byte{'\n'})
-			wantFrames := 1
-			if count == 513 {
-				wantFrames = 2
-			}
-			if len(frames) != wantFrames {
-				t.Fatalf("tape chunks=%d want=%d", len(frames), wantFrames)
-			}
-			for index, frame := range frames {
-				var tape struct {
-					Type      string            `json:"type"`
-					Decisions []choice.Decision `json:"decisions"`
-				}
-				if err := json.Unmarshal(frame, &tape); err != nil {
+			reader := bufio.NewReader(&wire)
+			wantFrames := uint64((count + 65535) / 65536)
+			marker := func(wantType string) {
+				t.Helper()
+				line, err := reader.ReadBytes('\n')
+				if err != nil {
 					t.Fatal(err)
 				}
-				wantCount := 512
-				if index == 1 {
-					wantCount = 1
+				var declaration struct {
+					Type        string `json:"type"`
+					Schema      string `json:"schema"`
+					TraceBytes  uint64 `json:"trace_bytes"`
+					TraceFrames uint64 `json:"trace_frames"`
 				}
-				if tape.Type != "tape" || len(tape.Decisions) != wantCount || tape.Decisions[0].Ordinal != uint64(index*512) || tape.Decisions[len(tape.Decisions)-1].Ordinal != uint64(index*512+wantCount-1) {
-					t.Fatal("tape slice boundary/order changed")
+				if err := json.Unmarshal(line, &declaration); err != nil {
+					t.Fatal(err)
 				}
+				if declaration.Type != wantType || declaration.Schema != "gomad.replay-trace/v1" || declaration.TraceBytes != uint64(count) || declaration.TraceFrames != wantFrames {
+					t.Fatalf("replay marker differs: %+v", declaration)
+				}
+			}
+			marker("replay_trace")
+			for offset := 0; offset < count; {
+				var length [4]byte
+				if _, err := io.ReadFull(reader, length[:]); err != nil {
+					t.Fatal(err)
+				}
+				want := min(count-offset, 65536)
+				if binary.BigEndian.Uint32(length[:]) != uint32(want) {
+					t.Fatalf("frame length=%d want=%d", binary.BigEndian.Uint32(length[:]), want)
+				}
+				payload := make([]byte, want)
+				if _, err := io.ReadFull(reader, payload); err != nil {
+					t.Fatal(err)
+				}
+				if !bytes.Equal(payload, source[offset:offset+want]) {
+					t.Fatal("raw LF-bearing replay payload changed")
+				}
+				offset += want
+			}
+			marker("replay_trace_end")
+			if _, err := reader.ReadByte(); err != io.EOF {
+				t.Fatalf("unexpected trailing replay input: %v", err)
 			}
 		})
 	}

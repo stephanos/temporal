@@ -12,6 +12,7 @@ import (
 	"strings"
 	"testing"
 
+	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
@@ -207,7 +208,8 @@ func TestNamespaceImagePreInstantiationInvalidReceipt(t *testing.T) {
 	e := newTestEnvironment(t, testConfig())
 	e.helperOwned, e.namespaceOwned = true, true
 	digest := sha256.Sum256(nil)
-	sink := &frameSink{environment: e, started: &Started{}, terminal: &resultFrame{Termination: "invalid", LocalModel: &helperModelResult{Now: e.now, TranscriptSHA256: hex.EncodeToString(digest[:])}}}
+	e.runtime = &runtimeSession{control: RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord}}}
+	sink := &frameSink{environment: e, started: &Started{}, terminal: &resultFrame{Termination: "invalid", LocalModel: &helperModelResult{Now: e.now, TraceSHA256: hex.EncodeToString(digest[:]), TranscriptSHA256: hex.EncodeToString(digest[:])}}}
 	result := Result{Termination: "invalid"}
 	if err := sink.collectHelper(&result); err != nil {
 		t.Fatalf("pre-instantiation invalid receipt = %v", err)
@@ -217,10 +219,10 @@ func TestNamespaceImagePreInstantiationInvalidReceipt(t *testing.T) {
 	}
 }
 
-func TestNamespaceImageCarriageFollowsAuthorizationAndTape(t *testing.T) {
+func TestNamespaceImageCarriageFollowsAuthorizationAndReplay(t *testing.T) {
 	e := newTestEnvironment(t, testConfig())
 	e.helperOwned, e.namespaceOwned = true, true
-	e.runtime = &runtimeSession{tape: &choice.ReplayPlan{Decisions: []choice.Decision{{}}}}
+	e.runtime = &runtimeSession{control: RuntimeControl{Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeReplay, Limit: 8192}}}
 	image, _, err := declareNamespaceImage(e)
 	if err != nil {
 		t.Fatal(err)
@@ -246,7 +248,7 @@ func TestNamespaceImageCarriageFollowsAuthorizationAndTape(t *testing.T) {
 		t.Fatal(err)
 	}
 	lines := bytes.Split(bytes.TrimSpace(wire.Bytes()), []byte{'\n'})
-	for index, want := range []string{"authorize", "tape", "namespace_input", "namespace_inputs_end"} {
+	for index, want := range []string{"authorize", "replay_trace", "replay_trace_end", "namespace_input", "namespace_inputs_end"} {
 		if index >= len(lines) {
 			t.Fatal("truncated authorization carriage")
 		}
@@ -260,7 +262,7 @@ func TestNamespaceImageCarriageFollowsAuthorizationAndTape(t *testing.T) {
 			t.Fatalf("frame%d=%s want%s", index, frame.Type, want)
 		}
 	}
-	if len(lines) != 4 {
+	if len(lines) != 5 {
 		t.Fatalf("extra carriage frames=%d", len(lines))
 	}
 }
