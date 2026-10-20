@@ -373,7 +373,7 @@ umpire_temporal_annotate::annotate! {
 
     }
     message response timeout_failure_info: TimeoutFailureInfo = "temporal.api.failure.v1.TimeoutFailureInfo" {
-        timeout_type: Enum(timeout_type) + Observed;
+        timeout_type: Enum(timeout_type) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
         last_heartbeat_details: Bytes + Decided via Vec<u8> (|m: &TimeoutFailureInfo| m.last_heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut TimeoutFailureInfo, _: Vec<u8>| {});
     }
     message response canceled_failure_info: CanceledFailureInfo = "temporal.api.failure.v1.CanceledFailureInfo" {
@@ -395,7 +395,7 @@ umpire_temporal_annotate::annotate! {
         identity: Text + Observed;
         activity_type: Text + Observed via Option<String> (|m: &ActivityFailureInfo| m.activity_type.as_ref().map(|value| value.name.clone()), |_: &mut ActivityFailureInfo, _: Option<String>| {});
         activity_id: Text + Observed;
-        retry_state: Enum(retry_state) + Observed;
+        retry_state: Enum(retry_state) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
     }
     message response child_workflow_execution_failure_info: ChildWorkflowExecutionFailureInfo = "temporal.api.failure.v1.ChildWorkflowExecutionFailureInfo" {
         namespace: Text + Observed;
@@ -403,7 +403,7 @@ umpire_temporal_annotate::annotate! {
         workflow_type: Bytes + Observed via Vec<u8> (|m: &ChildWorkflowExecutionFailureInfo| m.workflow_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ChildWorkflowExecutionFailureInfo, _: Vec<u8>| {});
         initiated_event_id: Counter + Observed;
         started_event_id: Counter + Observed;
-        retry_state: Enum(retry_state) + Observed;
+        retry_state: Enum(retry_state) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
     }
     message response nexus_operation_failure_info: NexusOperationFailureInfo = "temporal.api.failure.v1.NexusOperationFailureInfo" {
         scheduled_event_id: Counter + Observed;
@@ -415,7 +415,7 @@ umpire_temporal_annotate::annotate! {
     }
     message response nexus_handler_failure_info: NexusHandlerFailureInfo = "temporal.api.failure.v1.NexusHandlerFailureInfo" {
         r#type: Text + Observed;
-        retry_behavior: Enum(nexus_handler_error_retry_behavior) + Observed;
+        retry_behavior: Enum(nexus_handler_error_retry_behavior) + Observed => Accepts covers "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed";
     }
     message response proto_duration: ProtoDuration = "google.protobuf.Duration" {
         seconds: Counter + Observed;
