@@ -34,7 +34,8 @@ type ExecutionObservation struct {
 
 func stressScenarioIdentity(spec model.Spec, provider *simulation.Provider) (record.SHA256, error) {
 	boots := make(map[model.BootID]json.RawMessage, len(provider.Boots))
-	for id, request := range provider.Boots {
+	for _, id := range slices.Sorted(maps.Keys(provider.Boots)) {
+		request := provider.Boots[id]
 		configuration, err := simulation.BootConfiguration(request)
 		if err != nil {
 			return "", err
