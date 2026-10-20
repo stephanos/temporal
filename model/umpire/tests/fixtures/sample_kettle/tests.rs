@@ -1,7 +1,69 @@
 use crate::sample_kettle::kettle;
 use umpire_dsl::Claim;
 
-umpire_testing::fixture!(kettle::world(), 1 << 20, Claim::new("never_beeps", |_, state: &kettle::Model| (!state.beeping).into()));
+umpire_testing::fixture!(kettle::world(), 1 << 20, Claim::new("never_beeps", |_, state: &kettle::Model| (!state.beeping).into()), extra = suite_files()?);
+
+fn suite_files() -> umpire_testing::RunResult {
+    use kettle::{Heater, User};
+    use umpire_suite::*;
+
+    let space = Space::from([room()]);
+    let covered = cover(&space, Cases((80 + 1) * 2), path![room(), User::PressButton, [Heater::Heat; 0..=80], .., (User::DepressButton | Heater::Failover)])?;
+    assert_eq!(covered.len(), 162);
+    for (index, run) in covered.runs().iter().enumerate() {
+        let heats = index / 2;
+        assert_eq!(run.state(), &if index % 2 == 0 { at(20 + i32::try_from(heats)?, false, false) } else { at(100, false, true) });
+        assert_eq!(run.path().steps.len(), if index % 2 == 0 { heats + 2 } else { 82 });
+    }
+    let adjacent = cover(&space, Cases(162), path![room(), User::PressButton, [Heater::Heat; 0..=80], (User::DepressButton | Heater::Failover)]);
+    assert!(matches!(adjacent, Err(Refusal::Alternative { index: 1, .. })));
+    let sampled = sample(&space.clone().walk_bound(12), path![room(), User::PressButton, .., User::DepressButton], 4, 42)?;
+    let repeated = sample(&space.walk_bound(12), path![room(), User::PressButton, .., User::DepressButton], 4, 42)?;
+    assert_eq!(sampled.expansion(), repeated.expansion());
+    let enabled = enabledness()?;
+    Ok(umpire_testing::Files::from([
+        ("expansion/closings.txt".into(), covered.expansion().into()),
+        ("expansion/enabledness.txt".into(), enabled.expansion().into()),
+        ("expansion/sample.txt".into(), sampled.expansion().into()),
+        ("coverage.txt".into(), format!("closings\n{}\nenabledness\n{}\nsample (finite experiment)\n{}\nadjacent refusal: {}\n", covered.coverage(), enabled.coverage(), sampled.coverage(), adjacent.err().ok_or("expected adjacent refusal")?)),
+    ]))
+}
+
+fn enabledness() -> Result<umpire_suite::Covered<kettle::Model>, umpire_suite::Refusal> {
+    use kettle::{Action, Heater, User};
+    use umpire_dsl::{ActionDomain, Path, Pattern, Waypoint};
+    use umpire_suite::*;
+
+    let rows: [(_, Action, _); 9] = [
+        (coldest(), User::PressButton.into(), at(-40, true, false)),
+        (at(-40, true, false), Heater::Heat.into(), at(-39, true, false)),
+        (room(), User::PressButton.into(), at(20, true, false)),
+        (at(20, true, false), Heater::Heat.into(), at(21, true, false)),
+        (at(21, true, true), User::DepressButton.into(), at(21, false, false)),
+        (at(99, true, false), Heater::Heat.into(), at(100, true, false)),
+        (at(100, true, false), Heater::Failover.into(), at(100, false, true)),
+        (at(100, false, true), User::PressButton.into(), at(100, true, false)),
+        (at(101, true, false), Heater::Failover.into(), at(101, false, true)),
+    ];
+    let space = Space::from(rows.iter().map(|(before, _, _)| before.clone()).collect::<Vec<_>>());
+    let pattern = Path::pattern(Pattern::Either(rows.into_iter().map(|(before, action, after)| Pattern::Sequence(vec![
+        Pattern::state(Waypoint::Is(before)),
+        Pattern::action(ActionDomain::new(Ok(1), move |_| action.clone()), None, None),
+        Pattern::state(Waypoint::Is(after)),
+    ])).collect()));
+    for (before, action) in [
+        (room(), Action::from(Heater::Heat)),
+        (room(), Heater::Failover.into()),
+        (room(), User::DepressButton.into()),
+        (at(20, true, false), User::PressButton.into()),
+        (at(21, false, false), Heater::Heat.into()),
+        (at(100, true, false), Heater::Heat.into()),
+        (at(100, false, true), Heater::Failover.into()),
+    ] {
+        assert!(matches!(Run::from(before.clone()).step(action.clone()), Err(Refusal::Disabled { action: refused, state }) if refused == action.to_string() && state == before.to_string()));
+    }
+    cover(&space, Cases(9), pattern)
+}
 
 /// A kettle at `temperature` degrees Celsius, heating or not, beeping or not.
 fn at(temperature: i32, heating_on: bool, beeping: bool) -> kettle::Model {
@@ -24,54 +86,19 @@ mod examples {
 
     use super::{at, coldest, kettle::{Heater, Model, User}, room};
 
-    fn disabled(run: Result<Run<Model>, Refusal>) -> bool {
-        run.err().is_some_and(|refusal| matches!(refusal, Refusal::Disabled { .. }))
-    }
-
     #[test]
-    fn press_heat_and_depress_from_the_coldest_and_room_starts() -> Result<(), Refusal> {
-        let cold = Run::from(coldest()).step(User::PressButton)?;
-        expect! { k = cold.state(); *k == at(-40, true, false); }
-        let cold = cold.step(Heater::Heat)?;
-        expect! { k = cold.state(); *k == at(-39, true, false); }
-
-        assert!(disabled(Run::from(room()).step(Heater::Heat)));
-        assert!(disabled(Run::from(room()).step(Heater::Failover)));
-        assert!(disabled(Run::from(room()).step(User::DepressButton)));
-        let on = Run::from(room()).step(User::PressButton)?;
-        expect! { k = on.state(); *k == at(20, true, false); }
-        assert!(disabled(Run::from(at(20, true, false)).step(User::PressButton)));
-        let warmer = on.step(Heater::Heat)?;
-        expect! { k = warmer.state(); *k == at(21, true, false); }
-
-        // A beeping kettle that is heating breaks beeps_only_when_off, but depress still steps.
-        let off = Run::from(at(21, true, true)).step(User::DepressButton)?;
-        expect! { k = off.state(); *k == at(21, false, false); }
-        assert!(disabled(off.step(Heater::Heat)));
+    fn archived_enabledness_table_keeps_every_positive_and_disabled_row() -> Result<(), Refusal> {
+        assert_eq!(super::enabledness()?.len(), 9);
         Ok(())
     }
 
     #[test]
     fn boundary_from_99_to_100_and_the_failover_guard() -> Result<(), Refusal> {
-        let boiling = Run::from(at(99, true, false)).step(Heater::Heat)?;
-        expect! { k = boiling.state(); *k == at(100, true, false); }
-        assert!(disabled(Run::from(at(100, true, false)).step(Heater::Heat)));
-        let beep = boiling.step(Heater::Failover)?;
-        expect! { k = beep.state(); *k == at(100, false, true); }
-        // beeps_only_when_off holds at the beep, the negative control never_beeps does not.
-        let at_beep = Space::from([beep.state().clone()]);
+        let at_beep = Space::from([at(100, false, true)]);
         let report = verify_all(&at_beep)?;
         let claim = report.claims.iter().find(|claim| claim.name == "beeps_only_when_off");
         assert_eq!(claim.map(|claim| claim.outcome), Some(CheckOutcome::Verified));
         assert_eq!(refuted(&at_beep, |k: &Model| !k.beeping)?.steps.len(), 0);
-        assert!(disabled(Run::from(at(100, false, true)).step(Heater::Failover)));
-        let again = beep.step(User::PressButton)?;
-        expect! { k = again.state(); *k == at(100, true, false); }
-
-        // The guard is `>=`: above boiling the element still fails over, at 101 degrees, which is
-        // what fails_over_at_boiling refutes (see explorations).
-        let above = Run::from(at(101, true, false)).step(Heater::Failover)?;
-        expect! { k = above.state(); *k == at(101, false, true); }
         Ok(())
     }
 

@@ -60,7 +60,7 @@ fn fixtures() -> umpire_testing::TestResult {
     umpire_testing::run_at_skipping(
         &root,
         registered(),
-        &[umpire_testing::CHECKER, LIFT, TLC],
+        &[umpire_testing::CHECKER, umpire_testing::SUITE, LIFT, TLC],
         if required { &[] } else { &["tlc"] },
     )
 }

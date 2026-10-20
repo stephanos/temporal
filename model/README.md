@@ -162,7 +162,7 @@ fn boils(&self) -> LeadsTo {
 }
 ```
 
-A `path!` is a list of waypoints with a gap between each pair. A waypoint is a `bool` (evaluated
+A claim's `path!` has two state waypoints with a gap between them. A state waypoint is a `bool` (evaluated
 per state inside a Model method), a closure over the state, or a state. `..` is any number of
 steps; `..=n` is at most `n` steps. Reaching the target at exactly `n` steps passes; the step
 that made the trigger true is not counted. The list reads the same everywhere; the question
@@ -177,8 +177,9 @@ asked with it decides what it promises:
   gap, and refuses only when no admitted path has them.
 - A pattern says nothing about what happens between or after its waypoints.
 
-Two waypoints without a gap, or a leading or trailing gap, do not compile; `..=1` is the next
-step. `whenever(..).eventually(..).within(n)` builds the same claim and remains public.
+Claims reject adjacent waypoints, leading/trailing gaps, actions and structural patterns; `..=1` is the next
+step. Test-space patterns admit adjacency and leading/trailing gaps as described below.
+`whenever(..).eventually(..).within(n)` builds the same claim and remains public.
 Assumptions compose `only([..])`, `without([..])` and explicit `fair([..])` action lists.
 Nothing is fair by default: `#[internal]` marks environment-independent actions only.
 `only` replaces the selection, `without` and `fair` accumulate, and fair membership does not
@@ -252,7 +253,7 @@ The historical authoring sketches have been retired after preserving their compa
 `umpire-suite` at `umpire/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
 an authored path: `Run::from(state)`, `.step(action)`, `.repeat(n, action)` and `.state()` replay it
 through `Machine::checked_step`, and `Run::along(path![state, .., |s| ..])` fills in the gaps with
-the shortest path through every waypoint, then replays it. A disabled action, one emitting several
+the shortest path through every waypoint, retaining exact explored rows. A disabled action, one emitting several
 steps, an unbridgeable gap and a predicate as the first waypoint are `Refusal`s naming the action
 or waypoint and spelling the state. `expect! { s = run.state(); a; b; }` fails the test at the
 first false line with its source text and the state. A run starts from a state alone because
@@ -274,6 +275,83 @@ A cut graph can answer only when its unexplored frontier cannot hide a shorter w
 pattern anchored at one concrete state can also settle absence before that frontier.
 The refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures
 in `umpire/suite/tests/fixtures/`.
+
+### Test-space patterns
+
+`find`, `cover` and `Run::along` accept the full `path!` grammar. Adjacent state predicates
+consume no steps; each action consumes exactly one step. Only an explicit gap admits
+intervening actions. Search may reach the first waypoint from a Space's starts; an initial
+concrete state anchors `Run::along`. A story must have one authored alternative; alternatives
+refuse with “use cover”.
+
+| Pattern | Meaning |
+| --- | --- |
+| `state`, `true`, `\|s: &Model\| s.closed()` | Exact state or state predicate |
+| `Worker::Poll` | One action |
+| `User::Send { amount: 0..=3, from: (king \| queen) }` | One alternative per finite input value/combination |
+| `User::Send { amount: 2, from: _, .. }` | Exact input; `_` and omitted fields use declared domains |
+| `Deadline::*` | Each action/input value of this actor |
+| `Client::Cancel => Outcome::Rejected(Rejection::NotFound)` | Action with a typed outcome filter |
+| `Client::Cancel => (Outcome::Accepted \| Outcome::Rejected(_))` | One alternative per outcome pattern |
+| `(Worker::RespondCompleted \| Worker::RespondFailed)` | Authored alternatives, in order |
+| `[Worker::Poll; n]`, `[Worker::Poll; 0..=1]` | Exact repetition or one alternative per inclusive count |
+| `unordered![a, b, c]` | Every ordering of the listed patterns |
+| `..`, `..=n`, `..!(Client::Cancel, Worker::Poll)` | Any steps, at most n steps, or steps excluding the named actions |
+
+Payload fields of an `Action` declare their complete finite input catalog with
+`#[inputs(0..=3)]` or `#[inputs([Account::King, Account::Queen])]`. Missing/open domains refuse
+with the actor, action and field. Requested impossible values remain alternatives and fail
+witness search. A fault is an ordinary action of an actor marked `#[fault]`; `#[internal]`
+alone neither declares a fault nor fairness. Permutations default to at most six elements
+(720 orders); `path.permutation_limit(n)` explicitly changes that admission limit.
+
+`cover(&space, Cases(n), path)` first compares the authored count with `Cases(n)`, before
+search. Alternatives multiply across independent choices, input values, repetition counts
+and permutations. A mismatch lists the alternatives; a count beyond the alternative limit
+refuses. Cover returns one shortest witness per alternative, in authored order, or refuses
+the unwitnessed alternative with its index, choices and reached state. It never silently
+drops an impossible choice. `Covered::runs()` holds ordinary Runs; `len()`, `all(..)`,
+`expansion()` and `coverage()` expose the result.
+
+The limits are independent: `Space::budget(n)` counts distinct Model states;
+`alternative_budget(n)` admits authored alternatives (default 1,048,576);
+`walk_bound(n)` bounds each sampled walk in Model edges (default 256). Pattern/product and
+experiment storage also have independent finite ceilings. Cover and sample require a complete
+explored graph and refuse `Refusal::Cut` when the state budget cuts it. Unbounded gaps still
+search only that finite graph; they do not enlarge its state budget.
+
+The real Kettle demonstration is runnable with
+`cd model && mise exec -- cargo test -p umpire-tests`:
+
+```rust,ignore
+let covered = cover(&Space::from([room()]), Cases((80 + 1) * 2),
+    path![room(), User::PressButton, [Heater::Heat; 0..=80], ..,
+          (User::DepressButton | Heater::Failover)])?;
+```
+
+The explicit gap supplies additional Heat actions before Failover for prefixes shorter than
+80. The 162 alternatives describe explicit prefixes, not total heat counts; expansions show
+every actual step. The literal adjacent form is retained as a refusal control. Activity uses
+`[Worker::Poll; 0..=1], ..` followed by Cancel, RespondCompleted, RespondFailed or StartToClose:
+eight choices. Zero explicit Poll can still need a gap-supplied Poll before completion, failure
+or StartToClose. ScheduleToStart is not a fifth closing choice. Run it with
+`cd model && mise exec -- cargo test -p umpire-temporal-tests`.
+
+`sample(&space, path, n, seed)` performs reproducible finite random walks, including possible
+nonshortest paths, rather than selecting only cover's shortest witnesses. Its expansion records
+the seed, requested experiment size, walk bound and chosen alternatives. An alternative that
+cannot finish within the bound refuses; it is never silently replaced with an easier choice.
+Kettle's seeded example uses `walk_bound(12)`, four walks and seed 42. Sampling establishes only
+that finite experiment, not complete coverage of alternatives or all paths.
+
+Every cover/sample demonstration records `expansion/<name>.txt` with concrete choices,
+actions, outcomes, facts and final states, plus `coverage.txt`. Typed catalog coverage lists
+touched and untouched actions, outcomes and faults; undeclared metadata is unknown, distinct
+from a declared empty catalog. Claims report witness evaluations and progress triggers by
+registration identity, not whole-graph verification. Untapped entries remain visible. The
+`umpire_testing::SUITE` consumer owns these outputs; register it alongside CHECKER and seed an
+expected payload before updating goldens. Kettle retains its native/negative hook through
+`fixture!(world, budget, negative, extra = suite_files()?)`; duplicate output keys refuse.
 
 To write a Model's tests, add `mod examples` and `mod explorations` to its `tests.rs`, each with
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal

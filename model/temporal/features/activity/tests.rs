@@ -5,7 +5,23 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let result = umpire_testing::Checker::explore(&world(), 64)?;
     let mut files = umpire_testing::render(&result)?;
     files.insert("rows.txt".into(), umpire_testing::render_rows(&result)?);
+    let covered = closings()?;
+    files.insert("expansion/closings.txt".into(), covered.expansion().into());
+    files.insert("coverage.txt".into(), covered.coverage().to_string());
     Ok(files)
+}
+
+fn closings() -> Result<umpire_suite::Covered<Model>, umpire_suite::Refusal> {
+    use umpire_suite::*;
+
+    let start = Model { phase: Phase::Scheduled };
+    let covered = cover(&Space::from([start.clone()]), Cases(2 * 4), path![start, [Worker::Poll; 0..=1], .., (Client::Cancel | Worker::RespondCompleted | Worker::RespondFailed | Deadline::StartToClose)])?;
+    assert_eq!(covered.len(), 8);
+    for (index, run) in covered.runs().iter().enumerate() {
+        assert_eq!(run.state().phase, [Phase::Canceled, Phase::Completed, Phase::Failed, Phase::TimedOut][index % 4]);
+        assert_eq!(run.path().steps.len(), if index == 0 { 1 } else { 2 });
+    }
+    Ok(covered)
 }
 
 const PHASES: [Phase; 6] = [
