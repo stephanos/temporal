@@ -454,7 +454,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 	}()
 	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage, storageContext: storageContext}
-	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: request.helperOutputLimit(), CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
 	closeErr := input.finish()

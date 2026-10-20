@@ -72,6 +72,15 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 	if converted.Choice != nil {
 		limit = converted.Choice.Limit
 	}
+	if stress := p.options.StressExecution; stress != nil && stress.Diagnostics {
+		limit = min(limit, 32<<20)
+		if stress.ChoiceTraceLimit != 0 {
+			limit = stress.ChoiceTraceLimit
+		}
+		if _, err := choice.DiagnosticLimit(limit); err != nil {
+			return backends.ExecutionResult{}, err
+		}
+	}
 	config := pr.Config
 	config.Args = append([]string(nil), request.Target.Argv...)
 	config.Environment = scenarioEnvironment(config.Environment, request.Env, config.WorkingDirectory)

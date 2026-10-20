@@ -61,6 +61,7 @@ type ClusterSchedulerMetrics struct {
 }
 
 type ClusterResult struct {
+	helperStderr                          []byte
 	Cancelled, WatchdogTimeout, GroupGone bool
 	Termination                           string
 	InspectionMetadata                    []byte
@@ -363,12 +364,13 @@ func appendClusterTag(output []byte, node string, incarnation uint64, frame []by
 
 func (session *ClusterSession) run(request Request) {
 	stream := &clusterStream{session: session}
-	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, runErr := hostexec.Run(session.ctx, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: session.input.reader, StdoutSink: stream, StdoutDone: session.input.closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: request.helperOutputLimit(), CollectResourceUsage: true})
 	session.input.closeInput()
 	closeErr := session.input.finish()
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	session.result.HelperResourceUsage = host.ResourceUsage
+	session.result.helperStderr = host.Stderr.RawBytes
 	if session.err == nil && (host.Cancelled || host.WatchdogTimeout || errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded)) {
 		session.result.Cancelled = session.parentCtx.Err() != nil
 		session.result.WatchdogTimeout = !session.result.Cancelled && (host.WatchdogTimeout || errors.Is(session.ctx.Err(), context.DeadlineExceeded))
@@ -425,6 +427,7 @@ func (session *ClusterSession) CompletedResult() *ClusterResult {
 	}
 	result := ClusterResult{VirtualElapsedNanos: session.result.VirtualElapsedNanos, Frames: session.counts, WallElapsedNanos: session.result.WallElapsedNanos, AuthorizationToTerminalNanos: session.result.AuthorizationToTerminalNanos, AuthorizationStartedAt: session.result.AuthorizationStartedAt, TerminalObservedAt: session.result.TerminalObservedAt}
 	result.Cancelled, result.WatchdogTimeout, result.GroupGone = session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone
+	result.helperStderr = bytes.Clone(session.result.helperStderr)
 	if session.result.Metrics != nil {
 		metrics := *session.result.Metrics
 		result.Metrics = &metrics

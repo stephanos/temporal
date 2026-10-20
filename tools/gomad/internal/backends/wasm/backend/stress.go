@@ -17,11 +17,14 @@ import (
 )
 
 type StressExecution struct {
-	Padding          string
-	Jitter           bool
-	Diagnostics      bool
-	ConfigureRequest func(*wasi.Request)
-	BindScenario     func(wasi.Request, model.Spec, *simulation.Provider) (model.Spec, error)
+	Padding            string
+	Jitter             bool
+	Diagnostics        bool
+	EventOrder         bool
+	ChoiceTraceLimit   uint64
+	DeterminismFixture bool
+	ConfigureRequest   func(*wasi.Request)
+	BindScenario       func(wasi.Request, model.Spec, *simulation.Provider) (model.Spec, error)
 }
 
 type ExecutionObservation struct {
@@ -66,6 +69,16 @@ func (p *Provider) ForStressReplay() (backends.Provider, error) {
 	return New(options)
 }
 
+func (p *Provider) ForDeterminismFixtureReplay() (backends.Provider, error) {
+	if p.options.Config.Profile != wasi.CooperativeProfile {
+		return nil, errors.New("determinism fixture replay requires a cooperative WASM installation")
+	}
+	options := p.options
+	options.StressExecution = &StressExecution{DeterminismFixture: true}
+	options.ObserveResults = nil
+	return New(options)
+}
+
 func (p *Provider) stressRequest(request *wasi.Request) error {
 	stress := p.options.StressExecution
 	if stress == nil {
@@ -76,8 +89,16 @@ func (p *Provider) stressRequest(request *wasi.Request) error {
 		return err
 	}
 	request.SetStressHostConditions(stress.Padding, stress.Jitter)
+	if stress.DeterminismFixture {
+		if err := request.SetDeterminismFixtureConditions(""); err != nil {
+			return err
+		}
+	}
 	if stress.ConfigureRequest != nil {
 		stress.ConfigureRequest(request)
+	}
+	if stress.EventOrder {
+		request.SetEventOrderDiagnostics(true)
 	}
 	after, err := json.Marshal(request)
 	if err != nil {

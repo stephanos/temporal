@@ -62,6 +62,11 @@ func (p stressInspectionBackend) ForStressReplay() (backends.Provider, error) {
 	return p, nil
 }
 
+func (p stressInspectionBackend) ForDeterminismFixtureReplay() (backends.Provider, error) {
+	*p.selected = true
+	return p, nil
+}
+
 func TestStressReplayFlagRequiresInspectionAndExplicitProvider(t *testing.T) {
 	for _, test := range []struct {
 		name      string
@@ -72,6 +77,10 @@ func TestStressReplayFlagRequiresInspectionAndExplicitProvider(t *testing.T) {
 		{"no-stop", []string{"--stress-jitter", "/artifact"}, true, 2},
 		{"foreign-provider", []string{"--stress-jitter", "--stop=choice=2", "/artifact"}, false, 2},
 		{"inspection", []string{"--stress-jitter", "--stop=choice=2", "/artifact"}, true, 0},
+		{"fixture-no-stop", []string{"--determinism-fixture", "/artifact"}, true, 2},
+		{"fixture-foreign-provider", []string{"--determinism-fixture", "--stop=choice=2", "/artifact"}, false, 2},
+		{"fixture-inspection", []string{"--determinism-fixture", "--stop=choice=2", "/artifact"}, true, 0},
+		{"mixed-roles", []string{"--determinism-fixture", "--stress-jitter", "--stop=choice=2", "/artifact"}, true, 2},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			selected, replayed := false, false
