@@ -54,6 +54,7 @@ type Options struct {
 	GoVersion                                                                      string
 	RuntimeRoot                                                                    string
 	CompileCacheRoot                                                               string
+	BuildTags                                                                      []string                     `json:",omitempty"`
 	ObserveExecution                                                               func(ExecutionMetrics)       `json:"-"`
 	ObserveCompilerCommand                                                         func(CompilerCommandMetrics) `json:"-"`
 	Engine                                                                         wasi.EngineIdentity
@@ -125,6 +126,7 @@ func New(options Options) (*Provider, error) {
 	if _, err := wasi.NewEnvironment(options.Config); err != nil {
 		return nil, err
 	}
+	options.BuildTags = slices.Clone(options.BuildTags)
 	return &Provider{options: options}, nil
 }
 func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
@@ -169,6 +171,11 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		return target.Prepared{}, errors.New("compiler version does not match declared profile")
 	}
 	tags := append([]string{}, spec.BuildTags...)
+	if len(p.options.BuildTags) != 0 {
+		tags = append(tags, p.options.BuildTags...)
+		sort.Strings(tags)
+		tags = slices.Compact(tags)
+	}
 	sort.Strings(tags)
 	compilerSources, includeDirectory, err := compilerInventory(ctx, p.options.CompilerPath, dir, environment)
 	if err != nil {
