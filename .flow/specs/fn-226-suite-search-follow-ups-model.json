@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-226-suite-search-follow-ups-model",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T00:37:52.657109Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-226-suite-search-follow-ups-model",
+  "impl_review_rounds": {
+    "fn-226-suite-search-follow-ups-model.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "89223c39587cec1d595348f73d010db98eee49612d3b3237cd95f58ee406d627",
+      "backend": "codex",
+      "base_sha": "e4bb3a3995ba9549c82d71d0f0a815a539c12aaa",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "baea1f875ff18a2ea251b0ee039982380c412daf",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "705130808306445aa6079ef79ddcee77",
+      "round_consumed": true,
+      "scope": "impl:fn-226-suite-search-follow-ups-model.1",
+      "superseded_by": null,
+      "task": "fn-226-suite-search-follow-ups-model.1",
+      "timestamp": "2026-10-20T16:02:00.038981Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-226-suite-search-follow-ups-model.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-226-suite-search-follow-ups-model.1": 0
+  },
   "spec_path": ".flow/specs/fn-226-suite-search-follow-ups-model.md",
   "status": "open",
   "title": "Suite search follow-ups (model)",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T00:37:52.666617Z"
+  "updated_at": "2026-10-20T16:02:00.041312Z"
 }
