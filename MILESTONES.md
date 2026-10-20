@@ -269,7 +269,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | ⬜ Todo | Same-seed stress producer with host perturbation axes and retained report |
+| [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | 🚧 In progress | Same-seed stress producer with host perturbation axes and retained report |
 | [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
 
 ### Ringpop membership on WASM within reason — [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md)
