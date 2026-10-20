@@ -56,7 +56,7 @@ Native deletion has its own source pair `18e5e7cac713b899b794cb23b9e4db863d913b8
 
 fn-232 R12/task .13 accepts fn-228 R7's final frozen Rust-candidate runtime, mandatory workload and retained-replay qualification, with actual commands, numeric exits and source/helper/runtime/module/model/compiler/engine/host bindings under the unchanged 3,600-second limit. Status remains PENDING. The receiver must retain the raw handover/R7 inputs and frozen Go baseline while needed; custody must survive donor cleanup.
 
-Combined-source measurements and admission are now recorded below for frozen root 0561e32514. They preserve both isolated source pairs and do not qualify the later library/Rust host. Raw replay inputs and completed integration receipts have independent fn-232 receiving custody at `/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/README.md`; use that index after donor retirement. No separately invented global replay digest substitutes for actual measured bindings.
+Combined-source measurements and admission are now recorded below for frozen root 0561e32514. They preserve both isolated source pairs and do not qualify the later library/Rust host. Deletion-free replay inputs have independent initial fn-232 receiving custody at `/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/README.md`; final combined receipts must be appended and verified there before donor retirement. No separately invented global replay digest substitutes for actual measured bindings.
 
 ## Combined fn223 + fn228 measured admission
 
