@@ -1,0 +1,5 @@
+error: a progress claim needs two state predicates separated by a gap
+  --> tests/ui/path_language_claim_no_gap.rs:12:42
+   |
+12 |         fn completes(&self) -> LeadsTo { path![!self.done, self.done] }
+   |                                          ^^^^^^^^^^^^^^^^^^^^^^^^^^^^

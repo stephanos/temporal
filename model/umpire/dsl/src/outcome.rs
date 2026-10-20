@@ -47,6 +47,33 @@ pub enum Outcome {
     Rejected(Rejection),
 }
 
+impl Outcome {
+    /// Declares every stock outcome kind with borrowed classification.
+    pub fn catalog() -> Vec<OutcomeClass<Self>> {
+        vec![
+            OutcomeClass::new("Accepted", |outcome| matches!(outcome, Self::Accepted)),
+            OutcomeClass::new("Rejected(NotFound)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::NotFound))
+            }),
+            OutcomeClass::new("Rejected(AlreadyExists)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::AlreadyExists))
+            }),
+            OutcomeClass::new("Rejected(FailedPrecondition)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::FailedPrecondition))
+            }),
+            OutcomeClass::new("Rejected(InvalidArgument)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::InvalidArgument))
+            }),
+            OutcomeClass::new("Rejected(PermissionDenied)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::PermissionDenied))
+            }),
+            OutcomeClass::new("Rejected(Unavailable)", |outcome| {
+                matches!(outcome, Self::Rejected(Rejection::Unavailable))
+            }),
+        ]
+    }
+}
+
 #[derive(Clone, Copy)]
 struct Frame {
     outcome: Outcome,

@@ -3,6 +3,27 @@
 use umpire_dsl::{ActionDomain, Gap, InputDomain, Path, Pattern, PatternError, Waypoint};
 
 #[test]
+fn empty_alternatives_still_require_storage_admission() {
+    struct Bomb;
+    impl std::fmt::Display for Bomb {
+        fn fmt(&self, _: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+            panic!("storage admission must happen before labeling alternatives")
+        }
+    }
+    let pattern: Path<u8, Bomb> = Path::pattern(Pattern::Repeat(
+        Box::new(Pattern::Repeat(
+            Box::new(Pattern::action(ActionDomain::new(Ok(1), |_| Bomb), None, None)),
+            0,
+            0,
+        )),
+        0,
+        1_000_001,
+    ));
+    assert_eq!(pattern.alternative_count(), Ok(1_000_002));
+    assert!(matches!(pattern.alternatives(1_000_002), Err(PatternError::ExpansionTooLarge { .. })));
+}
+
+#[test]
 fn repeated_domain_choices_do_not_describe_every_occurrence_as_its_first_value() {
     let domain = ActionDomain::new(Ok(2), |index| [0u8, 1][index]);
     let pattern: Path<u8, u8> =

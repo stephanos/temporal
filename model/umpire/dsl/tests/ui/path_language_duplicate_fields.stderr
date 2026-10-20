@@ -1,0 +1,11 @@
+error: duplicate field `amount` in path pattern
+  --> tests/ui/path_language_duplicate_fields.rs:16:46
+   |
+16 |         path![world::User::Send { amount: 0, amount: 1, .. }];
+   |                                              ^^^^^^
+
+error: duplicate field `amount` in path pattern
+  --> tests/ui/path_language_duplicate_fields.rs:18:46
+   |
+18 |         path![world::User::Send { amount: 0, r#amount: 1, .. }];
+   |                                              ^^^^^^^^

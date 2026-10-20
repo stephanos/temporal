@@ -761,7 +761,8 @@ impl<S, A: 'static, O> Path<S, A, O> {
     }
 
     /// Expands alternatives after admitting their count and concrete storage.
-    /// A conservative storage bound admits at most one million concrete nodes,
+    /// A conservative storage bound admits at most one million concrete nodes
+    /// and alternative records combined,
     /// independently of the alternative budget.
     pub fn alternatives(&self, budget: usize) -> Result<Vec<Alternative<S, A, O>>, PatternError>
     where
@@ -791,7 +792,10 @@ impl<S, A: 'static, O> Path<S, A, O> {
         if count > budget {
             return Err(PatternError::Budget { count, budget });
         }
-        let nodes = count.checked_mul(length).ok_or(PatternError::ExpansionOverflow)?;
+        let nodes = length
+            .checked_add(1)
+            .and_then(|length| count.checked_mul(length))
+            .ok_or(PatternError::ExpansionOverflow)?;
         if nodes > limit {
             return Err(PatternError::ExpansionTooLarge { nodes, limit });
         }

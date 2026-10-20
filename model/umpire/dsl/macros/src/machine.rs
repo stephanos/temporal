@@ -791,24 +791,7 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: boo
 
 fn outcome_catalog(rejecting: bool) -> TokenStream {
     if rejecting {
-        let rejections = [
-            "NotFound",
-            "AlreadyExists",
-            "FailedPrecondition",
-            "InvalidArgument",
-            "PermissionDenied",
-            "Unavailable",
-        ];
-        let classifiers = rejections.map(|name| {
-            let label = format!("Rejected({name})");
-            let rejection = syn::Ident::new(name, proc_macro2::Span::call_site());
-            quote!(::umpire_dsl::OutcomeClass::new(#label, |outcome| matches!(outcome,
-                ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::#rejection))))
-        });
-        quote!(::std::vec![
-            ::umpire_dsl::OutcomeClass::new("Accepted", |outcome| matches!(outcome, ::umpire_dsl::Outcome::Accepted)),
-            #(#classifiers),*
-        ])
+        quote!(::umpire_dsl::Outcome::catalog())
     } else {
         quote!(::std::vec![::umpire_dsl::OutcomeClass::new("()", |_| true)])
     }

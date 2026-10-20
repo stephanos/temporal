@@ -1,7 +1,9 @@
 use proc_macro2::TokenStream;
 use quote::{format_ident, quote};
 use syn::{
-    Expr, Ident, Pat, Path, Token, braced, bracketed, parenthesized,
+    Expr, Ident, Pat, Path, Token, braced, bracketed,
+    ext::IdentExt,
+    parenthesized,
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
 };
@@ -170,7 +172,7 @@ fn parse_value(input: ParseStream<'_>) -> syn::Result<Node> {
             let path: Path = input.call(Path::parse_mod_style)?;
             let inner;
             braced!(inner in input);
-            let mut fields = Vec::new();
+            let mut fields: Vec<(Ident, Domain)> = Vec::new();
             let mut patterned = false;
             while !inner.is_empty() {
                 if inner.peek(Token![..]) {
@@ -182,6 +184,12 @@ fn parse_value(input: ParseStream<'_>) -> syn::Result<Node> {
                     break;
                 }
                 let field: Ident = inner.parse()?;
+                if fields.iter().any(|(prior, _)| prior.unraw() == field.unraw()) {
+                    return Err(syn::Error::new_spanned(
+                        &field,
+                        format!("duplicate field `{}` in path pattern", field.unraw()),
+                    ));
+                }
                 inner.parse::<Token![:]>()?;
                 let domain = if inner.peek(Token![_]) {
                     inner.parse::<Token![_]>()?;
@@ -426,6 +434,12 @@ pub(crate) fn validate_claim(tokens: TokenStream, actors: &[Ident]) -> syn::Resu
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
             "a progress claim has one trigger and one target; ask a longer progression with find or Run::along",
+        ));
+    }
+    if !matches!(nodes.as_slice(), [Node::Value(_), Node::Gap(_, _), Node::Value(_)]) {
+        return Err(syn::Error::new(
+            proc_macro2::Span::call_site(),
+            "a progress claim needs two state predicates separated by a gap",
         ));
     }
     Ok(())
