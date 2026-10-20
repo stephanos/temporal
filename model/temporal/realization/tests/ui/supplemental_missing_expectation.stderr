@@ -1,0 +1,16 @@
+error: no rules expected `covers`
+ --> tests/ui/supplemental_missing_expectation.rs:9:9
+  |
+9 |         covers = "server.validateRequestID",
+  |         ^^^^^^ no rules expected this token in macro call
+  |
+ ::: tests/ui/../../../features/activity/api_requests.rs
+  |
+  | macro_rules! supplemental_request {
+  | --------------------------------- when calling this macro
+  |
+note: while trying to match `expected`
+ --> tests/ui/../../../features/activity/api_requests.rs
+  |
+  |         expected = $expected:expr, covers = $covers:literal $(,)?) => {{
+  |         ^^^^^^^^

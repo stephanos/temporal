@@ -15,5 +15,8 @@ umpire-annotations.workspace = true
 umpire-temporal-annotate.workspace = true
 prost.workspace = true
 
+[dev-dependencies]
+trybuild.workspace = true
+
 [lints]
 workspace = true
