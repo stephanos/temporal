@@ -19,16 +19,7 @@ impl Realize<kettle::KettleWorld> for Unsupported {
         &self,
         _: &Any,
         _: &kettle::Kettle,
-    ) -> Result<crate::Projection<kettle::Act>, protocol::Refusal> {
-        Err(unsupported())
-    }
-
-    fn matches(
-        &self,
-        _: &Any,
-        _: &kettle::Kettle,
-        _: Option<&()>,
-    ) -> Result<bool, protocol::Refusal> {
+    ) -> Result<crate::Projection<kettle::Act, ()>, protocol::Refusal> {
         Err(unsupported())
     }
 

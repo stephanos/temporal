@@ -52,22 +52,13 @@ impl Realize<invalid::World> for Binding {
     fn observe(
         &self,
         observation: &Any,
-        _: &invalid::Model,
+        state: &invalid::Model,
     ) -> Result<Projection<invalid::Action>, protocol::Refusal> {
         Ok(match observation.value.as_slice() {
-            [0] => Projection::Current,
-            [1] => Projection::Candidates(vec![vec![transition(invalid::User::Bad)]]),
+            [0] if state.value == 0 => Projection::Current,
+            [1] => Projection::steps([vec![transition(invalid::User::Bad)]]),
             _ => Projection::Candidates(Vec::new()),
         })
-    }
-
-    fn matches(
-        &self,
-        _: &Any,
-        state: &invalid::Model,
-        _: Option<&umpire_dsl::Outcome>,
-    ) -> Result<bool, protocol::Refusal> {
-        Ok(state.value == 0)
     }
 
     fn answer(

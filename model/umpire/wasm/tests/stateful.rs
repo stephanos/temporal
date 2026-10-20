@@ -92,17 +92,13 @@ fn runtime_formats_unit_outcomes_with_debug() {
             &self,
             observation: &umpire_wasm::google::protobuf::Any,
             state: &support::State,
-        ) -> Result<Projection<support::Action>, protocol::Refusal> {
-            <Self as Realize<support::World>>::observe(self, observation, state)
-        }
-        fn matches(
-            &self,
-            _: &umpire_wasm::google::protobuf::Any,
-            state: &support::State,
-            outcome: Option<&()>,
-        ) -> Result<bool, protocol::Refusal> {
-            assert!(outcome.is_some());
-            Ok(state.0 == 1)
+        ) -> Result<Projection<support::Action, ()>, protocol::Refusal> {
+            match <Self as Realize<support::World>>::observe(self, observation, state)? {
+                Projection::Current => Ok(Projection::Current),
+                Projection::Candidates(candidates) => {
+                    Ok(Projection::steps(candidates.into_iter().map(|candidate| candidate.path)))
+                }
+            }
         }
         fn answer(
             &self,

@@ -22,7 +22,7 @@ use umpire_temporal_api::{
     },
 };
 use umpire_wasm::protocol::Refusal;
-use umpire_wasm::{AnswerPlan, Projection, Realize, Transition, google::protobuf::Any};
+use umpire_wasm::{AnswerPlan, Candidate, Projection, Realize, Transition, google::protobuf::Any};
 
 const DESCRIBE: &str = "/temporal.api.workflowservice.v1.WorkflowService/DescribeActivityExecution";
 const CANCEL: &str =
@@ -43,11 +43,15 @@ impl Realize<activity::World> for Realization {
         observation: &Any,
         state: &activity::Model,
     ) -> Result<Projection<Action>, Refusal> {
-        let Evidence::Describe(phase) = project(observation)? else {
-            return Ok(Projection::Candidates(vec![vec![Transition {
-                action: activity::Client::Cancel.into(),
-                choice: 0,
-            }]]));
+        let phase = match project(observation)? {
+            Evidence::Describe(phase) => phase,
+            Evidence::Cancel(Some(outcome)) => {
+                return Ok(Projection::Candidates(vec![Candidate {
+                    path: vec![Action::from(activity::Client::Cancel).into()],
+                    outcome: Some(outcome),
+                }]));
+            }
+            Evidence::Cancel(None) => return Ok(Projection::Candidates(Vec::new())),
         };
         if state.phase == phase {
             return Ok(Projection::Current);
@@ -62,19 +66,7 @@ impl Realize<activity::World> for Realization {
             }
             _ => Vec::new(),
         };
-        Ok(Projection::Candidates(paths))
-    }
-
-    fn matches(
-        &self,
-        observation: &Any,
-        state: &activity::Model,
-        outcome: Option<&Outcome>,
-    ) -> Result<bool, Refusal> {
-        Ok(match project(observation)? {
-            Evidence::Describe(phase) => phase == state.phase,
-            Evidence::Cancel(expected) => expected.is_some() && expected.as_ref() == outcome,
-        })
+        Ok(Projection::steps(paths))
     }
 
     fn answer(&self, callback: &Any, _: &activity::Model) -> Result<AnswerPlan<Action>, Refusal> {

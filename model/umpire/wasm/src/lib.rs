@@ -15,7 +15,7 @@ mod generated {
 
 pub use abi::Guest;
 pub use generated::{google, umpire::model::v1 as protocol};
-pub use runtime::{AnswerPlan, Projection, Realize, Runtime, Transaction, Transition};
+pub use runtime::{AnswerPlan, Candidate, Projection, Realize, Runtime, Transaction, Transition};
 pub use stock::Model;
 
 impl protocol::Refusal {

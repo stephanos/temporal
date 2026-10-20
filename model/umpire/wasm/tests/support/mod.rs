@@ -1,6 +1,7 @@
 use umpire_dsl::{Machine, Steps};
 use umpire_wasm::{
-    AnswerPlan, Projection, Realize, Runtime, Transition, google::protobuf::Any, protocol,
+    AnswerPlan, Candidate, Projection, Realize, Runtime, Transition, google::protobuf::Any,
+    protocol,
 };
 
 pub(crate) const TYPE: &str = "type.googleapis.com/umpire.control.Value";
@@ -17,6 +18,13 @@ pub(crate) enum Action {
 
 #[derive(Debug)]
 pub(crate) struct Outcome(pub(crate) u8);
+
+impl PartialEq for Outcome {
+    fn eq(&self, other: &Self) -> bool {
+        assert_ne!(self.0, 15, "final projection failed");
+        self.0 == other.0
+    }
+}
 #[derive(Debug)]
 pub(crate) struct Fact;
 
@@ -93,48 +101,31 @@ pub(crate) fn transition(action: Action) -> Transition<Action> {
 }
 
 impl Realize<World> for Realization {
-    fn matches(
-        &self,
-        observation: &Any,
-        state: &State,
-        outcome: Option<&Outcome>,
-    ) -> Result<bool, protocol::Refusal> {
-        let value = payload(observation)?;
-        if value == 10 {
-            assert_eq!(outcome.map(|outcome| outcome.0), Some(2));
-        }
-        if value == 0 {
-            assert!(outcome.is_none());
-        }
-        Ok(match value {
-            15 => panic!("final projection failed"),
-            10 | 11 => state.0 == 2,
-            13 => state.0 == 0,
-            _ => value == state.0,
-        })
-    }
-
     fn observe(
         &self,
         observation: &Any,
         state: &State,
-    ) -> Result<Projection<Action>, protocol::Refusal> {
+    ) -> Result<Projection<Action, Outcome>, protocol::Refusal> {
         let value = payload(observation)?;
         Ok(match value {
             value if value == state.0 => Projection::Current,
-            1 | 11 | 15 => Projection::Candidates(vec![vec![transition(Action::Deliver)]]),
-            2 => Projection::Candidates(vec![vec![transition(Action::Respond)]]),
-            3 => Projection::Candidates(vec![vec![transition(Action::Finish)]]),
-            8 | 13 => Projection::Candidates(vec![Vec::new()]),
-            9 => Projection::Candidates(vec![vec![Transition {
-                action: Action::Deliver,
-                choice: 1,
-            }]]),
-            10 => Projection::Candidates(vec![vec![
-                transition(Action::Deliver),
-                transition(Action::Respond),
-            ]]),
-            12 => Projection::Current,
+            1 => Projection::step(Action::Deliver),
+            11 => Projection::Candidates(vec![Candidate {
+                path: vec![transition(Action::Deliver)],
+                outcome: Some(Outcome(2)),
+            }]),
+            15 => Projection::Candidates(vec![Candidate {
+                path: vec![transition(Action::Deliver)],
+                outcome: Some(Outcome(15)),
+            }]),
+            2 => Projection::step(Action::Respond),
+            3 => Projection::step(Action::Finish),
+            8 | 13 => Projection::steps([Vec::new()]),
+            9 => Projection::steps([vec![Transition { action: Action::Deliver, choice: 1 }]]),
+            10 => Projection::Candidates(vec![Candidate {
+                path: vec![transition(Action::Deliver), transition(Action::Respond)],
+                outcome: Some(Outcome(2)),
+            }]),
             14 => panic!("realization failed"),
             _ => Projection::Candidates(Vec::new()),
         })
