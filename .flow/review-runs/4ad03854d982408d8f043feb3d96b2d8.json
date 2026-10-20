@@ -1,0 +1,29 @@
+{
+  "backend": "codex",
+  "counter_scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
+  "failure_class": "fanout_abandoned",
+  "finalized": {
+    "digest": "not_applicable",
+    "receipt": "not_applicable",
+    "status": "not_applicable"
+  },
+  "metadata": null,
+  "outcome": "transport_failure",
+  "receipt_payload": null,
+  "receipt_target": null,
+  "reservation_id": "4ad03854d982408d8f043feb3d96b2d8",
+  "reset_rounds_on_ship": false,
+  "response": "fan-out dispatched; no finalize landed before this refund-intent journal was replayed",
+  "response_sha256": "6ea4de7239adcef700fcf360528c3918564fc4300515f3a62b9a089c94e74f20",
+  "review_kind": "impl",
+  "review_type": "impl",
+  "reviewed_base_sha": "67184986f6a530c70814e5d5345d9b4e1e179b0d",
+  "reviewed_head_sha": "f4acbec955a01ce0a049ec14de3441ba7d441d56",
+  "scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
+  "spec_id": "fn-217-annotation-catalog-over-the-temporal",
+  "status_target": null,
+  "superseded_by": null,
+  "task_id": "fn-217-annotation-catalog-over-the-temporal.1",
+  "timestamp": "2026-10-20T20:04:16.150747Z",
+  "verdict": null
+}

@@ -1,13 +1,36 @@
 {
   "branch_name": "fn-217-annotation-catalog-over-the-temporal",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T01:55:29.966153Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-216-mini-activity-vertical-slice-the-model"
   ],
   "id": "fn-217-annotation-catalog-over-the-temporal",
+  "impl_review_rounds": {
+    "fn-217-annotation-catalog-over-the-temporal.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_hash_epoch": {},
+  "review_pending_rounds": {
+    "impl:fn-217-annotation-catalog-over-the-temporal.1": 1
+  },
+  "review_reservations": {
+    "4ad03854d982408d8f043feb3d96b2d8": {
+      "artifact_sha256": "afbcad438a523f8430759e55864ddb83d96f5fdb79d77d1b194abedeabf460fc",
+      "counter_scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
+      "epoch": 0,
+      "exclusive": true,
+      "forced": false,
+      "review_type": "impl"
+    }
+  },
   "spec_path": ".flow/specs/fn-217-annotation-catalog-over-the-temporal.md",
   "status": "open",
   "title": "Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)",
@@ -22,5 +45,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T01:57:10.430053Z"
+  "updated_at": "2026-10-20T20:04:16.122633Z"
 }
