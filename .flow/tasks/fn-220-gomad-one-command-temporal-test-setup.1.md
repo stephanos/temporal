@@ -20,6 +20,6 @@ Selected additive install flags --temporal-checkout and --temporal-package; fact
 
 stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits: fb8044eca5, 7c8ef42504, ff719ea3b4, 8896829710, fc04600872, 93b12381b7
-- Tests: go test -tags test_dep ./internal/backends/wasm/command ./internal/backends/wasm/installation ./cmd/gomad/internal/cli -count=1 (exit 0), TestTemporalConfigPreservesPrototypeBytes; TestTemporalInspectionConfigPreservesFixtureBytes; historical qualification smoke bytes (exit 0), compiler-backed TestBuildSelectionChangesInvalidateCompilationCache (exit 0), network connection-limit mutation 4096 to 4095: command+inspection tests exit 1; restored exit 0, derived install and discover on clean 29f49b17bc (exit 0), explore TestFrontendSystemInfo retained success on clean 29f49b17bc (exit 0), fresh gomad replay retained success: reproduced=true choice-replay=exact (exit 0), make lint-code-fast GOLANGCI_LINT_FIX=false (exit 0), independent source review after 93b12381b7: SHIP
+- Commits:
+- Tests:
 - PRs:
