@@ -10,9 +10,8 @@ import (
 	"os"
 	"path/filepath"
 
-	"golang.org/x/mod/modfile"
-
 	"go.temporal.io/server/tools/gomad/internal/model/generation/protocol"
+	"golang.org/x/mod/modfile"
 )
 
 const (
