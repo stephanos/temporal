@@ -172,6 +172,19 @@ a branch, opening a PR or landing on origin remains separately authorized.
   rules above, and runs `git worktree prune` for stale entries.
 - Scratch output belongs in `.flow/tmp`, not in a worktree kept for its logs.
 
+### Closed-spec cleanup
+
+After a spec's closure record is committed, clean up its inactive local worktrees
+and integrated branches using the rules above. Preserve unresolved worktrees and
+branches containing uncommitted changes or commits absent from `umpire`; report
+them instead of discarding or archiving them.
+
+Delete the closed spec's solely owned, untracked temporary logs and receipts,
+including ignored review-run output. Verify ownership against the exact spec ID
+and closed status; numeric prefixes alone are ambiguous. Preserve tracked Flow
+completion/review records, code, test goldens, Git history, active-spec evidence,
+and shared or uncertain artifacts. Cleanup does not authorize remote ref changes.
+
 The installed Flow CLI checks committed local closures; the conductor owns branch
 integration into `umpire`. If a reinstall restores the
 publication gate, reapply `tools/flow/committed-dependencies.patch` to its scripts

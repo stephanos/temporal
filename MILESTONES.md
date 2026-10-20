@@ -27,8 +27,8 @@ fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion rev
 fn-225 is complete locally: its single task passed implementation review, correctness and
 standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
 complete locally with all three search requirements covered, reviews passed and model gates green.
-fn-218's grammar and catalog task is complete locally with review and gates passed;
-pattern matching, coverage and sampling are in progress.
+fn-218's grammar/catalog and pattern matching/coverage/sampling tasks are complete
+locally with review and gates passed; real-model examples and README remain.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -62,8 +62,7 @@ the Model's catalog. The claim form stays two state waypoints.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-218.2 | 🔄 in progress | `cover`/`sample` with expansion and coverage goldens (R2, R3, R5) |
-| fn-218.3 | ⬜ todo | After .2: Kettle and mini activity `cover` tests; README grammar (R3, R4) |
+| fn-218.3 | ⬜ todo | Kettle and activity `cover` tests; README grammar (R3, R4) |
 
 ### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
 
