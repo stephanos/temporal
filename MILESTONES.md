@@ -29,6 +29,8 @@ standards audits, and default/required-TLC gates with byte-identical goldens. fn
 complete locally with all three search requirements covered, reviews passed and model gates green.
 fn-218 is complete locally with all five requirements covered, real-model expansions,
 default/required-TLC gates and the completion review passed.
+fn-229 is complete locally with both tasks, all three requirements, implementation
+and completion reviews, correctness/standards audits and integrated/live gates passed.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -68,21 +70,6 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 | fn-217.3 | ⬜ todo | After .2: mini activity catalog with expected errors; `fill`/`validate` in the slice test (R3, R5) |
 | fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
 | fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
-
-### fn-229: Realization ergonomics: shared Temporal helpers, runtime constructors, and the activity Realization rewrite (model, temporal)
-
-Captured on 2026-10-20 from the owner's request to make the activity Realization shorter and easier
-to maintain, approved as a small spec. Runtime constructors (`Transition::from`, `Projection::step`,
-`Candidate` with an expected outcome, `AnswerPlan::new`; `Realize::matches` removed), a Temporal
-`support` module (observation decoding, gRPC code to `Rejection`, method naming, `plain_text`,
-`Failure::application`, reply and callback envelopes), and the activity Realization rewritten against
-them with `TryFrom<ActivityExecutionInfo> for Phase` beside the Model. Goldens and the live slice are the
-control. Lands before fn-227.3, fn-227.5 and fn-228.2 extend the file.
-[Spec](.flow/specs/fn-229-realization-ergonomics-shared-temporal.md).
-
-Both tasks are done locally with implementation reviews passed, including the
-payload-normalization regression fix. Whole-spec quality audits and completion
-review remain before closure.
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
 

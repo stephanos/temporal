@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-229-realization-ergonomics-shared-temporal",
   "spec_path": ".flow/tasks/fn-229-realization-ergonomics-shared-temporal.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "After .1: support module with Temporal helpers; activity Realization rewritten; Phase TryFrom beside the Model",
   "updated_at": "2026-10-20T19:51:29.863460Z"
 }

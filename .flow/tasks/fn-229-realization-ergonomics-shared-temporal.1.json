@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-229-realization-ergonomics-shared-temporal",
   "spec_path": ".flow/tasks/fn-229-realization-ergonomics-shared-temporal.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Runtime constructors and Candidate outcomes in umpire-wasm; Realize::matches removed",
   "updated_at": "2026-10-20T19:28:08.679599Z"
 }
