@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-218-test-space-patterns-cover-and-the-full",
   "spec_path": ".flow/tasks/fn-218-test-space-patterns-cover-and-the-full.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "cover and sample in umpire-suite with expansion and coverage goldens",
   "updated_at": "2026-10-20T17:35:30.859884Z"
 }

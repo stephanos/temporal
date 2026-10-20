@@ -27,8 +27,8 @@ fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion rev
 fn-225 is complete locally: its single task passed implementation review, correctness and
 standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
 complete locally with all three search requirements covered, reviews passed and model gates green.
-fn-218's grammar/catalog, pattern matching/coverage/sampling, real-model examples and
-README are complete locally with task reviews and gates passed; completion review remains.
+fn-218 is complete locally with all five requirements covered, real-model expansions,
+default/required-TLC gates and the completion review passed.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -46,21 +46,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-218 → fn-217 → fn-229 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is small and must land before fn-227.3; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224, fn-225 and fn-226 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-217 → fn-229 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is small and must land before fn-227.3; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-218, fn-221, fn-223, fn-224, fn-225 and fn-226 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-218: Test-space patterns: cover and the full path! grammar (model)
-
-Captured on 2026-10-19, after fn-215 and fn-213. Tests describe their space in Rust's own pattern
-notation: actions, input ranges, outcomes, faults, alternatives `(a | b)`, repetition `[x; 0..=n]`,
-permutations `unordered![..]`, exclusion gaps `..!(x)`. `cover(&space, Cases(n), ..)` requires the author's expected
-case count, finds one shortest witness per alternative and fails on any alternative without a path (no silent vacuity); the expansion is a
-golden a reviewer reads as the list of cases; a coverage table shows what the tests touched against
-the Model's catalog. The claim form stays two state waypoints.
-[Spec](.flow/specs/fn-218-test-space-patterns-cover-and-the-full.md).
-
-All tasks are done; the spec completion review is in progress.
 
 ### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
 
@@ -75,7 +63,7 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-217.1 | ⬜ todo | `umpire-annotations`: kinds, tags, rules, expectations, `validate`, `fill` (R2, R6) |
+| fn-217.1 | 🔄 in progress | `umpire-annotations`: kinds, tags, rules, expectations, `validate`, `fill` (R2, R6) |
 | fn-217.2 | ⬜ todo | After .1: `annotate!` with four-level exhaustiveness and the descriptor-set build check (R1, R2) |
 | fn-217.3 | ⬜ todo | After .2: mini activity catalog with expected errors; `fill`/`validate` in the slice test (R3, R5) |
 | fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
@@ -94,7 +82,7 @@ control. Lands before fn-227.3, fn-227.5 and fn-228.2 extend the file.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-229.1 | ⬜ todo | Runtime constructors and `Candidate` outcomes; `matches` removed (R1) |
+| fn-229.1 | 🔄 in progress | Runtime constructors and `Candidate` outcomes; `matches` removed (R1) |
 | fn-229.2 | ⬜ todo | After .1: `support` helpers; activity Realization rewritten (R2, R3) |
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)

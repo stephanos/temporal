@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-218-test-space-patterns-cover-and-the-full",
   "completion_review_status": "ship",
-  "completion_reviewed_at": "2026-10-20T19:35:54.859343Z",
+  "completion_reviewed_at": "2026-10-20T19:37:30.308186Z",
   "created_at": "2026-10-19T02:28:03.049485Z",
   "default_impl": null,
   "default_review": null,
@@ -405,13 +405,57 @@
       "timestamp": "2026-10-20T19:35:54.825951Z",
       "tool_calls": 40,
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "341ed1dc5b7a84c2c2b74aabe8bc260e379ba3bffbc4f9b868641a0f8bf11bc9",
+      "backend": "codex",
+      "base_sha": "0ebec7bb54cce9e794147a47a28e6b11e4432f3e",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-7fab0515abbd86fe73377db5cbf16b59",
+            "classification": "introduced",
+            "findingId": "finding-7fab0515abbd86fe73377db5cbf16b59",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "08670703608fa8c0dd174a4f7913553120e939f2",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 5211,
+      "output_sha256": "cc81ea57a483fd89229a547bd0c8e3ec622d0cd175aab612f37aa04c9d067227",
+      "reservation_id": "c414844290624ac2bdc631b597453ad1",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T19:37:30.299433Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-218-test-space-patterns-cover-and-the-full.1": 1,
     "impl:fn-218-test-space-patterns-cover-and-the-full.2": 1,
     "impl:fn-218-test-space-patterns-cover-and-the-full.3": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -422,7 +466,7 @@
     "impl:fn-218-test-space-patterns-cover-and-the-full.3": 0
   },
   "spec_path": ".flow/specs/fn-218-test-space-patterns-cover-and-the-full.md",
-  "status": "open",
+  "status": "done",
   "title": "Test-space patterns: cover and the full path! grammar (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -435,5 +479,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T19:35:54.869024Z"
+  "updated_at": "2026-10-20T19:38:34.622100Z"
 }
