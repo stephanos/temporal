@@ -11,7 +11,7 @@
   ],
   "id": "fn-217-annotation-catalog-over-the-temporal",
   "impl_review_rounds": {
-    "fn-217-annotation-catalog-over-the-temporal.1": 1
+    "fn-217-annotation-catalog-over-the-temporal.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -104,9 +104,71 @@
       "task": "fn-217-annotation-catalog-over-the-temporal.1",
       "timestamp": "2026-10-20T20:59:01.545489Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "511d4ad833e7ac4163453c360c148cc9e68cf8e98c54ed8f2430ca013ab86908",
+      "backend": "codex",
+      "base_sha": "67184986f6a530c70814e5d5345d9b4e1e179b0d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-6bbfdffb6d8c9b1f0f5fe9e0da17fd6f",
+            "classification": "introduced",
+            "findingId": "finding-6bbfdffb6d8c9b1f0f5fe9e0da17fd6f",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ca1cdc2ff6e7b6f3527a43a7607703f9",
+            "classification": "introduced",
+            "findingId": "finding-ca1cdc2ff6e7b6f3527a43a7607703f9",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6210d2370b20c5f029194da1ce8c75a8",
+            "classification": "introduced",
+            "findingId": "finding-6210d2370b20c5f029194da1ce8c75a8",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "cdf7f3c9e6766aadeb7aab6cadb89b15b40616c6",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1422,
+      "output_sha256": "6196a4bf9db5e19f6463bd9cd5a1266ddf8bbb0d4602cee2013458476592c0fa",
+      "reservation_id": "5b14b049d1c647af93ff33ce7649de51",
+      "round_consumed": true,
+      "scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
+      "superseded_by": null,
+      "task": "fn-217-annotation-catalog-over-the-temporal.1",
+      "timestamp": "2026-10-20T21:07:41.371042Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "impl:fn-217-annotation-catalog-over-the-temporal.1": 1
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
@@ -126,5 +188,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T20:59:01.551294Z"
+  "updated_at": "2026-10-20T21:07:41.377276Z"
 }
