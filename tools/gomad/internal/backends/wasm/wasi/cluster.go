@@ -996,11 +996,14 @@ func (stream *clusterStream) frame(data []byte) error {
 	case "cluster_result":
 		return s.collect(frame)
 	default:
-		return invalid("unknown cluster frame")
+		return &BoundaryError{Kind: "unsupported", Dimension: "unknown cluster frame " + kind}
 	}
 }
 
 func validateClusterStarted(started Started, request Request) error {
+	if err := validateEngineConfiguration(started.Engine, request); err != nil {
+		return err
+	}
 	if started.Schema != "gomad.wasm-host/v1" || started.Engine != request.Engine || started.ModuleSHA256 != request.ModuleSHA256 || started.InitialMemoryPages != request.InitialMemoryPages || !sameImports(started.Imports, request.Imports) {
 		return invalid("cluster engine/module/import identity mismatch before authorization")
 	}

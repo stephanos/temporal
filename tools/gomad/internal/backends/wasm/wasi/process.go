@@ -961,6 +961,9 @@ func (sink *frameSink) frame(data []byte) error {
 		if err := frame.decode(&started, "schema", "type", "engine", "module_sha256", "imports", "exports", "initial_memory_pages"); err != nil {
 			return err
 		}
+		if err := validateEngineConfiguration(started.Engine, sink.request); err != nil {
+			return err
+		}
 		if started.Schema != "gomad.wasm-host/v1" || started.Engine != sink.request.Engine || started.ModuleSHA256 != sink.request.ModuleSHA256 || started.InitialMemoryPages != sink.request.InitialMemoryPages || !sameImports(started.Imports, sink.request.Imports) {
 			return invalid("engine/module/import identity mismatch before authorization")
 		}
@@ -1110,8 +1113,16 @@ func (sink *frameSink) frame(data []byte) error {
 		sink.closeInput()
 		return nil
 	default:
-		return invalid("unknown protocol frame")
+		return &BoundaryError{Kind: "unsupported", Dimension: "unknown protocol frame " + kind}
 	}
+}
+
+func validateEngineConfiguration(engine EngineIdentity, request Request) error {
+	pinned := PinnedEngine().Configuration
+	if engine.Configuration != pinned && (request.diagnosticConfigurationRevision == "" || engine.Configuration != request.diagnosticConfigurationRevision) {
+		return &BoundaryError{Kind: "unsupported", Dimension: "engine configuration outside pin: " + engine.Configuration}
+	}
+	return nil
 }
 func sameImports(left, right []Import) bool {
 	return slices.EqualFunc(left, right, func(a, b Import) bool {

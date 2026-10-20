@@ -265,8 +265,30 @@ impl std::fmt::Display for FrameCapacity {
     }
 }
 impl std::error::Error for FrameCapacity {}
+
+#[derive(Debug)]
+pub struct Unsupported(pub String);
+impl std::fmt::Display for Unsupported {
+    fn fmt(&self, formatter: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        formatter.write_str(&self.0)
+    }
+}
+impl std::error::Error for Unsupported {}
+
+pub fn decode_boundary<T: serde::de::DeserializeOwned>(bytes: &[u8]) -> Result<T> {
+    serde_json::from_slice(bytes).map_err(|error| {
+        if error.to_string().starts_with("unknown field ") {
+            Error::new(Unsupported(error.to_string()))
+        } else {
+            Error::new(error)
+        }
+    })
+}
+
 pub fn classification(error: &Error) -> &'static str {
-    if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
+    if error.downcast_ref::<Unsupported>().is_some() {
+        "unsupported"
+    } else if let Some(boundary) = error.downcast_ref::<crate::namespace::Boundary>() {
         boundary.kind
     } else if let Some(stop) = error.downcast_ref::<crate::namespace::Stop>() {
         match stop {
@@ -388,8 +410,17 @@ impl Execute {
             }
             storage.validate()?;
         }
-        if self.schema != SCHEMA || self.kind != "execute" {
-            return Err(Error::msg("unknown execute schema or type"));
+        if self.schema != SCHEMA {
+            return Err(Error::new(Unsupported(format!(
+                "unknown execute schema {}",
+                self.schema
+            ))));
+        }
+        if self.kind != "execute" {
+            return Err(Error::new(Unsupported(format!(
+                "unknown execute kind {}",
+                self.kind
+            ))));
         }
         if !std::path::Path::new(&self.module_path).is_absolute()
             || self.module_sha256.len() != 64

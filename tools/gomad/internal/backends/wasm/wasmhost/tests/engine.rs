@@ -119,6 +119,121 @@ fn termination(frames: &[Value]) -> &str {
     frames.last().unwrap()["termination"].as_str().unwrap()
 }
 
+#[test]
+fn determinism_refuses_unknown_execute_fields_and_kinds_before_started() {
+    for change in [
+        json!({"future_field":true}),
+        json!({"type":"future_execute"}),
+    ] {
+        let frames = run(
+            "(module (memory (export \"memory\") 1) (func (export \"_start\") unreachable))",
+            change,
+            deny,
+        );
+        assert_eq!(frames.len(), 1, "{frames:?}");
+        assert_eq!(termination(&frames), "unsupported");
+        assert!(frames[0]["message"].as_str().unwrap().contains("future"));
+    }
+}
+
+#[test]
+fn determinism_refuses_unknown_remote_reply_fields_and_kinds() {
+    let guest = "(module (import \"wasi_snapshot_preview1\" \"sched_yield\" (func $yield (result i32))) (memory (export \"memory\") 1) (func (export \"_start\") call $yield drop unreachable))";
+    for change in [json!({"future_field":true}), json!({"type":"future_reply"})] {
+        let frames = run(guest, json!({}), |call| {
+            let mut reply = json!({"type":"reply","id":call["id"],"errno":0,"output":{}});
+            for (key, value) in change.as_object().unwrap() {
+                reply[key] = value.clone();
+            }
+            reply
+        });
+        assert_eq!(termination(&frames), "unsupported", "{frames:?}");
+        assert!(
+            frames.last().unwrap()["message"]
+                .as_str()
+                .unwrap()
+                .contains("future")
+        );
+    }
+}
+
+#[test]
+fn determinism_refuses_unknown_split_remote_reply_fields_and_kinds() {
+    let fixture: Value = serde_json::from_str(include_str!(
+        "testdata/helper_transcript/split_sync_before_local_call_continued.json"
+    ))
+    .unwrap();
+    let mut request = fixture["request"].clone();
+    request.as_object_mut().unwrap().remove("module_path");
+    request.as_object_mut().unwrap().remove("module_sha256");
+    request["fixture_model_inputs"] = fixture["inputs"].clone();
+    request["fixture_namespace_inputs"] =
+        Value::Array(fixture["replies"][0]["send"].as_array().unwrap()[1..].to_vec());
+    for change in [
+        json!({"future_field":true}),
+        json!({"type":"future_reply"}),
+        json!({"local_state":{"now":1,"advances":0,"future_field":true}}),
+    ] {
+        let frames = run(
+            fixture["guest"]["wat"].as_str().unwrap(),
+            request.clone(),
+            |call| {
+                let mut reply = json!({"type":"reply","id":call["id"],"errno":0,"output":{"written":2},"local_state":{"now":1,"advances":0},"transcript_base64":""});
+                for (key, value) in change.as_object().unwrap() {
+                    reply[key] = value.clone();
+                }
+                reply
+            },
+        );
+        assert_eq!(termination(&frames), "unsupported", "{frames:?}");
+        assert!(
+            frames.last().unwrap()["message"]
+                .as_str()
+                .unwrap()
+                .contains("future")
+        );
+    }
+    for refused in [
+        json!({"type":"remote_transcript","data_base64":"AQ==","future":true}),
+        json!({"type":"interrupt","termination":"stop","message":"","future":true}),
+    ] {
+        let frames = run(
+            fixture["guest"]["wat"].as_str().unwrap(),
+            request.clone(),
+            |_| refused.clone(),
+        );
+        assert_eq!(termination(&frames), "unsupported", "{frames:?}");
+        assert!(
+            frames.last().unwrap()["message"]
+                .as_str()
+                .unwrap()
+                .contains("future")
+        );
+    }
+    for refused in [
+        json!({"type":"future_sync"}),
+        json!({"type":"continue","now":7,"future":true}),
+    ] {
+        let frames = run(
+            fixture["guest"]["wat"].as_str().unwrap(),
+            request.clone(),
+            |call| {
+                if call["type"] == "sync" {
+                    return refused.clone();
+                }
+                json!({"type":"reply","id":call["id"],"errno":0,"output":{"written":2},"local_state":{"now":5,"advances":0},"transcript_base64":"","revocable":true})
+            },
+        );
+        assert_eq!(termination(&frames), "unsupported", "{frames:?}");
+        assert!(
+            frames.last().unwrap()["message"]
+                .as_str()
+                .unwrap()
+                .contains("future")
+        );
+    }
+}
+
 #[cfg(feature = "guest-profile")]
 #[test]
 fn guest_profile_is_symbolized_bounded_and_preserves_evidence_on_write_failure() {
