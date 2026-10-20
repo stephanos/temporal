@@ -1,9 +1,0 @@
-=== RUN   TestRenameWorldRankVectors
-    rename_rank_test.go:7: 0 exchangeable 1 25613d06e5e10c10308c173981de90cb59d72d532965bb43ec61244e527a5f01
-    rename_rank_test.go:7: 7 x 42 f42bf35fc2608db6f226758dd47dee92aa145eb0353c8570979262ff35503116
-    rename_rank_test.go:7: 18446744073709551615 network 18446744073709551614 8d89fed0092f6f11c100399441c049cd138a6246e4a87c609af57635006ac905
-    rename_rank_test.go:7: 41 üñî 3 a1c8f07d1efaa89603fef2ea7fbfebb27648399459d9c41b90681bfab185795b
-    rename_rank_test.go:7: 1  1 205a5ac465d13452c932de3e6c7f07b2fd5ed8db365d99113d45d82e432d9fc4
---- PASS: TestRenameWorldRankVectors (0.00s)
-PASS
-ok  	go.temporal.io/server/tools/gomad/internal/model/world	0.053s

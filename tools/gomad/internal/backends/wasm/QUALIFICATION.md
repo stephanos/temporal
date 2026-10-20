@@ -85,10 +85,9 @@ The one-box and multi-instance cells build their guests with
 `backend.TemporalGuestBuildTags()`, which adds the guest-only `gomad_wasm_slim`
 provider trim (fn-182). Results from earlier full-closure modules keep their own
 module and choice identities; they are not relabeled as trimmed-guest evidence.
-The [fn-182 close-out](../../../../../.flow/artifacts/fn182-closeout-2026-10-17.md)
-records the full and trimmed module sizes and the passing success, canary and
-replay cells for both selections. Matched timing and memory comparisons moved to
-fn-185 by owner decision; no startup, execution or memory gain is claimed yet.
+Historical full and trimmed results remain in Git history and the fn-182 Flow
+records. Matched timing and memory comparisons moved to fn-185 by owner
+decision; no startup, execution or memory gain is claimed yet.
 Each selection replays within its own recorded module and execution identities.
 
 ### One-box cell gates
@@ -166,9 +165,8 @@ refused. No list exists yet for the current candidate.
 
 ## Post-migration cleanup
 
-The [fn-183 cleanup record](../../../../../.flow/artifacts/fn183-batch-2026-10-15.md)
-records the production/reference route inventory and the recovery decoder's
-removed temporary namespace copies. Differential namespace, volume, network and
+The [fn-183 specification](../../../../../.flow/specs/fn-183-gomad-wasm-post-migration-cleanup.md)
+defines production/reference ownership. Differential namespace, volume, network and
 World models remain required, including generated wire-codec checks (`make validate`), actual
 storage recovery, independent evidence bounds and retained lifecycle replay.
 Reference selection is private to differential tests; ordinary installation and

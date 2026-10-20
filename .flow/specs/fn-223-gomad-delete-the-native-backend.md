@@ -7,7 +7,7 @@
 
 ## Goal & Context
 
-After `fn-219-gomad-promote-the-model-projections-and` lands, nothing in the parent module outside `internal/backends/native` and outside `gomad_native`-tagged files references the native tree. The native backend is then a frozen nested module that no gate compiles by default, whose execution qualification has been deferred under fn-128 and fn-149 since the 2026-10-14 hibernation, and whose only remaining consumers are its own tagged CLI seam, tagged test fixtures, Make targets, CI jobs and archcheck tables. The owner decision of 2026-10-19 is that WASM is the product. This spec removes the native backend and its scaffolding and closes the two deferred qualification specs as won't-do with a recorded owner decision, while retaining every historical artifact and ledger under `.flow/artifacts`.
+After `fn-219-gomad-promote-the-model-projections-and` lands, nothing in the parent module outside `internal/backends/native` and outside `gomad_native`-tagged files references the native tree. The native backend is then a frozen nested module that no gate compiles by default, whose execution qualification has been deferred under fn-128 and fn-149 since the 2026-10-14 hibernation, and whose only remaining consumers are its own tagged CLI seam, tagged test fixtures, Make targets, CI jobs and archcheck tables. The owner decision of 2026-10-19 is that WASM is the product. This spec removes the native backend and its scaffolding and closes the two deferred qualification specs as won't-do with a recorded owner decision, while following the current closed-spec cleanup policy in AGENTS.md.
 
 Measured on 2026-10-19, the native tree is about 110k Go lines plus the pinned Go 1.27.1 runtime patch and overlay; its subtrees are `toolchain` (34k), `build`, `transcript`, `execution`, `qualification`, `conformance`, `upgrade`, `compatibilitypack`, `generation`, `cmd`, `preparation` and `sourceinventory`.
 
@@ -23,7 +23,7 @@ Measured on 2026-10-19, the native tree is about 110k Go lines plus the pinned G
 - archcheck native ownership tables, inventories, exclusions, `NativeSelected` and `nativeModulePresent` in `internal/archcheck`.
 - The `gomad` and `gomad_native` build tags where they only served native; the `gomad_wasm_slim` tag and its guest stubs stay. Task .2 lists every `//go:build gomad` site and decides each.
 
-**Retained.** Every `.flow/artifacts` ledger, checkpoint and close-out; historical artifacts and their identities; `MILESTONES.md` history (edited to mark the native section as removed, not rewritten).
+**Retained.** Flow spec/task records and Git history; inputs and evidence still required by open specs. Closed-owner worktrees, branches and evidence are deleted under AGENTS.md.
 
 **Closed.** fn-128 and fn-149 are closed as won't-do with the owner decision recorded in their Decision Context and in the close-out artifact.
 
@@ -53,7 +53,7 @@ Measured on 2026-10-19, the native tree is about 110k Go lines plus the pinned G
 ## Boundaries
 
 - No change to WASM behavior, evidence, helper, slim guest build or qualification.
-- No deletion of anything under `.flow/artifacts`.
+- Evidence cleanup follows the owner decision of 2026-10-20 in AGENTS.md; it does not delete live operational source or open-owner acceptance inputs.
 - No start before fn-219 is closed.
 - No CI run, PR or push.
 

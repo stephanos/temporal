@@ -1,1 +1,0 @@
-usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]

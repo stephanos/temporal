@@ -1,5 +1,0 @@
---- FAIL: TestPreMoveWASMArtifactIsRefusedAsUnsupportedStorageFormat (0.01s)
-    characterization_test.go:72: control with a current envelope: decode artifact manifest: unknown artifact kind "gomad3.success/v1"
-FAIL
-FAIL	go.temporal.io/server/tools/gomad/internal/backends/wasm/backend	0.010s
-FAIL

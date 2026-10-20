@@ -1,5 +1,0 @@
-$ gomadtool compatibility-pack --help
-exit status: 2
---- stdout
---- stderr
-usage: gomadtool compatibility-pack discover|review|generate|check|qualify [flags]

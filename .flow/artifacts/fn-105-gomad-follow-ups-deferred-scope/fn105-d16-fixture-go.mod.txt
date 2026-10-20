@@ -1,3 +1,0 @@
-module d16fixture
-
-go 1.27.0

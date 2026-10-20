@@ -1,4 +1,0 @@
-=== RUN   TestCLIReplaysDistinctSeedsWithOneSuccessSignature
---- PASS: TestCLIReplaysDistinctSeedsWithOneSuccessSignature (1.60s)
-PASS
-ok  	go.temporal.io/server/tools/gomad3/cmd/gomad	4.594s

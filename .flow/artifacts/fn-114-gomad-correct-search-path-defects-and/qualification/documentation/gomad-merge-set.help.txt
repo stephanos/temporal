@@ -1,7 +1,0 @@
-Usage of gomad merge-set:
-  -format string
-    	text or json (default "text")
-  -manifest string
-    	qualification manifest the shards ran
-  -output string
-    	merged qualification set report (default ".gomad/qualification-set.json")

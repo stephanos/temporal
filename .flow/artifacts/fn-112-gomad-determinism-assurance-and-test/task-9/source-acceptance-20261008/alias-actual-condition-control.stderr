@@ -1,2 +1,0 @@
-FAIL retained alias assertion: current public-signature guard accepts an exported builtin alias rejected by the original test
-exit status 1

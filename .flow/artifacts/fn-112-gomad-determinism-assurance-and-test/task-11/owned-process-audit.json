@@ -1,9 +1,0 @@
-{
-  "argv": [
-    "ps",
-    "-axo",
-    "pid=,ppid=,pgid=,args="
-  ],
-  "survivors": [],
-  "checked_at": "2026-10-02T13:12:38.887044+00:00"
-}

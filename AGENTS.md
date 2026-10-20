@@ -99,8 +99,7 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 - Remaining native Linux qualification and Linux CI work stay deferred under
   [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md); remaining native Darwin
   qualification stays deferred under [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md).
-  Follow the [native transfer manifest](.flow/artifacts/native-scope-transfer-2026-10-07.md) for
-  affected tasks and retained source acceptance. Missing transferred native evidence does not
+  Historical native transfers are recorded in Flow and Git history. Missing transferred native evidence does not
   block source specs; implementation, ordinary host-source coverage, lint, preservation, source
   review, generated validation and both-source-set static checks remain required. Partial portable
   coverage supplies no full native test-host pass. Keep each native owner deferred until an explicit

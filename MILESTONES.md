@@ -9,7 +9,7 @@ same seed produces the same run and a retained artifact replays byte-exactly.
 
 The WASM backend lives in `tools/gomad/internal/backends/wasm` and shares its
 campaign, artifact, replay, and choice owners. Read [the WASM README](tools/gomad/internal/backends/wasm/README.md) before working on that
-backend; [the WASM section acceptance evidence](.flow/artifacts/wasm-section-acceptance-2026-10-12.md)
+backend; [the qualification contract](tools/gomad/internal/backends/wasm/QUALIFICATION.md)
 lists the gates a shared-owner change must pass.
 
 ## Work tracking
@@ -19,7 +19,7 @@ Remaining native linux/amd64 qualification and Linux CI work stay deferred under
 [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md). The owner-approved
 Darwin deferral transfers remaining native darwin/arm64 qualification to
 [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md), as mapped in the
-[native transfer manifest](.flow/artifacts/native-scope-transfer-2026-10-07.md).
+historical native transfer records in Git history.
 Missing transferred native evidence does not block source-spec completion. Implementation,
 ordinary host-source coverage, lint, preservation, both-source-set static checks, generated
 validation, source review and other independent acceptance remain required. Native full-host
@@ -60,9 +60,9 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
-1. ~~Complete fn-189 upstream sync.~~ Done 2026-10-20. The integration base is Temporal `main` at `48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge `0077477965a5b766b95a667247a9f562c100941b`. Frozen candidate `e50c6476fb` passed qualification, and the matched-release comparison moved to fn-185. See the [integration report](.flow/artifacts/fn189-upstream-sync-2026-10-17.md) and the [close-out](.flow/artifacts/fn189-fn187-closeout-2026-10-20.md).
+1. ~~Complete fn-189 upstream sync.~~ Done 2026-10-20. The integration base is Temporal `main` at `48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge `0077477965a5b766b95a667247a9f562c100941b`. Frozen candidate `e50c6476fb` passed qualification, and the matched-release comparison moved to fn-185. Historical details remain in Flow and Git history; closed-spec evidence is deleted under the cleanup policy.
 2. ~~Complete fn-225 bounded harness result retention immediately after fn-189.~~ Done 2026-10-20, merged as `76bc9b75f5`. Measurement output roots keep the latest success and one recent failure; see the [spec](.flow/specs/fn-225-gomad-bounded-harness-result-retention.md).
-3. ~~Follow with fn-187 helper fixture tests and module ownership.~~ Done 2026-10-20; see the [close-out](.flow/artifacts/fn189-fn187-closeout-2026-10-20.md).
+3. ~~Follow with fn-187 helper fixture tests and module ownership.~~ Done 2026-10-20; historical details remain in Flow and Git history.
 4. ~~Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187.~~ Superseded on 2026-10-19: fn-185 moves below the goal-path work (see the retirement decision below). Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 ### Native backend isolation (owner decision, 2026-10-16)

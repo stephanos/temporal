@@ -1,3 +1,0 @@
-Findings: none.
-
-VERDICT: SHIP

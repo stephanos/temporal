@@ -1,6 +1,0 @@
-START fn174-candidate 2026-10-15T03:49:20Z boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6 load='0.25 0.12 0.27 1/211 1615496'
-EXIT fn174-candidate 0 2026-10-15T03:52:20Z secs=180 boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6
-START fn174-baseline 2026-10-15T03:52:20Z boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6 load='0.99 0.56 0.42 1/207 1615872'
-EXIT fn174-baseline 0 2026-10-15T03:55:26Z secs=186 boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6
-START fn174-runtime-cost 2026-10-15T03:55:26Z boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6 load='1.32 1.12 0.70 1/205 1616094'
-EXIT fn174-runtime-cost 0 2026-10-15T03:55:55Z secs=29 boot=ad1ec4fe-2bb8-4c96-bf7f-a714910117e6

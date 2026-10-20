@@ -1,5 +1,0 @@
-$ gomadtool checked-run --help
-exit status: 125
---- stdout
---- stderr
-usage: gomadtool checked-run <seconds> <expected-status> <label> <result-dir> -- <command> [args...]

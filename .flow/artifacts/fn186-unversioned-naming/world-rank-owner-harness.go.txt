@@ -1,9 +1,0 @@
-package world
-
-import "testing"
-
-func TestRenameWorldRankVectors(t *testing.T) {
- for _,value:=range []struct{seed Seed; class string; event EventID}{{0,"exchangeable",1},{7,"x",42},{^Seed(0),"network",^EventID(0)-1},{41,"üñî",3},{1,"",1}} {
-  t.Logf("%d %s %d %x",value.seed,value.class,value.event,choiceRank(value.seed,value.class,value.event))
- }
-}

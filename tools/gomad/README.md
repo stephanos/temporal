@@ -148,9 +148,8 @@ models belong to the installation's immutable `wasi.Config`. Native
 
 The current Temporal integration base is upstream commit
 `48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge
-`0077477965a5b766b95a667247a9f562c100941b`. See the
-[integration report](../../.flow/artifacts/fn189-upstream-sync-2026-10-17.md)
-for conflict resolutions and historical evidence; current qualification remains open.
+`0077477965a5b766b95a667247a9f562c100941b`. Historical conflict resolutions remain
+in Git history and the fn-189 Flow records; current qualification remains open.
 
 Temporal's integration owns its package choices, SQLite inputs, test arguments
 and provider tags. Gomad currently contains Temporal fixtures, build-tag helpers

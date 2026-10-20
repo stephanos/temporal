@@ -1,7 +1,0 @@
-=== RUN   TestRenameEntropyPins
-    rename_pins_test.go:14: offset=0 length=32 hex=dd7734737675d01bb34069543218175bc6631c6e1e3a35c89ffa0ed113d266c0
-    rename_pins_test.go:14: offset=30 length=6 hex=66c0fb3513f4
-    rename_pins_test.go:14: offset=32 length=32 hex=fb3513f4792214027f4d8f57a2f26bb438c986eede20a8866595dfed5ebf0c9a
---- PASS: TestRenameEntropyPins (0.00s)
-PASS
-ok  	go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi	0.006s

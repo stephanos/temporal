@@ -1,3 +1,0 @@
-Usage of gomadtool diagnostic-diff:
-  -json
-    	emit the first divergent ordinal and fields as JSON

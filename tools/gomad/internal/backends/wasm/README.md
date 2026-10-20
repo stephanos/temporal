@@ -80,12 +80,9 @@ Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
 (`backend.SlimGuestBuildTag`). It reuses the native `gomad` provider seams to
 leave out the cloud archivers, ringpop membership and MySQL/PostgreSQL test
 drivers, while default, stock and native builds keep them. Selecting an excluded
-provider fails explicitly. The dependency analysis and measured module sizes are
-in [the fn-182 closure report](../../../../../.flow/artifacts/fn182-guest-dependency-closure-2026-10-15.md);
-[CLI.md](CLI.md) lists the refusals.
-The [matched Linux/arm64 report](../../../../../.flow/artifacts/fn182-batch-2026-10-15.md)
-records module/cache bytes, compile/load/startup/execution costs, helper RSS and
-the success, canary and retained replay results. Smaller linked modules alone
+provider fails explicitly. The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
+records the dependency contract; [CLI.md](CLI.md) lists the refusals. Matched
+timing and memory measurements belong to fn-185. Smaller linked modules alone
 establish no startup or memory improvement.
 
 The [operator guide](CLI.md) describes installation, discovery, campaigns,
@@ -463,8 +460,8 @@ all but `frontend` use the unchanged `./tests` package).
 fixture and Temporal guests, and `GOMAD_WASM_PROTOTYPE_MIRROR` is a path prefix
 for live copies of guest stdout. Each gate writes a `*-report.json` with per-run
 wall time, memory, host calls, decisions, clock jumps, virtual time and evidence
-digests. Results and the go decision are in
-[the fn-151 report](../../../../../.flow/artifacts/fn151-prototype-report-2026-10-10.md).
+digests. Historical prototype results remain in Git history; they do not
+qualify the current candidate.
 
 [fn-156](../../../../../.flow/specs/fn-156-wasm-gomad-productionization.md)
 retains the completed productionization acceptance. Its historical evidence
