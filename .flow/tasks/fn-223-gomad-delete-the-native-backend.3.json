@@ -11,6 +11,6 @@
   "spec": "fn-223-gomad-delete-the-native-backend",
   "spec_path": ".flow/tasks/fn-223-gomad-delete-the-native-backend.3.md",
   "status": "todo",
-  "title": "Record WASM identity changes, requalify the candidate and refresh docs",
-  "updated_at": "2026-10-20T21:24:28.423301Z"
+  "title": "Record deletion identities, transfer final Rust qualification and refresh docs",
+  "updated_at": "2026-10-20T21:36:01.625015Z"
 }
