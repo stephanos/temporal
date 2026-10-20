@@ -132,3 +132,29 @@ env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
 No fn185.1 acceptance gate remains pending in this worktree. The parent still
 owns integrated qualification, Flow state and milestone updates; fn185.2/.3
 measurements are not claimed complete by this source/early-proof receipt.
+
+## Integration acceptance review context
+
+The attribution proof above retains its exact `f172c17499` candidate and helper
+identities. It is not relabeled onto integration source `d3c6382aa3`: later replay,
+model and cluster changes mean complete helper-input equivalence is false. The
+per-op/owner instrumentation and collector themselves remain unchanged. Final
+changed-candidate runtime/workload/replay qualification and the later matched
+profiling window remain pending; no new Go-only profiling cycle was run.
+
+Fresh source admission on integration `d3c6382aa3`, with Go1.27.1 and Rust1.99.1:
+
+- `go test -p=1 -tags test_dep ./internal/backends/wasm/internal/measure ./internal/backends/wasm/internal/measurement ./internal/backends/wasm/cmd/wasmmeasure`: exit0.
+- `go run ./internal/backends/wasm/cmd/wasmmeasure --help`: exit0, no producer execution.
+- `cargo +1.99.1 clippy --release --locked --offline --all-targets --features diagnostic-profile --manifest-path tools/gomad/internal/backends/wasm/wasmhost/Cargo.toml -- -D warnings`: exit0, shared release target/jobs1/incremental0.
+
+Raw logs are `/home/agent/wt/evidence/fn185/root-{source-admission-corrected,command-help,diagnostic-clippy}-d3c6382aa3.log`.
+The initial source command mistakenly named nonexistent
+`internal/backends/wasm/measurement` instead of `internal/backends/wasm/internal/measurement`;
+that setup failure remains in `root-source-admission-d3c6382aa3.log`, exit1.
+It is not a failing existing package or a successful aggregate command.
+The spec's older Quick toolchain is superseded by the repository's pinned1.99.1.
+
+Independent implementation review must assess task .1's exact R1/R4 scope and
+the limits of the retained early proof; this note is not a verdict or a waiver
+of any remaining qualified-workload obligation. Tasks .2/.3 remain open.
