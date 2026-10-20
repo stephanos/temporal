@@ -98,12 +98,12 @@ Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 20
 
 1. [fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md) projection promotion and [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md) functional-suite triage sweep run in parallel; they touch disjoint code.
 2. [fn-220](.flow/specs/fn-220-gomad-one-command-temporal-test-setup.md) one-command Temporal test setup; fn-221 uses its installation if landed, otherwise a throwaway configuration.
-3. [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile on sweep workloads, so timeout and capacity classes can be judged before refusal-closing specs are filed.
-4. Refusal-closing specs are filed from fn-221's ranked classification and fn-185's cost verdict; none is filed in advance.
+3. Refusal-closing specs are filed from fn-221's ranked classification once the relevant cause is established; none is filed in advance. Unmeasured timeout and capacity cases remain unresolved, not unsupported, until fn-185 supplies the cost evidence.
    [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop membership within reason is already filed and follows the sweep; its unstub gate may land earlier if the sweep wants it.
-5. [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) qualifies the one-box cell and defines the per-test support claim, after fn-220.
-6. [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md) determinism boundary audit continues alongside; it must hold for a testcore-sized guest.
-7. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219; fn-128 and fn-149 are already closed as won't-do.
+4. [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) qualifies the one-box cell and defines the per-test support claim, after fn-220.
+5. [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md) determinism boundary audit continues alongside; it must hold for a testcore-sized guest.
+6. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219; fn-128 and fn-149 are already closed as won't-do.
+7. [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) tasks .2/.3 measure sweep workloads and deliver the cost verdict after the functional milestones (delivery-order update, 2026-10-20). Task .1's attribution tooling remains available alongside. Bring targeted profiling forward only for a demonstrated performance blocker; all measurement acceptance, including transferred R6 comparisons, remains required and no performance gain is claimed before measurement.
 
 ## Batch-first execution strategy
 
@@ -245,14 +245,6 @@ CI, PR, or push authority.
 
 ## WASM
 
-### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | 🚧 In progress | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
-| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
-| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
-
 ### Model projection promotion — [fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)
 
 | Name / ID | Status | Description |
@@ -303,3 +295,11 @@ Runs after fn-219. Retains historical artifacts and ledgers under `.flow/artifac
 | [fn-223.1](.flow/tasks/fn-223-gomad-delete-the-native-backend.1.md) | ⬜ Todo | Remove the nested native module and prove the default set builds |
 | [fn-223.2](.flow/tasks/fn-223-gomad-delete-the-native-backend.2.md) | ⬜ Todo | Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags |
 | [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record unchanged WASM identities and refresh docs |
+
+### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | 🚧 In progress | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
+| [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
+| [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
