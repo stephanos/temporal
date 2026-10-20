@@ -101,7 +101,7 @@ func (p *Provider) Inspect(ctx context.Context, opened *artifact.Opened, request
 		}
 		var observed wasi.Result
 		if isCluster {
-			observed, err = simulation.InspectRetained(ctx, payload, module, private, simulation.InstalledHelper{Path: p.options.HelperPath, SHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), Engine: pr.Engine}, boundary, check)
+			observed, err = simulation.InspectRetained(ctx, payload, module, private, simulation.InstalledHelper{Path: p.options.HelperPath, SHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), Engine: pr.Engine, ConfigureRequest: p.stressRequest}, boundary, check)
 		} else {
 			var control []byte
 			control, err = simulation.InspectionControl(execution.Inspection, boundary, check)
@@ -363,5 +363,8 @@ func (p *Provider) standaloneInspection(opened *artifact.Opened, pr provenance, 
 	config.Environment = append(config.Environment, "PWD="+config.WorkingDirectory)
 	config.Limits.OutputBytes, config.Limits.TranscriptBytes = uint64(manifest.Limits.OutputBytes), uint64(manifest.Limits.IOTranscriptBytes)
 	request := wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: time.Duration(manifest.Limits.ExecutionTimeoutNanos), Runtime: &wasi.RuntimeControl{Seed: uint64(manifest.Seed), Choice: &backends.ChoiceRequest{Mode: choice.ModeReplay, ExecutionIdentity: identity, Limit: uint64(profile.Trace.Limit), Tape: &tape}, Diagnostics: false}}
+	if err := p.stressRequest(&request); err != nil {
+		return nil, wasi.Request{}, err
+	}
 	return execution, request, nil
 }

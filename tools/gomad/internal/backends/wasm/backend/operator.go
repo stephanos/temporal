@@ -81,13 +81,28 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 		config.Limits.TranscriptBytes = converted.TranscriptBytes
 	}
 	base := wasi.Request{WorkloadKind: request.Target.Kind, HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModulePath: request.Target.Path, ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: converted.Timeout, Runtime: &wasi.RuntimeControl{Seed: request.Seed, Choice: &backends.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: identity, Limit: limit}, Diagnostics: request.Diagnostics}, CompileCache: p.options.CompileCacheRoot}
+	if stress := p.options.StressExecution; stress != nil && stress.Diagnostics {
+		base.Runtime.Diagnostics = true
+	}
+	if err := p.stressRequest(&base); err != nil {
+		return backends.ExecutionResult{}, err
+	}
 	spec, provider, err := s.Bind(base)
 	if err != nil {
 		return backends.ExecutionResult{}, err
 	}
+	if stress := p.options.StressExecution; stress != nil && stress.BindScenario != nil {
+		spec, err = p.bindStressScenario(base, spec, provider)
+		if err != nil {
+			return backends.ExecutionResult{}, err
+		}
+	}
 	provider.Oracles = scenarioSoftAssertions(s, request.Target.SoftAssertionReportOnly)
 	var scenarioErr error
 	observed, err := model.RunWASM(ctx, spec, func(ctx context.Context, c model.Cluster) error { scenarioErr = s.Run(ctx, c); return scenarioErr }, provider)
+	if p.options.ObserveResults != nil {
+		p.options.ObserveResults(ExecutionObservation{Target: request.Target, Spec: &spec, Incarnations: provider.CompletedResults(), Cluster: provider.CompletedClusterResult()})
+	}
 	interrupted := func(cancelled, watchdog, reaped bool) (backends.ExecutionResult, error) {
 		return backends.ProjectObservedResult(converted, backends.Result{Cancelled: cancelled, WatchdogTimeout: watchdog, Reaped: reaped}, request.StdoutHead, request.StderrHead)
 	}

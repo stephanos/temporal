@@ -27,6 +27,7 @@ import (
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
 	hostfs "go.temporal.io/server/tools/gomad/internal/host/fs"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/model/strictjson"
 )
 
@@ -56,6 +57,8 @@ type Options struct {
 	CompileCacheRoot                                                               string
 	ObserveExecution                                                               func(ExecutionMetrics)       `json:"-"`
 	ObserveCompilerCommand                                                         func(CompilerCommandMetrics) `json:"-"`
+	ObserveResults                                                                 func(ExecutionObservation)   `json:"-"`
+	StressExecution                                                                *StressExecution             `json:"-"`
 	Engine                                                                         wasi.EngineIdentity
 	MemoryBytes, Fuel                                                              uint64
 	Config                                                                         wasi.Config
@@ -609,7 +612,14 @@ func (p *Provider) Run(ctx context.Context, request runnerbackend.Request) (runn
 	if p.options.ObserveExecution != nil {
 		started = time.Now()
 	}
-	result, err := wasi.Run(ctx, wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModulePath: request.Target.Path, ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: request.Timeout, Runtime: runtimeControl, CompileCache: p.options.CompileCacheRoot})
+	launch := wasi.Request{HelperPath: p.options.HelperPath, HelperSHA256: strings.TrimPrefix(pr.HelperSHA256, "sha256:"), ModulePath: request.Target.Path, ModuleSHA256: strings.TrimPrefix(pr.ModuleSHA256, "sha256:"), Engine: pr.Engine, Imports: pr.Imports, InitialMemoryPages: pr.InitialMemoryPages, MemoryBytes: pr.MemoryBytes, Fuel: pr.Fuel, Config: config, Timeout: request.Timeout, Runtime: runtimeControl, CompileCache: p.options.CompileCacheRoot}
+	if err := p.stressRequest(&launch); err != nil {
+		return runnerbackend.Result{}, err
+	}
+	result, err := wasi.Run(ctx, launch)
+	if p.options.ObserveResults != nil {
+		p.options.ObserveResults(ExecutionObservation{Target: request.Target, Incarnations: []simulation.IncarnationResult{{Handle: model.NodeHandle{Node: "guest", Incarnation: 1}, Result: result}}})
+	}
 	if err != nil {
 		return runnerbackend.Result{}, err
 	}
