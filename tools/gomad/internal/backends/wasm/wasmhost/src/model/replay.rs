@@ -175,7 +175,7 @@ pub fn read(
             .prefix(control)
             .map_err(|error| failure("tape_sha256", error))?;
     }
-    if format!("{:x}", Sha256::digest(&plan.bytes)) != request.tape_sha256 {
+    if crate::world::digest::hex(&plan.sha256) != request.tape_sha256 {
         return Err(failure("tape_sha256", "replay tape digest mismatch"));
     }
     if plan.decisions.len() as u64 != request.decisions {

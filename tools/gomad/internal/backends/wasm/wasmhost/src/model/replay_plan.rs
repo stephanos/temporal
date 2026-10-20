@@ -19,10 +19,6 @@ pub struct ExecutionIdentity {
     pub implementation_sha256: [u8; 32],
 }
 
-#[allow(
-    dead_code,
-    reason = "The replay preflight will consume the projected plan."
-)]
 pub struct ReplayPlan {
     pub decisions: Vec<Decision>,
     pub bytes: Vec<u8>,
@@ -171,7 +167,6 @@ pub(super) fn toolchain_key(identity: &ExecutionIdentity) -> Result<[u8; 32], &'
     Ok(key)
 }
 
-#[allow(dead_code, reason = "The replay preflight will call this projection.")]
 pub fn project(trace: &[u8], identity: &ExecutionIdentity) -> Result<ReplayPlan, &'static str> {
     let (raw_records, remainder) = trace.as_chunks::<RECORD_BYTES>();
     if !remainder.is_empty() {
