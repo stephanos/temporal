@@ -17,7 +17,7 @@ removed what only the manual form produced: explicit start lists, tuple-state la
 multi-file inputs, and per-branch choice indices and facts. The emitted observers keep
 `__umpire_choice = 0` and `__umpire_facts = <<>>`, so modules and replay are unchanged;
 choice and facts must be re-added with the attribute surface that states them. The tree keeps
-`outcome` (`reject!`) and `preserve_self_loop`, which fn-224 sets for accepted self-loops.
+`outcome` (`reject!`) and `preserve_self_loop`, which `stay!()` sets (fn-224).
 Source that implements `Machine` by hand is refused at its `impl Machine` item
 (`progress_dead_end`'s lift golden pins the message).
 Unsupported syntax, references, conditional compilation and generated-name collisions
@@ -51,12 +51,12 @@ Missing or changed tools, subprocess failures/limits, incomplete dumps and disag
 are refusals, never passing or silently skipped checks. Each Java process owns its temporary
 library extraction and state directory, avoiding concurrent JVM extraction races.
 
-The shared fixture corpus admits 8 fixtures: attribute Kettle at 283 projected states,
-`changed_state`, and six attribute progress graphs covering weak fairness (Kettle's `boils`
-is the only scoped progress claim on TLC);
-these are control variants, not 8 independent products. Four sources retain located refusals:
-`kettle_cut`, `kettle_progress` and `progress_dead_end` use delegating adapters outside the
-subset, and `rejecting_steps` uses a helper and rejecting outcomes outside the subset.
+The shared fixture corpus admits 12 fixtures: attribute Kettle at 283 projected states,
+`changed_state`, and ten attribute progress graphs covering weak fairness, four of them with
+accepted self-loops (fn-224); these are control variants, not 12 independent products. Five
+sources retain located refusals: `kettle_cut`, `kettle_progress` and `progress_dead_end` use
+delegating adapters outside the subset, `rejecting_steps` uses a helper and rejecting outcomes
+outside the subset, and `accepted_self_loops` uses rejecting outcomes beside `stay!()`.
 The system-owned fixture root additionally owns source-dependent artifacts. The newer
 `Phased`/`reject!`/generic `closable` shape is outside this subset: it requires a located
 refusal and has no system TLC agreement evidence. Older source evidence must not certify it.
@@ -75,9 +75,9 @@ are attribute-surface facts for a later spec, not filled here:
 | --- | --- | --- |
 | `sample_kettle_trait` | checker-only | Independent engine reference (owner, fn-210.7); the wasm guest includes its `kettle.rs`. Report byte-identical to `sample_kettle`; its TLC coverage (283 states, same four claims) stays pinned by `sample_kettle`. |
 | `choices` | checker-only | One action yields three ordered choices with `bool` outcomes and string facts, two to the same target; handlers emit one edge with unit or `Outcome` outcomes and no facts. TLC loses choice/outcome/fact replay. |
-| `edge_checks` | checker-only | `bool` outcomes and an authored self-loop (`Idle` at 2); unchanged handlers are disabled. `changed_state` keeps an `after`-filtered refuted postcondition with a replayed counterexample on TLC; the unfiltered refuted `never_decreases` and the `after`-filtered self-loop refutation are pinned nowhere on TLC. |
-| `vacuity` | checker-only | Same `bool` outcomes and self-loop as `edge_checks`. Never-triggered `after` claims stay on TLC through `changed_state`. |
-| `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]`, `bool` outcomes and a self-loop; `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
+| `edge_checks` | checker-only | `bool` outcomes; its self-loop (`Idle` at 2) is stateable with `stay!()` since fn-224, but a rewrite would change every row's outcome spelling. `changed_state` keeps an `after`-filtered refuted postcondition with a replayed counterexample on TLC; the unfiltered refuted `never_decreases` and the `after`-filtered self-loop refutation are pinned nowhere on TLC. |
+| `vacuity` | checker-only | Same `bool` outcomes as `edge_checks` (its self-loop is stateable since fn-224). Never-triggered `after` claims stay on TLC through `changed_state`. |
+| `shared_starts` | checker-only | Duplicate starts `[0, 1, 0]` and `bool` outcomes (its self-loop is stateable since fn-224); `#[starts]` enumerates a duplicate-free field range. TLC loses the duplicate-start control (TLA+ `Init` is a set). |
 | `deep_chain` | checker-only | State carries a shared `Rc<Cell>` clone counter and the hook asserts linear clone work; a checker property, already refused by the lifter. |
 | `interleaved_claims` | checker-only | Claim order interleaves kinds (`claim_order`) and the hook adds a supplemental manual claim; attribute claims are contiguous per kind. Already refused by the lifter. |
 | `progress_graph` (cycle) | attribute | |
@@ -86,18 +86,20 @@ are attribute-surface facts for a later spec, not filled here:
 | `progress_two_lobes` | attribute | Catalog order is `Enter, Escape, Left, Right` (was `Enter, Left, Right, Escape`); `Enter`/`Escape` never fire, so every golden is unchanged. |
 | `progress_fulfilled` | attribute | |
 | `progress_trigger_stops` | attribute | |
-| `progress_self_loop` | checker-only | Authored self-loop. Holds the trimmed trait `Graph` the other moved progress fixtures use. |
-| `progress_multiple_starts` | checker-only | Starts `[9, 0]` outside a field range, and a self-loop. |
-| `progress_target_barrier` | checker-only | Self-loop after the target. |
-| `progress_excluded_prefix` | checker-only | Self-loop inside the scope. |
-| `progress_scope_exit` | checker-only | Self-loop beside an excluded fair escape. |
-| `progress_action_choices` | checker-only | One fair action with two choices, one a self-loop. |
+| `progress_self_loop` | attribute (fn-224) | Authored self-loop, written with `stay!()`. |
+| `progress_multiple_starts` | checker-only | Starts `[9, 0]` outside a field range (its self-loop is stateable since fn-224). |
+| `progress_target_barrier` | attribute (fn-224) | Self-loop after the target, written with `stay!()`. |
+| `progress_excluded_prefix` | attribute (fn-224) | Self-loop inside the scope, written with `stay!()`. |
+| `progress_scope_exit` | attribute (fn-224) | Self-loop beside an excluded fair escape, written with `stay!()`; `Escape` is the internal `Environment::Escape`. |
+| `progress_action_choices` | checker-only | One fair action with two choices, one a self-loop. Holds the trimmed trait `Graph` that `progress_multiple_starts` also uses. |
 
 The eleven `progress_*` fixtures selected a mode of the trait `progress_graph` Model, so they
-were trait-form too. TLC no longer pins self-loops, nondeterministic choice, non-`()` outcomes,
-facts, starts outside a field range, an unfiltered refuted postcondition (`never_decreases`),
-refuted progress under a `without` scope (`progress_excluded_prefix`) or a fair action that the
-scope excludes (`progress_scope_exit`) anywhere in the shared corpus.
+were trait-form too. TLC no longer pins nondeterministic choice, non-`()` outcomes, facts,
+starts outside a field range or an unfiltered refuted postcondition (`never_decreases`) anywhere
+in the shared corpus. fn-224 moved the four fixtures whose only gap was a self-loop back with
+`stay!()`, so self-loops, refuted progress under a `without` scope (`progress_excluded_prefix`)
+and a fair action that the scope excludes (`progress_scope_exit`) are on TLC again; their
+report, rows, states and paths goldens kept fn-223's two spellings and TLC agrees on each.
 
 Real TLC execution is selected by `UMPIRE_BACKENDS=require`; the default gate checks source
 artifacts/refusals and explicitly reports no TLC execution evidence. Required shared runs
@@ -630,6 +632,30 @@ The comparison in `.flow/tmp/fn-216-4/legacy-comparison.md` retains this task's
 before/after identities and assertion causes, matching predecessor .3's comparison.
 This umbrella is red; the dedicated slice passing does not make it green. The frozen
 Scala tree was not revived to repair those legacy expectations.
+
+## Accepted self-loops (fn-224)
+
+An attribute handler is enabled only when it changes state, so an enabled action that leaves
+the state unchanged (a heartbeat, an idempotent request answered OK) had no spelling except a
+`reject!` self-loop. `stay!()` in a handler arm marks the step enabled even if unchanged. It
+records a flag in the same scoped frame as `reject!` and does not return: an arm that also
+changes state is an ordinary step, and a rejection in the same step wins. In a module with
+`reject!` its outcome is `Accepted`, otherwise unit. Modules without `stay!` expand exactly as
+before, so existing goldens and expansion snapshots are unchanged.
+
+The name is a short plain verb in `reject!`'s imperative style that names the edge (the state
+stays). `accept!()` was the obvious pair, but it would imply an outcome that unit modules lack
+and read as permission for any step. Admission is lexical: `#[machine]` rewrites `stay!()` in
+`#[on]` bodies to the macro's hidden handler arm, and the plain arm is a `compile_error!`, so an
+`#[effect]`, claim, helper or use outside `#[machine]` refuses at compile time (trybuild pins
+the effect, helper and outside forms). A helper is refused rather than followed as `reject!`'s
+is, because a mark that silently depends on call depth is easier to misread than to forbid.
+
+`umpire-lift` strips `stay!()` from an arm's top level and sets the branch's
+`preserve_self_loop`, which drops the changed-state conjunct and emits the existing authored
+self-loop observer step; weak fairness stays on authored fair actions only. A `stay!()` nested
+in a condition is refused with a located warning. `accepted_self_loops` pins the `Accepted`
+and precedence rows natively; its lift is refused at `reject!`, which stays outside the subset.
 
 ## Rejecting outcomes and live cancellation (fn-221)
 

@@ -1,3 +1,0 @@
-0: Action::Enter choice=0 outcome=() facts=[] -> State { 0: 9 }
-1: Action::Left choice=0 outcome=() facts=[] -> State { 0: 1 }
-2: Action::Right choice=0 outcome=() facts=[] -> State { 0: 1 }
