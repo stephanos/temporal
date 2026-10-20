@@ -76,14 +76,18 @@ fn check_identity_history(text: &str, entries: &[Entry]) -> Result<(), String> {
     Ok(())
 }
 
-fn retired_identity(entry: &Entry) -> bool {
+fn retired_identity(entry: &Entry, history: &str) -> bool {
     entry.disposition == "rejected"
         && !entry.evidence.is_empty()
         && !entry.rule.is_empty()
-        && serde_json::from_str::<Vec<IdentityRecord>>(IDENTITY_HISTORY).is_ok_and(|records| {
+        && serde_json::from_str::<Vec<IdentityRecord>>(history).is_ok_and(|records| {
             records
-                .iter()
-                .any(|record| record.id == entry.id && record.site == entry.site)
+                .get(..ACCEPTED_IDENTITY_COUNT)
+                .is_some_and(|accepted| {
+                    accepted
+                        .iter()
+                        .any(|record| record.id == entry.id && record.site == entry.site)
+                })
         })
 }
 
@@ -278,7 +282,7 @@ fn operations(source: &str) -> Result<Vec<Operation>, String> {
 
 /// Reports every operation without a row and every import row that names no
 /// operation.
-fn import_gaps(entries: &[Entry], table: &[Operation]) -> Vec<String> {
+fn import_gaps(entries: &[Entry], table: &[Operation], history: &str) -> Vec<String> {
     let mut gaps = Vec::new();
     let mut covered = BTreeSet::new();
     for entry in entries {
@@ -295,7 +299,7 @@ fn import_gaps(entries: &[Entry], table: &[Operation]) -> Vec<String> {
             Some(op) => {
                 covered.insert(op.variant.as_str());
             }
-            None if retired_identity(entry) => {}
+            None if retired_identity(entry, history) => {}
             None => gaps.push(format!(
                 "inventory row {:?} names import {site:?} that the operation table no longer has",
                 entry.id
@@ -315,7 +319,7 @@ fn inventory_covers_every_operation() {
     let inventory = parse(INVENTORY).unwrap();
     let table = operations(ABI).unwrap();
     assert_eq!(
-        import_gaps(&inventory.entries, &table),
+        import_gaps(&inventory.entries, &table, IDENTITY_HISTORY),
         Vec::<String>::new()
     );
     assert!(
@@ -333,7 +337,7 @@ fn inventory_covers_every_operation() {
         .cloned()
         .collect();
     assert_eq!(
-        import_gaps(&without, &table),
+        import_gaps(&without, &table, IDENTITY_HISTORY),
         vec!["operation ClockTimeGet has no inventory row".to_string()]
     );
     // An operation added to the table without a row fails by its name.
@@ -343,14 +347,18 @@ fn inventory_covers_every_operation() {
         1,
     );
     assert_eq!(
-        import_gaps(&inventory.entries, &operations(&added).unwrap()),
+        import_gaps(
+            &inventory.entries,
+            &operations(&added).unwrap(),
+            IDENTITY_HISTORY
+        ),
         vec!["operation SockRecv has no inventory row".to_string()]
     );
     // A row whose import the table no longer has fails by its id.
     let mut stale = inventory.entries;
     stale[0].site = "import:wasi_snapshot_preview1::sock_recv".into();
     assert!(
-        import_gaps(&stale, &table)
+        import_gaps(&stale, &table, IDENTITY_HISTORY)
             .iter()
             .any(|gap| gap.contains("no longer has"))
     );
@@ -484,7 +492,7 @@ fn retired_import_requires_historical_identity_and_refusal_evidence() {
     assert!(retired.evidence.iter().any(|reference| reference
         == "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused"));
     assert_eq!(
-        import_gaps(std::slice::from_ref(&retired), &[]),
+        import_gaps(std::slice::from_ref(&retired), &[], IDENTITY_HISTORY),
         Vec::<String>::new()
     );
     assert!(
@@ -494,7 +502,8 @@ fn retired_import_requires_historical_identity_and_refusal_evidence() {
                 variant: "NewUnlisted".into(),
                 module: "new".into(),
                 name: "unlisted".into()
-            }]
+            }],
+            IDENTITY_HISTORY
         )[0]
         .contains("has no inventory row")
     );
@@ -508,10 +517,47 @@ fn retired_import_requires_historical_identity_and_refusal_evidence() {
             _ => unreachable!(),
         }
         assert!(
-            import_gaps(&[changed], &[])[0].contains("no longer has"),
+            import_gaps(&[changed], &[], IDENTITY_HISTORY)[0].contains("no longer has"),
             "{mutation}"
         );
     }
+}
+
+#[test]
+fn completeness_rejects_unaccepted_retirement() {
+    let mut inventory = parse(INVENTORY).unwrap();
+    let mut history: serde_json::Value = serde_json::from_str(IDENTITY_HISTORY).unwrap();
+    let mut appended = inventory
+        .entries
+        .iter()
+        .find(|entry| entry.site == "import:wasi_snapshot_preview1::path_symlink")
+        .unwrap()
+        .clone();
+    appended.id = "appended.rejected.id".into();
+    appended.site = "import:invented::stale".into();
+    history
+        .as_array_mut()
+        .unwrap()
+        .push(serde_json::json!({"id": appended.id, "site": appended.site}));
+    inventory.entries.push(appended);
+    let history = history.to_string();
+    assert!(check_identity_history(&history, &inventory.entries).is_ok());
+    let mut table = operations(ABI).unwrap();
+    assert!(
+        import_gaps(&inventory.entries, &table, &history)
+            .iter()
+            .any(|gap| gap.contains("invented::stale") && gap.contains("no longer has"))
+    );
+    inventory.entries.last_mut().unwrap().disposition = "controlled".into();
+    table.push(Operation {
+        variant: "Appended".into(),
+        module: "invented".into(),
+        name: "stale".into(),
+    });
+    assert_eq!(
+        import_gaps(&inventory.entries, &table, &history),
+        Vec::<String>::new()
+    );
 }
 
 /// Patterns the helper source scan treats as time, entropy, thread or
@@ -765,6 +811,11 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         .collect();
     let allowed: BTreeSet<&str> = entries
         .iter()
+        .filter(|entry| entry.disposition != "rejected")
+        .filter_map(|entry| entry.site.strip_prefix("helper-allow:"))
+        .collect();
+    let all_allowlists: BTreeSet<&str> = entries
+        .iter()
         .filter_map(|entry| entry.site.strip_prefix("helper-allow:"))
         .collect();
     let mut gaps = Vec::new();
@@ -777,7 +828,8 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
     for row in &rows {
         if !sites.contains(*row)
             && !entries.iter().any(|entry| {
-                entry.site == format!("helper-source:{row}") && retired_identity(entry)
+                entry.site == format!("helper-source:{row}")
+                    && retired_identity(entry, IDENTITY_HISTORY)
             })
         {
             gaps.push(format!(
@@ -785,12 +837,13 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
             ));
         }
     }
-    for file in &allowed {
+    for file in &all_allowlists {
         if !sites
             .iter()
             .any(|site| site.starts_with(&format!("{file}|")))
             && !entries.iter().any(|entry| {
-                entry.site == format!("helper-allow:{file}") && retired_identity(entry)
+                entry.site == format!("helper-allow:{file}")
+                    && retired_identity(entry, IDENTITY_HISTORY)
             })
         {
             gaps.push(format!("allowlisted helper file {file} has no site"));
@@ -814,6 +867,33 @@ fn helper_source_scan_sites_are_inventoried() {
     assert_eq!(
         source_gaps(&inventory.entries, &added),
         vec!["helper source site engine.rs|SystemTime|1 has no inventory row".to_string()]
+    );
+}
+
+#[test]
+fn retired_helper_allowlist_does_not_cover_new_sites() {
+    let inventory = parse(INVENTORY).unwrap();
+    let mut retired = inventory
+        .entries
+        .iter()
+        .find(|entry| entry.site == "helper-allow:diagnostic.rs")
+        .unwrap()
+        .clone();
+    retired.disposition = "rejected".into();
+    assert!(retired_identity(&retired, IDENTITY_HISTORY));
+    assert_eq!(
+        source_gaps(std::slice::from_ref(&retired), &BTreeSet::new()),
+        Vec::<String>::new()
+    );
+    let sites = BTreeSet::from(["diagnostic.rs|/dev/urandom|1".into()]);
+    assert_eq!(
+        source_gaps(std::slice::from_ref(&retired), &sites),
+        vec!["helper source site diagnostic.rs|/dev/urandom|1 has no inventory row".to_string()]
+    );
+    retired.id = "invented.allowlist".into();
+    assert_eq!(
+        source_gaps(&[retired], &BTreeSet::new()),
+        vec!["allowlisted helper file diagnostic.rs has no site".to_string()]
     );
 }
 
@@ -918,7 +998,7 @@ fn engine_settings_are_inventoried() {
                 .entries
                 .iter()
                 .any(|entry| entry.site == format!("engine-setting:{site}")
-                    && retired_identity(entry)))
+                    && retired_identity(entry, IDENTITY_HISTORY)))
             .collect::<Vec<_>>(),
         Vec::<&&str>::new(),
         "inventory rows naming settings the engine no longer applies"

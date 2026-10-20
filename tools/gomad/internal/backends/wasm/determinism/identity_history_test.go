@@ -86,3 +86,26 @@ func TestCompletenessRetainsOnlyRejectedHistoricalSites(t *testing.T) {
 		})
 	}
 }
+
+func TestCompletenessRejectsUnacceptedRetirement(t *testing.T) {
+	t.Parallel()
+	inventory := loadInventory(t)
+	var records []identityRecord
+	require.NoError(t, json.Unmarshal(identityHistoryJSON, &records))
+	entry := inventory.Sites("import")["wasi_snapshot_preview1::path_symlink"]
+	entry.ID, entry.Site = "appended.rejected.id", "import:invented::stale"
+	inventory.Entries = append(inventory.Entries, entry)
+	records = append(records, identityRecord{entry.ID, entry.Site})
+	history, err := json.Marshal(records)
+	require.NoError(t, err)
+	require.NoError(t, checkIdentityHistory(history, inventory.Entries))
+	var sites []string
+	for site := range inventory.Sites("import") {
+		if site != "invented::stale" {
+			sites = append(sites, site)
+		}
+	}
+	require.ErrorContains(t, inventory.check("import", sites, true, history), `"invented::stale" that the code no longer has`)
+	inventory.Entries[len(inventory.Entries)-1].Disposition = "controlled"
+	require.NoError(t, inventory.check("import", append(sites, "invented::stale"), true, history))
+}
