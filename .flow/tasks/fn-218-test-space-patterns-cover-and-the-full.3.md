@@ -39,10 +39,7 @@ and checked-in consumer manifests. README explains full grammar, alternatives/Ca
 catalog coverage limits, gaps, independent budgets, shortest cover versus finite
 sampling, and concise runnable examples. Do not revise the independent Models.
 
-**Touches:** `model/umpire/tests/fixtures/sample_kettle/**`,
-`model/temporal/features/activity/**` (tests/expected only), `model/README.md`,
-consumer registries/manifests under `model/umpire/tests/**` and
-`model/temporal/testing/**` only as needed to enable existing SUITE consumer.
+**Touches:** `model/umpire/tests/fixtures/sample_kettle/**`, `model/temporal/features/activity/**` (tests/expected only), `model/README.md`, `model/umpire/tests/**`, `model/temporal/testing/**` (consumer registries/manifests only as needed to enable existing SUITE consumer).
 **Quick:** `cd model && mise exec -- cargo test -p umpire-tests -p umpire-temporal-tests`.
 Full gates: `make model-check`, `make model-check UMPIRE_BACKENDS=require`, `make model-time`.
 
