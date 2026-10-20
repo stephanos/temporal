@@ -241,6 +241,24 @@ pub fn finish() {
         .unwrap_or_else(std::sync::PoisonError::into_inner)
         .finish();
 }
+pub fn is_enabled() -> bool {
+    matches!(
+        recorder()
+            .lock()
+            .unwrap_or_else(std::sync::PoisonError::into_inner)
+            .state,
+        State::Pending | State::Recording
+    )
+}
+pub fn has_context() -> bool {
+    CURRENT.with(|current| current.borrow().is_some())
+}
+pub fn incomplete(reason: &str) {
+    recorder()
+        .lock()
+        .unwrap_or_else(std::sync::PoisonError::into_inner)
+        .incomplete(reason);
+}
 
 #[cfg(test)]
 mod tests {
