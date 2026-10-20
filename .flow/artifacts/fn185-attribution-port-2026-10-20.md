@@ -196,3 +196,24 @@ separately, and the exact binary-difference cause is not established. This is
 not a root rebuild, byte-equivalence or qualification claim. The shared target
 passed to the foundation worker for its extracted-library integration checks.
 R4 remains open regardless of these focused results.
+
+## Terminal round-two independent result
+
+The same receipt `.flow/tmp/impl-review-receipt-fn185-attribution-current.json`
+finalized **NEEDS_WORK** at `2026-10-20T23:27:48.466523Z`, session
+`01a15b95-aa48-7ce2-948a-74e2dd27848f` (`gpt-6.1-sol`, high). Raw terminal
+output is `.flow/tmp/fn185-attribution-review-round2.log`; the original
+three-draw review history above remains historical.
+
+| Requirement | Round-two result |
+| --- | --- |
+| R1 | Met. The diagnostic-only transcript-owner hash span and actual-helper RED/GREEN regression were verified; all 29 sidecar changes are limited to transcript-owner counts, repeated regeneration is byte-identical, and root/worker helper source trees match. No new repair blocker was found. |
+| R4 | Partial, the only unaddressed requirement. Current-candidate runtime-cost-equivalent release behavior and qualified choice/WASI/network/stdout/stderr comparisons remain missing. |
+
+Recording the fn232.13 dependency supplies no preservation proof. fn185.1/R4
+stays open until the authorized frozen Rust window produces identity-bound raw
+comparisons and numeric exits, then reconciles them here. The `f172c17499`
+early proofs and focused hash-span tests retain their original scope; neither
+qualifies the current candidate. R2/R3/R6 remain with task .2, R5 with task .3.
+This reconciliation changes no acceptance, Flow status or execution authority
+and requests no review retry, new Go-only profiling or full qualification.
