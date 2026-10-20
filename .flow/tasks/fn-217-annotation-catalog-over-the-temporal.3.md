@@ -84,9 +84,26 @@ admitted dependencies. API-independent Model code must gain no Temporal import.
 - [ ] All six existing live scenarios, default/required-TLC gates and timing execute successfully with unchanged independent Model and existing goldens.
 
 ## Done summary
-TBD
+# Task .3 completion
 
+Implemented 39 typed activity message catalogs, ten exhaustive enum catalogs and complete WorkflowService classification. Actual SDK attempts pass through Rust request filling/validation and successful-response validation. Background failures survive retries/shutdown; supplied values and retry IDs remain stable, empty polls work, and response bytes are never repaired. Secret diagnostics remain value-free.
+
+Final worker source: 9baf1f772e79f4332fb20906fc5b7af0432224f4, all seven source commits integrated into umpire. Final focused verification passed 27 native controls, three compile-fail fixtures, five API/descriptor controls and API/realization Clippy. Final live verification passed all six original scenarios and six annotation controls, with actual coverage of all seven required activity RPCs. Infrastructure scope reasons and failed cancellation observations remain explicit.
+
+Final make model-check and make model-check UMPIRE_BACKENDS=require passed. Required TLC executed all twelve admitted generic fixture consumers and semantic controls; the unchanged Temporal activity Model retains its explicit source-lift refusal. The conductor independently ran the integrated full model gate on final source (session 65352, exit 0). Existing independent Model, lift, coverage, wire and macro goldens remain unchanged.
+
+Actual same-source make model-time passed as a command: 43.685s warm gate versus 30s soft target and 10.616s edit/test versus 10s, 54.499s total. Both soft targets were missed, not waived or claimed passed. Bounded attribution identified Temporal Go-host startup (34.560s) and native tests (6.379s); historical supplemental trybuild profiling is retained without claiming an isolated current compile measurement. The separate stale missing-directory build-input defect was fixed with RED/GREEN and absent-directory warm-reuse controls; every test remains enabled.
+
+Two-axis quality reports and focused resolutions are preserved separately in task-3-quality-audit.md and task-3-failure-context-finding.md. The layout, supplemental admission, SDK failure coverage, failure-name context and request-enum expectation findings are resolved. Formal first-round fan-out retained one P2; the single resumed review returned SHIP with zero surviving findings at reviewed root 7073840836e87e49ebe29c89e7d2c22bf58a0dd7. Full replies are retained in task-3-implementation-review-round-{1,2}.md. Writer and reviewers are the same model family.
+
+Task .4 still owns live gap probes, reverse coverage and the gap golden. No accepted-gap waiver, Model fitting, remote write or PR was introduced. Final handover and refreshed TLC proof/control transcripts remain under .flow/tmp.
+
+stage: wave - ran (isolated implementation lane with four disjoint implementation subagents; integration, review and closure conductor-owned)
+stage: impl-review - ran [2026-10-20T22:29:03Z..2026-10-20T23:18:11Z] (model: gpt-6.1-sol at high)
+Tracker sync: n/a (bridge inactive)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 7e5eb61c036f8299a1c7b4d16424a7f054104ddd, 56aa9bd2252e0ae62a535e8606400d49e73a6f43, 55a27ddd024a20ea94c40f0209eeb7d6408794a4, 5c9d19cca65f6920ceb8fd988d107f4eb866618f, 1691aa14ce849d628a752bafcec34212248ef0c3, a23540b5446e834df6fc1e478aae093d991fb38f, 9baf1f772e79f4332fb20906fc5b7af0432224f4, 7073840836e87e49ebe29c89e7d2c22bf58a0dd7
+- Tests: cd model && mise exec -- cargo test -p umpire-temporal --test catalog --test annotations --test realization --test supplemental_admission, cd model && mise exec -- cargo test -p umpire-temporal-api --test build_inputs --test descriptor, cd model && mise exec -- cargo clippy -p umpire-temporal -p umpire-temporal-api --all-targets --all-features -- -D warnings, make umpire-check-model-slice, make model-check, make model-check UMPIRE_BACKENDS=require, make model-time UMPIRE_INNER_CRATE=umpire-temporal UMPIRE_INNER_SOURCE=temporal/features/activity/api.rs, CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check
 - PRs:
