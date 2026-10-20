@@ -275,7 +275,6 @@ CI, PR, or push authority.
 | Name / ID | Status | Description |
 | --- | --- | --- |
 | [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 In progress | Qualify the one-box cell on the current candidate |
-| [fn-222.2](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.2.md) | 🚧 In progress | Define the support-list contract and record proven or pending Go dispositions |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
 
