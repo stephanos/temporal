@@ -144,7 +144,19 @@ func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spe
 	require.NotEmpty(t, execution.Incarnations)
 	metadata := execution.Incarnations[0].Result.InspectionMetadata
 	if execution.Cluster != nil {
-		metadata = execution.Cluster.InspectionMetadata
+		opened, err := artifact.OpenArtifact(campaign.Artifacts[0])
+		require.NoError(t, err)
+		reference := *opened.Manifest().Target.Backend.Evidence
+		data, readErr := opened.ReadPayload(reference.File, uint64(reference.Bytes))
+		closeErr := opened.Close()
+		require.NoError(t, readErr)
+		require.NoError(t, closeErr)
+		_, retained, err := simulation.VerifyRetained(target.BackendPayload{Reference: reference, Data: data})
+		require.NoError(t, err)
+		require.NotNil(t, retained.WASM)
+		require.NotNil(t, retained.WASM.Inspection)
+		metadata, err = json.Marshal(retained.WASM.Inspection)
+		require.NoError(t, err)
 	}
 	module, err := filepath.Abs("../../../..")
 	require.NoError(t, err)

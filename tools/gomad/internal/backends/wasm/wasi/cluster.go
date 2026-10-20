@@ -943,7 +943,11 @@ func (stream *clusterStream) frame(data []byte) error {
 				return invalid("missing cluster boot identity")
 			}
 		}
-		if err := validateClusterStarted(started, s.config.Instances[0].Request); err != nil {
+		primary := s.boots[s.config.Instances[0].ID]
+		if primary == nil {
+			return invalid("missing primary cluster boot identity")
+		}
+		if err := validateClusterStarted(started, primary.request); err != nil {
 			return err
 		}
 		value, _ := json.Marshal(map[string]any{"type": "authorize", "module_sha256": started.ModuleSHA256, "configuration": started.Engine.Configuration})

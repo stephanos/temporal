@@ -72,3 +72,46 @@ func TestDeterminismFixtureConditionsStayOutsideDeclaredInputs(t *testing.T) {
 		t.Fatalf("fixture helper admitted for qualification: %v", err)
 	}
 }
+
+func TestDeterminismFixtureClusterStartedUsesPreparedEngine(t *testing.T) {
+	input, err := newHelperInput()
+	if err != nil {
+		t.Fatal(err)
+	}
+	input.start(nil)
+	t.Cleanup(func() {
+		if err := input.finish(); err != nil {
+			t.Error(err)
+		}
+	})
+	declared := Request{Engine: PinnedEngine(), ModuleSHA256: "fixture", InitialMemoryPages: 1}
+	if err := declared.SetDeterminismFixtureConditions(""); err != nil {
+		t.Fatal(err)
+	}
+	prepared := declared
+	prepared.Engine.Configuration = prepared.DiagnosticConfigurationRevision()
+	started := Started{Schema: "gomad.wasm-host/v1", Engine: prepared.Engine, ModuleSHA256: "fixture", InitialMemoryPages: 1, Imports: []Import{}, Exports: []Export{{Name: "memory", Kind: "memory"}, {Name: "_start", Kind: "func"}}}
+	for _, mismatch := range []struct {
+		name   string
+		mutate func(*Started)
+	}{
+		{"engine", func(value *Started) { value.Engine = PinnedEngine() }},
+		{"module", func(value *Started) { value.ModuleSHA256 = "different" }},
+		{"imports", func(value *Started) { value.Imports = []Import{{Module: "future", Name: "operation"}} }},
+		{"memory", func(value *Started) { value.InitialMemoryPages++ }},
+	} {
+		changed := started
+		mismatch.mutate(&changed)
+		if err := validateClusterStarted(changed, prepared); err == nil {
+			t.Fatalf("prepared %s mismatch admitted", mismatch.name)
+		}
+	}
+	frame, err := json.Marshal(map[string]any{"schema": started.Schema, "type": "started", "engine": started.Engine, "module_sha256": started.ModuleSHA256, "imports": started.Imports, "exports": started.Exports, "initial_memory_pages": started.InitialMemoryPages})
+	if err != nil {
+		t.Fatal(err)
+	}
+	session := &ClusterSession{config: ClusterRequest{Instances: []ClusterInstance{{ID: "a", Request: declared}}}, boots: map[string]*clusterBoot{"a": {request: prepared, started: &started}}, ready: make(chan struct{}), input: input}
+	if err := (&clusterStream{session: session}).frame(frame); err != nil {
+		t.Fatal(err)
+	}
+}
