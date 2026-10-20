@@ -51,3 +51,19 @@ Scope: `1b06b2ff66a5926f731e29fe85661e04caed4a52..3d6d5b4a7d717213b782839d363fb2
 ## Conductor disposition
 
 Correctness: zero findings, worst tier none. Standards: one Should Fix, worst tier Should Fix. The conductor accepts the file-layout finding. The worker will retain the single feature catalog in api.rs and extract transport/traversal helpers after its frozen-source full gates and timing finish. No assertion, catalog entry, source-field obligation or live scenario may be removed. Formal implementation review and integrated verification remain pending; this report does not close the task.
+
+## Standards follow-up report
+
+## Quality Audit — Standards follow-up: fn-217.3
+
+- Files reviewed: 2 · Should Fix 0 · Consider 0 · Previous layout finding: resolved.
+
+**executed:** Compared `7e5eb61c03..56aa9bd`; `api.rs` is now 630 lines and `api_transport.rs` 483. Catalog declarations and supplemental catalog factories compare unchanged. Extracted transport/helper bodies differ only in three `pub(super)` visibility changes and formatting. No test or snapshot files changed; no assertions weakened. Integrated files match the reviewed fix.
+
+**walked:** Imports, module wiring and public re-exports preserve existing call paths.
+
+No Cargo/Go tests or gates run by this auditor. Worker regates and timing remain pending; this report does not establish task completion.
+
+## Additional conductor finding
+
+Should Fix. The supplemental `start_request_id_intent`, `cancel_request_id_intent` and `worker_failure_presence` factories construct request constraints/rules through raw builders, outside the macro's compile-time admission. Removing their expectation still compiles and fails only during runtime admission, contrary to task .3's compile-admission requirement. The worker confirmed this gap. The conductor accepted a private checked constructor/macro requiring a typed expectation and nonempty literal covers, with negative compile controls. This keeps UUID Accepts intent separate from length Rejects semantics and preserves the conditional worker-failure context. No new public DSL or duplicate descriptor declarations are authorized by this correction. Resolution and final verification remain pending.
