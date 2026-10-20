@@ -1,0 +1,102 @@
+label	original_89	disposition	category	current_command_or_receipt
+validate	PRESERVED	NEW_RUN	WASM_OR_HOST	make validate (fresh after owner Makefile repair; previous session53809 not reused)
+architecture	PRESERVED	NEW_RUN	WASM_OR_HOST	env GOMAD_ARCH_ALL_PLATFORMS=1 "$qualification_go" test -v -tags test_dep -count=1 -timeout=15m ./internal/archcheck
+portable	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=20m ./internal/model/... ./internal/evidence/... ./internal/host/... ./internal/backends/target/...
+default-build	ADDED	NEW_RUN	WASM_OR_HOST	"$qualification_go" build ./...
+default-vet	ADDED	NEW_RUN	WASM_OR_HOST	"$qualification_go" vet -tags test_dep ./...
+compile-only	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -exec /bin/true -tags test_dep -count=1 -run '^$' ./internal/backends/wasm/... ./internal/runner/... ./cmd/...
+native-profile-inventory	PRESERVED	NEW_RUN	STATIC	"$qualification_go" test -v -tags test_dep,gomad_native -count=1 -timeout=15m    -run '^TestDeterministicProfileCompatibilityGolden$' go.temporal.io/server/tools/gomad/internal/backends/native/transcript
+native-bootstrap-pin	PRESERVED	NEW_RUN	STATIC	"$qualification_go" test -v -tags test_dep,gomad_native -count=1 -timeout=15m -run '^TestPortableBootstrapPlatformGoldens$' go.temporal.io/server/tools/gomad/internal/backends/native/transcript
+native-semantic-pin	PRESERVED	NEW_RUN	STATIC	"$qualification_go" test -v -tags test_dep,gomad_native -count=1 -timeout=15m -run '^TestSemanticInstrumentationIdentityBindsProbeNamesAndStableIDs$' go.temporal.io/server/tools/gomad/internal/backends/native/transcript
+native-minimizer-preservation	PRESERVED	NEW_RUN	STATIC	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestChoiceModePreservesNativeControllerAndStateEncoding$' ./internal/runner/internal/minimizer
+native-source	PRESERVED	NEW_RUN	STATIC	"$qualification_go" test -v -tags test_dep,gomad_native -count=1 -timeout=15m    go.temporal.io/server/tools/gomad/internal/backends/native/sourceinventory go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/version go.temporal.io/server/tools/gomad/internal/backends/native/generation/...
+lint-router	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 ./cmd/tools/lintcode
+lint-router-vet	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" vet -tags test_dep ./cmd/tools/lintcode
+actionlint-build	PRESERVED	NEW_RUN	WASM_OR_HOST	env "GOBIN=$QUAL_ROOT/bin" "$qualification_go" install "github.com/rhysd/actionlint/cmd/actionlint@$actionlint_version"
+actionlint-version	PRESERVED	NEW_RUN	WASM_OR_HOST	"$QUAL_ROOT/bin/actionlint" -version
+workflow-lint	PRESERVED	NEW_RUN	WASM_OR_HOST	"$QUAL_ROOT/bin/actionlint" ".github/workflows/$workflow_prefix.yml" ".github/workflows/$workflow_prefix-smoke.yml"
+lint-root	PRESERVED	NEW_RUN	WASM_OR_HOST	env GOCACHE=/home/agent/.cache/go-build-local make lint-code-fast "GOLANGCI_LINT_BASE_REV=$lint_base" GOLANGCI_LINT_FIX=false    "GOLANGCI_LINT=$host_tools/golangci-lint-v2.13.0" "ERRORTYPE=$host_tools/errortype"
+lint-module	PRESERVED	NEW_RUN	WASM_OR_HOST	env GOCACHE=/home/agent/.cache/go-build-local make "$lint_target" "GOLANGCI_LINT_BASE_REV=$lint_base" GOLANGCI_LINT_FIX=false    "GOLANGCI_LINT=$host_tools/golangci-lint-v2.13.0" "ERRORTYPE=$host_tools/errortype"
+rust-fmt	PRESERVED	REUSED	WASM_OR_HOST	reuse_gate rust-fmt; retained=/home/agent/wt/evidence/fn187/r5-current/r4-primary-second-lint-2026-10-19.log; session=9541; exit=0; scope=pinned Rustfmt gate
+rust-default-test	PRESERVED	REUSED	WASM_OR_HOST	reuse_gate rust-default-test; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/default.log; session=59182; exit=0; scope=201 retained passing tests; only original ignored benchmark roots
+rust-diagnostic-test	PRESERVED	REUSED	WASM_OR_HOST	reuse_gate rust-diagnostic-test; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/diagnostic-profile.log; session=59182; exit=0; scope=204 retained passing tests; only original ignored benchmark roots
+rust-default-clippy	PRESERVED	REUSED	WASM_OR_HOST	reuse_gate rust-default-clippy; retained=/home/agent/wt/evidence/fn187/r5-current/r4-primary-second-lint-2026-10-19.log; session=9541; exit=0; scope=strict default all-targets Clippy
+rust-diagnostic-clippy	PRESERVED	REUSED	WASM_OR_HOST	reuse_gate rust-diagnostic-clippy; retained=/home/agent/wt/evidence/fn187/r5-current/r4-primary-second-lint-2026-10-19.log; session=9541; exit=0; scope=strict diagnostic-profile all-targets Clippy
+rust-conformance-unit	ADDED	REUSED	WASM_OR_HOST	reuse_gate rust-conformance-unit; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/conformance-unit.log; session=59182; exit=0; scope=55 retained passing tests; only original ignored benchmark roots
+rust-fuel-off-test	ADDED	REUSED	WASM_OR_HOST	reuse_gate rust-fuel-off-test; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/diagnostic-fuel-off.log; session=59182; exit=0; scope=205 retained passing tests; only original ignored benchmark roots
+rust-guest-profile-test	ADDED	REUSED	WASM_OR_HOST	reuse_gate rust-guest-profile-test; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/guest-profile.log; session=59182; exit=0; scope=206 retained passing tests; only original ignored benchmark roots
+rust-combined-test	ADDED	REUSED	WASM_OR_HOST	reuse_gate rust-combined-test; retained=/home/agent/wt/evidence/fn187/r5-current/r4-integrated-rust-tests-2026-10-19/guest-profile-fuel-off.log; session=59182; exit=0; scope=207 retained passing tests; only original ignored benchmark roots
+rust-clippy-other-modes	ADDED	REUSED	WASM_OR_HOST	reuse_gate rust-clippy-other-modes; retained=/home/agent/wt/evidence/fn187/r5-current/r4-primary-second-lint-2026-10-19.log; session=9541; exit=0; scope=strict conformance, diagnostic-fuel-off, guest-profile and combined Clippy
+wasmmeasure-build	ADDED	NEW_RUN	WASM_OR_HOST	"$qualification_go" build -trimpath=false -o "$QUAL_ROOT/bin/wasmmeasure" ./cmd/wasmmeasure
+terminal-controls	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestTerminalExit' ./wasi
+helper-build	PRESERVED	NEW_RUN	WASM_OR_HOST	clean_measure 60m terminal-exit-helper-build --terminal-exit-helper-build-root "$QUAL_ROOT/helper-build" [clean_measure unsets ALL GOMAD_*; timeout --foreground; wasmmeasure adds --repo "$QUAL_REPO" --go "$qualification_go" --prototype-parallel 1 --prototype-heavy 1]
+conformance-helper-build	ADDED	NEW_RUN	WASM_OR_HOST	cargo +1.99.1 build --manifest-path wasmhost/Cargo.toml --release --locked    --no-default-features --features conformance --target-dir "$scratch/conformance-target"
+ordinary-helper-publication	ADDED	NEW_RUN	WASM_OR_HOST	publish_ordinary_helper: independent single-link canonical wasmhost/target/release/gomad-wasmhost copied from current admitted release helper
+ordinary	PRESERVED	NEW_RUN	WASM_OR_HOST	make test-wasm "GOMAD_STOCK_GO=$qualification_go"
+retained-durable-restart	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestProviderActualCrashDurableRestart$' ./cluster
+cluster-provider	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=30m ./cluster
+cluster-functional	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=30m    -run 'TestCluster|TestBrokerOrders|TestWorld|TestClock|TestStorageCrash|TestImplementationIdentity' ./wasi
+busy-boundaries	PRESERVED	NEW_RUN	WASM_OR_HOST	busy12 "$qualification_go" test -v -tags test_dep -count=1 -timeout=30m    -run '^(TestClusterOutputBoundaryParity|TestClusterBrokerDurableRestartParity)$' ./wasi
+busy-grouped	PRESERVED	NEW_RUN	WASM_OR_HOST	busy12 "$qualification_go" test -v -tags test_dep -count=10 -timeout=30m    -run '^TestProviderGroupedAcknowledgmentCrashSourceLessReplay$' ./cluster
+network-streams	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=30m -run '^TestBrokerIndependentGuestStreamsReplay$' ./wasi
+retained-cluster	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=30m -run 'Retained|Replay' ./cluster
+terminal-module	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=60m -run '^TestPrepareTemporalTerminalExitModule$' ./backend
+terminal-host-admission	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestDiagnosticPerformanceCurrentHostAdmission$' ./internal/measure
+terminal-exit	PRESERVED	NEW_RUN	WASM_OR_HOST	clean_measure 60m terminal-exit    --stock-go "$qualification_go" --test-helper "$admitted_helper"    --terminal-exit-root "$QUAL_ROOT/terminal-exit"    --terminal-exit-helper-receipt "$helper_admission"    --terminal-exit-module "$GOMAD_WASM_TERMINAL_EXIT_MODULE"    --terminal-exit-module-receipt "$module_receipt" [clean_measure unsets ALL GOMAD_*; timeout --foreground; wasmmeasure adds --repo "$QUAL_REPO" --go "$qualification_go" --prototype-parallel 1 --prototype-heavy 1]
+runtime-0	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-1	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-2	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-3	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-4	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-5	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-6	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-7	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-8	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-9	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-10	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-11	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-12	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-13	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-14	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-15	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-16	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-17	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-18	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-19	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-20	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-21	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-22	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-23	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-24	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-25	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-26	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-27	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-28	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-29	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-30	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-31	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=10m -run '^TestCooperativeRuntimeQualification$' ./wasi
+runtime-aggregate	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestCooperativeRuntimeQualificationAggregate$' ./wasi
+artifact	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestIntegratedFailureArtifactFreshObservedReplays$' ./backend
+operator	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=30m -run '^TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs$' ./command
+storage	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalCommittedWorkflowFreshGuestCrashReopen$' ./wasi
+temporal-inspection	ADDED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalInspectionRetainedFailure$' ./backend
+network	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalNetworkNamedResetRetriesAndExactReplay$' ./wasi
+clusters	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalIndependentClustersPartitionHealWholeClusterCrash$' ./wasi
+workload-fixture-controlled-success	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualMatchedFixtureQualification$' ./qualification [profile=controlled; cell=success]
+workload-fixture-controlled-canary	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualMatchedFixtureQualification$' ./qualification [profile=controlled; cell=canary]
+workload-fixture-cooperative-success	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualMatchedFixtureQualification$' ./qualification [profile=cooperative; cell=success]
+workload-fixture-cooperative-canary	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualMatchedFixtureQualification$' ./qualification [profile=cooperative; cell=canary]
+workload-sqlite-cooperative-success	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteDurableQualification$' ./qualification [profile=cooperative; cell=success]
+workload-sqlite-cooperative-canary	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteDurableQualification$' ./qualification [profile=cooperative; cell=canary]
+workload-onebox-cooperative-success	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualOneboxQualification$' ./qualification [profile=cooperative; cell=success]
+workload-onebox-cooperative-canary	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualOneboxQualification$' ./qualification [profile=cooperative; cell=canary]
+workload-multi-instance-cooperative-success	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualTemporalClusterQualification$' ./qualification [profile=cooperative; cell=success]
+workload-multi-instance-cooperative-canary	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualTemporalClusterQualification$' ./qualification [profile=cooperative; cell=canary]
+workload-corpus	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestActualMandatoryWorkloadCorpus$' ./qualification
+sqlite-selection-0	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteSelectedCrashQualification$' ./qualification
+sqlite-selection-1	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteSelectedCrashQualification$' ./qualification
+sqlite-selection-2	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteSelectedCrashQualification$' ./qualification
+sqlite-selection-3	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualSQLiteSelectedCrashQualification$' ./qualification
+workload-corpus-after-relocation	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestActualMandatoryWorkloadCorpus$' ./qualification
+sqlite-catalogue	PRESERVED	NEW_RUN	WASM_OR_HOST	"$qualification_go" test -v -tags test_dep -count=1 -timeout=15m -run '^TestActualSQLiteSelectionCatalogue$' ./qualification
+matched-release-candidate	SEPARATE_OPEN	NEW_RUN_PENDING_MEMORY	WASM_MEASUREMENT	bash matched-release-candidate.sh QUAL_ROOT ADMITTED_HELPER ADMISSION FRESH_EXTERNAL_ROOT; authentic CLI four admission boundaries unchanged; comparison OPEN
