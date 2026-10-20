@@ -37,9 +37,10 @@ def overlaps(records, a, b):
     return ra["start"] < rb["end"] - 1e-9 and rb["start"] < ra["end"] - 1e-9
 
 
-def simulate(path, cores=12, mem=15, background=False, deadline=None, outcomes=None):
+def simulate(path, cores=12, mem=15, background=False, deadline=None, outcomes=None, stop=False, live_mem=None):
     stages = s.load_dag(path)
-    return s.run(stages, s.Policy(cores, mem, background, deadline), s.SimExecutor(stages, outcomes=outcomes)), stages
+    policy = s.Policy(cores, mem, background, deadline, stop, live_mem=live_mem)
+    return s.run(stages, policy, s.SimExecutor(stages, outcomes=outcomes)), stages
 
 
 STUB = textwrap.dedent("""\
@@ -178,10 +179,22 @@ class SchedulerSimTest(unittest.TestCase):
         self.assertGreaterEqual(records["n2"]["start"], records["x"]["end"])
 
     def test_deadline_exit_code(self):
-        result, _ = simulate(dag(self.tmp, row("a", est=5), row("b", "a", est=5), row("c", "b", est=5)), deadline=7)
-        self.assertEqual(result["status"], s.EXIT_WALL)
-        self.assertIn("c", result["not_run"])
-        self.assertNotIn("c", result["stages"])
+        path = dag(self.tmp, row("a", est=5), row("b", "a", est=5), row("c", "b", est=5))
+        result, _ = simulate(path, deadline=7)
+        self.assertEqual(result["status"], s.EXIT_WALL, "default: finish for complete evidence, then exit 3")
+        self.assertEqual(result["not_run"], [])
+        stopped, _ = simulate(path, deadline=7, stop=True)
+        self.assertEqual(stopped["status"], s.EXIT_WALL)
+        self.assertIn("c", stopped["not_run"])
+        self.assertNotIn("c", stopped["stages"])
+        within, _ = simulate(path, deadline=20)
+        self.assertEqual(within["status"], s.EXIT_OK)
+
+    def test_memguard_requires_live_headroom(self):
+        path = dag(self.tmp, row("busy", mem=1, est=5), row("g", mem=1, est=1, flags="memguard"))
+        result, _ = simulate(path, live_mem=lambda: 5.0)
+        self.assertGreaterEqual(result["stages"]["g"]["start"], result["stages"]["busy"]["end"],
+                                "guarded stage waits while live MemAvailable is below 8 GiB + own")
 
     def test_committed_dag_is_valid_and_estimated(self):
         stages = s.load_dag(str(HERE / "dag.tsv"))
@@ -246,9 +259,14 @@ class SchedulerRealTest(unittest.TestCase):
 
     def test_real_deadline_exit_code(self):
         path = dag(self.tmp, row("a"), row("b", "a"), row("c", "b"))
-        proc, events, _ = self.run_cli(path, "--deadline-s", "0.5", sleeps={"a": 1.0})
+        proc, events, _ = self.run_cli(path, "--deadline-s", "0.5", "--stop-at-deadline", sleeps={"a": 1.0})
         self.assertEqual(proc.returncode, s.EXIT_WALL)
         self.assertNotIn("b", events)
+        self.log.unlink()
+        shutil.rmtree(Path(self.tmp) / "state")
+        proc, events, _ = self.run_cli(path, "--deadline-s", "0.5", sleeps={"a": 1.0})
+        self.assertEqual(proc.returncode, s.EXIT_WALL)
+        self.assertIn("EXIT", events["c"], "runs to completion, then exit 3")
 
 
 class StageSetTest(unittest.TestCase):
@@ -285,6 +303,12 @@ class StageSetTest(unittest.TestCase):
         lib = self.mutated("lib.sh", "-count=10 -timeout=30m", "-count=1 -timeout=30m")
         self.assertEqual(self.static(lib=lib).returncode, 4)
 
+    def test_dynamic_label_and_environment_changes_detected(self):
+        lib = self.mutated("lib.sh", "  stage terminal-controls ", '  local label=terminal-controls\n  stage "$label" ')
+        self.assertEqual(self.static(lib=lib).returncode, 4)
+        lib = self.mutated("lib.sh", "export GOMAD_WASM_CONFORMANCE_REQUIRED=1", "export GOMAD_WASM_CONFORMANCE_REQUIRED=0")
+        self.assertEqual(self.static(lib=lib).returncode, 4)
+
     def test_changed_helper_body_detected(self):
         lib = self.mutated("lib.sh", ".Budget.WithinBudget == true and", "")
         self.assertEqual(self.static(lib=lib).returncode, 4)
@@ -301,7 +325,8 @@ class StageSetTest(unittest.TestCase):
     def test_verify_requires_exactly_one_pass_per_stage(self):
         dag_path = dag(self.tmp, row("a"), row("b"))
         for label in ("a", "b"):
-            (self.tmp / f"{label}.receipt.json").write_text(json.dumps({"exit": 0}))
+            (self.tmp / f"{label}.receipt.json").write_text(json.dumps({"exit": 0, "label": label}))
+            (self.tmp / f"{label}.command").write_text("cwd=/\n")
         log = self.tmp / "stages.log"
 
         def verify(lines):
@@ -315,13 +340,15 @@ class StageSetTest(unittest.TestCase):
         self.assertEqual(verify(ok[:2]), 4)
         self.assertEqual(verify(ok + ["t START native-source lane=1"]), 4)
         self.assertEqual(verify(ok[:3] + ["t EXIT b 1 NEW_RUN lane=2"]), 4)
+        self.assertEqual(verify(ok + ["t STEP-FAIL b 1 lane=2"]), 4)
+        (self.tmp / "b.command").unlink()
+        self.assertEqual(verify(ok), 4)
 
 
 class EnvironmentTraceTest(unittest.TestCase):
-    """Each stage call sees the serial driver's cwd and GOMAD_* exports (tests/envtrace.py)."""
+    """Each stage call sees the serial driver's cwd and GOMAD_* exports (envtrace.py)."""
 
     def setUp(self):
-        sys.path.insert(0, str(HERE / "tests"))
         import envtrace
         self.envtrace = envtrace
         self.reference = HERE.parent / "q1-serial" / "run-qualification.sh"
@@ -344,6 +371,47 @@ class EnvironmentTraceTest(unittest.TestCase):
             mutated = self.tmp / "lib.sh"
             mutated.write_text(text.replace(old, new, 1))
             self.assertNotEqual(self.envtrace.compare(self.reference, mutated)[2], [], new)
+
+
+LIB_HARNESS = textwrap.dedent("""\
+    set -euo pipefail
+    set -o noclobber
+    shopt -s nullglob dotglob
+    source "$LIB"
+    stage() { printf '%s\\n' "${STUB_OUT:-}" > "$QUAL_ROOT/$1.log"; printf '%s\\n' "$1" >> "$QUAL_ROOT/stubbed-stages"; }
+    check_source() { :; }
+    QUAL_REPO="$ROOT/repo" QUAL_ROOT="$ROOT/qual" wasm="$ROOT/repo" driver_dir="$DRIVER" qualification_go=go
+    installed_helper="$QUAL_ROOT/helpers/ordinary/gomad-wasmhost"
+    mkdir -p "$QUAL_ROOT/state" "$QUAL_ROOT/bin" "$QUAL_ROOT/helper-build/x"
+    printf 'ACTIONLINT_VER := v1.7.7\\n' > "$QUAL_REPO/Makefile"
+    printf 'tool' > "$QUAL_ROOT/bin/actionlint"; printf 'tool' > "$QUAL_ROOT/bin/wasmmeasure"
+    printf 'helper-bytes' > "$ROOT/admitted"
+    jq -n --arg h "$ROOT/admitted" --arg d "$(sha256sum "$ROOT/admitted" | cut -d' ' -f1)" '{Helper:$h,HelperSHA256:$d}' \\
+      > "$QUAL_ROOT/helper-build/x/helper-admission.json"
+    STUB_OUT=v1.7.7 step_actionlint_version
+    step_wasmmeasure_build
+    step_helper_build
+    load_helper_state
+    test "$helper_ready" = true && test "$expected_helper" = "$(sha256sum "$ROOT/admitted" | cut -d' ' -f1)"
+    sha256sum -c "$QUAL_ROOT/helper.sha256" "$QUAL_ROOT/actionlint.sha256" "$QUAL_ROOT/wasmmeasure.sha256" > /dev/null
+    if atomic_output "$QUAL_ROOT/helper.sha256" printf x; then exit 9; fi
+    printf 'harness-ok\\n'
+    """)
+
+
+class LibHarnessTest(unittest.TestCase):
+    """lib.sh steps under the stage process's shell options (errexit, pipefail, noclobber)."""
+
+    def test_state_writing_steps_run_under_noclobber(self):
+        root = Path(tempfile.mkdtemp())
+        try:
+            (root / "repo").mkdir()
+            proc = subprocess.run(["bash", "-c", LIB_HARNESS], capture_output=True, text=True, timeout=60,
+                                  env=dict(os.environ, LIB=str(HERE / "lib.sh"), ROOT=str(root), DRIVER=str(HERE)))
+            self.assertEqual(proc.returncode, 0, proc.stdout + proc.stderr)
+            self.assertIn("harness-ok", proc.stdout)
+        finally:
+            shutil.rmtree(root)
 
 
 class FrozenScratchTest(unittest.TestCase):

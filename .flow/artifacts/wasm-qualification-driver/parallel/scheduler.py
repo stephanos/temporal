@@ -17,8 +17,9 @@ Admission rules (see README.md "Scheduling policy"):
   * a stage with in-tree scratch never overlaps a `cleantree` stage;
   * when the highest-priority ready stage is exclusive/solo and blocked, no
     lower-priority stage is admitted (drain), so exclusives cannot starve.
-Fail-fast: after the first non-zero exit, or once the wall-clock deadline has
-passed, no new stage starts; running stages finish and are recorded.
+Fail-fast: after the first non-zero exit no new stage starts; running stages
+finish and are recorded. Past the wall-clock deadline the run continues to
+completion (complete evidence) and exits 3; --stop-at-deadline stops admitting.
 
 Exit codes: 0 all stages passed; 1 a stage failed; 3 deadline exceeded
 (no failure); 2 usage/DAG error.
@@ -138,11 +139,15 @@ def static_critical_path(stages):
 
 
 class Policy:
-    def __init__(self, cores, mem_gib, allow_background=False, deadline=None):
+    def __init__(self, cores, mem_gib, allow_background=False, deadline=None, stop_at_deadline=False,
+                 live_mem=None, margin=0.0):
         self.cores = cores
         self.mem = mem_gib
         self.allow_background = allow_background
         self.deadline = deadline
+        self.stop_at_deadline = stop_at_deadline
+        self.live_mem = live_mem  # callable -> current MemAvailable GiB (real runs only)
+        self.margin = margin
 
 
 def can_start(stage, running, policy):
@@ -179,6 +184,10 @@ def can_start(stage, running, policy):
         return False
     for guarded in (r for r in running if "memguard" in r.flags):
         if sum(r.mem for r in running if r is not guarded) + stage.mem + GUARD_GIB > policy.mem:
+            return False
+    if "memguard" in stage.flags and policy.live_mem is not None:
+        # Declared peaks are estimates: also require the guard's headroom now.
+        if policy.live_mem() < GUARD_GIB + policy.margin + stage.mem:
             return False
     return True
 
@@ -244,8 +253,12 @@ class RealExecutor:
         self._register(stage, label=stage.label, scratch=stage.scratch, start_ns=time.time_ns(), lane=lane)
         env = dict(self.env, QUALDRV_LANE=str(lane), QUALDRV_STAGE=stage.label)
         log = open(os.path.join(self.state_dir, stage.label + ".runner.log"), "w")
-        self.procs[stage.label] = (subprocess.Popen(self.runner + [stage.label], env=env, stdout=log,
-                                                    stderr=subprocess.STDOUT, start_new_session=True), log, stage)
+        blocked = signal.pthread_sigmask(signal.SIG_BLOCK, {signal.SIGTERM, signal.SIGHUP, signal.SIGINT})
+        try:
+            self.procs[stage.label] = (subprocess.Popen(self.runner + [stage.label], env=env, stdout=log,
+                                                        stderr=subprocess.STDOUT, start_new_session=True), log, stage)
+        finally:
+            signal.pthread_sigmask(signal.SIG_SETMASK, blocked)
 
     def terminate(self):
         """Interrupted driver: stop every running stage's whole process group."""
@@ -304,10 +317,11 @@ def run(stages, policy, executor, log=lambda line: None):
     wall_exceeded = False
     origin = executor.now()
     while True:
-        if not failed and not wall_exceeded and policy.deadline is not None and executor.now() > policy.deadline:
+        if not wall_exceeded and policy.deadline is not None and executor.now() > policy.deadline:
             wall_exceeded = True
-            log(f"DEADLINE passed; no new stages (running: {' '.join(sorted(running)) or '-'})")
-        if not failed and not wall_exceeded:
+            log("DEADLINE passed; " + ("no new stages" if policy.stop_at_deadline else
+                                       "finishing the run for complete evidence; exit will be 3"))
+        if not failed and not (wall_exceeded and policy.stop_at_deadline):
             starts = {l: origin + r["start"] for l, r in records.items()}
             for stage in select(stages, done, [stages[l] for l in running], started, policy,
                                 executor.now(), starts):
@@ -399,6 +413,8 @@ def main(argv=None):
         p.add_argument("--allow-background", action="store_true")
         p.add_argument("--deadline-s", type=float, help="seconds from scheduler start (run) or t=0 (simulate)")
         p.add_argument("--json", help="write the result record here")
+        p.add_argument("--stop-at-deadline", action="store_true",
+                       help="start no stage after the deadline (default: finish, then exit 3)")
     sub.choices["run"].add_argument("--state-dir", required=True)
     sub.choices["run"].add_argument("--deadline-epoch", type=float, help="absolute wall-clock deadline")
     sub.choices["run"].add_argument("--log", help="append scheduler events here")
@@ -416,7 +432,7 @@ def main(argv=None):
 
     if args.mode == "simulate":
         mem = args.mem_gib if args.mem_gib is not None else args.host_mem_gib - args.mem_margin_gib
-        policy = Policy(args.cores, mem, args.allow_background, args.deadline_s)
+        policy = Policy(args.cores, mem, args.allow_background, args.deadline_s, args.stop_at_deadline)
         result = run(stages, policy, SimExecutor(stages, args.slowdown))
         bound, path = static_critical_path(stages)
         print(format_report(result, f"simulated ({args.cores:g} cores, {mem:g} GiB cap, slowdown {args.slowdown:g}, "
@@ -425,6 +441,8 @@ def main(argv=None):
         print(f"dependency-only lower bound: {bound / 60:.1f} min via {' > '.join(path)}")
         print(f"exclusive+solo serial sum: {exclusive / 60:.1f} min; all-stage serial sum: "
               f"{sum(s.est for s in stages.values()) / 60:.1f} min")
+        if result["not_run"]:
+            print(f"NOT RUN ({len(result['not_run'])}): {' '.join(result['not_run'])}")
         if args.json:
             with open(args.json, "w") as handle:
                 json.dump(result, handle, indent=1)
@@ -438,7 +456,8 @@ def main(argv=None):
     deadline = args.deadline_epoch
     if deadline is None and args.deadline_s is not None:
         deadline = time.time() + args.deadline_s
-    policy = Policy(args.cores, mem, args.allow_background, deadline)
+    policy = Policy(args.cores, mem, args.allow_background, deadline, args.stop_at_deadline,
+                    live_mem=mem_available_gib, margin=args.mem_margin_gib)
     log_path = args.log or os.path.join(args.state_dir, "scheduler.log")
 
     def log(line):
@@ -456,12 +475,17 @@ def main(argv=None):
         raise KeyboardInterrupt(signal.Signals(signum).name)
 
     signal.signal(signal.SIGTERM, interrupted)
+    signal.signal(signal.SIGHUP, interrupted)
+    completed = False
     try:
         result = run(stages, policy, executor, log)
+        completed = True
     except KeyboardInterrupt as error:
         log(f"INTERRUPTED {error}; terminating running stages {' '.join(sorted(executor.procs)) or '-'}")
-        executor.terminate()
         return 130
+    finally:
+        if not completed:
+            executor.terminate()
     report = format_report(result, "scheduler")
     log(report.replace("\n", "\n    "))
     with open(args.json or os.path.join(args.state_dir, "schedule.json"), "w") as handle:

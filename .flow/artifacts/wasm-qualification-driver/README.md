@@ -30,9 +30,14 @@ ones (see "Reaching one hour"). `--deadline-s` (default 3600),
 `--mem-margin-gib` (default 2).
 
 Exit codes: `0` pass; `1` a stage or post-check failed (fail-fast); `2` setup
-refused (e.g. virtiofs scratch); `3` the wall-clock limit was exceeded; `4` the
-stage-set/command equivalence check failed; `130` interrupted (running stage
-process groups are terminated).
+refused (virtiofs/fuse scratch, less than 12 GiB free); `3` the wall-clock
+limit was exceeded (the run still completes every stage and the final checks so
+the evidence is whole; `--stop-at-deadline` stops admitting stages
+instead); `4` the stage-set/command/environment equivalence check failed;
+`130` interrupted (SIGTERM/INT/HUP are forwarded and every running stage's
+process group is terminated). A stage failure takes precedence over the limit.
+`WALL` and `wall-time.json` are written on every exit, `PASS` only when the
+run passed within the limit.
 
 ### Files
 
@@ -53,7 +58,10 @@ process groups are terminated).
 ### Scheduling policy
 
 - A stage starts when all dependencies exited 0. Dependencies are explicit:
-  cheap static checks gate `wasmmeasure-build` and the helper builds; every
+  the cheap static checks (validate, portable, default build/vet, compile-only,
+  lint-router(-vet), workflow-lint, lint-module) gate `wasmmeasure-build` and the
+  helper builds; the slow static checks (`architecture`, `lint-root`) run
+  alongside the helper builds and stop the run through fail-fast; every
   helper-consuming stage depends on `ordinary-helper-publication` (release and
   conformance helpers admitted, installed and published); data dependencies
   follow the serial driver (runtime seeds before the aggregate, `clusters`
@@ -64,8 +72,10 @@ process groups are terminated).
   larger than a cap runs only on an otherwise idle host. Seeds: Cranelift-heavy
   preparation 5 GiB, workload cells 9 GiB (about 4 GiB guest plus 5 GiB helper),
   measured tree RSS for the light stages (q1 run, `stage-mem-sampler.py`).
-- `memguard` (runtime seeds): the test refuses to dispatch below 8 GiB
-  MemAvailable, so other stages leave it 8 GiB of the cap.
+- `memguard` (runtime seeds): the test fails if MemAvailable is below 8 GiB
+  before any of its dispatches, so other stages leave it 8 GiB of the cap and the
+  scheduler also requires live MemAvailable >= 8 GiB + margin + its own peak at
+  admission.
 - Classes: `exclusive` stages (busy12 stress, terminal host admission and
   terminal exit, every workload cell and SQLite selection — the stages with
   wall-clock budgets or timing evidence) run with no other stage; `solo`
@@ -78,9 +88,9 @@ process groups are terminated).
   path. When the top-priority ready stage is exclusive it reserves the host:
   other stages are admitted only if their estimate ends before the running
   stages do (no starvation, no delay of the exclusive stage).
-- Fail-fast: after the first non-zero exit no stage starts; running stages
-  finish and are recorded. Once the deadline passes no stage starts and the
-  driver exits 3.
+- Fail-fast: after the first non-zero exit (command or post-check) no stage
+  starts; running stages finish and are recorded. The driver runs stages from a
+  recorded copy under `$QUAL_ROOT/driver/` (hashes in `driver.sha256`).
 
 ### Concurrency hazards handled (none weakens a check)
 
@@ -92,7 +102,10 @@ process groups are terminated).
   `frozen.py` exempts only `??` entries under those globs, only for other stages
   whose run interval overlaps the check. Tracked changes, every manifest digest
   and any other untracked path still fail; a stage never exempts its own scratch;
-  the preamble, final and exclusive/solo checks are strict. `cleantree` stages
+  the preamble and final checks are strict, and exclusive/solo stages see no
+  overlapping scratch in the default (strict) mode. Exemption is by glob, not by
+  owner: a stage leaving files under another running stage's glob is caught by
+  that stage's or the final check, under the other label. `cleantree` stages
   (terminal host admission and exit; the measurement producers check
   `git status` themselves) never overlap a scratch stage.
 - Fixture staging: `.tmp/wasm-backend-temporal` (ignored) is created once by
@@ -117,12 +130,19 @@ process groups are terminated).
   (`stage-set.json`). `tests/envtrace.py` checks cwd and every `GOMAD_*` export
   at each stage call against the serial order.
 - After the run: `stage_set.py verify` requires exactly one `START` and one
-  `EXIT <label> 0` per required stage, nothing else, and a zero-exit receipt
-  per stage (`stage-set-executed.json`).
+  `EXIT <label> 0` per required stage, nothing else, no `STEP-FAIL`, a
+  `<label>.command` record and a receipt with the label, exit 0 and the run's
+  source manifest (`stage-set-executed.json`).
+- Limits of the static check: it compares stage-call text, so values resolved
+  at run time (helper and module receipts, lint base, workflow prefix) and the
+  post-check lines inside each step are verified by review and the unit tests,
+  not by the gate. The `QUALDRV_*` variables are extra in every stage's
+  environment (no test reads them).
 - Kept per stage: `<label>.command`, `<label>.log`, `<label>.receipt.json`
   (now with `lane`), frozen-source checks before and after every stage, the
   serial post-checks. `stages.log` keeps the serial line format plus
-  `lane=N`; `STEP-FAIL` lines name a failing post-check.
+  `lane=N`; a `STEP-FAIL <label> <status>` line marks any failing step
+  (command or post-check).
 - Run records: `sched/scheduler.log` (admissions, exits, critical path),
   `sched/schedule.json` (per-stage start/end/lane/exit, critical path),
   `wall-time.json` (total wall seconds, limit, critical path), `driver/` and

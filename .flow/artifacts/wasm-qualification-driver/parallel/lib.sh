@@ -80,13 +80,14 @@ load_helper_state() {
 
 atomic_output() {
   # atomic_output FILE CMD...: readers in concurrent stages never see a partial file.
+  # Explicit returns: callers may run it where errexit is suspended.
   local destination="$1" temporary
   shift
-  test ! -e "$destination"
-  temporary="$(mktemp "$destination.XXXXXX")"
-  "$@" > "$temporary"
-  mv -n -- "$temporary" "$destination"
-  test ! -e "$temporary"
+  test ! -e "$destination" || return $?
+  temporary="$(mktemp "$destination.XXXXXX")" || return $?
+  "$@" >| "$temporary" || return $?
+  mv -n -- "$temporary" "$destination" || return $?
+  test ! -e "$temporary" && test -s "$destination"
 }
 
 ledger() {

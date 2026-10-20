@@ -7,16 +7,21 @@ static: before any stage runs (source-only, never invokes a gate)
   * every required label resolves to one stage call in lib.sh whose command
     text is identical to the reference call (stage / named_test / rust_test),
     and the shared helper functions are byte-identical to the reference;
-  * the workload entry list matches the reference.
+  * the workload entry list matches the reference;
+  * cwd and every GOMAD_* export at each stage call match the serial order (envtrace.py).
 verify: after the run
   * stages.log holds exactly one START and one `EXIT <label> 0` per required
-    label, and nothing else; every receipt exists with exit 0.
+    label, no other label and no STEP-FAIL line; every stage has its command
+    record and a receipt with its label, exit 0 and the run's source manifest.
 """
 import argparse
 import json
 import re
 import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).resolve().parent))
+import envtrace  # noqa: E402
 
 DROPPED_PREFIX = "native-"  # native backend retired 2026-10-19 (specs closed won't-do)
 CALL = re.compile(r'^\s*(stage|named_test|named_native_test|rust_test) +("?)([^\s"]+)\2(?: +(.*))?$', re.M)
@@ -118,6 +123,14 @@ def static(args):
     for name in IDENTICAL_FUNCTIONS:
         if function_body(lib_text, name) != function_body(reference_text, name):
             problems.append(f"function {name} differs from the reference")
+    # `stage "$label"` escapes the per-label comparison; allow it only inside the
+    # reference-identical helper bodies (named_test, rust_test).
+    dynamic = len(re.findall(r'^\s*stage "\$label"', lib_text, re.M))
+    allowed = sum(len(re.findall(r'^\s*stage "\$label"', function_body(lib_text, name), re.M)) for name in IDENTICAL_FUNCTIONS)
+    if dynamic != allowed:
+        problems.append(f"{dynamic - allowed} stage \"$label\" call(s) outside the reference helper bodies")
+    _, _, env_problems = envtrace.compare(args.reference, args.lib)
+    problems.extend(f"environment: {problem}" for problem in env_problems)
     for name, (old, new) in NEAR_IDENTICAL.items():
         if function_body(lib_text, name) != function_body(reference_text, name).replace(old, new):
             problems.append(f"function {name} differs from the reference beyond the atomic write")
@@ -130,20 +143,27 @@ def static(args):
 def verify(args):
     dag = [line.split("\t")[0] for line in Path(args.dag).read_text().splitlines()
            if line and not line.startswith("#")][1:]
-    starts, exits = {}, {}
+    starts, exits, problems_seen = {}, {}, []
     for line in Path(args.stages_log).read_text().splitlines():
         fields = line.split()
         if len(fields) >= 3 and fields[1] == "START":
             starts[fields[2]] = starts.get(fields[2], 0) + 1
         elif len(fields) >= 4 and fields[1] == "EXIT":
             exits.setdefault(fields[2], []).append(fields[3])
-    problems = []
+        elif len(fields) >= 2 and fields[1] == "STEP-FAIL":
+            problems_seen.append(line)
+    problems = [f"step failure recorded: {line}" for line in problems_seen]
     for label in dag:
         if starts.get(label) != 1 or exits.get(label) != ["0"]:
             problems.append(f"{label}: START x{starts.get(label, 0)}, EXIT {exits.get(label, [])}")
         receipt = Path(args.root) / f"{label}.receipt.json"
-        if not receipt.is_file() or json.loads(receipt.read_text()).get("exit") != 0:
-            problems.append(f"{label}: receipt missing or non-zero")
+        record = json.loads(receipt.read_text()) if receipt.is_file() else {}
+        if record.get("exit") != 0 or record.get("label") != label:
+            problems.append(f"{label}: receipt missing, mislabeled or non-zero")
+        if args.source and record.get("source_manifest_sha256") != args.source:
+            problems.append(f"{label}: receipt source manifest differs")
+        if not (Path(args.root) / f"{label}.command").is_file():
+            problems.append(f"{label}: command record missing")
     unexpected = sorted((set(starts) | set(exits)) - set(dag))
     if unexpected:
         problems.append({"unexpected_labels": unexpected})
@@ -162,6 +182,7 @@ def main():
     v.add_argument("--dag", required=True)
     v.add_argument("--stages-log", required=True)
     v.add_argument("--root", required=True)
+    v.add_argument("--source", help="expected source_manifest_sha256 in every receipt")
     args = parser.parse_args()
     return static(args) if args.mode == "static" else verify(args)
 
