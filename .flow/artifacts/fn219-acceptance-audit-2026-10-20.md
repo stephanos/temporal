@@ -72,5 +72,25 @@ until integration. That worktree has since been removed; raw historical and
 fresh logs remain at `/home/agent/wt/evidence/fn219` while fn-219 is open.
 The identity ledger now records the frozen integrated candidate `3f532910be`
 and distinguishes its later WASI/helper changes from the promotion-only
-measurements. Final ladder exits and final runtime/workload identity bindings
-remain pending. No scratch checkout was created during the original audit.
+measurements. No scratch checkout was created during the original audit.
+
+## Frozen-candidate R5 attempt (2026-10-20)
+
+The full 96-stage attempt on `3f532910be73f622e923273bff86c401645fe7ba`
+failed after 2,417 seconds against its unchanged 3,600-second limit. Evidence
+is `/home/agent/wt/evidence/qualification-final/qual-3f532910be/`.
+`wall-time.json` records driver exit 1, scheduler exit 1 and 64 unrun stages;
+`stages.log` records 31 stage exits 0 and `ordinary` command exit 2. The wrapper
+stopped admitting stages and drained network and Temporal inspection, both 0.
+The inspection log records passing shard, workflow and one-box subcells.
+
+The failed ordinary command was the actual `make test-wasm` gate. Its log
+contains failing `TestInstallTemporalAndDiscover` and
+`TestInstallTemporalRefusesMissingInputs` command tests and a cumulative
+15-minute WASI package timeout while `TestStorageOwnerParity` had run for nine
+seconds. Root owns the environment-isolation repair and isolated ordinary
+timing check. Runtime/workload qualification stages never ran, so no final
+Results or prepared identity bindings exist for them. The ledger retains
+actual helper, model, runtime, module and BuildKey observations, including the
+compiled WASM cluster digest from `ordinary.log`; these are not an overall
+qualification pass. R5 and fn-219.4 remain open.

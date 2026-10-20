@@ -6,13 +6,15 @@ the worker candidate later audited at `28c8c33729`. Raw evidence:
 `helper-source-digest.txt`, `helper-binary-sha.txt`, `r2-jq-filtered-corpus-diff.txt`,
 `r3-cumulative-header-filtered.diff`).
 
-Final qualification candidate: `3f532910be73f622e923273bff86c401645fe7ba`,
+Attempted qualification candidate: `3f532910be73f622e923273bff86c401645fe7ba`,
 frozen at `/home/agent/wt/qualification-final-frozen`. Its source manifest digest
 is `39182df082494be677778bdbd642b4812defef546b81189bf7a2de36d52a2fba`.
 Current qualification evidence is under
 `/home/agent/wt/evidence/qualification-final/qual-3f532910be/`.
-The ladder is running; no final qualification pass is recorded here. R5 remains
-open until every required gate has its numeric exit and final identity binding.
+The ladder failed with driver exit 1 and scheduler exit 1 after 2,417 seconds
+against the unchanged 3,600-second limit. Of 96 stages, 31 passed, `ordinary`
+failed, and 64 were not run. R5 remains open; this candidate has no final
+qualification pass or runtime/workload Result bindings.
 
 Continuation audit (2026-10-20): implementation candidate `28c8c33729` also
 includes the recovered lint-classification and native import-order fixes from
@@ -74,7 +76,7 @@ the separate bindings below.
 | World implementation | `sha256:93724a229610f7933af001fe33a9c6323431d88f2b36085f038fd4939a207e29` | Historical measured value; complete identity inputs unchanged. |
 | Shared cluster implementation | `sha256:d62d0fe6ed1fe7b9efa628e1ecf18c90cfefaac4f561fb62229fa56bb95c9430` | Historical measured value; complete identity inputs unchanged, including native runtime glue retained until fn-223. |
 | WASI implementation / installation model | `sha256:73c1a4f3f64dedd4c18dad47849f6dcc8bc04d08e27067dedd096acde05e2e60` | Actual early preparation. Later WASI changes include diagnostic transport and measurement plumbing, followed by fn-227 shutdown and storage-selection ordering. See the integration checkpoint and `fn227-source-acceptance-2026-10-20.md`. |
-| WASM cluster implementation | pending current probe | Rotates after promotion through the changed WASI identity and embedded `cluster/retained.go` host-configuration admission. Record the actual value from the current cluster-provider gate. |
+| WASM cluster implementation | `sha256:63d6734ceb36e1b6dfa99084dc711cb9f071519a7c70dd10491c8c8e045c3930` | Actual compiled identity in `qual-3f532910be/ordinary.log`, `TestProviderGroupedAcknowledgmentCrashSourceLessReplay`, `provider_test.go:309` (log line 1428). The same line binds admitted helper `b2543914…55a1` and small guest module `08167746…a47c`. Rotates after promotion through the changed WASI identity and embedded `cluster/retained.go` host-configuration admission. This measured identity supplies no whole-stage or final qualification pass. |
 | WASM overlay implementation | `sha256:4ac4238ff22066e38a7e67356f1388bb8d09995a3fc9f2bea2c57fce8c284ac4` | Actual early provenance, matching the unchanged promotion inputs. |
 | Runtime overlay identity | `sha256:6453d2a998662888534e8641ff68e6411e6adc14d5315ca7ee873b8a7ce8e506` | Actual early provenance with stock Go 1.27.1 and the frozen runtime source root. |
 | Choice source identity | `669bc871eba0cbee514290183ba2e8e78f44b91f34cd26300fb8916eff5327aa` | Unchanged since promotion. Read-only SHA-256 reconstruction using the generator's ordered v3 inventory reproduces the generated shared and private hashwire literal. Inputs are the schema, three templates, shared runtime semantics, `trace.go` and `tape.go`. |
@@ -94,10 +96,11 @@ above. Its compiler digest is
 `sha256:1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64`.
 Its engine is Wasmtime `47.0.3`, configuration
 `cranelift-fuel-nan-canonical-nounwind-v2`, on `linux/aarch64`; the profile is
-`gomad.wasi-cooperative/v1`. Qualification remains pending for this integrated
-source. Before closed-owner cleanup, the conductor must transfer any raw
-acceptance inputs still required by open fn-223 to that owner and verify the
-new references under AGENTS.md.
+`gomad.wasi-cooperative/v1`. The failed ladder never admitted the runtime or
+workload measurement stages, so the early preparation above cannot supply
+their missing final bindings. Before closed-owner cleanup, the conductor must
+transfer any raw acceptance inputs still required by open fn-223 to that owner
+and verify the new references under AGENTS.md.
 
 ## Pins and corpora regenerated (unchanged expectations)
 
@@ -123,26 +126,32 @@ new identity: `PINNED_GO_NETWORK_SHA256` and the `wasi/identity_test.go` literal
 - Volume and namespace differential conformance with the conformance helper required: exit 0
   (`t1-test-conformance.log`, run after fn-219.1).
 
-## Requalification gates (current run pending)
+## Requalification attempt (failed; R5 open)
 
-The conductor is running the current 96-stage ladder under
-`qual-3f532910be`. Its `stages.log`, per-stage `.command` files and
-`.receipt.json` files record actual commands and numeric exits. The table below
-retains the requested gate coverage; final reconciliation must map every row to
-the completed current stages and their actual helper/preparation identities.
-An intermediate stage pass does not complete R5.
+The complete attempt is retained under `qual-3f532910be`. `wall-time.json`
+records driver/scheduler exits 1, wall time 2,417 seconds and all 64 unrun
+stages. `stages.log` records 31 stage exits 0 and the `ordinary` command exit 2;
+`sched/scheduler.log` records its wrapper exit 1 and fail-fast admission stop.
+Per-stage `.command` and `.receipt.json` files retain exact commands and exits.
+The already-running network and inspection stages drained with exit 0.
 
-Run from the repository root of the frozen candidate with the official stock Go 1.27.1
-(`GO=<stock go1.27.1>`), after `make -C tools/gomad/internal/backends/wasm helper`. Record each
-numeric exit here.
-
-| Gate | Command | Exit |
+| Gate | Actual current evidence | Exit and remaining acceptance |
 | --- | --- | --- |
-| Helper corpora (4 builds) | `make -C tools/gomad/internal/backends/wasm test-helper` | pending |
-| Conformance (fresh helper) | `make -C tools/gomad/internal/backends/wasm test-conformance GOMAD_WASM_STOCK_GO=$GO` | pending |
-| WASM suite | `make -C tools/gomad test-wasm GOMAD_STOCK_GO=$GO` | pending |
-| Retained inspection | `cd tools/gomad && GOMAD_STOCK_GO=$GO GOMAD_WASM_TEMPORAL_INSPECTION_ROOT=<retained dir> go test -tags test_dep -count=1 -timeout=120m -run '^TestTemporalInspectionRetainedFailure$' ./internal/backends/wasm/backend` | pending |
-| Operator typed scenarios | `cd tools/gomad && GOMAD_STOCK_GO=$GO GOMAD_WASM_TEST_HELPER=<release helper> go test -tags test_dep -count=1 -timeout=60m -run '^TestInstalledOperatorTypedScenario(DetachedReplay\|KillResume)$' ./internal/backends/wasm/command` | pending |
-| Runtime qualification | `GOMAD_WASM_QUALIFICATION_ROOT=<root> GOMAD_WASM_QUALIFICATION_MANIFEST=<manifest> make -C tools/gomad/internal/backends/wasm qualify-runtime GOMAD_WASM_STOCK_GO=$GO` | pending |
-| Workload qualification (mandatory, after disk cleanup) | `GOMAD_WASM_QUALIFICATION_ROOT=… GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST=… GOMAD_WASM_INTEGRATED_SOURCE_SHA256=… GOMAD_WASM_TEMPORAL_QUALIFICATION_INPUTS=… GOMAD_WASM_TEMPORAL_PREPARATION_SOURCE=… make -C tools/gomad/internal/backends/wasm qualify-workloads GOMAD_WASM_STOCK_GO=$GO` | pending |
-| Measurements to add | Official helper `HelperSHA256`, guest module SHA, runtime identity, BuildKey | pending |
+| Helper feature suites and corpora | `rust-default-test`, `rust-conformance-unit`, `rust-diagnostic-test`, `rust-fuel-off-test`, `rust-guest-profile-test`, `rust-combined-test` command/receipt pairs | Each exited 0. `helper-corpus-regen-1` and `helper-corpus-regen-2` were not run; required corpus preservation remains incomplete. |
+| Fresh conformance helper | `conformance-helper-build.command` and `.receipt.json` | 0 for the build. The interrupted ordinary suite supplies no complete fresh Go conformance pass. |
+| WASM suite | `ordinary.command` runs `make test-wasm GOMAD_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go` from the frozen Gomad module; `ordinary.receipt.json` and `ordinary.log` | 2. The suite failed; it must pass on the repaired candidate. |
+| Retained Temporal inspection | `temporal-inspection.command` runs stock Go `test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalInspectionRetainedFailure$' ./backend` from the frozen WASM backend; matching receipt/log | 0. Shard, workflow and one-box subcells passed; the one-box subcell took 1,647.85 seconds. This inspection pass supplies no missing full-tape workload qualification. |
+| Network, storage and cluster selections | `network`, `storage`, `clusters` command/receipt pairs | Each exited 0. Other required cluster, network-stream and retained-artifact stages listed in `wall-time.json` were not run. |
+| Operator typed scenarios | `operator` in `wall-time.json.not_run` | Not run; detached replay and kill/resume qualification remain required. |
+| Runtime qualification | `runtime-0` through `runtime-31` and `runtime-aggregate` in `wall-time.json.not_run` | Not run. No current runtime qualification Result or final prepared identity binding exists for this attempt. |
+| Mandatory workload qualification | All ten `workload-*-success/canary` stages, both corpus validations, four SQLite selections and the catalogue in `wall-time.json.not_run` | Not run. No final workload Results, measured replay acceptance or final helper/module/runtime/BuildKey bindings exist for this attempt. |
+
+`ordinary.log` records failed `TestInstallTemporalAndDiscover` and
+`TestInstallTemporalRefusesMissingInputs` command tests. Its WASI package also
+reached the cumulative 15-minute package alarm while `TestStorageOwnerParity`
+had run for nine seconds. That timeout does not establish a 15-minute duration
+for the individual test. Root owns the environment-isolation repair and an
+isolated ordinary-suite timing check before choosing the next full candidate.
+No command, timeout, seed, oracle or qualification requirement is waived by
+this failed attempt. The measured identities and individual passing stages
+above remain observations on `3f532910be`; they do not close fn-219.4.
