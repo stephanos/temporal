@@ -159,39 +159,28 @@ implemented. These are explicit integration inputs, not automatic package policy
 
 The small `./tests/gomadfunctional` package contains `TestFrontendSystemInfo`,
 which starts testcore with in-memory SQLite. A Temporal installation needs
-captured schema bytes and larger capacities than the first fixture. The command
-below requires a complete `wasi.Config` JSON file prepared by the Temporal
-integration. Set `GOMAD_TEMPORAL_CONFIG` to that file's absolute path. The current
-CLI has no generic mount-capture/setup command, so arbitrary Temporal tests are
-not yet a one-command workflow.
+captured schema bytes and larger capacities than the first fixture. One `install`
+command derives the cooperative configuration from the checkout and package,
+captures immutable SQLite schema bytes, and pins the slim guest build tags.
+No configuration JSON or `GOMAD_TEMPORAL_CONFIG` is needed. The shared derivation
+also supplies the guest working directory, matching `PWD`, writable directories,
+and bounded file, descriptor, call and modeled network capacities.
+The [operator guide](internal/backends/wasm/CLI.md#prepare-a-temporal-test-package)
+records the defaults and input contract.
 
-For this selection the configuration must declare the cooperative profile,
-guest `WorkingDirectory=/workspace/tests/gomadfunctional`, matching `PWD`,
-writable `/workspace`, `/tmp` and guest working directories, and immutable
-captured `schema/sqlite` bytes at `/workspace/schema/sqlite`. It must also supply
-appropriate file, descriptor, call and modeled network limits. The existing
-[Temporal guest configuration fixture](internal/backends/wasm/wasi/measure_integration_test.go)
-and [one-box inspection fixture](internal/backends/wasm/backend/temporal_inspection_integration_test.go)
-show how current integration code captures inputs and declares those limits.
-They are implementation references, not a consumer setup command or evidence
-that another selection works. The [operator guide](internal/backends/wasm/CLI.md#build-and-pin-an-installation)
-defines the complete configuration input contract.
-
-Given that prepared configuration, create a separate installation and select
-the test. These memory/fuel capacities follow Temporal's guest integration;
-they are limits, not measured consumption or a current-candidate pass.
+Create a separate installation and select the named test. These memory/fuel
+capacities follow Temporal's guest integration; they are limits, not measured consumption.
+Setup refuses inherited `GOMAD_*` variables; `env -i` supplies only its named inputs.
 Standalone execution takes explicit environment values from `--env`;
 configuration environment entries alone do not supply them.
 
 ```sh
-export GOMAD_TEMPORAL_CONFIG=/absolute/consumer-prepared/temporal-config.json
-"$GOMAD_OPERATOR/bin/gomad" install \
+env -i "$GOMAD_OPERATOR/bin/gomad" install \
+  --temporal-checkout "$GOMAD_CHECKOUT" \
+  --temporal-package ./tests/gomadfunctional \
   --compiler "$GOMAD_STOCK_GO" \
   --helper "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost" \
   --runtime-root "$GOMAD_CHECKOUT/tools/gomad/internal/model/runtimesource" \
-  --profile gomad.wasi-cooperative/v1 \
-  --config "$GOMAD_TEMPORAL_CONFIG" \
-  --memory-bytes=4294967296 --fuel=1125899906842624 \
   --cache "$GOMAD_OPERATOR/temporal-preparation" \
   --compile-cache "$GOMAD_OPERATOR/temporal-engine" \
   --output "$GOMAD_OPERATOR/bin/gomad-temporal.json"
@@ -199,8 +188,6 @@ cd "$GOMAD_CHECKOUT"
 "$GOMAD_OPERATOR/bin/gomad" \
   --installation "$GOMAD_OPERATOR/bin/gomad-temporal.json" explore \
   --working-dir "$GOMAD_CHECKOUT" \
-  --build-tag=disable_grpc_modules --build-tag=gomad_wasm_slim \
-  --build-tag=sqlite3_dotlk --build-tag=test_dep \
   --env=TEMPORAL_ROOT=/workspace --env=TMPDIR=/tmp \
   --env=TEMPORAL_TEST_LOG_LEVEL=warn \
   --choices --choice-bytes=64MiB \
@@ -217,12 +204,11 @@ Host preparation uses the checkout root; guest execution uses
 `/workspace/schema/sqlite`, and `TEMPORAL_ROOT=/workspace` lets testcore find it.
 Gomad supplies guest `PWD` and UTC timezone. No live mount is exposed.
 
-For `./tests`, change the package and `-test.run`, set the configuration's guest
-working directory to `/workspace/tests`, regenerate it and install a new
-manifest. For example,
-`^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` selects an existing
-subtest. Other tests can need additional captured files, different capacities
-or model support. `gomad_wasm_slim` omits cloud archivers, ringpop and
+This workflow supports only the named `TestFrontendSystemInfo` selection;
+current-candidate one-box qualification is owned separately by fn-222.
+Preparing another package does not establish its support. Other tests can need
+additional captured files, different capacities or model support.
+`gomad_wasm_slim` omits cloud archivers, ringpop and
 MySQL/PostgreSQL test drivers. Selecting excluded providers fails explicitly.
 
 Start with one seed and one heavy preparation at a time. Whole Temporal modules
