@@ -204,6 +204,8 @@ impl StorageDescriptor {
     }
 
     pub fn read_context(&mut self, input: &mut dyn BufRead, maximum: u64) -> Result<()> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::StorageTransport);
         self.observed_context = match &self.crash_context {
             Some(declared) => {
                 let bytes = read_chunks(input, declared, maximum, &CONTEXT_STREAM)?;
@@ -216,6 +218,8 @@ impl StorageDescriptor {
 
     /// Reads the declared recovery image frames after the namespace image.
     pub fn read_image(&self, input: &mut dyn BufRead, maximum: u64) -> Result<Option<Vec<u8>>> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::StorageTransport);
         let Some(declared) = &self.image else {
             return Ok(None);
         };
@@ -230,6 +234,8 @@ impl StorageDescriptor {
         image: Option<&[u8]>,
         transcript_limit: u64,
     ) -> std::result::Result<(), Stop> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::StorageTransport);
         let filesystem_bytes = namespace.filesystem_bytes();
         self.model
             .validate(namespace.writable_directories(), filesystem_bytes)
@@ -361,10 +367,14 @@ pub struct Evidence {
 /// the crash image. An enumeration error is `invalid`; a crash error is
 /// `infrastructure`.
 pub fn evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
+    #[cfg(feature = "diagnostic-profile")]
+    let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::StorageTransport);
     collect(namespace, descriptor, descriptor.return_image)
 }
 
 pub fn recovery_evidence(namespace: &mut Namespace, descriptor: &StorageDescriptor) -> Evidence {
+    #[cfg(feature = "diagnostic-profile")]
+    let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::StorageTransport);
     collect(namespace, descriptor, true)
 }
 

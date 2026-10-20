@@ -29,8 +29,10 @@ macro_rules! operations {
         #[derive(Clone, Copy, Debug, PartialEq, Eq)]
         pub enum Operation { $($variant,)+ }
         impl Operation {
-            #[cfg(test)]
+            #[cfg(any(test, feature = "diagnostic-profile"))]
             pub const ALL: &'static [Self] = &[$(Self::$variant,)+];
+            #[cfg(feature = "diagnostic-profile")]
+            pub const COUNT: usize = Self::ALL.len();
             pub fn resolve(module: &str, name: &str) -> Option<Self> {
                 match (module, name) {
                     $(($module, $name) => Some(Self::$variant),)+
@@ -57,6 +59,8 @@ macro_rules! operations {
                 match self {
                     $(Self::$variant => {
                         linker.func_wrap($module, $name, |caller: Caller<'_, State>, $($arg: $ty),*| -> Result<$result> {
+                            #[cfg(feature = "diagnostic-profile")]
+                            let _boundary = crate::diagnostic::ImportBoundary::new();
                             invoke_typed!(caller, Operation::$variant, [$(val!($ty, $arg)),*], $result)
                         })?;
                     },)+
@@ -394,7 +398,13 @@ pub fn invoke(
     params: &[Val],
     results: &mut [Val],
 ) -> Result<()> {
+    // The op frame opens before any route so every import is attributed;
+    // the debug exchange and the sealed refusal stay out of the v1 buckets.
+    #[cfg(feature = "diagnostic-profile")]
+    let _abi = crate::diagnostic::AbiSpan::new(op, caller.data().model.is_some());
     if op == Operation::DebugExchange {
+        #[cfg(feature = "diagnostic-profile")]
+        serve_legacy_excluded(Owner::Inspection);
         return invoke_debug(caller, params, results);
     }
     if caller
@@ -403,18 +413,19 @@ pub fn invoke(
         .as_ref()
         .is_some_and(|model| model.inspection.sealed)
     {
+        #[cfg(feature = "diagnostic-profile")]
+        serve_legacy_excluded(Owner::Inspection);
         return Err(caller.data_mut().fail(
             "debug_error",
             format!("modeled import after inspection seal: {op:?}"),
         ));
     }
-    #[cfg(feature = "diagnostic-profile")]
-    let _abi =
-        crate::diagnostic::AbiSpan::new(op.module(), op.name(), caller.data().model.is_some());
     if op.is_runtime() {
         return invoke_runtime(caller, op, params, results);
     }
     if op == Operation::ProcExit {
+        #[cfg(feature = "diagnostic-profile")]
+        serve(Owner::Lifecycle);
         let mut outcome = Outcome::new("exit", "");
         outcome.exit_code = Some(params[0].i32().unwrap().cast_unsigned());
         caller.data_mut().terminal = Some(outcome);
@@ -444,9 +455,13 @@ pub fn invoke(
             .as_ref()
             .is_some_and(|namespace| namespace.standard_output(get(0)));
     if guest.caller.data().namespace.is_some() && op.is_namespace() && !remote_output {
+        #[cfg(feature = "diagnostic-profile")]
+        serve(Owner::Namespace);
         return invoke_namespace(&mut guest, op, params, results);
     }
     if op == Operation::ClockTimeGet && guest.caller.data().model.is_some() {
+        #[cfg(feature = "diagnostic-profile")]
+        serve(Owner::Clock);
         if let Err(error) = guest.range(get(2), 8) {
             return Err(guest.caller.data_mut().fail("trap", error.to_string()));
         }
@@ -457,11 +472,17 @@ pub fn invoke(
     }
     if guest.caller.data().model.is_some() {
         if op == Operation::SchedYield {
+            #[cfg(feature = "diagnostic-profile")]
+            serve(Owner::Scheduler);
             guest.caller.data_mut().yield_call()?;
             results[0] = Val::I32(0);
             return Ok(());
         }
         if op == Operation::PollOneoff {
+            // A poll is the clock's until decoding shows a descriptor
+            // subscription; one the helper cannot serve goes remote below.
+            #[cfg(feature = "diagnostic-profile")]
+            serve(Owner::Clock);
             let decoded = guest.subscriptions(get(0), get(1), get(2), get(3));
             let subscriptions = match decoded {
                 Ok(subscriptions) => subscriptions,
@@ -480,6 +501,10 @@ pub fn invoke(
             if subscriptions.iter().all(|sub| sub.kind == 0)
                 || guest.caller.data().namespace.is_some()
             {
+                #[cfg(feature = "diagnostic-profile")]
+                if subscriptions.iter().any(|sub| sub.kind != 0) {
+                    serve(Owner::Namespace);
+                }
                 let reply = guest.caller.data_mut().poll_call(&subscriptions)?;
                 results[0] = Val::I32(i32::from(reply.errno));
                 if reply.errno == 0 {
@@ -500,6 +525,8 @@ pub fn invoke(
         }
     }
     if guest.caller.data().model.is_some() && op.is_model_local() {
+        #[cfg(feature = "diagnostic-profile")]
+        serve(Owner::Inputs);
         let validated = guest.validate_derived(op, get(0), get(1));
         if let Err(error) = validated {
             let message = error.to_string();
@@ -557,6 +584,8 @@ pub fn invoke(
     }
     let mut iovecs = Vec::new();
     let mut write_buffers = None;
+    #[cfg(feature = "diagnostic-profile")]
+    serve(Owner::Remote);
     #[cfg(feature = "diagnostic-profile")]
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input_result = (|| -> Result<Value> {
@@ -1208,6 +1237,14 @@ fn invoke_namespace(
     Ok(())
 }
 
+#[cfg(feature = "diagnostic-profile")]
+use crate::diagnostic::{Owner, serve};
+#[cfg(feature = "diagnostic-profile")]
+fn serve_legacy_excluded(owner: Owner) {
+    serve(owner);
+    crate::diagnostic::exclude_legacy();
+}
+
 fn invoke_debug(mut caller: Caller<'_, State>, params: &[Val], results: &mut [Val]) -> Result<()> {
     let memory = memory(&mut caller)?;
     let mut guest = Guest {
@@ -1246,6 +1283,29 @@ fn invoke_runtime(
     };
     let pointer = params[0].i32().unwrap().cast_unsigned();
     let length = params[1].i32().unwrap().cast_unsigned() as usize;
+    #[cfg(feature = "diagnostic-profile")]
+    serve(
+        if matches!(op, Operation::RuntimeIdle | Operation::RuntimeNetStream)
+            && guest.caller.data().broker.is_some()
+        {
+            if op == Operation::RuntimeIdle {
+                Owner::SchedulerHandoff
+            } else {
+                Owner::Network
+            }
+        } else if guest
+            .caller
+            .data()
+            .model
+            .as_ref()
+            .is_some_and(|model| !model.split())
+            && op != Operation::RuntimeNetStream
+        {
+            Owner::Scheduler
+        } else {
+            Owner::Remote
+        },
+    );
     #[cfg(feature = "diagnostic-profile")]
     let encoding = crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
     let input = (|| -> Result<Vec<u8>> {
@@ -1365,5 +1425,17 @@ mod tests {
             );
             assert!(!(op.is_namespace() && op.is_model_local()), "{name}");
         }
+    }
+
+    #[cfg(feature = "diagnostic-profile")]
+    #[test]
+    fn operation_profile_keys_are_unique_and_index_their_table() {
+        let mut keys = std::collections::BTreeSet::new();
+        for (index, &op) in Operation::ALL.iter().enumerate() {
+            assert_eq!(op as usize, index);
+            assert!(!op.module().is_empty() && !op.name().is_empty());
+            assert!(keys.insert(format!("{}.{}", op.module(), op.name())));
+        }
+        assert_eq!(keys.len(), Operation::COUNT);
     }
 }

@@ -307,6 +307,8 @@ impl Fs {
         handle: &mut Handle,
         count: i64,
     ) -> Result<Vec<(String, Node)>> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         if self.node(handle.inode)?.kind != Kind::Directory {
             return Err(Error::Errno("not-directory"));
@@ -348,6 +350,8 @@ impl Fs {
         data: &[u8],
         now: i64,
     ) -> Result<usize> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         if !handle.writable {
             return Err(Error::Errno("bad-descriptor"));
@@ -402,6 +406,8 @@ impl Fs {
         offset: i64,
         length: usize,
     ) -> Result<Vec<u8>> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         if !handle.readable {
             return Err(Error::Errno("bad-descriptor"));
@@ -414,12 +420,16 @@ impl Fs {
 
     /// Go `Handle.Metadata`: modification time and size without data.
     pub(crate) fn handle_metadata(&self, handle: &Handle) -> Result<(i64, u64)> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         let node = self.node(handle.inode)?;
         Ok((node.mod_time, node.data.len() as u64))
     }
 
     pub(crate) fn handle_resize(&mut self, handle: &Handle, size: i64, now: i64) -> Result<()> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         if !handle.writable {
             return Err(Error::Errno("bad-descriptor"));
@@ -434,6 +444,8 @@ impl Fs {
     }
 
     pub(crate) fn handle_sync(&mut self, handle: &Handle) -> Result<Vec<u64>> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         self.sync_node(handle.inode)
     }
@@ -458,6 +470,8 @@ impl Fs {
     }
 
     pub(crate) fn mkdir(&mut self, path: &str, mode: u32, now: i64) -> Result<()> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         let path = self.resolve(path).map_err(|_| Error::Errno("invalid"))?;
         self.create(&path, Kind::Directory, mode, now).map(|_| ())
     }
@@ -572,6 +586,8 @@ impl Fs {
     }
 
     pub(crate) fn close(&mut self, handle: &mut Handle) -> Result<()> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.check_handle(handle)?;
         handle.closed = true;
         let node = self.node_mut(handle.inode)?;
@@ -606,6 +622,8 @@ impl Fs {
     }
 
     pub(crate) fn rename(&mut self, old_name: &str, new_name: &str, now: i64) -> Result<()> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         let old_path = self.resolve(old_name)?;
         let new_path = self.resolve(new_name)?;
         if old_path == "/" || new_path == "/" {
@@ -711,6 +729,8 @@ impl Fs {
     }
 
     pub(crate) fn remove(&mut self, name: &str) -> Result<()> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         let path = self.resolve(name).map_err(|_| Error::Errno("invalid"))?;
         if path == "/" {
             return Err(Error::Errno("invalid"));

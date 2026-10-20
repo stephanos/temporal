@@ -2529,44 +2529,145 @@ type diagnosticReport struct {
 	Nested           map[string]diagnosticNested `json:"nested"`
 	Residual         diagnosticResidual          `json:"residual"`
 	ABIOverlapErrors uint64                      `json:"abi_overlap_errors"`
+	// Schema v2 (fn-185): exact per-op and per-owner attribution.
+	ABIExcluded         *diagnosticABI              `json:"abi_excluded,omitempty"`
+	ABIOps              map[string]diagnosticOp     `json:"abi_ops,omitempty"`
+	Owners              map[string]diagnosticSeries `json:"owners,omitempty"`
+	Reconciliation      *diagnosticReconciliation   `json:"reconciliation,omitempty"`
+	UnattributedImports uint64                      `json:"unattributed_imports"`
+	UnframedImports     uint64                      `json:"unframed_imports"`
+	SpanErrors          uint64                      `json:"span_errors"`
+	Threads             []diagnosticThread          `json:"threads,omitempty"`
+	ThreadsOmitted      uint64                      `json:"threads_omitted"`
 }
+
+// diagnosticThread is one cluster store thread's own reconciliation row.
+type diagnosticThread struct {
+	Slot                    uint64 `json:"slot"`
+	Incarnation             uint64 `json:"incarnation"`
+	ExecuteWallNanos        uint64 `json:"execute_wall_nanos"`
+	AttributedHostWallNanos uint64 `json:"attributed_host_wall_nanos"`
+	GuestResidualWallNanos  uint64 `json:"guest_residual_wall_nanos"`
+	OuterHostWallNanos      uint64 `json:"outer_host_wall_nanos"`
+	DifferenceNanos         uint64 `json:"difference_nanos"`
+	ToleranceNanos          uint64 `json:"tolerance_nanos"`
+}
+
+// diagnosticSeries is one v2 `owners` entry; `abi_ops` entries add served_by.
+type diagnosticSeries struct {
+	Count                     uint64 `json:"count"`
+	WallNanos                 uint64 `json:"wall_nanos"`
+	ExclusiveWallNanos        uint64 `json:"exclusive_wall_nanos"`
+	InstantiateWallNanos      uint64 `json:"instantiate_wall_nanos"`
+	ExecuteWallNanos          uint64 `json:"execute_wall_nanos"`
+	ExecuteExclusiveWallNanos uint64 `json:"execute_exclusive_wall_nanos"`
+	MinNanos                  uint64 `json:"min_nanos"`
+	MedianNanos               uint64 `json:"median_nanos"`
+	P99Nanos                  uint64 `json:"p99_nanos"`
+	MaxNanos                  uint64 `json:"max_nanos"`
+}
+
+type diagnosticOp struct {
+	diagnosticSeries
+	ServedBy map[string]uint64 `json:"served_by"`
+}
+
+type diagnosticReconciliation struct {
+	ExecuteWallNanos             uint64 `json:"execute_wall_nanos"`
+	AttributedHostWallNanos      uint64 `json:"attributed_host_wall_nanos"`
+	GuestResidualWallNanos       uint64 `json:"guest_residual_wall_nanos"`
+	OuterHostWallNanos           uint64 `json:"outer_host_wall_nanos"`
+	DifferenceNanos              uint64 `json:"difference_nanos"`
+	ToleranceNanos               uint64 `json:"tolerance_nanos"`
+	DistributionRelativeErrorPPM uint64 `json:"distribution_relative_error_ppm"`
+}
+
+const (
+	diagnosticReportLimit      = 48 << 10
+	diagnosticSeriesFields     = "count wall_nanos exclusive_wall_nanos instantiate_wall_nanos execute_wall_nanos execute_exclusive_wall_nanos min_nanos median_nanos p99_nanos max_nanos"
+	diagnosticV1Fields         = "schema diagnostic_only backend host_os host_arch phases abi nested residual abi_overlap_errors"
+	diagnosticV2Fields         = diagnosticV1Fields + " abi_excluded abi_ops owners reconciliation threads threads_omitted unattributed_imports unframed_imports span_errors"
+	diagnosticThreadFields     = "slot incarnation execute_wall_nanos attributed_host_wall_nanos guest_residual_wall_nanos outer_host_wall_nanos difference_nanos tolerance_nanos"
+	diagnosticReconcileFields  = "execute_wall_nanos attributed_host_wall_nanos guest_residual_wall_nanos outer_host_wall_nanos difference_nanos tolerance_nanos distribution_relative_error_ppm"
+	diagnosticToleranceFloor   = 50_000
+	diagnosticToleranceDivisor = 200
+)
+
+// diagnosticOwnerNames is the helper's closed owner set (fn-185).
+// instrumentation is the profiler's own per-import cost and handoff_wait a
+// cluster instance blocked for the baton: neither is host work.
+var diagnosticOwnerNames = strings.Fields("clock scheduler scheduler_handoff namespace volume network world storage_transport cache transcript evidence encoding remote inputs inspection lifecycle instrumentation handoff_wait")
+
+// diagnosticOpNames lists every helper import as `module.op`, independently
+// of the helper's operation table.
+var diagnosticOpNames = func() map[string]bool {
+	names := map[string]bool{}
+	for _, name := range strings.Fields("sched_yield proc_exit fd_close fd_sync args_get args_sizes_get environ_get environ_sizes_get random_get fd_filestat_get fd_fdstat_get fd_prestat_get fd_fdstat_set_flags sock_shutdown clock_time_get fd_filestat_set_size fd_write fd_read poll_oneoff path_create_directory path_remove_directory path_unlink_file fd_prestat_dir_name sock_accept fd_pread fd_pwrite fd_readdir fd_seek path_filestat_get path_symlink path_readlink path_rename path_open") {
+		names["wasi_snapshot_preview1."+name] = true
+	}
+	for _, name := range strings.Fields("gomad_wasm_v1.config gomad_wasm_v1.decision gomad_wasm_v1.observation gomad_wasm_v1.finish gomad_wasm_v1.idle gomad_wasm_v2.net_stream gomad_debug_v1.exchange") {
+		names[name] = true
+	}
+	return names
+}()
 
 func decodeDiagnosticReport(data []byte) (diagnosticReport, error) {
 	var report diagnosticReport
 	prefix := []byte("gomad-wasm-profile-v1 ")
-	if len(data) > 16<<10 || !bytes.HasPrefix(data, prefix) || !bytes.HasSuffix(data, []byte{'\n'}) || bytes.Count(data, []byte{'\n'}) != 1 {
+	if len(data) > diagnosticReportLimit || !bytes.HasPrefix(data, prefix) || !bytes.HasSuffix(data, []byte{'\n'}) || bytes.Count(data, []byte{'\n'}) != 1 {
 		return report, fmt.Errorf("missing, oversized or multiple diagnostic report")
 	}
 	data = data[len(prefix) : len(data)-1]
-	err := wasi.ValidateMeasurementJSON(data)
+	if err := wasi.ValidateMeasurementJSON(data); err != nil {
+		return report, err
+	}
+	var schema struct {
+		Schema string `json:"schema"`
+	}
+	if err := json.Unmarshal(data, &schema); err != nil {
+		return report, err
+	}
+	v2 := schema.Schema == "gomad.wasm-profile/v2"
+	keys := diagnosticV1Fields
+	if v2 {
+		keys = diagnosticV2Fields
+	}
+	fields, err := diagnosticFields(data, keys)
 	if err != nil {
 		return report, err
 	}
-	fields, err := diagnosticFields(data, "schema diagnostic_only backend host_os host_arch phases abi nested residual abi_overlap_errors")
-	if err != nil {
-		return report, err
-	}
-	for _, group := range []struct{ name, keys, measurements string }{{"phases", "module_read module_hash engine_init cache_identity cache_read envelope_verify deserialize compile cache_write instantiate execute", "count wall_nanos user_nanos system_nanos cpu_samples peak_rss_bytes_high_water"}, {"abi", "clock scheduler select observation idle other_local remote_callback", "count wall_nanos instantiate_wall_nanos execute_wall_nanos"}, {"nested", "alternative_hash encoding transcript_hash flush remote_write remote_read_wait", "count wall_nanos"}} {
+	for _, group := range []struct{ name, keys, measurements string }{
+		{"phases", "module_read module_hash engine_init cache_identity cache_read envelope_verify deserialize compile cache_write instantiate execute", "count wall_nanos user_nanos system_nanos cpu_samples peak_rss_bytes_high_water"},
+		{"abi", "clock scheduler select observation idle other_local remote_callback", "count wall_nanos instantiate_wall_nanos execute_wall_nanos"},
+		{"nested", "alternative_hash encoding transcript_hash flush remote_write remote_read_wait", "count wall_nanos"},
+	} {
 		entries, err := diagnosticFields(fields[group.name], group.keys)
 		if err != nil {
 			return report, err
 		}
 		for _, entry := range entries {
-			_, err := diagnosticFields(entry, group.measurements)
-			if err != nil {
+			if _, err := diagnosticFields(entry, group.measurements); err != nil {
 				return report, err
 			}
 		}
 	}
-	_, err = diagnosticFields(fields["residual"], "instantiate_wall_nanos execute_wall_nanos")
-	if err != nil {
+	if _, err := diagnosticFields(fields["residual"], "instantiate_wall_nanos execute_wall_nanos"); err != nil {
 		return report, err
 	}
-	err = json.Unmarshal(data, &report)
-	if err != nil {
+	if v2 {
+		if err := decodeDiagnosticAttributionFields(fields); err != nil {
+			return report, err
+		}
+	}
+	if err := json.Unmarshal(data, &report); err != nil {
 		return report, err
 	}
-	if report.Schema != "gomad.wasm-profile/v1" || !report.DiagnosticOnly || report.Backend != "cranelift-jit" || report.HostOS == "" || report.HostArch == "" || report.ABIOverlapErrors != 0 {
+	if v2 {
+		if err := checkDiagnosticAttribution(report); err != nil {
+			return report, err
+		}
+	}
+	if report.Schema != "gomad.wasm-profile/v1" && !v2 || !report.DiagnosticOnly || report.Backend != "cranelift-jit" || report.HostOS != "linux" && report.HostOS != "macos" || report.HostArch != "aarch64" && report.HostArch != "x86_64" || report.ABIOverlapErrors != 0 {
 		return report, fmt.Errorf("diagnostic identity or non-overlap claim")
 	}
 	for _, phase := range report.Phases {
@@ -2587,6 +2688,172 @@ func decodeDiagnosticReport(data []byte) (diagnosticReport, error) {
 	}
 	return report, nil
 }
+
+// decodeDiagnosticAttributionFields requires the v2 inventory exactly:
+// known op and owner keys with their fixed measurements.
+func decodeDiagnosticAttributionFields(fields map[string]json.RawMessage) error {
+	if _, err := diagnosticFields(fields["abi_excluded"], "count wall_nanos instantiate_wall_nanos execute_wall_nanos"); err != nil {
+		return err
+	}
+	if _, err := diagnosticFields(fields["reconciliation"], diagnosticReconcileFields); err != nil {
+		return err
+	}
+	var threads []json.RawMessage
+	if err := json.Unmarshal(fields["threads"], &threads); err != nil || threads == nil {
+		return fmt.Errorf("diagnostic threads: %v", err)
+	}
+	for _, thread := range threads {
+		if _, err := diagnosticFields(thread, diagnosticThreadFields); err != nil {
+			return err
+		}
+	}
+	owners := map[string]bool{}
+	for _, name := range diagnosticOwnerNames {
+		owners[name] = true
+	}
+	for _, group := range []struct {
+		name, measurements string
+		known              map[string]bool
+	}{{"abi_ops", diagnosticSeriesFields + " served_by", diagnosticOpNames}, {"owners", diagnosticSeriesFields, owners}} {
+		var entries map[string]json.RawMessage
+		if err := json.Unmarshal(fields[group.name], &entries); err != nil || entries == nil {
+			return fmt.Errorf("diagnostic %s: %v", group.name, err)
+		}
+		for key, entry := range entries {
+			if !group.known[key] {
+				return fmt.Errorf("diagnostic %s: unknown key %q", group.name, key)
+			}
+			measured, err := diagnosticFields(entry, group.measurements)
+			if err != nil {
+				return err
+			}
+			if group.name != "abi_ops" {
+				continue
+			}
+			var served map[string]json.RawMessage
+			if err := json.Unmarshal(measured["served_by"], &served); err != nil || served == nil {
+				return fmt.Errorf("diagnostic op %s served_by: %v", key, err)
+			}
+			for owner := range served {
+				if !owners[owner] {
+					return fmt.Errorf("diagnostic op %s: unknown owner %q", key, owner)
+				}
+			}
+		}
+	}
+	return nil
+}
+
+// checkDiagnosticAttribution checks the structure of a decoded v2 report:
+// per-series bounds and the cross-checks against the v1 buckets. Timing
+// tolerance and zero error counters are requireAttributedProfile's.
+func checkDiagnosticAttribution(report diagnosticReport) error {
+	series := func(kind, name string, entry diagnosticSeries) error {
+		if entry.Count == 0 || entry.ExclusiveWallNanos > entry.WallNanos || entry.ExecuteExclusiveWallNanos > entry.ExecuteWallNanos || entry.ExecuteWallNanos > entry.WallNanos || entry.InstantiateWallNanos > entry.WallNanos-entry.ExecuteWallNanos || entry.MinNanos > entry.MedianNanos || entry.MedianNanos > entry.P99Nanos || entry.P99Nanos > entry.MaxNanos {
+			return fmt.Errorf("diagnostic %s %s: inconsistent series %+v", kind, name, entry)
+		}
+		return nil
+	}
+	var calls, wall, instantiate, execute uint64
+	for name, op := range report.ABIOps {
+		if err := series("op", name, op.diagnosticSeries); err != nil {
+			return err
+		}
+		var served uint64
+		for _, count := range op.ServedBy {
+			if count == 0 || count > math.MaxUint64-served {
+				return fmt.Errorf("diagnostic op %s: served_by count", name)
+			}
+			served += count
+		}
+		if served > op.Count {
+			return fmt.Errorf("diagnostic op %s: served_by exceeds calls", name)
+		}
+		calls, wall, instantiate, execute = calls+op.Count, wall+op.WallNanos, instantiate+op.InstantiateWallNanos, execute+op.ExecuteWallNanos
+	}
+	for name, owner := range report.Owners {
+		if err := series("owner", name, owner); err != nil {
+			return err
+		}
+	}
+	legacy := *report.ABIExcluded
+	for _, bucket := range report.ABI {
+		legacy.Count, legacy.WallNanos, legacy.InstantiateWallNanos, legacy.ExecuteWallNanos = legacy.Count+bucket.Count, legacy.WallNanos+bucket.WallNanos, legacy.InstantiateWallNanos+bucket.InstantiateWallNanos, legacy.ExecuteWallNanos+bucket.ExecuteWallNanos
+	}
+	if legacy != (diagnosticABI{Count: calls, WallNanos: wall, InstantiateWallNanos: instantiate, ExecuteWallNanos: execute}) {
+		return fmt.Errorf("diagnostic abi_ops %d calls/%dns differ from abi buckets %d calls/%dns", calls, wall, legacy.Count, legacy.WallNanos)
+	}
+	if report.Reconciliation.ExecuteWallNanos != report.Phases["execute"].WallNanos || report.Reconciliation.DistributionRelativeErrorPPM == 0 {
+		return fmt.Errorf("diagnostic reconciliation execute wall")
+	}
+	return nil
+}
+
+// requireAttributedProfile is the fn-185 collector gate: every import is
+// framed and attributed, owners partition the op wall exactly, and attributed
+// host wall plus guest residual reconcile to execute wall within
+// max(50 µs, 0.5 % of execute wall), recomputed here.
+func requireAttributedProfile(report diagnosticReport) error {
+	if report.Schema != "gomad.wasm-profile/v2" || report.Reconciliation == nil {
+		return fmt.Errorf("diagnostic profile is not attributed (schema %q)", report.Schema)
+	}
+	if report.UnattributedImports != 0 || report.UnframedImports != 0 || report.SpanErrors != 0 || report.ABIOverlapErrors != 0 || report.ThreadsOmitted != 0 {
+		return fmt.Errorf("diagnostic attribution errors: unattributed=%d unframed=%d span=%d overlap=%d threads_omitted=%d", report.UnattributedImports, report.UnframedImports, report.SpanErrors, report.ABIOverlapErrors, report.ThreadsOmitted)
+	}
+	for name, op := range report.ABIOps {
+		var served uint64
+		for _, count := range op.ServedBy {
+			served += count
+		}
+		if served != op.Count {
+			return fmt.Errorf("diagnostic op %s: %d of %d calls have an owner", name, served, op.Count)
+		}
+	}
+	row := report.Reconciliation
+	var attributed, opExecute uint64
+	for _, owner := range report.Owners {
+		attributed += owner.ExecuteExclusiveWallNanos
+	}
+	for _, op := range report.ABIOps {
+		opExecute += op.ExecuteWallNanos
+	}
+	// Op frames partition into every owner but instrumentation, which is
+	// the boundary glue outside them.
+	if attributed != row.AttributedHostWallNanos || attributed-report.Owners["instrumentation"].ExecuteExclusiveWallNanos != opExecute {
+		return fmt.Errorf("diagnostic owner wall %dns, reconciliation %dns, op wall %dns", attributed, row.AttributedHostWallNanos, opExecute)
+	}
+	if err := diagnosticReconciles("", row.ExecuteWallNanos, attributed, row.GuestResidualWallNanos, row.OuterHostWallNanos, row.DifferenceNanos, row.ToleranceNanos); err != nil {
+		return err
+	}
+	// A merged cluster profile also closes per store thread.
+	for _, thread := range report.Threads {
+		label := fmt.Sprintf("thread slot=%d incarnation=%d ", thread.Slot, thread.Incarnation)
+		if err := diagnosticReconciles(label, thread.ExecuteWallNanos, thread.AttributedHostWallNanos, thread.GuestResidualWallNanos, thread.OuterHostWallNanos, thread.DifferenceNanos, thread.ToleranceNanos); err != nil {
+			return err
+		}
+	}
+	return nil
+}
+
+// diagnosticReconciles recomputes one reconciliation row: guest gaps and
+// boundary wall telescope to execute, and execute == guest + Σ owners within
+// max(50 µs, 0.5 % of execute wall).
+func diagnosticReconciles(label string, execute, attributed, guest, outer, reportedDifference, reportedTolerance uint64) error {
+	if guest > math.MaxUint64-outer || guest+outer != execute {
+		return fmt.Errorf("diagnostic %sguest residual %dns plus outer host %dns differ from execute %dns", label, guest, outer, execute)
+	}
+	accounted := attributed + guest
+	difference := max(accounted, execute) - min(accounted, execute)
+	tolerance := max(uint64(diagnosticToleranceFloor), execute/diagnosticToleranceDivisor)
+	if difference != reportedDifference || tolerance != reportedTolerance {
+		return fmt.Errorf("diagnostic %sreconciliation row: difference %d/%d tolerance %d/%d", label, reportedDifference, difference, reportedTolerance, tolerance)
+	}
+	if difference > tolerance {
+		return fmt.Errorf("diagnostic %sreconciliation miss: difference=%dns tolerance=%dns", label, difference, tolerance)
+	}
+	return nil
+}
+
 func diagnosticFields(data []byte, keys string) (map[string]json.RawMessage, error) {
 	var fields map[string]json.RawMessage
 	err := json.Unmarshal(data, &fields)

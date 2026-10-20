@@ -106,7 +106,7 @@ fn check_semantic_baseline(file: &Path, case: &Value, actual: &Value) -> Result<
     if file.parent() == Some(feature_dir().join("cases").as_path()) {
         return Ok(());
     }
-    if cfg!(feature = "diagnostic-profile") && case["request"]["type"] == "cluster_execute" {
+    if cfg!(feature = "diagnostic-fuel-off") && case["request"]["type"] == "cluster_execute" {
         let frames = actual["frames"]
             .as_array()
             .ok_or("missing cluster refusal")?;
@@ -121,7 +121,12 @@ fn check_semantic_baseline(file: &Path, case: &Value, actual: &Value) -> Result<
         return Ok(());
     }
     let mut baseline = case["expected"].clone();
-    let overrides = &case["expected_builds"][BUILD];
+    let overrides =
+        if case["request"]["type"] == "cluster_execute" && !cfg!(feature = "diagnostic-fuel-off") {
+            &Value::Null
+        } else {
+            &case["expected_builds"][BUILD]
+        };
     for (key, value) in overrides.as_object().into_iter().flatten() {
         baseline[key] = value.clone();
     }
@@ -146,6 +151,14 @@ fn check_semantic_baseline(file: &Path, case: &Value, actual: &Value) -> Result<
         }
     }
     let mut observed = actual.clone();
+    if baseline["diagnostic_profile"]["schema"] == "gomad.wasm-profile/v1"
+        && observed["diagnostic_profile"]["schema"] == "gomad.wasm-profile/v2"
+    {
+        let old = baseline["diagnostic_profile"].as_object().unwrap();
+        let current = observed["diagnostic_profile"].as_object_mut().unwrap();
+        current.retain(|key, _| old.contains_key(key));
+        current.insert("schema".into(), json!("gomad.wasm-profile/v1"));
+    }
     if baseline.get("diagnostic_profile").is_none() {
         observed
             .as_object_mut()
@@ -240,13 +253,13 @@ pub(super) fn check_raw_profile(case: &Value, run: &Run) -> Result<(), String> {
         .stderr
         .strip_prefix("gomad-wasm-profile-v1 ")
         .ok_or("feature hooks profile prefix missing")?;
-    if run.stderr.len() >= 16 * 1024
+    if run.stderr.len() >= 48 * 1024
         || run.stderr.bytes().filter(|byte| *byte == b'\n').count() != 1
     {
         return Err("feature hooks profile must be one bounded line".into());
     }
     let profile: Value = serde_json::from_str(document).map_err(|error| error.to_string())?;
-    if profile["schema"] != "gomad.wasm-profile/v1" {
+    if profile["schema"] != "gomad.wasm-profile/v2" {
         return Err("feature hooks profile schema differs".into());
     }
     for phase in EXECUTION_PHASES {
@@ -265,7 +278,7 @@ pub(super) fn check_raw_profile(case: &Value, run: &Run) -> Result<(), String> {
 #[test]
 fn feature_hooks_reject_missing_malformed_unbounded_and_zero_raw_profiles() {
     let case = json!({"intent":"feature_hooks_exit: guard"});
-    let mut profile = json!({"schema":"gomad.wasm-profile/v1","phases":{}});
+    let mut profile = json!({"schema":"gomad.wasm-profile/v2","phases":{}});
     for phase in EXECUTION_PHASES {
         profile["phases"][phase] = json!({"wall_nanos":1});
     }
@@ -282,7 +295,7 @@ fn feature_hooks_reject_missing_malformed_unbounded_and_zero_raw_profiles() {
         "gomad-wasm-profile-v1 {}\n".into(),
         valid.trim_end().into(),
         valid.repeat(2),
-        format!("{valid}{}", " ".repeat(16 * 1024)),
+        format!("{valid}{}", " ".repeat(48 * 1024)),
     ] {
         assert!(check_raw_profile(&case, &run(invalid)).is_err());
     }
@@ -322,7 +335,7 @@ pub(super) fn check_literals(file: &Path, actual: &Value) -> Result<(), String> 
             "terminal/clock tuple differs",
         )?;
         require(
-            profile["schema"] == "gomad.wasm-profile/v1" && profile["abi_overlap_errors"] == 0,
+            profile["schema"] == "gomad.wasm-profile/v2" && profile["abi_overlap_errors"] == 0,
             "profile schema/overlap differs",
         )?;
         for phase in EXECUTION_PHASES {
@@ -417,4 +430,19 @@ fn feature_sidecars_cannot_replace_preserved_frames_evidence_or_profile_counts()
     ] {
         assert!(check_semantic_baseline(&file, &case, &changed).is_err());
     }
+}
+
+#[test]
+fn attribution_schema_extension_preserves_legacy_buckets() {
+    let file = corpus_dir().join("attribution-guard.json");
+    let expected = json!({"frames":[],"evidence":{},"diagnostic_profile":{
+        "schema":"gomad.wasm-profile/v1","abi":{"clock":{"count":1}}}});
+    let case = json!({"request":{"type":"execute"},"expected":expected});
+    let mut actual = expected;
+    actual["diagnostic_profile"]["schema"] = json!("gomad.wasm-profile/v2");
+    actual["diagnostic_profile"]["abi_ops"] =
+        json!({"wasi_snapshot_preview1.clock_time_get":{"count":1}});
+    check_semantic_baseline(&file, &case, &actual).unwrap();
+    actual["diagnostic_profile"]["abi"]["clock"]["count"] = json!(2);
+    assert!(check_semantic_baseline(&file, &case, &actual).is_err());
 }

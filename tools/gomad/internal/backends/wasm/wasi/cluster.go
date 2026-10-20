@@ -10,6 +10,7 @@ import (
 	"hash"
 	"io"
 	"path/filepath"
+	"slices"
 	"sort"
 	"sync"
 	"time"
@@ -61,6 +62,7 @@ type ClusterSchedulerMetrics struct {
 }
 
 type ClusterResult struct {
+	helperStderr                          []byte
 	Cancelled, WatchdogTimeout, GroupGone bool
 	Termination                           string
 	InspectionMetadata                    []byte
@@ -369,6 +371,7 @@ func (session *ClusterSession) run(request Request) {
 	session.mu.Lock()
 	defer session.mu.Unlock()
 	session.result.HelperResourceUsage = host.ResourceUsage
+	session.result.helperStderr = host.Stderr.RawBytes
 	if session.err == nil && (host.Cancelled || host.WatchdogTimeout || errors.Is(runErr, context.Canceled) || errors.Is(runErr, context.DeadlineExceeded)) {
 		session.result.Cancelled = session.parentCtx.Err() != nil
 		session.result.WatchdogTimeout = !session.result.Cancelled && (host.WatchdogTimeout || errors.Is(session.ctx.Err(), context.DeadlineExceeded))
@@ -424,6 +427,7 @@ func (session *ClusterSession) CompletedResult() *ClusterResult {
 		return nil
 	}
 	result := ClusterResult{VirtualElapsedNanos: session.result.VirtualElapsedNanos, Frames: session.counts, WallElapsedNanos: session.result.WallElapsedNanos, AuthorizationToTerminalNanos: session.result.AuthorizationToTerminalNanos, AuthorizationStartedAt: session.result.AuthorizationStartedAt, TerminalObservedAt: session.result.TerminalObservedAt}
+	result.helperStderr = slices.Clone(session.result.helperStderr)
 	result.Cancelled, result.WatchdogTimeout, result.GroupGone = session.result.Cancelled, session.result.WatchdogTimeout, session.result.GroupGone
 	if session.result.Metrics != nil {
 		metrics := *session.result.Metrics

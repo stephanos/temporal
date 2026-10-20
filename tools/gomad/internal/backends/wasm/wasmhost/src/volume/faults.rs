@@ -98,6 +98,8 @@ impl Storage {
         mut count: u64,
         now: u64,
     ) -> Decision {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.clock = now.cast_signed();
         let key = format!("{resource}\0{operation}");
         let occurrence = {
@@ -159,6 +161,8 @@ impl Storage {
     }
 
     pub(crate) fn open(&mut self, resource: &str, flags: OpenFlags) -> Result<Handle, Error> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         self.fs.open(resource, flags, 0o666, self.clock)
     }
 
@@ -187,6 +191,8 @@ impl Storage {
         selections: &BTreeMap<String, Vec<u64>>,
         maximum: u64,
     ) -> Result<Image, Error> {
+        #[cfg(all(feature = "diagnostic-profile", not(feature = "conformance")))]
+        let _owner = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Volume);
         let next = self.fs.advance_lifecycle(false, selections)?;
         let bytes = RecoveryImage::encode(&next, &self.model_identity, &self.occurrences, maximum)?;
         let digest = image_digest(&bytes);

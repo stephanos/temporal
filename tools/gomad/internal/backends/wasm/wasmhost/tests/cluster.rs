@@ -1,6 +1,6 @@
 //! fn-178.6 cluster host: N isolated stores in one helper process, compared
 //! frame for frame with single-execution runs of the same instances.
-#![cfg_attr(feature = "diagnostic-profile", allow(dead_code))]
+#![cfg_attr(feature = "diagnostic-fuel-off", allow(dead_code, unused_imports))]
 use base64::{Engine as _, engine::general_purpose::STANDARD};
 use serde_json::{Value, json};
 use sha2::{Digest, Sha256};
@@ -35,7 +35,7 @@ const GUEST: &str = r#"(module
       (br_if $spin (local.get $n)))))"#;
 
 #[test]
-#[cfg(not(feature = "diagnostic-profile"))]
+#[cfg(not(feature = "diagnostic-fuel-off"))]
 #[expect(
     clippy::too_many_lines,
     reason = "The scenario retains its complete ordered setup and contract assertions."
@@ -533,8 +533,8 @@ fn world_evidence(frames: &[Value]) -> Vec<u8> {
     world
 }
 
-#[cfg(not(feature = "diagnostic-profile"))]
 #[test]
+#[cfg(not(feature = "diagnostic-fuel-off"))]
 fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
     let directory =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders");

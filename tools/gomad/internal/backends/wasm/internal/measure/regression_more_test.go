@@ -126,7 +126,7 @@ func TestDiagnosticReportRejectsMalformedOrUnattributedMeasurements(t *testing.T
 		data []byte
 	}{
 		{"missing", nil},
-		{"oversized", bytes.Repeat([]byte{'x'}, 16<<10+1)},
+		{"oversized", bytes.Repeat([]byte{'x'}, 48<<10+1)},
 		{"duplicate-report", append(append([]byte(nil), valid...), valid...)},
 		{"trailing", append(append([]byte(nil), valid...), []byte("unexpected\n")...)},
 		{"null", []byte("gomad-wasm-profile-v1 null\n")},
