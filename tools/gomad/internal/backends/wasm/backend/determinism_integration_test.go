@@ -180,6 +180,9 @@ func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spe
 	log, err := determinism.ParseEventOrder(stderr)
 	require.NoError(t, err)
 	require.True(t, log.Complete, "%s", log.Reason)
+	if os.Getenv("GOMAD_WASM_DETERMINISM_EVIDENCE_ROOT") != "" {
+		require.NoError(t, os.WriteFile(filepath.Join(artifacts, "event-order.stderr"), stderr, 0600))
+	}
 	run.OrderLog = &log
 	return run
 }
