@@ -147,10 +147,10 @@ impl<M: Machine> Through<'_, M> {
 }
 
 /// The shortest path from `starts` through every waypoint in order, each within its gap.
-pub(crate) fn through<M: Machine>(
+pub(crate) fn through<M: Machine, A, O>(
     world: &M,
     starts: Vec<M::State>,
-    path: &Path<M::State>,
+    path: &Path<M::State, A, O>,
     budget: usize,
 ) -> Result<Trace<M>, Refusal>
 where

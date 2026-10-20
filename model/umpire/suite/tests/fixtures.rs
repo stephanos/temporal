@@ -24,10 +24,13 @@ fn fixtures() -> umpire_testing::TestResult {
     umpire_testing::run_at(
         &std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/fixtures"),
         registered(),
-        &[umpire_testing::Consumer {
-            name: "suite",
-            expected: &["messages.txt"],
-            render: |produce, _| produce(),
-        }],
+        &[
+            umpire_testing::Consumer {
+                name: "suite-messages",
+                expected: &["messages.txt"],
+                render: |produce, _| produce(),
+            },
+            umpire_testing::SUITE,
+        ],
     )
 }

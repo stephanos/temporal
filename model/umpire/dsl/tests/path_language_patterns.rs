@@ -281,6 +281,25 @@ impl umpire_dsl::Machine for ManualWorld {
 
 #[test]
 fn borrowed_outcome_alternatives_need_neither_clone_nor_equality() {
+    let actor_led: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |_: &ManualState| true];
+    assert_eq!(actor_led.alternative_count(), Ok(2));
+    let no_closure: Path<ManualState, User, BorrowedOutcome> = path![(User::Poll | User::Poll)];
+    assert_eq!(no_closure.alternative_count(), Ok(2));
+    let constant: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |_| true];
+    assert_eq!(constant.alternative_count(), Ok(2));
+    let named_constant: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |_state| true];
+    assert_eq!(named_constant.alternative_count(), Ok(2));
+    let nested: Path<ManualState, User, BorrowedOutcome> = path![
+        (User::Poll | unordered![|_: &ManualState| true, |state| state.to_string() == "manual"]),
+        |state| state.to_string() == "manual"
+    ];
+    assert_eq!(nested.alternative_count(), Ok(3));
+    let state_led: Path<ManualState, User, BorrowedOutcome> =
+        path![(ManualState | User::Poll), |_| true];
+    assert_eq!(state_led.alternative_count(), Ok(2));
     let unit = path![Model { count: 0 }, User::Poll => ()];
     assert_eq!(unit.alternative_count(), Ok(1));
     let pattern =
@@ -303,4 +322,67 @@ fn borrowed_outcome_alternatives_need_neither_clone_nor_equality() {
     let legacy = path![ManualState, .., |_: &ManualState| true];
     let adapted: Path<ManualState, User, BorrowedOutcome> = legacy.into_world::<ManualWorld>();
     assert_eq!(adapted.alternatives(1).unwrap_or_else(|error| panic!("{error}")).len(), 1);
+}
+
+#[test]
+fn manual_world_predicates_keep_lexically_shadowed_state_bindings() {
+    let local: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            let state = &Model { count: 0 };
+            state.count == 0
+        }];
+    let renamed: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |_outer| {
+            let state = &Model { count: 0 };
+            state.count == 0
+        }];
+    let closure: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            let predicate = |state: &Model| state.count == 0;
+            predicate(&Model { count: 0 })
+        }];
+    assert_eq!(local.alternative_count(), Ok(2));
+    assert_eq!(renamed.alternative_count(), Ok(2));
+    assert_eq!(closure.alternative_count(), Ok(2));
+    let binders: [Path<ManualState, User, BorrowedOutcome>; 4] = [
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            for state in [Model { count: 0 }, Model { count: 1 }] {
+                if state.count > 1 {
+                    return false;
+                }
+            }
+            true
+        }],
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            match Some(Model { count: 0 }) {
+                Some(state) if state.count == 0 => state.count == 0,
+                _ => true,
+            }
+        }],
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            if let Some(state) = Some(Model { count: 0 })
+                && state.count == 0
+            {
+                state.count == 0
+            } else {
+                true
+            }
+        }],
+        path![(User::Poll | User::Poll), |state| {
+            let _ = state;
+            let mut values = vec![Model { count: 0 }];
+            while let Some(state) = values.pop() {
+                if state.count != 0 {
+                    return false;
+                }
+            }
+            true
+        }],
+    ];
+    assert!(binders.iter().all(|pattern| pattern.alternative_count() == Ok(2)));
 }

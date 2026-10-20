@@ -22,6 +22,7 @@ fn split_pipes(tokens: TokenStream) -> Vec<TokenStream> {
 }
 
 enum Node {
+    Seed,
     Value(Expr),
     Structured(Path, Vec<(Ident, Domain)>),
     Wildcard(Path),
@@ -296,11 +297,12 @@ fn domain(path: &Path, fields: &[(Ident, Domain)]) -> syn::Result<TokenStream> {
         let setter = format_ident!("__umpire_input_{}", field.unraw());
         result = quote!(#result.#setter(#input));
     }
-    Ok(quote!(#result.finish().map(::core::convert::Into::into)))
+    Ok(quote!(#result.finish()))
 }
 
 fn pattern(node: &Node) -> syn::Result<TokenStream> {
     Ok(match node {
+        Node::Seed => quote!(__seed),
         Node::Value(Expr::Closure(closure)) => {
             quote!(__pattern.judged(#closure))
         }
@@ -309,7 +311,7 @@ fn pattern(node: &Node) -> syn::Result<TokenStream> {
         }
         Node::Structured(path, fields) => {
             let domain = domain(path, fields)?;
-            quote!(::umpire_dsl::Pattern::action(#domain, None, None))
+            quote!(::umpire_dsl::Pattern::action(#domain.map(::core::convert::Into::into), None, None))
         }
         Node::Wildcard(actor) => {
             quote!(::umpire_dsl::Pattern::action(#actor::__umpire_path_actions().map(::core::convert::Into::into), None, None))
@@ -359,8 +361,216 @@ fn pattern(node: &Node) -> syn::Result<TokenStream> {
     })
 }
 
+fn take_seed(node: &mut Node, actor_only: bool) -> Option<(Node, bool)> {
+    match node {
+        Node::Either(nodes) | Node::Unordered(nodes) => {
+            nodes.first_mut().and_then(|node| take_seed(node, actor_only))
+        }
+        Node::Repeat(node, ..) => take_seed(node, actor_only),
+        Node::Outcome(node, _) => take_seed(node, true),
+        Node::Value(_) | Node::Structured(..) | Node::Wildcard(_) => {
+            Some((std::mem::replace(node, Node::Seed), actor_only))
+        }
+        Node::Gap(..) | Node::Seed => None,
+    }
+}
+
+#[derive(Default)]
+struct StateContext {
+    explicit: Option<syn::Type>,
+    needs_owner: bool,
+}
+
+fn state_closure(value: &Expr) -> Option<&syn::ExprClosure> {
+    match value {
+        Expr::Closure(closure) => Some(closure),
+        Expr::Paren(value) => state_closure(&value.expr),
+        _ => None,
+    }
+}
+
+fn rooted_at(value: &Expr, parameter: &Ident) -> bool {
+    match value {
+        Expr::Path(value) => {
+            value.path.get_ident().is_some_and(|ident| ident.unraw() == parameter.unraw())
+        }
+        Expr::Field(value) => rooted_at(&value.base, parameter),
+        Expr::MethodCall(value) => rooted_at(&value.receiver, parameter),
+        Expr::Paren(value) => rooted_at(&value.expr, parameter),
+        Expr::Reference(value) => rooted_at(&value.expr, parameter),
+        Expr::Unary(value) => rooted_at(&value.expr, parameter),
+        _ => false,
+    }
+}
+
+struct StateMembers<'a> {
+    parameter: &'a Ident,
+    visible: bool,
+    found: bool,
+}
+
+fn binds_parameter(pattern: &Pat, parameter: &Ident) -> bool {
+    struct Binding<'a> {
+        parameter: &'a Ident,
+        found: bool,
+    }
+    impl<'ast> syn::visit::Visit<'ast> for Binding<'_> {
+        fn visit_pat_ident(&mut self, pattern: &'ast syn::PatIdent) {
+            self.found |= pattern.ident.unraw() == self.parameter.unraw();
+            syn::visit::visit_pat_ident(self, pattern);
+        }
+        fn visit_expr(&mut self, _: &'ast Expr) {}
+    }
+    let mut binding = Binding { parameter, found: false };
+    syn::visit::Visit::visit_pat(&mut binding, pattern);
+    binding.found
+}
+
+impl<'ast> syn::visit::Visit<'ast> for StateMembers<'_> {
+    fn visit_expr_field(&mut self, field: &'ast syn::ExprField) {
+        self.found |= self.visible && rooted_at(&field.base, self.parameter);
+        syn::visit::visit_expr_field(self, field);
+    }
+    fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
+        self.found |= self.visible && rooted_at(&call.receiver, self.parameter);
+        syn::visit::visit_expr_method_call(self, call);
+    }
+    fn visit_block(&mut self, block: &'ast syn::Block) {
+        let visible = self.visible;
+        syn::visit::visit_block(self, block);
+        self.visible = visible;
+    }
+    fn visit_local(&mut self, local: &'ast syn::Local) {
+        if let Some(initializer) = &local.init {
+            self.visit_expr(&initializer.expr);
+            if let Some((_, otherwise)) = &initializer.diverge {
+                self.visit_expr(otherwise);
+            }
+        }
+        self.visible &= !binds_parameter(&local.pat, self.parameter);
+    }
+    fn visit_expr_closure(&mut self, closure: &'ast syn::ExprClosure) {
+        let visible = self.visible;
+        self.visible &= !closure.inputs.iter().any(|input| binds_parameter(input, self.parameter));
+        self.visit_expr(&closure.body);
+        self.visible = visible;
+    }
+    fn visit_expr_for_loop(&mut self, expression: &'ast syn::ExprForLoop) {
+        let visible = self.visible;
+        self.visit_expr(&expression.expr);
+        self.visible &= !binds_parameter(&expression.pat, self.parameter);
+        self.visit_block(&expression.body);
+        self.visible = visible;
+    }
+    fn visit_arm(&mut self, arm: &'ast syn::Arm) {
+        let visible = self.visible;
+        self.visible &= !binds_parameter(&arm.pat, self.parameter);
+        self.visit_pat(&arm.pat);
+        self.visit_expr(&arm.body);
+        self.visible = visible;
+    }
+    fn visit_expr_let(&mut self, expression: &'ast syn::ExprLet) {
+        self.visit_expr(&expression.expr);
+        self.visible &= !binds_parameter(&expression.pat, self.parameter);
+    }
+    fn visit_expr_if(&mut self, expression: &'ast syn::ExprIf) {
+        let visible = self.visible;
+        self.visit_expr(&expression.cond);
+        self.visit_block(&expression.then_branch);
+        self.visible = visible;
+        if let Some((_, otherwise)) = &expression.else_branch {
+            self.visit_expr(otherwise);
+        }
+    }
+    fn visit_expr_while(&mut self, expression: &'ast syn::ExprWhile) {
+        let visible = self.visible;
+        self.visit_expr(&expression.cond);
+        self.visit_block(&expression.body);
+        self.visible = visible;
+    }
+    fn visit_item(&mut self, _: &'ast syn::Item) {}
+}
+
+fn state_context(node: &Node, context: &mut StateContext) {
+    match node {
+        Node::Value(value) => {
+            if let Some(closure) = state_closure(value) {
+                match closure.inputs.first() {
+                    Some(Pat::Type(input)) => {
+                        if let syn::Type::Reference(reference) = input.ty.as_ref() {
+                            context.explicit.get_or_insert_with(|| *reference.elem.clone());
+                        }
+                    }
+                    Some(Pat::Ident(input)) => {
+                        let mut members =
+                            StateMembers { parameter: &input.ident, visible: true, found: false };
+                        syn::visit::Visit::visit_expr(&mut members, &closure.body);
+                        context.needs_owner |= members.found;
+                    }
+                    _ => {}
+                }
+            }
+        }
+        Node::Either(nodes) | Node::Unordered(nodes) => {
+            for node in nodes {
+                state_context(node, context);
+            }
+        }
+        Node::Repeat(node, ..) => state_context(node, context),
+        _ => {}
+    }
+}
+
+fn leading_pattern(node: &mut Node, context: &StateContext) -> syn::Result<TokenStream> {
+    if let Some(state) = &context.explicit {
+        let pattern = pattern(node)?;
+        return Ok(
+            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with::<#state>(|__pattern| #pattern))),
+        );
+    }
+    if !context.needs_owner {
+        let pattern = pattern(node)?;
+        return Ok(
+            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern))),
+        );
+    }
+    let Some((seed, actor_only)) = take_seed(node, false) else {
+        let pattern = pattern(node)?;
+        return Ok(
+            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern))),
+        );
+    };
+    let factory = match seed {
+        Node::Value(value) if actor_only => {
+            quote!(::umpire_dsl::path_build::actor_factory(#value))
+        }
+        Node::Value(Expr::Closure(closure)) => {
+            quote!(::umpire_dsl::path_build::StateFactory::judged(#closure))
+        }
+        Node::Value(value) => quote!({
+            use ::umpire_dsl::path_build::{Factory as _, ActorFactoryValue as _};
+            let __first = ::umpire_dsl::path_build::Probe::new(#value);
+            (&__first).factory()
+        }),
+        Node::Structured(path, fields) => {
+            let domain = domain(&path, &fields)?;
+            quote!(::umpire_dsl::path_build::DomainFactory::new(#domain))
+        }
+        Node::Wildcard(actor) => {
+            quote!(::umpire_dsl::path_build::DomainFactory::new(#actor::__umpire_path_actions()))
+        }
+        _ => unreachable!(),
+    };
+    let body = pattern(node)?;
+    Ok(quote!((#factory).build_pattern(|__pattern, __seed| #body)))
+}
+
 pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
-    let Nodes(nodes) = syn::parse2(tokens)?;
+    let Nodes(mut nodes) = syn::parse2(tokens)?;
+    let mut context = StateContext::default();
+    for node in &nodes {
+        state_context(node, &mut context);
+    }
     if nodes.is_empty() {
         return Err(syn::Error::new(
             proc_macro2::Span::call_site(),
@@ -400,12 +610,10 @@ pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
             "a path has two or more waypoints: write [p, .., q]",
         ));
     }
-    let first = match &nodes[0] {
-        Node::Value(_) => quote!(__path),
-        node => {
-            let pattern = pattern(node)?;
-            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern)))
-        }
+    let first = if matches!(&nodes[0], Node::Value(_)) {
+        quote!(__path)
+    } else {
+        leading_pattern(&mut nodes[0], &context)?
     };
     let mut built = if matches!(&nodes[0], Node::Value(_)) { quote!(__path) } else { first };
     for node in nodes.iter().skip(1) {

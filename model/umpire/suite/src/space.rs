@@ -2,7 +2,7 @@
 //! the checker within a state budget.
 
 use umpire_checker::{Checker, Report};
-use umpire_dsl::{CheckOutcome, Path, Registered};
+use umpire_dsl::{CheckOutcome, IntoWorldPath, Machine, Path, Registered};
 
 use crate::{
     Refusal,
@@ -12,8 +12,10 @@ use crate::{
 /// Start states and a state budget; scopes stay the Model's own.
 #[derive(Clone, Debug)]
 pub struct Space<S> {
-    starts: Vec<S>,
-    budget: usize,
+    pub(crate) starts: Vec<S>,
+    pub(crate) budget: usize,
+    pub(crate) alternatives: usize,
+    pub(crate) walk_bound: usize,
 }
 
 impl<S, const N: usize> From<[S; N]> for Space<S> {
@@ -24,7 +26,7 @@ impl<S, const N: usize> From<[S; N]> for Space<S> {
 
 impl<S> From<Vec<S>> for Space<S> {
     fn from(starts: Vec<S>) -> Self {
-        Self { starts, budget: Checker::BUDGET }
+        Self { starts, budget: Checker::BUDGET, alternatives: Checker::BUDGET, walk_bound: 256 }
     }
 }
 
@@ -34,6 +36,22 @@ impl<S> Space<S> {
     #[must_use]
     pub const fn budget(mut self, n: usize) -> Self {
         self.budget = n;
+        self
+    }
+
+    /// Admits at most `n` authored alternatives, independently of the Model-state budget.
+    /// The default is 1,048,576; concrete pattern storage has its own admission ceiling.
+    #[must_use]
+    pub const fn alternative_budget(mut self, n: usize) -> Self {
+        self.alternatives = n;
+        self
+    }
+
+    /// Limits each sampled walk to `n` Model edges, independently of both admission budgets.
+    /// The default is 256; a selected alternative that cannot finish is explicitly refused.
+    #[must_use]
+    pub const fn walk_bound(mut self, n: usize) -> Self {
+        self.walk_bound = n;
         self
     }
 }
@@ -69,6 +87,18 @@ pub fn refuted<S: Registered>(
 /// within its gap, searched over one Model exploration within the space's state budget.
 // By value, so `find(&space, path![..])` reads as the question it is.
 #[allow(clippy::needless_pass_by_value)]
-pub fn find<S: Registered>(space: &Space<S>, path: Path<S>) -> Result<Trace<S::World>, Refusal> {
-    search::through(&S::world(), space.starts.clone(), &path, space.budget)
+pub fn find<S: Registered, A, O, K>(
+    space: &Space<S>,
+    path: Path<S, A, O>,
+) -> Result<Trace<S::World>, Refusal>
+where
+    Path<S, A, O>: IntoWorldPath<S, K>,
+    <S::World as Machine>::Action: 'static,
+{
+    let path = path.into_world_path();
+    if path.is_state_only() {
+        drop(path.alternatives(space.alternatives)?);
+        return search::through(&S::world(), space.starts.clone(), &path, space.budget);
+    }
+    crate::covered::find_pattern(space, &path)
 }

@@ -1,7 +1,7 @@
-use std::fmt;
+use std::{fmt, rc::Rc};
 
 use umpire_checker::{Checker, PathStep};
-use umpire_dsl::{Machine, Path, Registered, Waypoint};
+use umpire_dsl::{IntoWorldPath, Machine, Path, PathNode, Registered, Waypoint};
 
 use crate::{
     Refusal,
@@ -10,10 +10,10 @@ use crate::{
 
 type Action<S> = <<S as Registered>::World as Machine>::Action;
 
-/// An authored path through a Model from a concrete state, each step replayed through the same
-/// `Machine::checked_step` the checker uses. It spells as the checker's `paths/` goldens do.
+/// An authored path through a Model from a concrete state. Explicit steps use
+/// `Machine::checked_step`; searched paths retain explored rows. Display matches checker paths.
 pub struct Run<S: Registered> {
-    world: S::World,
+    world: Rc<S::World>,
     trace: Trace<S::World>,
 }
 
@@ -22,21 +22,25 @@ impl<S: Registered> From<S> for Run<S> {
     fn from(state: S) -> Self {
         let trace =
             Trace::<S::World> { start: state, steps: Vec::new(), cycle_start: None, failure: None };
-        Self { world: S::world(), trace }
+        Self { world: Rc::new(S::world()), trace }
     }
 }
 
 impl<S: Registered> Run<S> {
+    pub(crate) fn retained(world: Rc<S::World>, trace: Trace<S::World>) -> Self {
+        Self { world, trace }
+    }
+
     /// Takes the one step the action emits from the current state.
     pub fn step(self, action: impl Into<Action<S>>) -> Result<Self, Refusal> {
-        self.take(action.into(), None)
+        self.take(action.into())
     }
 
     /// Takes the action's one step `n` times.
     pub fn repeat(mut self, n: usize, action: impl Into<Action<S>>) -> Result<Self, Refusal> {
         let action = action.into();
         for _ in 0..n {
-            self = self.take(action.clone(), None)?;
+            self = self.take(action.clone())?;
         }
         Ok(self)
     }
@@ -52,33 +56,51 @@ impl<S: Registered> Run<S> {
     }
 
     /// Fills in a story told by its milestones: from the first waypoint, a state, the shortest
-    /// path through every waypoint within its gap is found and replayed.
+    /// path through every waypoint within its gap is found over retained Model rows.
     // By value, so `Run::along(path![..])` reads as the story it is.
-    pub fn along(path: Path<S>) -> Result<Self, Refusal>
+    pub fn along<A, O, K>(path: Path<S, A, O>) -> Result<Self, Refusal>
     where
-        S: PartialEq,
+        Path<S, A, O>: IntoWorldPath<S, K>,
+        Action<S>: 'static,
     {
         Self::along_with_budget(path, Checker::BUDGET)
     }
 
-    /// Finds and replays the shortest path, admitting at most `budget` distinct Model states.
+    /// Finds the shortest path, admitting at most `budget` distinct Model states.
     // By value, matching `Run::along(path![..])`.
     #[allow(clippy::needless_pass_by_value)]
-    pub fn along_with_budget(path: Path<S>, budget: usize) -> Result<Self, Refusal>
+    pub fn along_with_budget<A, O, K>(path: Path<S, A, O>, budget: usize) -> Result<Self, Refusal>
     where
-        S: PartialEq,
+        Path<S, A, O>: IntoWorldPath<S, K>,
+        Action<S>: 'static,
     {
-        let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
-        let found = search::through(&S::world(), vec![start.clone()], &path, budget)?;
-        let mut run = Self::from(found.start);
-        for step in found.steps {
-            run = run.take(step.action, Some(step.choice))?;
+        let path = path.into_world_path();
+        let count = path.alternative_count()?;
+        if count != 1 {
+            return Err(Refusal::StoryAlternatives { count });
         }
-        Ok(run)
+        if path.is_state_only() {
+            let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
+            let world = Rc::new(S::world());
+            let found = search::through(world.as_ref(), vec![start.clone()], &path, budget)?;
+            return Ok(Self::retained(world, found));
+        }
+        let alternatives = path.alternatives(1)?;
+        let Some(PathNode::State(first)) = alternatives[0].nodes.first() else {
+            return Err(Refusal::Unanchored);
+        };
+        let Waypoint::Is(start) = first.as_ref() else { return Err(Refusal::Unanchored) };
+        let world = Rc::new(S::world());
+        let rooted =
+            search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
+        let explored = Checker::explore(&rooted, budget)?;
+        let graph = crate::pattern_search::Graph::new(&explored)?;
+        let found = graph.shortest(&alternatives[0], false)?;
+        search::failed(&explored.verify_all()?, 0, Some(found.trace.steps.len()))?;
+        Ok(Self::retained(world.clone(), found.trace))
     }
 
-    /// Takes the given choice, or the only one when `choice` is `None`.
-    fn take(mut self, action: Action<S>, choice: Option<usize>) -> Result<Self, Refusal> {
+    fn take(mut self, action: Action<S>) -> Result<Self, Refusal> {
         let before = self.state();
         let steps = self.world.checked_step(before, action.clone()).map_err(|error| {
             umpire_checker::Refusal::Step {
@@ -88,27 +110,25 @@ impl<S: Registered> Run<S> {
             }
         })?;
         let choices = steps.len();
-        let choice = match (choice, choices) {
-            (_, 0) => None,
-            (None, 1) => Some(0),
-            (None, _) => {
+        match choices {
+            0 => {
+                return Err(Refusal::Disabled {
+                    action: action.to_string(),
+                    state: before.to_string(),
+                });
+            }
+            1 => {}
+            _ => {
                 return Err(Refusal::Ambiguous {
                     action: action.to_string(),
                     choices,
                     state: before.to_string(),
                 });
             }
-            (Some(choice), _) => Some(choice),
-        };
-        let Some((choice, (_, _, after))) =
-            choice.and_then(|choice| steps.into_iter().nth(choice).map(|step| (choice, step)))
-        else {
-            return Err(Refusal::Disabled {
-                action: action.to_string(),
-                state: before.to_string(),
-            });
-        };
-        self.trace.steps.push(PathStep { action, choice, after });
+        }
+        let (_, _, after) =
+            steps.into_iter().next().unwrap_or_else(|| unreachable!("one step was checked"));
+        self.trace.steps.push(PathStep { action, choice: 0, after });
         Ok(self)
     }
 }

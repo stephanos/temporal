@@ -1,6 +1,62 @@
 /// A request the suite cannot answer as written, distinct from a test's own failure.
 #[derive(Debug, PartialEq, Eq, thiserror::Error)]
 pub enum Refusal {
+    /// The test's stated case count disagrees with the authored finite space.
+    #[error("pattern has {actual} alternatives, test states Cases({expected})\n{alternatives}")]
+    Cases {
+        /// Enumerated mathematical count.
+        actual: usize,
+        /// Count written by the test.
+        expected: usize,
+        /// Admitted concrete alternatives, or the resource refusal preventing expansion.
+        alternatives: String,
+    },
+    /// An empty alternative set cannot establish coverage.
+    #[error("pattern has no alternatives; empty coverage is refused")]
+    Empty,
+    /// A concrete story cannot select among alternatives.
+    #[error("a story has one path, but pattern has {count} alternatives; use cover")]
+    StoryAlternatives {
+        /// Authored alternatives.
+        count: usize,
+    },
+    /// A finite pattern exceeded its admission limits.
+    #[error(transparent)]
+    Pattern(#[from] umpire_dsl::PatternError),
+    /// A coverage or sampling graph is incomplete.
+    #[error("exploration cut at the Model-state budget of {budget}; complete graph required")]
+    Cut {
+        /// Distinct-Model-state capacity.
+        budget: usize,
+    },
+    /// One authored alternative could not be witnessed.
+    #[error("alternative {index} [{choices}]: {failure}")]
+    Alternative {
+        /// Zero-based authored alternative index.
+        index: usize,
+        /// Concrete authored choices.
+        choices: String,
+        /// The precise witness refusal.
+        failure: Box<Refusal>,
+    },
+    /// A selected alternative cannot finish within the finite experiment.
+    #[error("selected alternative cannot finish within walk bound {bound} steps")]
+    WalkBound {
+        /// Maximum Model edges in one walk.
+        bound: usize,
+    },
+    /// The retained pattern product exceeds its independent storage ceiling.
+    #[error("pattern search exceeds storage limit {limit}")]
+    SearchLimit {
+        /// Maximum product records.
+        limit: usize,
+    },
+    /// Declared coverage metadata or a callback could not be interpreted honestly.
+    #[error("coverage metadata: {detail}")]
+    Metadata {
+        /// Metadata defect or callback panic.
+        detail: String,
+    },
     /// The action emits no step from the state.
     #[error("{action} is disabled at {state}")]
     Disabled {

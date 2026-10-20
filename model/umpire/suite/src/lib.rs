@@ -5,11 +5,16 @@
 //! them. Nothing here explores on its own: an example replays through the same
 //! `Machine::checked_step` the checker uses, and every exploration and search asks the checker.
 
+mod coverage;
+mod covered;
+mod pattern_search;
 mod refusal;
 mod run;
 mod search;
 mod space;
 
+pub use coverage::{CatalogEntry, ClaimCoverage, ClaimKind, Coverage};
+pub use covered::{Cases, Covered, cover, sample};
 pub use refusal::Refusal;
 pub use run::Run;
 pub use space::{Space, find, refuted, verify_all};

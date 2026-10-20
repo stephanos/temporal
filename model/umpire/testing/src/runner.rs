@@ -21,6 +21,13 @@ pub const CHECKER: Consumer = Consumer {
     render: |produce, _| produce(),
 };
 
+/// Suite expansion and coverage outputs.
+pub const SUITE: Consumer = Consumer {
+    name: "suite",
+    expected: &["expansion.txt", "expansion/*.txt", "coverage.txt"],
+    render: |produce, _| produce(),
+};
+
 impl Consumer {
     fn owns(&self, file: &str) -> bool {
         self.expected.iter().any(|pattern| {
@@ -34,6 +41,15 @@ impl Consumer {
             )
         })
     }
+}
+
+fn owners(file: &str, consumers: &[Consumer]) -> Vec<usize> {
+    consumers
+        .iter()
+        .enumerate()
+        .filter(|(_, consumer)| consumer.owns(file))
+        .map(|(index, _)| index)
+        .collect()
 }
 
 /// Run crate-local native checker fixtures.
@@ -86,8 +102,7 @@ pub fn run_at_skipping(
         let mut selected = BTreeSet::new();
         for path in &files {
             let logical = logical_file(path, &expected)?;
-            let owners: Vec<_> =
-                consumers.iter().enumerate().filter(|(_, c)| c.owns(&logical)).collect();
+            let owners = owners(&logical, consumers);
             if owners.is_empty() {
                 return Err(format!("expected file has no consumer: {}", path.display()).into());
             }
@@ -96,7 +111,7 @@ pub fn run_at_skipping(
                     format!("expected file has multiple consumers: {}", path.display()).into()
                 );
             }
-            selected.insert(owners[0].0);
+            selected.insert(owners[0]);
         }
         if selected.is_empty() {
             return Err(format!(
@@ -105,7 +120,7 @@ pub fn run_at_skipping(
             )
             .into());
         }
-        for index in selected {
+        for &index in &selected {
             let consumer = &consumers[index];
             if skipped.contains(&consumer.name) {
                 skipped_artifacts.extend(skipped_files(&files, &expected, consumer)?);
@@ -120,14 +135,25 @@ pub fn run_at_skipping(
                 )
                 .into());
             }
+            let location = folder.display();
             for (file, content) in output {
-                if !consumer.owns(&file) {
+                let owners = owners(&file, consumers);
+                if owners.len() > 1 {
+                    return Err(format!(
+                        "produced output has multiple consumers: {file} for {location}"
+                    )
+                    .into());
+                }
+                let Some(&owner) = owners.first().filter(|owner| selected.contains(owner)) else {
                     return Err(format!(
                         "{} produced undeclared output {file} for {}",
                         consumer.name,
                         folder.display()
                     )
                     .into());
+                };
+                if owner != index {
+                    continue;
                 }
                 actual.insert(expected.join(file), content);
             }

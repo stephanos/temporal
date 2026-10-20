@@ -144,8 +144,39 @@ impl<S> StateFactory<S> {
     pub fn build<B: Finish>(self, rest: impl FnOnce(StateBuilder<S>) -> B) -> B::Output {
         rest(StateBuilder::new(self.0)).complete()
     }
+    pub fn build_pattern(
+        self,
+        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
+    ) -> WorldBuilder<S>
+    where
+        S: Registered,
+        <S::World as Machine>::Action: 'static,
+    {
+        WorldBuilder::new(make(PatternContext(std::marker::PhantomData), Pattern::state(self.0)))
+    }
 }
 pub struct ActorFactory<T>(T);
+pub fn actor_factory<T: Actor>(value: T) -> ActorFactory<T> {
+    ActorFactory(value)
+}
+
+pub struct DomainFactory<T>(ActionDomain<T>);
+impl<T: Actor + 'static> DomainFactory<T> {
+    pub fn new(domain: ActionDomain<T>) -> Self {
+        Self(domain)
+    }
+    pub fn build_pattern<S: Registered>(
+        self,
+        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
+    ) -> WorldBuilder<S>
+    where
+        T: RegisteredActor<S>,
+        <S::World as Machine>::Action: From<T> + 'static,
+    {
+        let seed = Pattern::action(self.0.map(Into::into), None, None);
+        WorldBuilder::new(make(PatternContext(std::marker::PhantomData), seed))
+    }
+}
 pub type WorldPath<S> = Path<
     S,
     <<S as Registered>::World as Machine>::Action,
@@ -171,6 +202,16 @@ pub fn pattern_with<S: Registered>(
     make(PatternContext(std::marker::PhantomData))
 }
 impl<T: Actor + 'static> ActorFactory<T> {
+    pub fn build_pattern<S: Registered>(
+        self,
+        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
+    ) -> WorldBuilder<S>
+    where
+        T: RegisteredActor<S>,
+        <S::World as Machine>::Action: From<T> + 'static,
+    {
+        DomainFactory::new(ActionDomain::new(Ok(1), move |_| self.0.clone())).build_pattern(make)
+    }
     pub fn build<S: Registered>(
         self,
         rest: impl FnOnce(WorldBuilder<S>) -> WorldBuilder<S>,
