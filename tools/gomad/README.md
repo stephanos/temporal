@@ -192,12 +192,16 @@ cd "$GOMAD_CHECKOUT"
   --env=TEMPORAL_TEST_LOG_LEVEL=warn \
   --choices --choice-bytes=64MiB \
   --output-limit=16MiB --seeds=0 --parallel=1 \
+  --keep-successes=all --success-limit=1 --success-bytes=4GiB \
   --execution-timeout=15m --overall-timeout=30m \
   --artifacts "$GOMAD_OPERATOR/temporal-artifacts" \
   go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' \
   -test.v -test.count=1 -test.timeout=72h \
   -persistenceType=sql -persistenceDriver=sqlite
 ```
+
+Replay the successful artifact path reported by `explore` with
+`gomad --installation "$GOMAD_OPERATOR/bin/gomad-temporal.json" replay ARTIFACT`.
 
 Host preparation uses the checkout root; guest execution uses
 `/workspace/tests/gomadfunctional`. Captured `schema/sqlite` lives at
