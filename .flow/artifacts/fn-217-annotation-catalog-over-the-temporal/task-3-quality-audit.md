@@ -80,3 +80,16 @@ Supplemental-admission finding resolved. Critical 0 · Should Fix 0 · Consider 
 ## Resolved findings at final source checkpoint
 
 Worker source `55a27ddd024a20ea94c40f0209eeb7d6408794a4` is integrated at `53d51ac71cdd52365a86e4e029ee741a47b8ad07`. The layout finding and supplemental-admission finding are resolved by their focused follow-ups above. The conductor independently read the normal, non-overwrite compile-control rerun and its three passing fixtures, alongside all 25 native tests and Clippy. Final live testing also passed on that source. Final full gates, integrated verification and formal review remain outstanding; no task closure is claimed.
+
+### Correctness follow-up: formal review failure-field coverage fix
+
+Focused correctness follow-up: P2 finding resolved. Critical 0 · Should Fix 0 · Consider 0.
+
+- Walked: SDK v1.48.0 `FailureToError` and `DecodeCommonFailureAttributes` against the catalogs. Consumed failure fields are typed, and nested payloads, causes, activity types and workflow values are traversed in `model/temporal/features/activity/api_transport.rs:268` and line 424.
+- Walked: `model/temporal/features/activity/api.rs:398`, line 406 and line 418 validate nested retry enums. Stack trace, operation token and fallback operation ID use actual field setters for copy redaction. Response validation does not redact or mutate transport bytes; request expectations remain unchanged.
+- Cited: recorded RED then native GREEN evidence covers nested discriminant findings, exact response-byte retention and secret-free diagnostics. Clippy and Go compilation logs completed successfully.
+- Executed: four-file diff inspection, `git diff --check`, frozen HEAD and clean-tree checks. No builds, tests or writes performed here; live/full gates remain outside this follow-up’s evidence.
+
+Writer and reviewer are the same Codex family.
+
+Correctness follow-up: 0 findings; no remaining tier. The conductor accepts the focused resolution at source `5c9d19cca65f6920ceb8fd988d107f4eb866618f`, integrated as `99527a1f3b4e3a4bd27b2412b045019f8a7a0e99`. Final full gates and single-session re-review are still required.
