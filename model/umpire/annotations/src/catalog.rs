@@ -259,10 +259,25 @@ impl<M: 'static, T: FieldValue> Access<M> for Field<M, T> {
         names
     }
     fn fill(&self, message: &mut M, rng: &mut Rng) -> Result<(), GenerationError> {
-        let value = match &self.descriptor.repeated {
+        let mut value = match &self.descriptor.repeated {
             Some(rules) => T::generate_repeated(&self.descriptor.kind, rules, rng)?,
             None => T::generate(&self.descriptor.kind, rng)?,
         };
+        if !value.present() {
+            let present = match &self.descriptor.repeated {
+                Some(rules) => {
+                    let mut rules = rules.clone();
+                    rules.min_items = Some(rules.min_items.unwrap_or(0).max(1));
+                    T::generate_repeated(&self.descriptor.kind, &rules, rng)
+                }
+                None => T::generate_present(&self.descriptor.kind, rng),
+            };
+            match present {
+                Ok(present) => value = present,
+                Err(GenerationError::ImpossibleConstraints) => {}
+                Err(reason) => return Err(reason),
+            }
+        }
         (self.set)(message, value);
         Ok(())
     }

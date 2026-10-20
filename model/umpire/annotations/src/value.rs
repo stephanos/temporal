@@ -56,6 +56,11 @@ pub trait FieldValue: Clone + Default + PartialEq + 'static {
     fn violations(&self, kind: &Kind) -> Vec<&'static str>;
     /// Constructs a value or explicitly refuses.
     fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError>;
+    /// Constructs a present candidate for the message's presence-rule search.
+    fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+        let value = Self::generate(kind, rng)?;
+        if value.present() { Ok(value) } else { Err(GenerationError::ImpossibleConstraints) }
+    }
     /// Whether this field supports repeated constraints.
     fn is_repeated() -> bool {
         false
@@ -119,6 +124,13 @@ fn generated_len(min: usize, max: Option<usize>) -> Result<usize, GenerationErro
     Ok(min)
 }
 
+fn sampled_len(min: usize, max: Option<usize>, rng: &mut Rng) -> Result<usize, GenerationError> {
+    generated_len(min, max)?;
+    let max = max.unwrap_or_else(|| min.saturating_add(16)).min(MAX_GENERATED_LEN);
+    let span = u64::try_from(max - min + 1).map_err(|_| GenerationError::SizeLimit)?;
+    Ok(min + usize::try_from(rng.next_u64() % span).map_err(|_| GenerationError::SizeLimit)?)
+}
+
 fn uuid(value: &str) -> bool {
     value.len() == 36
         && value.bytes().enumerate().all(|(i, byte)| {
@@ -135,6 +147,21 @@ fn append_overlapping(value: &mut String, suffix: &str) {
         .max()
         .unwrap_or(0);
     value.push_str(&suffix[overlap..]);
+}
+
+fn text_base(rules: &StringRules) -> String {
+    let prefix = rules.prefix.as_deref().unwrap_or_default();
+    let suffix = rules.suffix.as_deref().unwrap_or_default();
+    let mut value = prefix.to_owned();
+    append_overlapping(&mut value, suffix);
+    if let Some(part) = &rules.contains
+        && !value.contains(part)
+    {
+        prefix.clone_into(&mut value);
+        append_overlapping(&mut value, part);
+        append_overlapping(&mut value, suffix);
+    }
+    value
 }
 
 impl FieldValue for String {
@@ -173,9 +200,10 @@ impl FieldValue for String {
                 ))
             }
             Kind::Random(rules) => {
-                let len = generated_len(
+                let len = sampled_len(
                     rules.min_len.unwrap_or(16).min(rules.max_len.unwrap_or(usize::MAX)),
                     rules.max_len,
+                    rng,
                 )?;
                 if rules.min_len.is_some_and(|min| len < min) {
                     return Err(GenerationError::ImpossibleConstraints);
@@ -185,21 +213,14 @@ impl FieldValue for String {
                     .collect())
             }
             Kind::Identifier(rules) | Kind::Text(rules) => {
-                let mut value = rules.prefix.clone().unwrap_or_default();
-                if let Some(part) = &rules.contains
-                    && !value.contains(part)
-                {
-                    append_overlapping(&mut value, part);
-                }
+                let mut value = text_base(rules);
+                let fallback = value.clone();
                 let suffix = rules.suffix.as_deref().unwrap_or_default();
-                if !value.ends_with(suffix) {
-                    append_overlapping(&mut value, suffix);
-                }
                 let min = rules
                     .min_len
                     .unwrap_or(0)
                     .max(usize::from(matches!(kind, Kind::Identifier(_))));
-                generated_len(min.max(value.chars().count()), rules.max_len)?;
+                let min = sampled_len(min.max(value.chars().count()), rules.max_len, rng)?;
                 if value.chars().count() < min {
                     let padding: String = (value.chars().count()..min)
                         .map(|_| char::from(b'a' + u8::try_from(rng.next_u64() % 26).unwrap_or(0)))
@@ -215,19 +236,38 @@ impl FieldValue for String {
                     }
                     value.push_str(suffix);
                     let len = value.chars().count();
-                    generated_len(len.max(min), rules.max_len)?;
+                    if let Err(reason) = generated_len(len.max(min), rules.max_len) {
+                        return if fallback.violations(kind).is_empty() {
+                            Ok(fallback)
+                        } else {
+                            Err(reason)
+                        };
+                    }
                     if len < min {
                         value.insert_str(value.len() - suffix.len(), &"a".repeat(min - len));
                     }
                 }
                 if value.violations(kind).is_empty() {
                     Ok(value)
+                } else if fallback.violations(kind).is_empty() {
+                    Ok(fallback)
                 } else {
                     Err(GenerationError::ImpossibleConstraints)
                 }
             }
             _ => Err(GenerationError::UnsupportedType),
         }
+    }
+    fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+        let mut kind = kind.clone();
+        match &mut kind {
+            Kind::Text(rules) | Kind::Identifier(rules) => {
+                rules.min_len = Some(rules.min_len.unwrap_or(0).max(1));
+            }
+            Kind::Random(rules) => rules.min_len = Some(rules.min_len.unwrap_or(0).max(1)),
+            _ => {}
+        }
+        Self::generate(&kind, rng)
     }
 }
 
@@ -249,11 +289,18 @@ impl FieldValue for Vec<u8> {
             Kind::Secret => Err(GenerationError::ExternalSecret),
             Kind::Bytes(rules) | Kind::Random(rules) => {
                 let min = rules.min_len.unwrap_or_else(|| rules.max_len.unwrap_or(1).min(1));
-                let len = generated_len(min, rules.max_len)?;
+                let len = sampled_len(min, rules.max_len, rng)?;
                 Ok((0..len).map(|_| rng.next_u64().to_le_bytes()[0]).collect())
             }
             _ => Err(GenerationError::UnsupportedType),
         }
+    }
+    fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+        let mut kind = kind.clone();
+        if let Kind::Bytes(rules) | Kind::Random(rules) = &mut kind {
+            rules.min_len = Some(rules.min_len.unwrap_or(0).max(1));
+        }
+        Self::generate(&kind, rng)
     }
 }
 
@@ -269,23 +316,77 @@ fn number_violations(value: i128, rules: &NumberRules, prefix: &str) -> Vec<&'st
             result.push(number_name(prefix, name));
         }
     }
+    if reversed_range(rules) {
+        let lower_passes = rules.gt.is_none_or(|bound| value > bound)
+            && rules.gte.is_none_or(|bound| value >= bound);
+        let upper_passes = rules.lt.is_none_or(|bound| value < bound)
+            && rules.lte.is_none_or(|bound| value <= bound);
+        if lower_passes || upper_passes {
+            result.clear();
+        }
+    }
     result
 }
 
-fn number_bounds(
+fn reversed_range(rules: &NumberRules) -> bool {
+    let lower = rules.gt.into_iter().chain(rules.gte).max();
+    let upper = rules.lt.into_iter().chain(rules.lte).min();
+    matches!((lower, upper), (Some(lo), Some(hi)) if lo > hi)
+}
+
+fn number_sample(
     rules: &NumberRules,
     min: i128,
     max: i128,
-) -> Result<(i128, i128), GenerationError> {
-    let lo = min.max(rules.gte.unwrap_or(min)).max(match rules.gt {
-        Some(n) => n.checked_add(1).ok_or(GenerationError::ImpossibleConstraints)?,
-        None => min,
-    });
-    let hi = max.min(rules.lte.unwrap_or(max)).min(match rules.lt {
-        Some(n) => n.checked_sub(1).ok_or(GenerationError::ImpossibleConstraints)?,
-        None => max,
-    });
-    if lo > hi { Err(GenerationError::ImpossibleConstraints) } else { Ok((lo, hi)) }
+    rng: &mut Rng,
+    nonzero: bool,
+) -> Result<i128, GenerationError> {
+    let lo = match rules.gt {
+        Some(n) => n.checked_add(1),
+        None => Some(min),
+    }
+    .map(|n| n.max(rules.gte.unwrap_or(min)));
+    let hi = match rules.lt {
+        Some(n) => n.checked_sub(1),
+        None => Some(max),
+    }
+    .map(|n| n.min(rules.lte.unwrap_or(max)));
+    let mut ranges = Vec::new();
+    let mut add = |lo: Option<i128>, hi: Option<i128>| {
+        if let (Some(lo), Some(hi)) = (lo, hi) {
+            let (lo, hi) = (lo.max(min), hi.min(max));
+            if lo <= hi {
+                if nonzero && lo <= 0 && hi >= 0 {
+                    if lo < 0 {
+                        ranges.push((lo, -1));
+                    }
+                    if hi > 0 {
+                        ranges.push((1, hi));
+                    }
+                } else {
+                    ranges.push((lo, hi));
+                }
+            }
+        }
+    };
+    if reversed_range(rules) {
+        add(Some(min), hi);
+        add(lo, Some(max));
+    } else {
+        add(lo, hi);
+    }
+    if ranges.is_empty() {
+        return Err(GenerationError::ImpossibleConstraints);
+    }
+    let index = usize::try_from(
+        rng.next_u64() % u64::try_from(ranges.len()).map_err(|_| GenerationError::SizeLimit)?,
+    )
+    .map_err(|_| GenerationError::SizeLimit)?;
+    let (lo, hi) = ranges[index];
+    let span = u128::try_from(hi - lo + 1).map_err(|_| GenerationError::ImpossibleConstraints)?;
+    let bits = (u128::from(rng.next_u64()) << 64) | u128::from(rng.next_u64());
+    let offset = i128::try_from(bits % span).map_err(|_| GenerationError::ImpossibleConstraints)?;
+    Ok(lo + offset)
 }
 
 macro_rules! integral {
@@ -306,19 +407,27 @@ macro_rules! integral {
             fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
                 match kind {
                     Kind::Counter(rules) => {
-                        let (lo, hi) = number_bounds(rules, i128::from(<$ty>::MIN), i128::from(<$ty>::MAX))?;
-                        let span = u128::try_from(hi - lo + 1).map_err(|_| GenerationError::ImpossibleConstraints)?;
-                        let offset = u128::from(rng.next_u64()) % span;
-                        <$ty>::try_from(lo + i128::try_from(offset).map_err(|_| GenerationError::ImpossibleConstraints)?).map_err(|_| GenerationError::ImpossibleConstraints)
+                        <$ty>::try_from(number_sample(rules, i128::from(<$ty>::MIN), i128::from(<$ty>::MAX), rng, false)?).map_err(|_| GenerationError::ImpossibleConstraints)
                     }
                     Kind::Enum(rules) => {
-                        if !rules.defined_only && rules.values.is_empty() {
+                        if !rules.defined_only {
                             let [a, b, c, d, ..] = rng.next_u64().to_le_bytes();
                             return <$ty>::try_from(i32::from_le_bytes([a, b, c, d])).map_err(|_| GenerationError::ImpossibleConstraints);
                         }
                         if rules.values.is_empty() { return Err(GenerationError::ImpossibleConstraints); }
                         let index = usize::try_from(rng.next_u64() % u64::try_from(rules.values.len()).map_err(|_| GenerationError::SizeLimit)?).map_err(|_| GenerationError::SizeLimit)?;
                         <$ty>::try_from(rules.values[index]).map_err(|_| GenerationError::ImpossibleConstraints)
+                    }
+                    _ => Err(GenerationError::UnsupportedType),
+                }
+            }
+            fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+                match kind {
+                    Kind::Counter(rules) => <$ty>::try_from(number_sample(rules, i128::from(<$ty>::MIN), i128::from(<$ty>::MAX), rng, true)?).map_err(|_| GenerationError::ImpossibleConstraints),
+                    Kind::Enum(rules) => {
+                        if !rules.defined_only { return Ok(1); }
+                        let mut rules = rules.clone(); rules.values.retain(|n| *n != 0);
+                        Self::generate(&Kind::Enum(rules), rng)
                     }
                     _ => Err(GenerationError::UnsupportedType),
                 }
@@ -348,6 +457,29 @@ pub struct Duration {
 
 macro_rules! time_value {
     ($ty:ident, $min:expr, $max:expr, $valid:expr) => {
+        impl $ty {
+            fn generated(
+                rules: &NumberRules,
+                rng: &mut Rng,
+                nonzero: bool,
+            ) -> Result<Self, GenerationError> {
+                let value = number_sample(rules, $min, $max, rng, nonzero)?;
+                let seconds = value.div_euclid(1_000_000_000);
+                let nanos = value.rem_euclid(1_000_000_000);
+                let (seconds, nanos) = if stringify!($ty) == "Duration" && seconds < 0 && nanos > 0
+                {
+                    (seconds + 1, nanos - 1_000_000_000)
+                } else {
+                    (seconds, nanos)
+                };
+                Ok(Self {
+                    seconds: i64::try_from(seconds)
+                        .map_err(|_| GenerationError::ImpossibleConstraints)?,
+                    nanos: i32::try_from(nanos)
+                        .map_err(|_| GenerationError::ImpossibleConstraints)?,
+                })
+            }
+        }
         impl FieldValue for $ty {
             fn supports(kind: &Kind) -> bool {
                 matches!(kind, Kind::$ty(_))
@@ -375,25 +507,17 @@ macro_rules! time_value {
                 }
                 result
             }
-            fn generate(kind: &Kind, _rng: &mut Rng) -> Result<Self, GenerationError> {
+            fn generate(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
                 let Kind::$ty(rules) = kind else {
                     return Err(GenerationError::UnsupportedType);
                 };
-                let (lo, _) = number_bounds(rules, $min, $max)?;
-                let seconds = lo.div_euclid(1_000_000_000);
-                let nanos = lo.rem_euclid(1_000_000_000);
-                let (seconds, nanos) = if stringify!($ty) == "Duration" && seconds < 0 && nanos > 0
-                {
-                    (seconds + 1, nanos - 1_000_000_000)
-                } else {
-                    (seconds, nanos)
+                Self::generated(rules, rng, false)
+            }
+            fn generate_present(kind: &Kind, rng: &mut Rng) -> Result<Self, GenerationError> {
+                let Kind::$ty(rules) = kind else {
+                    return Err(GenerationError::UnsupportedType);
                 };
-                Ok(Self {
-                    seconds: i64::try_from(seconds)
-                        .map_err(|_| GenerationError::ImpossibleConstraints)?,
-                    nanos: i32::try_from(nanos)
-                        .map_err(|_| GenerationError::ImpossibleConstraints)?,
-                })
+                Self::generated(rules, rng, true)
             }
         }
     };
@@ -469,7 +593,8 @@ impl<T: FieldValue> FieldValue for Vec<T> {
         rules: &RepeatedRules,
         rng: &mut Rng,
     ) -> Result<Self, GenerationError> {
-        let len = generated_len(rules.min_items.unwrap_or(1), rules.max_items)?;
+        let min = rules.min_items.unwrap_or_else(|| rules.max_items.unwrap_or(1).min(1));
+        let len = generated_len(min, rules.max_items)?;
         let mut result = Vec::with_capacity(len);
         for _ in 0..len {
             let mut found = None;

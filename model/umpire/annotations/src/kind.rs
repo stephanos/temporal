@@ -27,6 +27,8 @@ pub struct BytesRules {
 }
 
 /// Integral bounds; durations and timestamps use total nanoseconds.
+/// A lower bound greater than the upper bound admits values outside the range,
+/// following protovalidate. Equal bounds retain their declared inclusivity.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct NumberRules {
     /// Exclusive lower bound.
