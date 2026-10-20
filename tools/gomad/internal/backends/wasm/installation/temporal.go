@@ -19,10 +19,5 @@ func TemporalConfig(checkout, pkg string) (wasi.Config, error) {
 	if err != nil {
 		return wasi.Config{}, err
 	}
-	config, err := wasi.TemporalConfig(root, path.Join("/workspace", clean))
-	if err != nil {
-		return wasi.Config{}, err
-	}
-	config.NetworkV2 = wasi.TemporalNetwork()
-	return config, nil
+	return wasi.TemporalConfig(root, path.Join("/workspace", clean), wasi.TemporalInstallation)
 }

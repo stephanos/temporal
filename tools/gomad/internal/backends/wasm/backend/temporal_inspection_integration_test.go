@@ -24,20 +24,6 @@ import (
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
 
-func temporalInspectionConfig(root string, config wasi.Config) (wasi.Config, error) {
-	temporalConfig, err := wasi.TemporalConfig(root, config.WorkingDirectory)
-	if err != nil {
-		return wasi.Config{}, err
-	}
-	config.CapturedInputs = temporalConfig.CapturedInputs
-	config.Environment = append(config.Environment, temporalConfig.Environment[1:]...)
-	config.Limits = temporalConfig.Limits
-	config.Limits.OutputBytes = 16 << 20
-	config.Limits.TranscriptBytes = 256 << 20
-	config.NetworkV2 = wasi.TemporalNetwork()
-	return config, nil
-}
-
 func TestTemporalInspectionConfigPreservesFixtureBytes(t *testing.T) {
 	t.Parallel()
 	root := t.TempDir()
@@ -46,8 +32,7 @@ func TestTemporalInspectionConfigPreservesFixtureBytes(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(schema, "schema.sql"), []byte("CREATE TABLE example(id INTEGER);"), 0600))
 	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: schema, Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	require.NoError(t, err)
-	base := wasi.Config{Profile: wasi.CooperativeProfile, Environment: []string{"PWD=/workspace", "GOMAD_DEBUG_CANARY=1"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}}
-	config, err := temporalInspectionConfig(root, base)
+	config, err := wasi.TemporalConfig(root, "/workspace", wasi.TemporalInspection)
 	require.NoError(t, err)
 	want := wasi.Config{
 		Profile: wasi.CooperativeProfile, WorkingDirectory: "/workspace",
@@ -92,7 +77,7 @@ func TestTemporalInspectionRetainedFailure(t *testing.T) {
 			original := filepath.Join(server, "service/history", fixture.owner)
 			if fixture.owner == "onebox" {
 				original = filepath.Join(server, "tools/gomad/internal/backends/wasm/testdata/prototype_temporal")
-				config, err := temporalInspectionConfig(server, provider.options.Config)
+				config, err := wasi.TemporalConfig(server, provider.options.Config.WorkingDirectory, wasi.TemporalInspection)
 				require.NoError(t, err)
 				provider.options.Config = config
 				environment = append(environment, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TEMPORAL_TEST_LOG_LEVEL=warn")
