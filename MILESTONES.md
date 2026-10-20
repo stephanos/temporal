@@ -257,8 +257,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-219.3](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.3.md) | 🚧 In progress | Rewire Makefile, archcheck and CI to the default set |
-| [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | ⬜ Todo | Record the identity ledger, requalify rotated identities and refresh documentation |
+| [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | 🚧 In progress | Record the identity ledger, requalify rotated identities and refresh documentation |
 
 ### One-command Temporal test setup — [fn-220](.flow/specs/fn-220-gomad-one-command-temporal-test-setup.md)
 
