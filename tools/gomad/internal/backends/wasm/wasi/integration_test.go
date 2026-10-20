@@ -173,8 +173,9 @@ func TestPrototypeSchedulingDeterminism(t *testing.T) {
 				reason choice.DivergenceReason
 			}{{"missing", choice.DivergenceTapeExhausted}, {"extra", choice.DivergenceTapeUnconsumed}, {"altered", choice.DivergenceAlternativeSet}} {
 				plan := tape
+				var source []byte
 				if mutation.name == "missing" {
-					plan, err = tape.Prefix(0)
+					plan, err = choice.ProjectInterruptedReplayPlan(source, request.Runtime.Choice.Limit, request.Runtime.Choice.ExecutionIdentity)
 				} else {
 					records := slices.Clone(baselines[0].ChoiceTrace.Records)
 					target := slices.IndexFunc(records, func(record choice.Record) bool { return record.Kind == choice.KindRunnable })
@@ -451,8 +452,9 @@ func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {
 	}{{"missing", choice.DivergenceTapeExhausted}, {"extra", choice.DivergenceTapeUnconsumed}, {"kind", choice.DivergenceKind}, {"site", choice.DivergenceSite}, {"enabled", choice.DivergenceAlternativeSet}} {
 		t.Run(mutation.name, func(t *testing.T) {
 			plan := tape
+			var source []byte
 			if mutation.name == "missing" {
-				plan, err = tape.Prefix(0)
+				plan, err = choice.ProjectInterruptedReplayPlan(source, request.Runtime.Choice.Limit, request.Runtime.Choice.ExecutionIdentity)
 			} else {
 				records := slices.Clone(observed.ChoiceTrace.Records)
 				target := slices.IndexFunc(records, func(record choice.Record) bool { return record.Kind == choice.KindRunnable })
