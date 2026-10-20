@@ -1,15 +1,22 @@
 {
   "branch_name": "fn-213-modelsuite-in-rust-examples-and",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T00:37:53.233984Z",
   "created_at": "2026-10-18T23:43:35.161854Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-210-rust-prototype-kettle-on-a-trait-engine"
   ],
   "id": "fn-213-modelsuite-in-rust-examples-and",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-213-modelsuite-in-rust-examples-and.md",
-  "status": "open",
+  "status": "done",
   "title": "ModelSuite in Rust: examples and explorations (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +29,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T00:25:41.035235Z"
+  "updated_at": "2026-10-20T00:37:53.551828Z"
 }

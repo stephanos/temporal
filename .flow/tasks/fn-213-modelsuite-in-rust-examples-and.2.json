@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-213-modelsuite-in-rust-examples-and",
   "spec_path": ".flow/tasks/fn-213-modelsuite-in-rust-examples-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "umpire-suite examples: Run, step, repeat, expect!",
   "updated_at": "2026-10-19T00:25:40.414353Z"
 }

@@ -2,7 +2,7 @@
 
 The owner's overview of what is open, in what order, and why. One page, describing the present.
 
-As of 2026-10-19.
+As of 2026-10-20.
 
 ## Keeping this page current
 
@@ -22,9 +22,10 @@ Earlier Scala phases and the one-language series remain deferred in Flow and ret
 to the archived tree. The Rust follow-ups below use the owner's priority order; their individual
 readiness gates and dependencies still apply.
 
-Execution resumed on 2026-10-19 at the owner's request: complete the remaining specs in
-priority order, following the root agent's own recommendations where a decision is open.
-fn-216, fn-221 and fn-212 are complete locally, including their completion reviews. TLC is implemented for its admitted source subset; unsupported source,
+Execution is stopped at the owner's request (2026-10-20) after wrapping up in-flight work.
+fn-213, fn-215 and fn-223 are complete locally with their completion reviews. fn-224's only task
+is done and both gates pass, but its completion review has not run. No follow-on task was started.
+TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
 Umpire in Rust lives in `temporal/model`, a Cargo workspace pinned through `mise.toml`
@@ -41,22 +42,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict (in progress) | fn-213 → fn-224 → fn-225 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-224 and fn-225 are placed by the root agent. fn-210, fn-212, fn-214, fn-215, fn-216, fn-221 and fn-223 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict (stopped) | fn-224 (review) → fn-225 → fn-226 → fn-218 → fn-217 → fn-211 | Owner priority order when execution resumes; fn-224, fn-225 and fn-226 are placed by the root agent. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221 and fn-223 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-213: ModelSuite in Rust: examples and explorations (model)
-
-Captured on 2026-10-18, after fn-210. Every shared fixture becomes `{model.rs, tests.rs, expected/}`:
-`model.rs` is only the Model, `tests.rs` beside it holds `mod examples` (authored paths: `Run::from`,
-`step`, `repeat`, `expect!`) and `mod explorations` (`Space`, `verify_all`, `refuted`, `find`), as
-plain `#[test]` functions run by `cargo test`; the golden hook moves there too and state fields are
-`pub`. Conformance, Cases and `sample` wait for the Case slice (owner, 2026-10-18). Kettle's
-`tests.rs` asks the questions of the archived `Kettle.test.scala` that the surface admits.
-[Spec](.flow/specs/fn-213-modelsuite-in-rust-examples-and.md).
-
-| Name | Status | What |
-| --- | --- | --- |
 
 ### fn-224: Accepted self-loops in the attribute surface (model)
 
@@ -70,7 +58,7 @@ Choice, typed outcomes and facts, and computed starts stay gaps until a Temporal
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-224.1 | 🔄 in progress | self-loop marker, lifter admission, fixtures back on TLC (R1, R2) |
+| Completion review | ⬜ todo | Fresh-context review of `stay!()`, lifter admission and the four fixtures back on TLC |
 
 ### fn-225: umpire-lift: separate Model shape from body lowering (model)
 
@@ -84,6 +72,18 @@ shape parser shared with `#[machine]` waits until the two actually drift.
 | Name | Status | What |
 | --- | --- | --- |
 | fn-225.1 | ⬜ todo | After fn-224: shape/body split and tree split, goldens byte-identical (R1) |
+
+### fn-226: Suite search follow-ups (model)
+
+Captured on 2026-10-20 from the re-review of fn-213's complete waypoint search (verdict ship, no
+correctness defects). A panic inside a waypoint predicate is blamed on a Model action; the search
+budget counts (state, progress) pairs, so large bounded patterns turn unknown; any skipped step
+panic refuses an answer even when it cannot affect it. Placed before fn-218, whose `cover` reuses
+the search. [Spec](.flow/specs/fn-226-suite-search-follow-ups-model.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-226.1 | ⬜ todo | Predicate panics, Model-state budget, panic relevance, cosmetics (R1, R2, R3) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

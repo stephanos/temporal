@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-213-modelsuite-in-rust-examples-and",
   "spec_path": ".flow/tasks/fn-213-modelsuite-in-rust-examples-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Fixture layout: tests.rs beside model.rs, golden hook moves, pub fields",
   "updated_at": "2026-10-18T23:44:48.130319Z"
 }
