@@ -18,6 +18,10 @@ type reviewRecord struct {
 	Reviewed  Reviewed `json:"reviewed"`
 }
 
+// This accepted initial review is the trust anchor for the append-only ledger.
+// Advancing the anchored prefix requires reviewing that prefix explicitly.
+var acceptedReviewPrefix = []reviewRecord{{Timestamp: "2026-10-20T15:00:00Z", Reviewed: Reviewed{Date: "2026-10-20", GoToolchain: "go1.27.1", Wasmtime: "47.0.3", Rust: "1.99.1"}}}
+
 func checkReviewHistory(data []byte, reviewed Reviewed) error {
 	decoder := json.NewDecoder(bytes.NewReader(data))
 	decoder.DisallowUnknownFields()
@@ -30,6 +34,14 @@ func checkReviewHistory(data []byte, reviewed Reviewed) error {
 	}
 	if len(records) == 0 {
 		return errors.New("review history is empty")
+	}
+	if len(records) < len(acceptedReviewPrefix) {
+		return errors.New("review history removed an accepted review")
+	}
+	for index, accepted := range acceptedReviewPrefix {
+		if records[index] != accepted {
+			return fmt.Errorf("review history changed accepted review %d; append a new dated record", index)
+		}
 	}
 	var previous time.Time
 	for index, record := range records {
@@ -62,6 +74,12 @@ func TestInventoryPinsRequireDatedReviewRecord(t *testing.T) {
 	changed := inventory.Reviewed
 	changed.Wasmtime += ".new"
 	require.ErrorContains(t, checkReviewHistory(history, changed), "append a new dated review record")
+	var replaced []reviewRecord
+	require.NoError(t, json.Unmarshal(history, &replaced))
+	replaced[len(replaced)-1].Reviewed = changed
+	data, err := json.Marshal(replaced)
+	require.NoError(t, err)
+	require.ErrorContains(t, checkReviewHistory(data, changed), "changed accepted review")
 }
 
 func TestInventoryReviewHistoryRejectsStaleReview(t *testing.T) {
