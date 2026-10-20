@@ -18,7 +18,9 @@ import (
 	"time"
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
+	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism/observed"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/measurement"
@@ -532,13 +534,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 				collectErr = errors.New("cluster stress run lacks shared evidence")
 				return
 			}
-			metadata = execution.Cluster.InspectionMetadata
 			helperDiagnostics = execution.Cluster.HelperStderr()
-			observation.Digests["world"] = digest(execution.Cluster.World)
-			collectErr = temporalWrite(ctx, filepath.Join(root, "world.bin"), execution.Cluster.World)
-			if collectErr != nil {
-				return
-			}
 		} else {
 			if len(execution.Incarnations) != 1 {
 				collectErr = errors.New("single guest stress run has wrong incarnation cardinality")
@@ -554,6 +550,11 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 		}
 		if err := stressEventOrder(ctx, root, helperDiagnostics, &observation); err != nil {
 			collectErr = err
+			return
+		}
+		if test.Workload == "two-cluster" {
+			// CompletedClusterResult is a costs-only observer. Canonical World
+			// and inspection bytes come from the authenticated Runner artifact.
 			return
 		}
 		if err := temporalWrite(ctx, filepath.Join(root, "inspection.json"), metadata); err != nil {
@@ -588,6 +589,12 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 		return observation, err
 	}
 	manifest := opened.Manifest()
+	if test.Workload == "two-cluster" {
+		if err := stressRetainedCluster(ctx, root, opened, &observation); err != nil {
+			_ = opened.Close()
+			return observation, err
+		}
+	}
 	if err := opened.Close(); err != nil {
 		return observation, err
 	}
@@ -600,6 +607,36 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	}
 	observation.Run.EvidenceDigest = digest(encoded)
 	return observation, temporalJSON(ctx, filepath.Join(root, "run.json"), stressSummary(observation))
+}
+
+func stressRetainedCluster(ctx context.Context, root string, opened *artifact.Opened, observation *stressObservation) error {
+	reference := opened.Manifest().Target.Backend.Evidence
+	if reference == nil {
+		return errors.New("cluster stress artifact lacks retained backend evidence")
+	}
+	data, err := opened.ReadPayload(reference.File, uint64(reference.Bytes))
+	if err != nil {
+		return err
+	}
+	_, retained, err := simulation.VerifyRetained(target.BackendPayload{Reference: *reference, Data: data})
+	if err != nil {
+		return err
+	}
+	if retained.WASM == nil || retained.WASM.Inspection == nil {
+		return errors.New("cluster stress artifact lacks retained World inspection evidence")
+	}
+	metadata, err := json.Marshal(retained.WASM.Inspection)
+	if err != nil {
+		return err
+	}
+	observation.Digests["world"] = digest(retained.WASM.World)
+	if err := temporalWrite(ctx, filepath.Join(root, "world.bin"), retained.WASM.World); err != nil {
+		return err
+	}
+	if err := temporalWrite(ctx, filepath.Join(root, "inspection.json"), metadata); err != nil {
+		return err
+	}
+	return stressInspection(metadata, observation)
 }
 
 func stressRequireExit(ctx context.Context, workload string, result wasi.Result) error {

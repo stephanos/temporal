@@ -17,6 +17,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster"
@@ -90,6 +91,31 @@ func TestStressRetainsCompleteEventOrderWithoutWallTelemetryDigest(t *testing.T)
 	}
 	if err := stressEventOrder(t.Context(), root, []byte(header), &observation); err == nil {
 		t.Fatal("accepted truncated supplemental event order")
+	}
+}
+
+func TestStressRetainedClusterArtifact(t *testing.T) {
+	t.Parallel()
+	path := os.Getenv("GOMAD_WASM_STRESS_RETAINED_CLUSTER_ARTIFACT")
+	if path == "" {
+		t.Skip("set GOMAD_WASM_STRESS_RETAINED_CLUSTER_ARTIFACT to a retained real cluster campaign artifact")
+	}
+	opened, err := artifact.OpenArtifact(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { _ = opened.Close() })
+	observation := stressObservation{Digests: map[string]string{}}
+	root := t.TempDir()
+	if err := stressRetainedCluster(t.Context(), root, opened, &observation); err != nil {
+		t.Fatal(err)
+	}
+	world, err := os.ReadFile(filepath.Join(root, "world.bin"))
+	if err != nil || len(world) == 0 || observation.Digests["world"] != digest(world) {
+		t.Fatalf("missing authenticated World evidence: %v", err)
+	}
+	if !observation.Coordinates || observation.Run.InspectionEvidence == nil || len(observation.Run.Incarnations) < 2 || len(observation.Run.Boundaries) == 0 {
+		t.Fatal("retained canonical cluster evidence was replaced by the costs-only observer")
 	}
 }
 
