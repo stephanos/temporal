@@ -153,6 +153,7 @@ env -i /absolute/operator/bin/gomad install \
   --working-dir /absolute/checkout \
   --env=TEMPORAL_ROOT=/workspace --env=TMPDIR=/tmp --env=TEMPORAL_TEST_LOG_LEVEL=warn \
   --choices --choice-bytes=64MiB --output-limit=16MiB --seeds=0 --parallel=1 \
+  --keep-successes=all --success-limit=1 --success-bytes=4GiB \
   --execution-timeout=15m --overall-timeout=30m \
   --artifacts /absolute/operator/temporal-artifacts \
   go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' \
