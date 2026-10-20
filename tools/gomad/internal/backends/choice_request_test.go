@@ -86,6 +86,17 @@ func TestChoiceRequestRejectsControllerSourceMismatch(t *testing.T) {
 		{"identity", func(c *ChoiceCapability) { c.ExecutionIdentity.TargetSHA256 = [32]byte{} }},
 		{"explicit controls", func(c *ChoiceCapability) { c.PrefixControl = &ChoicePrefixControl{} }},
 		{"exact controller", func(c *ChoiceCapability) { c.Mode = choice.ModeReplay }},
+		{"cached rank", func(c *ChoiceCapability) {
+			modified := *c.ReplayPlan
+			modified.Decisions = append([]choice.Decision(nil), modified.Decisions...)
+			modified.Decisions[0].Selected = 99
+			c.ReplayPlan = &modified
+		}},
+		{"cached readiness", func(c *ChoiceCapability) {
+			modified := *c.ReplayPlan
+			modified.Readiness = []choice.SelectReadiness{{Known: true, Ready: 1}}
+			c.ReplayPlan = &modified
+		}},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()

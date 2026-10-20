@@ -2,6 +2,7 @@ package backends
 
 import (
 	"errors"
+	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
@@ -24,6 +25,9 @@ func ChoiceRequestForCapability(capability *ChoiceCapability) (*ChoiceRequest, e
 	plan, err := choice.ValidatePrefixReplayPlan(*capability.ReplayPlan, request.ExecutionIdentity)
 	if err != nil {
 		return nil, err
+	}
+	if !slices.Equal(plan.Decisions, capability.ReplayPlan.Decisions) || !slices.Equal(plan.Readiness, capability.ReplayPlan.Readiness) {
+		return nil, errors.Join(choice.ErrInvalidReplayPlan, errors.New("controller tape cache differs from its encoded input"))
 	}
 	records, err := choice.TraceRecordCount(request.Trace)
 	if err != nil {
