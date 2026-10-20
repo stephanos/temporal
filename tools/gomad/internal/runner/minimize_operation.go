@@ -484,7 +484,10 @@ func (session *minimizationSession) evaluate(ctx context.Context, explorationCon
 		Mode: executionForCandidate.ChoiceMode, Profile: choice.Profile,
 		ImplementationSHA256: session.choiceIdentity.ImplementationSHA256, ExecutionIdentity: session.choiceIdentity,
 		Limit: uint64(manifest.Limits.ChoiceTraceBytes), ReplayPlan: executionForCandidate.ChoiceReplayPlan,
-		Trace: executionForCandidate.ChoiceSourceTrace, TraceSHA256: sha256.Sum256(executionForCandidate.ChoiceSourceTrace),
+	}
+	if executionForCandidate.ChoiceReplayPlan != nil {
+		choiceCapability.Trace = append([]byte(nil), executionForCandidate.ChoiceSourceTrace...)
+		choiceCapability.TraceSHA256 = sha256.Sum256(choiceCapability.Trace)
 	}
 	startedAt := time.Now().UTC()
 	request := execution.ExecutionRequest{

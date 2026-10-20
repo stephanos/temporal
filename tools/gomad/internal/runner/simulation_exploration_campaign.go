@@ -86,7 +86,7 @@ func simulationExplorationJobs(state exploration.SimulationState, round explorat
 		jobs[index] = runJob{
 			ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed,
 			choiceMode: candidateExecution.ChoiceMode, choiceReplayPlan: candidateExecution.ChoiceReplayPlan,
-			choiceSourceTrace: candidateExecution.ChoiceSourceTrace,
+			choiceSourceTrace: string(candidateExecution.ChoiceSourceTrace),
 			simulationPlan:    string(candidateExecution.SimulationPlan), simulationRecordLimit: combinedExplorationRecordLimit, simulationRecordCount: 1,
 		}
 	}

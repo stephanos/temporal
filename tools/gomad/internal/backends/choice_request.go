@@ -2,7 +2,6 @@ package backends
 
 import (
 	"bytes"
-	"crypto/sha256"
 	"errors"
 
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
@@ -64,7 +63,6 @@ func ChoiceRequestForCapability(capability *ChoiceCapability) (*ChoiceRequest, e
 	if expected.SHA256 != plan.SHA256 || !bytes.Equal(expected.Bytes, plan.Bytes) {
 		return nil, errors.Join(choice.ErrInvalidReplayPlan, errors.New("controller prefix differs from retained source trace"))
 	}
-	request.TraceSHA256 = sha256.Sum256(request.Trace)
 	request.TapeSHA256, request.Decisions, request.PrefixControl = plan.SHA256, control.Cutoff, control
 	return request, nil
 }

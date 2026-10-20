@@ -377,6 +377,7 @@ func cloneCandidate(candidate exploration.SimulationCandidate) exploration.Simul
 	for index, override := range candidate.Overrides {
 		overrides[index] = override
 		overrides[index].Control = append([]byte(nil), override.Control...)
+		overrides[index].SourceTrace = append([]byte(nil), override.SourceTrace...)
 	}
 	candidate.Overrides = overrides
 	return candidate

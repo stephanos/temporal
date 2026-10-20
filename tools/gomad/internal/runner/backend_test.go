@@ -193,7 +193,11 @@ func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing
 		t.Fatal(err)
 	}
 	base := backend.Result{Termination: backend.Exit, Reaped: true, ExitCode: 1, Stdout: []byte("done"), Evidence: []byte("run"), ChoiceTrace: trace.Trace, ImplementationSHA256: trace.ImplementationSHA256}
-	base.InputTapeSHA256, base.InputDecisions = trace.TapeSHA256, trace.Decisions
+	base.InputTapeSHA256, err = manifest.ChoiceProfile.Trace.TapeSHA256.Bytes()
+	if err != nil {
+		t.Fatal(err)
+	}
+	base.InputDecisions = uint64(manifest.ChoiceProfile.Trace.Decisions)
 	for _, test := range []struct {
 		name           string
 		change         func(*backend.Result)
@@ -239,7 +243,7 @@ func TestExternalReplayForcesRecordedTapeAndComparesFinalObservations(t *testing
 				return
 			}
 			request := provider.request.Choice
-			if provider.calls != 1 || request == nil || request.Mode != choice.ModeReplay || !bytes.Equal(request.Trace, trace.Trace.Bytes) || request.TraceSHA256 != trace.Trace.SHA256 || request.TapeSHA256 != trace.TapeSHA256 || request.Decisions != 1 || request.PrefixControl != nil || provider.request.Diagnostics {
+			if provider.calls != 1 || request == nil || request.Mode != choice.ModeReplay || !bytes.Equal(request.Trace, trace.Trace.Bytes) || request.TraceSHA256 != trace.Trace.SHA256 || request.TapeSHA256 != base.InputTapeSHA256 || request.Decisions != 1 || request.PrefixControl != nil || provider.request.Diagnostics {
 				t.Fatalf("retained trace expectations were not supplied: %+v", provider.request)
 			}
 		})

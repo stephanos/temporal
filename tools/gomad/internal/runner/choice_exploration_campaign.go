@@ -75,7 +75,7 @@ func choiceExplorationJobs(state exploration.ChoiceState, round exploration.Choi
 			tape = &prefix
 			mode = choice.ModePrefix
 		}
-		jobs[index] = runJob{ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape, choiceSourceTrace: candidate.SourceTrace}
+		jobs[index] = runJob{ordinal: state.LogicalExecutions + uint64(index), seed: state.Config.BaseSeed, choiceMode: mode, choiceReplayPlan: tape, choiceSourceTrace: string(candidate.SourceTrace)}
 	}
 	return jobs, nil
 }

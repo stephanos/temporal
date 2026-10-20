@@ -302,7 +302,7 @@ type runJob struct {
 	seed                  uint64
 	choiceMode            choice.Mode
 	choiceReplayPlan      *choice.ReplayPlan
-	choiceSourceTrace     []byte
+	choiceSourceTrace     string
 	simulationPlan        string
 	simulationRecordLimit uint64
 	simulationRecordCount uint64
@@ -879,7 +879,7 @@ func choiceCapabilityForJob(config campaignRequest, prepared target.Prepared, jo
 	if job.choiceReplayPlan != nil {
 		replayPlan := *job.choiceReplayPlan
 		capability.ReplayPlan = &replayPlan
-		capability.Trace = append([]byte(nil), job.choiceSourceTrace...)
+		capability.Trace = []byte(job.choiceSourceTrace)
 		capability.TraceSHA256 = sha256.Sum256(capability.Trace)
 	}
 	return capability, nil

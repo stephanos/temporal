@@ -1,6 +1,7 @@
 package exploration
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"reflect"
@@ -11,6 +12,39 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
+
+func TestChoiceReplaySegmentRetainsObservedSourceForChildren(t *testing.T) {
+	t.Parallel()
+	config := choiceTestConfig()
+	initial, err := NewChoice(config)
+	if err != nil {
+		t.Fatal(err)
+	}
+	round, _ := initial.NextRound()
+	trace, err := choice.BuildTrace([]choice.Record{choiceTestDecision(t, 0, choice.KindRunnable, 2, 0).Record()}, choice.TerminalComplete)
+	if err != nil {
+		t.Fatal(err)
+	}
+	tape, err := choice.ProjectReplayPlan(trace, config.Execution)
+	if err != nil {
+		t.Fatal(err)
+	}
+	result := testResult(round.Candidates[0], tape, "root")
+	result.SourceTrace = trace.Bytes
+	state, segment, err := CommitChoiceRound(initial, round, []ChoiceResult{result})
+	if err != nil {
+		t.Fatal(err)
+	}
+	replayed, err := ChoiceReplaySegment(initial, segment)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, observed := range []ChoiceState{state, replayed} {
+		if len(observed.Queue) != 1 || !bytes.Equal(observed.Queue[0].SourceTrace, trace.Bytes) || observed.Queue[0].SourceTraceSHA256 != record.SHA256FromSum(trace.SHA256) {
+			t.Fatal("choice child lost observed source evidence")
+		}
+	}
+}
 
 func TestExplorationExpandsAllNonSelectedRanksBreadthFirst(t *testing.T) {
 	config := choiceTestConfig()

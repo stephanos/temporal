@@ -90,6 +90,17 @@ func TestReplayAutomaticallySuppliesExactChoiceTape(t *testing.T) {
 	}
 }
 
+func TestReplayHelperPreflightKeepsReplayPreflightStatus(t *testing.T) {
+	t.Parallel()
+	artifactPath, _ := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+	executor := &fakeReplayExecutor{err: fmt.Errorf("helper trace digest: %w", execution.ErrChoiceReplayPreflight)}
+	_, err := replayWith(t.Context(), ReplaySpec{ArtifactPath: artifactPath, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t)}, executionDependencies{executor: executor})
+	var preflight *ReplayPreflightError
+	if !errors.As(err, &preflight) || !errors.Is(err, execution.ErrChoiceReplayPreflight) {
+		t.Fatalf("helper refusal changed replay status: %v", err)
+	}
+}
+
 func TestReplayAutomaticallySuppliesExactSimulationExplorationTape(t *testing.T) {
 	artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true, Simulation: true})
 	opened, err := artifact.OpenArtifact(artifactPath)

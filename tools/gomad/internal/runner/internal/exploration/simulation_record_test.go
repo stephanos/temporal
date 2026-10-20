@@ -1,6 +1,7 @@
 package exploration
 
 import (
+	"bytes"
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
@@ -80,6 +81,7 @@ func TestExecutionForCandidateRestoresRuntimeRankPrefix(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	runtimeDecisions[0].SourceTrace = append([]byte(nil), trace.Bytes...)
 	config := SimulationConfig{
 		ExecutionSHA256: record.HashBytes([]byte("execution")), ControllerSHA256: SimulationImplementationSHA256(), BaseSeed: 17,
 		Parallel: 1, MaxExecutions: 2, MaxForcedDecisions: 1, MaxExplorationBytes: 1 << 20, MaxResultBytes: 1 << 20, FailureBudget: 1,
@@ -107,6 +109,9 @@ func TestExecutionForCandidateRestoresRuntimeRankPrefix(t *testing.T) {
 	}
 	if execution.ChoiceMode != choice.ModePrefix || execution.ChoiceReplayPlan == nil || len(execution.ChoiceReplayPlan.Decisions) != 1 || !execution.ChoiceReplayPlan.Decisions[0].RankOverride || execution.ChoiceReplayPlan.Decisions[0].Selected != 1 {
 		t.Fatalf("runtime candidate execution = %#v", execution)
+	}
+	if !bytes.Equal(execution.ChoiceSourceTrace, trace.Bytes) {
+		t.Fatal("runtime candidate lost observed source trace")
 	}
 }
 
