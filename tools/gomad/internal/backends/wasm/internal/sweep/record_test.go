@@ -11,7 +11,7 @@ import (
 func validSidecar() Sidecar {
 	candidate := Candidate{GomadSHA256: "sha256:g", HelperSHA256: "sha256:h", CompilerSHA256: "sha256:c", GoVersion: "go1.27.1", ModelSHA256: "sha256:m",
 		RuntimeImplementationSHA256: "sha256:r", Engine: "wasmtime/1", Profile: "gomad.wasi-cooperative/v1", GitSHA: "abc", ConfigSource: ConfigThrowaway,
-		BuildTags: GuestTags(), PerTestTimeout: "10m0s", PrepareTimeout: "30m0s", HarnessSHA256: "sha256:w", ExploreFlags: fixedExploreFlags(),
+		BuildTags: GuestTags(), PerTestTimeout: "10m0s", PrepareTimeout: "30m0s", HarnessSHA256: "sha256:w", ExploreFlags: fixedExploreFlags(), TestFlags: fixedTestFlags(),
 		MemoryBytes: 4 << 30, Fuel: 1 << 50, GuestConfigSHA256: "sha256:cfg"}
 	return Sidecar{Schema: SidecarSchema, Statement: ObservationStatement, Candidate: candidate, CandidateKey: candidate.Key(), Hosts: []Host{{Hostname: "h"}},
 		Packages: []Package{{Pattern: "./tests", TopLevelTests: []string{"TestA", "TestB", "TestC"}, Tests: []string{"TestA", "TestB", "TestC"}, ListCount: 3, ParsedCount: 3}},

@@ -364,7 +364,7 @@ func TestSweepClassifiesRetainsResumesAndVerifies(t *testing.T) {
 		t.Fatalf("aggregates %v", sidecar.ByClass)
 	}
 	for _, explore := range f.explores {
-		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--output-limit=256MiB", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json"} {
+		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--output-limit=256MiB", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json", "-test.timeout=72h"} {
 			if !strings.Contains(explore, want) {
 				t.Fatalf("explore %q lacks %q", explore, want)
 			}
@@ -472,7 +472,7 @@ func TestTemporalInstallHookUsesFn220Flags(t *testing.T) {
 	options := newFixture(t).options
 	options.ConfigSource = ConfigTemporalInstall
 	args := strings.Join(installArgs(options, "./tests", dirsFor(options.Work, "./tests")), " ")
-	if !strings.Contains(args, "--temporal-checkout "+options.Checkout) || !strings.Contains(args, "--temporal-package ./tests") || strings.Contains(args, "--config") {
+	if !strings.Contains(args, "--temporal-checkout "+options.Checkout) || !strings.Contains(args, "--temporal-package ./tests") || strings.Contains(args, "--config") || strings.Contains(args, "--profile") {
 		t.Fatalf("install args %s", args)
 	}
 	options.ConfigSource = ConfigThrowaway

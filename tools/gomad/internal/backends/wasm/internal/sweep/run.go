@@ -94,6 +94,7 @@ func (sweeper *Sweeper) Run(parent context.Context) (findings []string, runErr e
 	candidate, err := sweeper.baseCandidate(ctx, tags)
 	candidate.HarnessSHA256 = sweeper.HarnessSHA256
 	candidate.ExploreFlags = fixedExploreFlags()
+	candidate.TestFlags = fixedTestFlags()
 	if err != nil || ctx.Err() != nil {
 		return nil, fmt.Errorf("identify sweep candidate: %w", errors.Join(err, ctx.Err()))
 	}
@@ -238,13 +239,18 @@ func ExploreArgs(manifest, artifacts string, options Options, pattern, test stri
 	return exploreArgs(manifest, artifacts, options, pattern, testRunPattern(test), options.PerTestTimeout)
 }
 
+func fixedTestFlags() []string {
+	return []string{"-test.v", "-test.count=1", "-test.timeout=72h"}
+}
+
 func exploreArgs(manifest, artifacts string, options Options, pattern, run string, executionTimeout time.Duration) []string {
 	args := []string{"--installation", manifest, "explore", fmt.Sprintf("--seeds=%d", options.Seed),
 		"--execution-timeout=" + executionTimeout.String(),
 		"--overall-timeout=" + (executionTimeout + options.PrepareTimeout).String(),
 		"--artifacts", artifacts, "--working-dir", options.Checkout}
 	args = append(args, fixedExploreFlags()...)
-	return append(args, "go-test", pattern, "--", "-test.run="+run, "-test.v", "-test.count=1")
+	args = append(args, "go-test", pattern, "--", "-test.run="+run)
+	return append(args, fixedTestFlags()...)
 }
 
 // fits reports whether runs more per-test executions (each with its
@@ -443,11 +449,24 @@ func (sweeper *Sweeper) baseCandidate(ctx context.Context, tags []string) (Candi
 		return candidate, fmt.Errorf("git rev-parse HEAD in %s: exit %d %v %s", options.Checkout, head.Exit, head.Err, head.Stderr)
 	}
 	candidate.GitSHA = strings.TrimSpace(string(head.Stdout))
-	status := sweeper.Executor.Exec(ctx, Command{Path: "git", Args: []string{"-C", options.Checkout, "status", "--porcelain", "--untracked-files=no"}, Dir: options.Work, Env: gitEnv, Timeout: time.Minute})
+	statusArgs := []string{"-C", options.Checkout, "status", "--porcelain", "--untracked-files=all"}
+	if within(options.Checkout, options.Out) {
+		statusArgs = append(statusArgs, "--", ".")
+		for _, output := range []string{JournalPath(options.Out), SidecarPath(options.Out), SidecarPath(options.Out) + ".tmp"} {
+			relative, err := filepath.Rel(options.Checkout, output)
+			if err != nil {
+				return candidate, err
+			}
+			statusArgs = append(statusArgs, ":(exclude,literal)"+filepath.ToSlash(relative))
+		}
+	}
+	status := sweeper.Executor.Exec(ctx, Command{Path: "git", Args: statusArgs, Dir: options.Work, Env: gitEnv, Timeout: time.Minute})
 	if status.Err != nil || status.Exit != 0 {
 		return candidate, fmt.Errorf("git status in %s: exit %d %v", options.Checkout, status.Exit, status.Err)
 	}
-	candidate.GitDirty = strings.TrimSpace(string(status.Stdout)) != ""
+	if strings.TrimSpace(string(status.Stdout)) != "" {
+		return candidate, fmt.Errorf("%w: checkout %s has tracked or untracked changes outside the generated sweep outputs; use a clean frozen checkout", ErrRefused, options.Checkout)
+	}
 	return candidate, nil
 }
 

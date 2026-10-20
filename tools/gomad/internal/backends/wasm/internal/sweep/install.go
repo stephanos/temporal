@@ -74,14 +74,14 @@ func dirsFor(work, pattern string) packageDirs {
 
 // installArgs is the `gomad install` command line for one package.
 func installArgs(options Options, pattern string, dirs packageDirs) []string {
-	args := []string{"install", "--profile", wasi.CooperativeProfile, "--compiler", options.Compiler, "--helper", options.Helper,
+	args := []string{"install", "--compiler", options.Compiler, "--helper", options.Helper,
 		"--runtime-root", options.RuntimeRoot, "--cache", dirs.preparation, "--compile-cache", dirs.engine, "--output", dirs.manifest}
 	if options.ConfigSource == ConfigTemporalInstall {
 		// fn-220 hook: the one-command setup derives the same guest
 		// configuration inside gomad. Its defaults own memory and fuel.
 		return append(args, "--temporal-checkout", options.Checkout, "--temporal-package", pattern)
 	}
-	return append(args, "--config", dirs.config, "--memory-bytes", strconv.FormatUint(throwawayMemoryBytes, 10), "--fuel", strconv.FormatUint(throwawayFuel, 10))
+	return append(args, "--profile", wasi.CooperativeProfile, "--config", dirs.config, "--memory-bytes", strconv.FormatUint(throwawayMemoryBytes, 10), "--fuel", strconv.FormatUint(throwawayFuel, 10))
 }
 
 // installPackage creates a fresh installation for one package and returns

@@ -43,6 +43,7 @@ type Candidate struct {
 	PrepareTimeout              string       `json:"prepare_timeout"`
 	HarnessSHA256               string       `json:"harness_sha256"`
 	ExploreFlags                []string     `json:"explore_flags"`
+	TestFlags                   []string     `json:"test_flags"`
 	MemoryBytes                 uint64       `json:"memory_bytes"`
 	Fuel                        uint64       `json:"fuel"`
 	GuestConfigSHA256           string       `json:"guest_config_sha256"`
@@ -72,6 +73,9 @@ func (candidate Candidate) missing() []string {
 	}
 	if len(candidate.ExploreFlags) == 0 {
 		missing = append(missing, "explore_flags")
+	}
+	if len(candidate.TestFlags) == 0 {
+		missing = append(missing, "test_flags")
 	}
 	if candidate.MemoryBytes == 0 || candidate.Fuel == 0 {
 		missing = append(missing, "memory_bytes/fuel")
@@ -162,9 +166,30 @@ type Journal struct {
 }
 
 func OpenJournal(path string) (*Journal, error) {
+	if _, err := ReadJournal(path); err != nil {
+		return nil, err
+	}
+	data, err := os.ReadFile(path)
+	if err != nil && !errors.Is(err, os.ErrNotExist) {
+		return nil, err
+	}
 	file, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
 	if err != nil {
 		return nil, err
+	}
+	if len(data) != 0 && data[len(data)-1] != '\n' {
+		start := bytes.LastIndexByte(data, '\n') + 1
+		var row Row
+		if err := json.Unmarshal(data[start:], &row); err != nil || row.Schema != JournalSchema {
+			if err := file.Truncate(int64(start)); err != nil {
+				return nil, errors.Join(err, file.Close())
+			}
+		} else if _, err := file.Write([]byte("\n")); err != nil {
+			return nil, errors.Join(err, file.Close())
+		}
+		if err := file.Sync(); err != nil {
+			return nil, errors.Join(err, file.Close())
+		}
 	}
 	return &Journal{path: path, file: file}, nil
 }

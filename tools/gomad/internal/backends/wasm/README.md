@@ -201,6 +201,9 @@ the measure-fixture parameters and runs `gomad install --config`, labelled
 both warm-up and a test, a package's first recorded function follows one
 unrecorded warm-up run selecting no test, because the helper's engine compilation
 counts against the execution timeout.
+Every unit uses `-test.timeout=72h` for the Go testing package's virtual timer,
+matching the Temporal consumer workflow; the shorter host execution and overall
+deadlines remain authoritative. Test flags are recorded in the candidate identity.
 `--output-limit=256MiB` is the guest's hard output capacity, as in the measure
 fixture. The package's compilation cache serves every unit with independently
 bound execution provenance. Preparation and engine caches are deleted after each package;
