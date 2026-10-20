@@ -81,8 +81,8 @@ the command:
 An invalid selected manifest fails without fallback. Discovery reports its
 identities and configuration and checks helper bytes; it does not execute a
 test. WASM uses `discover` here. Native `doctor` and `analyze` are unavailable
-through this provider. Native execution is hibernating under fn-128/fn-149;
-the patched native host toolchain is a separate workflow.
+through this provider. Native execution is retired; fn-128 and fn-149 closed
+as won't-do on 2026-10-19. Its frozen source remains until fn-223 removes it.
 
 ## Keep and replay a first failure
 
@@ -302,7 +302,7 @@ checkpoint safety or strict World-time qualification.
 Finite repetitions and exact replay apply to retained executions. They establish
 neither arbitrary Temporal support nor exhaustive schedule exploration.
 Capacity/fuel, watchdog and infrastructure failures remain separate from
-replayable application failures. Native qualification remains deferred. The
+replayable application failures. Native retirement supplies no qualification. The
 [qualification ledger](internal/backends/wasm/QUALIFICATION.md) defines required
 gates and unresolved cells. This guide supplies no current qualification result,
 performance gain or numeric determinism bound.

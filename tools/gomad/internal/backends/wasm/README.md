@@ -469,8 +469,9 @@ does not qualify changes to helper/runtime/model inputs. The current operator
 integration contract is
 [fn-181](../../../../../.flow/specs/fn-181-gomad-wasm-operator-integration.md),
 consuming fn-176 storage recovery and fn-178 cluster execution. Native
-qualification remains deferred with fn-128 and fn-149 under the milestone
-hibernation decision; WASM/source checks supply no native execution pass.
+execution is retired; fn-128 and fn-149 closed as won't-do on 2026-10-19.
+The frozen native source remains until fn-223. WASM/source checks supply no
+native execution pass.
 
 ## Determinism contract
 

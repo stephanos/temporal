@@ -67,6 +67,10 @@ failure: native gomadtool's developer owner imports the target owner through
 `internal/backends/target`. This affects exact edges, package architecture and
 host-package vet inventory admission. The default archcheck suite passes.
 
-The worker retains `/home/agent/wt/fn219` on branch `fn219-promote` until the
-conductor integrates its evidence, and `/home/agent/wt/evidence/fn219` for raw
-historical and fresh logs. No scratch checkout was created during this audit.
+The worker originally retained `/home/agent/wt/fn219` on branch `fn219-promote`
+until integration. That worktree has since been removed; raw historical and
+fresh logs remain at `/home/agent/wt/evidence/fn219` while fn-219 is open.
+The identity ledger now records the frozen integrated candidate `3f532910be`
+and distinguishes its later WASI/helper changes from the promotion-only
+measurements. Final ladder exits and final runtime/workload identity bindings
+remain pending. No scratch checkout was created during the original audit.

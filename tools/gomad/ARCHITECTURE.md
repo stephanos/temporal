@@ -283,9 +283,10 @@ schemas under `internal/model/schema`, `internal/model/choice/schema` and
 `internal/model/world/schema` by `internal/model/generation/protocol`, run as
 `internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
 with stock Go and no build tag. The native backend under
-`internal/backends/native` is a frozen consumer of the same schemas: retired
-from execution (fn-128/fn-149), not deleted and not qualified, it still writes
-its own generated outputs and validates under `gomad_native` through
+`internal/backends/native` is a frozen consumer of the same schemas. Native
+execution is retired, and fn-128/fn-149 closed as won't-do on 2026-10-19.
+The tree remains until fn-223; it writes its own generated outputs and
+validates under `gomad_native` through
 `make generate-native validate-native`. No default-set source, Make target or
 CI WASM gate reads the native tree; archcheck enforces this.
 
