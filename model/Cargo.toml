@@ -103,3 +103,12 @@ overflow-checks = true  # fn-210 R11: same arithmetic answer in every profile
 debug = 1          # symbols for profiling the checker
 lto = "thin"
 codegen-units = 1
+
+[profile.guest]
+inherits = "release"
+debug = false
+strip = "symbols"
+lto = "fat"
+codegen-units = 1
+overflow-checks = true
+panic = "unwind"

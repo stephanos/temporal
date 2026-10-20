@@ -137,6 +137,26 @@ real guest through the Go host, validates its export signatures, and rejects
 missing, unexpected and mis-typed exports through compiled negative controls.
 Direct locked Cargo builds need no custom linker or post-link processing.
 
+## Reproducible guest builds (fn-230.1)
+
+Linux proof, 2026-10-20: Linux 7.0.14, aarch64; Rust 1.99.1
+(`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Go 1.27.0,
+protoc 29.5. Two clean source clones at different absolute paths, both at
+`df58e04a076f9d44392a0151e812ad3ccf0824fc`, used initially absent, independent
+target directories; source status was clean before and after, with only the registry shared.
+
+| Guest | Bytes in each clone | SHA-256 in each clone |
+| --- | ---: | --- |
+| `umpire-stock-guest` | 142417 | `f20da4a512470b552eca5cabc8dabffad9a105f8ee12b6282f9ca0cfa4ae1330` |
+| `umpire-temporal-guest` | 275110 | `684fbae2d3f8e28fd3773c5aec4d34665698aadf831269e78ca43296715531ea` |
+
+Both byte comparisons passed; actual guest-profile stock report/rows match native goldens.
+**Unresolved panic requirement:** despite manifest `panic="unwind"`, Cargo emits `panic="abort"`;
+forced unwind fails. Actual-profile panic controls prove existing trap/invalidation, not caught-panic judgments.
+**Unverified macOS/cross-OS identity:** only Linux path independence is proven; the available SSH probe closed before `uname`.
+Baseline/final `make model-check` and `make model-time` passed: warm gate 12.332 s, edit/test 5.084 s.
+[Guest build commands and diagnostics](GUEST_BUILDS.md) record reproduction and the separate profile-artifact parity evidence.
+
 ## Capability and panic boundaries
 
 The real guest imports only `environ_get`, `environ_sizes_get`, `fd_write` and
