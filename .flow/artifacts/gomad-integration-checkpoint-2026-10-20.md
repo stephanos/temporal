@@ -187,3 +187,27 @@ restart it because an observation times out. The `fn188`, `fn221` and frozen
 qualification worktrees are all at this candidate; the fn-227 repair worktree
 stays at `7c1d7ab371` for possible review fixes. Acceptance review must resume
 the existing merged receipt after the missing full qualification is supplied.
+
+Session `79596` subsequently ended with driver/scheduler exit 1 after 276
+seconds: 15 stages passed, root lint and the test harness failed, and all other
+stages stayed unrun. Root lint misclassified the two tagged debug fixture roots;
+the launcher routing test inherited the driver's measurement guard and reached
+the intentionally strict environment refusal. Required Rust lint passed.
+The failing logs, receipts and preparation remain in `qual-8cd478404b`.
+
+Worker repair `579d1b2bbe` is integrated at `c94a4d65d8`. It classifies only the
+two exact fixture roots and isolates the launcher test environment while
+preserving missing-package and nonempty/empty guard-refusal assertions.
+The original broad-base lint command against `65a5f64ffb`, the root router
+suite and full test harness under the driver environment all passed.
+`fn188-validation-repairs-2026-10-20.md` records the RED/GREEN commands and exits.
+No helper, runtime, model or production launcher behavior changed.
+
+Read-only native-deletion planning also disproved fn-223's identity-neutrality
+assumption: the shared cluster digest embeds the glue being removed, and the
+WASM cluster digest and scenario bindings compose it. The existing spec/tasks
+now record a conductor decision allowing only proven source-driven rotations,
+preserving complete hash coverage and unchanged remaining implementation
+identities, and requiring full changed-candidate qualification. The deletion
+goal, live WASM instrumentation and fn-219-closed start gate remain binding.
+fn-223 is still unstarted; structural validation reports zero errors/warnings.

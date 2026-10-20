@@ -295,7 +295,7 @@ Runs after fn-219. Closed-spec cleanup follows AGENTS.md; changes no WASM semant
 | --- | --- | --- |
 | [fn-223.1](.flow/tasks/fn-223-gomad-delete-the-native-backend.1.md) | ⬜ Todo | Remove the nested native module and prove the default set builds |
 | [fn-223.2](.flow/tasks/fn-223-gomad-delete-the-native-backend.2.md) | ⬜ Todo | Remove the linkname glue, Make targets, CI jobs, archcheck tables and native build tags |
-| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record unchanged WASM identities and refresh docs |
+| [fn-223.3](.flow/tasks/fn-223-gomad-delete-the-native-backend.3.md) | ⬜ Todo | Record WASM identity changes, requalify the candidate and refresh docs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
