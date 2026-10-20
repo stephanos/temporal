@@ -682,6 +682,13 @@ fn run_instance(
             namespace,
         ),
     );
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    if let Some(model) = &mut store.data_mut().model {
+        model.event_owner = Some(crate::model::inspection::Handle {
+            node: instance.id.clone(),
+            incarnation,
+        });
+    }
     if let Coordinator::Broker(broker) = coordinator {
         store.data_mut().broker = Some(crate::cluster::handoff::Member {
             broker: broker.clone(),

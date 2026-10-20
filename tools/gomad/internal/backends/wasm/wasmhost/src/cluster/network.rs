@@ -370,6 +370,8 @@ impl Shared {
             faults: config.faults.clone(),
             fault: 0,
         };
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(crate::event_order::owner("controller", 0, 1));
         for id in ids {
             shared.register(id, 1).map_err(infrastructure)?;
         }

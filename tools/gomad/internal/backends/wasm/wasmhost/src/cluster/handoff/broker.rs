@@ -1424,6 +1424,15 @@ pub struct Clockwork<'a> {
 }
 
 impl Member {
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn event_scope(&self, now: u64) -> crate::event_order::Scope {
+        let node = lock(&self.broker.inner).sessions[self.index].id.clone();
+        crate::event_order::enter(crate::event_order::owner(
+            &node,
+            self.incarnation,
+            now.cast_signed(),
+        ))
+    }
     /// Records the instance's current network commitment in its cut.
     /// `Deferred` only checks the evidence would encode and leaves the cut
     /// pending: valid where the instance keeps the continuation until its
@@ -1503,6 +1512,8 @@ impl Member {
     pub fn begin_output(&mut self, now: &mut u64) -> Result<(), Failure> {
         self.broker.check(self.index, self.incarnation)?;
         let current = self.broker.current();
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = self.event_scope(current);
         if let Some(endpoint) = &mut self.network {
             endpoint.attach_at(current)?;
         }
@@ -1517,6 +1528,8 @@ impl Member {
         self.broker.check(self.index, self.incarnation)?;
         self.broker.register(self.index, op, data)?;
         let current = self.broker.current();
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = self.event_scope(current);
         if let Some(endpoint) = &mut self.network {
             endpoint.attach_at(current)?;
         }
@@ -1548,6 +1561,8 @@ impl Member {
             *clock.advances += 1;
         }
         *clock.now = now;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = self.event_scope(now);
         if let Some(endpoint) = &mut self.network {
             #[cfg(feature = "diagnostic-profile")]
             let _network = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::Network);
@@ -1567,6 +1582,8 @@ impl Member {
         clock: &mut Clockwork<'_>,
     ) -> Result<(), Failure> {
         self.begin("runtime_net_stream", data, clock)?;
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = self.event_scope(*clock.now);
         let endpoint = self
             .network
             .as_mut()

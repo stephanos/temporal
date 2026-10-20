@@ -72,12 +72,11 @@ type ReplayBoundary struct {
 	At          Coordinate
 }
 
-// Coordinate places an event in helper execution order. Shared is the fn-180
-// shared execution-order coordinate of the World step the event ran in (the
-// lifecycle order a WASMInspectionBoundary records as Order; zero for a
-// single guest), ChoiceOrdinal is the number of choice records the
-// incarnation committed before the event (the tape ordinal), and VirtualTime
-// is the incarnation's virtual clock at the event.
+// Coordinate places an event in helper execution order. For helper-event
+// reports, Shared is the supplemental global event ordinal; otherwise it is
+// the retained fn-180 lifecycle order. ChoiceOrdinal is the incarnation's
+// trace coordinate (not its replay decision ordinal), and VirtualTime is the
+// modeled clock at the event. ReplayBoundary.Decision names the actual stop.
 type Coordinate struct {
 	Shared        uint64
 	ChoiceOrdinal uint64

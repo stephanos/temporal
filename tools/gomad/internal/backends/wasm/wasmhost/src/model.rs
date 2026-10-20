@@ -102,6 +102,8 @@ pub struct PollResult {
 pub struct Model {
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     event_decisions: u64,
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    pub event_owner: Option<inspection::Handle>,
     #[cfg(feature = "determinism-fixture")]
     fixture_fault: crate::determinism_fixture::Fault,
     config: Config,
@@ -128,9 +130,10 @@ pub struct Model {
 #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
 impl Model {
     pub fn event_context(&self) -> crate::event_order::Context {
+        let handle = self.event_owner.as_ref().unwrap_or(&self.inspection.handle);
         crate::event_order::Context {
-            instance: self.inspection.handle.node.clone(),
-            incarnation: self.inspection.handle.incarnation,
+            instance: handle.node.clone(),
+            incarnation: handle.incarnation,
             trace: self.records,
             decision: self.event_decisions,
             time_nanos: self.now.cast_signed(),
