@@ -85,13 +85,17 @@ impl Realize<activity::World> for Realization {
             return Err(Refusal::malformed("callback requires exactly one input payload"));
         };
         let (action, response) = match plain_text(payload)? {
-            b"Complete" => (
-                Worker::RespondCompleted,
-                reply(&RespondActivityTaskCompletedRequest {
-                    result: Some(Payloads { payloads: vec![payload.clone()] }),
-                    ..Default::default()
-                }),
-            ),
+            b"Complete" => {
+                let mut payload = payload.clone();
+                payload.external_payloads.clear();
+                (
+                    Worker::RespondCompleted,
+                    reply(&RespondActivityTaskCompletedRequest {
+                        result: Some(Payloads { payloads: vec![payload] }),
+                        ..Default::default()
+                    }),
+                )
+            }
             b"Fail" => (
                 Worker::RespondFailed,
                 reply(&RespondActivityTaskFailedRequest {
