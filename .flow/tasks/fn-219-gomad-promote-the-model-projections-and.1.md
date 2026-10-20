@@ -16,9 +16,10 @@ Rename the volume projection outputs (fs, handles, local_handles, volume, intern
 - [ ] types_generated.go decision recorded in the task summary
 
 ## Done summary
-TBD
+Promoted the volume and network projections to ordinary owned source. `types.go` is ordinary source; the private choice codec remains protocol-generated. Removed projection generators, drift tests and provenance constants. Independent review compared all seven promoted implementation bodies against e50c6476fb and found zero differences. Fresh volume/network/hashwire tests and volume/namespace Go-to-Rust differential conformance pass; Rust network/World/clock corpora pass with unchanged expectations. Historical volume-first proof is retained in t1-test-conformance.log. Identity-only corpus substitutions and remaining full candidate qualification belong to fn-219.4. Evidence: .flow/artifacts/fn219-acceptance-audit-2026-10-20.md and /home/agent/wt/evidence/fn219/. Source review SHIP after cbfd5f75a3; no native runtime claim.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: aa43211daf, ab052d04e9, b6a8296c1f, 5f9e92af84, 8aca21a9df, cbfd5f75a3, a84a807829, 38b4c5c6f2
+- Tests: go test -tags test_dep -count=1 ./internal/model/volume/... ./internal/model/network/... ./internal/model/generation/protocol/... ./internal/model/cmd/protocolgen/... ./internal/archcheck (exit 0), make generate validate (exit 0), GOFLAGS='-tags=gomad_native -p=2' make generate-native validate-native (exit 0), go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate -check (exit 0), required-helper TestNamespaceConformance and TestVolumeConformance (exit 0), cargo +1.99.1 test --release --locked --test network_corpus --test world_conformance --test clock_conformance (exit 0), integrated go test -p=1 -tags test_dep ./cmd/tools/lintcode (exit 0), integrated go test -p=1 -tags test_dep ./internal/archcheck (exit 0; integrated-archcheck-fixed.log), independent source review and budget correction review: SHIP
 - PRs:
