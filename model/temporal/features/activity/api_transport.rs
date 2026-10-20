@@ -424,9 +424,7 @@ inspect!(ServerFailureInfo, server_failure_info, |self, response, output| {});
 inspect!(ResetWorkflowFailureInfo, reset_workflow_failure_info, |self, response, output| {
     self.last_heartbeat_details.inspect_wire(response, output)?;
 });
-inspect!(ActivityFailureInfo, activity_failure_info, |self, response, output| {
-    self.activity_type.inspect_wire(response, output)?;
-});
+inspect!(ActivityFailureInfo, activity_failure_info, |self, response, output| {});
 inspect!(
     ChildWorkflowExecutionFailureInfo,
     child_workflow_execution_failure_info,

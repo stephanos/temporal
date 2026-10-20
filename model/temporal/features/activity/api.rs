@@ -393,7 +393,7 @@ umpire_temporal_annotate::annotate! {
         scheduled_event_id: Counter + Observed;
         started_event_id: Counter + Observed;
         identity: Text + Observed;
-        activity_type: Bytes + Observed via Vec<u8> (|m: &ActivityFailureInfo| m.activity_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityFailureInfo, _: Vec<u8>| {});
+        activity_type: Text + Observed via Option<String> (|m: &ActivityFailureInfo| m.activity_type.as_ref().map(|value| value.name.clone()), |_: &mut ActivityFailureInfo, _: Option<String>| {});
         activity_id: Text + Observed;
         retry_state: Enum(retry_state) + Observed;
     }

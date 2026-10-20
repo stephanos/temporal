@@ -202,6 +202,54 @@ fn nested_failure_discriminants_are_validated_without_response_repair()
 }
 
 #[test]
+fn failure_activity_type_does_not_inherit_start_request_constraints()
+-> Result<(), Box<dyn std::error::Error>> {
+    for name in [String::new(), "x".repeat(1001)] {
+        let failure = Failure {
+            failure_info: Some(failure::FailureInfo::ApplicationFailureInfo(
+                ApplicationFailureInfo::default(),
+            )),
+            cause: Some(Box::new(Failure {
+                failure_info: Some(failure::FailureInfo::ActivityFailureInfo(
+                    ActivityFailureInfo {
+                        activity_type: Some(ActivityType { name: name.clone() }),
+                        ..Default::default()
+                    },
+                )),
+                ..Default::default()
+            })),
+            ..Default::default()
+        };
+        let request = RespondActivityTaskFailedRequest {
+            failure: Some(failure.clone()),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        let response = PollActivityExecutionResponse {
+            outcome: Some(ActivityExecutionOutcome {
+                value: Some(activity_execution_outcome::Value::Failure(failure)),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        for (method, response, bytes) in [
+            ("RespondActivityTaskFailed", false, request),
+            ("PollActivityExecution", true, response),
+        ] {
+            let result = annotate(method, response, &bytes, 1)?;
+            assert!(result.violations.is_empty(), "{method}");
+            assert!(result.bytes.eq(&bytes));
+        }
+        let mut request = start();
+        request.activity_type.as_mut().ok_or("activity type")?.name = name;
+        let result = annotate("StartActivityExecution", false, &request.encode_to_vec(), 1)?;
+        assert!(result.violations.iter().any(|violation| violation.contains("ActivityType.name")));
+    }
+    Ok(())
+}
+
+#[test]
 fn diagnostics_exclude_tokens_and_payloads_and_unknown_traffic_refuses()
 -> Result<(), Box<dyn std::error::Error>> {
     let request = RespondActivityTaskCompletedRequest {
