@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -15,7 +16,19 @@ import (
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
 
+func clearTemporalSetupEnvironment(t *testing.T) {
+	t.Helper()
+	for _, entry := range os.Environ() {
+		key, value, _ := strings.Cut(entry, "=")
+		if strings.HasPrefix(key, "GOMAD_") {
+			t.Setenv(key, value)
+			require.NoError(t, os.Unsetenv(key))
+		}
+	}
+}
+
 func TestInstallTemporalAndDiscover(t *testing.T) {
+	clearTemporalSetupEnvironment(t)
 	root := t.TempDir()
 	require.NoError(t, os.MkdirAll(filepath.Join(root, "schema/sqlite"), 0700))
 	require.NoError(t, os.MkdirAll(filepath.Join(root, "tests/gomadfunctional"), 0700))
@@ -53,17 +66,10 @@ func TestInstallTemporalAndDiscover(t *testing.T) {
 		require.Contains(t, stderr.String(), "temporal "+input.name)
 		require.NoError(t, os.WriteFile(input.path, []byte("pinned executable"), 0700))
 	}
-	for _, test := range []struct{ name, value string }{{"GOMAD_TEMPORAL_CONFIG", "ignored.json"}, {"GOMAD_WASM_INSTALLATION", "ignored.json"}} {
-		t.Run(test.name, func(t *testing.T) {
-			t.Setenv(test.name, test.value)
-			stderr.Reset()
-			require.Equal(t, 2, run(args, &stdout, &stderr))
-			require.Contains(t, stderr.String(), "unset "+test.name)
-		})
-	}
 }
 
 func TestInstallTemporalRefusesMissingInputs(t *testing.T) {
+	clearTemporalSetupEnvironment(t)
 	for _, test := range []struct {
 		name    string
 		args    []string
@@ -80,6 +86,25 @@ func TestInstallTemporalRefusesMissingInputs(t *testing.T) {
 			require.Equal(t, 2, run(args, &stdout, &stderr))
 			require.Contains(t, stderr.String(), test.message)
 			require.Empty(t, stdout.String())
+		})
+	}
+}
+
+func TestInstallTemporalRefusesInheritedEnvironment(t *testing.T) {
+	clearTemporalSetupEnvironment(t)
+	for _, name := range []string{"GOMAD_STOCK_GO", "GOMAD_WASM_STOCK_GO", "GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD", "GOMAD_TEMPORAL_CONFIG", "GOMAD_WASM_INSTALLATION", "GOMAD_FUTURE_OPTION"} {
+		t.Run(name, func(t *testing.T) {
+			for _, test := range []struct{ name, value string }{{"nonempty", "ignored"}, {"empty", ""}} {
+				t.Run(test.name, func(t *testing.T) {
+					t.Setenv(name, test.value)
+					output := filepath.Join(t.TempDir(), "installation.json")
+					var stdout, stderr bytes.Buffer
+					require.Equal(t, 2, run([]string{"install", "--temporal-checkout", "/missing", "--output", output}, &stdout, &stderr))
+					require.Equal(t, "unset "+name+"; Temporal setup accepts explicit inputs only\n", stderr.String())
+					require.Empty(t, stdout.String())
+					require.NoFileExists(t, output)
+				})
+			}
 		})
 	}
 }
