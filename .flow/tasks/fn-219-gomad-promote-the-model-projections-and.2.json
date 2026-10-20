@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-219-gomad-promote-the-model-projections-and",
   "spec_path": ".flow/tasks/fn-219-gomad-promote-the-model-projections-and.2.md",
-  "status": "todo",
+  "status": "done",
   "title": "Relocate the protocol generator and I/O wire schema into the parent module",
   "updated_at": "2026-10-19T15:49:26.098886Z"
 }

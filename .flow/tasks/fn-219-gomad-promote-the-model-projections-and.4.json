@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-219-gomad-promote-the-model-projections-and",
   "spec_path": ".flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md",
-  "status": "todo",
+  "status": "done",
   "title": "Record the identity ledger, requalify rotated identities and refresh documentation",
   "updated_at": "2026-10-20T21:12:24.647924Z"
 }

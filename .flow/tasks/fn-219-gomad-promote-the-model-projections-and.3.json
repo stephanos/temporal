@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-219-gomad-promote-the-model-projections-and",
   "spec_path": ".flow/tasks/fn-219-gomad-promote-the-model-projections-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Rewire Makefile, archcheck and CI to the default set",
   "updated_at": "2026-10-19T15:49:26.098965Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-219-gomad-promote-the-model-projections-and",
   "spec_path": ".flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Promote the volume and network projections to owned source",
   "updated_at": "2026-10-19T15:49:26.098776Z"
 }
