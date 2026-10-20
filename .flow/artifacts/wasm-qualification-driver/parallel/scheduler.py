@@ -11,6 +11,9 @@ Admission rules (see README.md "Scheduling policy"):
     (a stage that alone exceeds a cap may start only on an idle host);
   * named locks are mutually exclusive;
   * while a `memguard` stage runs, the others leave it 8 GiB of the cap;
+  * `budgeted` stages (wall-clock-budgeted workload cells) overlap each other
+    and light shared stages, never `heavy` ones (which go first) nor
+    exclusive/solo stages;
   * `solo` stages run with nothing else; `exclusive` stages run with no other
     stage, except that with --allow-background a `bgok` exclusive stage may
     overlap `bg` stages;
@@ -34,8 +37,8 @@ import sys
 import time
 
 EXIT_OK, EXIT_STAGE_FAILED, EXIT_USAGE, EXIT_WALL = 0, 1, 2, 3
-CLASSES = ("normal", "exclusive", "solo")
-FLAGS = ("bg", "bgok", "cleantree", "memguard")
+CLASSES = ("normal", "budgeted", "exclusive", "solo")
+FLAGS = ("bg", "bgok", "cleantree", "memguard", "heavy")
 # A `memguard` stage refuses to dispatch unless MemAvailable >= 8 GiB (the
 # matched-preparation cold memory guard): other stages may then use at most
 # cap - 8 GiB while it runs.
@@ -102,7 +105,7 @@ def finalize(stages):
         successors = [s.rank for s in stages.values() if label in s.deps]
         # Priority among shared stages: exclusive time is serial anyway (see select),
         # so only shared work on the remaining path counts.
-        stage.rank = (stage.est if stage.cls == "normal" else 0.0) + max(successors, default=0.0)
+        stage.rank = (stage.est if stage.cls in ("normal", "budgeted") else 0.0) + max(successors, default=0.0)
     return stages
 
 
@@ -160,6 +163,12 @@ def can_start(stage, running, policy):
     if stage.cls == "solo" or any(r.cls == "solo" for r in running):
         return False
     exclusive_running = [r for r in running if r.cls == "exclusive"]
+    if stage.cls == "budgeted":
+        # Budgeted cells share the host with each other and light shared stages only.
+        if exclusive_running or any("heavy" in r.flags for r in running):
+            return False
+    elif "heavy" in stage.flags and any(r.cls == "budgeted" for r in running):
+        return False
     if stage.cls == "exclusive":
         if exclusive_running:
             return False
@@ -214,13 +223,17 @@ def select(stages, done, running, started, policy, now=0.0, started_at=None):
     chosen = []
     active = list(running)
     normal_ready = any(s.cls == "normal" for s in ready)
+    heavy_pending = any("heavy" in s.flags for s in ready) or any("heavy" in r.flags for r in running)
+    shared_ready = normal_ready or any(s.cls == "budgeted" for s in ready)
     for stage in ready:
-        if stage.cls != "normal" and normal_ready:
+        if stage.cls == "budgeted" and heavy_pending:
+            continue  # heavy shared builds first; budgeted cells never overlap them
+        if stage.cls in ("exclusive", "solo") and shared_ready:
             continue
         if can_start(stage, active, policy):
             chosen.append(stage)
             active.append(stage)
-        elif stage.cls != "normal":
+        elif stage.cls in ("exclusive", "solo"):
             break  # reserve the host for the top exclusive stage
     return chosen
 

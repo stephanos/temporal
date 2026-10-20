@@ -597,6 +597,8 @@ step_clusters() {
   unset GOMAD_WASM_TEMPORAL_RECOVERY_ROOT
   one_path clusters_owner "$QUAL_ROOT/clusters" two-cluster-owner.json
   jq -e --arg helper "$expected_helper" '.network_owner == "rust-cluster" and (.network_owner_implementation_sha256 == $helper or .network_owner_implementation_sha256 == ("sha256:" + $helper))' "$clusters_owner" > /dev/null
+  # Serial: once, after clusters and before the first workload cell (cells now run concurrently).
+  workload_inputs
 }
 
 # ------------------------------------------------------- workload matrix chain
@@ -612,7 +614,7 @@ workload_inputs() {
 step_workload_cell() {
   local wanted="$1" entry workload profile gate cell
   cd "$wasm"
-  if [[ "$wanted" == workload-fixture-controlled-success ]]; then workload_inputs; fi
+  test -s "$QUAL_ROOT/broker-source.path"
   for entry in 'fixture controlled TestActualMatchedFixtureQualification' 'fixture cooperative TestActualMatchedFixtureQualification' \
     'sqlite cooperative TestActualSQLiteDurableQualification' 'onebox cooperative TestActualOneboxQualification' \
     'multi-instance cooperative TestActualTemporalClusterQualification'; do

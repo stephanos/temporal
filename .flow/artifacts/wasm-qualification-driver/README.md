@@ -76,11 +76,22 @@ run passed within the limit.
   before any of its dispatches, so other stages leave it 8 GiB of the cap and the
   scheduler also requires live MemAvailable >= 8 GiB + margin + its own peak at
   admission.
-- Classes: `exclusive` stages (busy12 stress, terminal host admission and
-  terminal exit, every workload cell and SQLite selection — the stages with
-  wall-clock budgets or timing evidence) run with no other stage; `solo`
-  stages (helper corpus regeneration, which rewrites tracked files) run with
-  nothing at all, in every mode.
+- Classes:
+  - `exclusive` stages (`busy-boundaries`, `busy-grouped`,
+    `terminal-host-admission`, `terminal-exit`: busy12 stress and timing
+    evidence) run with no other stage.
+  - `budgeted` stages (every workload cell and SQLite selection) run
+    concurrently with each other and with light shared stages, within the
+    core/memory caps and the runtime 8 GiB headroom. They never run alongside
+    `heavy` stages (Cranelift-heavy shared builds and guests: the helper builds,
+    the Rust matrix, `ordinary`, `terminal-module`, `storage`, `network`,
+    `clusters`, `temporal-inspection`), which are scheduled first, nor alongside
+    exclusive or solo stages.
+  - Cells of the same workload stay ordered (success then canary; the four
+    fixture cells as one chain) because they share fixed per-workload build and
+    engine caches and producer files in the workload root.
+  - `solo` stages (helper corpus regeneration, which rewrites tracked files)
+    run with nothing at all, in every mode.
 - Locks: `golangci` (golangci-lint refuses parallel runs), `cargo-check-target`
   (the Rust matrix shares one Cargo target), `fixture-temporal-broker`
   (`ordinary` and `clusters` both create the staged broker fixture files).
@@ -161,7 +172,41 @@ run passed within the limit.
   (same producers, admission boundaries, seeds and repetitions). Run it alone
   in fn-185's timing window after a passing validation run.
 
-### Wall-time estimate and reaching one hour
+### Conductor decision 2026-10-20: budgeted cells share the host
+
+Workload cells and SQLite selections may run concurrently with each other.
+Their budgets, deadlines, seeds and oracles are unchanged, so this is scheduling
+only. Rationale: the cells' wall-clock budgets have wide headroom over observed
+values.
+
+| Multi-instance cell | Observed | Budget |
+| --- | --- | --- |
+| Execution | 304 s | 900 s |
+| Preparation | 48 s | 600 s |
+| Compiler peak RSS | 2.4 GiB | 6 GiB |
+| Helper peak RSS | 3.4 GiB | 4/8 GiB |
+
+Every result is still checked for `Budget.WithinBudget == true`. A budget
+violation caused by contention fails the run rather than passing it.
+
+The busy12 and terminal timing stages stay exclusive. `temporal-inspection`, the
+longest shared stage on the critical path, now depends only on `helper-build`.
+Its test reads the release helper through `GOMAD_WASM_TEST_HELPER`; it does not
+read the conformance helper, whose path variable is exported as in the serial
+order. It is ranked first among shared stages.
+
+With this policy, `dag.tsv` estimates (12 cores) are:
+
+| Durations | Cap 15 GiB | 15 GiB, shared 20% slower | Cap 13 GiB |
+| --- | --- | --- | --- |
+| Worst of retained runs | 60.4 min | 66.0 min | 66.0 min |
+| q1 run, 2026-10-19 | 46.4 min | 50.8 min | 50.5 min |
+
+The critical path (worst case) is: `helper-build` → `temporal-inspection` →
+multi-instance success → canary → corpus → SQLite selections → `busy-*` →
+terminal stages. The analysis below predates the decision.
+
+### Wall-time estimate and reaching one hour (strict exclusivity, superseded)
 
 Estimated with `scheduler.py simulate`, which uses the same admission code as a
 real run, for 12 cores. Memory cap 15 GiB: 19 GiB host, minus about 2 GiB other
