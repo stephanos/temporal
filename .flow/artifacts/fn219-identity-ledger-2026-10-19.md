@@ -9,11 +9,11 @@ the worker candidate later audited at `28c8c33729`. Raw evidence:
 Attempted qualification candidate: `3f532910be73f622e923273bff86c401645fe7ba`,
 frozen at `/home/agent/wt/qualification-final-frozen`. Its source manifest digest
 is `39182df082494be677778bdbd642b4812defef546b81189bf7a2de36d52a2fba`.
-Current qualification evidence is under
+Historical qualification evidence is under
 `/home/agent/wt/evidence/qualification-final/qual-3f532910be/`.
 The ladder failed with driver exit 1 and scheduler exit 1 after 2,417 seconds
 against the unchanged 3,600-second limit. Of 96 stages, 31 passed, `ordinary`
-failed, and 64 were not run. R5 remains open; this candidate has no final
+failed, and 64 were not run. This candidate has no final
 qualification pass or runtime/workload Result bindings.
 
 Continuation audit (2026-10-20): implementation candidate `28c8c33729` also
@@ -21,9 +21,72 @@ includes the recovered lint-classification and native import-order fixes from
 the earlier integrated batch. Focused model/generator/archcheck tests, default
 generation/validation and native generation/validation were rerun successfully;
 see [the acceptance audit](fn219-acceptance-audit-2026-10-20.md). The conductor
-owns the integrated candidate's WASM qualification and final identity
-measurements. The pending entries below remain pending until that evidence
-exists; these source checks do not substitute for it.
+owns independent acceptance of this ledger and documentation. Under the later
+Rust-first decision, fn-232 R12/task .13 owns the pending final qualification
+and actual identity measurements described below. These source checks do not
+substitute for that qualification.
+
+## Rust-first disposition and receiving inputs (2026-10-20)
+
+The Rust host decision in `MILESTONES.md` supersedes instructions to repair and
+repeat the full Go-host ladder. The receiving
+[fn-232 R12](../specs/fn-232-gomad-rewrite-the-host-side-in-rust.md) and
+[task .13](../tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md), committed
+in `0b55f8bf7a`, explicitly accept fn-219 R5's pending full runtime, workload
+and retained-replay qualification. After its verb gates pass, fn-232 must run
+one complete cycle on its final frozen Rust binary under the unchanged
+3,600-second limit and retain actual reports, numeric exits and identities.
+The transfer earns no qualification pass. Fn-219.4 remains `in_progress`
+until the conductor obtains independent ledger/documentation review.
+
+| Go attempt | Actual disposition | Retained receipt |
+| --- | --- | --- |
+| `ea45f94e59` early preparation | Helper build 0; first preparation 1 because helper link count was 2; private-copy retry 0 in 100.382 seconds. Full ladder never started. | `early-onebox-ea45f94e59/attempt.json`, `prepare*.log`, exit files and producer |
+| `04e06bc95f` | Initial relative entrypoint 127 due inherited `BASH_ENV` directory reset. Corrected absolute launch interrupted by the conductor after stale identity pins were found. Driver/scheduler 130 after 75 seconds, zero completed stages, validation interrupted. | `qual-04e06bc95f/interruption.json`, `wall-time.json`, stage receipts and initial launch log |
+| `8cd478404b` | Driver/scheduler 1 after 276 seconds. Fifteen stages passed; root lint command 2 and test-harness command 2 failed. Remaining stages unrun. | `qual-8cd478404b/wall-time.json`, command/receipt pairs, failing logs and `validation-repairs-8cd478404b.md` |
+| `3f532910be` | Driver/scheduler 1 after 2,417 seconds. Thirty-one stages passed, ordinary command 2 failed, 64 stages unrun. The detailed account below remains historical. | `qual-3f532910be/terminal-summary.json`, `wall-time.json`, `stages.log`, commands and receipts |
+| `2ce6d4a2c5` isolated ordinary diagnostic | Initial scheduler setup 2 before tests due a missing DAG header. Corrected exclusive run interrupted after 501 seconds by the Rust-first owner decision, terminal 130. Its partial ordinary receipt records command 2; neither observation is a completed suite pass. No full ladder ran. | `ordinary-isolated-2ce6d4a2c5/interruption.json`, command, receipt and partial log |
+
+The installation unit-test isolation repair is retained through `2ce6d4a2c5`.
+Its exact inherited-environment reproduction changed from exit 1 to exit 0;
+the empty-value variant and focused lint also exited 0. See
+`installer-repair-2ce6d4a2c5.md` in the receiving history bundle. Those tests
+used inert tool fixtures and supplied no guest execution or qualification.
+The isolated ordinary run was stopped for ordering, without establishing the
+remaining WASI package timing or any runtime/workload Result binding.
+
+Required inputs now have explicit open owners before fn-219 cleanup:
+
+- Fn-232's pending-qualification history is
+  `/home/agent/wt/evidence/fn232/fn219-go-attempts-2026-10-20/README.md`.
+  It indexes selected raw commands, receipts, failed/interrupted logs, source
+  inventories and preparation provenance copied from the attempts above.
+- Fn-232's independent fresh-comparison baseline is
+  `/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md`, also named
+  by receiving task .13. It retains copied Go launcher/helper bytes, an
+  independent source archive, tool pins and receipts. The index identifies the
+  complete stock Go distribution as a retained external preparation dependency.
+  This historical Go baseline supplies fresh behavioral comparisons only.
+- Fn-223's deletion input index is
+  `/home/agent/wt/evidence/fn223/fn219-inputs-2026-10-20/README.md`.
+  Its selected raw inputs preserve full promotion identity values, exact
+  relocation/body and corpus comparisons, default/native generator checks,
+  native-absent proof and the ordinary selected-native baseline failures.
+
+Each receiving bundle has `inputs.sha256`; copying checks compare source and
+destination bytes. Receipt paths embedded in copied files retain their original
+historical meaning; the receiving indexes name the live copies. No obsolete
+root, cache or entire worktree was copied, and no input was deleted. Copying
+creates no new passing test or qualification result.
+
+The source checkpoint `8d37d31bc9` adds
+`wasmhost/src/model/replay_plan.rs` and changes `src/model.rs` under open
+fn-228. Its new helper implementation inputs rotate the helper identity beyond
+the frozen `3f532910be` and pre-fn-228 baseline. The helper hashes below belong
+only to their named historical revisions and builds. No current helper binary
+hash, final runtime/workload Result or final module/BuildKey binding has been
+measured here. Fn-228 owns the new replay implementation; fn-232.13 must bind
+the actual final Rust candidate rather than reuse any historical hash.
 
 The generator relocation itself produced zero output-body differences
 (`step1-zero-diff.txt`). Across the complete migration, stripping generated
@@ -58,7 +121,7 @@ The choice digest is decoded from the generated literal.
 | Native overlay `gomadchoicewire` digest literal (native toolchain identity) | v2 digest | v3 digest | rotated | Same value as the shared literal. Native execution was not performed or requalified. fn-128 and fn-149 closed as won't-do on 2026-10-19. |
 | Guest module SHA | — | — | historical comparison unavailable | No historical promotion preparation was retained. Current prepared bytes are recorded below; their equality to an unmeasured historical module is not asserted. |
 
-## Frozen integrated candidate identities
+## Frozen historical candidate identities (`3f532910be`)
 
 The full historical values are retained in `identities-before.tsv`,
 `identities-after.tsv` and `identities-compare.txt` under the fn-219 evidence root
@@ -98,9 +161,8 @@ Its engine is Wasmtime `47.0.3`, configuration
 `cranelift-fuel-nan-canonical-nounwind-v2`, on `linux/aarch64`; the profile is
 `gomad.wasi-cooperative/v1`. The failed ladder never admitted the runtime or
 workload measurement stages, so the early preparation above cannot supply
-their missing final bindings. Before closed-owner cleanup, the conductor must
-transfer any raw acceptance inputs still required by open fn-223 to that owner
-and verify the new references under AGENTS.md.
+their missing final bindings. Selected raw acceptance inputs now live under
+fn-223 and fn-232 ownership as indexed above, independently of fn-219 cleanup.
 
 ## Pins and corpora regenerated (unchanged expectations)
 
@@ -126,7 +188,7 @@ new identity: `PINNED_GO_NETWORK_SHA256` and the `wasi/identity_test.go` literal
 - Volume and namespace differential conformance with the conformance helper required: exit 0
   (`t1-test-conformance.log`, run after fn-219.1).
 
-## Requalification attempt (failed; R5 open)
+## Historical Go requalification attempt (failed; final gate transferred)
 
 The complete attempt is retained under `qual-3f532910be`. `wall-time.json`
 records driver/scheduler exits 1, wall time 2,417 seconds and all 64 unrun
@@ -139,7 +201,7 @@ The already-running network and inspection stages drained with exit 0.
 | --- | --- | --- |
 | Helper feature suites and corpora | `rust-default-test`, `rust-conformance-unit`, `rust-diagnostic-test`, `rust-fuel-off-test`, `rust-guest-profile-test`, `rust-combined-test` command/receipt pairs | Each exited 0. `helper-corpus-regen-1` and `helper-corpus-regen-2` were not run; required corpus preservation remains incomplete. |
 | Fresh conformance helper | `conformance-helper-build.command` and `.receipt.json` | 0 for the build. The interrupted ordinary suite supplies no complete fresh Go conformance pass. |
-| WASM suite | `ordinary.command` runs `make test-wasm GOMAD_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go` from the frozen Gomad module; `ordinary.receipt.json` and `ordinary.log` | 2. The suite failed; it must pass on the repaired candidate. |
+| WASM suite | `ordinary.command` runs `make test-wasm GOMAD_STOCK_GO=/Users/stephan/Workspace/skunkworks/gomad/temporal/tools/gomad/.toolchain/stock/2198cf19890232fc/go/bin/go` from the frozen Gomad module; `ordinary.receipt.json` and `ordinary.log` | 2. The suite failed. Final qualification belongs to the receiving Rust candidate. |
 | Retained Temporal inspection | `temporal-inspection.command` runs stock Go `test -v -tags test_dep -count=1 -timeout=90m -run '^TestTemporalInspectionRetainedFailure$' ./backend` from the frozen WASM backend; matching receipt/log | 0. Shard, workflow and one-box subcells passed; the one-box subcell took 1,647.85 seconds. This inspection pass supplies no missing full-tape workload qualification. |
 | Network, storage and cluster selections | `network`, `storage`, `clusters` command/receipt pairs | Each exited 0. Other required cluster, network-stream and retained-artifact stages listed in `wall-time.json` were not run. |
 | Operator typed scenarios | `operator` in `wall-time.json.not_run` | Not run; detached replay and kill/resume qualification remain required. |
@@ -150,8 +212,9 @@ The already-running network and inspection stages drained with exit 0.
 `TestInstallTemporalRefusesMissingInputs` command tests. Its WASI package also
 reached the cumulative 15-minute package alarm while `TestStorageOwnerParity`
 had run for nine seconds. That timeout does not establish a 15-minute duration
-for the individual test. Root owns the environment-isolation repair and an
-isolated ordinary-suite timing check before choosing the next full candidate.
+for the individual test. The later isolation repair passed focused unit tests;
+the isolated ordinary diagnostic was interrupted as recorded above. The Rust
+host decision supersedes another Go-host timing check or full ladder.
 No command, timeout, seed, oracle or qualification requirement is waived by
 this failed attempt. The measured identities and individual passing stages
 above remain observations on `3f532910be`; they do not close fn-219.4.
