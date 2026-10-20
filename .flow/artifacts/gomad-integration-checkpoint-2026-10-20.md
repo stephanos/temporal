@@ -273,3 +273,12 @@ module and helper inputs remain. The new fn-219 ledger reconciliation worktree
 is retained at `/home/agent/wt/fn219-ledger-reconcile` for final failure records.
 Untracked `.flow/specs/fn-228*` through `fn-231*` and `tools/gomad/.turbo/` in
 the integration checkout are unrelated work and remain untouched.
+
+At the next checkpoint, local `gomad` fast-forwarded from `ed2c85cf73` to
+`d1696078e7` and became the integration checkout's current branch. Ancestry and
+clean tracked/index state were verified first; fetching from the local `.`
+remote performed a fast-forward without changing source, then `git switch
+gomad` preserved the unrelated untracked files. Nothing was pushed. The
+`gomad-milestones` ref remains at that checkpoint; subsequent integration work
+continues on `gomad`. This branch move supplies no qualification acceptance and
+does not change the frozen `2ce6d4a2c5` isolated-diagnostic candidate.
