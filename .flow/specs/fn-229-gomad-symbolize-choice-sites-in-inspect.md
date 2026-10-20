@@ -8,7 +8,9 @@ This spec adds symbolization to inspect. For each site the output names package,
 
 ## Architecture & Data Models
 
-Go's wasm linker emits the runtime's pclntab into the module's data segment and a `name` custom section with function names. The site offset is the runtime's text offset of the caller PC, so the exact inverse is the same pclntab. A symbolize package under the evidence layer locates the pclntab in the retained module, decodes it with the standard Go symbol decoder, and resolves text start plus offset to a function and file:line. The `name` section is a cross-check: the function the pclntab names must match the name section entry for the same function index.
+**Interleaved ordering (owner decision 2026-10-20):** implement on the Rust host after fn-232.5, without waiting for all of fn-232 or Go-host retirement. Go package locations and algorithms are semantic references only; no parallel Go-host feature is built. Preserve the existing R-IDs and same-lineage evidence/behavior contracts.
+
+Go's wasm linker emits the runtime's pclntab into the module's data segment and a `name` custom section with function names. The site offset is the runtime's text offset of the caller PC, so the exact inverse is the same pclntab. A Rust symbolization module under the evidence layer locates the pclntab in the retained module and resolves text start plus offset to a function and file:line. Reuse an already admitted Rust parser when it implements the pinned Go grammar, or implement a bounded parser for that grammar. The Go symbol decoder is a semantic reference, not a Rust library dependency or a new Go host subprocess. The `name` section is a cross-check: the function the pclntab names must match the name section entry for the same function index.
 
 Inspect calls the symbolizer when the record has a choice profile and attaches a `symbol` to each site and each listed decision. The symbolizer depends on the host filesystem primitives for reading the retained module and on nothing above the evidence layer.
 
@@ -58,5 +60,6 @@ The pclntab was chosen over DWARF because the runtime computes the offset from t
 ## Quick commands
 
 ```bash
-cd tools/gomad && go test ./internal/evidence/artifact/symbolize/... ./internal/runner/inspect/... && .bin/gomad inspect --json ARTIFACT | jq '.choices.sites[0].symbol'
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad symbolize
+# Run the Rust gomad inspect corpus lane and review its golden output.
 ```

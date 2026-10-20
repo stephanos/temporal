@@ -3,9 +3,11 @@ satisfies: [R1, R3, R4, R5, R6, R9]
 ---
 # fn-230-gomad-explore-site-scope-for-choice.1 Site scope flag, pattern validation and resolution against the base trace
 
-Touches: tools/gomad/internal/cli/explore.go, cli/plan.go, tools/gomad/internal/runner/options/, tools/gomad/internal/runner/internal/exploration/site_scope.go, CLI.md
+**Touches:** tools/gomad/rust/gomad/src/cli/{explore.rs,plan.rs}, tools/gomad/rust/gomad/src/campaign/exploration/**, tools/gomad/testdata/parity/**, tools/gomad/CLI.md
+**Semantic references only:** tools/gomad/internal/cli/explore.go, cli/plan.go, tools/gomad/internal/runner/options/, tools/gomad/internal/runner/internal/exploration/site_scope.go, CLI.md
 
 ## Description
+Implement once on the Rust host after fn-232.8 and the existing site-spec predecessors; the Go locations below document existing semantics only. Port the behavior into the Rust ownership surface above and extend the shared golden/behavioral corpus. Do not create or extend a Go-host implementation.
 Add `--site-scope` to explore and plan for `--strategy=choice-exploration` only. Validate patterns (import path grammar, optional `/...` suffix, non-empty, no whitespace) at parse time with status 2. After the base execution, symbolize every site in its trace via the symbolize package, resolve patterns to a fingerprint set, and store `{patterns, resolved_sha256, resolved_count}` in the plan payload and campaign record; a module without symbols fails with status 2 before execution; an empty resolved set stops round one with `site_scope_empty` after publishing the base artifact. Plan validation refuses a malformed scope block on open.
 
 ## Acceptance

@@ -13,7 +13,7 @@ The existing mandatory one-box cell is `TestActualOneboxQualification`, ID `unch
 
 ## Architecture & Data Models
 
-**One-box qualification.** Use the existing qualification owner (`internal/evidence/qualification`, wrapped by `internal/backends/wasm/qualification`) and the exact cooperative guest configuration derived through fn-220's shared `wasi.TemporalConfig` qualification policy. Build with `backend.TemporalGuestBuildTags()`. Retain numeric exits, host identity, helper, compiler, runtime overlay, module, engine and model identities for the frozen candidate.
+**One-box qualification.** Task .1 runs on the Rust host after fn-232.10, using the preserved cell/configuration semantics below. The existing Go owner/test names are semantic references for that Rust port, not instructions to rerun the whole Go-host ladder. Use the existing qualification owner (`internal/evidence/qualification`, wrapped by `internal/backends/wasm/qualification`) and the exact cooperative guest configuration derived through fn-220's shared `wasi.TemporalConfig` qualification policy. Build with `backend.TemporalGuestBuildTags()`. Retain numeric exits, host identity, helper, compiler, runtime overlay, module, engine and model identities for the frozen candidate.
 
 The commands and environment are defined in `QUALIFICATION.md#one-box-cell-gates`. Run prepare-only `TestActualOneboxQualification` first, then its success and canary modes. Preparation excludes `GOMAD_WASM_QUALIFY_WORKLOADS`; measured smoke modes require it. Preserve the preparation receipt before later modes rewrite it and verify the same module identity in both final Results. Validate each Result and PublicationReceipt, and run the `onebox` selection of `TestTemporalInspectionRetainedFailure` for storage/transport inspection. Run the frontend cell's own preparation, success and canary modes in its own root without `GOMAD_WASM_QUALIFY_WORKLOADS`; it shares the inspection gate but its Results are independently validated.
 
@@ -22,7 +22,7 @@ The commands and environment are defined in `QUALIFICATION.md#one-box-cell-gates
 ## API Contracts
 
 - The one-box cell row changes from pending to qualified only with a retained checkpoint covering every required gate.
-- Support lists are candidate-bound; changed identities start an empty list. Historical lists retain their original meaning.
+- Support lists are candidate-bound; changed identities start an empty list. Historical lists retain their original meaning. Task .2 may now implement/document the producer and retain Go-candidate guest observations or pending dispositions. Its phase does not claim a first accepted list without both cells' complete evidence. Task .1 owns final Rust qualification and production of the first fully gate-passing Rust list under R2.
 - Registered smoke and frontend cells keep distinct qualification roots. A mixed mandatory-corpus root is not a support-list input.
 - Qualification settings, capacity budgets and canonical evidence formats remain unchanged.
 
@@ -37,9 +37,12 @@ The commands and environment are defined in `QUALIFICATION.md#one-box-cell-gates
 ## Acceptance Criteria
 
 - **R1:** The mandatory one-box smoke cell is qualified on the current candidate: every gate named in QUALIFICATION.md has a numeric exit, identities and host in a retained checkpoint under `.flow/artifacts`, and the cell row references it. Missing gates or exits leave the row pending.
-- **R2:** The candidate-bound per-test support-list shape is documented in QUALIFICATION.md and the first list exists for the current candidate, containing exactly the gate-passing registered selections and at minimum both the smoke selection and `TestFrontendSystemInfo` above. Every row has all gates and authenticated actual test execution. A sweep pass, unsupported registry cell, suppressed/no-tests execution or claim covering unlisted tests is a finding.
+- **R2:** Task .2 documents/enforces the candidate-bound per-test support-list shape and records truthful Go-candidate dispositions now. After fn-232.10, task .1 produces the first accepted list for the frozen Rust candidate, containing exactly the gate-passing registered selections and at minimum both the smoke selection and `TestFrontendSystemInfo` above. Every row has all gates and authenticated actual test execution. A sweep pass, unsupported registry cell, suppressed/no-tests execution or claim covering unlisted tests is a finding.
 
 ## Decision Context
+
+Owner ordering amendment (2026-10-20): task .2 proceeds now for guest knowledge and the support-list contract on the Go candidate; absent or failed gates produce a pending disposition, never qualified rows. Task .1 later owns R1 and the final R2 Rust list after fn-232.10. The old .2-to-.1 dependency is superseded for this preparatory phase; supported force-start may bypass only that obsolete edge after confirming .2 is todo and unclaimed. No .1 completion is inferred.
+
 
 The owner chose a per-test, candidate-bound support claim, not a package-level or suite-level claim. The 2026-10-20 source correction distinguishes the existing mandatory workflow-type smoke cell from the supplementary frontend cell without dropping the original minimum frontend requirement or weakening mandatory corpus coverage. fn-220's complete shared qualification policy now supplies the configuration; no caller-specific overrides are introduced.
 

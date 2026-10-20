@@ -8,6 +8,8 @@ This spec adds a site scope to choice exploration: a list of Go package patterns
 
 ## Architecture & Data Models
 
+**Interleaved ordering (owner decision 2026-10-20):** implement on the Rust host after fn-232.8, without waiting for all of fn-232 or Go-host retirement. Go package locations and algorithms are semantic references only; no parallel Go-host feature is built. Preserve the existing R-IDs and same-lineage evidence/behavior contracts.
+
 At campaign start the Runner runs the base execution, symbolizes every site in its trace, and resolves the patterns to a set of site fingerprints with a digest. Later rounds symbolize only sites not yet seen, since new prefixes reveal new sites. The filter applies where forced-alternative proposals are generated: a decision whose fingerprint is outside the set yields no proposals. Rounds, transactions and resume are unchanged.
 
 For runnable-kind decisions the scope matches the creation site of the alternative goroutines. The runtime overlay already takes the creation PC when it assigns a goroutine identity; this spec adds the creation site offset to the goroutine-identity material so alternative identities in the trace map to creation sites. That is a versioned change to the choice wire schema with a corpus expectation diff, and it is the only contract change across the three site specs.
@@ -55,5 +57,6 @@ An include list keeps the envelope statement simple: the record says exactly whi
 ## Quick commands
 
 ```bash
-cd tools/gomad && go test ./internal/runner/... -run 'ChoiceExploration|SiteScope' && .bin/gomad explore --strategy=choice-exploration --site-scope='go.temporal.io/server/service/history/...' --json ...
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad site_scope
+# Run the Rust explore/plan/resume corpus lanes with and without site scope.
 ```

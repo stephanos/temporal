@@ -109,7 +109,7 @@ Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 20
 
 The owner decided, "let's schedule the rewrite to Rust now as a flow spec", and "we don't need byte-for-byte parity with existing evidence. that can be broken." [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md) rewrites the Go host side (CLI, Runner, evidence store, qualification, installation) in Rust as one binary that links the helper crate and runs guests in-process. The Rust binary starts a new record schema, storage lineage and installation manifest version; Go-lineage artifacts, campaigns, checkpoints and manifests are refused, never migrated. The gate is behavioral equivalence on fresh executions (outcome class, failure grouping, replay divergence ordinal and reason, accepted minimization reductions, qualification verdict), not byte parity. Go stays for the toolchain overlay, the reference models, the protocol generator and the conformance corpora. Performance and code size were explicitly rejected as justifications. This decision grants no PR, push or CI authority.
 
-[fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md) moves replay-tape projection and validation into the helper library first; fn-232 depends on it. The choice-site path, [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization in inspect, [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md) explore site scope and [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md) minimizer ordering, is specified against record semantics and lands on the Rust host after fn-232 rather than being built twice.
+[fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md) moves replay-tape projection and validation into the helper library first; fn-232 depends on it. The choice-site path, [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization in inspect, [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md) explore site scope and [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md) minimizer ordering, interleaves with the Rust host after its inspect, exploration and minimize tasks respectively. These features do not wait for the entire rewrite or build a second Go-host implementation.
 
 The owner then decided, "let's pull fn-232 forward to avoid any double work," and on the same day merged the existing specs into one order so nothing is built on the Go host and again on the Rust host. The merged delivery order:
 
@@ -121,7 +121,7 @@ The owner then decided, "let's pull fn-232 forward to avoid any double work," an
 6. fn-232.11 to .13 install and Go host retirement; fn-188.6 gate wiring lands in .13; then fn-185.2/.3 against the Rust host.
 7. [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop and refusal-closing specs filed from the sweep run whenever the sweep wants them and land in the Rust verb that owns the behavior; a sweep-blocking host fix before that verb ships is the smallest Go change that unblocks the sweep, with its R-ID noted for the Rust verb.
 
-No other Go host-side work starts. Re-homing notes are recorded in tasks fn-227.1, fn-188.6 and fn-222.1; Flow task dependencies cannot cross specs, so this list is the ordering record.
+No other Go host-side work starts. The fn-222.2 Go support-list phase records only proven rows or pending guest dispositions; final Rust support requires fn-222.1's complete gates after fn-232.10. Re-homing notes are recorded in tasks fn-227.1, fn-188.6 and fn-222.1; Flow task dependencies cannot cross specs, so this list is the ordering record. Native deletion retains its fn-219-closed start gate.
 
 ## Batch-first execution strategy
 
@@ -357,7 +357,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 
 ### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
 
-Land on the Rust host after fn-232, in that order (fn-230 depends on fn-229; fn-231 on both).
+Interleave with the Rust host: fn-229 after fn-232.5 inspect, fn-230 after fn-232.8 exploration and fn-229, then fn-231 after fn-232.9 minimize and both preceding site specs. No feature waits for the entire fn-232 rewrite.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |

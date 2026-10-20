@@ -8,6 +8,8 @@ This spec makes the minimizer site-aware without changing what it accepts: it tr
 
 ## Architecture & Data Models
 
+**Interleaved ordering (owner decision 2026-10-20):** implement on the Rust host after fn-232.9, without waiting for all of fn-232 or Go-host retirement. Go package locations and algorithms are semantic references only; no parallel Go-host feature is built. Preserve the existing R-IDs and same-lineage evidence/behavior contracts.
+
 Proposal generation gains a stable sort key: proposals whose removed decisions are all out of scope sort first, then mixed, then in-scope only; within a class the existing order holds. The choice-prefix minimizer keeps its suffix-only proposals, which have no per-decision choice, and reports symbolized sites for the final prefix. A map from site fingerprint to symbol is built once from the parent artifact's retained module, and the scope resolves to fingerprints the same way exploration resolves it.
 
 The persisted minimizer state gains the ordering key. State identity already covers bounds and candidates, so adding the key changes the identity material and bumps the minimizer implementation digest, which causes old state to be refused as it is today.
@@ -44,5 +46,6 @@ Ordering is a search heuristic layered on an unchanged predicate, so it cannot m
 ## Quick commands
 
 ```bash
-cd tools/gomad && go test ./internal/runner/internal/minimizer/... ./internal/runner/... -run 'Minimize' && .bin/gomad minimize --site-scope='go.temporal.io/server/service/history/...' --json ...
+cargo test --manifest-path tools/gomad/rust/Cargo.toml -p gomad minimize
+# Run the Rust minimize/inspect corpus lanes and review scoped/unscoped goldens.
 ```
