@@ -129,9 +129,10 @@ env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off \
   --test-helper /home/agent/wt/evidence/fn185/current-proof/helpers/release-gomad-wasmhost
 ```
 
-No fn185.1 acceptance gate remains pending in this worktree. The parent still
-owns integrated qualification, Flow state and milestone updates; fn185.2/.3
-measurements are not claimed complete by this source/early-proof receipt.
+These receipts establish the attribution source and early-proof checks on
+`f172c17499`, not all fn185.1 acceptance. R4's qualified-workload preservation
+remains open. The conductor owns integrated qualification, Flow state and
+milestone updates; fn185.2/.3 measurements are not claimed complete here.
 
 ## Integration acceptance review context
 
@@ -158,3 +159,19 @@ The spec's older Quick toolchain is superseded by the repository's pinned1.99.1.
 Independent implementation review must assess task .1's exact R1/R4 scope and
 the limits of the retained early proof; this note is not a verdict or a waiver
 of any remaining qualified-workload obligation. Tasks .2/.3 remain open.
+
+Independent three-draw review finalized NEEDS_WORK, RID
+`4b18246eda3f4ea0c41fb874140b65ec`, receipt
+`.flow/tmp/impl-review-receipt-fn185-attribution-current.json`:
+
+- R1: new choice-stream hashing in `model/reply.rs` lacks a transcript/evidence
+  owner span, so reconciliation passes while its cost is assigned to scheduler.
+  A narrow Rust-only repair and actual-helper regression are in progress.
+- R4: the original proofs do not establish current qualified-workload
+  preservation. Task .1 remains in progress. Its pending dependency now names
+  fn232.13's final frozen Rust runtime-cost-equivalent behavior and qualified
+  choice/WASI/network/output comparison. This is not a waiver or a completed
+  transfer: fn185.1/R4 cannot close until that actual receiving evidence exists.
+
+No new Go-only profiling or full qualification is authorized. The reviewer and
+writers are from the same model family (`gpt-6.1-sol`, reviewer effort high).
