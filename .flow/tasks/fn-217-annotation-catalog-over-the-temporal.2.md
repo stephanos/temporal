@@ -61,9 +61,16 @@ facilities; no new external validation engine or dependencies.
 - [ ] Full gate, clippy and feedback timing pass without changing independent Models, goldens, ABI or protocol.
 
 ## Done summary
-TBD
+Implemented the exhaustive typed annotate! surface and descriptor-set build check; source 16f113317b10899fd47a54b55e746772c301e830 integrated at 73328af3aa26f9c0e9c194754e1a6ce4e97ee598. Shared declarations generate executable factories, checked enums and exhaustive Model action bindings, and drive the real linked descriptor check. Typed ignored opaque fields preserve metadata/redaction without pretending to validate their contents. No independent Model, existing golden, ABI or protocol changes.
 
+Worker focused controls and all-target clippy passed: 21 compile-fail controls, real generated-API pass, runtime/projection/custom-tag/oneof controls, unknown wire enum refusal and full real-descriptor mutations. Worker and independently integrated make model-check passed (conductor exit0; .flow/tmp/fn2172-integrated-model-check.log). The actual upstream descriptor image has no services; the existing linker adds real WorkflowService descriptors while preserving upstream definitions. The bootstrap explicitly classifies its 123 methods; task .3 replaces rather than duplicates it.
+
+Feedback timing: warm gate 15.494s / 30s soft target; actual parser edit loop 17.825s / 10s soft target. The latter misses its target. A same-workload profile repeated the overrun at 17.556s and isolated compiler-test rebuilding as dominant (13.08s UI total including 6.29s nested dependency build; API build-script execution0.54s). All controls remained selected. R30 requires investigation rather than a timing gate failure; full evidence/disposition is tracked in task-2-timing.md. No cheap substitute benchmark or claimed budget pass.
+
+Parallel correctness audit: Critical0/ShouldFix0/Consider0. Standards audit: ShouldFix0/Consider0. Reports preserved verbatim in task-2-quality-audit.md. Formal correctness/contracts/integration fanout c1b92c9558f340e3a05fc62c0a67d456 returned SHIP on all axes with zero findings; finalized SHIP at unchanged reviewed HEAD. Reviewers' sandbox blocked Cargo writes, so executable evidence is the independent green conductor gate, not invented reviewer test results. Reviewer/writer are the same Codex family. Task .3/.4 live catalog, gap and reverse coverage remain open.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 16f113317b10899fd47a54b55e746772c301e830, 73328af3aa26f9c0e9c194754e1a6ce4e97ee598
+- Tests: worker: focused annotate macro/checker runtime/trybuild tests and all-target clippy, worker: make model-check, conductor: CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check (exit 0), worker: make model-time (exit 0; gate15.494s; parser17.825s exceeds10s soft target), worker: same parser-touch cargo test -p umpire-temporal-annotate --quiet --timings (exit0;17.556s), parallel correctness/standards quality audits, flowctl codex impl-review-fanout and finalize (all three SHIP; finalized SHIP)
 - PRs:
