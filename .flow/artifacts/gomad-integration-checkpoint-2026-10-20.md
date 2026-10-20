@@ -317,11 +317,17 @@ The Rust-host plan passed re-review in session
 `.flow/tmp/plan-review-receipt-fn-232-gomad-rewrite-the-host-side-in-rust.json`.
 It preserves pinned-root containment, platform-native no-replace publication,
 bounded authenticated payloads and exact per-verb diagnostic projections.
-Implementation has not started; the fn-228 coherent batch is still active.
+Tasks .1-.4 are now admitted provisionally alongside fn-228, as the merged
+first-batch order permits. `rust_foundation_impl` owns new host/evidence/store
+modules in `fn232-foundation`; its one isolated child owns parity scaffolding in
+`fn232-parity`. Existing helper files remain reserved to fn-228 until its green
+reviewed source is released. There is no public helper library yet: extraction
+belongs to fn-232.1 after that release. The light target is
+`/home/agent/.cache/fn232-foundation-light-target`, not another Wasmtime build.
 
 Sweep `97951` (owned PID `879280`) continues the resumed journal. Latest
-reported 164/1488 classifications comprise 158 observed passes, one explicit
-skip, three unresolved capacity observations, one timeout and one guest
+reported 169/1488 classifications comprise 158 observed passes, one explicit
+skip, five unresolved capacity observations, four timeouts and one guest
 failure. Poll the same handle rather than restarting it. Shared-host triage
 supplies neither quiet-host performance evidence nor a support claim.
 
@@ -329,7 +335,7 @@ Open implementation ownership: `replay_tape_impl` owns Rust/WASI transport in
 `/home/agent/wt/fn228`, and its `runner_bridge` child owns Go producers/adapters
 in `/home/agent/wt/fn228-runner`. Their interface is
 `/home/agent/wt/evidence/fn228/handover/batch-interface.md`. Their later transport,
-Runner and corpus checkpoints through `28dc4b4464` remain outside the integration
+Runner and corpus checkpoints through `12cdc81672` remain outside the integration
 branch pending combined gates and independent review.
 
 fn-219's ledger/audit continuation is integrated as `9d62ddadc1`. Its task .4
@@ -348,18 +354,40 @@ fn-223's amended pure-deletion plan passed re-review. The conductor reran
 after fn-219 closed, then admitted tasks .1-.3 as one batch. Implementation
 worker `native_deletion_impl` owns `/home/agent/wt/fn223`, base `18e5e7cac7`,
 including deletion-only identity accounting and complete pending Rust gate
-transfer. No new full Go qualification ladder is authorized. The conductor owns
+transfer. Source checkpoint `f76f6263b1` is integrated as `cafabfb200`; ledger,
+independent review and acceptance remain open. Root repeated architecture,
+cluster-model and CLI package checks on this integrated source: all exit 0.
+The exact source/live test partition passed same-receipt plan re-review round 4
+at `761f11c9fe`: nine pinned-input source checks remain required, while 39
+actual live roots transfer with full fixture/subtest/bounds coverage. The failed
+unselected attempt stays a failure. All other source tests run across the full
+package universe, excluding only that anchored union and positively re-running
+the nine source roots. No new full Go qualification ladder is authorized. The conductor owns
 review, integration and Flow completion; workers may not push or dispatch CI.
+
+fn-222.2's preparatory support-list contract and authenticated zero-row pending
+report are integrated as `9a5980335f`. Root's two qualification package tests
+passed; all three independent review axes finalized SHIP at RID
+`f89d9b157aa34b94b79600eadedfaff9`. Flow completion was verified and committed
+in `168bf0a4a0`; fn-222.1 still owns final Rust R1/R2 and both accepted rows.
 
 Retained worktrees: root `gomad` for integration; `fn228` and `fn228-runner` for
 the active replay batch; `fn223` for native deletion; `fn221` for the live sweep;
-`qualification-final-frozen` for its actively referenced compiler/Cargo inputs;
-`fn219-closeout` and `fn219-review` temporarily pending the closed-owner custody
-and Git-history audit. Retired clean `fn219-ledger-reconcile`, `fn188` and
-`fn227-map-order` worktrees were removed, with branch/history and required inputs
-preserved. Two targeted cleanup rounds removed approximately 13 GiB of generated
-scratch, obsolete proof copies and unused caches; receipts are
+`fn232-foundation` and detached `fn232-parity` for the active Rust foundations;
+`qualification-final-frozen` for its actively referenced compiler/Cargo inputs.
+Retired clean `fn219-ledger-reconcile`, `fn188`, `fn227-map-order` and
+`fn222-support` worktrees were removed, with branch/history and required inputs
+preserved. Closed fn-219's two remaining worktrees, evidence/cache roots and four
+branches were removed after verified transfers; three archive tags preserve its
+original unique commit histories. New receiver indices are
+`evidence/fn232/fn219-host-tools-2026-10-20/README.md` and
+`evidence/fn223/fn219-closeout-review-2026-10-20/README.md`; Flow pointers are
+committed in `9acefc4c4b`. Historical configs keep their original meaning;
+future Rust qualification must use receiver tool paths and fresh bindings.
+Cleanup receipts are
 `evidence/qualification-final/obsolete-scratch-purge.json` and
-`evidence/qualification-final/retired-workspaces-cleanup.json`. Removed generated
-bytes are not recoverable but can be rebuilt. Unrelated `tools/gomad/.turbo/`
+`evidence/qualification-final/retired-workspaces-cleanup.json`, plus
+`named-cargo-cache-cleanup.json` and `fn219-final-cleanup.json` in that same
+directory. Removed generated/donor bytes are not recoverable; required copies
+remain retained and caches can be rebuilt. Unrelated `tools/gomad/.turbo/`
 remains untouched. Nothing has been pushed.
