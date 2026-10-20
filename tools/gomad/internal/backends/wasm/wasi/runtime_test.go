@@ -134,24 +134,30 @@ func TestRuntimeTransportForcesLogicalAlternativesAndConsumesWholeTape(t *testin
 	for _, name := range []string{"exact", "missing", "extra", "kind", "high-kind", "site", "enabled", "rank", "readiness", "duplicate", "unconfigured", "unfinished"} {
 		t.Run(name, func(t *testing.T) {
 			plan := tape
+			source := bytes.Clone(trace.Bytes)
 			mode := choice.ModeReplay
 			if name == "missing" {
-				plan, err = tape.Prefix(0)
+				source = nil
+				plan, err = choice.ProjectInterruptedReplayPlan(source, 8192, identity)
 				if err != nil {
 					t.Fatal(err)
 				}
 			}
 			if name == "rank" {
-				plan.Decisions = append([]choice.Decision(nil), tape.Decisions...)
-				plan.Decisions[0].Selected = 99
+				binary.BigEndian.PutUint32(source[16:20], 99)
 			}
 			if name == "readiness" {
-				plan.Readiness = []choice.SelectReadiness{{Known: true, Ready: 1}}
+				binary.BigEndian.PutUint16(source[10:12], uint16(choice.ReadinessKnown))
 			}
-			replay, err := newRuntimeSession(&RuntimeControl{Seed: 100, Choice: &runnerbackend.ChoiceRequest{Mode: mode, ExecutionIdentity: identity, Limit: 8192, Tape: &plan}})
+			request := &runnerbackend.ChoiceRequest{Mode: mode, ExecutionIdentity: identity, Limit: 8192}
+			setChoiceReplay(t, request, mode, source, plan)
+			replay, err := newRuntimeSession(&RuntimeControl{Seed: 100, Choice: request})
 			if name == "rank" || name == "readiness" {
 				if err == nil {
-					t.Fatal("altered decoded tape projection accepted")
+					_, err = invoke(replay, "runtime_config", make([]byte, 16))
+				}
+				if err == nil {
+					t.Fatal("malformed source rank or readiness accepted")
 				}
 				return
 			}

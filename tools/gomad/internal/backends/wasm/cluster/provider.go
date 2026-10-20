@@ -634,7 +634,12 @@ func (e *execution) Start(spec gomadsim.NodeSpec, handle gomadsim.NodeHandle) er
 		}
 		control := *request.Runtime
 		choiceRequest := *control.Choice
-		choiceRequest.Mode, choiceRequest.Tape = choice.ModeReplay, &tape
+		choiceRequest.Mode = choice.ModeReplay
+		choiceRequest.Trace = bytes.Clone(retained.ChoiceTrace)
+		choiceRequest.TraceSHA256 = sha256.Sum256(retained.ChoiceTrace)
+		choiceRequest.TapeSHA256 = tape.SHA256
+		choiceRequest.Decisions = uint64(len(tape.Decisions))
+		choiceRequest.PrefixControl = nil
 		if retained.Interrupted && len(e.provider.inspectionControl) == 0 {
 			choiceRequest.Mode = choice.ModePrefix
 		}
@@ -1137,6 +1142,16 @@ func (e *execution) Finish() (gomadsim.WASMEvidence, error) {
 	for _, handle := range handles {
 		result := e.results[handle]
 		request := e.requests[handle]
+		if !result.RuntimeInterrupted && result.ChoiceTrace.Summary.Records != uint64(len(result.ChoiceTrace.Records)) {
+			trace, err := choice.DecodeStoredTrace(choice.Profile, result.ChoiceTrace.Bytes, choice.TerminalMetadata{
+				State: result.ChoiceTrace.Summary.Terminal, Limit: request.Runtime.Choice.Limit,
+				Records: result.ChoiceTrace.Summary.Records, SHA256: result.ChoiceTrace.SHA256,
+			})
+			if err != nil {
+				return evidence, errors.Join(capacityFailures, fmt.Errorf("decode WASM %s/%d choice evidence: %w", handle.Node, handle.Incarnation, err))
+			}
+			result.ChoiceTrace = trace
+		}
 		tape, err := choice.ProjectReplayPlan(result.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
 		trace, diagnostic := result.ChoiceTrace.Bytes, result.DiagnosticTrace.Bytes
 		if result.RuntimeInterrupted {

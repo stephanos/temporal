@@ -117,7 +117,7 @@ func TestCooperativeInspectionEveryDecision(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, recorded.ChoiceTrace.Bytes, tape)
 	replayed, err := Run(context.Background(), request)
 	if err != nil || replayed.Termination != "exit" || !bytes.Equal(recorded.ChoiceTrace.Bytes, replayed.ChoiceTrace.Bytes) || !bytes.Equal(recorded.Transcript, replayed.Transcript) || !bytes.Equal(recorded.InspectionMetadata, replayed.InspectionMetadata) {
 		t.Fatalf("ordinary exact replay: %s %s err=%v", replayed.Termination, replayed.Message, err)

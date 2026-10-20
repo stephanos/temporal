@@ -445,7 +445,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	choiceControl := *original.Runtime.Choice
 	runtimeControl.Choice = &choiceControl
 	request.Runtime = &runtimeControl
-	if request.Runtime.Choice.Mode != choice.ModeRecord || request.Runtime.Choice.Tape != nil {
+	if choices := request.Runtime.Choice; choices.Mode != choice.ModeRecord || choices.Trace != nil || choices.TraceSHA256 != ([32]byte{}) || choices.TapeSHA256 != ([32]byte{}) || choices.Decisions != 0 || choices.PrefixControl != nil {
 		return stressObservation{}, fmt.Errorf("%w: stress requires fresh seeded execution", ErrRefused)
 	}
 	root := filepath.Join(base, fmt.Sprintf("%s-%03d", axis, repetition))

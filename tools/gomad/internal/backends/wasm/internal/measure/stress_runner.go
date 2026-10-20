@@ -87,7 +87,10 @@ func stressRunnerInstallation(root string, original wasi.Request) (string, error
 }
 
 func stressRunnerCampaign(ctx context.Context, sharedRoot string, provider backends.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {
-	if original.Runtime == nil || original.Runtime.Choice == nil || original.Runtime.Choice.Mode != choice.ModeRecord || original.Runtime.Choice.Tape != nil {
+	if original.Runtime == nil || original.Runtime.Choice == nil {
+		return runner.CampaignResult{}, errors.New("stress campaign requires a fresh seeded request")
+	}
+	if choices := original.Runtime.Choice; choices.Mode != choice.ModeRecord || choices.Trace != nil || choices.TraceSHA256 != ([32]byte{}) || choices.TapeSHA256 != ([32]byte{}) || choices.Decisions != 0 || choices.PrefixControl != nil {
 		return runner.CampaignResult{}, errors.New("stress campaign requires a fresh seeded request")
 	}
 	choices, diagnostics := original.Runtime.Choice.Limit, original.Runtime.Diagnostics

@@ -963,7 +963,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 			t.Fatal(err)
 		}
 		control, choices := *requests[i].Runtime, *requests[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModePrefix, &tape
+		setChoiceReplay(t, &choices, choice.ModePrefix, crashed[i].InterruptedChoiceBytes, tape)
 		control.Choice, requests[i].Runtime = &choices, &control
 		requests[i].Broker, requests[i].StdoutMirror = b.Session(name), nil
 		requests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
@@ -980,7 +980,7 @@ func temporalReplayClusters(t *testing.T, evidence string, configuration BrokerC
 			t.Fatal(err)
 		}
 		control, choices := *requests[i].Runtime, *requests[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModeReplay, &tape
+		setChoiceReplay(t, &choices, choice.ModeReplay, recovered[i].ChoiceTrace.Bytes, tape)
 		control.Choice, requests[i].Runtime = &choices, &control
 		requests[i].StorageImage, requests[i].StdoutMirror = actual[i].StorageImage, nil
 		for j, value := range requests[i].Config.Environment {
@@ -1026,14 +1026,14 @@ func temporalReplayClustersInProcess(t *testing.T, evidence string, configuratio
 			t.Fatal(err)
 		}
 		control, choices := *initial[i].Runtime, *initial[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModePrefix, &prefix
+		setChoiceReplay(t, &choices, choice.ModePrefix, crashed[i].InterruptedChoiceBytes, prefix)
 		control.Choice, initial[i].Runtime = &choices, &control
 		tape, err := choice.ProjectReplayPlan(recovered[i].ChoiceTrace, reopened[i].Runtime.Choice.ExecutionIdentity)
 		if err != nil {
 			t.Fatal(err)
 		}
 		recoveryControl, recoveryChoices := *reopened[i].Runtime, *reopened[i].Runtime.Choice
-		recoveryChoices.Mode, recoveryChoices.Tape = choice.ModeReplay, &tape
+		setChoiceReplay(t, &recoveryChoices, choice.ModeReplay, recovered[i].ChoiceTrace.Bytes, tape)
 		recoveryControl.Choice, reopened[i].Runtime = &recoveryChoices, &recoveryControl
 	}
 	pair := temporalOpenClusterPair(t, configuration, initial, reopened)

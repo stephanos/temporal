@@ -44,6 +44,22 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
+func choiceReplayRequest(original *runnerbackend.ChoiceRequest, mode choice.Mode, source []byte, plan choice.ReplayPlan) runnerbackend.ChoiceRequest {
+	return runnerbackend.ChoiceRequest{Mode: mode, ExecutionIdentity: original.ExecutionIdentity, Limit: original.Limit,
+		Trace: source, TraceSHA256: sha256.Sum256(source), TapeSHA256: plan.SHA256, Decisions: uint64(len(plan.Decisions))}
+}
+
+func namespaceReplayRequest(path string, original *runnerbackend.ChoiceRequest, plan choice.ReplayPlan) (runnerbackend.ChoiceRequest, error) {
+	source, err := hostfs.ReadBounded(path+".trace", original.Limit)
+	if err != nil {
+		return runnerbackend.ChoiceRequest{}, err
+	}
+	if sha256.Sum256(source) != plan.SourceTraceSHA256 {
+		return runnerbackend.ChoiceRequest{}, errutil.New("namespace replay source differs from retained tape")
+	}
+	return choiceReplayRequest(original, choice.ModeReplay, source, plan), nil
+}
+
 type prototypeRun struct {
 	Guest, Variant                    string
 	Seed                              uint64
@@ -256,7 +272,7 @@ func prototypeRunOne(runCtx context.Context, report *prototypeReport, guest, var
 	if err != nil {
 		return wasi.Result{}, fmt.Errorf("%s: %w", name, err)
 	}
-	run := prototypeRun{Guest: guest, Variant: variant, Seed: request.Runtime.Seed, Instance: instance, Mode: fmt.Sprint(request.Runtime.Choice.Mode), Termination: result.Termination, Message: result.Message, Calls: int(result.Calls), TimeAdvances: result.TimeAdvances, ExitCode: result.ExitCode, WallNanos: wall.Nanoseconds(), PeakMemoryBytes: result.PeakMemoryBytes, FuelUsed: request.Fuel - result.FuelRemaining, ChoiceRecords: len(result.ChoiceTrace.Records), ChoiceSHA256: hex.EncodeToString(result.ChoiceTrace.SHA256[:]), StdoutSHA256: digest(result.Stdout), WASISHA256: hex.EncodeToString(result.TranscriptSHA256[:]), NetworkSHA256: digest(result.NetworkTranscript), StdoutBytes: len(result.Stdout), NetworkEvents: bytes.Count(result.NetworkTranscript, []byte{'\n'})}
+	run := prototypeRun{Guest: guest, Variant: variant, Seed: request.Runtime.Seed, Instance: instance, Mode: fmt.Sprint(request.Runtime.Choice.Mode), Termination: result.Termination, Message: result.Message, Calls: int(result.Calls), TimeAdvances: result.TimeAdvances, ExitCode: result.ExitCode, WallNanos: wall.Nanoseconds(), PeakMemoryBytes: result.PeakMemoryBytes, FuelUsed: request.Fuel - result.FuelRemaining, ChoiceRecords: int(result.ChoiceTrace.Summary.Records), ChoiceSHA256: hex.EncodeToString(result.ChoiceTrace.SHA256[:]), StdoutSHA256: digest(result.Stdout), WASISHA256: hex.EncodeToString(result.TranscriptSHA256[:]), NetworkSHA256: digest(result.NetworkTranscript), StdoutBytes: len(result.Stdout), NetworkEvents: bytes.Count(result.NetworkTranscript, []byte{'\n'})}
 	run.AuthorizationToTerminalNanos, run.Telemetry, run.HelperResourceUsage = result.AuthorizationToTerminalNanos, result.Telemetry, result.HelperResourceUsage
 	if result.Termination == "exit" {
 		run.VirtualNanos = uint64(int64FromTerminal(result.RuntimeTerminal()))
@@ -1147,7 +1163,7 @@ func temporalReplayClusters(runCtx context.Context, evidence string, configurati
 			return
 		}
 		control, choices := *requests[i].Runtime, *requests[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModePrefix, &tape
+		choices = choiceReplayRequest(&choices, choice.ModePrefix, crashed[i].InterruptedChoiceBytes, tape)
 		control.Choice, requests[i].Runtime = &choices, &control
 		requests[i].Broker, requests[i].StdoutMirror = b.Session(name), nil
 		requests[i].Config.Environment = append([]string(nil), requests[i].Config.Environment...)
@@ -1168,7 +1184,7 @@ func temporalReplayClusters(runCtx context.Context, evidence string, configurati
 			return
 		}
 		control, choices := *requests[i].Runtime, *requests[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModeReplay, &tape
+		choices = choiceReplayRequest(&choices, choice.ModeReplay, recovered[i].ChoiceTrace.Bytes, tape)
 		control.Choice, requests[i].Runtime = &choices, &control
 		requests[i].StorageImage, requests[i].StdoutMirror = actual[i].StorageImage, nil
 		for j, value := range requests[i].Config.Environment {
@@ -1244,7 +1260,7 @@ func temporalReplayClustersInProcess(runCtx context.Context, evidence string, co
 			return
 		}
 		control, choices := *initial[i].Runtime, *initial[i].Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModePrefix, &prefix
+		choices = choiceReplayRequest(&choices, choice.ModePrefix, crashed[i].InterruptedChoiceBytes, prefix)
 		control.Choice, initial[i].Runtime = &choices, &control
 		tape, err := choice.ProjectReplayPlan(recovered[i].ChoiceTrace, reopened[i].Runtime.Choice.ExecutionIdentity)
 		if err != nil {
@@ -1252,7 +1268,7 @@ func temporalReplayClustersInProcess(runCtx context.Context, evidence string, co
 			return
 		}
 		recoveryControl, recoveryChoices := *reopened[i].Runtime, *reopened[i].Runtime.Choice
-		recoveryChoices.Mode, recoveryChoices.Tape = choice.ModeReplay, &tape
+		recoveryChoices = choiceReplayRequest(&recoveryChoices, choice.ModeReplay, recovered[i].ChoiceTrace.Bytes, tape)
 		recoveryControl.Choice, reopened[i].Runtime = &recoveryChoices, &recoveryControl
 	}
 	pair, openClusterPairErr := temporalOpenClusterPair(runCtx, configuration, initial, reopened)
@@ -1535,7 +1551,7 @@ func measureMigration(runCtx context.Context) (measureErr error) {
 				return
 			}
 			request.Runtime.Seed = 0
-			request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+			*request.Runtime.Choice = choiceReplayRequest(request.Runtime.Choice, choice.ModeReplay, first.ChoiceTrace.Bytes, tape)
 			replayed, prototypeExecuteErr3 := prototypeExecute(runCtx, report, guest.name, guest.variant+"-replay", 0, request)
 			if prototypeExecuteErr3 != nil {
 				measureErr = prototypeExecuteErr3
@@ -1804,7 +1820,7 @@ func measureMatchedSuite(runCtx context.Context) (measureErr error) {
 				return
 			}
 			request.Runtime.Seed = 0
-			request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &plan
+			*request.Runtime.Choice = choiceReplayRequest(request.Runtime.Choice, choice.ModeReplay, first.ChoiceTrace.Bytes, plan)
 			replayed, prototypeExecuteErr3 := prototypeExecute(runCtx, report, suite.name, "candidate-replay", 0, request)
 			if prototypeExecuteErr3 != nil {
 				measureErr = errutil.Join(measureErr, prototypeExecuteErr3)
@@ -2206,7 +2222,7 @@ func measureFailingSuiteProfile(runCtx context.Context) (measureErr error) {
 				return
 			}
 			request.Runtime.Seed = 0
-			request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &plan
+			*request.Runtime.Choice = choiceReplayRequest(request.Runtime.Choice, choice.ModeReplay, first.ChoiceTrace.Bytes, plan)
 			replayed, runDiagnosticProfileErr4 := runDiagnosticProfile(runCtx, root, suite.name+"-diagnostic-replay", request, true, true)
 			if runDiagnosticProfileErr4 != nil {
 				measureErr = errutil.Join(measureErr, runDiagnosticProfileErr4)
@@ -8028,13 +8044,18 @@ func measureNamespaceSample(runCtx context.Context) (measureErr error) {
 			measureErr = namespaceMeasurementReadJSONErr3
 			return
 		}
-		request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+		replay, err := namespaceReplayRequest(replayPath, request.Runtime.Choice, tape)
+		if err != nil {
+			return err
+		}
+		request.Runtime.Choice = &replay
 		replayPathSHA256, replayPathSHA256Err := fileHash(runCtx, replayPath)
 		if replayPathSHA256Err != nil {
 			measureErr = replayPathSHA256Err
 			return
 		}
 		inputs[replayPath] = replayPathSHA256
+		inputs[replayPath+".trace"] = digest(replay.Trace)
 	}
 	warmPreparationArtifact2, warmPreparationArtifact22, warmPreparationArtifact3, warmPreparationArtifactErr := warmPreparationArtifact(runCtx, request)
 	if warmPreparationArtifactErr != nil {
@@ -8366,7 +8387,11 @@ func measureNamespaceActivity(runCtx context.Context) (measureErr error) {
 				measureErr = namespaceMeasurementReadJSONErr4
 				return
 			}
-			expected.Runtime.Choice.Mode, expected.Runtime.Choice.Tape = choice.ModeReplay, &tape
+			replay, err := namespaceReplayRequest(replayPath, expected.Runtime.Choice, tape)
+			if err != nil {
+				return namespaceMeasurementSample{}, wasi.Result{}, err
+			}
+			expected.Runtime.Choice = &replay
 		}
 		bound, result, sample, namespaceMeasurementLoadErr := namespaceMeasurementLoad(runCtx, path, common, expected)
 		if namespaceMeasurementLoadErr != nil {

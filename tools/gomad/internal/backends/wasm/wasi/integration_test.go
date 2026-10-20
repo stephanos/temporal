@@ -34,6 +34,20 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/model/world"
 )
 
+func setChoiceReplay(t *testing.T, request *runnerbackend.ChoiceRequest, mode choice.Mode, source []byte, plan choice.ReplayPlan) {
+	t.Helper()
+	capability := &runnerbackend.ChoiceCapability{Mode: mode, ExecutionIdentity: request.ExecutionIdentity, Limit: request.Limit,
+		Trace: source, TraceSHA256: sha256.Sum256(source), TapeSHA256: plan.SHA256, Decisions: uint64(len(plan.Decisions))}
+	if mode == choice.ModePrefix {
+		capability.ReplayPlan = &plan
+	}
+	converted, err := runnerbackend.ChoiceRequestForCapability(capability)
+	if err != nil {
+		t.Fatal(err)
+	}
+	*request = *converted
+}
+
 // The determinism prototype gates (fn-151 tasks 5-8) run only when
 // GOMAD_WASM_PROTOTYPE_ROOT names an absolute evidence directory. Every guest
 // uses the cooperative profile with a frozen clock (zero read-step), so time
@@ -45,12 +59,12 @@ import (
 // is cached. It returns the per-seed baselines.
 func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant string, request Request, seeds []uint64, instances int, codes ...uint32) map[uint64]Result {
 	t.Helper()
-	withSeed := func(seed uint64, tape *choice.ReplayPlan) Request {
+	withSeed := func(seed uint64, tape *choice.ReplayPlan, trace []byte) Request {
 		next := request
 		runtime := *request.Runtime
 		choiceRequest := *runtime.Choice
 		if tape != nil {
-			choiceRequest.Mode, choiceRequest.Tape = choice.ModeReplay, tape
+			setChoiceReplay(t, &choiceRequest, choice.ModeReplay, trace, *tape)
 		}
 		runtime.Choice, runtime.Seed = &choiceRequest, seed
 		next.Runtime = &runtime
@@ -60,7 +74,7 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 	// large modules never overlap.
 	if info, err := os.Stat(request.ModulePath); err == nil && info.Size() > 64<<20 {
 		// A run that selects no tests exits right after startup and fills the cache.
-		warm := withSeed(seeds[0], nil)
+		warm := withSeed(seeds[0], nil, nil)
 		warm.Config.Args = []string{"temporal.test", "-test.run=^$"}
 		warm.Config.NetworkV2 = nil
 		prototypeWarm.Lock()
@@ -85,7 +99,7 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 	var wg sync.WaitGroup
 	for _, j := range jobs {
 		wg.Go(func() {
-			j.result, j.err = prototypeRunOne(report, guest, variant, j.instance, withSeed(j.seed, nil))
+			j.result, j.err = prototypeRunOne(report, guest, variant, j.instance, withSeed(j.seed, nil, nil))
 		})
 	}
 	wg.Wait()
@@ -112,7 +126,7 @@ func prototypeDeterminism(t *testing.T, report *prototypeReport, guest, variant 
 	if err != nil {
 		t.Fatal(err)
 	}
-	replayed := prototypeExecute(t, report, guest, variant+"-replay", 0, withSeed(seeds[0], &tape))
+	replayed := prototypeExecute(t, report, guest, variant+"-replay", 0, withSeed(seeds[0], &tape, first.ChoiceTrace.Bytes))
 	if stream := sameEvidence(first, replayed); stream != "" {
 		t.Fatalf("%s/%s exact replay diverged in %s: %s %s", guest, variant, stream, replayed.Termination, replayed.Message)
 	}
@@ -190,6 +204,7 @@ func TestPrototypeSchedulingDeterminism(t *testing.T) {
 					if buildErr != nil {
 						t.Fatal(buildErr)
 					}
+					source = altered.Bytes
 					plan, err = choice.ProjectReplayPlan(altered, request.Runtime.Choice.ExecutionIdentity)
 				}
 				if err != nil {
@@ -198,7 +213,7 @@ func TestPrototypeSchedulingDeterminism(t *testing.T) {
 				tampered := request
 				runtime := *request.Runtime
 				choiceRequest := *runtime.Choice
-				choiceRequest.Mode, choiceRequest.Tape = choice.ModeReplay, &plan
+				setChoiceReplay(t, &choiceRequest, choice.ModeReplay, source, plan)
 				runtime.Choice = &choiceRequest
 				tampered.Runtime = &runtime
 				result := prototypeExecute(t, report, fixture, "tamper-"+mutation.name, 0, tampered)
@@ -439,7 +454,7 @@ func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, observed.ChoiceTrace.Bytes, tape)
 	request.Runtime.Diagnostics = false
 	replayed, err := Run(context.Background(), request)
 	if err != nil || replayed.Termination != "exit" || !replayed.Reaped || !bytes.Equal(observed.ChoiceTrace.Bytes, replayed.ChoiceTrace.Bytes) || !bytes.Equal(observed.Stdout, replayed.Stdout) || !bytes.Equal(observed.Transcript, replayed.Transcript) {
@@ -478,12 +493,13 @@ func TestCooperativeGoGuestForcesExactReplay(t *testing.T) {
 				if buildErr != nil {
 					t.Fatal(buildErr)
 				}
+				source = altered.Bytes
 				plan, err = choice.ProjectReplayPlan(altered, request.Runtime.Choice.ExecutionIdentity)
 			}
 			if err != nil {
 				t.Fatal(err)
 			}
-			request.Runtime.Choice.Tape = &plan
+			setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, source, plan)
 			result, runErr := Run(t.Context(), request)
 			if runErr != nil || result.Termination != "divergence" || result.ChoiceDivergence == nil || result.ChoiceDivergence.Reason != mutation.reason || !result.Reaped {
 				t.Fatalf("actual tape %s: %s %s divergence=%+v err=%v", mutation.name, result.Termination, result.Message, result.ChoiceDivergence, runErr)
@@ -584,7 +600,7 @@ func TestCooperativeRuntimeProbes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModePrefix, &prefix
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModePrefix, base.ChoiceTrace.Bytes, prefix)
 	alternate, err := Run(context.Background(), request)
 	if err != nil || alternate.Termination != "exit" || alternate.ExitCode == nil || *alternate.ExitCode == *base.ExitCode || !alternate.Reaped {
 		t.Fatalf("alternate forced canary: %s %s %v stdout=%s stderr=%s", alternate.Termination, alternate.Message, err, alternate.Stdout, alternate.Stderr)
@@ -600,7 +616,7 @@ func TestCooperativeRuntimeProbes(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &alternateTape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, alternate.ChoiceTrace.Bytes, alternateTape)
 	request.Runtime.Diagnostics = false
 	exact, err := Run(context.Background(), request)
 	if err != nil || exact.Termination != "exit" || exact.ExitCode == nil || *exact.ExitCode != *alternate.ExitCode || !bytes.Equal(exact.Stdout, alternate.Stdout) || !bytes.Equal(exact.ChoiceTrace.Bytes, alternate.ChoiceTrace.Bytes) || !bytes.Equal(exact.Transcript, alternate.Transcript) {
@@ -687,7 +703,7 @@ func TestCooperativeRuntimeQualification(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, baseline.ChoiceTrace.Bytes, tape)
 	request.Runtime.Diagnostics = false
 	exact, err := matchedPrepareAdmitted(runtime.GOOS, "/proc/meminfo", os.Getenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD"), func() (Result, error) {
 		return Run(t.Context(), request)
@@ -1045,7 +1061,11 @@ func TestClusterOutputBoundaryParity(t *testing.T) {
 					if err != nil {
 						t.Fatal(err)
 					}
-					request.Runtime.Choice.Tape = &tape
+					source := reference.ChoiceTrace.Bytes
+					if reference.RuntimeInterrupted {
+						source = reference.InterruptedChoiceBytes
+					}
+					setChoiceReplay(t, request.Runtime.Choice, request.Runtime.Choice.Mode, source, tape)
 				}
 				cluster := ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: request}}}
 				boundaries := []ClusterBoundary{{Node: "a", Incarnation: 1, Marker: marker}}
@@ -1231,7 +1251,11 @@ func TestClusterBrokerDurableRestartParity(t *testing.T) {
 							if err != nil {
 								t.Fatal(err)
 							}
-							requests[i].Runtime.Choice.Mode, requests[i].Runtime.Choice.Tape = mode, &tape
+							source := reference[i].ChoiceTrace.Bytes
+							if reference[i].RuntimeInterrupted {
+								source = reference[i].InterruptedChoiceBytes
+							}
+							setChoiceReplay(t, requests[i].Runtime.Choice, mode, source, tape)
 						}
 					}
 					cluster := ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: requests[0]}, {ID: "b", Request: requests[2]}}, Boots: map[string]Request{"recover": requests[1]}}
@@ -1516,7 +1540,7 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 							if err != nil {
 								t.Fatal(err)
 							}
-							requests[i].Runtime.Choice.Mode, requests[i].Runtime.Choice.Tape = choice.ModeReplay, &tape
+							setChoiceReplay(t, requests[i].Runtime.Choice, choice.ModeReplay, reference[i].ChoiceTrace.Bytes, tape)
 						}
 						goReplay, goWorld, goNetwork := runReference()
 						for i := range reference {
@@ -1562,7 +1586,7 @@ func TestBrokerIndependentGuestStreamsReplay(t *testing.T) {
 								}
 								baselines[fixture][seed] = actual
 							}
-							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": len(actual.ChoiceTrace.Records), "runnable_order": string(scheduleWitness.Find(actual.Stdout))})
+							samples = append(samples, map[string]any{"seed": seed, "fixture": fixture, "replay": replay, "choice_sha256": fmt.Sprintf("%x", actual.ChoiceTrace.SHA256), "choice_records": actual.ChoiceTrace.Summary.Records, "runnable_order": string(scheduleWitness.Find(actual.Stdout))})
 						}
 					}
 					actual, err := session.Finish(t.Context())
@@ -1662,7 +1686,7 @@ func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 					forced := request
 					control := *request.Runtime
 					choices := *control.Choice
-					choices.Mode, choices.Tape = mode, &tape
+					setChoiceReplay(t, &choices, mode, reference.ChoiceTrace.Bytes, tape)
 					control.Choice = &choices
 					forced.Runtime = &control
 					replayed, err := Run(context.Background(), forced)
@@ -1829,7 +1853,7 @@ func TestNamespaceOwnerFilesystemParity(t *testing.T) {
 			t.Fatal(err)
 		}
 		control, choices := *request.Runtime, *request.Runtime.Choice
-		choices.Mode, choices.Tape = choice.ModeReplay, &plan
+		setChoiceReplay(t, &choices, choice.ModeReplay, reference.ChoiceTrace.Bytes, plan)
 		control.Choice = &choices
 		forced := request
 		forced.Runtime = &control
@@ -1913,7 +1937,7 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 		t.Fatal(err)
 	}
 	control, choices := *request.Runtime, *request.Runtime.Choice
-	choices.Mode, choices.Tape = choice.ModePrefix, &tape
+	setChoiceReplay(t, &choices, choice.ModePrefix, crashed.InterruptedChoiceBytes, tape)
 	control.Choice, request.Runtime = &choices, &control
 	replayed, err := Run(t.Context(), request)
 	if err != nil || replayed.Termination != "crash" || !replayed.Reaped || !replayed.RuntimeInterrupted || len(replayed.ChoiceTrace.Bytes) != 0 || replayed.Message != crashed.Message || !bytes.Equal(replayed.InterruptedChoiceBytes, crashed.InterruptedChoiceBytes) || !bytes.Equal(replayed.InterruptedDiagnosticBytes, crashed.InterruptedDiagnosticBytes) || !bytes.Equal(replayed.Transcript, crashed.Transcript) || !bytes.Equal(replayed.NetworkTranscript, crashed.NetworkTranscript) || !bytes.Equal(replayed.Stdout, crashed.Stdout) || !bytes.Equal(replayed.Stderr, crashed.Stderr) || replayed.EnvironmentIdentity != crashed.EnvironmentIdentity {
@@ -1925,7 +1949,7 @@ func TestBrokerCrashRetainsInterruptedRuntimePrefix(t *testing.T) {
 	stored := request
 	stored.Config.Storage = &StorageModel{Volumes: []volume.VolumeConfig{{ID: "a-store", Path: "/workspace", CapacityBytes: 8 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 1024, Transitions: 10000}}
 	stored.Runtime = &control
-	choices.Mode, choices.Tape = choice.ModeRecord, nil
+	choices = runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: choices.ExecutionIdentity, Limit: choices.Limit}
 	var owners [2]Result
 	for i, remote := range []bool{true, false} {
 		b, err := NewBroker(config)
@@ -1994,7 +2018,7 @@ func TestNetworkStreamsGuestRecordsAndReplays(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, observed.ChoiceTrace.Bytes, tape)
 	replayed, err := Run(context.Background(), request)
 	if err != nil {
 		t.Fatal(err)
@@ -2133,7 +2157,11 @@ func replayStorageGuest(t *testing.T, request Request, recorded Result) Result {
 		}
 		control := *request.Runtime
 		choices := *control.Choice
-		choices.Mode, choices.Tape = mode, &tape
+		source := recorded.ChoiceTrace.Bytes
+		if recorded.RuntimeInterrupted {
+			source = recorded.InterruptedChoiceBytes
+		}
+		setChoiceReplay(t, &choices, mode, source, tape)
 		control.Choice = &choices
 		request.Runtime = &control
 	}
@@ -2511,7 +2539,7 @@ func TestTemporalCommittedWorkflowFreshGuestCrashReopen(t *testing.T) {
 	}
 	control := *request.Runtime
 	choices := *control.Choice
-	choices.Mode, choices.Tape = choice.ModePrefix, &tape
+	setChoiceReplay(t, &choices, choice.ModePrefix, committed.InterruptedChoiceBytes, tape)
 	control.Choice = &choices
 	crashRequest.Runtime = &control
 	enumeration := committed.StorageCrashEnumeration["temporal"]
@@ -3597,7 +3625,7 @@ func TestTemporalNetworkNamedResetRetriesAndExactReplay(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	request.Runtime.Choice.Mode, request.Runtime.Choice.Tape = choice.ModeReplay, &tape
+	setChoiceReplay(t, request.Runtime.Choice, choice.ModeReplay, observed.ChoiceTrace.Bytes, tape)
 	replayed, err := Run(t.Context(), request)
 	retain("replay", replayed)
 	if err != nil {
