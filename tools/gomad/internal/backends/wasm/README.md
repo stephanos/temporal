@@ -410,7 +410,7 @@ and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers
 remain explicit operations.
 
-The stress-only helper records a bounded supplemental event-order sidecar in
+The diagnostic-role helper records a bounded supplemental event-order sidecar in
 `event-order.log`; it does not change canonical choice, transcript or inspection
 formats. Divergence reports use the actual helper commit order and modeled clock,
 and authenticate the preceding common fn-180 prefix before offering a replay
