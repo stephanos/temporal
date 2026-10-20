@@ -56,3 +56,7 @@ Conductor disposition: fix only the new proof-section layout using a linked focu
 
 Commit `5d5637a2ab76adc4b06253ab0688bef84c7bf3bf` changes only DESIGN.md and the new GUEST_BUILDS.md. The conductor verified a clean lane, clean scoped diff, existing documentation target, DESIGN.md at 998 lines, and unchanged proof-artifact SHA-256 values. This resolves the standards finding without discharging actual WASI unwinding or macOS/cross-OS proof. No task or spec completion is claimed.
 
+## Integrated source checkpoint
+
+The conductor integrated the checkpoint at `183e22fccce1f1badde0cc8ab2eb3ad78355f03e`, after fn-217.2's verified closure. The combined `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check` exited 0 (`.flow/tmp/fn2301-integrated-model-check.log`). Focused Python build/fresh/stale/failure controls, Bash syntax checks and diff checks also exited 0. These checks verify integration of the source checkpoint only. Task fn-230.1 remains in progress, with both original proof obligations open.
+

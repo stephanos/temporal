@@ -80,7 +80,7 @@ freshness checks, and `make umpire-guest` refreshes it. Umpire's own guests stay
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-230.1 | 🔄 in progress | Linux source checkpoint and two-checkout proof verified; actual unwinding and macOS/cross-OS proof remain open (R1) |
+| fn-230.1 | 🔄 in progress | Linux source checkpoint integrated and combined model gate passed; two-checkout proof verified; actual unwinding and macOS/cross-OS proof remain open (R1) |
 | fn-230.2 | ⬜ todo | After .1: committed Temporal guest with `go:embed`; freshness step; `umpire-guest`; docs (R2, R3, R4) |
 
 ### fn-231: Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)
