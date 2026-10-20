@@ -16,9 +16,10 @@ Extract the Temporal guest configuration capture from internal/backends/wasm/was
 - [ ] gomad discover accepts the derived installation for tests/gomadfunctional
 
 ## Done summary
-TBD
+Selected additive install flags --temporal-checkout and --temporal-package; factored schema capture, guest directories, environment and capacities into wasi.TemporalConfig plus the bounded TemporalNetwork policy. Both named integration fixtures call the shared owner and explicitly retain their historical profile overrides. Independent full-byte tests cover canonical prototype and final inspection configurations; a network-limit mutation fails both command and inspection tests. Derived install and discover exit 0 on clean integrated 29f49b17bc. Defaults: 256MiB output, 1GiB transcript, 2^28 calls, 4096 descriptors, 100000 files, 512MiB filesystem, 4096 pending events, 128 listeners, 4096 connections, 128MiB network total, 4MiB/connection, 10s stall and 2^20 transitions; memory 4GiB, fuel 2^50. Independent review SHIP after 93b12381b7. Full evidence/commands/identities: .flow/artifacts/fn220-setup-proof-2026-10-20.md. This consumer proof is separate from full WASM qualification owned by fn-219.4/fn-222.
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: fb8044eca5, 7c8ef42504, ff719ea3b4, 8896829710, fc04600872, 93b12381b7
+- Tests: go test -tags test_dep ./internal/backends/wasm/command ./internal/backends/wasm/installation ./cmd/gomad/internal/cli -count=1 (exit 0), TestTemporalConfigPreservesPrototypeBytes; TestTemporalInspectionConfigPreservesFixtureBytes; historical qualification smoke bytes (exit 0), compiler-backed TestBuildSelectionChangesInvalidateCompilationCache (exit 0), network connection-limit mutation 4096 to 4095: command+inspection tests exit 1; restored exit 0, derived install and discover on clean 29f49b17bc (exit 0), explore TestFrontendSystemInfo retained success on clean 29f49b17bc (exit 0), fresh gomad replay retained success: reproduced=true choice-replay=exact (exit 0), make lint-code-fast GOLANGCI_LINT_FIX=false (exit 0), independent source review after 93b12381b7: SHIP
 - PRs:

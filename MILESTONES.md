@@ -263,8 +263,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | 🚧 In progress | Factor the fixture configuration derivation into shared code and choose the verb |
-| [fn-220.2](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md) | ⬜ Todo | Expose the one-command setup and run TestFrontendSystemInfo end to end |
+| [fn-220.2](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md) | 🚧 In progress | Expose the one-command setup and run TestFrontendSystemInfo end to end |
 | [fn-220.3](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.3.md) | ⬜ Todo | Document the one-command workflow |
 
 ### Functional-suite triage sweep — [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md)
