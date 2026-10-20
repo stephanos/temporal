@@ -179,7 +179,9 @@ isolated test unit under `./tests` (seed `--seed`, `--parallel=1`,
 `--choices`, the slim `TemporalGuestBuildTags()`), so the explore path it
 observes is the operator's. Enumeration parses the `go list` test files and must
 equal `go test -list ^Test` for top-level functions in the same packages and
-tags. It also resolves suite registrations, receiver methods and local promoted
+tags. Discovery crosses nested modules under `tests`; each package records its
+own host module directory and Go target while retaining a checkout-relative
+report label. It also resolves suite registrations, receiver methods and local promoted
 methods from source. Each registered method gets its own anchored slash selector;
 nested registrations use one wildcard component per enclosing subtest. A suite
 wrapper is expanded into method units and never rerun as an unfiltered suite.

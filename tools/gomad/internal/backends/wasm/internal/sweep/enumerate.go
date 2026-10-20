@@ -25,12 +25,14 @@ var ErrEnumerationMismatch = errors.New("enumeration mismatch")
 
 // Package is one enumerated tests package.
 type Package struct {
-	ImportPath    string              `json:"import_path"`
-	Pattern       string              `json:"pattern"` // ./tests/<rel>, the go-test target
-	Tests         []string            `json:"tests"`   // sorted isolated test units (host file set)
-	TopLevelTests []string            `json:"top_level_tests"`
-	Methods       []SuiteMethod       `json:"methods,omitempty"`
-	Registrations []SuiteRegistration `json:"registrations,omitempty"`
+	ImportPath      string              `json:"import_path"`
+	Pattern         string              `json:"pattern"` // checkout-relative artifact label
+	ModuleDirectory string              `json:"module_directory"`
+	Target          string              `json:"target"`
+	Tests           []string            `json:"tests"` // sorted isolated test units (host file set)
+	TopLevelTests   []string            `json:"top_level_tests"`
+	Methods         []SuiteMethod       `json:"methods,omitempty"`
+	Registrations   []SuiteRegistration `json:"registrations,omitempty"`
 	// GuestExcluded are tests whose defining file is not in the wasip1 guest
 	// file set under the slim tags; they cannot run in the guest.
 	GuestExcluded map[string]string `json:"guest_excluded,omitempty"`
@@ -75,6 +77,26 @@ func goEnvironment(environ []string, goos, goarch string) []string {
 // and expands suite registrations into isolated method selectors. Unregistered
 // methods and unresolved registrations fail with ErrEnumerationMismatch.
 func Enumerate(ctx context.Context, executor Executor, options Options, tags []string, log io.Writer) ([]Package, error) {
+	selections, err := discoverModules(options.Checkout, options.Packages)
+	if err != nil {
+		return nil, err
+	}
+	var packages []Package
+	for _, selection := range selections {
+		moduleOptions := options
+		moduleOptions.Checkout = selection.Directory
+		moduleOptions.Packages = selection.Patterns
+		listed, err := enumerateModule(ctx, executor, moduleOptions, options.Checkout, tags, log)
+		packages = append(packages, listed...)
+		if err != nil {
+			return packages, fmt.Errorf("enumerate module %s: %w", selection.Directory, err)
+		}
+	}
+	sort.Slice(packages, func(i, j int) bool { return packages[i].Pattern < packages[j].Pattern })
+	return packages, nil
+}
+
+func enumerateModule(ctx context.Context, executor Executor, options Options, checkout string, tags []string, log io.Writer) ([]Package, error) {
 	host, err := listPackages(ctx, executor, options, tags, "", "")
 	if err != nil {
 		return nil, err
@@ -127,15 +149,19 @@ func Enumerate(ctx context.Context, executor Executor, options Options, tags []s
 		if err != nil {
 			return nil, fmt.Errorf("%w: %s: %v", ErrEnumerationMismatch, listed.ImportPath, err)
 		}
-		pattern, err := relativePattern(options.Checkout, listed.Dir)
+		pattern, err := relativePattern(checkout, listed.Dir)
 		if err != nil {
 			return nil, err
 		}
-		listedTests, err := listTests(ctx, executor, options, tags, pattern)
+		target, err := relativePattern(options.Checkout, listed.Dir)
 		if err != nil {
 			return nil, err
 		}
-		pkg := Package{ImportPath: listed.ImportPath, Pattern: pattern, Tests: inventory.Tests, Methods: inventory.Methods, Registrations: inventory.Registrations, ListCount: len(listedTests), ParsedCount: len(parsed), files: inventory.files, unitFiles: inventory.unitFiles}
+		listedTests, err := listTests(ctx, executor, options, tags, target)
+		if err != nil {
+			return nil, err
+		}
+		pkg := Package{ImportPath: listed.ImportPath, Pattern: pattern, ModuleDirectory: options.Checkout, Target: target, Tests: inventory.Tests, Methods: inventory.Methods, Registrations: inventory.Registrations, ListCount: len(listedTests), ParsedCount: len(parsed), files: inventory.files, unitFiles: inventory.unitFiles}
 		for name := range parsed {
 			pkg.TopLevelTests = append(pkg.TopLevelTests, name)
 		}
@@ -188,7 +214,7 @@ func relativePattern(checkout, dir string) (string, error) {
 }
 
 func listPackages(ctx context.Context, executor Executor, options Options, tags []string, goos, goarch string) ([]listedPackage, error) {
-	args := []string{"list", "-e", "-json=ImportPath,Dir,GoFiles,TestGoFiles,XTestGoFiles,Error", "-tags", strings.Join(tags, ",")}
+	args := []string{"list", "-mod=readonly", "-e", "-json=ImportPath,Dir,GoFiles,TestGoFiles,XTestGoFiles,Error", "-tags", strings.Join(tags, ",")}
 	args = append(args, options.Packages...)
 	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: args, Dir: options.Checkout, Env: goEnvironment(options.Environ, goos, goarch), Timeout: 10 * time.Minute})
 	if completed.Err != nil || completed.Exit != 0 {
@@ -214,7 +240,7 @@ func listPackages(ctx context.Context, executor Executor, options Options, tags 
 
 // listTests runs `go test -list ^Test` on the host for one package.
 func listTests(ctx context.Context, executor Executor, options Options, tags []string, pattern string) ([]string, error) {
-	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: []string{"test", "-count=1", "-tags", strings.Join(tags, ","), "-list", "^Test", pattern}, Dir: options.Checkout, Env: goEnvironment(options.Environ, "", ""), Timeout: 30 * time.Minute})
+	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: []string{"test", "-mod=readonly", "-count=1", "-tags", strings.Join(tags, ","), "-list", "^Test", pattern}, Dir: options.Checkout, Env: goEnvironment(options.Environ, "", ""), Timeout: 30 * time.Minute})
 	if completed.Err != nil || completed.Exit != 0 {
 		return nil, fmt.Errorf("go test -list %s: exit %d %v\n%s%s", pattern, completed.Exit, completed.Err, completed.Stdout, completed.Stderr)
 	}

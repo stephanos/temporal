@@ -159,7 +159,7 @@ func (sweeper *Sweeper) Run(parent context.Context) (findings []string, runErr e
 					// execution timeout. One unrecorded run selecting no test
 					// fills this package's engine cache, so the first row's
 					// budget is not spent compiling.
-					warmup, err := sweeper.warm(ctx, pkg.Pattern, manifests[pkg.Pattern], dirs)
+					warmup, err := sweeper.warm(ctx, pkg, manifests[pkg.Pattern], dirs)
 					if err != nil {
 						if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
 							entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted during warm-up"}
@@ -179,7 +179,7 @@ func (sweeper *Sweeper) Run(parent context.Context) (findings []string, runErr e
 					entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted after warm-up"}
 					break
 				}
-				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention, started)
+				entry, err = sweeper.runTest(ctx, pkg, name, manifests[pkg.Pattern], dirs, retention, started)
 				if err != nil {
 					if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
 						entry.Class, entry.Reason = ClassNotRun, "overall budget exhausted during test"
@@ -256,15 +256,26 @@ func (sweeper *Sweeper) fits(started time.Time, runs int) bool {
 
 // warm runs the package's guest once with a run expression that selects no
 // test, under the preparation allowance, and records only its costs.
-func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs packageDirs) (TestEntry, error) {
-	options := sweeper.Options
+func packageExecution(options Options, pkg Package) (Options, string) {
+	if pkg.ModuleDirectory != "" {
+		options.Checkout = pkg.ModuleDirectory
+	}
+	if pkg.Target != "" {
+		return options, pkg.Target
+	}
+	return options, pkg.Pattern
+}
+
+func (sweeper *Sweeper) warm(ctx context.Context, pkg Package, manifest string, dirs packageDirs) (TestEntry, error) {
+	options, target := packageExecution(sweeper.Options, pkg)
+	pattern := pkg.Pattern
 	entry := TestEntry{Package: pattern, Name: "(warm-up)", Attempts: 1, ConfigSource: options.ConfigSource}
 	runRoot := filepath.Join(dirs.runs, "warm-up")
 	if err := resetDirectory(runRoot); err != nil {
 		return entry, err
 	}
 	_, before := treeSize(dirs.engine)
-	completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: exploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, "^$", options.PrepareTimeout), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: 2*options.PrepareTimeout + subprocessSlack})
+	completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: exploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, target, "^$", options.PrepareTimeout), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: 2*options.PrepareTimeout + subprocessSlack})
 	if ctx.Err() != nil {
 		return entry, errors.Join(ctx.Err(), os.RemoveAll(runRoot))
 	}
@@ -281,8 +292,9 @@ func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs
 	return entry, os.RemoveAll(runRoot)
 }
 
-func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
-	options := sweeper.Options
+func (sweeper *Sweeper) runTest(ctx context.Context, pkg Package, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
+	options, target := packageExecution(sweeper.Options, pkg)
+	pattern := pkg.Pattern
 	entry := TestEntry{Package: pattern, Name: name}
 	var runRoot string
 	var outcome Outcome
@@ -292,7 +304,7 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			return entry, err
 		}
 		_, entriesBefore := treeSize(dirs.engine)
-		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
+		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, target, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
 		entry.Attempts, entry.GomadExit, entry.WallSeconds = attempt, completed.Exit, completed.Elapsed.Seconds()
 		if ctx.Err() != nil {
 			// An interrupted sweep records nothing for this function; a
