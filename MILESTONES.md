@@ -75,7 +75,8 @@ push and CI restrictions remain in force.
 
 Owner performance decision (2026-10-13): WASM execution-speed work stays in the Rust
 helper, accepting Go→Rust duplication where it buys performance; embedding Wasmtime in Go
-(`wasmtime-go`) is rejected.
+(`wasmtime-go`) is rejected. The [2026-10-20 Rust host decision](#rust-host-rewrite-owner-decision-2026-10-20)
+supersedes the duplication clause: new host-side logic lands in Rust, not in both.
 
 ### WASM performance measurement host (owner decision, 2026-10-17)
 
@@ -102,7 +103,25 @@ Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 20
 4. [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) qualifies the one-box cell and defines the per-test support claim, after fn-220.
 5. [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md) determinism boundary audit continues alongside; it must hold for a testcore-sized guest.
 6. [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) deletes the native backend after fn-219; fn-128 and fn-149 are already closed as won't-do.
-7. [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) tasks .2/.3 measure sweep workloads and deliver the cost verdict after the functional milestones (delivery-order update, 2026-10-20). Task .1's attribution tooling remains available alongside. Bring targeted profiling forward only for a demonstrated performance blocker; all measurement acceptance, including transferred R6 comparisons, remains required and no performance gain is claimed before measurement.
+7. [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) task .1's attribution tooling continues in the helper's diagnostic profile. Tasks .2/.3 profile the Go host side and are re-scoped by the [2026-10-20 Rust host decision](#rust-host-rewrite-owner-decision-2026-10-20) to measure the Rust host after fn-232; they are not run against the Go host. Bring targeted profiling forward only for a demonstrated performance blocker; no performance gain is claimed before measurement.
+
+### Rust host rewrite (owner decision, 2026-10-20)
+
+The owner decided, "let's schedule the rewrite to Rust now as a flow spec", and "we don't need byte-for-byte parity with existing evidence. that can be broken." [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md) rewrites the Go host side (CLI, Runner, evidence store, qualification, installation) in Rust as one binary that links the helper crate and runs guests in-process. The Rust binary starts a new record schema, storage lineage and installation manifest version; Go-lineage artifacts, campaigns, checkpoints and manifests are refused, never migrated. The gate is behavioral equivalence on fresh executions (outcome class, failure grouping, replay divergence ordinal and reason, accepted minimization reductions, qualification verdict), not byte parity. Go stays for the toolchain overlay, the reference models, the protocol generator and the conformance corpora. Performance and code size were explicitly rejected as justifications. This decision grants no PR, push or CI authority.
+
+[fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md) moves replay-tape projection and validation into the helper library first; fn-232 depends on it. The choice-site path, [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization in inspect, [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md) explore site scope and [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md) minimizer ordering, is specified against record semantics and lands on the Rust host after fn-232 rather than being built twice.
+
+The owner then decided, "let's pull fn-232 forward to avoid any double work," and on the same day merged the existing specs into one order so nothing is built on the Go host and again on the Rust host. The merged delivery order:
+
+1. [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md) tasks .1 to .4 (binary crate, evidence layer, store, harness) with [fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md) as the first batch. In parallel: [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) as pure deletion; [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md) .2/.3 sweep and [fn-222](.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md) .2 support list on the Go binary, since their results are guest knowledge that carries over; the carry-over parts of fn-219.4 (ledger, docs), fn-227.1 (regression tests, inventory rows) and fn-188.5 (stress report).
+2. fn-232.5 inspect in Rust, then [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization.
+3. fn-232.6 to .8 replay and exploration in Rust; fn-227 R1/R2 (shutdown and crash-validation ordering) are implemented once in fn-232.8; then [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md).
+4. fn-232.9 minimize in Rust, then [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md).
+5. fn-232.10 qualify in Rust, then fn-222.1 one-box qualification on the Rust binary.
+6. fn-232.11 to .13 install and Go host retirement; fn-188.6 gate wiring lands in .13; then fn-185.2/.3 against the Rust host.
+7. [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop and refusal-closing specs filed from the sweep run whenever the sweep wants them and land in the Rust verb that owns the behavior; a sweep-blocking host fix before that verb ships is the smallest Go change that unblocks the sweep, with its R-ID noted for the Rust verb.
+
+No other Go host-side work starts. Re-homing notes are recorded in tasks fn-227.1, fn-188.6 and fn-222.1; Flow task dependencies cannot cross specs, so this list is the ordering record.
 
 ## Batch-first execution strategy
 
@@ -242,7 +261,7 @@ CI, PR, or push authority.
 - Every Go bump requires porting and requalification. Dependency bumps affecting
   packed or adapted modules invalidate their pins and reopen the capability closure.
 
-## WASM
+## Open specs
 
 ### Model projection promotion — [fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)
 
@@ -289,7 +308,7 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 
 ### Native backend deletion — [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md)
 
-Runs after fn-219. Closed-spec cleanup follows AGENTS.md; changes no WASM semantics.
+Runs after fn-219, in parallel with fn-232 as pure deletion. Closed-spec cleanup follows AGENTS.md; changes no WASM semantics.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
@@ -304,3 +323,54 @@ Runs after fn-219. Closed-spec cleanup follows AGENTS.md; changes no WASM semant
 | [fn-185.1](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.1.md) | 🚧 In progress | Attribute host imports to exact ops and model owners in the diagnostic profile with reconciliation |
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
+
+### Helper-owned replay tape validation — [fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md)
+
+First batch of fn-232; the Rust binary links the helper library it extends.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-228-gomad-helper-owned-replay-tape.1](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.1.md) | ⬜ Todo | Rust replay-plan projection with a Go/Rust conformance corpus |
+| [fn-228-gomad-helper-owned-replay-tape.2](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.2.md) | ⬜ Todo | Helper preflight: trace frames, digest and count checks, refusal before guest start |
+| [fn-228-gomad-helper-owned-replay-tape.3](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.3.md) | ⬜ Todo | Runner stops projecting; compares helper terminal counts |
+| [fn-228-gomad-helper-owned-replay-tape.4](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md) | ⬜ Todo | Keep split-owned reference session, regenerate corpora, document the contract |
+
+### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
+
+First in the delivery order (owner decision 2026-10-20). New evidence lineage; behavioral equivalence gate; Go overlay, models, generator and corpora stay.
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.1](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.1.md) | ⬜ Todo | gomad binary crate linking the helper library; in-process execution with slots and bounds |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.2](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.2.md) | ⬜ Todo | Rust evidence layer: record schema, canonical encoding, identities |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.3](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.3.md) | ⬜ Todo | Rust artifact store: new lineage, staged publication, budget, target pool |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.4](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.4.md) | ⬜ Todo | Behavioral differential harness and corpus |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.5](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.5.md) | ⬜ Todo | inspect in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | ⬜ Todo | replay in Rust on the helper library tape path |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⬜ Todo | seed explore, resume and merge in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⬜ Todo | choice exploration and simulation exploration in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⬜ Todo | minimize in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |
+
+### Choice-site symbolization, explore site scope and minimizer ordering — [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md), [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md), [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md)
+
+Land on the Rust host after fn-232, in that order (fn-230 depends on fn-229; fn-231 on both).
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-229-gomad-symbolize-choice-sites-in-inspect.1](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.1.md) | ⬜ Todo | Symbolize package: locate pclntab in the retained module and resolve text offsets |
+| [fn-229-gomad-symbolize-choice-sites-in-inspect.2](.flow/tasks/fn-229-gomad-symbolize-choice-sites-in-inspect.2.md) | ⬜ Todo | Inspect output: attach symbols to sites, decisions and divergences |
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-230-gomad-explore-site-scope-for-choice.1](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.1.md) | ⬜ Todo | Site scope flag, pattern validation and resolution against the base trace |
+| [fn-230-gomad-explore-site-scope-for-choice.2](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.2.md) | ⬜ Todo | Frontier filtering, per-round counts and resume refusal |
+| [fn-230-gomad-explore-site-scope-for-choice.3](.flow/tasks/fn-230-gomad-explore-site-scope-for-choice.3.md) | ⬜ Todo | Goroutine creation sites in the choice wire schema and runnable-decision scoping |
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-231-gomad-site-aware-minimizer-ordering-and.1](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.1.md) | ⬜ Todo | Scoped proposal ordering with checkpoint key and parent-scope default |
+| [fn-231-gomad-site-aware-minimizer-ordering-and.2](.flow/tasks/fn-231-gomad-site-aware-minimizer-ordering-and.2.md) | ⬜ Todo | Symbolized reporting in minimize --json and inspect |

@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T20:43:56.903021Z",
+  "depends_on": [
+    "fn-232-gomad-rewrite-the-host-side-in-rust.1"
+  ],
+  "id": "fn-232-gomad-rewrite-the-host-side-in-rust.2",
+  "priority": null,
+  "spec": "fn-232-gomad-rewrite-the-host-side-in-rust",
+  "spec_path": ".flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.2.md",
+  "status": "todo",
+  "title": "Rust evidence layer: record schema, canonical encoding, identities",
+  "updated_at": "2026-10-20T20:48:17.679720Z"
+}

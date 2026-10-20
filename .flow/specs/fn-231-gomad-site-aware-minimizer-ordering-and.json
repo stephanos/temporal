@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-231-gomad-site-aware-minimizer-ordering-and",
+  "created_at": "2026-10-20T20:28:45.760046Z",
+  "depends_on_epics": [
+    "fn-229-gomad-symbolize-choice-sites-in-inspect",
+    "fn-230-gomad-explore-site-scope-for-choice"
+  ],
+  "id": "fn-231-gomad-site-aware-minimizer-ordering-and",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md",
+  "status": "open",
+  "title": "Gomad: site-aware minimizer ordering and reporting",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T20:28:54.690858Z"
+}

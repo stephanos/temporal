@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-230-gomad-explore-site-scope-for-choice",
+  "created_at": "2026-10-20T20:28:45.286928Z",
+  "depends_on_epics": [
+    "fn-229-gomad-symbolize-choice-sites-in-inspect"
+  ],
+  "id": "fn-230-gomad-explore-site-scope-for-choice",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-230-gomad-explore-site-scope-for-choice.md",
+  "status": "open",
+  "title": "Gomad: explore site scope for choice exploration",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T20:28:54.191920Z"
+}

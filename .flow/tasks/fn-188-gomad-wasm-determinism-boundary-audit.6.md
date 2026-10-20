@@ -9,6 +9,8 @@ Turn every escape or divergence found in tasks .1 to .5 into a named regression 
 **Size:** M
 **Files:** tools/gomad/internal/backends/wasm/determinism/*, tools/gomad/internal/backends/wasm/Makefile, tools/gomad/Makefile, tools/gomad/internal/backends/wasm/README.md, tools/gomad/README.md, tools/gomad/ARCHITECTURE.md, tools/gomad/internal/backends/wasm/wasmhost/tests/testdata/helper_transcript/**
 
+**Re-homing (owner decision 2026-10-20, Rust host rewrite):** complete the named regression tests, inventory pins and README contract here. The `make validate` and WASM test-target wiring that lives in the Go host build is re-homed to fn-232.13 (Rust host retirement), which wires the inventory and boundary tests into the Rust binary's validate path; do not add Go-host-only gate code.
+
 ## Acceptance
 - [ ] Every escape or divergence found has a named test referenced by its row; deleting it fails the completeness test
 - [ ] Inventory pinned to Go toolchain, Wasmtime and Rust versions; mismatch fails until pin and review date updated

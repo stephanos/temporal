@@ -1,0 +1,24 @@
+{
+  "branch_name": "fn-228-gomad-helper-owned-replay-tape",
+  "created_at": "2026-10-20T20:28:44.249075Z",
+  "depends_on_epics": [],
+  "id": "fn-228-gomad-helper-owned-replay-tape",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-228-gomad-helper-owned-replay-tape.md",
+  "status": "open",
+  "title": "Gomad: helper-owned replay tape validation",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T20:28:44.258338Z"
+}

@@ -1,0 +1,19 @@
+---
+satisfies: [R1]
+---
+# fn-232-gomad-rewrite-the-host-side-in-rust.1 gomad binary crate: link the helper as a library, in-process execution with slots and bounds
+
+Touches: tools/gomad/rust/Cargo.toml (workspace), tools/gomad/rust/gomad/src/{main.rs,execute.rs,slots.rs}, wasmhost/Cargo.toml (lib + bin targets)
+
+## Description
+Create a Cargo workspace with a `gomad` binary crate and turn the helper into a library target the binary links (keep the helper bin target until R12). Implement `execute`: build a fresh Wasmtime engine/store per execution with the existing fuel, memory and wall-clock bounds, run the guest, collect termination, streams, transcripts and choice evidence through the library's existing model types. Implement a fixed slot pool with `std::thread::scope`; a panic in a slot aborts the run with an explicit error. Pin dependency versions exactly like the helper crate (clap derive, thiserror, tempfile, fd-lock, indexmap, hex).
+
+## Acceptance
+Golden corpus lane: fixture guests reach exit, trap, fuel exhaustion and watchdog timeout with the same termination classes as the Go backend, diffed as golden `--json` output; two slots run two seeds concurrently with a golden ledger; `make validate` still passes for the helper library. Unit tests only for the slot-panic abort path, which names its invariant.
+## Done summary
+TBD
+
+## Evidence
+- Commits:
+- Tests:
+- PRs:

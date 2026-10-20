@@ -1,0 +1,76 @@
+# Gomad: rewrite the host side in Rust
+
+## Goal & Context
+
+Gomad's execution semantics already live in the Rust helper: Wasmtime, the WASI subset, the clock, World, volume, network and namespace models, the cluster broker and inspection. The Go side owns orchestration: the CLI verbs, the campaign Runner, the artifact store, records and identities, qualification, installation and the toolchain overlay. The two halves talk over a per-execution pipe with codecs generated from shared schemas on both sides.
+
+This spec rewrites the Go host side in Rust so that one binary owns orchestration and execution. The reasons are structural, not speed: one codebase instead of two codecs per schema, the engine available in-process to inspect, replay and minimize, a single static host binary, and a host that treats Go as one guest among possible others. Go remains where it is the right tool: the runtime overlay that patches Go's own runtime, the reference models that serve as the differential oracle, and the conformance corpora that hold Rust equal to them.
+
+Evidence compatibility with artifacts the Go binary published is not required. The Rust binary starts a new storage lineage and record schema, refuses earlier-lineage artifacts the way the store already refuses them, and is free to choose its own canonical encodings. What must survive is behavior: the same target under the same seed and profile reaches the same outcome, the same divergence ordinal, and the same failure grouping under either binary. Operators are the engineers who run campaigns locally and in CI; rigor is business-critical for evidence integrity within the new lineage.
+
+## Architecture & Data Models
+
+The Rust workspace gains a `gomad` binary crate beside the existing helper crate, which becomes a library the binary links. Executions run in-process in fresh Wasmtime stores; parallel slots are threads with the existing fuel, memory and wall-clock bounds. Minimization and qualification keep their freshness guarantee through a fresh engine and store per candidate. Process isolation per execution is out of scope.
+
+The evidence layer is redesigned for Rust rather than ported: a versioned record envelope with a new schema name, serde-native canonical encoding with sorted keys and native integers, the same identity semantics (record hash over the canonical bytes, failure signature excluding the seed, execution identity binding target, toolchain, platform and implementation), a new storage lineage, and the same publication discipline of staging, sync and no-replace rename, retained-bytes rules and shared target pool. The Runner ports campaign control: seeds, parallel slots, failure policy, resume ledgers, choice and simulation exploration rounds, minimization and qualification. Installation and discovery port with a new installation manifest version.
+
+The Go toolchain overlay stays in Go and is invoked by the Rust binary through the pinned Go toolchain as a build step, exactly as the Go Runner invokes the compiler today. The Go reference models, the protocol generator and the conformance corpora stay in Go; the generator keeps emitting the Rust codecs the binary uses, and the Go codecs the oracle uses.
+
+
+**Testing strategy.** The Rust host is tested from the outside in, through fixtures and golden files, with unit tests reserved for invariants no fixture can observe.
+
+- *Golden CLI corpus.* A checked-in corpus of small fixture guests (built by the pinned toolchain from the existing testdata programs), seeds, profiles, scenarios and exploration plans. One test drives the `gomad` binary verb by verb over that corpus and diffs `--json` output, published manifests and ledgers against golden files. Records already exclude host paths and timestamps, so goldens are byte-stable; record hashes and failure signatures are pinned in the goldens, which makes any encoding change an explicit expectation diff. Regeneration follows the helper corpus convention: an environment flag regenerates, repeated executions must agree, and a second regeneration must leave the corpus byte-identical.
+- *Behavioral parity harness.* The same corpus feeds the Go-versus-Rust harness until Go retires; afterwards the goldens are the regression suite and the harness is deleted.
+- *Conformance corpora.* The existing Rust-versus-Go model corpora stay as they are.
+- *Fault fixtures through the CLI.* Crash between stage and rename, concurrent publishers, budget exhaustion, lock contention and interrupted rounds are exercised end to end through a `determinism-fixture`-style cargo feature that injects the fault at a named point, with the resulting store or ledger state compared to a golden.
+- *Unit tests only for unobservable invariants.* Allocation-free probes, lock ordering, overlap counters and codec round-trips that a CLI run cannot distinguish. Each such test states in a comment which invariant it protects and why no fixture can.
+- *Rule for changes.* A bug fix adds or changes a corpus case first; a unit test is added only when the CLI cannot observe the defect. Golden diffs are reviewed as expectation diffs, never regenerated blind.
+
+Verb order: `inspect`, then `replay`, then seed `explore` with `resume` and `merge`, then choice and simulation exploration, then `minimize`, then `qualify`, then `install`, `doctor`, `discover`, `plan` and `recover`. The Rust binary is built verb by verb against a behavioral differential harness, and replaces the Go binary wholesale once every verb passes and one qualification cycle has run on the Rust binary alone. There is no period in which both binaries share an artifact root.
+
+## API Contracts
+
+The CLI verbs, flags, status codes and environment variables are unchanged. `--json` result shapes may change where the new encoding makes a field redundant; every change is listed in the CLI documentation diff that ships with the verb. The behavioral differential harness runs the Go binary and the Rust binary on fresh executions of a fixed corpus of targets, seeds, profiles, scenarios and exploration plans, and compares: outcome class and termination, failure signature grouping (same executions group together under both), divergence ordinal and reason on replay of each binary's own artifacts, accepted minimization reductions by removed decision identity, and qualification verdict per cell. It reports the first difference with its path.
+
+## Edge Cases & Constraints
+
+Artifacts, campaigns, checkpoints and installation manifests from the Go lineage are refused by the Rust binary with the existing unsupported-format error, never migrated or silently reinterpreted. Fail-closed behavior is unchanged: unsupported operations, malformed data, identity mismatches and capacity exhaustion remain explicit outcomes. Exact replay of a Rust-published artifact under the Rust binary must be exact; byte equality of records within the Rust lineage is required so that byte-equal behavior yields byte-equal records, as today.
+
+## Acceptance Criteria
+
+- **R1:** A `gomad` Rust binary crate links the helper crate as a library and executes guests in-process in fresh Wasmtime stores with the existing fuel, memory and wall-clock bounds, and parallel slots as threads. Errors: a trap, fuel exhaustion, memory limit or watchdog timeout → the same termination classes and status codes as today; a host panic in one slot aborts the campaign with an explicit error rather than continuing.
+- **R2:** The Rust evidence layer defines a new record schema with canonical serde encoding, and within that lineage byte-equal behavior yields byte-equal records: two fresh executions of the same target, seed and profile produce identical record bytes and hash. Errors: any nondeterministic field in the record fails a repeated-execution test; diagnostic paths and host timestamps are excluded as today.
+- **R3:** The Rust artifact store publishes under a new storage lineage through staging, sync and no-replace rename, enforces the byte budget and shares targets through the pool. Errors: a Go-lineage artifact → refused with the unsupported-format error, never migrated; budget exceeded → the existing status; crash mid-publish → an unreferenced directory, never a half-published artifact.
+- **R4:** `inspect` in Rust reads Rust-lineage artifacts and reports the same facts the Go inspect reports for an equivalent execution, as checked by the harness on field semantics rather than bytes. Errors: a Go-lineage artifact → unsupported-format error; a corrupt manifest → the existing open error.
+- **R5:** `replay` in Rust replays Rust-lineage artifacts exactly, and the harness shows the same match or first-divergence ordinal and reason as the Go binary shows on its own artifacts for the same corpus execution. Errors: identity mismatch, missing payloads and divergence each produce today's status and message. Depends on fn-228 so the tape is validated by the helper library, not reimplemented.
+- **R6:** Seed `explore`, `resume` and `merge` in Rust produce the same selection order, the same outcome classes and the same failure grouping as the Go binary on the campaign corpus. Errors: interrupted rounds resume from the last complete hash-linked round; changed bounds and identities are refused as today; a Go-lineage campaign root → refused.
+- **R7:** Choice exploration and simulation exploration in Rust produce the same frontier order and the same explored-envelope report as the Go binary on the corpus. Errors: exhausted bounds report the envelope, never completion; a malformed plan is refused on open.
+- **R8:** `minimize` in Rust accepts the same reductions by removed decision identity and records equivalent evidence for the corpus failures. Errors: changed bounds, corrupt state, concurrent writer and changed identities → status 3 refusals as today; a candidate that changes the failure signature → rejected.
+- **R9:** `qualify` in Rust reaches the same verdict per cell as the Go binary on the fixture cell and the SQLite workload, with a report bound to the candidate identities in the new schema. Errors: a failed repetition or replay fails the cell with an explicit report.
+- **R10:** `install`, `doctor`, `discover`, `plan` and `recover` in Rust behave as documented, with `install` invoking the Go toolchain overlay through the pinned toolchain and pinning the same digests in a new manifest version. Errors: a missing or mismatched pinned tool is refused; a Go-version manifest is refused; `install` never downloads.
+- **R11:** The Go toolchain overlay, reference models, protocol generator and conformance corpora remain in Go, and `make validate` keeps proving Rust codecs equal to the generated schemas and Rust models equal to the Go oracles. Errors: a corpus difference fails validation.
+- **R12:** After R4 to R10 pass, one full qualification cycle runs on the Rust binary alone and its reports are retained; the Go host-side packages and the Go binary are then removed from the default build, with archcheck enforcing that no default-set source imports them. Errors: a qualification cell failing on the Rust binary blocks retirement.
+- **R13:** The behavioral differential harness runs both binaries on fresh executions of the corpus for every verb and reports the first semantic difference with its path; it runs in CI until R12 completes. Errors: a missing corpus entry fails the harness, never skips.
+
+- **R14:** Every verb is covered by the golden CLI corpus with regeneration under an environment flag that requires repeated-execution agreement and byte-identical second regeneration; unit tests exist only for invariants the corpus cannot observe and each names that invariant. Errors: a golden diff fails the test with the first differing path; a regeneration whose second pass differs fails; a unit test without a stated invariant fails lint.
+
+## Boundaries
+
+- No byte-for-byte compatibility with Go-lineage records, artifacts, campaigns, checkpoints or manifests, and no migration tool for them.
+- No per-execution subprocess isolation; fresh stores in-process are the freshness mechanism.
+- No change to CLI verbs, flags, status codes or environment variables; `--json` shapes may change only as documented per verb.
+- No port of the toolchain overlay, reference models, protocol generator or corpora.
+- No second guest language; the decision kinds remain Go runtime concepts.
+- No performance target; speedups are not a goal of this spec.
+- No broad unit-test suite; coverage comes from the golden corpus and fault fixtures (R14).
+- Removing the retired native backend tree is tracked elsewhere.
+
+## Decision Context
+
+The rewrite is scheduled on structural grounds the owner weighed against the port cost: one codec per schema, the engine in-process for inspect and replay and minimize, a single host binary, and a host shape that does not privilege Go. Performance and code size were rejected as justifications. The owner explicitly dropped byte-for-byte compatibility with existing evidence: the store already refuses earlier lineages rather than migrating them, so starting a new lineage is the existing policy applied once more, and it frees the Rust side to use serde-native canonical encoding instead of reproducing Go's JSON escaping and string-encoded integers. Behavioral equivalence on fresh executions is the gate instead, because what the tool promises is that the same target under the same seed reaches the same outcome and groups the same failures. In-process execution was chosen over re-exec isolation because Wasmtime bounds the guest and a fresh store provides the host-state freshness the fresh-process rule protected. Keeping the Go models as the oracle was non-negotiable: a Rust-only model would be checking itself. The owner chose fixture and golden-file testing over a large unit-test suite: end-to-end runs over a corpus catch regressions at the boundary users see and cost less to maintain, and the repository already runs its model and transcript corpora this way.
+
+## Quick commands
+
+```bash
+cd tools/gomad && make validate && cargo test -p gomad && ./scripts/behavioral-parity --verb replay --corpus testdata/parity
+```

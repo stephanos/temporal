@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T20:43:55.785253Z",
+  "depends_on": [
+    "fn-228-gomad-helper-owned-replay-tape.1"
+  ],
+  "id": "fn-228-gomad-helper-owned-replay-tape.2",
+  "priority": null,
+  "spec": "fn-228-gomad-helper-owned-replay-tape",
+  "spec_path": ".flow/tasks/fn-228-gomad-helper-owned-replay-tape.2.md",
+  "status": "todo",
+  "title": "Helper preflight: accept trace frames, verify digests and counts, refuse before guest start",
+  "updated_at": "2026-10-20T20:43:55.785253Z"
+}
