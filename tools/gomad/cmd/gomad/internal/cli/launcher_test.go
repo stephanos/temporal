@@ -9,10 +9,33 @@ import (
 )
 
 func TestLauncherRoutesTemporalSetupBeforeInstallation(t *testing.T) {
-	var stdout, stderr bytes.Buffer
-	status := Run([]string{"install", "--temporal-checkout", "/checkout", "--output", filepath.Join(t.TempDir(), "installation.json")}, &stdout, &stderr)
-	if status != 2 || !strings.Contains(stderr.String(), "--temporal-package") || stdout.Len() != 0 {
-		t.Fatalf("Temporal setup was not routed before installation: status=%d stderr=%s", status, stderr.String())
+	for _, entry := range os.Environ() {
+		key, value, _ := strings.Cut(entry, "=")
+		if strings.HasPrefix(key, "GOMAD_") {
+			t.Setenv(key, value)
+			if err := os.Unsetenv(key); err != nil {
+				t.Fatal(err)
+			}
+		}
+	}
+	for _, tc := range []struct {
+		name, guard, want string
+		ambient           bool
+	}{
+		{"explicit inputs", "", "--temporal-package", false},
+		{"ambient guard", "1", "unset GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD; Temporal setup accepts explicit inputs only", true},
+		{"empty ambient guard", "", "unset GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD; Temporal setup accepts explicit inputs only", true},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			if tc.ambient {
+				t.Setenv("GOMAD_WASM_MATCHED_COLD_MEMORY_GUARD", tc.guard)
+			}
+			var stdout, stderr bytes.Buffer
+			status := Run([]string{"install", "--temporal-checkout", "/checkout", "--output", filepath.Join(t.TempDir(), "installation.json")}, &stdout, &stderr)
+			if status != 2 || !strings.Contains(stderr.String(), tc.want) || stdout.Len() != 0 {
+				t.Fatalf("Temporal setup was not routed before installation: status=%d stderr=%s", status, stderr.String())
+			}
+		})
 	}
 }
 

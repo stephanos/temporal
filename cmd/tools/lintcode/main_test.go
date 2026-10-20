@@ -396,6 +396,34 @@ func TestWASMLintRoutesSoftAssertionFixtureToItsServerOwner(t *testing.T) {
 	}
 }
 
+func TestLintRoutesGomadDebugFixtures(t *testing.T) {
+	t.Parallel()
+	for _, tc := range []struct {
+		path        string
+		disposition string
+	}{
+		{"common/gomaddebug/testdata/determinism/main.go", "Gomad debug qualification fixture"},
+		{"common/gomaddebug/testdata/determinism/nested/main.go", "Gomad debug qualification fixture"},
+		{"common/gomaddebug/testdata/fixture/main.go", "Gomad debug qualification fixture"},
+		{"common/gomaddebug/testdata/fixture/nested/main.go", "Gomad debug qualification fixture"},
+		{"common/gomaddebug/testdata/determinism_extra/main.go", ""},
+		{"common/gomaddebug/testdata/fixture_extra/main.go", ""},
+		{"common/gomaddebug/testdata/unclassified/main.go", ""},
+		{"common/gomaddebug/debug.go", ""},
+	} {
+		t.Run(tc.path, func(t *testing.T) {
+			t.Parallel()
+			entry, err := (ownership{}).classify(tc.path, []string{"tools/gomad", "."})
+			require.NoError(t, err)
+			want := source{path: tc.path, disposition: tc.disposition}
+			if tc.disposition == "" {
+				want.module = "."
+			}
+			require.Equal(t, want, entry)
+		})
+	}
+}
+
 func TestWASMLintRoutesTemporalDiagnosticFixtures(t *testing.T) {
 	t.Parallel()
 	for _, owner := range []string{"frontend_namespace", "sqlite_contention"} {

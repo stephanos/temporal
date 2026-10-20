@@ -481,6 +481,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 	switch {
 	case within(path, ".flow"):
 		entry.disposition = "retained evidence"
+	case within(path, "common/gomaddebug/testdata/determinism"), within(path, "common/gomaddebug/testdata/fixture"):
+		entry.disposition = "Gomad debug qualification fixture"
 	case within(path, "tests/gomadfunctional/testdata/softassert"):
 		entry.disposition = "WASM soft assertion fixture"
 	case within(path, "tools/gomad/internal/model/cluster/testdata/simulation_exploration"):
