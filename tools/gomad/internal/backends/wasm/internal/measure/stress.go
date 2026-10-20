@@ -31,6 +31,8 @@ import (
 
 var stressAxes = []string{"cpu", "concurrent", "layout", "handoff"}
 
+const stressChoiceTraceLimit = 32 << 20
+
 type stressCase struct {
 	Workload string `json:"workload"`
 	Seed     uint64 `json:"seed"`
@@ -384,11 +386,13 @@ func stressRequest(ctx context.Context, root, workload string) (wasi.Request, er
 	if err != nil {
 		return wasi.Request{}, err
 	}
-	request := wasi.Request{HelperPath: helper, HelperSHA256: helperSHA, Engine: wasi.PinnedEngine(), Config: standaloneConfig(), MemoryBytes: 4 << 30, Fuel: 1 << 50, Timeout: 15 * time.Minute, CompileCache: filepath.Join(root, "compile-cache"), Runtime: &wasi.RuntimeControl{Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: choice.MaximumTraceBytes}}}
+	request := wasi.Request{HelperPath: helper, HelperSHA256: helperSHA, Engine: wasi.PinnedEngine(), Config: standaloneConfig(), MemoryBytes: 4 << 30, Fuel: 1 << 50, Timeout: 15 * time.Minute, CompileCache: filepath.Join(root, "compile-cache"), Runtime: &wasi.RuntimeControl{Diagnostics: true, Choice: &runnerbackend.ChoiceRequest{Mode: choice.ModeRecord, Limit: stressChoiceTraceLimit}}}
 	request.Config.Profile = wasi.CooperativeProfile
 	switch workload {
 	case "runtime":
 		request.Config.Environment = append(request.Config.Environment, "EXTRA_ENTROPY=no_")
+		request.Config.Limits.TranscriptBytes = record.DefaultIOTranscriptBytes
+		request.Runtime.Choice.Limit = 1 << 20
 		request.MemoryBytes, request.Fuel = 256<<20, 4000000000
 		request.Timeout = time.Minute
 	case "two-cluster":

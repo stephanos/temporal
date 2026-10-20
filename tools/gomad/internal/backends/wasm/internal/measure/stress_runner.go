@@ -11,6 +11,7 @@ import (
 	"strings"
 	"time"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
@@ -85,7 +86,7 @@ func stressRunnerInstallation(root string, original wasi.Request) (string, error
 	return filepath.Join(root, "stress-installation-"+digest(encoded)+".json"), nil
 }
 
-func stressRunnerCampaign(ctx context.Context, sharedRoot string, provider *wasmbackend.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {
+func stressRunnerCampaign(ctx context.Context, sharedRoot string, provider backends.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {
 	if original.Runtime == nil || original.Runtime.Choice == nil || original.Runtime.Choice.Mode != choice.ModeRecord || original.Runtime.Choice.Tape != nil {
 		return runner.CampaignResult{}, errors.New("stress campaign requires a fresh seeded request")
 	}
