@@ -14,6 +14,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
@@ -32,7 +33,9 @@ func TestTemporalInspectionConfigPreservesFixtureBytes(t *testing.T) {
 	require.NoError(t, os.WriteFile(filepath.Join(schema, "schema.sql"), []byte("CREATE TABLE example(id INTEGER);"), 0600))
 	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: schema, Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	require.NoError(t, err)
-	config, err := wasi.TemporalConfig(root, "/workspace", wasi.TemporalInspection)
+	schemaInputs, err := temporalinput.CaptureSchema(root)
+	require.NoError(t, err, "capture Temporal schema/sqlite")
+	config, err := wasi.TemporalConfig(schemaInputs, "/workspace", wasi.TemporalInspection)
 	require.NoError(t, err)
 	want := wasi.Config{
 		Profile: wasi.CooperativeProfile, WorkingDirectory: "/workspace",
@@ -77,7 +80,9 @@ func TestTemporalInspectionRetainedFailure(t *testing.T) {
 			original := filepath.Join(server, "service/history", fixture.owner)
 			if fixture.owner == "onebox" {
 				original = filepath.Join(server, "tools/gomad/internal/backends/wasm/testdata/prototype_temporal")
-				config, err := wasi.TemporalConfig(server, provider.options.Config.WorkingDirectory, wasi.TemporalInspection)
+				inputs, err := temporalinput.CaptureSchema(server)
+				require.NoError(t, err, "capture Temporal schema/sqlite")
+				config, err := wasi.TemporalConfig(inputs, provider.options.Config.WorkingDirectory, wasi.TemporalInspection)
 				require.NoError(t, err)
 				provider.options.Config = config
 				environment = append(environment, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TEMPORAL_TEST_LOG_LEVEL=warn")

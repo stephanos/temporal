@@ -3,8 +3,6 @@ package wasi
 import (
 	"crypto/sha256"
 	"fmt"
-	"path/filepath"
-	"time"
 
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
@@ -19,12 +17,8 @@ const (
 	TemporalQualification TemporalPolicy = "qualification"
 )
 
-// TemporalConfig captures the schema and applies one complete guest configuration policy.
-func TemporalConfig(root, cwd string, policy TemporalPolicy, args ...string) (Config, error) {
-	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
-	if err != nil {
-		return Config{}, fmt.Errorf("capture Temporal schema/sqlite: %w", err)
-	}
+// TemporalConfig applies one complete guest configuration policy to captured schema inputs.
+func TemporalConfig(inputs captured.CapturedInputs, cwd string, policy TemporalPolicy, args ...string) (Config, error) {
 	config := Config{
 		Profile: CooperativeProfile, WorkingDirectory: cwd,
 		Args:                append([]string{"temporal.test", "-test.v", "-test.count=1", "-test.timeout=72h"}, args...),
@@ -59,5 +53,5 @@ func TemporalConfig(root, cwd string, policy TemporalPolicy, args ...string) (Co
 }
 
 func temporalNetwork() *NetworkModelV2 {
-	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: uint64(10 * time.Second), Transitions: 1 << 20}}
+	return &NetworkModelV2{Profile: NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 }
