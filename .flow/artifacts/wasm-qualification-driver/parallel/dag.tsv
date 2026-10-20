@@ -1,6 +1,7 @@
 # Stage DAG for run-validation.sh. Resources are scheduling declarations, not limits.
-# cores/mem_gib: declared peak; mem 8 reserves the 8 GiB MemAvailable matched-preparation guard,
-# 9 = workload cell (~4 GiB guest + ~5 GiB helper). est_s: observed fresh-run duration (worst of retained runs).
+# cores/mem_gib: declared peak, seeded from sampled process-tree RSS of the q1 serial run
+# (evidence/qualdriver/q1-mem-samples.tsv) rounded up; memguard = 8 GiB MemAvailable guard.
+# est_s: observed fresh-run duration (worst of retained runs).
 label	deps	class	cores	mem_gib	est_s	locks	scratch	flags	tier
 validate	-	normal	2	2	19	-	-	-	0
 portable	validate	normal	2	2	7	-	-	-	0
@@ -79,22 +80,22 @@ artifact	ordinary-helper-publication	normal	2	1	81	-	-	-	2
 operator	ordinary-helper-publication	normal	2	1	43	-	-	-	2
 storage	ordinary-helper-publication	normal	4	4	404	-	-	-	2
 temporal-inspection	ordinary-helper-publication	normal	3	4	1296	-	service/history/.gomad-inspection-*	bg	2
-network	ordinary-helper-publication	normal	4	4	208	-	-	-	2
+network	ordinary-helper-publication	normal	4	5	208	-	-	-	2
 clusters	ordinary-helper-publication	normal	4	4	298	-	-	-	2
-workload-fixture-controlled-success	clusters	exclusive	4	9	8	-	-	bgok	2
-workload-fixture-controlled-canary	workload-fixture-controlled-success	exclusive	4	9	9	-	-	bgok	2
-workload-fixture-cooperative-success	workload-fixture-controlled-canary	exclusive	4	9	11	-	-	bgok	2
-workload-fixture-cooperative-canary	workload-fixture-cooperative-success	exclusive	4	9	11	-	-	bgok	2
-workload-sqlite-cooperative-success	workload-fixture-cooperative-canary	exclusive	4	9	57	-	-	bgok	2
-workload-sqlite-cooperative-canary	workload-sqlite-cooperative-success	exclusive	4	9	33	-	-	bgok	2
-workload-onebox-cooperative-success	workload-sqlite-cooperative-canary	exclusive	4	9	247	-	-	bgok	2
-workload-onebox-cooperative-canary	workload-onebox-cooperative-success	exclusive	4	9	102	-	-	bgok	2
-workload-multi-instance-cooperative-success	workload-onebox-cooperative-canary	exclusive	4	9	729	-	-	bgok	2
-workload-multi-instance-cooperative-canary	workload-multi-instance-cooperative-success	exclusive	4	9	596	-	-	bgok	2
+workload-fixture-controlled-success	clusters	exclusive	4	1	8	-	-	bgok	2
+workload-fixture-controlled-canary	workload-fixture-controlled-success	exclusive	4	1	9	-	-	bgok	2
+workload-fixture-cooperative-success	workload-fixture-controlled-canary	exclusive	4	1	11	-	-	bgok	2
+workload-fixture-cooperative-canary	workload-fixture-cooperative-success	exclusive	4	1	11	-	-	bgok	2
+workload-sqlite-cooperative-success	workload-fixture-cooperative-canary	exclusive	4	2	57	-	-	bgok	2
+workload-sqlite-cooperative-canary	workload-sqlite-cooperative-success	exclusive	4	2	33	-	-	bgok	2
+workload-onebox-cooperative-success	workload-sqlite-cooperative-canary	exclusive	4	5	247	-	-	bgok	2
+workload-onebox-cooperative-canary	workload-onebox-cooperative-success	exclusive	4	5	102	-	-	bgok	2
+workload-multi-instance-cooperative-success	workload-onebox-cooperative-canary	exclusive	4	5	729	-	-	bgok	2
+workload-multi-instance-cooperative-canary	workload-multi-instance-cooperative-success	exclusive	4	5	596	-	-	bgok	2
 workload-corpus	workload-multi-instance-cooperative-canary	normal	1	1	1	-	-	-	2
-sqlite-selection-0	workload-corpus	exclusive	4	9	29	-	-	bgok	2
-sqlite-selection-1	sqlite-selection-0	exclusive	4	9	34	-	-	bgok	2
-sqlite-selection-2	sqlite-selection-1	exclusive	4	9	41	-	-	bgok	2
-sqlite-selection-3	sqlite-selection-2	exclusive	4	9	40	-	-	bgok	2
+sqlite-selection-0	workload-corpus	exclusive	4	2	29	-	-	bgok	2
+sqlite-selection-1	sqlite-selection-0	exclusive	4	2	34	-	-	bgok	2
+sqlite-selection-2	sqlite-selection-1	exclusive	4	2	41	-	-	bgok	2
+sqlite-selection-3	sqlite-selection-2	exclusive	4	2	40	-	-	bgok	2
 workload-corpus-after-relocation	sqlite-selection-3	normal	1	1	1	-	-	-	2
 sqlite-catalogue	workload-corpus-after-relocation	normal	1	1	2	-	-	-	2

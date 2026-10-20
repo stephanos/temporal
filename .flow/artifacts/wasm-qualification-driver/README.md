@@ -163,7 +163,74 @@ run passed within the limit.
 
 ### Wall-time estimate and reaching one hour
 
-ESTIMATE_PLACEHOLDER
+Estimated with `scheduler.py simulate`, which uses the same admission code as a
+real run, for 12 cores. Memory cap 15 GiB: 19 GiB host, minus about 2 GiB other
+sessions, minus the 2 GiB margin. Durations come from `dag.tsv` (`est_s`, the
+worst fresh-run duration in the retained stages.logs). Memory is the peak
+process-tree RSS sampled from the 2026-10-19 q1 serial run
+(`/home/agent/wt/evidence/qualdriver/q1-mem-samples.tsv`). Details are in
+`/home/agent/wt/evidence/qualdriver/estimates.txt`.
+
+| Durations | Cap 15 GiB | 15 GiB, shared stages 20% slower | Cap 13 GiB | 13 GiB, 20% slower |
+| --- | --- | --- | --- | --- |
+| Worst of retained runs (`dag.tsv`) | 68.4 min | 73.9 min | 71.8 min | 78.0 min |
+| q1 2026-10-19 run (91/96 stages observed) | 52.6 min | 57.0 min | 54.8 min | 59.7 min |
+
+The serial sum is 138.5 min (worst case) or 107.8 min (q1 run).
+
+Critical path (worst case), with exclusive time serial wherever it runs:
+`validate` → cheap static checks → `wasmmeasure-build` → `helper-build` ‖
+`conformance-helper-build` → `ordinary-helper-publication` (≈5.6 min) →
+`temporal-inspection` (1296 s, the longest shared stage; its `onebox` subtest
+alone is 17 min) → exclusive chain: workload cells (onebox 349 s,
+multi-instance 729 + 596 s, …) → SQLite selections → `terminal-host-admission`
+→ `terminal-exit` → `busy-grouped` / `busy-boundaries` → corpus and catalogue.
+
+The floor is about 5.6 min (helper ready), plus the longest shared stage
+(18–22 min), plus the exclusive and solo serial sum (30.6–40.7 min). That comes
+to about 55–68 min. The one-hour limit holds for q1-like durations, but not for
+the worst retained durations.
+
+What was done toward the limit (none of it weakens a check):
+- Parallel DAG with one process per stage.
+- The conformance helper builds alongside the release helper.
+- The broker fixture is staged once by the driver instead of serializing
+  `ordinary` and `clusters`.
+- Shared work is scheduled first, ranked by remaining shared work.
+- Live memory headroom is checked only where the 8 GiB guard needs it.
+- Native stages are dropped and matched-release is moved to `run-perf.sh`.
+
+Considered and not done:
+- Sharing one helper build: the release and conformance helpers differ by
+  feature set and both are required.
+- Prebuilding guest modules once and reusing them by digest: the cells already
+  reuse their preparation within a run (the multi-instance canary prepares in
+  1–5 s against 48 s for success), and the inspection onebox module uses
+  different build tags.
+- Splitting the multi-instance cells: that is a test-contract change (one
+  result per cell).
+
+What-if estimates, worst-case durations, 12 cores, 15 GiB:
+
+| Change (owner decision) | Wall |
+| --- | --- |
+| None (as committed, strict) | 68.4 min |
+| Multi-instance cells shared (not exclusive) | 68.4 min |
+| `temporal-inspection` split into per-subtest stages | 67.0 min |
+| All workload cells and SQLite selections shared, budgets unchanged | 58.0 min |
+
+Only relaxing the exclusivity of the budgeted workload cells brings the
+worst-case estimate under one hour. Their budgets have wide headroom: for
+multi-instance, execution is 304 s of a 900 s limit and preparation 48 s of
+600 s. This is the owner's call. `--allow-background` (a `bg` stage may
+overlap a `bgok` exclusive stage) is implemented but gives no modeled gain,
+because shared work already ends when `temporal-inspection` does.
+
+The serial q1 run on 2026-10-19 lost about 55 min to host or sandbox
+suspensions: sampler gaps of 5, 5, 16.6, 16.6 and 17 min, and the
+multi-instance canary showed 58 min of wall time for a 460 s test. The limit is
+measured in wall-clock seconds, as the owner stated, so a suspended host fails
+the limit (exit 3) even when every stage passes.
 
 ## fn-176/fn-178 drivers
 
