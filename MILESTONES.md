@@ -263,7 +263,6 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | 🚧 In progress | Build the sweep harness and prove it on two packages |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⬜ Todo | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
 
