@@ -1,5 +1,7 @@
 package wasi
 
+import "bytes"
+
 func (request *Request) SetEventOrderDiagnostics(enabled bool) {
 	filtered := request.stressHostEnvironment[:0]
 	for _, entry := range request.stressHostEnvironment {
@@ -22,4 +24,4 @@ func (request Request) helperOutputLimit() uint64 {
 	return 64 << 10
 }
 
-func (result ClusterResult) HelperStderr() []byte { return result.helperStderr }
+func (result ClusterResult) HelperStderr() []byte { return bytes.Clone(result.helperStderr) }
