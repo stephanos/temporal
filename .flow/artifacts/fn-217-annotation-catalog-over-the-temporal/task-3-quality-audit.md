@@ -67,3 +67,16 @@ No Cargo/Go tests or gates run by this auditor. Worker regates and timing remain
 ## Additional conductor finding
 
 Should Fix. The supplemental `start_request_id_intent`, `cancel_request_id_intent` and `worker_failure_presence` factories construct request constraints/rules through raw builders, outside the macro's compile-time admission. Removing their expectation still compiles and fails only during runtime admission, contrary to task .3's compile-admission requirement. The worker confirmed this gap. The conductor accepted a private checked constructor/macro requiring a typed expectation and nonempty literal covers, with negative compile controls. This keeps UUID Accepts intent separate from length Rejects semantics and preserves the conditional worker-failure context. No new public DSL or duplicate descriptor declarations are authorized by this correction. Resolution and final verification remain pending.
+
+## Supplemental correctness follow-up report
+
+Supplemental-admission finding resolved. Critical 0 · Should Fix 0 · Consider 0.
+
+- Walked: `model/temporal/features/activity/api_requests.rs:18` requires a typed expectation and literal provenance for both constructor forms; line 14 rejects blank provenance during compilation. Field accessors enforce `String` or `Option<Vec<u8>>`.
+- Walked: `model/temporal/features/activity/api.rs:565`, line 582 and line 598 preserve UUID `Accepts` and conditional failure-presence expectations. Existing byte-limit `Rejects` metadata and transport semantics remain unchanged. The macro is private and adds no descriptor declarations.
+- Cited: `.flow/tmp/fn2173-supplemental-final.log:53` records all three negative controls passing; the same log records 25 native tests and Clippy completing successfully.
+- Executed: scoped diff inspection, `git diff --check`, frozen HEAD and clean working-tree checks. No tests, gates or writes performed by this reviewer. Writer/reviewer remain the same Codex family.
+
+## Resolved findings at final source checkpoint
+
+Worker source `55a27ddd024a20ea94c40f0209eeb7d6408794a4` is integrated at `53d51ac71cdd52365a86e4e029ee741a47b8ad07`. The layout finding and supplemental-admission finding are resolved by their focused follow-ups above. The conductor independently read the normal, non-overwrite compile-control rerun and its three passing fixtures, alongside all 25 native tests and Clippy. Final live testing also passed on that source. Final full gates, integrated verification and formal review remain outstanding; no task closure is claimed.
