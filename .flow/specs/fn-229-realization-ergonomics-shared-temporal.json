@@ -9,7 +9,8 @@
   "depends_on_epics": [],
   "id": "fn-229-realization-ergonomics-shared-temporal",
   "impl_review_rounds": {
-    "fn-229-realization-ergonomics-shared-temporal.1": 0
+    "fn-229-realization-ergonomics-shared-temporal.1": 0,
+    "fn-229-realization-ergonomics-shared-temporal.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -50,15 +51,105 @@
       "task": "fn-229-realization-ergonomics-shared-temporal.1",
       "timestamp": "2026-10-20T20:01:50.563633Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "e32c968bae2e53be2971e6896fe1440403518043ea3cef3e31b0f81c8cb225ed",
+      "backend": "codex",
+      "base_sha": "0da21c3a639887dc86da3e80b82dc438bef66e36",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d059b0a07c0b312d3ce093c642678788",
+            "classification": "introduced",
+            "findingId": "finding-d059b0a07c0b312d3ce093c642678788",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "8509564cfba84f394f630fc610b28ad382ad2b40",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 917,
+      "output_sha256": "8b13ca56c4795fe8e847fa150da431da2f1e9d81460a9cb3134c1dcb9e94e620",
+      "reservation_id": "1ac7da237dc44efdb6710752ec5e1fe3",
+      "round_consumed": true,
+      "scope": "impl:fn-229-realization-ergonomics-shared-temporal.2",
+      "superseded_by": null,
+      "task": "fn-229-realization-ergonomics-shared-temporal.2",
+      "timestamp": "2026-10-20T20:32:53.805214Z",
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "7a5aed0066d4c4c2439cb2abcf8d02e7803295972eba0048bcc92b9dc3714c89",
+      "backend": "codex",
+      "base_sha": "0da21c3a639887dc86da3e80b82dc438bef66e36",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d059b0a07c0b312d3ce093c642678788",
+            "classification": "introduced",
+            "findingId": "finding-d059b0a07c0b312d3ce093c642678788",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "0a30d59b1df98dafda200153520c98e5cd22fce8",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 946,
+      "output_sha256": "aed0e2d416345979356187e83a3fdd1bcafcf05c1e321ba530904c373c9ea2a3",
+      "reservation_id": "8fa1fbb7093a48d08aa551677fad34ef",
+      "round_consumed": true,
+      "scope": "impl:fn-229-realization-ergonomics-shared-temporal.2",
+      "superseded_by": null,
+      "task": "fn-229-realization-ergonomics-shared-temporal.2",
+      "timestamp": "2026-10-20T20:47:35.823945Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-229-realization-ergonomics-shared-temporal.1": 1
+    "impl:fn-229-realization-ergonomics-shared-temporal.1": 1,
+    "impl:fn-229-realization-ergonomics-shared-temporal.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-229-realization-ergonomics-shared-temporal.1": 0
+    "impl:fn-229-realization-ergonomics-shared-temporal.1": 0,
+    "impl:fn-229-realization-ergonomics-shared-temporal.2": 0
   },
   "spec_path": ".flow/specs/fn-229-realization-ergonomics-shared-temporal.md",
   "status": "open",
@@ -74,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T20:01:50.567837Z"
+  "updated_at": "2026-10-20T20:47:35.828014Z"
 }

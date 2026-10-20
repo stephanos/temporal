@@ -80,9 +80,9 @@ them with `TryFrom<ActivityExecutionInfo> for Phase` beside the Model. Goldens a
 control. Lands before fn-227.3, fn-227.5 and fn-228.2 extend the file.
 [Spec](.flow/specs/fn-229-realization-ergonomics-shared-temporal.md).
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-229.2 | 🔄 in progress | `support` helpers; activity Realization rewritten (R2, R3) |
+Both tasks are done locally with implementation reviews passed, including the
+payload-normalization regression fix. Whole-spec quality audits and completion
+review remain before closure.
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
 

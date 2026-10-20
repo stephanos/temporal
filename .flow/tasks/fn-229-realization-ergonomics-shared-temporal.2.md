@@ -43,9 +43,23 @@ Use a lane-specific Cargo target to avoid embedding another worktree's manifest 
 - [ ] Activity goldens byte-identical; slice, parity and cover tests pass; model-time pasted
 
 ## Done summary
-TBD
+Shared Temporal helpers and the activity binding rewrite are integrated, with behavior-preserving payload normalization restored after review.
 
+Task: fn-229-realization-ergonomics-shared-temporal.2
+Worker source: 103209f5528a74444bf57090d0ae387669e5f40f.
+Review regression: aeec53b3f771c93f2b67b9d630556741f2bec8cb (red); fix: 351191e5d811b469bfe4c56243aed69d663396b2 (green).
+Integrated HEAD: 0a30d59b1df98dafda200153520c98e5cd22fce8.
+
+The seven shared helpers contain no activity-specific names. Phase conversion is realization-only, outside the independent Model. The binding body is 80 physical lines excluding documentation and imports. Complete replies clone and explicitly clear external payload references, retaining the previous metadata/data-only reply behavior. All 19 focused controls and clippy passed in the isolated worker. Default model-time after the fix: gate 15.443s, inner loop 1.883s; the earlier 44.704s soft-budget overrun remains documented in the worker evidence.
+
+Conductor ran CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check and make umpire-check-model-slice at the integrated HEAD: both exit 0; all six live scenarios passed. The activity Model, goldens/generated output and protocol trees are unchanged against the actual integration base 0da21c3a639887dc86da3e80b82dc438bef66e36.
+
+stage: wave-join - ran (isolated worker commits merged; integrated gates green)
+stage: impl-review - ran (first fanout NEEDS_WORK; accepted external_payloads regression fixed; resumed single review SHIP; receipt /tmp/impl-review-receipt-8f37faba39e2-fn-229-realization-ergonomics-shared-temporal.2.json; model: gpt-6.1-sol high, same family as writer)
+stage: plan-sync - skipped(config: disabled)
+
+Per-task review is SHIP, not a spec-completion claim. Whole-spec quality audits and completion review remain conductor-owned.
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 103209f5528a74444bf57090d0ae387669e5f40f, aeec53b3f771c93f2b67b9d630556741f2bec8cb, 351191e5d811b469bfe4c56243aed69d663396b2, 0a30d59b1df98dafda200153520c98e5cd22fce8
+- Tests: worker baseline: green; focused test and clippy, worker regression aeec53b3f7: complete_reply_drops_external_payload_references red (exit 101), worker fix 351191e5d8: all 19 focused controls and clippy green, worker fix 351191e5d8: make model-check and all six live Model slice scenarios passed, worker default make model-time: gate 15.443s; inner 1.883s, integrated 0a30d59b1d: CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check (exit 0), integrated 0a30d59b1d: CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make umpire-check-model-slice (exit 0; six scenarios), integrated git diff --exit-code 0da21c3a639887dc86da3e80b82dc438bef66e36 HEAD -- activity Model, expected/generated trees and both protocol trees (exit 0), codex resumed implementation review: SHIP; prior finding fixed; receipt /tmp/impl-review-receipt-8f37faba39e2-fn-229-realization-ergonomics-shared-temporal.2.json
 - PRs:
