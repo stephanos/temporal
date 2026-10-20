@@ -3,6 +3,7 @@
 [workspace]
 resolver = "3"
 members = [
+    "umpire/annotations",
     "umpire/dsl",
     "umpire/dsl/macros",
     "umpire/checker",
@@ -28,6 +29,7 @@ publish = false
 license = "MIT"
 
 [workspace.dependencies]
+umpire-annotations = { version = "0.0.1", path = "umpire/annotations" }
 umpire-dsl = { version = "0.0.1", path = "umpire/dsl" }
 umpire-dsl-macros = { version = "0.0.1", path = "umpire/dsl/macros" }
 umpire-checker = { version = "0.0.1", path = "umpire/checker" }
