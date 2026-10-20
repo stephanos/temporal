@@ -394,3 +394,33 @@ integration contract is
 consuming fn-176 storage recovery and fn-178 cluster execution. Native
 qualification remains deferred with fn-128 and fn-149 under the milestone
 hibernation decision; WASM/source checks supply no native execution pass.
+
+## Determinism contract
+
+The WASM backend's determinism contract is the checked-in inventory
+[`determinism/inventory.json`](determinism/inventory.json)
+(`gomad.wasm-determinism-inventory/v1`). Every influence on a WASM execution
+has a row that disposes of it as `controlled`, `recorded`, `rejected` or
+`escape`, and the tests named in each row enforce it. Completeness tests derive
+each site class from the code (the helper's import table, the seeded streams,
+the overlay's draw and clock patches, the wasip1 host-clock references, the
+helper's time, entropy, thread and hash-map sites, the Go host packages'
+clock, goroutine, map-range and unstable-sort sites, and the Wasmtime
+configuration) and fail when a site has no row. This is a tested contract,
+not a claim that all nondeterminism is eliminated.
+
+### Known determinism escapes
+
+Each escape is outside the deterministic-time guarantee today and is referred
+to a follow-up, because fixing it would rotate the WASM model identity:
+
+- `wasi/cluster.go` `ClusterSession.Shutdown` sends stop control frames to the
+  helper in Go map order, and the stops can reach World and network evidence.
+  This is a defect pending its fix, not a permanent escape. Only programmatic
+  cluster scenarios that end with two or more live WASM nodes reach it, and
+  until the fix they are outside the deterministic guarantee; operator
+  scenarios require every node to be terminated first.
+- `wasi/storage_selection.go` `ValidateStorageCrashSelection` reports the first
+  invalid volume in map order, so a request with several invalid volumes can
+  get different refusal messages. The refusal class is the same, and nothing
+  executes.
