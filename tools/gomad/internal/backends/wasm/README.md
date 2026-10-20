@@ -410,6 +410,15 @@ and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers
 remain explicit operations.
 
+The stress-only helper records a bounded supplemental event-order sidecar in
+`event-order.log`; it does not change canonical choice, transcript or inspection
+formats. Divergence reports use the actual helper commit order and modeled clock,
+and authenticate the preceding common fn-180 prefix before offering a replay
+stop. Missing, truncated or inconsistent diagnostics are `undiagnosable`, not
+successful comparisons. The producer retains genuine Runner campaign artifacts
+and emits their installation-bound replay command with explicit diagnostic-role
+opt-in. Ordinary release helpers do not collect these diagnostics.
+
 | Class | Disposition and boundary |
 | --- | --- |
 | Clock and entropy | Controlled by virtual time and seeded streams; clock operations and application entropy are transcribed. Host metrics and cache names remain outside execution evidence. |
