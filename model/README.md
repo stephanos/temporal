@@ -178,7 +178,7 @@ asked with it decides what it promises:
 - A pattern says nothing about what happens between or after its waypoints.
 
 Claims reject adjacent waypoints, leading/trailing gaps, actions and structural patterns; `..=1` is the next
-step. Test-space patterns admit adjacency and leading/trailing gaps as described below.
+step. Test-space patterns admit adjacency, but their first and last waypoints cannot be gaps.
 `whenever(..).eventually(..).within(n)` builds the same claim and remains public.
 Assumptions compose `only([..])`, `without([..])` and explicit `fair([..])` action lists.
 Nothing is fair by default: `#[internal]` marks environment-independent actions only.
