@@ -8,6 +8,14 @@ import (
 	"testing"
 )
 
+func TestLauncherRoutesTemporalSetupBeforeInstallation(t *testing.T) {
+	var stdout, stderr bytes.Buffer
+	status := Run([]string{"install", "--temporal-checkout", "/checkout", "--output", filepath.Join(t.TempDir(), "installation.json")}, &stdout, &stderr)
+	if status != 2 || !strings.Contains(stderr.String(), "--temporal-package") || stdout.Len() != 0 {
+		t.Fatalf("Temporal setup was not routed before installation: status=%d stderr=%s", status, stderr.String())
+	}
+}
+
 func TestLauncherWASMInstallationKeepsTopLevelFlagErrors(t *testing.T) {
 	manifest := filepath.Join(t.TempDir(), "installation.json")
 	if err := os.WriteFile(manifest, []byte(`{"schema":"gomad-wasm.installation/v1"}`), 0600); err != nil {
