@@ -16,9 +16,16 @@ Audit the Go-to-helper execute request and the helper-to-Go callback path as bou
 - [ ] Existing refusal messages unchanged; every new refusal is an inventory row
 
 ## Done summary
-TBD
+Implemented strict execute-request, helper-frame and callback/remote boundaries, including split-mode replies, and pinned standalone/cluster started-frame engine configurations before authorization. Unknown fields/kinds are classified unsupported with their names; existing unknown-import and stock-WASI messages remain literal corpus expectations. Rejected inventory rows name the enforcing tests. Current integrated Rust engine refusal/corpus tests and Go transport/engine-pin tests pass. This is boundary source acceptance, not a stress or full qualification claim.
 
+Final scoped repair 696a6ecc3e classifies valid tagged unknown kinds as unsupported naming the kind, with malformed/stale/terminal guards preserved; real ten-case regression and both helper-backed execute refusal subtests pass.
+
+Evidence handover: `.flow/artifacts/fn188-source-acceptance-2026-10-20.md`. Integrated source `5dcd37ceaea62e95ba7e33703e247094fea6d158`: full default validate exit 0 and affected lint exit 0, zero issues.
+
+stage: impl-review - SHIP (official SINGLE re-review, 2026-10-20T18:15:58Z; same session 01a15a74-37ad-7020-b5d4-830052a6a1a3; codex:gpt-6.1-sol:high, same-family; .flow/tmp/impl-review-fn188-source-batch.json; both findings fixed, zero open).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5dcd37ceaea62e95ba7e33703e247094fea6d158
+- Tests: Rust determinism_refuses engine tests: 3/3 pass in integrated default validation, Rust helper corpus: 26/26 pass, including preserved literal refusals, Go wasi TestDeterminism* and TestTransportInputValidation: exit 0, Integrated make -C tools/gomad validate d2410c5e: exit 0, make -C tools/gomad validate on integrated5dcd37ce: exit0 (inventory12/12, corpus26/26, engine3/3, Go determinism/architecture/WASI); /home/agent/wt/evidence/integration-2026-10-20/validate-fn188-controller-tagged-fixes.log, make lint-code-gomad with Linux tools, FIX=false, basee0cd113841: exit0, zeroissues; /home/agent/wt/evidence/integration-2026-10-20/lint-fn188-controller-tagged-fixes.log
 - PRs:
