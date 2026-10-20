@@ -5,7 +5,7 @@
   "priority": null,
   "spec": "fn-220-gomad-one-command-temporal-test-setup",
   "spec_path": ".flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Factor the fixture configuration derivation into shared code and choose the verb",
   "updated_at": "2026-10-20T15:59:50.743079Z"
 }

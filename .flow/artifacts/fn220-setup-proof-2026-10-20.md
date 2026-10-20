@@ -164,3 +164,16 @@ make lint-code-fast GOLANGCI_LINT_BASE_REV=93b12381b7 GOLANGCI_LINT_FIX=false
 ```
 
 The updated launcher is retained at `/home/agent/wt/fn220-gomad-policy` for review.
+
+## Completion review
+
+The first independent completion review found the normalized configuration
+comparison insufficient for R3. Commit `ba57de4e5b` introduced complete explicit
+policies and final-byte comparisons. The resumed same-session review returned
+`SHIP` on 2026-10-20T16:09:30Z (exit 0), with all four requirements covered.
+Flow records `completion_review_status: ship`, all three tasks done, and the
+spec closed as done. The receipt and complete transcript remain in
+`.flow/tmp/completion-review-receipt-fn-220.json` and
+`.flow/tmp/fn220-completion-rereview.log`. Reviewer and writer are from the same
+model family. Full changed-candidate WASM qualification remains under fn-219.4
+and fn-222; this record does not claim that separate gate passed.
