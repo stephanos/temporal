@@ -32,7 +32,7 @@ test: test-helper test-determinism
 
 # Source inventories and the transport boundary corpus run without long
 # runtime qualification or the opt-in stress producer.
-test-determinism:
+test-determinism: helper
 	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test inventory --test helper_corpus
 	cargo +1.99.1 test --manifest-path wasmhost/Cargo.toml --release --locked --test engine determinism_refuses
 	@stock_go='$(GOMAD_WASM_STOCK_GO)'; \
