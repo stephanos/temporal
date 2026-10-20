@@ -31,8 +31,9 @@ extends this acceptance deferral to the new shared-owner native execution gates.
 The [2026-10-19 retirement decision](#native-backend-retirement-and-the-functional-test-goal-owner-decision-2026-10-19)
 retires the native backend. The deferred native specs (fn-105, fn-109, fn-110, fn-112, fn-128, fn-149, fn-155) were closed as won't-do on 2026-10-19.
 Both backends are developed together here, and `tools/gomad` remains a shared owner.
-List only unfinished tasks of each open spec below; completed tasks and their evidence
-remain in Flow and Git history. Remove empty spec sections. Keep descriptions to one line and
+List only unfinished tasks of each open spec below; completed spec/task records remain in
+Flow and Git history. Delete closed-spec worktrees, branches and evidence under the cleanup
+policy in AGENTS.md. Remove empty spec sections. Keep descriptions to one line and
 spec sections to task tables—no progress prose. Refresh statuses from `flowctl list --json`;
 a committed source candidate is not completed acceptance.
 
@@ -40,8 +41,6 @@ Status: 🚧 In progress · ⛔ Blocked · ⬜ Todo.
 
 Work a spec with `/flow-next:work <spec>`; list ready tasks with `flowctl ready`.
 Record a deferred task's revival trigger in its owning Flow task before implementation.
-
-Completed specs and their evidence remain in `.flow/` and Git history.
 
 ## Immediate delivery order
 
@@ -284,7 +283,7 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 
 ### Native backend deletion — [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md)
 
-Runs after fn-219. Retains historical artifacts and ledgers under `.flow/artifacts`; changes no WASM semantics.
+Runs after fn-219. Closed-spec cleanup follows AGENTS.md; changes no WASM semantics.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
