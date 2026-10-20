@@ -78,3 +78,49 @@ Clean candidate `f046982309e12d2c419f8941c6bdae2ce4e27a61` was frozen at `/home/
 The four-reference preflight waited for actual unrelated build handles to exit, retaining load snapshots. Its first runtime CLI attempt then stopped before any guest: generic measurement retention created the authenticated run directory, but the stress producer still required that directory not to exist. `/home/agent/wt/evidence/fn188/reference-preflight-f046982309/runtime-0.log` records the staged path, refusal, Go child exit 2, outer exit 1 and 3.450 seconds. The failed root is preserved. No reference, stress cell or qualification pass is inferred. Diagnosis also found child executions attempted nested retention and reruns published staged paths. The existing fn-188.5 owner is repairing those linked assumptions against the real public Run boundary, with red/green regressions and unchanged central retention guards.
 
 A parallel independent source-acceptance audit found R1 gaps: runtime per-site rows exist in Go shared-grammar tables but are not represented/linked individually in the JSON inventory; its aggregate runtime rows can disappear without failing runtime completeness. Current duplicate-ID checks also do not enforce the historical ID-to-site nonreuse contract. A disjoint worker owns per-site JSON linkage and append-only identity-history enforcement under existing fn-188.1/.2. Those tasks remain incomplete, without weakening the specification. The frozen candidate above is retained as pre-fix evidence; the eventual integrated corrections require a new freeze before reference/stress/qualification claims.
+
+## Map-order repair and qualification continuation
+
+Source candidate `04e06bc95f958e1957a8de04f6bef680b6515121` integrates fn-227's
+stable shutdown and storage-validation ordering. Its source verification is in
+`fn227-source-acceptance-2026-10-20.md`; R1–R3 source checks passed, while R4
+qualification and independent acceptance review remain open. The compiled model
+identity rotates to
+`sha256:73c1a4f3f64dedd4c18dad47849f6dcc8bc04d08e27067dedd096acde05e2e60`.
+Thirteen regenerated corpus files change implementation pins only.
+
+Historical candidate `ea45f94e59` completed unchanged one-box preparation with
+exit 0 in 100.382 seconds after an initial hard-linked-helper admission refusal
+(exit 1). Its receipt, exact commands and identities remain under
+`/home/agent/wt/evidence/qualification-final/early-onebox-ea45f94e59/`.
+This is preparation evidence, not execution or qualification of the repaired model.
+
+The repaired candidate is frozen at
+`/home/agent/wt/qualification-final-frozen`, with source manifest digest
+`536e7864ebc8e2bc07a0e3946a4d4272ae700123329a6586180173c348ded87f`.
+The qualification worker owns execution session `77189`, script
+`/home/agent/wt/evidence/qualification-final/run-04e06bc95f.sh` and adjacent log.
+It runs prepare-only first, retains that receipt before measured cells overwrite
+it, then runs the unchanged 96-stage ladder with its 3600-second limit.
+Check the live handle and actual stage results before any resume or restart.
+No completed ladder is claimed here. External build/scan processes are observed
+for quiet-host admission and are never interrupted.
+
+Full stress must follow the repaired source: 41 references and 501 perturbed
+fresh executions (K=3, concurrent fanout=2), with inapplicable handoff axes
+reported explicitly. The full fn-221 survey remains unstarted. Its recorded
+budgets are 3 minutes per execution, 8 minutes preparation and 24 hours overall,
+seed 0, all discovered packages and methods, `--max-tests 0`, and
+`--config-source temporal-install`. Build fresh launcher/sweep executables and
+bind the qualified helper. The old external full-sweep wrapper both names a stale
+candidate and compares bare hashes against `sha256:`-prefixed sidecar values;
+invoke the existing harness directly with stable resume paths. A verifier pass
+does not imply every row ran; retain not-run and skipped counts separately.
+
+Remaining worktrees: the main `gomad-milestones` integration checkout;
+`/home/agent/wt/qualification-final-frozen` for the active candidate;
+`/home/agent/wt/fn227-map-order` for review fixes while fn-227 stays open;
+`/home/agent/wt/fn188` for the pending stress run; and
+`/home/agent/wt/fn221` for the pending full survey. The latter two are still at
+`ea45f94e59` and must advance cleanly to the selected repaired candidate before
+execution. No milestone task is completed by this checkpoint.
