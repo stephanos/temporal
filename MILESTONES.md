@@ -304,14 +304,6 @@ Owner decision 2026-10-19: support ringpop enough to verify a multi-node members
 | [fn-185.2](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.2.md) | ⬜ Todo | Capture wall and CPU profiles on the cluster and single-guest workloads |
 | [fn-185.3](.flow/tasks/fn-185-gomad-wasm-host-side-execution-cost.3.md) | ⬜ Todo | Rank cost centers and record the single optimization verdict |
 
-### Helper-owned replay tape validation — [fn-228](.flow/specs/fn-228-gomad-helper-owned-replay-tape.md)
-
-First batch of fn-232; the Rust binary links the helper library it extends.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-228-gomad-helper-owned-replay-tape.4](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md) | 🚧 In progress | Keep split-owned reference session, regenerate corpora, document the contract |
-
 ### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
 
 First in the delivery order (owner decision 2026-10-20). New evidence lineage; behavioral equivalence gate; Go overlay, models, generator and corpora stay.

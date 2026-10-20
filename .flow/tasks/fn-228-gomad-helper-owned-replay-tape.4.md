@@ -13,9 +13,12 @@ Verify the Go reference session still receives runtime ops under split-owned mod
 Split-owned differential tests pass with exact, shortened-prefix and forced-rank controls on standalone and cluster paths; transcript corpus regenerates byte-identically on the second pass; docs describe the new ownership; actual helper/model rotations and unchanged trace/tape semantics are recorded; incompatible identities refuse; baseline references remain usable; the explicit receiving fn-232 R12/task .13 qualification obligation is recorded as pending rather than passed.
 
 ## Done summary
-TBD
+R7/R9: Split-owned lazy Go reference oracle remains for standalone/cluster exact/prefix/rank comparisons; transcripts regenerate byte-identically. Helper/WASI rotations and native transitive causes are measured separately in tracked replay ledger. Fresh old/new own-artifact seed7R7 comparison retained; zero-choice limitation explicit, separate nonzero oracle59corpus does not fabricate campaign coverage. Independent fn232 custody preserves source/executables/manifests/rawR7/combinedreceipts; final Rust runtime/workload/replay qualification explicitly remains pending232R12/.13 under3600s. Review fixes preserve helper/model identities; no artifact migration. Independent combined source re-review SHIP07ebfdb4ee.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 1ef7bd73b5, 0561e32514, 95caeab345, 07ebfdb4ee, eee312b9a0
+- Tests: split-owned oracle comparisons; two-pass transcript corpus0, fresh own-lineage R7 install0/campaign1targetfailure/replay1reproduced; scoped limitations retained, receiver initial+combined manifests verified0; combined source gates0; review SHIP
 - PRs:

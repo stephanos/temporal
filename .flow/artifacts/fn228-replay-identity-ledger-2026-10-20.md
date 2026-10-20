@@ -97,6 +97,47 @@ Reports: `integration-bindings-pre-native.json`, `integration-bindings-combined.
 
 The zero-build-key Choice implementation control remains `sha256:8dd54e14f8a56f5c41ec71eec5417dd233eaaf217c77e0f3c4af690a243f2706`; actual execution identities remain keyed by their own preparation context. Do not use this control as an artifact identity.
 
+## Reviewed source delta: verify-only admission
+
+Combined review found that `replay --verify-only` returned before the helper
+could replace the semantic trace/tape checks removed from the execution builder.
+Worker `1947a24aa8` / integrated `07ebfdb4ee` restores decoding/projection only
+inside the verification-only branch. Regressions reseal file hashes before
+testing malformed trace bytes, wrong tape digest and wrong decision count;
+all three fail before the fix and refuse afterward, with zero executor calls.
+Execution replay remains raw-trace/helper-owned. Focused replay tests pass
+46 top-level/138 events; the additional whole Runner package passes239 top-level/
+1,128 events with one existing skip; serial read-only lint reports zero issues.
+Root repeated the integrated Replay runner selection, exit0.
+
+`replay_operation.go` now hashes to
+`aa89f06ad03b92d4084fab345492205dfe9d907614bc6dd5f35c40142dc45703`.
+This is a file digest, not a fabricated implementation identity. The final
+non-Flow source inventory at `07ebfdb4ee` contains8,263 paths/226,349,334 bytes,
+SHA256 `f2dacdd826eee853450e0b60c3477bd5d4b9e3fd94756ade6137f9a06b7602ba`.
+Exactly four paths differ from0561: workflow, its archcheck regression, Runner
+replay implementation and its regression. All71 helper inputs and the WASI,
+cluster/model/softassert sources remain unchanged. Earlier full source gates
+keep their0561 bindings; no newer full gate or candidate CLI build is invented.
+
+Same-receipt independent re-review returned SHIP for both batch fixes at07eb,
+session `01a15b74-eb76-7242-b089-3e545f5467f0`, Codex `gpt-6.1-sol` high,
+same family as the writers. Receipt:
+`.flow/tmp/impl-review-receipt-fn223-fn228-combined.json`. Initial three-draw
+provenance remains under `.flow/review-fanout/a6a7f787c6adb67b96029734bc43ca8a/`.
+
+The current combined receiving index is
+`/home/agent/wt/evidence/fn232/fn228-replay-inputs-2026-10-20/FINAL_CUSTODY.md`;
+its root manifest hashes to
+`8ff5fd82a1b0442c44004c73b90bd0f82806bbb40424f9732a64fc991519afd8`.
+The independent fix append is `verify-only-fix/README.md` beneath that bundle,
+manifest SHA256
+`c4d8d75b1b31e9b446547726b8993d5e09ea36a22733ce088c29c07a91c406c3`.
+Root verified both historical combined and separate fix manifests successfully.
+Initial/combined custody documents are immutable history, not rewritten to
+claim later fixes. Final Rust runtime/workload/replay qualification remains
+PENDING under fn232R12/.13 and the unchanged3,600-second limit.
+
 ## Required receiving obligation
 
 Final runtime, mandatory workload and retained-replay qualification of the eventual frozen Rust candidate remains PENDING under fn232 R12/task .13. This combined source/helper admission does not substitute for that ladder, does not qualify an extracted library/Rust host, does not migrate historical artifacts, and makes no timing claim. Preserve both the original deletion pair and deletion-free fn228/R7 custody histories. Root owns the ledger/receiving-task commit and release after review.
