@@ -1676,6 +1676,121 @@ func TestHelperModelPreservesGoOwnerEvidence(t *testing.T) {
 	}
 }
 
+func TestReplayPrefixControlsPreserveGoOracle(t *testing.T) {
+	base := cooperativeRequest(t, "../toolchain/testdata/choices")
+	base.Config.Clock.ReadStepNanos = 0
+	for _, surface := range []string{"standalone", "cluster"} {
+		for _, variant := range []string{"short-prefix", "forced-rank"} {
+			t.Run(surface+"/"+variant, func(t *testing.T) {
+				count := 1
+				if surface == "cluster" {
+					count = 2
+				}
+				requests := make([]Request, count)
+				for index := range requests {
+					requests[index] = base
+					control, choices := *base.Runtime, *base.Runtime.Choice
+					control.Choice = &choices
+					requests[index].Runtime = &control
+				}
+				configuration := brokerTestConfig()
+				runReference := func() ([]Result, []byte) {
+					var broker *Broker
+					if surface == "cluster" {
+						var err error
+						broker, err = NewBroker(configuration)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					results, failures := make([]Result, count), make([]error, count)
+					var wait sync.WaitGroup
+					for index, request := range requests {
+						request.remoteModel = true
+						if broker != nil {
+							request.Broker = broker.Session([]string{"a", "b"}[index])
+						}
+						wait.Go(func() { results[index], failures[index] = Run(t.Context(), request) })
+					}
+					wait.Wait()
+					for index, result := range results {
+						if failures[index] != nil {
+							t.Fatal(failures[index])
+						}
+						requireExit(t, "Go oracle", result, 0)
+					}
+					if broker == nil {
+						return results, nil
+					}
+					world, err := broker.EncodeWorldEvidence()
+					if err != nil {
+						t.Fatal(err)
+					}
+					return results, world
+				}
+				source, _ := runReference()
+				for index, result := range source {
+					plan, err := choice.ProjectReplayPlan(result.ChoiceTrace, requests[index].Runtime.Choice.ExecutionIdentity)
+					if err != nil || len(plan.Decisions) < 2 {
+						t.Fatalf("oracle fixture lacks a shortened branching prefix: %v", err)
+					}
+					if variant == "forced-rank" {
+						plan, err = choice.BuildRankPrefix(plan, 0, (plan.Decisions[0].Selected+1)%plan.Decisions[0].Alternatives)
+					} else {
+						plan, err = plan.Prefix(1)
+					}
+					if err != nil {
+						t.Fatal(err)
+					}
+					setChoiceReplay(t, requests[index].Runtime.Choice, choice.ModePrefix, result.ChoiceTrace.Bytes, plan)
+				}
+				want, world := runReference()
+				actual := make([]Result, count)
+				if surface == "standalone" {
+					var err error
+					actual[0], err = Run(t.Context(), requests[0])
+					if err != nil {
+						t.Fatal(err)
+					}
+				} else {
+					session, err := OpenCluster(t.Context(), ClusterRequest{Broker: configuration, Instances: []ClusterInstance{{ID: "a", Request: requests[0]}, {ID: "b", Request: requests[1]}}})
+					if err != nil {
+						t.Fatal(err)
+					}
+					t.Cleanup(func() {
+						ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+						defer cancel()
+						if err := session.Shutdown(ctx); err != nil {
+							t.Error(err)
+						}
+					})
+					for index, id := range []string{"a", "b"} {
+						if err := session.Start(t.Context(), id, 1, id, requests[index].Runtime); err != nil {
+							t.Fatal(err)
+						}
+					}
+					for index, id := range []string{"a", "b"} {
+						actual[index], err = session.Wait(t.Context(), id, 1)
+						if err != nil {
+							t.Fatal(err)
+						}
+					}
+					finished, err := session.Finish(t.Context())
+					if err != nil || !bytes.Equal(world, finished.World) {
+						t.Fatalf("controlled cluster changed shared World evidence: %v", err)
+					}
+				}
+				for index, result := range actual {
+					requireExit(t, "helper", result, 0)
+					if difference := sameEvidence(want[index], result); difference != "" || !bytes.Equal(want[index].Transcript, result.Transcript) || !bytes.Equal(want[index].DiagnosticTrace.Bytes, result.DiagnosticTrace.Bytes) {
+						t.Fatalf("node %d controlled replay differs from Go oracle: %s", index, difference)
+					}
+				}
+			})
+		}
+	}
+}
+
 func TestNamespaceOwnerFilesystemParity(t *testing.T) {
 	request := cooperativeRequest(t, "./testdata/namespace_owner")
 	requireSmallHelperParityModule(t, request)
