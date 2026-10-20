@@ -1,11 +1,80 @@
 {
   "branch_name": "fn-227-gomad-close-wasm-map-order-determinism",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T15:28:47.783273Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-227-gomad-close-wasm-map-order-determinism",
+  "impl_review_rounds": {
+    "fn-227-gomad-close-wasm-map-order-determinism.1": 1
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "bbe7996dee90680307ec1becc1a5e17941df2ac05b9dd6e5b5e20afa6cdc7100",
+      "backend": "codex",
+      "base_sha": "ea45f94e5913d27a9e03c8312a86614e807eb67c",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-81c95627da28e6851babad1cc5b33ffc",
+            "classification": "introduced",
+            "findingId": "finding-81c95627da28e6851babad1cc5b33ffc",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-453edfff9a29df53672aaf2321e262fe",
+            "classification": "introduced",
+            "findingId": "finding-453edfff9a29df53672aaf2321e262fe",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "d3da71062dbf6ac9d2198efae176f074cc4d7ae3",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 2019,
+      "output_sha256": "3c997b4f82638c375655128b0101743ac3b06d152c1aaa09d127a9cef6b10e7f",
+      "reservation_id": "4f1c248253d54205a452842b8010c8f1",
+      "round_consumed": true,
+      "scope": "impl:fn-227-gomad-close-wasm-map-order-determinism.1",
+      "superseded_by": null,
+      "task": "fn-227-gomad-close-wasm-map-order-determinism.1",
+      "timestamp": "2026-10-20T19:22:44.200729Z",
+      "verdict": "NEEDS_WORK"
+    }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-227-gomad-close-wasm-map-order-determinism.1": 0
+  },
   "spec_path": ".flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md",
   "status": "open",
   "title": "Gomad: close WASM map-order determinism escapes",
@@ -20,5 +89,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T16:21:49.930644Z"
+  "updated_at": "2026-10-20T19:22:44.218822Z"
 }

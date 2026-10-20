@@ -122,5 +122,30 @@ Remaining worktrees: the main `gomad-milestones` integration checkout;
 `/home/agent/wt/fn227-map-order` for review fixes while fn-227 stays open;
 `/home/agent/wt/fn188` for the pending stress run; and
 `/home/agent/wt/fn221` for the pending full survey. The latter two are still at
-`ea45f94e59` and must advance cleanly to the selected repaired candidate before
-execution. No milestone task is completed by this checkpoint.
+`04e06bc95f`; they advanced cleanly before execution. No milestone task is
+completed by this checkpoint.
+
+The repaired candidate's prepare-only gate passed (exit 0, 242.311 seconds),
+retaining the same guest module digest as the earlier preparation. The first
+driver entry-point attempt then exited 127 before any stage: inherited
+`BASH_ENV=/etc/sandbox-persistent.sh` changes nested-shell working directories.
+The corrected absolute-path launch removed that cwd-only startup hook and began
+all 96 scheduled stages in session `86946` at 19:21:53 UTC.
+
+Official three-draw review `4f1c248253d54205a452842b8010c8f1` finalized
+`NEEDS_WORK` on the integrated changes. Correctness and contracts found no sorting
+defect; integration found 62 network-adapter fixtures, 51 network-cluster
+fixtures and the Rust cluster WASI pin still carrying the previous model digest.
+The merged receipt retains this defect and unfinished R4 qualification as two
+open findings. Model-dependent corpus checking must cover these consumers too.
+Review model was `gpt-6.1-sol` at high effort, from the writer's model family.
+
+Because that candidate was demonstrably stale, the conductor stopped its ladder
+through supported SIGTERM propagation. Session `86946` ended with exit 130;
+the scheduler records the interrupted validate stage at 19:23:01 UTC, and
+`driver-exit.txt` plus `wall-time.json` retain both exit codes and 75 seconds
+elapsed. No stage completion or qualification pass is claimed. The qualification
+worker verified no live process remained in the frozen checkout or scratch root.
+The fn-227 worker owns the missing-pin repair through the existing generators;
+a new clean freeze is required after integration. Preserve both previous
+prepare-only receipts and the interrupted run as historical evidence.
