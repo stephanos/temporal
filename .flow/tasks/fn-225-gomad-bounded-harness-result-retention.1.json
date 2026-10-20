@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-225-gomad-bounded-harness-result-retention",
   "spec_path": ".flow/tasks/fn-225-gomad-bounded-harness-result-retention.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Bound harness outputs and replace completed results safely",
   "updated_at": "2026-10-19T21:35:40.533835Z"
 }

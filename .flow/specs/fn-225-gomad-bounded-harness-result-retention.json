@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-225-gomad-bounded-harness-result-retention.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad bounded harness result retention",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T21:36:00.751114Z"
+  "updated_at": "2026-10-20T15:23:25.833236Z"
 }
