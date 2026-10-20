@@ -330,7 +330,8 @@ func ValidateSupportList(list SupportList) error {
 		if index > 0 && strings.Compare(list.Rows[index-1].Package+"\x00"+list.Rows[index-1].Function, row.Package+"\x00"+row.Function) >= 0 {
 			return errors.New("support list rows must be unique and sorted by package and function")
 		}
-		if supportCells[row.Workload+"/"+row.CellID] != (supportSelection{Package: row.Package, Function: row.Function, Run: row.Run}) {
+		selection, known := supportCells[row.Workload+"/"+row.CellID]
+		if !known || selection != (supportSelection{Package: row.Package, Function: row.Function, Run: row.Run}) {
 			return fmt.Errorf("support row %s %s is not a known support cell", row.Package, row.Function)
 		}
 		for _, digest := range []record.SHA256{row.ModuleSHA256, row.WorkloadSourceSHA256, row.HostConfigSHA256, row.Success.ResultSHA256, row.Canary.ResultSHA256} {

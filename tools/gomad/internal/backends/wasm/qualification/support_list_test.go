@@ -308,11 +308,15 @@ func TestSupportListShapeRejectsEditedClaims(t *testing.T) {
 	for name, mutate := range map[string]func(*SupportList){
 		"blanket-statement": func(l *SupportList) { l.Statement = "The functional suite is supported." },
 		"unlisted-test":     func(l *SupportList) { l.Rows[0].Function = "TestActivityTestSuite" },
-		"failed-gate":       func(l *SupportList) { l.Rows[0].Gates[2].Exit = 1 },
-		"missing-gate":      func(l *SupportList) { l.Rows[0].Gates = l.Rows[0].Gates[:3] },
-		"unsorted":          func(l *SupportList) { l.Rows[0], l.Rows[1] = l.Rows[1], l.Rows[0] },
-		"no-canary-bug":     func(l *SupportList) { l.Rows[1].Canary.ReplayableBugs = 0 },
-		"no-rows":           func(l *SupportList) { l.Rows = nil },
+		"unknown-empty-selection": func(l *SupportList) {
+			l.Rows[0].CellID = "unregistered"
+			l.Rows[0].Package, l.Rows[0].Function, l.Rows[0].Run = "", "", ""
+		},
+		"failed-gate":   func(l *SupportList) { l.Rows[0].Gates[2].Exit = 1 },
+		"missing-gate":  func(l *SupportList) { l.Rows[0].Gates = l.Rows[0].Gates[:3] },
+		"unsorted":      func(l *SupportList) { l.Rows[0], l.Rows[1] = l.Rows[1], l.Rows[0] },
+		"no-canary-bug": func(l *SupportList) { l.Rows[1].Canary.ReplayableBugs = 0 },
+		"no-rows":       func(l *SupportList) { l.Rows = nil },
 	} {
 		edited := list
 		edited.Rows = slices.Clone(list.Rows)
