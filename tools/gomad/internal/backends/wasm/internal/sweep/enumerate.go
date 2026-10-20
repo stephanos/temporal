@@ -123,7 +123,7 @@ func Enumerate(ctx context.Context, executor Executor, options Options, tags []s
 			}
 		}
 		if log != nil {
-			fmt.Fprintf(log, "wasmsweep: enumerated %s parsed=%d list=%d guest-excluded=%d\n", pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.GuestExcluded))
+			_, _ = fmt.Fprintf(log, "wasmsweep: enumerated %s parsed=%d list=%d guest-excluded=%d\n", pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.GuestExcluded))
 		}
 		packages = append(packages, pkg)
 	}
@@ -203,7 +203,7 @@ func parseTestList(output []byte) []string {
 
 func isIdentifier(value string) bool {
 	for index, r := range value {
-		if !(unicode.IsLetter(r) || r == '_' || index > 0 && unicode.IsDigit(r)) {
+		if !unicode.IsLetter(r) && r != '_' && (index == 0 || !unicode.IsDigit(r)) {
 			return false
 		}
 	}

@@ -49,7 +49,7 @@ type Sweeper struct {
 	HarnessSHA256 string
 }
 
-// Paths of the sweep's outputs under --out.
+// JournalPath and SidecarPath are the sweep's outputs under --out.
 func JournalPath(out string) string { return filepath.Join(out, "sweep.jsonl") }
 func SidecarPath(out string) string { return filepath.Join(out, "sweep.json") }
 
@@ -58,7 +58,7 @@ func GuestTags() []string { return backend.TemporalGuestBuildTags() }
 
 // Run enumerates, installs, runs every selected test once and writes the
 // journal and sidecar. It returns verification findings of the sidecar.
-func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
+func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
 	options := sweeper.Options
 	if err := options.Validate(); err != nil {
 		return nil, err
@@ -120,7 +120,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 	if err != nil {
 		return nil, err
 	}
-	defer journal.Close()
+	defer func() { retErr = errors.Join(retErr, journal.Close()) }()
 	if err := journal.Append(Row{Kind: "header", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Header: &Header{
 		Statement: ObservationStatement, Candidate: candidate, Host: currentHost(), Packages: packages,
 		OverallBudget: options.OverallBudget.String(), MaxTests: options.MaxTests, RetainBytes: options.RetainBytes, Command: sweeper.Command,
@@ -137,7 +137,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 				break
 			}
 			if entry, ok := latest[pkg.Pattern+"\x00"+name]; ok && entry.Class != ClassNotRun {
-				fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class)
+				_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class)
 				continue
 			}
 			var entry TestEntry
@@ -159,7 +159,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 					if err := journal.Append(Row{Kind: "warmup", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &warmup}); err != nil {
 						return nil, err
 					}
-					fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded)
+					_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded)
 				}
 				warmed = true
 				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention, started)
@@ -171,7 +171,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) ([]string, error) {
 			if err := journal.Append(Row{Kind: "test", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &entry}); err != nil {
 				return nil, err
 			}
-			fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason)
+			_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason)
 			if ctx.Err() != nil {
 				return nil, ctx.Err()
 			}
@@ -450,12 +450,12 @@ func packageIndependentConfigDigest(config wasi.Config) string {
 // FileSHA256 is the "sha256:<hex>" digest of a file.
 func FileSHA256(path string) (string, error) { return fileSHA256(path) }
 
-func fileSHA256(path string) (string, error) {
+func fileSHA256(path string) (_ string, retErr error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
-	defer file.Close()
+	defer func() { retErr = errors.Join(retErr, file.Close()) }()
 	hash := sha256.New()
 	if _, err := io.Copy(hash, file); err != nil {
 		return "", err
@@ -470,7 +470,6 @@ func ReadArtifact(path string) ArtifactFacts {
 	if err != nil {
 		return ArtifactFacts{ReadError: err.Error()}
 	}
-	defer opened.Close()
 	manifest := opened.Manifest()
 	facts := ArtifactFacts{Kind: manifest.ArtifactKind, ModuleSHA256: string(manifest.Target.SHA256), Domain: manifest.Outcome.Domain, Reason: manifest.Outcome.Reason, Termination: manifest.Outcome.Termination, StoredBytes: opened.StoredBytes()}
 	if manifest.Outcome.ExitCode != nil {
@@ -490,6 +489,7 @@ func ReadArtifact(path string) ArtifactFacts {
 		*stream.target = data
 	}
 	facts.StdoutTruncated = manifest.Streams.Stdout.Truncated
+	readErrors = append(readErrors, opened.Close())
 	if err := errors.Join(readErrors...); err != nil {
 		facts.ReadError = err.Error()
 	}

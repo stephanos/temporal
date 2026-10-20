@@ -375,7 +375,7 @@ func Normalize(message string) string {
 	message = normalizeUUID.ReplaceAllString(message, "<uuid>")
 	message = normalizeHexAddress.ReplaceAllString(message, "0x?")
 	message = normalizeDigest.ReplaceAllStringFunc(message, func(value string) string {
-		if strings.IndexAny(strings.TrimPrefix(value, "sha256:"), "abcdef") < 0 && !strings.HasPrefix(value, "sha256:") {
+		if !strings.ContainsAny(strings.TrimPrefix(value, "sha256:"), "abcdef") && !strings.HasPrefix(value, "sha256:") {
 			return value // a long decimal number; normalized below
 		}
 		return "<hex>"

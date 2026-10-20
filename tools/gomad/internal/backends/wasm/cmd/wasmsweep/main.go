@@ -75,19 +75,19 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 		return exitRefused
 	}
 	if flags.NArg() != 0 {
-		fmt.Fprintf(stderr, "wasmsweep: unexpected arguments %q\n", flags.Args())
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: unexpected arguments %q\n", flags.Args())
 		return exitRefused
 	}
 	if *verify != "" {
 		set := 0
 		flags.Visit(func(*flag.Flag) { set++ })
 		if set != 1 {
-			fmt.Fprintln(stderr, "wasmsweep: --verify takes no other flags")
+			_, _ = fmt.Fprintln(stderr, "wasmsweep: --verify takes no other flags")
 			return exitRefused
 		}
 		findings, err := sweep.VerifyFile(*verify)
 		if err != nil {
-			fmt.Fprintf(stderr, "wasmsweep: verify: %v\n", err)
+			_, _ = fmt.Fprintf(stderr, "wasmsweep: verify: %v\n", err)
 			return exitFailed
 		}
 		return report(stdout, *verify, findings)
@@ -95,12 +95,12 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 	retainSet := false
 	flags.Visit(func(defined *flag.Flag) { retainSet = retainSet || defined.Name == "retain-bytes" })
 	if !retainSet {
-		fmt.Fprintln(stderr, "wasmsweep: --retain-bytes is required")
+		_, _ = fmt.Fprintln(stderr, "wasmsweep: --retain-bytes is required")
 		return exitRefused
 	}
 	var err error
 	if options.RetainBytes, err = parseBytes(*retainBytes); err != nil {
-		fmt.Fprintf(stderr, "wasmsweep: --retain-bytes: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: --retain-bytes: %v\n", err)
 		return exitRefused
 	}
 	options.ConfigSource = sweep.ConfigSource(*configSource)
@@ -111,7 +111,7 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 	}
 	options.Environ = environ
 	if err := options.Validate(); err != nil {
-		fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
 		return exitRefused
 	}
 	executable, err := os.Executable()
@@ -119,17 +119,17 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 		executable, err = sweep.FileSHA256(executable)
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "wasmsweep: identify the harness build: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: identify the harness build: %v\n", err)
 		return exitFailed
 	}
 	sweeper := &sweep.Sweeper{Options: options, Log: stderr, Command: append([]string{"wasmsweep"}, args...), HarnessSHA256: executable}
 	findings, err := start(ctx, sweeper)
 	if errors.Is(err, sweep.ErrRefused) {
-		fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
 		return exitRefused
 	}
 	if err != nil {
-		fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
+		_, _ = fmt.Fprintf(stderr, "wasmsweep: %v\n", err)
 		return exitFailed
 	}
 	return report(stdout, sweep.SidecarPath(options.Out), findings)
@@ -137,13 +137,13 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 
 func report(stdout io.Writer, path string, findings []string) int {
 	for _, finding := range findings {
-		fmt.Fprintf(stdout, "wasmsweep: finding: %s\n", finding)
+		_, _ = fmt.Fprintf(stdout, "wasmsweep: finding: %s\n", finding)
 	}
 	if len(findings) != 0 {
-		fmt.Fprintf(stdout, "wasmsweep: %s: %d findings\n", path, len(findings))
+		_, _ = fmt.Fprintf(stdout, "wasmsweep: %s: %d findings\n", path, len(findings))
 		return exitFailed
 	}
-	fmt.Fprintf(stdout, "wasmsweep: %s: verified\n", path)
+	_, _ = fmt.Fprintf(stdout, "wasmsweep: %s: verified\n", path)
 	return 0
 }
 
