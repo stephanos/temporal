@@ -25,7 +25,9 @@ readiness gates and dependencies still apply.
 Execution resumed under the owner's active milestone-completion goal (2026-10-20).
 fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion reviews.
 fn-225 is complete locally: its single task passed implementation review, correctness and
-standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is in progress.
+standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
+complete locally with all three search requirements covered, reviews passed and model gates green.
+fn-218 is next.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -43,21 +45,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-226 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-226 is placed by the root agent. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224 and fn-225 are complete locally with their scoped reviews and gates passed; fn-225's single-task review covers its full spec. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-218 → fn-217 → fn-211 | Owner priority order. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224, fn-225 and fn-226 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-226: Suite search follow-ups (model)
-
-Captured on 2026-10-20 from the re-review of fn-213's complete waypoint search (verdict ship, no
-correctness defects). A panic inside a waypoint predicate is blamed on a Model action; the search
-budget counts (state, progress) pairs, so large bounded patterns turn unknown; any skipped step
-panic refuses an answer even when it cannot affect it. Placed before fn-218, whose `cover` reuses
-the search. [Spec](.flow/specs/fn-226-suite-search-follow-ups-model.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-226.1 | 🔄 in progress | Predicate panics, Model-state budget, panic relevance, cosmetics (R1, R2, R3) |
 
 ### fn-218: Test-space patterns: cover and the full path! grammar (model)
 

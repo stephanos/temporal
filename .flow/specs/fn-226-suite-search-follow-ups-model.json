@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-226-suite-search-follow-ups-model",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-20T16:05:23.583958Z",
   "created_at": "2026-10-20T00:37:52.657109Z",
   "default_impl": null,
   "default_review": null,
@@ -61,7 +61,7 @@
     "impl:fn-226-suite-search-follow-ups-model.1": 0
   },
   "spec_path": ".flow/specs/fn-226-suite-search-follow-ups-model.md",
-  "status": "open",
+  "status": "done",
   "title": "Suite search follow-ups (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -74,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T16:02:00.041312Z"
+  "updated_at": "2026-10-20T16:05:24.444214Z"
 }
