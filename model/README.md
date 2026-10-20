@@ -263,10 +263,17 @@ own claims from those starts, `refuted(&space, |s| ..)` the shortest path to a s
 predicate fails, and `find(&space, path![..])` the shortest path from the starts through
 every waypoint in order. A cut answers unknown (a report outcome, or a `Refusal` when no
 counterexample was found before the cut), never verified; a predicate that holds everywhere and
-an unbridgeable gap are `Refusal`s too, and so is any answer from an exploration in which a step
-panicked, since the checker skips that edge. A search is one exploration of the Model's states
-paired with how far along the pattern each path has come, so it never misses a path that a
-shorter partial match would have hidden; the refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
+an unbridgeable gap are `Refusal`s too. A skipped step panic refuses a witness only when its
+source depth is less than the witness length, since the missing edge could hide a shorter answer;
+without a witness it refuses the search. Waypoint predicate panics have their own refusal naming
+the waypoint. Search explores distinct Model states once under the budget, then finds the shortest
+pattern match over retained rows, keeping nondominated partial matches and their own predecessor
+paths. Pattern progress spends no Model-state budget, even when a witness revisits states.
+`Run::along_with_budget(path![..], n)` sets the same budget; `Run::along` keeps the default.
+A cut graph can answer only when its unexplored frontier cannot hide a shorter witness; a bounded
+pattern anchored at one concrete state can also settle absence before that frontier.
+The refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures
+in `umpire/suite/tests/fixtures/`.
 
 To write a Model's tests, add `mod examples` and `mod explorations` to its `tests.rs`, each with
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal

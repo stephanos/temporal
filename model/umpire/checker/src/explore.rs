@@ -296,6 +296,7 @@ impl<M: Machine> Result<M> {
         fired: &FixedBitSet,
         triggered: &FixedBitSet,
     ) {
+        debug_assert!(self.transitions.windows(2).all(|rows| rows[0].source.0 <= rows[1].source.0));
         self.counts.reached = self.visited.len();
         if self.counts.cut {
             for claim in &mut self.claims {
@@ -329,7 +330,9 @@ impl<M: Machine> Result<M> {
         if self.visited.get(state).is_none() {
             return Err(Refusal::State { given: state.0 });
         }
-        Ok(self.transitions.iter().filter(move |edge| edge.source == state))
+        let start = self.transitions.partition_point(|edge| edge.source.0 < state.0);
+        let end = start + self.transitions[start..].partition_point(|edge| edge.source == state);
+        Ok(self.transitions[start..end].iter())
     }
 
     /// The path by which exploration first reached an admitted state; no admitted path to it is

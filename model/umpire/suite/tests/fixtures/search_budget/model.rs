@@ -1,7 +1,7 @@
 use std::fmt::Write;
 
 use umpire_dsl::{Gap, Machine, Registered, Steps, Waypoint};
-use umpire_suite::{Space, find, path};
+use umpire_suite::{Run, Space, find, path};
 
 #[derive(Clone, Debug, PartialEq, Eq, Hash)]
 pub(crate) struct Node {
@@ -45,12 +45,17 @@ impl Machine for World {
         false
     }
     fn step(&self, state: &Node, action: Action) -> Steps<Node, (), ()> {
-        let target = match action {
-            Action::Turn if state.at < 3 => Some((state.at + 1) % 3),
-            Action::Escape if state.open && state.at == 2 => Some(3),
-            _ => None,
+        let targets = match (action, state.at) {
+            (Action::Turn, 0..=2) => vec![(state.at + 1) % 3],
+            (Action::Turn, 4) => vec![0],
+            (Action::Turn, 10) => vec![11, 12],
+            (Action::Turn, 11) => vec![13],
+            (Action::Turn, 12 | 13) => vec![14],
+            (Action::Turn, 14) => vec![15],
+            (Action::Escape, 2) if state.open => vec![3],
+            _ => Vec::new(),
         };
-        target.into_iter().map(|at| ((), Vec::new(), Node { at, open: state.open })).collect()
+        targets.into_iter().map(|at| ((), Vec::new(), Node { at, open: state.open })).collect()
     }
 }
 
@@ -69,15 +74,25 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let mut out = String::new();
     let start = Node { at: 0, open: false };
     let space = Space::from([start.clone()]).budget(3);
-    write!(out, "unreachable, bounded by a billion steps, budget 3:\n{}", outcome(find(&space, path![start.clone(), ..=1_000_000_000, false])))?;
+    let entry = Node { at: 4, open: false };
+    write!(out, "unreachable, bounded by a billion steps, budget 4:\n{}", outcome(find(&Space::from([entry.clone()]).budget(4), path![entry, ..=1_000_000_000, false])))?;
     let long = Waypoint::Is(start.clone()).then_judged(Gap::AtMost(1), |node| node.at == 1);
     let long = (2..=12).fold(long, |path, index| path.then_judged(Gap::AtMost(1), move |node| u32::from(node.at) == index % 3));
     let answer = find(&space, long);
     writeln!(out, "twelve steps around three Model states, budget 3: {}", answer.map_or_else(|error| format!("refused: {error}"), |path| format!("{} steps", path.steps.len())))?;
+    let along = Run::along_with_budget(path![start, ..=1, |n: &Node| n.at == 1, ..=1, |n| n.at == 2, ..=1, |n| n.at == 0], 3);
+    write!(out, "along one lap, budget 3:\n{}", outcome(along))?;
     for budget in [3, 4] {
         let start = Node { at: 0, open: true };
         let pattern = path![start.clone(), ..=1, |n: &Node| n.at == 1 || n.at == 3, ..=1, |n| n.at == 2 || n.at == 3, ..=1, |n| n.at == 0 || n.at == 3, ..=1, |n| n.at == 1 || n.at == 3];
         write!(out, "loop witness can hide shorter escape, budget {budget}:\n{}", outcome(find(&Space::from([start]).budget(budget), pattern)))?;
     }
+    let start = Node { at: 0, open: true };
+    write!(out, "loop witness at the cut frontier, budget 3:\n{}", outcome(find(&Space::from([start.clone()]).budget(3), path![start, ..=1, |n: &Node| n.at == 1, ..=1, |n| n.at == 2, ..=1, |n| n.at == 0])))?;
+    let starts = Space::from([Node { at: 0, open: false }, Node { at: 1, open: false }]).budget(1);
+    write!(out, "zero-step answer despite start cut:\n{}", outcome(find(&starts, path![|n: &Node| n.at == 0, ..=0, true])))?;
+    write!(out, "omitted start cannot prove absence:\n{}", outcome(find(&starts, path![|n: &Node| n.at == 1, ..=0, true])))?;
+    let space = Space::from([Node { at: 10, open: false }]);
+    write!(out, "shorter queued match survives a later younger arrival:\n{}", outcome(find(&space, path![|n: &Node| n.at == 10 || n.at == 13, ..=3, |n| n.at == 15])))?;
     Ok(umpire_testing::Files::from([("messages.txt".into(), out)]))
 }

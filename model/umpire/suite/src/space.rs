@@ -29,7 +29,8 @@ impl<S> From<Vec<S>> for Space<S> {
 }
 
 impl<S> Space<S> {
-    /// Admits at most `n` states; the default is the checker's.
+    /// Admits at most `n` distinct Model states; pattern progress does not spend this budget.
+    /// The default is the checker's.
     #[must_use]
     pub const fn budget(mut self, n: usize) -> Self {
         self.budget = n;
@@ -53,7 +54,9 @@ pub fn refuted<S: Registered>(
     let rooted = Rooted { world: &world, starts: space.starts.clone(), query: Some(predicate) };
     let explored = Checker::explore(&rooted, space.budget)?;
     let mut report = explored.verify_all()?;
-    search::failed(&report, 1)?;
+    let length =
+        report.claims.first().and_then(|claim| claim.path.as_ref()).map(|path| path.steps.len());
+    search::failed(&report, 1, length)?;
     let query = report.claims.swap_remove(0);
     match (query.outcome, query.path) {
         (CheckOutcome::Refuted, Some(path)) => Ok(path),
@@ -63,7 +66,7 @@ pub fn refuted<S: Registered>(
 }
 
 /// The shortest admitted path from the space's starts through the waypoints in order, each
-/// within its gap, searched as one exploration within the space's budget.
+/// within its gap, searched over one Model exploration within the space's state budget.
 // By value, so `find(&space, path![..])` reads as the question it is.
 #[allow(clippy::needless_pass_by_value)]
 pub fn find<S: Registered>(space: &Space<S>, path: Path<S>) -> Result<Trace<S::World>, Refusal> {

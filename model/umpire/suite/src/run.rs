@@ -54,13 +54,22 @@ impl<S: Registered> Run<S> {
     /// Fills in a story told by its milestones: from the first waypoint, a state, the shortest
     /// path through every waypoint within its gap is found and replayed.
     // By value, so `Run::along(path![..])` reads as the story it is.
-    #[allow(clippy::needless_pass_by_value)]
     pub fn along(path: Path<S>) -> Result<Self, Refusal>
     where
         S: PartialEq,
     {
+        Self::along_with_budget(path, Checker::BUDGET)
+    }
+
+    /// Finds and replays the shortest path, admitting at most `budget` distinct Model states.
+    // By value, matching `Run::along(path![..])`.
+    #[allow(clippy::needless_pass_by_value)]
+    pub fn along_with_budget(path: Path<S>, budget: usize) -> Result<Self, Refusal>
+    where
+        S: PartialEq,
+    {
         let Waypoint::Is(start) = path.first() else { return Err(Refusal::Unanchored) };
-        let found = search::through(&S::world(), vec![start.clone()], &path, Checker::BUDGET)?;
+        let found = search::through(&S::world(), vec![start.clone()], &path, budget)?;
         let mut run = Self::from(found.start);
         for step in found.steps {
             run = run.take(step.action, Some(step.choice))?;

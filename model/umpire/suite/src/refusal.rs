@@ -46,6 +46,16 @@ pub enum Refusal {
         /// The space's state budget.
         budget: usize,
     },
+    /// A waypoint predicate panicked while judging a reached state.
+    #[error("waypoint {waypoint} panicked at {state}: {failure}")]
+    Predicate {
+        /// The waypoint's zero-based index.
+        waypoint: usize,
+        /// The reached state's spelling.
+        state: String,
+        /// The panic payload, when it is a string.
+        failure: String,
+    },
     /// A step panicked during the exploration, so an answer would rest on the edge it skipped.
     #[error("at {state}, {failure}, so the exploration skipped that step")]
     Skipped {
