@@ -259,6 +259,12 @@ CI, PR, or push authority.
 | --- | --- | --- |
 | [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | 🚧 In progress | Record the identity ledger, requalify rotated identities and refresh documentation |
 
+### One-command Temporal test setup — [fn-220](.flow/specs/fn-220-gomad-one-command-temporal-test-setup.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | 🚧 In progress | Factor the fixture configuration derivation into shared code and choose the verb |
+
 ### Functional-suite triage sweep — [fn-221](.flow/specs/fn-221-gomad-functional-suite-triage-sweep-on.md)
 
 | Name / ID | Status | Description |
