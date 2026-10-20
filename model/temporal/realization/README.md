@@ -50,3 +50,11 @@ Answer validates the entire callback and selected enabled response before Poll
 is committed; it leaves the Model Started. The generic runtime commits state only
 after successful response publication, handles freezing and Reset, and owns all
 ABI allocation behavior. The Temporal guest uses its public export hook.
+
+`annotation_runtime()` wraps the existing `runtime()` with stateless Annotate
+dispatch. Its typed `AnnotationRequest` carries the actual RPC method, direction,
+protobuf bytes and seed to `activity_api::annotate`. The response retains filled
+request bytes or unchanged server response bytes, violations and any explicit
+OutOfScope reason. This validates full SDK wire messages separately from the partial
+callback/reply projection above, including after Judge freezes the run. The Go
+`temporal.Annotate` helper transports these envelopes through `Host.Annotate`.

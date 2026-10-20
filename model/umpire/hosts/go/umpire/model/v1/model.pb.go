@@ -31,6 +31,7 @@ const (
 	Method_METHOD_RESET       Method = 3
 	Method_METHOD_JUDGE       Method = 4
 	Method_METHOD_ANSWER      Method = 5
+	Method_METHOD_ANNOTATE    Method = 7
 )
 
 // Enum value maps for Method.
@@ -42,6 +43,7 @@ var (
 		3: "METHOD_RESET",
 		4: "METHOD_JUDGE",
 		5: "METHOD_ANSWER",
+		7: "METHOD_ANNOTATE",
 	}
 	Method_value = map[string]int32{
 		"METHOD_UNSPECIFIED": 0,
@@ -50,6 +52,7 @@ var (
 		"METHOD_RESET":       3,
 		"METHOD_JUDGE":       4,
 		"METHOD_ANSWER":      5,
+		"METHOD_ANNOTATE":    7,
 	}
 )
 
@@ -813,6 +816,94 @@ func (x *AnswerResponse) GetReply() *anypb.Any {
 	return nil
 }
 
+type AnnotateRequest struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Input         *anypb.Any             `protobuf:"bytes,1,opt,name=input,proto3" json:"input,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnnotateRequest) Reset() {
+	*x = AnnotateRequest{}
+	mi := &file_umpire_model_v1_model_proto_msgTypes[13]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnnotateRequest) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnnotateRequest) ProtoMessage() {}
+
+func (x *AnnotateRequest) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_model_v1_model_proto_msgTypes[13]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnnotateRequest.ProtoReflect.Descriptor instead.
+func (*AnnotateRequest) Descriptor() ([]byte, []int) {
+	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{13}
+}
+
+func (x *AnnotateRequest) GetInput() *anypb.Any {
+	if x != nil {
+		return x.Input
+	}
+	return nil
+}
+
+type AnnotateResponse struct {
+	state         protoimpl.MessageState `protogen:"open.v1"`
+	Output        *anypb.Any             `protobuf:"bytes,1,opt,name=output,proto3" json:"output,omitempty"`
+	unknownFields protoimpl.UnknownFields
+	sizeCache     protoimpl.SizeCache
+}
+
+func (x *AnnotateResponse) Reset() {
+	*x = AnnotateResponse{}
+	mi := &file_umpire_model_v1_model_proto_msgTypes[14]
+	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+	ms.StoreMessageInfo(mi)
+}
+
+func (x *AnnotateResponse) String() string {
+	return protoimpl.X.MessageStringOf(x)
+}
+
+func (*AnnotateResponse) ProtoMessage() {}
+
+func (x *AnnotateResponse) ProtoReflect() protoreflect.Message {
+	mi := &file_umpire_model_v1_model_proto_msgTypes[14]
+	if x != nil {
+		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
+		if ms.LoadMessageInfo() == nil {
+			ms.StoreMessageInfo(mi)
+		}
+		return ms
+	}
+	return mi.MessageOf(x)
+}
+
+// Deprecated: Use AnnotateResponse.ProtoReflect.Descriptor instead.
+func (*AnnotateResponse) Descriptor() ([]byte, []int) {
+	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{14}
+}
+
+func (x *AnnotateResponse) GetOutput() *anypb.Any {
+	if x != nil {
+		return x.Output
+	}
+	return nil
+}
+
 type Response struct {
 	state protoimpl.MessageState `protogen:"open.v1"`
 	// Types that are valid to be assigned to Outcome:
@@ -823,6 +914,7 @@ type Response struct {
 	//	*Response_Reset_
 	//	*Response_Judge
 	//	*Response_Answer
+	//	*Response_Annotate
 	Outcome       isResponse_Outcome `protobuf_oneof:"outcome"`
 	unknownFields protoimpl.UnknownFields
 	sizeCache     protoimpl.SizeCache
@@ -830,7 +922,7 @@ type Response struct {
 
 func (x *Response) Reset() {
 	*x = Response{}
-	mi := &file_umpire_model_v1_model_proto_msgTypes[13]
+	mi := &file_umpire_model_v1_model_proto_msgTypes[15]
 	ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 	ms.StoreMessageInfo(mi)
 }
@@ -842,7 +934,7 @@ func (x *Response) String() string {
 func (*Response) ProtoMessage() {}
 
 func (x *Response) ProtoReflect() protoreflect.Message {
-	mi := &file_umpire_model_v1_model_proto_msgTypes[13]
+	mi := &file_umpire_model_v1_model_proto_msgTypes[15]
 	if x != nil {
 		ms := protoimpl.X.MessageStateOf(protoimpl.Pointer(x))
 		if ms.LoadMessageInfo() == nil {
@@ -855,7 +947,7 @@ func (x *Response) ProtoReflect() protoreflect.Message {
 
 // Deprecated: Use Response.ProtoReflect.Descriptor instead.
 func (*Response) Descriptor() ([]byte, []int) {
-	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{13}
+	return file_umpire_model_v1_model_proto_rawDescGZIP(), []int{15}
 }
 
 func (x *Response) GetOutcome() isResponse_Outcome {
@@ -919,6 +1011,15 @@ func (x *Response) GetAnswer() *AnswerResponse {
 	return nil
 }
 
+func (x *Response) GetAnnotate() *AnnotateResponse {
+	if x != nil {
+		if x, ok := x.Outcome.(*Response_Annotate); ok {
+			return x.Annotate
+		}
+	}
+	return nil
+}
+
 type isResponse_Outcome interface {
 	isResponse_Outcome()
 }
@@ -947,6 +1048,10 @@ type Response_Answer struct {
 	Answer *AnswerResponse `protobuf:"bytes,6,opt,name=answer,proto3,oneof"`
 }
 
+type Response_Annotate struct {
+	Annotate *AnnotateResponse `protobuf:"bytes,8,opt,name=annotate,proto3,oneof"`
+}
+
 func (*Response_Explore) isResponse_Outcome() {}
 
 func (*Response_Rows) isResponse_Outcome() {}
@@ -958,6 +1063,8 @@ func (*Response_Reset_) isResponse_Outcome() {}
 func (*Response_Judge) isResponse_Outcome() {}
 
 func (*Response_Answer) isResponse_Outcome() {}
+
+func (*Response_Annotate) isResponse_Outcome() {}
 
 var File_umpire_model_v1_model_proto protoreflect.FileDescriptor
 
@@ -999,22 +1106,28 @@ const file_umpire_model_v1_model_proto_rawDesc = "" +
 	"\rAnswerRequest\x120\n" +
 	"\bcallback\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\bcallback\"<\n" +
 	"\x0eAnswerResponse\x12*\n" +
-	"\x05reply\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x05reply\"\xe9\x02\n" +
+	"\x05reply\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x05reply\"=\n" +
+	"\x0fAnnotateRequest\x12*\n" +
+	"\x05input\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x05input\"@\n" +
+	"\x10AnnotateResponse\x12,\n" +
+	"\x06output\x18\x01 \x01(\v2\x14.google.protobuf.AnyR\x06output\"\xb0\x03\n" +
 	"\bResponse\x12<\n" +
 	"\aexplore\x18\x01 \x01(\v2 .umpire.model.v1.ExploreResponseH\x00R\aexplore\x123\n" +
 	"\x04rows\x18\x02 \x01(\v2\x1d.umpire.model.v1.RowsResponseH\x00R\x04rows\x124\n" +
 	"\arefusal\x18\x03 \x01(\v2\x18.umpire.model.v1.RefusalH\x00R\arefusal\x126\n" +
 	"\x05reset\x18\x04 \x01(\v2\x1e.umpire.model.v1.ResetResponseH\x00R\x05reset\x126\n" +
 	"\x05judge\x18\x05 \x01(\v2\x1e.umpire.model.v1.JudgeResponseH\x00R\x05judge\x129\n" +
-	"\x06answer\x18\x06 \x01(\v2\x1f.umpire.model.v1.AnswerResponseH\x00R\x06answerB\t\n" +
-	"\aoutcome*|\n" +
+	"\x06answer\x18\x06 \x01(\v2\x1f.umpire.model.v1.AnswerResponseH\x00R\x06answer\x12?\n" +
+	"\bannotate\x18\b \x01(\v2!.umpire.model.v1.AnnotateResponseH\x00R\bannotateB\t\n" +
+	"\aoutcomeJ\x04\b\a\x10\b*\x97\x01\n" +
 	"\x06Method\x12\x16\n" +
 	"\x12METHOD_UNSPECIFIED\x10\x00\x12\x12\n" +
 	"\x0eMETHOD_EXPLORE\x10\x01\x12\x0f\n" +
 	"\vMETHOD_ROWS\x10\x02\x12\x10\n" +
 	"\fMETHOD_RESET\x10\x03\x12\x10\n" +
 	"\fMETHOD_JUDGE\x10\x04\x12\x11\n" +
-	"\rMETHOD_ANSWER\x10\x05*\x9a\x02\n" +
+	"\rMETHOD_ANSWER\x10\x05\x12\x13\n" +
+	"\x0fMETHOD_ANNOTATE\x10\a\"\x04\b\x06\x10\x06*\x9a\x02\n" +
 	"\vRefusalCode\x12\x1c\n" +
 	"\x18REFUSAL_CODE_UNSPECIFIED\x10\x00\x12\x1f\n" +
 	"\x1bREFUSAL_CODE_UNKNOWN_METHOD\x10\x01\x12\"\n" +
@@ -1039,44 +1152,49 @@ func file_umpire_model_v1_model_proto_rawDescGZIP() []byte {
 }
 
 var file_umpire_model_v1_model_proto_enumTypes = make([]protoimpl.EnumInfo, 2)
-var file_umpire_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 14)
+var file_umpire_model_v1_model_proto_msgTypes = make([]protoimpl.MessageInfo, 16)
 var file_umpire_model_v1_model_proto_goTypes = []any{
-	(Method)(0),             // 0: umpire.model.v1.Method
-	(RefusalCode)(0),        // 1: umpire.model.v1.RefusalCode
-	(*ExploreRequest)(nil),  // 2: umpire.model.v1.ExploreRequest
-	(*ExploreResponse)(nil), // 3: umpire.model.v1.ExploreResponse
-	(*RowsRequest)(nil),     // 4: umpire.model.v1.RowsRequest
-	(*RowsResponse)(nil),    // 5: umpire.model.v1.RowsResponse
-	(*Refusal)(nil),         // 6: umpire.model.v1.Refusal
-	(*ResetRequest)(nil),    // 7: umpire.model.v1.ResetRequest
-	(*ResetResponse)(nil),   // 8: umpire.model.v1.ResetResponse
-	(*JudgeRequest)(nil),    // 9: umpire.model.v1.JudgeRequest
-	(*Explanation)(nil),     // 10: umpire.model.v1.Explanation
-	(*Unexplained)(nil),     // 11: umpire.model.v1.Unexplained
-	(*JudgeResponse)(nil),   // 12: umpire.model.v1.JudgeResponse
-	(*AnswerRequest)(nil),   // 13: umpire.model.v1.AnswerRequest
-	(*AnswerResponse)(nil),  // 14: umpire.model.v1.AnswerResponse
-	(*Response)(nil),        // 15: umpire.model.v1.Response
-	(*anypb.Any)(nil),       // 16: google.protobuf.Any
+	(Method)(0),              // 0: umpire.model.v1.Method
+	(RefusalCode)(0),         // 1: umpire.model.v1.RefusalCode
+	(*ExploreRequest)(nil),   // 2: umpire.model.v1.ExploreRequest
+	(*ExploreResponse)(nil),  // 3: umpire.model.v1.ExploreResponse
+	(*RowsRequest)(nil),      // 4: umpire.model.v1.RowsRequest
+	(*RowsResponse)(nil),     // 5: umpire.model.v1.RowsResponse
+	(*Refusal)(nil),          // 6: umpire.model.v1.Refusal
+	(*ResetRequest)(nil),     // 7: umpire.model.v1.ResetRequest
+	(*ResetResponse)(nil),    // 8: umpire.model.v1.ResetResponse
+	(*JudgeRequest)(nil),     // 9: umpire.model.v1.JudgeRequest
+	(*Explanation)(nil),      // 10: umpire.model.v1.Explanation
+	(*Unexplained)(nil),      // 11: umpire.model.v1.Unexplained
+	(*JudgeResponse)(nil),    // 12: umpire.model.v1.JudgeResponse
+	(*AnswerRequest)(nil),    // 13: umpire.model.v1.AnswerRequest
+	(*AnswerResponse)(nil),   // 14: umpire.model.v1.AnswerResponse
+	(*AnnotateRequest)(nil),  // 15: umpire.model.v1.AnnotateRequest
+	(*AnnotateResponse)(nil), // 16: umpire.model.v1.AnnotateResponse
+	(*Response)(nil),         // 17: umpire.model.v1.Response
+	(*anypb.Any)(nil),        // 18: google.protobuf.Any
 }
 var file_umpire_model_v1_model_proto_depIdxs = []int32{
 	1,  // 0: umpire.model.v1.Refusal.code:type_name -> umpire.model.v1.RefusalCode
-	16, // 1: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
+	18, // 1: umpire.model.v1.JudgeRequest.observation:type_name -> google.protobuf.Any
 	10, // 2: umpire.model.v1.JudgeResponse.explained:type_name -> umpire.model.v1.Explanation
 	11, // 3: umpire.model.v1.JudgeResponse.unexplained:type_name -> umpire.model.v1.Unexplained
-	16, // 4: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
-	16, // 5: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
-	3,  // 6: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
-	5,  // 7: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
-	6,  // 8: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
-	8,  // 9: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
-	12, // 10: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
-	14, // 11: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
-	12, // [12:12] is the sub-list for method output_type
-	12, // [12:12] is the sub-list for method input_type
-	12, // [12:12] is the sub-list for extension type_name
-	12, // [12:12] is the sub-list for extension extendee
-	0,  // [0:12] is the sub-list for field type_name
+	18, // 4: umpire.model.v1.AnswerRequest.callback:type_name -> google.protobuf.Any
+	18, // 5: umpire.model.v1.AnswerResponse.reply:type_name -> google.protobuf.Any
+	18, // 6: umpire.model.v1.AnnotateRequest.input:type_name -> google.protobuf.Any
+	18, // 7: umpire.model.v1.AnnotateResponse.output:type_name -> google.protobuf.Any
+	3,  // 8: umpire.model.v1.Response.explore:type_name -> umpire.model.v1.ExploreResponse
+	5,  // 9: umpire.model.v1.Response.rows:type_name -> umpire.model.v1.RowsResponse
+	6,  // 10: umpire.model.v1.Response.refusal:type_name -> umpire.model.v1.Refusal
+	8,  // 11: umpire.model.v1.Response.reset:type_name -> umpire.model.v1.ResetResponse
+	12, // 12: umpire.model.v1.Response.judge:type_name -> umpire.model.v1.JudgeResponse
+	14, // 13: umpire.model.v1.Response.answer:type_name -> umpire.model.v1.AnswerResponse
+	16, // 14: umpire.model.v1.Response.annotate:type_name -> umpire.model.v1.AnnotateResponse
+	15, // [15:15] is the sub-list for method output_type
+	15, // [15:15] is the sub-list for method input_type
+	15, // [15:15] is the sub-list for extension type_name
+	15, // [15:15] is the sub-list for extension extendee
+	0,  // [0:15] is the sub-list for field type_name
 }
 
 func init() { file_umpire_model_v1_model_proto_init() }
@@ -1088,13 +1206,14 @@ func file_umpire_model_v1_model_proto_init() {
 		(*JudgeResponse_Explained)(nil),
 		(*JudgeResponse_Unexplained)(nil),
 	}
-	file_umpire_model_v1_model_proto_msgTypes[13].OneofWrappers = []any{
+	file_umpire_model_v1_model_proto_msgTypes[15].OneofWrappers = []any{
 		(*Response_Explore)(nil),
 		(*Response_Rows)(nil),
 		(*Response_Refusal)(nil),
 		(*Response_Reset_)(nil),
 		(*Response_Judge)(nil),
 		(*Response_Answer)(nil),
+		(*Response_Annotate)(nil),
 	}
 	type x struct{}
 	out := protoimpl.TypeBuilder{
@@ -1102,7 +1221,7 @@ func file_umpire_model_v1_model_proto_init() {
 			GoPackagePath: reflect.TypeOf(x{}).PkgPath(),
 			RawDescriptor: unsafe.Slice(unsafe.StringData(file_umpire_model_v1_model_proto_rawDesc), len(file_umpire_model_v1_model_proto_rawDesc)),
 			NumEnums:      2,
-			NumMessages:   14,
+			NumMessages:   16,
 			NumExtensions: 0,
 			NumServices:   0,
 		},

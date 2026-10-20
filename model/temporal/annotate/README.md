@@ -41,7 +41,8 @@ fallback. Field patterns omit `..`; rustc checks every declared field and kind.
 
 Kinds use named literal constraints in brackets: `Text[min_len = 1, prefix = "a"]`,
 `Counter[gte = 0]`, `Bytes[max_len = 32]`, and repeated `min_items`, `max_items`,
-`unique`. `Enum(status)` uses the discriminants of the named exhaustive converter
+`unique`. String `min_len`/`max_len` count Unicode scalars; `min_bytes`/`max_bytes`
+count UTF-8 bytes. `Enum(status)` uses the discriminants of the named exhaustive converter
 and requires defined values. Request constraints and presence rules require an
 expectation (`Accepts`, `Unobservable`, or `Rejects(code, pattern, optional_details)`)
 and nonempty `covers` provenance.
@@ -88,14 +89,18 @@ descriptor check additionally checks all source alternatives. Nested message
 and enum references require their own coverage declarations unless the owning
 field is explicitly opaque.
 
+A consumed oneof uses an explicit typed projection with `variants`. Its catalog
+retains one conditional field per source alternative, including the presence of
+an empty selected payload. Presence rules name those source alternatives.
+
 The API build tracks feature `api.rs` files and `annotate/catalogs/*.rs` recursively,
 including directories and `proto/api.binpb`. The upstream image currently has no
 services. The existing `getproto --linked-api` facility adds actual linked
 WorkflowService descriptors to an `OUT_DIR` image for checking; API generation
 continues to use the upstream image. All upstream-owned files survive linking
-unchanged. The bootstrap control classifies every WorkflowService RPC as outside
-its behavioral scope. Task .3 replaces or moves these classifications into the
-feature catalog; it must not add a second classification of the same service.
+unchanged. The activity feature's `api.rs` owns the WorkflowService classifications,
+including explicit reasons for infrastructure and unrelated RPCs outside its scope.
+Each service is classified once.
 
 The normal facade has no parser, descriptor or generated API dependency. The
 parser/checker lives only in host proc-macro and build dependencies.

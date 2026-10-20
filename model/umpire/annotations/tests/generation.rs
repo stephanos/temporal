@@ -83,6 +83,55 @@ fn presence_filling_uses_present_scalar_candidates() -> Result<(), Box<dyn std::
 }
 
 #[test]
+fn generated_text_satisfies_byte_and_scalar_bounds_together()
+-> Result<(), Box<dyn std::error::Error>> {
+    for (characters, bytes, prefix, possible) in [
+        (1, 1, "", true),
+        (1, 4, "", true),
+        (2, 3, "é", true),
+        (2, 5, "🙂", true),
+        (2, 1, "", false),
+        (1, 5, "", false),
+        (1, 1, "é", false),
+    ] {
+        let kind = Kind::Text(StringRules {
+            min_len: Some(characters),
+            max_len: Some(characters),
+            min_bytes: Some(bytes),
+            max_bytes: Some(bytes),
+            prefix: Some(prefix.into()),
+            ..Default::default()
+        });
+        for seed in 0..8 {
+            let result = String::generate(&kind, &mut Rng::new(seed));
+            if possible {
+                let value = result?;
+                assert_eq!(value.chars().count(), characters);
+                assert_eq!(value.len(), bytes);
+                assert!(value.starts_with(prefix));
+                assert_eq!(value.violations(&kind), Vec::<&str>::new());
+                assert_eq!(value, String::generate(&kind, &mut Rng::new(seed))?);
+            } else {
+                assert_eq!(result, Err(GenerationError::ImpossibleConstraints));
+            }
+        }
+    }
+    let kind = Kind::Text(StringRules {
+        min_bytes: Some(100),
+        max_bytes: Some(100),
+        ..Default::default()
+    });
+    assert_eq!(String::generate(&kind, &mut Rng::new(0))?.len(), 100);
+    let kind =
+        Kind::Text(StringRules { min_bytes: Some(4), max_bytes: Some(3), ..Default::default() });
+    assert_eq!(
+        String::generate(&kind, &mut Rng::new(0)),
+        Err(GenerationError::ImpossibleConstraints)
+    );
+    Ok(())
+}
+
+#[test]
 fn required_substring_can_be_supplied_by_the_suffix() -> Result<(), Box<dyn std::error::Error>> {
     for prefix in [None, Some("a".to_owned())] {
         let catalog = catalog::<String>(
@@ -119,6 +168,7 @@ fn exact_length_anchors_preserve_partial_overlap() -> Result<(), Box<dyn std::er
                 contains: Some(contains.into()),
                 min_len: Some(4),
                 max_len: Some(4),
+                ..Default::default()
             }),
             None,
             None,
@@ -141,6 +191,7 @@ fn exact_length_anchors_preserve_partial_overlap() -> Result<(), Box<dyn std::er
             contains: Some("b".into()),
             min_len: Some(1),
             max_len: Some(3),
+            ..Default::default()
         }),
         None,
         None,
@@ -176,6 +227,7 @@ fn anchored_generation_matches_small_exhaustive_string_domains()
                             contains: Some(contains.into()),
                             min_len: Some(len),
                             max_len: Some(len),
+                            ..Default::default()
                         }),
                         None,
                         None,
@@ -251,6 +303,7 @@ fn unique_repeated_times_sample_the_allowed_domain() -> Result<(), Box<dyn std::
             contains: Some("aba".into()),
             min_len: Some(4),
             max_len: Some(4),
+            ..Default::default()
         }),
         Some(RepeatedRules { min_items: Some(2), max_items: Some(2), unique: true }),
         None,

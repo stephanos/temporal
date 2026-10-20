@@ -92,6 +92,12 @@ fn text_violations(value: &str, rules: &StringRules, identifier: bool) -> Vec<&'
     if rules.max_len.is_some_and(|max| len > max) {
         result.push("string.max_len");
     }
+    if rules.min_bytes.is_some_and(|min| value.len() < min) {
+        result.push("string.min_bytes");
+    }
+    if rules.max_bytes.is_some_and(|max| value.len() > max) {
+        result.push("string.max_bytes");
+    }
     if rules.prefix.as_ref().is_some_and(|prefix| !value.starts_with(prefix)) {
         result.push("string.prefix");
     }
@@ -176,6 +182,7 @@ fn place_anchor(
 fn text_candidate(
     len: usize,
     anchors: &[Vec<char>; 3],
+    rules: &StringRules,
     rng: &mut Rng,
     budget: &mut usize,
 ) -> Result<Option<String>, GenerationError> {
@@ -193,16 +200,69 @@ fn text_candidate(
     .map_err(|_| GenerationError::SizeLimit)?;
     for step in 0..positions {
         let position = (first + step) % positions;
-        if place_anchor(&mut slots, position, contains, budget)? {
-            return Ok(Some(
-                slots
-                    .into_iter()
-                    .map(|slot| slot.unwrap_or_else(|| random_character(4, rng)))
-                    .collect(),
-            ));
+        let mut candidate = slots.clone();
+        if place_anchor(&mut candidate, position, contains, budget)?
+            && let Some(value) = complete_text(candidate, rules, rng)?
+        {
+            return Ok(Some(value));
         }
     }
     Ok(None)
+}
+
+fn complete_text(
+    slots: Vec<Option<char>>,
+    rules: &StringRules,
+    rng: &mut Rng,
+) -> Result<Option<String>, GenerationError> {
+    if rules.min_bytes.is_none() && rules.max_bytes.is_none() {
+        return Ok(Some(
+            slots
+                .into_iter()
+                .map(|slot| slot.unwrap_or_else(|| random_character(4, rng)))
+                .collect(),
+        ));
+    }
+    let mut remaining = slots.iter().filter(|slot| slot.is_none()).count();
+    let fixed: usize = slots.iter().flatten().map(|value| value.len_utf8()).sum();
+    let min = rules.min_bytes.unwrap_or(0).max(fixed + remaining);
+    let max = rules.max_bytes.unwrap_or(usize::MAX).min(fixed + 4 * remaining);
+    if min > max {
+        return Ok(None);
+    }
+    let span = u64::try_from(max - min + 1).map_err(|_| GenerationError::SizeLimit)?;
+    let mut bytes = min
+        + usize::try_from(rng.next_u64() % span).map_err(|_| GenerationError::SizeLimit)?
+        - fixed;
+    let mut value = String::new();
+    for slot in slots {
+        if let Some(character) = slot {
+            value.push(character);
+        } else {
+            remaining -= 1;
+            let min_width = bytes.saturating_sub(4 * remaining).max(1);
+            let max_width = (bytes - remaining).min(4);
+            let width = min_width
+                + usize::try_from(
+                    rng.next_u64()
+                        % u64::try_from(max_width - min_width + 1)
+                            .map_err(|_| GenerationError::SizeLimit)?,
+                )
+                .map_err(|_| GenerationError::SizeLimit)?;
+            let (start, count) = match width {
+                1 => (0, 0x80),
+                2 => (0x80, 0x780),
+                3 => (0x800, 0xf000),
+                _ => (0x1_0000, 0x10_0000),
+            };
+            let scalar = start
+                + u32::try_from(rng.next_u64() % count).map_err(|_| GenerationError::SizeLimit)?;
+            let scalar = if width == 3 && scalar >= 0xd800 { scalar + 0x800 } else { scalar };
+            value.push(char::from_u32(scalar).ok_or(GenerationError::ImpossibleConstraints)?);
+            bytes -= width;
+        }
+    }
+    Ok(Some(value))
 }
 
 fn generate_text(
@@ -210,6 +270,9 @@ fn generate_text(
     identifier: bool,
     rng: &mut Rng,
 ) -> Result<String, GenerationError> {
+    if rules.min_bytes.is_some_and(|min| rules.max_bytes.is_some_and(|max| min > max)) {
+        return Err(GenerationError::ImpossibleConstraints);
+    }
     let anchors = [&rules.prefix, &rules.suffix, &rules.contains].map(|anchor| {
         anchor
             .as_deref()
@@ -222,20 +285,26 @@ fn generate_text(
         .min_len
         .unwrap_or(0)
         .max(usize::from(identifier))
+        .max(rules.min_bytes.unwrap_or(0).div_ceil(4))
         .max(anchors.iter().map(Vec::len).max().unwrap_or(0));
-    generated_len(min, rules.max_len)?;
+    let max_len = rules.max_len.into_iter().chain(rules.max_bytes).min();
+    generated_len(min, max_len)?;
     let max = rules
         .max_len
-        .unwrap_or_else(|| min + anchors.iter().map(Vec::len).sum::<usize>() + 16)
+        .unwrap_or_else(|| {
+            (min + anchors.iter().map(Vec::len).sum::<usize>() + 16)
+                .max(rules.min_bytes.unwrap_or(0))
+        })
+        .min(rules.max_bytes.unwrap_or(usize::MAX))
         .min(MAX_GENERATED_LEN);
     let first = sampled_len(min, Some(max), rng)?;
     let mut budget = MAX_GENERATED_LEN * MAX_GENERATED_LEN;
     for len in std::iter::once(first).chain((min..=max).filter(|len| *len != first)) {
-        if let Some(value) = text_candidate(len, &anchors, rng, &mut budget)? {
+        if let Some(value) = text_candidate(len, &anchors, rules, rng, &mut budget)? {
             return Ok(value);
         }
     }
-    if rules.max_len.is_none_or(|max| max > MAX_GENERATED_LEN) {
+    if max_len.is_none_or(|max| max > MAX_GENERATED_LEN) {
         Err(GenerationError::SizeLimit)
     } else {
         Err(GenerationError::ImpossibleConstraints)

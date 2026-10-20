@@ -11,6 +11,8 @@ rust-version.workspace = true
 umpire-dsl.workspace = true
 umpire-wasm.workspace = true
 umpire-temporal-api.workspace = true
+umpire-annotations.workspace = true
+umpire-temporal-annotate.workspace = true
 prost.workspace = true
 
 [lints]

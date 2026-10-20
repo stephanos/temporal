@@ -2,19 +2,41 @@
 
 use std::time::Duration;
 
-/// Unicode scalar count and literal string constraints.
-#[derive(Clone, Debug, Default, PartialEq, Eq)]
+/// Unicode scalar count, UTF-8 byte count and literal string constraints.
+#[derive(Clone, Default, PartialEq, Eq)]
 pub struct StringRules {
     /// Inclusive minimum character count.
     pub min_len: Option<usize>,
     /// Inclusive maximum character count.
     pub max_len: Option<usize>,
+    /// Inclusive minimum UTF-8 byte count.
+    pub min_bytes: Option<usize>,
+    /// Inclusive maximum UTF-8 byte count.
+    pub max_bytes: Option<usize>,
     /// Required literal prefix.
     pub prefix: Option<String>,
     /// Required literal suffix.
     pub suffix: Option<String>,
     /// Required literal substring.
     pub contains: Option<String>,
+}
+
+impl std::fmt::Debug for StringRules {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        let mut fields = f.debug_struct("StringRules");
+        fields.field("min_len", &self.min_len).field("max_len", &self.max_len);
+        if self.min_bytes.is_some() {
+            fields.field("min_bytes", &self.min_bytes);
+        }
+        if self.max_bytes.is_some() {
+            fields.field("max_bytes", &self.max_bytes);
+        }
+        fields
+            .field("prefix", &self.prefix)
+            .field("suffix", &self.suffix)
+            .field("contains", &self.contains)
+            .finish()
+    }
 }
 
 /// Byte count constraints, also used for generated random data.
@@ -87,6 +109,12 @@ impl Kind {
                 }
                 if rules.max_len.is_some() {
                     names.push("string.max_len");
+                }
+                if rules.min_bytes.is_some() {
+                    names.push("string.min_bytes");
+                }
+                if rules.max_bytes.is_some() {
+                    names.push("string.max_bytes");
                 }
                 if rules.prefix.is_some() {
                     names.push("string.prefix");

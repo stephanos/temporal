@@ -117,7 +117,7 @@ pub struct Expected {
 pub struct Rule {
     /// `required`, `any_of`, `one_of`, `requires` or `excludes`.
     pub operator: Ident,
-    /// Referenced Rust fields.
+    /// Referenced source fields, including declared oneof alternatives.
     pub fields: Vec<Ident>,
     /// Expected outcome.
     pub expected: Option<Expected>,

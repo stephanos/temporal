@@ -507,7 +507,16 @@ impl Catalog {
                     let field = message
                         .fields
                         .iter()
-                        .find(|field| field.name == *operand)
+                        .find(|field| {
+                            if field.variants.is_empty() {
+                                field.name == *operand
+                            } else {
+                                field
+                                    .variants
+                                    .iter()
+                                    .any(|variant| operand.unraw() == variant.proto.value())
+                            }
+                        })
                         .ok_or_else(|| Error::new(operand.span(), "unknown rule field"))?;
                     if field.tags.iter().any(|tag| tag.name == "Ignored") {
                         return Err(Error::new(
@@ -608,10 +617,10 @@ impl Catalog {
                 "opaque fields require Bytes or Secret and only Ignored(reason)",
             ));
         }
-        if !field.variants.is_empty() && !field.opaque {
+        if !field.variants.is_empty() && !field.opaque && field.projection.is_none() {
             return Err(Error::new(
                 field.name.span(),
-                "oneof alternatives currently require intentional opaque Ignored(reason)",
+                "oneof alternatives require a typed projection or intentional opaque Ignored(reason)",
             ));
         }
         let constrained = field.constraints.iter().any(|(name, literal)| {
@@ -686,6 +695,9 @@ fn admit_constraints(field: &Field, kind: &str) -> syn::Result<()> {
             "min_items" | "max_items" => matches!(literal, Lit::Int(_)),
             "unique" => matches!(literal, Lit::Bool(_)),
             "min_len" | "max_len" if ["Text", "Identifier", "Bytes", "Random"].contains(&kind) => {
+                matches!(literal, Lit::Int(_))
+            }
+            "min_bytes" | "max_bytes" if ["Text", "Identifier"].contains(&kind) => {
                 matches!(literal, Lit::Int(_))
             }
             "prefix" | "suffix" | "contains" if ["Text", "Identifier"].contains(&kind) => {

@@ -11,6 +11,7 @@ import (
 	"google.golang.org/protobuf/proto"
 	"google.golang.org/protobuf/types/known/anypb"
 	modelv1 "umpire.local/model/umpire/model/v1"
+	temporalv1 "umpire.local/temporal/umpire/temporal/v1"
 )
 
 type rawGuest struct {
@@ -148,6 +149,8 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 		{"judge freeze", true, false, modelv1.Method_METHOD_JUDGE, func(t *testing.T) proto.Message {
 			return &modelv1.JudgeRequest{Observation: scheduled(t)}
 		}},
+		{"annotate started", true, false, modelv1.Method_METHOD_ANNOTATE, annotationPoll},
+		{"annotate frozen", true, true, modelv1.Method_METHOD_ANNOTATE, annotationPoll},
 	} {
 		t.Run(tc.name, func(t *testing.T) {
 			g := newRawGuest(t)
@@ -172,4 +175,11 @@ func TestTemporalResponseExhaustionRollsBackState(t *testing.T) {
 			}
 		})
 	}
+}
+
+func annotationPoll(t *testing.T) proto.Message {
+	t.Helper()
+	return &modelv1.AnnotateRequest{Input: pack(t, &temporalv1.AnnotationRequest{
+		Method: "/temporal.api.workflowservice.v1.WorkflowService/PollActivityTaskQueue", Response: true,
+	})}
 }

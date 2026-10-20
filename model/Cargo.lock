@@ -978,7 +978,9 @@ name = "umpire-temporal"
 version = "0.0.1"
 dependencies = [
  "prost",
+ "umpire-annotations",
  "umpire-dsl",
+ "umpire-temporal-annotate",
  "umpire-temporal-api",
  "umpire-wasm",
 ]

@@ -11,6 +11,9 @@ use crate::tree::{Actions, CustomTag, Enum, Expected, Field, Message, Rule, Tag}
 pub fn expand(catalog: &crate::Catalog) -> syn::Result<TokenStream> {
     let vis = &catalog.vis;
     let name = &catalog.name;
+    let docs = matches!(vis, syn::Visibility::Public(_)).then(|| {
+        quote! { #[doc = concat!("Exhaustive typed annotation catalog `", stringify!(#name), "`.")] }
+    });
     let messages = catalog.messages.iter().map(message);
     let enums = catalog.enums.iter().map(enumeration);
     let actions = catalog.actions.iter().map(action);
@@ -24,6 +27,7 @@ pub fn expand(catalog: &crate::Catalog) -> syn::Result<TokenStream> {
         })
     });
     Ok(quote! {
+        #docs
         #vis mod #name {
             #[allow(unused_imports)]
             use super::*;
@@ -141,6 +145,40 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
             ))
         };
     }
+    if let Some(projection) = field.projection.as_ref().filter(|_| !field.variants.is_empty()) {
+        let projected = &projection.ty;
+        let get = &projection.get;
+        let set = &projection.set;
+        let fields = field.variants.iter().map(|variant| {
+            let variant_path = &variant.path;
+            let path = format!("{}.{}", proto.value(), variant.proto.value());
+            annotated_field(
+                field,
+                &quote! {
+                    ::umpire_annotations::Field::<#ty, Option<#projected>>::projected(
+                        #path, #kind,
+                        |message: &#ty| {
+                            if matches!(message.#name.as_ref(), Some(#variant_path(_))) {
+                                Some((#get)(message))
+                            } else {
+                                None
+                            }
+                        },
+                        |message: &mut #ty, value: Option<#projected>| {
+                            if matches!(message.#name.as_ref(), Some(#variant_path(_))) {
+                                if let Some(value) = value {
+                                    (#set)(message, value);
+                                } else {
+                                    message.#name = None;
+                                }
+                            }
+                        },
+                    )
+                },
+            )
+        });
+        return quote! { #(#fields)* };
+    }
     let field_constructor = if let Some(projection) = &field.projection {
         let projected = &projection.ty;
         let get = &projection.get;
@@ -159,6 +197,10 @@ fn field_factory(message: &Message, field: &Field) -> TokenStream {
             )
         }
     };
+    annotated_field(field, &field_constructor)
+}
+
+fn annotated_field(field: &Field, field_constructor: &TokenStream) -> TokenStream {
     let tags = field.tags.iter().map(|tag| {
         let value = consequence(tag);
         quote! { .tag(&#value) }

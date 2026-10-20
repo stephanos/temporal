@@ -23,6 +23,38 @@ fn typed_catalog_validates_the_actual_field() -> Result<(), Box<dyn std::error::
     Ok(())
 }
 
+#[test]
+fn string_byte_limits_are_distinct_from_unicode_scalar_limits()
+-> Result<(), Box<dyn std::error::Error>> {
+    let rules = StringRules {
+        min_len: Some(1),
+        max_len: Some(2),
+        min_bytes: Some(2),
+        max_bytes: Some(4),
+        ..Default::default()
+    };
+    for kind in [Kind::Text(rules.clone()), Kind::Identifier(rules)] {
+        let catalog = catalog::<String>(kind)?;
+        for (value, expected) in [
+            ("é", vec![]),
+            ("🙂", vec![]),
+            ("a", vec!["string.min_bytes"]),
+            ("é🙂", vec!["string.max_bytes"]),
+            ("abc", vec!["string.max_len"]),
+        ] {
+            assert_eq!(
+                validate(&Value { value: value.into() }, &catalog)
+                    .iter()
+                    .map(|v| v.constraint.as_str())
+                    .collect::<Vec<_>>(),
+                expected,
+                "{value}"
+            );
+        }
+    }
+    Ok(())
+}
+
 #[derive(Clone, Default)]
 struct Value<T> {
     value: T,
@@ -435,6 +467,7 @@ fn fills_every_generative_kind_and_refuses_impossible_constraints()
         prefix: Some("abc".into()),
         contains: Some("bcd".into()),
         suffix: Some("cd".into()),
+        ..Default::default()
     }))?;
     generated::<Vec<u8>>(Kind::Bytes(BytesRules { min_len: None, max_len: Some(0) }))?;
     generated::<i32>(Kind::Enum(EnumRules { defined_only: false, values: Vec::new() }))?;
@@ -444,6 +477,7 @@ fn fills_every_generative_kind_and_refuses_impossible_constraints()
         prefix: Some("α".into()),
         contains: Some("mid".into()),
         suffix: Some("ω".into()),
+        ..Default::default()
     }))?;
     generated::<String>(Kind::Text(StringRules {
         min_len: Some(5),

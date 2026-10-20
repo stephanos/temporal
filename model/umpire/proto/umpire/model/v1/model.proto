@@ -12,6 +12,8 @@ enum Method {
   METHOD_RESET = 3;
   METHOD_JUDGE = 4;
   METHOD_ANSWER = 5;
+  reserved 6;
+  METHOD_ANNOTATE = 7;
 }
 
 enum RefusalCode {
@@ -60,8 +62,11 @@ message JudgeResponse {
 }
 message AnswerRequest { google.protobuf.Any callback = 1; }
 message AnswerResponse { google.protobuf.Any reply = 1; }
+message AnnotateRequest { google.protobuf.Any input = 1; }
+message AnnotateResponse { google.protobuf.Any output = 1; }
 
 message Response {
+  reserved 7;
   oneof outcome {
     ExploreResponse explore = 1;
     RowsResponse rows = 2;
@@ -69,5 +74,6 @@ message Response {
     ResetResponse reset = 4;
     JudgeResponse judge = 5;
     AnswerResponse answer = 6;
+    AnnotateResponse annotate = 8;
   }
 }
