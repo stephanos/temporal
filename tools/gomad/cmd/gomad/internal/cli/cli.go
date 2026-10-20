@@ -1243,6 +1243,7 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 	flags.SetOutput(stderr)
 	nativeFlags, _, _, _ := featureFlags(flags, dependencies.capabilities)
 	verifyOnly := flags.Bool("verify-only", false, "validate without executing the target")
+	stressJitter := flags.Bool("stress-jitter", false, "explicitly replay with the distinct WASM stress helper")
 	toolchainRoot := nativeFlags.String("toolchain-root", "", "absolute pinned toolchain root")
 	observedDir := flags.String("observed", "", "directory that receives the replayed target's stdout and stderr")
 	inspectionFlags := newReplayInspectionFlags(flags)
@@ -1267,6 +1268,9 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 		return 2
 	}
 	config.Inspection = inspection
+	if *stressJitter && inspection == nil {
+		return writeCommandError(stderr, 2, "--stress-jitter requires replay inspection with --stop\n")
+	}
 	var result runner.ReplayResult
 	var err error
 	handled := false
@@ -1282,6 +1286,16 @@ func runReplayWith(arguments []string, stdout, stderr io.Writer, dependencies re
 			return 3
 		}
 		config.Backend, config.ToolchainRoot = installed.backend, installed.toolchainRoot
+		if *stressJitter {
+			provider, ok := config.Backend.(stressReplayProvider)
+			if !ok {
+				return writeCommandError(stderr, 2, "--stress-jitter requires a WASM cooperative replay installation\n")
+			}
+			config.Backend, err = provider.ForStressReplay()
+			if err != nil {
+				return writeCommandError(stderr, 2, "%v\n", err)
+			}
+		}
 		result, err = dependencies.replay(context.Background(), config)
 	}
 	if err != nil {

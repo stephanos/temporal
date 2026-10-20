@@ -9,6 +9,7 @@ import (
 	"errors"
 	"fmt"
 	"slices"
+	"sort"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
@@ -39,12 +40,20 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 	run.WorldOrder, run.Boundaries = nil, nil
 	for _, boundary := range evidence.Boundaries {
 		at := determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos)}
-		run.WorldOrder = append(run.WorldOrder, determinism.WorldStep{Order: boundary.Order, Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos), Digest: digest(evidence.World[:boundary.WorldBytes])})
+		run.WorldOrder = append(run.WorldOrder, determinism.WorldStep{Order: boundary.Order, Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos), Digest: digest(evidence.World[:boundary.WorldBytes]) + "/" + digest(evidence.Lifecycle[:boundary.LifecycleBytes])})
 		run.Boundaries = append(run.Boundaries, determinism.ReplayBoundary{Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, Trace: boundary.Trace, Decision: boundary.Decision, At: at})
 	}
 	incarnations := make([]determinism.Incarnation, 0, len(evidence.Incarnations))
+	var finalHandle cluster.NodeHandle
+	var finalOrder uint64
+	for _, retained := range evidence.Incarnations {
+		if retained.TerminalOrder >= finalOrder {
+			finalHandle, finalOrder = retained.Handle, retained.TerminalOrder
+		}
+	}
 	for _, retained := range evidence.Incarnations {
 		incarnation := determinism.Incarnation{Instance: string(retained.Handle.Node), Incarnation: retained.Handle.Incarnation, Diagnostic: diagnostics[retained.Handle]}
+		incarnation.Started = &determinism.Coordinate{Shared: retained.StartedOrder}
 		if len(evidence.Incarnations) == 1 && len(run.Incarnations) == 1 {
 			incarnation.Diagnostic = run.Incarnations[0].Diagnostic
 		}
@@ -61,18 +70,38 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 			return determinism.Run{}, err
 		}
 		terminal := determinism.Coordinate{Shared: retained.TerminalOrder, ChoiceOrdinal: count}
-		position := func(included func(cluster.WASMInspectionCut) bool) determinism.Coordinate {
-			for _, boundary := range evidence.Boundaries {
-				for _, cut := range boundary.Cuts {
-					if cut.Handle == retained.Handle && included(cut) {
-						return determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: cut.ChoiceRecords, VirtualTime: int64(boundary.TimeNanos)}
-					}
+		type locatedCut struct {
+			at  determinism.Coordinate
+			cut cluster.WASMInspectionCut
+		}
+		var cuts []locatedCut
+		decisions := map[uint64]determinism.Coordinate{}
+		for _, boundary := range evidence.Boundaries {
+			if boundary.Handle == retained.Handle {
+				decisions[boundary.Trace] = determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos)}
+			}
+			for _, cut := range boundary.Cuts {
+				if cut.Handle == retained.Handle {
+					cuts = append(cuts, locatedCut{at: determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: cut.ChoiceRecords, VirtualTime: int64(boundary.TimeNanos)}, cut: cut})
 				}
+			}
+		}
+		position := func(included func(cluster.WASMInspectionCut) bool) determinism.Coordinate {
+			index := sort.Search(len(cuts), func(index int) bool { return included(cuts[index].cut) })
+			if index < len(cuts) {
+				return cuts[index].at
 			}
 			return terminal
 		}
 		for _, record := range trace.Records {
-			at := position(func(cut cluster.WASMInspectionCut) bool { return cut.ChoiceRecords >= record.Ordinal })
+			at := position(func(cut cluster.WASMInspectionCut) bool { return cut.ChoiceRecords > record.Ordinal })
+			if record.Flags&choice.FlagDecision != 0 {
+				var found bool
+				at, found = decisions[record.Ordinal]
+				if !found {
+					return determinism.Run{}, fmt.Errorf("missing predecision boundary for %s/%d trace %d", retained.Handle.Node, retained.Handle.Incarnation, record.Ordinal)
+				}
+			}
 			incarnation.Choices = append(incarnation.Choices, determinism.ChoiceEvent{At: at, Record: record})
 		}
 		records, err := wasi.DecodeTranscript(retained.Streams.WASI)
@@ -99,24 +128,49 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 					continue
 				}
 				at := determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: cut.ChoiceRecords, VirtualTime: int64(boundary.TimeNanos)}
+				witness, err := json.Marshal(cut.Witness)
+				if err != nil {
+					return determinism.Run{}, err
+				}
+				registry := cluster.WASMInspectionRegistry{Closed: retained.Registry.Closed && retained.Registry.ClosedOrder <= boundary.Order}
+				if registry.Closed {
+					registry.ClosedOrder = retained.Registry.ClosedOrder
+				}
+				for _, registration := range retained.Registry.Entries {
+					if registration.AvailableOrder <= boundary.Order {
+						registry.Entries = append(registry.Entries, registration)
+					}
+				}
+				registered, err := json.Marshal(registry)
+				if err != nil {
+					return determinism.Run{}, err
+				}
 				if len(cut.ClockRun) != 0 {
 					incarnation.Operations = append(incarnation.Operations, determinism.Operation{At: at, Op: "clock_time_get", Input: "folded-run-at-boundary", Output: hex.EncodeToString(cut.ClockRun), Repeat: 1})
 				}
 				appendOutput(&incarnation, at, "stdout", retained.Streams.Stdout, stdout, cut.StdoutBytes)
 				appendOutput(&incarnation, at, "stderr", retained.Streams.Stderr, stderr, cut.StderrBytes)
 				stdout, stderr = cut.StdoutBytes, cut.StderrBytes
-				for _, model := range []struct{ name, value string }{{"network", hex.EncodeToString(cut.NetworkState)}, {"network-transcript", digest(retained.Streams.Network[:cut.NetworkBytes])}, {"volume", hex.EncodeToString(cut.StorageState)}, {"volume-transcript", digest(retained.Streams.Storage[:cut.StorageBytes])}, {"namespace", digest(retained.Streams.WASI[:cut.WASIBytes])}, {"world", digest(evidence.World[:boundary.WorldBytes])}} {
+				for _, model := range []struct{ name, value string }{{"network", hex.EncodeToString(cut.NetworkState)}, {"network-transcript", digest(retained.Streams.Network[:cut.NetworkBytes])}, {"volume", hex.EncodeToString(cut.StorageState)}, {"recovery", hex.EncodeToString(cut.RecoveryState)}, {"runtime-witness", digest(witness)}, {"inspection-registry", digest(registered)}, {"volume-transcript", digest(retained.Streams.Storage[:cut.StorageBytes])}, {"namespace", digest(retained.Streams.WASI[:cut.WASIBytes])}} {
 					incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: at, Model: model.name, Digest: model.value})
 				}
 			}
 		}
 		appendOutput(&incarnation, terminal, "stdout", retained.Streams.Stdout, stdout, uint64(len(retained.Streams.Stdout)))
 		appendOutput(&incarnation, terminal, "stderr", retained.Streams.Stderr, stderr, uint64(len(retained.Streams.Stderr)))
+		registered, err := json.Marshal(retained.Registry)
+		if err != nil {
+			return determinism.Run{}, err
+		}
 		for _, model := range []struct {
 			name string
 			data []byte
-		}{{"network-transcript", retained.Streams.Network}, {"volume-transcript", retained.Streams.Storage}, {"namespace", retained.Streams.WASI}, {"world", evidence.World}} {
+		}{{"network-transcript", retained.Streams.Network}, {"volume-transcript", retained.Streams.Storage}, {"namespace", retained.Streams.WASI}, {"inspection-registry", registered}} {
 			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: model.name, Digest: digest(model.data)})
+		}
+		if retained.Handle == finalHandle {
+			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: "world", Digest: digest(evidence.World)})
+			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: "lifecycle", Digest: digest(evidence.Lifecycle)})
 		}
 		slices.SortStableFunc(incarnation.Operations, func(a, b determinism.Operation) int {
 			if a.At.Shared < b.At.Shared {

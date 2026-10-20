@@ -51,15 +51,73 @@ func TestInspectionPreservesDecisionAndTraceCoordinates(t *testing.T) {
 	changed.Incarnations[0].Choices[2].Record.SiteOffset++
 	report, err := determinism.Compare(got, changed)
 	require.NoError(t, err)
-	require.Equal(t, "diverged", report.Status)
+	require.Equal(t, "undiagnosable", report.Status)
 	require.Equal(t, "inspection-boundary", report.Ordering)
 	require.NotEqual(t, report.First.Expected, report.First.Actual)
 	require.NotNil(t, report.Reproducer)
 	require.Equal(t, uint64(0), report.Reproducer.Stop.Stop.Value)
+	for _, test := range []struct {
+		name   string
+		mutate func(*cluster.WASMInspectionCut)
+	}{
+		{"recovery state", func(cut *cluster.WASMInspectionCut) { cut.RecoveryState = []byte("changed") }},
+		{"runtime witness", func(cut *cluster.WASMInspectionCut) { cut.Witness = &cluster.WASMRuntimeWitness{Allocations: 1} }},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			changed := cluster.CloneWASMInspection(evidence)
+			test.mutate(&changed.Boundaries[1].Cuts[0])
+			actual, err := fromEvidence(run, changed)
+			require.NoError(t, err)
+			report, err := determinism.Compare(got, actual)
+			require.NoError(t, err)
+			require.Equal(t, "undiagnosable", report.Status)
+			require.Equal(t, uint64(4), report.First.At.Shared)
+		})
+	}
+
+	other := cluster.NodeHandle{Node: "other", Incarnation: 1}
+	otherTrace, err := choice.BuildTrace([]choice.Record{first.Record()}, choice.TerminalComplete)
+	require.NoError(t, err)
+	otherDiagnostic, err := choice.BuildDiagnosticTrace([]choice.DiagnosticRecord{{}}, 4096)
+	require.NoError(t, err)
+	clusterEvidence := cluster.CloneWASMInspection(evidence)
+	clusterEvidence.Boundaries[1].Order = 8
+	clusterEvidence.Incarnations = append(clusterEvidence.Incarnations, cluster.WASMInspectionIncarnation{Handle: other, StartedOrder: 4, TerminalOrder: 20, Streams: cluster.WASMInspectionStreams{Choice: otherTrace.Bytes}})
+	clusterEvidence.Boundaries = slices.Insert(clusterEvidence.Boundaries, 1, cluster.WASMInspectionBoundary{Handle: other, Order: 5, Trace: 0, WorldBytes: 2, Cuts: []cluster.WASMInspectionCut{{Handle: handle, ChoiceRecords: 2, StdoutBytes: 5}, {Handle: other}}})
+	clusterRun := run
+	clusterRun.Incarnations = []determinism.Incarnation{{Instance: "node", Incarnation: 1, Diagnostic: diagnostic.Bytes}, {Instance: "other", Incarnation: 1, Diagnostic: otherDiagnostic.Bytes}}
+	decoded, err := fromEvidence(clusterRun, clusterEvidence)
+	require.NoError(t, err)
+	require.Equal(t, uint64(8), decoded.Incarnations[0].Choices[2].At.Shared)
+	require.Equal(t, uint64(5), decoded.Incarnations[0].Choices[1].At.Shared)
+	mutated := cluster.CloneWASMInspection(clusterEvidence)
+	mutated.World = append(mutated.World, '!')
+	actual, err := fromEvidence(clusterRun, mutated)
+	require.NoError(t, err)
+	report, err = determinism.Compare(decoded, actual)
+	require.NoError(t, err)
+	require.Equal(t, uint64(20), report.First.At.Shared)
+	require.NotNil(t, report.VirtualTimeAvailable)
+	require.False(t, *report.VirtualTimeAvailable)
 }
 
 func TestInspectionRejectsMalformedMetadata(t *testing.T) {
 	t.Parallel()
 	_, err := FromInspection(determinism.Run{}, []byte(`{"schema":"unknown"}`))
 	require.Error(t, err)
+}
+
+func TestZeroChoiceIncarnationPresenceUsesRetainedStart(t *testing.T) {
+	t.Parallel()
+	diagnostic, err := choice.BuildDiagnosticTrace(nil, 4096)
+	require.NoError(t, err)
+	expected := determinism.Run{Workload: "fixture", Identities: map[string]string{"module": "m"}, Command: []string{"rerun"}, BoundaryScoped: true}
+	actual := expected
+	actual.Incarnations = []determinism.Incarnation{{Instance: "late", Incarnation: 1, Started: &determinism.Coordinate{Shared: 100}, Diagnostic: diagnostic.Bytes}}
+	report, err := determinism.Compare(expected, actual)
+	require.NoError(t, err)
+	require.Equal(t, uint64(100), report.First.At.Shared)
+	require.NotNil(t, report.VirtualTimeAvailable)
+	require.False(t, *report.VirtualTimeAvailable)
 }

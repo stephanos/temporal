@@ -40,3 +40,35 @@ func TestStressJitterHelperRefusedForQualification(t *testing.T) {
 		t.Fatal("cluster qualification admitted jitter helper")
 	}
 }
+
+func TestDeterminismFixtureConditionsStayOutsideDeclaredInputs(t *testing.T) {
+	t.Parallel()
+	request := Request{Engine: PinnedEngine(), Config: testConfig()}
+	before, err := json.Marshal(request)
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, fault := range []string{"", "draw", "clock", "handoff"} {
+		if err := request.SetDeterminismFixtureConditions(fault); err != nil {
+			t.Fatal(err)
+		}
+		after, err := json.Marshal(request)
+		if err != nil || string(before) != string(after) {
+			t.Fatalf("fault changed declared inputs: %v", err)
+		}
+		if len(request.stressHostEnvironment) != 1 || request.stressHostEnvironment[0] != "GOMAD_WASM_DETERMINISM_FAULT="+fault {
+			t.Fatal("fixture fault not transported privately")
+		}
+	}
+	if err := request.SetDeterminismFixtureConditions("unknown"); err == nil {
+		t.Fatal("unknown fixture fault accepted")
+	}
+	request.Engine.Configuration += "-determinism-fixture"
+	if _, err := Run(t.Context(), request); err == nil {
+		t.Fatal("fixture helper admitted without a pinned declared engine")
+	}
+	request = Request{Engine: request.Engine}
+	if _, err := Run(t.Context(), request); err == nil || !strings.Contains(err.Error(), "requires test opt-in") {
+		t.Fatalf("fixture helper admitted for qualification: %v", err)
+	}
+}

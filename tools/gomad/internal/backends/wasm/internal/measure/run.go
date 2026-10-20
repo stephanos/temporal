@@ -67,6 +67,7 @@ var producers = map[string]func(context.Context) error{
 	"operation-retention":           measureOperationRetention,
 	"runtime-cost-profile":          measureRuntimeCostProfile,
 	"scratch-smoke-profile":         measureScratchSmokeProfile,
+	"stress":                        measureStress,
 	"terminal-exit":                 measureTerminalToProcessExit,
 	"terminal-exit-helper-build":    measureTerminalExitHelperBuild,
 	"terminal-exit-helper-stage":    measureTerminalExitHelperStage,

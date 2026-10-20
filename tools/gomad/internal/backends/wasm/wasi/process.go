@@ -268,7 +268,7 @@ func verifyFile(name, digest string) error {
 func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	pinned := PinnedEngine()
 	diagnostic := func(revision string) bool {
-		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off" || revision == pinned.Configuration+"-stress-jitter"
+		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off" || revision == pinned.Configuration+"-stress-jitter" || revision == pinned.Configuration+"-determinism-fixture"
 	}
 	if request.diagnosticConfigurationRevision != "" {
 		if request.Engine != pinned || !diagnostic(request.diagnosticConfigurationRevision) {

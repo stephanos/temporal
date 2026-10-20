@@ -5,6 +5,17 @@ mod abi;
     any(feature = "diagnostic-profile", feature = "conformance")
 ))]
 compile_error!("stress-jitter cannot be combined with profiling or conformance features");
+#[cfg(all(
+    feature = "determinism-fixture",
+    any(
+        feature = "diagnostic-profile",
+        feature = "conformance",
+        feature = "stress-jitter"
+    )
+))]
+compile_error!(
+    "determinism-fixture cannot be combined with profiling, conformance or stress features"
+);
 #[cfg(not(feature = "conformance"))]
 mod cache;
 #[cfg(any(test, not(feature = "conformance")))]
@@ -13,6 +24,8 @@ mod clock;
 mod cluster;
 #[cfg(any(test, feature = "conformance"))]
 mod conformance;
+#[cfg(feature = "determinism-fixture")]
+mod determinism_fixture;
 #[cfg(all(not(feature = "conformance"), feature = "diagnostic-profile"))]
 mod diagnostic;
 #[cfg(not(feature = "conformance"))]

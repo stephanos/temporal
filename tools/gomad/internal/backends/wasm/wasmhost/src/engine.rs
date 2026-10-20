@@ -782,7 +782,10 @@ impl State {
 #[cfg(feature = "stress-jitter")]
 pub(crate) const CONFIGURATION_REVISION: &str =
     "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter";
-#[cfg(not(feature = "stress-jitter"))]
+#[cfg(feature = "determinism-fixture")]
+pub(crate) const CONFIGURATION_REVISION: &str =
+    "cranelift-fuel-nan-canonical-nounwind-v2-determinism-fixture";
+#[cfg(not(any(feature = "stress-jitter", feature = "determinism-fixture")))]
 pub(crate) const CONFIGURATION_REVISION: &str = match (
     cfg!(feature = "guest-profile"),
     cfg!(feature = "diagnostic-fuel-off"),

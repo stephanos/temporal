@@ -352,9 +352,10 @@ func detachedStorageCrashSelections(boots []retainedBoot) []RetainedStorageCrash
 // hashes establish only self-consistency, so retained replay executes this
 // helper and never native helper bytes carried by an artifact.
 type InstalledHelper struct {
-	Path   string
-	SHA256 string
-	Engine wasi.EngineIdentity
+	Path             string
+	SHA256           string
+	Engine           wasi.EngineIdentity
+	ConfigureRequest func(*wasi.Request) error
 }
 
 // RetainedModule supplies the module bytes that retained evidence references
@@ -470,6 +471,22 @@ func (a *retainedAdmission) reopen(module RetainedModule, directory string, inst
 		r := p.Boots[boot.ID]
 		r.ModulePath, r.HelperPath = name, installed.Path
 		r.CompileCache = filepath.Join(private, "compiled-cache")
+		if installed.ConfigureRequest != nil {
+			before, err := json.Marshal(r)
+			if err != nil {
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
+			if err := installed.ConfigureRequest(&r); err != nil {
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
+			after, err := json.Marshal(r)
+			if err != nil {
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
+			if !bytes.Equal(before, after) {
+				return gomadsim.Spec{}, nil, errors.Join(errors.New("installed helper host configuration changed retained WASM inputs"), os.RemoveAll(private))
+			}
+		}
 		p.Boots[boot.ID] = r
 	}
 	return bundle.Spec, p, nil

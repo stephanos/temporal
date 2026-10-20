@@ -40,6 +40,19 @@ func (request *Request) SetStressHostConditions(padding string, jitter bool) {
 	}
 }
 
+// SetDeterminismFixtureConditions admits the helper containing deliberate
+// faults used to verify the divergence report; it cannot qualify a workload.
+func (request *Request) SetDeterminismFixtureConditions(fault string) error {
+	switch fault {
+	case "", "draw", "clock", "handoff":
+	default:
+		return invalid("determinism fixture fault")
+	}
+	request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-determinism-fixture"
+	request.stressHostEnvironment = []string{"GOMAD_WASM_DETERMINISM_FAULT=" + fault}
+	return nil
+}
+
 func (result Result) RuntimeTerminal() [16]byte { return result.runtimeTerminal }
 
 func (result *Result) SetRuntimeTerminal(terminal [16]byte) { result.runtimeTerminal = terminal }

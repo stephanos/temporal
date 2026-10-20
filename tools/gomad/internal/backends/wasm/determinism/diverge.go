@@ -58,6 +58,7 @@ type Run struct {
 	// BoundaryScoped means cross-stream ordering is known only at inspection
 	// boundaries, rather than at individual events within each interval.
 	BoundaryScoped bool
+	OrderLog       *EventOrder `json:"OrderLog,omitempty"`
 }
 
 type ReplayBoundary struct {
@@ -83,6 +84,7 @@ type Coordinate struct {
 type Incarnation struct {
 	Instance    string
 	Incarnation uint64
+	Started     *Coordinate `json:"Started,omitempty"`
 	// Choices are the decoded choice tape records, each with its coordinate.
 	Choices []ChoiceEvent
 	// Diagnostic is the gomad-diagnostic-trace/v1 bytes, nil when the run
@@ -176,8 +178,10 @@ type Reproducer struct {
 }
 
 type Report struct {
-	Schema   string `json:"schema"`
-	Ordering string `json:"ordering,omitempty"`
+	Schema               string       `json:"schema"`
+	Ordering             string       `json:"ordering,omitempty"`
+	VirtualTimeAvailable *bool        `json:"virtual_time_available,omitempty"`
+	BoundaryEvents       []Divergence `json:"boundary_events,omitempty"`
 	// Status is identical, diverged or undiagnosable.
 	Status     string      `json:"status"`
 	First      *Divergence `json:"first,omitempty"`
@@ -217,14 +221,34 @@ func Compare(expected, actual Run) (Report, error) {
 	if err != nil {
 		return Report{}, err
 	}
+	if expected.OrderLog != nil || actual.OrderLog != nil {
+		return compareEventOrder(expected, actual, len(candidates) != 0)
+	}
 	if len(candidates) == 0 {
 		return Report{Schema: ReportSchema, Status: "identical"}, nil
 	}
 	first := slices.MinFunc(candidates, compareDivergence)
 	report := Report{Schema: ReportSchema, Status: "diverged", First: &first, Reproducer: reproducer(expected, actual, first)}
 	if expected.BoundaryScoped || actual.BoundaryScoped {
+		report.Status = "undiagnosable"
 		report.Ordering = "inspection-boundary"
-		report.Reason = "earliest differing inspection boundary; retained streams do not establish event order within that interval"
+		report.Reason = "supplemental event-order diagnostic missing; earliest differing inspection boundary is available, but event order within that interval is not"
+		knownTime := false
+		for _, run := range []Run{expected, actual} {
+			for _, boundary := range run.Boundaries {
+				knownTime = knownTime || boundary.At.Shared == first.At.Shared
+			}
+		}
+		report.VirtualTimeAvailable = &knownTime
+		if !knownTime {
+			report.Reason += "; lifecycle or terminal virtual time is not retained"
+		}
+		for _, candidate := range candidates {
+			if candidate.At.Shared == first.At.Shared {
+				report.BoundaryEvents = append(report.BoundaryEvents, candidate)
+			}
+		}
+		slices.SortFunc(report.BoundaryEvents, compareDivergence)
 	}
 	return report, nil
 }
@@ -243,8 +267,16 @@ func divergences(expected, actual Run) ([]Divergence, error) {
 	if step, ok := firstDifference(expected.WorldOrder, actual.WorldOrder, func(a, b WorldStep) bool { return a == b }); ok {
 		e, a := at(expected.WorldOrder, step), at(actual.WorldOrder, step)
 		ref := cmp.Or(e, a)
-		found = append(found, Divergence{Kind: KindWorldOrder, Instance: ref.Instance, Incarnation: ref.Incarnation, Ordinal: uint64(step),
-			At: Coordinate{Shared: ref.Order, ChoiceOrdinal: ref.ChoiceOrdinal, VirtualTime: ref.VirtualTime}, Field: "step", Expected: describeStep(e), Actual: describeStep(a)})
+		kind, field := KindWorldOrder, "step"
+		if e.Order == a.Order && e.Instance == a.Instance && e.Incarnation == a.Incarnation && e.ChoiceOrdinal == a.ChoiceOrdinal {
+			if e.VirtualTime != a.VirtualTime {
+				kind, field = KindClock, "virtual_time"
+			} else {
+				kind, field = KindModelTransition, "world"
+			}
+		}
+		found = append(found, Divergence{Kind: kind, Instance: ref.Instance, Incarnation: ref.Incarnation, Ordinal: uint64(step),
+			At: Coordinate{Shared: ref.Order, ChoiceOrdinal: ref.ChoiceOrdinal, VirtualTime: ref.VirtualTime}, Field: field, Expected: describeStep(e), Actual: describeStep(a)})
 	}
 	type key struct {
 		instance    string
@@ -301,10 +333,17 @@ func divergences(expected, actual Run) ([]Divergence, error) {
 func span(incarnation Incarnation, world []WorldStep) (Coordinate, Coordinate) {
 	if count := len(incarnation.Choices); count != 0 {
 		last := incarnation.Choices[count-1].At
-		return incarnation.Choices[0].At, Coordinate{last.Shared, uint64(count), last.VirtualTime}
+		first := incarnation.Choices[0].At
+		if incarnation.Started != nil {
+			first = *incarnation.Started
+		}
+		return first, Coordinate{last.Shared, uint64(count), last.VirtualTime}
 	}
 	var first, last Coordinate
 	seen := false
+	if incarnation.Started != nil {
+		first, last, seen = *incarnation.Started, *incarnation.Started, true
+	}
 	for _, step := range world {
 		if step.Instance == incarnation.Instance && step.Incarnation == incarnation.Incarnation {
 			at := Coordinate{step.Order, step.ChoiceOrdinal, step.VirtualTime}
@@ -483,6 +522,10 @@ func reproducer(expected, actual Run, first Divergence) *Reproducer {
 			decision, instance, incarnation = selected.Decision, selected.Instance, selected.Incarnation
 		}
 	}
+	return makeReproducer(expected, actual, decision, instance, incarnation, unavailable)
+}
+
+func makeReproducer(expected, actual Run, decision uint64, instance string, incarnation uint64, unavailable string) *Reproducer {
 	stop := backends.InspectionRequest{
 		Stop:         backends.InspectionStop{Kind: "choice", Value: decision},
 		Dumps:        []string{"stacks", "heap"},
@@ -517,11 +560,15 @@ func (report Report) Format() string {
 		fmt.Fprintf(&out, "reason: %s\n", report.Reason)
 	}
 	if first := report.First; first != nil {
+		time := strconv.FormatInt(first.At.VirtualTime, 10)
+		if report.VirtualTimeAvailable != nil && !*report.VirtualTimeAvailable {
+			time = "unavailable"
+		}
 		fmt.Fprintf(&out, "first: %s", first.Kind)
 		if first.Instance != "" {
 			fmt.Fprintf(&out, " %s/%d", first.Instance, first.Incarnation)
 		}
-		fmt.Fprintf(&out, " ordinal=%d shared=%d tape=%d time=%d field=%s\n  expected: %s\n  actual:   %s\n", first.Ordinal, first.At.Shared, first.At.ChoiceOrdinal, first.At.VirtualTime, first.Field, first.Expected, first.Actual)
+		fmt.Fprintf(&out, " ordinal=%d shared=%d tape=%d time=%s field=%s\n  expected: %s\n  actual:   %s\n", first.Ordinal, first.At.Shared, first.At.ChoiceOrdinal, time, first.Field, first.Expected, first.Actual)
 	}
 	if r := report.Reproducer; r != nil {
 		fmt.Fprintf(&out, "reproduce: workload=%s seed=%d cell=%s\n  expected: %s (%s)\n  actual:   %s (%s)\n  replay:   %s\n", r.Workload, r.Seed, r.Perturbation,

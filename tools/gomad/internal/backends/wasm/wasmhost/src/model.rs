@@ -100,6 +100,8 @@ pub struct PollResult {
 }
 
 pub struct Model {
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: crate::determinism_fixture::Fault,
     config: Config,
     pub now: u64,
     pub advances: u64,

@@ -178,7 +178,7 @@ func prepareClusterBoot(id string, request Request) (*clusterBoot, error) {
 		return nil, err
 	}
 	engine := PinnedEngine()
-	if request.diagnosticConfigurationRevision == engine.Configuration+"-stress-jitter" && request.Engine == engine {
+	if (request.diagnosticConfigurationRevision == engine.Configuration+"-stress-jitter" || request.diagnosticConfigurationRevision == engine.Configuration+"-determinism-fixture") && request.Engine == engine {
 		request.Engine.Configuration = request.diagnosticConfigurationRevision
 		engine.Configuration = request.diagnosticConfigurationRevision
 	}
