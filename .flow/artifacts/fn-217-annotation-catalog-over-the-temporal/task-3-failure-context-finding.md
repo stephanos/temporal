@@ -39,3 +39,19 @@ Focused correctness follow-up: context finding resolved. Critical 0 · Should Fi
 Writer and reviewer are the same Codex family.
 
 Conductor disposition: accepted resolution at source `a23540b5446e834df6fc1e478aae093d991fb38f`, integrated as `7f5479c34690ebd2d06da34f41035134906a7684`. This follow-up has zero findings and no remaining tier; task closure still requires final verification and formal re-review.
+
+## Related request-enum acceptance finding
+
+Before final re-review, a real-guest diagnostic found another request/response
+distinction: undefined Activity/Child retry-state, Nexus retry-behavior and
+timeout enum values reach the SDK converter but produce annotation findings in
+both directions. The inspected server failure validator does not reject these
+nested enum values. The request side must therefore carry faithful qualified
+Accepts expectations, while response validation retains the findings. The
+existing per-field acceptance handling already distinguishes directions; no
+blanket constraint filter or invented server rejection is appropriate.
+
+The diagnostic completed before disk cleanup; source remained frozen at
+`a23540b5446e834df6fc1e478aae093d991fb38f`. Evidence is retained in
+`.flow/tmp/fn2173-reviewfix-nested-request-enum-probe.go` and its `.log`.
+This finding is open pending the worker's narrow fix and regression controls.
