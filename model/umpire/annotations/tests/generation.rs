@@ -7,6 +7,24 @@ struct Message<T> {
     value: T,
 }
 
+#[derive(Clone, Default, PartialEq, Eq)]
+struct Stuck(i32);
+
+impl FieldValue for Stuck {
+    fn supports(kind: &Kind) -> bool {
+        matches!(kind, Kind::Counter(_))
+    }
+    fn present(&self) -> bool {
+        self.0 != 0
+    }
+    fn violations(&self, kind: &Kind) -> Vec<&'static str> {
+        self.0.violations(kind)
+    }
+    fn generate(_kind: &Kind, _rng: &mut Rng) -> Result<Self, GenerationError> {
+        Ok(Self(1))
+    }
+}
+
 fn catalog<T: FieldValue>(
     kind: Kind,
     repeated: Option<RepeatedRules>,
@@ -254,6 +272,102 @@ fn unique_repeated_times_sample_the_allowed_domain() -> Result<(), Box<dyn std::
     assert_eq!(validate(&text, &strings), []);
     assert_eq!(validate(&data, &bytes), []);
     assert_eq!(validate(&values, &enums), []);
+    Ok(())
+}
+
+#[test]
+fn unique_strings_use_the_permitted_scalar_and_byte_domains()
+-> Result<(), Box<dyn std::error::Error>> {
+    let repeated = RepeatedRules { min_items: Some(27), max_items: Some(27), unique: true };
+    let texts = catalog::<Vec<String>>(
+        Kind::Text(StringRules { min_len: Some(1), max_len: Some(1), ..Default::default() }),
+        Some(repeated.clone()),
+        None,
+    )?;
+    let random = catalog::<Vec<String>>(
+        Kind::Random(BytesRules { min_len: Some(1), max_len: Some(1) }),
+        Some(repeated),
+        None,
+    )?;
+    let witnesses = Message {
+        value: (0..27).map(|i| char::from_u32(0x400 + i).unwrap_or('x').to_string()).collect(),
+    };
+    assert_eq!(validate(&witnesses, &texts), []);
+    let witnesses = Message { value: (0..27).map(|i| char::from(i).to_string()).collect() };
+    assert_eq!(validate(&witnesses, &random), []);
+    let mut text = Message::default();
+    let mut bytes = Message::default();
+    let results =
+        [fill(&mut text, &texts, &mut Rng::new(0)), fill(&mut bytes, &random, &mut Rng::new(0))];
+    assert!(results.iter().all(Result::is_ok), "{results:?}");
+    assert_eq!(text.value.len(), 27);
+    assert_eq!(bytes.value.len(), 27);
+    assert!(text.value.iter().any(|value| !value.is_ascii()));
+    assert!(bytes.value.iter().all(|value| value.len() == 1));
+    assert_eq!(validate(&text, &texts), []);
+    assert_eq!(validate(&bytes, &random), []);
+    let mut multibyte = false;
+    for len in 0..=8 {
+        let catalog = catalog::<String>(
+            Kind::Random(BytesRules { min_len: Some(len), max_len: Some(len) }),
+            None,
+            None,
+        )?;
+        for seed in 0..8 {
+            let mut a = Message::default();
+            let mut b = Message::default();
+            fill(&mut a, &catalog, &mut Rng::new(seed))?;
+            fill(&mut b, &catalog, &mut Rng::new(seed))?;
+            assert_eq!(a.value.len(), len);
+            assert_eq!(a.value, b.value);
+            assert_eq!(validate(&a, &catalog), []);
+            multibyte |= !a.value.is_ascii();
+        }
+    }
+    assert!(multibyte);
+    Ok(())
+}
+
+#[test]
+fn bounded_unique_sampling_refuses_without_claiming_unsatisfiability()
+-> Result<(), Box<dyn std::error::Error>> {
+    fn limit<T: FieldValue>(kind: Kind, count: usize) -> Result<(), Box<dyn std::error::Error>> {
+        let catalog = catalog::<Vec<T>>(
+            kind,
+            Some(RepeatedRules { min_items: Some(count), max_items: Some(count), unique: true }),
+            None,
+        )?;
+        assert!(matches!(
+            fill(&mut Message::default(), &catalog, &mut Rng::new(0)),
+            Err(FillError::Field { reason: GenerationError::SizeLimit, .. })
+        ));
+        Ok(())
+    }
+    limit::<String>(
+        Kind::Text(StringRules {
+            min_len: Some(1),
+            max_len: Some(1),
+            prefix: Some("x".into()),
+            ..Default::default()
+        }),
+        2,
+    )?;
+    limit::<Vec<u8>>(Kind::Bytes(BytesRules { min_len: Some(1), max_len: Some(1) }), 257)?;
+    limit::<i32>(Kind::Enum(EnumRules { defined_only: true, values: vec![1, 1] }), 2)?;
+    let zero = NumberRules { gte: Some(0), lte: Some(0), ..Default::default() };
+    limit::<i32>(Kind::Counter(zero.clone()), 2)?;
+    limit::<Timestamp>(Kind::Timestamp(zero.clone()), 2)?;
+    limit::<Duration>(Kind::Duration(zero), 2)?;
+    let catalog = catalog::<Vec<Stuck>>(
+        Kind::Counter(NumberRules::default()),
+        Some(RepeatedRules { min_items: Some(2), max_items: Some(2), unique: true }),
+        None,
+    )?;
+    assert_eq!(validate(&Message { value: vec![Stuck(1), Stuck(2)] }, &catalog), []);
+    assert!(matches!(
+        fill(&mut Message::default(), &catalog, &mut Rng::new(0)),
+        Err(FillError::Field { reason: GenerationError::SizeLimit, .. })
+    ));
     Ok(())
 }
 
