@@ -1,7 +1,6 @@
 package backends
 
 import (
-	"bytes"
 	"errors"
 
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
@@ -36,32 +35,22 @@ func ChoiceRequestForCapability(capability *ChoiceCapability) (*ChoiceRequest, e
 	if err != nil {
 		return nil, err
 	}
-	source, err := choice.ProjectReplayPlan(trace, request.ExecutionIdentity)
-	if err != nil {
-		return nil, err
-	}
 	control := &ChoicePrefixControl{Cutoff: uint64(len(plan.Decisions))}
-	var expected choice.ReplayPlan
-	if control.Cutoff != 0 && plan.Decisions[control.Cutoff-1].RankOverride {
-		last := plan.Decisions[control.Cutoff-1]
-		if last.Ordinal >= uint64(len(source.Decisions)) {
-			return nil, choice.ErrInvalidReplayPlan
+	var ordinal uint64
+	for _, observed := range trace.Records {
+		if observed.Flags&choice.FlagObservation != 0 || observed.Alternatives < 2 {
+			continue
 		}
-		override := &ChoiceRankOverride{Ordinal: last.Ordinal, Rank: last.Selected, Reconstruct: source.Decisions[last.Ordinal].Selected == last.Selected}
-		control.Override = override
-		if override.Reconstruct {
-			expected, err = choice.BuildForcedRankPrefix(source, last.Ordinal, last.Selected)
-		} else {
-			expected, err = choice.BuildRankPrefix(source, last.Ordinal, last.Selected)
+		if ordinal+1 == control.Cutoff {
+			last := plan.Decisions[ordinal]
+			if last.RankOverride {
+				control.Override = &ChoiceRankOverride{Ordinal: ordinal, Rank: last.Selected, Reconstruct: observed.Selected == last.Selected}
+			}
 		}
-	} else {
-		expected, err = source.Prefix(control.Cutoff)
+		ordinal++
 	}
-	if err != nil {
-		return nil, err
-	}
-	if expected.SHA256 != plan.SHA256 || !bytes.Equal(expected.Bytes, plan.Bytes) {
-		return nil, errors.Join(choice.ErrInvalidReplayPlan, errors.New("controller prefix differs from retained source trace"))
+	if control.Cutoff > ordinal {
+		return nil, errors.Join(choice.ErrInvalidReplayPlan, errors.New("controller prefix exceeds retained source trace"))
 	}
 	request.TapeSHA256, request.Decisions, request.PrefixControl = plan.SHA256, control.Cutoff, control
 	return request, nil
