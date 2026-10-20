@@ -16,6 +16,7 @@ Transfer all changed/integrated-candidate runtime, mandatory workload/retained-r
 **Files:** .flow/artifacts/fn223-*.md, tools/gomad/README.md, tools/gomad/ARCHITECTURE.md, tools/gomad/CLI.md, tools/gomad/internal/backends/wasm/README.md, MILESTONES.md, AGENTS.md
 **Touches:** Final identity ledger, source-check evidence and qualification transfer; retained guides' historical wording and qualification links; milestone and agent instructions.
 
+Independent fn-219 closeout review provenance now belongs to this open owner at `/home/agent/wt/evidence/fn223/fn219-closeout-review-2026-10-20/README.md`. Its verified bundle preserves the handover, all three axis outputs/meta and finalized SHIP receipt for the original promotion candidate. Use these copies after closed-owner retirement; they do not certify deletion or Rust candidates.
 ## Acceptance
 - [ ] Close-out ledger records exact before/after identities and source causes; only declared and proven rotations occur, with no stale digest or weakened hash coverage
 - [ ] Ordinary default Go build/vet/tests, lint, static/architecture checks, model corpora, applicable generated/pin validation and focused regressions pass with exact source inventories and retained commands/exits
