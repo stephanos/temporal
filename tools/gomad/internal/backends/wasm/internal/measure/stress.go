@@ -182,9 +182,6 @@ func measureStress(ctx context.Context) (runErr error) {
 	if !filepath.IsAbs(root) || filepath.Clean(root) != root || root == string(filepath.Separator) {
 		return fmt.Errorf("%w: stress root must be an absolute clean retained directory", ErrRefused)
 	}
-	if _, err := os.Stat(root); !errors.Is(err, os.ErrNotExist) {
-		return fmt.Errorf("%w: stress root must not already exist", ErrRefused)
-	}
 	if input(ctx, "GOMAD_WASM_STRESS_HOST_DESCRIPTION") == "" {
 		return fmt.Errorf("%w: provide the host identity and quiet-host admission", ErrRefused)
 	}
@@ -214,13 +211,8 @@ func measureStress(ctx context.Context) (runErr error) {
 	if axis := input(ctx, "GOMAD_WASM_STRESS_AXIS"); axis != "" && axis != "reference" && axis != "cpu" && axis != "concurrent" && axis != "layout" && axis != "handoff" {
 		return fmt.Errorf("%w: unknown --stress-axis %q", ErrRefused, axis)
 	}
-	if err := os.MkdirAll(root, 0700); err != nil {
-		return err
-	}
 	options := scopeFor(ctx).options
-	commandInputs := maps.Clone(options.Inputs)
-	commandInputs["GOMAD_WASM_STRESS_ROOT"] = root + "-rerun"
-	runCommand := measurement.Command("go", options.Repo, "stress", commandInputs)
+	runCommand := rerunRecord(ctx, "go", options.Repo, "stress", options.Inputs, false)["command"].([]string)
 	setInput(ctx, "GOMAD_WASM_PROTOTYPE_ROOT", root)
 	setInput(ctx, "GOMAD_WASM_TEMPORAL_RECOVERY_ROOT", root)
 	sources, err := stressSource(ctx)
@@ -436,7 +428,7 @@ func stressRequest(ctx context.Context, root, workload string) (wasi.Request, er
 
 func stressExecute(ctx context.Context, test stressCase, original wasi.Request, sourceID, axis string, repetition int, base string, command []string) (stressObservation, error) {
 	parent := scopeFor(ctx)
-	child := &runScope{runResources: parent.runResources, options: parent.options, name: parent.name}
+	child := &runScope{runResources: parent.runResources, options: parent.options, name: parent.name + "/" + axis, outputVariable: parent.outputVariable, requestedRoot: parent.requestedRoot}
 	child.options.Inputs = maps.Clone(parent.options.Inputs)
 	var observation stressObservation
 	err := child.execute(context.WithValue(ctx, runKey{}, child), func(ctx context.Context) error {
@@ -467,11 +459,6 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	}
 	request.SetStressHostConditions(padding, axis == "handoff")
 	rerun := append([]string(nil), command...)
-	for index := 0; index+1 < len(rerun); index++ {
-		if rerun[index] == "--stress-root" {
-			rerun[index+1] = root + "-rerun"
-		}
-	}
 	rerun = append(rerun, "--stress-only", test.Workload, "--stress-seed", strconv.FormatUint(test.Seed, 10), "--stress-axis", axis)
 	compiler, err := fileHash(ctx, input(ctx, "GOMAD_STOCK_GO"))
 	if err != nil {
