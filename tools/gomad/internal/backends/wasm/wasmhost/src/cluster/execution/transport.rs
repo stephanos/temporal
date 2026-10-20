@@ -18,6 +18,10 @@ mod input_corpus;
 #[path = "transport_trace_corpus.rs"]
 mod trace_corpus;
 
+#[cfg(test)]
+#[path = "transport_replay.rs"]
+mod replay_tests;
+
 pub type SharedOutput = Arc<Mutex<Box<dyn Write + Send>>>;
 pub type SharedInput = Arc<Mutex<Box<dyn BufRead + Send>>>;
 

@@ -110,20 +110,23 @@ fn manual_inspection_reaps_waiting_peer_and_preserves_never_started_node() {
             if node == "a"
                 && let Some(control) = &control
             {
-                let mut hash = Sha256::new();
-                hash.update(b"gomad-choice-alternative-set/v1\0");
-                hash.update(2u64.to_be_bytes());
-                hash.update([1u8; 32]);
-                hash.update([2u8; 32]);
-                let digest: [u8; 32] = hash.finalize().into();
-                let decision = json!({"Ordinal":0,"Kind":1,"SiteOffset":42,"SiteMissing":false,"RankOverride":false,"Alternatives":2,"Selected":0,"Data":0,"SelectedIdentity":vec![1u8;32],"AlternativeSetDigest":digest.to_vec()});
-                start["runtime"] = json!({"mode":2,"tape_chunks":1,"inspection":control});
+                let retained: Value =
+                    serde_json::from_str(include_str!("testdata/replay_plan/helper-runtime.json"))
+                        .unwrap();
+                let trace = STANDARD
+                    .decode(retained["trace"].as_str().unwrap())
+                    .unwrap();
+                start["runtime"] = json!({"mode":2,"replay":{"schema":"gomad.replay-trace/v1","execution_identity":retained["identity"],"trace_sha256":format!("{:x}",Sha256::digest(&trace)),"tape_sha256":retained["expected"]["sha256"],"decisions":1,"trace_bytes":trace.len(),"trace_frames":1},"inspection":control});
                 writeln!(input, "{start}").unwrap();
-                writeln!(
-                    input,
-                    "{{\"instance\":\"a\",\"type\":\"tape\",\"decisions\":[{decision},{decision}]}}"
-                )
-                .unwrap();
+                for kind in ["replay_trace", "replay_trace_end"] {
+                    writeln!(input,"{}",json!({"instance":"a","incarnation":1,"type":kind,"schema":"gomad.replay-trace/v1","trace_bytes":trace.len(),"trace_frames":1})).unwrap();
+                    if kind == "replay_trace" {
+                        input
+                            .write_all(&u32::try_from(trace.len()).unwrap().to_be_bytes())
+                            .unwrap();
+                        input.write_all(&trace).unwrap();
+                    }
+                }
             } else {
                 writeln!(input, "{start}").unwrap();
             }

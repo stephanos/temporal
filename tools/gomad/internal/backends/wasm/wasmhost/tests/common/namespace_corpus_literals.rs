@@ -119,6 +119,8 @@ fn completed_output_transcript() -> Vec<u8> {
 fn metadata(calls: u64, transcript: &[u8]) -> Value {
     json!({"advances":0,"calls":calls,"configured":false,"cursor":0,"elapsed":0,
         "finished":false,"inspection_sealed":false,"now":1,"peak":0,"records":0,
+        "trace_sha256":format!("{:x}", Sha256::digest([])),"branching_records":0,
+        "tape_records":0,"tape_sha256":"","next_expected":null,
         "terminal_base64":"","transcript_bytes":transcript.len(),
         "transcript_sha256":format!("{:x}", Sha256::digest(transcript))})
 }

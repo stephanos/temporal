@@ -5,13 +5,12 @@
     "guest-profile",
     "guest-profile-fuel-off"
   ],
-  "close_input": "after_replies",
+  "close_input": true,
   "expected": {
     "evidence": {},
     "exit_code": 0,
     "frames": [
-      {"engine":{"configuration":"cranelift-fuel-nan-canonical-nounwind-v2","host_arch":"$host_arch","host_os":"$host_os","name":"wasmtime","version":"47.0.3"},"exports":[{"kind":"memory","name":"memory"},{"kind":"func","name":"_start"}],"imports":[],"initial_memory_pages":1,"module_sha256":"e7f0becfd8e5895b99ce4804f6858de067ad53d2233686ef55d81b42cc877f90","schema":"gomad.wasm-host/v1","type":"started"},
-      {"fuel_remaining":0,"message":"tape decision capacity","metrics":{"cache_hit":false,"cache_load_nanos":0,"cache_write_nanos":0,"compile_nanos":"nonzero","execute_nanos":0,"instantiate_nanos":0,"peak_rss_bytes":"measured","prepare_nanos":"nonzero","process_system_nanos":"measured","process_user_nanos":"measured","resource_usage_available":true},"output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
+      {"check":"framing","error":"replay_preflight","fuel_remaining":0,"message":"replay preflight framing: invalid replay trace byte/frame declaration","output_bytes":0,"peak_memory_bytes":0,"termination":"invalid","type":"result"}
     ],
     "stderr": "",
     "termination": "invalid"
@@ -34,12 +33,7 @@
   "replaces": [
     "src/model.rs::canonical_record_and_forced_rank_preserve_identities"
   ],
-  "replies": [
-    {
-      "after": {"type":"started"},
-      "send": [{"configuration":"$trigger.engine.configuration","module_sha256":"$trigger.module_sha256","type":"authorize"},{"decisions":[{"AlternativeSetDigest":[224,5,66,203,233,157,29,41,169,40,120,58,85,122,108,164,246,228,204,79,126,196,129,255,181,238,34,125,84,164,188,128],"Alternatives":2,"Data":0,"Kind":1,"Ordinal":0,"RankOverride":true,"Selected":1,"SelectedIdentity":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"SiteMissing":false,"SiteOffset":42},{"AlternativeSetDigest":[224,5,66,203,233,157,29,41,169,40,120,58,85,122,108,164,246,228,204,79,126,196,129,255,181,238,34,125,84,164,188,128],"Alternatives":2,"Data":0,"Kind":1,"Ordinal":0,"RankOverride":true,"Selected":1,"SelectedIdentity":[0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0,0],"SiteMissing":false,"SiteOffset":42}],"type":"tape"}]
-    }
-  ],
+  "replies": [],
   "reply_policy": "deny",
   "request": {
     "fuel": 1000000,
@@ -54,8 +48,8 @@
       "mode": 2,
       "now": 1,
       "read_step_nanos": 0,
+      "replay": {"decisions":0,"execution_identity":{"GOARCH":"arm64","GOOS":"darwin","ImplementationSHA256":[218,49,1,44,64,51,14,126,33,83,142,125,213,117,3,177,110,138,8,57,21,158,150,19,112,144,204,204,153,16,177,113],"TargetSHA256":[52,160,64,5,188,175,32,110,236,153,11,217,99,125,159,219,103,37,224,160,192,212,174,191,0,63,23,244,201,86,235,92],"ToolchainBuildKey":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"},"schema":"gomad.replay-trace/v1","tape_sha256":"6c8c0bae594cab9273fedb999b9becf1d556449e6fef9b18f03d5fe135f575e2","trace_bytes":161,"trace_frames":1,"trace_sha256":"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"},
       "seed": 7,
-      "tape_chunks": 1,
       "working_directory_sha256": "8a5edab282632443219e051e4ade2d1d5bbc671c781051bf1437897cbdfea0f1"
     },
     "memory_bytes": 131072,

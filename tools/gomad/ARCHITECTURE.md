@@ -120,7 +120,8 @@ sequenceDiagram
     Backend-->>Runner: Prepared target: module digest, build key, provenance
     loop each seed
         Runner->>Backend: Execute(prepared, seed, limits, choice mode)
-        Backend->>Helper: request: module, config, seed, tape?
+        Backend->>Helper: request: module, config, seed, retained trace + replay expectations?
+        Helper->>Helper: validate replay, project canonical tape before instantiation
         Helper->>Guest: instantiate fresh store, start
         loop until guest exits
             Guest->>Helper: host import (decision, clock, fd_read, net_stream, ...)
@@ -187,7 +188,9 @@ runtime overlay. The overlay keeps one logical processor, disables
 asynchronous preemption, and at each choice point asks the helper which
 alternative to take. The helper draws from the seed and records the decision.
 The recorded sequence is the Choice Trace; its branching decisions form the
-Decision Tape that exact replay feeds back in. Readiness and
+Decision Tape projected by the Rust helper from retained raw trace bytes on
+forced replay. Go supplies expected trace/tape digests and decision count, not
+decoded tape decisions. Readiness and
 single-alternative decisions are kept as evidence but never forced.
 
 **Time.** The guest clock is virtual and starts at a fixed epoch. While any
@@ -329,8 +332,11 @@ content-addressed and carry a storage lineage; an artifact from an earlier
 lineage is refused, never migrated.
 
 **Exact replay** first validates that the installed helper, module and runtime
-identities match the artifact, then re-executes with the retained Decision
-Tape. Every decision is validated before it is applied; the first mismatch is
+identities match the artifact. The helper admits bounded raw trace frames,
+validates their digest and execution identity, and projects the canonical
+Decision Tape against the expected tape digest and count before instantiation.
+Prefix controls travel separately from the unchanged trace evidence. Every
+decision is validated before it is applied; the first mismatch is
 reported as a divergence with its ordinal. The stock profile offers observed
 replay: a fresh execution compared with the retained outcome and evidence,
 without forcing the recorded scheduling decisions.

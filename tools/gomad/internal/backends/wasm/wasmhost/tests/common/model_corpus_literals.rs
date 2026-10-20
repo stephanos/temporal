@@ -34,7 +34,10 @@ pub(super) fn check_model_literals(name: &str, actual: &Value) -> Result<(), Str
         "model_inputs_refused_environment_shape_1" => {
             Some(("invalid local model environment", false))
         }
-        "model_inputs_refused_tape_capacity" => Some(("tape decision capacity", false)),
+        "model_inputs_refused_tape_capacity" => Some((
+            "replay preflight framing: invalid replay trace byte/frame declaration",
+            false,
+        )),
         "model_clock_first_run_51"
         | "model_entropy_reservation_35"
         | "model_unsupported_flags_74"
@@ -91,7 +94,10 @@ pub(super) fn check_model_literals(name: &str, actual: &Value) -> Result<(), Str
             ));
         }
         if name == "model_inputs_refused_tape_capacity"
-            && result["message"] != "tape decision capacity"
+            && (result["message"]
+                != "replay preflight framing: invalid replay trace byte/frame declaration"
+                || result["error"] != "replay_preflight"
+                || result["check"] != "framing")
         {
             return Err(format!("{name}: wrong refusal stage: {result}"));
         }

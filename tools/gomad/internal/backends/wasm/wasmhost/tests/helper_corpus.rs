@@ -229,10 +229,20 @@ fn line(frame: &Value) -> String {
 fn write_line(input: &mut Option<std::process::ChildStdin>, frame: &Value) {
     // A helper that already refused may have closed its input; the refusal
     // is in its output, so a broken pipe is not a corpus failure.
-    if let Some(stdin) = input
-        && writeln!(stdin, "{}", line(frame)).is_err()
-    {
-        *input = None;
+    if let Some(stdin) = input {
+        let result = if let Some(raw) = frame.get("raw_base64") {
+            assert_eq!(
+                frame.as_object().unwrap().len(),
+                1,
+                "raw corpus input has extra fields"
+            );
+            stdin.write_all(&STANDARD.decode(raw.as_str().unwrap()).unwrap())
+        } else {
+            writeln!(stdin, "{}", line(frame))
+        };
+        if result.is_err() {
+            *input = None;
+        }
     }
 }
 
@@ -856,8 +866,7 @@ fn check_case(file: &Path, regenerate: bool) -> Result<(), String> {
         let (_, positive) = read_case(&corpus_dir().join("model_debug_pending_inspect.json"))?;
         let mut configuration = positive["request"]["local_model"].clone();
         configuration["mode"] = json!(1);
-        configuration.as_object_mut().unwrap().remove("tape");
-        configuration.as_object_mut().unwrap().remove("tape_chunks");
+        configuration.as_object_mut().unwrap().remove("replay");
         if case["request"]["local_model"] != configuration {
             return Err(
                 "mode-one inspection case has a confounding configuration difference".into(),

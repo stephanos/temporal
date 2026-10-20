@@ -8,6 +8,23 @@ stores, with scheduling, clock, World, namespace, volume and network ownership
 in Rust. This cluster provides Model Fidelity. Shared Gomad choice, World, captured-input and evidence contracts
 remain in `tools/gomad` and are reused through explicit interfaces.
 
+Forced runtime replay sends retained raw Choice Trace bytes and expected trace/tape
+digests to the helper, not a Go-built Decision Tape. `model/replay_plan.rs` projects
+the canonical tape; `model/replay.rs` checks the versioned declaration, bounded
+big-endian length-prefixed raw frames, execution identity, digests and decision
+count before guest instantiation. Prefix cutoff and final-rank overrides are
+separate typed controls; they never rewrite retained evidence. Cluster replay
+blocks are atomic and addressed to an instance and incarnation, including the
+first incarnation. They are not newline-delimited payloads.
+
+The helper attests emitted trace bytes, branching records and the admitted tape,
+and reports the next unconsumed decision for interrupted replay. Go's retained
+artifact inspection/publication decoders remain in use; its runtime projection
+is prepared lazily only when a Go-reference runtime operation requests it. Changes
+to these identity-bound inputs rotate helper/model identities, so old artifacts
+fail compatibility checks. Passing the projection corpus alone is not runtime
+qualification for the new candidate.
+
 Manual cluster lifecycle calls configure guests while the controller owns a
 paused scheduler. `Start` and `Restart` acknowledge registration without running
 the guest; `Wait` grants execution until its requested incarnation terminates.

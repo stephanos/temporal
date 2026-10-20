@@ -1,7 +1,7 @@
 {
   "schema": "gomad.go-cluster-transport-stage-corpus/v1",
   "name": "current-tag-reaches-payload",
-  "go_implementation_sha256": "dc88360dd465bf7439a426fc2d1e5bf464ec7f6e4551015d4ecba91a76373585",
+  "go_implementation_sha256": "a46784511cbaa5b6f109c4cfa8d31b490bb3b1c99554107bf77225d346feab8d",
   "target": {
     "node": "a",
     "incarnation": 2

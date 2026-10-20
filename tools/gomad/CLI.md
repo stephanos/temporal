@@ -25,6 +25,17 @@ equal to the Go reference. The
 [WASM implementation guide](internal/backends/wasm/README.md) documents helper
 builds, corpus regeneration, focused checks and measurement commands.
 
+## Replay ownership
+
+For forced runtime Choice replay, the helper validates the retained raw trace and
+projects its canonical tape before instantiating the guest. A malformed trace,
+changed execution identity or mismatched trace/tape digest is refused at this
+boundary; it is not a guest decision divergence. Prefix exploration and
+inspection send separate controls without changing retained evidence. Helper or
+model identity changes require fresh compatible artifacts; replay does not
+silently migrate old ones. This ownership change does not alter exit statuses or
+establish qualification for a newly built helper.
+
 ## Qualification
 
 Use the [WASM qualification contract](internal/backends/wasm/QUALIFICATION.md)
