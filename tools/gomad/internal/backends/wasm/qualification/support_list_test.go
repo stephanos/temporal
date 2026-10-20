@@ -26,6 +26,7 @@ type supportFixture struct {
 	provisional bool
 	manifest    func(*Manifest)
 	extraArgs   []string
+	stdout      string
 }
 
 // supportTestCell synthesizes a Result that passes ValidateResult with costs
@@ -67,9 +68,20 @@ func supportTestCell(t *testing.T, fixture supportFixture) SupportCellInput {
 	evidence.Target = record.Target{Kind: "go-test", Source: selection.Package, SHA256: digest(fixture.module), Size: 306428662, Argv: []string{"gomad-target", "-test.v", "-test.count=1", "-test.timeout=72h", "-test.run=" + fixture.run, "-persistenceType=sql", "-persistenceDriver=sqlite"}, BuildTags: backend.TemporalGuestBuildTags()}
 	evidence.Target.Argv = append(evidence.Target.Argv, fixture.extraArgs...)
 	evidence.Outcome.Domain = domain
+	stdout := fixture.stdout
+	if stdout == "" {
+		stdout = "--- PASS: " + selection.Function + " (0.01s)\nPASS\n"
+	}
+	evidence.Stdout = record.Stream{File: "stdout", FullSHA256: record.HashBytes([]byte(stdout)), RetainedSHA256: record.HashBytes([]byte(stdout)), TotalBytes: record.Uint64String(len(stdout)), RetainedBytes: record.Uint64String(len(stdout))}
 	executions := []gomadqualification.QualificationExecution{}
 	for iteration := range 2 {
-		artifact := fmt.Sprintf("/evidence/%s/%s/run-%d", fixture.key, fixture.cell, iteration)
+		artifact := filepath.Join(t.TempDir(), fmt.Sprintf("run-%d", iteration))
+		if err := os.Mkdir(artifact, 0700); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(filepath.Join(artifact, "stdout"), []byte(stdout), 0600); err != nil {
+			t.Fatal(err)
+		}
 		executions = append(executions, gomadqualification.QualificationExecution{CampaignPath: artifact, ArtifactPath: artifact, WallElapsedNanos: 2_000_000_000, Evidence: evidence, Replay: &gomadqualification.QualificationReplay{ArtifactPath: artifact, Attempted: true, Match: true}})
 	}
 	report, err := gomadqualification.BuildQualificationReport(gomadqualification.QualificationInput{Command: []string{"wasm-qualify", workload, fixture.cell}, Executions: executions})
@@ -255,6 +267,37 @@ func TestSupportListRefusesUnqualifiedEvidence(t *testing.T) {
 		{"repeated-selection", func() []SupportCellInput {
 			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, extraArgs: []string{"-test.run=^TestActivityTestSuite$"}}), valid[1]}
 		}, gates, "did not run"},
+		{"skip-selection", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, extraArgs: []string{"-test.skip=.*"}}), valid[1]}
+		}, gates, "did not run"},
+		{"list-selection", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, extraArgs: []string{"-test.list=.*"}}), valid[1]}
+		}, gates, "did not run"},
+		{"zero-count", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, extraArgs: []string{"-test.count=0"}}), valid[1]}
+		}, gates, "did not run"},
+		{"canary-extra-args", func() []SupportCellInput {
+			return []SupportCellInput{valid[0], supportTestCell(t, supportFixture{key: smokeCell, cell: "canary", pid: 12, extraArgs: []string{"-test.skip=.*"}})}
+		}, gates, "did not run"},
+		{"skipped-in-test", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, stdout: "--- SKIP: TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds (0.00s)\nPASS\n"}), valid[1]}
+		}, gates, "passing test witness"},
+		{"no-tests", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, stdout: "testing: warning: no tests to run\nPASS\n"}), valid[1]}
+		}, gates, "passing test witness"},
+		{"unrelated-test-pass", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, stdout: "--- PASS: TestOther (0.00s)\nPASS\n"}), valid[1]}
+		}, gates, "passing test witness"},
+		{"repeated-test-pass", func() []SupportCellInput {
+			return []SupportCellInput{supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11, stdout: strings.Repeat("--- PASS: TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds (0.00s)\n", 2)}), valid[1]}
+		}, gates, "passing test witness"},
+		{"edited-stdout", func() []SupportCellInput {
+			cell := supportTestCell(t, supportFixture{key: smokeCell, cell: "success", pid: 11})
+			if err := os.WriteFile(filepath.Join(cell.Result.Qualification.Executions[0].ArtifactPath, "stdout"), []byte("--- PASS: TestOther (0.00s)\n"), 0600); err != nil {
+				t.Fatal(err)
+			}
+			return []SupportCellInput{cell, valid[1]}
+		}, gates, "stdout identity mismatch"},
 		{"mismatched-host-config", func() []SupportCellInput {
 			return []SupportCellInput{valid[0], supportTestCell(t, supportFixture{key: smokeCell, cell: "canary", pid: 12, manifest: func(m *Manifest) { m.HostConfigSHA256 = record.HashBytes([]byte("other-config")) }})}
 		}, gates, "host config"},

@@ -128,6 +128,11 @@ The support claim is a per-test list bound to one candidate
   processes, that pass the same per-cell outcome gate as the mandatory corpus,
   run the registered `-test.run` selection (the canary runs `[`) and share one
   prepared module;
+- the exact registered argument vector: `gomad-target -test.v -test.count=1
+  -test.timeout=72h -test.run=<selection> -persistenceType=sql
+  -persistenceDriver=sqlite`, with no extra flags; every success execution's
+  complete, digest-verified retained stdout must contain exactly one verbose
+  pass for the named test selection and no skip for that selection;
 - cells whose integrated source, compiler, runtime overlay, helper, engine, model
   and host identities all match;
 - a recorded zero exit for each row's `unchanged-source-preparation`,
