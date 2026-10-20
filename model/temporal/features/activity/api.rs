@@ -3,7 +3,11 @@
 
 use crate::activity::{self, Client, Deadline, Worker};
 use prost::Message;
-use umpire_annotations::{Catalog, Expectation, Expected, Field, Kind, Presence, Rule};
+use umpire_annotations::{Catalog, Expectation};
+
+#[macro_use]
+#[path = "api_requests.rs"]
+mod requests;
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
     common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
@@ -558,22 +562,15 @@ umpire_temporal_annotate::annotate! {
 /// Returns catalog admission errors.
 pub fn start_request_id_intent()
 -> Result<Catalog<StartActivityExecutionRequest>, umpire_annotations::AdmissionErrors> {
-    Catalog::request("temporal.api.workflowservice.v1.StartActivityExecutionRequest")
-        .field(
-            Field::new(
-                "temporal.api.workflowservice.v1.StartActivityExecutionRequest.request_id",
-                Kind::Uuid,
-                |message: &StartActivityExecutionRequest| &message.request_id,
-                |message| &mut message.request_id,
-            )
-            .tag(&umpire_annotations::Consequence::Decided)
-            .expects(&Expected {
-                expectation: Expectation::Accepts,
-                covers: "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest"
-                    .into(),
-            }),
-        )
-        .build()
+    supplemental_request!(
+        uuid StartActivityExecutionRequest,
+        "temporal.api.workflowservice.v1.StartActivityExecutionRequest",
+        "temporal.api.workflowservice.v1.StartActivityExecutionRequest.request_id",
+        get = |message| &message.request_id,
+        set = |message| &mut message.request_id,
+        expected = Expectation::Accepts,
+        covers = "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeStartRequest",
+    )
 }
 
 /// UUID intent for cancel request IDs; the server accepts non-UUID IDs.
@@ -582,22 +579,15 @@ pub fn start_request_id_intent()
 /// Returns catalog admission errors.
 pub fn cancel_request_id_intent()
 -> Result<Catalog<RequestCancelActivityExecutionRequest>, umpire_annotations::AdmissionErrors> {
-    Catalog::request("temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest")
-        .field(
-            Field::new(
-                "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.request_id",
-                Kind::Uuid,
-                |message: &RequestCancelActivityExecutionRequest| &message.request_id,
-                |message| &mut message.request_id,
-            )
-            .tag(&umpire_annotations::Consequence::Decided)
-            .expects(&Expected {
-                expectation: Expectation::Accepts,
-                covers: "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestID"
-                    .into(),
-            }),
-        )
-        .build()
+    supplemental_request!(
+        uuid RequestCancelActivityExecutionRequest,
+        "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest",
+        "temporal.api.workflowservice.v1.RequestCancelActivityExecutionRequest.request_id",
+        get = |message| &message.request_id,
+        set = |message| &mut message.request_id,
+        expected = Expectation::Accepts,
+        covers = "go.temporal.io/server/chasm/lib/activity.validateAndNormalizeRequestID",
+    )
 }
 
 /// Worker-supplied failures require application info; server failures do not.
@@ -605,26 +595,21 @@ pub fn cancel_request_id_intent()
 /// # Errors
 /// Returns catalog admission errors.
 pub fn worker_failure_presence() -> Result<Catalog<Failure>, umpire_annotations::AdmissionErrors> {
-    Catalog::request("temporal.api.failure.v1.Failure")
-        .field(Field::projected(
-            "temporal.api.failure.v1.Failure.application_failure_info",
-            Kind::Bytes(umpire_annotations::BytesRules::default()),
-            |message: &Failure| match &message.failure_info {
-                Some(failure::FailureInfo::ApplicationFailureInfo(value)) => Some(value.encode_to_vec()),
-                _ => None,
-            },
-            |_: &mut Failure, _: Option<Vec<u8>>| {},
-        ).tag(&umpire_annotations::Consequence::Decided))
-        .rule(Rule {
-            presence: Presence::Required(vec!["application_failure_info".into()]),
-            expected: Some(Expected {
-                expectation: Expectation::Rejects {
-                    code: 3,
-                    message_pattern: "Failure must have ApplicationFailureInfo".into(),
-                    details_type: None,
-                },
-                covers: "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed".into(),
-            }),
-        })
-        .build()
+    supplemental_request!(
+        required Failure,
+        "temporal.api.failure.v1.Failure",
+        "temporal.api.failure.v1.Failure.application_failure_info",
+        "application_failure_info",
+        get = |message: &Failure| match &message.failure_info {
+            Some(failure::FailureInfo::ApplicationFailureInfo(value)) => Some(value.encode_to_vec()),
+            _ => None,
+        },
+        set = |_: &mut Failure, _: Option<Vec<u8>>| {},
+        expected = Expectation::Rejects {
+            code: 3,
+            message_pattern: "Failure must have ApplicationFailureInfo".into(),
+            details_type: None,
+        },
+        covers = "go.temporal.io/server/service/frontend.WorkflowHandler.RespondActivityTaskFailed",
+    )
 }

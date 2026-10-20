@@ -978,6 +978,7 @@ name = "umpire-temporal"
 version = "0.0.1"
 dependencies = [
  "prost",
+ "trybuild",
  "umpire-annotations",
  "umpire-dsl",
  "umpire-temporal-annotate",
