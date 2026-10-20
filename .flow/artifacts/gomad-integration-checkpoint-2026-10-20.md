@@ -29,3 +29,16 @@ Two earlier command-selection mistakes are retained here rather than hidden: the
 ## Resource preservation
 
 Removed unused, clean, merged checkouts `/home/agent/wt/cand2-frozen` and `/home/agent/wt/qualdriver` after checking their commits are ancestors of the integrated branch and no live process used them. The source commits remain in Git, the qualification-driver branch remains, and external evidence is retained. Only reproducible checkout/generated preparation copies were removed. Available disk rose to approximately 15 GiB; subsequent builds can change that figure.
+
+## Subsequent integrated checks
+
+At `28d2c881475249902cc4627bff975133ed7c2e45`, attribution source and all four feature-mode sidecar updates through `f172c17499` were integrated with determinism through `c60ae60207`. The independent attribution source/fixture reviewer reported SHIP. The registry merge retains both stress and cluster-owner producers. The broker merge retains both diagnostic World spans and supplemental event contexts. An actual compile check caught duplicate cluster-stderr accessors; integration retains one detached accessor, one completed-result clone and a regression that directly mutates the detached result to verify session isolation.
+
+- Integrated `make lint-code-gomad` with the exact overrides above exited 0, zero issues. Log: `/home/agent/wt/evidence/integration-2026-10-20/lint-28d2c88147.log`.
+- `cargo check --locked --all-targets --features diagnostic-profile` exited 0 (6.44 s), and the separate `--features stress-jitter` check exited 0 (5.90 s). Logs: `/home/agent/wt/evidence/integration-2026-10-20/rust-{diagnostic,stress}-28d2c88147.log`.
+- An earlier combined `diagnostic-profile,stress-jitter` check exited 101 because the source explicitly forbids that feature combination. That guard remains intact; it was not a supported-role build failure. Log: `/home/agent/wt/evidence/integration-2026-10-20/rust-combined-28d2c88147.log`.
+- After integrating context fixes through `791a61ed2d`, at root `dc5af510c610d7c577c22f6c9928fbe0e3fb9502`, fresh focused determinism/observed, sweep, measurement/measure and CLI package tests exited 0. `go vet -p=1 -tags test_dep` over backend, cluster, wasi, measure and CLI also exited 0. Exact supplemental state-commit diagnostics and live prefix probes still have their own fn-188 acceptance gates.
+
+The corrected fn-221 two-package proof and same-candidate resume are retained in `fn221-method-proof-2026-10-20.md`. Root reran both committed v2 sidecar verifiers: exit 0 each. Independent final evidence review returned SHIP; `flowctl done` and a subsequent `show` verified fn-221.1 done before commit `c3ec0975e6`. Full survey and reason ranking remain open. The actual fn-185 early activity/runtime-cost proofs are separately retained in `fn185-attribution-port-2026-10-20.md`; they do not replace integrated qualification or full matched measurements.
+
+The unused clean merged `/home/agent/wt/cand2` checkout was subsequently removed with its branch preserved. The adapter owner separately removed its own unused clean `/home/agent/wt/fn188-runner-adapter`, preserving all original source commits on its branch and all required evidence externally. No live checkout or raw execution evidence was removed.
