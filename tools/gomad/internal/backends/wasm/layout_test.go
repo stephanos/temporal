@@ -55,15 +55,16 @@ func nativeToolchainReference(filename string, source any) (string, error) {
 	return reference, nil
 }
 
-// nativeImport reports an import of the native backend or the pre-move native
-// toolchain package.
+// nativeImport reports an import of the pre-move native toolchain package.
 func nativeImport(file *ast.File) (string, error) {
 	for _, imported := range file.Imports {
 		path, err := strconv.Unquote(imported.Path.Value)
 		if err != nil {
 			return "", err
 		}
-		for _, native := range []string{"go.temporal.io/server/tools/gomad/toolchain", "go.temporal.io/server/tools/gomad/internal/backends/native"} {
+		// Native backend imports are refused module-wide by archcheck's default
+		// dependency closure and native-path string rule.
+		for _, native := range []string{"go.temporal.io/server/tools/gomad/toolchain"} {
 			if path == native || strings.HasPrefix(path, native+"/") {
 				return path, nil
 			}
@@ -112,7 +113,7 @@ func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 			t.Fatalf("native binary guard did not reject source %q: %q, %v", source, reference, err)
 		}
 	}
-	for _, path := range []string{"go.temporal.io/server/tools/gomad/toolchain", "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain", "go.temporal.io/server/tools/gomad/internal/backends/native", "go.temporal.io/server/tools/gomad/internal/backends/native/build"} {
+	for _, path := range []string{"go.temporal.io/server/tools/gomad/toolchain", "go.temporal.io/server/tools/gomad/toolchain/build"} {
 		imported, err := nativeToolchainReference("forbidden_test.go", "package fixture\nimport _ "+strconv.Quote(path))
 		if err != nil || imported != path {
 			t.Fatalf("native builder guard did not reject %s: %q, %v", path, imported, err)

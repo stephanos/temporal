@@ -86,14 +86,14 @@ the patched native host toolchain is a separate workflow.
 
 ## Keep and replay a first failure
 
-Start with Gomad's intentional failure fixture. Although its source lives in
-the retained native tree, this command builds and executes it through WASM:
+Start with Gomad's intentional failure fixture, a WASM-owned test module under
+`internal/backends/wasm/testdata/io_failure_module`:
 
 ```sh
 cd "$GOMAD_CHECKOUT"
 "$GOMAD_OPERATOR/bin/gomad" explore \
   --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/native/conformance/testdata" \
+  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/testdata/io_failure_module" \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --execution-timeout=30s --overall-timeout=5m \
   --artifacts "$GOMAD_OPERATOR/canary-artifacts" \
@@ -349,6 +349,14 @@ the fixtures byte-identical. Keep unit tests for invariants a corpus cannot
 express. Measurement producers run through the explicit `wasmmeasure` command,
 not test targets. The [WASM implementation guide](internal/backends/wasm/README.md)
 documents regeneration commands, retained invariants and measurement admission.
+
+Shared wire codecs are generated from the schemas under `internal/model` by
+`make generate` (`internal/model/cmd/protocolgen`, stock Go, no build tag);
+`make validate` reports each stale output and fails. The volume and network
+models are owned source with no generator. The native backend tree is frozen:
+it is neither executed nor qualified, and its generators and validators run
+only under its own selection, `GOFLAGS=-tags=gomad_native make generate-native
+validate-native`. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
 
 ## Further reading
 

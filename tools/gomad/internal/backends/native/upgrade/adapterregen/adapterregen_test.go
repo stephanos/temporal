@@ -559,13 +559,13 @@ func TestStalePacksNameBindingsOfThePreviousIdentity(t *testing.T) {
 	}
 }
 
-func TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps(t *testing.T) {
+func TestDefaultGeneratorsAreTheModuleLocalMakeGenerateNativeSteps(t *testing.T) {
 	makefile, err := os.ReadFile("../../../../../Makefile")
 	if err != nil {
 		t.Fatal(err)
 	}
 	recipe := string(makefile)
-	start := strings.Index(recipe, "\ngenerate:")
+	start := strings.Index(recipe, "\ngenerate-native:")
 	end := strings.Index(recipe[start+1:], "\n\n")
 	recipe = recipe[start : start+1+end]
 	var steps []string
@@ -581,7 +581,7 @@ func TestDefaultGeneratorsAreTheModuleLocalMakeGenerateSteps(t *testing.T) {
 		defaults = append(defaults, strings.Join(command[1:], " "))
 	}
 	if strings.Join(steps, "\n") != strings.Join(defaults, "\n") {
-		t.Fatalf("make generate steps:\n%s\ndefault generators:\n%s", strings.Join(steps, "\n"), strings.Join(defaults, "\n"))
+		t.Fatalf("make generate-native steps:\n%s\ndefault generators:\n%s", strings.Join(steps, "\n"), strings.Join(defaults, "\n"))
 	}
 }
 

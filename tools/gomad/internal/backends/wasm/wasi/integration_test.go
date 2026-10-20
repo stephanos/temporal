@@ -2471,7 +2471,7 @@ func TestTemporalGuestAdmission(t *testing.T) {
 		selections["timers"] = "^TestUserTimersTestSuite$"
 		selections["application-failure"] = "^TestActivityClientTestSuite$/^TestActivity_AttemptsExceeded$"
 	case "failure":
-		root = filepath.Join(root, "tools", "gomad", "internal", "backends", "native", "conformance", "testdata")
+		root = filepath.Join(root, "tools", "gomad", "internal", "backends", "wasm", "testdata", "io_failure_module")
 		packageName, version, cwd = "./io_failure", "go1.27.1", "/workspace/failure"
 		tags = "test_dep,gomad_fixture"
 		selections["failure"] = "^TestDeterministicIOFailure$"

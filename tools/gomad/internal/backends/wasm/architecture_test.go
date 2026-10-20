@@ -1,13 +1,16 @@
 package wasm_test
 
 import (
+	"fmt"
 	"os"
 	"path/filepath"
 	"runtime"
+	"slices"
 	"strings"
 	"testing"
 
 	"go.temporal.io/server/tools/gomad/internal/archcheck"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 )
 
 const wasmModule = "go.temporal.io/server/tools/gomad"
@@ -15,7 +18,6 @@ const wasmModule = "go.temporal.io/server/tools/gomad"
 func wasmArchitectureConfig() archcheck.Config {
 	return archcheck.Config{
 		Module:      wasmModule,
-		ModuleEdges: []archcheck.ModuleEdge{{From: wasmModule + "/internal/backends/wasm", To: wasmModule + "/internal/backends/native"}},
 		PureFiles: func(path string) bool {
 			return strings.HasPrefix(path, "wasi/") && strings.HasSuffix(path, ".go") &&
 				!strings.HasSuffix(path, "_test.go") && path != "wasi/process.go" && path != "wasi/broker_process.go" &&
@@ -85,5 +87,46 @@ func TestWASMArchitectureRejectsHostImports(t *testing.T) {
 				t.Fatalf("host import escaped pure boundary: %+v", findings)
 			}
 		})
+	}
+}
+
+// wasmHostFile selects the Go host packages whose host effects the
+// determinism inventory reviews site by site.
+func wasmHostFile(path string) bool {
+	return (strings.HasPrefix(path, "wasi/") || strings.HasPrefix(path, "cluster/") || strings.HasPrefix(path, "backend/")) &&
+		strings.HasSuffix(path, ".go") && !strings.HasSuffix(path, "_test.go")
+}
+
+// TestWASMHostEffectSitesAreInventoried extends the purity boundary to the
+// host packages: every host clock read, goroutine start, map range and
+// unstable sort in wasi, cluster and backend, including the transport files
+// exempt from the pure import rule, is a determinism inventory row.
+func TestWASMHostEffectSitesAreInventoried(t *testing.T) {
+	inventory, err := determinism.Load()
+	if err != nil {
+		t.Fatal(err)
+	}
+	sites, err := archcheck.HostEffectSites(".", compiledGoCommand(), archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}, wasmHostFile)
+	if err != nil {
+		t.Fatal(err)
+	}
+	derived := make([]string, 0, len(sites))
+	for _, site := range sites {
+		derived = append(derived, fmt.Sprintf("%s|%d", site.Key(), site.Count))
+	}
+	if err := inventory.Complete("host-go", derived); err != nil {
+		t.Fatal(err)
+	}
+	// The pure-import exemption of the transport files no longer hides their
+	// host effects: each one is reviewed as a row like any other site.
+	for _, file := range []string{"wasi/process.go", "wasi/cluster.go"} {
+		if !slices.ContainsFunc(sites, func(site archcheck.HostSite) bool { return site.File == file }) {
+			t.Errorf("exempt transport file %s reports no host-effect site; the scan no longer covers it", file)
+		}
+	}
+	// A new site, or another occurrence of a reviewed one, fails by name.
+	added := append(slices.Clone(derived), "wasi/process.go|Run|clock|time.Now|1")
+	if err := inventory.Complete("host-go", added); err == nil || !strings.Contains(err.Error(), `"wasi/process.go|Run|clock|time.Now|1" has no inventory row`) {
+		t.Fatalf("new host-effect site not reported: %v", err)
 	}
 }

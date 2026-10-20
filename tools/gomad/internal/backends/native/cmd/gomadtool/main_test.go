@@ -552,9 +552,10 @@ func TestRunGeneratorDiagnosticOutputPreservesStatus(t *testing.T) {
 			diagnostic: "qualification manifest spec schema must be gomad.qualification-set-generator/v1\n",
 		},
 		{
-			name: "protocol failure", input: "internal/backends/native/transcript/schema/iowire.json", contents: "{} {}\n", output: "internal/model/iowire/wire_generated.go",
+			name: "protocol failure", input: "internal/backends/native/go.mod", contents: "module go.temporal.io/server/tools/gomad/internal/backends/native\n",
+			output:    "internal/backends/native/toolchain/runtime/overlay/src/internal/gomadwire/wire_generated.go",
 			arguments: []string{"protocol-generate"}, status: 1,
-			diagnostic: "I/O wire schema has trailing data\n",
+			diagnostic: "native module has no directory replace for go.temporal.io/server/tools/gomad\n",
 		},
 		{
 			name: "version failure", input: "internal/backends/native/toolchain/version/version.json", contents: "{}\n", output: "version_generated.mk",

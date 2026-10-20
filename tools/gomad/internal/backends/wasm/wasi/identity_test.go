@@ -35,7 +35,7 @@ func TestImplementationIdentityBindsStorageEvidenceSources(t *testing.T) {
 }
 
 func TestImplementationIdentityBindsCompiledModelDigest(t *testing.T) {
-	const expected = "sha256:9b087b968ee0054b2886b670934e37f0e4546939442d61fde69606ac056c4c99"
+	const expected = "sha256:f9607ca9acb77614c5b247563bd586a5b1c5a3333bffead91392848fdcb14f29"
 	if got := ImplementationSHA256(); got != expected {
 		t.Fatalf("compiled model identity = %q, want %q", got, expected)
 	}
