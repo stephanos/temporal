@@ -14,6 +14,9 @@ use std::{
 use wasmtime::{Engine, Error, Store};
 
 pub use crate::model::replay::Request as ReplayRequest;
+pub use crate::model::replay_plan::{
+    ExecutionIdentity as ChoiceIdentity, TraceInspection, inspect as inspect_choices,
+};
 pub use crate::model::{Config as ModelConfig, ModelLimits};
 pub use crate::namespace::{
     Image as NamespaceImage, ImageEntry as NamespaceEntry, Limits as NamespaceLimits,

@@ -1,0 +1,19 @@
+{
+  "schema": "gomad.inspect-corpus/v1",
+  "verb": "inspect",
+  "fresh_execution_corpus": "foundation-execution.json",
+  "runtime_choice_target": "targets/inspect-choice.wat",
+  "consumer_details": "inspect-details.json",
+  "golden": "goldens-inspect/inspect.json",
+  "projection": {
+    "path": "Replace only the declared output-root prefix; preserve artifact suffixes",
+    "record": "Exact canonical bytes, identities, hashes and all fields",
+    "files": "Exact payload paths, sizes, module kinds and digests",
+    "choices": "Exact summary, sites, decisions, trace and tape digests",
+    "world": "Exact authenticated typed consumer facts",
+    "simulation": "Exact authenticated typed consumer facts",
+    "minimization": "Exact authenticated typed consumer facts from a genuine Go producer specimen",
+    "stdout": "Exact hash, total, retained, discarded and truncation facts",
+    "stderr": "Exact hash, total, retained, discarded and truncation facts"
+  }
+}

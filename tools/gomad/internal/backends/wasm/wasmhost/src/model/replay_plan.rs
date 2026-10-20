@@ -1,11 +1,11 @@
 use super::{Decision, get32, get64, set32, set64};
-use serde::Deserialize;
+use serde::{Deserialize, Serialize};
 use sha2::{Digest, Sha256};
 
 const RECORD_BYTES: usize = 96;
 const HEADER_BYTES: usize = 264;
 
-#[derive(Clone, Deserialize)]
+#[derive(Clone, Deserialize, Serialize)]
 #[serde(deny_unknown_fields, rename_all = "PascalCase")]
 pub struct ExecutionIdentity {
     #[serde(rename = "TargetSHA256")]
@@ -23,6 +23,103 @@ pub struct ReplayPlan {
     pub decisions: Vec<Decision>,
     pub bytes: Vec<u8>,
     pub sha256: [u8; 32],
+}
+
+#[derive(Serialize)]
+pub struct TraceInspection {
+    pub records: u64,
+    pub decisions: u64,
+    pub branching_records: u64,
+    pub runnable: u64,
+    pub select_poll: u64,
+    pub select_result: u64,
+    pub sites: Vec<TraceSite>,
+    pub replay_decisions: Vec<TraceDecision>,
+    pub tape_sha256: String,
+}
+
+#[derive(Serialize)]
+pub struct TraceSite {
+    pub fingerprint: String,
+    pub kind: &'static str,
+    pub count: u64,
+    pub maximum_alternatives: u32,
+}
+
+#[derive(Serialize)]
+pub struct TraceDecision {
+    pub ordinal: u64,
+    pub kind: &'static str,
+    pub site_offset: u64,
+    pub site_missing: bool,
+    pub alternatives: u32,
+    pub selected: u32,
+}
+
+fn kind_name(kind: u8) -> &'static str {
+    match kind {
+        1 => "runnable",
+        2 => "select-poll",
+        3 => "select-result",
+        _ => unreachable!("validated choice kind"),
+    }
+}
+
+/// # Errors
+/// Refuses malformed traces and invalid replay identities using the replay projector.
+pub fn inspect(
+    trace: &[u8],
+    identity: &ExecutionIdentity,
+) -> Result<TraceInspection, &'static str> {
+    let plan = project(trace, identity)?;
+    let mut sites = std::collections::BTreeMap::<(u8, String), TraceSite>::new();
+    let mut counts = [0; 3];
+    for (ordinal, bytes) in trace.as_chunks::<RECORD_BYTES>().0.iter().enumerate() {
+        let record = decode_record(bytes, ordinal)?;
+        let decision = &record.decision;
+        counts[usize::from(decision.kind - 1)] += 1;
+        let fingerprint = if decision.site_missing {
+            "missing".into()
+        } else {
+            let mut hash = Sha256::new();
+            hash.update(identity.target_sha256);
+            hash.update([decision.kind]);
+            hash.update(decision.site_offset.to_be_bytes());
+            format!("{:x}", hash.finalize())
+        };
+        let site = sites
+            .entry((decision.kind, fingerprint.clone()))
+            .or_insert(TraceSite {
+                fingerprint,
+                kind: kind_name(decision.kind),
+                count: 0,
+                maximum_alternatives: 0,
+            });
+        site.count += 1;
+        site.maximum_alternatives = site.maximum_alternatives.max(decision.alternatives);
+    }
+    Ok(TraceInspection {
+        records: trace.len() as u64 / RECORD_BYTES as u64,
+        decisions: plan.decisions.len() as u64,
+        branching_records: plan.decisions.len() as u64,
+        runnable: counts[0],
+        select_poll: counts[1],
+        select_result: counts[2],
+        sites: sites.into_values().collect(),
+        replay_decisions: plan
+            .decisions
+            .iter()
+            .map(|decision| TraceDecision {
+                ordinal: decision.ordinal,
+                kind: kind_name(decision.kind),
+                site_offset: decision.site_offset,
+                site_missing: decision.site_missing,
+                alternatives: decision.alternatives,
+                selected: decision.selected,
+            })
+            .collect(),
+        tape_sha256: crate::world::digest::hex(&plan.sha256),
+    })
 }
 
 #[derive(Clone, Deserialize)]

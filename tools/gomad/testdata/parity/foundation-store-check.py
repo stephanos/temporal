@@ -1,11 +1,14 @@
 #!/usr/bin/env python3
 import json,os,pathlib,subprocess,sys,shutil,hashlib,concurrent.futures,fcntl,time,threading
-binary,base=sys.argv[1:]
+binary,base,*mode=sys.argv[1:]
+assert mode in ([], ['--inspect']), mode
 root=pathlib.Path(base);root.mkdir(mode=0o700,parents=True,exist_ok=True)
 receipt_number=0
 receipt_lock=threading.Lock()
 def run(*args,ok=True):
     global receipt_number
+    if mode and args[0]=='fixture-open' and len(args)==2:
+        args=('inspect','--json',args[1])
     p=subprocess.run([binary,*map(str,args)],capture_output=True,text=True)
     with receipt_lock:
         receipt_number+=1

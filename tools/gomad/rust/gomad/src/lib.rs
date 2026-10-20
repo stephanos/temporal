@@ -1,3 +1,4 @@
+pub mod cli;
 pub mod evidence;
 pub mod execute;
 #[cfg(feature = "determinism-fixture")]

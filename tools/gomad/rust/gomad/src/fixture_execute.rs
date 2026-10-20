@@ -10,6 +10,7 @@ use crate::{
 use gomad_wasmhost::linked;
 use serde::Deserialize;
 use serde_json::json;
+use sha2::Digest as _;
 use std::{collections::BTreeMap, path::Path, sync::Barrier, time::Duration};
 
 #[derive(Deserialize)]
@@ -31,6 +32,8 @@ struct Case {
     memory_bytes: u64,
     wall_millis: u64,
     modeled: bool,
+    #[serde(default)]
+    runtime: bool,
     termination: String,
 }
 
@@ -114,7 +117,9 @@ fn run(
             case.name, result.outcome.termination, case.termination, result.outcome.message
         ));
     }
-    if case.modeled && result.evidence.get("stdout").map(Vec::as_slice) != Some(b"linked-output\n")
+    if case.modeled
+        && !case.runtime
+        && result.evidence.get("stdout").map(Vec::as_slice) != Some(b"linked-output\n")
     {
         return Err("modeled stdout mismatch".into());
     }
@@ -165,7 +170,7 @@ fn run(
         );
         payloads.insert(path, bytes);
     }
-    let record = Record {
+    let mut record = Record {
         schema: "gomad.execution-record/v2".into(),
         execution_identity: identity.digest()?,
         identity,
@@ -193,6 +198,54 @@ fn run(
         },
         streams,
     };
+    if case.runtime {
+        use crate::evidence::inspection::{ChoiceEvidence, Details, Payload};
+        let identity = linked::ChoiceIdentity {
+            target_sha256: sha2::Sha256::digest(&payloads["target/module.wasm"]).into(),
+            toolchain_build_key: record.identity.toolchain.clone(),
+            goos: "wasip1".into(),
+            goarch: "wasm".into(),
+            implementation_sha256: sha2::Sha256::digest(b"inspect-runtime-implementation/v1")
+                .into(),
+        };
+        let stream = record
+            .streams
+            .get("evidence/choice")
+            .ok_or("missing runtime choices")?;
+        let projected = linked::inspect_choices(&payloads["evidence/choice"], &identity)?;
+        let details = Details {
+            schema: "gomad.inspection-evidence/v1".into(),
+            outputs: None,
+            choices: Some(ChoiceEvidence {
+                profile: "gomad-choice-trace/v3".into(),
+                implementation_sha256: linked::IMPLEMENTATION_SHA256.into(),
+                identity,
+                trace: Payload {
+                    schema: "gomad-choice-trace/v3".into(),
+                    file: "evidence/choice".into(),
+                    sha256: stream.sha256.clone(),
+                    bytes: stream.bytes,
+                    limit: record.limits.evidence_bytes,
+                },
+                records: stream.records,
+                terminal_state: "complete".into(),
+                tape_sha256: Some(projected.tape_sha256),
+            }),
+            world: None,
+            simulation: None,
+            minimization: None,
+        };
+        let bytes = canonical::encode(&details)?;
+        record.streams.insert(
+            "evidence/inspection.json".into(),
+            Stream {
+                bytes: bytes.len() as u64,
+                sha256: canonical::digest(&bytes),
+                records: 1,
+            },
+        );
+        payloads.insert("evidence/inspection.json".into(), bytes);
+    }
     payloads.insert("record.json".into(), record.bytes()?);
     Ok(Publication { record, payloads })
 }
@@ -244,9 +297,33 @@ pub(crate) fn watchdog_cancellation(corpus: &Path) -> Result<(), String> {
         memory_bytes: 65_536,
         wall_millis: 60_000,
         modeled: false,
+        runtime: false,
         termination: "exit".into(),
     };
     run(&case, 7, corpus, "gomad.wasi-stock-exploratory/v1", 1)?;
     println!("normal exit cancelled and joined its 60-second watchdog");
     Ok(())
+}
+
+pub(crate) fn inspection_bundle(root: &Path, corpus: &Path) -> Result<(), String> {
+    let case = Case {
+        name: "runtime-choice".into(),
+        module: "targets/inspect-choice.wat".into(),
+        fuel: 100_000,
+        memory_bytes: 65_536,
+        wall_millis: 1000,
+        modeled: true,
+        runtime: true,
+        termination: "exit".into(),
+    };
+    let mut publications = Vec::new();
+    for seed in [7, 8] {
+        let first = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
+        let second = run(&case, seed, corpus, "gomad.wasi-cooperative/v1", 0)?;
+        if first.record.bytes()? != second.record.bytes()? {
+            return Err("repeated choice execution differs".into());
+        }
+        publications.push(first);
+    }
+    crate::fixture::publish_bundle(root, "inspect-execution", publications)
 }

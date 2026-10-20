@@ -1,0 +1,220 @@
+package main
+
+import (
+	"context"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"runtime"
+	"sort"
+	"time"
+
+	"go.temporal.io/server/tools/gomad/internal/backends"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
+	"go.temporal.io/server/tools/gomad/internal/model/choice"
+)
+
+type testCase struct {
+	Name        string `json:"name"`
+	Module      string `json:"module"`
+	Fuel        uint64 `json:"fuel"`
+	Memory      uint64 `json:"memory_bytes"`
+	Wall        uint64 `json:"wall_millis"`
+	Modeled     bool   `json:"modeled"`
+	Termination string `json:"termination"`
+}
+
+func main() {
+	helper := flag.String("helper", "", "authenticated baseline helper")
+	corpus := flag.String("corpus", "", "shared fixture corpus")
+	output := flag.String("output", "", "new private artifact root")
+	choices := flag.Bool("choices", false, "execute runtime choice fixture")
+	flag.Parse()
+	if err := run(*helper, *corpus, *output, *choices); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(helper, corpus, output string, choices bool) error {
+	helperBytes, err := os.ReadFile(helper)
+	if err != nil {
+		return err
+	}
+	helperHash := record.HashBytes(helperBytes)
+	if helperHash != "sha256:b25439140f0c850a82f99471c9fd48ac864569a75e407a76850873f6ece055a1" {
+		return fmt.Errorf("baseline helper identity mismatch")
+	}
+	input, err := os.ReadFile(filepath.Join(corpus, "foundation-execution.json"))
+	if err != nil {
+		return err
+	}
+	var document struct {
+		Schema   string     `json:"schema"`
+		Profile  string     `json:"profile"`
+		ReadStep uint64     `json:"read_step_nanos"`
+		Seeds    []uint64   `json:"seeds"`
+		Cases    []testCase `json:"cases"`
+	}
+	if err := json.Unmarshal(input, &document); err != nil {
+		return err
+	}
+	if document.Schema != "gomad.foundation-execution-corpus/v1" || len(document.Cases) != 6 || len(document.Seeds) != 2 {
+		return fmt.Errorf("incomplete inspect corpus")
+	}
+	if choices {
+		document.Cases = []testCase{{Name: "runtime-choice", Module: "targets/inspect-choice.wat", Fuel: 100000, Memory: 65536, Wall: 1000, Modeled: true, Termination: "exit"}}
+		document.Profile = wasi.CooperativeProfile
+		document.ReadStep = 0
+	}
+	if err := os.Mkdir(output, 0700); err != nil {
+		return err
+	}
+	rows := []map[string]any{}
+	for _, test := range document.Cases {
+		for _, seed := range document.Seeds {
+			module := filepath.Join(corpus, test.Module)
+			moduleBytes, err := os.ReadFile(module)
+			if err != nil {
+				return err
+			}
+			moduleHash := record.HashBytes(moduleBytes)
+			config := wasi.Config{Profile: document.Profile, WorkingDirectory: "/", Environment: []string{"PWD=/"}, Clock: wasi.ClockPolicy{ReadStepNanos: document.ReadStep}, Limits: wasi.Limits{OutputBytes: 1024, TranscriptBytes: 4096, Calls: 100, Descriptors: 16, Files: 16, FilesystemBytes: 4096, PendingEvents: 16}}
+			request := wasi.Request{HelperPath: helper, HelperSHA256: string(helperHash)[7:], ModulePath: module, ModuleSHA256: string(moduleHash)[7:], Engine: wasi.PinnedEngine(), InitialMemoryPages: 1, MemoryBytes: test.Memory, Fuel: test.Fuel, Config: config, Timeout: time.Duration(test.Wall) * time.Millisecond}
+			if test.Name == "memory" {
+				request.InitialMemoryPages = 2
+			}
+			arguments := []string{}
+			environment := map[string]string{}
+			if test.Modeled {
+				arguments = []string{"fixture"}
+				environment["PWD"] = "/"
+				request.Config.Args = arguments
+				for _, function := range []struct {
+					name   string
+					params []string
+				}{{"fd_write", []string{"i32", "i32", "i32", "i32"}}, {"clock_time_get", []string{"i32", "i64", "i32"}}, {"args_sizes_get", []string{"i32", "i32"}}, {"random_get", []string{"i32", "i32"}}} {
+					request.Imports = append(request.Imports, wasi.Import{Module: "wasi_snapshot_preview1", Name: function.name, Params: function.params, Results: []string{"i32"}})
+				}
+			}
+			buildKey := string(record.HashBytes([]byte("gomad.fixture-wat-source/v1")))[7:]
+			if choices {
+				implementation, err := choice.ImplementationIdentity(buildKey)
+				if err != nil {
+					return err
+				}
+				target, err := moduleHash.Bytes()
+				if err != nil {
+					return err
+				}
+				request.Imports = nil
+				for _, name := range []string{"config", "decision", "observation", "finish", "idle"} {
+					request.Imports = append(request.Imports, wasi.Import{Module: "gomad_wasm_v1", Name: name, Params: []string{"i32", "i32"}, Results: []string{"i32"}})
+				}
+				request.Runtime = &wasi.RuntimeControl{Seed: seed, Choice: &backends.ChoiceRequest{Mode: choice.ModeRecord, ExecutionIdentity: choice.ExecutionIdentity{TargetSHA256: target, ToolchainBuildKey: buildKey, GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: implementation}, Limit: 4096}}
+			}
+			result, err := wasi.Run(context.Background(), request)
+			if err != nil {
+				return fmt.Errorf("%s.seed%d: %w", test.Name, seed, err)
+			}
+			if !result.Reaped || result.Cancelled {
+				return fmt.Errorf("incomplete fresh execution")
+			}
+			termination := result.Termination
+			if result.WatchdogTimeout {
+				termination = "watchdog_timeout"
+			}
+			if termination != test.Termination {
+				return fmt.Errorf("%s termination: %s", test.Name, termination)
+			}
+			world, worldPayloads := record.NoneWorld()
+			manifest := record.ExecutionRecord{
+				SchemaVersion: record.SchemaVersion, ArtifactKind: record.ArtifactRunnerFailure, CreatedAt: "2026-10-20T00:00:00Z", CampaignID: "inspect-reference", Seed: record.Uint64String(seed), ReplayMode: record.ReplayNone,
+				Runner:      record.Runner{RecordContract: record.RecordContract, RunnerBuild: "1d7b37f00a74a85399993f1edcad6fe742e778e3", HostOS: runtime.GOOS, HostArch: runtime.GOARCH},
+				Toolchain:   record.Toolchain{GoVersion: runtime.Version(), BuildKey: string(record.HashBytes([]byte("gomad.fixture-wat-source/v1")))[7:], TargetGOOS: "wasip1", TargetGOARCH: "wasm"},
+				Target:      record.Target{Kind: "exec", Source: test.Module, SHA256: moduleHash, Size: record.Uint64String(len(moduleBytes)), Argv: append([]string{"gomad-target"}, arguments...), BuildTags: []string{}, Adapters: []record.TargetAdapter{}, Compatibility: []record.CompatibilityPack{}, BuildInfo: record.BuildInfo{GoVersion: runtime.Version(), Path: "gomad.fixture-wat-source/v1"}},
+				IOProfile:   record.IOProfile{Name: document.Profile, ImplementationSHA256: record.SHA256(wasi.ImplementationSHA256()), Inventory: "{}", InventorySHA256: record.HashBytes([]byte("{}"))},
+				Environment: []record.Environment{{Name: "GOMADSEED", Value: fmt.Sprint(seed)}, {Name: "GOMAD_IO_PROFILE", Value: document.Profile}},
+				Limits:      record.Limits{ExecutionTimeoutNanos: record.Uint64String(request.Timeout), OverallTimeoutNanos: record.Uint64String(request.Timeout), OutputBytes: 1024, WorldTransitionBytes: 4096, IOTranscriptBytes: 4096}, World: world,
+				Outcome: record.Outcome{Domain: "runner", Reason: termination, Termination: "none"},
+				Streams: record.Streams{Stdout: stream(result.Stdout), Stderr: stream(result.Stderr)},
+				Host:    record.Host{StartedAt: "2026-10-20T00:00:00Z", FinishedAt: "2026-10-20T00:00:00Z"},
+			}
+			if choices {
+				manifest.Environment = append(manifest.Environment, record.Environment{Name: "GOMAD_CHOICE_PROFILE", Value: choice.Profile})
+			}
+			if test.Modeled {
+				manifest.Environment = append(manifest.Environment, record.Environment{Name: "PWD", Value: "/"})
+			}
+			manifest.Environment = append(manifest.Environment, record.Environment{Name: "TZ", Value: "UTC"})
+			sort.Slice(manifest.Environment, func(i, j int) bool { return manifest.Environment[i].Name < manifest.Environment[j].Name })
+			if result.ExitCode != nil {
+				exit := record.Uint64String(*result.ExitCode)
+				manifest.Outcome.ExitCode = &exit
+				manifest.Outcome.Termination = "exit"
+				manifest.Outcome.Domain = "target"
+				manifest.Outcome.Reason = "nonzero_exit"
+				manifest.ArtifactKind = record.ArtifactTargetFailure
+				manifest.ReplayMode = record.ReplayExact
+				if exit == 0 {
+					manifest.ArtifactKind = record.ArtifactSuccess
+					manifest.Outcome.Domain = "success"
+					manifest.Outcome.Reason = "completed"
+				}
+			}
+			if len(result.Transcript) != 0 {
+				manifest.IOProfile.Transcript = &record.IOTranscript{Schema: "gomad.io-transcript/v1", SHA256: record.HashBytes(result.Transcript), Bytes: record.Uint64String(len(result.Transcript)), Records: record.Uint64String(result.Calls)}
+			}
+			if choices {
+				trace := result.ChoiceTrace
+				tape, err := choice.ProjectReplayPlan(trace, request.Runtime.Choice.ExecutionIdentity)
+				if err != nil {
+					return err
+				}
+				manifest.Limits.ChoiceTraceBytes = 4096
+				manifest.ChoiceProfile = &record.ChoiceProfile{Name: choice.Profile, ImplementationSHA256: record.SHA256FromSum(request.Runtime.Choice.ExecutionIdentity.ImplementationSHA256), Trace: record.ChoiceTrace{Schema: "gomad.choice-trace/v3", SHA256: record.SHA256FromSum(trace.SHA256), Bytes: record.Uint64String(len(trace.Bytes)), Records: record.Uint64String(trace.Summary.Records), BranchingRecords: record.Uint64String(trace.Summary.Branching), TerminalState: "complete", Limit: 4096, TapeSHA256: record.SHA256FromSum(tape.SHA256), Decisions: record.Uint64String(len(tape.Decisions))}}
+			}
+			var choiceTrace []byte
+			if choices {
+				choiceTrace = result.ChoiceTrace.Bytes
+			}
+			published, err := artifact.PublishArtifact(artifact.Store{Root: filepath.Join(output, "artifacts"), Key: artifact.StoreKeyRecord}, artifact.ArtifactInput{Manifest: manifest, TargetPath: module, Stdout: result.Stdout, Stderr: result.Stderr, IOTranscript: result.Transcript, ChoiceTrace: choiceTrace, World: worldPayloads})
+			if err != nil {
+				return fmt.Errorf("%s.seed%d publish: %w", test.Name, seed, err)
+			}
+			verified, err := artifact.OpenArtifact(published.Path)
+			if err != nil {
+				return err
+			}
+			if err := verified.Close(); err != nil {
+				return err
+			}
+			raw, err := json.Marshal(result)
+			if err != nil {
+				return err
+			}
+			name := fmt.Sprintf("%s-seed%d.raw.json", test.Name, seed)
+			if err := os.WriteFile(filepath.Join(output, name), raw, 0600); err != nil {
+				return err
+			}
+			rows = append(rows, map[string]any{"name": test.Name, "seed": seed, "artifact": published.Path, "record_hash": published.Manifest.RecordHash, "raw_result": name, "raw_sha256": record.HashBytes(raw), "arguments": arguments, "environment": environment, "termination": termination, "helper_sha256": helperHash})
+		}
+	}
+	encoded, err := json.Marshal(map[string]any{"schema": "gomad.inspect-go-reference/v1", "corpus_sha256": record.HashBytes(input), "records": rows})
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(output, "reference.json"), encoded, 0600); err != nil {
+		return err
+	}
+	fmt.Println(string(encoded))
+	return nil
+}
+
+func stream(data []byte) record.Stream {
+	return record.Stream{FullSHA256: record.HashBytes(data), TotalBytes: record.Uint64String(len(data)), RetainedBytes: record.Uint64String(len(data))}
+}

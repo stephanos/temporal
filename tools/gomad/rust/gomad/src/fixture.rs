@@ -87,6 +87,42 @@ fn bundle(root: &std::path::Path) -> Result<(), String> {
     publish_bundle(root, "foundation-record", records)
 }
 
+fn inspection_details(root: &std::path::Path, input: &std::path::Path) -> Result<(), String> {
+    #[derive(serde::Deserialize)]
+    #[serde(deny_unknown_fields)]
+    struct Input {
+        seed: u64,
+        details: crate::evidence::inspection::Details,
+        payloads: BTreeMap<String, Vec<u8>>,
+    }
+    let input: Input =
+        serde_json::from_slice(&std::fs::read(input).map_err(|error| error.to_string())?)
+            .map_err(|error| error.to_string())?;
+    let mut publication = publication_record(input.seed)?;
+    for (name, bytes) in input.payloads {
+        if publication.payloads.contains_key(&name) || name == "evidence/inspection.json" {
+            return Err("duplicate fixture detail payload".into());
+        }
+        publication.payloads.insert(name, bytes);
+    }
+    let bytes = canonical::encode(&input.details)?;
+    publication.record.streams.insert(
+        "evidence/inspection.json".into(),
+        Stream {
+            bytes: bytes.len() as u64,
+            sha256: canonical::digest(&bytes),
+            records: 1,
+        },
+    );
+    publication
+        .payloads
+        .insert("evidence/inspection.json".into(), bytes);
+    publication
+        .payloads
+        .insert("record.json".into(), publication.record.bytes()?);
+    publish_bundle(root, "inspect-details-consumer", vec![publication])
+}
+
 pub(crate) fn publish_bundle(
     root: &std::path::Path,
     name: &str,
@@ -148,6 +184,8 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
     if !matches!(
         command,
         "fixture-execution-bundle"
+            | "fixture-inspect-execution"
+            | "fixture-inspect-details"
             | "fixture-watchdog-cancel"
             | "fixture-bundle"
             | "fixture-record"
@@ -162,6 +200,16 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
         return None;
     }
     Some((|| {
+        if command == "fixture-inspect-details" {
+            if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--input" {
+                return Err("fixture-inspect-details --root ROOT --input FILE".into());
+            }
+            return inspection_details(
+                std::path::Path::new(&arguments[2]),
+                std::path::Path::new(&arguments[4]),
+            )
+            .map_err(Into::into);
+        }
         if command == "fixture-watchdog-cancel" {
             if arguments.len() != 3 || arguments[1] != "--corpus" {
                 return Err("fixture-watchdog-cancel --corpus CORPUS".into());
@@ -171,11 +219,19 @@ pub fn dispatch(arguments: &[String]) -> Option<Result<(), Error>> {
             ))
             .map_err(Into::into);
         }
-        if command == "fixture-execution-bundle" {
+        if matches!(
+            command,
+            "fixture-execution-bundle" | "fixture-inspect-execution"
+        ) {
             if arguments.len() != 5 || arguments[1] != "--root" || arguments[3] != "--corpus" {
                 return Err("fixture-execution-bundle --root ROOT --corpus CORPUS".into());
             }
-            return crate::fixture_execute::bundle(
+            let bundle = if command == "fixture-inspect-execution" {
+                crate::fixture_execute::inspection_bundle
+            } else {
+                crate::fixture_execute::bundle
+            };
+            return bundle(
                 std::path::Path::new(&arguments[2]),
                 std::path::Path::new(&arguments[4]),
             )
