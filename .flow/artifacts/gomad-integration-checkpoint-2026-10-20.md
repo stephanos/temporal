@@ -349,12 +349,20 @@ and `replay --verify-only` bypassed the semantic checks moved into helper prefli
 Both repairs are integrated as `91abbc3051` and `07ebfdb4ee`, with red/green
 regressions, root integrated focused checks and retained lint evidence. Same-receipt
 re-review returned SHIP at `07ebfdb4ee`; the independent source review is complete.
-All seven source tasks are now accepted, with whole-spec completion review and
-closure still pending. The final non-Flow inventory differs from0561 in exactly
+All seven source tasks are accepted. Independent whole-spec completion reviews
+returned SHIP at `3eac989d40`; fn-223 and fn-228 closed in `71dce5ab93` and
+`15a28b6e68`. Final Rust qualification remains pending. The final non-Flow
+inventory differs from0561 in exactly
 four workflow/archcheck/Runner paths, not helper/model inputs; its digest is
 `f2dacdd826eee853450e0b60c3477bd5d4b9e3fd94756ade6137f9a06b7602ba`.
 The receiver's independent `verify-only-fix/README.md` append retains the exact
 patches, final inventory and raw narrow-fix checks without rewriting older receipts.
+
+Rust foundation task .1 has a confirmed compilation-deadline acceptance gap:
+Wasmtime's linked compiler cannot be preempted by the guest epoch watchdog,
+unlike the old killable helper process. No timeout weakening or isolation change
+has been authorized. `.flow/artifacts/fn232-compilation-deadline-gap-2026-10-20.md`
+records the evidence and required owner decision; the task stays in progress.
 
 fn-219's ledger/audit continuation is integrated as `9d62ddadc1`. Its task .4
 passed all three independent review draws and was completed with root-reachable
