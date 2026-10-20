@@ -4,6 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"os"
 	"path/filepath"
 	"testing"
@@ -11,6 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
@@ -166,7 +168,11 @@ func writePreparationProducer(root, name string, frozen Spec, prepared target.Pr
 // oneboxGuestConfig is the one-box guest configuration; only the working
 // directory differs between one-box family cells.
 func oneboxGuestConfig(root, workingDirectory string) (wasi.Config, error) {
-	return wasi.TemporalConfig(root, workingDirectory, wasi.TemporalQualification)
+	inputs, err := temporalinput.CaptureSchema(root)
+	if err != nil {
+		return wasi.Config{}, fmt.Errorf("capture Temporal schema/sqlite: %w", err)
+	}
+	return wasi.TemporalConfig(inputs, workingDirectory, wasi.TemporalQualification)
 }
 
 // The smoke cell's host configuration identity must not move when the

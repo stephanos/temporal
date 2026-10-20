@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 )
 
@@ -19,5 +20,9 @@ func TemporalConfig(checkout, pkg string) (wasi.Config, error) {
 	if err != nil {
 		return wasi.Config{}, err
 	}
-	return wasi.TemporalConfig(root, path.Join("/workspace", clean), wasi.TemporalInstallation)
+	inputs, err := temporalinput.CaptureSchema(root)
+	if err != nil {
+		return wasi.Config{}, fmt.Errorf("capture Temporal schema/sqlite: %w", err)
+	}
+	return wasi.TemporalConfig(inputs, path.Join("/workspace", clean), wasi.TemporalInstallation)
 }

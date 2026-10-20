@@ -30,6 +30,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/measurement"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	wasi "go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
@@ -333,12 +334,12 @@ func prototypeFixtureConfig() wasi.Config {
 	return config
 }
 func prototypeTemporalConfig(runCtx context.Context, root, cwd string, args ...string) (measureValue0 wasi.Config, measureErr error) {
-	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	inputs, err := temporalinput.CaptureSchema(root)
 	if err != nil {
 		measureErr = err
 		return
 	}
-	return wasi.Config{Profile: wasi.CooperativeProfile, WorkingDirectory: cwd, Args: append([]string{"temporal.test", "-test.v", "-test.count=1", "-test.timeout=72h"}, args...), Environment: []string{"PWD=" + cwd, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn"}, WritableDirectories: []string{"/workspace", "/tmp", cwd}, CapturedInputs: captured, EntropyKey: sha256.Sum256([]byte("gomad-wasm-prototype/v1")), Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 256 << 20, TranscriptBytes: 1 << 30, Calls: wasi.MaxCooperativeCalls, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096}}, measureErr
+	return wasi.TemporalConfig(inputs, cwd, wasi.TemporalPrototype, args...)
 }
 func cooperativeRequest(runCtx context.Context, fixture string) (measureValue0 wasi.Request, measureErr error) {
 	if input(runCtx, "GOMAD_STOCK_GO") == "" {

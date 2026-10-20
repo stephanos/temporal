@@ -10,6 +10,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
@@ -29,7 +30,9 @@ func TestInstallTemporalAndDiscover(t *testing.T) {
 	require.Zero(t, run(args, &stdout, &stderr), stderr.String())
 	description, err := installation.Resolve(installation.Spec{ExplicitManifest: output})
 	require.NoError(t, err)
-	config, err := wasi.TemporalConfig(root, "/workspace/tests/gomadfunctional", wasi.TemporalInstallation)
+	inputs, err := temporalinput.CaptureSchema(root)
+	require.NoError(t, err)
+	config, err := wasi.TemporalConfig(inputs, "/workspace/tests/gomadfunctional", wasi.TemporalInstallation)
 	require.NoError(t, err)
 	require.Equal(t, &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}, description.Manifest.Options.Config.NetworkV2)
 	want, err := json.Marshal(config)

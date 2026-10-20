@@ -25,6 +25,7 @@ import (
 
 	runnerbackend "go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	hostexec "go.temporal.io/server/tools/gomad/internal/host/exec"
@@ -309,7 +310,11 @@ func prototypeFixtureConfig() Config {
 
 func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Config {
 	t.Helper()
-	config, err := TemporalConfig(root, cwd, TemporalPrototype, args...)
+	inputs, err := temporalinput.CaptureSchema(root)
+	if err != nil {
+		t.Fatalf("capture Temporal schema/sqlite: %v", err)
+	}
+	config, err := TemporalConfig(inputs, cwd, TemporalPrototype, args...)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -8,6 +8,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/temporalinput"
 	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
@@ -29,7 +30,9 @@ func TestTemporalConfigPreservesPrototypeBytes(t *testing.T) {
 		EntropyKey: sha256.Sum256([]byte("gomad-wasm-prototype/v1")), Clock: ClockPolicy{EpochNanos: 946684800000000000},
 		Limits: Limits{OutputBytes: 256 << 20, TranscriptBytes: 1 << 30, Calls: 1 << 28, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096},
 	}
-	config, err := TemporalConfig(root, cwd, TemporalPrototype, "-test.run=^TestFrontendSystemInfo$")
+	schemaInputs, err := temporalinput.CaptureSchema(root)
+	require.NoError(t, err)
+	config, err := TemporalConfig(schemaInputs, cwd, TemporalPrototype, "-test.run=^TestFrontendSystemInfo$")
 	require.NoError(t, err)
 	wantBytes, err := json.Marshal(want)
 	require.NoError(t, err)
@@ -39,7 +42,9 @@ func TestTemporalConfigPreservesPrototypeBytes(t *testing.T) {
 	_, err = NewEnvironment(config)
 	require.NoError(t, err)
 	require.NoError(t, os.WriteFile(filepath.Join(schema, "schema.sql"), []byte("changed schema"), 0600))
-	changed, err := TemporalConfig(root, cwd, TemporalPrototype)
+	changedInputs, err := temporalinput.CaptureSchema(root)
+	require.NoError(t, err)
+	changed, err := TemporalConfig(changedInputs, cwd, TemporalPrototype)
 	require.NoError(t, err)
 	require.NotEqual(t, config.CapturedInputs, changed.CapturedInputs)
 }
@@ -53,6 +58,8 @@ func TestTemporalConfigPoliciesPreserveCompleteBytes(t *testing.T) {
 	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: schema, Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
 	require.NoError(t, err)
 	cwd := "/workspace/tests/gomadfunctional"
+	schemaInputs, err := temporalinput.CaptureSchema(root)
+	require.NoError(t, err)
 	prototype := Config{
 		Profile: CooperativeProfile, WorkingDirectory: cwd,
 		Args:                []string{"temporal.test", "-test.v", "-test.count=1", "-test.timeout=72h"},
@@ -82,7 +89,7 @@ func TestTemporalConfigPoliciesPreserveCompleteBytes(t *testing.T) {
 	} {
 		t.Run(string(test.policy), func(t *testing.T) {
 			t.Parallel()
-			config, err := TemporalConfig(root, test.want.WorkingDirectory, test.policy)
+			config, err := TemporalConfig(schemaInputs, test.want.WorkingDirectory, test.policy)
 			require.NoError(t, err)
 			actual, err := json.Marshal(config)
 			require.NoError(t, err)
@@ -93,10 +100,10 @@ func TestTemporalConfigPoliciesPreserveCompleteBytes(t *testing.T) {
 			require.NoError(t, err)
 		})
 	}
-	_, err = TemporalConfig(root, cwd, TemporalPolicy("unknown"))
+	_, err = TemporalConfig(schemaInputs, cwd, TemporalPolicy("unknown"))
 	require.ErrorContains(t, err, "Temporal configuration policy")
 	for _, policy := range []TemporalPolicy{TemporalInspection, TemporalQualification} {
-		_, err = TemporalConfig(root, cwd, policy, "-test.v")
+		_, err = TemporalConfig(schemaInputs, cwd, policy, "-test.v")
 		require.ErrorContains(t, err, "takes arguments from Runner")
 	}
 }
