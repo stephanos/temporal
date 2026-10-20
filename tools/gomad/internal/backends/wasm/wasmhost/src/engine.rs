@@ -994,6 +994,19 @@ pub(crate) fn new_state(
     model: Option<crate::model::Model>,
     namespace: Option<crate::namespace::Namespace>,
 ) -> State {
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    let namespace = {
+        let mut namespace = namespace;
+        if let (Some(model), Some(namespace)) = (&model, &mut namespace) {
+            let _scope = if crate::event_order::has_context() {
+                None
+            } else {
+                Some(crate::event_order::enter(model.event_context()))
+            };
+            namespace.diagnostic_state(Some(model.now));
+        }
+        namespace
+    };
     State {
         memory: None,
         input,
@@ -1113,6 +1126,8 @@ pub(crate) fn finish_storage(
     if let (Some(descriptor), Some(namespace), Some(model)) =
         (descriptor, &mut state.namespace, &mut state.model)
     {
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(model.event_context());
         let mut evidence = crate::storage_transport::evidence(namespace, descriptor);
         if let Some((kind, message)) = evidence.failure.take() {
             outcome.termination = kind;

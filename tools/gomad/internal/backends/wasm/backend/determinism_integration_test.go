@@ -258,8 +258,7 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 			defer func() { require.NoError(t, opened.Close()) }()
 			request := report.Reproducer.Stop
 			if root := os.Getenv("GOMAD_WASM_DETERMINISM_EVIDENCE_ROOT"); root != "" {
-				request.OutputDirectory, err = os.MkdirTemp(filepath.Join(root, t.Name()), "inspection-")
-				require.NoError(t, err)
+				request.OutputDirectory = filepath.Join(determinismRetainedDirectory(t, "inspection-"), "output")
 			}
 			inspection, err := provider.Inspect(t.Context(), opened, request)
 			require.NoError(t, err)

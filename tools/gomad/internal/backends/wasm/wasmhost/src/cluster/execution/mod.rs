@@ -659,17 +659,28 @@ fn run_instance(
         ),
         _ => None,
     };
-    let mut store = Store::new(
-        engine,
-        crate::engine::new_state(
-            Box::new(input),
-            Box::new(output),
-            instance.memory_bytes,
-            instance.output_bytes,
-            instance.local_model.map(crate::model::Model::new),
-            namespace,
-        ),
-    );
+    let mut store = {
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(crate::event_order::owner(
+            &instance.id,
+            incarnation,
+            instance
+                .local_model
+                .as_ref()
+                .map_or(0, |model| model.now.cast_signed()),
+        ));
+        Store::new(
+            engine,
+            crate::engine::new_state(
+                Box::new(input),
+                Box::new(output),
+                instance.memory_bytes,
+                instance.output_bytes,
+                instance.local_model.map(crate::model::Model::new),
+                namespace,
+            ),
+        )
+    };
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     if let Some(model) = &mut store.data_mut().model {
         model.event_owner = Some(crate::model::inspection::Handle {
@@ -786,6 +797,8 @@ pub(super) fn record_terminal(
         && let (Some(descriptor), Some(namespace), Some(model)) =
             (storage, &mut state.namespace, &mut state.model)
     {
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(model.event_context());
         let mut evidence = crate::storage_transport::recovery_evidence(namespace, descriptor);
         image = evidence.image.take();
         if descriptor.return_image {

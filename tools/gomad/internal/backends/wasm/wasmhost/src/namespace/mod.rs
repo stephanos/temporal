@@ -300,6 +300,10 @@ pub struct Namespace {
     stderr: Vec<u8>,
     #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
     output_committed: [u64; 2],
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    event_state_cache: Option<((u64, u64), serde_json::Value)>,
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    event_mutations: u64,
     #[cfg_attr(feature = "conformance", allow(dead_code))]
     writable: Vec<Vec<u8>>,
     storage: Option<Storage>,
@@ -334,6 +338,10 @@ impl Namespace {
             stderr: Vec::new(),
             #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
             output_committed: [0; 2],
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            event_state_cache: None,
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            event_mutations: 0,
             writable: image.writable_directories.clone(),
             storage: None,
             handles: BTreeMap::new(),
@@ -841,14 +849,38 @@ impl Namespace {
         maximum: u64,
     ) -> std::result::Result<volume::Image, volume::Error> {
         self.touch();
-        let image = self.storage.as_mut().unwrap().crash(selections, maximum)?;
-        self.descriptors.clear();
-        self.handles.clear();
-        Ok(image)
+        let image = self.storage.as_mut().unwrap().crash(selections, maximum);
+        if image.is_ok() {
+            self.descriptors.clear();
+            self.handles.clear();
+        }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        self.diagnostic_state(None);
+        image
     }
     pub fn execute(&mut self, op: Operation, now: u64) -> std::result::Result<Reply, Stop> {
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let mutation = match &op {
+            Operation::PrestatGet(_)
+            | Operation::PrestatDirName { .. }
+            | Operation::FdstatGet(_)
+            | Operation::FilestatGet(_)
+            | Operation::Readdir { .. }
+            | Operation::PathStat { .. }
+            | Operation::Readlink { .. }
+            | Operation::Symlink { .. } => false,
+            Operation::Read { fd, offset, .. } => offset.is_none() || self.handles.contains_key(fd),
+            #[cfg(test)]
+            Operation::Unsupported(_) => false,
+            _ => true,
+        };
         self.touch();
-        match self.execute_inner(op, now) {
+        let result = self.execute_inner(op, now);
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        if mutation {
+            self.diagnostic_state(Some(now));
+        }
+        match result {
             Ok(output) => Ok(Reply {
                 errno: 0,
                 unsupported: None,
@@ -1570,6 +1602,39 @@ impl Namespace {
     pub fn inspection_revision(&self) -> (u64, u64) {
         self.inspection_revision
     }
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn diagnostic_value(&mut self) -> wasmtime::Result<serde_json::Value> {
+        let revision = self.inspection_revision();
+        if self
+            .event_state_cache
+            .as_ref()
+            .is_none_or(|(cached, _)| *cached != revision)
+        {
+            let (state, recovery, log) = self.inspection_material()?;
+            self.event_state_cache = Some((
+                revision,
+                serde_json::json!({"model":"namespace-volume","state":crate::event_order::bytes_value(&state),"recovery":crate::event_order::bytes_value(&recovery),"storage_log":crate::event_order::bytes_value(&log)}),
+            ));
+        }
+        Ok(self.event_state_cache.as_ref().unwrap().1.clone())
+    }
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    pub fn diagnostic_state(&mut self, now: Option<u64>) {
+        if !crate::event_order::is_enabled() {
+            return;
+        }
+        let Ok(value) = self.diagnostic_value() else {
+            crate::event_order::incomplete("namespace or volume diagnostic state capacity");
+            return;
+        };
+        let ordinal = self.event_mutations;
+        self.event_mutations += 1;
+        if let Some(now) = now {
+            crate::event_order::emit_current("model-transition", ordinal, now.cast_signed(), value);
+        } else {
+            crate::event_order::emit_current_context("model-transition", ordinal, value);
+        }
+    }
     #[cfg(not(feature = "conformance"))]
     pub fn inspection_material(&self) -> wasmtime::Result<(Vec<u8>, Vec<u8>, Vec<u8>)> {
         const MAXIMUM: u64 = 8 << 20;
@@ -1768,6 +1833,31 @@ mod tests {
             let _ = n.take_output();
         }
         assert_eq!(n.output_committed, [8, 8]);
+    }
+
+    #[test]
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    fn diagnostic_namespace_state_tracks_mutations_and_caches_by_revision() {
+        let mut n = Namespace::new(image()).unwrap();
+        let before = n.diagnostic_value().unwrap();
+        let cached = n.event_state_cache.clone();
+        assert_eq!(n.diagnostic_value().unwrap(), before);
+        assert_eq!(n.event_state_cache, cached);
+        run(&mut n, Operation::FdstatGet(1));
+        assert_eq!(
+            n.event_state_cache, cached,
+            "read-only metadata must not walk the namespace"
+        );
+        run(
+            &mut n,
+            Operation::Write {
+                fd: 1,
+                data: b"changed".to_vec(),
+                offset: None,
+            },
+        );
+        assert_ne!(n.diagnostic_value().unwrap(), before);
+        assert_ne!(n.event_state_cache.as_ref().unwrap().0, cached.unwrap().0);
     }
 
     #[test]
