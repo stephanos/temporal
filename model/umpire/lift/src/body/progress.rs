@@ -1,14 +1,23 @@
-use super::{Env, Parser, Result, has, path_name, tail};
+use super::{Env, Environment, Result, tail};
+use crate::syntax::{has, path_name};
 use crate::{
     Diagnostic, Type,
-    tree::{ActionDef, AssumptionDef, ExprKind, ProgressDef},
+    expr::ExprKind,
+    tree::{ActionDef, AssumptionDef, ProgressDef},
 };
 use quote::ToTokens;
 use std::collections::BTreeSet;
 use syn::{Expr as RustExpr, RangeLimits, Token, parse::Parser as _, punctuated::Punctuated};
 
-impl Parser<'_> {
-    pub(super) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
+impl Environment<'_> {
+    pub(crate) fn assumption_body(
+        &self,
+        block: &syn::Block,
+        actions: &[ActionDef],
+    ) -> Result<AssumptionDef> {
+        self.assumption(tail(self.file, block)?, actions, 0)
+    }
+    pub(crate) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
         let name = path_name(&node.to_token_stream().to_string());
         if !actions.iter().any(|a| a.name == name) {
             return self.err(node, format!("unknown action `{name}`"));
@@ -81,7 +90,7 @@ impl Parser<'_> {
         }
         Ok(out)
     }
-    pub(super) fn progress(
+    pub(crate) fn progress(
         &self,
         method: &syn::ImplItemFn,
         actions: &[ActionDef],

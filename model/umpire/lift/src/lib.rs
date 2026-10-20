@@ -10,11 +10,13 @@
 use proc_macro2::Span;
 use quote::ToTokens;
 use std::{collections::BTreeMap, fmt, path::Path};
+mod body;
 pub mod build;
 mod emit;
-mod leaf;
+mod expr;
 mod names;
-mod parse;
+mod shape;
+mod syntax;
 mod tree;
 pub use tree::Lifted;
 
@@ -202,11 +204,11 @@ impl Lift {
     }
     fn lift(file: &str, ast: &syn::File, hooks: &[Hook<'_>]) -> Result<Lifted, Diagnostic> {
         if !ast.items.iter().any(
-            |item| matches!(item, syn::Item::Mod(module) if parse::has(&module.attrs,"machine")),
+            |item| matches!(item, syn::Item::Mod(module) if syntax::has(&module.attrs,"machine")),
         ) {
             return Err(Self::not_attribute(file, ast));
         }
-        let lifted = parse::parse(file, ast, hooks)?;
+        let lifted = shape::parse(file, ast, hooks)?;
         names::validate(file, ast, &lifted)?;
         Ok(lifted)
     }

@@ -1,72 +1,14 @@
-use super::{Env, Parser, Result, has, path_name, tail};
+use super::{Env, Environment, Result, tail};
 use crate::{
     Diagnostic, Type,
-    tree::{Expr, ExprKind, Op, Unary},
+    expr::{Expr, ExprKind, Op, Unary},
+    syntax::path_name,
 };
 use quote::ToTokens;
-use syn::{Expr as RustExpr, Item, Pat};
+use syn::{Expr as RustExpr, Pat};
 
-impl Parser<'_> {
-    pub(super) fn ty(&self, ty: &syn::Type) -> Result<Type> {
-        if let Some(ty) = self.vector_type(ty)? {
-            return Ok(ty);
-        }
-        let name = path_name(&ty.to_token_stream().to_string());
-        if let Some(scalar) = crate::leaf::scalar_type(&name) {
-            if let Type::Int { min, max } = scalar
-                && (min < i128::from(i32::MIN) || max > i128::from(i32::MAX))
-            {
-                return self.err(
-                    ty,
-                    format!("integer type `{name}` exceeds TLC's signed 32-bit integer range"),
-                );
-            }
-            return Ok(scalar);
-        }
-        self.enums
-            .get(&name)
-            .cloned()
-            .ok_or_else(|| Diagnostic::at(self.file, ty, format!("unsupported type `{name}`")))
-    }
-    pub(super) fn default_value(&self, ty: &Type, items: &[Item]) -> Result<Expr> {
-        match ty {
-            Type::Bool => Ok(Expr::bool(false)),
-            Type::Int { .. } => Ok(Expr::int(0, ty.clone())),
-            Type::Seq(_) => Ok(Expr { kind: ExprKind::Sequence(Vec::new()), ty: ty.clone() }),
-            Type::Enum { name, .. } => {
-                let value = items
-                    .iter()
-                    .find_map(|i| match i {
-                        Item::Enum(e) if e.ident == name => {
-                            e.variants.iter().find(|v| has(&v.attrs, "default"))
-                        }
-                        _ => None,
-                    })
-                    .ok_or_else(|| {
-                        Diagnostic::span(
-                            self.file,
-                            proc_macro2::Span::call_site(),
-                            format!("enum `{name}` has no admitted #[default] variant"),
-                        )
-                    })?;
-                Ok(Expr {
-                    kind: ExprKind::Enum(format!("{name}::{}", value.ident)),
-                    ty: ty.clone(),
-                })
-            }
-            _ => self.err(
-                &syn::Ident::new("Model", proc_macro2::Span::call_site()),
-                "unsupported default value",
-            ),
-        }
-    }
-    pub(super) fn field_env(&self, primed: bool) -> Env {
-        self.fields
-            .iter()
-            .map(|f| (f.name.clone(), Expr::var(&f.name, f.ty.clone(), primed)))
-            .collect()
-    }
-    pub(super) fn require(
+impl Environment<'_> {
+    pub(crate) fn require(
         &self,
         node: &impl ToTokens,
         value: Expr,
@@ -82,7 +24,7 @@ impl Parser<'_> {
         clippy::too_many_lines,
         reason = "Expression admission follows the syn expression variants"
     )]
-    pub(super) fn expr(
+    pub(crate) fn expr(
         &self,
         node: &RustExpr,
         state: &Env,
@@ -187,7 +129,7 @@ impl Parser<'_> {
                 }
             }
             RustExpr::Unary(unary) => {
-                let op = crate::leaf::unary_op(&unary.op)
+                let op = super::typer::unary_op(&unary.op)
                     .ok_or_else(|| Diagnostic::at(self.file, node, "unsupported unary operator"))?;
                 let value = self.expr(
                     &unary.expr,
@@ -202,7 +144,7 @@ impl Parser<'_> {
                 Expr { ty: value.ty.clone(), kind: ExprKind::Unary(op, Box::new(value)) }
             }
             RustExpr::Binary(binary) => {
-                let op = crate::leaf::binary_op(&binary.op).ok_or_else(|| {
+                let op = super::typer::binary_op(&binary.op).ok_or_else(|| {
                     Diagnostic::at(self.file, node, "unsupported binary operator")
                 })?;
                 let bool_op = matches!(op, Op::And | Op::Or);

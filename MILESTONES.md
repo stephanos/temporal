@@ -24,7 +24,7 @@ readiness gates and dependencies still apply.
 
 Execution resumed under the owner's active milestone-completion goal (2026-10-20).
 fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion reviews.
-fn-224 passed fresh default and required-TLC model gates; fn-225 is next.
+fn-224 passed fresh default and required-TLC model gates; fn-225 is in progress.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -57,7 +57,7 @@ shape parser shared with `#[machine]` waits until the two actually drift.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-225.1 | ⬜ todo | After fn-224: shape/body split and tree split, goldens byte-identical (R1) |
+| fn-225.1 | 🔄 in progress | Shape/body split and tree split, goldens byte-identical (R1) |
 
 ### fn-226: Suite search follow-ups (model)
 

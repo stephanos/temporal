@@ -1,7 +1,7 @@
-use super::{Env, Parser, Result};
+use super::{Env, Environment, Result};
 use crate::{
     Type,
-    tree::{Expr, ExprKind, Op},
+    expr::{Expr, ExprKind, Op},
 };
 use quote::ToTokens;
 use syn::Expr as RustExpr;
@@ -10,7 +10,7 @@ fn index_type() -> Type {
     Type::Int { min: 0, max: i128::from(i32::MAX) }
 }
 
-impl Parser<'_> {
+impl Environment<'_> {
     pub(super) fn vector_type(&self, ty: &syn::Type) -> Result<Option<Type>> {
         let syn::Type::Path(path) = ty else { return Ok(None) };
         let names: Vec<_> = path.path.segments.iter().map(|part| part.ident.to_string()).collect();

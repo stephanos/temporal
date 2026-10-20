@@ -1,6 +1,7 @@
 use crate::{
     Action, Diagnostic, Field, Metadata, Module, Progress, Property, Type,
-    tree::{Expr, ExprKind, Lifted, Op, Start, Unary},
+    expr::{Expr, ExprKind, Op, Unary},
+    tree::{Lifted, Start},
 };
 use std::collections::BTreeMap;
 use std::fmt::Write;

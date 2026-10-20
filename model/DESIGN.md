@@ -20,6 +20,10 @@ choice and facts must be re-added with the attribute surface that states them. T
 `outcome` (`reject!`) and `preserve_self_loop`, which `stay!()` sets (fn-224).
 Source that implements `Machine` by hand is refused at its `impl Machine` item
 (`progress_dead_end`'s lift golden pins the message).
+The shape/body seam (fn-225) keeps item discovery, imports, attributes and declaration order
+in `lift/src/shape.rs`. `body/` lowers supplied bodies against a typed environment without
+walking items, including helper expansion, effects, claims and progress. `tree.rs` owns
+declarations and `expr.rs` owns typed expressions; the public API and emitted artifacts are unchanged.
 Unsupported syntax, references, conditional compilation and generated-name collisions
 produce located warnings and refuse emission. `#[machine]` remains registration-only.
 
