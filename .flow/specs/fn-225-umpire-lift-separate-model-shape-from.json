@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-225-umpire-lift-separate-model-shape-from",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": null,
+  "completion_review_status": "not_required",
+  "completion_reviewed_at": "2026-10-20T15:44:49.670710Z",
   "created_at": "2026-10-19T23:51:32.824250Z",
   "default_impl": null,
   "default_review": null,
@@ -63,7 +63,7 @@
     "impl:fn-225-umpire-lift-separate-model-shape-from.1": 0
   },
   "spec_path": ".flow/specs/fn-225-umpire-lift-separate-model-shape-from.md",
-  "status": "open",
+  "status": "done",
   "title": "umpire-lift: separate Model shape from body lowering (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -76,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T15:43:16.304532Z"
+  "updated_at": "2026-10-20T15:47:19.933402Z"
 }

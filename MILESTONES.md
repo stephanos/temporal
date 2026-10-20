@@ -24,7 +24,8 @@ readiness gates and dependencies still apply.
 
 Execution resumed under the owner's active milestone-completion goal (2026-10-20).
 fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion reviews.
-fn-224 passed fresh default and required-TLC model gates; fn-225 is in progress.
+fn-225 is complete locally: its single task passed implementation review, correctness and
+standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is next.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -42,22 +43,9 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-225 → fn-226 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-225 and fn-226 are placed by the root agent. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223 and fn-224 are complete locally with their reviews and scoped gates passed; fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-226 → fn-218 → fn-217 → fn-211 | Owner priority order; fn-226 is placed by the root agent. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224 and fn-225 are complete locally with their scoped reviews and gates passed; fn-225's single-task review covers its full spec. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
-
-### fn-225: umpire-lift: separate Model shape from body lowering (model)
-
-Captured on 2026-10-19 at the owner's request. A pure refactor of `umpire-lift`: a shape module
-reads the `#[machine]` module's declarations and never lowers statements or expressions; a body
-module lowers expressions, effects, vectors and claim bodies and never walks items; `tree.rs`
-splits into declarations and expressions. Every golden stays byte-identical. Not two crates; a
-shape parser shared with `#[machine]` waits until the two actually drift.
-[Spec](.flow/specs/fn-225-umpire-lift-separate-model-shape-from.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-225.1 | 🔄 in progress | Shape/body split and tree split, goldens byte-identical (R1) |
 
 ### fn-226: Suite search follow-ups (model)
 

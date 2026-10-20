@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-225-umpire-lift-separate-model-shape-from",
   "spec_path": ".flow/tasks/fn-225-umpire-lift-separate-model-shape-from.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Split umpire-lift into shape and body lowering; tree into declarations and expressions",
   "updated_at": "2026-10-19T23:51:33.215682Z"
 }
