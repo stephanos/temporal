@@ -74,11 +74,10 @@ func runOneboxCell(t *testing.T, start *hostexec.ResourceUsage, cell oneboxCell)
 	if err != nil {
 		t.Fatal(err)
 	}
-	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(checkout, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	config, err := oneboxGuestConfig(checkout, cell.workingDirectory)
 	if err != nil {
 		t.Fatal(err)
 	}
-	config := oneboxGuestConfig(cell.workingDirectory, captured)
 	cache := filepath.Join(root, "onebox-build-cache")
 	compileCache := filepath.Join(root, "onebox-engine-cache")
 	if err := os.MkdirAll(compileCache, 0700); err != nil {
@@ -166,24 +165,48 @@ func writePreparationProducer(root, name string, frozen Spec, prepared target.Pr
 
 // oneboxGuestConfig is the one-box guest configuration; only the working
 // directory differs between one-box family cells.
-func oneboxGuestConfig(workingDirectory string, inputs captured.CapturedInputs) wasi.Config {
-	return wasi.Config{Profile: wasi.CooperativeProfile, WorkingDirectory: workingDirectory, Environment: []string{"PWD=" + workingDirectory, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn"}, WritableDirectories: []string{"/workspace", "/tmp", workingDirectory}, CapturedInputs: inputs, EntropyKey: sha256.Sum256([]byte("gomad-wasm-prototype/v1")), Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 256 << 20, TranscriptBytes: 1 << 30, Calls: 1 << 28, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096}}
+func oneboxGuestConfig(root, workingDirectory string) (wasi.Config, error) {
+	config, err := wasi.TemporalConfig(root, workingDirectory)
+	if err != nil {
+		return wasi.Config{}, err
+	}
+	// Runner supplies the prepared target's arguments independently.
+	config.Args = nil
+	return config, nil
 }
 
 // The smoke cell's host configuration identity must not move when the
 // frontend cell shares its construction.
 func TestOneboxSmokeConfigurationUnchangedByFamilyCells(t *testing.T) {
-	inputs := captured.CapturedInputs{}
+	root := t.TempDir()
+	schema := filepath.Join(root, "schema", "sqlite")
+	if err := os.MkdirAll(schema, 0700); err != nil {
+		t.Fatal(err)
+	}
+	if err := os.WriteFile(filepath.Join(schema, "schema.sql"), []byte("CREATE TABLE example(id INTEGER);"), 0600); err != nil {
+		t.Fatal(err)
+	}
+	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: schema, Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	if err != nil {
+		t.Fatal(err)
+	}
 	original := wasi.Config{Profile: wasi.CooperativeProfile, WorkingDirectory: "/workspace/tests", Environment: []string{"PWD=/workspace/tests", "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn"}, WritableDirectories: []string{"/workspace", "/tmp", "/workspace/tests"}, CapturedInputs: inputs, EntropyKey: sha256.Sum256([]byte("gomad-wasm-prototype/v1")), Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}, Limits: wasi.Limits{OutputBytes: 256 << 20, TranscriptBytes: 1 << 30, Calls: 1 << 28, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096}}
 	want, err := json.Marshal(original)
 	if err != nil {
 		t.Fatal(err)
 	}
-	got, err := json.Marshal(oneboxGuestConfig("/workspace/tests", inputs))
+	config, err := oneboxGuestConfig(root, "/workspace/tests")
+	if err != nil {
+		t.Fatal(err)
+	}
+	got, err := json.Marshal(config)
 	if err != nil || string(got) != string(want) {
 		t.Fatalf("one-box smoke configuration bytes changed: %v", err)
 	}
-	frontend := oneboxGuestConfig("/workspace/tests/gomadfunctional", inputs)
+	frontend, err := oneboxGuestConfig(root, "/workspace/tests/gomadfunctional")
+	if err != nil {
+		t.Fatal(err)
+	}
 	if frontend.WorkingDirectory != "/workspace/tests/gomadfunctional" || frontend.Environment[0] != "PWD=/workspace/tests/gomadfunctional" || frontend.WritableDirectories[2] != frontend.WorkingDirectory {
 		t.Fatalf("frontend cell configuration = %+v", frontend)
 	}
