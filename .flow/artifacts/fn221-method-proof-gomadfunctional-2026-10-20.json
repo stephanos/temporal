@@ -1,0 +1,112 @@
+{
+  "schema": "gomad-wasm.sweep/v2",
+  "statement": "Observation on one candidate only. A pass is an observed outcome of one seed under a bounded budget, not support or qualification.",
+  "candidate": {
+    "gomad_sha256": "sha256:0e156379fe55beadc82ef304b3d364d8dc89853c2709d246d3834b3dc4711705",
+    "helper_sha256": "sha256:5f04d229dc68dcebeaecb5e50be3de6c3aa148d8157910288217a4f90999757d",
+    "compiler_sha256": "sha256:1675694ef690db0f18fbe7046a886170904bede1d9db6ec96ae27945c1705c64",
+    "go_version": "go1.27.1",
+    "model_sha256": "sha256:0547024a7c2618acfabbebf175dbd59605ee2cb8d9ca317fdf900684fac6434a",
+    "runtime_implementation_sha256": "sha256:4ac4238ff22066e38a7e67356f1388bb8d09995a3fc9f2bea2c57fce8c284ac4",
+    "engine": "wasmtime/47.0.3/cranelift-fuel-nan-canonical-nounwind-v2/linux/aarch64",
+    "profile": "gomad.wasi-cooperative/v1",
+    "git_sha": "cc84570e2838dda3ec185764b5a099b284796ec9",
+    "git_dirty": false,
+    "config_source": "temporal-install",
+    "build_tags": [
+      "disable_grpc_modules",
+      "gomad_wasm_slim",
+      "sqlite3_dotlk",
+      "test_dep"
+    ],
+    "seed": 0,
+    "per_test_timeout": "3m0s",
+    "prepare_timeout": "8m0s",
+    "harness_sha256": "sha256:0ce6067988c5ff56d4d3feea90f00f036fc9cf59d40e3437887cd2b4a086f348",
+    "explore_flags": [
+      "--json",
+      "--parallel=1",
+      "--terminate-grace=2s",
+      "--choices",
+      "--choice-bytes=64MiB",
+      "--output-limit=256MiB",
+      "--keep-successes=all",
+      "--success-limit=1",
+      "--success-bytes=4GiB",
+      "--build-tag=disable_grpc_modules",
+      "--build-tag=gomad_wasm_slim",
+      "--build-tag=sqlite3_dotlk",
+      "--build-tag=test_dep",
+      "--env=TEMPORAL_ROOT=/workspace",
+      "--env=TMPDIR=/tmp",
+      "--env=TEMPORAL_TEST_LOG_LEVEL=warn"
+    ],
+    "test_flags": [
+      "-test.v",
+      "-test.count=1",
+      "-test.timeout=72h"
+    ],
+    "memory_bytes": 4294967296,
+    "fuel": 1125899906842624,
+    "guest_config_sha256": "sha256:759b82af7bd51779ed24b323fa9e45eba34a46e203c20179bbbe0f86ad822291"
+  },
+  "candidate_key": "sha256:37cdfabf2db01ac5477638f13cd7b855ed8dbd1f0611a138a14411797b9df456",
+  "hosts": [
+    {
+      "hostname": "dev-build",
+      "os": "linux",
+      "arch": "arm64",
+      "cpus": 12,
+      "kernel": "7.0.14",
+      "mem_total_bytes": 21242953728
+    }
+  ],
+  "budget": {
+    "overall_budget": "30m0s",
+    "max_tests": 0,
+    "retain_bytes": 2147483648
+  },
+  "packages": [
+    {
+      "import_path": "go.temporal.io/server/tests/gomadfunctional",
+      "pattern": "./tests/gomadfunctional",
+      "module_directory": "/home/agent/wt/fn221",
+      "target": "./tests/gomadfunctional",
+      "tests": [
+        "TestFrontendSystemInfo"
+      ],
+      "top_level_tests": [
+        "TestFrontendSystemInfo"
+      ],
+      "list_count": 1,
+      "parsed_count": 1
+    }
+  ],
+  "rows": [
+    {
+      "package": "./tests/gomadfunctional",
+      "name": "TestFrontendSystemInfo",
+      "config_source": "temporal-install",
+      "module_sha256": "sha256:29f90f0aca2dedcf1aabe262ed50744edaaaa0d31119be4413772e8c11a366be",
+      "class": "pass",
+      "attempts": 1,
+      "gomad_exit": 0,
+      "wall_seconds": 5.944080503,
+      "preparation_bytes": 1521850635,
+      "artifact_bytes": 427497707,
+      "engine_cache_bytes": 432154954,
+      "engine_entries_added": 0,
+      "engine_cache_hit": true,
+      "artifact_retained": false
+    }
+  ],
+  "by_class": {
+    "pass": 1
+  },
+  "by_package": {
+    "./tests/gomadfunctional": {
+      "pass": 1
+    }
+  },
+  "reasons": null
+}
