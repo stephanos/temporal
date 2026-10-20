@@ -391,7 +391,7 @@ func helperCorpusMatches(pattern, frame any) bool {
 	return true
 }
 
-func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, error) {
+func runHelperCorpusCase(helper string, kase map[string]any) (_ *helperCorpusRun, retErr error) {
 	guest, err := helperCorpusGuest(kase["guest"])
 	if err != nil {
 		return nil, err
@@ -438,6 +438,11 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 	if err := command.Start(); err != nil {
 		return nil, err
 	}
+	defer func() {
+		if command.ProcessState == nil {
+			retErr = errors.Join(retErr, command.Process.Kill(), command.Wait())
+		}
+	}()
 	timer := time.AfterFunc(2*time.Minute, func() { _ = command.Process.Kill() })
 	defer timer.Stop()
 	open := true
