@@ -1,14 +1,534 @@
-//! Patterns over paths through a Model: waypoints in order, separated by gaps.
+//! Typed patterns over Model states, actions, inputs and outcomes.
 //!
 //! The pattern itself is neutral. A `#[progress]` claim reads it over every admitted path,
 //! a search reads it as a request for one path.
+
+use std::{fmt, rc::Rc};
+
+/// A finite pattern cannot be expanded under its declared limits.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum PatternError {
+    /// The alternative count or expanded sequence length exceeds `usize`.
+    ExpansionOverflow,
+    /// The number of alternatives exceeds the search budget.
+    Budget {
+        /// Authored alternative count.
+        count: usize,
+        /// Admitted alternative budget.
+        budget: usize,
+    },
+    /// The expanded concrete node storage exceeds the admission limit.
+    ExpansionTooLarge {
+        /// Conservative bound on concrete nodes across alternatives.
+        nodes: usize,
+        /// Maximum admitted concrete nodes.
+        limit: usize,
+    },
+    /// An unordered group exceeds its declared element limit.
+    PermutationLimit {
+        /// Number of authored positional elements.
+        elements: usize,
+        /// Maximum admitted positional elements.
+        limit: usize,
+        /// Exact permutation count, absent when it overflows.
+        count: Option<usize>,
+    },
+}
+
+impl fmt::Display for PatternError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            Self::ExpansionOverflow => f.write_str("pattern expansion count overflows usize"),
+            Self::Budget { count, budget } => {
+                write!(f, "pattern has {count} alternatives, over budget {budget}")
+            }
+            Self::ExpansionTooLarge { nodes, limit } => {
+                write!(f, "pattern expansion bound is {nodes} nodes, over storage limit {limit}")
+            }
+            Self::PermutationLimit { elements, limit, count } => {
+                write!(f, "unordered pattern has {elements} elements (")?;
+                match count {
+                    Some(count) => write!(f, "{count} permutations")?,
+                    None => f.write_str("permutation count overflows usize")?,
+                }
+                write!(f, "), over limit {limit}")
+            }
+        }
+    }
+}
+
+impl std::error::Error for PatternError {}
+
+/// A lazily indexed finite action domain.
+pub struct ActionDomain<A> {
+    count: Result<usize, PatternError>,
+    get: Rc<dyn Fn(usize) -> A>,
+    label: Rc<dyn Fn(&A) -> String>,
+}
+
+impl<A> Clone for ActionDomain<A> {
+    fn clone(&self) -> Self {
+        Self { count: self.count.clone(), get: self.get.clone(), label: self.label.clone() }
+    }
+}
+
+impl<A: 'static> ActionDomain<A> {
+    /// Builds a domain without allocating its values.
+    pub fn new(count: Result<usize, PatternError>, get: impl Fn(usize) -> A + 'static) -> Self {
+        Self { count, get: Rc::new(get), label: Rc::new(|_| String::new()) }
+    }
+
+    /// The checked number of values.
+    pub fn count(&self) -> Result<usize, PatternError> {
+        self.count.clone()
+    }
+
+    /// Retrieves one value in declared order.
+    pub fn get(&self, index: usize) -> A {
+        (self.get)(index)
+    }
+
+    fn described(mut self) -> Self
+    where
+        A: fmt::Display,
+    {
+        self.label = Rc::new(ToString::to_string);
+        self
+    }
+
+    /// Concatenates domains in declaration order.
+    pub fn concat(domains: Vec<Self>) -> Self {
+        let count = domains.iter().try_fold(0usize, |count, domain| {
+            count.checked_add(domain.count()?).ok_or(PatternError::ExpansionOverflow)
+        });
+        Self::new(count, move |mut index| {
+            for domain in &domains {
+                let count = domain.count().unwrap_or(0);
+                if index < count {
+                    return domain.get(index);
+                }
+                index -= count;
+            }
+            panic!("action domain index out of bounds")
+        })
+    }
+
+    /// Converts values while retaining lazy enumeration.
+    pub fn map<B: 'static>(self, map: impl Fn(A) -> B + 'static) -> ActionDomain<B> {
+        ActionDomain::new(self.count(), move |index| map(self.get(index)))
+    }
+}
+
+/// A lazy finite domain for an action input.
+pub struct InputDomain<T>(ActionDomain<T>);
+
+impl<T> Clone for InputDomain<T> {
+    fn clone(&self) -> Self {
+        Self(self.0.clone())
+    }
+}
+
+impl<T: 'static> InputDomain<T> {
+    /// Lists exact values in source order, including positional duplicates.
+    pub fn values(values: Vec<T>) -> Self
+    where
+        T: Clone,
+    {
+        Self(ActionDomain::new(Ok(values.len()), move |index| values[index].clone()))
+    }
+
+    /// Retains a finite integer range without allocating its members.
+    pub fn range(range: impl InputRange<T>) -> Self {
+        Self(range.domain())
+    }
+
+    /// The checked number of input values.
+    pub fn count(&self) -> Result<usize, PatternError> {
+        self.0.count()
+    }
+
+    /// Retrieves an input assignment.
+    pub fn get(&self, index: usize) -> T {
+        self.0.get(index)
+    }
+}
+
+/// Integer ranges supported by finite action input patterns.
+pub trait InputRange<T> {
+    /// Converts a bounded range to a lazy domain.
+    fn domain(self) -> ActionDomain<T>;
+}
+
+macro_rules! integer_domains {
+    ($($ty:ty),* $(,)?) => { $(
+        impl InputRange<$ty> for std::ops::RangeInclusive<$ty> {
+            #[allow(clippy::cast_lossless, clippy::cast_possible_truncation, clippy::cast_possible_wrap, reason = "checked domain counts bound offsets; wrapping offsets preserve signed ranges across zero")]
+            fn domain(self) -> ActionDomain<$ty> {
+                let (start, end) = self.into_inner();
+                let count = if start > end { Ok(0) } else {
+                    (end.abs_diff(start) as u128).checked_add(1)
+                        .and_then(|n| usize::try_from(n).ok()).ok_or(PatternError::ExpansionOverflow)
+                };
+                ActionDomain::new(count, move |index| start.wrapping_add(index as $ty))
+            }
+        }
+        impl InputRange<$ty> for std::ops::Range<$ty> {
+            #[allow(clippy::cast_possible_truncation, clippy::cast_possible_wrap, reason = "checked domain counts bound offsets; wrapping offsets preserve signed ranges across zero")]
+            fn domain(self) -> ActionDomain<$ty> {
+                let start = self.start;
+                let count = if start >= self.end { Ok(0) } else {
+                    usize::try_from(self.end.abs_diff(start)).map_err(|_| PatternError::ExpansionOverflow)
+                };
+                ActionDomain::new(count, move |index| start.wrapping_add(index as $ty))
+            }
+        }
+    )* };
+}
+
+integer_domains!(u8, u16, u32, u64, u128, usize, i8, i16, i32, i64, i128, isize);
+
+/// A borrowed typed outcome classifier.
+pub type OutcomePredicate<O> = Rc<dyn Fn(&O) -> bool>;
+/// A borrowed typed exclusion for intervening gap edges.
+pub type ActionPredicate<A> = Rc<dyn Fn(&A) -> bool>;
+
+/// One concrete node of an enumerated path alternative.
+pub enum PathNode<S, A, O> {
+    /// Inspect the current state without consuming an edge.
+    State(Rc<Waypoint<S>>),
+    /// Consume exactly one edge, optionally checking its outcome.
+    Action {
+        /// Exact typed action value.
+        action: Rc<A>,
+        /// Optional borrowed outcome judgment.
+        outcome: Option<OutcomePredicate<O>>,
+        /// Concrete action and requested outcome spelling.
+        label: String,
+    },
+    /// Consume intervening edges, excluding only those matched by `exclude`.
+    Gap {
+        /// Maximum number of intervening edges.
+        gap: Gap,
+        /// Actions forbidden only among intervening edges.
+        exclude: Option<ActionPredicate<A>>,
+    },
+}
+
+impl<S, A, O> Clone for PathNode<S, A, O> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::State(state) => Self::State(state.clone()),
+            Self::Action { action, outcome, label } => Self::Action {
+                action: action.clone(),
+                outcome: outcome.clone(),
+                label: label.clone(),
+            },
+            Self::Gap { gap, exclude } => Self::Gap { gap: *gap, exclude: exclude.clone() },
+        }
+    }
+}
+
+/// One authored finite choice, ready for witness search.
+pub struct Alternative<S, A, O> {
+    /// Concrete state checks, edges and gaps, in source order.
+    pub nodes: Vec<PathNode<S, A, O>>,
+    /// Concrete choices in a readable stable spelling.
+    pub choices: Vec<String>,
+}
+
+impl<S, A, O> Clone for Alternative<S, A, O> {
+    fn clone(&self) -> Self {
+        Self { nodes: self.nodes.clone(), choices: self.choices.clone() }
+    }
+}
+
+impl<S, A, O> Alternative<S, A, O> {
+    fn empty() -> Self {
+        Self { nodes: vec![], choices: vec![] }
+    }
+}
+
+/// A finite typed path expression, expanded only after count admission.
+#[must_use]
+pub enum Pattern<S, A, O> {
+    /// One state check.
+    State(Rc<Waypoint<S>>),
+    /// A finite action domain with an optional borrowed outcome classifier.
+    Action(ActionDomain<A>, Option<OutcomePredicate<O>>, Option<String>),
+    /// An intervening edge gap.
+    Gap(Gap, Option<ActionPredicate<A>>),
+    /// All component patterns in order.
+    Sequence(Vec<Self>),
+    /// One component pattern in declaration order.
+    Either(Vec<Self>),
+    /// Fresh component choices for each occurrence and each bounded count.
+    Repeat(Box<Self>, usize, usize),
+    /// Every positional permutation, preserving duplicate elements.
+    Unordered(Vec<Self>),
+}
+
+fn product<S, A, O>(
+    left: Vec<Alternative<S, A, O>>,
+    right: &[Alternative<S, A, O>],
+) -> Vec<Alternative<S, A, O>> {
+    left.into_iter()
+        .flat_map(|prefix| {
+            right.iter().map(move |suffix| {
+                let mut alternative = prefix.clone();
+                alternative.nodes.extend(suffix.nodes.iter().cloned());
+                alternative.choices.extend(suffix.choices.iter().cloned());
+                alternative
+            })
+        })
+        .collect()
+}
+
+impl<S, A: 'static, O> Pattern<S, A, O> {
+    /// Wraps one state waypoint.
+    pub fn state(waypoint: Waypoint<S>) -> Self {
+        Self::State(Rc::new(waypoint))
+    }
+
+    /// Builds a typed action pattern.
+    pub fn action(
+        domain: ActionDomain<A>,
+        outcome: Option<OutcomePredicate<O>>,
+        label: Option<String>,
+    ) -> Self
+    where
+        A: fmt::Display,
+    {
+        Self::Action(domain.described(), outcome, label)
+    }
+
+    /// Requires a borrowed typed outcome on this action node.
+    ///
+    /// # Panics
+    /// Panics when attached to a state, gap or structural node instead of an action.
+    pub fn with_outcome(self, outcome: OutcomePredicate<O>, label: String) -> Self {
+        match self {
+            Self::Action(domain, _, _) => Self::Action(domain, Some(outcome), Some(label)),
+            _ => panic!("an outcome follows one action"),
+        }
+    }
+
+    fn size(&self, limit: usize) -> Result<(usize, usize), PatternError> {
+        let add = |a: usize, b: usize| a.checked_add(b).ok_or(PatternError::ExpansionOverflow);
+        let mul = |a: usize, b: usize| a.checked_mul(b).ok_or(PatternError::ExpansionOverflow);
+        match self {
+            Self::State(_) | Self::Gap(..) => Ok((1, 1)),
+            Self::Action(domain, ..) => Ok((domain.count()?, 1)),
+            Self::Sequence(parts) | Self::Unordered(parts) => {
+                let sizes = parts.iter().map(|part| part.size(limit)).collect::<Vec<_>>();
+                if sizes.iter().any(|size| matches!(size, Ok((0, _)))) {
+                    return Ok((0, 0));
+                }
+                let (mut count, mut length) = (1, 0);
+                for size in sizes {
+                    let (n, len) = size?;
+                    count = mul(count, n)?;
+                    length = add(length, len)?;
+                }
+                if matches!(self, Self::Unordered(_)) {
+                    let permutations = (1..=parts.len()).try_fold(1usize, mul);
+                    if parts.len() > limit {
+                        return Err(PatternError::PermutationLimit {
+                            elements: parts.len(),
+                            limit,
+                            count: permutations.ok(),
+                        });
+                    }
+                    count = mul(count, permutations?)?;
+                }
+                Ok((count, length))
+            }
+            Self::Either(parts) => {
+                let (mut count, mut length) = (0, 0);
+                for part in parts {
+                    let (n, len) = part.size(limit)?;
+                    count = add(count, n)?;
+                    length = length.max(len);
+                }
+                Ok((count, length))
+            }
+            Self::Repeat(part, min, max) => {
+                if min > max {
+                    return Ok((0, 0));
+                }
+                if *max == 0 {
+                    return Ok((1, 0));
+                }
+                let (n, length) = part.size(limit)?;
+                if n == 0 {
+                    return Ok((usize::from(*min == 0), 0));
+                }
+                let length = mul(length, *max)?;
+                let count = if n == 1 {
+                    add(max - min, 1)?
+                } else {
+                    let mut power = n
+                        .checked_pow(
+                            u32::try_from(*min).map_err(|_| PatternError::ExpansionOverflow)?,
+                        )
+                        .ok_or(PatternError::ExpansionOverflow)?;
+                    let mut count = power;
+                    for _ in *min..*max {
+                        power = mul(power, n)?;
+                        count = add(count, power)?;
+                    }
+                    count
+                };
+                Ok((count, length))
+            }
+        }
+    }
+
+    fn describe(&self) -> String {
+        match self {
+            Self::State(_) => "state".into(),
+            Self::Gap(..) => "..".into(),
+            Self::Action(domain, _, outcome) => {
+                let mut label = match domain.count() {
+                    Ok(0) => "empty action domain".into(),
+                    Ok(1) => (domain.label)(&domain.get(0)),
+                    Ok(count) => format!("one of {count} actions"),
+                    Err(_) => "unexpanded action domain".into(),
+                };
+                if let Some(outcome) = outcome {
+                    label.push_str(" => ");
+                    label.push_str(outcome);
+                }
+                label
+            }
+            Self::Either(parts) => parts.iter().map(Self::describe).collect::<Vec<_>>().join(" | "),
+            Self::Sequence(parts) | Self::Unordered(parts) => {
+                parts.iter().map(Self::describe).collect::<Vec<_>>().join(", ")
+            }
+            Self::Repeat(part, min, max) => format!("[{}; {min}..={max}]", part.describe()),
+        }
+    }
+
+    fn expand_repeat(part: &Self, min: usize, max: usize) -> Vec<Alternative<S, A, O>> {
+        if max == 0 {
+            return vec![Alternative {
+                nodes: vec![],
+                choices: vec![format!("[{}; 0]", part.describe())],
+            }];
+        }
+        let choices = part.expand();
+        if choices.len() == 1 {
+            return (min..=max)
+                .map(|count| {
+                    let mut nodes = Vec::new();
+                    if !choices[0].nodes.is_empty() {
+                        for _ in 0..count {
+                            nodes.extend(choices[0].nodes.iter().cloned());
+                        }
+                    }
+                    Alternative { nodes, choices: vec![format!("[{}; {count}]", part.describe())] }
+                })
+                .collect();
+        }
+        if choices.is_empty() {
+            return if min == 0 {
+                vec![Alternative {
+                    nodes: vec![],
+                    choices: vec![format!("[{}; 0]", part.describe())],
+                }]
+            } else {
+                vec![]
+            };
+        }
+        let mut repeated = vec![Alternative::empty()];
+        let mut result = Vec::new();
+        for n in 0..=max {
+            if n >= min {
+                result.extend(repeated.iter().cloned().map(|mut alternative| {
+                    alternative.choices.insert(0, format!("[{}; {n}]", part.describe()));
+                    alternative
+                }));
+            }
+            if n != max {
+                repeated = product(repeated, &choices);
+            }
+        }
+        result
+    }
+
+    fn expand(&self) -> Vec<Alternative<S, A, O>> {
+        if self.size(usize::MAX).is_ok_and(|size| size.0 == 0) {
+            return Vec::new();
+        }
+        match self {
+            Self::State(state) => {
+                vec![Alternative { nodes: vec![PathNode::State(state.clone())], choices: vec![] }]
+            }
+            Self::Gap(gap, exclude) => vec![Alternative {
+                nodes: vec![PathNode::Gap { gap: *gap, exclude: exclude.clone() }],
+                choices: vec![],
+            }],
+            Self::Action(domain, outcome, outcome_label) => (0..domain.count().unwrap_or(0))
+                .map(|index| {
+                    let action = domain.get(index);
+                    let mut label = (domain.label)(&action);
+                    if let Some(outcome) = outcome_label {
+                        label.push_str(" => ");
+                        label.push_str(outcome);
+                    }
+                    Alternative {
+                        nodes: vec![PathNode::Action {
+                            action: Rc::new(action),
+                            outcome: outcome.clone(),
+                            label: label.clone(),
+                        }],
+                        choices: vec![label],
+                    }
+                })
+                .collect(),
+            Self::Sequence(parts) => parts
+                .iter()
+                .fold(vec![Alternative::empty()], |left, part| product(left, &part.expand())),
+            Self::Either(parts) => parts.iter().flat_map(Self::expand).collect(),
+            Self::Repeat(part, min, max) => Self::expand_repeat(part, *min, *max),
+            Self::Unordered(parts) => {
+                fn permutations<S, A: 'static, O>(
+                    parts: &[Pattern<S, A, O>],
+                    order: &mut Vec<usize>,
+                    used: &mut [bool],
+                    result: &mut Vec<Alternative<S, A, O>>,
+                ) {
+                    if order.len() == parts.len() {
+                        result.extend(
+                            order.iter().fold(vec![Alternative::empty()], |left, index| {
+                                product(left, &parts[*index].expand())
+                            }),
+                        );
+                    } else {
+                        for index in 0..parts.len() {
+                            if !used[index] {
+                                used[index] = true;
+                                order.push(index);
+                                permutations(parts, order, used, result);
+                                order.pop();
+                                used[index] = false;
+                            }
+                        }
+                    }
+                }
+                let mut result = Vec::new();
+                permutations(parts, &mut Vec::new(), &mut vec![false; parts.len()], &mut result);
+                result
+            }
+        }
+    }
+}
 
 /// Judges one state on a path.
 pub enum Waypoint<S> {
     /// A judgment already made, such as a `bool` evaluated inside a Model method.
     Holds(bool),
     /// A predicate over the state, such as a closure in a test.
-    Judged(Box<dyn Fn(&S) -> bool>),
+    Judged(Rc<dyn Fn(&S) -> bool>),
     /// Exactly this state.
     Is(S),
 }
@@ -16,12 +536,18 @@ pub enum Waypoint<S> {
 impl<S> Waypoint<S> {
     /// Wraps a predicate over the state.
     pub fn judged(predicate: impl Fn(&S) -> bool + 'static) -> Self {
-        Self::Judged(Box::new(predicate))
+        Self::Judged(Rc::new(predicate))
     }
 
     /// The path from this waypoint, over `gap`, to `next`.
     pub const fn then(self, gap: Gap, next: Self) -> Path<S> {
-        Path { first: self, leg: (gap, next), more: Vec::new() }
+        Path {
+            first: self,
+            leg: (gap, next),
+            more: Vec::new(),
+            pattern: None,
+            permutation_limit: 6,
+        }
     }
 
     /// The path from this waypoint, over `gap`, to a predicate; the predicate's parameter type
@@ -39,6 +565,16 @@ impl<S> Waypoint<S> {
             Self::Holds(holds) => *holds,
             Self::Judged(predicate) => predicate(state),
             Self::Is(expected) => expected == state,
+        }
+    }
+}
+
+impl<S: Clone> Clone for Waypoint<S> {
+    fn clone(&self) -> Self {
+        match self {
+            Self::Holds(value) => Self::Holds(*value),
+            Self::Judged(predicate) => Self::Judged(predicate.clone()),
+            Self::Is(state) => Self::Is(state.clone()),
         }
     }
 }
@@ -95,20 +631,52 @@ impl<S> IntoWaypoint<S, kind::Is> for S {
 
 const CLAIM_REFUSAL: &str = "a progress claim has one trigger and one target; ask a longer progression with find or Run::along";
 
-/// Two or more waypoints in order, each pair separated by a gap; built with `path!`.
+/// A finite typed path expression, built with `path!`.
 ///
-/// The first leg is stored inline so a two-waypoint claim evaluated at every state allocates
-/// nothing beyond its closures.
+/// State-only paths retain their first leg inline so a two-waypoint progress claim allocates
+/// nothing beyond its closures. Test-space patterns enumerate concrete nodes instead.
 #[must_use]
-pub struct Path<S> {
+pub struct Path<S, A = (), O = ()> {
     first: Waypoint<S>,
     leg: (Gap, Waypoint<S>),
     more: Vec<(Gap, Waypoint<S>)>,
+    pattern: Option<Pattern<S, A, O>>,
+    permutation_limit: usize,
 }
 
-impl<S> Path<S> {
+impl<S, A, O> Path<S, A, O> {
+    /// Builds a path from a typed test-space expression.
+    pub fn pattern(pattern: Pattern<S, A, O>) -> Self {
+        Self {
+            first: Waypoint::Holds(true),
+            leg: (Gap::AtMost(0), Waypoint::Holds(true)),
+            more: Vec::new(),
+            pattern: Some(pattern),
+            permutation_limit: 6,
+        }
+    }
+
+    /// Raises or lowers the maximum number of elements in an unordered group.
+    pub fn permutation_limit(mut self, limit: usize) -> Self {
+        self.permutation_limit = limit;
+        self
+    }
+
+    /// Whether this is the original state-waypoint-only path representation.
+    pub const fn is_state_only(&self) -> bool {
+        self.pattern.is_none()
+    }
+
     /// Appends a gap and the waypoint after it.
     pub fn then(mut self, gap: Gap, waypoint: Waypoint<S>) -> Self {
+        if let Some(pattern) = self.pattern.take() {
+            self.pattern = Some(Pattern::Sequence(vec![
+                pattern,
+                Pattern::Gap(gap, None),
+                Pattern::State(Rc::new(waypoint)),
+            ]));
+            return self;
+        }
         self.more.push((gap, waypoint));
         self
     }
@@ -119,22 +687,38 @@ impl<S> Path<S> {
     }
 
     /// The first waypoint.
+    ///
+    /// # Panics
+    /// Panics for a structured test-space pattern; enumerate its nodes instead.
     pub const fn first(&self) -> &Waypoint<S> {
+        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of first()");
         &self.first
     }
 
     /// Each later waypoint with the gap before it, in order.
+    ///
+    /// # Panics
+    /// Panics for a structured test-space pattern; enumerate its nodes instead.
     pub fn legs(&self) -> impl Iterator<Item = (Gap, &Waypoint<S>)> {
+        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of legs()");
         std::iter::once(&self.leg).chain(&self.more).map(|(gap, waypoint)| (*gap, waypoint))
     }
 
     /// The number of waypoints, at least two.
+    ///
+    /// # Panics
+    /// Panics for a structured test-space pattern; count its enumerated nodes instead.
     pub fn len(&self) -> usize {
+        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of len()");
         2 + self.more.len()
     }
 
-    /// Always false: a path has two or more waypoints.
+    /// Always false for a state-only path, which has two or more waypoints.
+    ///
+    /// # Panics
+    /// Panics for a structured test-space pattern; inspect its enumerated nodes instead.
     pub const fn is_empty(&self) -> bool {
+        assert!(self.pattern.is_none(), "enumerate structured path nodes instead of is_empty()");
         false
     }
 
@@ -145,75 +729,103 @@ impl<S> Path<S> {
     /// A path with more than two waypoints is not a claim; `#[machine]` refuses a literal
     /// `path!` of that shape at compile time and this refuses one built elsewhere.
     pub fn claim(self) -> (Waypoint<S>, Gap, Waypoint<S>) {
+        assert!(self.pattern.is_none(), "a progress claim is two state predicates");
         assert!(self.more.is_empty(), "{CLAIM_REFUSAL}");
         (self.first, self.leg.0, self.leg.1)
     }
 }
 
-/// A pattern over paths: `path![p, .., q]` is "p, then any number of steps, then q";
-/// `path![p, ..=n, q]` allows at most `n` steps between them. Waypoints are `bool`s, closures
-/// `|state| ..` or states; two or more, with a gap between each pair.
+impl<S> Path<S> {
+    /// Adapts a legacy state path to a world's action and outcome types.
+    pub fn into_world<M: crate::Machine<State = S>>(self) -> Path<S, M::Action, M::Outcome> {
+        assert!(
+            self.pattern.is_none(),
+            "only state paths can be adapted without action conversion"
+        );
+        Path {
+            first: self.first,
+            leg: self.leg,
+            more: self.more,
+            pattern: None,
+            permutation_limit: self.permutation_limit,
+        }
+    }
+}
+
+impl<S, A: 'static, O> Path<S, A, O> {
+    /// Counts every authored finite alternative without allocating its expansion.
+    pub fn alternative_count(&self) -> Result<usize, PatternError> {
+        self.pattern
+            .as_ref()
+            .map_or(Ok(1), |pattern| pattern.size(self.permutation_limit).map(|size| size.0))
+    }
+
+    /// Expands alternatives after admitting their count and concrete storage.
+    /// A conservative storage bound admits at most one million concrete nodes,
+    /// independently of the alternative budget.
+    pub fn alternatives(&self, budget: usize) -> Result<Vec<Alternative<S, A, O>>, PatternError>
+    where
+        S: Clone,
+    {
+        let limit = 1_000_000;
+        let Some(pattern) = &self.pattern else {
+            if budget == 0 {
+                return Err(PatternError::Budget { count: 1, budget });
+            }
+            let length = self
+                .len()
+                .checked_mul(2)
+                .and_then(|length| length.checked_sub(1))
+                .ok_or(PatternError::ExpansionOverflow)?;
+            if length > limit {
+                return Err(PatternError::ExpansionTooLarge { nodes: length, limit });
+            }
+            let mut nodes = vec![PathNode::State(Rc::new(self.first.clone()))];
+            for (gap, state) in self.legs() {
+                nodes.push(PathNode::Gap { gap, exclude: None });
+                nodes.push(PathNode::State(Rc::new(state.clone())));
+            }
+            return Ok(vec![Alternative { nodes, choices: Vec::new() }]);
+        };
+        let (count, length) = pattern.size(self.permutation_limit)?;
+        if count > budget {
+            return Err(PatternError::Budget { count, budget });
+        }
+        let nodes = count.checked_mul(length).ok_or(PatternError::ExpansionOverflow)?;
+        if nodes > limit {
+            return Err(PatternError::ExpansionTooLarge { nodes, limit });
+        }
+        Ok(pattern.expand())
+    }
+
+    /// Converts an owned path to its typed expression tree.
+    pub fn into_pattern(self) -> Pattern<S, A, O> {
+        self.pattern.unwrap_or_else(|| {
+            let mut parts = vec![
+                Pattern::state(self.first),
+                Pattern::Gap(self.leg.0, None),
+                Pattern::state(self.leg.1),
+            ];
+            for (gap, waypoint) in self.more {
+                parts.push(Pattern::Gap(gap, None));
+                parts.push(Pattern::state(waypoint));
+            }
+            Pattern::Sequence(parts)
+        })
+    }
+}
+
+/// Constructs a typed path pattern with state checks, actions and optional outcomes.
+/// `path![p, .., q]` retains the state-only form; `..=n` bounds its intervening steps.
+/// Tests may add `Actor::Action`, `Actor::Action { field: 0..=3, .. }`, `Actor::*`,
+/// `Actor::Action => Outcome::Value`, `(a | b)`, `[a; n]`, `[a; min..=max]`,
+/// `unordered![a, b]` and action-excluding gaps `..!(a, b)`.
+/// Exact-only partial action fields use `..`; omitted fields then use declared input domains.
+/// `#[progress]` admits exactly two state predicates separated by one ordinary gap.
 #[macro_export]
 macro_rules! path {
     () => { ::core::compile_error!("a path has two or more waypoints: write [p, .., q]") };
     (.. $($rest:tt)*) => { ::core::compile_error!("a path starts with a waypoint, not a gap: write [p, .., q]") };
     (..= $($rest:tt)*) => { ::core::compile_error!("a path starts with a waypoint, not a gap: write [p, .., q]") };
-    ($($rest:tt)+) => { $crate::__path!(@waypoint [] $($rest)+) };
-}
-
-#[doc(hidden)]
-#[macro_export]
-macro_rules! __path {
-    // A waypoint is expected after `[]` (nothing yet) or `[{built} (gap)]`. A closure is passed
-    // to `then_judged` directly so its parameter type is inferred from the waypoints before it.
-    (@waypoint [$($acc:tt)*] .. $($rest:tt)*) => {
-        ::core::compile_error!("write one gap between two waypoints: [p, .., q]")
-    };
-    (@waypoint [$($acc:tt)*] ..= $($rest:tt)*) => {
-        ::core::compile_error!("write one gap between two waypoints: [p, .., q]")
-    };
-    (@waypoint [$($acc:tt)*]) => {
-        ::core::compile_error!("a path ends with a waypoint, not a gap: write [p, .., q]")
-    };
-    // `move` is matched as the keyword: an identifier would read `a | b | c` as a closure.
-    (@waypoint [$($acc:tt)*] move | $arg:ident $(: $ty:ty)? | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] (move | $arg $(: $ty)? | $body) $($($rest)*)?)
-    };
-    (@waypoint [$($acc:tt)*] move | $arg:pat_param | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] (move | $arg | $body) $($($rest)*)?)
-    };
-    (@waypoint [$($acc:tt)*] | $arg:ident $(: $ty:ty)? | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] (| $arg $(: $ty)? | $body) $($($rest)*)?)
-    };
-    (@waypoint [$($acc:tt)*] | $arg:pat_param | $body:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@judged [$($acc)*] (| $arg | $body) $($($rest)*)?)
-    };
-    (@waypoint [] $waypoint:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@gap [first { $crate::IntoWaypoint::into_waypoint($waypoint) }] $($($rest)*)?)
-    };
-    (@waypoint [$kind:ident {$($built:tt)*} $gap:tt] $waypoint:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@gap [path {
-            ($($built)*).then($gap, $crate::IntoWaypoint::into_waypoint($waypoint))
-        }] $($($rest)*)?)
-    };
-    (@judged [] $closure:tt $($rest:tt)*) => {
-        $crate::__path!(@gap [first { $crate::Waypoint::judged $closure }] $($rest)*)
-    };
-    (@judged [$kind:ident {$($built:tt)*} $gap:tt] ($($closure:tt)*) $($rest:tt)*) => {
-        $crate::__path!(@gap [path { ($($built)*).then_judged($gap, $($closure)*) }] $($rest)*)
-    };
-    // A gap or the end is expected.
-    (@gap [first $first:tt]) => {
-        ::core::compile_error!("a path has two or more waypoints: write [p, .., q]")
-    };
-    (@gap [path {$($path:tt)*}]) => { $($path)* };
-    (@gap [$kind:ident $built:tt] .. $(, $($rest:tt)*)?) => {
-        $crate::__path!(@waypoint [$kind $built ($crate::Gap::Any)] $($($rest)*)?)
-    };
-    (@gap [$kind:ident $built:tt] ..= $bound:expr $(, $($rest:tt)*)?) => {
-        $crate::__path!(@waypoint [$kind $built ($crate::Gap::AtMost($bound))] $($($rest)*)?)
-    };
-    (@gap [$($acc:tt)*] $($rest:tt)*) => {
-        ::core::compile_error!("write [p, ..=1, q] for at most one step, or [p, .., q]")
-    };
+    ($($rest:tt)+) => { $crate::__path_parse!($($rest)+) };
 }

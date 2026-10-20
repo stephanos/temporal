@@ -1,0 +1,5 @@
+error: #[fault] belongs on the action enum, not a variant
+ --> tests/ui/action_inputs_variant_fault.rs:5:5
+  |
+5 |     #[fault]
+  |     ^^^^^^^^

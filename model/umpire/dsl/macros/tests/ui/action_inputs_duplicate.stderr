@@ -1,0 +1,5 @@
+error: User::Set field `value` has duplicate #[inputs] domains
+ --> tests/ui/action_inputs_duplicate.rs:7:9
+  |
+7 |         #[inputs([2, 3])]
+  |         ^^^^^^^^^^^^^^^^^

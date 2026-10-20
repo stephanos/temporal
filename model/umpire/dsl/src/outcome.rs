@@ -2,6 +2,25 @@
 
 use std::cell::Cell;
 
+/// A named declared outcome kind, classified without cloning the edge's outcome.
+pub struct OutcomeClass<O> {
+    /// The stable display spelling of the declared kind.
+    pub name: &'static str,
+    predicate: fn(&O) -> bool,
+}
+
+impl<O> OutcomeClass<O> {
+    /// Declares an outcome kind with a typed borrowed classifier.
+    pub const fn new(name: &'static str, predicate: fn(&O) -> bool) -> Self {
+        Self { name, predicate }
+    }
+
+    /// Whether the edge's outcome belongs to this declared kind.
+    pub fn matches(&self, outcome: &O) -> bool {
+        (self.predicate)(outcome)
+    }
+}
+
 /// A generic status a machine can return for a rejected request.
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
 pub enum Rejection {

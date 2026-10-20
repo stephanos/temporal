@@ -4,4 +4,4 @@ error: write [p, ..=1, q] for at most one step, or [p, .., q]
 4 |     let _: Path<u8> = path![true, false];
   |                       ^^^^^^^^^^^^^^^^^^
   |
-  = note: this error originates in the macro `$crate::__path` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)

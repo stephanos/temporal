@@ -5,7 +5,7 @@ use std::{
 
 use smallvec::SmallVec;
 
-use crate::{Assumption, Claim, Progress, Scope, StepClaim};
+use crate::{Assumption, Claim, OutcomeClass, Progress, Scope, StepClaim};
 
 /// A world of constants defining a finite state machine and its named claims.
 pub trait Machine: Sized {
@@ -23,6 +23,18 @@ pub trait Machine: Sized {
 
     /// Enumerates the finite action catalog in declaration order, including disabled actions.
     fn actions(&self) -> Vec<Self::Action>;
+
+    /// Complete declared outcome kinds, or `None` when the world has not declared them.
+    /// `Some(Vec::new())` explicitly declares that the outcome catalog is empty.
+    fn outcome_catalog(&self) -> Option<Vec<OutcomeClass<Self::Outcome>>> {
+        None
+    }
+
+    /// Complete declared fault actions, independent of internal-action classification.
+    /// `None` is undeclared metadata, distinct from a declared empty catalog.
+    fn fault_catalog(&self) -> Option<Vec<Self::Action>> {
+        None
+    }
 
     /// Identifies environment-independent actions; this does not imply fairness.
     fn internal(&self, action: &Self::Action) -> bool;

@@ -4,6 +4,8 @@
 mod action;
 #[path = "../src/machine.rs"]
 mod machine;
+#[path = "../src/path.rs"]
+mod path;
 #[path = "../src/state.rs"]
 mod state;
 
@@ -29,5 +31,5 @@ fn refusals() {
 
 #[test]
 fn private_state() {
-    trybuild::TestCases::new().pass("tests/pass/private_state.rs");
+    trybuild::TestCases::new().pass("tests/pass/*.rs");
 }

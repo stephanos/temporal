@@ -358,31 +358,29 @@ fn check_claim(method: &syn::ImplItemFn) -> manyhow::Result<()> {
     Ok(())
 }
 
-/// Refuses a claim returning a literal `path!` chain, possibly under `.assuming(..)`; a `Path`
-/// built elsewhere is refused by `Path::claim` when evaluated.
-fn check_progress(method: &syn::ImplItemFn) -> manyhow::Result<()> {
-    let Some(syn::Stmt::Expr(tail, None)) = method.block.stmts.last() else { return Ok(()) };
-    let mut tail = tail;
-    while let syn::Expr::MethodCall(call) = tail {
-        tail = &call.receiver;
+fn check_progress(method: &syn::ImplItemFn, actors: &[syn::Ident]) -> manyhow::Result<()> {
+    struct ClaimPaths<'a> {
+        actors: &'a [syn::Ident],
+        error: Option<syn::Error>,
     }
-    let syn::Expr::Macro(call) = tail else { return Ok(()) };
-    if call.mac.path.segments.last().is_none_or(|segment| segment.ident != "path") {
-        return Ok(());
+    impl syn::visit::Visit<'_> for ClaimPaths<'_> {
+        fn visit_macro(&mut self, call: &syn::Macro) {
+            if call.path.segments.last().is_some_and(|segment| segment.ident == "path")
+                && let Err(error) = crate::path::validate_claim(call.tokens.clone(), self.actors)
+            {
+                let error = syn::Error::new_spanned(call, error.to_string());
+                if let Some(previous) = &mut self.error {
+                    previous.combine(error);
+                } else {
+                    self.error = Some(error);
+                }
+            }
+            syn::visit::visit_macro(self, call);
+        }
     }
-    let Ok(parts) =
-        Punctuated::<syn::Expr, Token![,]>::parse_terminated.parse2(call.mac.tokens.clone())
-    else {
-        return Ok(());
-    };
-    let gap = |part: &syn::Expr| matches!(part, syn::Expr::Range(range) if range.start.is_none());
-    if parts.iter().filter(|part| !gap(part)).count() > 2 {
-        manyhow::bail!(
-            call,
-            "a progress claim has one trigger and one target; ask a longer progression with find or Run::along"
-        );
-    }
-    Ok(())
+    let mut paths = ClaimPaths { actors, error: None };
+    syn::visit::Visit::visit_impl_item_fn(&mut paths, method);
+    paths.error.map_or(Ok(()), |error| Err(error.into()))
 }
 
 fn check_legacy(input: &ItemImpl, state: &syn::Ident) -> manyhow::Result<()> {
@@ -553,7 +551,7 @@ fn registrations(
                 }
                 4 => registration.assumptions.push(name),
                 5 => {
-                    check_progress(method)?;
+                    check_progress(method, actors)?;
                     let body = &method.block;
                     method.block = syn::parse_quote!({ ::core::convert::From::from(#body) });
                     registration.progresses.push(name);
@@ -791,6 +789,61 @@ fn stepping(handlers: &[(syn::Ident, syn::Ident)], rejecting: bool, staying: boo
     }
 }
 
+fn outcome_catalog(rejecting: bool) -> TokenStream {
+    if rejecting {
+        let rejections = [
+            "NotFound",
+            "AlreadyExists",
+            "FailedPrecondition",
+            "InvalidArgument",
+            "PermissionDenied",
+            "Unavailable",
+        ];
+        let classifiers = rejections.map(|name| {
+            let label = format!("Rejected({name})");
+            let rejection = syn::Ident::new(name, proc_macro2::Span::call_site());
+            quote!(::umpire_dsl::OutcomeClass::new(#label, |outcome| matches!(outcome,
+                ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::#rejection))))
+        });
+        quote!(::std::vec![
+            ::umpire_dsl::OutcomeClass::new("Accepted", |outcome| matches!(outcome, ::umpire_dsl::Outcome::Accepted)),
+            #(#classifiers),*
+        ])
+    } else {
+        quote!(::std::vec![::umpire_dsl::OutcomeClass::new("()", |_| true)])
+    }
+}
+
+fn actor_projections(actors: &[syn::Ident], state: &syn::Ident) -> Vec<TokenStream> {
+    actors
+        .iter()
+        .map(|actor| {
+            let others = (actors.len() > 1).then(|| quote!(_ => None,));
+            quote! {
+            impl ::umpire_dsl::RegisteredActor<#state> for #actor {}
+                impl ::umpire_dsl::ActorProjection<#actor> for Action {
+                    fn project(&self) -> ::core::option::Option<&#actor> {
+                        match self { Self::#actor(value) => Some(value), #others }
+                    }
+                }
+            }
+        })
+        .collect()
+}
+
+fn world_type(
+    visibility: &syn::Visibility,
+    state: &syn::Ident,
+    outcome: &TokenStream,
+    actors: &[syn::Ident],
+) -> TokenStream {
+    if matches!(visibility, syn::Visibility::Public(_)) {
+        quote!(World)
+    } else {
+        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = #outcome, Fact = (), Action: #(::core::convert::From<#actors> + ::umpire_dsl::ActorProjection<#actors>)+*>)
+    }
+}
+
 pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<TokenStream> {
     if !args.is_empty() {
         manyhow::bail!(args, "#[machine] takes no arguments");
@@ -803,6 +856,7 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let rejecting = invokes(quote!(#input), "reject");
     let staying = invokes(quote!(#input), "stay");
     let outcome_type = if rejecting { quote!(::umpire_dsl::Outcome) } else { quote!(()) };
+    let outcome_catalog = outcome_catalog(rejecting);
     let mut input = input.clone();
     input.attrs.insert(0, syn::parse_quote!(#[forbid(unsafe_code)]));
     let Some((_, items)) = &mut input.content else {
@@ -831,11 +885,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
     let assumption_helpers =
         assumption_helpers(!assumptions.is_empty() || !progress_tokens.is_empty());
     let progress_helpers = progress_helpers(!progress_tokens.is_empty(), &state);
-    let world_type = if matches!(visibility, syn::Visibility::Public(_)) {
-        quote!(World)
-    } else {
-        quote!(impl ::umpire_dsl::Machine<State = #state, Outcome = #outcome_type, Fact = (), Action: #(::core::convert::From<#actors>)+*>)
-    };
+    let actor_projections = actor_projections(&actors, &state);
+    let world_type = world_type(&visibility, &state, &outcome_type, &actors);
     let generated = quote! {
         #[doc = "The module's registered state machine."]
         #visibility struct World;
@@ -847,6 +898,8 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
         #(impl ::core::convert::From<#actors> for Action {
             fn from(value: #actors) -> Self { Self::#actors(value) }
         })*
+
+        #(#actor_projections)*
 
         impl ::core::fmt::Display for Action {
             fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
@@ -872,6 +925,14 @@ pub(crate) fn expand(args: &TokenStream, input: &ItemMod) -> manyhow::Result<Tok
                 let mut actions = ::std::vec::Vec::new();
                 #(actions.extend(#actors::actions().into_iter().map(Action::#actors));)*
                 actions
+            }
+            fn outcome_catalog(&self) -> ::core::option::Option<::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>> {
+                Some(#outcome_catalog)
+            }
+            fn fault_catalog(&self) -> ::core::option::Option<::std::vec::Vec<Self::Action>> {
+                let mut actions = ::std::vec::Vec::new();
+                #(actions.extend(#actors::actions().into_iter().filter(#actors::fault).map(Action::#actors));)*
+                Some(actions)
             }
             fn internal(&self, action: &Self::Action) -> bool {
                 match action { #(Action::#actors(value) => value.internal()),* }

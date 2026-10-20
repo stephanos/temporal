@@ -1,4 +1,4 @@
-error[E0277]: the trait bound `Action: From<Other>` is not satisfied
+error[E0277]: the trait bound `model::Action: From<Other>` is not satisfied
   --> tests/ui/machine_scope_actor.rs:19:52
    |
 19 |         fn unknown_actor() -> Assumption { without([super::Other::Unknown]) }
@@ -6,14 +6,14 @@ error[E0277]: the trait bound `Action: From<Other>` is not satisfied
    |                                            |
    |                                            required by a bound introduced by this call
    |
-help: the trait `From<Other>` is not implemented for `Action`
+help: the trait `From<Other>` is not implemented for `model::Action`
       but trait `From<Nobody>` is implemented for it
   --> tests/ui/machine_scope_actor.rs:6:1
    |
  6 | #[machine]
    | ^^^^^^^^^^
    = help: for that trait implementation, expected `Nobody`, found `Other`
-   = note: required for `Other` to implement `Into<Action>`
+   = note: required for `Other` to implement `Into<model::Action>`
 note: required by a bound in `model::without`
   --> tests/ui/machine_scope_actor.rs:6:1
    |

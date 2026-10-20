@@ -2,7 +2,15 @@
 
 mod action;
 mod machine;
+mod path;
 mod state;
+
+/// Parses the typed path language behind `path!`.
+#[doc(hidden)]
+#[manyhow::manyhow(proc_macro)]
+pub fn __path_parse(input: proc_macro2::TokenStream) -> syn::Result<proc_macro2::TokenStream> {
+    path::expand(input)
+}
 
 /// Derive state value traits, Debug/Display formatting and ordered initial states.
 #[manyhow::manyhow(proc_macro_derive(State, attributes(starts)))]
@@ -10,8 +18,8 @@ pub fn state(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::To
     state::expand(&syn::parse2(input)?)
 }
 
-/// Derive unit-action value traits, Debug/Display formatting and an ordered catalog.
-#[manyhow::manyhow(proc_macro_derive(Action, attributes(internal)))]
+/// Derive action value traits, Debug/Display formatting and a complete ordered catalog.
+#[manyhow::manyhow(proc_macro_derive(Action, attributes(internal, fault, inputs)))]
 pub fn action(input: proc_macro2::TokenStream) -> manyhow::Result<proc_macro2::TokenStream> {
     action::expand(&syn::parse2(input)?)
 }

@@ -1,0 +1,45 @@
+error[E0277]: the trait bound `Model: Actor` is not satisfied
+  --> tests/ui/path_language_outcome_state.rs:15:48
+   |
+15 |     let _: Path<world::Model, world::Action> = path![world::Model { done: false } => (), true];
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `Actor` is not implemented for `Model`
+  --> tests/ui/path_language_outcome_state.rs:6:5
+   |
+ 6 |     pub struct Model { pub done: bool }
+   |     ^^^^^^^^^^^^^^^^
+help: the trait `Actor` is implemented for `User`
+  --> tests/ui/path_language_outcome_state.rs:7:14
+   |
+ 7 |     #[derive(Action)]
+   |              ^^^^^^
+note: required by a bound in `umpire_dsl::path_build::outcome_action`
+  --> src/path_build.rs
+   |
+   | pub fn outcome_action<S: Registered, T: Actor + 'static>(value: T) -> WorldPattern<S>
+   |                                         ^^^^^ required by this bound in `outcome_action`
+   = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error[E0277]: the trait bound `world::Action: From<Model>` is not satisfied
+  --> tests/ui/path_language_outcome_state.rs:15:48
+   |
+15 |     let _: Path<world::Model, world::Action> = path![world::Model { done: false } => (), true];
+   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |
+help: the trait `From<Model>` is not implemented for `world::Action`
+      but trait `From<User>` is implemented for it
+  --> tests/ui/path_language_outcome_state.rs:2:1
+   |
+ 2 | #[umpire_dsl::machine]
+   | ^^^^^^^^^^^^^^^^^^^^^^
+   = help: for that trait implementation, expected `User`, found `Model`
+note: required by a bound in `umpire_dsl::path_build::outcome_action`
+  --> src/path_build.rs
+   |
+   | pub fn outcome_action<S: Registered, T: Actor + 'static>(value: T) -> WorldPattern<S>
+   |        -------------- required by a bound in this function
+   | where
+   |     <S::World as Machine>::Action: From<T> + 'static,
+   |                                    ^^^^^^^ required by this bound in `outcome_action`
+   = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the attribute macro `umpire_dsl::machine` (in Nightly builds, run with -Z macro-backtrace for more info)

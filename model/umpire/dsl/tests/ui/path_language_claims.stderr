@@ -1,0 +1,87 @@
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+19 | claim!(action, true, .., User::Poll);
+   | ------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+20 | claim!(inputs, true, .., User::Poll { amount: _, .. });
+   | ------------------------------------------------------ in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+21 | claim!(wildcard, true, .., User::*);
+   | ----------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+22 | claim!(outcome, true, .., User::Poll => Outcome::Accepted);
+   | ---------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+23 | claim!(alternatives, true, .., (true | false));
+   | ---------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+24 | claim!(repetition, true, .., [true; 2]);
+   | --------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+25 | claim!(permutations, true, .., unordered![true, false]);
+   | ------------------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: a progress claim is two state predicates
+  --> tests/ui/path_language_claims.rs:14:50
+   |
+14 |                 fn completes(&self) -> LeadsTo { path![$($pattern)*] }
+   |                                                  ^^^^^^^^^^^^^^^^^^^
+...
+26 | claim!(exclusion, true, ..!(User::Poll), false);
+   | ----------------------------------------------- in this macro invocation
+   |
+   = note: this error originates in the macro `claim` (in Nightly builds, run with -Z macro-backtrace for more info)

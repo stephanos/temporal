@@ -304,6 +304,24 @@ mod counter {
             Self::Clock(value)
         }
     }
+    impl ::umpire_dsl::RegisteredActor<Counter> for User {}
+    impl ::umpire_dsl::ActorProjection<User> for Action {
+        fn project(&self) -> ::core::option::Option<&User> {
+            match self {
+                Self::User(value) => Some(value),
+                _ => None,
+            }
+        }
+    }
+    impl ::umpire_dsl::RegisteredActor<Counter> for Clock {}
+    impl ::umpire_dsl::ActorProjection<Clock> for Action {
+        fn project(&self) -> ::core::option::Option<&Clock> {
+            match self {
+                Self::Clock(value) => Some(value),
+                _ => None,
+            }
+        }
+    }
     impl ::core::fmt::Display for Action {
         fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match *self {
@@ -406,6 +424,27 @@ mod counter {
             actions.extend(User::actions().into_iter().map(Action::User));
             actions.extend(Clock::actions().into_iter().map(Action::Clock));
             actions
+        }
+        fn outcome_catalog(
+            &self,
+        ) -> ::core::option::Option<
+            ::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>,
+        > {
+            Some(::std::vec![::umpire_dsl::OutcomeClass::new("()", | _ | true)])
+        }
+        fn fault_catalog(
+            &self,
+        ) -> ::core::option::Option<::std::vec::Vec<Self::Action>> {
+            let mut actions = ::std::vec::Vec::new();
+            actions
+                .extend(
+                    User::actions().into_iter().filter(User::fault).map(Action::User),
+                );
+            actions
+                .extend(
+                    Clock::actions().into_iter().filter(Clock::fault).map(Action::Clock),
+                );
+            Some(actions)
         }
         fn internal(&self, action: &Self::Action) -> bool {
             match action {

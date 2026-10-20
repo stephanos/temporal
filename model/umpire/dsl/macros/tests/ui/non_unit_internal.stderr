@@ -1,11 +1,11 @@
-error: #[internal] requires a unit action variant
- --> tests/ui/non_unit_internal.rs:6:5
+error: Heater::Heat field `0` requires #[inputs] with a bounded range or finite list
+ --> tests/ui/non_unit_internal.rs:6:10
   |
 6 |     Heat(u8),
-  |     ^^^^
+  |          ^^
 
-error: #[internal] requires a unit action variant
- --> tests/ui/non_unit_internal.rs:7:5
+error: Heater::Failover field `reason` requires #[inputs] with a bounded range or finite list
+ --> tests/ui/non_unit_internal.rs:7:16
   |
 7 |     Failover { reason: bool },
-  |     ^^^^^^^^
+  |                ^^^^^^^^^^^^

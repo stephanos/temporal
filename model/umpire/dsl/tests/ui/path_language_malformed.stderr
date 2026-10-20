@@ -1,0 +1,53 @@
+error: an action input needs a finite range
+ --> tests/ui/path_language_malformed.rs:4:56
+  |
+4 |     let _: Path<u8> = path![true, User::Send { amount: 0.., .. }];
+  |                                                        ^^^
+
+error: unexpected end of input, expected one of: identifier, `::`, `<`, `_`, literal, `const`, `ref`, `mut`, `&`, parentheses, square brackets, `..`, `const`
+ --> tests/ui/path_language_malformed.rs:5:23
+  |
+5 |     let _: Path<u8> = path![true, User::Poll =>];
+  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, expected an expression
+ --> tests/ui/path_language_malformed.rs:6:23
+  |
+6 |     let _: Path<u8> = path![true, (User::Poll |)];
+  |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  |
+  = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)
+
+error: unexpected end of input, a repetition needs finite lower and upper bounds
+ --> tests/ui/path_language_malformed.rs:7:51
+  |
+7 |     let _: Path<u8> = path![true, [User::Poll; 0..]];
+  |                                                   ^
+
+error: unexpected end of input, unordered![a, b, c] needs one or more non-gap patterns
+ --> tests/ui/path_language_malformed.rs:8:46
+  |
+8 |     let _: Path<u8> = path![true, unordered![]];
+  |                                              ^
+
+error: unexpected end of input, an exclusion gap names at least one action: ..!(Actor::Action)
+ --> tests/ui/path_language_malformed.rs:9:39
+  |
+9 |     let _: Path<u8> = path![true, ..!(), false];
+  |                                       ^
+
+error: expected `,`
+  --> tests/ui/path_language_malformed.rs:10:42
+   |
+10 |     let _: Path<u8> = path![true, User::**];
+   |                                          ^
+
+error: unexpected end of input, expected identifier
+  --> tests/ui/path_language_malformed.rs:11:23
+   |
+11 |     let _: Path<u8> = path![true, User::];
+   |                       ^^^^^^^^^^^^^^^^^^^
+   |
+   = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)

@@ -27,7 +27,7 @@ fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion rev
 fn-225 is complete locally: its single task passed implementation review, correctness and
 standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
 complete locally with all three search requirements covered, reviews passed and model gates green.
-fn-218 is next.
+fn-218's grammar and catalog task is in progress.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -61,7 +61,7 @@ the Model's catalog. The claim form stays two state waypoints.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-218.1 | ⬜ todo | Full `path!` grammar and alternative enumeration; claims refuse it (R1) |
+| fn-218.1 | 🔄 in progress | Full `path!` grammar, input domains, catalog support and enumeration; claims refuse test grammar (R1, R3) |
 | fn-218.2 | ⬜ todo | After .1 and fn-213.3: `cover`/`sample` with expansion and coverage goldens (R2, R3, R5) |
 | fn-218.3 | ⬜ todo | After .2: Kettle and mini activity `cover` tests; README grammar (R3, R4) |
 

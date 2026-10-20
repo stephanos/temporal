@@ -4,4 +4,4 @@ error: a path ends with a waypoint, not a gap: write [p, .., q]
 4 |     let _: Path<u8> = path![true, .., false, ..=1];
   |                       ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
   |
-  = note: this error originates in the macro `$crate::__path` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)
+  = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the macro `path` (in Nightly builds, run with -Z macro-backtrace for more info)

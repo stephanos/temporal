@@ -1,0 +1,5 @@
+error: User::Set field `value` requires #[inputs] with a bounded range or finite list
+ --> tests/ui/action_inputs_missing.rs:5:11
+  |
+5 |     Set { value: u8 },
+  |           ^^^^^^^^^

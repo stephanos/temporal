@@ -59,6 +59,14 @@ pub mod counter {
             Self::User(value)
         }
     }
+    impl ::umpire_dsl::RegisteredActor<Model> for User {}
+    impl ::umpire_dsl::ActorProjection<User> for Action {
+        fn project(&self) -> ::core::option::Option<&User> {
+            match self {
+                Self::User(value) => Some(value),
+            }
+        }
+    }
     impl ::core::fmt::Display for Action {
         fn fmt(&self, out: &mut ::core::fmt::Formatter<'_>) -> ::core::fmt::Result {
             match *self {
@@ -82,6 +90,46 @@ pub mod counter {
             let mut actions = ::std::vec::Vec::new();
             actions.extend(User::actions().into_iter().map(Action::User));
             actions
+        }
+        fn outcome_catalog(
+            &self,
+        ) -> ::core::option::Option<
+            ::std::vec::Vec<::umpire_dsl::OutcomeClass<Self::Outcome>>,
+        > {
+            Some(
+                ::std::vec![
+                    ::umpire_dsl::OutcomeClass::new("Accepted", | outcome |
+                    matches!(outcome, ::umpire_dsl::Outcome::Accepted)),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(NotFound)", | outcome |
+                    matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::NotFound))),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(AlreadyExists)", | outcome
+                    | matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::AlreadyExists))),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(FailedPrecondition)", |
+                    outcome | matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::FailedPrecondition))),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(InvalidArgument)", |
+                    outcome | matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::InvalidArgument))),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(PermissionDenied)", |
+                    outcome | matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::PermissionDenied))),
+                    ::umpire_dsl::OutcomeClass::new("Rejected(Unavailable)", | outcome |
+                    matches!(outcome,
+                    ::umpire_dsl::Outcome::Rejected(::umpire_dsl::Rejection::Unavailable)))
+                ],
+            )
+        }
+        fn fault_catalog(
+            &self,
+        ) -> ::core::option::Option<::std::vec::Vec<Self::Action>> {
+            let mut actions = ::std::vec::Vec::new();
+            actions
+                .extend(
+                    User::actions().into_iter().filter(User::fault).map(Action::User),
+                );
+            Some(actions)
         }
         fn internal(&self, action: &Self::Action) -> bool {
             match action {
