@@ -37,6 +37,64 @@ func TestNativeSetWritesOnlyNativeOutputs(t *testing.T) {
 	}
 }
 
+func TestNativeGenerateKeepsOutputsUnderSelectedRoot(t *testing.T) {
+	root := t.TempDir()
+	parent := t.TempDir()
+	for _, relative := range nativeInputs() {
+		contents, err := os.ReadFile(filepath.Join(moduleRoot, filepath.FromSlash(relative)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		destination := parent
+		if strings.HasPrefix(relative, nativeRelPath+"/") {
+			destination = root
+		}
+		if relative == nativeRelPath+"/go.mod" {
+			contents = []byte("module " + nativeModule + "\n\ngo 1.27.1\n\nreplace " + parentModule + " => " + filepath.ToSlash(parent) + "\n")
+		}
+		path := filepath.Join(destination, filepath.FromSlash(relative))
+		if err := os.MkdirAll(filepath.Dir(path), 0o755); err != nil {
+			t.Fatal(err)
+		}
+		if err := os.WriteFile(path, contents, 0o600); err != nil {
+			t.Fatal(err)
+		}
+	}
+	if _, err := Generate(root, false); err != nil {
+		t.Fatal(err)
+	}
+	if stale, err := Generate(root, true); err != nil || len(stale) != 0 {
+		t.Fatalf("check with relocated parent = %v, %v", stale, err)
+	}
+	outputs := []string{
+		nativeRelPath + "/build/internal/livecap/protocol_generated.go",
+		overlay + "cmd/internal/gomadcap/protocol_generated.go",
+	}
+	for _, target := range Targets() {
+		outputs = append(outputs, target.Path)
+	}
+	for _, relative := range outputs {
+		got, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(relative)))
+		if err != nil {
+			t.Fatal(err)
+		}
+		want, err := os.ReadFile(filepath.Join(moduleRoot, filepath.FromSlash(relative)))
+		if err != nil || string(got) != string(want) {
+			t.Fatalf("relocated generation of %s differs from the tree: %v", relative, err)
+		}
+	}
+	if _, err := os.Stat(filepath.Join(parent, filepath.FromSlash(nativeRelPath))); !os.IsNotExist(err) {
+		t.Fatalf("generator touched the replacement parent's native tree: %v", err)
+	}
+	changed := Targets()[0].Path
+	if err := os.WriteFile(filepath.Join(root, filepath.FromSlash(changed)), []byte("stale"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if stale, err := Generate(root, true); err != nil || !slices.Equal(stale, []string{changed}) {
+		t.Fatalf("check of selected output = %v, %v", stale, err)
+	}
+}
+
 func TestParentRootFollowsReplace(t *testing.T) {
 	parent, err := ParentRoot(filepath.Join(moduleRoot, "internal", "backends", "native"))
 	if err != nil {

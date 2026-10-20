@@ -12,7 +12,7 @@ import (
 var moduleRoot = filepath.Join("..", "..", "..", "..")
 
 func TestSharedSetIsCurrent(t *testing.T) {
-	stale, err := Generate(moduleRoot, SharedTargets(), SharedHeaders, true)
+	stale, err := Generate(moduleRoot, moduleRoot, SharedTargets(), SharedHeaders, true)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -95,7 +95,7 @@ func copyInputs(t *testing.T, root string, inputs []string) {
 func TestGenerateWritesAndChecksEverySharedOutput(t *testing.T) {
 	root := t.TempDir()
 	copyInputs(t, root, sharedInputs())
-	if stale, err := Generate(root, SharedTargets(), SharedHeaders, false); err != nil || stale != nil {
+	if stale, err := Generate(root, root, SharedTargets(), SharedHeaders, false); err != nil || stale != nil {
 		t.Fatalf("generate = %v, %v", stale, err)
 	}
 	for _, target := range SharedTargets() {
@@ -108,7 +108,7 @@ func TestGenerateWritesAndChecksEverySharedOutput(t *testing.T) {
 			t.Fatalf("isolated generation of %s differs from the tree: %v", target.Path, err)
 		}
 	}
-	if stale, err := Generate(root, SharedTargets(), SharedHeaders, true); err != nil || len(stale) != 0 {
+	if stale, err := Generate(root, root, SharedTargets(), SharedHeaders, true); err != nil || len(stale) != 0 {
 		t.Fatalf("check after generate = %v, %v", stale, err)
 	}
 	for _, target := range SharedTargets() {
@@ -120,7 +120,7 @@ func TestGenerateWritesAndChecksEverySharedOutput(t *testing.T) {
 		if err := os.WriteFile(path, append(current, "stale"...), 0o600); err != nil {
 			t.Fatal(err)
 		}
-		stale, err := Generate(root, SharedTargets(), SharedHeaders, true)
+		stale, err := Generate(root, root, SharedTargets(), SharedHeaders, true)
 		if err != nil || !slices.Equal(stale, []string{target.Path}) {
 			t.Fatalf("check after editing %s = %v, %v", target.Path, stale, err)
 		}
@@ -132,7 +132,7 @@ func TestGenerateWritesAndChecksEverySharedOutput(t *testing.T) {
 	if err := os.Remove(filepath.Join(root, filepath.FromSlash(missing))); err != nil {
 		t.Fatal(err)
 	}
-	if stale, err := Generate(root, SharedTargets(), SharedHeaders, true); err != nil || !slices.Equal(stale, []string{missing}) {
+	if stale, err := Generate(root, root, SharedTargets(), SharedHeaders, true); err != nil || !slices.Equal(stale, []string{missing}) {
 		t.Fatalf("check with %s missing = %v, %v", missing, stale, err)
 	}
 }
@@ -144,10 +144,10 @@ func TestGenerateReportsSchemaAndTemplateErrors(t *testing.T) {
 	if err := os.WriteFile(broken, []byte("{"), 0o600); err != nil {
 		t.Fatal(err)
 	}
-	if stale, err := Generate(root, SharedTargets(), SharedHeaders, true); err == nil || stale != nil {
+	if stale, err := Generate(root, root, SharedTargets(), SharedHeaders, true); err == nil || stale != nil {
 		t.Fatalf("broken schema = %v, %v", stale, err)
 	}
-	if _, err := Generate(moduleRoot, SharedTargets()[:1], nil, true); err == nil || !strings.Contains(err.Error(), "header") {
+	if _, err := Generate(moduleRoot, moduleRoot, SharedTargets()[:1], nil, true); err == nil || !strings.Contains(err.Error(), "header") {
 		t.Fatalf("missing header = %v", err)
 	}
 }

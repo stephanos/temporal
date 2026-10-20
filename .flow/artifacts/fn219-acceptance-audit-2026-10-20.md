@@ -28,6 +28,25 @@ Commands below ran from `tools/gomad` unless another directory is stated.
 | `go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate -check` | 0 | Tool result retained in session |
 | Repository root: `go test -tags test_dep -count=1 ./cmd/tools/lintcode` | 0 | `current-lintcode-tests.log` |
 | Repository root: `git diff --check` | 0 | Tool result retained in session |
+| `GOMAD_WASM_CONFORMANCE_HELPER=/home/agent/.cache/fn219-target/conformance/release/gomad-wasmhost GOMAD_WASM_CONFORMANCE_REQUIRED=1 go test -tags test_dep -count=1 -run '^(TestNamespaceConformance|TestVolumeConformance)' ./internal/backends/wasm/wasi` | 0 | `current-volume-namespace-conformance.log`; retained helper, not the integrated R5 helper build |
+
+## Review correction: replaced parent and selected output roots
+
+Independent review found that native protocol generation used the replacement
+parent as both schema and output root. With an alternate parent replacement,
+that redirected native outputs and native template reads into another tree.
+The generator now takes separate schema and output roots. Native templates,
+live-capability inputs and generated files stay under the selected root;
+shared schemas, templates and runtime semantics come from the replaced parent.
+The new regression populates the replacement parent with only shared inputs,
+compares every selected output, checks named stale-file reporting, and proves
+that no native directory is created in the replacement parent.
+
+After this correction, focused protocol library/CLI/native generator tests,
+default `make generate validate`, and selected
+`GOFLAGS='-tags=gomad_native -p=2' make generate-native validate-native` all
+exit 0. Logs: `review-output-root-tests.log`, `review-default-validation.log`
+and `review-native-validation.log`. Regeneration leaves tracked outputs unchanged.
 
 `make lint-code-gomad GOLANGCI_LINT_BASE_REV=e50c6476fb` initially exited 2
 because the lint router still expected `hostSourcePackages` in archcheck's

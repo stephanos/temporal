@@ -76,7 +76,7 @@ type liveCapabilityBoundary struct {
 	Disposition string
 }
 
-func generateLiveCapabilityProtocols(root string, check bool) ([]string, error) {
+func generateLiveCapabilityProtocols(root, parent string, check bool) ([]string, error) {
 	definition, err := readLiveCapabilitySchema(filepath.Join(root, "internal/backends", "native", "build", "internal", "livecap", "livecap.json"))
 	if err != nil {
 		return nil, err
@@ -93,7 +93,7 @@ func generateLiveCapabilityProtocols(root string, check bool) ([]string, error) 
 	if err != nil {
 		return nil, err
 	}
-	identityInputs, err := readLiveCapabilityImplementationInputs(root)
+	identityInputs, err := readLiveCapabilityImplementationInputs(root, parent)
 	if err != nil {
 		return nil, err
 	}
@@ -133,7 +133,7 @@ func generateLiveCapabilityProtocols(root string, check bool) ([]string, error) 
 	return stale, nil
 }
 
-func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplementationInputs, error) {
+func readLiveCapabilityImplementationInputs(root, parent string) (liveCapabilityImplementationInputs, error) {
 	paths := []string{
 		"internal/backends/native/build/internal/livecap/livecap.json",
 		"internal/backends/native/build/internal/livecap/livecap.go.tmpl",
@@ -156,7 +156,7 @@ func readLiveCapabilityImplementationInputs(root string) (liveCapabilityImplemen
 		}
 		values[index] = value
 	}
-	semantics, err := os.ReadFile(filepath.Join(root, "internal/model/runtimesource", "gomad_semantics.go.txt"))
+	semantics, err := os.ReadFile(filepath.Join(parent, "internal/model/runtimesource", "gomad_semantics.go.txt"))
 	if err != nil {
 		return liveCapabilityImplementationInputs{}, fmt.Errorf("read live capability runtime semantics: %w", err)
 	}
