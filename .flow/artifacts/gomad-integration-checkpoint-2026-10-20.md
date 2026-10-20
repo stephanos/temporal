@@ -282,3 +282,54 @@ gomad` preserved the unrelated untracked files. Nothing was pushed. The
 `gomad-milestones` ref remains at that checkpoint; subsequent integration work
 continues on `gomad`. This branch move supplies no qualification acceptance and
 does not change the frozen `2ce6d4a2c5` isolated-diagnostic candidate.
+
+## Rust-first continuation
+
+The latest merged order in MILESTONES.md supersedes the isolated Go diagnostic
+and the older whole-spec ordering above. The isolated ordinary run on
+`2ce6d4a2c5` ended with exit 130 after 501 seconds when the Rust-first decision
+was applied; its `interruption.json` is under
+`/home/agent/wt/evidence/qualification-final/ordinary-isolated-2ce6d4a2c5`.
+No further full Go qualification or Go-only profiling is scheduled.
+
+Owner-authored fn-228 through fn-232 plans are committed in `c36dddcb3e`.
+The interleaved gates and explicit pending Rust qualification transfers are
+reconciled in `0b55f8bf7a`; no transfer is an execution pass. fn-228's amended
+plan passed independent Codex review in round 2 (`gpt-6.1-sol`, high, same
+family), session `01a15b20-888a-7f30-8471-1aeaba46cc01`. The receipt is
+`.flow/tmp/plan-review-receipt-fn-228-gomad-helper-owned-replay-tape.json`.
+
+Rust replay-plan projection checkpoint `1430d50b01` is integrated as
+`8d37d31bc9`. The worker's 44-fixture Go/Rust corpus, two-pass regeneration,
+tagged Replay selection and Rust/Go lint passed; exact commands and logs are
+indexed by `/home/agent/wt/evidence/fn228/handover/task1-summary.md` and its
+evidence JSON. The conductor reran tagged Go choice tests on the integrated
+tree: exit 0, 0.025 seconds. All four fn-228 tasks remain in progress until the
+combined transport/Runner/oracle batch passes review and acceptance.
+
+The preserved Go behavioral baseline now belongs to open fn-232 at
+`/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md`. Both hash
+manifests pass independent verification; the bundle includes executable/helper
+copies and a tracked-source archive, not a qualification or migration claim.
+
+Current command handles: sweep `97951` (owned PID `879280`, resumed journal,
+latest reported 70/1488 classifications: 69 pass and one unresolved capacity
+observation); fn-232 plan review `23300` (still running, no verdict). Poll these
+same handles rather than restarting them. The sweep is shared-host triage,
+not quiet-host performance evidence or a support claim.
+
+Open implementation ownership: `replay_tape_impl` owns Rust/WASI transport in
+`/home/agent/wt/fn228`, and its `runner_bridge` child owns Go producers/adapters
+in `/home/agent/wt/fn228-runner`. Their interface is
+`/home/agent/wt/evidence/fn228/handover/batch-interface.md`. `promotion_closeout`
+owns the fn-219 ledger/audit continuation in `/home/agent/wt/fn219-closeout`;
+the conductor owns review, integration and Flow completion. None may push or
+dispatch CI.
+
+Retained worktrees: `fn228` and `fn228-runner` for the active replay batch;
+`fn219-closeout` for the ledger continuation; `fn221` for the live sweep;
+`qualification-final-frozen` for still-referenced failed/interrupted evidence;
+`fn219-ledger-reconcile`, `fn188` and `fn227-map-order` for their still-open
+owners' evidence and commits. Remove only after ownership transfer and the
+closed-spec checks required by AGENTS.md. Unrelated `tools/gomad/.turbo/`
+remains untouched. Nothing has been pushed.
