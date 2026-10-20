@@ -330,10 +330,10 @@ First batch of fn-232; the Rust binary links the helper library it extends.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-228-gomad-helper-owned-replay-tape.1](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.1.md) | ⬜ Todo | Rust replay-plan projection with a Go/Rust conformance corpus |
-| [fn-228-gomad-helper-owned-replay-tape.2](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.2.md) | ⬜ Todo | Helper preflight: trace frames, digest and count checks, refusal before guest start |
-| [fn-228-gomad-helper-owned-replay-tape.3](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.3.md) | ⬜ Todo | Runner stops projecting; compares helper terminal counts |
-| [fn-228-gomad-helper-owned-replay-tape.4](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md) | ⬜ Todo | Keep split-owned reference session, regenerate corpora, document the contract |
+| [fn-228-gomad-helper-owned-replay-tape.1](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.1.md) | 🚧 In progress | Rust replay-plan projection with a Go/Rust conformance corpus |
+| [fn-228-gomad-helper-owned-replay-tape.2](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.2.md) | 🚧 In progress | Helper preflight: trace frames, digest and count checks, refusal before guest start |
+| [fn-228-gomad-helper-owned-replay-tape.3](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.3.md) | 🚧 In progress | Runner stops projecting; compares helper terminal counts |
+| [fn-228-gomad-helper-owned-replay-tape.4](.flow/tasks/fn-228-gomad-helper-owned-replay-tape.4.md) | 🚧 In progress | Keep split-owned reference session, regenerate corpora, document the contract |
 
 ### Rust host rewrite — [fn-232](.flow/specs/fn-232-gomad-rewrite-the-host-side-in-rust.md)
 
