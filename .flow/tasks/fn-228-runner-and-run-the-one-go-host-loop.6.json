@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T19:09:25.925914Z",
+  "depends_on": [
+    "fn-228-runner-and-run-the-one-go-host-loop.4"
+  ],
+  "id": "fn-228-runner-and-run-the-one-go-host-loop.6",
+  "priority": null,
+  "spec": "fn-228-runner-and-run-the-one-go-host-loop",
+  "spec_path": ".flow/tasks/fn-228-runner-and-run-the-one-go-host-loop.6.md",
+  "status": "todo",
+  "title": "After .4: delete verification, evaluation, cel, predicate, contract, casefile, campaign, replay; shrink ir and execution; sizes reported",
+  "updated_at": "2026-10-20T19:09:25.925914Z"
+}

@@ -1,0 +1,26 @@
+{
+  "branch_name": "fn-228-runner-and-run-the-one-go-host-loop",
+  "created_at": "2026-10-20T19:09:25.524619Z",
+  "depends_on_epics": [
+    "fn-227-parameterized-models-declared-worlds"
+  ],
+  "id": "fn-228-runner-and-run-the-one-go-host-loop",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md",
+  "status": "open",
+  "title": "Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T19:09:26.502365Z"
+}

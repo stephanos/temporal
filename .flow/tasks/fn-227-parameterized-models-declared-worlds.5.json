@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T18:58:34.628094Z",
+  "depends_on": [
+    "fn-227-parameterized-models-declared-worlds.4"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds.5",
+  "priority": null,
+  "spec": "fn-227-parameterized-models-declared-worlds",
+  "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.5.md",
+  "status": "todo",
+  "title": "After .4: realization reads activity options into the World; Answer selects retryable; live SDK retry proof",
+  "updated_at": "2026-10-20T18:58:34.628094Z"
+}

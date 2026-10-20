@@ -27,8 +27,8 @@ fn-213, fn-215, fn-223 and fn-224 are complete locally with their completion rev
 fn-225 is complete locally: its single task passed implementation review, correctness and
 standards audits, and default/required-TLC gates with byte-identical goldens. fn-226 is also
 complete locally with all three search requirements covered, reviews passed and model gates green.
-fn-218's grammar/catalog and pattern matching/coverage/sampling tasks are complete
-locally with review and gates passed; real-model examples and README remain.
+fn-218's grammar/catalog, pattern matching/coverage/sampling, real-model examples and
+README are complete locally with task reviews and gates passed; completion review remains.
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -46,7 +46,7 @@ is Rust. The guest now directly exports `umpire_buffer_alloc`, `umpire_buffer_re
 
 | Phase | Specs and tasks | Scope |
 | --- | --- | --- |
-| After the Rust verdict | fn-218 → fn-217 → fn-211 | Owner priority order. fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224, fn-225 and fn-226 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The Case slice keeps the Model as oracle, one Model per run, thin SDK shims, one host loop, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
+| After the Rust verdict | fn-218 → fn-217 → fn-229 → fn-230 → fn-231 → fn-227 → fn-211 → fn-228 | Owner priority order (fn-231 after fn-217 and fn-229, before fn-228.2 if possible; fn-229 is small and must land before fn-227.3; fn-230 has no dependency and must land before fn-228.4; fn-227 placed before fn-211 on 2026-10-20 so Apalache arrives to a parameterized Model; fn-228 depends on fn-227 only, its place relative to fn-211 is the owner's). fn-210, fn-212, fn-213, fn-214, fn-215, fn-216, fn-221, fn-223, fn-224, fn-225 and fn-226 are complete locally with their scoped reviews and gates passed; fn-225 and fn-226's single-task reviews cover their full specs. fn-216's broad umbrella retains seven documented pre-existing failures. The recommendation is Rust under stock WASM/Go parity alone. Preserve each spec's prerequisites; priority does not add dependency edges or mark deferred work ready. fn-212 supplies lifting and TLC for its admitted source subset; fn-211 adds Apalache over its emitter. The former "Case slice" is filed as fn-228 (Runner and Run): the Model as umpire, one Model per Run, Propose on the protocol, one Go host loop, Driver and Shim, observations plus judgment and the never-overwrite publish store. Targets are at most 5,000 generic-runtime and 11,000 total non-test Testpilot Go lines. Standalone extraction remains a plan in `MIGRATE.md`. |
 
 ## Specs
 
@@ -60,9 +60,7 @@ golden a reviewer reads as the list of cases; a coverage table shows what the te
 the Model's catalog. The claim form stays two state waypoints.
 [Spec](.flow/specs/fn-218-test-space-patterns-cover-and-the-full.md).
 
-| Name | Status | What |
-| --- | --- | --- |
-| fn-218.3 | ⬜ todo | Kettle and activity `cover` tests; README grammar (R3, R4) |
+All tasks are done; the spec completion review is in progress.
 
 ### fn-217: Annotation catalog over the Temporal API: kinds, tags, rules, expected errors and gap analysis (model, temporal)
 
@@ -83,9 +81,76 @@ validators. Generic vocabulary in `umpire-annotations`, Temporal tags in `model/
 | fn-217.4 | ⬜ todo | After .3: gap probe and reverse coverage; `gaps.txt` golden (R3, R4) |
 | fn-217.5 | ⬜ todo | After .4: DESIGN.md write-up (R5) |
 
+### fn-229: Realization ergonomics: shared Temporal helpers, runtime constructors, and the activity Realization rewrite (model, temporal)
+
+Captured on 2026-10-20 from the owner's request to make the activity Realization shorter and easier
+to maintain, approved as a small spec. Runtime constructors (`Transition::from`, `Projection::step`,
+`Candidate` with an expected outcome, `AnswerPlan::new`; `Realize::matches` removed), a Temporal
+`support` module (observation decoding, gRPC code to `Rejection`, method naming, `plain_text`,
+`Failure::application`, reply and callback envelopes), and the activity Realization rewritten against
+them with `TryFrom<ActivityExecutionInfo> for Phase` beside the Model. Goldens and the live slice are the
+control. Lands before fn-227.3, fn-227.5 and fn-228.2 extend the file.
+[Spec](.flow/specs/fn-229-realization-ergonomics-shared-temporal.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-229.1 | ⬜ todo | Runtime constructors and `Candidate` outcomes; `matches` removed (R1) |
+| fn-229.2 | ⬜ todo | After .1: `support` helpers; activity Realization rewritten (R2, R3) |
+
+### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
+
+Captured on 2026-10-20 from the owner's decision that the built guest is checked in so test runners
+need Go and no Rust. Umpire gains a `guest` Cargo profile and `guest.sh` producing byte-identical
+wasm from any checkout, proven on two; the Temporal guest is committed beside its Go host module and
+embedded with `go:embed`; `make model-check` rebuilds and byte-compares it like the protobuf
+freshness checks, and `make umpire-guest` refreshes it. Umpire's own guests stay uncommitted.
+[Spec](.flow/specs/fn-230-reproducible-guest-builds-a-system.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-230.1 | ⬜ todo | `guest` profile and `guest.sh`; reproducibility proven on two clean checkouts (R1) |
+| fn-230.2 | ⬜ todo | After .1: committed Temporal guest with `go:embed`; freshness step; `umpire-guest`; docs (R2, R3, R4) |
+
+### fn-231: Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)
+
+Captured on 2026-10-20 after fn-217 and fn-229. A Realization becomes annotated handlers,
+`#[observe(Service::Method, reads(..), ignores(..))]` and `#[answer(..)]` under `#[realization(activity)]`,
+with dispatch, unpacking and `Unsupported` refusals generated over fn-229's helpers; `#[propose]` is
+reserved for fn-228.2. Coverage is a golden, `realization.snap.txt`, classifying every catalog field of each
+handled RPC as mapped, ignored with reason or unsupported, plus unhandled RPCs, checked against fn-217's
+catalog at build time. Attributes live on the Realization only; the Model names nothing from Temporal.
+[Spec](.flow/specs/fn-231-declarative-realizations-the.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-231.1 | ⬜ todo | Realization macro crate, `Step`/`Reply`, generated `Realize`; activity rewritten with expansion snapshot (R1, R3, R4) |
+| fn-231.2 | ⬜ todo | After .1: coverage golden against the catalog; unknown paths refused; DESIGN.md (R2, R4) |
+
+### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
+
+Captured on 2026-10-20, after fn-218 and fn-217 and before fn-211. Closes the DSL gap DESIGN.md's
+readiness table leaves open: `#[derive(World)]` with `&World` access on handlers and claims, a
+`#[starts]` block for computed starts, `Finite` and action inputs with `#[domain]`, and lifting of
+worlds as `CONSTANT`s and inputs as finite choice. Delivered through the activity Model extended
+in place: `maximum_attempts` and `RespondFailed { retryable }`, then the four optional timeouts,
+`Heartbeat`, `Tick` and asynchronous cancel with progress and bound claims; the `maximum_attempts = 1`
+world reproduces the six-phase goldens. The realization reads the world from the observed start
+request and the live slice proves one retry then completion. The lifter admits `impl Phased` and
+`reject!` so TLC checks the activity Model.
+[Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-227.1 | ⬜ todo | Declared World, `&World` access, `#[starts]` block; `parameterized_world` fixture with TLC (R1, R3) |
+| fn-227.2 | ⬜ todo | After .1: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
+| fn-227.3 | ⬜ todo | After .2: lifter admits `Phased`/`reject!`; activity `maximum_attempts` and retryable failure (R3, R4) |
+| fn-227.4 | ⬜ todo | After .3: timeouts, Heartbeat, Tick, asynchronous cancel; progress and bound claims (R5) |
+| fn-227.5 | ⬜ todo | After .4: world from observed start options; Answer retryable; live retry proof (R6) |
+| fn-227.6 | ⬜ todo | After .5: DESIGN.md write-up and readiness table closure (R7) |
+
 ### fn-211: Apalache backend for Umpire in Rust (model)
 
-Captured on 2026-10-18 as a follow-up, after fn-210 and fn-212 and only if their verdicts are to continue in
+Captured on 2026-10-18 as a follow-up, after fn-210, fn-212 and (since 2026-10-20) fn-227, and only if their verdicts are to continue in
 Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitter: Snowcat type
 annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
 per invariant at the native depth plus one, ITF counterexamples decoded through `Spell` and
@@ -99,6 +164,28 @@ liveness through Apalache; TLC owns progress claims.
 | fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through `Spell` and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
+
+### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
+
+Captured on 2026-10-20, after fn-227. Files the post-verdict obligations R33 to R40 as one spec under
+the owner's direction that Go is dumb and the Model holds the smarts, and retires the "Case slice"
+name. Names settled: `umpire-wasm` becomes `umpire-runtime`, `umpire-tests` becomes `umpire-fixtures`,
+Realization is the one word for a binding; new `Propose` on `umpire.model.v1`; Go package `runner`
+with `Runner`, `Run`, `Driver` and `Shim`. The Model is the umpire; the Runtime hosts one Model; a
+Realization binds it to one system; the Runner drives a Driver, asks the Model to Propose, Judge
+and Answer, and records a Run. Deletes verification, evaluation, CEL, contract, casefile, campaign
+and replay; one `umpire` command with five modes.
+[Spec](.flow/specs/fn-228-runner-and-run-the-one-go-host-loop.md).
+
+| Name | Status | What |
+| --- | --- | --- |
+| fn-228.1 | ⬜ todo | Renames alone: `umpire-runtime`, `umpire-fixtures`, Realization in prose (R1) |
+| fn-228.2 | ⬜ todo | After .1: `Propose` on protocol, Runtime, `Realize`, `Host`; activity Realization proposes (R2) |
+| fn-228.3 | ⬜ todo | After .2: Go `runner`: `Runner`, `Run`, `Driver`, five modes, one `umpire` command, publish (R3) |
+| fn-228.4 | ⬜ todo | After .3: Temporal Driver as act-and-observe; live slice through `umpire explore` (R4) |
+| fn-228.5 | ⬜ todo | After .4: Shim endpoint for non-Go SDK workers (R5) |
+| fn-228.6 | ⬜ todo | After .4: delete and shrink Testpilot packages; sizes reported (R6) |
+| fn-228.7 | ⬜ todo | After .5 and .6: DESIGN.md Runner and Run write-up; R33 to R40 discharged (R7) |
 
 ## Open for the owner
 

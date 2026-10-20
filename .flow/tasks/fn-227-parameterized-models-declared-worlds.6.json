@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T18:58:34.628142Z",
+  "depends_on": [
+    "fn-227-parameterized-models-declared-worlds.5"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds.6",
+  "priority": null,
+  "spec": "fn-227-parameterized-models-declared-worlds",
+  "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.6.md",
+  "status": "todo",
+  "title": "After .5: DESIGN.md parameterized worlds write-up and readiness table closure",
+  "updated_at": "2026-10-20T18:58:34.628142Z"
+}

@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-227-parameterized-models-declared-worlds",
+  "created_at": "2026-10-20T18:58:19.229711Z",
+  "depends_on_epics": [
+    "fn-218-test-space-patterns-cover-and-the-full",
+    "fn-217-annotation-catalog-over-the-temporal"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-227-parameterized-models-declared-worlds.md",
+  "status": "open",
+  "title": "Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T18:58:35.256694Z"
+}
