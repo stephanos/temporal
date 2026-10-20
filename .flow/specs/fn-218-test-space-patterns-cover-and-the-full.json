@@ -14,7 +14,7 @@
   "id": "fn-218-test-space-patterns-cover-and-the-full",
   "impl_review_rounds": {
     "fn-218-test-space-patterns-cover-and-the-full.1": 0,
-    "fn-218-test-space-patterns-cover-and-the-full.2": 1
+    "fn-218-test-space-patterns-cover-and-the-full.2": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
@@ -272,10 +272,63 @@
       "task": "fn-218-test-space-patterns-cover-and-the-full.2",
       "timestamp": "2026-10-20T18:15:58.651847Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "8e079513170fb83689db5c1e00e13a3791eb0124952249596f39434266dbc67b",
+      "backend": "codex",
+      "base_sha": "1fbbe511763f0a4c62fd8f234a1f223364ca0967",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-98eb91452b782431e507c2021d2018ab",
+            "classification": "introduced",
+            "findingId": "finding-98eb91452b782431e507c2021d2018ab",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-41be81ed87e0f9da2e62cee0bbc237a3",
+            "classification": "introduced",
+            "findingId": "finding-41be81ed87e0f9da2e62cee0bbc237a3",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "2f62da777cb811197b3b7efe45a8925317eba6d7",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1002,
+      "output_sha256": "32f242c2b629778e56ebee9830b44087a3df516c336a892f5bb4fbdc84719aa0",
+      "reservation_id": "c85dc99048804c79b6309f5bf1f37982",
+      "round_consumed": true,
+      "scope": "impl:fn-218-test-space-patterns-cover-and-the-full.2",
+      "superseded_by": null,
+      "task": "fn-218-test-space-patterns-cover-and-the-full.2",
+      "timestamp": "2026-10-20T18:44:21.265943Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
-    "impl:fn-218-test-space-patterns-cover-and-the-full.1": 1
+    "impl:fn-218-test-space-patterns-cover-and-the-full.1": 1,
+    "impl:fn-218-test-space-patterns-cover-and-the-full.2": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -297,5 +350,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T18:15:58.656724Z"
+  "updated_at": "2026-10-20T18:44:21.270484Z"
 }
