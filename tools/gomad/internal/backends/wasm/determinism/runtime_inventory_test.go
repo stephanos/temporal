@@ -23,7 +23,7 @@ import (
 
 // The wasip1 runtime rows reuse the reviewed row grammar of the native
 // toolchain inventories (draw_inventory_test.go and clock_inventory_test.go
-// in internal/backends/native/toolchain), reimplemented here so the WASM
+// in the native backend's toolchain package), reimplemented here so the WASM
 // backend keeps its own gates; the native tables are not read or edited.
 
 const wasip1 = "wasip1/wasm"
