@@ -43,13 +43,14 @@ Conductor disposition: accepted resolution at source `a23540b5446e834df6fc1e478a
 ## Related request-enum acceptance finding
 
 Before final re-review, a real-guest diagnostic found another request/response
-distinction: undefined Activity/Child retry-state, Nexus retry-behavior and
-timeout enum values reach the SDK converter but produce annotation findings in
-both directions. The inspected server failure validator does not reject these
-nested enum values. The request side must therefore carry faithful qualified
-Accepts expectations, while response validation retains the findings. The
-existing per-field acceptance handling already distinguishes directions; no
-blanket constraint filter or invented server rejection is appropriate.
+distinction: an undefined Activity retry-state reaches the SDK converter but
+produces annotation findings in both directions. Source inspection identified
+related Child retry-state, Nexus retry-behavior and timeout enum cases for the
+worker to verify separately. The inspected server failure validator checks
+application retry delays, not nested enum membership. Request-side expectations
+must faithfully describe accepted values while response validation retains its
+findings. The existing per-field acceptance handling distinguishes directions;
+no blanket constraint filter or invented server rejection is appropriate.
 
 The diagnostic completed before disk cleanup; source remained frozen at
 `a23540b5446e834df6fc1e478aae093d991fb38f`. Evidence is retained in
