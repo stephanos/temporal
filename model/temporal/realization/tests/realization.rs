@@ -355,6 +355,45 @@ fn callback_delivery_precedes_terminal_replay_and_repeated_matches_are_zero_step
 }
 
 #[test]
+fn complete_reply_drops_external_payload_references() {
+    use umpire_temporal_api::temporal::api::{
+        common::v1::payload::ExternalPayloadDetails,
+        workflowservice::v1::RespondActivityTaskCompletedRequest,
+    };
+    use umpire_temporal_api::umpire::temporal::v1::Reply;
+
+    let mut task: PollActivityTaskQueueResponse =
+        umpire_temporal::support::callback(&callback(b"Complete"))
+            .unwrap_or_else(|error| panic!("{error:?}"));
+    let payload = &mut task.input.as_mut().unwrap_or_else(|| panic!("input")).payloads[0];
+    payload.external_payloads.push(ExternalPayloadDetails { size_bytes: 123 });
+    let expected = Payload {
+        metadata: payload.metadata.clone(),
+        data: payload.data.clone(),
+        ..Default::default()
+    };
+    let mut guest = Guest::new(runtime());
+    let Some(Outcome::Answer(value)) =
+        answer(&mut guest, Any::pack(&Callback { task: Some(Any::pack(&task)) })).outcome
+    else {
+        panic!("callback must be admitted")
+    };
+    let reply: Reply = value
+        .reply
+        .unwrap_or_else(|| panic!("reply missing"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    let request: RespondActivityTaskCompletedRequest = reply
+        .request
+        .unwrap_or_else(|| panic!("request missing"))
+        .unpack()
+        .unwrap_or_else(|error| panic!("{error:?}"));
+    let result = request.result.unwrap_or_else(|| panic!("result missing"));
+    assert_eq!(result.payloads, [expected]);
+    explained(judge(&mut guest, observation(1, 2)), &[]);
+}
+
+#[test]
 fn observations_never_invent_poll_and_first_impossible_projection_freezes_until_reset() {
     for premature in [observation(1, 2), observation(2, 0), observation(3, 0)] {
         let mut guest = Guest::new(runtime());
