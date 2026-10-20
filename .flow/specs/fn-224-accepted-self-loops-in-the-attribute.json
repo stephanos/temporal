@@ -1,15 +1,68 @@
 {
   "branch_name": "fn-224-accepted-self-loops-in-the-attribute",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T15:26:56.275293Z",
   "created_at": "2026-10-19T23:34:30.417940Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-223-one-lifted-source-form-the-lifter-reads"
   ],
   "id": "fn-224-accepted-self-loops-in-the-attribute",
+  "impl_review_rounds": {},
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "9ea8793b88d212b049e8eae5edea978bb791855d85bf0397719c77177ab01b5b",
+      "backend": "codex",
+      "base_sha": "1e1ddcc839109ec2930ca30e78b144dfa5eb69a7",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "a7e30eb6b60fed98db1054518273321a13442e08",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 356066,
+      "output_sha256": "88e41f20e0a917f7efbc33b073f6b45628ccdc385d056813a06a682fc322c572",
+      "reservation_id": "eb26af708f38496087957c90bcaeebbb",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T15:26:56.263795Z",
+      "tool_calls": 21,
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan#completion": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "completion": 0
+  },
   "spec_path": ".flow/specs/fn-224-accepted-self-loops-in-the-attribute.md",
-  "status": "open",
+  "status": "done",
   "title": "Accepted self-loops in the attribute surface (model)",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +75,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T23:58:59.013959Z"
+  "updated_at": "2026-10-20T15:27:06.956071Z"
 }
