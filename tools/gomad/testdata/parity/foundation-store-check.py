@@ -30,6 +30,10 @@ def refused(name,mutate,reason):
     assert reason in result.stderr,(name,result.stderr)
     return name
 cases=[]
+run('fixture-open',clone('canonical-detached'))
+def padded_envelope(p):
+    path=p/'storage.json';path.write_bytes(b' '+path.read_bytes()+b'\n')
+cases.append(refused('padded-envelope',padded_envelope,'noncanonical storage.json'))
 cases.append(refused('digest',lambda p:(p/'output/stdout').write_bytes(b'x'*17),'mismatch'))
 def record_binding(p):
     raw=b'{}';(p/'record.json').write_bytes(raw)

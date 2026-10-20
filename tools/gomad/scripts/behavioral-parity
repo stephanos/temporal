@@ -158,10 +158,13 @@ def authenticate(root, result):
             if item[key] != value:
                 fail(path + "." + key, "raw record/result mismatch")
         artifact = root / item["artifact"]
-        storage = read(contained(root, item["artifact"] + "/storage.json"))
+        storage_raw = contained(root, item["artifact"] + "/storage.json").read_bytes()
+        storage = decode(storage_raw)
         fields(storage, {"format": str}, path + ".storage")
         if storage["format"] != "gomad.artifact-storage/v2":
             fail(path + ".storage.format", "unsupported lineage")
+        if canonical(storage) != storage_raw:
+            fail(path + ".storage", "noncanonical storage envelope")
         manifest = read(contained(root, item["artifact"] + "/manifest.json"))
         fields(manifest, {"schema": str, "record": dict, "record_sha256": str, "files": dict}, path + ".manifest")
         if manifest["schema"] != "gomad.artifact-manifest/v2":

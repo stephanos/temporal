@@ -47,6 +47,8 @@ copy works without source or installation metadata. Store-owned artifacts derive
 their module-pool capability from the private parent store's fixed `.store.json`
 layout and `.targets` handle, not a manifest path or new public CLI flag. Multi-link
 modules must match the contained pool's authenticated content-addressed inode.
+Storage envelopes must match the fixed canonical v2 bytes exactly; alternate JSON
+encodings refuse, so retained-byte accounting includes their exact on-disk size.
 
 Publication uses real OS locks and handle-relative exclusive directory rename:
 Linux `renameat2(RENAME_NOREPLACE)`, Darwin `renameatx_np(RENAME_EXCL)`. Unsupported

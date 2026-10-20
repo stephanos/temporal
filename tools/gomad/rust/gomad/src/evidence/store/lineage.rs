@@ -17,5 +17,8 @@ pub fn validate(bytes: &[u8]) -> Result<(), String> {
             envelope.format
         ));
     }
+    if bytes != ENVELOPE {
+        return Err("unsupported artifact storage format: noncanonical storage.json".into());
+    }
     Ok(())
 }
