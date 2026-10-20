@@ -7,7 +7,7 @@ use umpire_temporal_api::temporal::api::{
     common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
     failure::v1::{
         ActivityFailureInfo, ApplicationFailureInfo, ChildWorkflowExecutionFailureInfo, Failure,
-        NexusHandlerFailureInfo, ServerFailureInfo, failure,
+        NexusHandlerFailureInfo, ServerFailureInfo, TimeoutFailureInfo, failure,
     },
     taskqueue::v1::TaskQueue,
     workflowservice::v1::{
@@ -170,17 +170,22 @@ fn nested_failure_discriminants_are_validated_without_response_repair()
             }),
             "NexusHandlerFailureInfo.retry_behavior",
         ),
+        (
+            failure::FailureInfo::TimeoutFailureInfo(TimeoutFailureInfo {
+                timeout_type: 999,
+                ..Default::default()
+            }),
+            "TimeoutFailureInfo.timeout_type",
+        ),
     ] {
+        let failure = Failure {
+            stack_trace: "private-stack".into(),
+            cause: Some(Box::new(Failure { failure_info: Some(info), ..Default::default() })),
+            ..Default::default()
+        };
         let response = PollActivityExecutionResponse {
             outcome: Some(ActivityExecutionOutcome {
-                value: Some(activity_execution_outcome::Value::Failure(Failure {
-                    stack_trace: "private-stack".into(),
-                    cause: Some(Box::new(Failure {
-                        failure_info: Some(info),
-                        ..Default::default()
-                    })),
-                    ..Default::default()
-                })),
+                value: Some(activity_execution_outcome::Value::Failure(failure.clone())),
                 ..Default::default()
             }),
             ..Default::default()
@@ -197,6 +202,20 @@ fn nested_failure_discriminants_are_validated_without_response_repair()
         );
         assert!(result.bytes.eq(&response));
         assert!(!format!("{:?}", result.violations).contains("private-stack"));
+        let request = RespondActivityTaskFailedRequest {
+            task_token: b"private-task-token".to_vec(),
+            failure: Some(Failure {
+                failure_info: Some(failure::FailureInfo::ApplicationFailureInfo(
+                    ApplicationFailureInfo::default(),
+                )),
+                ..failure
+            }),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        let result = annotate("RespondActivityTaskFailed", false, &request, 1)?;
+        assert!(result.violations.is_empty(), "request {field}");
+        assert!(result.bytes.eq(&request));
     }
     Ok(())
 }
