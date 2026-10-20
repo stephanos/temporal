@@ -15,6 +15,7 @@ import (
 	"runtime"
 	"runtime/debug"
 	"sort"
+	"strings"
 	"sync"
 	"testing"
 	"time"
@@ -98,6 +99,86 @@ func TestReplayHelperPreflightKeepsReplayPreflightStatus(t *testing.T) {
 	var preflight *ReplayPreflightError
 	if !errors.As(err, &preflight) || !errors.Is(err, execution.ErrChoiceReplayPreflight) {
 		t.Fatalf("helper refusal changed replay status: %v", err)
+	}
+}
+
+func TestReplayVerifyOnlyValidatesChoiceTraceWithoutStartingTarget(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name string
+		want string
+	}{
+		{name: "valid"},
+		{name: "malformed trace", want: "validate choice trace"},
+		{name: "incorrect tape digest", want: "artifact choice tape identity does not match its trace"},
+		{name: "incorrect decision count", want: "artifact choice tape identity does not match its trace"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			artifactPath, expected := publishReplayArtifactForTarget(t, nil, replayArtifactTarget{Choices: true})
+			opened, err := artifact.OpenArtifact(artifactPath)
+			if err != nil {
+				t.Fatal(err)
+			}
+			manifest := opened.Manifest()
+			if err := opened.Close(); err != nil {
+				t.Fatal(err)
+			}
+			switch test.name {
+			case "malformed trace":
+				payload := append([]byte(nil), expected.ChoiceTrace.Trace.Bytes...)
+				payload[0] = 0xff
+				manifest.ChoiceProfile.Trace.SHA256 = record.HashBytes(payload)
+				for index := range manifest.Files {
+					if manifest.Files[index].Path == manifest.ChoiceProfile.Trace.File {
+						manifest.Files[index].SHA256 = manifest.ChoiceProfile.Trace.SHA256
+					}
+				}
+				tracePath := filepath.Join(artifactPath, manifest.ChoiceProfile.Trace.File)
+				if err := os.Chmod(tracePath, 0o600); err != nil {
+					t.Fatal(err)
+				}
+				if err := os.WriteFile(tracePath, payload, 0o600); err != nil {
+					t.Fatal(err)
+				}
+			case "incorrect tape digest":
+				manifest.ChoiceProfile.Trace.TapeSHA256 = record.HashBytes([]byte("not the retained tape"))
+			case "incorrect decision count":
+				manifest.ChoiceProfile.Trace.Decisions = 0
+				manifest.ChoiceProfile.Trace.BranchingRecords = 0
+			}
+			_, encoded, err := record.FinalizeExecutionRecord(manifest)
+			if err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(artifactPath, "manifest.json"), encoded, 0o600); err != nil {
+				t.Fatal(err)
+			}
+			opened, err = artifact.OpenArtifact(artifactPath)
+			if err != nil {
+				t.Fatalf("resealed artifact must pass file/hash validation: %v", err)
+			}
+			if err := opened.Close(); err != nil {
+				t.Fatal(err)
+			}
+			executor := &fakeReplayExecutor{result: expected}
+			result, err := replayWith(t.Context(), ReplaySpec{
+				ArtifactPath: artifactPath, VerifyOnly: true, ToolchainRoot: toolchainRoot(t), Backend: replayNativeProvider(t),
+			}, executionDependencies{executor: executor})
+			if executor.calls != 0 {
+				t.Fatalf("verify-only started target %d times", executor.calls)
+			}
+			if test.want == "" {
+				if err != nil || !result.Verified || result.Match || result.ChoiceReplayStatus != ChoiceReplayAvailable {
+					t.Fatalf("valid verification result = %#v, error = %v", result, err)
+				}
+				return
+			}
+			var preflight *ReplayPreflightError
+			if !errors.As(err, &preflight) || !strings.Contains(err.Error(), test.want) || result.Verified {
+				t.Fatalf("invalid trace verification result = %#v, error = %v; want preflight %q", result, err, test.want)
+			}
+		})
 	}
 }
 

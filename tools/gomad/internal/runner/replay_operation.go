@@ -132,6 +132,21 @@ func replayWith(ctx context.Context, config ReplaySpec, dependencies executionDe
 		return ReplayResult{}, &ReplayPreflightError{Err: err}
 	}
 	if config.VerifyOnly {
+		if choiceCapability != nil {
+			trace, err := choice.DecodeStoredTrace(choiceCapability.Profile, choiceCapability.Trace, choice.TerminalMetadata{
+				State: choice.TerminalComplete, Limit: choiceCapability.Limit, Records: uint64(manifest.ChoiceProfile.Trace.Records), SHA256: choiceCapability.TraceSHA256,
+			})
+			if err != nil {
+				return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("validate choice trace: %w", err)}
+			}
+			tape, err := choice.ProjectReplayPlan(trace, choiceCapability.ExecutionIdentity)
+			if err != nil {
+				return ReplayResult{}, &ReplayPreflightError{Err: fmt.Errorf("derive choice replay tape: %w", err)}
+			}
+			if tape.SHA256 != choiceCapability.TapeSHA256 || uint64(len(tape.Decisions)) != choiceCapability.Decisions {
+				return ReplayResult{}, &ReplayPreflightError{Err: errors.New("artifact choice tape identity does not match its trace")}
+			}
+		}
 		return result, nil
 	}
 	workDirectory, err := os.MkdirTemp("", "gomad-replay-")
