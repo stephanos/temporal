@@ -18,20 +18,20 @@ other Temporal test. The integrated batch review belongs to the conductor.
   events. Network defaults preserve the inspection fixture's 128 listeners,
   4096 connections, 128 MiB total, 4 MiB per connection, 10-second stall bound
   and 2^20 transitions. Default memory is 4 GiB and fuel is 2^50.
-- R3 / task .1: both named fixtures use `wasi.TemporalConfig`; the inspection
-  fixture retains its existing environment, entropy, working-directory and
-  output/transcript differences and shares `wasi.TemporalNetwork`. A unit test
+- R3 / task .1: the command and both named fixtures use `wasi.TemporalConfig`
+  with explicit complete `TemporalPolicy` inputs. Shared production derivation
+  owns all network/environment/entropy/argv/writable-root/output/transcript
+  policy fields; callers make no post-derivation adjustments. A unit test
   compares complete serialized prototype configuration bytes with the prior
   fixture expression, and verifies schema mutation changes captured identity.
-  The command and prototype fixture have identical canonical base bytes for
-  identical checkout/directory/argument inputs. Their final policy differs:
-  the prototype retains nil network, installation adds the bounded network,
-  inspection retains its legacy nil argv/zero entropy/debug environment and
-  reduced output/transcript bounds, and qualification clears argv for Runner.
-  Final configurations with those different policy inputs are not claimed equal.
-  Follow-up review coverage independently checks literal network limits and the
-  complete serialized legacy inspection configuration; qualification already
-  compares its historical nil-argv smoke configuration bytes.
+  For identical checkout/directory/policy/argument inputs the command and fixture
+  derivation produce identical final serialized configurations, compared without
+  removing or replacing any field. Separate complete historical-policy tests
+  preserve prototype nil network, inspection nil argv/zero entropy/debug
+  environment/reduced bounds, and qualification nil argv for Runner. The
+  installation policy preserves the bounded network used by the consumer proof.
+  Independent expectations check literal network limits and every policy's final
+  bytes, including the historical inspection and qualification configurations.
   Installation tags are optional manifest inputs; preparation merges and seals
   their effective selection into its existing source/build identity.
 - R2 / task .2: one seed passed, retained one success (215546369 bytes), and a
@@ -128,13 +128,13 @@ No Flow task state, PR, push, CI run or qualification claim was made by this wor
 
 ## Review coverage correction
 
-The review follow-up changes tests, documentation and the inspection fixture's
-test-local factoring only; production derivation and consumer configuration bytes
-are unchanged. `TestInstallTemporalAndDiscover` now independently expects literal
-network limits and compares the complete canonical base before applying network
-policy. `TestTemporalInspectionConfigPreservesFixtureBytes` pins every final
-historical inspection field against an independent serialized configuration.
-The existing qualification smoke-byte test covers its nil-argv policy.
+The first review follow-up added independent literal network expectations and
+historical inspection byte coverage. Completion review correctly found that its
+normalized base comparison did not satisfy R3. That comparison has been replaced:
+the complete policy is now an explicit production derivation input, and the
+command test compares final serialized configurations without normalization.
+`TestTemporalConfigPoliciesPreserveCompleteBytes` independently verifies all four
+complete policies; the inspection and qualification historical-byte tests remain.
 
 Full command/installation/shared CLI packages and the focused prototype,
 inspection and qualification smoke configuration tests passed (exit 0).
@@ -144,3 +144,36 @@ both command and inspection tests fail (exit 1); restoring it made both pass
 `/home/agent/wt/fn220-proof.L2aUaa/network-mutation-test.log`.
 `make lint-code-fast GOLANGCI_LINT_BASE_REV=fc04600872
 GOLANGCI_LINT_FIX=false` also passed (exit 0, zero issues).
+
+After the complete-policy change, rebuilding the launcher and invoking the same
+successful installation command with output
+`/home/agent/wt/fn220-proof.L2aUaa/policy-installation.json` exited 0. `cmp` against
+the retained `integrated-installation.json` also exited 0: the entire manifest,
+not just its configuration, is byte-identical to candidate `29f49b17bc`'s input.
+Both have SHA-256 `34096860a2f8783e4dfbaa7052dcad7b7b8ec6fe647666fdc57073582eaabff2`.
+This preserves the actual consumer proof inputs without relabeling its candidate.
+
+Complete-policy follow-up checks (all exit 0):
+
+```sh
+cd tools/gomad
+GOMAXPROCS=2 go test -tags test_dep ./internal/backends/wasm/command ./internal/backends/wasm/installation ./cmd/gomad/internal/cli -count=1
+GOMAXPROCS=2 go test -tags test_dep ./internal/backends/wasm/wasi ./internal/backends/wasm/backend ./internal/backends/wasm/qualification -run 'TestTemporalConfig|TestTemporalInspectionConfigPreservesFixtureBytes|TestOneboxSmokeConfigurationUnchangedByFamilyCells' -count=1
+cd ../..
+make lint-code-fast GOLANGCI_LINT_BASE_REV=93b12381b7 GOLANGCI_LINT_FIX=false
+```
+
+The updated launcher is retained at `/home/agent/wt/fn220-gomad-policy` for review.
+
+## Completion review
+
+The first independent completion review found the normalized configuration
+comparison insufficient for R3. Commit `ba57de4e5b` introduced complete explicit
+policies and final-byte comparisons. The resumed same-session review returned
+`SHIP` on 2026-10-20T16:09:30Z (exit 0), with all four requirements covered.
+Flow records `completion_review_status: ship`, all three tasks done, and the
+spec closed as done. The receipt and complete transcript remain in
+`.flow/tmp/completion-review-receipt-fn-220.json` and
+`.flow/tmp/fn220-completion-rereview.log`. Reviewer and writer are from the same
+model family. Full changed-candidate WASM qualification remains under fn-219.4
+and fn-222; this record does not claim that separate gate passed.

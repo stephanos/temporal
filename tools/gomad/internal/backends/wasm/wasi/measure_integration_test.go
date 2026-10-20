@@ -309,7 +309,7 @@ func prototypeFixtureConfig() Config {
 
 func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Config {
 	t.Helper()
-	config, err := TemporalConfig(root, cwd, args...)
+	config, err := TemporalConfig(root, cwd, TemporalPrototype, args...)
 	if err != nil {
 		t.Fatal(err)
 	}

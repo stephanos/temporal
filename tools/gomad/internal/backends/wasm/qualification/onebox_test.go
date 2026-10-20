@@ -166,13 +166,7 @@ func writePreparationProducer(root, name string, frozen Spec, prepared target.Pr
 // oneboxGuestConfig is the one-box guest configuration; only the working
 // directory differs between one-box family cells.
 func oneboxGuestConfig(root, workingDirectory string) (wasi.Config, error) {
-	config, err := wasi.TemporalConfig(root, workingDirectory)
-	if err != nil {
-		return wasi.Config{}, err
-	}
-	// Runner supplies the prepared target's arguments independently.
-	config.Args = nil
-	return config, nil
+	return wasi.TemporalConfig(root, workingDirectory, wasi.TemporalQualification)
 }
 
 // The smoke cell's host configuration identity must not move when the
