@@ -317,9 +317,9 @@ The cluster speedup comparison requires fresh baseline and candidate release
 measurements on the same host at each measured seed, retaining
 the fn-172 baseline revision, inputs, identities and rerun commands. Record
 authorization-to-terminal wall, full wall, parent Go self CPU, helper CPU and
-compiler CPU separately. Diagnostic-profile and guest-profile helpers can
+compiler CPU separately. Diagnostic-profile helpers can
 attribute cluster execution, but diagnostic timings cannot substitute for
-matched release costs. Diagnostic fuel-off helpers refuse clusters.
+matched release costs. Guest-profile and diagnostic fuel-off helpers refuse clusters.
 Missing measurements remain open acceptance work.
 
 ## Measurement producers

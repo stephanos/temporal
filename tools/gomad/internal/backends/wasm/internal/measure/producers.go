@@ -2802,7 +2802,10 @@ func requireAttributedProfile(report diagnosticReport) error {
 	}
 	for name, op := range report.ABIOps {
 		var served uint64
-		for _, count := range op.ServedBy {
+		for owner, count := range op.ServedBy {
+			if report.Owners[owner].Count == 0 {
+				return fmt.Errorf("diagnostic op %s: serving owner %s is missing", name, owner)
+			}
 			served += count
 		}
 		if served != op.Count {
@@ -2826,11 +2829,30 @@ func requireAttributedProfile(report diagnosticReport) error {
 		return err
 	}
 	// A merged cluster profile also closes per store thread.
+	if len(report.Threads) > 64 {
+		return fmt.Errorf("diagnostic thread row capacity")
+	}
+	identities := make(map[[2]uint64]bool, len(report.Threads))
+	var totals [4]uint64
 	for _, thread := range report.Threads {
+		identity := [2]uint64{thread.Slot, thread.Incarnation}
+		if identities[identity] {
+			return fmt.Errorf("diagnostic duplicate thread row: slot=%d incarnation=%d", thread.Slot, thread.Incarnation)
+		}
+		identities[identity] = true
 		label := fmt.Sprintf("thread slot=%d incarnation=%d ", thread.Slot, thread.Incarnation)
 		if err := diagnosticReconciles(label, thread.ExecuteWallNanos, thread.AttributedHostWallNanos, thread.GuestResidualWallNanos, thread.OuterHostWallNanos, thread.DifferenceNanos, thread.ToleranceNanos); err != nil {
 			return err
 		}
+		for index, value := range [4]uint64{thread.ExecuteWallNanos, thread.AttributedHostWallNanos, thread.GuestResidualWallNanos, thread.OuterHostWallNanos} {
+			if value > math.MaxUint64-totals[index] {
+				return fmt.Errorf("diagnostic thread totals overflow")
+			}
+			totals[index] += value
+		}
+	}
+	if len(report.Threads) != 0 && totals != [4]uint64{row.ExecuteWallNanos, row.AttributedHostWallNanos, row.GuestResidualWallNanos, row.OuterHostWallNanos} {
+		return fmt.Errorf("diagnostic thread totals differ from aggregate reconciliation")
 	}
 	return nil
 }

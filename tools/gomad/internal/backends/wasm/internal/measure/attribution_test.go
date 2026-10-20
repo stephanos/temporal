@@ -108,6 +108,12 @@ func TestDiagnosticAttributionRequiresEveryImportAndReconciliation(t *testing.T)
 		{"unframed-import", "attribution errors", func(d map[string]any) { d["unframed_imports"] = 1 }},
 		{"span-error", "attribution errors", func(d map[string]any) { d["span_errors"] = 1 }},
 		{"op-without-owner", "have an owner", func(d map[string]any) { at(d, clockOp...)["served_by"] = map[string]any{} }},
+		{"missing-serving-owner", "serving owner clock is missing", func(d map[string]any) {
+			delete(at(d, "owners"), "clock")
+			for _, field := range []string{"wall_nanos", "exclusive_wall_nanos", "execute_wall_nanos", "execute_exclusive_wall_nanos", "min_nanos", "median_nanos", "p99_nanos", "max_nanos"} {
+				at(d, "owners", "encoding")[field] = 30
+			}
+		}},
 		{"owner-wall-short", "owner wall", func(d map[string]any) { at(d, "owners", "encoding")["execute_exclusive_wall_nanos"] = 9 }},
 		{"rust-row-disagrees", "reconciliation row", func(d map[string]any) { at(d, "reconciliation")["difference_nanos"] = 3 }},
 		{"threads-omitted", "attribution errors", func(d map[string]any) { d["threads_omitted"] = 1 }},
@@ -131,6 +137,34 @@ func TestDiagnosticAttributionRequiresEveryImportAndReconciliation(t *testing.T)
 			}
 			if err := requireAttributedProfile(report); err == nil || !strings.Contains(err.Error(), test.want) {
 				t.Fatalf("gate error %v, want %q", err, test.want)
+			}
+		})
+	}
+}
+
+func TestDiagnosticThreadRowsBindAggregateAndFullIdentities(t *testing.T) {
+	t.Parallel()
+	report, err := decodeDiagnosticReport(diagnosticV2Fixture(t, nil))
+	if err != nil {
+		t.Fatal(err)
+	}
+	thread := diagnosticThread{Slot: 1, Incarnation: 1 << 40, ExecuteWallNanos: 100, AttributedHostWallNanos: 32, GuestResidualWallNanos: 68, OuterHostWallNanos: 32, ToleranceNanos: 50_000}
+	report.Threads = []diagnosticThread{thread}
+	if err := requireAttributedProfile(report); err != nil {
+		t.Fatal(err)
+	}
+	for _, test := range []struct {
+		name string
+		rows []diagnosticThread
+	}{
+		{"duplicate", []diagnosticThread{thread, thread}},
+		{"missing-aggregate-share", []diagnosticThread{{Slot: 1, ExecuteWallNanos: 50, GuestResidualWallNanos: 50, ToleranceNanos: 50_000}}},
+		{"too-many", make([]diagnosticThread, 65)},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			report.Threads = test.rows
+			if err := requireAttributedProfile(report); err == nil {
+				t.Fatal("accepted incomplete thread attribution")
 			}
 		})
 	}

@@ -1,6 +1,7 @@
 package measure
 
 import (
+	"bytes"
 	"cmp"
 	"context"
 	"errors"
@@ -43,6 +44,42 @@ type clusterOwnerRun struct {
 	Repetition int                   `json:"repetition"`
 	Warmup     bool                  `json:"warmup"`
 	Processes  []clusterOwnerProcess `json:"processes"`
+}
+
+type clusterOwnerEvidence struct {
+	Incarnations map[string]wasi.Result
+	Documents    map[string][]byte
+}
+
+func requireClusterOwnerEvidence(ctx context.Context, before, after clusterOwnerEvidence) error {
+	if len(before.Incarnations) != len(after.Incarnations) || len(before.Documents) != len(after.Documents) {
+		return fmt.Errorf("profiling changed cluster evidence inventory")
+	}
+	imageIdentity := func(image *wasi.StorageImage) string {
+		if image == nil {
+			return ""
+		}
+		return image.Identity()
+	}
+	for label, expected := range before.Incarnations {
+		actual, ok := after.Incarnations[label]
+		if !ok {
+			return fmt.Errorf("profiling lost incarnation evidence %s", label)
+		}
+		if err := requireDiagnosticEvidence(ctx, expected, actual); err != nil {
+			return fmt.Errorf("%s: %w", label, err)
+		}
+		if !bytes.Equal(expected.StorageTranscript, actual.StorageTranscript) || !bytes.Equal(expected.InterruptedChoiceBytes, actual.InterruptedChoiceBytes) || !bytes.Equal(expected.InterruptedDiagnosticBytes, actual.InterruptedDiagnosticBytes) || imageIdentity(expected.StorageImage) != imageIdentity(actual.StorageImage) {
+			return fmt.Errorf("profiling changed incarnation storage or interrupted evidence: %s", label)
+		}
+	}
+	for name, expected := range before.Documents {
+		actual, ok := after.Documents[name]
+		if !ok || !bytes.Equal(expected, actual) {
+			return fmt.Errorf("profiling changed cluster document %s", name)
+		}
+	}
+	return nil
 }
 
 // clusterOwnerRequestFor derives the request one role dispatches: the
@@ -193,7 +230,9 @@ func measureClusterOwnerProfile(ctx context.Context) (resultErr error) {
 			"rerun":               rerunRecord(ctx, "go", repo, "cluster-owner-profile", scopeFor(ctx).options.Inputs, true),
 		}))
 	}()
-	scenario := func(seed uint64, role wasi.Request, name string) (witness string, completed []*wasi.ClusterResult, scenarioErr error) {
+	scenario := func(seed uint64, role wasi.Request, name string, canonical *clusterOwnerEvidence) (witness string, completed []*wasi.ClusterResult, scenarioErr error) {
+		canonical.Incarnations = make(map[string]wasi.Result)
+		canonical.Documents = make(map[string][]byte)
 		evidence := filepath.Join(root, name)
 		if err := os.MkdirAll(evidence, 0700); err != nil {
 			return "", nil, err
@@ -230,6 +269,11 @@ func measureClusterOwnerProfile(ctx context.Context) (resultErr error) {
 					if failures[i] != nil || requests[i].Broker == nil {
 						return fmt.Errorf("%s: incarnation result unavailable: %s %v", name, label, failures[i])
 					}
+					key := fmt.Sprintf("%s/%s/%d", label, requests[i].Broker.Node.ID, requests[i].Broker.Node.Incarnation)
+					if _, exists := canonical.Incarnations[key]; exists {
+						return fmt.Errorf("duplicate cluster incarnation evidence %s", key)
+					}
+					canonical.Incarnations[key] = results[i]
 				}
 				choices.WriteString(clusterOwnerWitness(label, requests, results))
 				return nil
@@ -248,13 +292,21 @@ func measureClusterOwnerProfile(ctx context.Context) (resultErr error) {
 		if len(completed) == 0 {
 			return "", nil, fmt.Errorf("%s: no completed in-process cluster helper", name)
 		}
+		for _, document := range []string{"two-cluster-world.json", "two-cluster-network-record.json", "two-cluster-replayed-world.json", "two-cluster-replayed-network-record.json"} {
+			data, err := os.ReadFile(filepath.Join(evidence, document))
+			if err != nil {
+				return "", completed, err
+			}
+			canonical.Documents[document] = data
+		}
 		if err := temporalWrite(ctx, filepath.Join(evidence, "choice-witness.txt"), []byte(choices.String())); err != nil {
 			return "", completed, err
 		}
 		return choices.String(), completed, nil
 	}
 	for _, seed := range seeds {
-		releaseWitness, released, err := scenario(seed, roles["reference"], fmt.Sprintf("seed%d-reference", seed))
+		var releaseEvidence clusterOwnerEvidence
+		releaseWitness, released, err := scenario(seed, roles["reference"], fmt.Sprintf("seed%d-reference", seed), &releaseEvidence)
 		if err != nil {
 			return err
 		}
@@ -268,9 +320,13 @@ func measureClusterOwnerProfile(ctx context.Context) (resultErr error) {
 			if repetition < 0 {
 				name = fmt.Sprintf("seed%d-warmup", seed)
 			}
-			witness, completed, err := scenario(seed, roles["diagnostic"], name)
+			var diagnosticEvidence clusterOwnerEvidence
+			witness, completed, err := scenario(seed, roles["diagnostic"], name, &diagnosticEvidence)
 			if err != nil {
 				return err
+			}
+			if err := requireClusterOwnerEvidence(ctx, releaseEvidence, diagnosticEvidence); err != nil {
+				return fmt.Errorf("%s: %w", name, err)
 			}
 			if witness != releaseWitness {
 				return fmt.Errorf("%s: choice witness differs from the release run", name)

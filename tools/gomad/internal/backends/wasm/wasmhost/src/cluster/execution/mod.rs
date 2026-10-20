@@ -335,6 +335,12 @@ pub fn execute(
             "diagnostic fuel-off helper builds do not run clusters",
         ));
     }
+    if cfg!(feature = "guest-profile") {
+        return send(&ClusterResult::new(
+            "unsupported",
+            "diagnostic helper builds do not run clusters",
+        ));
+    }
     if request.manual_start {
         return manual::execute(request, input, output);
     }

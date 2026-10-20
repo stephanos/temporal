@@ -101,9 +101,6 @@ pub enum Owner {
     Namespace,
     Volume,
     Network,
-    /// Reserved for the World owner's cluster spans (fn-185.2); kept so the
-    /// owner set and its JSON keys stay closed and fixed.
-    #[allow(dead_code)]
     World,
     StorageTransport,
     Cache,
@@ -336,7 +333,7 @@ struct Profile {
     /// The closed op frame of the current import: (start, end).
     boundary_op: Option<(Instant, Instant)>,
     /// Per store-thread reconciliation rows of a merged cluster profile.
-    threads: Vec<(u64, [u64; 6])>,
+    threads: Vec<((u64, u64), [u64; 6])>,
     threads_omitted: u64,
 }
 impl Default for Profile {
@@ -459,7 +456,7 @@ impl Profile {
         ]
     }
     /// Merges a store thread's profile, keeping its own reconciliation row.
-    fn merge_thread(&mut self, key: u64, other: &Self) {
+    fn merge_thread(&mut self, key: (u64, u64), other: &Self) {
         if self.threads.len() < MAX_THREAD_ROWS {
             self.threads.push((key, other.reconciliation()));
         } else {
@@ -588,7 +585,7 @@ impl Profile {
             .iter()
             .map(
                 |(key, [execute, attributed, guest, outer, difference, tolerance])| {
-                    json!({"slot":key >> 32, "incarnation":key & 0xffff_ffff,
+                    json!({"slot":key.0, "incarnation":key.1,
                     "execute_wall_nanos":execute, "attributed_host_wall_nanos":attributed,
                     "guest_residual_wall_nanos":guest, "outer_host_wall_nanos":outer,
                     "difference_nanos":difference, "tolerance_nanos":tolerance})
@@ -628,7 +625,7 @@ thread_local! { static PROFILE: RefCell<Option<Profile>> = const { RefCell::new(
 /// Set while the process session is open; cluster store threads profile
 /// into their own thread profile and hand it to `FINISHED` on exit.
 static ACTIVE: AtomicBool = AtomicBool::new(false);
-static FINISHED: Mutex<Vec<(u64, Profile)>> = Mutex::new(Vec::new());
+static FINISHED: Mutex<Option<Profile>> = Mutex::new(None);
 #[cfg(test)]
 static TEST_SESSION: Mutex<()> = Mutex::new(());
 fn with<T>(body: impl FnOnce(&mut Profile) -> T) -> Option<T> {
@@ -658,16 +655,16 @@ impl Drop for Session {
     fn drop(&mut self) {
         ACTIVE.store(false, Ordering::SeqCst);
         if let Some(mut profile) = PROFILE.with(|profile| profile.borrow_mut().take()) {
-            // Thread profiles merge in a fixed order; every merged figure is
-            // a sum, minimum or maximum, so the order cannot change the report.
-            let mut finished = std::mem::take(
-                &mut *FINISHED
-                    .lock()
-                    .unwrap_or_else(std::sync::PoisonError::into_inner),
-            );
-            finished.sort_by_key(|(key, _)| *key);
-            for (key, thread) in &finished {
-                profile.merge_thread(*key, thread);
+            // Counter merges commute; compact thread rows sort before output.
+            let finished = FINISHED
+                .lock()
+                .unwrap_or_else(std::sync::PoisonError::into_inner)
+                .take();
+            if let Some(finished) = finished {
+                profile.merge(&finished);
+                profile.threads = finished.threads;
+                profile.threads_omitted = finished.threads_omitted;
+                profile.threads.sort_by_key(|(key, _)| *key);
             }
             // Diagnostic output cannot change the guest's result if its sink closes.
             let _ = profile.write_report(&mut std::io::stderr().lock());
@@ -677,7 +674,7 @@ impl Drop for Session {
 /// Profiles one cluster store thread (keyed by instance slot and
 /// incarnation) while the process session is open. A thread that already
 /// carries the session profile keeps using it.
-pub struct ThreadSession(Option<u64>);
+pub struct ThreadSession(Option<(u64, u64)>);
 impl ThreadSession {
     pub fn start(slot: u64, incarnation: u64) -> Self {
         let installed = ACTIVE.load(Ordering::SeqCst)
@@ -689,7 +686,7 @@ impl ThreadSession {
                 *profile = Some(Profile::default());
                 true
             });
-        Self(installed.then_some(slot << 32 | (incarnation & 0xffff_ffff)))
+        Self(installed.then_some((slot, incarnation)))
     }
 }
 impl Drop for ThreadSession {
@@ -700,7 +697,8 @@ impl Drop for ThreadSession {
             FINISHED
                 .lock()
                 .unwrap_or_else(std::sync::PoisonError::into_inner)
-                .push((key, profile));
+                .get_or_insert_with(Profile::default)
+                .merge_thread(key, &profile);
         }
     }
 }
@@ -1337,7 +1335,7 @@ mod tests {
         let threads: Vec<_> = (0..3u64)
             .map(|slot| {
                 std::thread::spawn(move || {
-                    let _thread = ThreadSession::start(slot, 0xfeed5);
+                    let _thread = ThreadSession::start(slot, 0x1_000f_eed5);
                     let _execute = PhaseSpan::new(Phase::Execute);
                     let _boundary = ImportBoundary::new();
                     let _abi = AbiSpan::new(Operation::RuntimeIdle, true);
@@ -1348,23 +1346,13 @@ mod tests {
         for thread in threads {
             thread.join().unwrap();
         }
-        // Other tests' store threads may finish concurrently; take ours.
-        let mut finished: Vec<_> = {
-            let mut all = FINISHED.lock().unwrap();
-            let (ours, theirs) = std::mem::take(&mut *all)
-                .into_iter()
-                .partition(|(key, _)| key & 0xffff_ffff == 0xfeed5);
-            *all = theirs;
-            ours
-        };
-        assert_eq!(finished.len(), 3);
+        let finished = FINISHED.lock().unwrap().take().unwrap();
+        assert_eq!(finished.threads.len(), 3);
         PROFILE.with(|profile| {
             let mut profile = profile.borrow_mut();
             let profile = profile.as_mut().unwrap();
-            finished.sort_by_key(|(key, _)| *key);
-            for (key, thread) in &finished {
-                profile.merge_thread(*key, thread);
-            }
+            profile.merge(&finished);
+            profile.threads = finished.threads;
         });
         let report = snapshot();
         assert_eq!(report["phases"]["execute"]["count"], 3);
@@ -1372,7 +1360,7 @@ mod tests {
         let threads = report["threads"].as_array().unwrap();
         assert_eq!(threads.len(), 3);
         for thread in threads {
-            assert_eq!(thread["incarnation"], 0xfeed5);
+            assert_eq!(thread["incarnation"], 0x1_000f_eed5_u64);
             assert_eq!(thread["difference_nanos"], 0);
         }
         let row = &report["reconciliation"];
@@ -1380,6 +1368,30 @@ mod tests {
             number(&row["execute_wall_nanos"]),
             number(&row["guest_residual_wall_nanos"]) + number(&row["outer_host_wall_nanos"])
         );
+        drop(session);
+    }
+
+    #[test]
+    fn diagnostic_completed_profiles_keep_one_histogram_and_bounded_rows() {
+        let session = Session::start();
+        for incarnation in 0..80 {
+            std::thread::spawn(move || {
+                let _thread = ThreadSession::start(1, incarnation);
+                let _execute = PhaseSpan::new(Phase::Execute);
+                let _boundary = ImportBoundary::new();
+                let _abi = AbiSpan::new(Operation::RuntimeIdle, true);
+                serve(Owner::SchedulerHandoff);
+            })
+            .join()
+            .unwrap();
+        }
+        let finished = FINISHED.lock().unwrap();
+        let profile = finished.as_ref().unwrap();
+        assert_eq!(profile.threads.len(), MAX_THREAD_ROWS);
+        assert_eq!(profile.threads_omitted, 16);
+        assert_eq!(profile.histograms.len(), (OPS + OWNERS) * BUCKETS);
+        assert_eq!(profile.ops[Operation::RuntimeIdle as usize].count, 80);
+        drop(finished);
         drop(session);
     }
 

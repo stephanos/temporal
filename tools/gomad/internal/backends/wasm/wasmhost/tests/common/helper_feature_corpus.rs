@@ -106,7 +106,9 @@ fn check_semantic_baseline(file: &Path, case: &Value, actual: &Value) -> Result<
     if file.parent() == Some(feature_dir().join("cases").as_path()) {
         return Ok(());
     }
-    if cfg!(feature = "diagnostic-fuel-off") && case["request"]["type"] == "cluster_execute" {
+    if (cfg!(feature = "diagnostic-fuel-off") || cfg!(feature = "guest-profile"))
+        && case["request"]["type"] == "cluster_execute"
+    {
         let frames = actual["frames"]
             .as_array()
             .ok_or("missing cluster refusal")?;
@@ -121,12 +123,14 @@ fn check_semantic_baseline(file: &Path, case: &Value, actual: &Value) -> Result<
         return Ok(());
     }
     let mut baseline = case["expected"].clone();
-    let overrides =
-        if case["request"]["type"] == "cluster_execute" && !cfg!(feature = "diagnostic-fuel-off") {
-            &Value::Null
-        } else {
-            &case["expected_builds"][BUILD]
-        };
+    let overrides = if case["request"]["type"] == "cluster_execute"
+        && !cfg!(feature = "diagnostic-fuel-off")
+        && !cfg!(feature = "guest-profile")
+    {
+        &Value::Null
+    } else {
+        &case["expected_builds"][BUILD]
+    };
     for (key, value) in overrides.as_object().into_iter().flatten() {
         baseline[key] = value.clone();
     }
@@ -396,7 +400,13 @@ pub(super) fn check_literals(file: &Path, actual: &Value) -> Result<(), String> 
         )?;
     } else if name.starts_with("feature_guest_invalid_") {
         require(
-            frames.len() == 1 && result["termination"] == "invalid",
+            frames.len() == 1
+                && result["termination"]
+                    == if name == "feature_guest_invalid_unknown" {
+                        "unsupported"
+                    } else {
+                        "invalid"
+                    },
             "invalid profile must refuse before start",
         )?;
     }

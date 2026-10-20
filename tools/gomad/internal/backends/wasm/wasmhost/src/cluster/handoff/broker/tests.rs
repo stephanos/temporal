@@ -33,6 +33,35 @@ fn broker_config() -> Config {
     }
 }
 
+#[cfg(feature = "diagnostic-profile")]
+#[test]
+fn diagnostic_world_calls_charge_nested_exclusive_owner_wall() {
+    use crate::diagnostic::{self, AbiSpan, ImportBoundary, Owner, Phase, PhaseSpan, Session};
+    let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+    let _session = Session::start();
+    {
+        let _execute = PhaseSpan::new(Phase::Execute);
+        let _boundary = ImportBoundary::new();
+        let _abi = AbiSpan::new(crate::abi::Operation::RuntimeIdle, true);
+        diagnostic::serve(Owner::SchedulerHandoff);
+        broker.register(0, "idle", &[]).unwrap();
+        broker.ready(0, "idle").unwrap();
+        broker.world_wire().unwrap();
+    }
+    let report = diagnostic::snapshot();
+    let number = |value: &Value| value.as_u64().unwrap();
+    let world = &report["owners"]["world"];
+    let handoff = &report["owners"]["scheduler_handoff"];
+    assert_eq!(number(&world["count"]), 3);
+    assert!(number(&world["execute_exclusive_wall_nanos"]) > 0);
+    assert_eq!(
+        number(&world["wall_nanos"]) + number(&handoff["exclusive_wall_nanos"]),
+        number(&handoff["wall_nanos"])
+    );
+    assert_eq!(report["reconciliation"]["difference_nanos"], 0);
+    assert_eq!(report["span_errors"], 0);
+}
+
 fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
     use crate::model::inspection::commitment;
     let mut wire = broker.world_wire().unwrap();

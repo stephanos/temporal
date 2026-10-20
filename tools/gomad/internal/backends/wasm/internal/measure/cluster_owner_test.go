@@ -23,6 +23,42 @@ func TestClusterOwnerSplitReportsWaitingApartFromHostWork(t *testing.T) {
 	}
 }
 
+func TestClusterOwnerEvidenceRejectsNonChoiceDivergence(t *testing.T) {
+	t.Parallel()
+	for _, kind := range []string{"wasi", "stdout", "network", "storage", "world", "cluster-network", "missing-incarnation"} {
+		t.Run(kind, func(t *testing.T) {
+			t.Parallel()
+			before := clusterOwnerEvidence{Incarnations: map[string]wasi.Result{"node/1": {}}, Documents: map[string][]byte{"world": []byte("world"), "network": []byte("network")}}
+			after := clusterOwnerEvidence{Incarnations: map[string]wasi.Result{"node/1": {}}, Documents: map[string][]byte{"world": []byte("world"), "network": []byte("network")}}
+			if err := requireClusterOwnerEvidence(t.Context(), before, after); err != nil {
+				t.Fatal(err)
+			}
+			changed := after.Incarnations["node/1"]
+			switch kind {
+			case "wasi":
+				changed.TranscriptSHA256[0] = 1
+			case "stdout":
+				changed.Stdout = []byte("different")
+			case "network":
+				changed.NetworkTranscript = []byte("different")
+			case "storage":
+				changed.StorageTranscript = []byte("different")
+			case "world":
+				after.Documents["world"] = []byte("different")
+			case "cluster-network":
+				after.Documents["network"] = []byte("different")
+			}
+			after.Incarnations["node/1"] = changed
+			if kind == "missing-incarnation" {
+				delete(after.Incarnations, "node/1")
+			}
+			if err := requireClusterOwnerEvidence(t.Context(), before, after); err == nil {
+				t.Fatal("accepted changed canonical evidence with equal choice bytes")
+			}
+		})
+	}
+}
+
 func TestClusterOwnerRequestsBindEachRoleToItsAdmittedHelper(t *testing.T) {
 	prepared := wasi.Request{HelperPath: "/diag", HelperSHA256: strings.Repeat("d", 64), ModulePath: "/m.wasm", ModuleSHA256: "m", Runtime: &wasi.RuntimeControl{Seed: 7}}
 	helpers := map[string]diagnosticHelperAdmission{"/release": {Receipt: "/r.json", Features: []string{}}, "/diag": {Receipt: "/d.json", Features: []string{"diagnostic-profile"}}}

@@ -161,7 +161,7 @@ wall), and compare choices and canonical evidence with release runs.
 The `instrumentation` owner measures profiler overhead; `handoff_wait` measures
 time waiting for another cluster instance. Neither is a host-work optimization
 lever. Cluster profiles retain reconciliation for each store thread.
-Diagnostic fuel-off helpers continue refusing clusters. These profiles supply
+Guest-profile and diagnostic fuel-off helpers continue refusing clusters. These profiles supply
 diagnostic evidence only; current-candidate release preservation and the
 single-guest activity proof remain required before fn-185.1 acceptance.
 

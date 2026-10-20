@@ -904,6 +904,8 @@ impl Broker {
         let mut inner = lock(&self.inner);
         Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let key = inner.sessions[me].key.clone();
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let id = inner
             .world
             .register(world::Request {
@@ -923,6 +925,8 @@ impl Broker {
 
     /// Go `BrokerSession.ready`: ready at the clock's time, exactly one delivery.
     fn ready(&self, me: usize, op: &str) -> Result<(), Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let mut inner = lock(&self.inner);
         Self::check_locked(&inner, me, inner.sessions[me].incarnation)?;
         let pending = inner.sessions[me].pending;
@@ -1047,15 +1051,17 @@ impl Broker {
             return;
         }
         let pending = std::mem::take(&mut inner.sessions[me].pending);
-        if pending != 0
-            && let Err(error) = inner.world.cancel(pending)
-        {
-            self.raise(
-                &mut inner,
-                "infrastructure",
-                format!("broker World: {error}"),
-            );
-            return;
+        if pending != 0 {
+            #[cfg(feature = "diagnostic-profile")]
+            let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
+            if let Err(error) = inner.world.cancel(pending) {
+                self.raise(
+                    &mut inner,
+                    "infrastructure",
+                    format!("broker World: {error}"),
+                );
+                return;
+            }
         }
         let session = &inner.sessions[me];
         let handle = session.hold.unwrap_or(session.handle);
@@ -1102,6 +1108,8 @@ impl Broker {
         &self,
         network: Option<([u8; 32], Option<&[u8]>)>,
     ) -> Result<Option<[u8; 32]>, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         let mut inner = lock(&self.inner);
         // Every successful World mutation commits a transition; refusals precede state writes.
         let revision = inner.world.next_ids().2;
@@ -1161,6 +1169,8 @@ impl Broker {
         inner: &mut Inner,
         maximum: usize,
     ) -> Result<InspectionWire, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         #[cfg(test)]
         self.world_materializations
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);
@@ -1209,6 +1219,8 @@ impl Broker {
         )
     )]
     fn world_wire_locked(&self, world: &world::Model) -> Result<Vec<u8>, Failure> {
+        #[cfg(feature = "diagnostic-profile")]
+        let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
         #[cfg(test)]
         self.world_materializations
             .fetch_add(1, std::sync::atomic::Ordering::Relaxed);

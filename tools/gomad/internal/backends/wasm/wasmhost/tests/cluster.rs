@@ -35,7 +35,7 @@ const GUEST: &str = r#"(module
       (br_if $spin (local.get $n)))))"#;
 
 #[test]
-#[cfg(not(feature = "diagnostic-fuel-off"))]
+#[cfg(not(any(feature = "diagnostic-fuel-off", feature = "guest-profile")))]
 #[expect(
     clippy::too_many_lines,
     reason = "The scenario retains its complete ordered setup and contract assertions."
@@ -534,7 +534,7 @@ fn world_evidence(frames: &[Value]) -> Vec<u8> {
 }
 
 #[test]
-#[cfg(not(feature = "diagnostic-fuel-off"))]
+#[cfg(not(any(feature = "diagnostic-fuel-off", feature = "guest-profile")))]
 fn cluster_broker_runs_recorded_go_orders_with_central_faults() {
     let directory =
         std::path::Path::new(env!("CARGO_MANIFEST_DIR")).join("tests/testdata/broker_orders");
