@@ -3,6 +3,7 @@ package determinism
 import (
 	"encoding/json"
 	"fmt"
+	"os"
 	"slices"
 	"strings"
 	"testing"
@@ -10,6 +11,38 @@ import (
 	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
+
+func TestEventOrderAcceptsActualControllerCommandFrames(t *testing.T) {
+	t.Parallel()
+	data, err := os.ReadFile("testdata/controller-event-order.stderr")
+	require.NoError(t, err)
+	log, err := ParseEventOrder(data)
+	require.NoError(t, err)
+	require.True(t, log.Complete)
+	require.Len(t, log.Events, 2)
+	require.Equal(t, "a", log.Events[0].Instance)
+	require.Equal(t, uint64(1), log.Events[0].Incarnation)
+	controller := log.Events[1]
+	require.Equal(t, "controller", controller.Instance)
+	require.Zero(t, controller.Incarnation)
+	require.Equal(t, KindModelTransition, controller.Kind)
+	require.Equal(t, int64(1), controller.TimeNanos)
+	require.JSONEq(t, `{"action":"controller_effect"}`, string(controller.Value))
+}
+
+func TestEventOrderRejectsUnreservedZeroIncarnations(t *testing.T) {
+	t.Parallel()
+	for _, instance := range []string{"guest", "a", "Controller", "controller ", ""} {
+		t.Run(instance, func(t *testing.T) {
+			t.Parallel()
+			event := OrderedEvent{Order: 1, Kind: KindModelTransition, Instance: instance, Value: json.RawMessage(`{"action":"controller_effect"}`)}
+			_, err := ParseEventOrder(orderedLogFixture(t, []OrderedEvent{event}, nil))
+			require.Error(t, err)
+		})
+	}
+	_, err := ParseEventOrder(orderedLogFixture(t, nil, &EventBoundary{Instance: "controller", InspectionOrder: 1}))
+	require.Error(t, err, "the controller cannot supply a guest inspection boundary")
+}
 
 func orderedLogFixture(t *testing.T, events []OrderedEvent, marker *EventBoundary) []byte {
 	t.Helper()

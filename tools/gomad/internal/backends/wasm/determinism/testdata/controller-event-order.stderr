@@ -1,0 +1,4 @@
+gomad-wasm-event-order-v1 {"schema":"gomad.wasm-event-order/v1","type":"header"}
+gomad-wasm-event-order-v1 {"decision":0,"incarnation":1,"instance":"a","kind":"model-transition","order":1,"ordinal":0,"time_nanos":1,"trace":0,"type":"event","value":{"action":"crash"}}
+gomad-wasm-event-order-v1 {"decision":0,"incarnation":0,"instance":"controller","kind":"model-transition","order":2,"ordinal":0,"time_nanos":1,"trace":0,"type":"event","value":{"action":"controller_effect"}}
+gomad-wasm-event-order-v1 {"bytes":476,"events":2,"type":"complete"}

@@ -1,0 +1,18 @@
+{
+  "fixture": "controller-event-order.stderr",
+  "fixture_sha256": "c3ea4dddd3d731d34990874db7ba78c151152880e613196a1d9c4cd18967aa2d",
+  "base_commit": "e0cd113841016ad342fc1d0953132a5716e93ae6",
+  "production_broker_sha256": "c335fd1e6aa2e8ee25f05b38aa8ee2820ce1d6836f1443c1b6afa3657edaa087",
+  "production_recorder_sha256": "49c8d7751e6ade50ae3be18f40e60729e3fad300654aacb20169ddb4702a1652",
+  "producer_test": "cluster::handoff::broker::tests::event_order_controller_commands_match_parser_fixture",
+  "operation": "Broker.command(Command::Revoke { index: 0, incarnation: 1, kind: crash })",
+  "generation": "Run the native producer test alone with GOMAD_WASM_EVENT_ORDER=1, stress-jitter enabled, --exact --nocapture --test-threads=1. Capture the four prefixed stderr frames unchanged.",
+  "verification": "Run the same native test without GOMAD_WASM_EVENT_ORDER. It launches an isolated native test subprocess, executes the real broker command and compares its complete framed stderr against this fixture.",
+  "events": 2,
+  "committed_bytes": 476,
+  "controller_identity": "controller/0",
+  "guest_identity": "a/1",
+  "modeled_time_nanos": 1,
+  "wasm_guests_executed": 0,
+  "helper_published": false
+}

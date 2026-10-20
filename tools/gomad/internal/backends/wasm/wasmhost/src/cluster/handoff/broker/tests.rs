@@ -33,6 +33,46 @@ fn broker_config() -> Config {
     }
 }
 
+#[cfg(feature = "stress-jitter")]
+#[test]
+fn event_order_controller_commands_match_parser_fixture() {
+    if crate::event_order::is_enabled() {
+        let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
+        broker
+            .command(Command::Revoke {
+                index: 0,
+                incarnation: 1,
+                kind: "crash",
+            })
+            .unwrap();
+        crate::event_order::finish();
+        return;
+    }
+    let output = std::process::Command::new(std::env::current_exe().unwrap())
+        .args([
+            "--exact",
+            "cluster::handoff::broker::tests::event_order_controller_commands_match_parser_fixture",
+            "--nocapture",
+        ])
+        .env("GOMAD_WASM_EVENT_ORDER", "1")
+        .output()
+        .unwrap();
+    assert!(output.status.success(), "{output:?}");
+    let stderr = String::from_utf8(output.stderr).unwrap();
+    let mut frames = String::new();
+    for line in stderr
+        .lines()
+        .filter(|line| line.starts_with("gomad-wasm-event-order-v1 "))
+    {
+        frames.push_str(line);
+        frames.push('\n');
+    }
+    assert_eq!(
+        frames,
+        include_str!("../../../../../determinism/testdata/controller-event-order.stderr")
+    );
+}
+
 #[cfg(feature = "diagnostic-profile")]
 #[test]
 fn diagnostic_world_calls_charge_nested_exclusive_owner_wall() {

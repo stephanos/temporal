@@ -109,7 +109,7 @@ func ParseEventOrder(stderr []byte) (EventOrder, error) {
 			if err := strictEventJSON(payload, &frame); err != nil {
 				return EventOrder{}, err
 			}
-			if len(log.Events) >= MaximumOrderedEvents || frame.Order != uint64(len(log.Events))+1 || !knownEventKind(frame.Kind) || frame.Instance == "" || frame.Incarnation == 0 || len(frame.Value) == 0 {
+			if len(log.Events) >= MaximumOrderedEvents || frame.Order != uint64(len(log.Events))+1 || !knownEventKind(frame.Kind) || frame.Instance == "" || frame.Incarnation == 0 && frame.Instance != "controller" || len(frame.Value) == 0 {
 				return EventOrder{}, errors.New("invalid event-order event or event bound")
 			}
 			var value bytes.Buffer
