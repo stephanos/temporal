@@ -499,6 +499,8 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM productionization fixture"
 	case within(path, wasmBackend+"/qualification/testdata/fixture"):
 		entry.disposition = "WASM support and cost qualification fixture"
+	case within(path, wasmBackend+"/testdata/io_failure_module"):
+		entry.disposition = "WASM guest admission failure fixture"
 	case within(path, wasmBackend):
 		relative := strings.TrimPrefix(path, wasmBackend+"/")
 		if err := p.validateWASMHostSource(path, relative); err != nil {

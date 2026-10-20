@@ -498,6 +498,45 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 	}
 }
 
+func TestWASMLintAdmitsDeclaredFailureFixtureModule(t *testing.T) {
+	t.Parallel()
+	for _, extra := range []string{"", "nested/go.mod"} {
+		t.Run(extra, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			fixture := "tools/gomad/internal/backends/wasm/testdata/io_failure_module/"
+			repo.write(fixture+"go.mod", "module example.invalid/failure\n\ngo 1.27.0\n")
+			repo.write(fixture+"io_failure/io_failure_test.go", "package failure\n")
+			if extra != "" {
+				repo.write(fixture+extra, "module example.invalid/unowned\n\ngo 1.27.0\n")
+			}
+			for _, target := range []string{"lint-code-fast", "lint-code-gomad-wasm"} {
+				output, err := repo.runMake(target)
+				if extra != "" {
+					require.Error(t, err, output)
+					require.Contains(t, output, "unclassified module "+fixture+extra)
+					require.Empty(t, repo.calls())
+					continue
+				}
+				require.NoError(t, err, output)
+				require.NotContains(t, output, "uncovered")
+			}
+			if extra != "" {
+				return
+			}
+			packages := []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner"}
+			calls := repo.calls()
+			require.Len(t, calls, 4)
+			for _, call := range calls {
+				require.Equal(t, "tools/gomad", call.Dir)
+				require.NotContains(t, strings.Join(call.Args, " "), "io_failure")
+			}
+			require.Equal(t, []lintCall{{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", packages...)}, {"vet", "tools/gomad", repo.vetArgs(packages...)}}, calls[:2])
+		})
+	}
+}
+
 func TestFastLintKeepsGitChangeSemantics(t *testing.T) {
 	t.Parallel()
 	repo := newLintRepo(t)
