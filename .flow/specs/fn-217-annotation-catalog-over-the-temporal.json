@@ -11,25 +11,46 @@
   ],
   "id": "fn-217-annotation-catalog-over-the-temporal",
   "impl_review_rounds": {
-    "fn-217-annotation-catalog-over-the-temporal.1": 1
+    "fn-217-annotation-catalog-over-the-temporal.1": 0
   },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
-  "review_hash_epoch": {},
-  "review_pending_rounds": {
-    "impl:fn-217-annotation-catalog-over-the-temporal.1": 1
-  },
-  "review_reservations": {
-    "4ad03854d982408d8f043feb3d96b2d8": {
+  "review_attempts": [
+    {
       "artifact_sha256": "afbcad438a523f8430759e55864ddb83d96f5fdb79d77d1b194abedeabf460fc",
-      "counter_scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
-      "epoch": 0,
-      "exclusive": true,
+      "backend": "codex",
+      "base_sha": "67184986f6a530c70814e5d5345d9b4e1e179b0d",
+      "counter_kind": "impl",
+      "failure_class": "head_moved",
+      "finalized": {
+        "digest": "not_applicable",
+        "receipt": "not_applicable",
+        "status": "not_applicable"
+      },
       "forced": false,
-      "review_type": "impl"
+      "hash_epoch": 0,
+      "head_sha": "f4acbec955a01ce0a049ec14de3441ba7d441d56",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "outcome": "transport_failure",
+      "output_bytes": 65,
+      "output_sha256": "0dafc995535cadee43f56638e47a05b87fe98d419664b20e285b34fbb1c392e0",
+      "reservation_id": "4ad03854d982408d8f043feb3d96b2d8",
+      "round_consumed": false,
+      "scope": "impl:fn-217-annotation-catalog-over-the-temporal.1",
+      "superseded_by": null,
+      "task": "fn-217-annotation-catalog-over-the-temporal.1",
+      "timestamp": "2026-10-20T20:13:53.688764Z",
+      "verdict": null
     }
+  ],
+  "review_hash_epoch": {},
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-217-annotation-catalog-over-the-temporal.1": 1
   },
   "spec_path": ".flow/specs/fn-217-annotation-catalog-over-the-temporal.md",
   "status": "open",
@@ -45,5 +66,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T20:04:16.122633Z"
+  "updated_at": "2026-10-20T20:13:53.690234Z"
 }

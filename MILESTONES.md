@@ -82,8 +82,7 @@ control. Lands before fn-227.3, fn-227.5 and fn-228.2 extend the file.
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-229.1 | 🔄 in progress | Runtime constructors and `Candidate` outcomes; `matches` removed (R1) |
-| fn-229.2 | ⬜ todo | After .1: `support` helpers; activity Realization rewritten (R2, R3) |
+| fn-229.2 | 🔄 in progress | `support` helpers; activity Realization rewritten (R2, R3) |
 
 ### fn-230: Reproducible guest builds: a system-agnostic wasm build step, the committed Temporal guest, and the freshness gate (model, temporal)
 
@@ -96,7 +95,7 @@ freshness checks, and `make umpire-guest` refreshes it. Umpire's own guests stay
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-230.1 | ⬜ todo | `guest` profile and `guest.sh`; reproducibility proven on two clean checkouts (R1) |
+| fn-230.1 | 🔄 in progress | `guest` profile and `guest.sh`; two-checkout reproducibility and actual target panic behavior (R1) |
 | fn-230.2 | ⬜ todo | After .1: committed Temporal guest with `go:embed`; freshness step; `umpire-guest`; docs (R2, R3, R4) |
 
 ### fn-231: Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)
