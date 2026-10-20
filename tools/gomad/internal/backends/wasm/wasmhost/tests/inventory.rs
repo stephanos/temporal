@@ -26,6 +26,7 @@ struct Inventory {
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
 struct Reviewed {
+    date: String,
     go_toolchain: String,
     wasmtime: String,
     rust: String,
@@ -54,6 +55,17 @@ fn parse(text: &str) -> Result<Inventory, String> {
         return Err(format!("inventory schema {:?}", inventory.schema));
     }
     let reviewed = &inventory.reviewed;
+    let date = reviewed.date.as_bytes();
+    if date.len() != 10
+        || date[4] != b'-'
+        || date[7] != b'-'
+        || date
+            .iter()
+            .enumerate()
+            .any(|(index, byte)| index != 4 && index != 7 && !byte.is_ascii_digit())
+    {
+        return Err("inventory reviewed date must be YYYY-MM-DD".into());
+    }
     if reviewed.go_toolchain.is_empty() || reviewed.wasmtime.is_empty() || reviewed.rust.is_empty()
     {
         return Err("inventory reviewed versions incomplete".into());
@@ -316,6 +328,7 @@ const SOURCE_PATTERNS: &[&str] = &[
     "SystemTime",
     "/dev/urandom",
     "thread::spawn",
+    "thread::sleep",
     "thread::Builder",
     "HashMap",
     "HashSet",

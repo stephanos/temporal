@@ -19,8 +19,8 @@
     "workload": "fixture/single-shifted-clock",
     "seed": 7,
     "perturbation": "clock",
-    "expected_digest": "sha256:eaf6e031e55880db2a6438bb02489caf16628442bab699f51e2acd3048e07129",
-    "actual_digest": "sha256:b61be9b3a868326f66af4f887034ad594f470cec6d7a8392abedaca350bcb58c",
+    "expected_digest": "sha256:7a7a59468c944723d0dfd2ba17e5dcb112626ea39fe17385412be31e4b3a5fb9",
+    "actual_digest": "sha256:b0e227580b7cb11b45bbdf813bafbca72fcb45e39574b0c7501b901ac07224b1",
     "identities": {
       "engine": "e",
       "helper": "h",

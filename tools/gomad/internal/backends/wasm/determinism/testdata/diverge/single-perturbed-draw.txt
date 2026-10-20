@@ -3,6 +3,6 @@ first: draw-counter guest/1 ordinal=4 shared=0 tape=4 time=946684800000003000 fi
   expected: time=946684800000003000 runq=8 scheduler=5 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0
   actual:   time=946684800000003000 runq=9 scheduler=5 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0
 reproduce: workload=fixture/single-perturbed-draw seed=7 cell=draw
-  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-perturbed-draw (sha256:0dfbb6eba5163a9251216b1a7ff05e3aa66fde8e7a585cccc26c560bdacca066)
-  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-perturbed-draw (sha256:a2263ceaad5d30bf9a72d92714cb7c7d81feddd16c003506e7147474c7ca0ce1)
+  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-perturbed-draw (sha256:c55a2c742aad57df4e6d6b2a637a5d97bd0c6facf9144fd1cfcd34f8914b2334)
+  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-perturbed-draw (sha256:7dedb16a896cf7384df70cf4767794cc983b692b22be41138ae6d7b5322d7e4d)
   replay:   gomad replay --stop choice=4 /artifacts/reference

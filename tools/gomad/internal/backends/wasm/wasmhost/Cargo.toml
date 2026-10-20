@@ -9,6 +9,7 @@ conformance = ["serde_json/raw_value"]
 diagnostic-profile = []
 guest-profile = ["diagnostic-profile", "wasmtime/profiling", "wasmtime/call-hook"]
 diagnostic-fuel-off = ["diagnostic-profile"]
+stress-jitter = []
 
 [dependencies]
 wasmtime = { version = "=47.0.3", default-features = false, features = ["cranelift", "runtime", "std", "wat", "reexport-wasmparser"] }

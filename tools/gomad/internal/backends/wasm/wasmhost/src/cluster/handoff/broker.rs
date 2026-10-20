@@ -771,6 +771,8 @@ impl Broker {
             if inner.metrics.handoffs != 0 {
                 inner.granted_at = Some(Instant::now());
             }
+            #[cfg(feature = "stress-jitter")]
+            crate::stress_jitter::delay();
             self.wake[next].notify_one();
             return;
         }

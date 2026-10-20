@@ -140,6 +140,7 @@ type Request struct {
 	remoteModel                     bool
 	diagnosticConfigurationRevision string
 	guestProfile                    *guestProfileConfig
+	stressHostEnvironment           []string
 }
 type guestProfileConfig struct {
 	Path           string `json:"path"`
@@ -267,7 +268,7 @@ func verifyFile(name, digest string) error {
 func Run(ctx context.Context, request Request) (result Result, runErr error) {
 	pinned := PinnedEngine()
 	diagnostic := func(revision string) bool {
-		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off"
+		return revision == pinned.Configuration+"-guest-profile" || revision == pinned.Configuration+"-fuel-off" || revision == pinned.Configuration+"-guest-profile-fuel-off" || revision == pinned.Configuration+"-stress-jitter"
 	}
 	if request.diagnosticConfigurationRevision != "" {
 		if request.Engine != pinned || !diagnostic(request.diagnosticConfigurationRevision) {
@@ -453,7 +454,7 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		}
 	}()
 	stream := &frameSink{request: request, environment: environment, input: input, cancel: cancel, closeInput: closeInput, context: executionContext, namespaceImage: namespaceImage, storageImage: storageImage, storageContext: storageContext}
-	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: []string{}, Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
+	host, hostErr := hostexec.Run(executionContext, hostexec.Request{Command: []string{request.HelperPath}, Dir: filepath.Dir(request.HelperPath), Env: append([]string{}, request.stressHostEnvironment...), Stdin: input.reader, StdoutSink: stream, StdoutDone: closeInput, Timeout: request.Timeout, TerminateGrace: 100 * time.Millisecond, OutputLimit: 64 << 10, CollectResourceUsage: true})
 	close(finished)
 	<-watcherDone
 	closeErr := input.finish()
@@ -961,6 +962,9 @@ func (sink *frameSink) frame(data []byte) error {
 		if err := frame.decode(&started, "schema", "type", "engine", "module_sha256", "imports", "exports", "initial_memory_pages"); err != nil {
 			return err
 		}
+		if err := validateEngineConfiguration(started.Engine, sink.request); err != nil {
+			return err
+		}
 		if started.Schema != "gomad.wasm-host/v1" || started.Engine != sink.request.Engine || started.ModuleSHA256 != sink.request.ModuleSHA256 || started.InitialMemoryPages != sink.request.InitialMemoryPages || !sameImports(started.Imports, sink.request.Imports) {
 			return invalid("engine/module/import identity mismatch before authorization")
 		}
@@ -1110,8 +1114,16 @@ func (sink *frameSink) frame(data []byte) error {
 		sink.closeInput()
 		return nil
 	default:
-		return invalid("unknown protocol frame")
+		return &BoundaryError{Kind: "unsupported", Dimension: "unknown protocol frame " + kind}
 	}
+}
+
+func validateEngineConfiguration(engine EngineIdentity, request Request) error {
+	pinned := PinnedEngine().Configuration
+	if engine.Configuration != pinned && (request.diagnosticConfigurationRevision == "" || engine.Configuration != request.diagnosticConfigurationRevision) {
+		return &BoundaryError{Kind: "unsupported", Dimension: "engine configuration outside pin: " + engine.Configuration}
+	}
+	return nil
 }
 func sameImports(left, right []Import) bool {
 	return slices.EqualFunc(left, right, func(a, b Import) bool {

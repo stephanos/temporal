@@ -506,12 +506,17 @@ impl State {
             let bytes = protocol::read_frame(&mut self.input)?;
             let frame: Value = serde_json::from_slice(&bytes).map_err(Error::new)?;
             if frame["type"] == "interrupt" {
-                let interrupt: protocol::Interrupt =
-                    serde_json::from_slice(&bytes).map_err(Error::new)?;
+                let interrupt: protocol::Interrupt = protocol::decode_boundary(&bytes)?;
                 interrupt.validate()?;
                 return Err(Error::new(interrupt));
             }
-            let resumed: Continue = serde_json::from_slice(&bytes).map_err(Error::new)?;
+            if frame["type"] != "continue" {
+                return Err(Error::new(protocol::Unsupported(format!(
+                    "unknown sync reply kind {}",
+                    frame["type"]
+                ))));
+            }
+            let resumed: Continue = protocol::decode_boundary(&bytes)?;
             let model = self.model.as_mut().unwrap();
             if resumed.kind != "continue" || !model.adopt_broker_clock(resumed.now) {
                 return Err(Error::msg("invalid revocation sync reply"));
@@ -663,8 +668,7 @@ impl State {
                     crate::diagnostic::WallSpan::new(crate::diagnostic::Nested::Encoding);
                 let frame: Value = serde_json::from_slice(&bytes).map_err(Error::new)?;
                 if frame["type"] == "interrupt" {
-                    let interrupt: protocol::Interrupt =
-                        serde_json::from_slice(&bytes).map_err(Error::new)?;
+                    let interrupt: protocol::Interrupt = protocol::decode_boundary(&bytes)?;
                     interrupt.validate()?;
                     match (&interrupt.completed, &interrupt.transcript_base64) {
                         (None, None) => {}
@@ -704,7 +708,7 @@ impl State {
                     return Err(Error::new(interrupt));
                 }
                 if self.model.is_some() && frame["type"] == "remote_transcript" {
-                    let chunk: Chunk = serde_json::from_slice(&bytes).map_err(Error::new)?;
+                    let chunk: Chunk = protocol::decode_boundary(&bytes)?;
                     if chunk.data_base64.len() > (64 * 1024usize).div_ceil(3) * 4 {
                         return Err(Error::msg("remote transcript chunk capacity"));
                     }
@@ -718,9 +722,23 @@ impl State {
                     transcript.extend(data);
                     continue;
                 }
-                break serde_json::from_slice(&bytes).map_err(Error::new)?;
+                if frame["type"] != "reply" {
+                    return Err(Error::new(protocol::Unsupported(format!(
+                        "unknown callback reply kind {}",
+                        frame["type"]
+                    ))));
+                }
+                break protocol::decode_boundary(&bytes)?;
             };
-            if reply.kind != "reply" || reply.id != self.calls || !reply.output.is_object() {
+            #[cfg(feature = "stress-jitter")]
+            crate::stress_jitter::delay();
+            if reply.kind != "reply" {
+                return Err(Error::new(protocol::Unsupported(format!(
+                    "unknown callback reply kind {}",
+                    reply.kind
+                ))));
+            }
+            if reply.id != self.calls || !reply.output.is_object() {
                 return Err(Error::msg("invalid callback reply type, ID or output"));
             }
             if let Some(model) = &mut self.model {
@@ -761,6 +779,10 @@ impl State {
         self.callback_input(protocol::CallbackInput::Json { op, input: &input })
     }
 }
+#[cfg(feature = "stress-jitter")]
+pub(crate) const CONFIGURATION_REVISION: &str =
+    "cranelift-fuel-nan-canonical-nounwind-v2-stress-jitter";
+#[cfg(not(feature = "stress-jitter"))]
 pub(crate) const CONFIGURATION_REVISION: &str = match (
     cfg!(feature = "guest-profile"),
     cfg!(feature = "diagnostic-fuel-off"),
@@ -785,8 +807,7 @@ pub fn execute() -> Result<()> {
         return crate::cluster::execute(frame, input, output);
     }
     let parsed: Result<Execute> = (|| {
-        let mut request: Execute =
-            serde_json::from_slice(&first?).map_err(|e| Error::msg(e.to_string()))?;
+        let mut request: Execute = protocol::decode_boundary(&first?)?;
         request.validate()?;
         if let Some(model) = &mut request.local_model {
             model.read_inputs(&mut input)?;

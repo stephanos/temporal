@@ -1,5 +1,10 @@
 #[cfg(not(feature = "conformance"))]
 mod abi;
+#[cfg(all(
+    feature = "stress-jitter",
+    any(feature = "diagnostic-profile", feature = "conformance")
+))]
+compile_error!("stress-jitter cannot be combined with profiling or conformance features");
 #[cfg(not(feature = "conformance"))]
 mod cache;
 #[cfg(any(test, not(feature = "conformance")))]
@@ -26,6 +31,8 @@ mod network;
 mod protocol;
 #[cfg(not(feature = "conformance"))]
 mod storage_transport;
+#[cfg(feature = "stress-jitter")]
+mod stress_jitter;
 mod transcript;
 mod volume;
 
