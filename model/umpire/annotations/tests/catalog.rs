@@ -195,6 +195,112 @@ fn presence_operators_validate_and_guide_fill() -> Result<(), Box<dyn std::error
     Ok(())
 }
 
+#[test]
+fn presence_admission_rejects_aliases_of_the_same_field() {
+    for presence in [
+        Presence::OneOf(vec!["a".into(), "example.Pair.a".into()]),
+        Presence::Required(vec!["a".into(), "example.Pair.a".into()]),
+        Presence::AnyOf(vec!["a".into(), "example.Pair.a".into()]),
+        Presence::Requires("a".into(), "example.Pair.a".into()),
+        Presence::Excludes("a".into(), "example.Pair.a".into()),
+    ] {
+        let name = presence.name();
+        assert_eq!(
+            pair_catalog(presence).err(),
+            Some(AdmissionErrors(vec![AdmissionError::InvalidRule(name.into())]))
+        );
+    }
+}
+
+#[test]
+fn distinct_presence_fields_accept_relative_and_qualified_paths()
+-> Result<(), Box<dyn std::error::Error>> {
+    for (a, b) in [("a", "b"), ("example.Pair.a", "example.Pair.b"), ("a", "example.Pair.b")] {
+        let catalog = pair_catalog(Presence::OneOf(vec![a.into(), b.into()]))?;
+        assert_eq!(validate(&Pair { a: Some("value".into()), b: None }, &catalog), []);
+        let mut message = Pair::default();
+        fill(&mut message, &catalog, &mut Rng::new(5))?;
+        assert_eq!(validate(&message, &catalog), []);
+    }
+    Ok(())
+}
+
+#[test]
+fn presence_fill_preserves_unrelated_generated_fields() -> Result<(), Box<dyn std::error::Error>> {
+    for presence in [
+        None,
+        Some(Presence::OneOf(vec!["a".into(), "b".into()])),
+        Some(Presence::Excludes("example.Many.a".into(), "b".into())),
+    ] {
+        let mut builder = Catalog::response("example.Many");
+        for (index, name) in ('a'..='r').enumerate() {
+            builder = builder.field(Field::projected(
+                name.to_string(),
+                Kind::Text(StringRules::default()),
+                move |m: &Value<[String; 18]>| m.value[index].clone(),
+                move |m, value| m.value[index] = value,
+            ));
+        }
+        if let Some(presence) = presence {
+            builder = builder.rule(Rule { presence, expected: None });
+        }
+        let catalog = builder.build()?;
+        let mut message = Value::default();
+        fill(&mut message, &catalog, &mut Rng::new(5))?;
+        assert_eq!(validate(&message, &catalog), []);
+        assert!(message.value[2..].iter().all(|value| !value.is_empty()));
+        if catalog.rules().is_empty() {
+            assert!(message.value.iter().all(|value| !value.is_empty()));
+        } else {
+            assert_ne!(message.value[0], "");
+            assert_eq!(message.value[1], "");
+        }
+    }
+    Ok(())
+}
+
+#[test]
+fn presence_fill_ignores_unrelated_optional_fields() -> Result<(), Box<dyn std::error::Error>> {
+    let mut builder = Catalog::response("example.Many");
+    for (index, name) in ('a'..='q').enumerate() {
+        builder = builder.field(Field::projected(
+            name.to_string(),
+            Kind::Text(StringRules::default()),
+            move |m: &Value<[Option<String>; 17]>| m.value[index].clone(),
+            move |m, value| m.value[index] = value,
+        ));
+    }
+    let catalog = builder
+        .rule(Rule { presence: Presence::OneOf(vec!["a".into(), "b".into()]), expected: None })
+        .build()?;
+    let mut message = Value::default();
+    fill(&mut message, &catalog, &mut Rng::new(5))?;
+    assert_eq!(validate(&message, &catalog), []);
+    assert!(message.value[0].is_some());
+    assert!(message.value[1].is_none());
+    assert!(message.value[2..].iter().all(Option::is_some));
+    Ok(())
+}
+
+#[test]
+fn impossible_presence_rules_refuse_without_mutating_message_or_rng()
+-> Result<(), Box<dyn std::error::Error>> {
+    let catalog = Catalog::response("example.Pair")
+        .field(Field::new("a", Kind::Text(StringRules::default()), |m: &Pair| &m.a, |m| &mut m.a))
+        .field(Field::new("b", Kind::Text(StringRules::default()), |m: &Pair| &m.b, |m| &mut m.b))
+        .rule(Rule { presence: Presence::Required(vec!["a".into(), "b".into()]), expected: None })
+        .rule(Rule { presence: Presence::Excludes("a".into(), "b".into()), expected: None })
+        .build()?;
+    let mut message = Pair::default();
+    let before = message.clone();
+    let mut rng = Rng::new(5);
+    let mut before_rng = rng.clone();
+    assert!(matches!(fill(&mut message, &catalog, &mut rng), Err(FillError::Invalid(_))));
+    assert_eq!(message, before);
+    assert_eq!(rng.next_u64(), before_rng.next_u64());
+    Ok(())
+}
+
 fn expected(expectation: Expectation) -> Expected {
     Expected { expectation, covers: "validateRequest".into() }
 }

@@ -1,7 +1,10 @@
 //! Typed field access and admission.
 
 use crate::{Consequence, FieldValue, GenerationError, Kind, RepeatedRules, Rng, Tag};
-use std::{collections::BTreeMap, fmt};
+use std::{
+    collections::{BTreeMap, BTreeSet},
+    fmt,
+};
 
 /// Expected server behavior for one violated constraint or presence rule.
 #[derive(Clone, Debug, PartialEq, Eq)]
@@ -517,14 +520,18 @@ impl<M: 'static> CatalogBuilder<M> {
             }
         }
         for rule in &self.catalog.rules {
-            let fields = rule.presence.fields();
+            let fields: Vec<_> = rule
+                .presence
+                .fields()
+                .into_iter()
+                .map(|path| self.catalog.qualified(path))
+                .collect();
             if fields.is_empty()
                 || fields.iter().enumerate().any(|(i, field)| fields[..i].contains(field))
             {
                 self.errors.push(AdmissionError::InvalidRule(rule.presence.name().into()));
             }
-            for path in fields {
-                let qualified = self.catalog.qualified(path);
+            for qualified in fields {
                 match self.catalog.fields.get(&qualified) {
                     None => self.errors.push(AdmissionError::UnknownRuleField(qualified)),
                     Some(field) if field.descriptor().ignored() => {
@@ -646,6 +653,12 @@ pub fn fill<M: Clone + 'static>(
 ) -> Result<(), FillError> {
     let mut candidate = message.clone();
     let mut stream = rng.clone();
+    let rule_fields: BTreeSet<_> = catalog
+        .rules
+        .iter()
+        .flat_map(|rule| rule.presence.fields())
+        .map(|path| catalog.qualified(path))
+        .collect();
     let mut filled = Vec::new();
     for field in catalog.fields.values() {
         if field.descriptor().decided() || field.present(&candidate) {
@@ -654,7 +667,9 @@ pub fn fill<M: Clone + 'static>(
         field
             .fill(&mut candidate, &mut stream)
             .map_err(|reason| FillError::Field { path: field.descriptor().path.clone(), reason })?;
-        filled.push(field.as_ref());
+        if rule_fields.contains(&field.descriptor().path) {
+            filled.push(field.as_ref());
+        }
     }
     let mut budget = 65_536;
     if let Some(valid) = select_presence(&candidate, catalog, &filled, 0, &mut budget)? {
