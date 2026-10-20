@@ -4,11 +4,10 @@ satisfies: [R2]
 # fn-222-gomad-qualify-the-one-box-cell-and.2 Define the per-test support list and produce the first one
 
 ## Description
-Define the candidate-bound per-test support list: candidate identity (helper digest, compiler, runtime overlay identity, module identity), one row per supported test with package, function, gates passed with exits and retained artifact reference, and an explicit statement that unlisted tests are unsupported. Produce it through the existing qualification owner (internal/evidence/qualification wrapped by internal/backends/wasm/qualification), store it next to the checkpoint records, and add a QUALIFICATION.md section describing the shape and pointing at the current list. The first list contains exactly the tests that passed the cell gates, at minimum TestFrontendSystemInfo.
+Document and produce the candidate-bound `gomad.wasm-support-list/v1` through the existing qualification owner. Require registered cells' final success/canary Results and PublicationReceipts, a zero exit for every cell gate, exact canonical argument vectors and authenticated stdout proving the named test actually passed without skip or no-tests suppression. The first accepted list must include both the mandatory smoke selection `./tests` `TestWorkflowTypeEncodingSuite/TestPlainASCII/Succeeds` and the supplementary `./tests/gomadfunctional` `TestFrontendSystemInfo` cell. Run the latter's preparation and measured modes under `TestActualOneboxFrontendSystemInfoQualification` in its own root, without `GOMAD_WASM_QUALIFY_WORKLOADS`, and validate its Results independently. Retain any failing gate; a smoke-only interim list does not complete this task. Record candidate/module identities, gate commands/exits and retained references per row, explicitly state unlisted tests are unsupported, and store JSON/Markdown unchanged next to checkpoint records with a QUALIFICATION.md reference. Sweep passes alone never add rows. Changed candidate identities must re-earn every row.
 
 **Size:** S
 **Files:** tools/gomad/internal/backends/wasm/qualification/**, tools/gomad/internal/backends/wasm/QUALIFICATION.md, .flow/artifacts/fn222-*.md
-
 ## Acceptance
 - [ ] Support list shape documented in QUALIFICATION.md with per-test, candidate-bound wording
 - [ ] First list for the current candidate contains exactly the gate-passing tests
