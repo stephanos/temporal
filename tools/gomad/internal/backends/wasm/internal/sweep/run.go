@@ -58,11 +58,13 @@ func GuestTags() []string { return backend.TemporalGuestBuildTags() }
 
 // Run enumerates, installs, runs every selected test once and writes the
 // journal and sidecar. It returns verification findings of the sidecar.
-func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
+func (sweeper *Sweeper) Run(parent context.Context) (findings []string, runErr error) {
 	options := sweeper.Options
 	if err := options.Validate(); err != nil {
 		return nil, err
 	}
+	ctx, cancel := context.WithTimeout(parent, options.OverallBudget)
+	defer cancel()
 	if err := requireRegularFiles(options); err != nil {
 		return nil, err
 	}
@@ -86,21 +88,22 @@ func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
 	}
 	tags := GuestTags()
 	packages, err := Enumerate(ctx, sweeper.Executor, options, tags, sweeper.Log)
-	if err != nil {
-		return nil, err
+	if err != nil || ctx.Err() != nil {
+		return nil, fmt.Errorf("enumerate sweep: %w", errors.Join(err, ctx.Err()))
 	}
 	candidate, err := sweeper.baseCandidate(ctx, tags)
 	candidate.HarnessSHA256 = sweeper.HarnessSHA256
 	candidate.ExploreFlags = fixedExploreFlags()
-	if err != nil {
-		return nil, err
+	candidate.TestFlags = fixedTestFlags()
+	if err != nil || ctx.Err() != nil {
+		return nil, fmt.Errorf("identify sweep candidate: %w", errors.Join(err, ctx.Err()))
 	}
 	manifests := map[string]string{}
 	for index, pkg := range packages {
 		dirs := dirsFor(options.Work, pkg.Pattern)
 		manifest, err := installPackage(ctx, sweeper.Executor, options, pkg.Pattern, dirs)
-		if err != nil {
-			return nil, err
+		if err != nil || ctx.Err() != nil {
+			return nil, fmt.Errorf("install sweep package %s: %w", pkg.Pattern, errors.Join(err, ctx.Err()))
 		}
 		installed := candidate
 		fillFromManifest(&installed, manifest)
@@ -120,7 +123,7 @@ func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
 	if err != nil {
 		return nil, err
 	}
-	defer func() { retErr = errors.Join(retErr, journal.Close()) }()
+	defer func() { runErr = errors.Join(runErr, journal.Close()) }()
 	if err := journal.Append(Row{Kind: "header", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Header: &Header{
 		Statement: ObservationStatement, Candidate: candidate, Host: currentHost(), Packages: packages,
 		OverallBudget: options.OverallBudget.String(), MaxTests: options.MaxTests, RetainBytes: options.RetainBytes, Command: sweeper.Command,
@@ -133,37 +136,56 @@ func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
 		dirs := dirsFor(options.Work, pkg.Pattern)
 		warmed := false
 		for index, name := range pkg.Tests {
+			if err := parent.Err(); err != nil {
+				return nil, err
+			}
 			if options.MaxTests != 0 && index >= options.MaxTests {
 				break
 			}
 			if entry, ok := latest[pkg.Pattern+"\x00"+name]; ok && entry.Class != ClassNotRun {
-				_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class)
+				if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: resume: %s %s already %s\n", pkg.Pattern, name, entry.Class); err != nil {
+					return nil, err
+				}
 				continue
 			}
 			var entry TestEntry
 			switch {
 			case pkg.GuestExcluded[name] != "":
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassBuildFailure, Reason: "guest-file-set: " + pkg.GuestExcluded[name] + " is excluded from the wasip1 guest build under the slim tags"}
-			case !sweeper.fits(started, 1):
+			case ctx.Err() != nil || !sweeper.fits(started, 1):
 				entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted before start"}
 			default:
-				if !warmed && sweeper.fits(started, 2) {
+				if !warmed && sweeper.Now().Sub(started)+options.PerTestTimeout+3*options.PrepareTimeout <= options.OverallBudget {
 					// The helper compiles the module (Cranelift) inside the
 					// execution timeout. One unrecorded run selecting no test
 					// fills this package's engine cache, so the first row's
 					// budget is not spent compiling.
-					warmup, err := sweeper.warm(ctx, pkg.Pattern, manifests[pkg.Pattern], dirs)
+					warmup, err := sweeper.warm(ctx, pkg, manifests[pkg.Pattern], dirs)
 					if err != nil {
+						if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
+							entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted during warm-up"}
+							break
+						}
 						return nil, err
 					}
 					if err := journal.Append(Row{Kind: "warmup", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &warmup}); err != nil {
 						return nil, err
 					}
-					_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded)
+					if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: %s warm-up exit=%d wall=%.1fs engine-entries-added=%d\n", pkg.Pattern, warmup.GomadExit, warmup.WallSeconds, warmup.EngineEntriesAdded); err != nil {
+						return nil, err
+					}
 				}
 				warmed = true
-				entry, err = sweeper.runTest(ctx, pkg.Pattern, name, manifests[pkg.Pattern], dirs, retention, started)
+				if ctx.Err() != nil || !sweeper.fits(started, 1) {
+					entry = TestEntry{Package: pkg.Pattern, Name: name, Class: ClassNotRun, Reason: "overall budget exhausted after warm-up"}
+					break
+				}
+				entry, err = sweeper.runTest(ctx, pkg, name, manifests[pkg.Pattern], dirs, retention, started)
 				if err != nil {
+					if ctx.Err() != nil && parent.Err() == nil && errors.Is(err, ctx.Err()) {
+						entry.Class, entry.Reason = ClassNotRun, "overall budget exhausted during test"
+						break
+					}
 					return nil, err
 				}
 			}
@@ -171,9 +193,11 @@ func (sweeper *Sweeper) Run(ctx context.Context) (_ []string, retErr error) {
 			if err := journal.Append(Row{Kind: "test", Candidate: key, Time: sweeper.Now().UTC().Format(time.RFC3339), Test: &entry}); err != nil {
 				return nil, err
 			}
-			_, _ = fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason)
-			if ctx.Err() != nil {
-				return nil, ctx.Err()
+			if _, err := fmt.Fprintf(sweeper.Log, "wasmsweep: %s %s class=%s wall=%.1fs reason=%q\n", pkg.Pattern, name, entry.Class, entry.WallSeconds, entry.Reason); err != nil {
+				return nil, err
+			}
+			if parent.Err() != nil {
+				return nil, parent.Err()
 			}
 		}
 		// The engine cache serves only this package's modules.
@@ -212,7 +236,11 @@ func fixedExploreFlags() []string {
 
 // ExploreArgs is the gomad command line for one test function.
 func ExploreArgs(manifest, artifacts string, options Options, pattern, test string) []string {
-	return exploreArgs(manifest, artifacts, options, pattern, "^"+test+"$", options.PerTestTimeout)
+	return exploreArgs(manifest, artifacts, options, pattern, testRunPattern(test), options.PerTestTimeout)
+}
+
+func fixedTestFlags() []string {
+	return []string{"-test.v", "-test.count=1", "-test.timeout=72h"}
 }
 
 func exploreArgs(manifest, artifacts string, options Options, pattern, run string, executionTimeout time.Duration) []string {
@@ -221,7 +249,8 @@ func exploreArgs(manifest, artifacts string, options Options, pattern, run strin
 		"--overall-timeout=" + (executionTimeout + options.PrepareTimeout).String(),
 		"--artifacts", artifacts, "--working-dir", options.Checkout}
 	args = append(args, fixedExploreFlags()...)
-	return append(args, "go-test", pattern, "--", "-test.run="+run, "-test.v", "-test.count=1")
+	args = append(args, "go-test", pattern, "--", "-test.run="+run)
+	return append(args, fixedTestFlags()...)
 }
 
 // fits reports whether runs more per-test executions (each with its
@@ -233,15 +262,26 @@ func (sweeper *Sweeper) fits(started time.Time, runs int) bool {
 
 // warm runs the package's guest once with a run expression that selects no
 // test, under the preparation allowance, and records only its costs.
-func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs packageDirs) (TestEntry, error) {
-	options := sweeper.Options
+func packageExecution(options Options, pkg Package) (Options, string) {
+	if pkg.ModuleDirectory != "" {
+		options.Checkout = pkg.ModuleDirectory
+	}
+	if pkg.Target != "" {
+		return options, pkg.Target
+	}
+	return options, pkg.Pattern
+}
+
+func (sweeper *Sweeper) warm(ctx context.Context, pkg Package, manifest string, dirs packageDirs) (TestEntry, error) {
+	options, target := packageExecution(sweeper.Options, pkg)
+	pattern := pkg.Pattern
 	entry := TestEntry{Package: pattern, Name: "(warm-up)", Attempts: 1, ConfigSource: options.ConfigSource}
 	runRoot := filepath.Join(dirs.runs, "warm-up")
 	if err := resetDirectory(runRoot); err != nil {
 		return entry, err
 	}
 	_, before := treeSize(dirs.engine)
-	completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: exploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, "^$", options.PrepareTimeout), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: 2*options.PrepareTimeout + subprocessSlack})
+	completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: exploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, target, "^$", options.PrepareTimeout), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: 2*options.PrepareTimeout + subprocessSlack})
 	if ctx.Err() != nil {
 		return entry, errors.Join(ctx.Err(), os.RemoveAll(runRoot))
 	}
@@ -255,24 +295,23 @@ func (sweeper *Sweeper) warm(ctx context.Context, pattern, manifest string, dirs
 	if completed.Err != nil {
 		entry.Reason += ": " + Normalize(completed.Err.Error())
 	}
-	return entry, errors.Join(os.RemoveAll(runRoot), resetDirectory(dirs.preparation))
+	return entry, os.RemoveAll(runRoot)
 }
 
-func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
-	options := sweeper.Options
+func (sweeper *Sweeper) runTest(ctx context.Context, pkg Package, name, manifest string, dirs packageDirs, retention *retention, started time.Time) (TestEntry, error) {
+	options, target := packageExecution(sweeper.Options, pkg)
+	pattern := pkg.Pattern
 	entry := TestEntry{Package: pattern, Name: name}
 	var runRoot string
 	var outcome Outcome
 	for attempt := 1; attempt <= 2; attempt++ {
-		if err := resetDirectory(dirs.preparation); err != nil {
-			return entry, err
-		}
 		runRoot = filepath.Join(dirs.runs, fmt.Sprintf("%s-%d", name, attempt))
 		if err := resetDirectory(runRoot); err != nil {
 			return entry, err
 		}
 		_, entriesBefore := treeSize(dirs.engine)
-		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, pattern, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
+		completed := sweeper.Executor.Exec(ctx, Command{Path: options.Gomad, Args: ExploreArgs(manifest, filepath.Join(runRoot, "artifacts"), options, target, name), Dir: runRoot, Env: sanitizedEnviron(options.Environ), Timeout: options.PerTestTimeout + options.PrepareTimeout + subprocessSlack})
+		entry.Attempts, entry.GomadExit, entry.WallSeconds = attempt, completed.Exit, completed.Elapsed.Seconds()
 		if ctx.Err() != nil {
 			// An interrupted sweep records nothing for this function; a
 			// resumed sweep runs it again.
@@ -290,7 +329,6 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			}
 		}
 		outcome = Classify(observation)
-		entry.Attempts, entry.GomadExit, entry.WallSeconds = attempt, completed.Exit, completed.Elapsed.Seconds()
 		entry.PreparationBytes, _ = treeSize(dirs.preparation)
 		entry.ArtifactBytes, _ = treeSize(runRoot)
 		var entriesAfter int
@@ -316,7 +354,7 @@ func (sweeper *Sweeper) runTest(ctx context.Context, pattern, name, manifest str
 			return entry, err
 		}
 	}
-	return entry, resetDirectory(dirs.preparation)
+	return entry, nil
 }
 
 // retention keeps one exemplar artifact root per distinct non-pass reason
@@ -411,11 +449,24 @@ func (sweeper *Sweeper) baseCandidate(ctx context.Context, tags []string) (Candi
 		return candidate, fmt.Errorf("git rev-parse HEAD in %s: exit %d %v %s", options.Checkout, head.Exit, head.Err, head.Stderr)
 	}
 	candidate.GitSHA = strings.TrimSpace(string(head.Stdout))
-	status := sweeper.Executor.Exec(ctx, Command{Path: "git", Args: []string{"-C", options.Checkout, "status", "--porcelain", "--untracked-files=no"}, Dir: options.Work, Env: gitEnv, Timeout: time.Minute})
+	statusArgs := []string{"-C", options.Checkout, "status", "--porcelain", "--untracked-files=all"}
+	if within(options.Checkout, options.Out) {
+		statusArgs = append(statusArgs, "--", ".")
+		for _, output := range []string{JournalPath(options.Out), SidecarPath(options.Out), SidecarPath(options.Out) + ".tmp"} {
+			relative, err := filepath.Rel(options.Checkout, output)
+			if err != nil {
+				return candidate, err
+			}
+			statusArgs = append(statusArgs, ":(exclude,literal)"+filepath.ToSlash(relative))
+		}
+	}
+	status := sweeper.Executor.Exec(ctx, Command{Path: "git", Args: statusArgs, Dir: options.Work, Env: gitEnv, Timeout: time.Minute})
 	if status.Err != nil || status.Exit != 0 {
 		return candidate, fmt.Errorf("git status in %s: exit %d %v", options.Checkout, status.Exit, status.Err)
 	}
-	candidate.GitDirty = strings.TrimSpace(string(status.Stdout)) != ""
+	if strings.TrimSpace(string(status.Stdout)) != "" {
+		return candidate, fmt.Errorf("%w: checkout %s has tracked or untracked changes outside the generated sweep outputs; use a clean frozen checkout", ErrRefused, options.Checkout)
+	}
 	return candidate, nil
 }
 
@@ -450,14 +501,14 @@ func packageIndependentConfigDigest(config wasi.Config) string {
 // FileSHA256 is the "sha256:<hex>" digest of a file.
 func FileSHA256(path string) (string, error) { return fileSHA256(path) }
 
-func fileSHA256(path string) (_ string, retErr error) {
+func fileSHA256(path string) (string, error) {
 	file, err := os.Open(path)
 	if err != nil {
 		return "", err
 	}
-	defer func() { retErr = errors.Join(retErr, file.Close()) }()
 	hash := sha256.New()
-	if _, err := io.Copy(hash, file); err != nil {
+	_, copyErr := io.Copy(hash, file)
+	if err := errors.Join(copyErr, file.Close()); err != nil {
 		return "", err
 	}
 	return "sha256:" + hex.EncodeToString(hash.Sum(nil)), nil

@@ -60,7 +60,7 @@ func TestBeta(t *testing.T) {}
 func Testlower(t *testing.T) {}
 func helper(t *testing.T) {}
 type S struct{}
-func (S) TestMethod(t *testing.T) {}
+func (S) HelperMethod(t *testing.T) {}
 func BenchmarkX(b *testing.B) {}
 `, 0o600)
 	write(filepath.Join(checkout, "tests", "alpha", "unix_test.go"), "package alpha_test\nimport \"testing\"\nfunc TestUnixOnly(t *testing.T) {}\n", 0o600)
@@ -364,7 +364,7 @@ func TestSweepClassifiesRetainsResumesAndVerifies(t *testing.T) {
 		t.Fatalf("aggregates %v", sidecar.ByClass)
 	}
 	for _, explore := range f.explores {
-		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--output-limit=256MiB", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json"} {
+		for _, want := range []string{"--seeds=0", "--parallel=1", "--choices", "--execution-timeout=10m0s", "--overall-timeout=40m0s", "--output-limit=256MiB", "--build-tag=gomad_wasm_slim", "--env=TEMPORAL_ROOT=/workspace", "--json", "-test.timeout=72h"} {
 			if !strings.Contains(explore, want) {
 				t.Fatalf("explore %q lacks %q", explore, want)
 			}
@@ -460,6 +460,11 @@ func TestMaxTestsCapsEachPackageInSortedOrder(t *testing.T) {
 	if sidecar.ByClass[ClassNotRun] != 2 {
 		t.Fatalf("capped tests must be not-run rows: %v", sidecar.ByClass)
 	}
+	for _, row := range sidecar.Rows {
+		if row.ConfigSource != ConfigThrowaway {
+			t.Fatalf("row lacks configuration source: %+v", row)
+		}
+	}
 }
 
 func TestTemporalInstallHookUsesFn220Flags(t *testing.T) {
@@ -467,7 +472,7 @@ func TestTemporalInstallHookUsesFn220Flags(t *testing.T) {
 	options := newFixture(t).options
 	options.ConfigSource = ConfigTemporalInstall
 	args := strings.Join(installArgs(options, "./tests", dirsFor(options.Work, "./tests")), " ")
-	if !strings.Contains(args, "--temporal-checkout "+options.Checkout) || !strings.Contains(args, "--temporal-package ./tests") || strings.Contains(args, "--config") {
+	if !strings.Contains(args, "--temporal-checkout "+options.Checkout) || !strings.Contains(args, "--temporal-package ./tests") || strings.Contains(args, "--config") || strings.Contains(args, "--profile") {
 		t.Fatalf("install args %s", args)
 	}
 	options.ConfigSource = ConfigThrowaway

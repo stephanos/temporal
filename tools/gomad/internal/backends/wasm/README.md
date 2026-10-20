@@ -175,24 +175,38 @@ The fn-221 functional-suite triage sweep is the developer command
 `./internal/backends/wasm/cmd/wasmsweep` (library `internal/sweep`), chosen over
 a test-only producer because it runs for hours and must resume. It drives a
 prebuilt `gomad` binary as a subprocess, one `explore --json` campaign per
-top-level test function under `./tests` (seed `--seed`, `--parallel=1`,
+isolated test unit under `./tests` (seed `--seed`, `--parallel=1`,
 `--choices`, the slim `TemporalGuestBuildTags()`), so the explore path it
 observes is the operator's. Enumeration parses the `go list` test files and must
-equal `go test -list ^Test` for the same packages and tags, or the sweep stops.
-Each function gets one class: pass (with `skipped`), guest failure, refused
+equal `go test -list ^Test` for top-level functions in the same packages and
+tags. Discovery crosses nested modules under `tests`; each package records its
+own host module directory and Go target while retaining a checkout-relative
+report label. It also resolves suite registrations, receiver methods and local promoted
+methods from source. Each registered method gets its own anchored slash selector;
+nested registrations use one wildcard component per enclosing subtest. A suite
+wrapper is expanded into method units and never rerun as an unfiltered suite.
+Unregistered methods, unresolved registrations and ambiguous promotions stop the
+sweep. The v2 sidecar retains top-level, method, registration and unit inventories.
+Each unit gets one class: pass (with `skipped`), guest failure, refused
 import, capacity exceeded, timeout, build failure, infrastructure (retried
 once), replay divergence, or not-run (cut by the overall budget or
 `--max-tests`), with a normalized reason for every non-pass. `GOMAD_*`
-variables and missing or unbounded budgets are refused. Each package gets its own
+variables and missing or unbounded budgets are refused. The overall context
+deadline bounds enumeration, installation and guest subprocesses; interrupted
+units cut off by that deadline are not run, with evidence finalized afterward. Each package gets its own
 installation: `--config-source=throwaway` writes a sweep-local `wasi.Config` with
 the measure-fixture parameters and runs `gomad install --config`, labelled
 `throwaway` in every row and in the candidate identity; `temporal-install` uses fn-220's
-`install --temporal-checkout/--temporal-package` once it exists. A package's
-first recorded function follows one unrecorded warm-up run selecting no test,
-because the helper's engine compilation counts against the execution timeout.
+`install --temporal-checkout/--temporal-package`. When the overall budget can fit
+both warm-up and a test, a package's first recorded function follows one
+unrecorded warm-up run selecting no test, because the helper's engine compilation
+counts against the execution timeout.
+Every unit uses `-test.timeout=72h` for the Go testing package's virtual timer,
+matching the Temporal consumer workflow; the shorter host execution and overall
+deadlines remain authoritative. Test flags are recorded in the candidate identity.
 `--output-limit=256MiB` is the guest's hard output capacity, as in the measure
-fixture. Preparation
-caches are deleted after each function and the engine cache after each package;
+fixture. The package's compilation cache serves every unit with independently
+bound execution provenance. Preparation and engine caches are deleted after each package;
 one failure artifact per distinct reason is kept under `--retain-bytes`. Rows go
 to an append-only `sweep.jsonl` keyed by candidate identity, so a rerun with the
 same `--out` skips classified functions, and `sweep.json` is the sidecar that
@@ -225,8 +239,10 @@ imports, memory, fuel and captured inputs. Replay uses retained module and
 provenance bytes and verifies the installed helper and compiled model; it does
 not rebuild or read original source or input mounts. The stock provider rejects
 ambient PGO, module replacements, overlays, native adapters, choice and strict-time
-commands. It disables PGO explicitly and isolates compiler object caches by the
-complete build key with external cache programs disabled. Its artifacts declare `observed` replay, without native I/O transcript
+commands. It disables PGO explicitly and isolates compiler object caches by
+compilation inputs, with external cache programs disabled. A verified module can
+serve different test selectors; each execution retains its own provenance and
+build identity, including arguments, models and limits. Its artifacts declare `observed` replay, without native I/O transcript
 or forced-choice claims.
 
 The cooperative provider requires Go 1.27.1 and an explicit `RuntimeRoot` pointing

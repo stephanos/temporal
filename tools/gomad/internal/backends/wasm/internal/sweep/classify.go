@@ -277,9 +277,14 @@ func artifactSuffix(facts ArtifactFacts) string {
 }
 
 func verdictLine(stdout []byte, verdict, test string) bool {
-	prefix := []byte("--- " + verdict + ": " + test + " (")
+	prefix := "--- " + verdict + ": "
 	for line := range bytes.SplitSeq(stdout, []byte("\n")) {
-		if bytes.HasPrefix(line, prefix) {
+		name, ok := strings.CutPrefix(strings.TrimSpace(string(line)), prefix)
+		if !ok {
+			continue
+		}
+		name, _, ok = strings.Cut(name, " (")
+		if ok && selectedTest(test, name) {
 			return true
 		}
 	}
@@ -327,9 +332,14 @@ var subtestVerdict = regexp.MustCompile(`^\s+--- (PASS|FAIL|SKIP): (\S+)`)
 
 func parseSubtests(test string, stdout []byte) *Subtests {
 	summary := &Subtests{}
+	depth := len(strings.Split(test, "/"))
 	for line := range strings.SplitSeq(string(stdout), "\n") {
 		match := subtestVerdict.FindStringSubmatch(line)
-		if match == nil || !strings.HasPrefix(match[2], test+"/") {
+		if match == nil {
+			continue
+		}
+		parts := strings.Split(match[2], "/")
+		if len(parts) <= depth || !selectedTest(test, strings.Join(parts[:depth], "/")) {
 			continue
 		}
 		switch match[1] {

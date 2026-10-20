@@ -23,13 +23,7 @@ import (
 func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {
 	for _, fault := range []string{"module-stage", "receipt-stage", "module-validation", "receipt-validation", "cancel", "cleanup", "receipt-rename", "success"} {
 		t.Run(fault, func(t *testing.T) {
-			p := integrationProvider(t)
-			source := t.TempDir()
-			for name, data := range map[string]string{"go.mod": "module cache.stages.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
-				if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
-					t.Fatal(err)
-				}
-			}
+			p, spec, _ := compilationCacheProvider(t)
 			ctx, cancel := context.WithCancel(t.Context())
 			defer cancel()
 			failure := errors.New("cache fill failure")
@@ -87,7 +81,7 @@ func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {
 				}
 				return staged, nil
 			}
-			prepared, err := p.prepareWithStager(ctx, target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: t.TempDir()}, stage)
+			prepared, err := p.prepareWithStager(ctx, spec, stage)
 			if fault == "success" {
 				if err != nil {
 					t.Fatal(err)
@@ -98,7 +92,7 @@ func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {
 						t.Fatalf("cache mode changed: %s %v", name, err)
 					}
 				}
-				if prepared.BuildKey != filepath.Base(cache) {
+				if compilationCachePath(t, p, prepared) != cache {
 					t.Fatal("publication changed build identity")
 				}
 			} else if err == nil {
@@ -134,13 +128,7 @@ func TestCachePublicationStagesAndValidatesBeforeReplacing(t *testing.T) {
 }
 
 func TestCachePublicationCancellationLeavesNoCommitMarker(t *testing.T) {
-	p := integrationProvider(t)
-	source := t.TempDir()
-	for name, data := range map[string]string{"go.mod": "module cache.cancel.fixture\n\ngo 1.27.1\n", "main.go": "package main\nfunc main(){}\n"} {
-		if err := os.WriteFile(filepath.Join(source, name), []byte(data), 0600); err != nil {
-			t.Fatal(err)
-		}
-	}
+	p, spec, _ := compilationCacheProvider(t)
 	ctx, cancel := context.WithCancel(t.Context())
 	defer cancel()
 	environments := 0
@@ -152,11 +140,11 @@ func TestCachePublicationCancellationLeavesNoCommitMarker(t *testing.T) {
 			}
 		}
 	}
-	_, err := p.Prepare(ctx, target.Spec{Backend: Name, Kind: target.KindGoRun, Source: ".", WorkingDir: source, PreparationRoot: t.TempDir()})
+	_, err := p.Prepare(ctx, spec)
 	if !errors.Is(err, context.Canceled) {
 		t.Fatalf("cancelled cache publication returned %v", err)
 	}
-	markers, err := filepath.Glob(filepath.Join(p.options.CacheRoot, "*", "receipt.json"))
+	markers, err := filepath.Glob(filepath.Join(p.options.CacheRoot, "compilation-v1", "*", "receipt.json"))
 	if err != nil || len(markers) != 0 {
 		t.Fatalf("cancelled publication committed receipt: %v %v", markers, err)
 	}

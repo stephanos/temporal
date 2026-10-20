@@ -25,20 +25,27 @@ var ErrEnumerationMismatch = errors.New("enumeration mismatch")
 
 // Package is one enumerated tests package.
 type Package struct {
-	ImportPath string   `json:"import_path"`
-	Pattern    string   `json:"pattern"` // ./tests/<rel>, the go-test target
-	Tests      []string `json:"tests"`   // sorted top-level Test functions (host file set)
+	ImportPath      string              `json:"import_path"`
+	Pattern         string              `json:"pattern"` // checkout-relative artifact label
+	ModuleDirectory string              `json:"module_directory"`
+	Target          string              `json:"target"`
+	Tests           []string            `json:"tests"` // sorted isolated test units (host file set)
+	TopLevelTests   []string            `json:"top_level_tests"`
+	Methods         []SuiteMethod       `json:"methods,omitempty"`
+	Registrations   []SuiteRegistration `json:"registrations,omitempty"`
 	// GuestExcluded are tests whose defining file is not in the wasip1 guest
 	// file set under the slim tags; they cannot run in the guest.
 	GuestExcluded map[string]string `json:"guest_excluded,omitempty"`
 	ListCount     int               `json:"list_count"`
 	ParsedCount   int               `json:"parsed_count"`
 	files         map[string]string // test -> defining file (host)
+	unitFiles     map[string][]string
 }
 
 type listedPackage struct {
 	ImportPath   string
 	Dir          string
+	GoFiles      []string
 	TestGoFiles  []string
 	XTestGoFiles []string
 	Error        *struct{ Err string }
@@ -66,11 +73,30 @@ func goEnvironment(environ []string, goos, goarch string) []string {
 	return env
 }
 
-// Enumerate lists the selected packages with the guest build tags, parses
-// their test files for top-level Test functions and reconciles the result
-// against `go test -list ^Test` for the same packages and tags. Any
-// difference is ErrEnumerationMismatch.
+// Enumerate reconciles top-level Test functions against `go test -list ^Test`
+// and expands suite registrations into isolated method selectors. Unregistered
+// methods and unresolved registrations fail with ErrEnumerationMismatch.
 func Enumerate(ctx context.Context, executor Executor, options Options, tags []string, log io.Writer) ([]Package, error) {
+	selections, err := discoverModules(options.Checkout, options.Packages)
+	if err != nil {
+		return nil, err
+	}
+	var packages []Package
+	for _, selection := range selections {
+		moduleOptions := options
+		moduleOptions.Checkout = selection.Directory
+		moduleOptions.Packages = selection.Patterns
+		listed, err := enumerateModule(ctx, executor, moduleOptions, options.Checkout, tags, log)
+		packages = append(packages, listed...)
+		if err != nil {
+			return packages, fmt.Errorf("enumerate module %s: %w", selection.Directory, err)
+		}
+	}
+	sort.Slice(packages, func(i, j int) bool { return packages[i].Pattern < packages[j].Pattern })
+	return packages, nil
+}
+
+func enumerateModule(ctx context.Context, executor Executor, options Options, checkout string, tags []string, log io.Writer) ([]Package, error) {
 	host, err := listPackages(ctx, executor, options, tags, "", "")
 	if err != nil {
 		return nil, err
@@ -82,13 +108,34 @@ func Enumerate(ctx context.Context, executor Executor, options Options, tags []s
 	guestFiles := map[string]map[string]bool{}
 	for _, listed := range guest {
 		files := map[string]bool{}
-		for _, name := range append(slices.Clone(listed.TestGoFiles), listed.XTestGoFiles...) {
+		for _, name := range append(append(slices.Clone(listed.TestGoFiles), listed.XTestGoFiles...), listed.GoFiles...) {
 			files[name] = true
 		}
 		guestFiles[listed.ImportPath] = files
 	}
 	var packages []Package
 	var mismatches []string
+	sources := map[string]*suiteSource{}
+	loadSource := func(path string) (*suiteSource, error) {
+		if source, ok := sources[path]; ok {
+			return source, nil
+		}
+		selection := options
+		selection.Packages = []string{path}
+		listed, err := listPackages(ctx, executor, selection, tags, "", "")
+		if err != nil {
+			return nil, err
+		}
+		if len(listed) != 1 || listed[0].ImportPath != path {
+			return nil, fmt.Errorf("unresolved embedded suite package %s", path)
+		}
+		source, err := parseSuiteSource(listed[0].Dir, listed[0].GoFiles)
+		if err != nil {
+			return nil, err
+		}
+		sources[path] = source
+		return source, nil
+	}
 	for _, listed := range host {
 		files := append(slices.Clone(listed.TestGoFiles), listed.XTestGoFiles...)
 		if len(files) == 0 {
@@ -98,32 +145,46 @@ func Enumerate(ctx context.Context, executor Executor, options Options, tags []s
 		if err != nil {
 			return nil, err
 		}
-		pattern, err := relativePattern(options.Checkout, listed.Dir)
+		inventory, err := parseSuiteInventory(listed.Dir, files, listed.GoFiles, loadSource)
+		if err != nil {
+			return nil, fmt.Errorf("%w: %s: %v", ErrEnumerationMismatch, listed.ImportPath, err)
+		}
+		pattern, err := relativePattern(checkout, listed.Dir)
 		if err != nil {
 			return nil, err
 		}
-		listedTests, err := listTests(ctx, executor, options, tags, pattern)
+		target, err := relativePattern(options.Checkout, listed.Dir)
 		if err != nil {
 			return nil, err
 		}
-		pkg := Package{ImportPath: listed.ImportPath, Pattern: pattern, ListCount: len(listedTests), ParsedCount: len(parsed), files: parsed}
+		listedTests, err := listTests(ctx, executor, options, tags, target)
+		if err != nil {
+			return nil, err
+		}
+		pkg := Package{ImportPath: listed.ImportPath, Pattern: pattern, ModuleDirectory: options.Checkout, Target: target, Tests: inventory.Tests, Methods: inventory.Methods, Registrations: inventory.Registrations, ListCount: len(listedTests), ParsedCount: len(parsed), files: inventory.files, unitFiles: inventory.unitFiles}
 		for name := range parsed {
-			pkg.Tests = append(pkg.Tests, name)
+			pkg.TopLevelTests = append(pkg.TopLevelTests, name)
 		}
-		sort.Strings(pkg.Tests)
-		if !slices.Equal(pkg.Tests, listedTests) {
-			mismatches = append(mismatches, fmt.Sprintf("%s: parsed %d %v, go test -list %d %v", pattern, len(pkg.Tests), difference(pkg.Tests, listedTests), len(listedTests), difference(listedTests, pkg.Tests)))
+		sort.Strings(pkg.TopLevelTests)
+		if !slices.Equal(pkg.TopLevelTests, listedTests) {
+			mismatches = append(mismatches, fmt.Sprintf("%s: parsed %d %v, go test -list %d %v", pattern, len(pkg.TopLevelTests), difference(pkg.TopLevelTests, listedTests), len(listedTests), difference(listedTests, pkg.TopLevelTests)))
 		}
 		for _, name := range pkg.Tests {
-			if file := parsed[name]; !guestFiles[listed.ImportPath][file] {
+			for _, file := range pkg.unitFiles[name] {
+				if guestFiles[listed.ImportPath][file] {
+					continue
+				}
 				if pkg.GuestExcluded == nil {
 					pkg.GuestExcluded = map[string]string{}
 				}
 				pkg.GuestExcluded[name] = file
+				break
 			}
 		}
 		if log != nil {
-			_, _ = fmt.Fprintf(log, "wasmsweep: enumerated %s parsed=%d list=%d guest-excluded=%d\n", pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.GuestExcluded))
+			if _, err := fmt.Fprintf(log, "wasmsweep: enumerated %s parsed=%d list=%d methods=%d units=%d guest-excluded=%d\n", pattern, pkg.ParsedCount, pkg.ListCount, len(pkg.Methods), len(pkg.Tests), len(pkg.GuestExcluded)); err != nil {
+				return nil, fmt.Errorf("write sweep inventory: %w", err)
+			}
 		}
 		packages = append(packages, pkg)
 	}
@@ -153,7 +214,7 @@ func relativePattern(checkout, dir string) (string, error) {
 }
 
 func listPackages(ctx context.Context, executor Executor, options Options, tags []string, goos, goarch string) ([]listedPackage, error) {
-	args := []string{"list", "-e", "-json=ImportPath,Dir,TestGoFiles,XTestGoFiles,Error", "-tags", strings.Join(tags, ",")}
+	args := []string{"list", "-mod=readonly", "-e", "-json=ImportPath,Dir,GoFiles,TestGoFiles,XTestGoFiles,Error", "-tags", strings.Join(tags, ",")}
 	args = append(args, options.Packages...)
 	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: args, Dir: options.Checkout, Env: goEnvironment(options.Environ, goos, goarch), Timeout: 10 * time.Minute})
 	if completed.Err != nil || completed.Exit != 0 {
@@ -179,7 +240,7 @@ func listPackages(ctx context.Context, executor Executor, options Options, tags 
 
 // listTests runs `go test -list ^Test` on the host for one package.
 func listTests(ctx context.Context, executor Executor, options Options, tags []string, pattern string) ([]string, error) {
-	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: []string{"test", "-count=1", "-tags", strings.Join(tags, ","), "-list", "^Test", pattern}, Dir: options.Checkout, Env: goEnvironment(options.Environ, "", ""), Timeout: 30 * time.Minute})
+	completed := executor.Exec(ctx, Command{Path: options.Compiler, Args: []string{"test", "-mod=readonly", "-count=1", "-tags", strings.Join(tags, ","), "-list", "^Test", pattern}, Dir: options.Checkout, Env: goEnvironment(options.Environ, "", ""), Timeout: 30 * time.Minute})
 	if completed.Err != nil || completed.Exit != 0 {
 		return nil, fmt.Errorf("go test -list %s: exit %d %v\n%s%s", pattern, completed.Exit, completed.Err, completed.Stdout, completed.Stderr)
 	}
