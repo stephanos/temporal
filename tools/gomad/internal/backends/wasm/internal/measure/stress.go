@@ -689,6 +689,7 @@ func stressSummary(observation stressObservation) stressObservation {
 	observation.Run.WorldOrder = nil
 	observation.Run.Boundaries = nil
 	observation.Run.OrderLog = nil
+	observation.Run.InspectionEvidence = nil
 	return observation
 }
 

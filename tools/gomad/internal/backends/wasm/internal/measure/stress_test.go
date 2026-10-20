@@ -19,6 +19,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/model/cluster"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
@@ -46,9 +47,13 @@ func TestStressSummariesExcludeHelperEventOrder(t *testing.T) {
 	t.Parallel()
 	observation := stressFixture()
 	observation.Run.OrderLog = &determinism.EventOrder{}
+	observation.Run.InspectionEvidence = &cluster.WASMInspectionEvidence{}
 	summary := stressSummary(observation)
 	if summary.Run.OrderLog != nil || observation.Run.OrderLog == nil {
 		t.Fatal("summary retained or consumed the raw helper event order")
+	}
+	if summary.Run.InspectionEvidence != nil || observation.Run.InspectionEvidence == nil {
+		t.Fatal("summary retained or consumed the decoded inspection evidence")
 	}
 	encoded, err := json.Marshal(summary)
 	if err != nil {
