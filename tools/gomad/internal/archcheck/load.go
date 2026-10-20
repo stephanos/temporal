@@ -78,9 +78,6 @@ func runGo(root, command string, platform Platform, args ...string) ([]byte, err
 }
 
 func list(root, command string, platform Platform, export bool, patterns []string) ([]metadata, error) {
-	if NativeSelected && nativeModulePresent(root) && slices.Contains(patterns, "./...") {
-		patterns = append(slices.Clone(patterns), nativeModulePath+"/...")
-	}
 	args := []string{"list", "-e", "-json", "-mod=readonly", "-tags=" + SelectionTags()}
 	if export {
 		args = append(args, "-export", "-deps")
@@ -98,15 +95,6 @@ func list(root, command string, platform Platform, export bool, patterns []strin
 		} else if err != nil {
 			return nil, err
 		}
-		if !export {
-			relative, err := filepath.Rel(root, pkg.Dir)
-			if err != nil {
-				return nil, err
-			}
-			if sourceAsset(pkg, filepath.ToSlash(relative)) {
-				continue
-			}
-		}
 		if pkg.Error != nil {
 			return nil, fmt.Errorf("package %s: %s", pkg.ImportPath, pkg.Error.Err)
 		}
@@ -119,13 +107,6 @@ func list(root, command string, platform Platform, export bool, patterns []strin
 		return nil, fmt.Errorf("go list selected no packages")
 	}
 	return result, nil
-}
-
-func sourceAsset(pkg metadata, relative string) bool {
-	if pkg.Module == nil || !strings.HasPrefix(pkg.Module.Path, "go.temporal.io/server/tools/gomad") {
-		return false
-	}
-	return nativeOverlay != "" && within(relative, nativeOverlay)
 }
 
 func load(root, goCommand string, platform Platform, pure func(string) bool) (*program, error) {
@@ -147,7 +128,7 @@ func load(root, goCommand string, platform Platform, pure func(string) bool) (*p
 	p := &program{root: root, fset: token.NewFileSet(), metadata: map[string]metadata{}, packages: map[string]*sourcePackage{}, functions: map[string]string{}, pure: pure, goCommand: goCommand, platform: platform}
 	var selected []string
 	for _, pkg := range packages {
-		if pkg.Module == nil || !pkg.Module.Main && (!NativeSelected || pkg.Module.Path != nativeModulePath) {
+		if pkg.Module == nil || !pkg.Module.Main {
 			continue
 		}
 		if pkg.Module.Main {

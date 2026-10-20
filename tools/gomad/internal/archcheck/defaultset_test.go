@@ -2,7 +2,6 @@ package archcheck_test
 
 import (
 	"bytes"
-	"go/build/constraint"
 	"os"
 	"os/exec"
 	"path/filepath"
@@ -14,7 +13,7 @@ import (
 )
 
 // nestedModuleDirectories returns the in-tree directories root's go.mod
-// replaces nested modules with (today only the native backend).
+// replaces nested modules with.
 func nestedModuleDirectories(t *testing.T, root string) []string {
 	t.Helper()
 	data, err := os.ReadFile(filepath.Join(root, "go.mod"))
@@ -35,44 +34,9 @@ func nestedModuleDirectories(t *testing.T, root string) []string {
 	return directories
 }
 
-// requiresNativeSelection: the build constraint is false whenever gomad_native is off.
-func requiresNativeSelection(source []byte) bool {
-	for _, line := range strings.Split(string(source), "\n") {
-		line = strings.TrimSpace(line)
-		if strings.HasPrefix(line, "package ") {
-			return false
-		}
-		if !constraint.IsGoBuild(line) {
-			continue
-		}
-		expression, err := constraint.Parse(line)
-		if err != nil {
-			return false
-		}
-		var tags []string
-		expression.Eval(func(tag string) bool {
-			if tag != "gomad_native" && !slices.Contains(tags, tag) {
-				tags = append(tags, tag)
-			}
-			return false
-		})
-		for assignment := range 1 << len(tags) {
-			satisfied := expression.Eval(func(tag string) bool {
-				index := slices.Index(tags, tag)
-				return index >= 0 && assignment&(1<<index) != 0
-			})
-			if satisfied {
-				return false
-			}
-		}
-		return true
-	}
-	return false
-}
-
 // defaultSetReferences lists default-set files naming a nested module's tree,
 // exempting Markdown, go.mod/go.sum, Make files (see
-// TestDefaultMakeTargetsSelectNoNative), build outputs and gomad_native-only Go.
+// TestDefaultMakeTargetsKeepSharedValidation), and build outputs.
 func defaultSetReferences(t *testing.T, root string) []string {
 	t.Helper()
 	needles := nestedModuleDirectories(t, root)
@@ -100,9 +64,6 @@ func defaultSetReferences(t *testing.T, root string) []string {
 		if err != nil {
 			return err
 		}
-		if strings.HasSuffix(name, ".go") && requiresNativeSelection(contents) {
-			return nil
-		}
 		for _, needle := range needles {
 			// Also catch the path spelled as separate filepath.Join arguments.
 			split := strings.Join(strings.Split(needle, "/"), `", "`)
@@ -118,10 +79,10 @@ func defaultSetReferences(t *testing.T, root string) []string {
 	return found
 }
 
-func TestNoDefaultSourceNamesNativeTree(t *testing.T) {
+func TestNoDefaultSourceNamesNestedTree(t *testing.T) {
 	if len(nestedModuleDirectories(t, ".")) == 0 {
 		if nested, _ := filepath.Glob("internal/backends/*/go.mod"); len(nested) != 0 {
-			t.Fatalf("nested backend modules %v are not replaced by go.mod; the native-path rule has no needle", nested)
+			t.Fatalf("nested backend modules %v are not replaced by go.mod; the nested-path rule has no needle", nested)
 		}
 		t.Skip("no nested in-tree module is checked out; nothing to keep out of the default set")
 	}
@@ -130,7 +91,7 @@ func TestNoDefaultSourceNamesNativeTree(t *testing.T) {
 	}
 }
 
-func TestNativePathRuleRejectsNewOccurrence(t *testing.T) {
+func TestNestedPathRuleRejectsNewOccurrence(t *testing.T) {
 	root := t.TempDir()
 	const nested = "internal/backends/legacy"
 	files := map[string]string{
@@ -139,11 +100,8 @@ func TestNativePathRuleRejectsNewOccurrence(t *testing.T) {
 		nested + "/inside.go":          "package legacy // " + nested + "\n",
 		"README.md":                    nested + "\n",
 		"Makefile":                     "x:\n\techo " + nested + "\n",
-		"tagged.go":                    "//go:build gomad_native && linux\n\npackage rule // " + nested + "\n",
 		"untagged.go":                  "package rule // " + nested + "\n",
 		"joined.go":                    "package rule\nvar _ = []string{\"internal\", \"backends\", \"legacy\", \"x\"}\n",
-		"default_only.go":              "//go:build !gomad_native\n\npackage rule // " + nested + "\n",
-		"either.go":                    "//go:build gomad_native || linux\n\npackage rule // " + nested + "\n",
 		"testdata/corpus.json":         `{"path": "` + nested + `"}`,
 		"internal/clean/clean_test.go": "package clean\n",
 	}
@@ -157,14 +115,14 @@ func TestNativePathRuleRejectsNewOccurrence(t *testing.T) {
 		}
 	}
 	got := defaultSetReferences(t, root)
-	want := []string{"default_only.go: " + nested, "either.go: " + nested, "joined.go: " + nested, "testdata/corpus.json: " + nested, "untagged.go: " + nested}
+	want := []string{"joined.go: " + nested, "testdata/corpus.json: " + nested, "untagged.go: " + nested}
 	slices.Sort(got)
 	if !slices.Equal(got, want) {
 		t.Fatalf("references = %q, want %q", got, want)
 	}
 }
 
-func TestDefaultMakeTargetsSelectNoNative(t *testing.T) {
+func TestDefaultMakeTargetsKeepSharedValidation(t *testing.T) {
 	command := exec.CommandContext(t.Context(), "make", "--no-print-directory", "-n", "generate", "validate", "test-wasm")
 	for _, value := range os.Environ() {
 		if !strings.HasPrefix(value, "GOFLAGS=") && !strings.HasPrefix(value, "MAKEFLAGS=") {
@@ -175,7 +133,7 @@ func TestDefaultMakeTargetsSelectNoNative(t *testing.T) {
 	if err != nil {
 		t.Fatalf("expand default targets: %v: %s", err, output)
 	}
-	for _, forbidden := range append([]string{"gomad_native"}, nestedModuleDirectories(t, ".")...) {
+	for _, forbidden := range nestedModuleDirectories(t, ".") {
 		if bytes.Contains(output, []byte(forbidden)) {
 			t.Errorf("default targets select %q:\n%s", forbidden, output)
 		}

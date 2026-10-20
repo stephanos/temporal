@@ -102,22 +102,19 @@ func TestReviewMarkLog(t *testing.T) {
 	}
 }
 
-func TestLoadNativePureSet(t *testing.T) {
+func TestLoadPureSet(t *testing.T) {
 	root, err := filepath.Abs(".")
 	if err != nil {
 		t.Fatal(err)
 	}
 	pure := func(path string) bool {
 		prefixes := []string{"internal/model/world/", "internal/evidence/record/", "internal/runner/internal/exploration/"}
-		if NativeSelected {
-			prefixes = append(prefixes, nativeDirectory+"/build/internal/capabilitypolicy/")
-		}
 		for _, prefix := range prefixes {
 			if strings.HasPrefix(path, prefix) && !strings.HasPrefix(path, "internal/model/world/process/") {
 				return true
 			}
 		}
-		return path == "internal/runner/internal/campaign/controller.go" || NativeSelected && path == nativeDirectory+"/build/capability_evaluation.go" || path == "internal/model/clock/simulation_progress.go"
+		return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go"
 	}
 	started := time.Now()
 	p, err := load(root, goCommand(), host, pure)
@@ -126,10 +123,10 @@ func TestLoadNativePureSet(t *testing.T) {
 	}
 	elapsed := time.Since(started)
 	if elapsed >= 30*time.Second {
-		t.Fatalf("native pure set loading took %s, limit 30s", elapsed)
+		t.Fatalf("pure set loading took %s, limit 30s", elapsed)
 	}
 	if len(p.packages) < 6 {
-		t.Fatalf("incomplete native pure set: %d packages", len(p.packages))
+		t.Fatalf("incomplete pure set: %d packages", len(p.packages))
 	}
 	t.Logf("loaded %d pure-source packages using export data in %s", len(p.packages), elapsed)
 }

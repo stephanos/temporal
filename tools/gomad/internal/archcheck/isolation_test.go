@@ -9,9 +9,8 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/archcheck"
 )
 
-// Any nested module the parent replaces with an in-tree directory (today the
-// native backend) must stay out of the default dependency closure.
-func TestDefaultDependencyClosureRejectsNativeImports(t *testing.T) {
+// Nested modules replaced with in-tree directories stay outside the host dependency closure.
+func TestDefaultDependencyClosureRejectsNestedImports(t *testing.T) {
 	for _, testFile := range []bool{false, true} {
 		root := t.TempDir()
 		name := "source.go"
@@ -41,12 +40,12 @@ func TestDefaultDependencyClosureRejectsNativeImports(t *testing.T) {
 		}
 		found := false
 		for _, finding := range findings {
-			if finding.Category == "default-native-dependency" {
+			if finding.Category == "default-nested-dependency" {
 				found = true
 			}
 		}
-		if found == archcheck.NativeSelected {
-			t.Errorf("test-only=%t selected=%t native closure finding=%t: %v", testFile, archcheck.NativeSelected, found, findings)
+		if !found {
+			t.Errorf("test-only=%t nested closure finding=%t: %v", testFile, found, findings)
 		}
 	}
 }

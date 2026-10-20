@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"errors"
-	_ "unsafe"
 
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/history"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire"
@@ -34,98 +33,6 @@ func runtimeNetworkRevoke(uint64, bool) error {
 
 func runtimeNetworkFinish(uint64) (NetworkRecord, error) {
 	return NetworkRecord{}, ErrRuntimeUnavailable
-}
-
-//go:linkname gomadNetworkBegin internal/gomadio.BeginSimulation
-func gomadNetworkBegin(uint64, []byte) ([]byte, bool)
-
-//go:linkname gomadNetworkPartition internal/gomadio.PartitionSimulation
-func gomadNetworkPartition(uint64, string, string, bool) ([]byte, bool)
-
-//go:linkname gomadNetworkHeal internal/gomadio.HealSimulation
-func gomadNetworkHeal(uint64, string, string, bool) ([]byte, bool)
-
-//go:linkname gomadNetworkDelay internal/gomadio.DelaySimulation
-func gomadNetworkDelay(uint64, string, string, uint64, bool) ([]byte, bool)
-
-//go:linkname gomadNetworkGroup internal/gomadio.ChangeSimulationGroup
-func gomadNetworkGroup(uint64, []string, []string, bool) ([]byte, bool)
-
-//go:linkname gomadNetworkRevoke internal/gomadio.RevokeSimulation
-func gomadNetworkRevoke(uint64, bool) ([]byte, bool)
-
-//go:linkname gomadNetworkFinish internal/gomadio.FinishSimulation
-func gomadNetworkFinish(uint64) ([]byte, bool)
-
-func gomadInterceptRuntimeNetworkBegin(run uint64, config []byte) (error, bool) {
-	encoded, ok := gomadNetworkBegin(run, config)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkPartition(run uint64, left, right NodeID, symmetric bool) (error, bool) {
-	encoded, ok := gomadNetworkPartition(run, string(left), string(right), symmetric)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkHeal(run uint64, left, right NodeID, symmetric bool) (error, bool) {
-	encoded, ok := gomadNetworkHeal(run, string(left), string(right), symmetric)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkDelay(run uint64, left, right NodeID, delayNanos uint64, symmetric bool) (error, bool) {
-	encoded, ok := gomadNetworkDelay(run, string(left), string(right), delayNanos, symmetric)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkGroup(run uint64, left, right []NodeID, enabled bool) (error, bool) {
-	leftNodes := make([]string, len(left))
-	for index, node := range left {
-		leftNodes[index] = string(node)
-	}
-	rightNodes := make([]string, len(right))
-	for index, node := range right {
-		rightNodes[index] = string(node)
-	}
-	encoded, ok := gomadNetworkGroup(run, leftNodes, rightNodes, enabled)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkRevoke(domain uint64, graceful bool) (error, bool) {
-	encoded, ok := gomadNetworkRevoke(domain, graceful)
-	if !ok {
-		return decodeRuntimeNetworkError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeNetworkFinish(run uint64) (NetworkRecord, error, bool) {
-	encoded, ok := gomadNetworkFinish(run)
-	if !ok {
-		return NetworkRecord{}, decodeRuntimeNetworkError(encoded), true
-	}
-	record, runtimeErr, err := wire.DecodeNetworkFinish(encoded)
-	if err != nil {
-		return NetworkRecord{}, err, true
-	}
-	if runtimeErr != nil {
-		return record, runtimeNetworkErrorValue(*runtimeErr), true
-	}
-	return record, nil, true
 }
 
 type runtimeNetworkError = history.RuntimeNetworkError

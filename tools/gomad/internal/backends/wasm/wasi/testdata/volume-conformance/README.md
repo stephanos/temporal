@@ -69,8 +69,8 @@ go test -tags test_dep -p 1 -run '^TestVolumeConformanceCorpus$' ./internal/back
 ```
 
 Copy reviewed fixture changes into this tree through the normal patch workflow.
-The corpus does not qualify native execution. The model was promoted from a
-projection of the native overlay (fn-219) and no longer tracks it.
+The model was promoted from a projection of the native overlay (fn-219).
+That backend was removed by fn-223; the corpus checks the owned Go reference.
 
 R3 adds hand-named configuration, fault, cursor, filesystem and rename-recovery
 scripts, plus pure API steps in `vectors/core.json`. API steps retain errors,

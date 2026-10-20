@@ -1,14 +1,9 @@
 package archcheck_test
 
 import (
-	"go/ast"
-	"go/parser"
-	"go/token"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -35,15 +30,15 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 		}
 		script.WriteString(strings.TrimPrefix(line, strings.Repeat(" ", 10)))
 	}
-	for _, test := range append([]struct {
+	for _, test := range []struct {
 		path, want string
 	}{
-		{"tools/gomad/internal/model/cluster/simulation.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/wasm/backend/provider.go", "native=false\nwasm=true\n"},
-		{"tools/gomad/internal/evidence/record/record.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/model/schema/iowire.json", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/model/generation/protocol/generate.go", "native=true\nwasm=true\n"},
-	}, nativeCIRoutes...) {
+		{"tools/gomad/internal/model/cluster/simulation.go", "wasm=true\n"},
+		{"tools/gomad/internal/backends/wasm/backend/provider.go", "wasm=true\n"},
+		{"tools/gomad/internal/evidence/record/record.go", "wasm=true\n"},
+		{"tools/gomad/internal/model/schema/iowire.json", "wasm=true\n"},
+		{"tools/gomad/internal/model/generation/protocol/generate.go", "wasm=true\n"},
+	} {
 		t.Run(test.path, func(t *testing.T) {
 			repository := t.TempDir()
 			environment := append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1",
@@ -85,116 +80,5 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 				t.Fatalf("gates = %q, want %q", got, test.want)
 			}
 		})
-	}
-}
-
-// Exercise make's expanded gate commands, not merely the existence of test
-// names: the direct root invocation skips tests that need Runner transport.
-func TestSimulationGateSelectsProcessNetworkHandles(t *testing.T) {
-	output, err := exec.Command("make", "-n", "-o", "toolchain", "test-simulation").CombinedOutput()
-	if err != nil {
-		t.Fatalf("expand simulation gate: %v: %s", err, output)
-	}
-	filters := regexp.MustCompile(`-run '([^']+)'`).FindAllStringSubmatch(string(output), -1)
-	if len(filters) != 2 {
-		t.Fatalf("simulation integration filters = %d, want main and separate forward-delay gates: %s", len(filters), output)
-	}
-	selected := func(name string, filter string) bool {
-		t.Helper()
-		names, patterns := strings.Split(name, "/"), strings.Split(filter, "/")
-		for index, pattern := range patterns {
-			matcher, err := regexp.Compile(pattern)
-			if err != nil {
-				t.Fatalf("invalid gate filter %q: %v", filter, err)
-			}
-			if index >= len(names) || !matcher.MatchString(names[index]) {
-				return false
-			}
-		}
-		return true
-	}
-	root := "TestRootProcessSimulationUsesRunnerTransport/"
-	runner, err := parser.ParseFile(token.NewFileSet(), "internal/runner/internal/exploration/integration_test.go", nil, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	registered := make(map[string]bool)
-	for _, declaration := range runner.Decls {
-		function, ok := declaration.(*ast.FuncDecl)
-		if !ok || function.Name.Name != "TestRootProcessSimulationUsesRunnerTransport" {
-			continue
-		}
-		ast.Inspect(function.Body, func(node ast.Node) bool {
-			loop, ok := node.(*ast.RangeStmt)
-			if !ok {
-				return true
-			}
-			list, ok := loop.X.(*ast.CompositeLit)
-			if !ok {
-				return true
-			}
-			for _, element := range list.Elts {
-				literal, ok := element.(*ast.BasicLit)
-				if !ok || literal.Kind != token.STRING {
-					continue
-				}
-				name, err := strconv.Unquote(literal.Value)
-				if err != nil {
-					t.Fatal(err)
-				}
-				registered[name] = true
-			}
-			return true
-		})
-	}
-	files, err := filepath.Glob("internal/model/cluster/*toolchain_test.go")
-	if err != nil {
-		t.Fatal(err)
-	}
-	handles := make(map[string]int)
-	for _, path := range files {
-		file, err := parser.ParseFile(token.NewFileSet(), path, nil, 0)
-		if err != nil {
-			t.Fatal(err)
-		}
-		for _, declaration := range file.Decls {
-			function, ok := declaration.(*ast.FuncDecl)
-			if !ok {
-				continue
-			}
-			prefix := ""
-			for _, family := range []string{"TestProcessNetworkHandle", "TestProcessFilesystemHandle", "TestProcessNetworkHeldFIFO", "TestProcessNetworkStallExpiry", "TestProcessNetworkStallOrdering", "TestProcessNetworkPartitionedDialStall", "TestProcessNetworkFramedPartition"} {
-				if strings.HasPrefix(function.Name.Name, family) {
-					prefix = family
-				}
-			}
-			if prefix == "" {
-				continue
-			}
-			handles[prefix]++
-			if !registered[function.Name.Name] {
-				t.Errorf("Runner simulation transport does not register %s", function.Name.Name)
-			}
-			if !selected(root+function.Name.Name, filters[0][1]) {
-				t.Errorf("canonical main simulation gate excludes %s", function.Name.Name)
-			}
-			if selected(root+function.Name.Name, filters[1][1]) {
-				t.Errorf("process handle case %s leaks into separate forward-delay gate", function.Name.Name)
-			}
-		}
-	}
-	for prefix, want := range map[string]int{"TestProcessNetworkHandle": 16, "TestProcessFilesystemHandle": 4, "TestProcessNetworkHeldFIFO": 1, "TestProcessNetworkStallExpiry": 1, "TestProcessNetworkStallOrdering": 1, "TestProcessNetworkPartitionedDialStall": 1, "TestProcessNetworkFramedPartition": 1} {
-		if handles[prefix] != want {
-			t.Fatalf("%s cases=%d, want %d", prefix, handles[prefix], want)
-		}
-	}
-	delay := root + "TestProcessBackendSynchronizesNodeClockWithModelDelay/"
-	for _, filter := range filters {
-		if selected(delay+"strict", filter[1]) {
-			t.Errorf("canonical gate selects recorded strict-delay watchdog case: %q", filter[1])
-		}
-	}
-	if selected(delay+"forward", filters[0][1]) || !selected(delay+"forward", filters[1][1]) {
-		t.Fatal("forward-delay case must retain its separate canonical invocation")
 	}
 }

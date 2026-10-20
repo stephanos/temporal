@@ -375,7 +375,7 @@ Tables are bounded to eight and 1,000,000 elements per table. One Wasmtime insta
 is admitted per store; a cluster creates separate stores under those same limits.
 Updating engine settings requires a new configuration revision.
 The helper transports bounded scheduling hooks; the Go runtime/profile owns their
-semantics. It does not claim server startup, native qualification or portable
+semantics. It does not claim server startup, host-platform qualification or portable
 exact replay beyond the retained cooperative qualification profile.
 
 ## Pure namespace image admission

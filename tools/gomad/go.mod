@@ -17,7 +17,3 @@ require (
 )
 
 replace go.temporal.io/server => ../..
-
-require go.temporal.io/server/tools/gomad/internal/backends/native v0.0.0
-
-replace go.temporal.io/server/tools/gomad/internal/backends/native => ./internal/backends/native

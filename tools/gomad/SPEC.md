@@ -522,7 +522,7 @@ Current readers must reject unsupported stored lineages rather than decode or
 migrate an older representation.
 
 The older standard-library readers for Artifact storage envelopes, Campaign
-log payloads, and native installation manifests reject unknown fields and
+log payloads reject unknown fields and
 trailing data but do not provide the shared decoder's duplicate-name and raw
 UTF-8 rejection. These readers were outside the canonical-JSON migration;
 their existing validation is not evidence of those additional guarantees.

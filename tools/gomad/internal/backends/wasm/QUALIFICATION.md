@@ -3,6 +3,15 @@
 Qualification is on demand. A planned repetition budget is not a determinism
 bound, and passing a fixture is not a Temporal/storage support claim.
 
+The native backend was removed by fn-223. Final changed-candidate runtime,
+mandatory workload and retained-replay qualification, including every gate,
+subgate and fixture in the complete behavioral reach of
+`make -C tools/gomad test-wasm`, remain pending under fn-232 R12/task .13's
+frozen Rust qualification cycle. The receiver retains the unchanged budgets,
+required input custody and actual source/helper/runtime/module/model identities.
+The gate definitions below remain required; native-deletion source checks and
+historical or interrupted Go attempts supply no final qualification pass.
+
 The `internal/evidence/qualification` package wraps Gomad's existing qualification workload owner.
 It does not introduce another scheduler, simulator, replay validator or support
 report format. Every successful execution is retained and replayed, as is every
@@ -58,7 +67,7 @@ record must retain its actual exits, artifact/helper/runtime/module identities a
 any unexecuted cells. Lock-held type fixtures alone do not establish the one-box
 workload cell, and inspection does not establish full-tape replay. Runtime,
 helper, protocol, architecture and full `test-wasm` gates remain separate required
-integrated checks; none of these observations qualifies native execution.
+integrated checks.
 
 `Freeze` obtains workload/runtime inventories from backend preparation. Existing
 declared identities, host, profile and limits cannot be silently replaced.
@@ -198,9 +207,8 @@ The cleanup preserves recovery-image v1 bytes and semantic evidence formats.
 Editing Rust rotates the helper's executable identity; tests and qualification
 must name the actual candidate helper and source rather than borrowing a
 historical receipt. The cleanup record distinguishes focused candidate checks
-from the final integrated gates and retained workload qualification. Native
-execution remains deferred under fn-128/fn-149; portable source checks supply no
-native execution pass.
+from the final integrated gates and retained workload qualification. The native
+qualification owners fn-128/fn-149 closed as won't-do on 2026-10-19.
 
 ## Installed scenario matrix
 
@@ -247,8 +255,7 @@ lifecycle, network/storage evidence and per-incarnation choice records are
 checked on replay, while unfinished crash/stop prefixes are never labeled
 complete exact tapes. Global forced-choice exploration, live volume crash
 enumeration, arbitrary scenario callbacks and cluster minimization remain
-unsupported. Native execution qualification remains deferred under fn-128 and
-fn-149; these WASM observations do not revive it.
+unsupported. The removed native backend supplies no WASM qualification evidence.
 
 ## Measured costs
 
@@ -412,7 +419,7 @@ uses private staging, checked write/fsync/close, atomic no-clobber publication a
 directory fsync. It refuses conflicting immutable content and symlinks without
 rewriting existing results.
 
-Sealed Result self measurements include native internal/evidence/artifact/support-report
+Sealed Result self measurements include Go internal/evidence/artifact/support-report
 publication, but precede final Result encoding/publication. `WriteResultObserved`
 captures actual operator-self CPU and lifetime RSS after that large work, retains
 a bounded immutable `PublicationReceipt` beside the unchanged Result, and fails
@@ -445,16 +452,16 @@ cluster result exists with zero relayed guest callbacks (the cluster transport
 also fails closed on the first callback frame). The selected-state and catalogue cells
 keep projecting the helper's crash enumeration through `native_crash.go`.
 Historical c995-helper provisional SQLite durable success and real unsynced canary
-passed repeated native oracles and source-less full/prefix replay; the observed
-native crash enumeration contains four states. These exited producers predate
+passed repeated Go oracles and source-less full/prefix replay; the observed
+Go crash enumeration contains four states. These exited producers predate
 terminal receipts and cannot establish final whole-operator budget acceptance.
 Each supplementary selected state needs its own sealed configuration, measured
 Result and replay; bounded selection-coverage validation is not an execution or
-cost qualification. The existing Result optionally retains bounded native full
+cost qualification. The existing Result optionally retains bounded Go full
 states (at most32 per enumeration, conservative aggregate JSON/base64 bound8MiB)
 once per incarnation/volume/digest, with every execute/replay observation. Bounds
 are checked before copying payload bytes; divergent catalogues are preserved.
-Selected cells bind the exact source Result hash and full native state, verify
+Selected cells bind the exact source Result hash and full Go state, verify
 sealed append-phase operations through the broker owner, and compare the actual
 recovered marker against the reviewed state. `TestActualSQLiteSelectedCrashQualification`
 requires an absolute `GOMAD_WASM_SQLITE_NATIVE_CATALOGUE_RESULT` and index0..3 in
@@ -463,13 +470,12 @@ separate supplementary root. `TestActualSQLiteSelectionCatalogue` requires all
 four actual frozen Results/receipts, exact coverage and a separately measured
 reader. Primary costs are referenced, never counted twice. These supplementary
 gates execute WASM, including the projection through `native_crash.go`; all four
-selections and the authenticated catalogue are mandatory for fn-176. Only actual
-native-backend execution remains deferred under fn-128/fn-149. Current-candidate
+selections and the authenticated catalogue are mandatory for fn-176. Current-candidate
 acceptance must bind the frozen source, helper, compiler and new authenticated
 producer results for the full corpus and these supplementary gates. The current
 result belongs to the retained Flow qualification checkpoint, never to unit-test
 results or these historical tapes.
 
-Native race tests and ordinary persistence/functional coverage remain independent
+Host race tests and ordinary persistence/functional coverage remain independent
 required gates. Scheduled soak is deferred until the full support matrix is
 stable and retained; proposed seed budgets are not reported as completed runs.

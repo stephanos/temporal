@@ -3,7 +3,7 @@
 This package is gomad's own network simulation and the reference the Rust
 helper's network owner is held equal to by the differential corpora. It was
 promoted (fn-219) from a projection of the native `gomadio` overlay; it is now
-ordinary source with no generator and no drift check against the native tree.
+ordinary source with no generator. The native backend was removed by fn-223.
 `simulation.go` owns stream queues and replay; `adapter.go` turns blocking waits
 into immediate pending results with explicit domains and logical time.
 `stream_status_generated.go` is the only generated file here, written by
@@ -14,22 +14,18 @@ its request until `poll` consumes completion or cancellation. `Ready` and
 `Advance` settle requests in request-ID order without blocking host goroutines.
 The execution owner advances time only at global guest quiescence; clock reads
 and polling never advance it. Listener, connection, retained-byte, transition
-and pending-request allocations have declared limits. Native timers and the
-existing host `NextDeadline`/`Advance` path drive stall expiry even with no
-blocked application operation. Process execution keeps its existing time/progress
-arbiter.
+and pending-request allocations have declared limits. The execution owner's
+`NextDeadline`/`Advance` path drives stall expiry even with no blocked
+application operation.
 Execution owners narrow the model's relative timestamp range with
 `Model.LimitClockCeiling` before admitting work. The WASM adapter uses the smaller
 of the World and configured WASI clock headroom, including at broker attachment.
 Tightening refuses existing incompatible deadlines or queued work without changing
-the model. Stall expiry and delivery additions check that ceiling at the native
-owner's existing atomic admission points. Native execution uses absolute
-`time.Time` values, so its unchanged signed UnixNano checks already include the
-clock epoch.
+the model. Stall expiry and delivery additions check that ceiling at atomic
+admission points.
 The request transport serializes a closed model-owned error vocabulary without
 calling error-interface callbacks or host syscall formatters; its stale-handle
-message is the portable `stale file handle`. Structured native bridge errors
-retain their detached message.
+message is the portable `stale file handle`.
 
 The following policies describe the approved
 [fn-154 migration](../../../../../.flow/specs/fn-154-gomad-simpler-virtual-network-with.md).
@@ -42,11 +38,11 @@ generated semantic codec. See the
 
 | Action | Existing connection | New dial |
 | --- | --- | --- |
-| Delay | Already queued bytes retain their readiness; future writes use the new delay. | Native connection creation remains immediate. |
+| Delay | Already queued bytes retain their readiness; future writes use the new delay. | Connection creation remains immediate. |
 | Partition | Holds every undelivered suffix, including pre-partition traffic. Already-received bytes remain readable. Writes accept bytes until the local byte bound blocks them. | Waits for heal, caller deadline/context or independent strict stall expiry. |
 | Heal | Effective heal releases the held FIFO after normal delay; fresh writes cannot overtake it. | Ends the stall interval and permits ordinary listener/connection admission. |
 | Reset | Discards retained bytes and resets both directions. Stall expiry retains a persistent timeout reason. | A later dial can connect to the existing listener. |
-| Incarnation revoke | Native graceful stop or crash policy; stale handles and pending requests fail. | Requires a new registered incarnation. |
+| Incarnation revoke | Graceful stop or crash policy; stale handles and pending requests fail. | Requires a new registered incarnation. |
 
 Each direction charges held bytes, received unread bytes and short-read tails
 until consumption or discard. Local fullness blocks; global retained-byte
@@ -105,7 +101,7 @@ limit expiry is not due. At the first due instant, heal committed first invalida
 the epoch and expiry committed first is terminal, under the existing model order.
 
 The one-guest adapter maps guest loopback listeners and callers into distinct
-server and client domains (`127.0.0.1` and `127.0.0.2`), because the native model
+server and client domains (`127.0.0.1` and `127.0.0.2`), because the model
 forbids self links and duplicate node addresses. Guest-facing addresses remain
 loopback. A broker attaches its own node/incarnation domains and address mapping
 through the same model API.

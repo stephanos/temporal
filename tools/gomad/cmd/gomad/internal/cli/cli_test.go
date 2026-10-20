@@ -11,7 +11,6 @@ import (
 	"go/parser"
 	"go/token"
 	"hash/crc32"
-	"io"
 	"os"
 	"path/filepath"
 	"reflect"
@@ -1190,30 +1189,6 @@ func checkTerminalDiagnostics(t *testing.T, writer *terminalDiagnosticWriter, wa
 	}
 	if len(contents) != 0 {
 		t.Fatalf("read-only file received %q", contents)
-	}
-}
-
-func TestTerminalDiagnosticsPrivateDispatch(t *testing.T) {
-	for _, mode := range []string{coordinatorMode, supervisorMode, targetBootstrapMode} {
-		t.Run(mode, func(t *testing.T) {
-			for _, failed := range []bool{false, true} {
-				stdout := terminalDiagnostics(t, nil)
-				stderr := terminalDiagnostics(t, map[int]bool{1: failed})
-				input, output := strings.NewReader("request"), new(bytes.Buffer)
-				calls := 0
-				app := application{privateInput: input, privateOutput: output, dispatch: func(got string, in io.Reader, out io.Writer) error {
-					if got != mode || in != input || out != output || len(stderr.attempts) != 0 {
-						t.Fatal("private dispatch streams or ordering changed")
-					}
-					calls++
-					return errors.New("decode private request: EOF")
-				}}
-				if status := app.run([]string{mode, "ignored"}, stdout, stderr); status != 3 || calls != 1 || len(stdout.attempts) != 0 || output.Len() != 0 {
-					t.Fatalf("status = %d, calls = %d, stdout = %q, private output = %q", status, calls, stdout.attempts, output.String())
-				}
-				checkTerminalDiagnostics(t, stderr, []string{"decode private request: EOF\n"})
-			}
-		})
 	}
 }
 

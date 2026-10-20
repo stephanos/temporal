@@ -16,7 +16,6 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
-	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 	"go.temporal.io/server/tools/gomad/internal/runner/inspect"
@@ -116,9 +115,6 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 		}
 		return 2
 	}
-	if isPrivateMode(arguments[0]) {
-		return app.runPrivateMode(arguments[0], stderr)
-	}
 	if app.command != nil {
 		if status, handled := app.command(arguments, stdout, stderr); handled {
 			return status
@@ -135,14 +131,6 @@ func (app application) run(arguments []string, stdout, stderr io.Writer) int {
 		return runMergeCampaigns(arguments[1:], stdout, stderr)
 	case "qualify":
 		return app.runQualify(arguments[1:], stdout, stderr)
-	case "qualify-set":
-		return app.runQualifySet(arguments[1:], stdout, stderr)
-	case "merge-set":
-		return runMergeSet(arguments[1:], stdout, stderr)
-	case "compare-support":
-		return runCompareSupport(arguments[1:], stdout, stderr)
-	case "analyze":
-		return app.runAnalyze(arguments[1:], stdout, stderr)
 	case "resume":
 		return app.runResume(arguments[1:], stdout, stderr)
 	case "recover":
@@ -460,7 +448,6 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 	flags := flag.NewFlagSet("gomad doctor", flag.ContinueOnError)
 	flags.SetOutput(stderr)
 	artifacts := flags.String("artifacts", ".gomad/artifacts", "artifact root to verify")
-	toolchainRoot := flags.String("toolchain-root", "", "absolute pinned toolchain root")
 	jsonOutput := flags.Bool("json", false, "emit stable JSON")
 	if err := flags.Parse(arguments); err != nil {
 		return 2
@@ -471,20 +458,6 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 		}
 		return 2
 	}
-	executable, err := app.executablePath()
-	if err != nil {
-		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
-			return 3
-		}
-		return 3
-	}
-	executable, err = absoluteExecutable(executable)
-	if err != nil {
-		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
-			return 3
-		}
-		return 3
-	}
 	artifactRoot, err := filepath.Abs(*artifacts)
 	if err != nil {
 		if _, printErr := fmt.Fprintf(stderr, "resolve artifact directory: %v\n", err); printErr != nil {
@@ -492,16 +465,8 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 		}
 		return 2
 	}
-	resolved, err := app.resolveInstallation(executable, *toolchainRoot)
-	if err != nil {
-		if _, writeErr := fmt.Fprintf(stderr, "resolve Gomad installation: %v\n", err); writeErr != nil {
-			return 3
-		}
-		return 2
-	}
 	report := Check(Config{
-		ToolchainRoot: resolved.ToolchainRoot, InstallationSource: resolved.Source, RepairInstruction: resolved.RepairInstruction,
-		RunnerPath: executable, ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
+		ArtifactRoot: artifactRoot, HostOS: runtime.GOOS, HostArch: runtime.GOARCH,
 	})
 	if *jsonOutput {
 		encoded, marshalErr := json.Marshal(report)
@@ -528,10 +493,7 @@ func (app application) runDoctor(arguments []string, stdout, stderr io.Writer) i
 		}
 	}
 	if !report.Available {
-		if !nativeBuiltIn {
-			return 2
-		}
-		return 1
+		return 2
 	}
 	return 0
 }
@@ -1188,9 +1150,7 @@ func resolveExploreCoverage(value string, required []string) (campaignoptions.Co
 		return "", err
 	}
 	if len(required) != 0 {
-		if err := validateRequiredSemanticProbes(required); err != nil {
-			return "", err
-		}
+		return "", fmt.Errorf("--require-probe is unavailable with the WASM backend")
 	}
 	return mode, nil
 }
@@ -1219,22 +1179,6 @@ type replayDependencies struct {
 }
 
 func (app application) runReplay(arguments []string, stdout, stderr io.Writer) int {
-	if !nativeBuiltIn && app.backend == nil {
-		hook := app.replayHook
-		app.replayHook = func(ctx context.Context, spec runner.ReplaySpec) (runner.ReplayResult, bool, error) {
-			if hook != nil {
-				result, handled, err := hook(ctx, spec)
-				if handled || err != nil {
-					return result, handled, err
-				}
-			}
-			opened, err := artifact.OpenArtifact(spec.ArtifactPath)
-			if err == nil {
-				err = errors.Join(errors.New(nativeNotBuilt), opened.Close())
-			}
-			return runner.ReplayResult{}, true, &runner.ReplayPreflightError{Err: err}
-		}
-	}
 	return runReplayWith(arguments, stdout, stderr, replayDependencies{capabilities: app.capabilities, install: app.install, replay: runner.Replay, retained: app.replayHook})
 }
 

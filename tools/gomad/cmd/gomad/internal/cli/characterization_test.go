@@ -399,12 +399,8 @@ func TestCharacterizeOutputWriterFailures(t *testing.T) {
 		{"minimize usage", func(stdout, stderr io.Writer) int { return runMinimizeWith(nil, stdout, stderr, minimize) }, 3},
 		{"recover usage", func(stdout, stderr io.Writer) int { return Run([]string{"recover"}, stdout, stderr) }, 3},
 		{"inspect usage", func(stdout, stderr io.Writer) int { return Run([]string{"inspect"}, stdout, stderr) }, 3},
-		{"analyze input error", func(stdout, stderr io.Writer) int {
-			return Run([]string{"analyze", "--format=xml", "go-run", "./cmd"}, stdout, stderr)
-		}, 3},
-		{"qualify-set input error", func(stdout, stderr io.Writer) int { return Run([]string{"qualify-set"}, stdout, stderr) }, 3},
-		{"doctor installation error", func(stdout, stderr io.Writer) int {
-			return Run([]string{"doctor", "--toolchain-root=relative"}, stdout, stderr)
+		{"doctor report", func(stdout, stderr io.Writer) int {
+			return Run([]string{"doctor", "--json"}, stdout, stderr)
 		}, 3},
 		{"replay installation error", func(stdout, stderr io.Writer) int {
 			return runReplayWith([]string{"/artifact"}, stdout, stderr, installation.failing(errFakeInstallation).replayDependencies(nil))

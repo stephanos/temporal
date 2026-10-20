@@ -79,7 +79,6 @@ COMPILED_TEST_ARGS := -timeout=$(TEST_TIMEOUT) \
 ROOT := $(shell git rev-parse --show-toplevel)
 LOCALBIN := .bin
 STAMPDIR := .stamp
-GOMAD_GO := $(ROOT)/tools/gomad/.toolchain/bin/go
 export PATH := $(ROOT)/$(LOCALBIN):$(PATH)
 GOINSTALL := GOBIN=$(ROOT)/$(LOCALBIN) go install
 
@@ -161,96 +160,6 @@ endef
 ##### Tools #####
 print-go-version:
 	@go version
-
-.PHONY: gomad gomad-go gomad-runner gomad-run gomad-test gomad-integration-test gomad-qualification gomad-smoke-qualification gomad-soak gomad-tests-qualification gomad-tests-qualification-merge
-
-gomad: gomad-runner
-
-gomad-go:
-	@$(MAKE) -C tools/gomad toolchain
-
-gomad-runner:
-	@$(MAKE) -C tools/gomad runner
-
-gomad-run:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad-run GOMADSEED=<uint64> GOMAD_RUN=<package>" >&2; exit 1; }
-	@test -n "$(GOMAD_RUN)" || { echo "GOMAD_RUN is required: make gomad-run GOMADSEED=<uint64> GOMAD_RUN=<package>" >&2; exit 1; }
-	@$(MAKE) gomad-go
-	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD_GO) run -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" $(GOMAD_RUN) $(GOMAD_ARGS)
-
-gomad-test:
-	@test "$(origin GOMADSEED)" != undefined || { echo "GOMADSEED is required: make gomad-test GOMADSEED=<uint64> GOMAD_PACKAGES=<packages>" >&2; exit 1; }
-	@test -n "$(GOMAD_PACKAGES)" || { echo "GOMAD_PACKAGES is required: make gomad-test GOMADSEED=<uint64> GOMAD_PACKAGES=<packages>" >&2; exit 1; }
-	@$(MAKE) gomad-go
-	@env -u GOMADSEED CGO_ENABLED=0 GOEXPERIMENT=nogreenteagc TZ=UTC GOMAD_CHILD_SEED="$(GOMADSEED)" \
-		$(GOMAD_GO) test -exec "$(ROOT)/tools/gomad/internal/backends/native/conformance/scripts/exec.sh" -count=1 -tags test_dep $(GOMAD_PACKAGES) $(GOMAD_ARGS)
-
-gomad-integration-test: gomad-runner
-	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_native,gomad_integration -count=1 go.temporal.io/server/tools/gomad/internal/backends/native/qualification
-	@cd tools/gomad && GOWORK=off go test -tags test_dep,gomad_native -count=1 \
-		-run '^(TestQualificationManifestsUsePortableV3|TestSmokeSuitesMatchRepresentativeSuites)$$' go.temporal.io/server/tools/gomad/internal/backends/native/qualification/set
-
-gomad-qualification: gomad-runner
-	@$(MAKE) -C tools/gomad compatibility-pack-qualification
-	@$(MAKE) -C tools/gomad qualification-set \
-		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/temporal.json" \
-		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/temporal-qualification" \
-		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/temporal-qualification-set.json"
-
-# Informational: standard library tests under the activated deterministic
-# runtime (tools/gomad/internal/backends/native/qualification/stdlib.json).
-gomad-stdlib-qualification: gomad-runner
-	@$(MAKE) -C tools/gomad stdlib-qualification-set GOMAD_QUALIFICATION_PRUNE=1
-
-# The smoke selection is the required CI gate for functional tests; its suites
-# are copied verbatim from temporal.json, which gomad-integration-test checks.
-gomad-smoke-qualification: gomad-runner
-	@$(MAKE) -C tools/gomad qualification-set GOMAD_QUALIFICATION_PRUNE=1 \
-		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/smoke.json" \
-		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/smoke-qualification" \
-		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/smoke-qualification-set.json"
-
-# The scheduled determinism soak: fresh same-seed repetitions of soak.json's
-# selection under host CPU load, with choice tracing and diagnostics on. Each
-# batch is compared with its cohort's baseline in the ledger, which a scheduled
-# run restores from the previous run. GOMAD_SOAK_WORKLOAD and GOMAD_SOAK_SEED
-# restrict a run to part of the selection; GOMAD_SOAK_BATCHES overrides the
-# maximum batches per workload and seed.
-GOMAD_SOAK_DIR ?= $(ROOT)/tools/gomad/.toolchain/soak
-gomad-soak: gomad-runner
-	@cd tools/gomad && env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool soak \
-		--manifest="$(ROOT)/tools/gomad/internal/backends/native/qualification/soak.json" \
-		--gomad="$(ROOT)/tools/gomad/.bin/gomad" \
-		--work="$(GOMAD_SOAK_DIR)/work" --ledger="$(GOMAD_SOAK_DIR)/ledger" --output="$(GOMAD_SOAK_DIR)/output" \
-		$(if $(GOMAD_SOAK_RUN_ID),--run-id="$(GOMAD_SOAK_RUN_ID)") \
-		$(if $(GOMAD_SOAK_WORKLOAD),--workload="$(GOMAD_SOAK_WORKLOAD)") \
-		$(if $(GOMAD_SOAK_SEED),--seed="$(GOMAD_SOAK_SEED)") \
-		$(if $(GOMAD_SOAK_BATCHES),--batches="$(GOMAD_SOAK_BATCHES)")
-
-# Regenerating first puts every test in ./tests in the set, including one added
-# without regenerating the checked-in manifest; `make -C tools/gomad validate-native`
-# still fails on the stale checked-in copy.
-# GOMAD_QUALIFICATION_SHARD=INDEX/COUNT runs one shard of the set into
-# shard-suffixed artifact and report paths; gomad-tests-qualification-merge
-# then combines the shard reports into tests-qualification-set.json.
-GOMAD_TESTS_QUALIFICATION_SUFFIX := $(if $(GOMAD_QUALIFICATION_SHARD),.shard-$(subst /,-of-,$(GOMAD_QUALIFICATION_SHARD)))
-gomad-tests-qualification: gomad-runner
-	@$(MAKE) -C tools/gomad tests-qualification-generate
-	@$(MAKE) -C tools/gomad qualification-set GOMAD_QUALIFICATION_PRUNE=1 \
-		GOMAD_QUALIFICATION_SHARD="$(GOMAD_QUALIFICATION_SHARD)" \
-		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
-		GOMAD_QUALIFICATION_WORKDIR="$(ROOT)" \
-		GOMAD_QUALIFICATION_ARTIFACTS="$(ROOT)/tools/gomad/.toolchain/tests-qualification$(GOMAD_TESTS_QUALIFICATION_SUFFIX)" \
-		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set$(GOMAD_TESTS_QUALIFICATION_SUFFIX).json"
-
-gomad-tests-qualification-merge: gomad-runner
-	@$(MAKE) -C tools/gomad qualification-set-merge \
-		GOMAD_QUALIFICATION_MANIFEST="$(ROOT)/tools/gomad/internal/backends/native/qualification/tests.json" \
-		GOMAD_QUALIFICATION_OUTPUT="$(ROOT)/tools/gomad/.toolchain/tests-qualification-set.json" \
-		GOMAD_QUALIFICATION_SHARD_REPORTS="$(or $(GOMAD_QUALIFICATION_SHARD_REPORTS),$(wildcard $(ROOT)/tools/gomad/.toolchain/tests-qualification-set.shard-*.json))"
 
 clean-tools:
 	@printf $(COLOR) "Delete tools..."
@@ -490,7 +399,7 @@ temporal-server-debug: $(ALL_SRC)
 ##### Checks #####
 goimports: fmt-imports $(GOIMPORTS)
 	@printf $(COLOR) "Run goimports for all files..."
-	@UNGENERATED_FILES=$$(find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad/.toolchain' -prune -o -path './tools/gomad/internal/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
+	@UNGENERATED_FILES=$$(find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad/.toolchain' -prune -o -path './tools/gomad/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | xargs -0 grep -L -e "Code generated by .* DO NOT EDIT." || true) && \
 		$(GOIMPORTS) -w $$UNGENERATED_FILES
 
 lint: lint-code lint-actions lint-api lint-protos lint-yaml
@@ -505,17 +414,11 @@ lint-actions: $(ACTIONLINT)
 lint-code-fast:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)"
 
-ifneq ($(findstring gomad_native,$(GOFLAGS)),)
-GOMAD_LINT_TAGS := $(ALL_TEST_TAGS),gomad_native
-else
-GOMAD_LINT_TAGS := $(ALL_TEST_TAGS)
-endif
-
 lint-code-gomad:
-	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(GOMAD_LINT_TAGS)" -module tools/gomad
+	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tools/gomad
 
 lint-code-gomad-wasm:
-	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(GOMAD_LINT_TAGS)" -module tools/gomad
+	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tools/gomad
 
 lint-code-mixedbrain:
 	@go run ./cmd/tools/lintcode -base "$(GOLANGCI_LINT_BASE_REV)" -tags "$(ALL_TEST_TAGS)" -module tests/mixedbrain
@@ -586,7 +489,7 @@ fmt-gofix:
 
 fmt-imports: $(GCI) # Don't get confused, there is a single linter called gci, which is a part of the mega linter we use is called golangci-lint.
 	@printf $(COLOR) "Formatting imports..."
-	@find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad/.toolchain' -prune -o -path './tools/gomad/internal/backends/native/toolchain/runtime/overlay' -prune -o -path './tools/gomad/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | \
+	@find . -path './.gomad' -prune -o -path './.tmp' -prune -o -path './.flow/artifacts' -prune -o -path './.worktrees' -prune -o -path './tools/gomad/.toolchain' -prune -o -path './tools/gomad/internal/backends/wasm/wasmhost/target' -prune -o -type f -name '*.go' -print0 | \
 		xargs -0 $(GCI) write --skip-generated -s standard -s default
 
 parallelize-tests:

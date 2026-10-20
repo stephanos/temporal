@@ -1,5 +1,3 @@
-//go:build !gomad_native
-
 // Package testfixture supplies backend-neutral evidence for host tests.
 package testfixture
 

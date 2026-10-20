@@ -80,9 +80,8 @@ the command:
 
 An invalid selected manifest fails without fallback. Discovery reports its
 identities and configuration and checks helper bytes; it does not execute a
-test. WASM uses `discover` here. Native `doctor` and `analyze` are unavailable
-through this provider. Native execution is retired; fn-128 and fn-149 closed
-as won't-do on 2026-10-19. Its frozen source remains until fn-223 removes it.
+test. WASM uses `discover` here. The native backend and its commands were
+removed by fn-223; fn-128 and fn-149 closed as won't-do on 2026-10-19.
 
 ## Keep and replay a first failure
 
@@ -141,8 +140,7 @@ Preparation uses `wasip1/wasm`, cgo disabled, explicit tags and the cooperative
 runtime overlay. It rejects unsupported imports and preparation options. A
 successful build still needs execution evidence for its model and capacity
 requirements. Guest files, working directory, entropy and network/storage
-models belong to the installation's immutable `wasi.Config`. Native
-`--io-ro-mount` flags cannot supply WASM inputs.
+models belong to the installation's immutable `wasi.Config`.
 
 ## Consumer example with Temporal
 
@@ -217,8 +215,8 @@ MySQL/PostgreSQL test drivers. Selecting excluded providers fails explicitly.
 Start with one seed and one heavy preparation at a time. Whole Temporal modules
 can exhaust memory, fuel, transcript or choice limits. The public standalone
 choice limit is 64 MiB. Standalone CLI execution uses its 64 MiB transcript
-default even when the installation configuration declares more;
-`--io-transcript-bytes` is a native-only flag. Overflow cannot establish exact
+default even when the installation configuration declares more.
+Overflow cannot establish exact
 replay. Temporal soft assertions fail Gomad's oracle even after a test prints
 `PASS`. The explicit
 WASM `go-test` option `--soft-assertion-report-only` reports them without failing
@@ -275,7 +273,7 @@ and crash/restart boundaries. The [WASM operator guide](internal/backends/wasm/C
 provides complete configuration and checked durable-reopen and partition/heal
 examples. Cluster replay checks lifecycle, network/storage and per-incarnation
 evidence. Crash prefixes are not complete global tapes. Cluster-global forced
-choice search, native simulation exploration and cluster minimization are
+choice search and cluster minimization are
 unsupported.
 
 The shared [minimizer](internal/backends/wasm/CLI.md#minimize-a-compatible-retained-failure)
@@ -308,11 +306,11 @@ gates and unresolved cells. This guide supplies no current qualification result,
 performance gain or numeric determinism bound.
 
 The [WASM determinism inventory](internal/backends/wasm/README.md#determinism-contract)
-classifies each reviewed influence and names its enforcement tests. Native
-escape findings have the following wasip1 disposition; native qualification
-does not establish these rules.
+classifies each reviewed influence and names its enforcement tests. Historical
+native escape findings have the following wasip1 disposition; the removed
+backend's qualification does not establish these rules.
 
-| Native finding | Cooperative wasip1 rule |
+| Historical native finding | Cooperative wasip1 rule |
 | --- | --- |
 | GC `LastGC` and `PauseEnd` stamps | Read the transcribed virtual wall clock. |
 | FIPS `monoTime` | Reaches the virtual clock through `time_now`. |
@@ -333,11 +331,6 @@ The [network contract](SPEC.md#simulationnetwork-network-model) and
 [architecture](ARCHITECTURE.md#clusters-and-scenarios) define stream,
 partition, lifecycle, fidelity and replay semantics.
 
-### Compatibility-pack development
-
-Native pack maintenance lives in the [maintainer CLI guide](CLI.md#extend-support-through-compatibility-packs).
-Native approvals do not admit arbitrary WASM imports or host access.
-
 ### Go caller migrations
 
 Runner operations and `backends.Provider` own campaign preparation and
@@ -356,10 +349,14 @@ documents regeneration commands, retained invariants and measurement admission.
 Shared wire codecs are generated from the schemas under `internal/model` by
 `make generate` (`internal/model/cmd/protocolgen`, stock Go, no build tag);
 `make validate` reports each stale output and fails. The volume and network
-models are owned source with no generator. The native backend tree is frozen:
-it is neither executed nor qualified, and its generators and validators run
-only under its own selection, `GOFLAGS=-tags=gomad_native make generate-native
-validate-native`. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
+models are owned source with no generator. The native backend and its
+generators were removed. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
+
+Final changed-candidate runtime, mandatory workload and retained-replay
+qualification, including the complete behavioral reach of
+`make -C tools/gomad test-wasm`, remain pending under fn-232 R12/task .13's
+frozen Rust qualification cycle. Native deletion source checks supply no final
+qualification pass.
 
 ## Further reading
 
@@ -369,4 +366,4 @@ validate-native`. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
 - [Product specification](SPEC.md) for vocabulary and requirements.
 - [Architecture](ARCHITECTURE.md) for ownership and design rationale.
 - [Milestones](../../MILESTONES.md) for delivery order and open acceptance.
-- [Shared/native CLI guide](CLI.md) for retained native and maintainer commands.
+- [Maintainer guide](CLI.md) for shared generated contracts and qualification ownership.

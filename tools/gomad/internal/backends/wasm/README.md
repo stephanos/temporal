@@ -71,15 +71,13 @@ server-free. The shared volume (`internal/model/volume`) and network
 were promoted from projections of the native overlay in fn-219 and no longer
 read or track it. Their generated wire codecs come from
 `internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
-with stock Go and no build tag. Nothing in the WASM build or `test-wasm` reads
-`internal/backends/native`, which stays in the tree as a frozen consumer that
-still generates and validates under its own selection (`make generate-native
-validate-native` with `GOFLAGS=-tags=gomad_native`).
+with stock Go and no build tag. The native backend and its generated consumers
+were removed by fn-223.
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
-(`backend.SlimGuestBuildTag`). It reuses the native `gomad` provider seams to
+(`backend.SlimGuestBuildTag`). It uses the `gomad` provider seams to
 leave out the cloud archivers, ringpop membership and MySQL/PostgreSQL test
-drivers, while default, stock and native builds keep them. Selecting an excluded
+drivers, while ordinary production builds keep them. Selecting an excluded
 provider fails explicitly. The [fn-182 specification](../../../../../.flow/specs/fn-182-gomad-smaller-wasm-guests.md)
 records the dependency contract; [CLI.md](CLI.md) lists the refusals. Matched
 timing and memory measurements belong to fn-185. Smaller linked modules alone
@@ -99,7 +97,7 @@ boundaries. The shared campaign store retains prepared inputs for detached
 replay and interrupted recovery/resume. Checked operator examples use
 `command/testdata/scenario/{config,durable,network}.json`. Cluster replay checks
 per-incarnation evidence; it does not expose a global forced-choice tape,
-cluster minimization or native simulation exploration. See the guide for the
+cluster minimization. See the guide for the
 supported flags and the [qualification limits](QUALIFICATION.md#installed-scenario-matrix).
 
 Run from this repository checkout:
@@ -229,11 +227,8 @@ support or qualification.
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
 `GOMAD_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
-Before running the WASM packages, that target checks that WASM tests reference
-no pre-move native toolchain path or binary; it has no native toolchain build
-prerequisites. Module-wide, archcheck's default run refuses any default-set file
-that names the native tree and any native package reachable from default
-dependencies.
+The target uses the stock compiler and cooperative runtime overlay.
+Module-wide archcheck verifies the retained package ownership boundaries.
 The backend-local targets also accept `GOMAD_WASM_STOCK_GO`; their `make test`
 combines the helper and Go suites. Writable stock Go copies are shared under `tools/gomad/.toolchain/stock`.
 
@@ -250,15 +245,15 @@ embedded and assembly inputs and included headers, compiler tools, helper, model
 imports, memory, fuel and captured inputs. Replay uses retained module and
 provenance bytes and verifies the installed helper and compiled model; it does
 not rebuild or read original source or input mounts. The stock provider rejects
-ambient PGO, module replacements, overlays, native adapters, choice and strict-time
+ambient PGO, module replacements, overlays, choice and strict-time
 commands. It disables PGO explicitly and isolates compiler object caches by
 compilation inputs, with external cache programs disabled. A verified module can
 serve different test selectors; each execution retains its own provenance and
-build identity, including arguments, models and limits. Its artifacts declare `observed` replay, without native I/O transcript
-or forced-choice claims.
+build identity, including arguments, models and limits. Its artifacts declare
+`observed` replay, without forced-choice claims.
 
 The cooperative provider requires Go 1.27.1 and an explicit `RuntimeRoot` pointing
-to `tools/gomad/internal/model/runtimesource`. Both overlays copy its package-runtime
+to `tools/gomad/internal/model/runtimesource`. The overlays copy its package-runtime
 sources verbatim and hash the copied bytes. The former native overlay directory
 is no longer a valid runtime source root. This extraction rotates runtime and
 model identities; retained qualifications bind their historical candidate and
@@ -279,7 +274,7 @@ alternatives and rank at every decision, and rejects missing or extra decisions.
 Replay verifies retained module/provenance, helper, model and runtime implementation
 identities without reopening original source, compiler or runtime inputs. Runtime
 control frames remain separate from the application WASI transcript. The stock
-profile and diagnostics-off native canonical bytes retain their existing defaults.
+profile retains its existing defaults.
 
 The cooperative helper handles captured entropy and argument/environment imports
 locally, alongside clocks and scheduler controls. It receives the entropy key and
@@ -300,7 +295,7 @@ not shortened: versioned minimization evidence separately binds the original and
 final forcing lengths and tape digests. Candidate replay and final publication use
 retained bytes without reopening source, compiler or runtime inputs. Interrupted
 runs resume through the existing shared minimizer workspace and controller.
-Observed stock failures, incomplete traces, native simulation profiles and
+Observed stock failures, incomplete traces and
 incompatible replay profiles are rejected. `gomad --installation FILE minimize` routes this
 compatible standalone choice-prefix mode through the shared Runner, including
 its existing output, attempt, byte and resume bounds.
@@ -333,7 +328,7 @@ Revocation takes effect before the next modeled effect; restart creates a fresh
 store from the recovery image retained inside Rust, even when no image bytes
 were requested for inspection. Finish closes the cluster and collects its World.
 The Go owner remains the differential reference. Single-instance V2 network
-runs, the native backend and the per-process Go-broker reference path use the
+runs and the per-process Go-broker reference path use the
 owned Go network model (the Go network owner). In-process clusters
 (`cluster_execute`, fn-178) serve every instance's `net_stream` from one shared
 Rust network owner in the helper (fn-177's port, kept equal to the Go owner by
@@ -363,7 +358,7 @@ The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
 parity. Raw persistent files retain their existing behavior, including stale locks
 when no dependency-specific ephemeral-artifact policy is selected.
 Host crash-state enumeration uses an explicit deterministic visited-cursor `Work`
-budget rather than consulting wall time; the native overlay remains unchanged.
+budget rather than consulting wall time.
 
 Helper telemetry is separate from canonical evidence. It measures engine prepare,
 compile, cache load/publication, fresh instantiation and guest execution wall phases.
@@ -468,10 +463,12 @@ retains the completed productionization acceptance. Its historical evidence
 does not qualify changes to helper/runtime/model inputs. The current operator
 integration contract is
 [fn-181](../../../../../.flow/specs/fn-181-gomad-wasm-operator-integration.md),
-consuming fn-176 storage recovery and fn-178 cluster execution. Native
-execution is retired; fn-128 and fn-149 closed as won't-do on 2026-10-19.
-The frozen native source remains until fn-223. WASM/source checks supply no
-native execution pass.
+consuming fn-176 storage recovery and fn-178 cluster execution. The native
+backend was removed by fn-223; fn-128 and fn-149 closed as won't-do on 2026-10-19.
+Final changed-candidate runtime, mandatory workload and retained-replay
+qualification, including the complete behavioral reach of
+`make -C tools/gomad test-wasm`, remain pending under fn-232 R12/task .13's
+frozen Rust qualification cycle. Deletion source checks supply no final pass.
 
 ## Determinism contract
 

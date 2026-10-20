@@ -4,7 +4,6 @@ on:
   pull_request:
     paths:
       - ".github/workflows/gomad.yml"
-      - ".github/workflows/gomad-smoke.yml"
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
@@ -18,7 +17,6 @@ on:
       - main
     paths:
       - ".github/workflows/gomad.yml"
-      - ".github/workflows/gomad-smoke.yml"
       - ".github/.golangci.yml"
       - "cmd/tools/lintcode/**"
       - "Makefile"
@@ -43,7 +41,6 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 5
     outputs:
-      native: ${{ steps.paths.outputs.native }}
       wasm: ${{ steps.paths.outputs.wasm }}
     steps:
       - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
@@ -56,7 +53,6 @@ jobs:
           BASE_SHA: ${{ github.event.pull_request.base.sha || github.event.before }}
           HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
-          native=true
           wasm=true
           if [[ "$GITHUB_EVENT_NAME" == pull_request || "$GITHUB_EVENT_NAME" == push ]]; then
             paths_file=$(mktemp)
@@ -68,26 +64,23 @@ jobs:
                 diff_base=$(git merge-base "$BASE_SHA" "$HEAD_SHA") || exit 1
               fi
               if git diff --no-renames --name-only -z "$diff_base" "$HEAD_SHA" -- > "$paths_file"; then
-                native=false
                 wasm=false
                 while IFS= read -r -d '' path; do
                   case "$path" in
                     tools/gomad/internal/backends/wasm/*|tools/gomad/mise.toml) wasm=true ;;
-                    tools/gomad/internal/backends/native/*) native=true ;;
                     # internal/backends/wasm/cluster and qualification import tools/gomad/internal/model/cluster.
                     # The gomad_wasm_slim provider seams carry the WASM slim refusal tests.
-                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|.github/workflows/gomad-smoke.yml|Makefile|go.mod|go.sum|\
+                    tools/gomad/*|tools/gomad/internal/model/cluster/*|.github/workflows/gomad.yml|Makefile|go.mod|go.sum|\
                     common/archiver/provider/provider_cloud*|temporal/membership*|tests/testcore/flag_sql*)
-                      native=true
                       wasm=true
                       ;;
-                    *) native=true ;;
+                    *) ;;
                   esac
                 done < "$paths_file"
               fi
             fi
           fi
-          printf 'native=%s\nwasm=%s\n' "$native" "$wasm" >> "$GITHUB_OUTPUT"
+          printf 'wasm=%s\n' "$wasm" >> "$GITHUB_OUTPUT"
 
   wasm-linux:
     needs: changes
@@ -143,7 +136,7 @@ jobs:
 
   host-tools-linux:
     needs: changes
-    if: ${{ needs.changes.outputs.native == 'true' || needs.changes.outputs.wasm == 'true' }}
+    if: ${{ needs.changes.outputs.wasm == 'true' }}
     runs-on: ubuntu-latest
     timeout-minutes: 15
     steps:
@@ -164,16 +157,7 @@ jobs:
         working-directory: tools/gomad
         run: make validate
 
-      - name: Validate native generated outputs, patches, scripts, compatibility packs, and the ./tests qualification manifest
-        if: ${{ needs.changes.outputs.native == 'true' }}
-        working-directory: tools/gomad
-        env:
-          GOFLAGS: -tags=gomad_native
-        run: make validate-native
-
       - name: Lint Gomad host module
-        env:
-          GOFLAGS: ${{ needs.changes.outputs.native == 'true' && '-tags=gomad_native' || '' }}
         run: make GOLANGCI_LINT_FIX=false GOLANGCI_LINT_BASE_REV=HEAD~ lint-code-gomad
 
       - name: Test platform-neutral host tooling
@@ -183,418 +167,3 @@ jobs:
           ./internal/host/exec
           ./internal/host/fs
           ./cmd/gomad/internal/cli ./internal/runner/... ./internal/archcheck
-
-      - name: Test native host tooling under the native selection
-        if: ${{ needs.changes.outputs.native == 'true' }}
-        working-directory: tools/gomad
-        run: >-
-          go test -count=1 -tags test_dep,gomad_native
-          go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool
-
-  core-linux:
-    needs: changes
-    if: ${{ needs.changes.outputs.native == 'true' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 90
-    env:
-      GOFLAGS: -tags=gomad_native
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: tools/gomad/go.mod
-          check-latest: false
-          cache: true
-
-      - name: Verify qualified host
-        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = linux/amd64
-
-      - name: Build the toolchain and run the conformance tiers qualified on Linux
-        run: >-
-          make -C tools/gomad test-harness test-toolchain intercept-test overlay-test test-simulation
-          world-test test-builder test-live-capability test-upstream test-runtime
-
-      - name: Run the host tier
-        run: make -C tools/gomad test-host
-
-      - name: Qualify the Linux compatibility packs and the core corpus
-        run: make -C tools/gomad compatibility-pack-qualification core-qualification-set
-
-      - name: Verify portable core qualification evidence
-        run: >-
-          jq -e '
-          .schema == "gomad.qualification-set-report/v1" and
-          .platform == {"goos": "linux", "goarch": "amd64"} and
-          .seeds == ["17"] and .expectations_met and
-          .selected == 7 and .completed == 7 and .supported == 7 and
-          .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
-          ([.workloads[] | select(.classification == "qualified") | .choice.available and
-          .choice.exact_replay_available and
-          ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)
-          ' tools/gomad/.toolchain/core-qualification-set.json
-
-      - name: Upload core qualification
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-linux-qualification-${{ github.run_id }}
-          path: |
-            tools/gomad/.toolchain/core-qualification-set.json
-            tools/gomad/.toolchain/core-qualification
-          if-no-files-found: error
-          retention-days: 90
-
-      # The functional test package's capability closure is closed on Linux under
-      # the gomad build tag (MILESTONES.md F4): build seams cut the server's
-      # host-only providers and the fx, SDK, otel, and gRPC adapters remove the
-      # remaining forbidden imports, so closure mode reports zero blockers.
-      - name: Close the functional test capability closure
-        run: >-
-          make gomad-runner &&
-          tools/gomad/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
-          --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
-          go-test ./tests > tools/gomad/.toolchain/tests-closure.json;
-          jq -e '
-          .classification == "supported" and (.blockers | length) == 0 and
-          ([.packs[].id] | index("temporal-functional-tests-linux-amd64") != null)
-          ' tools/gomad/.toolchain/tests-closure.json
-
-      # The Temporal corpus on Linux: the ten expected boundaries hold (the amd64
-      # xxhash assembly, which the darwin-scoped temporal-leaf packs do not
-      # admit), and the other eighteen workloads are supported. The five package
-      # suites, the tier 3 user-timers and activity batch cancel suites, and the
-      # ten `functional-*` suites of the F6 slice qualify with exact replay on
-      # both seeds. The tier 3 probe runs to a successful exit under guarded
-      # mode, but one run's seed 17 did not reproduce its evidence, so
-      # temporal.json states its linux/amd64 expectation as `intermittent` until
-      # MILESTONES.md F3 closes it. Since the FIPS DRBG and mark-start
-      # greying runtime changes, seed 17 of one functional suite per run has
-      # diverged on replay, a different suite each time, so the F5 and F6
-      # suites are `intermittent` on linux under the F7 finding too.
-      - name: Requalify representative Temporal workloads
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: make gomad-qualification
-
-      - name: Verify portable Temporal qualification evidence
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: >-
-          jq -e '
-          .schema == "gomad.qualification-set-report/v1" and
-          .platform == {"goos": "linux", "goarch": "amd64"} and
-          .seeds == ["11", "17"] and .expectations_met and
-          .selected == 28 and .completed == 28 and .unsupported == 10 and
-          (.supported + .failed) == 18 and
-          .infrastructure_errors == 0 and
-          ([.workloads[] | select(.id == "frontend-system-info" or .id == "user-timers-workflow" or .id == "activity-batch-cancel-boundary" or (.id | startswith("functional-"))) | .classification == "qualified" or .classification == "nondeterministic" or .classification == "replay_divergence"] | all) and
-          ([.workloads[] | select(.classification == "qualified") |
-          (.seeds | length) == 2 and .choice.available and
-          .choice.exact_replay_available and
-          ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)
-          ' tools/gomad/.toolchain/temporal-qualification-set.json
-
-      - name: Upload Temporal qualification
-        if: ${{ always() && (github.event_name == 'schedule' || github.event_name == 'workflow_dispatch') }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-linux-temporal-qualification-${{ github.run_id }}
-          path: tools/gomad/.toolchain/temporal-qualification-set.json
-          if-no-files-found: error
-          retention-days: 90
-
-  core:
-    needs: changes
-    if: ${{ needs.changes.outputs.native == 'true' }}
-    runs-on: macos-15
-    timeout-minutes: 90
-    env:
-      GOFLAGS: -tags=gomad_native
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-        with:
-          fetch-depth: 0
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: tools/gomad/go.mod
-          check-latest: true
-          cache: true
-
-      - name: Verify qualified host
-        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
-
-      - name: Produce checked upgrade qualification dossier
-        env:
-          GOMAD_BASELINE_REF: ${{ github.event.pull_request.base.sha || github.event.before || 'HEAD^' }}
-          GOMAD_APPROVED_BOUNDARY_DIFF_SHA256: ${{ vars.GOMAD_APPROVED_BOUNDARY_DIFF_SHA256 }}
-        run: make -C tools/gomad upgrade-dossier
-
-      - name: Run the simulation tier
-        run: make -C tools/gomad test-simulation
-
-      - name: Verify portable core qualification evidence
-        run: >-
-          jq -e '
-          .schema == "gomad.qualification-set-report/v1" and
-          .seeds == ["17"] and
-          .selected == 7 and .completed == 7 and .supported == 7 and
-          .unsupported == 0 and .failed == 0 and .infrastructure_errors == 0 and
-          ([.workloads[] | .classification == "qualified" and .choice.available and
-          .choice.exact_replay_available and
-          ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)
-          ' tools/gomad/.toolchain/core-qualification-set.json
-
-      - name: Upload upgrade qualification dossier
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-qualification-${{ github.run_id }}
-          path: |
-            tools/gomad/.toolchain/upgrade-dossier.json
-            tools/gomad/.toolchain/core-qualification-set.json
-            tools/gomad/.toolchain/core-qualification
-          if-no-files-found: error
-          retention-days: 90
-
-      # The darwin/arm64 counterpart of the Linux closure step (MILESTONES.md
-      # F4 states its acceptance on darwin/arm64): the arm64 assembly and the
-      # Prometheus client's darwin process-collector imports are admitted by
-      # the darwin packs, so closure mode reports zero blockers.
-      - name: Close the functional test capability closure
-        run: >-
-          make gomad-runner &&
-          tools/gomad/.bin/gomad analyze --capability-mode=closure --format=json --timeout=15m
-          --build-tag disable_grpc_modules --build-tag gomad --build-tag test_dep
-          go-test ./tests > tools/gomad/.toolchain/tests-closure.json;
-          jq -e '
-          .classification == "supported" and (.blockers | length) == 0 and
-          ([.packs[].id] | index("temporal-functional-tests-darwin-arm64") != null)
-          ' tools/gomad/.toolchain/tests-closure.json
-
-  functional-smoke:
-    needs: changes
-    if: ${{ needs.changes.outputs.native == 'true' }}
-    uses: ./.github/workflows/gomad-smoke.yml
-
-  temporal-integration:
-    needs: core
-    runs-on: macos-15
-    timeout-minutes: 90
-    env:
-      GOFLAGS: -tags=gomad_native
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: tools/gomad/go.mod
-          check-latest: true
-          cache: true
-
-      - name: Test Temporal wrapper contract
-        run: make gomad-integration-test
-
-      - name: Requalify representative Temporal workloads
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: make gomad-qualification
-
-      # The tier 3 classifications are asserted through the manifest's
-      # expectations, so this job goes red the moment a real darwin result
-      # disagrees with what temporal.json states. On darwin the tier 3 frontend
-      # probe is `qualified` with exact replay, every tier 2 package suite
-      # qualifies (nine under the gomad tag, through the temporal-leaf packs),
-      # and the tier 3 user-timers and activity batch cancel suites are
-      # `qualified` with exact replay on both seeds since the mark-start
-      # greying fix MILESTONES.md F5 records, as are the ten
-      # `functional-*` suites of the F6 slice, so all 28 are supported.
-      - name: Verify portable Temporal qualification evidence
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        run: >-
-          jq -e '
-          .schema == "gomad.qualification-set-report/v1" and
-          .platform == {"goos": "darwin", "goarch": "arm64"} and
-          .seeds == ["11", "17"] and .expectations_met and
-          .selected == 28 and .completed == 28 and .unsupported == 0 and
-          .supported == 28 and .failed == 0 and
-          .infrastructure_errors == 0 and
-          ([.workloads[] | select(.tier == 2 and .classification == "qualified")] | length) == 15 and
-          ([.workloads[] | select(.tier == 3 and .classification == "qualified")] | length) == 13 and
-          ([.workloads[] | select(.classification == "qualified") |
-          (.seeds | length) == 2 and .choice.available and
-          .choice.exact_replay_available and
-          ([.seeds[] | .replayed and .replay_match and .choice_replay_exact] | all)] | all)
-          ' tools/gomad/.toolchain/temporal-qualification-set.json
-
-      - name: Upload Temporal qualification
-        if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-temporal-qualification-${{ github.run_id }}
-          path: |
-            tools/gomad/.toolchain/temporal-qualification-set.json
-            tools/gomad/.toolchain/temporal-qualification
-          if-no-files-found: error
-          retention-days: 90
-
-  # The scheduled determinism soak (fn-112 R6, MILESTONES.md Q6). Each job runs
-  # one workload and seed of tools/gomad/internal/backends/native/qualification/soak.json:
-  # N fresh same-seed repetitions in gomad qualify batches of 32, under two busy
-  # host threads, with choice tracing and diagnostics on. Every batch is
-  # compared with its cohort's baseline (workload, seed, platform, execution
-  # identity), carried between runs in a ledger restored from the latest
-  # retained scheduled or dispatched run; a new toolchain identity starts a new
-  # cohort. The darwin gate accepts zero divergences, and an overflow, target
-  # failure, or infrastructure failure fails it separately. A divergence
-  # uploads both diagnostic traces and the differ output.
-  # soak.json caps a job at four batches inside a 120-minute budget, so the
-  # matrix stays within a fork's shared macOS quota. Each job builds its own
-  # toolchain, as every other gomad job does.
-  determinism-soak-darwin:
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    runs-on: macos-15
-    timeout-minutes: 180
-    permissions:
-      contents: read
-      actions: read
-    strategy:
-      fail-fast: false
-      matrix:
-        workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
-        seed: [11, 17]
-    env:
-      GOFLAGS: -tags=gomad_native
-      GOMAD_SOAK_LEDGER_ARTIFACT: gomad-soak-ledger-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: tools/gomad/go.mod
-          check-latest: true
-          cache: true
-
-      - name: Verify qualified host
-        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = darwin/arm64
-
-      - name: Restore the soak ledger from the latest retained run
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          ledger=tools/gomad/.toolchain/soak/ledger
-          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad.yml --branch "$GITHUB_REF_NAME" --limit 50 \
-            --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
-            test "$run" = "$GITHUB_RUN_ID" && continue
-            rm -rf "$ledger"
-            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
-              echo "Restored the soak ledger from run $run"
-              exit 0
-            fi
-          done
-          rm -rf "$ledger"
-          echo "No retained soak ledger; this run starts new cohorts"
-
-      - name: Run the determinism soak
-        run: >-
-          make gomad-soak GOMAD_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD_SOAK_SEED=${{ matrix.seed }}
-          GOMAD_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Publish the soak summary
-        if: ${{ always() }}
-        run: |
-          summary=tools/gomad/.toolchain/soak/output/soak-summary.md
-          if test -f "$summary"; then cat "$summary" >> "$GITHUB_STEP_SUMMARY"; fi
-
-      - name: Upload the soak ledger
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: ${{ env.GOMAD_SOAK_LEDGER_ARTIFACT }}
-          path: tools/gomad/.toolchain/soak/ledger
-          if-no-files-found: ignore
-          retention-days: 90
-          overwrite: true
-
-      - name: Upload the soak report and divergence evidence
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-soak-darwin-arm64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
-          path: tools/gomad/.toolchain/soak/output
-          if-no-files-found: warn
-          retention-days: 90
-          overwrite: true
-
-  # The linux/amd64 counterpart. soak.json lists linux/amd64 under
-  # informational_platforms while fn-105 D12 is open, so this job's report says
-  # its gate is informational and a divergence does not fail it; overflow,
-  # target, and infrastructure failures still do. Deferred fn-128.2 owns removal of that entry
-  # together with the other D12 allowances.
-  determinism-soak-linux:
-    if: ${{ github.event_name == 'schedule' || github.event_name == 'workflow_dispatch' }}
-    runs-on: ubuntu-latest
-    timeout-minutes: 180
-    permissions:
-      contents: read
-      actions: read
-    strategy:
-      fail-fast: false
-      matrix:
-        workload: [functional-activity, functional-child-workflow, functional-update, user-timers-workflow, frontend-system-info]
-        seed: [11, 17]
-    env:
-      GOFLAGS: -tags=gomad_native
-      GOMAD_SOAK_LEDGER_ARTIFACT: gomad-soak-ledger-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}
-    steps:
-      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
-      - uses: actions/setup-go@4a3601121dd01d1626a1e23e37211e3254c1c06c # v6.4.0
-        with:
-          go-version-file: tools/gomad/go.mod
-          check-latest: false
-          cache: true
-
-      - name: Verify qualified host
-        run: test "$(go env GOHOSTOS)/$(go env GOHOSTARCH)" = linux/amd64
-
-      - name: Restore the soak ledger from the latest retained run
-        env:
-          GH_TOKEN: ${{ github.token }}
-        run: |
-          ledger=tools/gomad/.toolchain/soak/ledger
-          for run in $(gh run list --repo "$GITHUB_REPOSITORY" --workflow gomad.yml --branch "$GITHUB_REF_NAME" --limit 50 \
-            --json databaseId,event --jq '.[] | select(.event == "schedule" or .event == "workflow_dispatch") | .databaseId'); do
-            test "$run" = "$GITHUB_RUN_ID" && continue
-            rm -rf "$ledger"
-            if gh run download "$run" --repo "$GITHUB_REPOSITORY" --name "$GOMAD_SOAK_LEDGER_ARTIFACT" --dir "$ledger"; then
-              echo "Restored the soak ledger from run $run"
-              exit 0
-            fi
-          done
-          rm -rf "$ledger"
-          echo "No retained soak ledger; this run starts new cohorts"
-
-      - name: Run the determinism soak (informational while D12 is open)
-        run: >-
-          make gomad-soak GOMAD_SOAK_WORKLOAD=${{ matrix.workload }} GOMAD_SOAK_SEED=${{ matrix.seed }}
-          GOMAD_SOAK_RUN_ID=${{ github.run_id }}-${{ github.run_attempt }}
-
-      - name: Publish the soak summary
-        if: ${{ always() }}
-        run: |
-          summary=tools/gomad/.toolchain/soak/output/soak-summary.md
-          if test -f "$summary"; then cat "$summary" >> "$GITHUB_STEP_SUMMARY"; fi
-
-      - name: Upload the soak ledger
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: ${{ env.GOMAD_SOAK_LEDGER_ARTIFACT }}
-          path: tools/gomad/.toolchain/soak/ledger
-          if-no-files-found: ignore
-          retention-days: 90
-          overwrite: true
-
-      - name: Upload the soak report and divergence evidence
-        if: ${{ always() }}
-        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0
-        with:
-          name: gomad-soak-linux-amd64-${{ matrix.workload }}-${{ matrix.seed }}-${{ github.run_id }}
-          path: tools/gomad/.toolchain/soak/output
-          if-no-files-found: warn
-          retention-days: 90
-          overwrite: true

@@ -2,7 +2,6 @@ package cluster
 
 import (
 	"errors"
-	_ "unsafe"
 
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/history"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire"
@@ -26,77 +25,6 @@ func runtimeVolumeEnumerate(uint64, VolumeID, VolumeCrashEnumerationLimits, *Vol
 
 func runtimeVolumeFinish(uint64) (VolumeRecord, error) {
 	return VolumeRecord{}, ErrRuntimeUnavailable
-}
-
-//go:linkname gomadVolumeBegin internal/gomadfs.BeginSimulationVolumes
-func gomadVolumeBegin(uint64, []byte) ([]byte, bool)
-
-//go:linkname gomadInitializeVolumeFilesystem os.gomadInitializeSimulationFilesystem
-func gomadInitializeVolumeFilesystem()
-
-//go:linkname gomadVolumeRegister internal/gomadfs.RegisterSimulationVolumes
-func gomadVolumeRegister(uint64) ([]byte, bool)
-
-//go:linkname gomadVolumeRevoke internal/gomadfs.RevokeSimulationVolumes
-func gomadVolumeRevoke(uint64, bool, bool) ([]byte, bool)
-
-//go:linkname gomadVolumeEnumerate internal/gomadfs.EnumerateSimulationVolume
-func gomadVolumeEnumerate(uint64, string, uint64, uint64, uint64, uint64, uint64, []byte) ([]byte, bool)
-
-//go:linkname gomadVolumeFinish internal/gomadfs.FinishSimulationVolumes
-func gomadVolumeFinish(uint64) ([]byte, bool)
-
-func gomadInterceptRuntimeVolumeBegin(run uint64, config []byte) (error, bool) {
-	gomadInitializeVolumeFilesystem()
-	encoded, ok := gomadVolumeBegin(run, config)
-	if !ok {
-		return decodeRuntimeVolumeError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeVolumeRegister(domain uint64) (error, bool) {
-	encoded, ok := gomadVolumeRegister(domain)
-	if !ok {
-		return decodeRuntimeVolumeError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeVolumeRevoke(domain uint64, graceful, persistedOnly bool) (error, bool) {
-	encoded, ok := gomadVolumeRevoke(domain, graceful, persistedOnly)
-	if !ok {
-		return decodeRuntimeVolumeError(encoded), true
-	}
-	return nil, true
-}
-
-func gomadInterceptRuntimeVolumeEnumerate(domain uint64, volume VolumeID, limits VolumeCrashEnumerationLimits, frontier *VolumeCrashFrontier) (VolumeCrashEnumeration, error, bool) {
-	encodedFrontier, err := wire.EncodeVolumeFrontier(frontier)
-	if err != nil {
-		return VolumeCrashEnumeration{}, err, true
-	}
-	encoded, ok := gomadVolumeEnumerate(domain, string(volume), limits.States, limits.Operations, limits.Depth, limits.Bytes, limits.WallNanos, encodedFrontier)
-	if !ok {
-		return VolumeCrashEnumeration{}, decodeRuntimeVolumeError(encoded), true
-	}
-	page, err := wire.DecodeVolumeEnumeration(encoded)
-	return page, err, true
-}
-
-func gomadInterceptRuntimeVolumeFinish(run uint64) (VolumeRecord, error, bool) {
-	encoded, ok := gomadVolumeFinish(run)
-	if !ok {
-		return VolumeRecord{}, decodeRuntimeVolumeError(encoded), true
-	}
-	record, runtimeErr, err := wire.DecodeVolumeFinish(encoded)
-	if err != nil {
-		return VolumeRecord{}, err, true
-	}
-	if runtimeErr != nil {
-		return record, runtimeVolumeErrorValue(*runtimeErr), true
-	}
-	return record, nil, true
 }
 
 type runtimeVolumeError = history.RuntimeVolumeError

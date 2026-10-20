@@ -5,7 +5,7 @@ by its installation manifest. A WASM installation enables the commands below.
 Campaign parsing, logical execution order, artifact layout, inspection, recovery,
 resume, replay comparison, compatible minimization, reports and exit statuses
 remain owned by Gomad.
-Native installations retain their existing commands and defaults.
+The native backend and its installation commands were removed by fn-223.
 
 The typed scenario workflow is owned by fn-181. Support advertisement describes
 available operations; qualification requires retained evidence for the installed
@@ -301,7 +301,7 @@ lifecycle, network/storage evidence and per-incarnation choices. It reports
 
 These campaigns require seed strategy without `--choices`, `--diagnostics`,
 coverage or guidance. They do not enable cluster-global forced-choice search,
-the native `simulation-exploration` strategy or cluster minimization. Resource,
+cluster minimization. Resource,
 replay-divergence and helper failures retain their existing classifications.
 
 ## Recover and resume an interrupted scenario campaign
@@ -372,8 +372,7 @@ For a WASM `go-test` workload that deliberately triggers assertions, pass
 is restored by replay and resume, and reports observed assertions after each
 committed execution without failing otherwise successful execution. Reports are
 also kept in campaign inspection, even when successful artifacts are not retained.
-Other target kinds and native
-providers refuse it before preparation. Cluster callers bind per-incarnation
+Other target kinds refuse it before preparation. Cluster callers bind per-incarnation
 report-only policies in the sealed `OraclePlan` and declare a Go test boot kind.
 
 ## Minimize a compatible retained failure
@@ -399,7 +398,7 @@ accepted candidate must preserve the failure signature and outcome, retain its
 complete internal/model/choice/evidence trace and match a fresh exact full-tape replay. It does
 not shrink a guest heap, trace, storage image, network plan or typed cluster
 lifecycle. Successes, watchdog/infrastructure observations, stock observed replay,
-missing/incomplete choice evidence and simulation/connected-World/native-I/O
+missing/incomplete choice evidence and simulation/connected-World
 profiles are rejected. Typed multi-instance crash/stop prefixes are not complete
 standalone tapes and are not admitted by this command.
 
@@ -408,9 +407,8 @@ evidence, with simulation replay explicitly absent for this standalone mode.
 State uses the shared per-parent locked store below
 `ARTIFACTS/minimized/.minimize`; resume requires the same parent, artifact root
 and bounds. The attempt default remains 64, and omitted `--max-bytes` retains the
-shared default. Syntax and explicit native-only `--toolchain-root` flags are
-rejected before installation resolution. No native supervisor or toolchain is
-selected. Retained execution uses the artifact's module and captured inputs,
+shared default. Syntax errors are rejected before installation resolution.
+Retained execution uses the artifact's module and captured inputs,
 without rebuilding or reopening original source/compiler/runtime inputs.
 
 A completed minimization command returns 0 and reports `changed`, attempts,
@@ -498,7 +496,7 @@ a repeatedly reproduced application failure returns 1, even when deterministic.
 An invalid spec returns 2; preparation/Runner/report failures return 3.
 After retaining the raw result and emitting its path/receipt, final candidates return 3
 for `CostFailure`, `BudgetFailure`, a missing `Budget`, or `!Budget.WithinBudget`.
-This cost/infrastructure gate does not rewrite the native support classification
+This cost/infrastructure gate does not rewrite the support classification
 or label a resource failure as an application bug. Explicit provisional
 diagnostic runs retain their support-only exit status and expose cost failures
 in the raw result; they are not cost acceptance passes.
@@ -595,18 +593,20 @@ alternatives; incompatible/missing/extra decisions fail as divergence.
 Cooperative installation accepts validated network/storage configurations;
 stock installation refuses them. Typed scenarios use the checked input route
 above. The operator rejects cluster-global forced-choice/simulation exploration,
-semantic coverage/guidance, native clock-tick flags and
-native read-only mount flags. Captured WASM inputs belong to the installation
-configuration. `exec`, native adapters/overlays/modfile substitutions and
+semantic coverage/guidance and unsupported clock/mount flags.
+Captured WASM inputs belong to the installation
+configuration. `exec`, adapters/overlays/modfile substitutions and
 non-closure capability modes are rejected by source preparation. `plan`, shard
- execution, analysis and native doctor are not
-exposed by the WASM launcher. No fallback to native execution exists.
+execution, analysis and doctor are not exposed by the WASM launcher.
 
 WASM does not establish native race detection, weak-memory coverage, asynchronous
 preemption, optional checkpoint safety or strict World clock qualification.
 Fuel/capacity/non-progress and helper infrastructure failures remain distinct
-from replayable application failures. Native qualification remains with its
-existing owners.
+from replayable application failures. Final changed-candidate runtime,
+mandatory workload and retained-replay qualification, including the complete
+behavioral reach of `make -C tools/gomad test-wasm`, remain pending under
+fn-232 R12/task .13's frozen Rust qualification cycle. Deletion source checks
+supply no final qualification pass.
 
 Storage qualification additionally names its lock policy. Raw files, including
 lock-named files, remain durable by default. The explicit
@@ -622,7 +622,7 @@ still requires its corrected guest and retained replay qualification gates.
 
 Live WASM `Cluster.EnumerateCrashStates` is unsupported and returns the typed
 `UnsupportedWASMCapabilityError` for `live-volume-crash-enumeration`, after the
-existing stale-handle/state checks. It does not call the native runtime path.
+existing stale-handle/state checks.
 This does not reject every crash enumeration: `Request.StorageCrashLimits` and
 the captured completed-result `StorageCrashEnumeration` remain supported
 pure projections of retained post-crash volume state, within their tested scope.
@@ -681,7 +681,7 @@ network/storage/broker qualification is still independent and pending:
 These modules have no separate DWARF custom sections. Removing names would not
 remove linked provider code or guest data and is not a supported optimization
 here. Existing opt-in `test_dep`, `disable_grpc_modules` and `sqlite3_dotlk`
-selections are retained; native default builds are unchanged.
+selections are retained.
 
 The guest-only `gomad_wasm_slim` tag (fn-182) is the supported provider trim.
 It leaves out the Google Cloud Storage and S3 archivers, ringpop membership and

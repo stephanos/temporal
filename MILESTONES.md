@@ -1,4 +1,4 @@
-# Gomad: Native and WASM Milestones
+# Gomad: WASM Milestones
 
 ## Purpose
 
@@ -15,22 +15,21 @@ lists the gates a shared-owner change must pass.
 ## Work tracking
 
 Flow specs and tasks own scope, acceptance criteria (R-IDs), blockers, and evidence.
-Remaining native linux/amd64 qualification and Linux CI work stay deferred under
-[fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md). The owner-approved
-Darwin deferral transfers remaining native darwin/arm64 qualification to
-[fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md), as mapped in the
-historical native transfer records in Git history.
-Missing transferred native evidence does not block source-spec completion. Implementation,
-ordinary host-source coverage, lint, preservation, both-source-set static checks, generated
-validation, source review and other independent acceptance remain required. Native full-host
-execution stays with the native owner; portable coverage does not substitute for that gate.
-Both platforms remain unverified for the current candidate until their owners retain native proof.
-No PR, push or CI action is authorized by the deferral or its revival.
-The [2026-10-14 native hibernation decision](#native-backend-hibernation-owner-decision-2026-10-14)
-extends this acceptance deferral to the new shared-owner native execution gates.
+Native linux/amd64 qualification and Linux CI work were deferred under
+[fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md); native
+darwin/arm64 qualification was deferred under
+[fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md). Historical transfers
+remain in Flow and Git history. The
+[2026-10-14 native hibernation decision](#native-backend-hibernation-owner-decision-2026-10-14)
+extended that deferral to shared-owner native execution gates.
 The [2026-10-19 retirement decision](#native-backend-retirement-and-the-functional-test-goal-owner-decision-2026-10-19)
-retires the native backend. The deferred native specs (fn-105, fn-109, fn-110, fn-112, fn-128, fn-149, fn-155) were closed as won't-do on 2026-10-19.
-Both backends are developed together here, and `tools/gomad` remains a shared owner.
+retired the native backend. The deferred native specs (fn-105, fn-109, fn-110, fn-112, fn-128, fn-149, fn-155) were closed as won't-do on 2026-10-19.
+The native backend was subsequently removed by fn-223. The historical decisions below
+record its earlier ownership; they do not prescribe current native execution.
+Final changed-candidate runtime, mandatory workload and retained-replay qualification,
+including the complete behavioral reach of `make -C tools/gomad test-wasm`, remain
+pending under fn-232 R12/task .13's frozen Rust qualification cycle. Native deletion
+source checks supply no final qualification pass. `tools/gomad` remains a shared owner.
 List only unfinished tasks of each open spec below; completed spec/task records remain in
 Flow and Git history. Delete closed-spec worktrees, branches and evidence under the cleanup
 policy in AGENTS.md. Remove empty spec sections. Keep descriptions to one line and
@@ -46,7 +45,7 @@ Record a deferred task's revival trigger in its owning Flow task before implemen
 
 ### Native backend hibernation (owner decision, 2026-10-14)
 
-The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance is deferred while the WASM section is completed. This explicit new waiver supersedes the earlier exception that newly introduced fn-153/fn-154/fn-179 native gates must remain blockers with their source tasks; inherited native gates remain deferred too. It waives those gates as conditions of WASM/source completion, without recording an execution pass or completing native qualification.
+The owner asked, "why is there a native gate anyway; we can declare the native backend as deferred/hibernating for now". Native backend execution acceptance was deferred while the WASM section was completed. This waiver superseded the earlier exception for newly introduced fn-153/fn-154/fn-179 native gates and inherited native gates. It waived those gates as conditions of WASM/source completion without recording an execution pass or completing native qualification. The ledger below is historical; retirement and removal superseded its revival conditions.
 
 | Deferred execution scope | Linux owner | Darwin owner |
 | --- | --- | --- |
@@ -54,9 +53,9 @@ The owner asked, "why is there a native gate anyway; we can declare the native b
 | fn-153 native World replay and affected runtime consumers; fn-154 R1–R12 native adapter/descriptor/connection, expiry/dial, model conformance, process/fault, framed-stream and composed generic-I/O replay controls; fn-179 R1–R3 native execution/replay consumers; native execution invalidated by fn-166 moves/rename | fn-128.4 | fn-149.2 |
 | Current-candidate reconciliation of those obligations and existing native qualification ledgers | fn-128.7 | fn-149.4 |
 
-The original task selectors, requirements and historical receipts remain the deferred execution ledger, including both-backend semantics and fn-154's divided payload replay guarantees. Native owners stay incomplete and deferred until an explicit qualification request, the supported native host/toolchain/profile and a frozen candidate are available. Record failures and unavailable execution as such; stock-Go coverage, cross-builds and historical results supply no native pass. Existing unsupported-platform/configuration refusals, source correctness, native source/tests/fixtures and features remain in place.
+The original task selectors, requirements and historical receipts recorded the deferred execution ledger, including both-backend semantics and fn-154's divided payload replay guarantees. Native owners originally required an explicit qualification request, supported host/toolchain/profile and frozen candidate. Stock-Go coverage, cross-builds and historical results supplied no native pass. Those owners later closed as won't-do, and fn-223 removed the native source, tests, fixtures and commands.
 
-Source tasks retain implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. Classify a gate by the backend/runtime it executes, rather than its filename or package: the SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`. Complete source tasks only after every retained requirement passes and the deferred native obligations are accounted for under the owners above. This decision changes acceptance ownership only and grants no PR, push or CI authority.
+Source tasks retained implementation, portable Go coverage (including portable native-package tests), ordinary host-source checks, both-source-set static checks, lint, generated/pin validation, preservation, source review, documentation and all actual WASM execution/replay/resource gates. SQLite selected-state and catalogue storage-crash controls execute WASM and remain required, including projection through `native_crash.go`; their filename does not make them native-backend gates. The historical decision changed acceptance ownership without granting PR, push or CI authority.
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
@@ -67,10 +66,10 @@ Owner execution scope: complete the remaining WASM work in dependency order:
 
 ### Native backend isolation (owner decision, 2026-10-16)
 
-The owner answered, "yes to isolate native backend". The native backend leaves the default Gomad host gates (build, vet, lint, `go test ./...`, archcheck default inventory, the WASM and host-tools CI jobs) and stays in the tree, buildable and testable through one explicit selection owned by fn-184. This is freezing under the feature-preservation constraint, not removal: every native source, test, fixture, generator and ledger stays, fn-128 and fn-149 keep their deferred scope and revival triggers, and no native execution pass is recorded. A default build refuses a native installation instead of falling back to WASM. This decision grants no PR, push or CI authority.
+The owner answered, "yes to isolate native backend". The native backend left the default Gomad host gates (build, vet, lint, `go test ./...`, archcheck default inventory, the WASM and host-tools CI jobs), remaining buildable and testable through one explicit fn-184 selection. That freeze preserved native sources and deferred owners without recording an execution pass. A default build refused native installations instead of falling back to WASM. The later retirement and fn-223 removal superseded the freeze; this decision granted no PR, push or CI authority.
 
 Preserve prior evidence under its original identities, without claiming it qualifies
-changed runtime inputs. Native deferrals, qualification resource limits, and PR,
+changed runtime inputs. Qualification resource limits and PR,
 push and CI restrictions remain in force.
 
 Owner performance decision (2026-10-13): WASM execution-speed work stays in the Rust
@@ -80,7 +79,7 @@ supersedes the duplication clause: new host-side logic lands in Rust, not in bot
 
 ### WASM performance measurement host (owner decision, 2026-10-17)
 
-The owner answered, "since this is WASM, we don't need a particular env. that was for the native backend." WASM performance measurements may run on any host; no host platform qualifies or disqualifies a WASM result. This supersedes the 2026-10-14 Linux/arm64 requirement. Baseline and candidate are still measured on the same host in the same window with the specified selections and inputs, and every threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, identity and resource-budget requirement still applies; retain host evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. Native platform qualification stays deferred under fn-128 and fn-149.
+The owner answered, "since this is WASM, we don't need a particular env. that was for the native backend." WASM performance measurements may run on any host; no host platform qualifies or disqualifies a WASM result. This supersedes the 2026-10-14 Linux/arm64 requirement. Baseline and candidate are still measured on the same host in the same window with the specified selections and inputs, and every threshold, gain-versus-spread rule, seed, repetition, median/range, correctness, choice/replay, identity and resource-budget requirement still applies; retain host evidence, source/helper/module/engine identities, raw measurements and exact rerun commands. Native platform qualification was deferred under fn-128 and fn-149 before their closure and backend removal.
 
 ### Performance checks deferred to fn-185 (owner decision, 2026-10-17)
 
@@ -92,7 +91,7 @@ The owner decided, "we can't have validation take longer than 1h". Full validati
 
 ### Native backend retirement and the functional-test goal (owner decision, 2026-10-19)
 
-The owner decided, "we want to retire the native backend (not delete yet)", "our goal is definitely to run arbitrary functional tests with gomad (wasm)", and "yes file flow spec for promotion". Native is retiring: it stays in the tree under its fn-184 selection until [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md) removes it, and no native qualification is pursued. The shared model and the WASM backend stop depending on native sources by promoting the generated volume and network projections to owned source and relocating the protocol generator into the parent module ([fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)); relocating the overlay packages as a retained reference was rejected because nobody executes them once native is retired. The product goal is deterministic execution of arbitrary Temporal functional tests on the cooperative WASM profile. This decision grants no PR, push or CI authority.
+The owner decided, "we want to retire the native backend (not delete yet)", "our goal is definitely to run arbitrary functional tests with gomad (wasm)", and "yes file flow spec for promotion". The native backend initially remained under its fn-184 selection without further qualification, then was removed by [fn-223](.flow/specs/fn-223-gomad-delete-the-native-backend.md). The shared model and the WASM backend stopped depending on native sources by promoting the generated volume and network projections to owned source and relocating the protocol generator into the parent module ([fn-219](.flow/specs/fn-219-gomad-promote-the-model-projections-and.md)); relocating the overlay packages as a retained reference was rejected because nobody would execute them after retirement. The product goal is deterministic execution of arbitrary Temporal functional tests on the cooperative WASM profile. This decision grants no PR, push or CI authority.
 
 Delivery order toward that goal, after fn-189 and fn-187. The owner agreed on 2026-10-19 to move [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) below the goal-path work so it profiles sweep workloads rather than fixtures; this supersedes the 2026-10-16 placement of fn-185 directly after fn-187. fn-185.1's attribution tooling is not gated; fn-185.2 is re-scoped to wait for fn-221.2 and include sweep workloads; the ordering is recorded in the task because Flow task dependencies cannot cross specs.
 
@@ -129,7 +128,7 @@ Owner decision (2026-10-10). Optimize milestone execution for implemented and ve
 capabilities per hour. Accept temporary breaking changes and integration risk to finish larger
 coherent batches. This strategy supersedes older per-task green-start, source-admission packet,
 review, commit and evidence-duplication requirements in milestone specs/tasks. Functional
-acceptance, explicit qualification prerequisites, the immediate delivery order, native deferrals and the
+acceptance, explicit qualification prerequisites, the immediate delivery order and the
 safety constraints below remain binding. Reconcile conflicting Flow orchestration metadata
 once when selecting a batch; preserve historical results and their meaning.
 
@@ -143,8 +142,8 @@ once when selecting a batch; preserve historical results and their meaning.
    available agents working on code, tests, consumer migrations or necessary research. Use
    isolated worktrees for concurrent writers. A dependent surface may develop against a
    declared provisional interface while its predecessor is implemented; integrate in dependency
-   order and prove the required contracts before completion. Apply the native hibernation
-   amendment to native-first execution gates; a missing external checkout still holds. Put
+   order and prove the required contracts before completion. The native hibernation
+   amendment is historical after fn-223 removal; a missing external checkout still holds. Put
    tightly coupled edits in one worker's batch
    instead of making artificial parallel tasks that collide in the same file.
 3. **Allow intermediate breakage.** Compile failures, red tests/lint and temporary API/format
@@ -157,10 +156,8 @@ once when selecting a batch; preserve historical results and their meaning.
 4. **Validate the integrated batch once.** Run focused regressions during development. On the
    frozen integrated candidate, run affected lint and package/boundary checks, plus
    `make -C tools/gomad validate` when generator, protocol or toolchain inputs changed. The
-   native full-host gate, `GOFLAGS='-tags=test_dep -count=1' make -C tools/gomad test-host`,
-   belongs to the deferred native owner under the hibernation amendment. Retain portable constituents
-   and actual WASM gates; identify portable checks as portable and account for native runtime,
-   overlay, integration, race and platform-specific acceptance under its deferred owner. After a
+   native full-host gate was removed with its backend. Retain portable constituents
+   and actual WASM gates; identify portable checks as portable. After a
    small review fix, rerun affected checks; repeat broad gates only for changed shared inputs
    or a concrete uncovered risk. Documentation-only edits need document/diff checks.
 5. **Review by batch; commit after every task.** Obtain one independent review of the
@@ -197,15 +194,15 @@ once when selecting a batch; preserve historical results and their meaning.
   failures and the next batch; commit counts and artifact volume are not progress metrics.
 
 Apply this division of work within the immediate delivery order, Flow rules, verification
-requirements, and native deferrals above. It grants no additional native qualification,
+requirements above. It grants no additional qualification,
 CI, PR, or push authority.
 
 ## Constraints
 
 - **No policy widening.** Gomad never grants `syscall`, `os/exec`, `os/signal`, or
-  `golang.org/x/sys` generically. Every exception is an exact compatibility pack bound to a
-  module version, go.sum hash, per-file SHA-256, owner, and workload, reviewed under the
-  existing `discover`, `review`, `generate --approve-review`, `check`, `qualify` flow.
+  `golang.org/x/sys` generically. The removed native backend admitted exact compatibility
+  packs bound to a module version, go.sum hash, per-file SHA-256, owner and workload.
+  Those historical approvals do not admit WASM imports or host access.
 - **No source translation and no test rewriting.** Determinism comes from the patched
   toolchain and the reviewed boundary. A Temporal test that needs a Gomad-specific overlay of
   its own source, as gomad1 required, is a blocker to record, never a fix to ship.
@@ -215,27 +212,27 @@ CI, PR, or push authority.
   [the compatibility roadmap](.plans/GOMAD_NEXT.md#compat-5-targeted-deterministic-adapters-and-io-models).
 - **Evidence over narration.** Work is done when its command produces the stated report on a
   clean checkout. A passing local run that depends on untracked state does not count.
-- **Platform.** The boundary manifest qualifies `darwin/arm64` and `linux/amd64`. Each platform
-  is its own qualification and artifacts replay only where they were produced. The macOS sandbox
-  test and the DTrace clock audit remain `darwin/arm64` only. Each platform's compatibility packs
-  are its own; `compatibility-pack-qualification` qualifies the requests that name the host.
+- **Platform.** The removed native backend's boundary manifest named `darwin/arm64` and
+  `linux/amd64`; its sandbox, DTrace and compatibility-pack gates are historical.
+  WASM qualification binds the recorded engine, host, profile and workload under
+  [the qualification contract](tools/gomad/internal/backends/wasm/QUALIFICATION.md).
 - **Server source changes are allowed but bounded.** A change under `common`, `service`,
   `temporal`, or `tests/testcore` is acceptable when it isolates an optional provider behind a
   build tag or an injection seam and the default build is unchanged. A change that alters
   runtime behavior for production builds requires dedicated production review and
   regression evidence.
 - **Validation scope.** The full `./tests` set is not run as a gate; a change is validated on the
-  smoke selection plus the suites it affects, with `make gomad-tests-qualification` as the
-  on-demand local run.
+  smoke selection plus the suites it affects. The native `gomad-tests-qualification`
+  command was removed with its backend; retained WASM gates follow the qualification contract.
 - **Qualification identity.** Reports bind exact source and toolchain identities;
   pre-integration results do not qualify a combined candidate, and Darwin results do
   not substitute for Linux gates. An unavailable host or unexplained regression leaves
-  acceptance incomplete in the task that owns the requirement. Transferred Linux and Darwin
-  requirements remain incomplete under fn-128 and fn-149 and do not hold source-spec acceptance open.
+  acceptance incomplete in the task that owns the requirement. Historical native Linux and Darwin
+  requirements closed as won't-do under fn-128 and fn-149 without recording a pass.
 - **Patch-policy boundary.** The collector-file prohibition remains in force.
   Overwriting collector-owned GC stamps requires an explicit patch-policy owner decision.
 - **Preservation.** Keep CLI grammar/defaults, recorded formats, fixed-identity
-  canonical bytes, error precedence, existing comments, fresh processes, native timer
+  canonical bytes, error precedence, existing comments, fresh processes, guest timer
   ownership, and separate seed/round/corpus transactions unless the owning spec
   explicitly authorizes a change.
 - **Qualification claims.** Same-seed repeatability does not establish choice-tape

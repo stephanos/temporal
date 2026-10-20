@@ -6,7 +6,6 @@ import (
 	"fmt"
 	"io"
 	"os"
-	"path/filepath"
 	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
@@ -14,49 +13,17 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
-// The private child modes the gomad executable serves for its own Runner. The
-// Runner starts the supervisor and coordinator through the commands an
-// installation spells, and derives the target bootstrap from the supervisor's
-// executable.
-const (
-	coordinatorMode     = "__coordinator"
-	supervisorMode      = "__supervisor"
-	targetBootstrapMode = "__target_bootstrap"
-)
-
-// toolchainEnvironment names the environment variable that selects the
-// toolchain root when --toolchain-root is absent.
-const toolchainEnvironment = "GOMAD_TOOLCHAIN_DIR"
-
-// application is the construction one gomad invocation shares. Run builds it
-// once from the host. It alone finds the running executable, resolves the
-// pinned toolchain installation, digests the Runner build and spells the
-// private child-mode commands; commands receive what it resolves and never
-// consult the host for those themselves. A command resolves its installation
-// only after it has validated its own input, so invalid input keeps precedence
-// over an unusable installation.
+// application holds the backend and host dependencies for one invocation.
 type application struct {
-	capabilities     *backends.Capabilities
-	command          func([]string, io.Writer, io.Writer) (int, bool)
-	selectedManifest string
-	nativeManifest   string
-	nativeProvider   func(installation) backends.Provider
-	backend          func() (BackendInstallation, error)
-	replayHook       func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
-	executable       func() (string, error)
-	environment      func(string) string
-	cache            *installationCache
-	// privateInput and privateOutput carry the coordinator's request and
-	// response protocol; the supervisor and target bootstrap modes ignore
-	// them and read their fixed descriptors. They are the process's standard
-	// streams, not a command's writers.
-	privateInput  io.Reader
-	privateOutput io.Writer
-	dispatch      func(mode string, input io.Reader, output io.Writer) error
+	capabilities *backends.Capabilities
+	command      func([]string, io.Writer, io.Writer) (int, bool)
+	backend      func() (BackendInstallation, error)
+	replayHook   func(context.Context, runner.ReplaySpec) (runner.ReplayResult, bool, error)
+	executable   func() (string, error)
+	environment  func(string) string
 }
 
-// installation is what one operation runs with: the resolved toolchain root,
-// and the executable and Runner build that serve its private child modes.
+// installation holds the provider and Runner identity used by one operation.
 type installation struct {
 	replayCommand string
 	backend       backends.Provider
@@ -66,37 +33,10 @@ type installation struct {
 	runnerBuild   string
 }
 
-type installationCache struct {
-	explicitRoot string
-	installed    installation
-	set          bool
-	executable   string
-	runnerBuild  string
-	identitySet  bool
-}
-
 func hostApplication() application {
-	app := application{
+	return application{
 		executable: os.Executable, environment: os.Getenv,
-		privateInput: os.Stdin, privateOutput: os.Stdout, dispatch: dispatchPrivateMode,
-		cache: new(installationCache),
 	}
-	configureNative(&app)
-	return app
-}
-
-func isPrivateMode(mode string) bool {
-	return mode == coordinatorMode || mode == targetBootstrapMode || mode == supervisorMode
-}
-
-func (app application) runPrivateMode(mode string, stderr io.Writer) int {
-	if err := app.dispatch(mode, app.privateInput, app.privateOutput); err != nil {
-		if _, printErr := fmt.Fprintln(stderr, err); printErr != nil {
-			return 3
-		}
-		return 3
-	}
-	return 0
 }
 
 // executablePath reports the running gomad executable as the host names it.
@@ -108,20 +48,7 @@ func (app application) executablePath() (string, error) {
 	return executable, nil
 }
 
-func absoluteExecutable(executable string) (string, error) {
-	absolute, err := filepath.Abs(executable)
-	if err != nil {
-		return "", fmt.Errorf("resolve gomad executable path: %w", err)
-	}
-	return absolute, nil
-}
-
-// resolveInstallation locates the toolchain installation serving executable:
-// an explicit --toolchain-root first, then the environment, then the selected
-// --installation manifest or the installation beside the executable.
-
-// install resolves everything an operation needs to start the Runner's child
-// processes from this executable.
+// install resolves the backend after command input validation.
 func (app application) install(explicitToolchainRoot string) (installation, error) {
 	if app.backend != nil {
 		if explicitToolchainRoot != "" {
@@ -148,56 +75,7 @@ func (app application) install(explicitToolchainRoot string) (installation, erro
 		}
 		return installation{backend: resolved.Provider, backendName: resolved.Name, runnerBuild: string(digest), replayCommand: strings.Join(quoted, " ")}, nil
 	}
-	if !nativeBuiltIn {
-		return installation{}, fmt.Errorf("%s", nativeNotBuilt)
-	}
-	if app.cache != nil && app.cache.set && app.cache.explicitRoot == explicitToolchainRoot {
-		return app.cache.installed, nil
-	}
-	executable := ""
-	if app.cache != nil && app.cache.identitySet {
-		executable = app.cache.executable
-	} else {
-		var err error
-		executable, err = app.executablePath()
-		if err != nil {
-			return installation{}, err
-		}
-		executable, err = absoluteExecutable(executable)
-		if err != nil {
-			return installation{}, err
-		}
-	}
-	resolved, err := app.resolveInstallation(executable, explicitToolchainRoot)
-	if err != nil {
-		return installation{}, fmt.Errorf("resolve Gomad installation: %w", err)
-	}
-	build := ""
-	if app.cache != nil && app.cache.identitySet {
-		build = app.cache.runnerBuild
-	} else {
-		digest, err := digestRunner(executable)
-		if err != nil {
-			return installation{}, fmt.Errorf("hash gomad executable: %w", err)
-		}
-		build = string(digest)
-	}
-	installed := installation{toolchainRoot: resolved.ToolchainRoot, executable: executable, runnerBuild: build}
-	if app.nativeProvider != nil {
-		installed.backend = app.nativeProvider(installed)
-	}
-	if app.cache != nil {
-		app.cache.explicitRoot, app.cache.installed, app.cache.set = explicitToolchainRoot, installed, true
-		app.cache.executable, app.cache.runnerBuild, app.cache.identitySet = executable, build, true
-	}
-	return installed, nil
-}
-
-// installedToolchain resolves only the toolchain root, for operations that
-// start no Runner child process.
-func (app application) installedToolchain(explicitToolchainRoot string) (string, error) {
-	resolved, err := app.install(explicitToolchainRoot)
-	return resolved.toolchainRoot, err
+	return installation{}, fmt.Errorf("backend installation is required")
 }
 
 // digestRunner is the Runner build identity of the gomad executable at path.
@@ -224,9 +102,3 @@ func digestRunner(path string) (_ record.SHA256, retErr error) {
 	}
 	return record.SHA256(fmt.Sprintf("sha256:%x", hasher.Sum(nil))), nil
 }
-
-type nativeInstallation struct {
-	ToolchainRoot, Source, RepairInstruction string
-}
-
-const nativeNotBuilt = "native backend not built in; rebuild gomad with -tags gomad_native"

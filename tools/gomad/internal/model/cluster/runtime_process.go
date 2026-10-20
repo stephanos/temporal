@@ -4,7 +4,6 @@ import (
 	"errors"
 	"fmt"
 	"sync"
-	_ "unsafe"
 
 	"go.temporal.io/server/tools/gomad/internal/model/cluster/internal/wire"
 )
@@ -44,62 +43,6 @@ func processBackendWaitStop() error {
 
 func processBackendServeModel(func(string, uint64, []byte) ([]byte, string)) error {
 	return ErrBackendUnavailable
-}
-
-//go:linkname gomadProcessAvailable internal/gomadsim.ProcessAvailable
-func gomadProcessAvailable() bool
-
-//go:linkname gomadProcessRole internal/gomadsim.ProcessRole
-func gomadProcessRole() uint8
-
-//go:linkname gomadProcessBootstrap internal/gomadsim.ProcessBootstrap
-func gomadProcessBootstrap(uint64) ([]byte, bool)
-
-//go:linkname gomadProcessExchange internal/gomadsim.ProcessExchange
-func gomadProcessExchange([]byte, uint64) ([]byte, bool)
-
-//go:linkname gomadProcessWaitStop internal/gomadsim.ProcessWaitStop
-func gomadProcessWaitStop() bool
-
-//go:linkname gomadProcessServeModel internal/gomadsim.ProcessServeModel
-func gomadProcessServeModel(func(string, uint64, []byte) ([]byte, string)) bool
-
-func gomadInterceptProcessBackendAvailable() (bool, bool) {
-	return gomadProcessAvailable(), true
-}
-
-func gomadInterceptProcessBackendRole() (processRole, bool) {
-	return processRole(gomadProcessRole()), true
-}
-
-func gomadInterceptProcessBackendBootstrap(limit uint64) ([]byte, error, bool) {
-	encoded, ok := gomadProcessBootstrap(limit)
-	if !ok {
-		return nil, errors.New("read process simulation bootstrap"), true
-	}
-	return encoded, nil, true
-}
-
-func gomadInterceptProcessBackendExchange(request []byte, limit uint64) ([]byte, error, bool) {
-	encoded, ok := gomadProcessExchange(request, limit)
-	if !ok {
-		return nil, errors.New("exchange process simulation frame"), true
-	}
-	return encoded, nil, true
-}
-
-func gomadInterceptProcessBackendWaitStop() (error, bool) {
-	if !gomadProcessWaitStop() {
-		return errors.New("wait for process simulation stop"), true
-	}
-	return nil, true
-}
-
-func gomadInterceptProcessBackendServeModel(handler func(string, uint64, []byte) ([]byte, string)) (error, bool) {
-	if !gomadProcessServeModel(handler) {
-		return errors.New("serve process simulation model"), true
-	}
-	return nil, true
 }
 
 func exchangeProcessFrame(kind wire.ProcessFrameKind, handle NodeHandle, payload []byte) (wire.ProcessFrame, error) {

@@ -282,13 +282,14 @@ models, the WASM toolchain overlay and the Rust helper are rendered from the
 schemas under `internal/model/schema`, `internal/model/choice/schema` and
 `internal/model/world/schema` by `internal/model/generation/protocol`, run as
 `internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
-with stock Go and no build tag. The native backend under
-`internal/backends/native` is a frozen consumer of the same schemas. Native
-execution is retired, and fn-128/fn-149 closed as won't-do on 2026-10-19.
-The tree remains until fn-223; it writes its own generated outputs and
-validates under `gomad_native` through
-`make generate-native validate-native`. No default-set source, Make target or
-CI WASM gate reads the native tree; archcheck enforces this.
+with stock Go and no build tag. The native backend and its generated consumers
+were removed by fn-223; fn-128/fn-149 closed as won't-do on 2026-10-19.
+The glue removal changes shared-cluster source identity and its transitive
+WASM bindings; historical qualification cannot be relabeled for that candidate.
+Final runtime, mandatory workload and retained-replay qualification, including
+the complete behavioral reach of `make -C tools/gomad test-wasm`, remain
+pending under fn-232 R12/task .13's frozen Rust qualification cycle. Source
+checks for the deletion supply no final qualification pass.
 
 The helper transcript corpus is the shared Rust/Go wire and evidence contract.
 Regeneration compares repeated executions, and a second pass must leave the

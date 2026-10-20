@@ -298,7 +298,7 @@ func TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs(t *testi
 		t.Fatal(err)
 	}
 	pinnedHelper := helper
-	fixture, err := os.ReadFile("../../native/conformance/testdata/io_failure/io_failure_test.go")
+	fixture, err := os.ReadFile("../testdata/io_failure_module/io_failure/io_failure_test.go")
 	if err != nil {
 		t.Fatal(err)
 	}

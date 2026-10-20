@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"encoding/json"
 	"os"
 	"path/filepath"
 	"strings"
@@ -76,14 +77,43 @@ func TestUnifiedLauncherRejectsNativeFlagsForWASMInstallation(t *testing.T) {
 }
 
 func TestUnifiedLauncherRejectsUnknownManifestBackend(t *testing.T) {
-	manifest := filepath.Join(t.TempDir(), "installation.json")
-	if err := os.WriteFile(manifest, []byte(`{"backend":"nope"}`), 0600); err != nil {
+	t.Parallel()
+	for _, test := range []struct{ name, manifest, backend string }{
+		{"unknown", `{"backend":"nope"}`, "nope"},
+		{"native", `{"schema":"gomad.installation/v1","backend":"native"}`, "native"},
+		{"native schema", `{"schema":"gomad.installation/v1"}`, "native"},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			manifest := filepath.Join(t.TempDir(), "installation.json")
+			if err := os.WriteFile(manifest, []byte(test.manifest), 0600); err != nil {
+				t.Fatal(err)
+			}
+			for _, command := range []string{"explore", "install", "inspect", "doctor"} {
+				var stdout, stderr bytes.Buffer
+				status := Run([]string{"--installation", manifest, command}, &stdout, &stderr)
+				want := "unregistered backend \"" + test.backend + "\"\n"
+				if status != 2 || stdout.Len() != 0 || stderr.String() != want {
+					t.Fatalf("%s: status=%d stdout=%q stderr=%q, want %q", command, status, stdout.String(), stderr.String(), want)
+				}
+			}
+		})
+	}
+}
+
+func TestDoctorHasNoNativeBackendRow(t *testing.T) {
+	t.Setenv("GOMAD_WASM_INSTALLATION", "")
+	app := hostApplication()
+	executable := filepath.Join(t.TempDir(), "gomad")
+	app.executable = func() (string, error) { return executable, nil }
+	var stdout, stderr bytes.Buffer
+	status := app.launch([]string{"doctor", "--json", "--artifacts", t.TempDir()}, &stdout, &stderr)
+	var report Report
+	if err := json.Unmarshal(stdout.Bytes(), &report); err != nil {
 		t.Fatal(err)
 	}
-	var stdout, stderr bytes.Buffer
-	status := Run([]string{"--installation", manifest, "explore", "go-run", "."}, &stdout, &stderr)
-	if status != 2 || stdout.Len() != 0 || !strings.Contains(stderr.String(), "nope") || !strings.Contains(stderr.String(), "backend") {
-		t.Fatalf("unknown backend status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
+	if status != 2 || stderr.Len() != 0 || report.Available || len(report.Checks) != 0 || strings.Contains(stdout.String(), "native") || !strings.Contains(report.RepairInstruction, "gomad discover") {
+		t.Fatalf("status=%d stdout=%q stderr=%q", status, stdout.String(), stderr.String())
 	}
 }
 

@@ -1,5 +1,3 @@
-//go:build !gomad_native
-
 package runner
 
 import (

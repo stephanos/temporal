@@ -65,7 +65,7 @@ func integrationProvider(t *testing.T) *Provider {
 
 func TestIntegratedIntentionalFailureObservedReplay(t *testing.T) {
 	provider := integrationProvider(t)
-	fixture, err := filepath.Abs("../../native/conformance/testdata")
+	fixture, err := filepath.Abs("../testdata/io_failure_module")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -628,7 +628,7 @@ func TestInterruptedCachePublicationIsRebuilt(t *testing.T) {
 
 func TestReplayRejectsChangedArtifactIdentityBeforeGuest(t *testing.T) {
 	provider := integrationProvider(t)
-	fixture, err := filepath.Abs("../../native/conformance/testdata")
+	fixture, err := filepath.Abs("../testdata/io_failure_module")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -844,7 +844,7 @@ func TestIntegratedFailureArtifactFreshObservedReplays(t *testing.T) {
 		t.Fatal(err)
 	}
 	counted := &countedProvider{Provider: provider, preparedRoot: filepath.Join(root, "prepared")}
-	fixture, err := filepath.Abs("../../native/conformance/testdata")
+	fixture, err := filepath.Abs("../testdata/io_failure_module")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -919,7 +919,7 @@ func TestIntegratedFailureArtifactFreshObservedReplays(t *testing.T) {
 
 func TestObservedCampaignResumeRetainsBackendAndOrdinals(t *testing.T) {
 	provider := integrationProvider(t)
-	fixture, err := filepath.Abs("../../native/conformance/testdata")
+	fixture, err := filepath.Abs("../testdata/io_failure_module")
 	if err != nil {
 		t.Fatal(err)
 	}

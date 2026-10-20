@@ -1,5 +1,3 @@
-//go:build !gomad_native
-
 package testfixture
 
 import (

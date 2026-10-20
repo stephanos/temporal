@@ -20,7 +20,6 @@ import (
 )
 
 const gomadModule = "tools/gomad"
-const nativeModule = gomadModule + "/internal/backends/native"
 const wasmBackend = gomadModule + "/internal/backends/wasm"
 const mixedbrainModule = "tests/mixedbrain"
 
@@ -29,10 +28,8 @@ func within(path, root string) bool {
 }
 
 type ownership struct {
-	fixtures     []string
-	modules      map[string]bool
-	overlays     map[string]bool
-	hostPackages map[string]bool
+	fixtures []string
+	modules  map[string]bool
 }
 
 type source struct {
@@ -51,10 +48,7 @@ func main() {
 }
 
 func lint(ctx context.Context, base, module, tags string) error {
-	if module == nativeModule && !slices.Contains(strings.Split(tags, ","), "gomad_native") {
-		return errors.New("native lint module requires gomad_native selection")
-	}
-	if module != "" && module != gomadModule && module != nativeModule && module != mixedbrainModule {
+	if module != "" && module != gomadModule && module != mixedbrainModule {
 		return fmt.Errorf("unclassified lint module %q", module)
 	}
 	root, err := os.Getwd()
@@ -95,13 +89,6 @@ func lint(ctx context.Context, base, module, tags string) error {
 		if err != nil {
 			return err
 		}
-	}
-	if slices.Contains(strings.Split(tags, ","), "gomad_native") {
-		if selected[gomadModule] {
-			selected[nativeModule] = true
-		}
-	} else {
-		delete(selected, nativeModule)
 	}
 	scopes, err := lintScopes(ctx, root, tags, selected, changedDirs, sources)
 	if err != nil {
@@ -218,7 +205,7 @@ type lintScope struct {
 
 func lintScopes(ctx context.Context, root, tags string, selected, changedDirs map[string]bool, sources []source) ([]lintScope, error) {
 	var scopes []lintScope
-	for _, owner := range []string{".", gomadModule, nativeModule, mixedbrainModule} {
+	for _, owner := range []string{".", gomadModule, mixedbrainModule} {
 		if !selected[owner] {
 			continue
 		}
@@ -234,51 +221,13 @@ func lintScopes(ctx context.Context, root, tags string, selected, changedDirs ma
 			}
 			continue
 		}
-		moduleScopes, err := moduleScopes(ctx, root, owner, tags, owned)
+		packages, err := coveredPackages(ctx, root, owner, tags, owned)
 		if err != nil {
 			return nil, err
 		}
-		scopes = append(scopes, moduleScopes...)
+		scopes = append(scopes, lintScope{module: owner, packages: packages, tags: tags})
 	}
 	return scopes, nil
-}
-
-func moduleScopes(ctx context.Context, root, owner, tags string, sources []source) ([]lintScope, error) {
-	var ordinary, integration []source
-	for _, entry := range sources {
-		if (owner == nativeModule || owner == gomadModule) && entry.path == nativeModule+"/qualification/integration_test.go" {
-			integration = append(integration, entry)
-		} else {
-			ordinary = append(ordinary, entry)
-		}
-	}
-	var scopes []lintScope
-	scope, err := sourceScope(ctx, root, owner, tags, ordinary)
-	if err != nil {
-		return nil, err
-	}
-	if scope != nil {
-		scopes = append(scopes, *scope)
-	}
-	if len(integration) != 0 {
-		scope, err := sourceScope(ctx, root, owner, tags+",gomad_integration", integration)
-		if err != nil {
-			return nil, err
-		}
-		scopes = append(scopes, *scope)
-	}
-	return scopes, nil
-}
-
-func sourceScope(ctx context.Context, root, owner, tags string, sources []source) (*lintScope, error) {
-	if len(sources) == 0 {
-		return nil, nil
-	}
-	packages, err := coveredPackages(ctx, root, owner, tags, sources)
-	if err != nil {
-		return nil, err
-	}
-	return &lintScope{module: owner, packages: packages, tags: tags}, nil
 }
 
 func commandOutput(ctx context.Context, dir, name string, args ...string) ([]byte, error) {
@@ -304,81 +253,27 @@ func gitPaths(ctx context.Context, root string, args ...string) ([]string, error
 	return slices.Compact(paths), nil
 }
 
-// Gomad source classifications live in archcheck: the default lists in
-// inventory.go and the native-only lists in native_enabled.go (gomad_native).
-// The router owns every checked-out source, so it merges both when the native
-// classification file is present.
-type classificationFile struct{ path, exclusions, modules, hosts string }
-
-var (
-	defaultClassifications = classificationFile{gomadModule + "/internal/archcheck/inventory.go", "sourceExclusions", "expectedModules", ""}
-	nativeClassifications  = classificationFile{gomadModule + "/internal/archcheck/native_enabled.go", "nativeSourceExclusions", "nativeExpectedModules", "nativeHostSourcePackages"}
-)
-
 func loadOwnership(root string) (ownership, error) {
-	policy := ownership{modules: map[string]bool{}, overlays: map[string]bool{}, hostPackages: map[string]bool{}}
-	classifications := []classificationFile{defaultClassifications}
-	if info, err := os.Lstat(filepath.Join(root, nativeClassifications.path)); err == nil {
-		if !info.Mode().IsRegular() {
-			return policy, fmt.Errorf("gomad native source classification is not a regular file: %s", nativeClassifications.path)
-		}
-		classifications = append(classifications, nativeClassifications)
-	} else if !errors.Is(err, os.ErrNotExist) {
+	policy := ownership{modules: map[string]bool{}}
+	file, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, gomadModule, "internal/archcheck/inventory.go"), nil, 0)
+	if err != nil {
+		return policy, fmt.Errorf("read Gomad source classifications: %w", err)
+	}
+	if policy.fixtures, err = classificationPaths(file, "sourceExclusions"); err != nil {
 		return policy, err
 	}
-	for _, classification := range classifications {
-		file, err := parser.ParseFile(token.NewFileSet(), filepath.Join(root, classification.path), nil, 0)
-		if err != nil {
-			return policy, fmt.Errorf("read Gomad source classifications: %w", err)
-		}
-		entries, err := classificationPaths(file, classification.exclusions)
-		if err != nil {
-			return policy, err
-		}
-		policy.fixtures = append(policy.fixtures, entries...)
-		if entries, err = classificationPaths(file, classification.modules); err != nil {
-			return policy, err
-		}
-		for _, entry := range entries {
-			if policy.modules[gomadModule+"/"+entry] {
-				return policy, fmt.Errorf("gomad module %q is classified twice", entry)
-			}
-			policy.modules[gomadModule+"/"+entry] = true
-		}
-		if classification.hosts == "" {
-			continue
-		}
-		if entries, err = classificationPaths(file, classification.hosts); err != nil {
-			return policy, err
-		}
-		if len(entries) == 0 {
-			return policy, fmt.Errorf("gomad source classification %s is empty", classification.hosts)
-		}
-		if err := policy.registerHostPackages(root, entries); err != nil {
-			return policy, err
-		}
-	}
-	if len(policy.fixtures) == 0 || len(policy.modules) == 0 {
-		return policy, errors.New("gomad source classifications need literal sourceExclusions and expectedModules")
-	}
-	data, err := os.ReadFile(filepath.Join(root, gomadModule, "internal/backends/native/toolchain/version/version.json"))
+	entries, err := classificationPaths(file, "expectedModules")
 	if err != nil {
 		return policy, err
 	}
-	var descriptor struct {
-		OverlayAllowlist []string `json:"overlay_allowlist"`
-	}
-	if err := json.Unmarshal(data, &descriptor); err != nil {
-		return policy, err
-	}
-	if len(descriptor.OverlayAllowlist) == 0 {
-		return policy, errors.New("gomad overlay allowlist is empty")
-	}
-	for _, entry := range descriptor.OverlayAllowlist {
-		if !within(entry, "src") || filepath.ToSlash(filepath.Clean(entry)) != entry || policy.overlays[entry] {
-			return policy, fmt.Errorf("invalid Gomad overlay allowlist entry %q", entry)
+	for _, entry := range entries {
+		if policy.modules[gomadModule+"/"+entry] {
+			return policy, fmt.Errorf("gomad module %q is classified twice", entry)
 		}
-		policy.overlays[entry] = true
+		policy.modules[gomadModule+"/"+entry] = true
+	}
+	if len(policy.fixtures) == 0 || len(policy.modules) == 0 {
+		return policy, errors.New("gomad source classifications need literal sourceExclusions and expectedModules")
 	}
 	return policy, nil
 }
@@ -395,20 +290,6 @@ func classificationPaths(file *ast.File, name string) ([]string, error) {
 	return literalPaths(name, values.Values[0])
 }
 
-func (p ownership) registerHostPackages(root string, entries []string) error {
-	for _, entry := range entries {
-		base := filepath.Base(entry)
-		if filepath.ToSlash(filepath.Dir(entry)) != "internal/backends/native/toolchain/runtime/testdata" || strings.HasPrefix(base, ".") || strings.HasPrefix(base, "_") || strings.ContainsAny(base, "*?[]") || p.hostPackages[entry] {
-			return fmt.Errorf("invalid Gomad host source package %q", entry)
-		}
-		if err := regularHostDirectory(root, gomadModule+"/"+entry); err != nil {
-			return err
-		}
-		p.hostPackages[entry] = true
-	}
-	return nil
-}
-
 func literalPaths(name string, expression ast.Expr) ([]string, error) {
 	list, ok := expression.(*ast.CompositeLit)
 	if !ok {
@@ -416,7 +297,7 @@ func literalPaths(name string, expression ast.Expr) ([]string, error) {
 	}
 	var paths []string
 	for _, expression := range list.Elts {
-		if name == "expectedModules" || name == "nativeExpectedModules" {
+		if name == "expectedModules" {
 			pair, ok := expression.(*ast.KeyValueExpr)
 			if !ok {
 				return nil, fmt.Errorf("gomad %s has a nonliteral entry", name)
@@ -459,15 +340,12 @@ func (p ownership) moduleDirectories(root string, paths []string) ([]string, err
 			return nil, fmt.Errorf("uncovered module symlink %s", path)
 		}
 		directory := filepath.ToSlash(filepath.Dir(path))
-		if directory != "." && directory != gomadModule && directory != nativeModule && directory != wasmBackend+"/internal/evidence/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
+		if directory != "." && directory != gomadModule && directory != wasmBackend+"/internal/evidence/qualification/testdata/fixture" && directory != mixedbrainModule && !p.modules[path] {
 			return nil, fmt.Errorf("unclassified module %s", path)
 		}
 		modules = append(modules, directory)
 	}
-	for _, module := range []string{".", gomadModule, nativeModule, mixedbrainModule} {
-		if module == nativeModule && !p.modules[nativeModule+"/go.mod"] {
-			continue
-		}
+	for _, module := range []string{".", gomadModule, mixedbrainModule} {
 		if !slices.Contains(modules, module) {
 			return nil, fmt.Errorf("required lint module is missing: %s", filepath.ToSlash(filepath.Join(module, "go.mod")))
 		}
@@ -487,8 +365,6 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		entry.disposition = "WASM soft assertion fixture"
 	case within(path, "tools/gomad/internal/model/cluster/testdata/simulation_exploration"):
 		entry.disposition = "simulation fixture"
-	case within(path, gomadModule+"/internal/backends/native/qualification/testdata/tagged"):
-		entry.disposition = "integration fixture"
 	case within(path, wasmBackend+"/testdata/environment"):
 		entry.disposition = "WASM environment fixture"
 	case within(path, wasmBackend+"/toolchain/testdata/choices"), within(path, wasmBackend+"/testdata/runtime_probes"):
@@ -508,16 +384,10 @@ func (p ownership) classify(path string, modules []string) (source, error) {
 		if err := p.validateWASMHostSource(path, relative); err != nil {
 			return entry, err
 		}
-	case within(path, gomadModule+"/internal/backends/native/toolchain/runtime/overlay"):
-		relative := strings.TrimPrefix(path, gomadModule+"/internal/backends/native/toolchain/runtime/overlay/")
-		if !p.overlays[relative] {
-			return entry, fmt.Errorf("unclassified runtime overlay source %s", path)
-		}
-		entry.disposition = "runtime overlay"
 	case within(path, gomadModule):
 		relative := strings.TrimPrefix(path, gomadModule+"/")
 		for _, fixture := range p.fixtures {
-			if fixture != "internal/backends/native/toolchain/runtime/overlay" && within(relative, fixture) {
+			if within(relative, fixture) {
 				entry.disposition = "Gomad qualification fixture"
 				return entry, nil
 			}
@@ -549,13 +419,8 @@ func (p ownership) validateWASMHostSource(path, relative string) error {
 }
 
 func (p ownership) validateGomadHostSource(path, relative string) error {
-	if !p.hostPackages[filepath.ToSlash(filepath.Dir(relative))] {
-		for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
-			if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
-				return fmt.Errorf("uncovered Gomad host source %s", path)
-			}
-		}
-		if within(relative, "internal/backends/native/toolchain/runtime") {
+	for _, part := range strings.Split(filepath.ToSlash(filepath.Dir(relative)), "/") {
+		if part != "." && (part == "testdata" || strings.HasPrefix(part, ".") || strings.HasPrefix(part, "_")) {
 			return fmt.Errorf("uncovered Gomad host source %s", path)
 		}
 	}
@@ -642,25 +507,6 @@ func regularSource(root, path string) error {
 		}
 		if info.Mode()&os.ModeSymlink != 0 {
 			return fmt.Errorf("uncovered source symlink %s", path)
-		}
-	}
-	return nil
-}
-
-func regularHostDirectory(root, path string) error {
-	for candidate := filepath.Join(root, path); candidate != root; candidate = filepath.Dir(candidate) {
-		info, err := os.Lstat(candidate)
-		if errors.Is(err, os.ErrNotExist) {
-			continue
-		}
-		if err != nil {
-			return err
-		}
-		if info.Mode()&os.ModeSymlink != 0 {
-			return fmt.Errorf("uncovered source symlink %s", path)
-		}
-		if !info.IsDir() {
-			return fmt.Errorf("gomad host package directory is not a directory: %s", path)
 		}
 	}
 	return nil

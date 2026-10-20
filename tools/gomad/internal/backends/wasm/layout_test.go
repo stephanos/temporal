@@ -23,6 +23,9 @@ func nativeToolchainReference(filename string, source any) (string, error) {
 	var reference string
 	check := func(path string) {
 		path = strings.ReplaceAll(path, "\\", "/")
+		if strings.Contains(path, "/"+"native"+"/") {
+			reference = path
+		}
 		for _, prefix := range []string{".toolchain/" + "bin/", ".toolchain/" + "builds/", ".toolchain/" + "go"} {
 			if strings.Contains(path, prefix) {
 				reference = path
@@ -62,8 +65,6 @@ func nativeImport(file *ast.File) (string, error) {
 		if err != nil {
 			return "", err
 		}
-		// Native backend imports are refused module-wide by archcheck's default
-		// dependency closure and native-path string rule.
 		for _, native := range []string{"go.temporal.io/server/tools/gomad/toolchain"} {
 			if path == native || strings.HasPrefix(path, native+"/") {
 				return path, nil
@@ -108,6 +109,8 @@ func TestWASMTestsDoNotImportNativeBuilder(t *testing.T) {
 	for _, source := range []string{
 		"package fixture\nvar command = " + strconv.Quote(".toolchain/"+"bin/go"),
 		`package fixture; var command = filepath.Join(root, ".toolchain", "bin", "go")`,
+		`package fixture; var fixture = "../../na` + `tive/conformance/testdata"`,
+		`package fixture; var fixture = filepath.Join("..", "..", "native", "conformance", "testdata")`,
 	} {
 		if reference, err := nativeToolchainReference("forbidden_test.go", source); err != nil || reference == "" {
 			t.Fatalf("native binary guard did not reject source %q: %q, %v", source, reference, err)

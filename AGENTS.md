@@ -91,30 +91,24 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 
 ## Gomad
 
-- `tools/gomad` is a nested Go module pinned to go1.27.1. The patched runtime toolchain is
-  qualified on `darwin/arm64` and `linux/amd64`; `make gomad` and `make -C tools/gomad test`
-  run on both. The macOS sandbox test and the DTrace clock audit are darwin-only; the modernc
-  libc adapter and the core SQLite workloads qualify on both. The toolchain builder downloads the Go source
-  archive from go.dev, which cloud sessions cannot reach; GitHub CI can.
-- Remaining native Linux qualification and Linux CI work stay deferred under
-  [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md); remaining native Darwin
-  qualification stays deferred under [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md).
-  Historical native transfers are recorded in Flow and Git history. Missing transferred native evidence does not
-  block source specs; implementation, ordinary host-source coverage, lint, preservation, source
-  review, generated validation and both-source-set static checks remain required. Partial portable
-  coverage supplies no full native test-host pass. Keep each native owner deferred until an explicit
-  owner request and its supported native execution are available. Qualification remains unverified
-  until current-candidate evidence exists; revival grants no PR, push or CI authority.
+- `tools/gomad` is a nested Go module pinned to go1.27.1. Its execution backend is WASM.
+  The native backend, patched host toolchain, adapters and native qualification commands were
+  removed by fn-223. Native qualification owners
+  [fn-128](.flow/specs/fn-128-gomad-deferred-linux-qualification-and.md) and
+  [fn-149](.flow/specs/fn-149-gomad-deferred-darwin-qualification.md) closed as won't-do on
+  2026-10-19; historical transfers and results remain in Flow and Git history.
+  Final changed-candidate runtime, mandatory workload and retained-replay qualification,
+  including the complete behavioral reach of `make -C tools/gomad test-wasm`, remain pending
+  under fn-232 R12/task .13's frozen Rust qualification cycle. Deletion source checks supply
+  no final qualification pass.
 - `MILESTONES.md` is the operative delivery order; `.plans/GOMAD_NEXT.md` is the
   capability roadmap it draws from. For task state and acceptance criteria, use `flowctl brief`
   and the open specs under `.flow/specs/`. Current contracts belong to `tools/gomad/SPEC.md`
   and `tools/gomad/ARCHITECTURE.md`; `.plans/README.md` indexes plans and dated research.
-- Determinism is assured by the diagnostic trace (`--diagnostics`, `gomadtool diagnostic-diff`),
-  the seeded-stream draw inventory (`tools/gomad/internal/backends/native/toolchain/draw_inventory_test.go`), the
-  conformance fixtures and declared exclusions in the README's Contract, and the scheduled
-  determinism soak (`make gomad-soak`, `gomadtool soak`, the `determinism-soak-*` jobs of
-  `gomad.yml`). Quote a determinism bound only from a retained soak report for its platform;
-  linux/arm64 runs are developmental and the patched toolchain does not build there.
+- Determinism contracts and enforcement tests are documented in the WASM README's
+  determinism inventory and the qualification contract. Quote a determinism bound only
+  from retained evidence for its exact candidate, host, profile and workload. Native soak
+  reports are historical and do not qualify the current WASM backend.
 
 ## Worktrees and Scratch Directories
 

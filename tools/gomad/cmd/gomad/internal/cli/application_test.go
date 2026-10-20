@@ -20,37 +20,6 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/runner"
 )
 
-func TestApplicationDispatchesPrivateModesOverProcessStreams(t *testing.T) {
-	input, output := strings.NewReader("request"), new(bytes.Buffer)
-	var dispatched []string
-	app := application{privateInput: input, privateOutput: output, dispatch: func(mode string, in io.Reader, out io.Writer) error {
-		if in != input || out != output {
-			t.Fatalf("private mode %s streams = %v, %v", mode, in, out)
-		}
-		dispatched = append(dispatched, mode)
-		if mode == coordinatorMode {
-			return errors.New("decode coordinator request: EOF")
-		}
-		return nil
-	}}
-	for _, test := range []struct {
-		mode   string
-		result commandResult
-	}{
-		{mode: supervisorMode, result: commandResult{status: 0}},
-		{mode: targetBootstrapMode, result: commandResult{status: 0}},
-		{mode: coordinatorMode, result: commandResult{status: 3, stderr: "decode coordinator request: EOF\n"}},
-	} {
-		got := runCommand(func(stdout, stderr *bytes.Buffer) int { return app.run([]string{test.mode, "ignored"}, stdout, stderr) })
-		if got != test.result {
-			t.Fatalf("private mode %s = %s, want %s", test.mode, got, test.result)
-		}
-	}
-	if strings.Join(dispatched, ",") != "__supervisor,__target_bootstrap,__coordinator" {
-		t.Fatalf("dispatched = %q", dispatched)
-	}
-}
-
 // TestApplicationResolvesOnlyAfterInputValidation pins that the construction
 // path is consulted after a command validates its input, so an invalid
 // request is never reported as an unusable installation.
@@ -257,7 +226,7 @@ func TestTypedScenarioInputRefusesInvalidFiles(t *testing.T) {
 }
 
 func TestExternalBackendRejectsCommandsBeforeResolvingInstallation(t *testing.T) {
-	for _, arguments := range [][]string{{"plan"}, {"analyze", "go-run", "./pkg"}, {"doctor"}, {"qualify"}, {"minimize"}, {supervisorMode}, {"explore", "--count=0", "go-run", "./pkg"}, {"replay"}, {"resume"}} {
+	for _, arguments := range [][]string{{"plan"}, {"analyze", "go-run", "./pkg"}, {"doctor"}, {"qualify"}, {"minimize"}, {"__supervisor"}, {"explore", "--count=0", "go-run", "./pkg"}, {"replay"}, {"resume"}} {
 		var stdout, stderr bytes.Buffer
 		status := RunWithBackend(arguments, &stdout, &stderr, func() (BackendInstallation, error) {
 			t.Fatal("resolved installation for unsupported command or invalid syntax")

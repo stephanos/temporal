@@ -1,5 +1,3 @@
-//go:build !gomad_toolchain
-
 package cluster
 
 func runtimeProcessTimeAdvance(int64) error {

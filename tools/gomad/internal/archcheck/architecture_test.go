@@ -70,7 +70,7 @@ func backendImportConfig() archcheck.Config {
 
 func TestBackendImportDirection(t *testing.T) {
 	config := backendImportConfig()
-	config.PureFiles = nativePureFile
+	config.PureFiles = pureFile
 	config.PureImports = []string{
 		"bufio", "bytes", "cmp", "compress/gzip", "container/heap", "crypto/hmac", "crypto/sha256",
 		"embed", "encoding", "encoding/base64", "encoding/binary", "encoding/hex", "encoding/json", "errors", "fmt", "hash", "io", "io/fs",
@@ -79,7 +79,6 @@ func TestBackendImportDirection(t *testing.T) {
 		"github.com/go-json-experiment/json", "github.com/go-json-experiment/json/jsontext", "github.com/go-json-experiment/json/v1",
 		modulePath + "/internal/model/choice", modulePath + "/internal/backends/target",
 	}
-	config.PureImports = append(config.PureImports, nativePureImports...)
 	platforms := qualifiedSourcePlatforms()
 	host := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
 	if !slices.Contains(platforms, host) {
@@ -155,7 +154,7 @@ func TestBackendImportFixtures(t *testing.T) {
 }
 
 func TestArchitectureInventoryFixtures(t *testing.T) {
-	for _, fixture := range append([]struct{ name, category, path, source string }{
+	for _, fixture := range []struct{ name, category, path, source string }{
 		{"root-production", "ownerless", "main.go", "package fitness\n"},
 		{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\n"},
 		{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\n"},
@@ -163,17 +162,14 @@ func TestArchitectureInventoryFixtures(t *testing.T) {
 		{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\n\ngo 1.27.1\n"},
 		{"included-list-error", "package-error", "internal/evidence/record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
 		{"owner-edge", "owner-edge", "internal/evidence/record/source.go", "package record\nimport _ \"example.invalid/fitness/internal/runner\"\n"},
-	}, nativeInventoryFixtures...) {
+	} {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "internal/runner/source.go": "package runner\n", fixture.path: fixture.source}
 			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range nativeFixtureExclusions {
-				files[path+"/fixture.go"] = "package fixture\n"
-			}
-			for _, path := range append([]string{"internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"}, nativeFixtureModules...) {
+			for _, path := range []string{"internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"} {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
@@ -252,13 +248,7 @@ func TestPackageArchitecture(t *testing.T) {
 	if moduleMayImport(modulePath+"/internal/runner/internal/exploration", logstore) {
 		t.Error("pure exploration engines may import the shared log owner")
 	}
-	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "deterministicio", "world", "toolchain", "upgrade", "compatibility", "strictjson", "hostexec", "hostfs", "sourceinventory"} {
-		if !archcheck.NativeSelected && slices.Contains([]string{"deterministicio", "toolchain", "upgrade", "compatibility", "sourceinventory"}, owner) {
-			if owners[owner] {
-				t.Errorf("default inventory includes native owner %s", owner)
-			}
-			continue
-		}
+	for _, owner := range []string{"cli", "developer", "runner", "qualification", "target", "record", "artifact", "choice", "world", "strictjson", "hostexec", "hostfs"} {
 		if !owners[owner] {
 			t.Errorf("architectural owner %s has no package", owner)
 		}
@@ -270,7 +260,7 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 	if got := packageOwner(imported); got != "strictjson" {
 		t.Fatalf("strict JSON owner = %q, want strictjson", got)
 	}
-	for _, test := range append([]struct {
+	for _, test := range []struct {
 		name, owner, importing string
 	}{
 		{"wasm-wasi", "wasm", modulePath + "/internal/backends/wasm/wasi"},
@@ -285,7 +275,7 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 		{"world", "world", modulePath + "/internal/model/world"},
 		{"simulation", "simulation", modulePath + "/internal/model/clock"},
 		{"captured", "captured", modulePath + "/internal/evidence/artifact/capture"},
-	}, nativeStrictJSONOwnerCases...) {
+	} {
 		t.Run(test.name, func(t *testing.T) {
 			if !ownerMayImport(test.owner, "strictjson", test.importing, imported) {
 				t.Errorf("owner %s may not import strictjson", test.owner)
@@ -429,7 +419,7 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 		t.Fatal(err)
 	}
 	makefile := string(contents)
-	for _, target := range []string{"clean:", "prune-cache:", "clean-qualifications:", "test-toolchain:", "test-host:", "overlay-test:", "test-simulation:", "validate-toolchain:", "validate-compatibility:"} {
+	for _, target := range []string{"generate:", "validate:", "validate-protocol:", "validate-replay-plan:", "validate-wasm-determinism:", "build:", "lint-code:", "test-harness:", "world-test:", "test-wasm:", "test:"} {
 		if !strings.Contains(makefile, "\n"+target) {
 			t.Errorf("Makefile is missing %s", target)
 		}
@@ -442,14 +432,14 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 }
 
 func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
-	for directory, forbidden := range withNativeWireFraming(map[string][]string{
+	for directory, forbidden := range map[string][]string{
 		"internal/model/choice": {
 			"Header", "TapeHeader", "Terminal", "EncodeHeader", "DecodeHeader", "PublishHeader",
 			"EncodeRecord", "DecodeRecord", "EncodeTapeHeader", "DecodeTapeHeader", "EncodeTerminal", "DecodeTerminal",
 			"HeaderBytes", "RecordBytes", "TapeHeaderBytes", "TapeRecordBytes", "TapeChecksumOffset",
 			"TerminalFrameBytes", "TerminalChecksumOffset", "DigestBytes", "Hash",
 		},
-	}) {
+	} {
 		exported := packageExports(t, directory)
 		for _, name := range forbidden {
 			if exported[name] {
@@ -539,27 +529,27 @@ var pureDependencyFiles = []string{
 
 func TestStrictJSONPureDependencyInventoryIsExact(t *testing.T) {
 	for _, path := range []string{"internal/model/strictjson/decode.go", "internal/model/strictjson/identity.go"} {
-		if !nativePureFile(path) {
+		if !pureFile(path) {
 			t.Errorf("strict JSON memory-only source is not pure: %s", path)
 		}
 	}
 	for _, path := range []string{"internal/model/strictjson/identity_test.go", "internal/model/strictjson/host.go"} {
-		if nativePureFile(path) {
+		if pureFile(path) {
 			t.Errorf("strict JSON source was broadly classified pure: %s", path)
 		}
 	}
 }
 
-func nativePureFile(path string) bool {
+func pureFile(path string) bool {
 	if strings.HasPrefix(path, "internal/evidence/record/testfixture/") {
 		return false
 	}
-	for _, dependency := range append(slices.Clone(pureDependencyFiles), nativePureDependencyFiles...) {
+	for _, dependency := range pureDependencyFiles {
 		if path == dependency {
 			return true
 		}
 	}
-	for _, prefix := range append([]string{"internal/evidence/record/", "internal/model/world/mailbox/", "internal/runner/internal/exploration/"}, nativePurePrefixes...) {
+	for _, prefix := range []string{"internal/evidence/record/", "internal/model/world/mailbox/", "internal/runner/internal/exploration/"} {
 		if strings.HasPrefix(path, prefix) {
 			return true
 		}
@@ -567,7 +557,7 @@ func nativePureFile(path string) bool {
 	if filepath.ToSlash(filepath.Dir(path)) == "internal/model/world" {
 		return true
 	}
-	return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go" || slices.Contains(nativePureRoots, path)
+	return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go"
 }
 
 //nolint:staticcheck // Tests execute on the compiling host and require that exact reviewed Go toolchain.
@@ -586,13 +576,13 @@ func typedSourcePlatforms() []archcheck.Platform {
 }
 
 func TestPureModulesHaveNoHostEffects(t *testing.T) {
-	paths := slices.Concat([]string{"internal/runner/internal/campaign/controller.go", "internal/model/clock/simulation_progress.go"}, nativePureRoots, pureDependencyFiles, nativePureDependencyFiles)
+	paths := append([]string{"internal/runner/internal/campaign/controller.go", "internal/model/clock/simulation_progress.go"}, pureDependencyFiles...)
 	if err := pureFileInventory(".", paths); err != nil {
 		t.Fatal(err)
 	}
 	for _, platform := range typedSourcePlatforms() {
 		started := time.Now()
-		findings, err := archcheck.CheckPurity(".", sourceGoCommand(), platform, nativePureFile)
+		findings, err := archcheck.CheckPurity(".", sourceGoCommand(), platform, pureFile)
 		if err != nil {
 			t.Fatal(err)
 		}
@@ -699,13 +689,13 @@ func checkerBudget(root string) (production, tests int, err error) {
 func moduleArchitectureTest(root, path string) bool {
 	relative, err := filepath.Rel(root, path)
 	return err == nil && slices.Contains([]string{
-		"internal/archcheck/architecture_test.go", "internal/archcheck/architecture_native_test.go",
-		"internal/archcheck/integration_test.go", "internal/archcheck/integration_native_test.go",
+		"internal/archcheck/architecture_test.go",
+		"internal/archcheck/integration_test.go",
 	}, filepath.ToSlash(relative))
 }
 
 func TestCheckerBudgetExcludesModuleContractTests(t *testing.T) {
-	for _, name := range []string{"architecture_test.go", "architecture_native_test.go", "integration_test.go", "integration_native_test.go"} {
+	for _, name := range []string{"architecture_test.go", "integration_test.go"} {
 		t.Run(name, func(t *testing.T) {
 			root := t.TempDir()
 			directory := filepath.Join(root, "internal/archcheck")

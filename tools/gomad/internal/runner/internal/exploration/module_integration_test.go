@@ -10,18 +10,18 @@ import (
 	"testing"
 )
 
-func rootSimulationTarget(t *testing.T) (root, toolchainRoot, source string) {
+func rootSimulationTarget(t *testing.T) (root, source string) {
 	t.Helper()
 	root, err := filepath.Abs(filepath.Join("..", "..", "..", ".."))
 	if err != nil {
 		t.Fatal(err)
 	}
-	return root, filepath.Join(root, ".toolchain"), "./internal/model/cluster"
+	return root, "./internal/model/cluster"
 }
 
 func TestRootSimulationTargetResolvesInGomadModule(t *testing.T) {
-	root, _, source := rootSimulationTarget(t)
-	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", "test_dep,gomad_toolchain", "-f", "{{.Module.Path}}|{{.ImportPath}}", source)
+	root, source := rootSimulationTarget(t)
+	command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-tags", "test_dep", "-f", "{{.Module.Path}}|{{.ImportPath}}", source)
 	command.Dir = root
 	command.Env = append(filteredSimulationBuildEnvironment(os.Environ()), "GOTOOLCHAIN=local", "GOWORK=off", "GOFLAGS=")
 	output, err := command.CombinedOutput()

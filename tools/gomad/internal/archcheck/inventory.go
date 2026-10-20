@@ -44,27 +44,6 @@ func List(root, goCommand string, platform Platform, dependencies bool) ([]HostP
 		args = append(args, "-deps", "-compiled", "-test")
 	}
 	args = append(args, "./...")
-	child := nativeModulePresent(root)
-	if child && NativeSelected {
-		args = append(args, nativeModulePath+"/...")
-	}
-	for _, directory := range nativeHostSourcePackages {
-		if child && !NativeSelected {
-			continue
-		}
-		info, err := os.Lstat(filepath.Join(root, directory))
-		switch {
-		case os.IsNotExist(err):
-		case err != nil:
-			return nil, err
-		case info.IsDir():
-			if child {
-				args = append(args, nativeModulePath+strings.TrimPrefix(directory, nativeDirectory))
-			} else {
-				args = append(args, "./"+directory)
-			}
-		}
-	}
 	command := exec.Command(goCommand, args...)
 	command.Dir, command.Env = root, Environment(platform)
 	var output, stderr bytes.Buffer
@@ -121,14 +100,12 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	if err != nil {
 		return Inventory{}, nil, err
 	}
-	// Without the native selection, every nested module the parent go.mod
-	// replaces with an in-tree directory is foreign to the default set: none
-	// of its packages may be reachable and its tree is not inventoried.
+	// Nested modules replaced with in-tree directories stay outside the host set.
 	locals, err := localModules(moduleRoot)
 	if err != nil {
 		return Inventory{}, nil, err
 	}
-	closure := !NativeSelected && len(locals) != 0
+	closure := len(locals) != 0
 	packages, err := List(root, goCommand, platform, closure)
 	if err != nil {
 		return Inventory{}, nil, err
@@ -142,15 +119,13 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 	listed, matched := map[string]HostPackage{}, map[string]bool{}
 	for _, pkg := range packages {
 		if closure && slices.ContainsFunc(locals, func(local localModule) bool { return Within(pkg.ImportPath, local.Path) }) {
-			add("default-native-dependency", pkg.ImportPath, "nested local module package is reachable from default production or test dependencies")
+			add("default-nested-dependency", pkg.ImportPath, "nested local module package is reachable from default production or test dependencies")
 		}
-		if nativeOverlay == "" || !Within(pkg.ImportPath, nativeModulePath+strings.TrimPrefix(nativeOverlay, nativeDirectory)) {
-			if pkg.Error != nil {
-				add("package-error", pkg.ImportPath, pkg.Error.Err)
-			}
-			for _, issue := range pkg.DepsErrors {
-				add("package-error", pkg.ImportPath, issue.Err)
-			}
+		if pkg.Error != nil {
+			add("package-error", pkg.ImportPath, pkg.Error.Err)
+		}
+		for _, issue := range pkg.DepsErrors {
+			add("package-error", pkg.ImportPath, issue.Err)
 		}
 		relative, err := filepath.Rel(root, pkg.Dir)
 		if err != nil {
@@ -158,7 +133,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		relative = filepath.ToSlash(relative)
 		moduleRelative := filepath.ToSlash(filepath.Join(scope, relative))
-		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || nativeOverlay != "" && Within(moduleRelative, nativeOverlay) || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
+		if closure && (len(pkg.Match) == 0 || pkg.ForTest != "") || Within(moduleRelative, "internal/backends/wasm/wasmhost/target") || !Within(pkg.ImportPath, module) {
 			continue
 		}
 		inventory.Packages = append(inventory.Packages, pkg)
@@ -179,7 +154,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		if entry.IsDir() && (slices.Contains([]string{".toolchain", ".bin"}, relative) || moduleRelative == "internal/backends/wasm/wasmhost/target") {
 			return filepath.SkipDir
 		}
-		if entry.IsDir() && !NativeSelected && slices.ContainsFunc(locals, func(local localModule) bool { return moduleRelative == local.Dir }) {
+		if entry.IsDir() && slices.ContainsFunc(locals, func(local localModule) bool { return moduleRelative == local.Dir }) {
 			return filepath.SkipDir
 		}
 		if entry.IsDir() {
@@ -194,7 +169,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		}
 		if filepath.Base(relative) == "go.mod" && relative != "go.mod" {
 			inventory.Modules = append(inventory.Modules, relative)
-			if !expectedModules[moduleRelative] && !nativeExpectedModules[moduleRelative] {
+			if !expectedModules[moduleRelative] {
 				add("unclassified-module", relative, "nested module needs an explicit classification")
 			}
 		}
@@ -202,7 +177,7 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 			return nil
 		}
 		inventory.Sources = append(inventory.Sources, relative)
-		for _, excluded := range slices.Concat(sourceExclusions, nativeSourceExclusions) {
+		for _, excluded := range sourceExclusions {
 			if Within(moduleRelative, excluded) {
 				matched[excluded] = true
 				return nil
@@ -223,12 +198,12 @@ func discover(root, goCommand string, platform Platform, legacy bool) (Inventory
 		return inventory, findings, err
 	}
 	if _, err := os.Stat(filepath.Join(root, "go.mod")); legacy && err == nil {
-		for _, excluded := range slices.Concat(sourceExclusions, nativeSourceExclusions) {
+		for _, excluded := range sourceExclusions {
 			if !matched[excluded] {
 				add("stale-exclusion", excluded, "required excluded source is absent")
 			}
 		}
-		for expected := range nativeOrDefault(expectedModules, nativeExpectedModules) {
+		for expected := range expectedModules {
 			ownSource := slices.Contains(inventory.Modules, expected) && slices.ContainsFunc(inventory.Sources, func(source string) bool {
 				return Within(source, filepath.Dir(expected)) && !slices.ContainsFunc(inventory.Modules, func(nested string) bool {
 					return nested != expected && Within(filepath.Dir(nested), filepath.Dir(expected)) && Within(source, filepath.Dir(nested))
@@ -262,8 +237,5 @@ var expectedModules = map[string]bool{
 }
 
 func SelectionTags() string {
-	if NativeSelected {
-		return "test_dep,gomad_native"
-	}
 	return "test_dep"
 }

@@ -8,26 +8,6 @@ import (
 	"golang.org/x/mod/modfile"
 )
 
-func nativeOrDefault(defaults, native map[string]bool) map[string]bool {
-	merged := make(map[string]bool, len(defaults)+len(native))
-	for _, set := range []map[string]bool{defaults, native} {
-		for path := range set {
-			merged[path] = true
-		}
-	}
-	return merged
-}
-
-// nativeModulePresent reports whether the native module is checked out under
-// root; it is false without the native selection.
-func nativeModulePresent(root string) bool {
-	if nativeModulePath == "" {
-		return false
-	}
-	data, err := os.ReadFile(filepath.Join(root, filepath.FromSlash(nativeDirectory), "go.mod"))
-	return err == nil && modfile.ModulePath(data) == nativeModulePath
-}
-
 // localModule is a nested module the module at root replaces with a directory
 // inside root.
 type localModule struct{ Path, Dir string }
