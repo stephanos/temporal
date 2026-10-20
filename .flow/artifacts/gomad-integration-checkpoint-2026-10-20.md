@@ -234,3 +234,42 @@ blocking or maintainability findings remain. The receipt is
 raw round-2 output is `.flow/tmp/fn223-plan-review-r2.log`. This approves the
 plan only. fn-223 stays unstarted until fn-219 closes, and its implementation,
 identity accounting and changed-candidate qualification remain required.
+
+Qualification session `78369` ended with exit 1 on frozen `3f532910be`.
+`qual-3f532910be/wall-time.json` records 2,417 seconds against the 3,600-second
+limit: 31 stages passed, `ordinary` failed, and 64 stages did not run.
+Network and retained Temporal inspection passed while the fail-fast scheduler
+drained; runtime and mandatory workload cells were never admitted. The literal
+`make test-wasm` command exited 2. Installation command tests inherited the
+driver's `GOMAD_STOCK_GO` and reached its intentional refusal before their
+own assertions. Separately, the WASI package exhausted its unchanged 900-second
+budget: the 100-fresh-instance test passed in 606.05 seconds and
+`TestStorageOwnerParity` had run only nine seconds when the package alarm fired.
+This is not evidence that the latter test itself regressed. External Rust and
+Go build/test load is retained in `external-load.log`; its causal contribution
+is unproven. The terminal summary and full stage logs remain with the run.
+
+Test-only repair `0e9fa028de` and evidence `d7555b695a` are integrated as
+`b2edb69131` and `2ce6d4a2c5`. The worker demonstrated RED exit 1 followed by
+GREEN exit 0 with both populated and empty ambient variables, retained explicit
+empty/nonempty refusal tests, and passed required focused lint with zero issues.
+The conductor independently reran `TestInstallTemporal` under the driver
+environment on the integrated tree: exit 0, 0.007 seconds. No production
+installation, helper, model, runtime, timeout or assertion was relaxed.
+
+The next diagnostic is exactly one isolated ordinary-stage run on the repaired
+freeze, preserving the original command, package deadline, 100 fresh instances
+and scratch/cache rules. Its actual quiet-host timing must inform scheduling
+before another full ladder is attempted; persistent cost justifies targeted
+fn-185 profiling, not weakened acceptance. fn-221's full sweep remains an
+observation and does not require fn-219 closure or a full qualification pass.
+It may proceed on an explicitly bound frozen candidate once the host is free,
+without supplying a support claim or completing the failed qualification.
+
+After verifying no live processes, the qualification worker removed the empty
+early scratch directory and moved the 6.4 GiB compiler/test scratch recoverably
+to `/home/agent/wt/.trash/qualification-scratch-3f532910be`. Evidence, prepared
+module and helper inputs remain. The new fn-219 ledger reconciliation worktree
+is retained at `/home/agent/wt/fn219-ledger-reconcile` for final failure records.
+Untracked `.flow/specs/fn-228*` through `fn-231*` and `tools/gomad/.turbo/` in
+the integration checkout are unrelated work and remain untouched.
