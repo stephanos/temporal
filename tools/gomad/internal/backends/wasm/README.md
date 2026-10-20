@@ -145,6 +145,27 @@ or identity inputs refuse before execution. The command builds its executor from
 the checkout selected by `--repo`; inherited measurement environment variables
 are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules.
 
+Measurement output roots retain immutable runs under
+`.gomad-measure/<producer>/run-*`; the producer directory's `latest.json` contains
+the relative name of its latest complete run. Publication follows all producer
+cleanup, so failed or interrupted replacements leave the previous result available.
+Reuse the same `--*-root` for retries; each different root is an independent retention scope.
+Reports keep their existing filenames inside the reported run directory.
+Published rerun commands keep the original requested output root.
+Output roots inside a `.gomad-measure` store are refused.
+Superseded runs are reclaimed automatically: they are renamed to `.trash-*` under
+the store lock and deleted afterwards. A reclaim failure is logged, does not fail
+an already published run, and is retried by the next producer run. Defaults keep one latest success
+and one recent failed/interrupted run, plus active runs and inputs referenced by
+retained consumers. Direct hardlink pins preserve authenticated input paths until
+the last retained consumer is collected; managed inputs and outputs must share a
+filesystem, or the consumer refuses before execution. Shared external caches and
+historical/unmanaged output directories are never pruned.
+Use `--keep` to retain a run independently for baseline/replay use; removing its
+`.keep` marker opts it back into collection on the next producer run. Retained
+and active inputs can exceed the default count. Internal namespace samples share
+their enclosing producer's lifetime and keep their authenticated index paths.
+
 `test-model` runs the focused Go model
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
