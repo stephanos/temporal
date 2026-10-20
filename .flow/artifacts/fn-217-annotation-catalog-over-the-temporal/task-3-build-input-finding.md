@@ -29,3 +29,20 @@ timing and single-session implementation re-review remain required.
 Detailed active evidence: `.flow/tmp/fn2173-root-ui-build-prep.md`, original
 review-fix gate logs and saved Cargo fingerprints. No gate weakening, scope
 waiver, task completion or budget-pass claim is made here.
+
+## Scoped resolution
+
+Source `1691aa14ce849d628a752bafcec34212248ef0c3`, integrated at
+`8af0871a1f7a55b5a1f0c16c6a33b04e5f34d977`, removes the obsolete bootstrap
+scan and its unused mode. The new actual-build-output regression failed on
+the missing input before the fix and passed afterward; it also requires the
+feature tree and activity catalog to remain watched. All four descriptor
+admission/refusal controls and API Clippy passed.
+
+With the bootstrap directory absent, a second unchanged API test build reported
+`Fresh` and finished in 0.09s. A second full annotate UI run passed all 21
+compile-fail fixtures and the generated-API pass case in 6.230s wall (5.35s
+test time). The conductor read that result and independently compared the two
+retained linked-descriptor timestamp rows: unchanged, diff exit 0. This
+establishes build reuse for that repeat run without claiming an isolated cost
+measurement or completion of the remaining full gates.
