@@ -93,7 +93,7 @@ A consumed oneof uses an explicit typed projection with `variants`. Its catalog
 retains one conditional field per source alternative, including the presence of
 an empty selected payload. Presence rules name those source alternatives.
 
-The API build tracks feature `api.rs` files and `annotate/catalogs/*.rs` recursively,
+The API build tracks feature `api.rs` files recursively,
 including directories and `proto/api.binpb`. The upstream image currently has no
 services. The existing `getproto --linked-api` facility adds actual linked
 WorkflowService descriptors to an `OUT_DIR` image for checking; API generation
