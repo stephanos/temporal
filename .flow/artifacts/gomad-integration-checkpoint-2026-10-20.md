@@ -149,3 +149,28 @@ worker verified no live process remained in the frozen checkout or scratch root.
 The fn-227 worker owns the missing-pin repair through the existing generators;
 a new clean freeze is required after integration. Preserve both previous
 prepare-only receipts and the interrupted run as historical evidence.
+
+The missing network pins are integrated at `e3c98d4256` (worker checkpoint
+`1ae035f31f`): all 113 JSON payloads are unchanged except implementation identities,
+and the existing generator also refreshes the Rust WASI pin. Two additional
+acceptance-check defects were repaired before another freeze. Commit
+`50951abe80` makes the Go helper-corpus checker require `unsupported` for the
+unknown storage-field case, matching the existing Rust literal and corpus;
+the new regression first demonstrated rejection of `unsupported` and acceptance
+of wrong `invalid`, then passed with both wrong classes refused. Its focused
+Go tests exited 0 (0.006 seconds), and `make lint-code-fast` against `fd74838967`
+with the retained Linux lint tools exited 0 with zero issues. These commands'
+tool outputs are the evidence; no separate raw lint log is claimed.
+
+Commit `429cd93008` integrates the Rust feature-gating repair from `7c1d7ab371`.
+Its separate `fn188-rust-cluster-test-feature-gating-2026-10-20.md` records all
+seven lint modes passing and default cluster-test preservation. The integrated
+WASI preflight then ran pinned Go 1.27.1 with `-p=1 -tags test_dep -count=1
+-timeout=10m -run 'Corpus|ImplementationIdentity'`: exit 0, 2.756 seconds.
+Raw verbose output is
+`/home/agent/wt/evidence/fn188/gate-preflight.XgjpFv/go-corpora.log`.
+It used a private single-link helper copy with SHA-256
+`ae4c7f9e2b7cc07d8d2490d3da755436a53f5b39f7d7213cee7cd6665695462f`
+in that directory and explicit stock compiler/test-helper environment variables.
+The run covers the regenerated network consumers and the corrected helper refusal
+checker together; it is not full candidate qualification or stress acceptance.
