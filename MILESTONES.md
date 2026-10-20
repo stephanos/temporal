@@ -269,7 +269,6 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | 🚧 In progress | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
 | [fn-188.2](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.2.md) | ⬜ Todo | Complete the site classes: runtime clock/draw patches, helper source scan, archcheck rule, engine settings |
 | [fn-188.3](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.3.md) | ⬜ Todo | Fail-closed request, reply and engine-setting boundaries on both sides |
 | [fn-188.4](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.4.md) | ⬜ Todo | First-divergence report across incarnations and World order, with reproducer |
