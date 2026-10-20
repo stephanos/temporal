@@ -1,0 +1,6 @@
+never 3:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step
+to 3:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step
+to 1:
+refused: at Dial(2), action Turn panicked: stuck, so the exploration skipped that step

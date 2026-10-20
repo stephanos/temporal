@@ -26,5 +26,12 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     write!(out, "beeping, from 20, budget 10:\n{}", outcome(cut))?;
     let elsewhere = find(&near, path![at(20, false, false), .., |k: &Model| k.beeping]);
     write!(out, "beeping, from 20 outside the space:\n{}", outcome(elsewhere))?;
+    let room = Space::from([at(20, false, false)]);
+    let overall = find(&room, path![at(20, false, false), .., |k: &Model| k.heating_on, ..=1, |k| k.temperature == 22]);
+    write!(out, "heating, then 22 within 1 (the first heating state is too far):\n{}", outcome(overall))?;
+    let settled = find(&room.budget(10), path![at(20, false, false), ..=2, |k: &Model| k.beeping]);
+    write!(out, "beeping within 2, from 20, budget 10:\n{}", outcome(settled))?;
+    let starts = find(&either, path![|k: &Model| k.temperature < 0, .., |k| k.beeping]);
+    write!(out, "below freezing, from 20 or 98:\n{}", outcome(starts))?;
     Ok(umpire_testing::Files::from([("messages.txt".into(), out)]))
 }

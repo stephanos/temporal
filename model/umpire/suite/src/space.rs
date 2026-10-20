@@ -53,6 +53,7 @@ pub fn refuted<S: Registered>(
     let rooted = Rooted { world: &world, starts: space.starts.clone(), query: Some(predicate) };
     let explored = Checker::explore(&rooted, space.budget)?;
     let mut report = explored.verify_all()?;
+    search::failed(&report, 1)?;
     let query = report.claims.swap_remove(0);
     match (query.outcome, query.path) {
         (CheckOutcome::Refuted, Some(path)) => Ok(path),
@@ -61,8 +62,8 @@ pub fn refuted<S: Registered>(
     }
 }
 
-/// The shortest admitted path from the space's starts through the waypoints in order, leg by
-/// leg within the space's budget.
+/// The shortest admitted path from the space's starts through the waypoints in order, each
+/// within its gap, searched as one exploration within the space's budget.
 // By value, so `find(&space, path![..])` reads as the question it is.
 #[allow(clippy::needless_pass_by_value)]
 pub fn find<S: Registered>(space: &Space<S>, path: Path<S>) -> Result<Trace<S::World>, Refusal> {

@@ -51,8 +51,8 @@ impl<S: Registered> Run<S> {
         &self.trace
     }
 
-    /// Fills in a story told by its milestones: from the first waypoint, a state, each gap is
-    /// bridged by the shortest path to the next waypoint and the whole path is replayed.
+    /// Fills in a story told by its milestones: from the first waypoint, a state, the shortest
+    /// path through every waypoint within its gap is found and replayed.
     // By value, so `Run::along(path![..])` reads as the story it is.
     #[allow(clippy::needless_pass_by_value)]
     pub fn along(path: Path<S>) -> Result<Self, Refusal>

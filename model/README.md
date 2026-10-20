@@ -173,8 +173,8 @@ asked with it decides what it promises:
   `#[machine]` refuses a literal `path!` chain at compile time, and a chain built elsewhere
   panics when the claim is evaluated, so the check reports that claim Refuted.
 - In a search for an example or witness (`find`, `Run::along`), `..` means
-  some path: the checker takes the shortest leg from each reached waypoint to the next, which
-  need not be the shortest path through all waypoints at once.
+  some path: the checker takes the shortest path through all waypoints at once, each within its
+  gap, and refuses only when no admitted path has them.
 - A pattern says nothing about what happens between or after its waypoints.
 
 Two waypoints without a gap, or a leading or trailing gap, do not compile; `..=1` is the next
@@ -248,7 +248,7 @@ The historical authoring sketches have been retired after preserving their compa
 `umpire-suite` at `umpire/suite/` is what a Model's own `tests.rs` uses (fn-213). An example is
 an authored path: `Run::from(state)`, `.step(action)`, `.repeat(n, action)` and `.state()` replay it
 through `Machine::checked_step`, and `Run::along(path![state, .., |s| ..])` fills in the gaps with
-the shortest leg to each next waypoint, then replays it. A disabled action, one emitting several
+the shortest path through every waypoint, then replays it. A disabled action, one emitting several
 steps, an unbridgeable gap and a predicate as the first waypoint are `Refusal`s naming the action
 or waypoint and spelling the state. `expect! { s = run.state(); a; b; }` fails the test at the
 first false line with its source text and the state. A run starts from a state alone because
@@ -256,11 +256,13 @@ first false line with its source text and the state. A run starts from a state a
 trait by hand. An exploration asks the checker about a `Space`, start states and a state budget
 (`Space::from([state]).budget(n)`, by default the checker's): `verify_all(&space)` is the Model's
 own claims from those starts, `refuted(&space, |s| ..)` the shortest path to a state where the
-predicate fails, and `find(&space, path![..])` the shortest leg from the starts to the first
-waypoint, then to each next one. A cut answers unknown (a report outcome, or a `Refusal` when no
+predicate fails, and `find(&space, path![..])` the shortest path from the starts through
+every waypoint in order. A cut answers unknown (a report outcome, or a `Refusal` when no
 counterexample was found before the cut), never verified; a predicate that holds everywhere and
-an unbridgeable gap are `Refusal`s too. Each leg of a search explores everything reachable from
-its start. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
+an unbridgeable gap are `Refusal`s too, and so is any answer from an exploration in which a step
+panicked, since the checker skips that edge. A search is one exploration of the Model's states
+paired with how far along the pattern each path has come, so it never misses a path that a
+shorter partial match would have hidden; the refusal names the furthest waypoint reached. The suite's messages are pinned by its fixtures in `umpire/suite/tests/fixtures/`.
 
 To write a Model's tests, add `mod examples` and `mod explorations` to its `tests.rs`, each with
 `use umpire_suite::*;` and plain `#[test]` functions returning `Result<(), Refusal>` so a refusal
@@ -271,17 +273,19 @@ fails the test with its message; `cargo test` and the gate run them, nothing reg
 starts, the 99-to-100 boundary and the `>=` failover guard refuting `fails_over_at_boiling` at 101,
 the 81 steps from switching on to the beep, every start from -40 to 40, `never_beeps` refuted by a
 press, 80 heats and the failover, a budget of 10 answering unknown and a counterexample found before
-a cut). From room temperature the beep is the deepest state, so a cut one state short of the whole
+a cut, and `fails_over_at_boiling` never triggered with the heater excluded, asked of a small
+`Machine` that delegates to Kettle's world without the heater's actions, since a `Space` chooses
+starts, never actions). From room temperature the beep is the deepest state, so a cut one state short of the whole
 graph misses it; the cut-but-refuted question starts heating at 99 as well. The Scala questions the
 surface does not admit, and why:
 
-- vacuity of `fails_over_at_boiling` with the heater excluded, the boils cycle on the whole Kettle,
-  the deadlock with only the press, the missed 80-step deadline and the unfair `fair(heat)` cycle:
+- the boils cycle on the whole Kettle, the deadlock with only the press, the missed 80-step deadline and the unfair `fair(heat)` cycle:
   a `Space` chooses starts and a budget, never actions or assumptions (scopes are the Model's own),
   so these stay with the `kettle_progress*` fixtures (fn-214.3), which explore their own worlds;
 - claim truth tables over hand-picked before/after pairs that are not steps (`warms_only_when_on`
   on quiet-to-hot by heat): a claim is judged only on explored steps; a state invariant can still be
-  asked from a chosen start, as the heating, beeping start refuting `beeps_only_when_off` shows;
+  asked from chosen starts, as the quiet, hot and heating starts holding `beeps_only_when_off` and
+  the heating, beeping start refuting it show;
 - `boils`'s metadata (name, no bound, the admitted actions of `never_switched_off`): the suite has
   no claim descriptors;
 - the report's prose line (`budget N states, 82 steps; exploration complete`) and the empty query

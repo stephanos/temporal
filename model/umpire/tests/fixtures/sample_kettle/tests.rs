@@ -19,6 +19,7 @@ fn room() -> kettle::Model {
 }
 
 mod examples {
+    use umpire_dsl::CheckOutcome;
     use umpire_suite::*;
 
     use super::{at, coldest, kettle::{Heater, Model, User}, room};
@@ -56,12 +57,13 @@ mod examples {
         expect! { k = boiling.state(); *k == at(100, true, false); }
         assert!(disabled(Run::from(at(100, true, false)).step(Heater::Heat)));
         let beep = boiling.step(Heater::Failover)?;
+        expect! { k = beep.state(); *k == at(100, false, true); }
         // beeps_only_when_off holds at the beep, the negative control never_beeps does not.
-        expect! { k = beep.state();
-            *k == at(100, false, true);
-            !(k.beeping && k.heating_on);
-            k.beeping;
-        }
+        let at_beep = Space::from([beep.state().clone()]);
+        let report = verify_all(&at_beep)?;
+        let claim = report.claims.iter().find(|claim| claim.name == "beeps_only_when_off");
+        assert_eq!(claim.map(|claim| claim.outcome), Some(CheckOutcome::Verified));
+        assert_eq!(refuted(&at_beep, |k: &Model| !k.beeping)?.steps.len(), 0);
         assert!(disabled(Run::from(at(100, false, true)).step(Heater::Failover)));
         let again = beep.step(User::PressButton)?;
         expect! { k = again.state(); *k == at(100, true, false); }
@@ -91,11 +93,11 @@ mod examples {
 }
 
 mod explorations {
-    use umpire_checker::ProgressVerdict;
-    use umpire_dsl::{CheckOutcome, Machine, Registered};
+    use umpire_checker::{Checker, ProgressVerdict};
+    use umpire_dsl::{CheckOutcome, Machine, Registered, StepClaim, StepError, StepPredicate, Steps, Verdict};
     use umpire_suite::*;
 
-    use super::{at, coldest, kettle::Model, room};
+    use super::{at, coldest, kettle::{Action, Model, World}, room};
 
     fn outcomes(report: &umpire_checker::Report<impl Machine>) -> Vec<(&str, CheckOutcome)> {
         report.claims.iter().map(|claim| (claim.name.as_str(), claim.outcome)).collect()
@@ -189,11 +191,74 @@ mod explorations {
     }
 
     #[test]
-    fn a_heating_beeping_start_refutes_beeps_only_when_off_at_once() -> Result<(), Refusal> {
+    fn beeps_only_when_off_holds_quiet_hot_and_heating_and_a_heating_beeping_start_refutes_it() -> Result<(), Refusal> {
+        let held = verify_all(&Space::from([room(), at(100, false, true), at(20, true, false)]))?;
+        let claim = held.claims.iter().find(|claim| claim.name == "beeps_only_when_off");
+        assert_eq!(claim.map(|claim| claim.outcome), Some(CheckOutcome::Verified));
+
         let report = verify_all(&Space::from([at(100, true, true)]))?;
         let claim = report.claims.iter().find(|claim| claim.name == "beeps_only_when_off");
         assert_eq!(claim.map(|claim| claim.outcome), Some(CheckOutcome::Refuted));
         assert_eq!(claim.and_then(|claim| claim.path.as_ref()).map(|path| path.steps.len()), Some(0));
         Ok(())
+    }
+
+    #[test]
+    fn without_the_heater_fails_over_at_boiling_is_never_triggered() -> Result<(), umpire_checker::Refusal> {
+        let report = Checker::explore(&Unheated, Checker::BUDGET)?.verify_all()?;
+        assert!(!report.counts.cut);
+        assert!(report.warnings.contains(&"after claim fails_over_at_boiling never triggered".to_owned()));
+        Ok(())
+    }
+
+    /// Kettle with its heater excluded: the user's actions only, under Kettle's step claims. A
+    /// `Space` chooses starts, never actions, so this world is written out.
+    struct Unheated;
+
+    impl Machine for Unheated {
+        type State = Model;
+        type Action = Action;
+        type Outcome = ();
+        type Fact = ();
+
+        fn starts(&self) -> Vec<Model> {
+            World.starts()
+        }
+
+        fn actions(&self) -> Vec<Action> {
+            World.actions().into_iter().filter(|action| !matches!(action, Action::Heater(_))).collect()
+        }
+
+        fn internal(&self, action: &Action) -> bool {
+            World.internal(action)
+        }
+
+        fn step(&self, state: &Model, action: Action) -> Steps<Model, (), ()> {
+            World.step(state, action)
+        }
+
+        fn checked_step(&self, state: &Model, action: Action) -> Result<Steps<Model, (), ()>, StepError> {
+            World.checked_step(state, action)
+        }
+
+        fn postconditions(&self) -> Vec<StepClaim<Self>> {
+            // A claim is a plain `fn`, so each one judges through Kettle's claim at its index; the
+            // outcome is by reference because `StepPredicate` takes every outcome type that way.
+            #[allow(clippy::trivially_copy_pass_by_ref)]
+            fn kettles<const I: usize>(_: &Unheated, before: &Model, after: &Model, action: &Action, (): &(), facts: &[()]) -> Verdict {
+                World.postconditions()[I].holds(&World, before, action, &((), facts.to_vec(), after.clone()))
+            }
+            let judges: [StepPredicate<Self>; 2] = [kettles::<0>, kettles::<1>];
+            let claims = World.postconditions();
+            assert_eq!(claims.len(), judges.len());
+            claims
+                .into_iter()
+                .zip(judges)
+                .map(|(claim, judge)| match claim.action {
+                    Some(action) => StepClaim::after(claim.name, action, judge),
+                    None => StepClaim::new(claim.name, judge),
+                })
+                .collect()
+        }
     }
 }

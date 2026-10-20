@@ -46,6 +46,14 @@ pub enum Refusal {
         /// The space's state budget.
         budget: usize,
     },
+    /// A step panicked during the exploration, so an answer would rest on the edge it skipped.
+    #[error("at {state}, {failure}, so the exploration skipped that step")]
+    Skipped {
+        /// The checker's failure line.
+        failure: String,
+        /// The spelling of the state the step was taken from.
+        state: String,
+    },
     /// The checker refused the request.
     #[error(transparent)]
     Checker(#[from] umpire_checker::Refusal),
