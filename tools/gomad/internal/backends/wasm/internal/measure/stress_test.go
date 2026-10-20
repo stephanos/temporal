@@ -6,6 +6,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"errors"
+	"fmt"
 	"maps"
 	"os"
 	"path/filepath"
@@ -55,6 +56,28 @@ func TestStressSummariesExcludeHelperEventOrder(t *testing.T) {
 	}
 	if bytes.Contains(encoded, []byte("OrderLog")) {
 		t.Fatal("aggregate summary embeds the helper sidecar")
+	}
+}
+
+func TestStressRetainsCompleteEventOrderWithoutWallTelemetryDigest(t *testing.T) {
+	t.Parallel()
+	header := determinism.EventOrderPrefix + `{"type":"header","schema":"gomad.wasm-event-order/v1"}` + "\n"
+	event := determinism.EventOrderPrefix + `{"type":"event","order":1,"kind":"clock","instance":"guest","incarnation":1,"ordinal":1,"trace":0,"decision":0,"time_nanos":1,"value":1}` + "\n"
+	data := []byte("host wall time: 123\n" + header + event + determinism.EventOrderPrefix + fmt.Sprintf(`{"type":"complete","events":1,"bytes":%d}`, len(header)+len(event)) + "\n")
+	observation := stressFixture()
+	root := t.TempDir()
+	if err := stressEventOrder(t.Context(), root, data, &observation); err != nil {
+		t.Fatal(err)
+	}
+	retained, err := os.ReadFile(filepath.Join(root, "event-order.log"))
+	if err != nil || !bytes.Equal(data, retained) || observation.Run.OrderLog == nil || len(observation.Run.OrderLog.Events) != 1 {
+		t.Fatalf("missing retained supplemental event evidence: %v", err)
+	}
+	if _, found := observation.Digests["event-order"]; found {
+		t.Fatal("wall telemetry entered canonical digest")
+	}
+	if err := stressEventOrder(t.Context(), root, []byte(header), &observation); err == nil {
+		t.Fatal("accepted truncated supplemental event order")
 	}
 }
 

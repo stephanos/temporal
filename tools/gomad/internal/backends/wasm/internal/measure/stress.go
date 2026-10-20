@@ -482,7 +482,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	if err != nil {
 		return observation, err
 	}
-	stress := wasmbackend.StressExecution{Padding: padding, Jitter: axis == "handoff"}
+	stress := wasmbackend.StressExecution{Padding: padding, Jitter: axis == "handoff", EventOrder: true}
 	if wait, ok := ctx.Value(stressCohortKey{}).(func()); ok {
 		stress.ConfigureRequest = func(*wasi.Request) { wait() }
 	}
@@ -522,7 +522,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 				return
 			}
 		}
-		var metadata []byte
+		var metadata, helperDiagnostics []byte
 		if test.Workload == "two-cluster" {
 			if err := stressClusterOracles(ctx, root, execution.Incarnations); err != nil {
 				collectErr = err
@@ -533,6 +533,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 				return
 			}
 			metadata = execution.Cluster.InspectionMetadata
+			helperDiagnostics = execution.Cluster.HelperStderr()
 			observation.Digests["world"] = digest(execution.Cluster.World)
 			collectErr = temporalWrite(ctx, filepath.Join(root, "world.bin"), execution.Cluster.World)
 			if collectErr != nil {
@@ -549,6 +550,11 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 			}
 			canary = test.Workload == "runtime" && *execution.Incarnations[0].Result.ExitCode == 17
 			metadata = execution.Incarnations[0].Result.InspectionMetadata
+			helperDiagnostics = execution.Incarnations[0].Result.HelperStderr()
+		}
+		if err := stressEventOrder(ctx, root, helperDiagnostics, &observation); err != nil {
+			collectErr = err
+			return
 		}
 		if err := temporalWrite(ctx, filepath.Join(root, "inspection.json"), metadata); err != nil {
 			collectErr = err
@@ -697,5 +703,22 @@ func stressInspection(data []byte, observation *stressObservation) error {
 	}
 	observation.Run = run
 	observation.Coordinates = true
+	return nil
+}
+
+func stressEventOrder(ctx context.Context, root string, helperDiagnostics []byte, observation *stressObservation) error {
+	log, err := determinism.ParseEventOrder(helperDiagnostics)
+	if err != nil {
+		return fmt.Errorf("stress supplemental event-order diagnostic: %w", err)
+	}
+	if !log.Complete {
+		return fmt.Errorf("stress supplemental event-order diagnostic is incomplete: %s", log.Reason)
+	}
+	// Helper stderr also includes host telemetry. Retain it for diagnosis, but do
+	// not mix wall-time telemetry into the canonical evidence digest.
+	if err := temporalWrite(ctx, filepath.Join(root, "event-order.log"), helperDiagnostics); err != nil {
+		return err
+	}
+	observation.Run.OrderLog = &log
 	return nil
 }
