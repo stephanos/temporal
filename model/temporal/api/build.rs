@@ -44,8 +44,7 @@ fn main() -> io::Result<()> {
         return Err(io::Error::other("linking annotation API descriptors failed"));
     }
     let mut coverage = Coverage::default();
-    catalog_inputs(&root.join("model/temporal/features"), false, &mut coverage)?;
-    catalog_inputs(&root.join("model/temporal/annotate/catalogs"), true, &mut coverage)?;
+    catalog_inputs(&root.join("model/temporal/features"), &mut coverage)?;
     descriptor::check(&fs::read(&linked)?, &coverage).map_err(io::Error::other)?;
 
     let mut files = prost_build::Config::new()
@@ -71,7 +70,7 @@ fn main() -> io::Result<()> {
     config.compile_fds(files)
 }
 
-fn catalog_inputs(path: &Path, owned: bool, coverage: &mut Coverage) -> io::Result<()> {
+fn catalog_inputs(path: &Path, coverage: &mut Coverage) -> io::Result<()> {
     println!("cargo:rerun-if-changed={}", path.display());
     if !path.exists() {
         return Ok(());
@@ -81,10 +80,8 @@ fn catalog_inputs(path: &Path, owned: bool, coverage: &mut Coverage) -> io::Resu
     for entry in entries {
         let path = entry.path();
         if entry.file_type()?.is_dir() {
-            catalog_inputs(&path, owned, coverage)?;
-        } else if (owned && path.extension().is_some_and(|extension| extension == "rs"))
-            || path.file_name().is_some_and(|name| name == "api.rs")
-        {
+            catalog_inputs(&path, coverage)?;
+        } else if path.file_name().is_some_and(|name| name == "api.rs") {
             println!("cargo:rerun-if-changed={}", path.display());
             let source = fs::read_to_string(&path)?;
             for catalog in catalogs(&source)
