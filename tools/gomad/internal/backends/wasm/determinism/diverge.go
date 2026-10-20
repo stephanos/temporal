@@ -58,6 +58,7 @@ type Run struct {
 	// BoundaryScoped means cross-stream ordering is known only at inspection
 	// boundaries, rather than at individual events within each interval.
 	BoundaryScoped bool
+	OrderLog       *EventOrder `json:"OrderLog,omitempty"`
 }
 
 type ReplayBoundary struct {
@@ -220,14 +221,18 @@ func Compare(expected, actual Run) (Report, error) {
 	if err != nil {
 		return Report{}, err
 	}
+	if expected.OrderLog != nil || actual.OrderLog != nil {
+		return compareEventOrder(expected, actual, len(candidates) != 0)
+	}
 	if len(candidates) == 0 {
 		return Report{Schema: ReportSchema, Status: "identical"}, nil
 	}
 	first := slices.MinFunc(candidates, compareDivergence)
 	report := Report{Schema: ReportSchema, Status: "diverged", First: &first, Reproducer: reproducer(expected, actual, first)}
 	if expected.BoundaryScoped || actual.BoundaryScoped {
+		report.Status = "undiagnosable"
 		report.Ordering = "inspection-boundary"
-		report.Reason = "earliest differing inspection boundary; retained streams do not establish event order within that interval"
+		report.Reason = "supplemental event-order diagnostic missing; earliest differing inspection boundary is available, but event order within that interval is not"
 		knownTime := false
 		for _, run := range []Run{expected, actual} {
 			for _, boundary := range run.Boundaries {
@@ -517,6 +522,10 @@ func reproducer(expected, actual Run, first Divergence) *Reproducer {
 			decision, instance, incarnation = selected.Decision, selected.Instance, selected.Incarnation
 		}
 	}
+	return makeReproducer(expected, actual, decision, instance, incarnation, unavailable)
+}
+
+func makeReproducer(expected, actual Run, decision uint64, instance string, incarnation uint64, unavailable string) *Reproducer {
 	stop := backends.InspectionRequest{
 		Stop:         backends.InspectionStop{Kind: "choice", Value: decision},
 		Dumps:        []string{"stacks", "heap"},

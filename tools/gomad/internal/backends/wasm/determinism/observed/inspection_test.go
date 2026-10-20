@@ -51,7 +51,7 @@ func TestInspectionPreservesDecisionAndTraceCoordinates(t *testing.T) {
 	changed.Incarnations[0].Choices[2].Record.SiteOffset++
 	report, err := determinism.Compare(got, changed)
 	require.NoError(t, err)
-	require.Equal(t, "diverged", report.Status)
+	require.Equal(t, "undiagnosable", report.Status)
 	require.Equal(t, "inspection-boundary", report.Ordering)
 	require.NotEqual(t, report.First.Expected, report.First.Actual)
 	require.NotNil(t, report.Reproducer)
@@ -71,7 +71,7 @@ func TestInspectionPreservesDecisionAndTraceCoordinates(t *testing.T) {
 			require.NoError(t, err)
 			report, err := determinism.Compare(got, actual)
 			require.NoError(t, err)
-			require.Equal(t, "diverged", report.Status)
+			require.Equal(t, "undiagnosable", report.Status)
 			require.Equal(t, uint64(4), report.First.At.Shared)
 		})
 	}
