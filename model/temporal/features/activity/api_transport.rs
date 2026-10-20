@@ -5,7 +5,7 @@ use prost::Message;
 use umpire_annotations::{Catalog, Expectation, FieldValue, Kind, Rng, validate};
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
-    common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
+    common::v1::{ActivityType, Payload, Payloads, RetryPolicy, WorkflowExecution, WorkflowType},
     failure::v1::{
         ActivityFailureInfo, ApplicationFailureInfo, CanceledFailureInfo,
         ChildWorkflowExecutionFailureInfo, Failure, NexusHandlerFailureInfo,
@@ -421,13 +421,22 @@ inspect!(CanceledFailureInfo, canceled_failure_info, |self, response, output| {
 });
 inspect!(TerminatedFailureInfo, terminated_failure_info, |self, response, output| {});
 inspect!(ServerFailureInfo, server_failure_info, |self, response, output| {});
-inspect!(ResetWorkflowFailureInfo, reset_workflow_failure_info, |self, response, output| {});
-inspect!(ActivityFailureInfo, activity_failure_info, |self, response, output| {});
+inspect!(ResetWorkflowFailureInfo, reset_workflow_failure_info, |self, response, output| {
+    self.last_heartbeat_details.inspect_wire(response, output)?;
+});
+inspect!(ActivityFailureInfo, activity_failure_info, |self, response, output| {
+    self.activity_type.inspect_wire(response, output)?;
+});
 inspect!(
     ChildWorkflowExecutionFailureInfo,
     child_workflow_execution_failure_info,
-    |self, response, output| {}
+    |self, response, output| {
+        self.workflow_execution.inspect_wire(response, output)?;
+        self.workflow_type.inspect_wire(response, output)?;
+    }
 );
+inspect!(WorkflowExecution, workflow_execution, |self, response, output| {});
+inspect!(WorkflowType, workflow_type, |self, response, output| {});
 inspect!(NexusOperationFailureInfo, nexus_operation_failure_info, |self, response, output| {});
 inspect!(NexusHandlerFailureInfo, nexus_handler_failure_info, |self, response, output| {});
 inspect!(ProtoDuration, proto_duration, |self, response, output| {});
