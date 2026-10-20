@@ -26,15 +26,15 @@ type identityRecord struct {
 	Site string `json:"site"`
 }
 
-func (entry Entry) retiredIdentity() bool {
+func (entry Entry) retiredIdentity(history []byte) bool {
 	if entry.Disposition != "rejected" || entry.validate() != nil {
 		return false
 	}
 	var records []identityRecord
-	if json.Unmarshal(identityHistoryJSON, &records) != nil {
+	if json.Unmarshal(history, &records) != nil || len(records) < acceptedIdentityCount {
 		return false
 	}
-	return slices.Contains(records, identityRecord{entry.ID, entry.Site})
+	return slices.Contains(records[:acceptedIdentityCount], identityRecord{entry.ID, entry.Site})
 }
 
 func checkIdentityHistory(data []byte, entries []Entry) error {

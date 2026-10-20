@@ -504,9 +504,11 @@ each inventory row to match one ledger record. New identities append records;
 existing identities cannot be removed, renamed or reassigned. A retired site
 retains its original ID and site, uses `rejected`, and names the existing refusal
 evidence. Completeness permits an absent rejected site only when its identity
-matches that ledger; active sites still require rows and stale controlled rows
-still fail. Runtime draw, clock and other overlay patches each have a JSON row
-keyed by the reviewed grammar, checked against the source-derived site sets.
+matches the accepted ledger prefix; newly appended identities cannot claim this
+exception before review accepts that prefix. Active sites still require rows and
+stale controlled rows still fail. Runtime draw, clock and other overlay patches
+each have a JSON row keyed by the reviewed grammar, checked against the
+source-derived site sets.
 `make test-determinism` checks the inventory, helper source sites, architecture
 and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers

@@ -165,17 +165,17 @@ func (inventory Inventory) Without(site string) Inventory {
 // Complete compares the derived sites of one kind with the rows of that kind
 // and reports every site without a row and every row without a site, by name.
 func (inventory Inventory) Complete(kind string, derived []string) error {
-	return inventory.check(kind, derived, true)
+	return inventory.check(kind, derived, true, identityHistoryJSON)
 }
 
 // Covers reports every derived site without a row. It is for a table that
 // holds a subset of a kind whose full set another check derives (the Go host
 // accepts a subset of the helper's import table).
 func (inventory Inventory) Covers(kind string, derived []string) error {
-	return inventory.check(kind, derived, false)
+	return inventory.check(kind, derived, false, identityHistoryJSON)
 }
 
-func (inventory Inventory) check(kind string, derived []string, exact bool) error {
+func (inventory Inventory) check(kind string, derived []string, exact bool, history []byte) error {
 	rows := inventory.Sites(kind)
 	var problems []error
 	seen := map[string]bool{}
@@ -186,7 +186,7 @@ func (inventory Inventory) check(kind string, derived []string, exact bool) erro
 		}
 	}
 	for site, entry := range rows {
-		if exact && !seen[site] && !entry.retiredIdentity() {
+		if exact && !seen[site] && !entry.retiredIdentity(history) {
 			problems = append(problems, fmt.Errorf("inventory row %q names %s site %q that the code no longer has", entry.ID, kind, site))
 		}
 	}
