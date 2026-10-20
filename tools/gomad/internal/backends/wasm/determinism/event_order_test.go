@@ -49,6 +49,8 @@ func TestEventOrderFramingRejectsPartialAndUncommittedDiagnostics(t *testing.T) 
 	}{
 		{"unknown field", strings.Replace(string(data), `"kind":"clock"`, `"kind":"clock","extra":true`, 1)},
 		{"wrong ordinal", strings.Replace(string(data), `"order":1`, `"order":2`, 1)},
+		{"missing owner", strings.Replace(string(data), `"instance":"guest"`, `"instance":""`, 1)},
+		{"missing incarnation", strings.Replace(string(data), `"incarnation":1`, `"incarnation":0`, 1)},
 		{"wrong count", strings.Replace(string(data), `"events":1`, `"events":2`, 1)},
 		{"frame after terminal", string(data) + EventOrderPrefix + `{"type":"header","schema":"` + EventOrderSchema + `"}` + "\n"},
 		{"truncated frame after terminal", string(data) + EventOrderPrefix + "{"},
