@@ -19,11 +19,11 @@ func TestStressHostConditionsStayOutsideGuestInputs(t *testing.T) {
 	if err != nil || string(before) != string(after) {
 		t.Fatalf("host perturbation changed declared inputs: %v", err)
 	}
-	if len(request.stressHostEnvironment) != 2 || request.DiagnosticConfigurationRevision() != PinnedEngine().Configuration+"-stress-jitter" {
+	if len(request.stressHostEnvironment) != 3 || request.DiagnosticConfigurationRevision() != PinnedEngine().Configuration+"-stress-jitter" {
 		t.Fatal("stress helper not admitted")
 	}
 	request.SetStressHostConditions("", false)
-	if len(request.stressHostEnvironment) != 1 {
+	if len(request.stressHostEnvironment) != 2 {
 		t.Fatal("jitter switch leaked into reference")
 	}
 }
@@ -48,7 +48,7 @@ func TestDeterminismFixtureConditionsStayOutsideDeclaredInputs(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, fault := range []string{"", "draw", "clock", "handoff"} {
+	for _, fault := range []string{"", "draw", "clock", "handoff", "output-clock"} {
 		if err := request.SetDeterminismFixtureConditions(fault); err != nil {
 			t.Fatal(err)
 		}
@@ -56,7 +56,7 @@ func TestDeterminismFixtureConditionsStayOutsideDeclaredInputs(t *testing.T) {
 		if err != nil || string(before) != string(after) {
 			t.Fatalf("fault changed declared inputs: %v", err)
 		}
-		if len(request.stressHostEnvironment) != 1 || request.stressHostEnvironment[0] != "GOMAD_WASM_DETERMINISM_FAULT="+fault {
+		if len(request.stressHostEnvironment) != 2 || request.stressHostEnvironment[0] != "GOMAD_WASM_DETERMINISM_FAULT="+fault || request.stressHostEnvironment[1] != "GOMAD_WASM_EVENT_ORDER=1" {
 			t.Fatal("fixture fault not transported privately")
 		}
 	}

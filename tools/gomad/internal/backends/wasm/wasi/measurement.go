@@ -34,7 +34,7 @@ func (request *Request) SetDiagnosticConfigurationRevision(revision string) {
 // These variables belong to the helper process, never to the guest namespace.
 func (request *Request) SetStressHostConditions(padding string, jitter bool) {
 	request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-stress-jitter"
-	request.stressHostEnvironment = []string{"GOMAD_WASM_STRESS_LAYOUT=" + padding}
+	request.stressHostEnvironment = []string{"GOMAD_WASM_STRESS_LAYOUT=" + padding, "GOMAD_WASM_EVENT_ORDER=1"}
 	if jitter {
 		request.stressHostEnvironment = append(request.stressHostEnvironment, "GOMAD_WASM_STRESS_JITTER=1")
 	}
@@ -44,12 +44,12 @@ func (request *Request) SetStressHostConditions(padding string, jitter bool) {
 // faults used to verify the divergence report; it cannot qualify a workload.
 func (request *Request) SetDeterminismFixtureConditions(fault string) error {
 	switch fault {
-	case "", "draw", "clock", "handoff":
+	case "", "draw", "clock", "handoff", "output-clock":
 	default:
 		return invalid("determinism fixture fault")
 	}
 	request.diagnosticConfigurationRevision = PinnedEngine().Configuration + "-determinism-fixture"
-	request.stressHostEnvironment = []string{"GOMAD_WASM_DETERMINISM_FAULT=" + fault}
+	request.stressHostEnvironment = []string{"GOMAD_WASM_DETERMINISM_FAULT=" + fault, "GOMAD_WASM_EVENT_ORDER=1"}
 	return nil
 }
 

@@ -73,6 +73,8 @@ impl Model {
             bytes.extend_from_slice(&block[skip..skip + count]);
             self.entropy_offset += count as u64;
         }
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        self.event("entropy",id,serde_json::json!({"offset":start,"length":length,"value":crate::event_order::bytes_value(&bytes)}));
         self.append_record(&crate::transcript::entropy_record(id, length as u32, start));
         Ok(bytes)
     }
@@ -114,6 +116,8 @@ impl Model {
             }
             self.transcript_encoder
                 .read(id, clock_id, precision, self.now);
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            self.event("clock",id,serde_json::json!({"clock_id":clock_id,"precision":precision,"timestamp":timestamp}));
             self.now += self.config.read_step_nanos;
             Some(timestamp)
         } else {
@@ -438,6 +442,8 @@ impl Model {
                 self.elapsed = get64(&data, 8);
                 self.terminal.clone_from(&data);
                 self.finished = true;
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                self.event("model-transition",self.records,serde_json::json!({"model":"runtime-finish","terminal":crate::event_order::bytes_value(&data)}));
             }
             Operation::RuntimeIdle => {
                 if data.len() != 16 || get32(&data, 0) != 1 || get32(&data, 4) != 0 {
@@ -463,6 +469,8 @@ impl Model {
     )]
     pub fn debug_exchange(&mut self, frame: &mut [u8]) -> Result<()> {
         use inspection::{Witness, le32};
+        #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+        let _event_scope = crate::event_order::enter(self.event_context());
         let op = inspection::validate_frame(frame)?;
         let payload = &mut frame[16..];
         self.inspection.lock().observe(&self.inspection.handle);
@@ -484,6 +492,8 @@ impl Model {
                         "instrumentation divergence: runtime record witness",
                     ));
                 }
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                self.witness_event(&witness);
                 self.inspection.witness = witness.clone();
                 let handle = self.inspection.handle.clone();
                 let clock = self
@@ -501,6 +511,19 @@ impl Model {
                         &self.inspection.world_commitment,
                     )
                 };
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                if let Ok(boundary) = &boundary {
+                    crate::event_order::boundary(
+                        &crate::event_order::Context {
+                            instance: boundary.handle.node.clone(),
+                            incarnation: boundary.handle.incarnation,
+                            trace: boundary.trace,
+                            decision: boundary.decision,
+                            time_nanos: boundary.time_nanos.cast_signed(),
+                        },
+                        boundary.order,
+                    );
+                }
                 let Some(request) = self.inspection.request.as_ref() else {
                     return Ok(());
                 };
@@ -608,6 +631,8 @@ impl Model {
                         "instrumentation divergence: observation witness",
                     ));
                 }
+                #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+                self.witness_event(&witness);
                 self.inspection.witness = witness;
             }
             _ => return Err(Error::msg("unknown debug operation")),

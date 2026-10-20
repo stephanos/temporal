@@ -1078,10 +1078,26 @@ impl Namespace {
         }
         if d.std == 2 {
             self.stdout.extend_from_slice(data);
+            #[cfg(feature = "determinism-fixture")]
+            crate::determinism_fixture::output_committed();
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            crate::event_order::emit_current(
+                "output",
+                self.stdout.len() as u64,
+                now.cast_signed(),
+                serde_json::json!({"stream": "stdout", "data": crate::event_order::bytes_value(data)}),
+            );
             return Ok(Output::Written(data.len() as u32));
         }
         if d.std == 3 {
             self.stderr.extend_from_slice(data);
+            #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+            crate::event_order::emit_current(
+                "output",
+                self.stderr.len() as u64,
+                now.cast_signed(),
+                serde_json::json!({"stream": "stderr", "data": crate::event_order::bytes_value(data)}),
+            );
             return Ok(Output::Written(data.len() as u32));
         }
         let offset = if d.flags & 1 != 0 {

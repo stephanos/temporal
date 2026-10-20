@@ -4,6 +4,7 @@ enum Kind {
     Draw,
     Clock,
     Handoff,
+    OutputClock,
 }
 
 pub struct Fault {
@@ -18,6 +19,7 @@ impl Fault {
                 "draw" => Kind::Draw,
                 "clock" => Kind::Clock,
                 "handoff" => Kind::Handoff,
+                "output-clock" => Kind::OutputClock,
                 _ => Kind::None,
             },
             consumed: false,
@@ -31,13 +33,17 @@ impl Fault {
     pub fn bootstrap_seed(&self, seed: u64) -> u64 {
         if self.kind == Kind::Draw {
             seed | (1 << 63)
+        } else if self.kind == Kind::OutputClock {
+            seed | (1 << 62)
         } else {
             seed
         }
     }
 
     pub fn clock_shift(&mut self, records: u64) -> u64 {
-        if self.kind != Kind::Clock || self.consumed || records < 8 {
+        let output_ready = self.kind == Kind::OutputClock
+            && OUTPUT_COMMITTED.load(std::sync::atomic::Ordering::Relaxed);
+        if (self.kind != Kind::Clock && !output_ready) || self.consumed || records < 8 {
             return 0;
         }
         self.consumed = true;
@@ -60,6 +66,12 @@ impl Fault {
         self.consumed = true;
         Some(next)
     }
+}
+
+static OUTPUT_COMMITTED: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
+
+pub fn output_committed() {
+    OUTPUT_COMMITTED.store(true, std::sync::atomic::Ordering::Relaxed);
 }
 
 #[cfg(test)]

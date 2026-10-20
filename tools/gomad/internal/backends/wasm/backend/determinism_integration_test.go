@@ -48,9 +48,14 @@ func determinismArtifactFixture(t *testing.T) (*Provider, target.Spec) {
 			require.Equal(t, 1, strings.Count(string(data), anchor))
 			data = []byte(strings.Replace(string(data), anchor, anchor+`
 	gomadDeterminismFixturePending = gomadDeterminismFixturePending || gomadSeed&(1<<63) != 0
-	gomadSeed &= ^uint64(1<<63)
+	gomadDeterminismFixtureOutputPending = gomadDeterminismFixtureOutputPending || gomadSeed&(1<<62) != 0
+	gomadSeed &= ^uint64((1<<63)|(1<<62))
 `, 1) + `
 var gomadDeterminismFixturePending bool
+var gomadDeterminismFixtureOutputPending bool
+
+//go:linkname gomadDeterminismFixtureOutput
+func gomadDeterminismFixtureOutput() bool { return gomadDeterminismFixtureOutputPending }
 
 //go:linkname gomadDeterminismFixtureDraw
 func gomadDeterminismFixtureDraw() {
@@ -120,6 +125,12 @@ func recordDeterminismArtifact(t *testing.T, provider *Provider, spec target.Spe
 	}
 	run, err = observed.FromInspection(run, metadata)
 	require.NoError(t, err)
+	if execution.Cluster == nil {
+		log, err := determinism.ParseEventOrder(execution.Incarnations[0].Result.HelperStderr())
+		require.NoError(t, err)
+		require.True(t, log.Complete, "%s", log.Reason)
+		run.OrderLog = &log
+	}
 	return run
 }
 
@@ -132,6 +143,7 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 		{"draw", determinism.KindDrawCounter, false},
 		{"clock", determinism.KindClock, false},
 		{"handoff", determinism.KindWorldOrder, true},
+		{"output-clock", determinism.KindOutput, false},
 	} {
 		t.Run(test.fault, func(t *testing.T) {
 			provider, spec := determinismArtifactFixture(t)
@@ -150,29 +162,44 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 			report, err := determinism.Compare(expected, actual)
 			require.NoError(t, err)
 			require.NotNil(t, report.First, "%s", report.Format())
-			var event *determinism.Divergence
-			for index := range report.BoundaryEvents {
-				candidate := &report.BoundaryEvents[index]
-				require.Equal(t, report.First.At.Shared, candidate.At.Shared)
-				if candidate.Kind == test.kind {
-					event = candidate
-				}
-			}
-			require.NotNil(t, event, "%s", report.Format())
+			event := report.First
+			require.Equal(t, "helper-event", report.Ordering, "%s", report.Format())
+			require.Equal(t, test.kind, event.Kind, "%s", report.Format())
 			require.NotEmpty(t, event.Instance)
 			require.Equal(t, uint64(1), event.Incarnation)
 			require.NotEqual(t, event.Expected, event.Actual)
 			require.Positive(t, event.At.Shared)
 			if test.fault == "draw" {
-				require.Contains(t, event.Field, "runq_draws")
+				var before, after determinism.OrderedEvent
+				require.NoError(t, json.Unmarshal([]byte(event.Expected), &before))
+				require.NoError(t, json.Unmarshal([]byte(event.Actual), &after))
+				var left, right map[string]uint64
+				require.NoError(t, json.Unmarshal(before.Value, &left))
+				require.NoError(t, json.Unmarshal(after.Value, &right))
+				require.Equal(t, left["runq_draws"]+1, right["runq_draws"])
 			}
 			require.NotNil(t, report.Reproducer)
 			require.Empty(t, report.Reproducer.PrefixUnavailable, "%s", report.Format())
 			require.Contains(t, report.Reproducer.ReplayCommand, expected.ArtifactDir)
-			if !test.cluster {
+			if test.fault == "output-clock" {
+				var output, clock, nextBoundary uint64
+				output = event.At.Shared
+				for _, marker := range actual.OrderLog.Boundaries {
+					if marker.Order >= output && (nextBoundary == 0 || marker.Order < nextBoundary) {
+						nextBoundary = marker.Order
+					}
+				}
+				for _, candidate := range actual.OrderLog.Events {
+					if candidate.Order > output && candidate.Kind == determinism.KindClock {
+						clock = candidate.Order
+						break
+					}
+				}
+				require.Greater(t, clock, output, "guest output must commit before its later clock read")
+				require.LessOrEqual(t, clock, nextBoundary, "both real effects must share one retained boundary interval")
+			}
+			if !test.cluster && test.fault != "output-clock" {
 				require.GreaterOrEqual(t, len(expected.Boundaries), 9)
-				require.Equal(t, expected.Boundaries[8].At, event.At)
-				require.Equal(t, expected.Boundaries[7].Decision, report.Reproducer.Stop.Stop.Value)
 				difference, err := choice.DiffDiagnostics(expected.Incarnations[0].Diagnostic, actual.Incarnations[0].Diagnostic)
 				require.NoError(t, err)
 				require.NotNil(t, difference)

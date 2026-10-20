@@ -15,6 +15,12 @@ pub(super) enum Coordinator {
 }
 
 impl Coordinator {
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    pub(super) fn set_event_owners(&self, owners: Vec<crate::event_order::Context>) {
+        if let Self::Baton(baton) = self {
+            baton.set_event_owners(owners);
+        }
+    }
     pub(super) fn in_order(instances: usize) -> Self {
         Self::Baton(Arc::new(Baton::new(instances, Box::new(InOrder))))
     }

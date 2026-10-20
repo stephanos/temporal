@@ -444,6 +444,23 @@ pub fn execute(
         }
         None => Coordinator::in_order(request.instances.len()),
     };
+    #[cfg(any(feature = "determinism-fixture", feature = "stress-jitter"))]
+    coordinator.set_event_owners(
+        request
+            .instances
+            .iter()
+            .map(|instance| crate::event_order::Context {
+                instance: instance.id.clone(),
+                incarnation: 1,
+                trace: 0,
+                decision: 0,
+                time_nanos: instance
+                    .local_model
+                    .as_ref()
+                    .map_or(0, |model| model.now.cast_signed()),
+            })
+            .collect(),
+    );
     let failure: RunFailure = Arc::new(Mutex::new(None));
     let reports: Arc<Mutex<Vec<(String, Report)>>> = Arc::new(Mutex::new(Vec::new()));
     let mut threads = Vec::new();
