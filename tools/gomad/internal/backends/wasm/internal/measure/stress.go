@@ -57,12 +57,14 @@ func stressCases() []stressCase {
 }
 
 type stressObservation struct {
-	Run          determinism.Run   `json:"run"`
-	Directory    string            `json:"directory"`
-	Installation string            `json:"installation"`
-	Fresh        bool              `json:"fresh_seeded_execution"`
-	Digests      map[string]string `json:"digests"`
-	Coordinates  bool              `json:"coordinates_available"`
+	Run                  determinism.Run   `json:"run"`
+	Directory            string            `json:"directory"`
+	Installation         string            `json:"installation"`
+	Fresh                bool              `json:"fresh_seeded_execution"`
+	Digests              map[string]string `json:"digests"`
+	Coordinates          bool              `json:"coordinates_available"`
+	HelperPeakRSSBytes   uint64            `json:"helper_peak_rss_bytes"`
+	HelperExecutionNanos uint64            `json:"helper_authorization_to_terminal_nanos"`
 }
 
 type stressCell struct {
@@ -535,6 +537,10 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 				return
 			}
 			helperDiagnostics = execution.Cluster.HelperStderr()
+			observation.HelperExecutionNanos = execution.Cluster.AuthorizationToTerminalNanos
+			if execution.Cluster.HelperResourceUsage != nil {
+				observation.HelperPeakRSSBytes = execution.Cluster.HelperResourceUsage.PeakRSSBytes
+			}
 		} else {
 			if len(execution.Incarnations) != 1 {
 				collectErr = errors.New("single guest stress run has wrong incarnation cardinality")
@@ -547,6 +553,10 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 			canary = test.Workload == "runtime" && *execution.Incarnations[0].Result.ExitCode == 17
 			metadata = execution.Incarnations[0].Result.InspectionMetadata
 			helperDiagnostics = execution.Incarnations[0].Result.HelperStderr()
+			observation.HelperExecutionNanos = execution.Incarnations[0].Result.AuthorizationToTerminalNanos
+			if execution.Incarnations[0].Result.HelperResourceUsage != nil {
+				observation.HelperPeakRSSBytes = execution.Incarnations[0].Result.HelperResourceUsage.PeakRSSBytes
+			}
 		}
 		if err := stressEventOrder(ctx, root, helperDiagnostics, &observation); err != nil {
 			collectErr = err
@@ -591,8 +601,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	manifest := opened.Manifest()
 	if test.Workload == "two-cluster" {
 		if err := stressRetainedCluster(ctx, root, opened, &observation); err != nil {
-			_ = opened.Close()
-			return observation, err
+			return observation, errors.Join(err, opened.Close())
 		}
 	}
 	if err := opened.Close(); err != nil {
