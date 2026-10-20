@@ -174,3 +174,16 @@ It used a private single-link helper copy with SHA-256
 in that directory and explicit stock compiler/test-helper environment variables.
 The run covers the regenerated network consumers and the corrected helper refusal
 checker together; it is not full candidate qualification or stress acceptance.
+
+The next clean source candidate is `8cd478404b2db7d2fb2c528d210bc7cfa29b8be8`.
+Frozen manifest digest:
+`4fdcc6b2d1dcde0499c6b53d60ebdc3506ed33902ce86bb5d73a9c7f7061fa79`.
+Qualification orchestration session `79596` is live: root observed its
+prepare-only test and compiler subprocesses, after the fresh helper build.
+Its log is `/home/agent/wt/evidence/qualification-final/run-8cd478404b.log`;
+the adjacent explicit candidate config and `run-current.sh` bind its inputs.
+The qualification worker owns this handle through terminal completion. Do not
+restart it because an observation times out. The `fn188`, `fn221` and frozen
+qualification worktrees are all at this candidate; the fn-227 repair worktree
+stays at `7c1d7ab371` for possible review fixes. Acceptance review must resume
+the existing merged receipt after the missing full qualification is supplied.
