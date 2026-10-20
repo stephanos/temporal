@@ -25,12 +25,18 @@ is reachable; never claim two Linux directories prove cross-OS identity. Exhaust
 available safe executor checks and deliver the Linux implementation/proof rather
 than stopping before making progress. Task .2 owns embedding and freshness wiring.
 
-**Touches:** `model/Cargo.toml`, `model/scripts/guest.sh`, `model/scripts/tests/**`, `model/DESIGN.md`
+**Touches:** `model/Cargo.toml`, `model/scripts/guest.sh`, `model/scripts/tests/**`, `model/DESIGN.md`, `model/GUEST_BUILDS.md`
 **Quick:** bash syntax and script controls for fresh/stale/build-failure exit codes; the two-clean-checkout proof for both guests.
 **Full gates:** `make model-check`; `make model-time`; stock/control Go parity against artifacts built with profile.guest.
 Use a lane-specific Cargo target and isolated proof targets. Proof source copies
 are temporary artifacts, not retained worktrees. No new dependencies or Model,
 ABI, protocol, export or Realization changes.
+Keep DESIGN.md below the documented 1,000-line threshold: retain the actual proof
+summary, hashes/sizes, source/platform/toolchain and unresolved requirements there,
+with exact detailed reproduction/diagnostic commands in a linked focused
+model/GUEST_BUILDS.md. This documentation layout does not waive caught-panic or
+macOS/cross-OS obligations, and must not move unrelated older design sections.
+
 ## Acceptance
 - [ ] profile.guest and guest.sh present with the specified exit codes
 - [ ] Two clean checkouts produce identical bytes for both guests; sizes in DESIGN.md
