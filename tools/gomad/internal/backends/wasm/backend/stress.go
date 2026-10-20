@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/json"
 	"errors"
+	"maps"
 	"reflect"
+	"slices"
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
@@ -60,7 +62,8 @@ func (p *Provider) bindStressScenario(base wasi.Request, spec model.Spec, provid
 		return spec, err
 	}
 	boots := make(map[model.BootID][]byte, len(provider.Boots))
-	for id, request := range provider.Boots {
+	for _, id := range slices.Sorted(maps.Keys(provider.Boots)) {
+		request := provider.Boots[id]
 		request.Config.Environment = nil
 		request.Config.EntropyKey = [32]byte{}
 		boots[id], err = json.Marshal(request)
@@ -90,7 +93,8 @@ func (p *Provider) bindStressScenario(base wasi.Request, spec model.Spec, provid
 	if len(boots) != len(provider.Boots) || len(spec.Nodes) != len(original.Nodes) || provider.Oracles != nil {
 		return spec, errors.New("stress scenario changed prepared topology or oracle policy")
 	}
-	for id, request := range provider.Boots {
+	for _, id := range slices.Sorted(maps.Keys(provider.Boots)) {
+		request := provider.Boots[id]
 		if _, err := wasi.NewEnvironment(request.Config); err != nil {
 			return spec, err
 		}
