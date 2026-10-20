@@ -41,16 +41,16 @@ func clusterTransportStageLiterals(value clusterTransportStageCase) error {
 	if value.Schema != clusterTransportStageSchema || value.GoImplementationSHA256 != pin || value.Target != (clusterTransportCodecTarget{Node: "a", Incarnation: 2}) {
 		return fmt.Errorf("stage schema/implementation/target differs")
 	}
-	var frame, dimension string
+	var frame, kind, dimension string
 	switch value.Name {
 	case "current-tag-reaches-payload":
-		frame, dimension = "{\"instance\":\"a\",\"incarnation\":2,\"type\":\"reply\"}\n", "unexpected instance frame"
+		frame, kind, dimension = "{\"instance\":\"a\",\"incarnation\":2,\"type\":\"reply\"}\n", "unsupported", "unknown cluster frame reply"
 	case "malformed-json-before-attribution":
-		frame, dimension = "{\n", "malformed JSON"
+		frame, kind, dimension = "{\n", "invalid", "malformed JSON"
 	default:
 		return fmt.Errorf("unknown stage case %q", value.Name)
 	}
-	if value.IncomingFrame != frame || value.Expected != (clusterTransportCodecError{Kind: "invalid", Dimension: dimension, Message: "WASI invalid: " + dimension}) {
+	if value.IncomingFrame != frame || value.Expected != (clusterTransportCodecError{Kind: kind, Dimension: dimension, Message: "WASI " + kind + ": " + dimension}) {
 		return fmt.Errorf("stage input/exact refusal differs")
 	}
 	return nil

@@ -8,6 +8,8 @@ import (
 	"os/exec"
 	"strings"
 	"testing"
+
+	"github.com/stretchr/testify/require"
 )
 
 func TestDeterminismRefuseExecuteRequest(t *testing.T) {
@@ -64,6 +66,46 @@ func TestDeterminismRefuseUnknownHelperFrames(t *testing.T) {
 				}
 			})
 		}
+	}
+}
+
+func TestDeterminismRefuseUnknownClusterInstanceFrames(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name, frame, kind, dimension string
+		terminated, terminal         bool
+	}{
+		{"untagged", `{"type":"future_reply"}`, "unsupported", "unknown cluster frame future_reply", false, false},
+		{"first incarnation", `{"instance":"a","type":"future_reply"}`, "unsupported", "unknown cluster frame future_reply", false, false},
+		{"restarted incarnation", `{"instance":"a","incarnation":2,"type":"future_reply"}`, "unsupported", "unknown cluster frame future_reply", false, false},
+		{"malformed instance", `{"instance":7,"type":"future_reply"}`, "invalid", "cluster instance tag", false, false},
+		{"empty instance", `{"instance":"","type":"future_reply"}`, "invalid", "cluster instance tag", false, false},
+		{"unknown instance", `{"instance":"unknown","type":"future_reply"}`, "invalid", "unattributable cluster frame", false, false},
+		{"invalid incarnation", `{"instance":"a","incarnation":1,"type":"future_reply"}`, "invalid", "cluster incarnation tag", false, false},
+		{"unknown incarnation", `{"instance":"a","incarnation":3,"type":"future_reply"}`, "invalid", "unattributable cluster frame", false, false},
+		{"terminated instance", `{"instance":"a","type":"future_reply"}`, "invalid", "frame after incarnation terminal", true, false},
+		{"terminal session", `{"instance":"a","type":"future_reply"}`, "invalid", "cluster frame after terminal", false, true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			first, restarted := &clusterState{done: make(chan struct{})}, &clusterState{done: make(chan struct{})}
+			if test.terminated {
+				close(first.done)
+			}
+			session := &ClusterSession{terminal: test.terminal, states: map[BrokerNode]*clusterState{
+				{ID: "a", Incarnation: 1}: first,
+				{ID: "a", Incarnation: 2}: restarted,
+			}}
+			var boundary *BoundaryError
+			require.ErrorAs(t, (&clusterStream{session: session}).frame([]byte(test.frame)), &boundary)
+			require.Equal(t, &BoundaryError{Kind: test.kind, Dimension: test.dimension}, boundary)
+			require.Equal(t, ClusterFrameCounts{}, session.counts)
+			select {
+			case <-restarted.done:
+				t.Fatal("refused frame published an incarnation terminal")
+			default:
+			}
+		})
 	}
 }
 
