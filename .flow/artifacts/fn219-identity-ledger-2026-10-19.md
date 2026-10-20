@@ -11,6 +11,22 @@ qualification, so they are listed at the end with exact commands for the conduct
 schedule on the frozen candidate. This ledger satisfies R5 only after those exits are
 recorded.
 
+Continuation audit (2026-10-20): implementation candidate `28c8c33729` also
+includes the recovered lint-classification and native import-order fixes from
+the earlier integrated batch. Focused model/generator/archcheck tests, default
+generation/validation and native generation/validation were rerun successfully;
+see [the acceptance audit](fn219-acceptance-audit-2026-10-20.md). The conductor
+owns the integrated candidate's WASM qualification and final identity
+measurements. The pending entries below remain pending until that evidence
+exists; these source checks do not substitute for it.
+
+The generator relocation itself produced zero output-body differences
+(`step1-zero-diff.txt`). Across the complete migration, stripping generated
+headers leaves exactly two changed `ImplementationSourceSHA256` literals:
+the shared choice codec and volume's private copy. These are the explained
+choice identity rotation in this ledger. Thus the cumulative R3 diff is not
+empty, even though codec behavior and every other generated body are unchanged.
+
 ## Identities
 
 Values come from `go run` of each package's identity function at base and at the candidate.
