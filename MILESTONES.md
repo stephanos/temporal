@@ -257,7 +257,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-219.1](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md) | ⬜ Todo | Promote the volume and network projections to owned source |
+| [fn-219.1](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md) | 🚧 In progress | Promote the volume and network projections to owned source |
 | [fn-219.2](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.2.md) | ⬜ Todo | Relocate the protocol generator and I/O wire schema into the parent module |
 | [fn-219.3](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.3.md) | ⬜ Todo | Rewire Makefile, archcheck and CI to the default set |
 | [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | ⬜ Todo | Record the identity ledger, requalify rotated identities and refresh documentation |
@@ -266,7 +266,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | ⬜ Todo | Factor the fixture configuration derivation into shared code and choose the verb |
+| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | 🚧 In progress | Factor the fixture configuration derivation into shared code and choose the verb |
 | [fn-220.2](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md) | ⬜ Todo | Expose the one-command setup and run TestFrontendSystemInfo end to end |
 | [fn-220.3](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.3.md) | ⬜ Todo | Document the one-command workflow |
 
@@ -274,7 +274,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | ⬜ Todo | Build the sweep harness and prove it on two packages |
+| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | 🚧 In progress | Build the sweep harness and prove it on two packages |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⬜ Todo | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
 
@@ -289,7 +289,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | ⬜ Todo | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
+| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | 🚧 In progress | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
 | [fn-188.2](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.2.md) | ⬜ Todo | Complete the site classes: runtime clock/draw patches, helper source scan, archcheck rule, engine settings |
 | [fn-188.3](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.3.md) | ⬜ Todo | Fail-closed request, reply and engine-setting boundaries on both sides |
 | [fn-188.4](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.4.md) | ⬜ Todo | First-divergence report across incarnations and World order, with reproducer |
