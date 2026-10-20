@@ -26,3 +26,10 @@ func TestEventOrderCaptureIsPrivateToDiagnosticRoles(t *testing.T) {
 	ordinary.SetEventOrderDiagnostics(false)
 	require.NotContains(t, ordinary.stressHostEnvironment, "GOMAD_WASM_EVENT_ORDER=1")
 }
+
+func TestClusterEventOrderAccessorIsDetached(t *testing.T) {
+	result := ClusterResult{helperStderr: []byte("sidecar")}
+	detached := result.HelperStderr()
+	detached[0] = 'X'
+	require.Equal(t, "sidecar", string(result.HelperStderr()))
+}
