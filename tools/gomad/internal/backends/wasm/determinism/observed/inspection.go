@@ -40,7 +40,7 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 	run.WorldOrder, run.Boundaries = nil, nil
 	for _, boundary := range evidence.Boundaries {
 		at := determinism.Coordinate{Shared: boundary.Order, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos)}
-		run.WorldOrder = append(run.WorldOrder, determinism.WorldStep{Order: boundary.Order, Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos), Digest: digest(evidence.World[:boundary.WorldBytes])})
+		run.WorldOrder = append(run.WorldOrder, determinism.WorldStep{Order: boundary.Order, Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, ChoiceOrdinal: boundary.Trace, VirtualTime: int64(boundary.TimeNanos), Digest: digest(evidence.World[:boundary.WorldBytes]) + "/" + digest(evidence.Lifecycle[:boundary.LifecycleBytes])})
 		run.Boundaries = append(run.Boundaries, determinism.ReplayBoundary{Instance: string(boundary.Handle.Node), Incarnation: boundary.Handle.Incarnation, Trace: boundary.Trace, Decision: boundary.Decision, At: at})
 	}
 	incarnations := make([]determinism.Incarnation, 0, len(evidence.Incarnations))
@@ -132,27 +132,45 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 				if err != nil {
 					return determinism.Run{}, err
 				}
+				registry := cluster.WASMInspectionRegistry{Closed: retained.Registry.Closed && retained.Registry.ClosedOrder <= boundary.Order}
+				if registry.Closed {
+					registry.ClosedOrder = retained.Registry.ClosedOrder
+				}
+				for _, registration := range retained.Registry.Entries {
+					if registration.AvailableOrder <= boundary.Order {
+						registry.Entries = append(registry.Entries, registration)
+					}
+				}
+				registered, err := json.Marshal(registry)
+				if err != nil {
+					return determinism.Run{}, err
+				}
 				if len(cut.ClockRun) != 0 {
 					incarnation.Operations = append(incarnation.Operations, determinism.Operation{At: at, Op: "clock_time_get", Input: "folded-run-at-boundary", Output: hex.EncodeToString(cut.ClockRun), Repeat: 1})
 				}
 				appendOutput(&incarnation, at, "stdout", retained.Streams.Stdout, stdout, cut.StdoutBytes)
 				appendOutput(&incarnation, at, "stderr", retained.Streams.Stderr, stderr, cut.StderrBytes)
 				stdout, stderr = cut.StdoutBytes, cut.StderrBytes
-				for _, model := range []struct{ name, value string }{{"network", hex.EncodeToString(cut.NetworkState)}, {"network-transcript", digest(retained.Streams.Network[:cut.NetworkBytes])}, {"volume", hex.EncodeToString(cut.StorageState)}, {"recovery", hex.EncodeToString(cut.RecoveryState)}, {"runtime-witness", digest(witness)}, {"volume-transcript", digest(retained.Streams.Storage[:cut.StorageBytes])}, {"namespace", digest(retained.Streams.WASI[:cut.WASIBytes])}} {
+				for _, model := range []struct{ name, value string }{{"network", hex.EncodeToString(cut.NetworkState)}, {"network-transcript", digest(retained.Streams.Network[:cut.NetworkBytes])}, {"volume", hex.EncodeToString(cut.StorageState)}, {"recovery", hex.EncodeToString(cut.RecoveryState)}, {"runtime-witness", digest(witness)}, {"inspection-registry", digest(registered)}, {"volume-transcript", digest(retained.Streams.Storage[:cut.StorageBytes])}, {"namespace", digest(retained.Streams.WASI[:cut.WASIBytes])}} {
 					incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: at, Model: model.name, Digest: model.value})
 				}
 			}
 		}
 		appendOutput(&incarnation, terminal, "stdout", retained.Streams.Stdout, stdout, uint64(len(retained.Streams.Stdout)))
 		appendOutput(&incarnation, terminal, "stderr", retained.Streams.Stderr, stderr, uint64(len(retained.Streams.Stderr)))
+		registered, err := json.Marshal(retained.Registry)
+		if err != nil {
+			return determinism.Run{}, err
+		}
 		for _, model := range []struct {
 			name string
 			data []byte
-		}{{"network-transcript", retained.Streams.Network}, {"volume-transcript", retained.Streams.Storage}, {"namespace", retained.Streams.WASI}} {
+		}{{"network-transcript", retained.Streams.Network}, {"volume-transcript", retained.Streams.Storage}, {"namespace", retained.Streams.WASI}, {"inspection-registry", registered}} {
 			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: model.name, Digest: digest(model.data)})
 		}
 		if retained.Handle == finalHandle {
 			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: "world", Digest: digest(evidence.World)})
+			incarnation.Transitions = append(incarnation.Transitions, determinism.Transition{At: terminal, Model: "lifecycle", Digest: digest(evidence.Lifecycle)})
 		}
 		slices.SortStableFunc(incarnation.Operations, func(a, b determinism.Operation) int {
 			if a.At.Shared < b.At.Shared {

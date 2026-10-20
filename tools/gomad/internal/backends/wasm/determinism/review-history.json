@@ -1,0 +1,11 @@
+[
+  {
+    "timestamp": "2026-10-20T15:00:00Z",
+    "reviewed": {
+      "date": "2026-10-20",
+      "go_toolchain": "go1.27.1",
+      "wasmtime": "47.0.3",
+      "rust": "1.99.1"
+    }
+  }
+]

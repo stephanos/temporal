@@ -399,6 +399,9 @@ not a claim that all nondeterminism is eliminated.
 The inventory pins the cooperative compiler guard, Cargo.lock Wasmtime version
 and Rust toolchain, with an explicit review date. Dependency updates require
 reviewing the rows and updating the versions and review date together.
+The append-only `determinism/review-history.json` ledger binds each review to
+an advancing UTC timestamp and version tuple; changing pins alone fails the
+inventory gate. A second review on the same day uses a later timestamp.
 `make test-determinism` checks the inventory, helper source sites, architecture
 and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers
