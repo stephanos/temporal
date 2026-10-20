@@ -1,6 +1,10 @@
-.PHONY: generate clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain test-simulation qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
+.PHONY: generate generate-native validate-native validate-protocol clean prune-cache clean-qualifications clock-audit compatibility-pack-qualification compiler-test-compiler core-qualification core-qualification-set intercept-test test-toolchain test-simulation qualification-set qualification-set-merge runner test-host overlay-test world-test toolchain upgrade-dossier validate validate-toolchain validate-compatibility validate-qualification tests-qualification-generate test-harness test-builder test-live-capability test-runtime test-upstream test
 
 .DEFAULT_GOAL := generate
+
+# Native backend inputs and outputs are resolved only when a native target
+# needs them, so default targets never walk internal/backends/native.
+.SECONDEXPANSION:
 
 include version_generated.mk
 
@@ -45,8 +49,8 @@ test-wasm: test-wasm-slim-refusals
 	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
-		-run '^TestWASMTestsDoNotImportNativeBuilder$$|^TestGeneratedProjectionMatchesNativeSources$$|^TestGeneratedNetworkIsCurrent$$|^TestProjection' \
-		./internal/backends/wasm ./internal/model/volume ./internal/model/volume/internal/projection ./internal/model/network/generate && \
+		-run '^TestWASMTestsDoNotImportNativeBuilder$$' \
+		./internal/backends/wasm && \
 	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -v -tags test_dep -count=1 -timeout=15m -skip '^TestNamespaceConformance' ./internal/backends/wasm/...
@@ -57,11 +61,22 @@ wasm-helper:
 wasm-test-helper:
 	$(MAKE) -C internal/backends/wasm test-helper
 
-OVERLAY_FILES := $(shell find internal/backends/native/toolchain/runtime/overlay -type f)
-VERSION_INPUTS := internal/backends/native/toolchain/version/version.json $(shell find internal/backends/native/toolchain/version -type f -not -name '*_test.go') internal/backends/native/cmd/gomadtool/version.go
-BOUNDARY_INPUTS := internal/backends/native/transcript/boundary/manifest.json internal/backends/native/transcript/boundary/compiler-tests.json $(shell find internal/backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find internal/backends/native/generation/boundary -name '*.go' -not -name '*_test.go')
-BOUNDARY_OUTPUTS := $(GOMAD_COMPILER_SPEC) $(GOMAD_EXPECTED_INTERCEPTS) $(GOMAD_BOUNDARY_REPORT) internal/backends/native/transcript/boundary_generated.go
-COMPATIBILITY_INPUTS := $(shell find internal/backends/native/compatibilitypack/requests internal/backends/native/compatibilitypack/authoring -type f) internal/backends/native/compatibilitypack/working-directories.json internal/backends/native/compatibilitypack/schema.go internal/backends/native/compatibilitypack/v2_selection.go
+# The shared wire codecs are written by protocolgen with stock Go and no tags.
+generate:
+	go run ./internal/model/cmd/protocolgen
+
+validate: validate-protocol
+
+validate-protocol:
+	go run ./internal/model/cmd/protocolgen -check
+
+# Everything below is the native backend, which is retired from execution but
+# still generates and validates under its own selection (gomad_native).
+OVERLAY_FILES = $(shell find internal/backends/native/toolchain/runtime/overlay -type f)
+VERSION_INPUTS = internal/backends/native/toolchain/version/version.json $(shell find internal/backends/native/toolchain/version -type f -not -name '*_test.go') internal/backends/native/cmd/gomadtool/version.go
+BOUNDARY_INPUTS = internal/backends/native/transcript/boundary/manifest.json internal/backends/native/transcript/boundary/compiler-tests.json $(shell find internal/backends/native/transcript/boundary -type f -not -name '*_test.go') $(shell find internal/backends/native/generation/boundary -name '*.go' -not -name '*_test.go')
+BOUNDARY_OUTPUTS = $(GOMAD_COMPILER_SPEC) $(GOMAD_EXPECTED_INTERCEPTS) $(GOMAD_BOUNDARY_REPORT) internal/backends/native/transcript/boundary_generated.go
+COMPATIBILITY_INPUTS = $(shell find internal/backends/native/compatibilitypack/requests internal/backends/native/compatibilitypack/authoring -type f) internal/backends/native/compatibilitypack/working-directories.json internal/backends/native/compatibilitypack/schema.go internal/backends/native/compatibilitypack/v2_selection.go
 COMPILER_TEST_OVERLAY := $(CURDIR)/.toolchain/compiler-test-overlay
 COMPILER_TEST_COMPILE := $(CURDIR)/.toolchain/compiler-test/compile
 GOMAD_CACHE_MAX_AGE_DAYS ?= 14
@@ -79,7 +94,7 @@ TESTS_QUALIFICATION_GENERATE := qualification-manifest-generate --root=$(CURDIR)
 	--spec=tools/gomad/internal/backends/native/qualification/tests.generator.json \
 	--output=tools/gomad/internal/backends/native/qualification/tests.json
 
-generate: $(VERSION_INPUTS) $(BOUNDARY_INPUTS) $(COMPATIBILITY_INPUTS)
+generate-native: $$(VERSION_INPUTS) $$(BOUNDARY_INPUTS) $$(COMPATIBILITY_INPUTS)
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool boundary-generate
@@ -130,7 +145,7 @@ intercept-test: compiler-test-compiler
 clock-audit: toolchain
 	bash internal/backends/native/conformance/scripts/clock_audit_test.sh
 
-toolchain: validate-toolchain $(GOMAD_PATCH_FILE) $(OVERLAY_FILES) $(BOUNDARY_OUTPUTS)
+toolchain: validate-toolchain $$(GOMAD_PATCH_FILE) $$(OVERLAY_FILES) $$(BOUNDARY_OUTPUTS)
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOCACHE=$(CURDIR)/.toolchain/generator-cache GOTOOLCHAIN=local GOWORK=off \
 		go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool toolchain-build --root=$(CURDIR)
 
@@ -239,9 +254,9 @@ test-simulation: toolchain
 world-test:
 	env -u GOMADSEED -u GOMAD_CHILD_SEED GOWORK=off go test -race -tags test_dep ./internal/model/world/...
 
-validate: validate-toolchain validate-compatibility validate-qualification
+validate-native: validate-toolchain validate-compatibility validate-qualification
 
-validate-toolchain:
+validate-toolchain: validate-protocol
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate -check
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool protocol-generate -check
 	GOCACHE=$(CURDIR)/.toolchain/generator-cache go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool boundary-generate -check

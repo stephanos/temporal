@@ -108,12 +108,16 @@ func TestLoadNativePureSet(t *testing.T) {
 		t.Fatal(err)
 	}
 	pure := func(path string) bool {
-		for _, prefix := range []string{"internal/model/world/", "internal/evidence/record/", "internal/runner/internal/exploration/", "internal/backends/native/build/internal/capabilitypolicy/"} {
+		prefixes := []string{"internal/model/world/", "internal/evidence/record/", "internal/runner/internal/exploration/"}
+		if NativeSelected {
+			prefixes = append(prefixes, nativeDirectory+"/build/internal/capabilitypolicy/")
+		}
+		for _, prefix := range prefixes {
 			if strings.HasPrefix(path, prefix) && !strings.HasPrefix(path, "internal/model/world/process/") {
 				return true
 			}
 		}
-		return path == "internal/runner/internal/campaign/controller.go" || path == "internal/backends/native/build/capability_evaluation.go" || path == "internal/model/clock/simulation_progress.go"
+		return path == "internal/runner/internal/campaign/controller.go" || NativeSelected && path == nativeDirectory+"/build/capability_evaluation.go" || path == "internal/model/clock/simulation_progress.go"
 	}
 	started := time.Now()
 	p, err := load(root, goCommand(), host, pure)

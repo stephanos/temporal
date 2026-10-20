@@ -61,9 +61,9 @@ Source tasks retain implementation, portable Go coverage (including portable nat
 
 Owner execution scope: complete the remaining WASM work in dependency order:
 
-1. Complete [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md) upstream sync: merge `temporalio/temporal` `main` into `gomad` (merge, not rebase, so retained evidence SHAs stay valid) and requalify.
-2. Complete [fn-225](.flow/specs/fn-225-gomad-bounded-harness-result-retention.md) bounded harness result retention immediately after fn-189, before fn-187 and the remaining milestones. The owner prioritized this order on 2026-10-19. The current run stops after fn-225 and cleanup of released artifacts/worktrees.
-3. Follow with [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md) helper fixture tests and module ownership. Its module restructure follows its corpus and coverage work.
+1. ~~Complete fn-189 upstream sync.~~ Done 2026-10-20. The integration base is Temporal `main` at `48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge `0077477965a5b766b95a667247a9f562c100941b`. Frozen candidate `e50c6476fb` passed qualification, and the matched-release comparison moved to fn-185. See the [integration report](.flow/artifacts/fn189-upstream-sync-2026-10-17.md) and the [close-out](.flow/artifacts/fn189-fn187-closeout-2026-10-20.md).
+2. ~~Complete fn-225 bounded harness result retention immediately after fn-189.~~ Done 2026-10-20, merged as `76bc9b75f5`. Measurement output roots keep the latest success and one recent failure; see the [spec](.flow/specs/fn-225-gomad-bounded-harness-result-retention.md).
+3. ~~Follow with fn-187 helper fixture tests and module ownership.~~ Done 2026-10-20; see the [close-out](.flow/artifacts/fn189-fn187-closeout-2026-10-20.md).
 4. ~~Finish with [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) host-side cost profile, after fn-187.~~ Superseded on 2026-10-19: fn-185 moves below the goal-path work (see the retirement decision below). Extend the moved measurement command and final helper module owners. fn-185 opens no optimization work. This order follows the owner decision on 2026-10-16 to put fn-185 last and fn-187 immediately before it.
 
 ### Native backend isolation (owner decision, 2026-10-16)
@@ -85,6 +85,10 @@ The owner answered, "since this is WASM, we don't need a particular env. that wa
 ### Performance checks deferred to fn-185 (owner decision, 2026-10-17)
 
 The owner asked, "can we defer the perf checks to fn-185 and then close out fn-182 and fn-184?" The wall-clock measurements of fn-182 R4 (cold compilation, warm preparation/load, fresh-instance startup, execution wall time and helper peak RSS for full versus slim guests) and fn-184 R5 (build, vet, lint and default test target wall times for the default and selected sets) move to [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md) R6, task .2. The matched same-host baseline/candidate contract, repetitions, median/range, gain-versus-spread labels, identities and rerun commands are unchanged. fn-182 and fn-184 close with the byte and count measurements that already exist (module and compiled-cache bytes; package and line counts), recorded in their close-out artifacts. No performance gain is claimed until fn-185 measures it.
+
+### One-hour validation limit (owner decision, 2026-10-19)
+
+The owner decided, "we can't have validation take longer than 1h". Full validation of a candidate (the WASM qualification ladder) must finish within 60 minutes of wall-clock time. The driver runs independent stages in parallel lanes under core and memory caps, gives timing- and deadline-sensitive stages the host to themselves, and fails when wall time exceeds 60 minutes. Only scheduling changes; no stage command, budget, deadline, seed, oracle or assertion is relaxed. Retired native stages leave the ladder, and the matched-release speed comparison moves out of validation into the fn-185 performance window.
 
 ### Native backend retirement and the functional-test goal (owner decision, 2026-10-19)
 
@@ -241,35 +245,6 @@ CI, PR, or push authority.
 
 ## WASM
 
-### Upstream sync — [fn-189](.flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md)
-
-The integration base is Temporal `main` at
-`48a1e5ff025e55b3d4d0f44247423d4c279ff636`, retained by merge
-`0077477965a5b766b95a667247a9f562c100941b`. The
-[integration report](.flow/artifacts/fn189-upstream-sync-2026-10-17.md)
-separates the merge and source evidence from still-open qualification.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-189.1](.flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md) | 🚧 In progress | Merge upstream temporalio/temporal main into gomad and requalify |
-
-### Bounded harness result retention — [fn-225](.flow/specs/fn-225-gomad-bounded-harness-result-retention.md)
-
-Owner decision, 2026-10-19. Complete fn-225 after frozen fn-189 acceptance and
-before fn-187 or the remaining milestones. The current run stops after fn-225
-and cleanup of released artifacts/worktrees.
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-225.1](.flow/tasks/fn-225-gomad-bounded-harness-result-retention.1.md) | 🚧 In progress | Bound harness outputs with immutable receipt paths and safe latest-result replacement |
-
-### WASM helper fixture tests and module ownership — [fn-187](.flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md)
-
-| Name / ID | Status | Description |
-| --- | --- | --- |
-| [fn-187.4](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.4.md) | 🚧 In progress | Restructure model, engine, namespace and cluster modules behind the corpus |
-| [fn-187.5](.flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md) | ⬜ Todo | Measure and document the simplified test suite |
-
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
 | Name / ID | Status | Description |
@@ -282,7 +257,7 @@ and cleanup of released artifacts/worktrees.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-219.1](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md) | ⬜ Todo | Promote the volume and network projections to owned source |
+| [fn-219.1](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.1.md) | 🚧 In progress | Promote the volume and network projections to owned source |
 | [fn-219.2](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.2.md) | ⬜ Todo | Relocate the protocol generator and I/O wire schema into the parent module |
 | [fn-219.3](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.3.md) | ⬜ Todo | Rewire Makefile, archcheck and CI to the default set |
 | [fn-219.4](.flow/tasks/fn-219-gomad-promote-the-model-projections-and.4.md) | ⬜ Todo | Record the identity ledger, requalify rotated identities and refresh documentation |
@@ -291,7 +266,7 @@ and cleanup of released artifacts/worktrees.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | ⬜ Todo | Factor the fixture configuration derivation into shared code and choose the verb |
+| [fn-220.1](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.1.md) | 🚧 In progress | Factor the fixture configuration derivation into shared code and choose the verb |
 | [fn-220.2](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.2.md) | ⬜ Todo | Expose the one-command setup and run TestFrontendSystemInfo end to end |
 | [fn-220.3](.flow/tasks/fn-220-gomad-one-command-temporal-test-setup.3.md) | ⬜ Todo | Document the one-command workflow |
 
@@ -299,7 +274,7 @@ and cleanup of released artifacts/worktrees.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | ⬜ Todo | Build the sweep harness and prove it on two packages |
+| [fn-221.1](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.1.md) | 🚧 In progress | Build the sweep harness and prove it on two packages |
 | [fn-221.2](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.2.md) | ⬜ Todo | Run the full sweep and retain the support matrix |
 | [fn-221.3](.flow/tasks/fn-221-gomad-functional-suite-triage-sweep-on.3.md) | ⬜ Todo | Rank reasons and recommend follow-on specs |
 
@@ -314,7 +289,7 @@ and cleanup of released artifacts/worktrees.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | ⬜ Todo | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
+| [fn-188.1](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.1.md) | 🚧 In progress | Determinism inventory: schema, loader and completeness over the import table and seeded streams |
 | [fn-188.2](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.2.md) | ⬜ Todo | Complete the site classes: runtime clock/draw patches, helper source scan, archcheck rule, engine settings |
 | [fn-188.3](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.3.md) | ⬜ Todo | Fail-closed request, reply and engine-setting boundaries on both sides |
 | [fn-188.4](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.4.md) | ⬜ Todo | First-divergence report across incarnations and World order, with reproducer |

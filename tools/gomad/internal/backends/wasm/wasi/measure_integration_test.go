@@ -307,23 +307,13 @@ func prototypeFixtureConfig() Config {
 	return config
 }
 
-// prototypeTemporalConfig mirrors the admitted one-box guest configuration.
 func prototypeTemporalConfig(t *testing.T, root, cwd string, args ...string) Config {
 	t.Helper()
-	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	config, err := TemporalConfig(root, cwd, args...)
 	if err != nil {
 		t.Fatal(err)
 	}
-	return Config{
-		Profile: CooperativeProfile, WorkingDirectory: cwd,
-		Args:                append([]string{"temporal.test", "-test.v", "-test.count=1", "-test.timeout=72h"}, args...),
-		Environment:         []string{"PWD=" + cwd, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn"},
-		WritableDirectories: []string{"/workspace", "/tmp", cwd},
-		CapturedInputs:      captured,
-		EntropyKey:          sha256.Sum256([]byte("gomad-wasm-prototype/v1")),
-		Clock:               ClockPolicy{EpochNanos: 946684800000000000},
-		Limits:              Limits{OutputBytes: 256 << 20, TranscriptBytes: 1 << 30, Calls: maxCooperativeCalls, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096},
-	}
+	return config
 }
 
 func cooperativeRequest(t *testing.T, fixture string) Request {

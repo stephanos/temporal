@@ -50,9 +50,10 @@ tools/gomad/ARCHITECTURE.md, .flow/artifacts/fn187-*.md
 - [ ] Batch handover maps every task and R-ID
 
 ## Done summary
-TBD
+Line counts bad3c401b5->e50c: Rust production +3042, inline test -4230, tests/ +423, wasi Go tests -837 (integration_test.go -8045). make -C internal/backends/wasm test median: repaired baseline 737.62s vs candidate 756.19s (+2.5%), so no wall-time simplification is claimed; pristine baseline fails on a known flaky cluster test. Docs cover the corpus contract, regeneration, invariants and wasmmeasure. Batch map .1-.5 -> R1-R5 is in .flow/artifacts/fn189-fn187-closeout-2026-10-20.md
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e50c6476fb
+- Tests: make -C tools/gomad/internal/backends/wasm test x3 interleaved per role
 - PRs:

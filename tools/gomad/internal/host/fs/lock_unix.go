@@ -55,6 +55,18 @@ func TryDescriptor(file *os.File) (*Lock, error) {
 	return &Lock{file: file}, nil
 }
 
+// TrySharedDescriptor leases a validated file without excluding other readers.
+// On success the Lock owns file; on failure the caller still owns it.
+func TrySharedDescriptor(file *os.File) (*Lock, error) {
+	if file == nil {
+		return nil, errors.New("lock descriptor is required")
+	}
+	if err := flock(file, syscall.LOCK_SH|syscall.LOCK_NB); err != nil {
+		return nil, err
+	}
+	return &Lock{file: file}, nil
+}
+
 func flock(file *os.File, how int) error {
 	err := syscall.Flock(int(file.Fd()), how)
 	for errors.Is(err, syscall.EINTR) {

@@ -77,6 +77,43 @@ func TestSharedLocksExcludeTryButNotEachOther(t *testing.T) {
 	}
 }
 
+func TestSharedDescriptorsProtectConcurrentConsumers(t *testing.T) {
+	t.Parallel()
+	path := filepath.Join(t.TempDir(), "resource.lock")
+	var leases []*Lock
+	for range 2 {
+		file, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0600)
+		if err != nil {
+			t.Fatal(err)
+		}
+		lease, err := TrySharedDescriptor(file)
+		if err != nil {
+			t.Fatal(errors.Join(err, file.Close()))
+		}
+		leases = append(leases, lease)
+		t.Cleanup(func() {
+			if err := lease.Release(); err != nil {
+				t.Error(err)
+			}
+		})
+	}
+	for _, lease := range leases {
+		if _, err := Try(path); !errors.Is(err, ErrContended) {
+			t.Fatalf("collection with an active consumer: %v", err)
+		}
+		if err := lease.Release(); err != nil {
+			t.Fatal(err)
+		}
+	}
+	exclusive, err := Try(path)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := exclusive.Release(); err != nil {
+		t.Fatal(err)
+	}
+}
+
 func TestTryDescriptorLocksTheHeldFileAndExcludesPathLocks(t *testing.T) {
 	path := filepath.Join(t.TempDir(), "resource.lock")
 	if err := os.WriteFile(path, nil, 0o600); err != nil {

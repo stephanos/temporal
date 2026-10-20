@@ -76,8 +76,8 @@ cross-host portability nor weak-memory/data-race coverage is claimed.
 | Workload cell | Source / owner | Qualification gate |
 | --- | --- | --- |
 | Fixture | `internal/evidence/qualification/testdata/fixture`, ready-select/timer/pass/canary | Actual controlled and cooperative repeated execution/replay exercised; final frozen candidate and measured result retention required |
-| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; generated Go projection as differential oracle) | fn-176 retains durable crash/missing-sync and selected-state acceptance; changed candidates require their own identity-bound replay and measured-cost gates |
-| One-box smoke | Existing Temporal persistence/functional guest owner | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending |
+| SQLite | `testdata/storage_sqlite`, deterministic volume owner (Rust helper volume since fn-176; Go volume model `internal/model/volume` as differential oracle) | fn-176 retains durable crash/missing-sync and selected-state acceptance; changed candidates require their own identity-bound replay and measured-cost gates |
+| One-box smoke | Existing Temporal persistence/functional guest owner: `./tests` `^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` (`unchanged-workflow-type-smoke`) | Unchanged source preparation, storage/transport artifact qualification and repeated measured pass/replay pending on the current candidate; gate commands are listed in [One-box cell gates](#one-box-cell-gates) |
 | Multi-instance | Single Rust helper with Rust broker/clock/World/network; selectable per-process Go reference | Partition/heal/crash/restart artifact qualification and repeated measured cells required for each frozen candidate |
 
 These are intended corpus cells, not four advertised supported workloads.
@@ -91,12 +91,80 @@ replay cells for both selections. Matched timing and memory comparisons moved to
 fn-185 by owner decision; no startup, execution or memory gain is claimed yet.
 Each selection replays within its own recorded module and execution identities.
 
+### One-box cell gates
+
+The one-box row's three gates map to these commands. Each runs from
+`tools/gomad/internal/backends/wasm` with `GOMAD_STOCK_GO`, `GOMAD_WASM_TEST_HELPER`,
+`GOMAD_WASM_INTEGRATED_SOURCE_MANIFEST`, `GOMAD_WASM_INTEGRATED_SOURCE_SHA256`, an
+absolute `GOMAD_WASM_QUALIFICATION_ROOT` set by the conductor's driver, in a fresh
+process per cell (the one-box cells always run the cooperative profile):
+
+| Gate | Command | Passes when |
+| --- | --- | --- |
+| Unchanged source preparation (early proof) | `GOMAD_WASM_QUALIFICATION_PREPARE_ONLY=1 GOMAD_WASM_QUALIFICATION_CELL=success go test -v -tags test_dep -count=1 -timeout=90m -run '^TestActualOneboxQualification$' ./qualification` (without `GOMAD_WASM_QUALIFY_WORKLOADS`) | exit 0 and `onebox-producer.json` names the prepared module; later cells rewrite that file, so the driver retains a copy and checks its module digest against both Results |
+| Repeated measured pass and replay | the same command without prepare-only, with `GOMAD_WASM_QUALIFY_WORKLOADS=1` and `GOMAD_WASM_QUALIFICATION_CELL=success`, then `=canary` | exit 0; each cell is deterministic, replays 2/2 retained artifacts to a match, has the expected outcome (1 replayable canary bug), is within budget and publishes its receipt |
+| Storage/transport artifact | `ValidateResult` and `ValidatePublicationReceipt` over both Results (performed by `OpenResult`, `TestActualMandatoryWorkloadCorpus` and the support list producer), plus `GOMAD_WASM_TEMPORAL_INSPECTION_ROOT=<abs> go test -v -tags test_dep -count=1 -timeout=100m -run '^TestTemporalInspectionRetainedFailure$/^onebox$' ./backend` | both Results validate and the inspection cell exits 0 |
+
+A missing or nonzero exit leaves the row pending with that gate and exit recorded.
+`TestActualOneboxFrontendSystemInfoQualification` is a second one-box family cell
+(`frontend-system-info`: `./tests/gomadfunctional` `^TestFrontendSystemInfo$`, same
+guest configuration with working directory `/workspace/tests/gomadfunctional`). It
+is not one of `ValidateCorpus`'s mandatory cells: it refuses
+`GOMAD_WASM_QUALIFY_WORKLOADS` and must publish into its own qualification root.
+It runs the preparation and measured gates under its own test name. The
+storage/transport gate's inspection cell is shared by every one-box family row:
+it inspects the one-box guest owner's `testdata/prototype_temporal` failure, not a
+row's own module or test, and both Results of each row are validated individually.
+
+### Per-test support list
+
+The support claim is a per-test list bound to one candidate
+(`gomad.wasm-support-list/v1`), not a functional-suite, package or cross-host claim.
+`BuildSupportList` in `qualification/support_list.go` produces it. It accepts only:
+
+- final, non-provisional `Result` and `PublicationReceipt` pairs that pass
+  `ValidateResult` and `ValidatePublicationReceipt`;
+- one success and one canary Result per test, from distinct fresh operator
+  processes, that pass the same per-cell outcome gate as the mandatory corpus,
+  run the registered `-test.run` selection (the canary runs `[`) and share one
+  prepared module;
+- cells whose integrated source, compiler, runtime overlay, helper, engine, model
+  and host identities all match;
+- a recorded zero exit for each row's `unchanged-source-preparation`,
+  `measured-pass-replay-success`, `measured-pass-replay-canary` and
+  `storage-transport-inspection` gates.
+
+Only cells in the source-reviewed registry, keyed by `Workload/ID`, can become
+rows. Its input types carry only qualification Results, receipts and gate exits,
+so a sweep or triage pass alone can never add a row. Anything else is refused,
+not dropped.
+
+A list records the candidate identities, then one row per supported test: package,
+function, selection, cell, module identity and size, workload source, host
+configuration, seed, repeats, both retained Result references with matched-replay
+and replayable-bug counts, and every gate with its command, exit and log. Its
+fixed statement says that every test not listed is unsupported on that candidate.
+A new candidate starts from an empty list and earns its rows again. Historical
+lists keep their identities, and `WriteSupportList` never replaces an existing file.
+
+`TestActualSupportList` is the producer in the qualification flow. It reads every
+Result and receipt under `GOMAD_WASM_SUPPORT_LIST_ROOTS` (absolute qualification
+roots, path-list separated) and the JSON array of gate records at
+`GOMAD_WASM_SUPPORT_LIST_GATES`. It then writes `<GOMAD_WASM_SUPPORT_LIST_OUTPUT>.json`
+and `.md` in the run's evidence root. The conductor copies both files unchanged
+next to the checkpoint records as `.flow/artifacts/fn222-support-list-<date>.{json,md}`. A run that
+writes a smoke-only list before trying further rows retains the full list when every
+row passed, and otherwise the smoke-only list; the copied list is the one whose rows
+all passed. Gate logs are referenced by absolute path inside that run's evidence root. Each root must hold only support-cell
+Results; a root that also holds other cells, such as the mandatory corpus root, is
+refused. No list exists yet for the current candidate.
+
 ## Post-migration cleanup
 
 The [fn-183 cleanup record](../../../../../.flow/artifacts/fn183-batch-2026-10-15.md)
 records the production/reference route inventory and the recovery decoder's
 removed temporary namespace copies. Differential namespace, volume, network and
-World models remain required, including generated-source drift checks, actual
+World models remain required, including generated wire-codec checks (`make validate`), actual
 storage recovery, independent evidence bounds and retained lifecycle replay.
 Reference selection is private to differential tests; ordinary installation and
 configuration cannot change a cluster's execution owner.

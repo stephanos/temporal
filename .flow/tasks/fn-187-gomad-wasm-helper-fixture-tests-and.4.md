@@ -63,9 +63,10 @@ tools/gomad/ARCHITECTURE.md, tools/gomad/internal/backends/wasm/README.md
 - [ ] Docs updated
 
 ## Done summary
-TBD
+Restructure verified on frozen candidate e50c6476fb: two corpus regenerations byte-identical, testdata changes additions-only since 5951d8bb96, no module-wide allow(dead_code), helper rotation bbbb48fb->b030ad44 recorded with the model unchanged, full 101-stage gate rerun passed. Close-out: .flow/artifacts/fn189-fn187-closeout-2026-10-20.md
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e50c6476fb
+- Tests: Rust 6-mode matrix, helper-corpus regen x2, q1 qualification driver 101/101 PASS
 - PRs:

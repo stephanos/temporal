@@ -1,0 +1,81 @@
+{
+  "schema": "gomad.wasm-first-divergence/v1",
+  "status": "diverged",
+  "first": {
+    "kind": "clock",
+    "instance": "a",
+    "incarnation": 1,
+    "ordinal": 2,
+    "coordinate": {
+      "Shared": 3,
+      "ChoiceOrdinal": 4,
+      "VirtualTime": 946684800000002000
+    },
+    "field": "operation",
+    "expected": "clock_time_get(clock_id=1)=946684800000003000",
+    "actual": "clock_time_get(clock_id=1)=946684800000003001"
+  },
+  "reproducer": {
+    "workload": "fixture/cluster-shifted-clock",
+    "seed": 7,
+    "perturbation": "clock",
+    "expected_digest": "sha256:0249d39a3b39fb8af2f1bd24df2f69e6fde6421a18d10aee3d4c4e9a74d87956",
+    "actual_digest": "sha256:e3793f5335a58140deae6475652a4a9762e6b4d0041a7d30b158c1035a7ceb21",
+    "identities": {
+      "engine": "e",
+      "helper": "h",
+      "model": "d",
+      "module": "m",
+      "source": "s"
+    },
+    "expected_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/cluster-shifted-clock"
+    ],
+    "actual_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/cluster-shifted-clock"
+    ],
+    "stop": {
+      "instance": "a",
+      "incarnation": 1,
+      "stop": {
+        "kind": "choice",
+        "value": 4
+      },
+      "dumps": [
+        "stacks",
+        "heap"
+      ],
+      "probes": null,
+      "maximum_bytes": 67108864,
+      "per_dump_bytes": 67108864,
+      "output_directory": ""
+    },
+    "replay_command": [
+      "gomad",
+      "replay",
+      "--stop",
+      "choice=4",
+      "--instance",
+      "a",
+      "--incarnation",
+      "1",
+      "/artifacts/reference"
+    ]
+  }
+}

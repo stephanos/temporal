@@ -14,6 +14,10 @@ func TryDescriptor(*os.File) (*Lock, error) {
 	return nil, ErrUnsupported
 }
 
+func TrySharedDescriptor(*os.File) (*Lock, error) {
+	return nil, ErrUnsupported
+}
+
 func Shared(string) (*Lock, error) {
 	return nil, ErrUnsupported
 }

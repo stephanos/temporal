@@ -39,7 +39,8 @@ func TestLintRuntimeHostRegistration(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			t.Parallel()
 			repo := &lintRepo{t: t, root: t.TempDir()}
-			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\nvar hostSourcePackages = []string{"+tc.entries+"}\n")
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n")
+			repo.write("tools/gomad/internal/archcheck/native_enabled.go", "package archcheck\nvar nativeSourceExclusions = []string{}\nvar nativeExpectedModules = map[string]bool{}\nvar nativeHostSourcePackages = []string{"+tc.entries+"}\n")
 			repo.write("tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
 			if tc.symlinkAncestor {
 				require.NoError(t, os.MkdirAll(filepath.Join(repo.root, "tools/gomad/internal/backends/native/toolchain/runtime"), 0o700))
@@ -197,23 +198,99 @@ func TestLintRejectsInvalidRuntimeHostPackageList(t *testing.T) {
 	t.Parallel()
 	for _, declaration := range []string{
 		"",
-		"var hostSourcePackages = paths()\n",
-		"var hostSourcePackages = []string{}\n",
-		"var hostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/vfdpointer\", \"internal/backends/native/toolchain/runtime/testdata/vfdpointer\"}\n",
-		"var hostSourcePackages = []string{\"../outside\"}\n",
-		"var hostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/...\"}\n",
-		"var hostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/vfdpointer/nested\"}\n",
-		"var hostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/.hidden\"}\n",
+		"var nativeHostSourcePackages = paths()\n",
+		"var nativeHostSourcePackages []string\n",
+		"var nativeHostSourcePackages = []string{}\n",
+		"var nativeHostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/vfdpointer\", \"internal/backends/native/toolchain/runtime/testdata/vfdpointer\"}\n",
+		"var nativeHostSourcePackages = []string{\"../outside\"}\n",
+		"var nativeHostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/...\"}\n",
+		"var nativeHostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/vfdpointer/nested\"}\n",
+		"var nativeHostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/.hidden\"}\n",
 	} {
 		t.Run(declaration, func(t *testing.T) {
 			t.Parallel()
 			repo := newLintRepo(t)
-			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n"+declaration)
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n")
+			repo.write("tools/gomad/internal/archcheck/native_enabled.go", "package archcheck\nvar nativeSourceExclusions = []string{\"native/testdata\"}\nvar nativeExpectedModules = map[string]bool{\"native/go.mod\":true}\n"+declaration)
 			_, err := loadOwnership(repo.root)
 			require.Error(t, err)
 			require.Empty(t, repo.calls())
 		})
 	}
+}
+
+func TestLintRejectsInvalidNativeClassifications(t *testing.T) {
+	t.Parallel()
+	const hosts = "var nativeHostSourcePackages = []string{\"internal/backends/native/toolchain/runtime/testdata/vfdpointer\"}\n"
+	for _, tc := range []struct{ name, native, wantError string }{
+		{"absent exclusions", "package archcheck\nvar nativeExpectedModules = map[string]bool{}\n" + hosts, "gomad source classification nativeSourceExclusions is absent"},
+		{"absent modules", "package archcheck\nvar nativeSourceExclusions = []string{}\n" + hosts, "gomad source classification nativeExpectedModules is absent"},
+		{"nonliteral exclusions", "package archcheck\nvar nativeSourceExclusions = paths()\nvar nativeExpectedModules = map[string]bool{}\n" + hosts, "gomad nativeSourceExclusions must remain a literal path classification"},
+		{"inactive module", "package archcheck\nvar nativeSourceExclusions = []string{}\nvar nativeExpectedModules = map[string]bool{\"native/go.mod\":false}\n" + hosts, "gomad nativeExpectedModules has an inactive classification"},
+		{"invalid exclusion path", "package archcheck\nvar nativeSourceExclusions = []string{\"../outside\"}\nvar nativeExpectedModules = map[string]bool{}\n" + hosts, `gomad nativeSourceExclusions has an invalid path "../outside"`},
+		{"module classified twice", "package archcheck\nvar nativeSourceExclusions = []string{}\nvar nativeExpectedModules = map[string]bool{\"testdata/go.mod\":true}\n" + hosts, `gomad module "testdata/go.mod" is classified twice`},
+		{"unparsable", "package archcheck\nvar (\n", "read Gomad source classifications"},
+	} {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Parallel()
+			repo := &lintRepo{t: t, root: t.TempDir()}
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n")
+			repo.write("tools/gomad/internal/archcheck/native_enabled.go", tc.native)
+			repo.write("tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+			_, err := loadOwnership(repo.root)
+			require.ErrorContains(t, err, tc.wantError)
+		})
+	}
+	for _, kind := range []string{"symlink", "directory"} {
+		t.Run(kind, func(t *testing.T) {
+			t.Parallel()
+			repo := &lintRepo{t: t, root: t.TempDir()}
+			repo.write("tools/gomad/internal/archcheck/inventory.go", "package archcheck\nvar sourceExclusions = []string{\"testdata\"}\nvar expectedModules = map[string]bool{\"testdata/go.mod\":true}\n")
+			repo.write("tools/gomad/internal/backends/native/toolchain/version/version.json", `{"overlay_allowlist":["src/os/gomad.go"]}`)
+			path := filepath.Join(repo.root, "tools/gomad/internal/archcheck/native_enabled.go")
+			if kind == "symlink" {
+				target := filepath.Join(t.TempDir(), "native_enabled.go")
+				require.NoError(t, os.WriteFile(target, []byte("package archcheck\nvar nativeSourceExclusions = []string{}\nvar nativeExpectedModules = map[string]bool{}\n"+hosts), 0o600))
+				require.NoError(t, os.Symlink(target, path))
+			} else {
+				require.NoError(t, os.Mkdir(path, 0o700))
+			}
+			_, err := loadOwnership(repo.root)
+			require.EqualError(t, err, "gomad native source classification is not a regular file: tools/gomad/internal/archcheck/native_enabled.go")
+		})
+	}
+}
+
+func TestLintRoutesWithoutNativeClassifications(t *testing.T) {
+	t.Parallel()
+	repo := newLintRepo(t)
+	repo.git("rm", "-q", "tools/gomad/internal/archcheck/native_enabled.go")
+	// Native nested modules are classified only by the native file.
+	output, err := repo.runMake("lint-code-gomad")
+	require.Error(t, err, output)
+	require.Contains(t, output, "unclassified module tools/gomad/internal/backends/native/conformance/testdata/go.mod")
+	require.Empty(t, repo.calls())
+	repo.git("rm", "-q", "tools/gomad/internal/backends/native/conformance/testdata/go.mod")
+	repo.git("commit", "-qm", "default classifications only")
+	repo.base = strings.TrimSpace(repo.git("rev-parse", "HEAD"))
+	policy, err := loadOwnership(repo.root)
+	require.NoError(t, err)
+	require.Empty(t, policy.hostPackages)
+	require.NotContains(t, policy.fixtures, "internal/backends/native/transcript/testdata")
+	require.Contains(t, policy.fixtures, "internal/backends/wasm/testdata")
+	require.NotContains(t, policy.modules, "tools/gomad/internal/backends/native/conformance/testdata/go.mod")
+	repo.make("lint-code-gomad")
+	packages := []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/model/cluster", "./internal/runner"}
+	require.Equal(t, []lintCall{{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", packages...)}, {"vet", "tools/gomad", repo.vetArgs(packages...)}}, repo.calls())
+
+	// Without the native classification no runtime testdata package is a host package.
+	host := newLintRepo(t)
+	host.git("rm", "-q", "tools/gomad/internal/archcheck/native_enabled.go", "tools/gomad/internal/backends/native/conformance/testdata/go.mod")
+	host.write("tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go", "package runner\n")
+	output, err = host.runMake("lint-code-gomad")
+	require.Error(t, err, output)
+	require.Contains(t, output, "uncovered Gomad host source tools/gomad/internal/backends/native/toolchain/runtime/testdata/vfdpointer/source.go")
+	require.Empty(t, host.calls())
 }
 
 func TestFastLintRoutesModuleOwners(t *testing.T) {
@@ -417,6 +494,45 @@ func TestWASMLintAdmitsOnlyDeclaredQualificationFixtureModule(t *testing.T) {
 				{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", "./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 				{"vet", "tools/gomad", repo.vetArgs("./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner")},
 			}, repo.calls())
+		})
+	}
+}
+
+func TestWASMLintAdmitsDeclaredFailureFixtureModule(t *testing.T) {
+	t.Parallel()
+	for _, extra := range []string{"", "nested/go.mod"} {
+		t.Run(extra, func(t *testing.T) {
+			t.Parallel()
+			repo := newLintRepo(t)
+			repo.write("tools/gomad/internal/backends/wasm/wasi/source.go", "package wasi\n")
+			fixture := "tools/gomad/internal/backends/wasm/testdata/io_failure_module/"
+			repo.write(fixture+"go.mod", "module example.invalid/failure\n\ngo 1.27.0\n")
+			repo.write(fixture+"io_failure/io_failure_test.go", "package failure\n")
+			if extra != "" {
+				repo.write(fixture+extra, "module example.invalid/unowned\n\ngo 1.27.0\n")
+			}
+			for _, target := range []string{"lint-code-fast", "lint-code-gomad-wasm"} {
+				output, err := repo.runMake(target)
+				if extra != "" {
+					require.Error(t, err, output)
+					require.Contains(t, output, "unclassified module "+fixture+extra)
+					require.Empty(t, repo.calls())
+					continue
+				}
+				require.NoError(t, err, output)
+				require.NotContains(t, output, "uncovered")
+			}
+			if extra != "" {
+				return
+			}
+			packages := []string{"./internal/archcheck", "./internal/backends/native/toolchain", "./internal/backends/wasm/wasi", "./internal/model/cluster", "./internal/runner"}
+			calls := repo.calls()
+			require.Len(t, calls, 4)
+			for _, call := range calls {
+				require.Equal(t, "tools/gomad", call.Dir)
+				require.NotContains(t, strings.Join(call.Args, " "), "io_failure")
+			}
+			require.Equal(t, []lintCall{{"golangci", "tools/gomad", repo.lintArgs("tools/gomad", packages...)}, {"vet", "tools/gomad", repo.vetArgs(packages...)}}, calls[:2])
 		})
 	}
 }
@@ -794,10 +910,10 @@ func newLintRepo(t *testing.T) *lintRepo {
 	root, err := filepath.Abs("../../..")
 	require.NoError(t, err)
 	repo := &lintRepo{t: t, root: t.TempDir()}
-	for _, path := range []string{"Makefile", "tools/gomad/Makefile", "tools/gomad/version_generated.mk", "tools/gomad/internal/archcheck/inventory.go"} {
+	for _, path := range []string{"Makefile", "tools/gomad/Makefile", "tools/gomad/version_generated.mk", "tools/gomad/internal/archcheck/inventory.go", "tools/gomad/internal/archcheck/native_enabled.go"} {
 		data, err := os.ReadFile(filepath.Join(root, path))
 		require.NoError(t, err)
-		if filepath.Base(path) == "inventory.go" {
+		if filepath.Dir(path) == "tools/gomad/internal/archcheck" {
 			fileSet := token.NewFileSet()
 			file, err := parser.ParseFile(fileSet, path, data, 0)
 			require.NoError(t, err)

@@ -132,6 +132,64 @@ captured inputs produced by Gomad's `captured.CaptureReadOnlyMountInputs`.
 The declared `--profile` must agree with that configuration. Runtime imports
 never reopen original mount directories or access ambient host I/O.
 
+## Prepare a Temporal test package
+
+The `install` extension derives a cooperative installation directly from a
+Temporal checkout. It shares schema capture and guest defaults with the Temporal
+integration fixtures. From a clean checkout, use absolute paths for the built
+launcher, pinned stock compiler, built helper, runtime sources and output:
+
+```sh
+env -i /absolute/operator/bin/gomad install \
+  --temporal-checkout /absolute/checkout \
+  --temporal-package ./tests/gomadfunctional \
+  --compiler /absolute/stock-go/bin/go \
+  --helper /absolute/checkout/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost \
+  --runtime-root /absolute/checkout/tools/gomad/internal/model/runtimesource \
+  --cache /absolute/operator/temporal-preparation \
+  --compile-cache /absolute/operator/temporal-engine \
+  --output /absolute/operator/temporal.json
+/absolute/operator/bin/gomad --installation /absolute/operator/temporal.json explore \
+  --working-dir /absolute/checkout \
+  --env=TEMPORAL_ROOT=/workspace --env=TMPDIR=/tmp --env=TEMPORAL_TEST_LOG_LEVEL=warn \
+  --choices --choice-bytes=64MiB --output-limit=16MiB --seeds=0 --parallel=1 \
+  --keep-successes=all --success-limit=1 --success-bytes=4GiB \
+  --execution-timeout=15m --overall-timeout=30m \
+  --artifacts /absolute/operator/temporal-artifacts \
+  go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' \
+  -test.v -test.count=1 -test.timeout=72h -persistenceType=sql -persistenceDriver=sqlite
+```
+
+Replay the retained artifact path printed by `explore` with
+`gomad --installation /absolute/operator/temporal.json replay ARTIFACT`.
+Neither command needs hand-written JSON or `GOMAD_TEMPORAL_CONFIG`.
+Standalone execution takes the explicit `--env` values above; Gomad supplies
+`PWD` and UTC. The installation pins `backend.TemporalGuestBuildTags()`, so no
+`--build-tag` flags are required for this selection.
+
+Both Temporal flags are required together. The package is one checkout-relative
+directory; absolute paths, parent escapes and package patterns are refused.
+The command captures `schema/sqlite` immutably at `/workspace/schema/sqlite`.
+The working directory is `/workspace/<package>` with matching `PWD`, and
+`/workspace`, `/tmp` and that working directory are writable.
+Changing schema bytes changes the installation identity. Setup refuses inherited
+`GOMAD_*` variables, conflicting `--config`/`--profile`, and missing named inputs
+with installation input status 2. Existing `install --config` usage remains available.
+
+Defaults preserve the prototype's 256 MiB output, 1 GiB transcript, 2^28 calls,
+4096 descriptors, 100000 files, 512 MiB filesystem and 4096 pending events.
+The one-box network defaults are 128 listeners, 4096 connections, 128 MiB total
+bytes, 4 MiB per connection, a 10-second stall bound and 2^20 transitions.
+Memory defaults to 4 GiB and fuel to 2^50; explicit `--memory-bytes` and `--fuel`
+can override those two bounds. These capacities are not consumption guarantees;
+exhaustion uses the existing capacity termination. Standalone campaigns retain
+their existing 64 MiB transcript limit even with a larger configuration bound.
+
+Support here is limited to `TestFrontendSystemInfo` in `tests/gomadfunctional`.
+The setup path grants no additional guest capability or support for other tests.
+One-box qualification and per-test support evidence are owned separately by
+[fn-222](../../../../../.flow/specs/fn-222-gomad-qualify-the-one-box-cell-and.md).
+
 ## Discovery
 
 ```sh
@@ -257,7 +315,7 @@ From a source checkout, an unchanged Gomad canary demonstrates the workflow:
 
 ```sh
 gomad explore --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir /absolute/checkout/tools/gomad/internal/backends/native/conformance/testdata \
+  --working-dir /absolute/checkout/tools/gomad/internal/backends/wasm/testdata/io_failure_module \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --artifacts /absolute/operator/artifacts \
   go-test ./io_failure -- -test.run=^TestDeterministicIOFailure$ -test.v

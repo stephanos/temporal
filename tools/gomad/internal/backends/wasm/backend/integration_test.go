@@ -184,7 +184,7 @@ func TestTestSourceChangesInvalidateCompilationCache(t *testing.T) {
 	if third.BuildKey != second.BuildKey || third.SHA256 != second.SHA256 {
 		t.Fatal("unchanged source did not reuse verified cache identity")
 	}
-	module := filepath.Join(provider.options.CacheRoot, third.BuildKey, "module.wasm")
+	module := filepath.Join(compilationCachePath(t, provider, third), "module.wasm")
 	if err := os.Chmod(module, 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -271,6 +271,12 @@ func TestBuildSelectionChangesInvalidateCompilationCache(t *testing.T) {
 	if full.BuildKey == slim.BuildKey || full.SHA256 == slim.SHA256 || !slices.Equal(slim.BuildTags, []string{"fixture_slim", "test_dep"}) {
 		t.Fatal("changed dependency selection reused a compilation cache entry")
 	}
+	provider.options.BuildTags = []string{"fixture_slim", "test_dep"}
+	installed, installedProvenance := prepare("installed", "test_dep")
+	if installed.BuildKey != slim.BuildKey || !reflect.DeepEqual(installedProvenance, slimProvenance) {
+		t.Fatal("installed build tags did not select and seal the same source closure")
+	}
+	provider.options.BuildTags = nil
 	dependencyFile := "modules/cache.fixture/optional@v0.0.0/optional.go"
 	if !has(fullProvenance, dependencyFile) || !has(fullProvenance, "selected_full.go") || has(fullProvenance, "selected_slim.go") {
 		t.Fatal("full selection provenance does not name the optional provider closure")
@@ -603,7 +609,7 @@ func TestInterruptedCachePublicationIsRebuilt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	receipt := filepath.Join(options.CacheRoot, first.BuildKey, "receipt.json")
+	receipt := filepath.Join(compilationCachePath(t, isolated, first), "receipt.json")
 	if err := os.Remove(receipt); err != nil {
 		t.Fatal(err)
 	}

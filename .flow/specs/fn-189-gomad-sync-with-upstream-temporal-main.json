@@ -10,7 +10,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-189-gomad-sync-with-upstream-temporal-main.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: sync with upstream Temporal main",
   "tracker": {
     "baseHashFlow": null,
@@ -23,5 +23,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T23:17:35.179036Z"
+  "updated_at": "2026-10-20T06:34:30.889394Z"
 }

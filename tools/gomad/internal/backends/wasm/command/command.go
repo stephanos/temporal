@@ -210,6 +210,8 @@ func install(arguments []string, stdout, stderr io.Writer) int {
 	profile := flags.String("profile", wasi.StockProfile, "explicit WASM capability profile")
 	version := flags.String("go-version", "go1.27.1", "pinned stock Go version")
 	configPath := flags.String("config", "", "immutable guest configuration JSON")
+	temporalCheckout := flags.String("temporal-checkout", "", "Temporal checkout whose SQLite schema is captured")
+	temporalPackage := flags.String("temporal-package", "", "checkout-relative Temporal test package")
 	memory := flags.Uint64("memory-bytes", 256<<20, "guest memory capacity")
 	fuel := flags.Uint64("fuel", 4000000000, "deterministic guest instruction capacity")
 	if err := flags.Parse(arguments); err != nil {
@@ -219,6 +221,50 @@ func install(arguments []string, stdout, stderr io.Writer) int {
 		return failure(stderr, fmt.Errorf("install requires --output FILE and named tool/cache paths"), 2)
 	}
 	config := installation.DefaultConfig(*profile)
+	var buildTags []string
+	if *temporalCheckout != "" || *temporalPackage != "" {
+		for _, entry := range os.Environ() {
+			if key, _, _ := strings.Cut(entry, "="); strings.HasPrefix(key, "GOMAD_") {
+				return failure(stderr, fmt.Errorf("unset %s; Temporal setup accepts explicit inputs only", key), 2)
+			}
+		}
+		if *temporalCheckout == "" || *temporalPackage == "" {
+			return failure(stderr, fmt.Errorf("temporal setup requires --temporal-checkout and --temporal-package"), 2)
+		}
+		for _, input := range []struct{ name, value string }{{"compiler", *compiler}, {"helper", *helper}, {"cache", *cache}, {"runtime-root", *runtimeRoot}} {
+			if input.value == "" {
+				return failure(stderr, fmt.Errorf("temporal setup requires --%s", input.name), 2)
+			}
+		}
+		conflict := ""
+		flags.Visit(func(f *flag.Flag) {
+			if f.Name == "config" || f.Name == "profile" {
+				conflict = f.Name
+			}
+		})
+		if conflict != "" {
+			return failure(stderr, fmt.Errorf("temporal setup derives --%s", conflict), 2)
+		}
+		var err error
+		config, err = installation.TemporalConfig(*temporalCheckout, *temporalPackage)
+		if err != nil {
+			return failure(stderr, err, 2)
+		}
+		for _, input := range []struct{ name, path string }{{"compiler", *compiler}, {"helper", *helper}} {
+			if _, err := os.Lstat(input.path); err != nil {
+				return failure(stderr, fmt.Errorf("temporal %s: %w", input.name, err), 2)
+			}
+		}
+		buildTags = backend.TemporalGuestBuildTags()
+		visited := map[string]bool{}
+		flags.Visit(func(f *flag.Flag) { visited[f.Name] = true })
+		if !visited["memory-bytes"] {
+			*memory = 4 << 30
+		}
+		if !visited["fuel"] {
+			*fuel = 1 << 50
+		}
+	}
 	if *configPath != "" {
 		var err error
 		config, err = installation.ReadConfig(*configPath)
@@ -229,7 +275,7 @@ func install(arguments []string, stdout, stderr io.Writer) int {
 			return failure(stderr, fmt.Errorf("--profile and guest configuration disagree"), 2)
 		}
 	}
-	manifest, err := installation.Build(backend.Options{CompilerPath: *compiler, HelperPath: *helper, RuntimeRoot: *runtimeRoot, CacheRoot: *cache, CompileCacheRoot: *compileCache, GoVersion: *version, MemoryBytes: *memory, Fuel: *fuel, Config: config})
+	manifest, err := installation.Build(backend.Options{CompilerPath: *compiler, HelperPath: *helper, RuntimeRoot: *runtimeRoot, CacheRoot: *cache, CompileCacheRoot: *compileCache, BuildTags: buildTags, GoVersion: *version, MemoryBytes: *memory, Fuel: *fuel, Config: config})
 	if err != nil {
 		return failure(stderr, err, 2)
 	}

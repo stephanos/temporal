@@ -101,15 +101,15 @@ func TestConfigurationMustMatchSource(t *testing.T) {
 }
 
 func TestConfiguredEdgesAndOwners(t *testing.T) {
-	root := fixture(t, map[string]string{"internal/model/world/source.go": "package world\nimport _ \"example.invalid/check/internal/backends/native\"", "internal/backends/native/source.go": "package native"})
-	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/internal/model/world"}, "native": {"example.invalid/check/internal/backends/native"}}, OwnerEdges: map[string][]string{}}
+	root := fixture(t, map[string]string{"internal/model/world/source.go": "package world\nimport _ \"example.invalid/check/internal/backends/legacy\"", "internal/backends/legacy/source.go": "package legacy"})
+	config := Config{Module: "example.invalid/check", Owners: map[string][]string{"shared": {"example.invalid/check/internal/model/world"}, "native": {"example.invalid/check/internal/backends/legacy"}}, OwnerEdges: map[string][]string{}}
 	findings, err := Check(root, "go", Platform{runtime.GOOS, runtime.GOARCH}, config)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, category := range []string{"module-edge", "owner-edge"} {
 		if !slices.ContainsFunc(findings, func(f Finding) bool {
-			return f.Category == category && strings.Contains(f.Detail, "internal/backends/native")
+			return f.Category == category && strings.Contains(f.Detail, "internal/backends/legacy")
 		}) {
 			t.Fatalf("missing %s: %v", category, findings)
 		}
@@ -136,7 +136,6 @@ func TestBackendNamespaceOwners(t *testing.T) {
 	const module = "example.invalid/check"
 	root := fixture(t, map[string]string{
 		"internal/backends/source.go":        "package backends",
-		"internal/backends/native/source.go": "package native;import _ \"example.invalid/check/internal/backends\"",
 		"internal/backends/wasm/source.go":   "package wasm;import _ \"example.invalid/check/internal/backends\"",
 		"internal/backends/shadow/source.go": "package shadow",
 	})

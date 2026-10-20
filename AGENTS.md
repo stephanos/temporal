@@ -132,6 +132,9 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 - After removing worktrees, or when `git worktree list` shows `prunable` entries, run
   `git worktree prune`. Delete detached-HEAD worktrees and `mktemp` scratch roots (qualification,
   measurement, recheck dirs) as soon as their run's evidence is retained.
+- Write `rm` with literal paths or guarded expansions (`rm "${DIR:?}"/*`), never a bare
+  `$DIR/...`. Claude Code asks the owner to approve an unguarded removal even in bypass mode,
+  which stalls unattended agents.
 - Before ending a session or handing over, list remaining worktrees and scratch roots in the
   handover with the reason each is kept.
 

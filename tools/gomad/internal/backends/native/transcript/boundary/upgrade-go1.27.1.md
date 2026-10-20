@@ -53,7 +53,7 @@ Review each changed pack report, then use `compatibility-pack generate --approve
 Run from the Gomad source module root after updating `internal/backends/native/toolchain/version/version.json`, the boundary manifest, patch, and overlays:
 
 ```sh
-make generate
+GOFLAGS=-tags=gomad_native make generate-native
 make upgrade-dossier GOMAD_BASELINE_REF=<previous-commit>
 ```
 
@@ -76,4 +76,4 @@ go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/na
 go run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool compatibility-pack refresh --root=.
 ```
 
-`pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate compatibility-pack-qualification`. A pack pinned to the replaced version stays invalidated after the bump is committed; when the bump removes a module, pass the revision before it with `--baseline-ref` so its pins are reported stale. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.
+`pin-impact` lists the invalidated pins. Regenerate each adapter it names, reviewing the dry run's upstream diff before applying its digest; an anchor that no longer matches exactly once stops the command and needs a person. `compatibility-pack refresh` re-reviews every invalidated request and prints the `compatibility-pack generate --approve-review` command for each; each platform's host approves and qualifies its own requests with `make validate-native compatibility-pack-qualification`. A pack pinned to the replaced version stays invalidated after the bump is committed; when the bump removes a module, pass the revision before it with `--baseline-ref` so its pins are reported stale. A changed adapter changes the target identity, so rebuild `.bin/gomad` and requalify its workloads.

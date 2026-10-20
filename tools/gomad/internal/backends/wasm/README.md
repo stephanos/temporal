@@ -53,7 +53,7 @@ The `conformance` feature remains necessary: besides selecting its entry point,
 it enables `serde_json/raw_value`, controls module availability and includes the
 namespace `Unsupported` operation. Two binary entry points alone would not
 preserve that contract. Dead-code exceptions apply to individual retained model
-entry points; complete volume-projection operations exceed the WASI subset, while
+entry points; complete volume-model operations exceed the WASI subset, while
 the World port excludes Go replay plans and recordings.
 
 The shared Go module is pinned to Go 1.27.1. The helper uses Rust 1.99.1 and Wasmtime
@@ -66,10 +66,15 @@ Clippy. Run `mise install rust` from `tools/gomad` to install it, and
 
 The merged module carries the Temporal guest fixture dependency through one
 local `go.temporal.io/server => ../..` replacement; shared core imports remain
-server-free. Shared volume and network models are generated projections of
-specific native overlay inputs; CI selects both backends when those inputs
-change. This is a source dependency, not a native toolchain prerequisite for
-`test-wasm`.
+server-free. The shared volume (`internal/model/volume`) and network
+(`internal/model/network`) models are owned source in the parent module; they
+were promoted from projections of the native overlay in fn-219 and no longer
+read or track it. Their generated wire codecs come from
+`internal/model/cmd/protocolgen` (`make generate`, checked by `make validate`)
+with stock Go and no build tag. Nothing in the WASM build or `test-wasm` reads
+`internal/backends/native`, which stays in the tree as a frozen consumer that
+still generates and validates under its own selection (`make generate-native
+validate-native` with `GOFLAGS=-tags=gomad_native`).
 
 Qualified Temporal guests build with the guest-only `gomad_wasm_slim` tag
 (`backend.SlimGuestBuildTag`). It reuses the native `gomad` provider seams to
@@ -145,6 +150,27 @@ or identity inputs refuse before execution. The command builds its executor from
 the checkout selected by `--repo`; inherited measurement environment variables
 are refused. See [qualification](QUALIFICATION.md) for admission and rerun rules.
 
+Measurement output roots retain immutable runs under
+`.gomad-measure/<producer>/run-*`; the producer directory's `latest.json` contains
+the relative name of its latest complete run. Publication follows all producer
+cleanup, so failed or interrupted replacements leave the previous result available.
+Reuse the same `--*-root` for retries; each different root is an independent retention scope.
+Reports keep their existing filenames inside the reported run directory.
+Published rerun commands keep the original requested output root.
+Output roots inside a `.gomad-measure` store are refused.
+Superseded runs are reclaimed automatically: they are renamed to `.trash-*` under
+the store lock and deleted afterwards. A reclaim failure is logged, does not fail
+an already published run, and is retried by the next producer run. Defaults keep one latest success
+and one recent failed/interrupted run, plus active runs and inputs referenced by
+retained consumers. Direct hardlink pins preserve authenticated input paths until
+the last retained consumer is collected; managed inputs and outputs must share a
+filesystem, or the consumer refuses before execution. Shared external caches and
+historical/unmanaged output directories are never pruned.
+Use `--keep` to retain a run independently for baseline/replay use; removing its
+`.keep` marker opts it back into collection on the next producer run. Retained
+and active inputs can exceed the default count. Internal namespace samples share
+their enclosing producer's lifetime and keep their authenticated index paths.
+
 The fn-221 functional-suite triage sweep is the developer command
 `./internal/backends/wasm/cmd/wasmsweep` (library `internal/sweep`), chosen over
 a test-only producer because it runs for hours and must resume. It drives a
@@ -186,10 +212,11 @@ support or qualification.
 tests; `test-go` includes fresh guest execution and repeatability tests. The Go
 targets resolve stock Go 1.27.1 and clear inherited `GOROOT`. Set
 `GOMAD_STOCK_GO` to select an existing stock Go 1.27.1 executable for `test-wasm`.
-Before running the WASM packages, that target regenerates the volume and network
-projections from their native sources and requires the checked-in outputs to
-match, runs the projection generators' drift-rejection tests and checks that WASM
-tests import no native builder; it has no native toolchain build prerequisites.
+Before running the WASM packages, that target checks that WASM tests reference
+no pre-move native toolchain path or binary; it has no native toolchain build
+prerequisites. Module-wide, archcheck's default run refuses any default-set file
+that names the native tree and any native package reachable from default
+dependencies.
 The backend-local targets also accept `GOMAD_WASM_STOCK_GO`; their `make test`
 combines the helper and Go suites. Writable stock Go copies are shared under `tools/gomad/.toolchain/stock`.
 
@@ -290,7 +317,7 @@ store from the recovery image retained inside Rust, even when no image bytes
 were requested for inspection. Finish closes the cluster and collects its World.
 The Go owner remains the differential reference. Single-instance V2 network
 runs, the native backend and the per-process Go-broker reference path use the
-generated native host model (the Go network owner). In-process clusters
+owned Go network model (the Go network owner). In-process clusters
 (`cluster_execute`, fn-178) serve every instance's `net_stream` from one shared
 Rust network owner in the helper (fn-177's port, kept equal to the Go owner by
 its corpus); Go validates the cluster network configuration first
@@ -311,9 +338,9 @@ implementation identities for execution and replay.
 | Explicit model | Contract boundary |
 | --- | --- |
 | Default namespace | Captured inputs and writable files, helper-owned in clusters and cooperative runs without broker or network v2 (split-owned in the per-process storage reference); no durability claim |
-| `Storage` volumes | Native-source projected persistence operations and bounded dependency-closed crash states; the Rust helper model is held equal to the generated Go projection by the volume conformance corpus |
+| `Storage` volumes | Persistence operations of the Go volume model (`internal/model/volume`) and bounded dependency-closed crash states; the Rust helper model is held equal to the Go model by the volume conformance corpus |
 | `Storage.SQLiteLockDatabases` | Opt-in exact ncruces `.lock` and `-shm` process-owned artifacts are ephemeral; database, journal and WAL persistence is unchanged |
-| `NetworkV2` | Generated host stream model (Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
+| `NetworkV2` | Go network model (`internal/model/network`, Go owner); shared Rust owner in in-process clusters; cooperative frozen clock only |
 
 The SQLite policy does not delete arbitrary locks or imply POSIX/native-platform
 parity. Raw persistent files retain their existing behavior, including stale locks
@@ -387,7 +414,7 @@ simulated network. Its gates use the cooperative profile with a frozen clock
 (zero read-step): time moves only when every guest goroutine is blocked, then
 jumps to the earliest deadline.
 
-The simulated network uses `Config.NetworkV2` and the generated host stream
+The simulated network uses `Config.NetworkV2` and the owned Go stream
 model. Named `reset`, `partition`, `heal` and `delay` faults apply at virtual
 times; partitions hold pending operations until healing or their deadline.
 Model decisions form the `NetworkTranscript` evidence stream. The prototype
@@ -427,3 +454,33 @@ integration contract is
 consuming fn-176 storage recovery and fn-178 cluster execution. Native
 qualification remains deferred with fn-128 and fn-149 under the milestone
 hibernation decision; WASM/source checks supply no native execution pass.
+
+## Determinism contract
+
+The WASM backend's determinism contract is the checked-in inventory
+[`determinism/inventory.json`](determinism/inventory.json)
+(`gomad.wasm-determinism-inventory/v1`). Every influence on a WASM execution
+has a row that disposes of it as `controlled`, `recorded`, `rejected` or
+`escape`, and the tests named in each row enforce it. Completeness tests derive
+each site class from the code (the helper's import table, the seeded streams,
+the overlay's draw and clock patches, the wasip1 host-clock references, the
+helper's time, entropy, thread and hash-map sites, the Go host packages'
+clock, goroutine, map-range and unstable-sort sites, and the Wasmtime
+configuration) and fail when a site has no row. This is a tested contract,
+not a claim that all nondeterminism is eliminated.
+
+### Known determinism escapes
+
+Each escape is outside the deterministic-time guarantee today and is referred
+to a follow-up, because fixing it would rotate the WASM model identity:
+
+- `wasi/cluster.go` `ClusterSession.Shutdown` sends stop control frames to the
+  helper in Go map order, and the stops can reach World and network evidence.
+  This is a defect pending its fix, not a permanent escape. Only programmatic
+  cluster scenarios that end with two or more live WASM nodes reach it, and
+  until the fix they are outside the deterministic guarantee; operator
+  scenarios require every node to be terminated first.
+- `wasi/storage_selection.go` `ValidateStorageCrashSelection` reports the first
+  invalid volume in map order, so a request with several invalid volumes can
+  get different refusal messages. The refusal class is the same, and nothing
+  executes.

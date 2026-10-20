@@ -1,0 +1,75 @@
+{
+  "schema": "gomad.wasm-first-divergence/v1",
+  "status": "diverged",
+  "first": {
+    "kind": "draw-counter",
+    "instance": "guest",
+    "incarnation": 1,
+    "ordinal": 4,
+    "coordinate": {
+      "Shared": 0,
+      "ChoiceOrdinal": 4,
+      "VirtualTime": 946684800000003000
+    },
+    "field": "runq_draws",
+    "expected": "time=946684800000003000 runq=8 scheduler=5 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0",
+    "actual": "time=946684800000003000 runq=9 scheduler=5 select=0 rand=0 cheaprand=0 timer=0 clock_tick=0"
+  },
+  "reproducer": {
+    "workload": "fixture/single-perturbed-draw",
+    "seed": 7,
+    "perturbation": "draw",
+    "expected_digest": "sha256:0dfbb6eba5163a9251216b1a7ff05e3aa66fde8e7a585cccc26c560bdacca066",
+    "actual_digest": "sha256:a2263ceaad5d30bf9a72d92714cb7c7d81feddd16c003506e7147474c7ca0ce1",
+    "identities": {
+      "engine": "e",
+      "helper": "h",
+      "model": "d",
+      "module": "m",
+      "source": "s"
+    },
+    "expected_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/single-perturbed-draw"
+    ],
+    "actual_command": [
+      "gomad",
+      "explore",
+      "--backend",
+      "wasm",
+      "--seed",
+      "7",
+      "--diagnostics",
+      "go-run",
+      "fixture/single-perturbed-draw"
+    ],
+    "stop": {
+      "stop": {
+        "kind": "choice",
+        "value": 4
+      },
+      "dumps": [
+        "stacks",
+        "heap"
+      ],
+      "probes": null,
+      "maximum_bytes": 67108864,
+      "per_dump_bytes": 67108864,
+      "output_directory": ""
+    },
+    "replay_command": [
+      "gomad",
+      "replay",
+      "--stop",
+      "choice=4",
+      "/artifacts/reference"
+    ]
+  }
+}

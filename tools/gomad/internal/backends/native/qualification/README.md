@@ -88,7 +88,7 @@ tests `go test -list` reports under the `disable_grpc_modules`, `gomad`, and
 `tests.generator.json`, which holds the manifest and workload
 defaults (the F6 slice's closure mode, tags, schema mount, and timeouts, with
 no choice trace and no success replay), per-test overrides, and exclusions.
-`make -C tools/gomad validate`, which CI runs, fails when the checked-in
+`make -C tools/gomad validate-native` (CI runs it when native paths change) fails when the checked-in
 manifest is stale relative to `./tests` or the spec.
 
 A new test therefore lands expecting `qualified` on both platforms and fails

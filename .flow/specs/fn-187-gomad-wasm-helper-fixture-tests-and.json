@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-187-gomad-wasm-helper-fixture-tests-and.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: WASM helper fixture tests and module ownership",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-18T21:13:38.417461Z"
+  "updated_at": "2026-10-20T06:34:31.284862Z"
 }

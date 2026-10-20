@@ -10,7 +10,6 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
-	"regexp"
 	"runtime"
 	"slices"
 	"strconv"
@@ -78,8 +77,9 @@ func TestBackendImportDirection(t *testing.T) {
 		"math", "math/bits", "path", "path/filepath", "reflect", "regexp", "slices", "sort", "strconv", "golang.org/x/mod/module",
 		"strings", "sync", "sync/atomic", "syscall", "time", "unicode", "unicode/utf8",
 		"github.com/go-json-experiment/json", "github.com/go-json-experiment/json/jsontext", "github.com/go-json-experiment/json/v1",
-		modulePath + "/internal/model/choice", modulePath + "/internal/backends/target", modulePath + "/internal/backends/native/compatibilitypack",
+		modulePath + "/internal/model/choice", modulePath + "/internal/backends/target",
 	}
+	config.PureImports = append(config.PureImports, nativePureImports...)
 	platforms := qualifiedSourcePlatforms()
 	host := archcheck.Platform{OS: runtime.GOOS, Arch: runtime.GOARCH}
 	if !slices.Contains(platforms, host) {
@@ -103,20 +103,20 @@ func TestBackendImportDirection(t *testing.T) {
 }
 func TestBackendImportFixtures(t *testing.T) {
 	const core = "example.invalid/fitness"
-	const to = core + "/internal/backends/native/toolchain"
+	const to = core + "/internal/backends/legacy/toolchain"
 	for _, test := range []struct {
 		name, from, want string
 	}{
-		{"shared-native-import", core + "/internal/model/world", "forbidden"},
-		{"wasm-native-import", core + "/internal/backends/wasm", "forbidden"},
-		{"native-native-import", core + "/internal/backends/native/build", ""},
+		{"shared-legacy-import", core + "/internal/model/world", "forbidden"},
+		{"wasm-legacy-import", core + "/internal/backends/wasm", "forbidden"},
+		{"legacy-legacy-import", core + "/internal/backends/legacy/build", ""},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{
 				"go.mod": "module " + core + "\n\ngo 1.27.1\n",
 				strings.TrimPrefix(test.from, core+"/") + "/source.go": "package source\nimport _ \"" + to + "\"\n",
-				"internal/backends/native/toolchain/toolchain.go":      "package toolchain\n",
+				"internal/backends/legacy/toolchain/toolchain.go":      "package toolchain\n",
 			}
 			for name, source := range files {
 				path := filepath.Join(root, name)
@@ -155,25 +155,25 @@ func TestBackendImportFixtures(t *testing.T) {
 }
 
 func TestArchitectureInventoryFixtures(t *testing.T) {
-	for _, fixture := range []struct{ name, category, path, source string }{
+	for _, fixture := range append([]struct{ name, category, path, source string }{
 		{"root-production", "ownerless", "main.go", "package fitness\n"},
 		{"hidden-production", "uncovered-source", ".hidden/source.go", "package hidden\n"},
 		{"underscore-production", "uncovered-source", "_hidden/source.go", "package hidden\n"},
 		{"unclassified-testdata", "uncovered-source", "internal/evidence/record/testdata/source.go", "package hidden\n"},
-		{"overlay-prefix", "package-error", "internal/backends/native/toolchain/runtime/overlayextra/source.go", "package overlayextra\nimport _ \"example.invalid/missing\"\n"},
 		{"hidden-module", "unclassified-module", ".hidden/go.mod", "module example.invalid/hidden\n\ngo 1.27.1\n"},
-		{"excluded-root-module", "unclassified-module", "internal/backends/native/transcript/testdata/extra/go.mod", "module example.invalid/extra\n\ngo 1.27.1\n"},
 		{"included-list-error", "package-error", "internal/evidence/record/source.go", "package record\nimport _ \"example.invalid/missing\"\n"},
 		{"owner-edge", "owner-edge", "internal/evidence/record/source.go", "package record\nimport _ \"example.invalid/fitness/internal/runner\"\n"},
-		{"required-facade-edge", "required-edge", "internal/backends/native/build/source.go", "package build\n"},
-	} {
+	}, nativeInventoryFixtures...) {
 		t.Run(fixture.name, func(t *testing.T) {
 			root := t.TempDir()
 			files := map[string]string{"go.mod": "module example.invalid/fitness\n\ngo 1.27.1\n", "internal/runner/source.go": "package runner\n", fixture.path: fixture.source}
-			for _, path := range []string{"internal/backends/native/toolchain/runtime/overlay", "cmd/gomad/testdata", "internal/backends/native/transcript/testdata", "internal/backends/native/compatibilitypack/testdata", "internal/backends/native/conformance/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata"} {
+			for _, path := range []string{"cmd/gomad/testdata", "internal/runner/testdata", "internal/evidence/qualification/corpus", "internal/backends/wasm/testdata", "internal/backends/wasm/wasi/testdata", "internal/backends/wasm/toolchain/testdata", "internal/backends/wasm/cluster/testdata", "internal/backends/wasm/qualification/testdata", "internal/backends/wasm/cmd/gomad-wasm/testdata"} {
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
-			for _, path := range []string{"internal/backends/native/transcript/testdata/cactusstatsd", "internal/backends/native/transcript/testdata/hashicorpmetrics", "internal/backends/native/transcript/testdata/memberlist", "internal/backends/native/transcript/testdata/pebble", "internal/backends/native/transcript/testdata/sentry", "internal/backends/native/transcript/testdata/sockaddr", "internal/backends/native/transcript/testdata/sprig", "internal/backends/native/transcript/testdata/validator", "internal/backends/native/compatibilitypack/testdata/v041", "internal/backends/native/compatibilitypack/testdata/xsys", "internal/backends/native/conformance/testdata", "internal/backends/native/conformance/testdata/libc_adapter", "internal/backends/native/conformance/testdata/sqlite_adapter", "internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"} {
+			for _, path := range nativeFixtureExclusions {
+				files[path+"/fixture.go"] = "package fixture\n"
+			}
+			for _, path := range append([]string{"internal/evidence/qualification/corpus", "internal/backends/wasm/qualification/testdata/fixture"}, nativeFixtureModules...) {
 				files[path+"/go.mod"] = "module example.invalid/fixture\n\ngo 1.27.1\n"
 				files[path+"/fixture.go"] = "package fixture\n"
 			}
@@ -270,14 +270,13 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 	if got := packageOwner(imported); got != "strictjson" {
 		t.Fatalf("strict JSON owner = %q, want strictjson", got)
 	}
-	for _, test := range []struct {
+	for _, test := range append([]struct {
 		name, owner, importing string
 	}{
 		{"wasm-wasi", "wasm", modulePath + "/internal/backends/wasm/wasi"},
 		{"wasm-qualification", "wasm", modulePath + "/internal/backends/wasm/qualification"},
 		{"wasm-installation", "wasm", modulePath + "/internal/backends/wasm/installation"},
 		{"wasm-simulation", "wasm", modulePath + "/internal/backends/wasm/cluster"},
-		{"native", "native", modulePath + "/internal/backends/native"},
 		{"cli", "cli", modulePath + "/cmd/gomad/internal/cli"},
 		{"runner", "runner", modulePath + "/internal/runner"},
 		{"qualification", "qualification", modulePath + "/internal/evidence/qualification"},
@@ -285,12 +284,8 @@ func TestStrictJSONOwnerEdges(t *testing.T) {
 		{"record", "record", modulePath + "/internal/evidence/record"},
 		{"world", "world", modulePath + "/internal/model/world"},
 		{"simulation", "simulation", modulePath + "/internal/model/clock"},
-		{"compatibility", "compatibility", modulePath + "/internal/backends/native/compatibilitypack"},
-		{"deterministicio", "deterministicio", modulePath + "/internal/backends/native/transcript"},
 		{"captured", "captured", modulePath + "/internal/evidence/artifact/capture"},
-		{"toolchain", "toolchain", modulePath + "/internal/backends/native/toolchain"},
-		{"upgrade", "upgrade", modulePath + "/internal/backends/native/upgrade"},
-	} {
+	}, nativeStrictJSONOwnerCases...) {
 		t.Run(test.name, func(t *testing.T) {
 			if !ownerMayImport(test.owner, "strictjson", test.importing, imported) {
 				t.Errorf("owner %s may not import strictjson", test.owner)
@@ -402,64 +397,6 @@ func TestRunnerExecutionInjectionIsPrivate(t *testing.T) {
 	}
 }
 
-func TestInspectionSourceOwnershipDelegation(t *testing.T) {
-	for _, consumer := range []struct {
-		file, function, required string
-	}{
-		{"cmd/gomad/internal/cli/native_enabled_analyze.go", "runAnalyze", "preparation.Inspect"},
-		{"internal/backends/native/qualification/analysis/prepared_review.go", "PrepareCapabilityReview", "preparation.Inspect"},
-		{"internal/backends/native/cmd/gomadtool/compatibility_pack.go", "runCompatibilityPackDiscover", "capabilityanalysis.PrepareCapabilityReview"},
-		{"internal/backends/native/cmd/gomadtool/compatibility_pack.go", "qualifyCompatibilityPackRequest", "capabilityanalysis.PrepareCapabilityReview"},
-	} {
-		t.Run(consumer.function, func(t *testing.T) {
-			file, err := parser.ParseFile(token.NewFileSet(), consumer.file, nil, 0)
-			if err != nil {
-				t.Fatal(err)
-			}
-			var body *ast.BlockStmt
-			for _, declaration := range file.Decls {
-				if function, ok := declaration.(*ast.FuncDecl); ok && function.Name.Name == consumer.function {
-					body = function.Body
-				}
-			}
-			if body == nil {
-				t.Fatalf("missing consumer body %s", consumer.function)
-			}
-			qualifier, _, _ := strings.Cut(consumer.required, ".")
-			imported := false
-			for _, specification := range file.Imports {
-				if specification.Name != nil && specification.Name.Name == qualifier || specification.Name == nil && strings.HasSuffix(strings.Trim(specification.Path.Value, "\""), "/"+qualifier) {
-					expected := modulePath + "/internal/backends/native/preparation"
-					if qualifier == "capabilityanalysis" {
-						expected = modulePath + "/internal/backends/native/qualification/analysis"
-					}
-					imported = specification.Path.Value == "\""+expected+"\""
-				}
-			}
-			if !imported {
-				t.Fatalf("consumer %s has no owner import for %s", consumer.function, consumer.required)
-			}
-			found := false
-			ast.Inspect(body, func(node ast.Node) bool {
-				selector, ok := node.(*ast.SelectorExpr)
-				if !ok {
-					return true
-				}
-				if qualifier, ok := selector.X.(*ast.Ident); ok && qualifier.Name+"."+selector.Sel.Name == consumer.required {
-					found = true
-				}
-				if slices.Contains([]string{"MkdirTemp", "Chmod", "RemoveAll", "PrepareTargetBuildAdapters", "ReviewCapabilities"}, selector.Sel.Name) {
-					t.Errorf("consumer %s owns inspection operation %s", consumer.function, selector.Sel.Name)
-				}
-				return true
-			})
-			if !found {
-				t.Errorf("consumer %s does not delegate through %s", consumer.function, consumer.required)
-			}
-		})
-	}
-}
-
 func TestCurrentVocabularyHasNoLegacyCampaignBoundary(t *testing.T) {
 	for _, root := range []string{"cmd/gomad", "internal/evidence/qualification", "internal/runner"} {
 		err := filepath.WalkDir(root, func(path string, entry os.DirEntry, visitErr error) error {
@@ -502,32 +439,17 @@ func TestMakeTargetsMatchTheirOwnership(t *testing.T) {
 			t.Errorf("Makefile retains obsolete ownership %q", obsolete)
 		}
 	}
-	// test-builder runs the native builder under stock Go through gomadtool, so the
-	// Makefile names the package once, for the patched toolchain.
-	if recipes := regexp.MustCompile(`(?m)\sgo\.temporal\.io/server/tools/gomad/internal/backends/native/toolchain(\s|$)`).FindAllString(makefile, -1); len(recipes) != 1 {
-		t.Errorf("Makefile tests native toolchain in %d recipes, want only test-toolchain", len(recipes))
-	}
 }
 
 func TestDomainModulesDoNotExportWireFraming(t *testing.T) {
-	for directory, forbidden := range map[string][]string{
+	for directory, forbidden := range withNativeWireFraming(map[string][]string{
 		"internal/model/choice": {
 			"Header", "TapeHeader", "Terminal", "EncodeHeader", "DecodeHeader", "PublishHeader",
 			"EncodeRecord", "DecodeRecord", "EncodeTapeHeader", "DecodeTapeHeader", "EncodeTerminal", "DecodeTerminal",
 			"HeaderBytes", "RecordBytes", "TapeHeaderBytes", "TapeRecordBytes", "TapeChecksumOffset",
 			"TerminalFrameBytes", "TerminalChecksumOffset", "DigestBytes", "Hash",
 		},
-		"internal/backends/native/transcript": {
-			"ProducedTranscriptHeader", "ExpectedTranscriptHeader", "TranscriptRecord", "Terminal",
-			"MountLimits", "MountRequest", "MountChild", "MountEntry", "MountResponse",
-			"EncodeProducedTranscriptHeader", "DecodeProducedTranscriptHeader", "PublishProducedTranscript",
-			"EncodeExpectedTranscriptHeader", "DecodeExpectedTranscriptHeader", "EncodeTranscriptRecord",
-			"DecodeTranscriptRecord", "EncodeTerminal", "DecodeTerminal", "WriteMountLookupRequest",
-			"ReadMountLookupRequest", "WriteMountResponse", "ReadMountResponse", "Hash",
-			"BootstrapFrameBytes", "TranscriptHeaderBytes", "TranscriptRecordBytes", "TranscriptOperationBytes",
-			"TerminalFrameBytes", "MountRequestHeaderBytes", "MountResponseHeaderBytes", "DigestBytes",
-		},
-	} {
+	}) {
 		exported := packageExports(t, directory)
 		for _, name := range forbidden {
 			if exported[name] {
@@ -612,8 +534,6 @@ var pureDependencyFiles = []string{
 	"internal/model/choice/tape.go", "internal/model/choice/divergence.go", "internal/model/choice/no_op_select.go",
 	"internal/model/choice/wire.go", "internal/model/choice/trace.go", "internal/model/choice/interrupted.go",
 	"internal/model/choice/limits.go", "internal/model/choice/internal/wire/wire_generated.go",
-	"internal/backends/native/compatibilitypack/evaluation.go", "internal/backends/native/compatibilitypack/selection_pure.go",
-	"internal/backends/native/compatibilitypack/schema.go",
 	"internal/model/strictjson/decode.go", "internal/model/strictjson/identity.go",
 }
 
@@ -634,12 +554,12 @@ func nativePureFile(path string) bool {
 	if strings.HasPrefix(path, "internal/evidence/record/testfixture/") {
 		return false
 	}
-	for _, dependency := range pureDependencyFiles {
+	for _, dependency := range append(slices.Clone(pureDependencyFiles), nativePureDependencyFiles...) {
 		if path == dependency {
 			return true
 		}
 	}
-	for _, prefix := range []string{"internal/evidence/record/", "internal/model/world/mailbox/", "internal/runner/internal/exploration/", "internal/backends/native/build/internal/capabilitypolicy/"} {
+	for _, prefix := range append([]string{"internal/evidence/record/", "internal/model/world/mailbox/", "internal/runner/internal/exploration/"}, nativePurePrefixes...) {
 		if strings.HasPrefix(path, prefix) {
 			return true
 		}
@@ -647,7 +567,7 @@ func nativePureFile(path string) bool {
 	if filepath.ToSlash(filepath.Dir(path)) == "internal/model/world" {
 		return true
 	}
-	return path == "internal/runner/internal/campaign/controller.go" || path == "internal/backends/native/build/capability_evaluation.go" || path == "internal/model/clock/simulation_progress.go"
+	return path == "internal/runner/internal/campaign/controller.go" || path == "internal/model/clock/simulation_progress.go" || slices.Contains(nativePureRoots, path)
 }
 
 //nolint:staticcheck // Tests execute on the compiling host and require that exact reviewed Go toolchain.
@@ -666,7 +586,7 @@ func typedSourcePlatforms() []archcheck.Platform {
 }
 
 func TestPureModulesHaveNoHostEffects(t *testing.T) {
-	paths := append([]string{"internal/runner/internal/campaign/controller.go", "internal/backends/native/build/capability_evaluation.go", "internal/model/clock/simulation_progress.go"}, pureDependencyFiles...)
+	paths := slices.Concat([]string{"internal/runner/internal/campaign/controller.go", "internal/model/clock/simulation_progress.go"}, nativePureRoots, pureDependencyFiles, nativePureDependencyFiles)
 	if err := pureFileInventory(".", paths); err != nil {
 		t.Fatal(err)
 	}
@@ -778,7 +698,29 @@ func checkerBudget(root string) (production, tests int, err error) {
 // tests, which live beside the checker but are not part of its budget.
 func moduleArchitectureTest(root, path string) bool {
 	relative, err := filepath.Rel(root, path)
-	return err == nil && slices.Contains([]string{"internal/archcheck/architecture_test.go", "internal/archcheck/integration_test.go"}, filepath.ToSlash(relative))
+	return err == nil && slices.Contains([]string{
+		"internal/archcheck/architecture_test.go", "internal/archcheck/architecture_native_test.go",
+		"internal/archcheck/integration_test.go", "internal/archcheck/integration_native_test.go",
+	}, filepath.ToSlash(relative))
+}
+
+func TestCheckerBudgetExcludesModuleContractTests(t *testing.T) {
+	for _, name := range []string{"architecture_test.go", "architecture_native_test.go", "integration_test.go", "integration_native_test.go"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			directory := filepath.Join(root, "internal/archcheck")
+			if err := os.MkdirAll(directory, 0700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(directory, name), []byte(strings.Repeat("\n", 1501)), 0600); err != nil {
+				t.Fatal(err)
+			}
+			production, tests, err := checkerBudget(root)
+			if err != nil || production != 0 || tests != 0 {
+				t.Fatalf("module contract test counted as checker implementation: production=%d tests=%d err=%v", production, tests, err)
+			}
+		})
+	}
 }
 
 func TestArchitectureCheckerBudget(t *testing.T) {

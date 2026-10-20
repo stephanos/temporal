@@ -10,7 +10,7 @@
   "priority": null,
   "spec": "fn-187-gomad-wasm-helper-fixture-tests-and",
   "spec_path": ".flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.3.md",
-  "status": "todo",
+  "status": "done",
   "title": "Delete inline tests the corpora already cover",
   "updated_at": "2026-10-19T04:33:26.131575Z"
 }

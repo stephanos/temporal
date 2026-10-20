@@ -1,7 +1,6 @@
 package archcheck_test
 
 import (
-	"encoding/json"
 	"go/ast"
 	"go/parser"
 	"go/token"
@@ -9,12 +8,9 @@ import (
 	"os/exec"
 	"path/filepath"
 	"regexp"
-	"slices"
 	"strconv"
 	"strings"
 	"testing"
-
-	"go.temporal.io/server/tools/gomad/internal/archcheck"
 )
 
 // Run the workflow's own gate script against real commits so the routing of
@@ -39,27 +35,15 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 		}
 		script.WriteString(strings.TrimPrefix(line, strings.Repeat(" ", 10)))
 	}
-	for _, test := range []struct {
+	for _, test := range append([]struct {
 		path, want string
 	}{
 		{"tools/gomad/internal/model/cluster/simulation.go", "native=true\nwasm=true\n"},
 		{"tools/gomad/internal/backends/wasm/backend/provider.go", "native=false\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/build/build.go", "native=true\nwasm=false\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/runtime/gomad.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/fs.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/handles.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/local_handles.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadfs/volume.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/hash.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadchoicewire/wire_generated.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/network_connection.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_network.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_handles.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/toolchain/runtime/overlay/src/internal/gomadio/simulation_wire.go", "native=true\nwasm=true\n"},
 		{"tools/gomad/internal/evidence/record/record.go", "native=true\nwasm=true\n"},
-		{"tools/gomad/internal/backends/native/qualification/tests.json", "native=true\nwasm=false\n"},
-	} {
+		{"tools/gomad/internal/model/schema/iowire.json", "native=true\nwasm=true\n"},
+		{"tools/gomad/internal/model/generation/protocol/generate.go", "native=true\nwasm=true\n"},
+	}, nativeCIRoutes...) {
 		t.Run(test.path, func(t *testing.T) {
 			repository := t.TempDir()
 			environment := append(os.Environ(), "GIT_CONFIG_GLOBAL=/dev/null", "GIT_CONFIG_NOSYSTEM=1",
@@ -101,85 +85,6 @@ func TestCIBackendGatesRoutePaths(t *testing.T) {
 				t.Fatalf("gates = %q, want %q", got, test.want)
 			}
 		})
-	}
-}
-
-func TestNativeWrapperFixtureSelectorsResolve(t *testing.T) {
-	file, err := parser.ParseFile(token.NewFileSet(), "internal/backends/native/qualification/integration_test.go", nil, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
-	selectors := 0
-	ast.Inspect(file, func(node ast.Node) bool {
-		literal, ok := node.(*ast.BasicLit)
-		if !ok || literal.Kind != token.STRING {
-			return true
-		}
-		value, err := strconv.Unquote(literal.Value)
-		if err != nil {
-			t.Fatal(err)
-		}
-		selector, ok := strings.CutPrefix(value, "GOMAD_PACKAGES=")
-		if !ok {
-			return true
-		}
-		selectors++
-		command := exec.CommandContext(t.Context(), "go", "list", "-mod=readonly", "-json", "-tags", archcheck.SelectionTags(), selector)
-		output, err := command.CombinedOutput()
-		if err != nil {
-			t.Errorf("resolve native wrapper fixture %q: %v: %s", selector, err, output)
-			return true
-		}
-		var pkg struct{ TestGoFiles, XTestGoFiles []string }
-		if err := json.Unmarshal(output, &pkg); err != nil || len(pkg.TestGoFiles)+len(pkg.XTestGoFiles) == 0 {
-			t.Errorf("native wrapper fixture %q selects no tagged test files: %v: %s", selector, err, output)
-		}
-		return true
-	})
-	if selectors != 3 {
-		t.Fatalf("native wrapper fixture selectors = %d, want 3", selectors)
-	}
-}
-
-func TestHostGatePreservesRelocatedPackageSelectors(t *testing.T) {
-	output, err := exec.Command("make", "--no-print-directory", "-n", "-o", "toolchain", "test-host").CombinedOutput()
-	if err != nil {
-		t.Fatalf("expand host gate: %v: %s", err, output)
-	}
-	root := t.TempDir()
-	tool := filepath.Join(root, ".toolchain", "bin", "go")
-	if err := os.MkdirAll(filepath.Dir(tool), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	shim := "#!/bin/sh\nprintf '%s\\n' \"GOMADSEED=${GOMADSEED-unset}\" \"GOMAD_CHILD_SEED=${GOMAD_CHILD_SEED-unset}\" \"GOMAD_STOCK_GO=$GOMAD_STOCK_GO\" \"GOEXPERIMENT=$GOEXPERIMENT\" \"GOWORK=$GOWORK\" \"$@\"\n"
-	if err := os.WriteFile(tool, []byte(shim), 0o755); err != nil {
-		t.Fatal(err)
-	}
-	command := exec.Command("sh", "-c", string(output))
-	command.Dir = root
-	command.Env = append(os.Environ(), "GOMAD_STOCK_GO=/stock/go", "GOMADSEED=17", "GOMAD_CHILD_SEED=23")
-	invocation, err := command.CombinedOutput()
-	if err != nil {
-		t.Fatalf("run expanded host gate: %v: %s", err, invocation)
-	}
-	arguments := strings.Split(strings.TrimSpace(string(invocation)), "\n")
-	wantPrefix := []string{"GOMADSEED=unset", "GOMAD_CHILD_SEED=unset", "GOMAD_STOCK_GO=/stock/go", "GOEXPERIMENT=nogreenteagc", "GOWORK=off", "test", "-tags", "test_dep,gomad_native"}
-	if len(arguments) < len(wantPrefix) || !slices.Equal(arguments[:len(wantPrefix)], wantPrefix) {
-		t.Fatalf("host gate environment and flags = %q, want prefix %q", arguments, wantPrefix)
-	}
-	for _, selector := range []string{
-		"./cmd/...", "./internal/runner/...", "go.temporal.io/server/tools/gomad/internal/backends/native/execution/...", "./internal/model/clock/...",
-		"./internal/evidence/qualification/...", "./internal/backends/target/...", "./internal/evidence/record/...", "./internal/evidence/artifact/...", "./internal/model/choice/...",
-		"./internal/evidence/artifact/capture/...", "./internal/model/volume/...", "go.temporal.io/server/tools/gomad/internal/backends/native/transcript/...", "./internal/model/world/...",
-		"go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/version", "go.temporal.io/server/tools/gomad/internal/backends/native/toolchain/installation",
-		"go.temporal.io/server/tools/gomad/internal/backends/native/upgrade/...", "go.temporal.io/server/tools/gomad/internal/backends/native/preparation/...", "go.temporal.io/server/tools/gomad/internal/backends/native/qualification/...",
-		"go.temporal.io/server/tools/gomad/internal/backends/native/generation/...", "go.temporal.io/server/tools/gomad/internal/backends/native/build/...", "go.temporal.io/server/tools/gomad/internal/backends/native/cmd/...",
-		"go.temporal.io/server/tools/gomad/internal/backends/native/compatibilitypack/...", "go.temporal.io/server/tools/gomad/internal/backends/native/sourceinventory",
-		"./internal/host/...", "./internal/archcheck", "./internal/model/iowire", "./internal/model/strictjson",
-	} {
-		if !slices.Contains(arguments[len(wantPrefix):], selector) {
-			t.Errorf("canonical host gate excludes %s", selector)
-		}
 	}
 }
 

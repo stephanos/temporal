@@ -54,6 +54,7 @@ type Options struct {
 	GoVersion                                                                      string
 	RuntimeRoot                                                                    string
 	CompileCacheRoot                                                               string
+	BuildTags                                                                      []string                     `json:",omitempty"`
 	ObserveExecution                                                               func(ExecutionMetrics)       `json:"-"`
 	ObserveCompilerCommand                                                         func(CompilerCommandMetrics) `json:"-"`
 	Engine                                                                         wasi.EngineIdentity
@@ -125,6 +126,7 @@ func New(options Options) (*Provider, error) {
 	if _, err := wasi.NewEnvironment(options.Config); err != nil {
 		return nil, err
 	}
+	options.BuildTags = slices.Clone(options.BuildTags)
 	return &Provider{options: options}, nil
 }
 func (p *Provider) Prepare(ctx context.Context, spec target.Spec) (target.Prepared, error) {
@@ -169,6 +171,11 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		return target.Prepared{}, errors.New("compiler version does not match declared profile")
 	}
 	tags := append([]string{}, spec.BuildTags...)
+	if len(p.options.BuildTags) != 0 {
+		tags = append(tags, p.options.BuildTags...)
+		sort.Strings(tags)
+		tags = slices.Compact(tags)
+	}
 	sort.Strings(tags)
 	compilerSources, includeDirectory, err := compilerInventory(ctx, p.options.CompilerPath, dir, environment)
 	if err != nil {
@@ -238,7 +245,11 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 	if !filepath.IsAbs(p.options.CacheRoot) || !filepath.IsAbs(spec.PreparationRoot) {
 		return target.Prepared{}, errors.New("absolute WASM cache and preparation roots are required")
 	}
-	cache := filepath.Join(p.options.CacheRoot, pr.BuildKey)
+	compilation, err := compilationFor(pr)
+	if err != nil {
+		return target.Prepared{}, err
+	}
+	cache := filepath.Join(p.options.CacheRoot, "compilation-v1", compilation.BuildKey)
 	if err := os.MkdirAll(cache, 0700); err != nil {
 		return target.Prepared{}, err
 	}
@@ -253,18 +264,17 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		if err != nil {
 			return target.Prepared{}, err
 		}
-		cached, err := decodeProvenance(receipt)
-		if err != nil || cached.BuildKey != pr.BuildKey || cached.ModuleSHA256 != string(record.HashBytes(module)) {
+		var cached compilationReceipt
+		err = strictjson.Decode(receipt, &cached)
+		if err != nil || cached.Schema != compilation.Schema || cached.BuildKey != compilation.BuildKey || !reflect.DeepEqual(cached.Inputs, compilation.Inputs) || cached.ModuleSHA256 != string(record.HashBytes(module)) || cached.ModuleBytes != uint64(len(module)) {
 			return target.Prepared{}, errors.New("WASM compilation cache identity changed")
-		}
-		if err := p.validateProvenance(cached, preparedFrom(cached, receipt)); err != nil {
-			return target.Prepared{}, err
 		}
 		imports, pages, err := inventory(module)
 		if err != nil || !reflect.DeepEqual(imports, cached.Imports) || pages != cached.InitialMemoryPages {
 			return target.Prepared{}, errors.New("cached WASM import or memory identity changed")
 		}
-		pr = cached
+		pr.ModuleSHA256, pr.ModuleBytes = cached.ModuleSHA256, cached.ModuleBytes
+		pr.Imports, pr.InitialMemoryPages = cached.Imports, cached.InitialMemoryPages
 	} else if errors.Is(readErr, os.ErrNotExist) {
 		temporary, err := os.MkdirTemp(cache, ".build-")
 		if err != nil {
@@ -334,7 +344,11 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		if err := checkFile(p.options.CompilerPath, p.options.CompilerSHA256, 512<<20); err != nil {
 			return target.Prepared{}, err
 		}
-		receipt, err := json.Marshal(pr)
+		compilation, err = compilationFor(pr)
+		if err != nil {
+			return target.Prepared{}, err
+		}
+		receipt, err := json.Marshal(compilation)
 		if err != nil {
 			return target.Prepared{}, err
 		}
@@ -380,11 +394,16 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		if err != nil {
 			return target.Prepared{}, err
 		}
-		sealed, err := decodeProvenance(stagedReceipt)
-		if err != nil || !reflect.DeepEqual(sealed, pr) {
+		var sealed compilationReceipt
+		err = strictjson.Decode(stagedReceipt, &sealed)
+		if err != nil || !reflect.DeepEqual(sealed, compilation) {
 			return target.Prepared{}, errors.Join(errors.New("staged WASM receipt identity changed"), err)
 		}
-		if err := p.validateProvenance(sealed, preparedFrom(sealed, stagedReceipt)); err != nil {
+		data, err := json.Marshal(pr)
+		if err != nil {
+			return target.Prepared{}, err
+		}
+		if err := p.validateProvenance(pr, preparedFrom(pr, data)); err != nil {
 			return target.Prepared{}, err
 		}
 		if published, err := moduleStage.PublishContext(ctx, modulePath); err != nil {
@@ -404,6 +423,9 @@ func (p *Provider) prepareWithStager(ctx context.Context, spec target.Spec, stag
 		return target.Prepared{}, err
 	}
 	prepared := preparedFrom(pr, data)
+	if err := p.validateProvenance(pr, prepared); err != nil {
+		return target.Prepared{}, err
+	}
 	prepared.Path = filepath.Join(spec.PreparationRoot, "module.wasm")
 	if err := os.WriteFile(prepared.Path, module, 0500); err != nil {
 		return target.Prepared{}, err

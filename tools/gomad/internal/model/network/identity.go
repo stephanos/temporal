@@ -6,14 +6,14 @@ import (
 	"fmt"
 )
 
-//go:embed generated.go adapter.go identity.go generate/main.go stream_status_generated.go
+//go:embed simulation.go adapter.go identity.go stream_status_generated.go
 var implementationSources embed.FS
 
-// ImplementationSHA256 binds the executable projection and its wait adapter,
-// including the generator's admitted transformations of the native owner.
+// ImplementationSHA256 binds the executable simulation, its wait adapter and the
+// generated stream-status codec.
 func ImplementationSHA256() string {
 	var inventory []byte
-	for _, name := range []string{"adapter.go", "generate/main.go", "generated.go", "identity.go", "stream_status_generated.go"} {
+	for _, name := range []string{"adapter.go", "identity.go", "simulation.go", "stream_status_generated.go"} {
 		data, err := implementationSources.ReadFile(name)
 		if err != nil {
 			return ""

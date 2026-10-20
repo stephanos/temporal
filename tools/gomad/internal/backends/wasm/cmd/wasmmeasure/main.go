@@ -49,6 +49,7 @@ type invocation struct {
 	name, repo, goCommand string
 	inputs                map[string]string
 	environ               []string
+	keep                  bool
 }
 
 // producer runs an invocation and returns its exit status.
@@ -74,6 +75,9 @@ func produce(ctx context.Context, call invocation, stdout, stderr io.Writer) (co
 		return writeStatus(stderr, measurement.ExitFailed, "wasmmeasure %s: building %s: %v\n", call.name, build.Dir, err)
 	}
 	args := []string{"--internal-run", call.name, "--repo", call.repo, "--go", call.goCommand}
+	if call.keep {
+		args = append(args, "--keep")
+	}
 	variables := make([]string, 0, len(call.inputs))
 	for variable := range call.inputs {
 		variables = append(variables, variable)
@@ -104,7 +108,7 @@ func execute(ctx context.Context, call invocation, stdout, stderr io.Writer) int
 	if !ok || compiledErr != nil || selectedErr != nil || !os.SameFile(compiled, selected) {
 		return writeStatus(stderr, measurement.ExitRefused, "wasmmeasure: executor was not built from --repo\n")
 	}
-	err := measure.Run(ctx, call.name, measure.Options{Repo: call.repo, Inputs: call.inputs, Environ: call.environ, Log: stdout})
+	err := measure.Run(ctx, call.name, measure.Options{Repo: call.repo, Inputs: call.inputs, Environ: call.environ, Log: stdout, Keep: call.keep})
 	if err == nil {
 		return 0
 	}
@@ -172,6 +176,7 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 	flags.SetOutput(&parseOutput)
 	repo := flags.String("repo", "", "absolute checkout whose measurement command is built and run (required)")
 	goCommand := flags.String("go", "go", "go command that builds the checkout's measurement command")
+	keep := flags.Bool("keep", false, "keep this run for independent baseline/replay consumers")
 	values := map[string]*string{}
 	for _, input := range inputs {
 		help := "sets " + input.Variable
@@ -192,7 +197,7 @@ func run(ctx context.Context, args, environ []string, stdout, stderr io.Writer, 
 	if info, err := os.Stat(filepath.Join(*repo, "tools", "gomad", "internal", "backends", "wasm", "internal", "measure")); err != nil || !info.IsDir() {
 		return writeStatus(stderr, measurement.ExitRefused, "wasmmeasure: %s is not a gomad checkout with wasmmeasure producers\n", *repo)
 	}
-	call := invocation{name: name, repo: *repo, goCommand: *goCommand, inputs: map[string]string{}, environ: environ}
+	call := invocation{name: name, repo: *repo, goCommand: *goCommand, inputs: map[string]string{}, environ: environ, keep: *keep}
 	var missing []string
 	for _, input := range inputs {
 		value := *values[input.Variable]

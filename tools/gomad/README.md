@@ -12,8 +12,8 @@ The shared Gomad Runner owns campaigns, evidence storage, inspection and replay.
 WASM remains experimental. Selecting a package and test is supported CLI syntax;
 it does not guarantee that every Go or Temporal functional test fits the modeled
 boundary or reproduces. Qualification applies only to the candidate, profile,
-host, workload and executions named in retained evidence. The current upstream
-sync and helper work under fn-189 and fn-187 still await full qualification.
+host, workload and executions named in retained evidence. The upstream sync
+(fn-189) and helper work (fn-187) qualified on candidate `e50c6476fb`.
 Read the [milestones](../../MILESTONES.md) and
 [WASM qualification contract](internal/backends/wasm/QUALIFICATION.md) before
 making a support claim.
@@ -86,14 +86,14 @@ the patched native host toolchain is a separate workflow.
 
 ## Keep and replay a first failure
 
-Start with Gomad's intentional failure fixture. Although its source lives in
-the retained native tree, this command builds and executes it through WASM:
+Start with Gomad's intentional failure fixture, a WASM-owned test module under
+`internal/backends/wasm/testdata/io_failure_module`:
 
 ```sh
 cd "$GOMAD_CHECKOUT"
 "$GOMAD_OPERATOR/bin/gomad" explore \
   --choices --diagnostics --seeds=7 --parallel=1 \
-  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/native/conformance/testdata" \
+  --working-dir "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/testdata/io_failure_module" \
   --build-tag=gomad_fixture --build-tag=test_dep \
   --execution-timeout=30s --overall-timeout=5m \
   --artifacts "$GOMAD_OPERATOR/canary-artifacts" \
@@ -159,39 +159,28 @@ implemented. These are explicit integration inputs, not automatic package policy
 
 The small `./tests/gomadfunctional` package contains `TestFrontendSystemInfo`,
 which starts testcore with in-memory SQLite. A Temporal installation needs
-captured schema bytes and larger capacities than the first fixture. The command
-below requires a complete `wasi.Config` JSON file prepared by the Temporal
-integration. Set `GOMAD_TEMPORAL_CONFIG` to that file's absolute path. The current
-CLI has no generic mount-capture/setup command, so arbitrary Temporal tests are
-not yet a one-command workflow.
+captured schema bytes and larger capacities than the first fixture. One `install`
+command derives the cooperative configuration from the checkout and package,
+captures immutable SQLite schema bytes, and pins the slim guest build tags.
+No configuration JSON or `GOMAD_TEMPORAL_CONFIG` is needed. The shared derivation
+also supplies the guest working directory, matching `PWD`, writable directories,
+and bounded file, descriptor, call and modeled network capacities.
+The [operator guide](internal/backends/wasm/CLI.md#prepare-a-temporal-test-package)
+records the defaults and input contract.
 
-For this selection the configuration must declare the cooperative profile,
-guest `WorkingDirectory=/workspace/tests/gomadfunctional`, matching `PWD`,
-writable `/workspace`, `/tmp` and guest working directories, and immutable
-captured `schema/sqlite` bytes at `/workspace/schema/sqlite`. It must also supply
-appropriate file, descriptor, call and modeled network limits. The existing
-[Temporal guest configuration fixture](internal/backends/wasm/wasi/measure_integration_test.go)
-and [one-box inspection fixture](internal/backends/wasm/backend/temporal_inspection_integration_test.go)
-show how current integration code captures inputs and declares those limits.
-They are implementation references, not a consumer setup command or evidence
-that another selection works. The [operator guide](internal/backends/wasm/CLI.md#build-and-pin-an-installation)
-defines the complete configuration input contract.
-
-Given that prepared configuration, create a separate installation and select
-the test. These memory/fuel capacities follow Temporal's guest integration;
-they are limits, not measured consumption or a current-candidate pass.
+Create a separate installation and select the named test. These memory/fuel
+capacities follow Temporal's guest integration; they are limits, not measured consumption.
+Setup refuses inherited `GOMAD_*` variables; `env -i` supplies only its named inputs.
 Standalone execution takes explicit environment values from `--env`;
 configuration environment entries alone do not supply them.
 
 ```sh
-export GOMAD_TEMPORAL_CONFIG=/absolute/consumer-prepared/temporal-config.json
-"$GOMAD_OPERATOR/bin/gomad" install \
+env -i "$GOMAD_OPERATOR/bin/gomad" install \
+  --temporal-checkout "$GOMAD_CHECKOUT" \
+  --temporal-package ./tests/gomadfunctional \
   --compiler "$GOMAD_STOCK_GO" \
   --helper "$GOMAD_CHECKOUT/tools/gomad/internal/backends/wasm/wasmhost/target/release/gomad-wasmhost" \
   --runtime-root "$GOMAD_CHECKOUT/tools/gomad/internal/model/runtimesource" \
-  --profile gomad.wasi-cooperative/v1 \
-  --config "$GOMAD_TEMPORAL_CONFIG" \
-  --memory-bytes=4294967296 --fuel=1125899906842624 \
   --cache "$GOMAD_OPERATOR/temporal-preparation" \
   --compile-cache "$GOMAD_OPERATOR/temporal-engine" \
   --output "$GOMAD_OPERATOR/bin/gomad-temporal.json"
@@ -199,12 +188,11 @@ cd "$GOMAD_CHECKOUT"
 "$GOMAD_OPERATOR/bin/gomad" \
   --installation "$GOMAD_OPERATOR/bin/gomad-temporal.json" explore \
   --working-dir "$GOMAD_CHECKOUT" \
-  --build-tag=disable_grpc_modules --build-tag=gomad_wasm_slim \
-  --build-tag=sqlite3_dotlk --build-tag=test_dep \
   --env=TEMPORAL_ROOT=/workspace --env=TMPDIR=/tmp \
   --env=TEMPORAL_TEST_LOG_LEVEL=warn \
   --choices --choice-bytes=64MiB \
   --output-limit=16MiB --seeds=0 --parallel=1 \
+  --keep-successes=all --success-limit=1 --success-bytes=4GiB \
   --execution-timeout=15m --overall-timeout=30m \
   --artifacts "$GOMAD_OPERATOR/temporal-artifacts" \
   go-test ./tests/gomadfunctional -- '-test.run=^TestFrontendSystemInfo$' \
@@ -212,17 +200,19 @@ cd "$GOMAD_CHECKOUT"
   -persistenceType=sql -persistenceDriver=sqlite
 ```
 
+Replay the successful artifact path reported by `explore` with
+`gomad --installation "$GOMAD_OPERATOR/bin/gomad-temporal.json" replay ARTIFACT`.
+
 Host preparation uses the checkout root; guest execution uses
 `/workspace/tests/gomadfunctional`. Captured `schema/sqlite` lives at
 `/workspace/schema/sqlite`, and `TEMPORAL_ROOT=/workspace` lets testcore find it.
 Gomad supplies guest `PWD` and UTC timezone. No live mount is exposed.
 
-For `./tests`, change the package and `-test.run`, set the configuration's guest
-working directory to `/workspace/tests`, regenerate it and install a new
-manifest. For example,
-`^TestWorkflowTypeEncodingSuite$/^TestPlainASCII$/^Succeeds$` selects an existing
-subtest. Other tests can need additional captured files, different capacities
-or model support. `gomad_wasm_slim` omits cloud archivers, ringpop and
+This workflow supports only the named `TestFrontendSystemInfo` selection;
+current-candidate one-box qualification is owned separately by fn-222.
+Preparing another package does not establish its support. Other tests can need
+additional captured files, different capacities or model support.
+`gomad_wasm_slim` omits cloud archivers, ringpop and
 MySQL/PostgreSQL test drivers. Selecting excluded providers fails explicitly.
 
 Start with one seed and one heavy preparation at a time. Whole Temporal modules
@@ -349,6 +339,14 @@ the fixtures byte-identical. Keep unit tests for invariants a corpus cannot
 express. Measurement producers run through the explicit `wasmmeasure` command,
 not test targets. The [WASM implementation guide](internal/backends/wasm/README.md)
 documents regeneration commands, retained invariants and measurement admission.
+
+Shared wire codecs are generated from the schemas under `internal/model` by
+`make generate` (`internal/model/cmd/protocolgen`, stock Go, no build tag);
+`make validate` reports each stale output and fails. The volume and network
+models are owned source with no generator. The native backend tree is frozen:
+it is neither executed nor qualified, and its generators and validators run
+only under its own selection, `GOFLAGS=-tags=gomad_native make generate-native
+validate-native`. See [ARCHITECTURE.md](ARCHITECTURE.md#clusters-and-scenarios).
 
 ## Further reading
 

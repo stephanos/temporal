@@ -510,7 +510,18 @@ The user journey depends on a maintained deterministic product. `gomadtool` prov
 
 ### Keep generated contracts synchronized
 
-Four commands generate or verify different canonical domains:
+The shared wire codecs (Go models, the WASM toolchain overlay and the Rust
+helper) are generated without the native selection:
+
+```sh
+go -C tools/gomad run ./internal/model/cmd/protocolgen -check
+```
+
+It exits 0 when current, 1 with one `stale: <path>` line per stale output, and 2
+on a usage, schema or template error; `make generate` and `make validate` run it.
+
+Four native commands generate or verify the native backend's canonical domains
+(`make generate-native validate-native` under `GOFLAGS=-tags=gomad_native`):
 
 ```sh
 go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/internal/backends/native/cmd/gomadtool version-generate --check --root=.
@@ -522,7 +533,7 @@ go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/inter
 ```
 
 - `version-generate` derives consumers of the release descriptor.
-- `protocol-generate` derives both endpoints and tests for the declared cross-process protocols.
+- `protocol-generate` derives the native backend's endpoints and tests (overlay, execution and live-capability codecs) from the shared schemas; it no longer writes shared outputs.
 - `boundary-generate` derives the reviewed host-capability inventory and compiler interception evidence.
 - `qualification-manifest-generate` derives a qualification-set manifest with one workload per top-level test of a package, the tests `go test -list` reports under the spec's build tags, from a spec of defaults, per-test overrides, and exclusions. `--check` fails when the manifest is stale relative to the package or the spec. The checked-in `./tests` spec defaults to no Choice Trace and no success replay; a test opts in by overriding `choice_bytes`, `replay_successes`, `success_artifact_limit`, and `success_bytes_limit` with a `reason`.
 
@@ -750,7 +761,7 @@ go -C tools/gomad run -tags gomad_native go.temporal.io/server/tools/gomad/inter
   --approve-review=sha256:REVIEWED_DIGEST
 ```
 
-An apply builds the complete output set in a scratch copy of the Gomad module first: the adapter constants and the tests that name the version, the `version.json` entry, the test fixture modules that require the module (then `go mod tidy`), and the outputs of the module-local `make generate` steps. It verifies the staged copy (the commands build, the adapter tests vet, generated files and packs check, and the staged adapter accepts the candidate under every pin) and then publishes under an exclusive lock, after checking that no checkout file changed since staging. Publication commits a journal under `.toolchain/adapter-regeneration` before it touches the checkout, so an interrupted publication is completed by the next apply or by `adapter-regenerate --recover`, and a journal that was never committed is discarded. A failed generation, a failed verification, a changed checkout, or a competing apply publishes nothing. A wrong digest is status 2. The apply lists any other references to the previous version for review; the stale packs are repaired by refreshing them, and `.bin/gomad` must be rebuilt and the adapter's workloads requalified because the adapter's identity changed. The syntax-aware `modernc.org/libc` rewrite follows the same approval and staged-publication path and fails closed if its reviewed source form changes.
+An apply builds the complete output set in a scratch copy of the Gomad module first: the adapter constants and the tests that name the version, the `version.json` entry, the test fixture modules that require the module (then `go mod tidy`), and the outputs of the module-local `make generate-native` steps. It verifies the staged copy (the commands build, the adapter tests vet, generated files and packs check, and the staged adapter accepts the candidate under every pin) and then publishes under an exclusive lock, after checking that no checkout file changed since staging. Publication commits a journal under `.toolchain/adapter-regeneration` before it touches the checkout, so an interrupted publication is completed by the next apply or by `adapter-regenerate --recover`, and a journal that was never committed is discarded. A failed generation, a failed verification, a changed checkout, or a competing apply publishes nothing. A wrong digest is status 2. The apply lists any other references to the previous version for review; the stale packs are repaired by refreshing them, and `.bin/gomad` must be rebuilt and the adapter's workloads requalified because the adapter's identity changed. The syntax-aware `modernc.org/libc` rewrite follows the same approval and staged-publication path and fails closed if its reviewed source form changes.
 
 ### Close the loop with `upgrade-dossier`
 
@@ -806,7 +817,7 @@ If the reviewed boundary changed intentionally, review its reported digest and r
 | `patch-materialize` | Apply the reviewed patch to a verified source tree. |
 | `patch-regenerate` | Recreate the patch from a reviewed candidate tree. |
 | `version-generate` | Generate or check release-descriptor consumers. |
-| `protocol-generate` | Generate or check cross-process protocol endpoints and tests. |
+| `protocol-generate` | Generate or check the native set of cross-process protocol endpoints and tests. |
 | `qualification-manifest-generate` | Generate or check qualification workloads from a package's top-level tests and declared dispositions. |
 | `boundary-generate` | Discover, qualify, generate, refresh, or check the capability boundary. |
 | `compatibility-pack` | Discover, review, generate from exact approval, qualify, and check compatibility packs. |
