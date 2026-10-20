@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-219-gomad-promote-the-model-projections-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T15:48:48.335716Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-219-gomad-promote-the-model-projections-and",
+  "impl_review_rounds": {
+    "fn-219-gomad-promote-the-model-projections-and.4": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "2bdb75057844e173fbf947ab3b19c8840d3ac8f1a0bd174317f270dbc54d2cf8",
+      "backend": "codex",
+      "base_sha": "18598f9c39cd061fa4d8c15d01e50e70c1d19d4d",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9d62ddadc1437918659b30bbf5d18ff85f97a6f1",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "e8b8455e2a824b50830c0a3adec681b1",
+      "round_consumed": true,
+      "scope": "impl:fn-219-gomad-promote-the-model-projections-and.4",
+      "superseded_by": null,
+      "task": "fn-219-gomad-promote-the-model-projections-and.4",
+      "timestamp": "2026-10-20T21:31:32.056284Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-219-gomad-promote-the-model-projections-and.4": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-219-gomad-promote-the-model-projections-and.4": 0
+  },
   "spec_path": ".flow/specs/fn-219-gomad-promote-the-model-projections-and.md",
   "status": "open",
   "title": "Gomad: promote the model projections and cut the WASM dependency on native sources",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:12:23.323826Z"
+  "updated_at": "2026-10-20T21:31:32.057577Z"
 }
