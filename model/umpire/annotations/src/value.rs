@@ -70,6 +70,7 @@ pub trait FieldValue: Clone + Default + PartialEq + 'static {
         Vec::new()
     }
     /// Generates a repeated field; scalar fields refuse.
+    /// Exhausted bounded sampling returns `SizeLimit`, not a proof of impossible constraints.
     fn generate_repeated(
         _kind: &Kind,
         _rules: &RepeatedRules,
@@ -131,6 +132,18 @@ fn sampled_len(min: usize, max: Option<usize>, rng: &mut Rng) -> Result<usize, G
     Ok(min + usize::try_from(rng.next_u64() % span).map_err(|_| GenerationError::SizeLimit)?)
 }
 
+fn random_character(max_bytes: usize, rng: &mut Rng) -> char {
+    let count = match max_bytes {
+        1 => 0x80,
+        2 => 0x800,
+        3 => 0xf800,
+        _ => 0x10_f800,
+    };
+    let index = u32::try_from(rng.next_u64() % count).unwrap_or(0);
+    let scalar = if index >= 0xd800 { index + 0x800 } else { index };
+    char::from_u32(scalar).unwrap_or('\0')
+}
+
 fn uuid(value: &str) -> bool {
     value.len() == 36
         && value.bytes().enumerate().all(|(i, byte)| {
@@ -184,11 +197,7 @@ fn text_candidate(
             return Ok(Some(
                 slots
                     .into_iter()
-                    .map(|slot| {
-                        slot.unwrap_or_else(|| {
-                            char::from(b'a' + u8::try_from(rng.next_u64() % 26).unwrap_or(0))
-                        })
-                    })
+                    .map(|slot| slot.unwrap_or_else(|| random_character(4, rng)))
                     .collect(),
             ));
         }
@@ -277,9 +286,11 @@ impl FieldValue for String {
                 if rules.min_len.is_some_and(|min| len < min) {
                     return Err(GenerationError::ImpossibleConstraints);
                 }
-                Ok((0..len)
-                    .map(|_| char::from(b'a' + u8::try_from(rng.next_u64() % 26).unwrap_or(0)))
-                    .collect())
+                let mut value = String::with_capacity(len);
+                while value.len() < len {
+                    value.push(random_character(len - value.len(), rng));
+                }
+                Ok(value)
             }
             Kind::Identifier(rules) | Kind::Text(rules) => {
                 generate_text(rules, matches!(kind, Kind::Identifier(_)), rng)
@@ -634,7 +645,7 @@ impl<T: FieldValue> FieldValue for Vec<T> {
                     break;
                 }
             }
-            result.push(found.ok_or(GenerationError::ImpossibleConstraints)?);
+            result.push(found.ok_or(GenerationError::SizeLimit)?);
         }
         Ok(result)
     }
