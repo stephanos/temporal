@@ -1,11 +1,19 @@
 package measure
 
 import (
+	"bytes"
+	"crypto/sha256"
 	"errors"
 	"maps"
+	"os"
+	"path/filepath"
+	"strings"
 	"testing"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
 func TestStressMatrix(t *testing.T) {
@@ -25,6 +33,41 @@ func TestStressMatrix(t *testing.T) {
 		if cases[index].Seed != uint64(index)*1000003 {
 			t.Fatal(cases[index])
 		}
+	}
+}
+
+func TestStressRetainsInterruptedChoicesAndDiagnostics(t *testing.T) {
+	t.Parallel()
+	identity := choice.ExecutionIdentity{TargetSHA256: sha256.Sum256([]byte("module")), ToolchainBuildKey: strings.Repeat("a", 64), GOOS: "wasip1", GOARCH: "wasm", ImplementationSHA256: sha256.Sum256([]byte("runtime"))}
+	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
+	decision, err := choice.CanonicalDecision(0, choice.KindRunnable, 19, false, [][32]byte{a, b}, a, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	trace, err := choice.BuildTrace([]choice.Record{decision.Record()}, choice.TerminalComplete)
+	if err != nil {
+		t.Fatal(err)
+	}
+	diagnostic, err := choice.BuildDiagnosticTrace([]choice.DiagnosticRecord{{Ordinal: 0}}, 1024)
+	if err != nil {
+		t.Fatal(err)
+	}
+	observation := stressFixture()
+	root := t.TempDir()
+	result := wasi.Result{RuntimeInterrupted: true, InterruptedChoiceBytes: trace.Bytes, InterruptedDiagnosticBytes: diagnostic.Bytes, EnvironmentIdentity: "declared"}
+	if err := stressCollect(t.Context(), root, "active", 1, result, &backends.ChoiceRequest{ExecutionIdentity: identity, Limit: 8192}, &observation); err != nil {
+		t.Fatal(err)
+	}
+	if !bytes.Equal(observation.Run.Incarnations[0].Diagnostic, diagnostic.Bytes) {
+		t.Fatal("crashed incarnation lost diagnostic counters")
+	}
+	stored, err := os.ReadFile(filepath.Join(root, "active-1-choice-trace.bin"))
+	if err != nil || !bytes.Equal(stored, trace.Bytes) {
+		t.Fatalf("interrupted choice prefix lost: %v", err)
+	}
+	tape, err := os.ReadFile(filepath.Join(root, "active-1-choice-tape.bin"))
+	if err != nil || len(tape) == 0 {
+		t.Fatalf("interrupted choices lack projected tape: %v", err)
 	}
 }
 
