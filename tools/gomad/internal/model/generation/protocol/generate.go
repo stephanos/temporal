@@ -28,7 +28,7 @@ const (
 )
 
 // Target is one generated output. Template and Path are slash-separated and
-// relative to the gomad module root.
+// relative to the schema root and output root, respectively.
 type Target struct {
 	Family     Family
 	Template   string
@@ -75,11 +75,11 @@ func SharedTargets() []Target {
 	}
 }
 
-// Generate renders targets from the schemas under root. Without check it
+// Generate renders targets from the schemas under root into outputRoot. Without check it
 // writes every output. With check it writes nothing and returns the path of
 // every output that is missing or differs. A schema or template error returns
 // err.
-func Generate(root string, targets []Target, header HeaderFunc, check bool) ([]string, error) {
+func Generate(root, outputRoot string, targets []Target, header HeaderFunc, check bool) ([]string, error) {
 	inputs := schemaCache{root: root}
 	var stale []string
 	for _, target := range targets {
@@ -87,7 +87,7 @@ func Generate(root string, targets []Target, header HeaderFunc, check bool) ([]s
 		if err != nil {
 			return nil, fmt.Errorf("%s: %w", target.Path, err)
 		}
-		destination := filepath.Join(root, filepath.FromSlash(target.Path))
+		destination := filepath.Join(outputRoot, filepath.FromSlash(target.Path))
 		if check {
 			current, readErr := os.ReadFile(destination)
 			if readErr != nil || !bytes.Equal(current, generated) {

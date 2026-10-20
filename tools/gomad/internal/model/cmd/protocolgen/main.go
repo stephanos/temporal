@@ -49,7 +49,7 @@ func run(arguments []string, stderr io.Writer) int {
 			return 2
 		}
 	}
-	stale, err := protocol.Generate(directory, protocol.SharedTargets(), protocol.SharedHeaders, *check)
+	stale, err := protocol.Generate(directory, directory, protocol.SharedTargets(), protocol.SharedHeaders, *check)
 	if err != nil {
 		_, _ = fmt.Fprintln(stderr, "protocolgen:", err)
 		return 2

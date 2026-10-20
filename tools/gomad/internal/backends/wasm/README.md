@@ -306,7 +306,7 @@ store from the recovery image retained inside Rust, even when no image bytes
 were requested for inspection. Finish closes the cluster and collects its World.
 The Go owner remains the differential reference. Single-instance V2 network
 runs, the native backend and the per-process Go-broker reference path use the
-generated native host model (the Go network owner). In-process clusters
+owned Go network model (the Go network owner). In-process clusters
 (`cluster_execute`, fn-178) serve every instance's `net_stream` from one shared
 Rust network owner in the helper (fn-177's port, kept equal to the Go owner by
 its corpus); Go validates the cluster network configuration first
@@ -403,7 +403,7 @@ simulated network. Its gates use the cooperative profile with a frozen clock
 (zero read-step): time moves only when every guest goroutine is blocked, then
 jumps to the earliest deadline.
 
-The simulated network uses `Config.NetworkV2` and the generated host stream
+The simulated network uses `Config.NetworkV2` and the owned Go stream
 model. Named `reset`, `partition`, `heal` and `delay` faults apply at virtual
 times; partitions hold pending operations until healing or their deadline.
 Model decisions form the `NetworkTranscript` evidence stream. The prototype

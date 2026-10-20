@@ -9,6 +9,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 
 	"go.temporal.io/server/tools/gomad/internal/model/generation/protocol"
 	"golang.org/x/mod/modfile"
@@ -63,15 +64,29 @@ func Headers(template string) string {
 // returns the stale outputs. Shared schemas and templates are read from the
 // parent module the native go.mod replaces, not from the working directory.
 func Generate(root string, check bool) ([]string, error) {
+	root, err := filepath.Abs(root)
+	if err != nil {
+		return nil, err
+	}
 	parent, err := ParentRoot(filepath.Join(root, filepath.FromSlash(nativeRelPath)))
 	if err != nil {
 		return nil, err
 	}
-	stale, err := protocol.Generate(parent, Targets(), Headers, check)
+	local, err := filepath.Rel(parent, root)
 	if err != nil {
 		return nil, err
 	}
-	capabilities, err := generateLiveCapabilityProtocols(parent, check)
+	targets := Targets()
+	for index := range targets {
+		if strings.HasPrefix(targets[index].Template, nativeRelPath+"/") {
+			targets[index].Template = filepath.ToSlash(filepath.Join(local, targets[index].Template))
+		}
+	}
+	stale, err := protocol.Generate(parent, root, targets, Headers, check)
+	if err != nil {
+		return nil, err
+	}
+	capabilities, err := generateLiveCapabilityProtocols(root, parent, check)
 	if err != nil {
 		return nil, err
 	}
