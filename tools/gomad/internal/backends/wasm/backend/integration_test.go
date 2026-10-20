@@ -184,7 +184,7 @@ func TestTestSourceChangesInvalidateCompilationCache(t *testing.T) {
 	if third.BuildKey != second.BuildKey || third.SHA256 != second.SHA256 {
 		t.Fatal("unchanged source did not reuse verified cache identity")
 	}
-	module := filepath.Join(provider.options.CacheRoot, third.BuildKey, "module.wasm")
+	module := filepath.Join(compilationCachePath(t, provider, third), "module.wasm")
 	if err := os.Chmod(module, 0600); err != nil {
 		t.Fatal(err)
 	}
@@ -609,7 +609,7 @@ func TestInterruptedCachePublicationIsRebuilt(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	receipt := filepath.Join(options.CacheRoot, first.BuildKey, "receipt.json")
+	receipt := filepath.Join(compilationCachePath(t, isolated, first), "receipt.json")
 	if err := os.Remove(receipt); err != nil {
 		t.Fatal(err)
 	}
