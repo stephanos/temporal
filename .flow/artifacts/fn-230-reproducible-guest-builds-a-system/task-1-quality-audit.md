@@ -60,3 +60,7 @@ Commit `5d5637a2ab76adc4b06253ab0688bef84c7bf3bf` changes only DESIGN.md and the
 
 The conductor integrated the checkpoint at `183e22fccce1f1badde0cc8ab2eb3ad78355f03e`, after fn-217.2's verified closure. The combined `CARGO_TARGET_DIR=/home/agent/.cache/codex-build/umpire-integrated make model-check` exited 0 (`.flow/tmp/fn2301-integrated-model-check.log`). Focused Python build/fresh/stale/failure controls, Bash syntax checks and diff checks also exited 0. These checks verify integration of the source checkpoint only. Task fn-230.1 remains in progress, with both original proof obligations open.
 
+## Preserved active proof evidence
+
+After integration the worker moved its owned proof files, logs and clean source clones to `.flow/tmp/fn2301-proof-lane/`, preserving tracked older files. `RELOCATION.md` records the exact mapping and retains historical paths as historical evidence. The conductor ran `sha256sum -c fn2301-preserved-sha256.txt` from that directory; all four original final artifacts passed. The worker removed the clean integrated worktree and its local branch without force. Task .1 remains open, and active proof evidence was preserved rather than cleaned as a closed spec.
+
