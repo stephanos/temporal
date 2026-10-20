@@ -17,9 +17,14 @@ Extend the completeness tests to the remaining site classes from the spec. (a) w
 - [ ] Each seed finding in the spec has a row with a recorded decision or follow-up referral
 
 ## Done summary
-TBD
+Completed the remaining source-derived site classes and recorded all seed-finding decisions/referrals. The JSON inventory now contains 68 exact runtime entries (17 draw/clock patches, 22 host-clock references, 29 other patches), linked bidirectionally to production-derived sites and the shared reviewed grammar. Helper source scans, Go host-effect coverage and engine-setting coverage retain their negative mutation checks. Accepted retirement preserves identity but grants no wildcard exemption to new sites; unreviewed paired appends cannot claim retirement. All 68 runtime sites retain missing/stale/disposition/rule/evidence checks, and valid new active appends remain supported. No runtime/model/protocol change. Stress evidence and the final contract remain with .5/.6.
 
+Evidence handover: `.flow/artifacts/fn188-source-acceptance-2026-10-20.md`. Integrated source `5dcd37ceaea62e95ba7e33703e247094fea6d158`: full default validate exit 0 and affected lint exit 0, zero issues.
+
+stage: impl-review - SHIP (official SINGLE re-review, 2026-10-20T18:15:58Z; same session 01a15a74-37ad-7020-b5d4-830052a6a1a3; codex:gpt-6.1-sol:high, same-family; .flow/tmp/impl-review-fn188-source-batch.json; both findings fixed, zero open).
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: 5dcd37ceaea62e95ba7e33703e247094fea6d158
+- Tests: Full determinism, root WASM both-platform architecture and archcheck host suites: exit 0, t2-mutation-proofs.log: helper Instant, engine SIMD, Go time.Now and overlay patch additions fail coverage, Go/Rust paired-append retirement regressions: old-code exit 1/101, repaired tests exit 0, Retired helper allowlist fresh entropy site and invalid retirement: named failures before fix, 12 Rust inventory tests exit 0 after fix, Retirement-positive active append regression: old-code exit 1, full Go determinism exit 0 after fix, Affected Go lint and focused Rust Clippy: exit 0; integrated default validate d2410c5e exit 0, make -C tools/gomad validate on integrated5dcd37ce: exit0 (inventory12/12, corpus26/26, engine3/3, Go determinism/architecture/WASI); /home/agent/wt/evidence/integration-2026-10-20/validate-fn188-controller-tagged-fixes.log, make lint-code-gomad with Linux tools, FIX=false, basee0cd113841: exit0, zeroissues; /home/agent/wt/evidence/integration-2026-10-20/lint-fn188-controller-tagged-fixes.log
 - PRs:
