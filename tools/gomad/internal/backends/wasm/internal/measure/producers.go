@@ -5419,12 +5419,11 @@ func temporalRecoveryRequestWithAdmission(runCtx context.Context, fixture string
 		measureErr = writeReportErr
 		return
 	}
-	captured, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: filepath.Join(root, "schema", "sqlite"), Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	cfg, err := temporalRecoveryConfig(root)
 	if err != nil {
 		measureErr = err
 		return
 	}
-	cfg := wasi.Config{WorkingDirectory: "/workspace", Environment: []string{"PWD=/workspace", "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "GOMAD_TEMPORAL_DATABASE=/volume/temporal.db", "GOMAD_TEMPORAL_SCHEMA=/workspace/schema/sqlite/v3"}, WritableDirectories: []string{"/workspace", "/tmp", "/volume"}, CapturedInputs: captured, EntropyKey: sha256.Sum256([]byte("gomad-wasm-temporal-recovery/v1")), Clock: wasi.ClockPolicy{EpochNanos: 1700000000000000000, ReadStepNanos: 0}, Limits: wasi.Limits{OutputBytes: 8 << 20, TranscriptBytes: 128 << 20, Calls: 4000000, Descriptors: 4096, Files: 10000, FilesystemBytes: 512 << 20, PendingEvents: 4096}, Storage: &wasi.StorageModel{Volumes: []volume.VolumeConfig{{ID: "temporal", Path: "/volume", CapacityBytes: 256 << 20}}, Limits: volume.VolumeLimits{PendingOperations: 100000, Transitions: 10000000}, SQLiteLockDatabases: []string{"/volume/temporal.db"}}}
 	request, requestErr := prototypeRequest(runCtx, module, cfg, 7, 15*time.Minute)
 	if requestErr != nil {
 		measureErr = requestErr

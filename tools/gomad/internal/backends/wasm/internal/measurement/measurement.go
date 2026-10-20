@@ -117,6 +117,19 @@ func Shell(command []string) string {
 }
 
 var producerInputs = map[string][]Input{
+	"stress": {
+		{"GOMAD_WASM_STRESS_ROOT", true},
+		{"GOMAD_WASM_TEST_HELPER", true},
+		{"GOMAD_STOCK_GO", true},
+		{"GOMAD_WASM_STRESS_HOST_DESCRIPTION", true},
+		{"GOMAD_WASM_STRESS_REPETITIONS", false},
+		{"GOMAD_WASM_STRESS_PARALLEL", false},
+		{"GOMAD_WASM_STRESS_CPU_WORKERS", false},
+		{"GOMAD_WASM_STRESS_ONLY", false},
+		{"GOMAD_WASM_STRESS_SEED", false},
+		{"GOMAD_WASM_STRESS_AXIS", false},
+		{"GOMAD_WASM_TOOLCHAIN_CACHE", false},
+	},
 	"compiled-identity-owners": {
 		{"GOMAD_WASM_DIAGNOSTIC_IDENTITY_ROOT", true},
 		{"GOMAD_WASM_TOOLCHAIN_CACHE", false},
