@@ -78,8 +78,15 @@ func TestStressRetainsCompleteEventOrderWithoutWallTelemetryDigest(t *testing.T)
 	if err != nil || !bytes.Equal(data, retained) || observation.Run.OrderLog == nil || len(observation.Run.OrderLog.Events) != 1 {
 		t.Fatalf("missing retained supplemental event evidence: %v", err)
 	}
-	if _, found := observation.Digests["event-order"]; found {
-		t.Fatal("wall telemetry entered canonical digest")
+	commitment := observation.Digests["event-order"]
+	if commitment == "" {
+		t.Fatal("parsed event-order evidence lacks a commitment")
+	}
+	if err := stressEventOrder(t.Context(), root, bytes.Replace(data, []byte("host wall time: 123"), []byte("host wall time: 999"), 1), &observation); err != nil {
+		t.Fatal(err)
+	}
+	if observation.Digests["event-order"] != commitment {
+		t.Fatal("wall telemetry entered the parsed event-order digest")
 	}
 	if err := stressEventOrder(t.Context(), root, []byte(header), &observation); err == nil {
 		t.Fatal("accepted truncated supplemental event order")

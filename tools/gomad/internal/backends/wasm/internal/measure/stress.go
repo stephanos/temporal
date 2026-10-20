@@ -720,6 +720,11 @@ func stressEventOrder(ctx context.Context, root string, helperDiagnostics []byte
 	if err := temporalWrite(ctx, filepath.Join(root, "event-order.log"), helperDiagnostics); err != nil {
 		return err
 	}
+	encoded, err := json.Marshal(log)
+	if err != nil {
+		return err
+	}
+	observation.Digests["event-order"] = digest(encoded)
 	observation.Run.OrderLog = &log
 	return nil
 }
