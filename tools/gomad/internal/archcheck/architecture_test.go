@@ -698,7 +698,29 @@ func checkerBudget(root string) (production, tests int, err error) {
 // tests, which live beside the checker but are not part of its budget.
 func moduleArchitectureTest(root, path string) bool {
 	relative, err := filepath.Rel(root, path)
-	return err == nil && slices.Contains([]string{"internal/archcheck/architecture_test.go", "internal/archcheck/integration_test.go"}, filepath.ToSlash(relative))
+	return err == nil && slices.Contains([]string{
+		"internal/archcheck/architecture_test.go", "internal/archcheck/architecture_native_test.go",
+		"internal/archcheck/integration_test.go", "internal/archcheck/integration_native_test.go",
+	}, filepath.ToSlash(relative))
+}
+
+func TestCheckerBudgetExcludesModuleContractTests(t *testing.T) {
+	for _, name := range []string{"architecture_test.go", "architecture_native_test.go", "integration_test.go", "integration_native_test.go"} {
+		t.Run(name, func(t *testing.T) {
+			root := t.TempDir()
+			directory := filepath.Join(root, "internal/archcheck")
+			if err := os.MkdirAll(directory, 0700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(directory, name), []byte(strings.Repeat("\n", 1501)), 0600); err != nil {
+				t.Fatal(err)
+			}
+			production, tests, err := checkerBudget(root)
+			if err != nil || production != 0 || tests != 0 {
+				t.Fatalf("module contract test counted as checker implementation: production=%d tests=%d err=%v", production, tests, err)
+			}
+		})
+	}
 }
 
 func TestArchitectureCheckerBudget(t *testing.T) {
