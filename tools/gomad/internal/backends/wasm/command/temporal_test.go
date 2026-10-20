@@ -11,6 +11,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 )
 
 func TestInstallTemporalAndDiscover(t *testing.T) {
@@ -30,8 +31,14 @@ func TestInstallTemporalAndDiscover(t *testing.T) {
 	require.NoError(t, err)
 	config, err := wasi.TemporalConfig(root, "/workspace/tests/gomadfunctional")
 	require.NoError(t, err)
-	config.NetworkV2 = description.Manifest.Options.Config.NetworkV2
-	require.NotNil(t, config.NetworkV2)
+	fixtureBase, err := json.Marshal(config)
+	require.NoError(t, err)
+	installedBase := description.Manifest.Options.Config
+	installedBase.NetworkV2 = nil
+	baseBytes, err := json.Marshal(installedBase)
+	require.NoError(t, err)
+	require.Equal(t, string(fixtureBase), string(baseBytes), "the prototype fixture and installation share canonical base bytes before explicit network policy")
+	config.NetworkV2 = &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}}
 	want, err := json.Marshal(config)
 	require.NoError(t, err)
 	actual, err := json.Marshal(description.Manifest.Options.Config)

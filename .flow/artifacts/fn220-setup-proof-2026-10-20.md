@@ -23,6 +23,15 @@ other Temporal test. The integrated batch review belongs to the conductor.
   output/transcript differences and shares `wasi.TemporalNetwork`. A unit test
   compares complete serialized prototype configuration bytes with the prior
   fixture expression, and verifies schema mutation changes captured identity.
+  The command and prototype fixture have identical canonical base bytes for
+  identical checkout/directory/argument inputs. Their final policy differs:
+  the prototype retains nil network, installation adds the bounded network,
+  inspection retains its legacy nil argv/zero entropy/debug environment and
+  reduced output/transcript bounds, and qualification clears argv for Runner.
+  Final configurations with those different policy inputs are not claimed equal.
+  Follow-up review coverage independently checks literal network limits and the
+  complete serialized legacy inspection configuration; qualification already
+  compares its historical nil-argv smoke configuration bytes.
   Installation tags are optional manifest inputs; preparation merges and seals
   their effective selection into its existing source/build identity.
 - R2 / task .2: one seed passed, retained one success (215546369 bytes), and a
@@ -116,3 +125,22 @@ replay. Bulk module, artifact, engine cache and raw logs remain local. The priva
 566 MiB Cargo cache `/home/agent/.cache/fn220-helper` was removed after verifying
 the independently published helper digest; it is reproducible by rebuilding.
 No Flow task state, PR, push, CI run or qualification claim was made by this worker.
+
+## Review coverage correction
+
+The review follow-up changes tests, documentation and the inspection fixture's
+test-local factoring only; production derivation and consumer configuration bytes
+are unchanged. `TestInstallTemporalAndDiscover` now independently expects literal
+network limits and compares the complete canonical base before applying network
+policy. `TestTemporalInspectionConfigPreservesFixtureBytes` pins every final
+historical inspection field against an independent serialized configuration.
+The existing qualification smoke-byte test covers its nil-argv policy.
+
+Full command/installation/shared CLI packages and the focused prototype,
+inspection and qualification smoke configuration tests passed (exit 0).
+Temporarily changing the shared network connection limit from 4096 to 4095 made
+both command and inspection tests fail (exit 1); restoring it made both pass
+(exit 0). The mutation log is retained at
+`/home/agent/wt/fn220-proof.L2aUaa/network-mutation-test.log`.
+`make lint-code-fast GOLANGCI_LINT_BASE_REV=fc04600872
+GOLANGCI_LINT_FIX=false` also passed (exit 0, zero issues).

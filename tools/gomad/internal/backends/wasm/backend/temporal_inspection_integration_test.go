@@ -16,11 +16,53 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/internal/stockgo"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/evidence/artifact"
+	captured "go.temporal.io/server/tools/gomad/internal/evidence/artifact/capture"
 	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster"
+	netmodel "go.temporal.io/server/tools/gomad/internal/model/network"
 	"go.temporal.io/server/tools/gomad/internal/runner"
 	campaignoptions "go.temporal.io/server/tools/gomad/internal/runner/options"
 )
+
+func temporalInspectionConfig(root string, config wasi.Config) (wasi.Config, error) {
+	temporalConfig, err := wasi.TemporalConfig(root, config.WorkingDirectory)
+	if err != nil {
+		return wasi.Config{}, err
+	}
+	config.CapturedInputs = temporalConfig.CapturedInputs
+	config.Environment = append(config.Environment, temporalConfig.Environment[1:]...)
+	config.Limits = temporalConfig.Limits
+	config.Limits.OutputBytes = 16 << 20
+	config.Limits.TranscriptBytes = 256 << 20
+	config.NetworkV2 = wasi.TemporalNetwork()
+	return config, nil
+}
+
+func TestTemporalInspectionConfigPreservesFixtureBytes(t *testing.T) {
+	t.Parallel()
+	root := t.TempDir()
+	schema := filepath.Join(root, "schema/sqlite")
+	require.NoError(t, os.MkdirAll(schema, 0700))
+	require.NoError(t, os.WriteFile(filepath.Join(schema, "schema.sql"), []byte("CREATE TABLE example(id INTEGER);"), 0600))
+	inputs, err := captured.CaptureReadOnlyMountInputs([]captured.Mapping{{Source: schema, Target: "/workspace/schema/sqlite"}}, captured.DefaultLimits())
+	require.NoError(t, err)
+	base := wasi.Config{Profile: wasi.CooperativeProfile, Environment: []string{"PWD=/workspace", "GOMAD_DEBUG_CANARY=1"}, WorkingDirectory: "/workspace", WritableDirectories: []string{"/workspace", "/tmp"}, Clock: wasi.ClockPolicy{EpochNanos: 946684800000000000}}
+	config, err := temporalInspectionConfig(root, base)
+	require.NoError(t, err)
+	want := wasi.Config{
+		Profile: wasi.CooperativeProfile, WorkingDirectory: "/workspace",
+		Environment:         []string{"PWD=/workspace", "GOMAD_DEBUG_CANARY=1", "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TZ=UTC", "TEMPORAL_TEST_LOG_LEVEL=warn"},
+		WritableDirectories: []string{"/workspace", "/tmp"}, CapturedInputs: inputs,
+		Clock:     wasi.ClockPolicy{EpochNanos: 946684800000000000},
+		Limits:    wasi.Limits{OutputBytes: 16 << 20, TranscriptBytes: 256 << 20, Calls: 1 << 28, Descriptors: 4096, Files: 100000, FilesystemBytes: 512 << 20, PendingEvents: 4096},
+		NetworkV2: &wasi.NetworkModelV2{Profile: wasi.NetworkStreamProfile, Limits: netmodel.Limits{Listeners: 128, Connections: 4096, Bytes: 128 << 20, ConnectionBytes: 4 << 20, StallNanos: 10_000_000_000, Transitions: 1 << 20}},
+	}
+	wantBytes, err := json.Marshal(want)
+	require.NoError(t, err)
+	actual, err := json.Marshal(config)
+	require.NoError(t, err)
+	require.Equal(t, string(wantBytes), string(actual))
+}
 
 func TestTemporalInspectionRetainedFailure(t *testing.T) {
 	retained := os.Getenv("GOMAD_WASM_TEMPORAL_INSPECTION_ROOT")
@@ -50,15 +92,10 @@ func TestTemporalInspectionRetainedFailure(t *testing.T) {
 			original := filepath.Join(server, "service/history", fixture.owner)
 			if fixture.owner == "onebox" {
 				original = filepath.Join(server, "tools/gomad/internal/backends/wasm/testdata/prototype_temporal")
-				temporalConfig, err := wasi.TemporalConfig(server, provider.options.Config.WorkingDirectory)
+				config, err := temporalInspectionConfig(server, provider.options.Config)
 				require.NoError(t, err)
-				provider.options.Config.CapturedInputs = temporalConfig.CapturedInputs
-				provider.options.Config.Environment = append(provider.options.Config.Environment, temporalConfig.Environment[1:]...)
+				provider.options.Config = config
 				environment = append(environment, "TEMPORAL_ROOT=/workspace", "TMPDIR=/tmp", "TEMPORAL_TEST_LOG_LEVEL=warn")
-				provider.options.Config.Limits = temporalConfig.Limits
-				provider.options.Config.Limits.OutputBytes = 16 << 20
-				provider.options.Config.Limits.TranscriptBytes = 256 << 20
-				provider.options.Config.NetworkV2 = wasi.TemporalNetwork()
 				provider.options.MemoryBytes = 4 << 30
 				provider.options.Fuel = 1 << 50
 				executionTimeout, overallTimeout = 30*time.Minute, 45*time.Minute
