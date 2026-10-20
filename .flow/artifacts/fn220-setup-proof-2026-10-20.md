@@ -228,3 +228,20 @@ source, reinstalling or editing configuration. `replay-without-checkout.stdout`,
 `.stderr` and the additional numeric exit remain in the proof root. The retained
 module and artifact do not require that source/runtime-root directory for replay.
 The stable helper, CLI, module, preparation receipts and raw proof remain.
+
+The regression task's official correctness/contracts/integration review all
+returned SHIP with zero findings. Root verified fn-220.4 done before committing
+`08cb4d2f5c`. The resumed completion review then returned SHIP, all R1–R4 met,
+on 2026-10-20T17:15:18Z. It retains session
+`01a15a04-d39d-7080-bd63-5be6bb666ede` and the existing receipt, now based on
+the prior reviewed head `c302ae1846` through `08cb4d2f5c`. The original broader
+diff was refused before dispatch for the tool's identity-size bound; no diff
+was truncated or requirement omitted. Complete output is
+`.flow/tmp/fn220-boundary-completion-review.log`. Review model:
+`codex:gpt-6.1-sol:high`, same family as writer.
+
+stage: impl-review - ran (model: codex:gpt-6.1-sol:high)
+stage: completion-review - ran (model: codex:gpt-6.1-sol:high)
+
+All four tasks are verified done; the spec was reclosed after the actual
+completion review. Separate integrated qualification remains outstanding.

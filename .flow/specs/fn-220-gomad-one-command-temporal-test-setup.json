@@ -1,7 +1,7 @@
 {
   "branch_name": "fn-220-gomad-one-command-temporal-test-setup",
-  "completion_review_status": "unknown",
-  "completion_reviewed_at": "2026-10-20T16:52:27.155688Z",
+  "completion_review_status": "ship",
+  "completion_reviewed_at": "2026-10-20T17:15:18.332526Z",
   "created_at": "2026-10-19T16:07:08.951242Z",
   "default_impl": null,
   "default_review": null,
@@ -139,11 +139,55 @@
       "task": "fn-220-gomad-one-command-temporal-test-setup.4",
       "timestamp": "2026-10-20T17:11:41.385434Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "2b45ef69b0ae404ed872929171de03186503b1649b82f3ae7b6d119dcc4f91f1",
+      "backend": "codex",
+      "base_sha": "c302ae18464aefcab1e05a99d69701524f6bb13b",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8d9da9123c61e9f927d7d4b5f8c64506",
+            "classification": "introduced",
+            "findingId": "finding-8d9da9123c61e9f927d7d4b5f8c64506",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "completion"
+      },
+      "forced": false,
+      "hash_epoch": 1,
+      "head_sha": "08cb4d2f5c85ccbc4dbb3ac0eca8f228859149d0",
+      "head_sha_observed": true,
+      "kind": "completion",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 7319,
+      "output_sha256": "bb8ad954dd80aac8b22524ab0874b4af64bad1bf72ddad5664c9557bfad86471",
+      "reservation_id": "4e36dbe7d029499faebb5e5ba14cc41e",
+      "round_consumed": true,
+      "scope": "completion",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-20T17:15:18.326017Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
     "impl:fn-220-gomad-one-command-temporal-test-setup.4": 1,
-    "plan#completion": 1
+    "plan#completion": 2
   },
   "review_pending_rounds": {},
   "review_reservations": {},
@@ -152,7 +196,7 @@
     "impl:fn-220-gomad-one-command-temporal-test-setup.4": 0
   },
   "spec_path": ".flow/specs/fn-220-gomad-one-command-temporal-test-setup.md",
-  "status": "open",
+  "status": "done",
   "title": "Gomad: one-command Temporal test setup on WASM",
   "tracker": {
     "baseHashFlow": null,
@@ -165,5 +209,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T17:11:41.410436Z"
+  "updated_at": "2026-10-20T17:16:05.635110Z"
 }
