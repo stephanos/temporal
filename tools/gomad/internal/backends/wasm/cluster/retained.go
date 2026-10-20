@@ -472,8 +472,19 @@ func (a *retainedAdmission) reopen(module RetainedModule, directory string, inst
 		r.ModulePath, r.HelperPath = name, installed.Path
 		r.CompileCache = filepath.Join(private, "compiled-cache")
 		if installed.ConfigureRequest != nil {
+			before, err := json.Marshal(r)
+			if err != nil {
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
 			if err := installed.ConfigureRequest(&r); err != nil {
-				return gomadsim.Spec{}, nil, err
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
+			after, err := json.Marshal(r)
+			if err != nil {
+				return gomadsim.Spec{}, nil, errors.Join(err, os.RemoveAll(private))
+			}
+			if !bytes.Equal(before, after) {
+				return gomadsim.Spec{}, nil, errors.Join(errors.New("installed helper host configuration changed retained WASM inputs"), os.RemoveAll(private))
 			}
 		}
 		p.Boots[boot.ID] = r

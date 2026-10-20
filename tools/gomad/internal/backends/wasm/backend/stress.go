@@ -8,9 +8,11 @@ import (
 	"reflect"
 	"slices"
 
+	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
@@ -23,10 +25,44 @@ type StressExecution struct {
 }
 
 type ExecutionObservation struct {
-	Target       target.Prepared
-	Spec         *model.Spec
-	Incarnations []simulation.IncarnationResult
-	Cluster      *wasi.ClusterResult
+	Target               target.Prepared
+	DeclaredInputsSHA256 record.SHA256
+	Spec                 *model.Spec
+	Incarnations         []simulation.IncarnationResult
+	Cluster              *wasi.ClusterResult
+}
+
+func stressScenarioIdentity(spec model.Spec, provider *simulation.Provider) (record.SHA256, error) {
+	boots := make(map[model.BootID]json.RawMessage, len(provider.Boots))
+	for id, request := range provider.Boots {
+		configuration, err := simulation.BootConfiguration(request)
+		if err != nil {
+			return "", err
+		}
+		boots[id] = configuration
+	}
+	encoded, err := json.Marshal(struct {
+		Spec                       model.Spec
+		Boots                      map[model.BootID]json.RawMessage
+		Broker                     wasi.BrokerConfig
+		IncarnationBoots           []simulation.IncarnationBoot
+		OutputCrashes, OutputStops []simulation.OutputCrash
+		OutputCrashGroups          []simulation.OutputCrashGroup
+	}{spec, boots, provider.Broker, provider.IncarnationBoots, provider.OutputCrashes, provider.OutputStops, provider.OutputCrashGroups})
+	if err != nil {
+		return "", err
+	}
+	return record.HashBytes(encoded), nil
+}
+
+func (p *Provider) ForStressReplay() (backends.Provider, error) {
+	if p.options.Config.Profile != wasi.CooperativeProfile {
+		return nil, errors.New("stress replay requires a cooperative WASM installation")
+	}
+	options := p.options
+	options.StressExecution = &StressExecution{}
+	options.ObserveResults = nil
+	return New(options)
 }
 
 func (p *Provider) stressRequest(request *wasi.Request) error {

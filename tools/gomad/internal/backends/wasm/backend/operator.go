@@ -9,6 +9,7 @@ import (
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	simulation "go.temporal.io/server/tools/gomad/internal/backends/wasm/cluster"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+	"go.temporal.io/server/tools/gomad/internal/evidence/record"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	model "go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
@@ -98,10 +99,17 @@ func (p *Provider) executeScenario(ctx context.Context, request backends.Executi
 		}
 	}
 	provider.Oracles = scenarioSoftAssertions(s, request.Target.SoftAssertionReportOnly)
+	var declaredInputs record.SHA256
+	if p.options.ObserveResults != nil {
+		declaredInputs, err = stressScenarioIdentity(spec, provider)
+		if err != nil {
+			return backends.ExecutionResult{}, err
+		}
+	}
 	var scenarioErr error
 	observed, err := model.RunWASM(ctx, spec, func(ctx context.Context, c model.Cluster) error { scenarioErr = s.Run(ctx, c); return scenarioErr }, provider)
 	if p.options.ObserveResults != nil {
-		p.options.ObserveResults(ExecutionObservation{Target: request.Target, Spec: &spec, Incarnations: provider.CompletedResults(), Cluster: provider.CompletedClusterResult()})
+		p.options.ObserveResults(ExecutionObservation{Target: request.Target, DeclaredInputsSHA256: declaredInputs, Spec: &spec, Incarnations: provider.CompletedResults(), Cluster: provider.CompletedClusterResult()})
 	}
 	interrupted := func(cancelled, watchdog, reaped bool) (backends.ExecutionResult, error) {
 		return backends.ProjectObservedResult(converted, backends.Result{Cancelled: cancelled, WatchdogTimeout: watchdog, Reaped: reaped}, request.StdoutHead, request.StderrHead)

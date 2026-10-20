@@ -1,8 +1,11 @@
 package measure
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"errors"
+	"os"
 	"path/filepath"
 	"strconv"
 	"strings"
@@ -10,6 +13,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends/target"
 	wasmbackend "go.temporal.io/server/tools/gomad/internal/backends/wasm/backend"
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/installation"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/runner"
@@ -26,7 +30,7 @@ func stressRunnerProvider(ctx context.Context, root string, original wasi.Reques
 		return nil, err
 	}
 	stress.Diagnostics = original.Runtime != nil && original.Runtime.Diagnostics
-	return wasmbackend.New(wasmbackend.Options{
+	options := wasmbackend.Options{
 		CompilerPath: compiler, CompilerSHA256: "sha256:" + compilerHash, GoVersion: "go1.27.1",
 		HelperPath: original.HelperPath, HelperSHA256: "sha256:" + strings.TrimPrefix(original.HelperSHA256, "sha256:"),
 		ModelSHA256: wasi.ImplementationSHA256(), Engine: original.Engine,
@@ -34,7 +38,51 @@ func stressRunnerProvider(ctx context.Context, root string, original wasi.Reques
 		CacheRoot: filepath.Join(root, "preparation-cache"), CompileCacheRoot: original.CompileCache,
 		RuntimeRoot:     filepath.Join(scopeFor(ctx).options.Repo, "tools/gomad/internal/model/runtimesource"),
 		StressExecution: &stress, ObserveResults: observe,
-	})
+	}
+	replayOptions := options
+	replayOptions.CompileCacheRoot = filepath.Join(root, "replay-compile-cache")
+	if err := os.MkdirAll(replayOptions.CompileCacheRoot, 0700); err != nil {
+		return nil, err
+	}
+	manifest, err := installation.Build(replayOptions)
+	if err != nil {
+		return nil, err
+	}
+	path, err := stressRunnerInstallation(root, original)
+	if err != nil {
+		return nil, err
+	}
+	scopeFor(ctx).warm.Lock()
+	defer scopeFor(ctx).warm.Unlock()
+	if err := installation.Write(path, manifest); err != nil {
+		if !errors.Is(err, os.ErrExist) {
+			return nil, err
+		}
+		retained, err := installation.Resolve(installation.Spec{ExplicitManifest: path})
+		if err != nil {
+			return nil, err
+		}
+		want, err := json.Marshal(manifest)
+		if err != nil {
+			return nil, err
+		}
+		got, err := json.Marshal(retained.Manifest)
+		if err != nil {
+			return nil, err
+		}
+		if !bytes.Equal(want, got) {
+			return nil, errors.New("retained stress installation changed declared inputs")
+		}
+	}
+	return wasmbackend.New(options)
+}
+
+func stressRunnerInstallation(root string, original wasi.Request) (string, error) {
+	encoded, err := json.Marshal(original.Config)
+	if err != nil {
+		return "", err
+	}
+	return filepath.Join(root, "stress-installation-"+digest(encoded)+".json"), nil
 }
 
 func stressRunnerCampaign(ctx context.Context, root string, provider *wasmbackend.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {

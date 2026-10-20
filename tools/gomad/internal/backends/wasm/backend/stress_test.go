@@ -27,6 +27,40 @@ func TestStressHostConfigurationCannotChangeDeclaredInputs(t *testing.T) {
 	require.ErrorContains(t, p.stressRequest(&request), "changed declared")
 }
 
+func TestStressReplayRequiresExplicitCooperativeProvider(t *testing.T) {
+	stock, err := New(portableProviderOptions(wasi.StockProfile))
+	require.NoError(t, err)
+	_, err = stock.ForStressReplay()
+	require.ErrorContains(t, err, "cooperative")
+	ordinary, err := New(portableProviderOptions(wasi.CooperativeProfile))
+	require.NoError(t, err)
+	replay, err := ordinary.ForStressReplay()
+	require.NoError(t, err)
+	require.Nil(t, ordinary.options.StressExecution)
+	request := wasi.Request{Engine: wasi.PinnedEngine()}
+	require.NoError(t, replay.(*Provider).stressRequest(&request))
+	require.Equal(t, wasi.PinnedEngine().Configuration+"-stress-jitter", request.DiagnosticConfigurationRevision())
+}
+
+func TestStressScenarioIdentityBindsEveryBootAndExcludesHostLayout(t *testing.T) {
+	options := portableProviderOptions(wasi.CooperativeProfile)
+	request := wasi.Request{Config: options.Config, Runtime: &wasi.RuntimeControl{Choice: &backends.ChoiceRequest{}}}
+	provider := &simulation.Provider{Boots: map[model.BootID]wasi.Request{"initial": request, "restart": request}}
+	first, err := stressScenarioIdentity(model.Spec{}, provider)
+	require.NoError(t, err)
+	request.HelperPath, request.ModulePath, request.CompileCache = "/a/helper", "/a/module", "/a/cache"
+	request.SetStressHostConditions("layout", true)
+	provider.Boots["restart"] = request
+	layout, err := stressScenarioIdentity(model.Spec{}, provider)
+	require.NoError(t, err)
+	require.Equal(t, first, layout)
+	request.Config.EntropyKey = sha256.Sum256([]byte("different restart input"))
+	provider.Boots["restart"] = request
+	changed, err := stressScenarioIdentity(model.Spec{}, provider)
+	require.NoError(t, err)
+	require.NotEqual(t, first, changed)
+}
+
 func TestStressScenarioBindingsAllowOnlyAuthenticatedBootInputs(t *testing.T) {
 	for _, mutation := range []string{"environment", "fuel", "topology", "missing-config", "group", "wrong-group"} {
 		t.Run(mutation, func(t *testing.T) {

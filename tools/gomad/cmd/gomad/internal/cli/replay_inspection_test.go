@@ -2,6 +2,7 @@ package cli
 
 import (
 	"bytes"
+	"context"
 	"flag"
 	"io"
 	"path/filepath"
@@ -49,4 +50,49 @@ func TestReplayInspectionReportDoesNotClaimFullReproduction(t *testing.T) {
 	require.Contains(t, output.String(), `"status":"inspected_prefix"`)
 	require.Contains(t, output.String(), `"incarnation":2`)
 	require.NotContains(t, output.String(), "reproduced")
+}
+
+type stressInspectionBackend struct {
+	commandBackend
+	selected *bool
+}
+
+func (p stressInspectionBackend) ForStressReplay() (backends.Provider, error) {
+	*p.selected = true
+	return p, nil
+}
+
+func TestStressReplayFlagRequiresInspectionAndExplicitProvider(t *testing.T) {
+	for _, test := range []struct {
+		name      string
+		arguments []string
+		provider  bool
+		status    int
+	}{
+		{"no-stop", []string{"--stress-jitter", "/artifact"}, true, 2},
+		{"foreign-provider", []string{"--stress-jitter", "--stop=choice=2", "/artifact"}, false, 2},
+		{"inspection", []string{"--stress-jitter", "--stop=choice=2", "/artifact"}, true, 0},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			selected, replayed := false, false
+			var output, diagnostic bytes.Buffer
+			status := runReplayWith(test.arguments, &output, &diagnostic, replayDependencies{
+				install: func(string) (installation, error) {
+					var provider backends.Provider = commandBackend{}
+					if test.provider {
+						provider = stressInspectionBackend{selected: &selected}
+					}
+					return installation{backend: provider}, nil
+				},
+				replay: func(_ context.Context, spec runner.ReplaySpec) (runner.ReplayResult, error) {
+					replayed = true
+					require.True(t, selected)
+					require.Equal(t, backends.InspectionStop{Kind: "choice", Value: 2}, spec.Inspection.Stop)
+					return runner.ReplayResult{Inspection: &backends.InspectionResult{Status: backends.InspectionStatusInspectedPrefix, PrefixVerified: true, WitnessMatch: true}}, nil
+				},
+			})
+			require.Equal(t, test.status, status, diagnostic.String())
+			require.Equal(t, test.status == 0, replayed)
+		})
+	}
 }

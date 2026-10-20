@@ -616,9 +616,17 @@ func (p *Provider) Run(ctx context.Context, request runnerbackend.Request) (runn
 	if err := p.stressRequest(&launch); err != nil {
 		return runnerbackend.Result{}, err
 	}
+	var declaredInputs record.SHA256
+	if p.options.ObserveResults != nil && launch.Runtime != nil {
+		configuration, err := simulation.BootConfiguration(launch)
+		if err != nil {
+			return runnerbackend.Result{}, err
+		}
+		declaredInputs = record.HashBytes(configuration)
+	}
 	result, err := wasi.Run(ctx, launch)
 	if p.options.ObserveResults != nil {
-		p.options.ObserveResults(ExecutionObservation{Target: request.Target, Incarnations: []simulation.IncarnationResult{{Handle: model.NodeHandle{Node: "guest", Incarnation: 1}, Result: result}}})
+		p.options.ObserveResults(ExecutionObservation{Target: request.Target, DeclaredInputsSHA256: declaredInputs, Incarnations: []simulation.IncarnationResult{{Handle: model.NodeHandle{Node: "guest", Incarnation: 1}, Result: result}}})
 	}
 	if err != nil {
 		return runnerbackend.Result{}, err
