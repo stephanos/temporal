@@ -8,7 +8,9 @@
   "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-220-gomad-one-command-temporal-test-setup",
-  "impl_review_rounds": {},
+  "impl_review_rounds": {
+    "fn-220-gomad-one-command-temporal-test-setup.4": 0
+  },
   "next_task": 1,
   "plan_review_rounds": 0,
   "plan_review_status": "unknown",
@@ -102,15 +104,52 @@
       "task": null,
       "timestamp": "2026-10-20T16:09:30.761475Z",
       "verdict": "SHIP"
+    },
+    {
+      "artifact_sha256": "a5f614222231e2639eedbe5d99ffe02c9ddbec3abc64e077abdef591a433542d",
+      "backend": "codex",
+      "base_sha": "3cbd8b3cf7811a39b3ae225185a3aedb09bcfd78",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "c20b280e2b4e63759f34c1abfb07a4487d93e79a",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "a63de3f014fc407ba3fdc5b1533da87f",
+      "round_consumed": true,
+      "scope": "impl:fn-220-gomad-one-command-temporal-test-setup.4",
+      "superseded_by": null,
+      "task": "fn-220-gomad-one-command-temporal-test-setup.4",
+      "timestamp": "2026-10-20T17:11:41.385434Z",
+      "verdict": "SHIP"
     }
   ],
   "review_hash_epoch": {
+    "impl:fn-220-gomad-one-command-temporal-test-setup.4": 1,
     "plan#completion": 1
   },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "completion": 0
+    "completion": 0,
+    "impl:fn-220-gomad-one-command-temporal-test-setup.4": 0
   },
   "spec_path": ".flow/specs/fn-220-gomad-one-command-temporal-test-setup.md",
   "status": "open",
@@ -126,5 +165,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T16:55:29.376220Z"
+  "updated_at": "2026-10-20T17:11:41.410436Z"
 }

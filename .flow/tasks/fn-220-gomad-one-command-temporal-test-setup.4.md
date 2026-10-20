@@ -18,9 +18,18 @@ The integrated `make -C tools/gomad validate` at ef48c836b0 fails `TestWASMArchi
 
 
 ## Done summary
-TBD
+Separated shared host schema capture into `internal/temporalinput` and kept complete four-policy assembly in pure WASI, consuming captured inputs. Migrated installation, inspection, qualification, measurement and white-box fixtures without import cycles or policy overrides. Preserved complete actual-schema configurations and full installation bytes, capture error behavior, schema mappings/defaults and CLI contracts. No architecture allowlist or exemption changed.
 
+Existing both-platform architecture failure supplies red evidence; repaired architecture, full-policy/caller tests, independent historical measurement/error tests, affected lint and generation checks pass. Root integrated default validation passes after the separate Make helper-publication prerequisite correction. Logs and byte-comparison hashes are in `.flow/artifacts/gomad-integration-checkpoint-2026-10-20.md` and `/home/agent/wt/evidence/integration-2026-10-20/boundary-worker.md`.
+
+Fresh current-helper install/discover/named TestFrontendSystemInfo execution/exact replay all exit 0; a further retained replay after removing the source checkout also exits 0. Full provenance and numeric exits are in `.flow/artifacts/fn220-setup-proof-2026-10-20.md` and `/home/agent/wt/evidence/fn220/current-setup.JLtluL/report.md`. This is not combined-candidate qualification.
+
+stage: impl-review - ran (model: codex:gpt-6.1-sol:high)
+
+Official three-draw implementation review finalized SHIP with zero findings. Receipt `/tmp/impl-review-receipt-657da2bc4466-fn-220-gomad-one-command-temporal-test-setup.4.json`, RID `a63de3f014fc407ba3fdc5b1533da87f`, binds `3cbd8b3cf7..c20b280e2b`. All correctness/contracts/integration draws passed; reviewer and writer share a model family. Reviewers traced source and retained passing logs/byte comparisons; the read-only review sandbox could not start fresh Go tests. Root's separate executed tests supply verification.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: f108a425bf4dfee0c616ae17812c4afd0032f9f8, c20b280e2b4e63759f34c1abfb07a4487d93e79a
+- Tests: Existing TestWASMArchitecture before repair: exit 1 on both platform source sets (boundary-red.log), Both-platform architecture, complete Temporal policy and caller tests: exit 0 (boundary-focused.log, boundary-cli-full.log, boundary-measure.log), Affected staged lint: exit 0, zero issues (boundary-lint-staged.log), make generate validate-protocol: exit 0, no generated diff (boundary-generate.log), Actual schema complete policy configurations and full installation manifests before/after: cmp exit 0, Root focused command/installation/CLI/measure/temporalinput tests: exit 0, make -C tools/gomad validate: exit 0 (validate-published-helper.log), Fresh current-helper install/discover/explore/replay: all exit 0; exact TestFrontendSystemInfo PASS and choice replay, Retained replay after removing source checkout: exit 0, exact choice replay
 - PRs:

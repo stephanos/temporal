@@ -177,3 +177,54 @@ spec closed as done. The receipt and complete transcript remain in
 `.flow/tmp/fn220-completion-rereview.log`. Reviewer and writer are from the same
 model family. Full changed-candidate WASM qualification remains under fn-219.4
 and fn-222; this record does not claim that separate gate passed.
+
+## Pure-boundary regression repair and current-helper proof
+
+Integrated default validation subsequently found host schema capture and host-only
+imports in the pure WASI owner. fn-220.4 restores the boundary: shared host capture
+is in `internal/temporalinput`, and the complete pure policy builder consumes its
+captured inputs. Source `f108a425bf4dfee0c616ae17812c4afd0032f9f8` was integrated
+at `a8597f7451a5e365126bd5b186016e373fb8e282`. No architecture exemptions changed.
+Both-platform architecture, complete-policy/caller tests, affected lint, generation
+and integrated default validation passed. Red/green logs and actual-schema/full-
+manifest byte comparisons are retained in the integration checkpoint and
+`/home/agent/wt/evidence/integration-2026-10-20/boundary-worker.md`.
+
+The clean repaired worker source also passed a fresh named consumer proof with
+the current published helper. Retained root:
+`/home/agent/wt/evidence/fn220/current-setup.JLtluL`; complete report `report.md`,
+exact argv `commands.log`, runnable sequence `run.sh`, numeric exits `exits.log`.
+Install, discover, explore and fresh exact replay each exited 0. Install used
+`env -i` and the same Temporal derivation flags, with no hand-written config.
+Seed 0 ran exactly `TestFrontendSystemInfo`: its retained stdout contains the
+named PASS and final PASS. Explore attempted/succeeded once with zero watchdogs
+or replay divergences, retained 215568847 bytes and a complete 3943-record,
+2943-decision trace. Replay reported
+`reproduced=true diagnostic=false result=success choice-replay=exact`.
+All manifest-listed artifact hashes verified successfully.
+
+| Current input/evidence | SHA-256 (without prefix) |
+| --- | --- |
+| Helper | `cd9bfdb53cac6447cc0f88895c768993278f339176be420ba82da74858b79316` |
+| Model | `c3396cc8a76b823c0c5cd62b4f650873592728648b1773b31eedbda679b5e78a` |
+| Runtime implementation | `4ac4238ff22066e38a7e67356f1388bb8d09995a3fc9f2bea2c57fce8c284ac4` |
+| Module | `29f90f0aca2dedcf1aabe262ed50744edaaaa0d31119be4413772e8c11a366be` |
+| Installation JSON | `cbd0cc433551991f660e853e2565f76556e264e8195da5bf5e7e85fee727008e` |
+| Complete config (`jq -c .options.Config`, including LF) | `0ff6c3009f8a0774b974562bd0a2b58d718ed691df3769766fd5edf217dc3c5f` |
+| Complete choice trace | `07f521ac663a0cf165e82ee7768d2f5b4d44d500a7c74124b929fb6bb594cb1f` |
+| Forced-choice tape | `08addb28dc486f7721fff691ad188906afe3dbac71ba0ca3a9ada98dd5c628eb` |
+
+The entire current config compares byte-identically with the historical proof
+config (`cmp` exit 0, compact JSON without removed or normalized fields). The
+current model rotation predates this repair. This fresh proof is bound to the
+repaired worker source and recorded helper, not relabeled as qualification of
+the combined candidate. fn-219.4 and fn-222 retain their separate gates.
+
+After preserving the artifacts and verifying their hashes, the setup owner
+removed its reproducible compiler objects and clean merged `fn220-boundary`
+worktree; its branch retains the source. A further replay with that checkout
+absent exited 0 with exact choice replay and empty stderr, without restoring
+source, reinstalling or editing configuration. `replay-without-checkout.stdout`,
+`.stderr` and the additional numeric exit remain in the proof root. The retained
+module and artifact do not require that source/runtime-root directory for replay.
+The stable helper, CLI, module, preparation receipts and raw proof remain.
