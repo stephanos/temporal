@@ -13,7 +13,7 @@ A developer with no temporal logic reads a list with gaps as a state progression
 
 - `Path<S>` in `umpire-dsl`: an ordered list of waypoints separated by gaps; a waypoint judges a state and is built from a `bool` (inside a Model method, evaluated per state as `Progress` is today), a closure `Fn(&S) -> bool` (in tests), or a concrete state (equality); a gap is `Any` (`..`) or `AtMost(n)` (`..=n`, `n` any expression). `path!` is a `macro_rules!` producing it; it accepts two or more waypoints and refuses a list with no gap between two waypoints (`write [p, ..=1, q] for at most one step, or [p, .., q]`) and a trailing or leading gap, by catch-all arms with those messages.
 - `Progress` wraps a two-waypoint `Path` plus `assumption`; `path![p, .., q]` and `path![p, ..=n, q]` are the canonical spelling of a claim and expand to what `whenever(p).eventually(q)` / `.within(n)` build (fn-214), which stay public. `#[machine]` refuses a `#[progress]` method whose path has more than two waypoints: `a progress claim has one trigger and one target; ask a longer progression with find or Run::along`.
-- fn-213's suite consumes the same `Path`: `find(&space, path) -> Result<Found, Refusal>` finds the shortest admitted path through the waypoints in order, leg by leg (BFS from each reached waypoint state to the next, honouring `..=n`), and `Run::along(path) -> Result<Run, Refusal>` is `find` from the first waypoint (which must be a concrete state) followed by replay, failing by naming the first gap it cannot bridge. Counterexample matching (`Path::matches(&trace)`) is a later addition when a test needs it.
+- fn-213's suite consumes the same `Path`: `find(&space, path) -> Result<Found, Refusal>` finds the shortest admitted path through the waypoints in order, shortest overall (one BFS over Model states paired with progress through the pattern, honouring `..=n`), and `Run::along(path) -> Result<Run, Refusal>` is `find` from the first waypoint (which must be a concrete state) followed by replay, failing by naming the first gap it cannot bridge. Counterexample matching (`Path::matches(&trace)`) is a later addition when a test needs it.
 - Reading rules in `README.md`, beside Kettle: in a claim `..` means on every admitted path; in `find` and `Run::along` it means some path, the shortest; `..=n` bounds the gap in steps; a pattern says nothing about what happens between or after its waypoints.
 
 ## API Contracts
@@ -26,14 +26,14 @@ A developer with no temporal logic reads a list with gaps as a state progression
 
 - The macro adds no dependency and no proc-macro work; rust-analyzer expands it. R30 budgets hold.
 - A chain in a claim is a compile-time refusal from `#[machine]` (it sees the expression's waypoint count only when written as a literal `path![..]`; a `Path` built elsewhere panics with the same message when the claim is evaluated, and the checker reports that claim Refuted as `claim <name> panicked: ..`).
-- `find` through waypoints is shortest per leg, which need not be the globally shortest path through all waypoints; the README says so.
+- `find` through waypoints is shortest overall: the shortest admitted path that has every waypoint in order within its gap, and "not reached" only when no admitted path has them; the README says so.
 
 ## Acceptance Criteria
 
 - **R1:** `path!` builds a `Path` from two or more waypoints with `..`/`..=n` gaps, waypoints being `bool`, closures or states. Errors: no gap between waypoints, or a leading/trailing gap, is a compile error with the messages above, pinned by trybuild `.stderr` fixtures.
 - **R2:** A `#[progress]` claim is a two-waypoint `path!` (optionally `.assuming(..)`); Kettle's `boils` is written that way, all Kettle goldens are byte-identical, and the `machine` macro fixture uses it. Errors: more than two waypoints in a claim are refused with the message above, pinned by a trybuild fixture.
 - **R3:** `README.md` has the reading rules beside the Kettle example; DESIGN.md's authoring comparison shows the claim in Scala and in `path!`. No error surface.
-- **R4:** (delivered in fn-213.3 and .2) `find` through waypoints returns the shortest admitted path leg by leg with its actions spelled as the checker's paths; `Run::along` fills a milestone story and yields a replayable `Run`. Errors: an unbridgeable gap is a `Refusal` naming the waypoint index and the last reached state; a first waypoint that is not a concrete state is refused for `Run::along`.
+- **R4:** (delivered in fn-213.3 and .2) `find` through waypoints returns the shortest admitted path overall with its actions spelled as the checker's paths; `Run::along` fills a milestone story and yields a replayable `Run`. Errors: an unbridgeable gap is a `Refusal` naming the waypoint index and the last reached state; a first waypoint that is not a concrete state is refused for `Run::along`.
 
 ## Boundaries
 
@@ -49,3 +49,5 @@ A developer with no temporal logic reads a list with gaps as a state progression
 2026-10-19, naming: `Progress` as the claim value type in this spec is `LeadsTo` (`Progress` is the attribute `#[progress]`, not a type); `LeadsTo: From<Path>` for two waypoints, `.assuming(..)` and `.within(n)` unchanged.
 
 2026-10-19, completion review: a chain `Path` built outside a literal `path!` is not refused at registration (`#[machine]` cannot see its waypoint count and the Model has no registration-time evaluation of claim bodies); the behaviour is kept and pinned by the `progress_chain_path` checker fixture, which reports the claim Refuted with the refusal message. The no-gap message says "at most one step" to match `..=1`.
+
+2026-10-20, root agent: leg-by-leg search could refuse an existing path, a false verdict; replaced by a complete product search.
