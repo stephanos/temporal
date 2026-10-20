@@ -1,0 +1,15 @@
+{
+  "schema": "gomad.parity-corpus/v1",
+  "baseline_inventory": "/home/agent/wt/evidence/fn232/go-baseline-1d7b37f00a/README.md",
+  "cases": [
+    {
+      "name": "semantic-foundation",
+      "verb": "fixture",
+      "target": "targets/foundation.json",
+      "seeds": "seeds/foundation.json",
+      "plan": "plans/foundation.json",
+      "example": "semantic/example.json",
+      "golden": "goldens-semantic/semantic-foundation.json"
+    }
+  ]
+}

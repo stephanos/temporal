@@ -1,0 +1,124 @@
+package main
+
+import (
+	"context"
+	"crypto/sha256"
+	"encoding/hex"
+	"encoding/json"
+	"flag"
+	"fmt"
+	"os"
+	"path/filepath"
+	"time"
+
+	"go.temporal.io/server/tools/gomad/internal/backends/wasm/wasi"
+)
+
+type testCase struct {
+	Name    string `json:"name"`
+	Module  string `json:"module"`
+	Fuel    uint64 `json:"fuel"`
+	Memory  uint64 `json:"memory_bytes"`
+	Wall    uint64 `json:"wall_millis"`
+	Modeled bool   `json:"modeled"`
+}
+
+func main() {
+	helper := flag.String("helper", "", "authenticated frozen helper")
+	corpus := flag.String("corpus", "", "shared corpus")
+	output := flag.String("output", "", "new reference output directory")
+	flag.Parse()
+	if err := run(*helper, *corpus, *output); err != nil {
+		fmt.Fprintln(os.Stderr, err)
+		os.Exit(1)
+	}
+}
+
+func run(helper, corpus, output string) error {
+	helperBytes, err := os.ReadFile(helper)
+	if err != nil {
+		return err
+	}
+	helperHash := sha256.Sum256(helperBytes)
+	if hex.EncodeToString(helperHash[:]) != "b25439140f0c850a82f99471c9fd48ac864569a75e407a76850873f6ece055a1" {
+		return fmt.Errorf("frozen helper identity mismatch")
+	}
+	if info, err := os.Lstat(helper); err != nil || !info.Mode().IsRegular() {
+		return fmt.Errorf("frozen helper is not a regular file")
+	}
+	input, err := os.ReadFile(filepath.Join(corpus, "foundation-execution.json"))
+	if err != nil {
+		return err
+	}
+	var document struct {
+		Profile  string     `json:"profile"`
+		ReadStep uint64     `json:"read_step_nanos"`
+		Seeds    []uint64   `json:"seeds"`
+		Cases    []testCase `json:"cases"`
+	}
+	if err := json.Unmarshal(input, &document); err != nil {
+		return err
+	}
+	if len(document.Seeds) != 2 || len(document.Cases) != 6 {
+		return fmt.Errorf("incomplete reference corpus")
+	}
+	if err := os.Mkdir(output, 0700); err != nil {
+		return err
+	}
+	rows := []map[string]any{}
+	for _, test := range document.Cases {
+		for _, seed := range document.Seeds {
+			module, err := filepath.Abs(filepath.Join(corpus, test.Module))
+			if err != nil {
+				return err
+			}
+			bytes, err := os.ReadFile(module)
+			if err != nil {
+				return err
+			}
+			moduleHash := sha256.Sum256(bytes)
+			config := wasi.Config{Profile: document.Profile, WorkingDirectory: "/", Environment: []string{"PWD=/"}, Clock: wasi.ClockPolicy{ReadStepNanos: document.ReadStep}, Limits: wasi.Limits{OutputBytes: 1024, TranscriptBytes: 4096, Calls: 100, Descriptors: 16, Files: 16, FilesystemBytes: 4096, PendingEvents: 16}}
+			request := wasi.Request{HelperPath: helper, HelperSHA256: hex.EncodeToString(helperHash[:]), ModulePath: module, ModuleSHA256: hex.EncodeToString(moduleHash[:]), Engine: wasi.PinnedEngine(), InitialMemoryPages: 1, MemoryBytes: test.Memory, Fuel: test.Fuel, Config: config, Timeout: time.Duration(test.Wall) * time.Millisecond}
+			if test.Name == "memory" {
+				request.InitialMemoryPages = 2
+			}
+			if test.Modeled {
+				request.Config.Args = []string{"fixture"}
+				for _, function := range []struct {
+					Name   string
+					Params []string
+				}{{"fd_write", []string{"i32", "i32", "i32", "i32"}}, {"clock_time_get", []string{"i32", "i64", "i32"}}, {"args_sizes_get", []string{"i32", "i32"}}, {"random_get", []string{"i32", "i32"}}} {
+					request.Imports = append(request.Imports, wasi.Import{Module: "wasi_snapshot_preview1", Name: function.Name, Params: function.Params, Results: []string{"i32"}})
+				}
+			}
+			result, err := wasi.Run(context.Background(), request)
+			if err != nil {
+				return fmt.Errorf("%s.seed%d: %w", test.Name, seed, err)
+			}
+			raw, err := json.Marshal(result)
+			if err != nil {
+				return err
+			}
+			filename := fmt.Sprintf("%s-seed%d.json", test.Name, seed)
+			if err := os.WriteFile(filepath.Join(output, filename), raw, 0600); err != nil {
+				return err
+			}
+			termination := result.Termination
+			if result.WatchdogTimeout {
+				termination = "watchdog_timeout"
+			}
+			row := map[string]any{"name": test.Name, "seed": seed, "termination": termination, "raw_termination": result.Termination, "watchdog": result.WatchdogTimeout, "exit_code": result.ExitCode, "helper_sha256": hex.EncodeToString(helperHash[:]), "module_sha256": hex.EncodeToString(moduleHash[:]), "raw_result": filename, "raw_sha256": fmt.Sprintf("%x", sha256.Sum256(raw)), "source_revision": "1d7b37f00a74a85399993f1edcad6fe742e778e3"}
+			rows = append(rows, row)
+		}
+	}
+	result := map[string]any{"schema": "gomad.foundation-go-reference/v1", "corpus_sha256": fmt.Sprintf("%x", sha256.Sum256(input)), "records": rows}
+	encoded, err := json.Marshal(result)
+	if err != nil {
+		return err
+	}
+	if err := os.WriteFile(filepath.Join(output, "reference.json"), encoded, 0600); err != nil {
+		return err
+	}
+	fmt.Println(string(encoded))
+	return nil
+}

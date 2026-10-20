@@ -1,0 +1,21 @@
+#!/usr/bin/env python3
+"""Every fixture entry point must refuse in an ordinary linked host build."""
+import json
+from pathlib import Path
+import subprocess
+import sys
+
+binary, receipts = sys.argv[1:]
+output = Path(receipts)
+output.mkdir(mode=0o700, parents=True, exist_ok=False)
+commands = ['fixture-record', 'fixture-publish', 'fixture-open', 'fixture-bundle',
+            'fixture-execution-bundle', 'fixture-watchdog-cancel', 'fixture-bound',
+            'fixture-pinned', 'fixture-root-substitution', 'fixture-payload-substitution',
+            'fixture-payload-mutation']
+for command in commands:
+    result = subprocess.run([binary, command], capture_output=True, text=True, timeout=5)
+    (output / (command + '.json')).write_text(json.dumps({
+        'argv': [binary, command], 'status': result.returncode,
+        'stdout': result.stdout, 'stderr': result.stderr}, sort_keys=True))
+    assert result.returncode == 2 and 'unsupported command' in result.stderr and not result.stdout, command
+print(f'release fixture entry points absent: {len(commands)}/{len(commands)}')

@@ -1,0 +1,497 @@
+#!/usr/bin/env python3
+"""Versioned behavioral comparison; fixture examples are not qualification evidence."""
+
+import argparse
+import copy
+import hashlib
+import json
+import os
+from pathlib import Path
+import re
+import subprocess
+import sys
+
+
+class Refusal(Exception):
+    pass
+
+
+def fail(path, message):
+    raise Refusal(f"{path}: {message}")
+
+
+def canonical(value):
+    return json.dumps(value, sort_keys=True, separators=(",", ":"),
+                      ensure_ascii=False, allow_nan=False).encode()
+
+
+def digest(value):
+    return hashlib.sha256(value).hexdigest()
+
+
+def pairs(entries):
+    result = {}
+    for key, value in entries:
+        if key in result:
+            fail("$", f"duplicate JSON field {key}")
+        result[key] = value
+    return result
+
+
+def decode(raw):
+    return json.loads(raw, object_pairs_hook=pairs,
+                      parse_constant=lambda v: fail("$", f"invalid number {v}"))
+
+
+def record_contract(record, path):
+    fields(record, {"schema": str, "seed": int, "execution_identity": str,
+                    "identity": dict, "outcome": dict, "limits": dict, "profile": str,
+                    "arguments": list, "environment": dict, "virtual_time_nanos": int,
+                    "streams": dict}, path)
+    if record["schema"] != "gomad.execution-record/v2":
+        fail(path + ".schema", "unsupported record schema")
+    fields(record["identity"], dict.fromkeys(
+        ("target", "toolchain", "platform", "implementation", "configuration"), str), path + ".identity")
+    for key, value in record["identity"].items():
+        sha(value, path + ".identity." + key)
+    sha(record["execution_identity"], path + ".execution_identity")
+    if digest(canonical(record["identity"])) != record["execution_identity"]:
+        fail(path + ".execution_identity", "raw identity digest mismatch")
+    fields(record["outcome"], {"class": str, "termination": str, "exit_code": (int, type(None)),
+                              "reason": str}, path + ".outcome")
+    if record["outcome"]["exit_code"] is not None and not 0 <= record["outcome"]["exit_code"] <= 4294967295:
+        fail(path + ".outcome.exit_code", "expected nullable u32")
+    fields(record["limits"], dict.fromkeys(
+        ("fuel", "memory_bytes", "wall_millis", "output_bytes", "evidence_bytes"), int), path + ".limits")
+    for key, value in record["limits"].items():
+        u64(value, path + ".limits." + key)
+    for key in ("seed", "virtual_time_nanos"):
+        u64(record[key], path + "." + key)
+    for index, argument in enumerate(record["arguments"]):
+        if type(argument) is not str:
+            fail(f"{path}.arguments[{index}]", "expected string")
+    if any(type(value) is not str for value in record["environment"].values()):
+        fail(path + ".environment", "expected string values")
+    for name, stream in record["streams"].items():
+        fields(stream, {"bytes": int, "sha256": str, "records": int}, path + ".streams." + name)
+        u64(stream["bytes"], path + ".streams." + name + ".bytes")
+        u64(stream["records"], path + ".streams." + name + ".records")
+        sha(stream["sha256"], path + ".streams." + name + ".sha256")
+
+
+def read(path):
+    try:
+        return decode(Path(path).read_bytes())
+    except (OSError, ValueError) as error:
+        fail(str(path), str(error))
+
+
+def fields(value, schema, path):
+    if type(value) is not dict:
+        fail(path, "expected object")
+    for key in value:
+        if key not in schema:
+            fail(f"{path}.{key}", "undeclared field")
+    for key, kind in schema.items():
+        if key not in value:
+            fail(f"{path}.{key}", "missing field")
+        kinds = kind if type(kind) is tuple else (kind,)
+        if type(value[key]) not in kinds:
+            fail(f"{path}.{key}", "expected " + "/".join(k.__name__ for k in kinds))
+
+
+def u64(value, path):
+    if type(value) is not int or not 0 <= value <= 18446744073709551615:
+        fail(path, "expected u64")
+
+
+def sha(value, path):
+    if type(value) is not str or re.fullmatch("[0-9a-f]{64}", value) is None:
+        fail(path, "expected SHA-256")
+
+
+def contained(root, relative):
+    if root.is_symlink():
+        fail(str(root), "symlink evidence root")
+    if type(relative) is not str or not relative or Path(relative).is_absolute():
+        fail(str(relative), "expected contained relative path")
+    path = root / relative
+    if ".." in Path(relative).parts or not path.resolve().is_relative_to(root.resolve()):
+        fail(relative, "path escapes root")
+    cursor = root
+    for part in Path(relative).parts:
+        cursor /= part
+        if cursor.is_symlink():
+            fail(relative, "symlink evidence")
+    if not path.is_file():
+        fail(relative, "missing corpus/evidence entry")
+    return path
+
+
+def authenticate(root, result):
+    """Authenticate the foundation's raw lineage before projecting its report."""
+    fields(result, {"schema": str, "case": str, "records": list, "ledger_file": str}, "$raw")
+    if result["schema"] != "gomad.foundation-result/v1":
+        fail("$raw.schema", "unsupported foundation schema")
+    hashes = []
+    for index, item in enumerate(result["records"]):
+        path = f"$raw.records[{index}]"
+        fields(item, {"record_file": str, "record_sha256": str, "artifact": str,
+                      "outcome": str, "termination": str, "seed": int,
+                      "failure_signature": str, "execution_identity": str}, path)
+        for key in ("record_sha256", "failure_signature", "execution_identity"):
+            sha(item[key], f"{path}.{key}")
+        u64(item["seed"], path + ".seed")
+        raw = contained(root, item["record_file"]).read_bytes()
+        record = decode(raw)
+        record_contract(record, path + ".record")
+        if canonical(record) != raw:
+            fail(path + ".record_file", "raw record is not canonical sorted/native JSON")
+        if digest(raw) != item["record_sha256"]:
+            fail(path + ".record_sha256", "raw record digest mismatch")
+        signature_record = dict(record, seed=0)
+        expected = {"outcome": record["outcome"]["class"],
+                    "termination": record["outcome"]["termination"], "seed": record["seed"],
+                    "execution_identity": record["execution_identity"],
+                    "failure_signature": digest(canonical(signature_record))}
+        for key, value in expected.items():
+            if item[key] != value:
+                fail(path + "." + key, "raw record/result mismatch")
+        artifact = root / item["artifact"]
+        storage = read(contained(root, item["artifact"] + "/storage.json"))
+        fields(storage, {"format": str}, path + ".storage")
+        if storage["format"] != "gomad.artifact-storage/v2":
+            fail(path + ".storage.format", "unsupported lineage")
+        manifest = read(contained(root, item["artifact"] + "/manifest.json"))
+        fields(manifest, {"schema": str, "record": dict, "record_sha256": str, "files": dict}, path + ".manifest")
+        if manifest["schema"] != "gomad.artifact-manifest/v2":
+            fail(path + ".manifest.schema", "unsupported manifest")
+        if canonical(manifest["record"]) != raw or manifest["record_sha256"] != digest(raw):
+            fail(path + ".manifest.record", "raw record/manifest mismatch")
+        allowed = {"storage.json", "manifest.json", *manifest["files"]}
+        record_path = root / item["record_file"]
+        if record_path.is_relative_to(artifact):
+            allowed.add(str(record_path.relative_to(artifact)))
+        for child in artifact.rglob("*"):
+            relative = str(child.relative_to(artifact))
+            if child.is_symlink() or (not child.is_dir() and relative not in allowed):
+                fail(path + ".manifest.files." + relative, "unlisted or symlink payload")
+        for name, entry in manifest["files"].items():
+            entry_path = path + ".manifest.files." + name
+            fields(entry, {"bytes": int, "sha256": str, "module": bool}, entry_path)
+            u64(entry["bytes"], entry_path + ".bytes")
+            sha(entry["sha256"], entry_path + ".sha256")
+            if entry["module"] != (name == "target/module.wasm"):
+                fail(entry_path + ".module", "module payload kind mismatch")
+            if entry["module"] and (name != "target/module.wasm" or entry["sha256"] != record["identity"]["target"]):
+                fail(entry_path, "module does not match authenticated target identity")
+            payload = contained(artifact, name).read_bytes()
+            if len(payload) != entry["bytes"] or digest(payload) != entry["sha256"]:
+                fail(entry_path, "raw payload size/digest mismatch")
+        for name, stream in record["streams"].items():
+            if name not in manifest["files"]:
+                fail(path + ".record.streams." + name, "missing authenticated stream payload")
+            entry = manifest["files"][name]
+            if stream["bytes"] != entry["bytes"] or stream["sha256"] != entry["sha256"]:
+                fail(path + ".record.streams." + name, "raw stream digest mismatch")
+        hashes.append(item["record_sha256"])
+    previous = "0" * 64
+    ledger = contained(root, result["ledger_file"]).read_bytes().splitlines()
+    if len(ledger) != len(hashes):
+        fail("$raw.ledger", "record count/bounds mismatch")
+    for ordinal, raw in enumerate(ledger):
+        row = decode(raw)
+        path = f"$raw.ledger[{ordinal}]"
+        fields(row, {"ordinal": int, "record_sha256": str, "previous_sha256": str, "sha256": str}, path)
+        if canonical(row) != raw:
+            fail(path, "raw ledger is not canonical")
+        body = {key: value for key, value in row.items() if key != "sha256"}
+        if row["sha256"] != digest(canonical(body)):
+            fail(path + ".sha256", "raw ledger hash mismatch")
+        if row["previous_sha256"] != previous:
+            fail(path + ".previous_sha256", "raw ledger link mismatch")
+        if row["ordinal"] != ordinal or row["record_sha256"] != hashes[ordinal]:
+            fail(path + ".ordinal", "raw ledger order/reference mismatch")
+        previous = row["sha256"]
+    return {"case": result["case"], "records": result["records"],
+            "topology": list(range(len(hashes)))}
+
+
+VERBS = ("fixture", "inspect", "replay", "explore", "resume", "execute-shard", "merge",
+         "minimize", "qualify", "qualify-set", "merge-set", "compare-support",
+         "install", "doctor", "discover", "plan", "recover")
+
+
+def project(value, verb):
+    # Every adapter field is explicit. Future CLI shapes require a reviewed adapter.
+    fields(value, {"schema": str, "verb": str, "roots": dict, "diagnostics": dict,
+                   "executions": list, "limits": dict, "replay": dict,
+                   "reductions": list, "qualification": list}, "$")
+    if value["schema"] != "gomad.parity-observation/v1" or value["verb"] != verb:
+        fail("$.schema", "unsupported observation schema/verb")
+    fields(value["roots"], {"output": str, "scratch": str}, "$.roots")
+    fields(value["diagnostics"], {"campaign_id": str, "run_id": str, "timestamp": str,
+                                 "elapsed_ns": int, "output_path": str,
+                                 "scratch_path": str, "replay_command": list}, "$.diagnostics")
+    fields(value["limits"], {"fuel": int, "memory_bytes": int, "executions": int}, "$.limits")
+    for key, bound in value["limits"].items():
+        u64(bound, "$.limits." + key)
+    executions = value["executions"]
+    identities = set()
+    partition = []
+    groups = {}
+    for index, execution in enumerate(executions):
+        path = f"$.executions[{index}]"
+        fields(execution, {"execution": str, "seed": int, "outcome": str, "termination": str,
+                           "status": (int, type(None)), "failure_signature": str, "execution_identity": str,
+                           "implementation_identity": str, "record_sha256": str,
+                           "payload_file": str, "payload_sha256": str,
+                           "trace_file": str, "trace_sha256": str, "virtual_time_ns": int}, path)
+        for key in ("seed", "virtual_time_ns"):
+            u64(execution[key], path + "." + key)
+        for key in ("execution_identity", "implementation_identity", "record_sha256", "payload_sha256", "trace_sha256"):
+            sha(execution[key], path + "." + key)
+        for key in ("payload_file", "trace_file"):
+            filename = Path(execution[key])
+            if not execution[key] or filename.is_absolute() or ".." in filename.parts:
+                fail(path + "." + key, "expected contained relative evidence path")
+        if execution["execution"] in identities:
+            fail(path + ".execution", "duplicate execution identity")
+        identities.add(execution["execution"])
+        signature = execution["failure_signature"]
+        groups.setdefault(signature, len(groups))
+        partition.append(groups[signature])
+    replay = value["replay"]
+    fields(replay, {"matched": bool, "divergence_ordinal": (int, type(None)),
+                    "reason": str, "artifact_execution": str}, "$.replay")
+    if replay["divergence_ordinal"] is not None:
+        u64(replay["divergence_ordinal"], "$.replay.divergence_ordinal")
+    if replay["artifact_execution"] not in identities:
+        fail("$.replay.artifact_execution", "not an execution's own artifact")
+    for index, reduction in enumerate(value["reductions"]):
+        fields(reduction, {"removed_decision": str, "accepted": bool}, f"$.reductions[{index}]")
+    for index, cell in enumerate(value["qualification"]):
+        fields(cell, {"cell": str, "verdict": str}, f"$.qualification[{index}]")
+    view = copy.deepcopy(value)
+    diagnostics = view["diagnostics"]
+    tokens = {}
+    for key in ("campaign_id", "run_id"):
+        identifier = diagnostics[key]
+        tokens.setdefault(identifier, f"id-{len(tokens)}")
+        diagnostics[key] = tokens[identifier]
+    diagnostics["timestamp"] = "<host-timestamp>"
+    u64(diagnostics["elapsed_ns"], "$.diagnostics.elapsed_ns")
+    diagnostics["elapsed_ns"] = 0
+
+    def prefix(path, key):
+        root = value["roots"][key]
+        if not Path(root).is_absolute() or root == "/" or root.endswith("/"):
+            fail("$.roots." + key, "expected explicit absolute non-root prefix")
+        if path != root and not path.startswith(root + "/"):
+            fail("$.diagnostics", "path outside declared " + key + " prefix")
+        return "<" + key + ">" + path[len(root):]
+
+    diagnostics["output_path"] = prefix(diagnostics["output_path"], "output")
+    diagnostics["scratch_path"] = prefix(diagnostics["scratch_path"], "scratch")
+    command = diagnostics["replay_command"]
+    if len(command) < 3 or command[0:2] != ["gomad", "replay"] or any(type(arg) is not str for arg in command):
+        fail("$.diagnostics.replay_command", "expected gomad replay argv with final artifact operand")
+    # Only the final positional artifact operand is diagnostic; flags remain exact.
+    command[-1] = prefix(command[-1], "output")
+    del view["roots"]
+    view["failure_partition"] = partition
+    return view
+
+
+def difference(left, right, path="$"):
+    if type(left) is not type(right):
+        return path
+    if type(left) is dict:
+        for key in left:
+            if key not in right:
+                return path + "." + key
+            found = difference(left[key], right[key], path + "." + key)
+            if found:
+                return found
+        for key in right:
+            if key not in left:
+                return path + "." + key
+    elif type(left) is list:
+        for index, (a, b) in enumerate(zip(left, right)):
+            found = difference(a, b, f"{path}[{index}]")
+            if found:
+                return found
+        if len(left) != len(right):
+            return path + ".length"
+    elif left != right:
+        return path
+    return None
+
+
+def check_equal(left, right):
+    path = difference(left, right)
+    if path:
+        fail(path, "first semantic difference")
+
+
+def behavior(view):
+    result = copy.deepcopy(view)
+    del result["diagnostics"]
+    # These bindings remain exact in each lineage's golden and raw authentication.
+    # New record schemas and implementation identities are not cross-lineage equal.
+    for execution in result["executions"]:
+        for key in ("record_sha256", "execution_identity", "implementation_identity", "failure_signature"):
+            del execution[key]
+    return result
+
+
+def observation_records(value, result, root):
+    if len(value["executions"]) != len(result["records"]):
+        fail("$.executions.length", "raw record count mismatch")
+    for index, (execution, item) in enumerate(zip(value["executions"], result["records"])):
+        path = f"$.executions[{index}]"
+        raw = read(contained(root, item["record_file"]))
+        expected = {"seed": item["seed"], "outcome": item["outcome"],
+                    "termination": item["termination"], "record_sha256": item["record_sha256"],
+                    "failure_signature": item["failure_signature"],
+                    "execution_identity": item["execution_identity"],
+                    "implementation_identity": raw["identity"]["implementation"],
+                    "virtual_time_ns": raw["virtual_time_nanos"],
+                    "status": raw["outcome"]["exit_code"]}
+        for key, bound in expected.items():
+            if execution[key] != bound:
+                fail(path + "." + key, "observation differs from authenticated record")
+        if value["limits"]["fuel"] != raw["limits"]["fuel"] or value["limits"]["memory_bytes"] != raw["limits"]["memory_bytes"]:
+            fail("$.limits", "observation differs from authenticated record")
+        manifest = read(contained(root, item["artifact"] + "/manifest.json"))
+        for kind in ("payload", "trace"):
+            filename = execution[kind + "_file"]
+            if filename not in manifest["files"]:
+                fail(path + "." + kind + "_file", "missing authenticated payload")
+            if execution[kind + "_sha256"] != manifest["files"][filename]["sha256"]:
+                fail(path + "." + kind + "_sha256", "observation differs from raw payload digest")
+        if execution["trace_file"] not in raw["streams"]:
+            fail(path + ".trace_file", "not an authenticated record stream")
+
+
+def golden(destination, view, regenerate):
+    encoded = canonical(view) + b"\n"
+    if regenerate:
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        destination.write_bytes(encoded)
+    elif not destination.is_file() or destination.read_bytes() != encoded:
+        fail(str(destination), "missing or stale semantic golden")
+
+
+def corpus(root):
+    data = read(root / "corpus.json")
+    fields(data, {"schema": str, "baseline_inventory": str, "cases": list}, "$corpus")
+    if data["schema"] != "gomad.parity-corpus/v1" or not data["cases"]:
+        fail("$corpus", "unsupported or empty corpus")
+    names = set()
+    for entry in data["cases"]:
+        fields(entry, {"name": str, "verb": str, "target": str, "seeds": str,
+                       "plan": str, "example": str, "golden": str}, "$corpus.case")
+        if entry["name"] in names or entry["verb"] not in VERBS:
+            fail("$corpus.case", "duplicate name or unregistered verb")
+        names.add(entry["name"])
+        for key in ("target", "seeds", "plan", "example"):
+            read(contained(root, entry[key]))
+    return data["cases"]
+
+
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--corpus", type=Path, required=True)
+    parser.add_argument("--verb", choices=VERBS, default="fixture")
+    parser.add_argument("--left", type=Path)
+    parser.add_argument("--right", type=Path)
+    parser.add_argument("--left-root", type=Path)
+    parser.add_argument("--right-root", type=Path)
+    parser.add_argument("--selftest", action="store_true")
+    parser.add_argument("--golden-dir", type=Path)
+    parser.add_argument("--foundation-root", type=Path)
+    parser.add_argument("--foundation-result", type=Path)
+    parser.add_argument("--go-driver", type=Path, help="fresh execution adapter, emits observation v1")
+    parser.add_argument("--rust-driver", type=Path, help="fresh execution adapter, emits observation v1")
+    parser.add_argument("--output-root", type=Path)
+    args = parser.parse_args()
+    cases = corpus(args.corpus)
+    regenerate = os.environ.get("GOMAD_GOLDEN_REGENERATE") == "1"
+    if args.foundation_root or args.foundation_result:
+        if not args.foundation_root or not args.foundation_result:
+            fail("$raw", "both foundation root and result required")
+        view = authenticate(args.foundation_root, read(args.foundation_result))
+        print(canonical(view).decode())
+        return
+    if args.left or args.right:
+        if not args.left or not args.right:
+            fail("$", "both observations required")
+        values = [read(args.left), read(args.right)]
+        for value, root in zip(values, (args.left_root, args.right_root)):
+            if root:
+                result = read(contained(root, "foundation-result.json"))
+                authenticate(root, result)
+                observation_records(value, result, root)
+            elif args.verb != "fixture":
+                fail("$raw", "real verb comparison requires both raw lineage roots")
+        check_equal(project(values[0], args.verb), project(values[1], args.verb))
+        print("behavioral parity match")
+        return
+    if args.selftest:
+        for entry in cases:
+            value = read(contained(args.corpus, entry["example"]))
+            view = project(value, entry["verb"])
+            repeated = project(read(contained(args.corpus, entry["example"])), entry["verb"])
+            check_equal(view, repeated)
+            destination = (args.golden_dir / Path(entry["golden"]).name if args.golden_dir
+                           else args.corpus / entry["golden"])
+            golden(destination, view, regenerate)
+        print("semantic corpus match (examples only; no verb qualification)")
+        return
+    if not args.go_driver or not args.rust_driver or not args.output_root:
+        fail("$", "run mode requires --go-driver, --rust-driver and fresh --output-root")
+    args.output_root.mkdir(parents=True, exist_ok=False)
+    selected = [entry for entry in cases if entry["verb"] == args.verb]
+    if not selected:
+        fail("$corpus", "missing corpus entry for verb " + args.verb)
+    for entry in selected:
+        views = []
+        for lineage, driver in (("go", args.go_driver), ("rust", args.rust_driver)):
+            repeated, raw_records = [], []
+            for repetition in range(2):
+                output = args.output_root / entry["name"] / lineage / str(repetition)
+                output.mkdir(parents=True)
+                command = [str(driver.resolve()), "--verb", args.verb,
+                           "--corpus", str(args.corpus.resolve()), "--case", entry["name"],
+                           "--artifact-root", str(output.resolve())]
+                result = subprocess.run(command, capture_output=True)
+                (output / "stdout.json").write_bytes(result.stdout)
+                (output / "stderr.txt").write_bytes(result.stderr)
+                (output / "command.json").write_bytes(canonical(command))
+                (output / "exit-status.json").write_bytes(canonical({"status": result.returncode}))
+                if result.returncode != 0:
+                    fail(str(output), "driver failed; raw output retained")
+                foundation = read(contained(output, "foundation-result.json"))
+                authenticate(output, foundation)
+                value = decode(result.stdout)
+                observation_records(value, foundation, output)
+                repeated.append(project(value, args.verb))
+                raw_records.append([contained(output, item["record_file"]).read_bytes()
+                                    for item in foundation["records"]])
+            check_equal(*repeated)
+            check_equal(*raw_records)
+            views.append(repeated[0])
+        check_equal(behavior(views[0]), behavior(views[1]))
+        for lineage, view in zip(("go", "rust"), views):
+            destination = (args.golden_dir or args.corpus / "goldens-semantic") / (entry["name"] + "-" + lineage + ".json")
+            golden(destination, view, regenerate)
+    print("behavioral parity match")
+
+
+if __name__ == "__main__":
+    try:
+        main()
+    except (Refusal, OSError, ValueError, TypeError) as error:
+        print(str(error), file=sys.stderr)
+        sys.exit(1)

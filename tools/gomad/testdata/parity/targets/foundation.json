@@ -1,0 +1,1 @@
+{"schema":"gomad.parity-target/v1","kind":"semantic-example","identity":"foundation-fixed-v1","profile":"gomad.wasi-cooperative/v1","arguments":["-test.run=^TestDeterministicIOFailure$","-test.v"],"guest_source":"internal/backends/wasm/testdata/io_failure_module"}

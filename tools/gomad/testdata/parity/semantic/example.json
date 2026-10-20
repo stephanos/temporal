@@ -1,0 +1,14 @@
+{
+  "schema":"gomad.parity-observation/v1",
+  "verb":"fixture",
+  "roots":{"output":"/left/artifacts","scratch":"/left/scratch"},
+  "diagnostics":{"campaign_id":"campaign-one","run_id":"run-one","timestamp":"2026-10-20T00:00:00Z","elapsed_ns":12,"output_path":"/left/artifacts/case/record.json","scratch_path":"/left/scratch/module.wasm","replay_command":["gomad","replay","--json","/left/artifacts/case"]},
+  "executions":[
+    {"execution":"first","seed":7,"outcome":"success","termination":"exit","status":0,"failure_signature":"same","execution_identity":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","implementation_identity":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","record_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","payload_file":"module.wasm","payload_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","trace_file":"trace","trace_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","virtual_time_ns":0},
+    {"execution":"second","seed":42,"outcome":"success","termination":"exit","status":0,"failure_signature":"same","execution_identity":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","implementation_identity":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","record_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","payload_file":"module.wasm","payload_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","trace_file":"trace","trace_sha256":"aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa","virtual_time_ns":0}
+  ],
+  "limits":{"fuel":100,"memory_bytes":65536,"executions":2},
+  "replay":{"matched":true,"divergence_ordinal":null,"reason":"","artifact_execution":"first"},
+  "reductions":[{"removed_decision":"decision-7","accepted":true}],
+  "qualification":[{"cell":"example-only","verdict":"unrun"}]
+}

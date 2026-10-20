@@ -1,0 +1,1 @@
+{"schema":"gomad.parity-plan/v1","mode":"semantic-example","limits":{"fuel":100,"memory_bytes":65536,"executions":2},"scenario":null,"qualification_claim":false}

@@ -1,0 +1,44 @@
+name: Gomad behavioral parity foundation
+
+on:
+  pull_request:
+    paths:
+      - ".github/workflows/gomad-behavioral-parity.yml"
+      - "tools/gomad/scripts/behavioral-parity"
+      - "tools/gomad/testdata/parity/**"
+      - "tools/gomad/rust/**"
+      - "tools/gomad/internal/backends/wasm/wasmhost/**"
+
+permissions:
+  contents: read
+
+jobs:
+  semantic-foundation:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Validate shared corpus and subprocess regressions
+        run: |
+          python3 tools/gomad/scripts/behavioral-parity --corpus tools/gomad/testdata/parity --selftest
+          python3 tools/gomad/testdata/parity/semantic/selftest.py
+  linked-foundation:
+    runs-on: ubuntu-24.04-arm
+    timeout-minutes: 30
+    env:
+      CARGO_INCREMENTAL: "0"
+      CARGO_TARGET_DIR: ${{ github.workspace }}/foundation-target
+    steps:
+      - uses: actions/checkout@df4cb1c069e1874edd31b4311f1884172cec0e10 # v6.0.3
+      - name: Install pinned Rust toolchain
+        run: rustup toolchain install 1.99.1 --profile minimal --component clippy,rustfmt
+      - name: Verify linked fixture and execution-backed goldens
+        run: |
+          cargo +1.99.1 clippy --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml --all-targets --features determinism-fixture -- -D warnings
+          cargo +1.99.1 test --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml --features determinism-fixture
+          cargo +1.99.1 build --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml --features determinism-fixture
+          python3 tools/gomad/testdata/parity/foundation-check.py --binary "$CARGO_TARGET_DIR/release/gomad" --work "$RUNNER_TEMP/foundation-check"
+      - name: Prove fixture controls absent from release
+        run: |
+          cargo +1.99.1 build --release --locked --jobs 2 --manifest-path tools/gomad/rust/Cargo.toml
+          python3 tools/gomad/testdata/parity/foundation-release-check.py "$CARGO_TARGET_DIR/release/gomad" "$RUNNER_TEMP/release-refusals"
