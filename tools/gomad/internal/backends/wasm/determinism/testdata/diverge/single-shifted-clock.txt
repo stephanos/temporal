@@ -3,6 +3,6 @@ first: clock guest/1 ordinal=1 shared=0 tape=2 time=946684800000001000 field=ope
   expected: clock_time_get(clock_id=1)=946684800000002000
   actual:   clock_time_get(clock_id=1)=946684800000002001
 reproduce: workload=fixture/single-shifted-clock seed=7 cell=clock
-  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:eaf6e031e55880db2a6438bb02489caf16628442bab699f51e2acd3048e07129)
-  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:b61be9b3a868326f66af4f887034ad594f470cec6d7a8392abedaca350bcb58c)
+  expected: gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:7a7a59468c944723d0dfd2ba17e5dcb112626ea39fe17385412be31e4b3a5fb9)
+  actual:   gomad explore --backend wasm --seed 7 --diagnostics go-run fixture/single-shifted-clock (sha256:b0e227580b7cb11b45bbdf813bafbca72fcb45e39574b0c7501b901ac07224b1)
   replay:   gomad replay --stop choice=2 /artifacts/reference

@@ -3,7 +3,6 @@ package determinism
 import (
 	"bytes"
 	"cmp"
-	"encoding/hex"
 	"errors"
 	"fmt"
 	"maps"
@@ -53,6 +52,20 @@ type Run struct {
 	// WorldOrder is the shared execution order of cluster steps. A single
 	// guest has none.
 	WorldOrder []WorldStep
+	// Boundaries are actual pre-decision stops retained by fn-180. Trace and
+	// Decision differ when observations occur between decisions.
+	Boundaries []ReplayBoundary
+	// BoundaryScoped means cross-stream ordering is known only at inspection
+	// boundaries, rather than at individual events within each interval.
+	BoundaryScoped bool
+}
+
+type ReplayBoundary struct {
+	Instance    string
+	Incarnation uint64
+	Trace       uint64
+	Decision    uint64
+	At          Coordinate
 }
 
 // Coordinate places an event in helper execution order. Shared is the fn-180
@@ -149,20 +162,22 @@ const (
 // Reproducer carries what reruns both executions and stops a replay at the
 // last common prefix.
 type Reproducer struct {
-	Workload        string                     `json:"workload"`
-	Seed            uint64                     `json:"seed"`
-	Perturbation    string                     `json:"perturbation"`
-	ExpectedDigest  string                     `json:"expected_digest"`
-	ActualDigest    string                     `json:"actual_digest"`
-	Identities      map[string]string          `json:"identities"`
-	ExpectedCommand []string                   `json:"expected_command"`
-	ActualCommand   []string                   `json:"actual_command"`
-	Stop            backends.InspectionRequest `json:"stop"`
-	ReplayCommand   []string                   `json:"replay_command"`
+	Workload          string                     `json:"workload"`
+	Seed              uint64                     `json:"seed"`
+	Perturbation      string                     `json:"perturbation"`
+	ExpectedDigest    string                     `json:"expected_digest"`
+	ActualDigest      string                     `json:"actual_digest"`
+	Identities        map[string]string          `json:"identities"`
+	ExpectedCommand   []string                   `json:"expected_command"`
+	ActualCommand     []string                   `json:"actual_command"`
+	Stop              backends.InspectionRequest `json:"stop"`
+	ReplayCommand     []string                   `json:"replay_command"`
+	PrefixUnavailable string                     `json:"prefix_unavailable,omitempty"`
 }
 
 type Report struct {
-	Schema string `json:"schema"`
+	Schema   string `json:"schema"`
+	Ordering string `json:"ordering,omitempty"`
 	// Status is identical, diverged or undiagnosable.
 	Status     string      `json:"status"`
 	First      *Divergence `json:"first,omitempty"`
@@ -206,7 +221,12 @@ func Compare(expected, actual Run) (Report, error) {
 		return Report{Schema: ReportSchema, Status: "identical"}, nil
 	}
 	first := slices.MinFunc(candidates, compareDivergence)
-	return Report{Schema: ReportSchema, Status: "diverged", First: &first, Reproducer: reproducer(expected, actual, first)}, nil
+	report := Report{Schema: ReportSchema, Status: "diverged", First: &first, Reproducer: reproducer(expected, actual, first)}
+	if expected.BoundaryScoped || actual.BoundaryScoped {
+		report.Ordering = "inspection-boundary"
+		report.Reason = "earliest differing inspection boundary; retained streams do not establish event order within that interval"
+	}
+	return report, nil
 }
 
 func compareCoordinate(a, b Coordinate) int {
@@ -353,6 +373,8 @@ func incarnationDivergences(expected, actual Incarnation, expectedWorld, actualW
 			kind, from = KindClock, sourceClock
 		case "random_get":
 			kind, from = KindEntropy, sourceEntropy
+		case "output:stdout", "output:stderr":
+			kind, from = KindOutput, sourceOutput
 		}
 		add(from, kind, uint64(i), ref.At, "operation", describeOperation(e), describeOperation(a))
 	}
@@ -408,15 +430,14 @@ func describeStep(step WorldStep) string {
 	if step.Instance == "" {
 		return "absent"
 	}
-	return fmt.Sprintf("%s/%d@%d", step.Instance, step.Incarnation, step.ChoiceOrdinal)
+	return fmt.Sprintf("%+v", step)
 }
 
 func describeChoice(event ChoiceEvent, present bool) string {
 	if !present {
 		return "absent"
 	}
-	r := event.Record
-	return fmt.Sprintf("kind=%d selected=%d/%d data=%d identity=%s", r.Kind, r.Selected, r.Alternatives, r.Data, hex.EncodeToString(r.SelectedIdentity[:8]))
+	return fmt.Sprintf("%+v", event.Record)
 }
 
 func describeDiagnostic(record *choice.DiagnosticRecord) string {
@@ -445,23 +466,46 @@ func window(data []byte, offset int) string {
 }
 
 func reproducer(expected, actual Run, first Divergence) *Reproducer {
+	decision := first.At.ChoiceOrdinal
+	instance, incarnation := first.Instance, first.Incarnation
+	unavailable := ""
+	if expected.BoundaryScoped {
+		var selected *ReplayBoundary
+		for index := range expected.Boundaries {
+			boundary := &expected.Boundaries[index]
+			if boundary.At.Shared < first.At.Shared && (selected == nil || selected.At.Shared < boundary.At.Shared) {
+				selected = boundary
+			}
+		}
+		if selected == nil {
+			unavailable = "no retained inspection boundary precedes the first differing interval"
+		} else {
+			decision, instance, incarnation = selected.Decision, selected.Instance, selected.Incarnation
+		}
+	}
 	stop := backends.InspectionRequest{
-		Stop:         backends.InspectionStop{Kind: "choice", Value: first.At.ChoiceOrdinal},
+		Stop:         backends.InspectionStop{Kind: "choice", Value: decision},
 		Dumps:        []string{"stacks", "heap"},
 		MaximumBytes: backends.MaximumInspectionBytes, PerDumpBytes: backends.MaximumInspectionBytes,
 	}
-	command := []string{"gomad", "replay", "--stop", "choice=" + strconv.FormatUint(first.At.ChoiceOrdinal, 10)}
+	command := []string{"gomad", "replay", "--stop", "choice=" + strconv.FormatUint(decision, 10)}
 	if len(expected.WorldOrder) != 0 || len(expected.Incarnations) > 1 {
-		stop.Instance, stop.Incarnation = first.Instance, first.Incarnation
-		command = append(command, "--instance", first.Instance, "--incarnation", strconv.FormatUint(first.Incarnation, 10))
+		stop.Instance, stop.Incarnation = instance, incarnation
+		command = append(command, "--instance", instance, "--incarnation", strconv.FormatUint(incarnation, 10))
 	}
 	command = append(command, cmp.Or(expected.ArtifactDir, "ARTIFACT_DIR"))
+	if expected.ArtifactDir == "" {
+		unavailable = "the retained execution is not a gomad campaign artifact"
+	}
+	if unavailable != "" {
+		command = nil
+	}
 	return &Reproducer{
 		Workload: expected.Workload, Seed: expected.Seed, Perturbation: actual.Perturbation,
 		ExpectedDigest: expected.EvidenceDigest, ActualDigest: actual.EvidenceDigest,
 		Identities:      maps.Clone(expected.Identities),
 		ExpectedCommand: slices.Clone(expected.Command), ActualCommand: slices.Clone(actual.Command),
-		Stop: stop, ReplayCommand: command,
+		Stop: stop, ReplayCommand: command, PrefixUnavailable: unavailable,
 	}
 }
 
@@ -482,6 +526,9 @@ func (report Report) Format() string {
 	if r := report.Reproducer; r != nil {
 		fmt.Fprintf(&out, "reproduce: workload=%s seed=%d cell=%s\n  expected: %s (%s)\n  actual:   %s (%s)\n  replay:   %s\n", r.Workload, r.Seed, r.Perturbation,
 			strings.Join(r.ExpectedCommand, " "), r.ExpectedDigest, strings.Join(r.ActualCommand, " "), r.ActualDigest, strings.Join(r.ReplayCommand, " "))
+		if r.PrefixUnavailable != "" {
+			fmt.Fprintf(&out, "  prefix unavailable: %s\n", r.PrefixUnavailable)
+		}
 	}
 	return out.String()
 }

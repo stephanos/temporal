@@ -43,7 +43,7 @@ test-determinism:
 	cd ../../.. && env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \
-		./internal/backends/wasm/determinism ./internal/archcheck ./internal/backends/wasm && \
+		./internal/backends/wasm/determinism/... ./internal/archcheck ./internal/backends/wasm && \
 	env -u GOROOT -u GOMADSEED -u GOMAD_CHILD_SEED GOENV=off GOTOOLCHAIN=local GOWORK=off \
 		GOMAD_STOCK_GO="$$stock_go" PATH="$$(dirname "$$stock_go"):$$PATH" \
 		"$$stock_go" test -tags test_dep -count=1 -timeout=15m \

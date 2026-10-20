@@ -19,8 +19,8 @@
     "workload": "fixture/cluster-perturbed-draw",
     "seed": 7,
     "perturbation": "draw",
-    "expected_digest": "sha256:fc7c5250889caf36beb4d9d2c07b8444ee9d313f3f84bdea1d3d82e6b674fb00",
-    "actual_digest": "sha256:d90f21d1f8d6ae2f36aa3d3925b0ac0d3a1df952273d00c4e5b067ad5adf4147",
+    "expected_digest": "sha256:1cfe74b57efcd3ddee7fde50028f5f830891c8813244ed44e29801ebab6f1ead",
+    "actual_digest": "sha256:64bc4c8f73d69610011f052a068afbaa2284bde455821aaecfbe1de113583a90",
     "identities": {
       "engine": "e",
       "helper": "h",
