@@ -3,6 +3,7 @@ package determinism
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"go/ast"
 	"go/build"
@@ -18,6 +19,7 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/toolchain"
 )
 
@@ -27,6 +29,28 @@ import (
 // backend keeps its own gates; the native tables are not read or edited.
 
 const wasip1 = "wasip1/wasm"
+
+func TestRuntimeInventoryRequiresPerSiteRows(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct{ kind, site string }{
+		{"runtime-draw", "wasip1/wasm runtime/proc.go runqget gomadChoiceRunqIndex patch"},
+		{"runtime-clock", "wasip1/wasm runtime/gomad_wasm.go nanotime"},
+		{"runtime-other", "wasip1/wasm runtime/proc.go execute patch"},
+	} {
+		t.Run(test.kind, func(t *testing.T) {
+			t.Parallel()
+			inventory := loadInventory(t)
+			rows := inventory.Sites(test.kind)
+			require.Contains(t, rows, test.site)
+			sites := make([]string, 0, len(rows))
+			for site := range rows {
+				sites = append(sites, site)
+			}
+			require.ErrorContains(t, inventory.Without(test.kind+":"+test.site).Complete(test.kind, sites), test.site+`" has no inventory row`)
+			require.ErrorContains(t, inventory.Complete(test.kind, slices.DeleteFunc(slices.Clone(sites), func(site string) bool { return site == test.site })), "no longer has")
+		})
+	}
+}
 
 // Draw rows: platform|file|function|symbol|kind|count|class|stream|reachability|reason.
 // Every overlay patch that introduces or replaces a seeded draw or a clock
@@ -524,7 +548,8 @@ func TestWasip1RuntimeDrawAndClockReferencesAreReviewed(t *testing.T) {
 	draws, others := drawPatchReferences(t, stock, patches)
 	problems := referenceProblems("overlay draw/clock patch", draws, reviewedDraws)
 	problems = append(problems, referenceProblems("overlay patch without draw or clock", others, otherRows)...)
-	problems = append(problems, referenceProblems("wasip1 host-clock reference", wasip1HostClockReferences(t, stock, context, replace), reviewedClocks)...)
+	clocks := wasip1HostClockReferences(t, stock, context, replace)
+	problems = append(problems, referenceProblems("wasip1 host-clock reference", clocks, reviewedClocks)...)
 	if len(problems) != 0 {
 		t.Fatalf("wasip1 runtime inventory drifted; review each change:\n%s", strings.Join(problems, "\n"))
 	}
@@ -543,8 +568,41 @@ func TestWasip1RuntimeDrawAndClockReferencesAreReviewed(t *testing.T) {
 	}) {
 		t.Fatalf("unclassified patch not reported: %v", others)
 	}
-	// Every escape row is an inventory escape row.
 	inventory := loadInventory(t)
+	require.NoError(t, runtimeInventoryCoverage(inventory, draws, clocks, others))
+	for kind, sites := range map[string]map[string]int{"runtime-draw": draws, "runtime-clock": clocks, "runtime-other": others} {
+		for site := range sites {
+			require.ErrorContains(t, runtimeInventoryCoverage(inventory.Without(kind+":"+site), draws, clocks, others), site+`" has no inventory row`)
+			for _, field := range []string{"disposition", "rule", "evidence"} {
+				changed := inventory
+				changed.Entries = slices.Clone(inventory.Entries)
+				for index := range changed.Entries {
+					entry := &changed.Entries[index]
+					if entry.Site != kind+":"+site {
+						continue
+					}
+					switch field {
+					case "disposition":
+						entry.Disposition = "recorded"
+					case "rule":
+						entry.Rule = ""
+					case "evidence":
+						entry.Evidence = nil
+					}
+				}
+				require.ErrorContains(t, runtimeInventoryCoverage(changed, draws, clocks, others), "runtime site "+site)
+			}
+			removed := make(map[string]int, len(sites))
+			for key, count := range sites {
+				if key != site {
+					removed[key] = count
+				}
+			}
+			changed := map[string]map[string]int{"runtime-draw": draws, "runtime-clock": clocks, "runtime-other": others}
+			changed[kind] = removed
+			require.ErrorContains(t, runtimeInventoryCoverage(inventory, changed["runtime-draw"], changed["runtime-clock"], changed["runtime-other"]), "no longer has")
+		}
+	}
 	for key, row := range clockRows {
 		if row.disposition != "escape" {
 			continue
@@ -553,4 +611,27 @@ func TestWasip1RuntimeDrawAndClockReferencesAreReviewed(t *testing.T) {
 			t.Errorf("wasip1 host-clock escape %s has no inventory escape row", key)
 		}
 	}
+}
+
+func runtimeInventoryCoverage(inventory Inventory, draws, clocks, others map[string]int) error {
+	var problems []error
+	for kind, derived := range map[string]map[string]int{"runtime-draw": draws, "runtime-clock": clocks, "runtime-other": others} {
+		sites := make([]string, 0, len(derived))
+		for site := range derived {
+			sites = append(sites, site)
+		}
+		problems = append(problems, inventory.Complete(kind, sites))
+		for site, entry := range inventory.Sites(kind) {
+			if _, active := derived[site]; !active {
+				continue
+			}
+			if entry.Disposition != "controlled" {
+				problems = append(problems, fmt.Errorf("runtime site %s has unreviewed disposition %s", site, entry.Disposition))
+			}
+			if entry.Rule == "" || !slices.Contains(entry.Evidence, "go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed") {
+				problems = append(problems, fmt.Errorf("runtime site %s lacks its rule or runtime evidence test", site))
+			}
+		}
+	}
+	return errors.Join(problems...)
 }

@@ -498,6 +498,15 @@ inventory gate. A second review on the same day uses a later timestamp.
 The test's accepted initial review anchors the ledger prefix independently of
 Git history. Updating that anchor is itself an explicit source review action;
 routine pin changes append to the ledger and preserve the accepted prefix.
+The shared `determinism/identity-history.json` ledger preserves every accepted
+ID and site pairing. Both readers check its accepted prefix checksum and require
+each inventory row to match one ledger record. New identities append records;
+existing identities cannot be removed, renamed or reassigned. A retired site
+retains its original ID and site, uses `rejected`, and names the existing refusal
+evidence. Completeness permits an absent rejected site only when its identity
+matches that ledger; active sites still require rows and stale controlled rows
+still fail. Runtime draw, clock and other overlay patches each have a JSON row
+keyed by the reviewed grammar, checked against the source-derived site sets.
 `make test-determinism` checks the inventory, helper source sites, architecture
 and transport boundaries; both this directory's `make test` and the Gomad
 module's `make validate` include it. The long qualification and stress producers

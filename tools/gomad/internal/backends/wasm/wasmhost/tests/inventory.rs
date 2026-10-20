@@ -9,11 +9,83 @@
 //! therefore its identity.
 
 use serde::Deserialize;
-use std::collections::BTreeSet;
+use sha2::{Digest, Sha256};
+use std::collections::{BTreeMap, BTreeSet};
 
 const INVENTORY: &str = include_str!("../../determinism/inventory.json");
 const ABI: &str = include_str!("../src/abi.rs");
 const SCHEMA: &str = "gomad.wasm-determinism-inventory/v1";
+const IDENTITY_HISTORY: &str = include_str!("../../determinism/identity-history.json");
+// Matches the reviewed prefix in determinism/identity_history.go.
+const ACCEPTED_IDENTITY_COUNT: usize = 263;
+const ACCEPTED_IDENTITY_SHA256: &str =
+    "571a435d3eed2e5533450ef8210e3ad0f1d4e779ffc0853287d31775a1b66475";
+
+#[derive(Debug, Deserialize)]
+#[serde(deny_unknown_fields)]
+struct IdentityRecord {
+    id: String,
+    site: String,
+}
+
+fn check_identity_history(text: &str, entries: &[Entry]) -> Result<(), String> {
+    let records: Vec<IdentityRecord> =
+        serde_json::from_str(text).map_err(|error| error.to_string())?;
+    if records.len() < ACCEPTED_IDENTITY_COUNT {
+        return Err("historical identity ledger removed accepted records".into());
+    }
+    let mut hash = Sha256::new();
+    for record in &records[..ACCEPTED_IDENTITY_COUNT] {
+        hash.update(record.id.as_bytes());
+        hash.update(b"\t");
+        hash.update(record.site.as_bytes());
+        hash.update(b"\n");
+    }
+    if format!("{:x}", hash.finalize()) != ACCEPTED_IDENTITY_SHA256 {
+        return Err(
+            "historical identity ledger changed accepted records; append new identities".into(),
+        );
+    }
+    let mut by_id = BTreeMap::new();
+    let mut sites = BTreeSet::new();
+    for record in &records {
+        if record.id.is_empty() || record.site.is_empty() {
+            return Err("historical identity ledger has an invalid identity".into());
+        }
+        if by_id
+            .insert(record.id.as_str(), record.site.as_str())
+            .is_some()
+            || !sites.insert(record.site.as_str())
+        {
+            return Err("historical identity ledger reuses id or site".into());
+        }
+    }
+    for entry in entries {
+        if by_id.remove(entry.id.as_str()) != Some(entry.site.as_str()) {
+            return Err(format!(
+                "historical identity {:?} must retain its site; append new identities to the ledger",
+                entry.id
+            ));
+        }
+    }
+    if let Some((id, _)) = by_id.first_key_value() {
+        return Err(format!(
+            "historical identity {id:?} removed; retain its site with disposition rejected when retired"
+        ));
+    }
+    Ok(())
+}
+
+fn retired_identity(entry: &Entry) -> bool {
+    entry.disposition == "rejected"
+        && !entry.evidence.is_empty()
+        && !entry.rule.is_empty()
+        && serde_json::from_str::<Vec<IdentityRecord>>(IDENTITY_HISTORY).is_ok_and(|records| {
+            records
+                .iter()
+                .any(|record| record.id == entry.id && record.site == entry.site)
+        })
+}
 
 #[derive(Debug, Deserialize)]
 #[serde(deny_unknown_fields)]
@@ -142,6 +214,7 @@ fn parse(text: &str) -> Result<Inventory, String> {
             return Err(format!("inventory row {:?} escape justification", entry.id));
         }
     }
+    check_identity_history(IDENTITY_HISTORY, &inventory.entries)?;
     Ok(inventory)
 }
 
@@ -222,6 +295,7 @@ fn import_gaps(entries: &[Entry], table: &[Operation]) -> Vec<String> {
             Some(op) => {
                 covered.insert(op.variant.as_str());
             }
+            None if retired_identity(entry) => {}
             None => gaps.push(format!(
                 "inventory row {:?} names import {site:?} that the operation table no longer has",
                 entry.id
@@ -319,6 +393,125 @@ fn inventory_loader_rejects_unknown_fields_and_reused_ids() {
     let mut document = base;
     document["entries"][0]["disposition"] = "escape".into();
     assert!(parse(&document.to_string()).unwrap_err().contains("escape"));
+}
+
+#[test]
+fn inventory_preserves_historical_identities() {
+    let base: serde_json::Value = serde_json::from_str(INVENTORY).unwrap();
+    for mutation in ["remove", "rename", "reuse", "swap"] {
+        let mut document = base.clone();
+        match mutation {
+            "remove" => {
+                document["entries"].as_array_mut().unwrap().remove(0);
+            }
+            "rename" => document["entries"][0]["id"] = "replacement.id".into(),
+            "reuse" => document["entries"][0]["site"] = "import:replacement::site".into(),
+            "swap" => {
+                let previous = document["entries"][0]["id"].clone();
+                document["entries"][0]["id"] = document["entries"][1]["id"].clone();
+                document["entries"][1]["id"] = previous;
+            }
+            _ => unreachable!(),
+        }
+        assert!(
+            parse(&document.to_string())
+                .unwrap_err()
+                .contains("historical identity"),
+            "{mutation}"
+        );
+    }
+}
+
+#[test]
+fn identity_history_preserves_accepted_prefix_and_allows_appends() {
+    let inventory = parse(INVENTORY).unwrap();
+    let base: serde_json::Value = serde_json::from_str(IDENTITY_HISTORY).unwrap();
+    for mutation in ["remove", "reuse", "swap", "remove-and-append"] {
+        let mut history = base.clone();
+        match mutation {
+            "remove" => {
+                history.as_array_mut().unwrap().remove(0);
+            }
+            "reuse" => history[0]["site"] = "import:replacement::site".into(),
+            "swap" => history.as_array_mut().unwrap().swap(0, 1),
+            "remove-and-append" => {
+                history.as_array_mut().unwrap().remove(0);
+                history
+                    .as_array_mut()
+                    .unwrap()
+                    .push(serde_json::json!({"id": "new.id", "site": "import:new::site"}));
+            }
+            _ => unreachable!(),
+        }
+        assert!(
+            check_identity_history(&history.to_string(), &inventory.entries)
+                .unwrap_err()
+                .contains("accepted records"),
+            "{mutation}"
+        );
+    }
+    let mut history = base;
+    let mut entries = inventory.entries;
+    let mut appended = entries[0].clone();
+    appended.id = "appended.id".into();
+    appended.site = "retired:appended-site".into();
+    history
+        .as_array_mut()
+        .unwrap()
+        .push(serde_json::json!({"id": appended.id, "site": appended.site}));
+    entries.push(appended);
+    assert!(check_identity_history(&history.to_string(), &entries).is_ok());
+    entries.last_mut().unwrap().disposition = "rejected".into();
+    assert!(check_identity_history(&history.to_string(), &entries).is_ok());
+    entries.pop();
+    assert!(
+        check_identity_history(&history.to_string(), &entries)
+            .unwrap_err()
+            .contains("removed")
+    );
+}
+
+#[test]
+fn retired_import_requires_historical_identity_and_refusal_evidence() {
+    let inventory = parse(INVENTORY).unwrap();
+    let row = inventory
+        .entries
+        .iter()
+        .find(|entry| entry.site == "import:wasi_snapshot_preview1::path_symlink")
+        .unwrap();
+    let retired = row.clone();
+    assert_eq!(retired.disposition, "rejected");
+    assert!(retired.evidence.iter().any(|reference| reference
+        == "go:internal/backends/wasm/wasi:TestDeterminismInventoryRejectedImportsAreRefused"));
+    assert_eq!(
+        import_gaps(std::slice::from_ref(&retired), &[]),
+        Vec::<String>::new()
+    );
+    assert!(
+        import_gaps(
+            std::slice::from_ref(&retired),
+            &[Operation {
+                variant: "NewUnlisted".into(),
+                module: "new".into(),
+                name: "unlisted".into()
+            }]
+        )[0]
+        .contains("has no inventory row")
+    );
+    for mutation in ["controlled", "id", "site", "evidence"] {
+        let mut changed = retired.clone();
+        match mutation {
+            "controlled" => changed.disposition = "controlled".into(),
+            "id" => changed.id = "invented.id".into(),
+            "site" => changed.site = "import:invented::site".into(),
+            "evidence" => changed.evidence.clear(),
+            _ => unreachable!(),
+        }
+        assert!(
+            import_gaps(&[changed], &[])[0].contains("no longer has"),
+            "{mutation}"
+        );
+    }
 }
 
 /// Patterns the helper source scan treats as time, entropy, thread or
@@ -582,7 +775,11 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         }
     }
     for row in &rows {
-        if !sites.contains(*row) {
+        if !sites.contains(*row)
+            && !entries.iter().any(|entry| {
+                entry.site == format!("helper-source:{row}") && retired_identity(entry)
+            })
+        {
             gaps.push(format!(
                 "inventory row names helper source site {row} that the sources no longer have"
             ));
@@ -592,6 +789,9 @@ fn source_gaps(entries: &[Entry], sites: &BTreeSet<String>) -> Vec<String> {
         if !sites
             .iter()
             .any(|site| site.starts_with(&format!("{file}|")))
+            && !entries.iter().any(|entry| {
+                entry.site == format!("helper-allow:{file}") && retired_identity(entry)
+            })
         {
             gaps.push(format!("allowlisted helper file {file} has no site"));
         }
@@ -713,7 +913,13 @@ fn engine_settings_are_inventoried() {
         "engine settings without an inventory row"
     );
     assert_eq!(
-        rows.difference(&derived).collect::<Vec<_>>(),
+        rows.difference(&derived)
+            .filter(|site| !inventory
+                .entries
+                .iter()
+                .any(|entry| entry.site == format!("engine-setting:{site}")
+                    && retired_identity(entry)))
+            .collect::<Vec<_>>(),
         Vec::<&&str>::new(),
         "inventory rows naming settings the engine no longer applies"
     );
