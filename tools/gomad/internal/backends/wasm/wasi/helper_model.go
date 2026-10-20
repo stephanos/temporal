@@ -463,6 +463,16 @@ func (sink *frameSink) collectHelper(result *Result) error {
 	copy(result.runtimeTerminal[:], model.Terminal)
 	result.VirtualTimeElapsedNanos = model.Elapsed
 	result.ChoiceTrace = choice.Trace{Version: choice.Version3, Bytes: sink.helperEvidence.choice, SHA256: [32]byte(traceDigest), Summary: choice.Summary{Terminal: choice.TerminalComplete, Records: model.Records, Branching: model.BranchingRecords, PeakGoroutines: model.Peak}}
+	if input.Mode == choice.ModeRecord {
+		result.ChoiceTrace, err = choice.DecodeStoredTrace(choice.Profile, sink.helperEvidence.choice, choice.TerminalMetadata{State: choice.TerminalComplete, Limit: input.Limit, Records: model.Records, SHA256: [32]byte(traceDigest)})
+		if err != nil {
+			return err
+		}
+		if result.ChoiceTrace.Summary.Branching != model.BranchingRecords {
+			return invalid("helper record branching count")
+		}
+		result.ChoiceTrace.Summary.PeakGoroutines = model.Peak
+	}
 	if sink.request.Runtime.Diagnostics {
 		if len(sink.helperEvidence.diagnostic) != len(sink.helperEvidence.choice) {
 			return invalid("helper diagnostic count")

@@ -310,7 +310,55 @@ func replayPlanFixtures(t *testing.T) []replayPlanCorpus {
 		fixture.PrefixControl, fixture.Expected = &test.control, replayPlanResult{Error: test.classification}
 		fixtures = append(fixtures, fixture)
 	}
+	for _, source := range []struct{ name, fixture string }{
+		{"helper-runtime", "model_runtime_record"},
+	} {
+		payload := retainedReplayFixture(t, source.fixture)
+		fixtures = append(fixtures, replayPlanCorpus{Schema: "gomad.replay-plan-conformance/v1", Name: source.name, Source: source.fixture + ".json", Identity: readinessTestIdentity(), Trace: payload})
+		if source.name == "helper-runtime" {
+			fixtures = append(fixtures, replayPlanCorpus{Schema: "gomad.replay-plan-conformance/v1", Name: "helper-runtime-rank", Source: source.fixture + ".json", Identity: readinessTestIdentity(), Trace: payload, PrefixControl: &replayPlanPrefix{Cutoff: 1, Override: &replayPlanOverride{Ordinal: 0, Rank: 1}}})
+		}
+	}
+	var first, second [32]byte
+	for index := range first {
+		first[index], second[index] = 1, 2
+	}
+	kindDecision, err := CanonicalDecision(0, KindSelectPoll, 42, false, [][32]byte{first, second}, first, 0)
+	if err != nil {
+		t.Fatal(err)
+	}
+	add("helper-runtime-kind", "model_runtime_kind_divergence.json", []Record{kindDecision.Record()}, "")
+	fixtures[len(fixtures)-1].PrefixControl = &replayPlanPrefix{Cutoff: 1, Override: &replayPlanOverride{Ordinal: 0, Rank: 1}}
 	return fixtures
+}
+
+func retainedReplayFixture(t *testing.T, name string) []byte {
+	t.Helper()
+	data, err := os.ReadFile(filepath.Join(replayPlanCorpusDirectory(), "..", "helper_transcript", name+".json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	var fixture struct {
+		Expected struct {
+			Frames []struct {
+				Stream string `json:"stream"`
+				Data   []byte `json:"data_base64"`
+			} `json:"frames"`
+		} `json:"expected"`
+	}
+	if err := json.Unmarshal(data, &fixture); err != nil {
+		t.Fatal(err)
+	}
+	var result []byte
+	for _, frame := range fixture.Expected.Frames {
+		if frame.Stream == "choice" {
+			result = append(result, frame.Data...)
+		}
+	}
+	if len(result) == 0 {
+		t.Fatalf("%s has no retained choice evidence", name)
+	}
+	return result
 }
 
 func mustReplayPlanTrace(t *testing.T, payload []byte) Trace {
