@@ -12,22 +12,7 @@ Confirm fn-219 is closed and its archcheck string check passes. On a throwaway b
 
 ### Exact source-test lane
 
-Retain the original failed unselected tests.command/tests.log and classification history. Use the full module package universe for the ordinary test_dep lane with only the exact anchored union from /home/agent/wt/evidence/fn223/ordinary-skip-selector.txt excluded there. This union is the following nine source roots plus the 39 live roots named in fn-232.13, not 48 transferred gates. Run these nine positively with the exact source-run-selector.txt in ./internal/backends/wasm/backend, explicit authenticated pinned Go and fn-232 baseline-helper paths/identities, and all existing assertions/subtests/bounds intact:
-
-- `TestProvenanceRejectsChangedIdentityBeforeExecution`
-- `TestProviderRejectsEmptyModelIdentity`
-- `TestTestSourceChangesInvalidateCompilationCache`
-- `TestBuildSelectionChangesInvalidateCompilationCache`
-- `TestSlimGuestClosureCutsOnlyOptionalProviderSeams`
-- `TestAssemblyHeaderChangesInvalidateCompilationCache`
-- `TestStockPreparationDisablesAmbientPGO`
-- `TestStockPreparationClearsAmbientCompilerSettings`
-- `TestInterruptedCachePublicationIsRebuilt`
-
-These are required provenance/admission/cache/build-selection/slim-go-list/preparation checks, not guest-execution exemptions. Keep positive selected/matched package-qualified inventories, all subtest results and numeric exits. Prove the two lists are disjoint and the union exactly 48 with no accidental same-name package matches or unclassified omissions; all other source roots stay in the ordinary full-package lane. Only the 39 actual live-guest roots transfer to fn-232 R12/.13 with complete behavior/fixture mapping. The two temporary-probe inventory races require clean frozen reruns; the real tidy/server-fixture regression requires its repair. No unselected full-module or qualification pass is claimed.
-## Exact source-test lane
-
-Retain the original failed unselected tests.command/tests.log and classification history. Use the full module package universe for the ordinary test_dep lane with only the exact anchored union from /home/agent/wt/evidence/fn223/ordinary-skip-selector.txt excluded there. This union is the following nine source roots plus the 39 live roots named in fn-232.13, not 48 transferred gates. Run these nine positively with the exact source-run-selector.txt in ./internal/backends/wasm/backend, explicit authenticated pinned Go and fn-232 baseline-helper paths/identities, and all existing assertions/subtests/bounds intact:
+Use the independent receiving bundle at /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/producer-evidence for the original failed unselected tests.command/tests.log, fullmodule-failure-classification.tsv, source-gate-names.txt, live-gate-names.txt, full-source-test-inventory.txt and retained check/selection receipts. Preserve their historical failed/invalidated/rerun dispositions; no future acceptance may depend on a retired fn223 donor directory. Use the full module package universe for the ordinary test_dep lane with only the exact anchored union from /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/producer-evidence/ordinary-skip-selector.txt excluded there. This union is the following nine source roots plus the 39 live roots named in fn-232.13, not 48 transferred gates. Run these nine positively with the exact /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/producer-evidence/source-run-selector.txt in ./internal/backends/wasm/backend, explicit authenticated pinned Go and fn-232 baseline-helper paths/identities, and all existing assertions/subtests/bounds intact:
 
 - `TestProvenanceRejectsChangedIdentityBeforeExecution`
 - `TestProviderRejectsEmptyModelIdentity`
@@ -49,9 +34,12 @@ These are required provenance/admission/cache/build-selection/slim-go-list/prepa
 - [ ] Existing WASM CLI fixtures pass byte-for-byte; a native installation header is refused with the existing unregistered-backend status
 
 ## Done summary
-TBD
+R1: Removed native module/seams/tagged fixtures, preserved root server requirement after retained tidy, redirected five byte-identical WASM fixtures and retired only native lint-router metadata. Original unselected test exit1 remains history. Exact partition proves 1,877 roots = 1,829 ordinary + nine required pinned-input source checks +39 pending live roots. All retained source/build/vet/CLI/router gates exit0. Existing CLI bytes/statuses preserved; native refuses status2. Independent batch review SHIP after routing fix at07ebfdb4ee; receipt .flow/tmp/impl-review-receipt-fn223-fn228-combined.json. Final runtime/workload/test-wasm/replay remains pending fn232R12/.13, not a full-module or qualification pass.
 
+Evidence index: /home/agent/wt/evidence/fn232/fn223-deletion-inputs-2026-10-20/README.md; original producer handovers and narrow review-fix appends remain authenticated independently. Source acceptance only; spec closure requires separate completion review.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: cafabfb200, 46ce5a58bb, 91abbc3051
+- Tests: go build ./...; go vet ./... (pinned Go, frozen source receipts), full-package test_dep ordinary anchored exclusion + positive nine-source lane; selected/matched partition verification, root pinned Go test -tags test_dep -run '^TestCIBackendGatesRoutePaths$' ./internal/archcheck
 - PRs:
