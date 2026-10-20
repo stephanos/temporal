@@ -415,7 +415,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	}
 	padding := ""
 	if axis == "layout" {
-		padding = strings.Repeat("x", (repetition+1)*4096)
+		padding = strings.Repeat("x", 1+(repetition%16)*4096)
 		request.CompileCache = filepath.Join(filepath.Dir(original.CompileCache), strings.Repeat("p", 1+(repetition%4)*40), "compile-cache")
 	}
 	request.SetStressHostConditions(padding, axis == "handoff")
