@@ -4,6 +4,7 @@ use syn::{
     Expr, Ident, Pat, Path, Token, braced, bracketed,
     ext::IdentExt,
     parenthesized,
+    parse::discouraged::Speculative,
     parse::{Parse, ParseStream, Parser},
     punctuated::Punctuated,
 };
@@ -26,7 +27,7 @@ enum Node {
     Wildcard(Path),
     Outcome(Box<Self>, Vec<Pat>),
     Either(Vec<Self>),
-    Repeat(Box<Self>, Expr, Box<Expr>),
+    Repeat(Box<Self>, Expr, Option<Box<Expr>>),
     Unordered(Vec<Self>),
     Gap(Option<Expr>, Vec<Expr>),
 }
@@ -91,11 +92,11 @@ fn parse_node(input: ParseStream<'_>) -> syn::Result<Node> {
                     return Err(inner
                         .error("a bounded repetition uses an inclusive range: [pattern; a..=b]"));
                 }
-                (*min, *max)
+                (*min, Some(max))
             } else {
-                (count.clone(), count)
+                (count, None)
             };
-            Node::Repeat(Box::new(body), min, Box::new(max))
+            Node::Repeat(Box::new(body), min, max)
         } else if input.peek(syn::token::Paren) {
             let inner;
             parenthesized!(inner in input);
@@ -169,6 +170,19 @@ fn parse_value(input: ParseStream<'_>) -> syn::Result<Node> {
             }
         }
         if fork.peek(syn::token::Brace) && path.segments.len() >= 2 {
+            let ordinary = input.fork();
+            if let Ok(Expr::Struct(value)) = ordinary.parse::<Expr>()
+                && (value.dot2_token.is_none() || value.rest.is_some())
+                && !value.fields.iter().any(|field| match &field.expr {
+                    Expr::Infer(_) | Expr::Range(_) => true,
+                    Expr::Paren(value) => matches!(value.expr.as_ref(), Expr::Binary(binary)
+                        if matches!(binary.op, syn::BinOp::BitOr(_))),
+                    _ => false,
+                })
+            {
+                input.advance_to(&ordinary);
+                return Ok(Node::Value(Expr::Struct(value)));
+            }
             let path: Path = input.call(Path::parse_mod_style)?;
             let inner;
             braced!(inner in input);
@@ -272,18 +286,24 @@ fn domain(path: &Path, fields: &[(Ident, Domain)]) -> syn::Result<TokenStream> {
     let mut result = quote!(#actor::#constructor());
     for (field, domain) in fields {
         let input = match domain {
-            Domain::Any => continue,
-            Domain::Exact(value) => quote!(::umpire_dsl::InputDomain::values(vec![#value])),
-            Domain::Range(value) => quote!(::umpire_dsl::InputDomain::range(#value)),
-            Domain::Set(values) => quote!(::umpire_dsl::InputDomain::values(vec![#(#values),*])),
+            Domain::Any => quote!(None),
+            Domain::Exact(value) => quote!(Some(::umpire_dsl::InputDomain::values(vec![#value]))),
+            Domain::Range(value) => quote!(Some(::umpire_dsl::InputDomain::range(#value))),
+            Domain::Set(values) => {
+                quote!(Some(::umpire_dsl::InputDomain::values(vec![#(#values),*])))
+            }
         };
-        result = quote!(#result.#field(#input));
+        let setter = format_ident!("__umpire_input_{}", field.unraw());
+        result = quote!(#result.#setter(#input));
     }
     Ok(quote!(#result.finish().map(::core::convert::Into::into)))
 }
 
 fn pattern(node: &Node) -> syn::Result<TokenStream> {
     Ok(match node {
+        Node::Value(Expr::Closure(closure)) => {
+            quote!(__pattern.judged(#closure))
+        }
         Node::Value(value) => {
             quote!({ use ::umpire_dsl::path_build::PatternValue as _; let __value = ::umpire_dsl::path_build::Probe::new(#value); (&__value).node() })
         }
@@ -304,7 +324,10 @@ fn pattern(node: &Node) -> syn::Result<TokenStream> {
         }
         Node::Repeat(node, min, max) => {
             let node = pattern(node)?;
-            quote!(::umpire_dsl::Pattern::Repeat(Box::new(#node), #min, #max))
+            max.as_ref().map_or_else(
+                || quote!((#node).repeat_exact(#min)),
+                |max| quote!(::umpire_dsl::Pattern::Repeat(Box::new(#node), #min, #max)),
+            )
         }
         Node::Gap(bound, excluded) => {
             let gap = bound.as_ref().map_or(
@@ -324,8 +347,14 @@ fn pattern(node: &Node) -> syn::Result<TokenStream> {
             } else {
                 pattern(node)?
             };
-            let alternatives = outcomes.iter().map(|outcome| quote!((#base).with_outcome(::std::rc::Rc::new(|__outcome| matches!(__outcome, #outcome)), stringify!(#outcome).into())));
-            quote!(::umpire_dsl::Pattern::Either(vec![#(#alternatives),*]))
+            let alternatives = outcomes.iter().map(|outcome| {
+                quote!((
+                    ::std::rc::Rc::new(|__outcome: &_| matches!(__outcome, #outcome))
+                        as ::umpire_dsl::OutcomePredicate<_>,
+                    stringify!(#outcome).into()
+                ))
+            });
+            quote!((#base).with_outcomes(vec![#(#alternatives),*]))
         }
     })
 }
@@ -375,7 +404,7 @@ pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
         Node::Value(_) => quote!(__path),
         node => {
             let pattern = pattern(node)?;
-            quote!(::umpire_dsl::path_build::WorldBuilder::new(#pattern))
+            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern)))
         }
     };
     let mut built = if matches!(&nodes[0], Node::Value(_)) { quote!(__path) } else { first };
@@ -390,11 +419,11 @@ pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
             }
             Node::Value(Expr::Closure(closure)) => quote!((#built).then_judged(#closure)),
             Node::Value(value) => {
-                quote!({ let __value = ::umpire_dsl::path_build::Probe::new(#value); (&__value).append(#built) })
+                quote!({ let __built = #built; let __value = ::umpire_dsl::path_build::Probe::new(#value); (&__value).append(__built) })
             }
             node => {
                 let pattern = pattern(node)?;
-                quote!((#built).structure(#pattern))
+                quote!((#built).structure_with(|__pattern| #pattern))
             }
         };
         built = next;

@@ -15,11 +15,11 @@ enum User {
 pub(crate) fn run() -> umpire_testing::RunResult {
     let overflow = User::__umpire_path_actions().count();
     assert_eq!(overflow, Err(PatternError::ExpansionOverflow));
-    let empty = User::__umpire_path_Set().second(InputDomain::values(vec![])).finish();
+    let empty = User::__umpire_path_Set().__umpire_input_second(Some(InputDomain::values(vec![]))).finish();
     assert_eq!(empty.count(), Ok(0));
     let finite = User::__umpire_path_Set()
-        .first(InputDomain::range(2..=3))
-        .second(InputDomain::values(vec![7, 9]))
+        .__umpire_input_first(Some(InputDomain::range(2..=3)))
+        .__umpire_input_second(Some(InputDomain::values(vec![7, 9])))
         .finish();
     assert_eq!(finite.count(), Ok(4));
     assert_eq!(finite.get(0), User::Set { first: 2, second: 7 });

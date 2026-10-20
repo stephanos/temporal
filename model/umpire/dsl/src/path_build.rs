@@ -63,6 +63,16 @@ impl<S> StateBuilder<S> {
         builder.parts.push(pattern);
         builder
     }
+    pub fn structure_with(
+        self,
+        make: impl FnOnce(PatternContext<S>) -> WorldPattern<S>,
+    ) -> WorldBuilder<S>
+    where
+        S: Registered,
+        <S::World as Machine>::Action: 'static,
+    {
+        self.structure(make(PatternContext(std::marker::PhantomData)))
+    }
     fn world(self) -> WorldBuilder<S>
     where
         S: Registered,
@@ -108,6 +118,9 @@ where
         self.parts.push(pattern);
         self
     }
+    pub fn structure_with(self, make: impl FnOnce(PatternContext<S>) -> WorldPattern<S>) -> Self {
+        self.structure(make(PatternContext(std::marker::PhantomData)))
+    }
     pub fn then_judged(self, predicate: impl Fn(&S) -> bool + 'static) -> Self {
         self.structure(Pattern::state(Waypoint::judged(predicate)))
     }
@@ -143,6 +156,20 @@ pub type WorldPattern<S> = Pattern<
     <<S as Registered>::World as Machine>::Action,
     <<S as Registered>::World as Machine>::Outcome,
 >;
+pub struct PatternContext<S>(std::marker::PhantomData<S>);
+impl<S: Registered> PatternContext<S>
+where
+    <S::World as Machine>::Action: 'static,
+{
+    pub fn judged(&self, predicate: impl Fn(&S) -> bool + 'static) -> WorldPattern<S> {
+        Pattern::state(Waypoint::judged(predicate))
+    }
+}
+pub fn pattern_with<S: Registered>(
+    make: impl FnOnce(PatternContext<S>) -> WorldPattern<S>,
+) -> WorldPattern<S> {
+    make(PatternContext(std::marker::PhantomData))
+}
 impl<T: Actor + 'static> ActorFactory<T> {
     pub fn build<S: Registered>(
         self,

@@ -1,8 +1,11 @@
 error[E0277]: the trait bound `Model: Actor` is not satisfied
-  --> tests/ui/path_language_outcome_state.rs:15:48
+  --> tests/ui/path_language_outcome_state.rs:15:54
    |
 15 |     let _: Path<world::Model, world::Action> = path![world::Model { done: false } => (), true];
-   |                                                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^ unsatisfied trait bound
+   |                                                ------^^^^^^^^^^^^^^^^^^^^^^^^^^^^-------------
+   |                                                |     |
+   |                                                |     unsatisfied trait bound
+   |                                                required by a bound introduced by this call
    |
 help: the trait `Actor` is not implemented for `Model`
   --> tests/ui/path_language_outcome_state.rs:6:5
@@ -19,7 +22,7 @@ note: required by a bound in `umpire_dsl::path_build::outcome_action`
    |
    | pub fn outcome_action<S: Registered, T: Actor + 'static>(value: T) -> WorldPattern<S>
    |                                         ^^^^^ required by this bound in `outcome_action`
-   = note: this error originates in the macro `$crate::__path_parse` which comes from the expansion of the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
+   = note: this error originates in the derive macro `Action` (in Nightly builds, run with -Z macro-backtrace for more info)
 
 error[E0277]: the trait bound `world::Action: From<Model>` is not satisfied
   --> tests/ui/path_language_outcome_state.rs:15:48

@@ -37,7 +37,7 @@ pub(crate) fn run() -> umpire_testing::RunResult {
     let unique: HashSet<_> = actions.iter().chain(actions.iter()).cloned().collect();
     writeln!(output, "unique cloned actions: {}", unique.len())?;
     let outside =
-        User::__umpire_path_Set().value(umpire_dsl::InputDomain::values(vec![7])).finish();
+        User::__umpire_path_Set().__umpire_input_value(Some(umpire_dsl::InputDomain::values(vec![7]))).finish();
     assert_eq!(outside.count(), Ok(2));
     assert_eq!(outside.get(0), User::Set { value: 7, enabled: false });
     assert_eq!(User::__umpire_path_actions().count(), Ok(7));

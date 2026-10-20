@@ -312,6 +312,29 @@ impl<S, A: 'static, O> Pattern<S, A, O> {
         }
     }
 
+    /// Shares this action domain among borrowed outcome alternatives.
+    ///
+    /// # Panics
+    /// Panics when attached to a non-action pattern.
+    pub fn with_outcomes(self, outcomes: Vec<(OutcomePredicate<O>, String)>) -> Self {
+        match self {
+            Self::Action(domain, _, _) => Self::Either(
+                outcomes
+                    .into_iter()
+                    .map(|(outcome, label)| {
+                        Self::Action(domain.clone(), Some(outcome), Some(label))
+                    })
+                    .collect(),
+            ),
+            _ => panic!("an outcome follows one action"),
+        }
+    }
+
+    /// Repeats this pattern an exact number of times with fresh choices.
+    pub fn repeat_exact(self, count: usize) -> Self {
+        Self::Repeat(Box::new(self), count, count)
+    }
+
     fn size(&self, limit: usize) -> Result<(usize, usize), PatternError> {
         let add = |a: usize, b: usize| a.checked_add(b).ok_or(PatternError::ExpansionOverflow);
         let mul = |a: usize, b: usize| a.checked_mul(b).ok_or(PatternError::ExpansionOverflow);

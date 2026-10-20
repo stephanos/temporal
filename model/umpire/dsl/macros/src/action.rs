@@ -254,6 +254,10 @@ fn lazy_domain(
         .map(|(index, field)| field.ident.clone().unwrap_or_else(|| format_ident!("field_{index}")))
         .collect();
     let types: Vec<_> = fields.iter().map(|field| &field.ty).collect();
+    let setters: Vec<_> = names
+        .iter()
+        .map(|name| format_ident!("__umpire_input_{}", name.to_string().trim_start_matches("r#")))
+        .collect();
     let domains: Vec<_> = fields
         .iter()
         .enumerate()
@@ -292,15 +296,17 @@ fn lazy_domain(
     let value = construct_for(variant, &values, &quote!(#actor));
     let builder_code = quote! {
         #[doc(hidden)]
-        #visibility struct #builder #generics #constraints {
+        #visibility struct #builder #clone #constraints {
             #(#names: ::umpire_dsl::InputDomain<#types>,)*
             __umpire_actor: ::core::marker::PhantomData<#actor #generics>,
         }
         impl #impls #builder #generics #constraints {
             #(
                 #[doc(hidden)]
-                pub fn #names(mut self, domain: ::umpire_dsl::InputDomain<#types>) -> Self {
-                    self.#names = domain;
+                pub fn #setters(mut self, domain: ::core::option::Option<::umpire_dsl::InputDomain<#types>>) -> Self {
+                    if let ::core::option::Option::Some(domain) = domain {
+                        self.#names = domain;
+                    }
                     self
                 }
             )*
