@@ -154,6 +154,8 @@ struct Session {
 }
 
 struct Inner {
+    #[cfg(feature = "determinism-fixture")]
+    fixture_fault: crate::determinism_fixture::Fault,
     commands: VecDeque<(Command, mpsc::SyncSender<Result<(), Failure>>)>,
     metrics: Metrics,
     observed_at: Instant,
@@ -249,6 +251,8 @@ impl Broker {
         }
         Ok(Self {
             inner: Mutex::new(Inner {
+                #[cfg(feature = "determinism-fixture")]
+                fixture_fault: crate::determinism_fixture::Fault::from_environment(),
                 commands: VecDeque::new(),
                 metrics: Metrics::default(),
                 observed_at: Instant::now(),
@@ -761,11 +765,22 @@ impl Broker {
         {
             return;
         }
-        if let Some(next) = inner
+        let next = inner
             .sessions
             .iter()
-            .position(|session| session.state == State::Runnable)
-        {
+            .position(|session| session.state == State::Runnable);
+        #[cfg(feature = "determinism-fixture")]
+        let next = inner
+            .fixture_fault
+            .handoff(
+                inner.metrics.handoffs,
+                inner
+                    .sessions
+                    .iter()
+                    .map(|session| session.state == State::Runnable),
+            )
+            .or(next);
+        if let Some(next) = next {
             inner.sessions[next].state = State::Active;
             inner.active = Some(next);
             if inner.metrics.handoffs != 0 {

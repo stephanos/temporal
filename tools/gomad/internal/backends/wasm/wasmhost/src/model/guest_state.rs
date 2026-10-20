@@ -165,6 +165,8 @@ impl Model {
         let mut inspection = inspection::Transport::default();
         inspection.request.clone_from(&config.inspection);
         Self {
+            #[cfg(feature = "determinism-fixture")]
+            fixture_fault: crate::determinism_fixture::Fault::from_environment(),
             now: config.now,
             config,
             advances: 0,

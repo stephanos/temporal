@@ -8,6 +8,46 @@
  },
  "entries": [
   {
+   "id": "fixture.runtime-seeded-draw",
+   "layer": "guest-runtime",
+   "class": "entropy",
+   "site": "fixture:runtime-seeded-draw",
+   "disposition": "rejected",
+   "owner": "determinism-fixture helper and copied runtime in backend integration fixture",
+   "rule": "Only the feature helper can signal the private fixture runtime to consume one additional actual seeded draw; release helpers omit the signal and the runtime hook exists only in the fixture overlay.",
+   "evidence": ["rust:src/determinism_fixture.rs:fixture_draw_signal_preserves_declared_seed_bits", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+  },
+  {
+   "id": "fixture.clock-shift",
+   "layer": "helper",
+   "class": "clock",
+   "site": "fixture:clock-shift",
+   "disposition": "rejected",
+   "owner": "determinism-fixture Fault and model::clock_read",
+   "rule": "The feature helper can advance one clock read by one nanosecond after a retained execution prefix; the fault is compiled out of release helpers.",
+   "evidence": ["rust:src/determinism_fixture.rs:fixture_clock_shift_occurs_once_after_a_retained_prefix", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+  },
+  {
+   "id": "fixture.cluster-handoff",
+   "layer": "helper",
+   "class": "thread-order",
+   "site": "fixture:cluster-handoff",
+   "disposition": "rejected",
+   "owner": "determinism-fixture Fault and broker::schedule",
+   "rule": "The feature helper can choose the second runnable member once after two completed handoffs; release helpers retain their normal scheduler.",
+   "evidence": ["rust:src/determinism_fixture.rs:fixture_handoff_reorders_two_runnable_members_once", "go:internal/backends/wasm/backend:TestDeterminismExecutedDivergenceArtifacts"]
+  },
+  {
+   "id": "fixture.engine-admission",
+   "layer": "engine-config",
+   "class": "settings",
+   "site": "protocol:determinism-fixture-engine-admission",
+   "disposition": "rejected",
+   "owner": "wasi SetDeterminismFixtureConditions",
+   "rule": "The distinct fault helper configuration requires explicit private fixture admission and is refused for ordinary qualification; host fault selection never changes declared guest inputs.",
+   "evidence": ["go:internal/backends/wasm/wasi:TestDeterminismFixtureConditionsStayOutsideDeclaredInputs"]
+  },
+  {
    "id": "boundary.execute.fields-and-kinds",
    "layer": "helper",
    "class": "settings",

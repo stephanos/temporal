@@ -77,6 +77,11 @@ impl Model {
         Ok(bytes)
     }
     pub fn clock_read(&mut self, id: u64, clock_id: u32, precision: u64) -> Result<Option<u64>> {
+        #[cfg(feature = "determinism-fixture")]
+        {
+            let boundaries = self.inspection.lock().evidence.boundaries.len() as u64;
+            self.now += self.fixture_fault.clock_shift(boundaries);
+        }
         let folds = clock_id <= 1
             && self.transcript_encoder.folds(
                 id,
@@ -266,6 +271,12 @@ impl Model {
             set32(&mut data, 0, 1);
             set32(&mut data, 4, u32::from(self.config.diagnostics));
             set64(&mut data, 8, self.config.seed);
+            #[cfg(feature = "determinism-fixture")]
+            set64(
+                &mut data,
+                8,
+                self.fixture_fault.bootstrap_seed(self.config.seed),
+            );
             self.configured = true;
             return Ok(data);
         }
