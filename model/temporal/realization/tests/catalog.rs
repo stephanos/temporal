@@ -3,13 +3,16 @@
 use prost::Message;
 use umpire_temporal::activity_api::{AnnotationResult, annotate as annotate_wire};
 use umpire_temporal_api::temporal::api::{
-    activity::v1::ActivityExecutionInfo,
+    activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
     common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
-    failure::v1::{ApplicationFailureInfo, Failure, ServerFailureInfo, failure},
+    failure::v1::{
+        ActivityFailureInfo, ApplicationFailureInfo, ChildWorkflowExecutionFailureInfo, Failure,
+        NexusHandlerFailureInfo, ServerFailureInfo, failure,
+    },
     taskqueue::v1::TaskQueue,
     workflowservice::v1::{
         DescribeActivityExecutionRequest, DescribeActivityExecutionResponse,
-        PollActivityExecutionRequest, PollActivityTaskQueueResponse,
+        PollActivityExecutionRequest, PollActivityExecutionResponse, PollActivityTaskQueueResponse,
         RespondActivityTaskCompletedRequest, RespondActivityTaskFailedRequest,
         StartActivityExecutionRequest,
     },
@@ -140,6 +143,61 @@ fn response_findings_never_repair_bytes_and_empty_worker_polls_are_valid()
     let result = annotate("PollActivityTaskQueue", true, &malformed_duration, 1)?;
     assert!(result.violations.iter().any(|violation| violation.contains("duration.valid")));
     assert!(result.bytes.eq(&malformed_duration));
+    Ok(())
+}
+
+#[test]
+fn nested_failure_discriminants_are_validated_without_response_repair()
+-> Result<(), Box<dyn std::error::Error>> {
+    for (info, field) in [
+        (
+            failure::FailureInfo::ActivityFailureInfo(ActivityFailureInfo {
+                retry_state: 999,
+                ..Default::default()
+            }),
+            "ActivityFailureInfo.retry_state",
+        ),
+        (
+            failure::FailureInfo::ChildWorkflowExecutionFailureInfo(
+                ChildWorkflowExecutionFailureInfo { retry_state: 999, ..Default::default() },
+            ),
+            "ChildWorkflowExecutionFailureInfo.retry_state",
+        ),
+        (
+            failure::FailureInfo::NexusHandlerFailureInfo(NexusHandlerFailureInfo {
+                retry_behavior: 999,
+                ..Default::default()
+            }),
+            "NexusHandlerFailureInfo.retry_behavior",
+        ),
+    ] {
+        let response = PollActivityExecutionResponse {
+            outcome: Some(ActivityExecutionOutcome {
+                value: Some(activity_execution_outcome::Value::Failure(Failure {
+                    stack_trace: "private-stack".into(),
+                    cause: Some(Box::new(Failure {
+                        failure_info: Some(info),
+                        ..Default::default()
+                    })),
+                    ..Default::default()
+                })),
+                ..Default::default()
+            }),
+            ..Default::default()
+        }
+        .encode_to_vec();
+        let result = annotate("PollActivityExecution", true, &response, 1)?;
+        assert!(
+            result
+                .violations
+                .iter()
+                .any(|violation| violation.contains(field)
+                    && violation.contains("enum.defined_only")),
+            "{field}"
+        );
+        assert!(result.bytes.eq(&response));
+        assert!(!format!("{:?}", result.violations).contains("private-stack"));
+    }
     Ok(())
 }
 

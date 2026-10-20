@@ -13,7 +13,9 @@ import (
 	"time"
 
 	"github.com/stretchr/testify/require"
+	activitypb "go.temporal.io/api/activity/v1"
 	commonpb "go.temporal.io/api/common/v1"
+	failurepb "go.temporal.io/api/failure/v1"
 	taskqueuepb "go.temporal.io/api/taskqueue/v1"
 	"go.temporal.io/api/workflowservice/v1"
 	"google.golang.org/grpc"
@@ -169,6 +171,30 @@ func modelSliceAnnotationControls(t *testing.T, wasm []byte) {
 		require.True(t, proto.Equal(before, response))
 		require.Len(t, annotations.failures, 1)
 		require.Contains(t, annotations.failures[0], "response=true")
+	})
+	t.Run("NestedFailureNotRepaired", func(t *testing.T) {
+		annotations := newAnnotations(t)
+		response := &workflowservice.PollActivityExecutionResponse{
+			Outcome: &activitypb.ActivityExecutionOutcome{Value: &activitypb.ActivityExecutionOutcome_Failure{
+				Failure: &failurepb.Failure{StackTrace: "private-stack", Cause: &failurepb.Failure{
+					FailureInfo: &failurepb.Failure_ActivityFailureInfo{ActivityFailureInfo: &failurepb.ActivityFailureInfo{RetryState: 999}},
+				}},
+			}},
+		}
+		before := proto.Clone(response)
+		called := false
+		err := annotations.intercept(t.Context(), workflowservice.WorkflowService_PollActivityExecution_FullMethodName,
+			&workflowservice.PollActivityExecutionRequest{Namespace: "model-slice", ActivityId: "activity"}, response, nil,
+			func(context.Context, string, any, any, *grpc.ClientConn, ...grpc.CallOption) error {
+				called = true
+				return nil
+			})
+		require.Error(t, err)
+		require.True(t, called)
+		require.True(t, proto.Equal(before, response))
+		require.Len(t, annotations.failures, 1)
+		require.Contains(t, annotations.failures[0], "ActivityFailureInfo.retry_state")
+		require.NotContains(t, annotations.failures[0], "private-stack")
 	})
 	t.Run("UnknownTrafficRefusesEveryAttempt", func(t *testing.T) {
 		annotations := newAnnotations(t)

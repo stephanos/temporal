@@ -10,11 +10,11 @@ use umpire_annotations::{Catalog, Expectation};
 mod requests;
 use umpire_temporal_api::temporal::api::{
     activity::v1::{ActivityExecutionInfo, ActivityExecutionOutcome, activity_execution_outcome},
-    common::v1::{ActivityType, Payload, Payloads, RetryPolicy},
+    common::v1::{ActivityType, Payload, Payloads, RetryPolicy, WorkflowExecution, WorkflowType},
     enums::v1::{
         ActivityExecutionStatus, ActivityIdConflictPolicy, ActivityIdReusePolicy,
-        ActivityTaskFailedCause, ApplicationErrorCategory, PendingActivityState, RetryState,
-        TaskQueueKind, TimeoutType,
+        ActivityTaskFailedCause, ApplicationErrorCategory, NexusHandlerErrorRetryBehavior,
+        PendingActivityState, RetryState, TaskQueueKind, TimeoutType,
     },
     failure::v1::{
         ActivityFailureInfo, ApplicationFailureInfo, CanceledFailureInfo,
@@ -114,6 +114,18 @@ umpire_temporal_annotate::annotate! {
         TimeoutType::ScheduleToClose = "TIMEOUT_TYPE_SCHEDULE_TO_CLOSE",
         TimeoutType::Heartbeat = "TIMEOUT_TYPE_HEARTBEAT",
     }
+    enum nexus_handler_error_retry_behavior: NexusHandlerErrorRetryBehavior = "temporal.api.enums.v1.NexusHandlerErrorRetryBehavior" {
+        NexusHandlerErrorRetryBehavior::Unspecified = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_UNSPECIFIED",
+        NexusHandlerErrorRetryBehavior::Retryable = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_RETRYABLE",
+        NexusHandlerErrorRetryBehavior::NonRetryable = "NEXUS_HANDLER_ERROR_RETRY_BEHAVIOR_NON_RETRYABLE",
+    }
+    message response workflow_execution: WorkflowExecution = "temporal.api.common.v1.WorkflowExecution" {
+        workflow_id: Text + Observed;
+        run_id: Text + Observed;
+    }
+    message response workflow_type: WorkflowType = "temporal.api.common.v1.WorkflowType" {
+        name: Text + Observed;
+    }
     message response activity_execution_outcome: ActivityExecutionOutcome = "temporal.api.activity.v1.ActivityExecutionOutcome" {
         retry_state: Enum(retry_state) + Observed;
         value: Bytes + Decided via Vec<u8> (|m: &ActivityExecutionOutcome| match &m.value { Some(activity_execution_outcome::Value::Result(v)) => v.encode_to_vec(), Some(activity_execution_outcome::Value::Failure(v)) => v.encode_to_vec(), None => Vec::new() }, |_: &mut ActivityExecutionOutcome, _: Vec<u8>| {}) variants { activity_execution_outcome::Value::Result = "result", activity_execution_outcome::Value::Failure = "failure", };
@@ -187,7 +199,7 @@ umpire_temporal_annotate::annotate! {
     message response failure: Failure = "temporal.api.failure.v1.Failure" {
         message: Text + Decided;
         source: Bytes + Ignored("This activity Model does not project Failure.source; no semantic validation is claimed") opaque;
-        stack_trace: Bytes + Ignored("This activity Model does not project Failure.stack_trace; no semantic validation is claimed") opaque;
+        stack_trace: Secret + Decided;
         encoded_attributes: Bytes + Decided via Vec<u8> (|m: &Failure| m.encoded_attributes.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut Failure, _: Vec<u8>| {});
         cause: Bytes + Decided via Vec<u8> (|m: &Failure| m.cause.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut Failure, _: Vec<u8>| {});
         failure_info: Bytes + Decided via Vec<u8> (|m: &Failure| match &m.failure_info { Some(failure::FailureInfo::ApplicationFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::TimeoutFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::CanceledFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::TerminatedFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ServerFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ResetWorkflowFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ActivityFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::ChildWorkflowExecutionFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::NexusOperationExecutionFailureInfo(v)) => v.encode_to_vec(), Some(failure::FailureInfo::NexusHandlerFailureInfo(v)) => v.encode_to_vec(), None => Vec::new() }, |_: &mut Failure, _: Vec<u8>| {}) variants {
@@ -375,35 +387,35 @@ umpire_temporal_annotate::annotate! {
         non_retryable: Counter + Decided via i32 (|m: &ServerFailureInfo| i32::from(m.non_retryable), |_: &mut ServerFailureInfo, _: i32| {});
     }
     message response reset_workflow_failure_info: ResetWorkflowFailureInfo = "temporal.api.failure.v1.ResetWorkflowFailureInfo" {
-        last_heartbeat_details: Bytes + Ignored("This activity Model does not project ResetWorkflowFailureInfo.last_heartbeat_details; no semantic validation is claimed") opaque;
+        last_heartbeat_details: Bytes + Observed via Vec<u8> (|m: &ResetWorkflowFailureInfo| m.last_heartbeat_details.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ResetWorkflowFailureInfo, _: Vec<u8>| {});
     }
     message response activity_failure_info: ActivityFailureInfo = "temporal.api.failure.v1.ActivityFailureInfo" {
-        scheduled_event_id: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.scheduled_event_id; no semantic validation is claimed") opaque;
-        started_event_id: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.started_event_id; no semantic validation is claimed") opaque;
-        identity: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.identity; no semantic validation is claimed") opaque;
-        activity_type: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.activity_type; no semantic validation is claimed") opaque;
-        activity_id: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.activity_id; no semantic validation is claimed") opaque;
-        retry_state: Bytes + Ignored("This activity Model does not project ActivityFailureInfo.retry_state; no semantic validation is claimed") opaque;
+        scheduled_event_id: Counter + Observed;
+        started_event_id: Counter + Observed;
+        identity: Text + Observed;
+        activity_type: Bytes + Observed via Vec<u8> (|m: &ActivityFailureInfo| m.activity_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ActivityFailureInfo, _: Vec<u8>| {});
+        activity_id: Text + Observed;
+        retry_state: Enum(retry_state) + Observed;
     }
     message response child_workflow_execution_failure_info: ChildWorkflowExecutionFailureInfo = "temporal.api.failure.v1.ChildWorkflowExecutionFailureInfo" {
-        namespace: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.namespace; no semantic validation is claimed") opaque;
-        workflow_execution: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.workflow_execution; no semantic validation is claimed") opaque;
-        workflow_type: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.workflow_type; no semantic validation is claimed") opaque;
-        initiated_event_id: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.initiated_event_id; no semantic validation is claimed") opaque;
-        started_event_id: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.started_event_id; no semantic validation is claimed") opaque;
-        retry_state: Bytes + Ignored("This activity Model does not project ChildWorkflowExecutionFailureInfo.retry_state; no semantic validation is claimed") opaque;
+        namespace: Text + Observed;
+        workflow_execution: Bytes + Observed via Vec<u8> (|m: &ChildWorkflowExecutionFailureInfo| m.workflow_execution.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ChildWorkflowExecutionFailureInfo, _: Vec<u8>| {});
+        workflow_type: Bytes + Observed via Vec<u8> (|m: &ChildWorkflowExecutionFailureInfo| m.workflow_type.as_ref().map(Message::encode_to_vec).unwrap_or_default(), |_: &mut ChildWorkflowExecutionFailureInfo, _: Vec<u8>| {});
+        initiated_event_id: Counter + Observed;
+        started_event_id: Counter + Observed;
+        retry_state: Enum(retry_state) + Observed;
     }
     message response nexus_operation_failure_info: NexusOperationFailureInfo = "temporal.api.failure.v1.NexusOperationFailureInfo" {
-        scheduled_event_id: Bytes + Ignored("This activity Model does not project NexusOperationFailureInfo.scheduled_event_id; no semantic validation is claimed") opaque;
-        endpoint: Bytes + Ignored("This activity Model does not project NexusOperationFailureInfo.endpoint; no semantic validation is claimed") opaque;
-        service: Bytes + Ignored("This activity Model does not project NexusOperationFailureInfo.service; no semantic validation is claimed") opaque;
-        operation: Bytes + Ignored("This activity Model does not project NexusOperationFailureInfo.operation; no semantic validation is claimed") opaque;
-        operation_id: Bytes + Ignored("This activity Model does not project NexusOperationFailureInfo.operation_id; no semantic validation is claimed") opaque;
-        operation_token: Secret + Ignored("Nexus operation credentials are outside the mini activity lifecycle") opaque;
+        scheduled_event_id: Counter + Observed;
+        endpoint: Text + Observed;
+        service: Text + Observed;
+        operation: Text + Observed;
+        operation_id: Secret + Decided;
+        operation_token: Secret + Decided;
     }
     message response nexus_handler_failure_info: NexusHandlerFailureInfo = "temporal.api.failure.v1.NexusHandlerFailureInfo" {
-        r#type: Bytes + Ignored("This activity Model does not project NexusHandlerFailureInfo.r#type; no semantic validation is claimed") opaque;
-        retry_behavior: Bytes + Ignored("This activity Model does not project NexusHandlerFailureInfo.retry_behavior; no semantic validation is claimed") opaque;
+        r#type: Text + Observed;
+        retry_behavior: Enum(nexus_handler_error_retry_behavior) + Observed;
     }
     message response proto_duration: ProtoDuration = "google.protobuf.Duration" {
         seconds: Counter + Observed;
