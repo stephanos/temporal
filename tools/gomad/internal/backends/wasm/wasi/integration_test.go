@@ -587,7 +587,14 @@ func TestCooperativeRuntimeProbes(t *testing.T) {
 	if err != nil || alternate.Termination != "exit" || alternate.ExitCode == nil || *alternate.ExitCode == *base.ExitCode || !alternate.Reaped {
 		t.Fatalf("alternate forced canary: %s %s %v stdout=%s stderr=%s", alternate.Termination, alternate.Message, err, alternate.Stdout, alternate.Stderr)
 	}
-	alternateTape, err := choice.ProjectReplayPlan(alternate.ChoiceTrace, request.Runtime.Choice.ExecutionIdentity)
+	alternateTrace, err := choice.DecodeStoredTrace(choice.Profile, alternate.ChoiceTrace.Bytes, choice.TerminalMetadata{
+		State: alternate.ChoiceTrace.Summary.Terminal, Limit: request.Runtime.Choice.Limit,
+		Records: alternate.ChoiceTrace.Summary.Records, SHA256: alternate.ChoiceTrace.SHA256,
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	alternateTape, err := choice.ProjectReplayPlan(alternateTrace, request.Runtime.Choice.ExecutionIdentity)
 	if err != nil {
 		t.Fatal(err)
 	}

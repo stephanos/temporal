@@ -448,12 +448,12 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 		if err != nil {
 			return err
 		}
-		line, err := helperCorpusLine(resolved)
+		line, err := helperCorpusInput(resolved)
 		if err != nil {
 			return err
 		}
 		if open {
-			if _, err := stdin.Write(append(line, '\n')); err != nil {
+			if _, err := stdin.Write(line); err != nil {
 				open = false
 			}
 		}
@@ -558,6 +558,53 @@ func runHelperCorpusCase(helper string, kase map[string]any) (*helperCorpusRun, 
 	}
 	run.stderr, run.exitCode = stderr.String(), command.ProcessState.ExitCode()
 	return run, nil
+}
+
+func TestHelperCorpusInputFrames(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name    string
+		frame   map[string]any
+		want    []byte
+		invalid bool
+	}{
+		{name: "raw LF and binary", frame: map[string]any{"raw_base64": "AAoA"}, want: []byte{0, '\n', 0}},
+		{name: "JSON line", frame: map[string]any{"type": "authorize"}, want: []byte("{\"type\":\"authorize\"}\n")},
+		{name: "invalid base64", frame: map[string]any{"raw_base64": "!"}, invalid: true},
+		{name: "nonstring", frame: map[string]any{"raw_base64": 3}, invalid: true},
+		{name: "extra field", frame: map[string]any{"raw_base64": "AAoA", "type": "authorize"}, invalid: true},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			got, err := helperCorpusInput(test.frame)
+			if test.invalid {
+				if err == nil {
+					t.Fatal("accepted malformed raw corpus input")
+				}
+				return
+			}
+			if err != nil || !bytes.Equal(got, test.want) {
+				t.Fatalf("corpus wire=%q want=%q err=%v", got, test.want, err)
+			}
+		})
+	}
+}
+
+func helperCorpusInput(frame any) ([]byte, error) {
+	if fields, ok := frame.(map[string]any); ok {
+		if raw, found := fields["raw_base64"]; found {
+			encoded, ok := raw.(string)
+			if !ok || len(fields) != 1 {
+				return nil, errors.New("raw_base64 input must be a single string field")
+			}
+			return base64.StdEncoding.DecodeString(encoded)
+		}
+	}
+	line, err := helperCorpusLine(frame)
+	if err != nil {
+		return nil, err
+	}
+	return append(line, '\n'), nil
 }
 
 // helperCorpusLine encodes a sent frame; cluster frames carry their instance
@@ -782,7 +829,7 @@ func decodeHelperCorpusFrames(raw [][]byte) error {
 			}
 		case "result":
 			keys := []string{"type", "termination", "message", "fuel_remaining", "peak_memory_bytes", "output_bytes"}
-			for _, key := range []string{"exit_code", "local_model", "divergence", "metrics"} {
+			for _, key := range []string{"exit_code", "local_model", "divergence", "metrics", "error", "check"} {
 				if _, found := frame.fields[key]; found {
 					keys = append(keys, key)
 				}

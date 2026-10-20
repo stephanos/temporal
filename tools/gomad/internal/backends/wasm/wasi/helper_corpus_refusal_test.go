@@ -34,7 +34,7 @@ func helperCorpusRefusalLiteral(name string, actual any) error {
 	case "model_inputs_refused_environment_shape_1":
 		want = "invalid local model environment"
 	case "model_inputs_refused_tape_capacity":
-		want = "tape decision capacity"
+		want = "replay preflight framing: invalid replay trace byte/frame declaration"
 	case "model_clock_first_run_51", "model_entropy_reservation_35", "model_unsupported_flags_74", "model_unsupported_open_95", "model_unsupported_readlink_91", "model_namespace_completed_before_capacity", "model_completed_clock_before_capacity", "model_remote_transcript_19":
 		want = "WASI capacity: transcript-bytes"
 	case "model_clock_callback_limit":
@@ -106,6 +106,9 @@ func helperCorpusRefusalLiteral(name string, actual any) error {
 	message, ok := result["message"].(string)
 	if !ok || result["type"] != "result" || (!prefix && message != want) || (prefix && !strings.HasPrefix(message, want)) {
 		return fmt.Errorf("%s: wrong refusal stage: want %q, got %q", name, want, message)
+	}
+	if name == "model_inputs_refused_tape_capacity" && (result["error"] != "replay_preflight" || result["check"] != "framing") {
+		return fmt.Errorf("%s: missing typed replay framing refusal", name)
 	}
 	if strings.HasPrefix(name, "admission_") {
 		termination := "invalid"
