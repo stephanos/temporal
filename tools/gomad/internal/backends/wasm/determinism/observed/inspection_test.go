@@ -6,7 +6,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"go.temporal.io/server/tools/gomad/internal/backends/wasm/determinism"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 	"go.temporal.io/server/tools/gomad/internal/model/cluster"

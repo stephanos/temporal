@@ -12,6 +12,7 @@ import (
 
 	"go.temporal.io/server/tools/gomad/internal/backends"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
+	"go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 // ReportSchema identifies a first-divergence report.
@@ -57,8 +58,10 @@ type Run struct {
 	Boundaries []ReplayBoundary
 	// BoundaryScoped means cross-stream ordering is known only at inspection
 	// boundaries, rather than at individual events within each interval.
-	BoundaryScoped bool
-	OrderLog       *EventOrder `json:"OrderLog,omitempty"`
+	BoundaryScoped     bool
+	OrderLog           *EventOrder                     `json:"OrderLog,omitempty"`
+	InspectionEvidence *cluster.WASMInspectionEvidence `json:"-"`
+	ReplayPrefix       []string                        `json:"ReplayPrefix,omitempty"`
 }
 
 type ReplayBoundary struct {
@@ -531,7 +534,11 @@ func makeReproducer(expected, actual Run, decision uint64, instance string, inca
 		Dumps:        []string{"stacks", "heap"},
 		MaximumBytes: backends.MaximumInspectionBytes, PerDumpBytes: backends.MaximumInspectionBytes,
 	}
-	command := []string{"gomad", "replay", "--stop", "choice=" + strconv.FormatUint(decision, 10)}
+	command := slices.Clone(expected.ReplayPrefix)
+	if len(command) == 0 {
+		command = []string{"gomad", "replay"}
+	}
+	command = append(command, "--stop", "choice="+strconv.FormatUint(decision, 10))
 	if len(expected.WorldOrder) != 0 || len(expected.Incarnations) > 1 {
 		stop.Instance, stop.Incarnation = instance, incarnation
 		command = append(command, "--instance", instance, "--incarnation", strconv.FormatUint(incarnation, 10))

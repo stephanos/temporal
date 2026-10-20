@@ -162,7 +162,7 @@ func TestDeterminismExecutedDivergenceArtifacts(t *testing.T) {
 			require.NotEmpty(t, event.Instance)
 			require.Equal(t, uint64(1), event.Incarnation)
 			require.NotEqual(t, event.Expected, event.Actual)
-			require.Greater(t, event.At.Shared, uint64(0))
+			require.Positive(t, event.At.Shared)
 			if test.fault == "draw" {
 				require.Contains(t, event.Field, "runq_draws")
 			}

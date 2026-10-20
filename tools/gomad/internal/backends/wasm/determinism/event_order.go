@@ -6,6 +6,8 @@ import (
 	"errors"
 	"fmt"
 	"io"
+
+	"go.temporal.io/server/tools/gomad/internal/model/cluster"
 )
 
 const EventOrderSchema = "gomad.wasm-event-order/v1"
@@ -70,12 +72,12 @@ func ParseEventOrder(stderr []byte) (EventOrder, error) {
 		if !eventLine {
 			continue
 		}
+		if ended {
+			return EventOrder{}, errors.New("event-order frame follows terminal")
+		}
 		if !newline {
 			log.Reason = "truncated event-order frame"
 			return log, nil
-		}
-		if ended {
-			return EventOrder{}, errors.New("event-order frame follows terminal")
 		}
 		var tag struct {
 			Type string `json:"type"`
@@ -126,6 +128,12 @@ func ParseEventOrder(stderr []byte) (EventOrder, error) {
 			}
 			if log.Schema == "" || frame.Order != uint64(len(log.Events)) || frame.Instance == "" || frame.Incarnation == 0 || len(log.Boundaries) >= MaximumOrderedEvents {
 				return EventOrder{}, errors.New("invalid event-order boundary marker")
+			}
+			if len(log.Boundaries) != 0 {
+				previous := log.Boundaries[len(log.Boundaries)-1]
+				if frame.InspectionOrder <= previous.InspectionOrder || frame.Order < previous.Order {
+					return EventOrder{}, errors.New("event-order boundary markers do not advance")
+				}
 			}
 			log.Boundaries = append(log.Boundaries, frame.EventBoundary)
 		case "complete":
@@ -216,27 +224,57 @@ func compareEventOrder(expected, actual Run, canonicalDifference bool) (Report, 
 	}
 	first := Divergence{Kind: ref.Kind, Instance: ref.Instance, Incarnation: ref.Incarnation, Ordinal: ref.Ordinal,
 		At: Coordinate{Shared: ref.Order, ChoiceOrdinal: ref.Trace, VirtualTime: ref.TimeNanos}, Field: "ordered-event", Expected: left, Actual: right}
-	var selected *ReplayBoundary
-	for _, marker := range expected.OrderLog.Boundaries {
-		if marker.Order >= ref.Order {
-			continue
-		}
-		for index := range expected.Boundaries {
-			boundary := &expected.Boundaries[index]
-			if boundary.At.Shared == marker.InspectionOrder && boundary.Instance == marker.Instance && boundary.Incarnation == marker.Incarnation && boundary.Trace == marker.Trace && boundary.Decision == marker.Decision && boundary.At.VirtualTime == marker.TimeNanos {
-				if selected == nil || selected.At.Shared < boundary.At.Shared {
-					selected = boundary
-				}
-				break
-			}
-		}
-	}
+	selected, unavailable := commonEventPrefix(expected, actual, ref.Order)
 	var replay *Reproducer
 	if selected == nil {
-		replay = makeReproducer(expected, actual, 0, ref.Instance, ref.Incarnation, "no authenticated inspection boundary precedes the first differing event")
+		replay = makeReproducer(expected, actual, 0, ref.Instance, ref.Incarnation, unavailable)
 	} else {
 		replay = makeReproducer(expected, actual, selected.Decision, selected.Instance, selected.Incarnation, "")
 	}
 	known := true
-	return Report{Schema: ReportSchema, Status: "diverged", Ordering: "helper-event", VirtualTimeAvailable: &known, First: &first, Reproducer: replay}, nil
+	status := "diverged"
+	if selected == nil {
+		status = "undiagnosable"
+	}
+	return Report{Schema: ReportSchema, Status: status, Reason: unavailable, Ordering: "helper-event", VirtualTimeAvailable: &known, First: &first, Reproducer: replay}, nil
+}
+
+// Authenticate the actual fn180 prefix, not merely coordinates supplied by a
+// diagnostic marker. Missing evidence cannot establish a usable replay stop.
+func commonEventPrefix(expected, actual Run, before uint64) (*ReplayBoundary, string) {
+	markers := make(map[EventBoundary]bool, len(actual.OrderLog.Boundaries))
+	for _, marker := range actual.OrderLog.Boundaries {
+		markers[marker] = true
+	}
+	boundaries := make(map[ReplayBoundary]bool, len(actual.Boundaries))
+	for _, boundary := range actual.Boundaries {
+		boundaries[boundary] = true
+	}
+	retained := make(map[uint64]ReplayBoundary, len(expected.Boundaries))
+	for _, boundary := range expected.Boundaries {
+		retained[boundary.At.Shared] = boundary
+	}
+	for i := len(expected.OrderLog.Boundaries) - 1; i >= 0; i-- {
+		marker := expected.OrderLog.Boundaries[i]
+		if marker.Order >= before {
+			continue
+		}
+		boundary, ok := retained[marker.InspectionOrder]
+		if !ok || !markers[marker] || !boundaries[boundary] || boundary.Instance != marker.Instance || boundary.Incarnation != marker.Incarnation || boundary.Trace != marker.Trace || boundary.Decision != marker.Decision || boundary.At.VirtualTime != marker.TimeNanos {
+			return nil, "preceding event-order marker does not match both inspection boundaries"
+		}
+		if expected.InspectionEvidence == nil || actual.InspectionEvidence == nil {
+			return nil, "missing retained inspection evidence to authenticate the preceding prefix"
+		}
+		for _, raw := range expected.InspectionEvidence.Boundaries {
+			if raw.Order == marker.InspectionOrder && string(raw.Handle.Node) == marker.Instance && raw.Handle.Incarnation == marker.Incarnation && raw.Trace == marker.Trace && raw.Decision == marker.Decision {
+				if err := cluster.VerifyWASMInspectionPrefix(expected.InspectionEvidence, actual.InspectionEvidence, raw); err != nil {
+					return nil, "preceding inspection prefix authentication failed: " + err.Error()
+				}
+				return &boundary, ""
+			}
+		}
+		return nil, "preceding marker has no retained inspection boundary"
+	}
+	return nil, "no authenticated inspection boundary precedes the first differing event"
 }

@@ -8,7 +8,6 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
@@ -52,6 +51,7 @@ func TestEventOrderFramingRejectsPartialAndUncommittedDiagnostics(t *testing.T) 
 		{"wrong ordinal", strings.Replace(string(data), `"order":1`, `"order":2`, 1)},
 		{"wrong count", strings.Replace(string(data), `"events":1`, `"events":2`, 1)},
 		{"frame after terminal", string(data) + EventOrderPrefix + `{"type":"header","schema":"` + EventOrderSchema + `"}` + "\n"},
+		{"truncated frame after terminal", string(data) + EventOrderPrefix + "{"},
 	} {
 		t.Run(test.name, func(t *testing.T) {
 			t.Parallel()
@@ -92,14 +92,17 @@ func TestEventOrderFindsEarlierOutputWithinOneInspectionInterval(t *testing.T) {
 	actual.Incarnations[0].Stdout = []byte("changed")
 	report, err := Compare(expected, actual)
 	require.NoError(t, err)
-	require.Equal(t, "diverged", report.Status)
+	require.Equal(t, "undiagnosable", report.Status)
 	require.Equal(t, "helper-event", report.Ordering)
 	require.Equal(t, KindOutput, report.First.Kind)
 	require.Equal(t, uint64(1), report.First.At.Shared)
 	require.Equal(t, int64(101), report.First.At.VirtualTime)
-	require.Equal(t, uint64(7), report.Reproducer.Stop.Stop.Value)
-	require.Empty(t, report.Reproducer.PrefixUnavailable)
-	require.Contains(t, report.Reproducer.ReplayCommand, "choice=7")
+	require.Contains(t, report.Reproducer.PrefixUnavailable, "missing retained inspection evidence")
+	actual.OrderLog = &EventOrder{Schema: other.Schema, Complete: true, Events: other.Events}
+	report, err = Compare(expected, actual)
+	require.NoError(t, err)
+	require.Equal(t, "undiagnosable", report.Status)
+	require.Contains(t, report.Reproducer.PrefixUnavailable, "both inspection boundaries")
 
 	actual.OrderLog = expected.OrderLog
 	report, err = Compare(expected, actual)
