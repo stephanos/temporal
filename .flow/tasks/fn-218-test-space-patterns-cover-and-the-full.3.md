@@ -54,9 +54,23 @@ Full gates: `make model-check`, `make model-check UMPIRE_BACKENDS=require`, `mak
 - [ ] README matches the complete implemented grammar, budgets and coverage/sampling guarantees; focused suites, actual default/required gates and timing pass.
 
 ## Done summary
-TBD
+Kettle and activity authors now have reviewed expansions for 162 and eight closing choices. Kettle also compresses the archived enabledness table into nine exact cover alternatives with all seven disabled controls, retains the adjacent impossible-form refusal, and records four reproducible seeded walks with finite coverage.
 
+The independent Models and claims are unchanged. The named fixture extra argument preserves native and negative outputs; its independent source-lift proof remains at .flow/tmp/fn218-3-hook-proof-named-evidence.md. Both consumer registries enable SUITE. The activity test manifest and generated Cargo.lock dependency entry add only the existing umpire-suite dependency. README documents the full grammar, finite input declarations, catalog coverage limits, explicit gaps, independent budgets, shortest cover and finite sampling.
+
+baseline: green (cd model && mise exec -- cargo test -p umpire-tests -p umpire-temporal-tests), captured before edits in .flow/tmp/fn218-3/baseline-quick.log. Both new golden consumers first failed on missing snapshot metadata in kettle-golden-red.log and golden-red.log; update.log records initial generation. Expansion checks pin every actual step, outcome and final state, including gap-supplied Heat/Poll actions. The above-boiling postcondition-refutation exploration and closed Cancel rejection-loop tests remain active.
+
+Review fanout e847e46426c34d5196d5889b059c23a6 returned SHIP from correctness, contracts and integration with zero findings. The reviewers performed static/golden verification; their Cargo attempts were read-only sandbox blocked. Worker Quick, strict all-target Clippy and full gates supply executed test evidence. The live review receipt is /tmp/impl-review-receipt-8f37faba39e2-fn-218-test-space-patterns-cover-and-the-full.3.json.
+
+Default make model-check and separately required make model-check UMPIRE_BACKENDS=require both passed with exit zero. make model-time passed with gate total 11.921s against 30s and inner loop 1.661s against 10s. The final focused suites passed with exit zero (11 shared-fixture tests, seven activity tests and the boundary suite). Strict all-target Clippy passed. Logs are in .flow/tmp/fn218-3/. Gate receipts could not be minted because preserved user MILESTONES.md edits make the checkout dirty outside the receipt ignore set. No green receipt or gate skip is claimed. All full gates actually ran.
+
+Unrelated fn211/fn227/fn228/fn229 planning and MILESTONES.md edits remain uncommitted. Staging used git add -A followed by unstaging those user paths. The conductor owns feature-map and milestone updates and the spec-completion review. Changed authoring routes are cover/sample examples in the shared Kettle and system activity fixtures, plus the README grammar guide.
+
+Tier: session (jev-unavailable(no_key))
+stage: impl-review - ran (codex; gpt-6.1-sol at high, same-family reviewer; first-round SHIP)
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: c368e5a526fa17d3129732ae41ddcc7d9accebf6
+- Tests: cd model && mise exec -- cargo test -p umpire-tests -p umpire-temporal-tests, cd model && mise exec -- cargo clippy -p umpire-tests -p umpire-temporal-tests --all-targets -- -D warnings, make model-check, make model-check UMPIRE_BACKENDS=require, make model-time
 - PRs:

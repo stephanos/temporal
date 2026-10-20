@@ -1,0 +1,27 @@
+{
+  "branch_name": "fn-231-declarative-realizations-the",
+  "created_at": "2026-10-20T19:24:56.116358Z",
+  "depends_on_epics": [
+    "fn-229-realization-ergonomics-shared-temporal",
+    "fn-217-annotation-catalog-over-the-temporal"
+  ],
+  "id": "fn-231-declarative-realizations-the",
+  "next_task": 1,
+  "plan_review_status": "unknown",
+  "plan_reviewed_at": null,
+  "spec_path": ".flow/specs/fn-231-declarative-realizations-the.md",
+  "status": "open",
+  "title": "Declarative Realizations: the #[realization] attribute surface and the coverage golden (model, temporal)",
+  "tracker": {
+    "baseHashFlow": null,
+    "baseHashTracker": null,
+    "depRelations": [],
+    "id": null,
+    "identifier": null,
+    "lastSyncedAt": null,
+    "mergeBaseFlow": null,
+    "mergeBaseTracker": null,
+    "url": null
+  },
+  "updated_at": "2026-10-20T19:24:56.940575Z"
+}

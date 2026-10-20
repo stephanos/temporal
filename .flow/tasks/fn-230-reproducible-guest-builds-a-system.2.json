@@ -1,0 +1,16 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-20T19:23:55.124309Z",
+  "depends_on": [
+    "fn-230-reproducible-guest-builds-a-system.1"
+  ],
+  "id": "fn-230-reproducible-guest-builds-a-system.2",
+  "priority": null,
+  "spec": "fn-230-reproducible-guest-builds-a-system",
+  "spec_path": ".flow/tasks/fn-230-reproducible-guest-builds-a-system.2.md",
+  "status": "todo",
+  "title": "After .1: commit the Temporal guest with go:embed; freshness step in model-check; umpire-guest target; docs",
+  "updated_at": "2026-10-20T19:23:55.124309Z"
+}
