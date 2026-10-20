@@ -107,6 +107,9 @@ func Parse(data []byte) (Inventory, error) {
 			return Inventory{}, fmt.Errorf("inventory entry %d (%q): %w", index, entry.ID, err)
 		}
 	}
+	if err := checkIdentityHistory(identityHistoryJSON, inventory.Entries); err != nil {
+		return Inventory{}, err
+	}
 	return inventory, nil
 }
 
@@ -183,7 +186,7 @@ func (inventory Inventory) check(kind string, derived []string, exact bool) erro
 		}
 	}
 	for site, entry := range rows {
-		if exact && !seen[site] {
+		if exact && !seen[site] && !entry.retiredIdentity() {
 			problems = append(problems, fmt.Errorf("inventory row %q names %s site %q that the code no longer has", entry.ID, kind, site))
 		}
 	}

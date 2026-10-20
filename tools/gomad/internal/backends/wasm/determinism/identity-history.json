@@ -1,0 +1,1054 @@
+[
+ {
+  "id": "helper.event-order-diagnostics",
+  "site": "diagnostic:event-order-commit-stream"
+ },
+ {
+  "id": "fixture.output-before-clock",
+  "site": "fixture:output-before-clock"
+ },
+ {
+  "id": "fixture.runtime-seeded-draw",
+  "site": "fixture:runtime-seeded-draw"
+ },
+ {
+  "id": "fixture.clock-shift",
+  "site": "fixture:clock-shift"
+ },
+ {
+  "id": "fixture.cluster-handoff",
+  "site": "fixture:cluster-handoff"
+ },
+ {
+  "id": "fixture.engine-admission",
+  "site": "protocol:determinism-fixture-engine-admission"
+ },
+ {
+  "id": "boundary.execute.fields-and-kinds",
+  "site": "protocol:execute-fields-and-kinds"
+ },
+ {
+  "id": "boundary.callback.fields-and-kinds",
+  "site": "protocol:helper-callback-fields-and-kinds"
+ },
+ {
+  "id": "boundary.remote-reply.fields-and-kinds",
+  "site": "protocol:remote-reply-fields-and-kinds"
+ },
+ {
+  "id": "boundary.started.engine-configuration",
+  "site": "protocol:started-engine-configuration"
+ },
+ {
+  "id": "host-go.wasi.protocol.refuseunknownfields.map-range.fields",
+  "site": "host-go:wasi/protocol.go|refuseUnknownFields|map-range|fields|1"
+ },
+ {
+  "id": "import.wasi.clock_time_get",
+  "site": "import:wasi_snapshot_preview1::clock_time_get"
+ },
+ {
+  "id": "import.wasi.poll_oneoff",
+  "site": "import:wasi_snapshot_preview1::poll_oneoff"
+ },
+ {
+  "id": "import.wasi.sched_yield",
+  "site": "import:wasi_snapshot_preview1::sched_yield"
+ },
+ {
+  "id": "import.wasi.random_get",
+  "site": "import:wasi_snapshot_preview1::random_get"
+ },
+ {
+  "id": "import.wasi.args_get",
+  "site": "import:wasi_snapshot_preview1::args_get"
+ },
+ {
+  "id": "import.wasi.args_sizes_get",
+  "site": "import:wasi_snapshot_preview1::args_sizes_get"
+ },
+ {
+  "id": "import.wasi.environ_get",
+  "site": "import:wasi_snapshot_preview1::environ_get"
+ },
+ {
+  "id": "import.wasi.environ_sizes_get",
+  "site": "import:wasi_snapshot_preview1::environ_sizes_get"
+ },
+ {
+  "id": "import.wasi.proc_exit",
+  "site": "import:wasi_snapshot_preview1::proc_exit"
+ },
+ {
+  "id": "import.wasi.fd_close",
+  "site": "import:wasi_snapshot_preview1::fd_close"
+ },
+ {
+  "id": "import.wasi.fd_sync",
+  "site": "import:wasi_snapshot_preview1::fd_sync"
+ },
+ {
+  "id": "import.wasi.fd_filestat_get",
+  "site": "import:wasi_snapshot_preview1::fd_filestat_get"
+ },
+ {
+  "id": "import.wasi.fd_fdstat_get",
+  "site": "import:wasi_snapshot_preview1::fd_fdstat_get"
+ },
+ {
+  "id": "import.wasi.fd_prestat_get",
+  "site": "import:wasi_snapshot_preview1::fd_prestat_get"
+ },
+ {
+  "id": "import.wasi.fd_fdstat_set_flags",
+  "site": "import:wasi_snapshot_preview1::fd_fdstat_set_flags"
+ },
+ {
+  "id": "import.wasi.fd_filestat_set_size",
+  "site": "import:wasi_snapshot_preview1::fd_filestat_set_size"
+ },
+ {
+  "id": "import.wasi.fd_write",
+  "site": "import:wasi_snapshot_preview1::fd_write"
+ },
+ {
+  "id": "import.wasi.fd_read",
+  "site": "import:wasi_snapshot_preview1::fd_read"
+ },
+ {
+  "id": "import.wasi.path_create_directory",
+  "site": "import:wasi_snapshot_preview1::path_create_directory"
+ },
+ {
+  "id": "import.wasi.path_remove_directory",
+  "site": "import:wasi_snapshot_preview1::path_remove_directory"
+ },
+ {
+  "id": "import.wasi.path_unlink_file",
+  "site": "import:wasi_snapshot_preview1::path_unlink_file"
+ },
+ {
+  "id": "import.wasi.fd_prestat_dir_name",
+  "site": "import:wasi_snapshot_preview1::fd_prestat_dir_name"
+ },
+ {
+  "id": "import.wasi.fd_pread",
+  "site": "import:wasi_snapshot_preview1::fd_pread"
+ },
+ {
+  "id": "import.wasi.fd_pwrite",
+  "site": "import:wasi_snapshot_preview1::fd_pwrite"
+ },
+ {
+  "id": "import.wasi.fd_readdir",
+  "site": "import:wasi_snapshot_preview1::fd_readdir"
+ },
+ {
+  "id": "import.wasi.fd_seek",
+  "site": "import:wasi_snapshot_preview1::fd_seek"
+ },
+ {
+  "id": "import.wasi.path_filestat_get",
+  "site": "import:wasi_snapshot_preview1::path_filestat_get"
+ },
+ {
+  "id": "import.wasi.path_rename",
+  "site": "import:wasi_snapshot_preview1::path_rename"
+ },
+ {
+  "id": "import.wasi.path_open",
+  "site": "import:wasi_snapshot_preview1::path_open"
+ },
+ {
+  "id": "import.wasi.path_readlink",
+  "site": "import:wasi_snapshot_preview1::path_readlink"
+ },
+ {
+  "id": "import.wasi.path_symlink",
+  "site": "import:wasi_snapshot_preview1::path_symlink"
+ },
+ {
+  "id": "import.wasi.sock_accept",
+  "site": "import:wasi_snapshot_preview1::sock_accept"
+ },
+ {
+  "id": "import.wasi.sock_shutdown",
+  "site": "import:wasi_snapshot_preview1::sock_shutdown"
+ },
+ {
+  "id": "import.gomad_wasm_v1.config",
+  "site": "import:gomad_wasm_v1::config"
+ },
+ {
+  "id": "import.gomad_wasm_v1.decision",
+  "site": "import:gomad_wasm_v1::decision"
+ },
+ {
+  "id": "import.gomad_wasm_v1.observation",
+  "site": "import:gomad_wasm_v1::observation"
+ },
+ {
+  "id": "import.gomad_wasm_v1.finish",
+  "site": "import:gomad_wasm_v1::finish"
+ },
+ {
+  "id": "import.gomad_wasm_v1.idle",
+  "site": "import:gomad_wasm_v1::idle"
+ },
+ {
+  "id": "import.gomad_wasm_v2.net_stream",
+  "site": "import:gomad_wasm_v2::net_stream"
+ },
+ {
+  "id": "import.gomad_debug_v1.exchange",
+  "site": "import:gomad_debug_v1::exchange"
+ },
+ {
+  "id": "import.unknown",
+  "site": "import:*"
+ },
+ {
+  "id": "stream.runq_draws",
+  "site": "stream:runq_draws"
+ },
+ {
+  "id": "stream.scheduler_draws",
+  "site": "stream:scheduler_draws"
+ },
+ {
+  "id": "stream.select_draws",
+  "site": "stream:select_draws"
+ },
+ {
+  "id": "stream.runtime_rand_draws",
+  "site": "stream:runtime_rand_draws"
+ },
+ {
+  "id": "stream.runtime_cheap_rand_draws",
+  "site": "stream:runtime_cheap_rand_draws"
+ },
+ {
+  "id": "stream.timer_draws",
+  "site": "stream:timer_draws"
+ },
+ {
+  "id": "stream.clock_tick_draws",
+  "site": "stream:clock_tick_draws"
+ },
+ {
+  "id": "runtime.check-seeded-draw",
+  "site": "runtime-decision:gomadDiagnosticCheckSeededDraw"
+ },
+ {
+  "id": "runtime.wasip1-draw-patches",
+  "site": "runtime-table:wasip1-draw-patches"
+ },
+ {
+  "id": "runtime.wasip1-host-clock",
+  "site": "runtime-table:wasip1-host-clock"
+ },
+ {
+  "id": "host-go.backend.provider.provider.run.clock.time.now",
+  "site": "host-go:backend/provider.go|Provider.Run|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.backend.provider.provider.run.clock.time.since",
+  "site": "host-go:backend/provider.go|Provider.Run|clock|time.Since|1"
+ },
+ {
+  "id": "host-go.backend.provider.command.clock.time.now",
+  "site": "host-go:backend/provider.go|command|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.backend.provider.command.clock.time.since",
+  "site": "host-go:backend/provider.go|command|clock|time.Since|1"
+ },
+ {
+  "id": "host-go.backend.provider.sourceinventory.map-range.files",
+  "site": "host-go:backend/provider.go|sourceInventory|map-range|files|1"
+ },
+ {
+  "id": "host-go.backend.provider.sourceinventory.map-range.overlay",
+  "site": "host-go:backend/provider.go|sourceInventory|map-range|overlay|1"
+ },
+ {
+  "id": "host-go.backend.provider.provider.preparewithstager.unstable-sort.sort.slice_aftersources",
+  "site": "host-go:backend/provider.go|Provider.prepareWithStager|unstable-sort|sort.Slice afterSources|1"
+ },
+ {
+  "id": "host-go.backend.provider.provider.preparewithstager.unstable-sort.sort.slice_sources",
+  "site": "host-go:backend/provider.go|Provider.prepareWithStager|unstable-sort|sort.Slice sources|1"
+ },
+ {
+  "id": "host-go.cluster.operator.normalizeoperator.map-range.nodes",
+  "site": "host-go:cluster/operator.go|NormalizeOperator|map-range|nodes|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedresults.map-range.e.results",
+  "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|e.results|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedresults.map-range.result.storagecrashenumeration",
+  "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|result.StorageCrashEnumeration|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedresults.map-range.result.storageoperations",
+  "site": "host-go:cluster/provider.go|Provider.CompletedResults|map-range|result.StorageOperations|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedresults.unstable-sort.sort.slice_results",
+  "site": "host-go:cluster/provider.go|Provider.CompletedResults|unstable-sort|sort.Slice results|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedsummaries.map-range.e.results",
+  "site": "host-go:cluster/provider.go|Provider.CompletedSummaries|map-range|e.results|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.completedsummaries.unstable-sort.sort.slice_results",
+  "site": "host-go:cluster/provider.go|Provider.CompletedSummaries|unstable-sort|sort.Slice results|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.open.map-range.boots",
+  "site": "host-go:cluster/provider.go|Provider.Open|map-range|boots|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.open.map-range.p.boots",
+  "site": "host-go:cluster/provider.go|Provider.Open|map-range|p.Boots|1"
+ },
+ {
+  "id": "host-go.cluster.provider.provider.open.unstable-sort.sort.slice_ids",
+  "site": "host-go:cluster/provider.go|Provider.Open|unstable-sort|sort.Slice ids|1"
+ },
+ {
+  "id": "host-go.cluster.provider.awaitrevocation.clock.time.newtimer",
+  "site": "host-go:cluster/provider.go|awaitRevocation|clock|time.NewTimer|1"
+ },
+ {
+  "id": "host-go.cluster.provider.clonestoragecrashcontext.map-range.source",
+  "site": "host-go:cluster/provider.go|cloneStorageCrashContext|map-range|source|1"
+ },
+ {
+  "id": "host-go.cluster.provider.clusterexecutiontimeout.map-range.request.boots",
+  "site": "host-go:cluster/provider.go|clusterExecutionTimeout|map-range|request.Boots|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.finish.map-range.e.nodes",
+  "site": "host-go:cluster/provider.go|execution.Finish|map-range|e.nodes|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.finish.map-range.e.results",
+  "site": "host-go:cluster/provider.go|execution.Finish|map-range|e.results|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.finish.map-range.result.storageoperations",
+  "site": "host-go:cluster/provider.go|execution.Finish|map-range|result.StorageOperations|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.finish.unstable-sort.sort.slice_handles",
+  "site": "host-go:cluster/provider.go|execution.Finish|unstable-sort|sort.Slice handles|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.shutdown.clock.time.newtimer",
+  "site": "host-go:cluster/provider.go|execution.Shutdown|clock|time.NewTimer|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.shutdown.map-range.e.nodes",
+  "site": "host-go:cluster/provider.go|execution.Shutdown|map-range|e.nodes|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.shutdown.unstable-sort.sort.slice_nodes",
+  "site": "host-go:cluster/provider.go|execution.Shutdown|unstable-sort|sort.Slice nodes|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.start.clock.time.now",
+  "site": "host-go:cluster/provider.go|execution.Start|clock|time.Now|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.start.clock.time.since",
+  "site": "host-go:cluster/provider.go|execution.Start|clock|time.Since|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.start.goroutine.func_literal",
+  "site": "host-go:cluster/provider.go|execution.Start|goroutine|func literal|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.opencluster.clock.time.now",
+  "site": "host-go:cluster/provider.go|execution.openCluster|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.stopcontext.clock.time.now",
+  "site": "host-go:cluster/provider.go|execution.stopContext|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.stopcontext.map-range.e.nodes",
+  "site": "host-go:cluster/provider.go|execution.stopContext|map-range|e.nodes|1"
+ },
+ {
+  "id": "host-go.cluster.replay_inspection_search.searchwasminspection.map-range.cache",
+  "site": "host-go:cluster/replay_inspection_search.go|SearchWASMInspection|map-range|cache|1"
+ },
+ {
+  "id": "host-go.cluster.retained.provider.retentionpayload.map-range.p.boots",
+  "site": "host-go:cluster/retained.go|Provider.RetentionPayload|map-range|p.Boots|1"
+ },
+ {
+  "id": "host-go.cluster.retained.provider.retentionpayload.unstable-sort.sort.slice_ids",
+  "site": "host-go:cluster/retained.go|Provider.RetentionPayload|unstable-sort|sort.Slice ids|1"
+ },
+ {
+  "id": "host-go.cluster.retained.bindinstalledhelper.map-range.p.boots",
+  "site": "host-go:cluster/retained.go|bindInstalledHelper|map-range|p.Boots|1"
+ },
+ {
+  "id": "host-go.cluster.retained.bindinstalledhelper.unstable-sort.sort.slice_ids",
+  "site": "host-go:cluster/retained.go|bindInstalledHelper|unstable-sort|sort.Slice ids|1"
+ },
+ {
+  "id": "host-go.cluster.retained.detachedstoragecrashselections.map-range.boot.request.storagecrashselection",
+  "site": "host-go:cluster/retained.go|detachedStorageCrashSelections|map-range|boot.Request.StorageCrashSelection|1"
+ },
+ {
+  "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.map-range.e.results",
+  "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|map-range|e.results|1"
+ },
+ {
+  "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.unstable-sort.slices.sortfunc_handles",
+  "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|unstable-sort|slices.SortFunc handles|1"
+ },
+ {
+  "id": "host-go.cluster.soft_assertion.execution.softassertionoracles.unstable-sort.slices.sortfunc_oracles",
+  "site": "host-go:cluster/soft_assertion.go|execution.softAssertionOracles|unstable-sort|slices.SortFunc oracles|1"
+ },
+ {
+  "id": "host-go.wasi.broker.broker.encodeworldevidence.map-range.b.sessions",
+  "site": "host-go:wasi/broker.go|Broker.EncodeWorldEvidence|map-range|b.sessions|1"
+ },
+ {
+  "id": "host-go.wasi.broker.broker.diagnosticsnapshot.map-range.s.environment.networkv2.requests",
+  "site": "host-go:wasi/broker.go|Broker.diagnosticSnapshot|map-range|s.environment.networkV2.requests|1"
+ },
+ {
+  "id": "host-go.wasi.broker.broker.diagnosticsnapshot.unstable-sort.sort.slice_p.localrequests",
+  "site": "host-go:wasi/broker.go|Broker.diagnosticSnapshot|unstable-sort|sort.Slice p.LocalRequests|1"
+ },
+ {
+  "id": "host-go.wasi.broker.brokersession.finishcall.map-range.b.crashoutputs",
+  "site": "host-go:wasi/broker.go|BrokerSession.finishCall|map-range|b.crashOutputs|1"
+ },
+ {
+  "id": "host-go.wasi.broker_network.newbrokernetwork.unstable-sort.sort.slice_nodes",
+  "site": "host-go:wasi/broker_network.go|newBrokerNetwork|unstable-sort|sort.Slice nodes|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.finish.map-range.session.states",
+  "site": "host-go:wasi/cluster.go|ClusterSession.Finish|map-range|session.states|2"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.start.clock.time.now",
+  "site": "host-go:wasi/cluster.go|ClusterSession.Start|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.wait.goroutine.func_literal",
+  "site": "host-go:wasi/cluster.go|ClusterSession.Wait|goroutine|func literal|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.collect.clock.time.since",
+  "site": "host-go:wasi/cluster.go|ClusterSession.collect|clock|time.Since|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.command.clock.time.now",
+  "site": "host-go:wasi/cluster.go|ClusterSession.command|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.run.clock.time.now",
+  "site": "host-go:wasi/cluster.go|ClusterSession.run|clock|time.Now|2"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.run.map-range.session.states",
+  "site": "host-go:wasi/cluster.go|ClusterSession.run|map-range|session.states|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.opencluster.clock.time.now",
+  "site": "host-go:wasi/cluster.go|OpenCluster|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.opencluster.goroutine.clustersession.run",
+  "site": "host-go:wasi/cluster.go|OpenCluster|goroutine|ClusterSession.run|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.opencluster.map-range.request.boots",
+  "site": "host-go:wasi/cluster.go|OpenCluster|map-range|request.Boots|2"
+ },
+ {
+  "id": "host-go.wasi.cluster.opencluster.unstable-sort.sort.slice_instances",
+  "site": "host-go:wasi/cluster.go|OpenCluster|unstable-sort|sort.Slice instances|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clusterstate.collect.clock.time.now",
+  "site": "host-go:wasi/cluster.go|clusterState.collect|clock|time.Now|3"
+ },
+ {
+  "id": "host-go.wasi.cluster.clusterstate.collect.clock.time.since",
+  "site": "host-go:wasi/cluster.go|clusterState.collect|clock|time.Since|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clusterstream.frame.clock.time.now",
+  "site": "host-go:wasi/cluster.go|clusterStream.frame|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clusterstream.frame.map-range.s.boots",
+  "site": "host-go:wasi/cluster.go|clusterStream.frame|map-range|s.boots|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clusterstream.frame.map-range.s.states",
+  "site": "host-go:wasi/cluster.go|clusterStream.frame|map-range|s.states|1"
+ },
+ {
+  "id": "host-go.wasi.cluster_network.clusternetworkframe.map-range.config.addresses",
+  "site": "host-go:wasi/cluster_network.go|ClusterNetworkFrame|map-range|config.Addresses|1"
+ },
+ {
+  "id": "host-go.wasi.cluster_network.clusternetworkframe.map-range.nodes",
+  "site": "host-go:wasi/cluster_network.go|ClusterNetworkFrame|map-range|nodes|1"
+ },
+ {
+  "id": "host-go.wasi.environment.environment.filesystemserved.map-range.e.filesystemcalls",
+  "site": "host-go:wasi/environment.go|Environment.filesystemServed|map-range|e.filesystemCalls|1"
+ },
+ {
+  "id": "host-go.wasi.namespace.environment.readdir.map-range.d.node.children",
+  "site": "host-go:wasi/namespace.go|Environment.readdir|map-range|d.node.children|1"
+ },
+ {
+  "id": "host-go.wasi.namespace.containsnode.map-range.root.children",
+  "site": "host-go:wasi/namespace.go|containsNode|map-range|root.children|1"
+ },
+ {
+  "id": "host-go.wasi.namespace_image.declarenamespaceimage.map-range.entry.node.children",
+  "site": "host-go:wasi/namespace_image.go|declareNamespaceImage|map-range|entry.node.children|1"
+ },
+ {
+  "id": "host-go.wasi.namespace_image.declarenamespaceimage.unstable-sort.slices.sortfunc_image.entries",
+  "site": "host-go:wasi/namespace_image.go|declareNamespaceImage|unstable-sort|slices.SortFunc image.entries|1"
+ },
+ {
+  "id": "host-go.wasi.network_v2.environment.networkv2advance.map-range.n.handles",
+  "site": "host-go:wasi/network_v2.go|Environment.networkV2Advance|map-range|n.handles|1"
+ },
+ {
+  "id": "host-go.wasi.network_v2.environment.networkv2advance.unstable-sort.sort.slice_handles",
+  "site": "host-go:wasi/network_v2.go|Environment.networkV2Advance|unstable-sort|sort.Slice handles|1"
+ },
+ {
+  "id": "host-go.wasi.process.measureterminalexit.clock.time.now",
+  "site": "host-go:wasi/process.go|MeasureTerminalExit|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.process.measureterminalexit.goroutine.func_literal",
+  "site": "host-go:wasi/process.go|MeasureTerminalExit|goroutine|func literal|1"
+ },
+ {
+  "id": "host-go.wasi.process.run.goroutine.func_literal",
+  "site": "host-go:wasi/process.go|Run|goroutine|func literal|1"
+ },
+ {
+  "id": "host-go.wasi.process.framesink.frame.clock.time.now",
+  "site": "host-go:wasi/process.go|frameSink.frame|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.process.framesink.frame.clock.time.since",
+  "site": "host-go:wasi/process.go|frameSink.frame|clock|time.Since|1"
+ },
+ {
+  "id": "host-go.wasi.process.helperinput.start.goroutine.func_literal",
+  "site": "host-go:wasi/process.go|helperInput.start|goroutine|func literal|1"
+ },
+ {
+  "id": "host-go.wasi.process.terminalexitsink.write.clock.time.now",
+  "site": "host-go:wasi/process.go|terminalExitSink.Write|clock|time.Now|1"
+ },
+ {
+  "id": "host-go.wasi.runtime.runtimesession.handle.unstable-sort.slices.sortfunc_ordered",
+  "site": "host-go:wasi/runtime.go|runtimeSession.handle|unstable-sort|slices.SortFunc ordered|1"
+ },
+ {
+  "id": "host-go.wasi.storage_evidence.framesink.collecthelperstorage.map-range.state.enumerations",
+  "site": "host-go:wasi/storage_evidence.go|frameSink.collectHelperStorage|map-range|state.enumerations|1"
+ },
+ {
+  "id": "host-go.wasi.storage_image.encodestorageimage.map-range.counts",
+  "site": "host-go:wasi/storage_image.go|encodeStorageImage|map-range|counts|1"
+ },
+ {
+  "id": "host-go.wasi.storage_selection.storagecrashcontextmatches.map-range.expected",
+  "site": "host-go:wasi/storage_selection.go|storageCrashContextMatches|map-range|expected|1"
+ },
+ {
+  "id": "host-go.wasi.volume.clonestorageoccurrences.map-range.source",
+  "site": "host-go:wasi/volume.go|cloneStorageOccurrences|map-range|source|1"
+ },
+ {
+  "id": "host-go.wasi.volume.namespace.initializestorage.map-range.ns.descriptors",
+  "site": "host-go:wasi/volume.go|namespace.initializeStorage|map-range|ns.descriptors|1"
+ },
+ {
+  "id": "host-go.wasi.volume.relocatestoragenode.map-range.n.children",
+  "site": "host-go:wasi/volume.go|relocateStorageNode|map-range|n.children|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.clustersession.shutdown.map-range.session.states",
+  "site": "host-go:wasi/cluster.go|ClusterSession.Shutdown|map-range|session.states|1"
+ },
+ {
+  "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashcontext",
+  "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashContext|1"
+ },
+ {
+  "id": "host-go.wasi.storage_selection.validatestoragecrashselection.map-range.request.storagecrashselection",
+  "site": "host-go:wasi/storage_selection.go|ValidateStorageCrashSelection|map-range|request.StorageCrashSelection|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.shutdown.clock.context.withtimeout",
+  "site": "host-go:cluster/provider.go|execution.Shutdown|clock|context.WithTimeout|2"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.stopcontext.clock.context.withdeadline",
+  "site": "host-go:cluster/provider.go|execution.stopContext|clock|context.WithDeadline|1"
+ },
+ {
+  "id": "host-go.cluster.provider.execution.stopcontext.clock.context.withtimeout",
+  "site": "host-go:cluster/provider.go|execution.stopContext|clock|context.WithTimeout|1"
+ },
+ {
+  "id": "host-go.cluster.replay_inspection_search.searchwasminspection.clock.context.withtimeout",
+  "site": "host-go:cluster/replay_inspection_search.go|SearchWASMInspection|clock|context.WithTimeout|1"
+ },
+ {
+  "id": "host-go.wasi.cluster.opencluster.clock.context.withtimeout",
+  "site": "host-go:wasi/cluster.go|OpenCluster|clock|context.WithTimeout|1"
+ },
+ {
+  "id": "host-go.wasi.process.measureterminalexit.clock.context.withtimeout",
+  "site": "host-go:wasi/process.go|MeasureTerminalExit|clock|context.WithTimeout|1"
+ },
+ {
+  "id": "host-go.wasi.process.run.clock.context.withtimeout",
+  "site": "host-go:wasi/process.go|Run|clock|context.WithTimeout|1"
+ },
+ {
+  "id": "helper.cache.devurandom",
+  "site": "helper-source:cache.rs|/dev/urandom|1"
+ },
+ {
+  "id": "helper.cache.systemtime",
+  "site": "helper-source:cache.rs|SystemTime|1"
+ },
+ {
+  "id": "helper.cache.instant-now",
+  "site": "helper-source:cache.rs|Instant::now|2"
+ },
+ {
+  "id": "helper.cluster.execution.manual.instant-now",
+  "site": "helper-source:cluster/execution/manual.rs|Instant::now|1"
+ },
+ {
+  "id": "helper.cluster.execution.manual.thread-builder",
+  "site": "helper-source:cluster/execution/manual.rs|thread::Builder|1"
+ },
+ {
+  "id": "helper.cluster.execution.mod.instant-now",
+  "site": "helper-source:cluster/execution/mod.rs|Instant::now|3"
+ },
+ {
+  "id": "helper.cluster.execution.mod.thread-builder",
+  "site": "helper-source:cluster/execution/mod.rs|thread::Builder|1"
+ },
+ {
+  "id": "helper.cluster.handoff.broker.instant-now",
+  "site": "helper-source:cluster/handoff/broker.rs|Instant::now|3"
+ },
+ {
+  "id": "helper.engine.instant-now",
+  "site": "helper-source:engine.rs|Instant::now|5"
+ },
+ {
+  "id": "helper.engine.hashset",
+  "site": "helper-source:engine.rs|HashSet|2"
+ },
+ {
+  "id": "helper.model.hashmap",
+  "site": "helper-source:model.rs|HashMap|2"
+ },
+ {
+  "id": "helper.model.guest_state.hashmap",
+  "site": "helper-source:model/guest_state.rs|HashMap|2"
+ },
+ {
+  "id": "helper.model.guest_state.hashset",
+  "site": "helper-source:model/guest_state.rs|HashSet|1"
+ },
+ {
+  "id": "helper.allow.diagnostic",
+  "site": "helper-allow:diagnostic.rs"
+ },
+ {
+  "id": "helper.allow.guest_profile",
+  "site": "helper-allow:guest_profile.rs"
+ },
+ {
+  "id": "engine.setting-1",
+  "site": "engine-setting:Config::new"
+ },
+ {
+  "id": "engine.setting-2",
+  "site": "engine-setting:consume_fuel(!cfg!(feature = \"diagnostic-fuel-off\"))"
+ },
+ {
+  "id": "engine.setting-3",
+  "site": "engine-setting:native_unwind_info(false)"
+ },
+ {
+  "id": "engine.setting-4",
+  "site": "engine-setting:cranelift_nan_canonicalization(true)"
+ },
+ {
+  "id": "engine.setting-5",
+  "site": "engine-setting:wasm_relaxed_simd(false)"
+ },
+ {
+  "id": "engine.setting-6",
+  "site": "engine-setting:wasm_memory64(false)"
+ },
+ {
+  "id": "engine.setting-7",
+  "site": "engine-setting:wasm_multi_memory(false)"
+ },
+ {
+  "id": "engine.setting-8",
+  "site": "engine-setting:#[cfg(feature = \"guest-profile\")] epoch_interruption(true)"
+ },
+ {
+  "id": "engine.setting-9",
+  "site": "engine-setting:cargo wasmtime = { version = \"=47.0.3\", default-features = false, features = [\"cranelift\", \"runtime\", \"std\", \"wat\", \"reexport-wasmparser\"] }"
+ },
+ {
+  "id": "finding.gc-pacer-enlist-worker",
+  "site": "finding:gc-pacer-enlist-worker"
+ },
+ {
+  "id": "finding.gc-lastgc-pauseend",
+  "site": "finding:gc-lastgc-pauseend"
+ },
+ {
+  "id": "finding.cputicks",
+  "site": "finding:cputicks"
+ },
+ {
+  "id": "finding.tracer-snapshot",
+  "site": "finding:tracer-snapshot"
+ },
+ {
+  "id": "finding.fips-monotime",
+  "site": "finding:fips-monotime"
+ },
+ {
+  "id": "finding.cluster-thread-per-instance",
+  "site": "finding:cluster-thread-per-instance"
+ },
+ {
+  "id": "finding.volume-evidence-map-range",
+  "site": "finding:volume-evidence-map-range"
+ },
+ {
+  "id": "finding.sort-slice-keys",
+  "site": "finding:sort-slice-keys"
+ },
+ {
+  "id": "finding.serde-json-map-order",
+  "site": "finding:serde-json-map-order"
+ },
+ {
+  "id": "helper.stress-jitter.entropy",
+  "site": "helper-source:stress_jitter.rs|/dev/urandom|1"
+ },
+ {
+  "id": "helper.stress-jitter.delay",
+  "site": "helper-source:stress_jitter.rs|thread::sleep|1"
+ },
+ {
+  "id": "finding.simd-nan-canonicalization",
+  "site": "finding:simd-nan-canonicalization"
+ },
+ {
+  "id": "runtime.draw.runtime.lock_wasip1.go.beforeidle.beforeidle.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/lock_wasip1.go beforeIdle beforeIdle patch"
+ },
+ {
+  "id": "runtime.draw.runtime.lock_wasip1.go.notetsleepg.notetsleepg.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/lock_wasip1.go notetsleepg notetsleepg patch"
+ },
+ {
+  "id": "runtime.draw.runtime.os_wasip1.go.nanotime1.gomadwasmlasttime.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/os_wasip1.go nanotime1 gomadWasmLastTime patch"
+ },
+ {
+  "id": "runtime.draw.runtime.os_wasip1.go.usleep.usleep.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/os_wasip1.go usleep usleep patch"
+ },
+ {
+  "id": "runtime.draw.runtime.os_wasip1.go.walltime1.gomadwasmlasttime.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/os_wasip1.go walltime1 gomadWasmLastTime patch"
+ },
+ {
+  "id": "runtime.draw.runtime.proc.go.runqget.gomadchoicerunqindex.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/proc.go runqget gomadChoiceRunqIndex patch"
+ },
+ {
+  "id": "runtime.draw.runtime.proc.go.runqputslow.gomadchoicerunnextseeded.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/proc.go runqputslow gomadChoiceRunnextSeeded patch"
+ },
+ {
+  "id": "runtime.draw.runtime.proc.go.runqputslow.randomizescheduler.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/proc.go runqputslow randomizeScheduler patch"
+ },
+ {
+  "id": "runtime.draw.runtime.proc.go.schedinit.gomadwasminit.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/proc.go schedinit gomadWasmInit patch"
+ },
+ {
+  "id": "runtime.draw.runtime.rand.go.cheaprand.gomadruntimecheaprand.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/rand.go cheaprand gomadRuntimeCheapRand patch"
+ },
+ {
+  "id": "runtime.draw.runtime.rand.go.mrandinit.gomadseed.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/rand.go mrandinit gomadSeed patch"
+ },
+ {
+  "id": "runtime.draw.runtime.rand.go.rand.gomadruntimerand.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/rand.go rand gomadRuntimeRand patch"
+ },
+ {
+  "id": "runtime.draw.runtime.rand.go.randinit.gomadseed.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/rand.go randinit gomadSeed patch"
+ },
+ {
+  "id": "runtime.draw.runtime.select.go.selectgo.gomadchoiceselectseeded.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/select.go selectgo gomadChoiceSelectSeeded patch"
+ },
+ {
+  "id": "runtime.draw.runtime.time.go.method.adjust.gomadtimerrand.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/time.go method.adjust gomadTimerRand patch"
+ },
+ {
+  "id": "runtime.draw.runtime.time.go.method.maybeadd.gomadtimerrand.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/time.go method.maybeAdd gomadTimerRand patch"
+ },
+ {
+  "id": "runtime.draw.runtime.time.go.method.updateheap.gomadtimerrand.patch",
+  "site": "runtime-draw:wasip1/wasm runtime/time.go method.updateHeap gomadTimerRand patch"
+ },
+ {
+  "id": "runtime.clock.internal.trace.internal.testgen.trace.go.walltime",
+  "site": "runtime-clock:wasip1/wasm internal/trace/internal/testgen/trace.go walltime"
+ },
+ {
+  "id": "runtime.clock.runtime.badlinkname.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/badlinkname.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.chan.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/chan.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.debuglog.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/debuglog.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.gomad_wasm.go.nanotime",
+  "site": "runtime-clock:wasip1/wasm runtime/gomad_wasm.go nanotime"
+ },
+ {
+  "id": "runtime.clock.runtime.mgc.go.time_now",
+  "site": "runtime-clock:wasip1/wasm runtime/mgc.go time_now"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasip1.go.clock_time_get",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasip1.go clock_time_get"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasip1.go.nanotime1",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasip1.go nanotime1"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasip1.go.walltime",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasip1.go walltime"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasip1.go.walltime1",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasip1.go walltime1"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasm.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasm.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.os_wasm.go.time_now",
+  "site": "runtime-clock:wasip1/wasm runtime/os_wasm.go time_now"
+ },
+ {
+  "id": "runtime.clock.runtime.runtime.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/runtime.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.select.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/select.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.sema.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/sema.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.time.go.time_now",
+  "site": "runtime-clock:wasip1/wasm runtime/time.go time_now"
+ },
+ {
+  "id": "runtime.clock.runtime.time_nofake.go.nanotime1",
+  "site": "runtime-clock:wasip1/wasm runtime/time_nofake.go nanotime1"
+ },
+ {
+  "id": "runtime.clock.runtime.timestub.go.time_now",
+  "site": "runtime-clock:wasip1/wasm runtime/timestub.go time_now"
+ },
+ {
+  "id": "runtime.clock.runtime.timestub.go.walltime",
+  "site": "runtime-clock:wasip1/wasm runtime/timestub.go walltime"
+ },
+ {
+  "id": "runtime.clock.runtime.tracetime.go.cputicks",
+  "site": "runtime-clock:wasip1/wasm runtime/tracetime.go cputicks"
+ },
+ {
+  "id": "runtime.clock.runtime.tracetime.go.time_now",
+  "site": "runtime-clock:wasip1/wasm runtime/tracetime.go time_now"
+ },
+ {
+  "id": "runtime.clock.syscall.syscall_wasip1.go.clock_time_get",
+  "site": "runtime-clock:wasip1/wasm syscall/syscall_wasip1.go clock_time_get"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.fakeconnect.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go fakeConnect patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.fakelisten.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go fakeListen patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.close.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.Close patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.read.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.Read patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.setdeadline.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.SetDeadline patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.setreaddeadline.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.SetReadDeadline patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.setwritedeadline.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.SetWriteDeadline patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.write.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.Write patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.accept.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.accept patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.closeread.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.closeRead patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.method.closewrite.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go method.closeWrite patch"
+ },
+ {
+  "id": "runtime.other.net.net_fake.go.package.patch",
+  "site": "runtime-other:wasip1/wasm net/net_fake.go package patch"
+ },
+ {
+  "id": "runtime.other.runtime.lock_wasip1.go.noteclear.patch",
+  "site": "runtime-other:wasip1/wasm runtime/lock_wasip1.go noteclear patch"
+ },
+ {
+  "id": "runtime.other.runtime.lock_wasip1.go.notewakeup.patch",
+  "site": "runtime-other:wasip1/wasm runtime/lock_wasip1.go notewakeup patch"
+ },
+ {
+  "id": "runtime.other.runtime.netpoll_wasip1.go.netpoll.patch",
+  "site": "runtime-other:wasip1/wasm runtime/netpoll_wasip1.go netpoll patch"
+ },
+ {
+  "id": "runtime.other.runtime.note_other.go.package.patch",
+  "site": "runtime-other:wasip1/wasm runtime/note_other.go package patch"
+ },
+ {
+  "id": "runtime.other.runtime.os_wasip1.go.exit.patch",
+  "site": "runtime-other:wasip1/wasm runtime/os_wasip1.go exit patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.execute.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go execute patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.findrunnable.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go findRunnable patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.main.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go main patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.newproc1.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go newproc1 patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.schedinit.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go schedinit patch"
+ },
+ {
+  "id": "runtime.other.runtime.proc.go.schedule.patch",
+  "site": "runtime-other:wasip1/wasm runtime/proc.go schedule patch"
+ },
+ {
+  "id": "runtime.other.runtime.runtime2.go.package.patch",
+  "site": "runtime-other:wasip1/wasm runtime/runtime2.go package patch"
+ },
+ {
+  "id": "runtime.other.runtime.select.go.selectgo.patch",
+  "site": "runtime-other:wasip1/wasm runtime/select.go selectgo patch"
+ },
+ {
+  "id": "runtime.other.runtime.time.go.method.maybeadd.patch",
+  "site": "runtime-other:wasip1/wasm runtime/time.go method.maybeAdd patch"
+ },
+ {
+  "id": "runtime.other.runtime.time.go.method.unlockandrun.patch",
+  "site": "runtime-other:wasip1/wasm runtime/time.go method.unlockAndRun patch"
+ },
+ {
+  "id": "runtime.other.runtime.time.go.newtimer.patch",
+  "site": "runtime-other:wasip1/wasm runtime/time.go newTimer patch"
+ },
+ {
+  "id": "runtime.other.runtime.time.go.package.patch",
+  "site": "runtime-other:wasip1/wasm runtime/time.go package patch"
+ }
+]

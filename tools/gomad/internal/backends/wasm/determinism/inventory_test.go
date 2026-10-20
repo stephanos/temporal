@@ -11,10 +11,36 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/stretchr/testify/require"
 	"go.temporal.io/server/tools/gomad/internal/model/choice"
 )
 
 const moduleRoot = "../../../.."
+
+func TestInventoryPreservesHistoricalIdentities(t *testing.T) {
+	t.Parallel()
+	for _, test := range []struct {
+		name   string
+		change func(*Inventory)
+	}{
+		{"remove", func(inventory *Inventory) { inventory.Entries = inventory.Entries[1:] }},
+		{"rename", func(inventory *Inventory) { inventory.Entries[0].ID = "replacement.id" }},
+		{"reuse", func(inventory *Inventory) { inventory.Entries[0].Site = "import:replacement::site" }},
+		{"swap", func(inventory *Inventory) {
+			inventory.Entries[0].ID, inventory.Entries[1].ID = inventory.Entries[1].ID, inventory.Entries[0].ID
+		}},
+	} {
+		t.Run(test.name, func(t *testing.T) {
+			t.Parallel()
+			inventory := loadInventory(t)
+			test.change(&inventory)
+			data, err := json.Marshal(inventory)
+			require.NoError(t, err)
+			_, err = Parse(data)
+			require.ErrorContains(t, err, "historical identity")
+		})
+	}
+}
 
 func loadInventory(t *testing.T) Inventory {
 	t.Helper()
