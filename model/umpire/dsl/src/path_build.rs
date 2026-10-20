@@ -136,23 +136,26 @@ where
 {
     Pattern::action(ActionDomain::new(Ok(1), move |_| value.clone().into()), None, None)
 }
-pub struct StateFactory<S>(Waypoint<S>);
+pub struct StateFactory<S, K = crate::waypoint_kind::Judged>(
+    Waypoint<S>,
+    std::marker::PhantomData<K>,
+);
 impl<S> StateFactory<S> {
     pub fn judged(predicate: impl Fn(&S) -> bool + 'static) -> Self {
-        Self(Waypoint::judged(predicate))
+        Self(Waypoint::judged(predicate), std::marker::PhantomData)
     }
+}
+impl<S, K> StateFactory<S, K> {
     pub fn build<B: Finish>(self, rest: impl FnOnce(StateBuilder<S>) -> B) -> B::Output {
         rest(StateBuilder::new(self.0)).complete()
     }
-    pub fn build_pattern(
-        self,
-        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
-    ) -> WorldBuilder<S>
+    pub fn piece(self) -> PatternPiece<S, K::Hint>
     where
         S: Registered,
+        K: WaypointHint,
         <S::World as Machine>::Action: 'static,
     {
-        WorldBuilder::new(make(PatternContext(std::marker::PhantomData), Pattern::state(self.0)))
+        PatternPiece::one(Pattern::state(self.0))
     }
 }
 pub struct ActorFactory<T>(T);
@@ -165,16 +168,11 @@ impl<T: Actor + 'static> DomainFactory<T> {
     pub fn new(domain: ActionDomain<T>) -> Self {
         Self(domain)
     }
-    pub fn build_pattern<S: Registered>(
-        self,
-        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
-    ) -> WorldBuilder<S>
+    pub fn piece<S: Registered>(self) -> PatternPiece<S, OwnerHint<T>>
     where
-        T: RegisteredActor<S>,
         <S::World as Machine>::Action: From<T> + 'static,
     {
-        let seed = Pattern::action(self.0.map(Into::into), None, None);
-        WorldBuilder::new(make(PatternContext(std::marker::PhantomData), seed))
+        PatternPiece::one(Pattern::action(self.0.map(Into::into), None, None))
     }
 }
 pub type WorldPath<S> = Path<
@@ -187,6 +185,102 @@ pub type WorldPattern<S> = Pattern<
     <<S as Registered>::World as Machine>::Action,
     <<S as Registered>::World as Machine>::Outcome,
 >;
+
+pub struct Unknown;
+pub struct Known;
+pub struct OwnerHint<T>(std::marker::PhantomData<T>);
+pub trait WaypointHint {
+    type Hint;
+}
+impl WaypointHint for crate::waypoint_kind::Holds {
+    type Hint = Unknown;
+}
+impl WaypointHint for crate::waypoint_kind::Is {
+    type Hint = Known;
+}
+impl WaypointHint for crate::waypoint_kind::Judged {
+    type Hint = Known;
+}
+pub trait MergeHint<Rhs> {
+    type Hint;
+}
+impl<Rhs> MergeHint<Rhs> for Known {
+    type Hint = Known;
+}
+impl MergeHint<Known> for Unknown {
+    type Hint = Known;
+}
+impl<T> MergeHint<Known> for OwnerHint<T> {
+    type Hint = Known;
+}
+impl MergeHint<Unknown> for Unknown {
+    type Hint = Unknown;
+}
+impl<T> MergeHint<OwnerHint<T>> for Unknown {
+    type Hint = OwnerHint<T>;
+}
+impl<T> MergeHint<Unknown> for OwnerHint<T> {
+    type Hint = OwnerHint<T>;
+}
+impl<T, U> MergeHint<OwnerHint<U>> for OwnerHint<T> {
+    type Hint = OwnerHint<T>;
+}
+pub trait ResolveHint<S> {}
+impl<S> ResolveHint<S> for Known {}
+impl<S: Registered, T: RegisteredActor<S>> ResolveHint<S> for OwnerHint<T> {}
+
+#[must_use]
+pub struct PatternPiece<S: Registered, H> {
+    parts: Vec<WorldPattern<S>>,
+    hint: std::marker::PhantomData<H>,
+}
+impl<S: Registered> PatternPiece<S, Unknown> {
+    pub fn empty() -> Self {
+        Self { parts: Vec::new(), hint: std::marker::PhantomData }
+    }
+}
+impl<S: Registered, H> PatternPiece<S, H> {
+    fn one(pattern: WorldPattern<S>) -> Self {
+        Self { parts: vec![pattern], hint: std::marker::PhantomData }
+    }
+    pub fn join<J>(mut self, other: PatternPiece<S, J>) -> PatternPiece<S, H::Hint>
+    where
+        H: MergeHint<J>,
+    {
+        self.parts.extend(other.parts);
+        PatternPiece { parts: self.parts, hint: std::marker::PhantomData }
+    }
+    pub fn push(mut self, pattern: WorldPattern<S>) -> Self {
+        self.parts.push(pattern);
+        self
+    }
+    pub fn group<J>(
+        mut self,
+        make: impl FnOnce(PatternPiece<S, H>) -> PatternPiece<S, J>,
+    ) -> PatternPiece<S, J> {
+        let child = make(PatternPiece { parts: Vec::new(), hint: std::marker::PhantomData });
+        self.parts.extend(child.parts);
+        PatternPiece { parts: self.parts, hint: std::marker::PhantomData }
+    }
+    pub fn wrap(self, wrap: impl FnOnce(Vec<WorldPattern<S>>) -> WorldPattern<S>) -> Self {
+        Self::one(wrap(self.parts))
+    }
+    pub fn resolve(self) -> PatternPiece<S, Known>
+    where
+        H: ResolveHint<S>,
+    {
+        PatternPiece { parts: self.parts, hint: std::marker::PhantomData }
+    }
+    pub fn finish(self) -> WorldPath<S> {
+        Path::pattern(Pattern::Sequence(self.parts))
+    }
+    pub fn judged(self, predicate: impl Fn(&S) -> bool + 'static) -> Self
+    where
+        <S::World as Machine>::Action: 'static,
+    {
+        self.push(Pattern::state(Waypoint::judged(predicate)))
+    }
+}
 pub struct PatternContext<S>(std::marker::PhantomData<S>);
 impl<S: Registered> PatternContext<S>
 where
@@ -202,15 +296,11 @@ pub fn pattern_with<S: Registered>(
     make(PatternContext(std::marker::PhantomData))
 }
 impl<T: Actor + 'static> ActorFactory<T> {
-    pub fn build_pattern<S: Registered>(
-        self,
-        make: impl FnOnce(PatternContext<S>, WorldPattern<S>) -> WorldPattern<S>,
-    ) -> WorldBuilder<S>
+    pub fn piece<S: Registered>(self) -> PatternPiece<S, OwnerHint<T>>
     where
-        T: RegisteredActor<S>,
         <S::World as Machine>::Action: From<T> + 'static,
     {
-        DomainFactory::new(ActionDomain::new(Ok(1), move |_| self.0.clone())).build_pattern(make)
+        DomainFactory::new(ActionDomain::new(Ok(1), move |_| self.0.clone())).piece()
     }
     pub fn build<S: Registered>(
         self,
@@ -236,9 +326,9 @@ impl<S, T, K> Factory<S, K> for &&Probe<T>
 where
     T: IntoWaypoint<S, K>,
 {
-    type Factory = StateFactory<S>;
+    type Factory = StateFactory<S, K>;
     fn factory(self) -> Self::Factory {
-        StateFactory(self.take().into_waypoint())
+        StateFactory(self.take().into_waypoint(), std::marker::PhantomData)
     }
 }
 pub trait ActorFactoryValue {

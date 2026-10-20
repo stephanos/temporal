@@ -95,7 +95,14 @@ impl<S: Registered> Run<S> {
             search::Rooted { world: world.as_ref(), starts: vec![start.clone()], query: None };
         let explored = Checker::explore(&rooted, budget)?;
         let graph = crate::pattern_search::Graph::new(&explored)?;
-        let found = graph.shortest(&alternatives[0], false)?;
+        let found = match graph.shortest(&alternatives[0], false) {
+            Ok(found) => found,
+            Err(error @ Refusal::Unbridged { .. }) => {
+                search::failed(&explored.verify_all()?, 0, None)?;
+                return Err(error);
+            }
+            Err(error) => return Err(error),
+        };
         search::failed(&explored.verify_all()?, 0, Some(found.trace.steps.len()))?;
         Ok(Self::retained(world.clone(), found.trace))
     }

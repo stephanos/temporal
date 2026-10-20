@@ -37,8 +37,19 @@ where
 
 #[test]
 fn leading_structures_infer_nested_and_trailing_state_predicates() {
+    assert_eq!(
+        consume(
+            &Model { count: 0 },
+            path![(User::Advance | User::Disabled), |_| true, |s| s.count == 1]
+        ),
+        2
+    );
     let state = Model { count: 0 };
     assert_eq!(consume(&state, path![(User::Disabled | User::Advance), |s| s.count == 1]), 2);
+    assert_eq!(
+        consume(&state, path![(User::Advance | User::Disabled), User::Advance, |s| s.count == 2]),
+        2
+    );
     assert_eq!(
         consume(&state, path![(User::Advance | [|s| s.count == 0; 1]), |s| s.count == 1]),
         2

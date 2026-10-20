@@ -386,3 +386,41 @@ fn manual_world_predicates_keep_lexically_shadowed_state_bindings() {
     ];
     assert!(binders.iter().all(|pattern| pattern.alternative_count() == Ok(2)));
 }
+
+#[test]
+fn manual_world_selection_keeps_authored_predicate_and_waypoint_constraints() {
+    fn valid(_: &ManualState) -> bool {
+        true
+    }
+    let later: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), ManualState, |state| state.to_string() == "manual"];
+    let helper: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |state| valid(state) && state.to_string() == "manual"];
+    let matched: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |state| matches!(state, ManualState)
+            && state.to_string() == "manual"];
+    let nested: Path<ManualState, User, BorrowedOutcome> = path![
+        (User::Poll | User::Poll),
+        unordered![ManualState, |state| state.to_string() == "manual"]
+    ];
+    let bound: Path<ManualState, User, BorrowedOutcome> =
+        path![(User::Poll | User::Poll), |state @ ManualState| state.to_string() == "manual"];
+    let helper_then_bare: Path<ManualState, User, BorrowedOutcome> = path![
+        (User::Poll | User::Poll),
+        |state| valid(state) && state.to_string() == "manual",
+        |state| state.to_string() == "manual"
+    ];
+    let nested_helper_then_bare: Path<ManualState, User, BorrowedOutcome> = path![
+        (User::Poll | User::Poll),
+        unordered![|state| valid(state) && state.to_string() == "manual", |state| state
+            .to_string()
+            == "manual"]
+    ];
+    assert_eq!(later.alternative_count(), Ok(2));
+    assert_eq!(helper.alternative_count(), Ok(2));
+    assert_eq!(matched.alternative_count(), Ok(2));
+    assert_eq!(nested.alternative_count(), Ok(4));
+    assert_eq!(bound.alternative_count(), Ok(2));
+    assert_eq!(helper_then_bare.alternative_count(), Ok(2));
+    assert_eq!(nested_helper_then_bare.alternative_count(), Ok(4));
+}

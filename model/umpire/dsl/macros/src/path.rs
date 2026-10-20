@@ -22,7 +22,6 @@ fn split_pipes(tokens: TokenStream) -> Vec<TokenStream> {
 }
 
 enum Node {
-    Seed,
     Value(Expr),
     Structured(Path, Vec<(Ident, Domain)>),
     Wildcard(Path),
@@ -300,9 +299,21 @@ fn domain(path: &Path, fields: &[(Ident, Domain)]) -> syn::Result<TokenStream> {
     Ok(quote!(#result.finish()))
 }
 
+fn outcome_alternatives(outcomes: &[Pat]) -> Vec<TokenStream> {
+    outcomes
+        .iter()
+        .map(|outcome| {
+            quote!((
+                ::std::rc::Rc::new(|__outcome: &_| matches!(__outcome, #outcome))
+                    as ::umpire_dsl::OutcomePredicate<_>,
+                stringify!(#outcome).into()
+            ))
+        })
+        .collect()
+}
+
 fn pattern(node: &Node) -> syn::Result<TokenStream> {
     Ok(match node {
-        Node::Seed => quote!(__seed),
         Node::Value(Expr::Closure(closure)) => {
             quote!(__pattern.judged(#closure))
         }
@@ -349,36 +360,86 @@ fn pattern(node: &Node) -> syn::Result<TokenStream> {
             } else {
                 pattern(node)?
             };
-            let alternatives = outcomes.iter().map(|outcome| {
-                quote!((
-                    ::std::rc::Rc::new(|__outcome: &_| matches!(__outcome, #outcome))
-                        as ::umpire_dsl::OutcomePredicate<_>,
-                    stringify!(#outcome).into()
-                ))
-            });
+            let alternatives = outcome_alternatives(outcomes);
             quote!((#base).with_outcomes(vec![#(#alternatives),*]))
         }
     })
 }
 
-fn take_seed(node: &mut Node, actor_only: bool) -> Option<(Node, bool)> {
-    match node {
+fn piece(node: &Node, built: &TokenStream, actor_only: bool) -> syn::Result<TokenStream> {
+    Ok(match node {
+        Node::Value(value) if !actor_only && state_closure(value).is_some() => {
+            let mut context = StateContext::default();
+            state_context(node, &mut context);
+            if context.needs_owner {
+                quote!((#built).resolve().judged(#value))
+            } else if context.authored {
+                quote!({ let __built = #built; __built.join(::umpire_dsl::path_build::StateFactory::judged(#value).piece()) })
+            } else {
+                quote!((#built).judged(#value))
+            }
+        }
+        Node::Value(value) => {
+            let factory = if actor_only {
+                quote!(::umpire_dsl::path_build::actor_factory(#value))
+            } else {
+                quote!({
+                    use ::umpire_dsl::path_build::{Factory as _, ActorFactoryValue as _};
+                    let __value = ::umpire_dsl::path_build::Probe::new(#value);
+                    (&__value).factory()
+                })
+            };
+            quote!({ let __built = #built; __built.join((#factory).piece()) })
+        }
+        Node::Structured(path, fields) => {
+            let domain = domain(path, fields)?;
+            quote!({ let __built = #built; __built.join(::umpire_dsl::path_build::DomainFactory::new(#domain).piece()) })
+        }
+        Node::Wildcard(actor) => {
+            quote!({ let __built = #built; __built.join(::umpire_dsl::path_build::DomainFactory::new(#actor::__umpire_path_actions()).piece()) })
+        }
         Node::Either(nodes) | Node::Unordered(nodes) => {
-            nodes.first_mut().and_then(|node| take_seed(node, actor_only))
+            let mut child = quote!(__child);
+            for node in nodes {
+                child = piece(node, &child, false)?;
+            }
+            let wrap = if matches!(node, Node::Either(_)) {
+                quote!(::umpire_dsl::Pattern::Either)
+            } else {
+                quote!(::umpire_dsl::Pattern::Unordered)
+            };
+            quote!((#built).group(|__child| (#child).wrap(#wrap)))
         }
-        Node::Repeat(node, ..) => take_seed(node, actor_only),
-        Node::Outcome(node, _) => take_seed(node, true),
-        Node::Value(_) | Node::Structured(..) | Node::Wildcard(_) => {
-            Some((std::mem::replace(node, Node::Seed), actor_only))
+        Node::Repeat(node, min, max) => {
+            let child = piece(node, &quote!(__child), false)?;
+            let wrapped = max.as_ref().map_or_else(
+                || quote!(__node.repeat_exact(#min)),
+                |max| quote!(::umpire_dsl::Pattern::Repeat(Box::new(__node), #min, #max)),
+            );
+            quote!((#built).group(|__child| (#child).wrap(|mut __parts| {
+                let __node = __parts.pop().expect("repeat has one child");
+                #wrapped
+            })))
         }
-        Node::Gap(..) | Node::Seed => None,
-    }
+        Node::Outcome(node, outcomes) => {
+            let child = piece(node, &quote!(__child), true)?;
+            let alternatives = outcome_alternatives(outcomes);
+            quote!((#built).group(|__child| (#child).wrap(|mut __parts| {
+                __parts.pop().expect("outcome has one action").with_outcomes(vec![#(#alternatives),*])
+            })))
+        }
+        Node::Gap(..) => {
+            let node = pattern(node)?;
+            quote!((#built).push(#node))
+        }
+    })
 }
 
 #[derive(Default)]
 struct StateContext {
     explicit: Option<syn::Type>,
     needs_owner: bool,
+    authored: bool,
 }
 
 fn state_closure(value: &Expr) -> Option<&syn::ExprClosure> {
@@ -407,6 +468,26 @@ struct StateMembers<'a> {
     parameter: &'a Ident,
     visible: bool,
     found: bool,
+    independent: bool,
+}
+
+fn tokens_use_parameter(tokens: TokenStream, parameter: &Ident) -> bool {
+    tokens.into_iter().any(|token| match token {
+        proc_macro2::TokenTree::Ident(ident) => ident.unraw() == parameter.unraw(),
+        proc_macro2::TokenTree::Group(group) => tokens_use_parameter(group.stream(), parameter),
+        _ => false,
+    })
+}
+
+fn is_parameter(value: &Expr, parameter: &Ident) -> bool {
+    match value {
+        Expr::Path(value) => {
+            value.path.get_ident().is_some_and(|ident| ident.unraw() == parameter.unraw())
+        }
+        Expr::Paren(value) => is_parameter(&value.expr, parameter),
+        Expr::Reference(value) => is_parameter(&value.expr, parameter),
+        _ => false,
+    }
 }
 
 fn binds_parameter(pattern: &Pat, parameter: &Ident) -> bool {
@@ -433,7 +514,19 @@ impl<'ast> syn::visit::Visit<'ast> for StateMembers<'_> {
     }
     fn visit_expr_method_call(&mut self, call: &'ast syn::ExprMethodCall) {
         self.found |= self.visible && rooted_at(&call.receiver, self.parameter);
+        self.independent |= self.visible
+            && !rooted_at(&call.receiver, self.parameter)
+            && call.args.iter().any(|argument| is_parameter(argument, self.parameter));
         syn::visit::visit_expr_method_call(self, call);
+    }
+    fn visit_expr_call(&mut self, call: &'ast syn::ExprCall) {
+        self.independent |=
+            self.visible && call.args.iter().any(|argument| is_parameter(argument, self.parameter));
+        syn::visit::visit_expr_call(self, call);
+    }
+    fn visit_macro(&mut self, invocation: &'ast syn::Macro) {
+        self.independent |=
+            self.visible && tokens_use_parameter(invocation.tokens.clone(), self.parameter);
     }
     fn visit_block(&mut self, block: &'ast syn::Block) {
         let visible = self.visible;
@@ -497,17 +590,24 @@ fn state_context(node: &Node, context: &mut StateContext) {
             if let Some(closure) = state_closure(value) {
                 match closure.inputs.first() {
                     Some(Pat::Type(input)) => {
+                        context.authored = true;
                         if let syn::Type::Reference(reference) = input.ty.as_ref() {
                             context.explicit.get_or_insert_with(|| *reference.elem.clone());
                         }
                     }
-                    Some(Pat::Ident(input)) => {
-                        let mut members =
-                            StateMembers { parameter: &input.ident, visible: true, found: false };
+                    Some(Pat::Ident(input)) if input.subpat.is_none() => {
+                        let mut members = StateMembers {
+                            parameter: &input.ident,
+                            visible: true,
+                            found: false,
+                            independent: false,
+                        };
                         syn::visit::Visit::visit_expr(&mut members, &closure.body);
-                        context.needs_owner |= members.found;
+                        context.needs_owner |= members.found && !members.independent;
+                        context.authored |= members.independent;
                     }
-                    _ => {}
+                    Some(Pat::Wild(_)) => {}
+                    _ => context.authored = true,
                 }
             }
         }
@@ -521,52 +621,21 @@ fn state_context(node: &Node, context: &mut StateContext) {
     }
 }
 
-fn leading_pattern(node: &mut Node, context: &StateContext) -> syn::Result<TokenStream> {
+fn leading_pattern(node: &Node, context: &StateContext) -> syn::Result<TokenStream> {
     if let Some(state) = &context.explicit {
         let pattern = pattern(node)?;
         return Ok(
             quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with::<#state>(|__pattern| #pattern))),
         );
     }
-    if !context.needs_owner {
-        let pattern = pattern(node)?;
-        return Ok(
-            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern))),
-        );
-    }
-    let Some((seed, actor_only)) = take_seed(node, false) else {
-        let pattern = pattern(node)?;
-        return Ok(
-            quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern))),
-        );
-    };
-    let factory = match seed {
-        Node::Value(value) if actor_only => {
-            quote!(::umpire_dsl::path_build::actor_factory(#value))
-        }
-        Node::Value(Expr::Closure(closure)) => {
-            quote!(::umpire_dsl::path_build::StateFactory::judged(#closure))
-        }
-        Node::Value(value) => quote!({
-            use ::umpire_dsl::path_build::{Factory as _, ActorFactoryValue as _};
-            let __first = ::umpire_dsl::path_build::Probe::new(#value);
-            (&__first).factory()
-        }),
-        Node::Structured(path, fields) => {
-            let domain = domain(&path, &fields)?;
-            quote!(::umpire_dsl::path_build::DomainFactory::new(#domain))
-        }
-        Node::Wildcard(actor) => {
-            quote!(::umpire_dsl::path_build::DomainFactory::new(#actor::__umpire_path_actions()))
-        }
-        _ => unreachable!(),
-    };
-    let body = pattern(node)?;
-    Ok(quote!((#factory).build_pattern(|__pattern, __seed| #body)))
+    let pattern = pattern(node)?;
+    Ok(
+        quote!(::umpire_dsl::path_build::WorldBuilder::new(::umpire_dsl::path_build::pattern_with(|__pattern| #pattern))),
+    )
 }
 
 pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
-    let Nodes(mut nodes) = syn::parse2(tokens)?;
+    let Nodes(nodes) = syn::parse2(tokens)?;
     let mut context = StateContext::default();
     for node in &nodes {
         state_context(node, &mut context);
@@ -610,10 +679,17 @@ pub(crate) fn expand(tokens: TokenStream) -> syn::Result<TokenStream> {
             "a path has two or more waypoints: write [p, .., q]",
         ));
     }
+    if !matches!(&nodes[0], Node::Value(_)) && context.explicit.is_none() && context.needs_owner {
+        let mut built = quote!(::umpire_dsl::path_build::PatternPiece::empty());
+        for node in &nodes {
+            built = piece(node, &built, false)?;
+        }
+        return Ok(quote!((#built).finish()));
+    }
     let first = if matches!(&nodes[0], Node::Value(_)) {
         quote!(__path)
     } else {
-        leading_pattern(&mut nodes[0], &context)?
+        leading_pattern(&nodes[0], &context)?
     };
     let mut built = if matches!(&nodes[0], Node::Value(_)) { quote!(__path) } else { first };
     for node in nodes.iter().skip(1) {
