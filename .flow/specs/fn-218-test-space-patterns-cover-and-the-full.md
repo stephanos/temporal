@@ -85,3 +85,8 @@ They preserve R1–R5 and the existing state-waypoint and claim meanings.
   bound and cut behavior explicitly, and report the seed and experiment size with its expansion.
 - Task .1 owns the supporting DSL catalogs/actor projections as well as grammar and enumeration;
   .2 consumes them for matching, cover/sample and coverage; .3 supplies the real Model examples.
+- Keep `Space::budget(n)` exclusively a distinct-Model-state budget (fn-226). Add separately
+  configurable alternative-admission and random-walk limits; R2's count-over-budget refusal
+  uses the alternative limit. Covering two alternatives on a one-state graph must work with
+  Model-state budget one. Sampling reports its finite walk bound and refuses a selected
+  alternative that cannot finish within that bound rather than silently resampling an easier one.
