@@ -1,5 +1,7 @@
 # fn-221 preliminary proof point
 
+Historical wrapper-only evidence. The later [method-aware v2 proof](fn221-method-proof-2026-10-20.md) supersedes this proof for task .1.
+
 Observation on one candidate only. These wrapper-level results are not a support or qualification claim and do not satisfy the complete method-level sweep.
 
 The frozen candidate was `95f2d9695b61e2312f087de3f4fdd6982f9529aa`, with a clean tracked worktree at both inventory headers. The retained sidecars bind compiler, helper, launcher, harness, model, runtime, engine and guest configuration identities. Both runs used the throwaway configuration, seed 0, one guest at a time, a 5-minute execution timeout, a 20-minute preparation allowance, a 30-minute overall admission budget per package and a 2-GiB exemplar bound.
