@@ -95,9 +95,10 @@ continues separately without implying this task's completion.
 R1-R4 of the spec pass on the merged candidate with one handover.
 
 ## Done summary
-TBD
+Upstream main 48a1e5ff retained by merge 0077477965. Frozen candidate e50c6476fb passed 101/101 qualification stages run fresh (serial, 2h57m17s, before the 1-hour driver existed). R1 passes: the db.go dirty-flag fix restores upstream write behavior under the existing UPSTREAM.md #4 patch. R2-R4 pass. The matched-release comparison is transferred to fn-185 under owner decision d25d942c59. Helper rotated bbbb48fb->b030ad44; model 9b087b96 unchanged. Close-out: .flow/artifacts/fn189-fn187-closeout-2026-10-20.md
 
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
+- Commits: e50c6476fb, 0077477965
+- Tests: q1 qualification driver 101/101 PASS, go test -run Backlog ./service/matching
 - PRs:

@@ -12,8 +12,8 @@ The shared Gomad Runner owns campaigns, evidence storage, inspection and replay.
 WASM remains experimental. Selecting a package and test is supported CLI syntax;
 it does not guarantee that every Go or Temporal functional test fits the modeled
 boundary or reproduces. Qualification applies only to the candidate, profile,
-host, workload and executions named in retained evidence. The current upstream
-sync and helper work under fn-189 and fn-187 still await full qualification.
+host, workload and executions named in retained evidence. The upstream sync
+(fn-189) and helper work (fn-187) qualified on candidate `e50c6476fb`.
 Read the [milestones](../../MILESTONES.md) and
 [WASM qualification contract](internal/backends/wasm/QUALIFICATION.md) before
 making a support claim.

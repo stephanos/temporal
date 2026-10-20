@@ -11,7 +11,7 @@
   "priority": null,
   "spec": "fn-187-gomad-wasm-helper-fixture-tests-and",
   "spec_path": ".flow/tasks/fn-187-gomad-wasm-helper-fixture-tests-and.5.md",
-  "status": "todo",
+  "status": "done",
   "title": "Measure and document the simplified test suite",
   "updated_at": "2026-10-19T03:37:51.426413Z"
 }

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-189-gomad-sync-with-upstream-temporal-main",
   "spec_path": ".flow/tasks/fn-189-gomad-sync-with-upstream-temporal-main.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Merge upstream temporalio/temporal main into gomad and requalify",
   "updated_at": "2026-10-19T03:34:46.042715Z"
 }
