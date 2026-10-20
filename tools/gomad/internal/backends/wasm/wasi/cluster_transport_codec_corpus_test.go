@@ -190,7 +190,7 @@ func TestClusterTransportCodecLiteralStageGuards(t *testing.T) {
 	current := string(appendClusterTag(nil, "a", 2, []byte("{\"type\":\"reply\"}\n")))
 	currentErr := clusterTransportCodecFrame(value.Target, current)
 	var currentBoundary *BoundaryError
-	if !errors.As(currentErr, &currentBoundary) || currentBoundary.Kind != "invalid" || currentBoundary.Dimension != "unexpected instance frame" {
+	if !errors.As(currentErr, &currentBoundary) || currentBoundary.Kind != "unsupported" || currentBoundary.Dimension != "unknown cluster frame reply" {
 		t.Fatalf("current tag did not pass attribution before payload refusal: %v", currentErr)
 	}
 	if clusterTransportCodecIsUnattributable(currentErr) {
@@ -212,7 +212,7 @@ func TestClusterTransportCodecLiteralStageGuards(t *testing.T) {
 		{"result-payload", func(c *clusterTransportCodecCase) { c.ResultPayload = "{\"type\":\"call\"}\n" }},
 		{"current-tag-not-stale", func(c *clusterTransportCodecCase) { c.IncomingFrame = current }},
 		{"payload-stage-error", func(c *clusterTransportCodecCase) {
-			c.Expected.GoAttributionError.Dimension = "unexpected instance frame"
+			c.Expected.GoAttributionError = clusterTransportCodecError{Kind: "unsupported", Dimension: "unknown cluster frame reply", Message: "WASI unsupported: unknown cluster frame reply"}
 		}},
 	}
 	for _, mutation := range mutations {

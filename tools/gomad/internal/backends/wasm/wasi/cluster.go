@@ -868,7 +868,7 @@ func (stream *clusterStream) frame(data []byte) error {
 			return state.sink.receiveHelperEvidence(frame)
 		}
 		if kind != "result" {
-			return invalid("unexpected instance frame")
+			return &BoundaryError{Kind: "unsupported", Dimension: "unknown cluster frame " + kind}
 		}
 		inspecting := false
 		for _, candidate := range s.states {
