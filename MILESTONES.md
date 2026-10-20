@@ -261,7 +261,7 @@ CI, PR, or push authority.
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | ⬜ Todo | Qualify the one-box cell on the current candidate |
+| [fn-222.1](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.1.md) | 🚧 In progress | Qualify the one-box cell on the current candidate |
 | [fn-222.2](.flow/tasks/fn-222-gomad-qualify-the-one-box-cell-and.2.md) | ⬜ Todo | Define the per-test support list and produce the first one |
 
 ### WASM determinism boundary audit — [fn-188](.flow/specs/fn-188-gomad-wasm-determinism-boundary-audit.md)
@@ -270,6 +270,12 @@ CI, PR, or push authority.
 | --- | --- | --- |
 | [fn-188.5](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.5.md) | 🚧 In progress | Same-seed stress producer with host perturbation axes and retained report |
 | [fn-188.6](.flow/tasks/fn-188-gomad-wasm-determinism-boundary-audit.6.md) | ⬜ Todo | Regression gates, version pinning, validate wiring and the documented contract |
+
+### Map-order determinism repairs — [fn-227](.flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md)
+
+| Name / ID | Status | Description |
+| --- | --- | --- |
+| [fn-227.1](.flow/tasks/fn-227-gomad-close-wasm-map-order-determinism.1.md) | 🚧 In progress | Sort live-node shutdown and invalid-volume validation with behavioral regressions and qualification |
 
 ### Ringpop membership on WASM within reason — [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md)
 
