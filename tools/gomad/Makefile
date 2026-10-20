@@ -65,10 +65,22 @@ wasm-test-helper:
 generate:
 	go run ./internal/model/cmd/protocolgen
 
-validate: validate-protocol validate-wasm-determinism
+validate: validate-protocol validate-replay-plan validate-wasm-determinism
 
 validate-protocol:
 	go run ./internal/model/cmd/protocolgen -check
+
+.PHONY: validate-replay-plan
+validate-replay-plan:
+	@corpus_tmp="$$(mktemp -d)" || exit 1; \
+	trap 'rm -rf -- "$${corpus_tmp:?}"' EXIT; \
+	for pass in first second; do \
+		GOMAD_REPLAY_PLAN_CORPUS_REGENERATE=1 GOMAD_REPLAY_PLAN_CORPUS_DIR="$$corpus_tmp/$$pass" \
+			go test -tags $(GOMAD_TEST_TAGS) -count=1 -run '^TestReplayPlanConformance$$' ./internal/model/choice || exit $$?; \
+	done; \
+	diff -ru internal/backends/wasm/wasmhost/tests/testdata/replay_plan "$$corpus_tmp/first" && \
+		diff -ru "$$corpus_tmp/first" "$$corpus_tmp/second"
+	cargo +1.99.1 test --manifest-path internal/backends/wasm/wasmhost/Cargo.toml --release --locked --bin gomad-wasmhost replay_plan
 
 # Everything below is the native backend, which is retired from execution but
 # still generates and validates under its own selection (gomad_native).

@@ -6,6 +6,7 @@ use std::collections::HashMap;
 mod guest_state;
 mod imports;
 pub mod inspection;
+pub mod replay_plan;
 mod reply;
 
 const CHUNK: usize = 64 * 1024;
