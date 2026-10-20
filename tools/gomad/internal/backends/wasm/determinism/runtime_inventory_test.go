@@ -66,16 +66,17 @@ func TestRuntimeInventoryAllowsHistoricalRetirement(t *testing.T) {
 	t.Parallel()
 	inventory := loadInventory(t)
 	derived := runtimeSiteSets(t)
+	checkRuntimeHistoricalRetirement(t, inventory, derived, identityHistoryJSON)
+}
+
+func checkRuntimeHistoricalRetirement(t *testing.T, inventory Inventory, derived map[string]map[string]int, history []byte) {
+	t.Helper()
+	require.NoError(t, checkIdentityHistory(history, inventory.Entries))
 	for kind := range derived {
 		t.Run(kind, func(t *testing.T) {
 			t.Parallel()
 			retired := inventory
 			retired.Entries = slices.Clone(inventory.Entries)
-			for index := range retired.Entries {
-				if strings.HasPrefix(retired.Entries[index].Site, kind+":") {
-					retired.Entries[index].Disposition = "rejected"
-				}
-			}
 			changed := make(map[string]map[string]int, len(derived))
 			for name, original := range derived {
 				changed[name] = make(map[string]int, len(original))
@@ -83,11 +84,43 @@ func TestRuntimeInventoryAllowsHistoricalRetirement(t *testing.T) {
 					changed[name][site] = count
 				}
 			}
-			clear(changed[kind])
+			for index := range retired.Entries {
+				entry := &retired.Entries[index]
+				if !strings.HasPrefix(entry.Site, kind+":") {
+					continue
+				}
+				candidate := *entry
+				candidate.Disposition = "rejected"
+				if candidate.retiredIdentity(history) {
+					entry.Disposition = "rejected"
+					delete(changed[kind], strings.TrimPrefix(entry.Site, kind+":"))
+				}
+			}
 			require.NoError(t, runtimeInventoryCoverage(retired, changed["runtime-draw"], changed["runtime-clock"], changed["runtime-other"]))
 			checkRuntimePerSiteRows(t, retired, changed)
 		})
 	}
+}
+
+func TestRuntimeHistoricalRetirementKeepsAppendedSitesActive(t *testing.T) {
+	t.Parallel()
+	inventory := loadInventory(t)
+	derived := runtimeSiteSets(t)
+	entry := Entry{
+		ID: "appended.active.runtime-site", Layer: "guest-runtime", Class: "scheduling",
+		Site: "runtime-other:wasip1/wasm runtime/new.go execute patch", Disposition: "controlled",
+		Owner: "runtime inventory test fixture", Rule: "The fixture adds a controlled runtime patch with a matching active source site.",
+		Evidence: []string{"go:internal/backends/wasm/determinism:TestWasip1RuntimeDrawAndClockReferencesAreReviewed"},
+	}
+	inventory.Entries = append(inventory.Entries, entry)
+	derived["runtime-other"]["wasip1/wasm runtime/new.go execute patch"] = 1
+	var records []identityRecord
+	require.NoError(t, json.Unmarshal(identityHistoryJSON, &records))
+	records = append(records, identityRecord{entry.ID, entry.Site})
+	history, err := json.Marshal(records)
+	require.NoError(t, err)
+	require.NoError(t, runtimeInventoryCoverage(inventory, derived["runtime-draw"], derived["runtime-clock"], derived["runtime-other"]))
+	checkRuntimeHistoricalRetirement(t, inventory, derived, history)
 }
 
 // Draw rows: platform|file|function|symbol|kind|count|class|stream|reachability|reason.
