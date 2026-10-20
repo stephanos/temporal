@@ -13,6 +13,8 @@ Also run the R6 measurements transferred from fn-182 R4 and fn-184 R5 (owner dec
 
 
 **Re-scope (owner decision 2026-10-19):** this task waits for the fn-221 triage sweep and profiles sweep workloads, not only the fixtures above. Add the functional tests the sweep retains as passing, slowest-passing and timeout/capacity representatives (at least one of each, named by the sweep's support matrix) to the measured workload set with the same warmup, repetition, identity and retention contract. The fixture and cluster sets above remain for comparison with fn-178. Task .1's attribution tooling is not gated and may land before the sweep so the sweep harness can label timeouts by cost center.
+
+**Delivery ordering (2026-10-20):** under the owner's instruction to follow recommendations autonomously, tasks .2/.3 run after the functional milestones in MILESTONES.md. Task .1's attribution tooling remains available alongside. Targeted profiling may come forward only for a demonstrated performance blocker. Unmeasured timeout/capacity cases remain unresolved, not unsupported; their cost-dependent follow-on classification waits for the measured verdict. This changes scheduling only: all workloads, repetitions, identities, witness comparisons and transferred R6 acceptance above remain required.
 ## Acceptance
 - [ ] All six workload/seed sets measured with warmup plus three warm repetitions; medians and ranges retained
 - [ ] perf-derived owner ranking agrees with wall attribution on the top three owners, or the disagreement is reported
