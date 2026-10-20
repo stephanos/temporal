@@ -122,10 +122,15 @@ Before starting the implementation or review of any request, you MUST REVIEW the
 - Create git worktrees only under `/home/agent/wt/<name>` (durable across restarts). Do not create
   worktrees or scratch checkouts in `/tmp` or as `gomad-*` siblings of the repository; they are
   either lost on restart, leaving stale `prunable` entries, or accumulate on the shared disk.
-- Whoever creates a worktree removes it once it is no longer in use: after its branch is merged or
-  abandoned, its evidence is copied to `/home/agent/wt/evidence/<name>/` or `.flow/artifacts/`, and
-  no process still runs in it. Use `git worktree remove <path>` (never `rm -rf` on a live
-  worktree) and keep the branch unless its commits are merged into `gomad`.
+- Whoever creates a worktree removes it once it is no longer in use and no process runs in it.
+  Use `git worktree remove <path>` rather than recursively deleting a registered worktree.
+- Closed-spec cleanup (owner decision, 2026-10-20): delete all worktrees, branches and evidence
+  owned by a closed Flow spec. Resolve exact targets from current Flow state before deletion.
+  Transfer any inputs still required by an open spec to that explicit owner and verify its
+  references first; then delete the closed owner's copies. Preserve Flow spec/task records and
+  Git history, not obsolete evidence files or branch refs. Move ongoing integration work off a
+  closed spec's branch before deleting that ref. This supersedes older evidence/branch retention
+  instructions for closed specs; open specs keep the evidence their acceptance still requires.
 - Never remove a worktree with uncommitted changes, or with commits that no branch holds; commit
   to its branch first or hand it to the owner. Never remove another session's or worker's
   in-flight worktree.
