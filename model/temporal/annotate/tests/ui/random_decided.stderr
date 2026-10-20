@@ -1,0 +1,5 @@
+error: contradictory roles or kind/tag pair
+ --> tests/ui/random_decided.rs:7:58
+  |
+7 |     message response message: Message = "test.Message" { bytes: Random + Decided; }
+  |                                                          ^^^^^

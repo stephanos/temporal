@@ -16,6 +16,9 @@ members = [
     "umpire/wasm/guests/stock",
     "umpire/wasm/guests/control",
     "temporal/api",
+    "temporal/annotate",
+    "temporal/annotate/macros",
+    "temporal/annotate/syntax",
     "temporal/realization",
     "temporal/guest",
     "temporal/testing",
@@ -39,6 +42,9 @@ umpire-lift = { version = "0.0.1", path = "umpire/lift" }
 umpire-tlc = { version = "0.0.1", path = "umpire/backends/tlc" }
 umpire-wasm = { version = "0.0.1", path = "umpire/wasm" }
 umpire-temporal-api = { version = "0.0.1", path = "temporal/api" }
+umpire-temporal-annotate = { version = "0.0.1", path = "temporal/annotate" }
+umpire-temporal-annotate-macros = { version = "0.0.1", path = "temporal/annotate/macros" }
+umpire-temporal-annotate-syntax = { version = "0.0.1", path = "temporal/annotate/syntax" }
 umpire-temporal = { version = "0.0.1", path = "temporal/realization" }
 
 # Admitted dependencies (fn-210 R18). Declared once here; a crate opts in with `name.workspace = true`.

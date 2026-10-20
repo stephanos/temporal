@@ -1,0 +1,5 @@
+error: request constraint requires an expectation and covers
+ --> tests/ui/missing_request_expectation.rs:7:57
+  |
+7 |     message request message: Message = "test.Message" { id: Uuid; }
+  |                                                         ^^

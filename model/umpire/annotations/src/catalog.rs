@@ -228,6 +228,67 @@ impl<M: 'static, T: FieldValue> Field<M, T> {
     }
 }
 
+/// An opaque typed field explicitly excluded from validation and generation.
+pub struct IgnoredField<M, T> {
+    descriptor: FieldDescriptor,
+    set: Setter<M, T>,
+    errors: Vec<AdmissionError>,
+}
+
+impl<M: 'static, T: Clone + Default + 'static> IgnoredField<M, T> {
+    /// Checks the actual field type and retains its kind, including secret redaction.
+    pub fn new(
+        path: impl Into<String>,
+        kind: Kind,
+        get: fn(&M) -> &T,
+        set: fn(&mut M) -> &mut T,
+        reason: impl Into<String>,
+    ) -> Self {
+        Self::projected(
+            path,
+            kind,
+            move |message| get(message).clone(),
+            move |message, value| *set(message) = value,
+            reason,
+        )
+    }
+    /// Typed projection for ignored wrappers, nested fields and oneof payloads.
+    /// Only secret or unconstrained opaque bytes kinds admit arbitrary Rust types.
+    pub fn projected(
+        path: impl Into<String>,
+        kind: Kind,
+        _get: impl Fn(&M) -> T + 'static,
+        set: impl Fn(&mut M, T) + 'static,
+        reason: impl Into<String>,
+    ) -> Self {
+        let path = path.into();
+        let supported = matches!(&kind, Kind::Secret)
+            || matches!(&kind, Kind::Bytes(rules) if rules.min_len.is_none() && rules.max_len.is_none());
+        let errors = if supported {
+            Vec::new()
+        } else {
+            vec![AdmissionError::UnsupportedKind {
+                path: path.clone(),
+                kind: kind.clone(),
+                rust_type: std::any::type_name::<T>(),
+            }]
+        };
+        Self {
+            descriptor: FieldDescriptor {
+                kind_constraints: Vec::new(),
+                path,
+                rust_type: std::any::type_name::<T>(),
+                kind,
+                tags: vec![("Ignored".into(), Consequence::Ignored(reason.into()))],
+                repeated: None,
+                expectations: BTreeMap::new(),
+            },
+            set: Box::new(set),
+            errors,
+        }
+    }
+}
+
 trait Access<M> {
     fn descriptor(&self) -> &FieldDescriptor;
     fn descriptor_mut(&mut self) -> &mut FieldDescriptor;
@@ -236,6 +297,30 @@ trait Access<M> {
     fn violations(&self, message: &M) -> Vec<&'static str>;
     fn fill(&self, message: &mut M, rng: &mut Rng) -> Result<(), GenerationError>;
     fn clear(&self, message: &mut M);
+}
+
+impl<M: 'static, T: Clone + Default + 'static> Access<M> for IgnoredField<M, T> {
+    fn descriptor(&self) -> &FieldDescriptor {
+        &self.descriptor
+    }
+    fn descriptor_mut(&mut self) -> &mut FieldDescriptor {
+        &mut self.descriptor
+    }
+    fn errors(&self) -> &[AdmissionError] {
+        &self.errors
+    }
+    fn present(&self, _message: &M) -> bool {
+        false
+    }
+    fn violations(&self, _message: &M) -> Vec<&'static str> {
+        Vec::new()
+    }
+    fn fill(&self, _message: &mut M, _rng: &mut Rng) -> Result<(), GenerationError> {
+        Ok(())
+    }
+    fn clear(&self, message: &mut M) {
+        (self.set)(message, T::default());
+    }
 }
 
 impl<M: 'static, T: FieldValue> Access<M> for Field<M, T> {
@@ -439,9 +524,17 @@ impl<M: 'static> Catalog<M> {
 impl<M: 'static> CatalogBuilder<M> {
     /// Adds one typed field.
     #[must_use]
-    pub fn field<T: FieldValue>(mut self, mut field: Field<M, T>) -> Self {
+    pub fn field<T: FieldValue>(self, field: Field<M, T>) -> Self {
+        self.add(field)
+    }
+    /// Adds an opaque field with a mandatory ignored role and explanation.
+    #[must_use]
+    pub fn ignored<T: Clone + Default + 'static>(self, field: IgnoredField<M, T>) -> Self {
+        self.add(field)
+    }
+    fn add(mut self, mut field: impl Access<M> + 'static) -> Self {
         self.errors.extend_from_slice(field.errors());
-        let path = self.catalog.qualified(&field.descriptor.path);
+        let path = self.catalog.qualified(&field.descriptor().path);
         field.descriptor_mut().path.clone_from(&path);
         if self.catalog.fields.insert(path.clone(), Box::new(field)).is_some() {
             self.errors.push(AdmissionError::InvalidPath(path));

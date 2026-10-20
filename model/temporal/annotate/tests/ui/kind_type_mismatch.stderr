@@ -1,0 +1,21 @@
+error[E0277]: the trait bound `String: SupportsKind<umpire_annotations::types::Counter>` is not satisfied
+ --> tests/ui/kind_type_mismatch.rs:5:1
+  |
+5 | / umpire_temporal_annotate::annotate! {
+6 | |     pub catalog controls;
+7 | |     message response message: Message = "test.Message" { count: Counter; }
+8 | | }
+  | |_^ the trait `SupportsKind<umpire_annotations::types::Counter>` is not implemented for `String`
+  |
+  = help: `String` implements trait `SupportsKind<K>`:
+            SupportsKind<umpire_annotations::types::Identifier>
+            SupportsKind<umpire_annotations::types::Random>
+            SupportsKind<umpire_annotations::types::Secret>
+            SupportsKind<umpire_annotations::types::Text>
+            SupportsKind<umpire_annotations::types::Uuid>
+note: required by a bound in `check`
+ --> $WORKSPACE/umpire/annotations/src/types.rs
+  |
+  | pub fn check<K, T: SupportsKind<K>>(_field: &T) {}
+  |                    ^^^^^^^^^^^^^^^ required by this bound in `check`
+  = note: this error originates in the macro `umpire_temporal_annotate::annotate` (in Nightly builds, run with -Z macro-backtrace for more info)

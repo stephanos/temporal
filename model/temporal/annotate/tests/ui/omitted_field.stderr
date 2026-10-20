@@ -1,0 +1,21 @@
+error[E0027]: pattern does not mention field `omitted`
+ --> tests/ui/omitted_field.rs:8:31
+  |
+8 |     message response message: Message = "test.Message" { id: Uuid; }
+  |                               ^^^^^^^ missing field `omitted`
+  |
+help: include the missing field in the pattern
+  |
+8 -     message response message: Message = "test.Message" { id: Uuid; }
+8 +     message response message: Message, omitted }: Uuid; }
+  |
+help: if you don't care about this missing field, you can explicitly ignore it
+  |
+8 -     message response message: Message = "test.Message" { id: Uuid; }
+8 +     message response message: Message, omitted: _ }: Uuid; }
+  |
+help: or always ignore missing fields here
+  |
+8 -     message response message: Message = "test.Message" { id: Uuid; }
+8 +     message response message: Message, .. }: Uuid; }
+  |

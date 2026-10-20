@@ -1,0 +1,22 @@
+error[E0277]: the trait bound `String: SupportsRepeated` is not satisfied
+  --> tests/ui/repeated_text_scalar.rs:5:1
+   |
+ 5 | / umpire_temporal_annotate::annotate! {
+ 6 | |     catalog controls;
+ 7 | |     message response message: Message = "test.Message" {
+ 8 | |         value: Text[min_items = 1];
+ 9 | |     }
+10 | | }
+   | |_^ the trait `SupportsRepeated` is not implemented for `String`
+   |
+help: the trait `SupportsRepeated` is implemented for `Vec<T>`
+  --> $WORKSPACE/umpire/annotations/src/types.rs
+   |
+   | impl<T: crate::FieldValue> SupportsRepeated for Vec<T> {}
+   | ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+note: required by a bound in `check_repeated`
+  --> $WORKSPACE/umpire/annotations/src/types.rs
+   |
+   | pub fn check_repeated<T: SupportsRepeated>(_field: &T) {}
+   |                          ^^^^^^^^^^^^^^^^ required by this bound in `check_repeated`
+   = note: this error originates in the macro `umpire_temporal_annotate::annotate` (in Nightly builds, run with -Z macro-backtrace for more info)
