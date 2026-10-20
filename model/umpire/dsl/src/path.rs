@@ -301,17 +301,6 @@ impl<S, A: 'static, O> Pattern<S, A, O> {
         Self::Action(domain.described(), outcome, label)
     }
 
-    /// Requires a borrowed typed outcome on this action node.
-    ///
-    /// # Panics
-    /// Panics when attached to a state, gap or structural node instead of an action.
-    pub fn with_outcome(self, outcome: OutcomePredicate<O>, label: String) -> Self {
-        match self {
-            Self::Action(domain, _, _) => Self::Action(domain, Some(outcome), Some(label)),
-            _ => panic!("an outcome follows one action"),
-        }
-    }
-
     /// Shares this action domain among borrowed outcome alternatives.
     ///
     /// # Panics
