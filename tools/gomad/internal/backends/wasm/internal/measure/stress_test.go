@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"context"
 	"crypto/sha256"
+	"encoding/json"
 	"errors"
 	"maps"
 	"os"
@@ -37,6 +38,23 @@ func TestStressMatrix(t *testing.T) {
 		if cases[index].Seed != uint64(index)*1000003 {
 			t.Fatal(cases[index])
 		}
+	}
+}
+
+func TestStressSummariesExcludeHelperEventOrder(t *testing.T) {
+	t.Parallel()
+	observation := stressFixture()
+	observation.Run.OrderLog = &determinism.EventOrder{}
+	summary := stressSummary(observation)
+	if summary.Run.OrderLog != nil || observation.Run.OrderLog == nil {
+		t.Fatal("summary retained or consumed the raw helper event order")
+	}
+	encoded, err := json.Marshal(summary)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if bytes.Contains(encoded, []byte("OrderLog")) {
+		t.Fatal("aggregate summary embeds the helper sidecar")
 	}
 }
 

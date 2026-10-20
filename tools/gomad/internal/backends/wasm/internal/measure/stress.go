@@ -559,7 +559,7 @@ func stressExecuteOne(ctx context.Context, test stressCase, original wasi.Reques
 	if err != nil {
 		return observation, err
 	}
-	campaign, err := stressRunnerCampaign(ctx, root, provider, spec, request)
+	campaign, err := stressRunnerCampaign(ctx, input(ctx, "GOMAD_WASM_STRESS_ROOT"), provider, spec, request)
 	if err != nil {
 		return observation, err
 	}
@@ -678,6 +678,7 @@ func stressSummary(observation stressObservation) stressObservation {
 	observation.Run.Incarnations = nil
 	observation.Run.WorldOrder = nil
 	observation.Run.Boundaries = nil
+	observation.Run.OrderLog = nil
 	return observation
 }
 

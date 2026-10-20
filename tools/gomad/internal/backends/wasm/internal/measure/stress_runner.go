@@ -85,7 +85,7 @@ func stressRunnerInstallation(root string, original wasi.Request) (string, error
 	return filepath.Join(root, "stress-installation-"+digest(encoded)+".json"), nil
 }
 
-func stressRunnerCampaign(ctx context.Context, root string, provider *wasmbackend.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {
+func stressRunnerCampaign(ctx context.Context, sharedRoot string, provider *wasmbackend.Provider, spec target.Spec, original wasi.Request) (runner.CampaignResult, error) {
 	if original.Runtime == nil || original.Runtime.Choice == nil || original.Runtime.Choice.Mode != choice.ModeRecord || original.Runtime.Choice.Tape != nil {
 		return runner.CampaignResult{}, errors.New("stress campaign requires a fresh seeded request")
 	}
@@ -99,7 +99,7 @@ func stressRunnerCampaign(ctx context.Context, root string, provider *wasmbacken
 		OnFailure: runner.PolicyFirst, FailureBudget: 1,
 		OutputLimit: original.Config.Limits.OutputBytes, IOTranscriptLimit: original.Config.Limits.TranscriptBytes,
 		WorldTransitionLimit: 64 << 20, Diagnostics: diagnostics, ChoiceTraceLimit: choices,
-		Artifacts: filepath.Join(root, "artifacts"), Environment: stressRunnerEnvironment(original.Config.Environment),
+		Artifacts: filepath.Join(sharedRoot, "artifacts"), Environment: stressRunnerEnvironment(original.Config.Environment),
 		RunnerBuild: "gomad-wasm-determinism-stress/v1", Coverage: campaignoptions.CoverageNone,
 		KeepSuccesses: runner.KeepSuccessesAll, SuccessArtifactLimit: 1, SuccessBytesLimit: 2 << 30,
 		Target: spec,
