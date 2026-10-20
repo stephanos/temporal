@@ -27,7 +27,7 @@ func TestToolPackageLayout(t *testing.T) {
 		root   string
 		groups []string
 	}{
-		{".", []string{"cmd", "internal", "testdata"}},
+		{".", []string{"cmd", "internal", "rust", "scripts", "testdata"}},
 		{"internal", []string{"archcheck", "backends", "evidence", "host", "model", "runner"}},
 		{"cmd", []string{"gomad"}},
 	} {
