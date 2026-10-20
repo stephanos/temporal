@@ -30,4 +30,14 @@ cd /home/agent/wt/fn227-map-order/tools/gomad && env -u GOROOT GOENV=off GOTOOLC
 
 These are focused command unit tests with inert fake compiler/helper files. They do not execute a compiler, build a guest or supply a qualification result. The command-tool outputs are the worker's evidence; no separate raw logs were retained for these focused runs. The preexisting qualification log path above is retained by the conductor.
 
-`git -C /home/agent/wt/fn227-map-order diff --check` exited **0**. Focused lint remains to be recorded after the conductor releases the host. No Flow completion, push, PR or CI action is performed by this worker.
+`git -C /home/agent/wt/fn227-map-order diff --check` exited **0**. Implementation checkpoint: `0e9fa028de`.
+
+## Required focused lint
+
+After the conductor confirmed the previous qualification process had terminated and no frozen/scratch processes remained, this command exited **0**, reporting **0 issues** and completing errortype vet:
+
+```sh
+cd /home/agent/wt/fn227-map-order && env -u GOROOT GOENV=off GOTOOLCHAIN=local GOWORK=off GOMAXPROCS=2 GOFLAGS=-p=1 PATH=/home/agent/go/pkg/mod/golang.org/toolchain@v0.0.1-go1.27.1.linux-arm64/bin:/usr/local/bin:/usr/bin:/bin make lint-code-fast GOLANGCI_LINT_BASE_REV=81b97243a8 GOLANGCI_LINT=/home/agent/wt/evidence/fn219/qualification-inputs/host-tools/golangci-lint-v2.13.0 ERRORTYPE=/home/agent/wt/evidence/fn219/qualification-inputs/host-tools/errortype GOLANGCI_LINT_FIX=false
+```
+
+The selector reported 59 Gomad host packages. Golangci-lint 2.13.0, built with Go 1.27.1, reported `5.687017336s` execution and peak sampled memory `578.1MB`. No full test suite or ordinary qualification run was started by the worker. The conductor owns integrated qualification and Flow completion; no push, PR or CI action was performed.
