@@ -116,6 +116,22 @@ fn exact_length_anchors_preserve_partial_overlap() -> Result<(), Box<dyn std::er
             assert_eq!(validate(&a, &catalog), []);
         }
     }
+    let ranged = catalog::<String>(
+        Kind::Text(StringRules {
+            prefix: Some("a".into()),
+            suffix: Some("a".into()),
+            contains: Some("b".into()),
+            min_len: Some(1),
+            max_len: Some(3),
+        }),
+        None,
+        None,
+    )?;
+    for seed in 0..8 {
+        let mut message = Message::default();
+        fill(&mut message, &ranged, &mut Rng::new(seed))?;
+        assert_eq!(message.value, "aba");
+    }
     Ok(())
 }
 
@@ -210,6 +226,22 @@ fn unique_repeated_times_sample_the_allowed_domain() -> Result<(), Box<dyn std::
         Some(repeated),
         None,
     )?;
+    let anchored = catalog::<Vec<String>>(
+        Kind::Text(StringRules {
+            prefix: Some("a".into()),
+            suffix: Some("a".into()),
+            contains: Some("aba".into()),
+            min_len: Some(4),
+            max_len: Some(4),
+        }),
+        Some(RepeatedRules { min_items: Some(2), max_items: Some(2), unique: true }),
+        None,
+    )?;
+    let mut variants = Message::default();
+    fill(&mut variants, &anchored, &mut Rng::new(0))?;
+    assert!(variants.value.iter().any(|value| value == "aaba"));
+    assert!(variants.value.iter().any(|value| value == "abaa"));
+    assert_eq!(validate(&variants, &anchored), []);
     let mut text = Message::default();
     let mut data = Message::default();
     let mut values = Message::default();

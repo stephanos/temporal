@@ -31,7 +31,7 @@ pub enum GenerationError {
     UnsupportedType,
     /// No value satisfies the declared constraints.
     ImpossibleConstraints,
-    /// Construction exceeds the bounded generator's size or presence-search limit.
+    /// Construction exceeds the bounded generator's size or search limit.
     SizeLimit,
 }
 
@@ -138,30 +138,99 @@ fn uuid(value: &str) -> bool {
         })
 }
 
-fn append_overlapping(value: &mut String, suffix: &str) {
-    let overlap = suffix
-        .char_indices()
-        .map(|(i, _)| i)
-        .chain(std::iter::once(suffix.len()))
-        .filter(|&i| value.ends_with(&suffix[..i]))
-        .max()
-        .unwrap_or(0);
-    value.push_str(&suffix[overlap..]);
+fn place_anchor(
+    slots: &mut [Option<char>],
+    offset: usize,
+    anchor: &[char],
+    budget: &mut usize,
+) -> Result<bool, GenerationError> {
+    let slots = &mut slots[offset..offset + anchor.len()];
+    for (slot, value) in slots.iter().zip(anchor) {
+        if *budget == 0 {
+            return Err(GenerationError::SizeLimit);
+        }
+        *budget -= 1;
+        if slot.is_some_and(|fixed| fixed != *value) {
+            return Ok(false);
+        }
+    }
+    for (slot, value) in slots.iter_mut().zip(anchor) {
+        *slot = Some(*value);
+    }
+    Ok(true)
 }
 
-fn text_base(rules: &StringRules) -> String {
-    let prefix = rules.prefix.as_deref().unwrap_or_default();
-    let suffix = rules.suffix.as_deref().unwrap_or_default();
-    let mut value = prefix.to_owned();
-    append_overlapping(&mut value, suffix);
-    if let Some(part) = &rules.contains
-        && !value.contains(part)
+fn text_candidate(
+    len: usize,
+    anchors: &[Vec<char>; 3],
+    rng: &mut Rng,
+    budget: &mut usize,
+) -> Result<Option<String>, GenerationError> {
+    let [prefix, suffix, contains] = anchors;
+    let mut slots = vec![None; len];
+    if !place_anchor(&mut slots, 0, prefix, budget)?
+        || !place_anchor(&mut slots, len - suffix.len(), suffix, budget)?
     {
-        prefix.clone_into(&mut value);
-        append_overlapping(&mut value, part);
-        append_overlapping(&mut value, suffix);
+        return Ok(None);
     }
-    value
+    let positions = len - contains.len() + 1;
+    let first = usize::try_from(
+        rng.next_u64() % u64::try_from(positions).map_err(|_| GenerationError::SizeLimit)?,
+    )
+    .map_err(|_| GenerationError::SizeLimit)?;
+    for step in 0..positions {
+        let position = (first + step) % positions;
+        if place_anchor(&mut slots, position, contains, budget)? {
+            return Ok(Some(
+                slots
+                    .into_iter()
+                    .map(|slot| {
+                        slot.unwrap_or_else(|| {
+                            char::from(b'a' + u8::try_from(rng.next_u64() % 26).unwrap_or(0))
+                        })
+                    })
+                    .collect(),
+            ));
+        }
+    }
+    Ok(None)
+}
+
+fn generate_text(
+    rules: &StringRules,
+    identifier: bool,
+    rng: &mut Rng,
+) -> Result<String, GenerationError> {
+    let anchors = [&rules.prefix, &rules.suffix, &rules.contains].map(|anchor| {
+        anchor
+            .as_deref()
+            .unwrap_or_default()
+            .chars()
+            .take(MAX_GENERATED_LEN + 1)
+            .collect::<Vec<_>>()
+    });
+    let min = rules
+        .min_len
+        .unwrap_or(0)
+        .max(usize::from(identifier))
+        .max(anchors.iter().map(Vec::len).max().unwrap_or(0));
+    generated_len(min, rules.max_len)?;
+    let max = rules
+        .max_len
+        .unwrap_or_else(|| min + anchors.iter().map(Vec::len).sum::<usize>() + 16)
+        .min(MAX_GENERATED_LEN);
+    let first = sampled_len(min, Some(max), rng)?;
+    let mut budget = MAX_GENERATED_LEN * MAX_GENERATED_LEN;
+    for len in std::iter::once(first).chain((min..=max).filter(|len| *len != first)) {
+        if let Some(value) = text_candidate(len, &anchors, rng, &mut budget)? {
+            return Ok(value);
+        }
+    }
+    if rules.max_len.is_none_or(|max| max > MAX_GENERATED_LEN) {
+        Err(GenerationError::SizeLimit)
+    } else {
+        Err(GenerationError::ImpossibleConstraints)
+    }
 }
 
 impl FieldValue for String {
@@ -213,47 +282,7 @@ impl FieldValue for String {
                     .collect())
             }
             Kind::Identifier(rules) | Kind::Text(rules) => {
-                let mut value = text_base(rules);
-                let fallback = value.clone();
-                let suffix = rules.suffix.as_deref().unwrap_or_default();
-                let min = rules
-                    .min_len
-                    .unwrap_or(0)
-                    .max(usize::from(matches!(kind, Kind::Identifier(_))));
-                let min = sampled_len(min.max(value.chars().count()), rules.max_len, rng)?;
-                if value.chars().count() < min {
-                    let padding: String = (value.chars().count()..min)
-                        .map(|_| char::from(b'a' + u8::try_from(rng.next_u64() % 26).unwrap_or(0)))
-                        .collect();
-                    for insertion in
-                        value.char_indices().map(|(i, _)| i).chain(std::iter::once(value.len()))
-                    {
-                        let mut padded = value.clone();
-                        padded.insert_str(insertion, &padding);
-                        if padded.violations(kind).is_empty() {
-                            return Ok(padded);
-                        }
-                    }
-                    value.push_str(suffix);
-                    let len = value.chars().count();
-                    if let Err(reason) = generated_len(len.max(min), rules.max_len) {
-                        return if fallback.violations(kind).is_empty() {
-                            Ok(fallback)
-                        } else {
-                            Err(reason)
-                        };
-                    }
-                    if len < min {
-                        value.insert_str(value.len() - suffix.len(), &"a".repeat(min - len));
-                    }
-                }
-                if value.violations(kind).is_empty() {
-                    Ok(value)
-                } else if fallback.violations(kind).is_empty() {
-                    Ok(fallback)
-                } else {
-                    Err(GenerationError::ImpossibleConstraints)
-                }
+                generate_text(rules, matches!(kind, Kind::Identifier(_)), rng)
             }
             _ => Err(GenerationError::UnsupportedType),
         }
