@@ -1,11 +1,65 @@
 {
   "branch_name": "fn-229-realization-ergonomics-shared-temporal",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T19:14:40.365452Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-229-realization-ergonomics-shared-temporal",
+  "impl_review_rounds": {
+    "fn-229-realization-ergonomics-shared-temporal.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "603aa799219fb0c1570162b747f62bc30ddf356498fe624da7bdbd93aedde88f",
+      "backend": "codex",
+      "base_sha": "18c38afe69ccb3d3f0d9b15fc61eb363af279ee0",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "e13a9d1dd7c6ca238fd056654a975f8b7c3e9626",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "f53b962102a24ce5913c038ee7ad3113",
+      "round_consumed": true,
+      "scope": "impl:fn-229-realization-ergonomics-shared-temporal.1",
+      "superseded_by": null,
+      "task": "fn-229-realization-ergonomics-shared-temporal.1",
+      "timestamp": "2026-10-20T20:01:50.563633Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-229-realization-ergonomics-shared-temporal.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-229-realization-ergonomics-shared-temporal.1": 0
+  },
   "spec_path": ".flow/specs/fn-229-realization-ergonomics-shared-temporal.md",
   "status": "open",
   "title": "Realization ergonomics: shared Temporal helpers, runtime constructors, and the activity Realization rewrite (model, temporal)",
@@ -20,5 +74,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T19:14:40.371411Z"
+  "updated_at": "2026-10-20T20:01:50.567837Z"
 }
