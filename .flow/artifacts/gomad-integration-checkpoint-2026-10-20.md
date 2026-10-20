@@ -211,3 +211,26 @@ preserving complete hash coverage and unchanged remaining implementation
 identities, and requiring full changed-candidate qualification. The deletion
 goal, live WASM instrumentation and fn-219-closed start gate remain binding.
 fn-223 is still unstarted; structural validation reports zero errors/warnings.
+
+The next qualification freeze is `3f532910be73f622e923273bff86c401645fe7ba`,
+with source manifest
+`39182df082494be677778bdbd642b4812defef546b81189bf7a2de36d52a2fba`.
+Session `78369` remains live under the qualification worker. Prepare-only
+passed in 90.925 seconds with the same guest module digest. The full ladder
+started at 19:47:50 UTC, with a 20:47:47 deadline; repaired root lint and harness
+stages both exited 0. This is ongoing evidence, not a qualification pass.
+Its logs and explicit candidate configuration remain under
+`/home/agent/wt/evidence/qualification-final/`, in `qual-3f532910be` and
+`run-3f532910be.log`. Subsequent plan-only edits do not change this frozen source.
+
+fn-223 plan review resumed session `01a15ada-1927-7042-9467-d055d92ef0ac`
+through the same receipt and returned **SHIP** on round 2. All four findings
+are fixed: obsolete fixture consumers are removed with their fixtures,
+reference-bearing docs precede the tracked-input scan, native smoke jobs and
+routing are explicitly retired, and task write scopes are declared. The
+reviewer was `gpt-6.1-sol` at high effort, the writer's model family; no new
+blocking or maintainability findings remain. The receipt is
+`.flow/tmp/plan-review-receipt-fn-223-gomad-delete-the-native-backend.json`;
+raw round-2 output is `.flow/tmp/fn223-plan-review-r2.log`. This approves the
+plan only. fn-223 stays unstarted until fn-219 closes, and its implementation,
+identity accounting and changed-candidate qualification remain required.
