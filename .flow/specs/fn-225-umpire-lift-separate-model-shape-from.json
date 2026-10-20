@@ -1,13 +1,67 @@
 {
   "branch_name": "fn-225-umpire-lift-separate-model-shape-from",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T23:51:32.824250Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-224-accepted-self-loops-in-the-attribute"
   ],
   "id": "fn-225-umpire-lift-separate-model-shape-from",
+  "impl_review_rounds": {
+    "fn-225-umpire-lift-separate-model-shape-from.1": 0
+  },
   "next_task": 1,
+  "plan_review_rounds": 0,
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
+  "review_attempts": [
+    {
+      "artifact_sha256": "f41072d048f66562e0773dd84e642ebc462d4529a11181cb1a5331b77211cdde",
+      "backend": "codex",
+      "base_sha": "5ea50c7fa626d633d88157087b29028e7c40a60a",
+      "counter_kind": "impl",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "not_applicable"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [],
+        "reviewKind": "implementation"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "9a6c4fb86ee674abe2e0daf052a6e45ef39121b5",
+      "head_sha_observed": true,
+      "kind": "impl",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 158,
+      "output_sha256": "6ff70da3d83706800ca3cabc6ba62603ba0485fcf5259d27f1be54ce68686975",
+      "reservation_id": "b5f5b16f32764b8484899a9fab41a53b",
+      "round_consumed": true,
+      "scope": "impl:fn-225-umpire-lift-separate-model-shape-from.1",
+      "superseded_by": null,
+      "task": "fn-225-umpire-lift-separate-model-shape-from.1",
+      "timestamp": "2026-10-20T15:43:16.294572Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "impl:fn-225-umpire-lift-separate-model-shape-from.1": 1
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "impl:fn-225-umpire-lift-separate-model-shape-from.1": 0
+  },
   "spec_path": ".flow/specs/fn-225-umpire-lift-separate-model-shape-from.md",
   "status": "open",
   "title": "umpire-lift: separate Model shape from body lowering (model)",
@@ -22,5 +76,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-19T23:51:33.528808Z"
+  "updated_at": "2026-10-20T15:43:16.304532Z"
 }
