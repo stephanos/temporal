@@ -1224,3 +1224,14 @@ warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
    Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm)
    Compiling rustc-hash v2.1.3
    Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-candidate/model/umpire/wasm/guests/caught-panic)
+    Finished `guest` profile [optimized] target(s) in 31.46s
+     Running `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/guest/panic-control-reports /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn236-builds/gate-macos/panic-native`
+
+thread 'main' (5225782) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:74:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (5225782) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:77:53:
+attempt to add with overflow
+ok  	umpire.local/model	0.991s
+?   	umpire.local/model/umpire/model/v1	[no test files]
