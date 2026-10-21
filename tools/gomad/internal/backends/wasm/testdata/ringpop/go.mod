@@ -22,4 +22,5 @@ require (
 )
 
 // The server module pins every transitive version to the one Temporal builds with.
+// Do not run go mod tidy here: it drops this unimported requirement and the pin.
 replace go.temporal.io/server => ../../../../../../..

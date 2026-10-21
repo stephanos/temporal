@@ -1,6 +1,7 @@
 // Command ringpop is the fn-224 multi-node scenario guest: each node joins a
-// ringpop ring over the modeled network, records its view while partitioned,
-// and must see a stable full ring after the heal.
+// ringpop ring over the modeled network, must have dropped the peers it is
+// partitioned from, and must see a stable full ring after the heal and again
+// at its deadline.
 package main
 
 import (
@@ -32,13 +33,19 @@ func seconds(value string) time.Duration {
 
 // Usage: ringpop <self host:port> <comma-separated ring host:ports>
 // <partitioned-view second> <heal second> <deadline second>
+// <comma-separated peers unreachable at the view, or ->
 func main() {
-	if len(os.Args) != 6 {
-		panic("usage: ringpop self hosts view heal deadline")
+	if len(os.Args) != 7 {
+		panic("usage: ringpop self hosts view heal deadline partitioned")
 	}
 	start := time.Now()
 	self, hosts := os.Args[1], strings.Split(os.Args[2], ",")
 	view, heal, deadline := seconds(os.Args[3]), seconds(os.Args[4]), seconds(os.Args[5])
+	var partitioned []string
+	if os.Args[6] != "-" {
+		partitioned = strings.Split(os.Args[6], ",")
+	}
+	slices.Sort(hosts)
 	at := func(offset time.Duration) { time.Sleep(time.Until(start.Add(offset))) }
 
 	listener, err := net.Listen("tcp", self)
@@ -67,12 +74,18 @@ func main() {
 	fmt.Printf("bootstrapped %s at %s\n", self, time.Since(start).Truncate(time.Millisecond))
 
 	at(view)
-	fmt.Printf("partitioned view %s %v\n", self, members())
+	current := members()
+	fmt.Printf("partitioned view %s %v\n", self, current)
+	for _, peer := range partitioned {
+		if slices.Contains(current, peer) {
+			panic(fmt.Sprintf("%s still reaches partitioned peer %s: %v", self, peer, current))
+		}
+	}
 
 	at(heal)
 	stable := 0
 	for time.Since(start) < deadline {
-		if len(members()) == len(hosts) {
+		if slices.Equal(members(), hosts) {
 			stable++
 		} else {
 			stable = 0
@@ -82,6 +95,9 @@ func main() {
 			check(err)
 			fmt.Printf("converged %s after heal %s checksum %d\n", self, (time.Since(start) - heal).Truncate(time.Second), checksum)
 			at(deadline)
+			if final := members(); !slices.Equal(final, hosts) {
+				panic(fmt.Sprintf("membership of %s lost the full ring before its deadline: %v", self, final))
+			}
 			return
 		}
 		time.Sleep(time.Second)

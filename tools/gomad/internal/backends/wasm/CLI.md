@@ -291,15 +291,18 @@ cd tools/gomad/internal/backends/wasm/testdata/ringpop
   explore --json --scenario ../../command/testdata/scenario/ringpop.json \
   --seeds=7,19 --parallel=1 --on-failure=all \
   --keep-successes=all --success-limit=32 --success-bytes=4GiB \
-  --execution-timeout=15m --overall-timeout=35m \
-  --artifacts /absolute/operator/ringpop-artifacts go-run .
+  --execution-timeout=15m --overall-timeout=35m --terminate-grace=2s \
+  --artifacts /absolute/operator/ringpop-artifacts --working-dir "$PWD" go-run .
 ```
 
 Node `c` is partitioned from `a` and `b` at 10 virtual seconds and healed at 30.
-Each node prints its reachable view at 25 seconds and must then see all three
-members on three consecutive one-second polls before its 90-second deadline,
-printing `converged <node> after heal <d> checksum <n>`; otherwise it panics and
-the failure is retained. Equal checksums across the three nodes show one ring.
+At 25 seconds each node prints its reachable view, and `a` and `b` must already
+have dropped `c`. After the heal each node must see exactly the three members on
+three consecutive one-second polls, printing `converged <node> after heal <d>
+checksum <n>`, and still see them at its 90-second deadline; otherwise it panics
+and the failure is retained. Nodes report through their exit status rather than
+an output stop marker, because a stop would end a node before its peers
+converge. Equal checksums across the three nodes show one ring.
 The scenario sets `observation_bytes` to its 64 MiB maximum: the cluster broker
 charges 64 bytes of World payload per brokered operation for the whole run, and
 three gossiping nodes use about 940 operations per virtual second. Three nodes

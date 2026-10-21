@@ -36,9 +36,9 @@ const Name = "wasm"
 // SlimGuestBuildTag selects the guest-only Temporal dependency profile. It
 // leaves out optional providers that the qualified WASM Temporal guests never
 // construct: the Google Cloud Storage and S3 archivers and the MySQL/PostgreSQL
-// functional-test drivers. Ringpop membership stays linked. Selecting one of them fails
-// explicitly. Like every build tag, it is a preparation build-key and
-// provenance input; native and production builds never set it.
+// functional-test drivers. Selecting an excluded provider fails explicitly;
+// ringpop membership stays linked. Like every build tag, it is a preparation
+// build-key and provenance input; native and production builds never set it.
 const SlimGuestBuildTag = "gomad_wasm_slim"
 
 // TemporalGuestBuildTags are the build tags of the qualified WASM Temporal
