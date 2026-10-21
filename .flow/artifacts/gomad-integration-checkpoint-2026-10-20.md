@@ -994,3 +994,49 @@ tree remains stopped at280ff70271 for todo .10. Detached fn235 progress and
 qualification-final-frozen trees retain required performance/qualification
 inputs and cannot be deleted on age alone. Store-fix is active and must not be
 removed. Last free space is24GiB overlay/34GiB host; no cache cleanup occurred.
+
+### Durable immutable-file repair integrated
+
+Root integrated the actual RED probes b38a7b4bbe atf103475847, the repair
+4adac5cddb at5a55c9cfc7, and audited goldens e9d5a40ec0 at7d44febf3f.
+Both pool and layout now stage immutable files privately, sync file/stage,
+publish with the existing FD-relative NOREPLACE primitive, then sync the
+destination directory. Existing entries authenticate and sync through the
+same pinned handle. Module multi-link admission remains; layout single-link
+admission remains. Cross-device copies use the shared immutable-file path.
+
+All ten original crash/retry probes failed at their intended assertions on
+the instrumented original implementation. All ten matching repaired probes
+and both pool/layout conflict refusals pass. The original50-case store matrix
+is unchanged and gains12 cases. Root independently ran all62 cases with exit0
+using the immutable GREEN fixture. Production source and fixture scripts match
+the donor4ada exactly. Root formatting and diff checks returned0.
+
+Worker final gates all returned0. Host tests report65 passes; fixture and
+ordinary all-target Clippy, formatting and ordinary build pass. Two complete
+foundation regenerations were byte-identical, followed by strict0. Root then
+ran a fresh full integrated foundation strict check at7d44, exit0, including
+both62-case repetitions and authenticated raw execution records/ledgers.
+The root receipt is `/home/agent/wt/evidence/fn232-store-fix/root-integrated-strict.*`.
+All15 integrated golden hashes match golden-manifest.json. The typed audit
+allows only implementation/execution identity rotations in the12 records,
+their derived hashes/ledger, and the12 new matrix labels. Audit SHA256 is
+`d3843ba06f18f86b3253beb5c8f3fa5e66d1f001388785d733220f6eedc5006e`.
+Canonical golden inventory digest is
+`00e9db8e46015a2de1d8a145949184d6dc77e52d0dad544e1113ca559701f180`.
+
+Frozen fixture binary SHA256 is
+`ca57f0dfd528c2dd678eefaf39e517dfa629f84356d3a355d0221df1a6678376`;
+ordinary binary SHA256 is
+`14990d002c82c7e96d5851e474119da7c646edc2ea31b8a9d10f47b77cd625dc`.
+Both live in workspace `.build-cache/fn232-store-fix/green`. Release exclusion
+passed under `release-exclusion-ready`, with14/14 fixture verbs absent and
+all expanded fault controls refused. The earlier `release-exclusion` receipt
+preserves a FileNotFound setup failure from running before the release binary
+copy existed; no production failure is inferred or hidden.
+
+Fresh independent re-review is running with foundation_acceptance_review on
+integrated7d44. fn232.3 remains in_progress until SHIP. The store-fix donor
+worktree is clean ate9d5, with no live worker commands and its shared RELEASE
+Cargo lease released. Retain that tree until review resolves. Other open
+tasks and acceptance gaps remain unchanged; no new task was admitted.
