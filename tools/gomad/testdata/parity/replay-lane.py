@@ -61,6 +61,10 @@ run('roles', [sys.executable, corpus / 'replay-role-check.py', '--ordinary-binar
     '--stress-binary', args.stress_binary, '--determinism-binary', args.determinism_binary,
     '--release-binary', args.release_binary, '--output', args.work / 'roles'])
 cluster_arguments = ['--baseline', args.cluster_baseline, '--source', args.cluster_source, '--compiler', args.go_compiler]
+for network in ('ordinary', 'faults'):
+    run('standalone-network-' + network, [sys.executable, corpus / 'replay-inspection-fixture.py',
+        '--binary', args.binary, *cluster_arguments, '--network', network,
+        '--work', args.work / ('standalone-network-' + network)])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--work', args.work / 'public-cluster'])
 public_reference = args.work / 'public-cluster/cluster-reference.json'

@@ -1,0 +1,34 @@
+package main
+
+import (
+	"fmt"
+	"io"
+	"net"
+)
+
+func must(err error) {
+	if err != nil {
+		panic(err)
+	}
+}
+
+func main() {
+	listener, err := net.ListenTCP("tcp", &net.TCPAddr{IP: net.IPv4(127, 0, 0, 1), Port: 9000})
+	must(err)
+	defer listener.Close()
+	client, err := net.DialTCP("tcp", nil, listener.Addr().(*net.TCPAddr))
+	must(err)
+	defer client.Close()
+	server, err := listener.AcceptTCP()
+	must(err)
+	defer server.Close()
+	_, err = client.Write([]byte("retained network"))
+	must(err)
+	must(client.CloseWrite())
+	data, err := io.ReadAll(server)
+	must(err)
+	if string(data) != "retained network" {
+		panic("network bytes differ")
+	}
+	fmt.Println(string(data))
+}
