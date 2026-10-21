@@ -128,7 +128,13 @@ def main():
             assert len(decision['alternatives']) > 1
             assert decision['selected'] < len(decision['alternatives'])
         actual = {(value['dimension'], value['ordinal']): value for value in record['exploration_decisions']}
-        for override in record['exploration_plan']['overrides'] or []:
+        overrides = record['exploration_plan']['overrides'] or []
+        recovered = (artifact / 'evidence/cluster/a/2/stdout').read_bytes()
+        if not overrides:
+            assert b'observed simulation recovery "before!!"' in recovered, recovered
+        if any(value['dimension'] in ('storage', 'crash') for value in overrides):
+            assert b'observed simulation recovery "survives"' in recovered, recovered
+        for override in overrides:
             if record['outcome'] == 'replay_diverged':
                 continue
             if override['dimension'] == 'runtime':
