@@ -14,22 +14,37 @@ impl TryFrom<ActivityExecutionInfo> for Phase {
             .map_err(|_| Refusal::unsupported("unknown activity execution status"))?;
         let run_state = Run::try_from(info.run_state)
             .map_err(|_| Refusal::unsupported("unknown activity run state"))?;
-        match (status, run_state) {
-            (Status::Unspecified, _) => Err(Refusal::malformed("activity status is missing")),
-            (Status::Running, Run::Scheduled) => Ok(Self::Scheduled),
-            (Status::Running, Run::Started) => Ok(Self::Started),
-            (Status::Running, Run::Unspecified) => {
-                Err(Refusal::malformed("running activity run state is missing"))
+        let terminal = match status {
+            Status::Unspecified => return Err(Refusal::malformed("activity status is missing")),
+            Status::Running => {
+                return match run_state {
+                    Run::Scheduled => Ok(Self::Scheduled),
+                    Run::Started => Ok(Self::Started),
+                    Run::Unspecified => {
+                        Err(Refusal::malformed("running activity run state is missing"))
+                    }
+                    Run::CancelRequested | Run::Paused | Run::PauseRequested => {
+                        Err(Refusal::unsupported("unsupported running activity state"))
+                    }
+                };
             }
-            (Status::Running, _) => Err(Refusal::unsupported("unsupported running activity state")),
-            (Status::Completed, Run::Unspecified) => Ok(Self::Completed),
-            (Status::Failed, Run::Unspecified) => Ok(Self::Failed),
-            (Status::Canceled, Run::Unspecified) => Ok(Self::Canceled),
-            (Status::TimedOut, Run::Unspecified) => Ok(Self::TimedOut),
-            (Status::Completed | Status::Failed | Status::Canceled | Status::TimedOut, _) => {
+            Status::Completed => Self::Completed,
+            Status::Failed => Self::Failed,
+            Status::Canceled => Self::Canceled,
+            Status::TimedOut => Self::TimedOut,
+            Status::Terminated | Status::Paused => {
+                return Err(Refusal::unsupported("unsupported activity execution status"));
+            }
+        };
+        match run_state {
+            Run::Unspecified => Ok(terminal),
+            Run::Scheduled
+            | Run::Started
+            | Run::CancelRequested
+            | Run::Paused
+            | Run::PauseRequested => {
                 Err(Refusal::malformed("terminal activity must have unspecified run state"))
             }
-            _ => Err(Refusal::unsupported("unsupported activity execution status")),
         }
     }
 }

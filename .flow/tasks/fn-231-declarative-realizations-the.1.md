@@ -8,7 +8,7 @@ Add a proc-macro sub-crate under model/temporal providing #[realization(<module>
 
 ### Execution scope and verification
 
-**Touches:** `model/Cargo.toml`, `model/Cargo.lock`, `model/temporal/realization/**`, `model/temporal/feature/activity/temporal.rs`, `model/temporal/annotate/syntax/**`, `model/temporal/api/**`, `model/temporal/testing/**`, `model/temporal/hosts/go/umpire_temporal_guest.wasm`, `model/temporal/realization/README.md`, `model/README.md`
+**Touches:** `model/Cargo.toml`, `model/Cargo.lock`, `model/temporal/realization/**`, `model/temporal/feature/activity/temporal.rs`, `model/temporal/feature/activity/phase.rs`, `model/temporal/annotate/syntax/**`, `model/temporal/api/**`, `model/temporal/testing/**`, `model/temporal/hosts/go/umpire_temporal_guest.wasm`, `model/temporal/realization/README.md`, `model/README.md`
 **Quick:** focused macro parser/expansion and trybuild controls; actual realization/helper tests with refusal-order, unknown Cancel code, Current/one-step/unexplained projection, callback and partial-reply controls; native activity fixtures and existing fn-218 cover controls; generic source boundary; `make umpire-guest` followed by actual `make umpire-check-model-slice` and `make umpire-check-model-gaps`, retaining all cases/privacy/goldens and existing operation/aggregate limits.
 **Full gates:** `make model-check`; `UMPIRE_BACKENDS=require make model-check`; `make model-time`.
 
@@ -26,6 +26,12 @@ their distinct decode refusal mappings. State conversion is explicitly owned by
 the Realization; Started from Describe must not invent Poll. Exhaustiveness checks
 target admitted generated-enum matches, preserving legitimate byte-policy fallbacks.
 Retain existing helper, atomicity, rollback, external-payload and cover controls.
+The existing `phase.rs` protobuf-enum conversion must also become wildcard-free,
+as the parent requires for helper conversions. Preserve status-first/run-second
+decoding, every current status/run-state mapping, and exact refusal precedence
+and messages. Retain the independent full pair/unknown-enum control unchanged;
+add a compile control proving a new declared enum variant is non-exhaustive.
+This admits only exhaustive spelling of existing behavior, not a phase change.
 Partial callbacks and outgoing SDK replies are not complete catalog-valid requests;
 do not newly require SDK-filled task tokens or double-wrap the Reply envelope.
 Document the `Reply.request` packing contract and pin actual decoded outgoing bytes.

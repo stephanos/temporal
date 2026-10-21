@@ -256,6 +256,24 @@ impl Schema {
             .ok_or_else(|| format!("unknown RPC: {service}::{method}"))
     }
 
+    /// Canonical RPC paths whose request has this protobuf identity.
+    pub fn request_methods(&self, name: &str) -> Vec<String> {
+        self.methods
+            .iter()
+            .filter(|(_, edge)| edge.input == clean(name))
+            .map(|((service, method), _)| format!("/{service}/{method}"))
+            .collect()
+    }
+
+    /// Canonical RPC paths whose response has this protobuf identity.
+    pub fn response_methods(&self, name: &str) -> Vec<String> {
+        self.methods
+            .iter()
+            .filter(|(_, edge)| edge.output == clean(name))
+            .map(|((service, method), _)| format!("/{service}/{method}"))
+            .collect()
+    }
+
     /// Resolve a message admitted by the shared catalog declarations.
     pub fn message(&self, name: &str) -> Result<&Message, String> {
         self.messages
@@ -582,6 +600,7 @@ mod tests {
     use super::*;
     use umpire_wasm::google::protobuf::{
         DescriptorProto, FieldDescriptorProto, FileDescriptorProto, FileDescriptorSet,
+        MethodDescriptorProto, ServiceDescriptorProto,
         field_descriptor_proto::{Label, Type},
     };
 
@@ -609,6 +628,16 @@ mod tests {
         let bytes = FileDescriptorSet {
             file: vec![FileDescriptorProto {
                 package: Some("test".into()),
+                service: vec![ServiceDescriptorProto {
+                    name: Some("Service".into()),
+                    method: vec![MethodDescriptorProto {
+                        name: Some("Call".into()),
+                        input_type: Some(".test.Response".into()),
+                        output_type: Some(".test.Info".into()),
+                        ..Default::default()
+                    }],
+                    ..Default::default()
+                }],
                 message_type: vec![
                     DescriptorProto {
                         name: Some("Response".into()),
@@ -654,6 +683,17 @@ mod tests {
             schema.messages["test.Info"].fields[1].opaque_reason.as_deref(),
             Some("external storage is opaque")
         );
+        Ok(())
+    }
+
+    #[test]
+    fn contexts_follow_rpc_input_output_edges_instead_of_message_admission() -> Result<(), String> {
+        let schema = fixture()?;
+        assert_eq!(schema.request_methods("test.Response"), ["/test.Service/Call"]);
+        assert_eq!(schema.response_methods("test.Info"), ["/test.Service/Call"]);
+        assert_eq!(schema.request_methods("test.Info"), Vec::<String>::new());
+        assert_eq!(schema.response_methods("test.Response"), Vec::<String>::new());
+        assert_eq!(schema.request_methods("test.Missing"), Vec::<String>::new());
         Ok(())
     }
 }
