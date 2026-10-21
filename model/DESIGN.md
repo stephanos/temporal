@@ -139,23 +139,23 @@ Direct locked Cargo builds need no custom linker or post-link processing.
 
 ## Reproducible guest builds (fn-230.1)
 
-Linux proof, 2026-10-20: Linux 7.0.14, aarch64; Rust 1.99.1
+Linux proofs, 2026-10-20/21 UTC: Linux 7.0.14, aarch64; Rust 1.99.1
 (`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Go 1.27.0,
-protoc 29.5. Two clean source clones at different absolute paths, both at
-`df58e04a076f9d44392a0151e812ad3ccf0824fc`, used initially absent, independent
-target directories; source status was clean before and after, with only the registry shared.
+protoc 29.5. Current source: `405889a77ac5364b53fa71acabc516778b531a80`;
+historical source: `df58e04a076f9d44392a0151e812ad3ccf0824fc`.
+Each proof used two clean clones at different absolute paths and initially absent independent targets.
 
-| Guest | Bytes in each clone | SHA-256 in each clone |
+| Proof / guest | Bytes in each clone | SHA-256 in each clone |
 | --- | ---: | --- |
-| `umpire-stock-guest` | 142417 | `f20da4a512470b552eca5cabc8dabffad9a105f8ee12b6282f9ca0cfa4ae1330` |
-| `umpire-temporal-guest` | 275110 | `684fbae2d3f8e28fd3773c5aec4d34665698aadf831269e78ca43296715531ea` |
+| Historical stock | 142417 | `f20da4a512470b552eca5cabc8dabffad9a105f8ee12b6282f9ca0cfa4ae1330` |
+| Historical Temporal | 275110 | `684fbae2d3f8e28fd3773c5aec4d34665698aadf831269e78ca43296715531ea` |
+| Current stock | 143022 | `f01424be60038282bcad227110ba76b6eb34a6cb3cc934cfb7422fa48bb23a9f` |
+| Current Temporal | 2128089 | `b7b9f6f5ab77be5e177cc95001d53fae42d76207c6ca59411f88db9184198e10` |
 
-Both byte comparisons passed; actual guest-profile stock report/rows match native goldens.
-**Unresolved panic requirement:** despite manifest `panic="unwind"`, Cargo emits `panic="abort"`;
-forced unwind fails. Actual-profile panic controls prove existing trap/invalidation, not caught-panic judgments.
-**Unverified macOS/cross-OS identity:** only Linux path independence is proven; the available SSH probe closed before `uname`.
-Baseline/final `make model-check` and `make model-time` passed: warm gate 12.332 s, edit/test 5.084 s.
-[Guest build commands and diagnostics](GUEST_BUILDS.md) record reproduction and the separate profile-artifact parity evidence.
+Current byte comparisons, actual-profile stock/control parity (19 tests), both Temporal host suites (22 each) and freshness passed; clones stayed clean.
+At `feb4621de8`, Temporal bytes differed; sorting descriptor files at codegen input fixes that regression. [Commands, retained failure and timing evidence](GUEST_BUILDS.md).
+**Unresolved panic requirement:** manifest unwind remains effective abort; controls prove trap/invalidation, not caught judgments.
+**Unverified macOS/cross-OS identity:** the available SSH probe closed before `uname`; Linux path independence does not satisfy it. Task .1 stays open.
 
 ## Capability and panic boundaries
 
