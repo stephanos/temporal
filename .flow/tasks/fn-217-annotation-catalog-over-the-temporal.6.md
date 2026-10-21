@@ -47,9 +47,21 @@ Neither a derive nor an attribute macro sees the prost field types. Projection i
 - rustfmt owns layout; workspace `max_width = 100` applies (not 120); `cargo fmt --check` clean replaces the earlier 250/80-line targets. Build script checks proto declaration order of fields (full mirrors only), oneof alternatives and service methods, naming the first out-of-place item.
 - The 20 trybuild fixtures under `annotate/tests/ui` are rewritten for the derive; E0027 on the generated pattern keeps its wording; budget all `.stderr` regenerations. R2's compile-error admission rules are preserved by the derive.
 - Spike `StartActivityExecutionRequest` in this form first and show the owner, then implement: derive crate, `View` trait, `Code`, `dc`, generated `services.rs` and `validators.rs`, foundation split, rewrite of `api.rs`/`api_transport.rs`, removal of `api_requests.rs`, README, snapshots, `make model-check`.
+### Execution and preservation constraints
+
+**Touches:** `model/umpire/annotations/**`, `model/temporal/annotate/**`, `model/temporal/api/**`, `model/temporal/foundation/**`, `model/temporal/feature/activity/api.rs`, `model/temporal/feature/activity/api_requests.rs`, `model/temporal/feature/activity/api_transport.rs`, `model/temporal/feature/activity/temporal.rs`, `model/temporal/feature/activity/expected/coverage*`, `model/temporal/feature/activity/expected/gaps.txt`, `model/temporal/realization/**`, `model/temporal/testing/**`, `model/temporal/hosts/go/**`, `model/umpire/tests/**`, `model/README.md`, `model/DESIGN.md`, `model/Cargo.toml`, `model/Cargo.lock`, `tests/testpilot_model_gaps_test.go`
+**Quick:** shared-parser/derive unit and trybuild checks, actual View setter tests, descriptor negative controls, generated-validator freshness, native activity fixtures, and `make umpire-check-model-gaps` including the privacy canary.
+**Full gates:** `make model-check`, `UMPIRE_BACKENDS=require make model-check`, `make model-time`; scoped Go lint for any changed Go surface.
+
+- Start with one real compiling Start request mirror, compare it with the existing catalog, and send the conductor its source and evidence for presentation before broader migration. The spike is the first proof point, not a replacement for this task's complete acceptance.
+- Preserve parent R1 enum-value admission. `phase.rs` has wildcard matches, and prost `is_valid` follows regenerated values, so neither catches newly added declared values. Retain a checked-in, explicitly reviewed enum inventory in `foundation/enum_inventory.rs`, separate from human-facing `api.rs`, using the shared parser and existing descriptor/exhaustive-check machinery. Do not automatically rebuild this admission inventory from a bumped descriptor. Runtime defined-only validation can use prost's inherent `is_valid` through a typed bridge where needed.
+- Preserve parent R2's explicit ignored-field reasons. The Start mirror retains all seven existing reasons through `#[api(ignored = "reason")]`; bare unexplained ignores must not silently bypass admission.
+- Keep the value-free/privacy boundary and its actual live canary passing. Loose expectation diagnostics must not leak private request, response or error contents; record any required safe rendering interpretation in the authoring documentation.
+- Do not change Model transitions, phase mappings, panic behavior, ABI, protocol, Realization judgments or report/rows/states goldens. Only the already-described field-presence/description/loose-expectation changes may alter annotation and gap output, with an exact reviewed diff. No new third-party dependency or version; existing workspace dependencies/internal wiring only where necessary.
+
 ## Acceptance
 - [ ] `api.rs` files use `#[derive(Catalog)]` structs with kinds as field types and a single `#[api]` helper namespace; no function-like `annotate!` block, no closures in catalogs, no `api_requests.rs`; `cargo fmt --check` is clean and no line exceeds the workspace `max_width`.
-- [ ] The four exhaustiveness levels remain build-failing: fields via the generated borrowless pattern (E0027), oneof alternatives via a generated match, RPC methods via a wildcard-free match over the generated `WorkflowServiceMethod`, Model actions via the binding table; each pinned by a trybuild fixture or build-script negative control. A `covers` path to a vanished validator fails to compile and the Go reverse-coverage test regenerates `validators.rs`.
+- [ ] All parent R1 exhaustiveness levels remain build-failing: fields via the generated borrowless pattern (E0027), enum values via the reviewed admission inventory and exhaustive checks, oneof alternatives via a generated match, RPC methods via a wildcard-free match over the generated `WorkflowServiceMethod`, Model actions via the binding table; each pinned by a trybuild fixture or build-script negative control. A `covers` path to a vanished validator fails to compile and the Go reverse-coverage test regenerates `validators.rs`.
 - [ ] Proto declaration order of fields, oneof alternatives and methods is a build error naming the first out-of-place item.
 - [ ] `coverage.snap` carries the same messages and classifications as before (field-level presence splits are the only expected diff, listed in the PR); `gaps.txt` shows inherited and loose patterns; `temporal/annotate/README.md` documents the surface, the single-parser rule and the single-crate orphan-rule caveat; `make model-check` passes.
 ## Done summary
@@ -59,3 +71,4 @@ TBD
 - Commits:
 - Tests:
 - PRs:
+
