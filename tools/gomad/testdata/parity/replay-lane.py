@@ -71,7 +71,7 @@ for network in ('ordinary', 'faults'):
         run(name, [sys.executable, corpus / 'replay-inspection-fixture.py',
             '--binary', args.binary, *standalone_arguments, '--network', network,
             *(['--network-scheduler'] if scheduler else []),
-            '--preparation-root', args.preparation_root / ('standalone-network-' + network),
+            '--preparation-root', args.preparation_root / ('preparation-' + network),
             '--work', args.work / name])
 run('public-cluster-reference', [sys.executable, corpus / 'replay-cluster-reference.py', *cluster_arguments,
     '--preparation-root', args.preparation_root / 'current-cluster',
