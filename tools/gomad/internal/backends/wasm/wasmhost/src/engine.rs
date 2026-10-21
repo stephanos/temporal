@@ -1185,7 +1185,13 @@ pub(crate) fn finish_model(state: &mut State, outcome: &mut Outcome) -> Result<(
     if let Some(model) = &mut state.model {
         let metadata = {
             let mut recorder = model.inspection.lock();
-            if model.inspection.started {
+            let admitted_owner = !standalone
+                && recorder
+                    .evidence
+                    .incarnations
+                    .iter()
+                    .any(|owner| owner.handle == model.inspection.handle);
+            if model.inspection.started || admitted_owner {
                 recorder.terminal(
                     &model.inspection.handle,
                     outcome.termination != "exit" || outcome.exit_code != Some(0),
@@ -2383,6 +2389,41 @@ mod tests {
         model.inspection.world_commitment = vec![42; 32];
         model.inspection.lock().observe(&model.inspection.handle);
         state
+    }
+    #[test]
+    fn stopped_admitted_owner_before_guest_hook_has_terminal_inspection() {
+        let mut state = clock_state(100, 65536, 1);
+        state.broker = inspection_state().broker;
+        let model = state.model.as_mut().unwrap();
+        model.inspection.handle = crate::model::inspection::Handle {
+            node: "a".into(),
+            incarnation: 1,
+        };
+        model.inspection.lock().observe(&model.inspection.handle);
+        assert!(!model.inspection.started);
+        let mut outcome = Outcome::new("stop", "WASI stop: cluster failed");
+        finish_model(&mut state, &mut outcome).unwrap();
+        let metadata = outcome.local_model.as_ref().unwrap();
+        assert_eq!(metadata["configured"], false);
+        assert_eq!(metadata["finished"], false);
+        assert_eq!(metadata["branching_records"], 0);
+        let model = state.model.as_ref().unwrap();
+        assert!(!model.inspection.started);
+        let recorder = model.inspection.lock();
+        let owner = &recorder.evidence.incarnations[0];
+        assert!(owner.terminal_order >= owner.started_order);
+        assert!(owner.terminal_order != 0);
+        assert!(owner.streams.choice.is_empty());
+        assert!(owner.registry.entries.is_empty());
+        assert!(!owner.registry.closed);
+    }
+    #[test]
+    fn stopped_nonmember_before_guest_hook_does_not_invent_inspection_owner() {
+        let mut state = clock_state(100, 65536, 1);
+        finish_model(&mut state, &mut Outcome::new("stop", "before guest hook")).unwrap();
+        let model = state.model.as_ref().unwrap();
+        assert!(!model.inspection.started);
+        assert!(model.inspection.lock().evidence.incarnations.is_empty());
     }
     #[test]
     fn unchanged_boundaries_never_materialize_world() {
