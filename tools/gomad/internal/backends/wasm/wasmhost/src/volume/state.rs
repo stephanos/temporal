@@ -1936,6 +1936,7 @@ mod tests {
         let fixture = || {
             let mut fs = filesystem(4096, 100);
             let inode = fs.create("/data/file", Kind::File, 0o600, 1).unwrap();
+            fs.write_at(inode, 0, b"original", 1).unwrap();
             fs.sync_node(inode).unwrap();
             let root = fs.lookup("/data").unwrap().inode;
             fs.sync_node(root).unwrap();
@@ -1978,7 +1979,7 @@ mod tests {
         assert_eq!(fs.read_at(recovered, 0, 32).unwrap(), b"survives");
         probe.crash_volumes(&BTreeMap::new()).unwrap();
         let lost = probe.lookup("/data/file").unwrap().inode;
-        assert_eq!(probe.read_at(lost, 0, 32).unwrap(), b"");
+        assert_eq!(probe.read_at(lost, 0, 32).unwrap(), b"original");
     }
 
     #[test]
