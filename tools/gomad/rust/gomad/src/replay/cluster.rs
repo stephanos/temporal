@@ -368,9 +368,13 @@ pub fn project(observed: helper::Execution) -> Result<linked::Execution, String>
         if outcome.divergence.is_none() {
             outcome.divergence = item.execution.outcome.divergence;
         }
+        let local_model =
+            item.execution.outcome.local_model.as_deref().map(
+                |model| json!({"configured":model["configured"],"finished":model["finished"]}),
+            );
         rows.push(json!({"handle":item.handle,"termination":item.execution.outcome.termination,
             "exit_code":item.execution.outcome.exit_code,"reason":item.execution.outcome.message,"streams":streams,
-            "offered_output_bytes":item.execution.outcome.output_bytes,"local_model":item.execution.outcome.local_model}));
+            "offered_output_bytes":item.execution.outcome.output_bytes,"local_model":local_model}));
     }
     let summary = json!({"schema":"gomad.cluster-observation/v1","incarnations":rows,
         "world_sha256":canonical::digest(&observed.world),"network_sha256":canonical::digest(&observed.network),
