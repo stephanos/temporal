@@ -9,6 +9,7 @@ from pathlib import Path
 import shutil
 import subprocess
 import sys
+import time
 
 sys.dont_write_bytecode = True
 CORPUS = Path(__file__).resolve().parent
@@ -388,6 +389,52 @@ def main():
             equal(parity.decode(result)['message'], message, name + '.refusal')
         else:
             equal(execution_view(authenticate_campaign(root)), views[0]['runtime']['records'], name + '.records')
+    # fn-232 R1 process-wide deadline backstop, observed externally: a fixture
+    # stall inside the second execution's armed window (compile or teardown)
+    # must end the whole CLI with the infrastructure status within the wall
+    # bound plus bounded cleanup, leave no process behind, keep the committed
+    # prefix authenticated, and recover through an ordinary resume.
+    for phase in ('compile', 'teardown'):
+        destination = args.work / ('backstop-' + phase)
+        marker = args.work / ('backstop-' + phase + '.stalled')
+        command = explore_command(case, destination)
+        command[command.index('--execution-timeout=30s')] = '--execution-timeout=10s'
+        child = subprocess.Popen(list(map(str, command)), stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            env=dict(environment, GOMAD_FIXTURE_BACKSTOP_STALL=phase, GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW='1',
+                     GOMAD_FIXTURE_BACKSTOP_STALL_FILE=str(marker)), start_new_session=True)
+        stdout, stderr = child.communicate(timeout=120)
+        exited = time.time()
+        (args.work / ('backstop-' + phase + '.stdout')).write_bytes(stdout)
+        (args.work / ('backstop-' + phase + '.stderr')).write_bytes(stderr)
+        commands.append(dict(name='backstop-' + phase, argv=list(map(str, command)), status=child.returncode, expected=3,
+            stdout_sha256=parity.digest(stdout), stderr_sha256=parity.digest(stderr)))
+        (args.work / 'commands.json').write_bytes(parity.canonical(commands) + b'\n')
+        equal(child.returncode, 3, 'backstop.' + phase + '.status: ' + stderr.decode(errors='replace'))
+        equal(marker.read_text(), phase + ' 1\n', 'backstop.' + phase + '.stalled_window')
+        equal(b'deadline backstop ended the process' in stderr, True, 'backstop.' + phase + '.message')
+        # Armed for the 10 s wall plus 5 s cleanup grace; the stall itself never
+        # returns, so the exit follows the stall by at most that bound.
+        stalled = exited - marker.stat().st_mtime
+        commands[-1]['seconds_after_stall'] = round(stalled, 3)
+        (args.work / 'commands.json').write_bytes(parity.canonical(commands) + b'\n')
+        equal(stalled < 15 + 5, True, 'backstop.' + phase + '.bounded_exit: ' + str(stalled))
+        if phase == 'compile':
+            equal(stalled >= 15 - 1, True, 'backstop.compile.waited_for_cleanup_grace: ' + str(stalled))
+        try:
+            os.killpg(child.pid, 0)
+            survived = True
+        except ProcessLookupError:
+            survived = False
+        equal(survived, False, 'backstop.' + phase + '.no_surviving_process')
+        stopped = campaign_root(destination)
+        committed = authenticate_campaign(stopped, complete=False)
+        equal([row['seed'] for row in committed['executions']], [views[0]['runtime']['records'][0]['seed']],
+              'backstop.' + phase + '.committed_prefix')
+        run('backstop-' + phase + '-resume', [*binary, 'resume', '--json', stopped], case['status'])
+        # The plan keeps its 2 s bound, so compare selection and outcomes.
+        outcomes = lambda rows: [(row['seed'], row['record']['outcome']) for row in rows]
+        equal(outcomes(execution_view(authenticate_campaign(stopped))), outcomes(views[0]['runtime']['records']),
+              'backstop.' + phase + '.resumed_outcomes')
     malformed_tail = args.work / 'noncanonical-tail'
     shutil.copytree(interrupted, malformed_tail)
     with (malformed_tail / 'journal.jsonl').open('ab') as stream:

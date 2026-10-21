@@ -93,6 +93,12 @@ pub struct Prepared {
 }
 
 impl Prepared {
+    /// The cluster wall bound the host's process-wide deadline backstop arms.
+    #[must_use]
+    pub fn wall_timeout(&self) -> Duration {
+        self.wall_timeout
+    }
+
     pub(crate) fn simulation(
         &mut self,
         controller: crate::linked_simulation::Shared,

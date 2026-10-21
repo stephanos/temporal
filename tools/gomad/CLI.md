@@ -200,6 +200,23 @@ preparation directory is a different authenticated input, even when guest bytes
 agree. Every execution still produces fresh Go/Rust artifacts in its new output
 root; neither provenance identities nor raw hashes are normalized.
 
+## Deadline backstop
+
+Every linked execution, whether standalone, cluster, simulation, replay or
+inspection, arms a process-wide fail-stop backstop before compilation and
+keeps it armed through store teardown. The epoch watchdog and cooperative
+cancellation act first. If an armed execution remains in its window 5 seconds
+(`CLEANUP_GRACE`, Go's cluster stop grace) after its wall deadline, the CLI
+exits with infrastructure status 3 and `gomad: runner_failure: ... deadline
+backstop ended the process`, without joining stalled slot threads. This ends
+every slot of that invocation and starts no subprocess. Published records stay
+authenticated; an interrupted campaign continues with `resume`. Fixture builds
+alone accept `GOMAD_FIXTURE_BACKSTOP_STALL=compile|teardown`, with
+`GOMAD_FIXTURE_BACKSTOP_STALL_WINDOW` and `GOMAD_FIXTURE_BACKSTOP_STALL_FILE`,
+which stall one armed window forever. The campaign lane observes the
+backstop's bounded exit, the absence of surviving processes, the authenticated
+committed prefix and its resume from outside the process.
+
 ## Rust seed campaigns
 
 The linked Rust host accepts the original WASM seed grammar, environment policy,

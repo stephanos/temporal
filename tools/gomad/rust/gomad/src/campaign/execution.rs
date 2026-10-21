@@ -122,8 +122,10 @@ pub(crate) fn run_with_replay(
             .map_err(|error| format!("runner_failure: admit standalone network: {error}"))?;
     }
     admitted.cancellation(cancellation.clone());
-    let observed = linked::execute_prepared(admitted)
-        .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
+    let observed = crate::backstop::within(admitted.wall_timeout(), || {
+        linked::execute_prepared(admitted)
+    })
+    .map_err(|error| format!("runner_failure: execute campaign target: {error}"))?;
     publication(prepared, job, observed)
 }
 
