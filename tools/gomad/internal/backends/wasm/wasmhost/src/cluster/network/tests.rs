@@ -111,7 +111,7 @@ fn inspection_network_cache_follows_own_and_foreign_mutations() {
 fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
     use crate::linked_simulation::{Controller, Dimension, Override, Plan};
 
-    let run = |overrides| {
+    let run = |overrides, alternate_ports| {
         let plan = Plan::new(
             format!("sha256:{}", "a".repeat(64)),
             format!("sha256:{}", "b".repeat(64)),
@@ -139,7 +139,12 @@ fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
         let mut b = endpoint(&shared, "b", 2, 1 << 20);
         let mut ports = Vec::new();
         for id in [1, 2] {
-            let mut listen = buffer(1, id, 0, 0, &[]);
+            let port = if alternate_ports {
+                4500 + u32::try_from(id).unwrap()
+            } else {
+                0
+            };
+            let mut listen = buffer(1, id, 0, port, &[]);
             b.serve(&mut listen, 1, true).unwrap();
             ports.push(get32(&listen, 48));
             let handle = u64::from_be_bytes(listen[16..24].try_into().unwrap());
@@ -153,7 +158,7 @@ fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
             a.serve(&mut dial, 1, true).unwrap();
             assert_eq!(get32(&dial, 44), 0);
         }
-        b.settle(1).unwrap();
+        b.settle(1)?;
         let delivered: Vec<_> = b
             .world
             .transitions()
@@ -170,10 +175,10 @@ fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
         let links = lock(&shared).record().unwrap().snapshot.links.unwrap();
         let mut controller = controller.lock().unwrap();
         controller.finish().unwrap();
-        (delivered, links, controller.decisions().to_vec())
+        Ok::<_, Failure>((delivered, links, controller.decisions().to_vec()))
     };
-    let (base_delivery, base_links, decisions) = run(Vec::new());
-    let overrides = [Dimension::Network, Dimension::Fault]
+    let (base_delivery, base_links, decisions) = run(Vec::new(), false).unwrap();
+    let overrides: Vec<Override> = [Dimension::Network, Dimension::Fault]
         .into_iter()
         .map(|dimension| {
             let decision = decisions
@@ -183,11 +188,15 @@ fn simulation_network_and_fault_choices_change_real_delivery_and_topology() {
             Override::from_decision(decision, 1).unwrap()
         })
         .collect();
-    let (forced_delivery, forced_links, _) = run(overrides);
+    let (forced_delivery, forced_links, _) = run(overrides.clone(), false).unwrap();
     assert_eq!(base_delivery.len(), 2);
     assert_eq!(
         forced_delivery,
         base_delivery.into_iter().rev().collect::<Vec<_>>()
     );
     assert_ne!(forced_links, base_links);
+    assert!(
+        matches!(run(overrides, true), Err(Failure::Infrastructure(message))
+        if message == "simulation exploration replay divergence")
+    );
 }
