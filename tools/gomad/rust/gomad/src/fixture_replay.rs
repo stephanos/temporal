@@ -126,6 +126,25 @@ fn execute(case: Case, conditions: linked::Conditions) -> Result<Publication, St
         payloads.insert(path, bytes.clone());
     }
     if let Some(identity) = case.choice_identity {
+        if !payloads.contains_key("evidence/choice") {
+            let complete_empty = result.outcome.local_model.as_deref().is_some_and(|model| {
+                model["configured"].as_bool() == Some(true)
+                    && model["finished"].as_bool() == Some(true)
+                    && model["records"].as_u64() == Some(0)
+            });
+            if !complete_empty {
+                return Err("fixture has no choices".into());
+            }
+            payloads.insert("evidence/choice".into(), Vec::new());
+            streams.insert(
+                "evidence/choice".into(),
+                Stream {
+                    bytes: 0,
+                    sha256: canonical::digest(&[]),
+                    records: 0,
+                },
+            );
+        }
         if identity.target_sha256.as_slice()
             != sha2::Sha256::digest(&payloads["target/module.wasm"]).as_slice()
         {
