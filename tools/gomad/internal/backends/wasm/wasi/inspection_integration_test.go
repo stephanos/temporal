@@ -125,7 +125,13 @@ func TestCooperativeInspectionEveryDecision(t *testing.T) {
 	seen := map[choice.Kind]int{}
 	observationOffset := false
 	for ordinal, boundary := range evidence.Boundaries {
-		record := recorded.ChoiceTrace.Records[boundary.Trace]
+		// A v4 runnable decision's creation records precede it at the
+		// boundary's predecision coordinate.
+		index := boundary.Trace
+		for recorded.ChoiceTrace.Records[index].Kind == choice.KindGoroutineCreation {
+			index++
+		}
+		record := recorded.ChoiceTrace.Records[index]
 		if boundary.Decision != uint64(ordinal) || record.Flags&choice.FlagDecision == 0 {
 			t.Fatalf("tape ordinal confused with trace observation: %+v %+v", boundary, record)
 		}

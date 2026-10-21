@@ -1199,3 +1199,34 @@ The runtime stock-profile delta is input-driven (retained 2x2 control). Independ
 NEEDS_WORK (two findings, both fixed), then re-review SHIP. Evidence: `/home/agent/wt/evidence/fn232-replay-closeout`.
 Commits 5e9e6dd9aa, 30db0b985d, 0a7186e73f on fn232-replay. .7 is now running in fn232-campaign.
 
+### Go host v4 compatibility repair, 2026-10-21
+
+Conductor decision under MILESTONES' Rust-host order: this is the smallest sweep-blocking Go host change. Its R-IDs are noted for the Rust verb. Branch `go-host-v4-compat` has two commits:
+
+- `acc4b06853` is the repair.
+- `051ef6e504` updates tests and identity pins.
+
+Helper source, the Rust host, budgets, oracles and Temporal tests are unchanged.
+
+- **Owners.** fn-230 R12, a post-closure regression repair: fn-230.3 shipped header v2 and trace v4 in `38572d7e49` without the Go host. fn-228 R4 and R9: the Go reference session lacked the tape attestation that `dd00c57f70` added. The Rust verb is fn-232.6 R5, and its task records the semantics it must keep.
+- **Repair.**
+  - `wasi/runtime.go` mirrors the helper's runtime decision import (`wasmhost/src/model/imports.rs`). It accepts header v1 and v2. It requires 48-byte strides only for v2 runnable decisions. It refuses bad site flags, nonzero padding and a missing site that has an offset. It sorts creation records by identity, checks their capacity before forcing a replay decision, appends them before the decision, and stamps every diagnostic with its record ordinal.
+  - Inspection boundaries carry the pre-decision trace length (`model/inspection.rs`). Cluster inspection and the determinism observer therefore map decisions through `choice.PredecisionOrdinals`.
+  - Execution records pair each profile with its own schema: v4 is current, v3 is retained. Crossed pairs fail closed.
+  - The Go-owned `runtime.collect` path attests the consumed tape's SHA-256 and decision count.
+- **Regressions, RED on tip and GREEN on the branch.**
+  - Installed-operator control `TestInstalledOperatorDiscoversInspectsAndReplaysWithoutBuildInputs/gomad.wasi-cooperative/v1`.
+  - `TestRuntimeHeaderV2CreationSitesMatchHelperGoldenAndReplayExactly`, which uses the helper's `replay_plan/runnable-creation-sites.json` golden. The Go trace and tape match byte for byte, and exact replay works.
+  - `TestRuntimeDecisionRefusesMalformedHeaderV2Layouts`.
+  - `TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites`.
+  - `TestFinalizeManifestPairsChoiceProfileWithItsTraceSchema`.
+- **Stale pins from `38572d7e49`.** The compiled model identity and 123 Go/Rust corpus pins are refreshed. The only change in them is `implementation_sha256`. The Rust pin file is read only by `#[cfg(test)]` corpus modules, so helper bytes are unchanged. Two v3-shaped wasi integration tests are rebound to v4.
+- **Gates.**
+  - Affected packages (evidence, choice, backends, wasi, cluster, determinism, backend, runner): 2 pre-existing failures remain in each of 2 packages.
+    - `backend` `TestInspectionRetainedCluster{NetworkStoppedPrefix,TargetsRestartedIncarnation}` fail identically at `92c69594f2`, so they are not v4-related.
+    - `runner` `TestCampaignOptions{,Legacy}Characterization` still pin the v3 profile name inside hash-pinned characterization goldens. They are left for fn-230.3's corpus owner, with no normalization.
+  - The tip baseline had 82 top-level failures in these packages.
+  - Rust `corpus` tests pass. `make lint-code-gomad` and `make lint-code-fast` (base `gomad`), gofmt and `TestWASMArchitecture` pass. `make validate` was not needed: no generator or protocol input changed.
+- **End to end.** All nine fn-224.2 ringpop leaves pass over seeds 0, 1 and 2 (27/27), and 27/27 standalone replays report `reproduced=true choice-replay=exact`. These include empty tapes and non-empty v4 tapes of up to 4,194 decisions.
+- **Review.** Two independent `codex review` passes, on the commit and on the branch, found no actionable regressions.
+- **Evidence.** `/home/agent/wt/evidence/go-host-v4-compat/`.

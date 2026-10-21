@@ -640,6 +640,10 @@ func Run(ctx context.Context, request Request) (result Result, runErr error) {
 		if err != nil {
 			result.Termination = "invalid"
 			result.Message = err.Error()
+		} else if tape := environment.runtime.tape; tape != nil {
+			// The Go session consumed this whole replay plan (runtime_finish
+			// refuses an unconsumed tape); attest it like the helper does.
+			result.InputTapeSHA256, result.InputDecisions = tape.SHA256, uint64(len(tape.Decisions))
 		}
 	}
 	return result, nil

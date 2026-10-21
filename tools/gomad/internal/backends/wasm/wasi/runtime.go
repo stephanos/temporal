@@ -152,27 +152,51 @@ func (session *runtimeSession) handle(op string, input json.RawMessage) (bytesOu
 	}
 	switch op {
 	case "runtime_decision":
-		if len(data) < 32 || binary.BigEndian.Uint32(data) != 1 {
+		// Header v2 (choice trace v4) appends one 16-byte creation site per
+		// runnable alternative, mirroring the helper's runtime decision import.
+		if len(data) < 32 || binary.BigEndian.Uint32(data) != 1 && binary.BigEndian.Uint32(data) != 2 {
 			return bytesOutput{}, invalid("runtime decision header")
 		}
 		rawKind := binary.BigEndian.Uint32(data[4:])
 		kind, site := choice.Kind(rawKind), binary.BigEndian.Uint64(data[8:])
 		flags, count := binary.BigEndian.Uint32(data[16:]), binary.BigEndian.Uint32(data[20:])
 		selected, value := binary.BigEndian.Uint32(data[24:]), binary.BigEndian.Uint32(data[28:])
+		creation := binary.BigEndian.Uint32(data) == 2 && kind == choice.KindRunnable
 		diagnosticBytes := 0
 		if session.control.Diagnostics {
 			diagnosticBytes = 96
 		}
-		if rawKind != uint32(kind) || (kind != choice.KindRunnable && kind != choice.KindSelectPoll) || flags&^uint32(choice.FlagSiteMissing) != 0 || count < 2 || count > 256 || selected >= count || len(data) != 32+int(count)*32+diagnosticBytes {
+		stride := 32
+		if creation {
+			stride = 48
+		}
+		if rawKind != uint32(kind) || (kind != choice.KindRunnable && kind != choice.KindSelectPoll) || flags&^uint32(choice.FlagSiteMissing) != 0 || count < 2 || count > 256 || selected >= count || len(data) != 32+int(count)*stride+diagnosticBytes {
 			return bytesOutput{}, invalid("runtime decision alternatives or layout")
 		}
 		alternatives := make([][32]byte, count)
 		for i := range alternatives {
 			copy(alternatives[i][:], data[32+32*i:64+32*i])
 		}
+		diagnostic := data[32+int(count)*stride:]
 		observed, err := choice.CanonicalDecision(uint64(len(session.records)), kind, site, flags != 0, alternatives, alternatives[selected], value)
 		if err != nil {
 			return bytesOutput{}, fmt.Errorf("%w: %w", invalid("runtime decision identities"), err)
+		}
+		var creations []choice.Record
+		if creation {
+			creations = make([]choice.Record, count)
+			for i, identity := range alternatives {
+				entry := data[32+32*int(count)+16*i : 32+32*int(count)+16*(i+1)]
+				siteOffset, missing := binary.BigEndian.Uint64(entry), entry[8]
+				if missing&^uint8(choice.FlagSiteMissing) != 0 || !allZero(entry[9:]) || missing != 0 && siteOffset != 0 {
+					return bytesOutput{}, invalid("runtime creation site")
+				}
+				creations[i] = choice.Record{Kind: choice.KindGoroutineCreation, Flags: choice.Flags(missing), Alternatives: count, SiteOffset: siteOffset, SelectedIdentity: identity}
+			}
+			slices.SortFunc(creations, func(a, b choice.Record) int { return compareIdentity(a.SelectedIdentity, b.SelectedIdentity) })
+			if 64+uint64(len(session.records)+int(count)+1)*96 > session.control.Choice.Limit {
+				return bytesOutput{}, capacity("runtime-choice-bytes")
+			}
 		}
 		forced := session.control.Choice.Mode == choice.ModeReplay || session.control.Choice.Mode == choice.ModePrefix && session.cursor < uint64(len(session.tape.Decisions))
 		if forced {
@@ -198,7 +222,14 @@ func (session *runtimeSession) handle(op string, input json.RawMessage) (bytesOu
 			observed.Selected, observed.SelectedIdentity = expected.Selected, selectedIdentity
 			session.cursor++
 		}
-		if err := session.append(observed.Record(), data[32+32*int(count):]); err != nil {
+		for i, record := range creations {
+			record.Ordinal, record.Selected = uint64(len(session.records)), uint32(i)
+			if err := session.append(record, session.diagnosticAt(diagnostic)); err != nil {
+				return bytesOutput{}, err
+			}
+		}
+		observed.Ordinal = uint64(len(session.records))
+		if err := session.append(observed.Record(), session.diagnosticAt(diagnostic)); err != nil {
 			return bytesOutput{}, err
 		}
 		binary.BigEndian.PutUint32(data[24:], selected)
@@ -261,6 +292,16 @@ func compareIdentity(a, b [32]byte) int {
 
 func (session *runtimeSession) diverge(reason choice.DivergenceReason, expected, observed *choice.Decision) error {
 	return &RuntimeReplayError{Divergence: choice.Divergence{Ordinal: session.cursor, Reason: reason, Expected: expected, Observed: observed, TapeRecords: uint64(len(session.tape.Decisions))}}
+}
+
+// diagnosticAt stamps the guest's diagnostic record with the ordinal of the
+// trace record it is appended for; one guest decision can append several.
+func (session *runtimeSession) diagnosticAt(diagnostic []byte) []byte {
+	stamped := slices.Clone(diagnostic)
+	if session.control.Diagnostics && len(stamped) == 96 {
+		binary.BigEndian.PutUint64(stamped, uint64(len(session.records)))
+	}
+	return stamped
 }
 
 func (session *runtimeSession) append(record choice.Record, diagnostic []byte) error {

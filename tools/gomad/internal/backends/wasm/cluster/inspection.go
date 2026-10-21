@@ -34,9 +34,10 @@ func ValidateInspectionChoices(execution *cluster.WASMExecutionEvidence) error {
 			return invalid("choice trace")
 		}
 		var mapped []uint64
-		for _, record := range records {
+		predecision := choice.PredecisionOrdinals(records)
+		for index, record := range records {
 			if record.Flags&choice.FlagDecision != 0 && record.Alternatives >= 2 {
-				mapped = append(mapped, record.Ordinal)
+				mapped = append(mapped, predecision[index])
 			}
 		}
 		var decisions uint64
