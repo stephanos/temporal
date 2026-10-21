@@ -494,3 +494,22 @@ move freed approximately 1.3 GiB on the build filesystem; retained binaries,
 source and qualification evidence stayed in place. The other host workspace's
 active Cargo targets were preserved. Unrelated `tools/gomad/.turbo/` remains
 untouched. Nothing has been pushed.
+
+### Continuation integration and active owners
+
+Replay, authenticated artifact symbol projection and typed request-local
+cancellation source are integrated by `eab2a70f3d`. This is an intermediate
+batch integration, not task .6 acceptance: combined role/release, parity,
+golden and shared-helper regressions still await the remaining fixes.
+Active implementation owners are replay_completion in fn232-replay,
+seed_campaign in fn232-campaign, failfast_repair in fn235-failure-repair,
+and commitment_cost in fn235. The additional fn232-linked-network worktree
+holds the standalone network-v2 service-glue port around the existing Rust
+network model; it must preserve local fault semantics and fresh per-run state.
+Its evidence destination is `/home/agent/wt/evidence/fn232-linked-network/`.
+The campaign worker temporarily owns the shared Cargo release target after
+the replay worker's explicit release; other workers use private targets.
+Original deliberate cluster-failure fixtures remain required. Their changed
+fail-fast behavior needs a current-Go/new-helper semantic oracle; the frozen
+Go baseline remains retained for unchanged lanes. No failing fixture is
+replaced by a success merely to recover its old expected output.
