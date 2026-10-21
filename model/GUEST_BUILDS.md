@@ -226,9 +226,37 @@ Temporal asset matches all four builds.
 
 The [fn-236 proof](../.flow/artifacts/fn-236-host-independent-guest-compiler-inputs/proof.md)
 retains source/overlay manifests, toolchains, exact commands, comparisons, host
-logs and independent review. Sixteen focused script tests passed. These frozen
-snapshots contain the uncommitted fix; fn-232's final clean-checkout certification
-requires a user-created source commit. The earlier fn-232 failure remains above.
+logs and independent review. Sixteen focused script tests and the full
+`UMPIRE_BACKENDS=require make model-check` gate passed on macOS. The gate's final
+stock and Temporal outputs match the frozen proof and refreshed asset. These frozen
+snapshots preceded the committed clean-checkout certification below. The earlier
+fn-232 failure remains above.
+
+## Committed Linux/macOS certification (fn-232)
+
+Certification passed at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2` on 2026-10-21.
+Linux 7.0.14/aarch64 and macOS 25.6.0/arm64 each used two clean detached clones,
+initially absent independent targets and the same pinned toolchain. All twelve
+actual byte comparisons passed. Stock and Temporal have the sizes and hashes in
+the fn-236 table above; each Temporal output also matches the committed asset.
+Both native stock/control and embedded Temporal host suites passed, with clean
+source checks repeated after the suites.
+
+Every clone used Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`), LLVM
+23.1.1, Cargo 1.99.1 (`5f94df478`), Go 1.27.0 and protoc 29.5. From the repository
+root, the exact retained invocations were:
+
+```sh
+sbx exec -w "$PWD" dev-build bash -c 'bash .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/run-proof.sh "$PWD" "$PWD/.flow/tmp/fn232-certified-linux-3c314fb5b8"'
+bash .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/run-proof.sh "$PWD" "$PWD/.flow/tmp/fn232-certified-macos-3c314fb5b8"
+python3 .flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/compare.py "$PWD"
+```
+
+The [committed certification](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md)
+records the full source pin, exact invocations, platform/toolchain transcripts,
+source and target guards, artifact manifests, actual comparisons and host logs.
+This completes fn-232's committed-source requirement. The frozen fn-236 validation
+and historical failed fn-232/Linux-only proofs remain separate records.
 
 ## Current verification and measured gate cost
 

@@ -8,7 +8,7 @@
   "priority": null,
   "spec": "fn-236-host-independent-guest-compiler-inputs",
   "spec_path": ".flow/tasks/fn-236-host-independent-guest-compiler-inputs.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Derive independent guest identities and verify native cross-OS builds",
-  "updated_at": "2026-10-21T17:45:51.081795Z"
+  "updated_at": "2026-10-21T18:22:39.766783Z"
 }

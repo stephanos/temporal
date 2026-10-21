@@ -22,17 +22,19 @@ Reuse model/scripts/guest.sh and the retained runner pattern described in model/
 **Full gates:** Actual guest-profile stock/control and Temporal host parity for the certified artifacts; retain hashes and exact commands. No new dependencies or lifecycle waivers.
 
 ## Acceptance
-- [ ] Actual Linux/arm64 and macOS builds satisfy R1 for both guests and all four independent build roots.
+- [x] Actual Linux/arm64 and macOS builds satisfy R1 for both guests and all four independent build roots.
 - [x] R2 evidence and documentation identify one source/toolchain and preserve historical proof evidence.
 - [x] Missing executors, failed builds or mismatches remain explicit failures with no certification claim.
 
-## Incomplete handoff
+## Historical failed certification
 
 The 2026-10-21 attempt at `8d429e97409b1537ecb347c359129bffafa63f78` completed
 all four clean builds. Both guests matched across paths within each OS, but all
 eight Linux/macOS comparisons failed. Stock first differs at zero-based offset
-443 and Temporal at 635. Certification remains incomplete pending a separately
-scoped reproducibility fix. The [proof](../artifacts/fn-232-linux-macos-guest-byte-identity/proof.md)
+443 and Temporal at 635. Certification was incomplete at that revision pending a separately
+scoped reproducibility fix. Fn-236 subsequently supplied the fix, and the final
+[clean-checkout certification](../artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md)
+passed at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2`. The [proof](../artifacts/fn-232-linux-macos-guest-byte-identity/proof.md)
 records commands, platform/toolchain details, source guards, target identities,
 hashes, sizes, comparisons and host-parity results. Historical fn-230 receipts
 remain in `model/GUEST_BUILDS.md`.
@@ -40,27 +42,18 @@ remain in `model/GUEST_BUILDS.md`.
 Subsequent [diagnosis](../artifacts/fn-232-linux-macos-guest-byte-identity/diagnosis.md)
 isolated Cargo metadata and generated-output path hashes. A controlled native
 macOS replay matched both full Linux guests exactly. The replay reads reference
-Linux values; a separately scoped self-contained builder fix and renewed clean
-certification are still required.
+Linux values. Fn-236 supplied the self-contained builder fix; the later clean
+committed-source certification above passed without those reference values.
 
 ## Done summary
-Blocked:
-Certification failed at source `8d429e97409b1537ecb347c359129bffafa63f78` on
-2026-10-21. All four clean builds completed, and both guests were path-independent
-within each OS. All eight Linux/macOS comparisons failed. Stock first differs at
-zero-based offset 443 and Temporal at 635. See the retained
-proof at `.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md`,
-platform transcripts, manifests and `comparisons.json`.
+Certified committed source `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2` on native Linux 7.0.14/aarch64 and macOS 25.6.0/arm64. Four fresh clean detached clones used independent initially absent targets and the same pinned Rust/Cargo/Go/protoc versions. All twelve actual byte comparisons passed for stock (192271 bytes, SHA-256 f3da11cbe34e75e24ec698979058a6f300aad016e5215a63fe2d392951341219) and Temporal (3330006 bytes, SHA-256 5bd641822d7a124f10b247d022d8f6d296fe13632f418acfa23bd85152a6285e).
 
-R1 remains unmet. The spec requires a separately scoped reproducibility fix
-before another certification attempt. No build recipe, dependency version or
-Wasm artifact was changed to hide the mismatch. Keep fn-232 open.
+Both native stock/control and embedded Temporal host suites passed, including caught panic/overflow parity, repeated calls/Reset, trap invalidation and exact import denial. All four clones retained the pinned revision and clean status after testing. Every Temporal build matches its committed embedded asset.
 
+The permanent fix was tracked separately as fn-236. The design summary remains 1000 lines and the build guide records the committed certification separately from the frozen validation and earlier failed/Linux-only proofs. Exact commands, tools, source/target guards, manifests, comparisons and native transcripts are retained at `.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md`. This session created no commit.
+
+stage: plan-sync - skipped(config: planSync.enabled != true)
 ## Evidence
-- Commits:
-- Tests:
-  - `bash model/scripts/guest.sh` for stock and Temporal at all four clean roots; builds passed.
-  - `python3 .flow/artifacts/fn-232-linux-macos-guest-byte-identity/compare.py "$PWD"`; expected exit 1, four path comparisons passed and eight cross-OS comparisons failed.
-  - `bash .flow/artifacts/fn-232-linux-macos-guest-byte-identity/run-proof.sh` on Linux; exit 0 including both actual host suites.
-  - `bash .flow/artifacts/fn-232-linux-macos-guest-byte-identity/run-parity.sh` on macOS; exit 0 including both actual host suites, using a separate test copy for the emitted Temporal guest.
+- Commits: 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+- Tests: run-proof.sh on native Linux/aarch64 with four-guarded source/target lane checks (exit 0), run-proof.sh on native macOS/arm64 with four-guarded source/target lane checks (exit 0), compare.py executed 12 actual cmp calls and repeated all four clean-source/pin checks (exit 0), Both native stock/control and embedded Temporal host suites passed against certified artifacts, Bash syntax, scoped diff checks and Flow requirement validation
 - PRs:

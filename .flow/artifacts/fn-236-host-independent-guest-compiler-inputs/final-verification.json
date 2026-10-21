@@ -1,0 +1,13 @@
+{
+  "exit_codes": "all four required runners/comparisons returned 0",
+  "source_manifests": 12,
+  "same_source_manifest_sha256": "078f72231143d5243581673b9fa5a33b32e3897d07aab73dc853b612ecb899ee",
+  "flow": {
+    "fn-232-linux-macos-guest-byte-identity": "done",
+    "fn-232-linux-macos-guest-byte-identity.1": "done",
+    "fn-236-host-independent-guest-compiler-inputs": "done",
+    "fn-236-host-independent-guest-compiler-inputs.1": "done"
+  },
+  "committed_certification_pin": "3c314fb5b85427471a1525d6f190fe5d1fb9f3b2",
+  "committed_certification_comparisons": 12
+}

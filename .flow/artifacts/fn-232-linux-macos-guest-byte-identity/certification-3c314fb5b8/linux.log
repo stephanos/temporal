@@ -1,0 +1,1015 @@
++ repository=/Users/stephan/Workspace/skunkworks/umpire/temporal
++ root=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
++ pin=3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
++ mkdir -p /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
++ date -u
+Wed Oct 21 18:09:44 UTC 2026
++ uname -a
+Linux dev-build 7.0.14 #1 SMP PREEMPT Mon Oct 12 09:57:44 UTC 2026 aarch64 GNU/Linux
++ df -h /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
+Filesystem      Size  Used Avail Use% Mounted on
+host            927G  880G   48G  95% /Users/stephan/Workspace/skunkworks
++ export CARGO_BUILD_JOBS=2
++ CARGO_BUILD_JOBS=2
++ unset RUSTFLAGS CARGO_ENCODED_RUSTFLAGS CARGO_TARGET_DIR
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ git clone --shared --no-checkout /Users/stephan/Workspace/skunkworks/umpire/temporal /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
+Cloning into '/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a'...
++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a checkout --detach 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+HEAD is now at 3c314fb5b Update model-check-macos.log
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a rev-parse HEAD
++ test 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2 = 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a status --porcelain --untracked-files=all
++ test -z ''
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-unknown-linux-gnu
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 linux/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ mise exec -- rustup component list --installed
+cargo-aarch64-unknown-linux-gnu
+clippy-aarch64-unknown-linux-gnu
+llvm-tools-aarch64-unknown-linux-gnu
+rust-analyzer-aarch64-unknown-linux-gnu
+rust-docs-aarch64-unknown-linux-gnu
+rust-src
+rust-std-aarch64-unknown-linux-gnu
+rust-std-wasm32-wasip1
+rust-std-wasm32-wasip2
+rustc-aarch64-unknown-linux-gnu
+rustfmt-aarch64-unknown-linux-gnu
++ mise exec -- rustup target list --installed
+aarch64-unknown-linux-gnu
+wasm32-wasip1
+wasm32-wasip2
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ bash -n model/scripts/guest.sh
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-a.wasm
+   Compiling compiler_builtins v0.1.160 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling anyhow v1.0.104
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling rustc-std-workspace-core v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+   Compiling adler2 v2.0.1
+   Compiling memchr v2.8.3
+   Compiling cfg-if v1.0.4
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling rustc-std-workspace-alloc v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling gimli v0.34.0
+   Compiling hashbrown v0.17.1
+   Compiling miniz_oxide v0.9.1
+   Compiling addr2line v0.27.1
+   Compiling std_detect v0.1.5 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+   Compiling wasip1 v1.0.0
+   Compiling panic_unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling prost-derive v0.14.4
+   Compiling smallvec v1.16.3
+   Compiling rustix v1.1.5
+   Compiling proc-macro-utils v0.10.0
+   Compiling bitflags v2.13.2
+   Compiling bytes v1.12.1
+   Compiling prettyplease v0.2.37
+   Compiling linux-raw-sys v0.12.1
+   Compiling foldhash v0.1.5
+   Compiling regex-syntax v0.8.11
+   Compiling proc_macro v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+   Compiling equivalent v1.0.3
+   Compiling indexmap v2.14.2
+   Compiling regex-automata v0.4.18
+   Compiling hashbrown v0.15.5
+   Compiling prost v0.14.4
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl/macros)
+   Compiling fixedbitset v0.5.7
+   Compiling petgraph v0.8.3
+   Compiling tempfile v3.27.0
+   Compiling darling v0.24.1
+   Compiling manyhow v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl)
+   Compiling heck v0.5.0
+   Compiling enum-iterator v2.3.0
+   Compiling prost-build v0.14.4
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 15s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-a.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling fixedbitset v0.5.7
+   Compiling manyhow-macros v0.14.1
+   Compiling prost v0.14.4
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl)
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/annotations)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/api)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/realization/macros)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 57s
+++ git status --porcelain --untracked-files=all
++ test -z ''
++ for lane in a b
++ source=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b
++ target=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-b
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b
++ test '!' -e /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-b
++ git clone --shared --no-checkout /Users/stephan/Workspace/skunkworks/umpire/temporal /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b
+Cloning into '/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b'...
++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b checkout --detach 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+HEAD is now at 3c314fb5b Update model-check-macos.log
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b rev-parse HEAD
++ test 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2 = 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b status --porcelain --untracked-files=all
++ test -z ''
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b
++ mise trust /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/mise.toml
+mise trusted /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b
++ mise exec -- rustc -Vv
+rustc 1.99.1 (58cf8f9c3 2026-10-13)
+binary: rustc
+commit-hash: 58cf8f9c35b355199727627d07ae34a4e2846d67
+commit-date: 2026-10-13
+host: aarch64-unknown-linux-gnu
+release: 1.99.1
+LLVM version: 23.1.1
++ mise exec -- cargo -V
+cargo 1.99.1 (5f94df478 2026-08-27)
++ mise exec -- go version
+go version go1.27.0 linux/arm64
++ mise exec -- protoc --version
+libprotoc 29.5
++ mise exec -- rustup component list --installed
+cargo-aarch64-unknown-linux-gnu
+clippy-aarch64-unknown-linux-gnu
+llvm-tools-aarch64-unknown-linux-gnu
+rust-analyzer-aarch64-unknown-linux-gnu
+rust-docs-aarch64-unknown-linux-gnu
+rust-src
+rust-std-aarch64-unknown-linux-gnu
+rust-std-wasm32-wasip1
+rust-std-wasm32-wasip2
+rustc-aarch64-unknown-linux-gnu
+rustfmt-aarch64-unknown-linux-gnu
++ mise exec -- rustup target list --installed
+aarch64-unknown-linux-gnu
+wasm32-wasip1
+wasm32-wasip2
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-b
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-b
++ bash -n model/scripts/guest.sh
++ bash model/scripts/guest.sh umpire-stock-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-b.wasm
+   Compiling compiler_builtins v0.1.160 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/compiler-builtins/compiler-builtins)
+   Compiling core v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/core)
+   Compiling proc-macro2 v1.0.107
+   Compiling quote v1.0.47
+   Compiling unicode-ident v1.0.27
+   Compiling libc v0.2.189
+   Compiling object v0.39.1
+   Compiling std v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std)
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling anyhow v1.0.104
+   Compiling rustc-std-workspace-core v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-core)
+   Compiling alloc v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/alloc)
+   Compiling unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/unwind)
+   Compiling adler2 v2.0.1
+   Compiling memchr v2.8.3
+   Compiling cfg-if v1.0.4
+   Compiling rustc-demangle v0.1.28
+   Compiling panic_abort v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_abort)
+   Compiling rustc-literal-escaper v0.0.8
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling rustc-std-workspace-alloc v1.99.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/rustc-std-workspace-alloc)
+   Compiling panic_unwind v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/panic_unwind)
+   Compiling gimli v0.34.0
+   Compiling miniz_oxide v0.9.1
+   Compiling addr2line v0.27.1
+   Compiling wasip1 v1.0.0
+   Compiling std_detect v0.1.5 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/std_detect)
+   Compiling hashbrown v0.17.1
+   Compiling strsim v0.11.1
+   Compiling ident_case v1.0.1
+   Compiling darling_core v0.24.1
+   Compiling proc_macro v0.0.0 (/home/agent/.rustup/toolchains/1.99.1-aarch64-unknown-linux-gnu/lib/rustlib/src/rust/library/proc_macro)
+   Compiling prost-derive v0.14.4
+   Compiling smallvec v1.16.3
+   Compiling rustix v1.1.5
+   Compiling proc-macro-utils v0.10.0
+   Compiling equivalent v1.0.3
+   Compiling bitflags v2.13.2
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling bytes v1.12.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling foldhash v0.1.5
+   Compiling hashbrown v0.15.5
+   Compiling regex-automata v0.4.18
+   Compiling prost v0.14.4
+   Compiling indexmap v2.14.2
+   Compiling manyhow-macros v0.14.1
+   Compiling darling_macro v0.24.1
+   Compiling once_cell v1.21.4
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/dsl/macros)
+   Compiling petgraph v0.8.3
+   Compiling darling v0.24.1
+   Compiling tempfile v3.27.0
+   Compiling manyhow v0.14.1
+   Compiling prost-types v0.14.4
+   Compiling regex v1.13.1
+   Compiling enum-iterator-derive v1.5.0
+   Compiling heck v0.5.0
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/dsl)
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/checker)
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-stock-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/wasm/guests/stock)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1m 03s
++ bash model/scripts/guest.sh umpire-temporal-guest /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-b.wasm
+   Compiling smallvec v1.16.3
+   Compiling indexmap v2.14.2
+   Compiling proc-macro-utils v0.10.0
+   Compiling fixedbitset v0.5.7
+   Compiling manyhow-macros v0.14.1
+   Compiling prost v0.14.4
+   Compiling petgraph v0.8.3
+   Compiling manyhow v0.14.1
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/dsl/macros)
+   Compiling prost-types v0.14.4
+   Compiling prost-build v0.14.4
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/dsl)
+   Compiling thiserror v2.0.21
+   Compiling enum-iterator v2.3.0
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/wasm)
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/checker)
+   Compiling rustc-hash v2.1.3
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-annotate-syntax v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/annotate/syntax)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-annotations v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/umpire/annotations)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/realization/macros)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/api)
+   Compiling umpire-temporal-annotate-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/annotate/macros)
+   Compiling umpire-temporal-annotate v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/annotate)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2m 05s
+++ git status --porcelain --untracked-files=all
++ test -z ''
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-b.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-b.wasm
++ python3 - /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
+{
+  "stock-a.wasm": {
+    "bytes": 192271,
+    "sha256": "f3da11cbe34e75e24ec698979058a6f300aad016e5215a63fe2d392951341219"
+  },
+  "stock-b.wasm": {
+    "bytes": 192271,
+    "sha256": "f3da11cbe34e75e24ec698979058a6f300aad016e5215a63fe2d392951341219"
+  },
+  "temporal-a.wasm": {
+    "bytes": 3330006,
+    "sha256": "5bd641822d7a124f10b247d022d8f6d296fe13632f418acfa23bd85152a6285e"
+  },
+  "temporal-b.wasm": {
+    "bytes": 3330006,
+    "sha256": "5bd641822d7a124f10b247d022d8f6d296fe13632f418acfa23bd85152a6285e"
+  },
+  "target-a": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a",
+    "device": 58,
+    "inode": 454655735
+  },
+  "target-b": {
+    "path": "/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-b",
+    "device": 58,
+    "inode": 454679934
+  }
+}
+
++ cd /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a
++ export CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ CARGO_TARGET_DIR=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a
++ bash model/scripts/tests/build-guests.sh
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-stock-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1.62s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-control-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm/guests/control)
+warning: `umpire-control-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 3.53s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-api v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/api)
+warning: `umpire-annotations` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-realization-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/realization/macros)
+warning: `umpire-temporal-annotate` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/realization)
+warning: `umpire-temporal-api` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-temporal` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-temporal-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/temporal/guest)
+warning: `umpire-temporal-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 59.43s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm/guests/caught-panic)
+warning: `umpire-caught-panic-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 2.09s
+warning: unstable feature specified for `-Ctarget-feature`: `exception-handling`
+  |
+  = note: this feature is not stably supported; its behavior can change in the future
+
+warning: `umpire-dsl` (lib) generated 1 warning
+warning: `umpire-checker` (lib) generated 1 warning (1 duplicate)
+warning: `umpire-wasm` (lib) generated 1 warning (1 duplicate)
+   Compiling umpire-overflow-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm/guests/overflow)
+warning: `umpire-overflow-guest` (lib) generated 1 warning (1 duplicate)
+    Finished `guest` profile [optimized] target(s) in 1.99s
+   Compiling proc-macro2 v1.0.107
+   Compiling unicode-ident v1.0.27
+   Compiling quote v1.0.47
+   Compiling anyhow v1.0.104
+   Compiling either v1.19.0
+   Compiling itertools v0.14.0
+   Compiling syn v2.0.119
+   Compiling syn v3.0.9
+   Compiling ident_case v1.0.1
+   Compiling strsim v0.11.1
+   Compiling darling_core v0.24.1
+   Compiling prost-derive v0.14.4
+   Compiling rustix v1.1.5
+   Compiling smallvec v1.16.3
+   Compiling proc-macro-utils v0.10.0
+   Compiling regex-syntax v0.8.11
+   Compiling prettyplease v0.2.37
+   Compiling foldhash v0.1.5
+   Compiling equivalent v1.0.3
+   Compiling bytes v1.12.1
+   Compiling bitflags v2.13.2
+   Compiling hashbrown v0.17.1
+   Compiling linux-raw-sys v0.12.1
+   Compiling indexmap v2.14.2
+   Compiling prost v0.14.4
+   Compiling regex-automata v0.4.18
+   Compiling hashbrown v0.15.5
+   Compiling darling_macro v0.24.1
+   Compiling manyhow-macros v0.14.1
+   Compiling fastrand v2.5.0
+   Compiling fixedbitset v0.5.7
+   Compiling once_cell v1.21.4
+   Compiling umpire-dsl-macros v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl/macros)
+   Compiling tempfile v3.27.0
+   Compiling manyhow v0.14.1
+   Compiling petgraph v0.8.3
+   Compiling darling v0.24.1
+   Compiling regex v1.13.1
+   Compiling prost-types v0.14.4
+   Compiling enum-iterator-derive v1.5.0
+   Compiling thiserror v2.0.21
+   Compiling umpire-dsl v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/dsl)
+   Compiling multimap v0.10.1
+   Compiling log v0.4.34
+   Compiling heck v0.5.0
+   Compiling prost-build v0.14.4
+   Compiling enum-iterator v2.3.0
+   Compiling thiserror-impl v2.0.21
+   Compiling umpire-checker v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/checker)
+   Compiling umpire-wasm v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm)
+   Compiling rustc-hash v2.1.3
+   Compiling umpire-caught-panic-guest v0.0.1 (/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a/model/umpire/wasm/guests/caught-panic)
+    Finished `guest` profile [optimized] target(s) in 34.98s
+     Running `/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/guest/panic-control-reports /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/panic-native`
+
+thread 'main' (1920101) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:74:38:
+broken heater
+note: run with `RUST_BACKTRACE=1` environment variable to display a backtrace
+
+thread 'main' (1920101) panicked at umpire/wasm/guests/caught-panic/src/bin/../../../../tests/support/../../../checker/tests/support/mod.rs:77:53:
+attempt to add with overflow
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/umpire_stock_guest.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-a.wasm /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/umpire_temporal_guest.wasm
++ cmp /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/temporal-a.wasm model/temporal/hosts/go/umpire_temporal_guest.wasm
++ export UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-a.wasm
++ UMPIRE_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/stock-a.wasm
++ export UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ UMPIRE_STATEFUL_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/stateful_control.wasm
++ export UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ UMPIRE_CAUGHT_PANIC_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/caught_panic_control.wasm
++ export UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ UMPIRE_OVERFLOW_WASM=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/wasm32-wasip1/guest/overflow_control.wasm
++ export UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/panic-native
++ UMPIRE_PANIC_NATIVE=/Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/target-a/panic-native
++ bash model/scripts/tests/guest-parity.sh
+=== RUN   TestGuestProfileCaughtPanicParity
+=== RUN   TestGuestProfileCaughtPanicParity/effect_panic
+=== RUN   TestGuestProfileCaughtPanicParity/effect_overflow
+--- PASS: TestGuestProfileCaughtPanicParity (0.02s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_panic (0.01s)
+    --- PASS: TestGuestProfileCaughtPanicParity/effect_overflow (0.01s)
+=== RUN   TestGuestProfileUncaughtPanicsTrap
+=== RUN   TestGuestProfileUncaughtPanicsTrap/observation
+=== RUN   TestGuestProfileUncaughtPanicsTrap/outcome_comparison
+--- PASS: TestGuestProfileUncaughtPanicsTrap (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/observation (0.01s)
+    --- PASS: TestGuestProfileUncaughtPanicsTrap/outcome_comparison (0.01s)
+=== RUN   TestGuestExports
+--- PASS: TestGuestExports (0.01s)
+=== RUN   TestBoundaryControls
+=== RUN   TestBoundaryControls/valid
+=== RUN   TestBoundaryControls/trap
+=== RUN   TestBoundaryControls/exhausted
+=== RUN   TestBoundaryControls/bounds
+=== RUN   TestBoundaryControls/huge
+=== RUN   TestBoundaryControls/overlap
+=== RUN   TestBoundaryControls/malformed
+=== RUN   TestBoundaryControls/wrong_outcome
+=== RUN   TestBoundaryControls/empty_outcome
+--- PASS: TestBoundaryControls (0.00s)
+    --- PASS: TestBoundaryControls/valid (0.00s)
+    --- PASS: TestBoundaryControls/trap (0.00s)
+    --- PASS: TestBoundaryControls/exhausted (0.00s)
+    --- PASS: TestBoundaryControls/bounds (0.00s)
+    --- PASS: TestBoundaryControls/huge (0.00s)
+    --- PASS: TestBoundaryControls/overlap (0.00s)
+    --- PASS: TestBoundaryControls/malformed (0.00s)
+    --- PASS: TestBoundaryControls/wrong_outcome (0.00s)
+    --- PASS: TestBoundaryControls/empty_outcome (0.00s)
+=== RUN   TestRejectsModuleContract
+=== RUN   TestRejectsModuleContract/signature
+=== RUN   TestRejectsModuleContract/clock
+=== RUN   TestRejectsModuleContract/filesystem
+=== RUN   TestRejectsModuleContract/unknown
+=== RUN   TestRejectsModuleContract/fd_signature
+=== RUN   TestRejectsModuleContract/env_signature
+=== RUN   TestRejectsModuleContract/env_sizes_signature
+=== RUN   TestRejectsModuleContract/exit_signature
+--- PASS: TestRejectsModuleContract (0.00s)
+    --- PASS: TestRejectsModuleContract/signature (0.00s)
+    --- PASS: TestRejectsModuleContract/clock (0.00s)
+    --- PASS: TestRejectsModuleContract/filesystem (0.00s)
+    --- PASS: TestRejectsModuleContract/unknown (0.00s)
+    --- PASS: TestRejectsModuleContract/fd_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/env_sizes_signature (0.00s)
+    --- PASS: TestRejectsModuleContract/exit_signature (0.00s)
+=== RUN   TestRejectsApplicationExports
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_alloc/signature
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/missing
+=== RUN   TestRejectsApplicationExports/umpire_buffer_release/signature
+=== RUN   TestRejectsApplicationExports/umpire_call/missing
+=== RUN   TestRejectsApplicationExports/umpire_call/signature
+=== RUN   TestRejectsApplicationExports/unexpected/alloc
+=== RUN   TestRejectsApplicationExports/unexpected/free
+=== RUN   TestRejectsApplicationExports/unexpected/call
+=== RUN   TestRejectsApplicationExports/unexpected/umpire_free
+=== RUN   TestRejectsApplicationExports/unexpected/extra
+--- PASS: TestRejectsApplicationExports (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_alloc/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_buffer_release/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/missing (0.00s)
+    --- PASS: TestRejectsApplicationExports/umpire_call/signature (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/alloc (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/call (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/umpire_free (0.00s)
+    --- PASS: TestRejectsApplicationExports/unexpected/extra (0.00s)
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release
+=== RUN   TestTrapIdentifiesABIAndLogicalMethod/umpire_call
+--- PASS: TestTrapIdentifiesABIAndLogicalMethod (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_alloc (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_buffer_release (0.00s)
+    --- PASS: TestTrapIdentifiesABIAndLogicalMethod/umpire_call (0.00s)
+=== RUN   TestGuestAllocationGuards
+=== RUN   TestGuestAllocationGuards/zero
+=== RUN   TestGuestAllocationGuards/oversize
+=== RUN   TestGuestAllocationGuards/initialized
+=== RUN   TestGuestAllocationGuards/inexact_call
+=== RUN   TestGuestAllocationGuards/invalid_free
+=== RUN   TestGuestAllocationGuards/double_free
+--- PASS: TestGuestAllocationGuards (0.10s)
+    --- PASS: TestGuestAllocationGuards/zero (0.01s)
+    --- PASS: TestGuestAllocationGuards/oversize (0.01s)
+    --- PASS: TestGuestAllocationGuards/initialized (0.03s)
+    --- PASS: TestGuestAllocationGuards/inexact_call (0.01s)
+    --- PASS: TestGuestAllocationGuards/invalid_free (0.01s)
+    --- PASS: TestGuestAllocationGuards/double_free (0.03s)
+=== RUN   TestRefusals
+--- PASS: TestRefusals (0.02s)
+=== RUN   TestRepeatedAndConcurrentCalls
+--- PASS: TestRepeatedAndConcurrentCalls (0.11s)
+=== RUN   TestGuestExhaustionPreservesExploration
+--- PASS: TestGuestExhaustionPreservesExploration (0.04s)
+=== RUN   TestKettleParity
+--- PASS: TestKettleParity (0.05s)
+=== RUN   TestProtocolResponseValidation
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_EXPLORE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ROWS/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_RESET/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_JUDGE/outcome5
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome1
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome2
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome3
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome4
+=== RUN   TestProtocolResponseValidation/METHOD_ANSWER/outcome5
+=== RUN   TestProtocolResponseValidation/judge_missing_judgment
+=== RUN   TestProtocolResponseValidation/answer_missing_reply
+=== RUN   TestProtocolResponseValidation/answer_empty_reply_type
+=== RUN   TestProtocolResponseValidation/unknown_refusal
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_BUDGET
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_STATE
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION
+=== RUN   TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED
+--- PASS: TestProtocolResponseValidation (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_EXPLORE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ROWS/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_RESET/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_JUDGE/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome1 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome2 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome3 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome4 (0.00s)
+    --- PASS: TestProtocolResponseValidation/METHOD_ANSWER/outcome5 (0.00s)
+    --- PASS: TestProtocolResponseValidation/judge_missing_judgment (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_missing_reply (0.00s)
+    --- PASS: TestProtocolResponseValidation/answer_empty_reply_type (0.00s)
+    --- PASS: TestProtocolResponseValidation/unknown_refusal (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSPECIFIED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNKNOWN_METHOD (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_MALFORMED_REQUEST (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_BUDGET (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_STATE (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_NOT_EXPLORED (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_ALLOCATION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_SCOPE_ACTION (0.00s)
+    --- PASS: TestProtocolResponseValidation/REFUSAL_CODE_UNSUPPORTED (0.00s)
+=== RUN   TestProtocolWrappers
+=== RUN   TestProtocolWrappers/reset
+=== RUN   TestProtocolWrappers/explained
+=== RUN   TestProtocolWrappers/unexplained
+=== RUN   TestProtocolWrappers/answer
+=== RUN   TestProtocolWrappers/nil_reset
+=== RUN   TestProtocolWrappers/nil_judge
+=== RUN   TestProtocolWrappers/missing_observation
+=== RUN   TestProtocolWrappers/empty_observation_type
+=== RUN   TestProtocolWrappers/nil_answer
+=== RUN   TestProtocolWrappers/missing_callback
+=== RUN   TestProtocolWrappers/empty_callback_type
+--- PASS: TestProtocolWrappers (0.00s)
+    --- PASS: TestProtocolWrappers/reset (0.00s)
+    --- PASS: TestProtocolWrappers/explained (0.00s)
+    --- PASS: TestProtocolWrappers/unexplained (0.00s)
+    --- PASS: TestProtocolWrappers/answer (0.00s)
+    --- PASS: TestProtocolWrappers/nil_reset (0.00s)
+    --- PASS: TestProtocolWrappers/nil_judge (0.00s)
+    --- PASS: TestProtocolWrappers/missing_observation (0.00s)
+    --- PASS: TestProtocolWrappers/empty_observation_type (0.00s)
+    --- PASS: TestProtocolWrappers/nil_answer (0.00s)
+    --- PASS: TestProtocolWrappers/missing_callback (0.00s)
+    --- PASS: TestProtocolWrappers/empty_callback_type (0.00s)
+=== RUN   TestExplanationOutcomeWireCompatibility
+--- PASS: TestExplanationOutcomeWireCompatibility (0.00s)
+=== RUN   TestProtocolWireCompatibility
+=== RUN   TestProtocolWireCompatibility/explore_request
+=== RUN   TestProtocolWireCompatibility/rows_request
+=== RUN   TestProtocolWireCompatibility/explore_response
+=== RUN   TestProtocolWireCompatibility/rows_response
+=== RUN   TestProtocolWireCompatibility/refusal_0
+=== RUN   TestProtocolWireCompatibility/refusal_1
+=== RUN   TestProtocolWireCompatibility/refusal_2
+=== RUN   TestProtocolWireCompatibility/refusal_3
+=== RUN   TestProtocolWireCompatibility/refusal_4
+=== RUN   TestProtocolWireCompatibility/refusal_5
+=== RUN   TestProtocolWireCompatibility/refusal_6
+=== RUN   TestProtocolWireCompatibility/refusal_7
+--- PASS: TestProtocolWireCompatibility (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_request (0.00s)
+    --- PASS: TestProtocolWireCompatibility/explore_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/rows_response (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_0 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_1 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_2 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_3 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_4 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_5 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_6 (0.00s)
+    --- PASS: TestProtocolWireCompatibility/refusal_7 (0.00s)
+=== RUN   TestCoreProtocolWireCompatibility
+=== RUN   TestCoreProtocolWireCompatibility/reset_response
+=== RUN   TestCoreProtocolWireCompatibility/judge_request
+=== RUN   TestCoreProtocolWireCompatibility/answer_request
+=== RUN   TestCoreProtocolWireCompatibility/judge_explained
+=== RUN   TestCoreProtocolWireCompatibility/judge_unexplained
+=== RUN   TestCoreProtocolWireCompatibility/answer_response
+--- PASS: TestCoreProtocolWireCompatibility (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/reset_response (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_request (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_explained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/judge_unexplained (0.00s)
+    --- PASS: TestCoreProtocolWireCompatibility/answer_response (0.00s)
+=== RUN   TestProtocolNamespace
+--- PASS: TestProtocolNamespace (0.00s)
+=== RUN   TestStatefulGuestReplayFreezeResetAndIsolation
+--- PASS: TestStatefulGuestReplayFreezeResetAndIsolation (0.02s)
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER
+=== RUN   TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET
+--- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership (0.20s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_JUDGE (0.09s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_ANSWER (0.07s)
+    --- PASS: TestStatefulResponseExhaustionPreservesRunAndOwnership/METHOD_RESET (0.04s)
+=== RUN   TestDeniedDescriptorImports
+=== RUN   TestDeniedDescriptorImports/fd_close
+=== RUN   TestDeniedDescriptorImports/fd_seek
+--- PASS: TestDeniedDescriptorImports (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_close (0.00s)
+    --- PASS: TestDeniedDescriptorImports/fd_seek (0.00s)
+=== RUN   TestRejectsDescriptorImportContracts
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/other
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01
+=== RUN   TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02
+--- PASS: TestRejectsDescriptorImportContracts (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_close/wasi_snapshot_preview1#02 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/other (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#01 (0.00s)
+    --- PASS: TestRejectsDescriptorImportContracts/fd_seek/wasi_snapshot_preview1#02 (0.00s)
+PASS
+ok  	umpire.local/model	0.611s
+?   	umpire.local/model/umpire/model/v1	[no test files]
++ CGO_ENABLED=0
++ mise exec -- go -C model/temporal/hosts/go test -tags test_dep -count=1 -v ./...
+=== RUN   TestTemporalResponseExhaustionRollsBackState
+=== RUN   TestTemporalResponseExhaustionRollsBackState/answer_delivery
+=== RUN   TestTemporalResponseExhaustionRollsBackState/judge_terminal
+=== RUN   TestTemporalResponseExhaustionRollsBackState/reset_started
+=== RUN   TestTemporalResponseExhaustionRollsBackState/reset_frozen
+=== RUN   TestTemporalResponseExhaustionRollsBackState/judge_freeze
+=== RUN   TestTemporalResponseExhaustionRollsBackState/annotate_started
+=== RUN   TestTemporalResponseExhaustionRollsBackState/annotate_frozen
+--- PASS: TestTemporalResponseExhaustionRollsBackState (1.48s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/answer_delivery (0.28s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/judge_terminal (0.19s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/reset_started (0.12s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/reset_frozen (0.14s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/judge_freeze (0.17s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/annotate_started (0.28s)
+    --- PASS: TestTemporalResponseExhaustionRollsBackState/annotate_frozen (0.30s)
+=== RUN   TestAnnotationsPreserveFrozenModelAndActualResponseBytes
+--- PASS: TestAnnotationsPreserveFrozenModelAndActualResponseBytes (0.37s)
+=== RUN   TestAnnotationRefusalsLeaveWasmHostUsable
+--- PASS: TestAnnotationRefusalsLeaveWasmHostUsable (0.21s)
+=== RUN   TestCancelSuccessAndRejectedSelfLoop
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Completed
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Failed
+=== RUN   TestCancelSuccessAndRejectedSelfLoop/Canceled
+--- PASS: TestCancelSuccessAndRejectedSelfLoop (1.19s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Completed (0.50s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Failed (0.42s)
+    --- PASS: TestCancelSuccessAndRejectedSelfLoop/Canceled (0.26s)
+=== RUN   TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses
+--- PASS: TestCancelStatusContradictionFreezesAndMalformedEnvelopeRefuses (2.92s)
+=== RUN   TestObservationResultWireCompatibility
+--- PASS: TestObservationResultWireCompatibility (0.00s)
+=== RUN   TestAnswerDeliveryAndObservedTerminal
+=== RUN   TestAnswerDeliveryAndObservedTerminal/Complete
+=== RUN   TestAnswerDeliveryAndObservedTerminal/Fail
+--- PASS: TestAnswerDeliveryAndObservedTerminal (0.24s)
+    --- PASS: TestAnswerDeliveryAndObservedTerminal/Complete (0.12s)
+    --- PASS: TestAnswerDeliveryAndObservedTerminal/Fail (0.12s)
+=== RUN   TestImpossibleObservationFreezesUntilReset
+=== RUN   TestImpossibleObservationFreezesUntilReset/started_without_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/terminal_without_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/stale_scheduled_after_delivery
+=== RUN   TestImpossibleObservationFreezesUntilReset/opposite_terminal_after_closure
+--- PASS: TestImpossibleObservationFreezesUntilReset (0.89s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/started_without_delivery (0.12s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/terminal_without_delivery (0.12s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/stale_scheduled_after_delivery (0.16s)
+    --- PASS: TestImpossibleObservationFreezesUntilReset/opposite_terminal_after_closure (0.48s)
+=== RUN   TestCallbackRefusalPreservesScheduled
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_task
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_task_URL
+=== RUN   TestCallbackRefusalPreservesScheduled/wrong_task_type
+=== RUN   TestCallbackRefusalPreservesScheduled/alternate_task_URL
+=== RUN   TestCallbackRefusalPreservesScheduled/malformed_task
+=== RUN   TestCallbackRefusalPreservesScheduled/missing_input
+=== RUN   TestCallbackRefusalPreservesScheduled/zero_payloads
+=== RUN   TestCallbackRefusalPreservesScheduled/two_payloads
+=== RUN   TestCallbackRefusalPreservesScheduled/unknown_policy
+=== RUN   TestCallbackRefusalPreservesScheduled/wrong_encoding
+--- PASS: TestCallbackRefusalPreservesScheduled (1.22s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_task (0.16s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_task_URL (0.21s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/wrong_task_type (0.13s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/alternate_task_URL (0.12s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/malformed_task (0.11s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/missing_input (0.10s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/zero_payloads (0.09s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/two_payloads (0.09s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/unknown_policy (0.10s)
+    --- PASS: TestCallbackRefusalPreservesScheduled/wrong_encoding (0.10s)
+=== RUN   TestObservationRefusalPreservesScheduled
+=== RUN   TestObservationRefusalPreservesScheduled/wrong_outer_type
+=== RUN   TestObservationRefusalPreservesScheduled/alternate_outer_URL
+=== RUN   TestObservationRefusalPreservesScheduled/malformed_envelope
+=== RUN   TestObservationRefusalPreservesScheduled/unsupported_method
+=== RUN   TestObservationRefusalPreservesScheduled/missing_method
+=== RUN   TestObservationRefusalPreservesScheduled/missing_response
+=== RUN   TestObservationRefusalPreservesScheduled/missing_response_URL
+=== RUN   TestObservationRefusalPreservesScheduled/wrong_inner_type
+=== RUN   TestObservationRefusalPreservesScheduled/alternate_inner_URL
+=== RUN   TestObservationRefusalPreservesScheduled/malformed_response
+=== RUN   TestObservationRefusalPreservesScheduled/missing_info
+=== RUN   TestObservationRefusalPreservesScheduled/unknown_status
+=== RUN   TestObservationRefusalPreservesScheduled/unknown_run_state
+=== RUN   TestObservationRefusalPreservesScheduled/unspecified_status
+=== RUN   TestObservationRefusalPreservesScheduled/unspecified_running_state
+=== RUN   TestObservationRefusalPreservesScheduled/paused
+=== RUN   TestObservationRefusalPreservesScheduled/closed_with_running_state
+--- PASS: TestObservationRefusalPreservesScheduled (1.71s)
+    --- PASS: TestObservationRefusalPreservesScheduled/wrong_outer_type (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/alternate_outer_URL (0.11s)
+    --- PASS: TestObservationRefusalPreservesScheduled/malformed_envelope (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unsupported_method (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_method (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_response (0.09s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_response_URL (0.11s)
+    --- PASS: TestObservationRefusalPreservesScheduled/wrong_inner_type (0.09s)
+    --- PASS: TestObservationRefusalPreservesScheduled/alternate_inner_URL (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/malformed_response (0.09s)
+    --- PASS: TestObservationRefusalPreservesScheduled/missing_info (0.09s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unknown_status (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unknown_run_state (0.11s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unspecified_status (0.09s)
+    --- PASS: TestObservationRefusalPreservesScheduled/unspecified_running_state (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/paused (0.10s)
+    --- PASS: TestObservationRefusalPreservesScheduled/closed_with_running_state (0.12s)
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/wrong_outer_type
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/alternate_outer_URL
+=== RUN   TestCallbackEnvelopeRefusalPreservesScheduled/malformed_envelope
+--- PASS: TestCallbackEnvelopeRefusalPreservesScheduled (0.28s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/wrong_outer_type (0.10s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/alternate_outer_URL (0.09s)
+    --- PASS: TestCallbackEnvelopeRefusalPreservesScheduled/malformed_envelope (0.09s)
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/cancel_scheduled
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/cancel_started
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/schedule_to_start_timeout
+=== RUN   TestCancelAndTimeoutDoNotInventEvidence/start_to_close_timeout
+--- PASS: TestCancelAndTimeoutDoNotInventEvidence (0.38s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/cancel_scheduled (0.10s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/cancel_started (0.09s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/schedule_to_start_timeout (0.09s)
+    --- PASS: TestCancelAndTimeoutDoNotInventEvidence/start_to_close_timeout (0.10s)
+=== RUN   TestRepeatedDeliveryAndInstanceIsolation
+--- PASS: TestRepeatedDeliveryAndInstanceIsolation (0.21s)
+=== RUN   TestEmbeddedProbeContextsSurviveResetAndIndependentHosts
+    probes_test.go:51: host=0 context=0 mode=0 round=0 duration=1.12780275s pages=52
+    probes_test.go:51: host=0 context=0 mode=1 round=0 duration=1.448167ms pages=52
+    probes_test.go:51: host=0 context=0 mode=2 round=0 duration=5.359459ms pages=52
+    probes_test.go:51: host=0 context=0 mode=3 round=0 duration=50.241709ms pages=52
+    probes_test.go:51: host=0 context=1 mode=0 round=1 duration=53.18975ms pages=52
+    probes_test.go:51: host=0 context=1 mode=1 round=1 duration=1.466833ms pages=52
+    probes_test.go:51: host=0 context=1 mode=2 round=1 duration=2.656875ms pages=52
+    probes_test.go:51: host=0 context=1 mode=3 round=1 duration=48.771916ms pages=52
+    probes_test.go:51: host=0 context=0 mode=0 round=2 duration=52.292541ms pages=52
+    probes_test.go:51: host=0 context=0 mode=1 round=2 duration=1.45175ms pages=52
+    probes_test.go:51: host=0 context=0 mode=2 round=2 duration=2.587542ms pages=52
+    probes_test.go:51: host=0 context=0 mode=3 round=2 duration=51.244458ms pages=52
+    probes_test.go:51: host=1 context=1 mode=0 round=0 duration=1.191185292s pages=52
+    probes_test.go:51: host=1 context=1 mode=1 round=0 duration=1.437917ms pages=52
+    probes_test.go:51: host=1 context=1 mode=2 round=0 duration=4.999666ms pages=52
+    probes_test.go:51: host=1 context=1 mode=3 round=0 duration=55.878875ms pages=52
+    probes_test.go:51: host=1 context=0 mode=0 round=1 duration=56.145708ms pages=52
+    probes_test.go:51: host=1 context=0 mode=1 round=1 duration=1.482041ms pages=52
+    probes_test.go:51: host=1 context=0 mode=2 round=1 duration=2.812958ms pages=52
+    probes_test.go:51: host=1 context=0 mode=3 round=1 duration=62.437625ms pages=52
+    probes_test.go:51: host=1 context=1 mode=0 round=2 duration=53.881667ms pages=52
+    probes_test.go:51: host=1 context=1 mode=1 round=2 duration=1.432709ms pages=52
+    probes_test.go:51: host=1 context=1 mode=2 round=2 duration=3.095625ms pages=52
+    probes_test.go:51: host=1 context=1 mode=3 round=2 duration=50.851833ms pages=52
+--- PASS: TestEmbeddedProbeContextsSurviveResetAndIndependentHosts (3.09s)
+=== RUN   TestProbeLocalRefusalNeverBecomesServerObservation
+--- PASS: TestProbeLocalRefusalNeverBecomesServerObservation (0.00s)
+=== RUN   TestProbeRecipeExpansionAndRefusals
+=== RUN   TestProbeRecipeExpansionAndRefusals/corruption
+=== RUN   TestProbeRecipeExpansionAndRefusals/length
+=== RUN   TestProbeRecipeExpansionAndRefusals/budget
+=== RUN   TestProbeRecipeExpansionAndRefusals/overflow
+=== RUN   TestProbeRecipeExpansionAndRefusals/zero_repeat
+=== RUN   TestProbeRecipeExpansionAndRefusals/empty_literal
+=== RUN   TestProbeRecipeExpansionAndRefusals/segment_budget
+--- PASS: TestProbeRecipeExpansionAndRefusals (0.02s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/corruption (0.01s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/length (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/budget (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/overflow (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/zero_repeat (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/empty_literal (0.00s)
+    --- PASS: TestProbeRecipeExpansionAndRefusals/segment_budget (0.00s)
+=== RUN   TestProbeObservationPatternAndDetails
+--- PASS: TestProbeObservationPatternAndDetails (0.00s)
+=== RUN   TestGenericProbeObservationMatchesEachPredictionWithoutValues
+--- PASS: TestGenericProbeObservationMatchesEachPredictionWithoutValues (0.00s)
+=== RUN   TestProbeMetadataAdmissionAndRetiredWireFields
+--- PASS: TestProbeMetadataAdmissionAndRetiredWireFields (0.00s)
+PASS
+ok  	umpire.local/temporal	14.227s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
++ for lane in a b
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a rev-parse HEAD
++ test 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2 = 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-a status --porcelain --untracked-files=all
++ test -z ''
++ for lane in a b
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b rev-parse HEAD
++ test 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2 = 3c314fb5b85427471a1525d6f190fe5d1fb9f3b2
+++ git -C /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8/source-b status --porcelain --untracked-files=all
++ test -z ''
++ date -u
+Wed Oct 21 18:19:10 UTC 2026
++ df -h /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn232-certified-linux-3c314fb5b8
+Filesystem      Size  Used Avail Use% Mounted on
+host            927G  885G   43G  96% /Users/stephan/Workspace/skunkworks

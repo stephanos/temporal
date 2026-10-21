@@ -1,14 +1,11 @@
 {
-  "assignee": null,
-  "claim_note": "",
-  "claimed_at": null,
   "created_at": "2026-10-21T01:12:34.965927Z",
   "depends_on": [],
   "id": "fn-232-linux-macos-guest-byte-identity.1",
   "priority": null,
   "spec": "fn-232-linux-macos-guest-byte-identity",
   "spec_path": ".flow/tasks/fn-232-linux-macos-guest-byte-identity.1.md",
-  "status": "todo",
+  "status": "done",
   "title": "Run and record same-source Linux/macOS guest certification",
-  "updated_at": "2026-10-21T01:12:34.965927Z"
+  "updated_at": "2026-10-21T18:22:03.165241Z"
 }

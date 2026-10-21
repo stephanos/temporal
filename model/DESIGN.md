@@ -152,9 +152,9 @@ absolute paths used initially absent independent targets and retained clean stat
 Both byte comparisons passed. Actual Tiny effect-panic and overflow fixtures match
 their native full responses and existing report goldens across repeated calls and Reset.
 The default gate builds the same unwind profile. [Commands and timing](GUEST_BUILDS.md).
-fn-232 at `8d429e97409b1537ecb347c359129bffafa63f78` failed cross-OS identity on 2026-10-21.
-Two paths per OS matched; Linux/aarch64 and macOS 25.6.0/arm64 differed for both guests.
-[Historical evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/proof.md) records that failure; fn-236 normalizes compiler identities and generated paths.
+fn-232 certified source `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2` on 2026-10-21 using four clean clones after fn-236's compiler-input fix.
+Linux 7.0.14/aarch64 and macOS 25.6.0/arm64 matched stock (192271 bytes) and Temporal (3330006 bytes); all twelve comparisons and both native host suites passed.
+[Certification evidence](../.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md) records source/toolchain guards, independent targets, exact commands, sizes and hashes.
 Temporal embeds the current asset; [build details and renewed proof](GUEST_BUILDS.md) cover freshness, cache identities and cross-OS verification.
 
 ## Capability and panic boundaries

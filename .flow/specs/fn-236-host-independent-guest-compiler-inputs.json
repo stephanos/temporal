@@ -7,7 +7,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-236-host-independent-guest-compiler-inputs.md",
-  "status": "open",
+  "status": "done",
   "title": "Host-independent guest compiler inputs",
   "tracker": {
     "baseHashFlow": null,
@@ -20,5 +20,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T17:45:49.494620Z"
+  "updated_at": "2026-10-21T18:07:53.780240Z"
 }

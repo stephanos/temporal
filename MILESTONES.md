@@ -38,6 +38,10 @@ the embedded guest, freshness controls and renewed two-checkout Linux proof.
 fn-231 is complete locally with both tasks, implementation and parent completion
 reviews passed, all three conductor gates and unchanged live gap/privacy proof.
 Its final timing gate took 87.140s, above the 30s soft target; inner loop was 1.672s.
+fn-236's permanent guest compiler-input fix and fn-232's Linux/macOS certification are
+complete locally. Four clean clones at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2`
+passed all twelve stock/Temporal byte comparisons and both platforms' host suites.
+[Certification evidence](.flow/artifacts/fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md).
 TLC is implemented for its admitted source subset; unsupported source,
 including the current Phased/reject activity Model, is explicitly refused.
 
@@ -82,19 +86,6 @@ without changing the canonical Model, and differential healthy-versus-mutant det
 | fn-233.3 | ⬜ todo | Kettle `derive(Catalog)` catalog, `config.rs`, Annotate in the live run, `coverage.snap` and `gaps.txt` (R3, R5) |
 | fn-233.4 | ⬜ todo | Seeded mutants, one-line switches, each named by the framework in `mutants.snap.txt` (R4) |
 
-### fn-232: Linux/macOS guest byte-identity certification
-
-The owner separated this proof from fn-230 so Linux embedding and freshness work can proceed.
-The proof attempt completed four clean builds and both platforms' host suites. Both guests
-reproduce across paths within each OS, but all eight Linux/macOS byte comparisons fail.
-Certification remains open pending a separately scoped reproducibility fix; it does not gate
-fn-230 or its consumers. The retained proof identifies the source pin, toolchains and artifacts.
-[Spec](.flow/specs/fn-232-linux-macos-guest-byte-identity.md).
-
-| Name | Status | What |
-| --- | --- | --- |
-| fn-232.1 | ⛔ blocked | Four clean builds and within-OS checks passed; both guests differ across Linux/macOS. Fix reproducibility separately before renewed certification (R1, R2) |
-
 ### fn-227: Parameterized Models: declared worlds, action inputs, and the activity Model with retries and timeouts (model, temporal)
 
 Captured on 2026-10-20, after fn-218 and fn-217 and before fn-211. Closes the DSL gap DESIGN.md's
@@ -112,9 +103,11 @@ and unchanged original artifacts. Its final timing was 93.288s against the 30s s
 with a 5.035s inner loop. The revised parent plan passed SHIP review.
 Source/TLC binding in .7 is committed as a checkpoint with focused default/required checks,
 actual TLC proof and both static audits green. Final full verification and formal review remain
-open. The attempted full gate timed out after 600s; concurrent uncommitted guest-build inputs
-also prevent attributable final proof. The owner requested wrapping in-flight work and stopping;
-.7 is blocked, not complete, and no later task is admitted by this run.
+open. The attempted full gate timed out after 600s, and its mixed guest-build inputs leave
+that attempt unattributable. The guest inputs are now committed and certified by fn-236 and
+fn-232; .7 still needs re-anchoring, fresh full gates and independent implementation review.
+The owner's request to wrap in-flight work and stop remains in force; .7 stays blocked,
+and no later task is admitted by that run.
 On 2026-10-21 the owner approved all three contract amendments: lifecycle refinement
 in place of impossible old-byte equality; cooperative cancellation with explicit protocol
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
@@ -127,7 +120,7 @@ The review passed; each consumer still waits for its declared support dependenci
 
 | Name | Status | What |
 | --- | --- | --- |
-| fn-227.7 | ⛔ blocked | World/source/TLC checkpoint committed; final gates and review require a stable external guest-build boundary (R1, R3) |
+| fn-227.7 | ⛔ blocked | World/source/TLC checkpoint committed; re-anchor to committed guest inputs, rerun full gates and obtain independent implementation review (R1, R3) |
 | fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
 | fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
 | fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |

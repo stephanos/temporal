@@ -9,7 +9,7 @@
   "plan_review_status": "unknown",
   "plan_reviewed_at": null,
   "spec_path": ".flow/specs/fn-232-linux-macos-guest-byte-identity.md",
-  "status": "open",
+  "status": "done",
   "title": "Linux macOS guest byte identity certification",
   "tracker": {
     "baseHashFlow": null,
@@ -22,5 +22,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T01:13:35.762254Z"
+  "updated_at": "2026-10-21T18:22:09.548678Z"
 }

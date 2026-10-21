@@ -3,15 +3,16 @@
 All twelve actual byte comparisons passed for stock and Temporal, across two
 independent source paths on each native OS. This validates the permanent compiler
 input fix without reference platform hash maps, copied compiler outputs or binary
-rewriting. fn-232's final certification still requires a user-created commit
-containing the fix and another run from clean committed checkouts.
+rewriting. A concurrent commit then supplied the fixed source pin, and fn-232's
+[final clean-checkout certification](../fn-232-linux-macos-guest-byte-identity/certification-3c314fb5b8/proof.md)
+passed at `3c314fb5b85427471a1525d6f190fe5d1fb9f3b2`.
 
 ## Source and isolation
 
 Base commit: `77d2e4e90eeea14711ebfd050f41f0ef3b1d0b1e`. Seven reviewed overlays
 are listed in `overlay-manifest.json`; every overlay matches all four source
 snapshots, including the new helper and test. Other agents' working changes were
-excluded by starting from that commit. No commit or worktree was created.
+excluded by starting from that commit. This session created no commit or worktree.
 
 `prepare-snapshots.py` materialized independent clones under
 `.flow/tmp/fn236-snapshot-proof/{linux,macos}/source-{a,b}`. Their Git statuses
@@ -57,8 +58,17 @@ The focused log and independent review are retained alongside this report.
 Stock/control and Temporal Go host suites passed on both OSes, including caught
 panic/overflow parity, repeated calls and Reset, uncaught traps and import denial
 controls. Linux host packages took 0.532 s and 25.040 s; macOS packages took
-1.145 s and 28.431 s. Both native runner exit statuses are 0. The full
-required-backend model gate is still running.
+1.145 s and 28.431 s. Both native runner exit statuses are 0.
+
+The full `UMPIRE_BACKENDS=require make model-check` gate passed on macOS with
+exit 0. It exercised freshness, all script controls, source boundaries, protobuf
+freshness, formatting, Clippy, docs, workspace tests including real TLC controls,
+core wasm checks, all guest/control builds and both Go host suites. Its final
+Go packages took 0.991 s and 11.942 s. The panic messages near the end are the
+expected caught-panic/overflow native controls; the gate and host suites passed.
+Gate-built stock and Temporal outputs compare identically with the frozen proof,
+and Temporal also matches the working checkout's refreshed embedded asset.
+`model-check-macos.{log,rc}` retain the complete rerun and exit status.
 
 ## Exact commands
 

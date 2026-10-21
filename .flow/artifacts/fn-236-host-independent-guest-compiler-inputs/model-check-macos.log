@@ -1235,3 +1235,5 @@ thread 'main' (5225782) panicked at umpire/wasm/guests/caught-panic/src/bin/../.
 attempt to add with overflow
 ok  	umpire.local/model	0.991s
 ?   	umpire.local/model/umpire/model/v1	[no test files]
+ok  	umpire.local/temporal	11.942s
+?   	umpire.local/temporal/umpire/temporal/v1	[no test files]
