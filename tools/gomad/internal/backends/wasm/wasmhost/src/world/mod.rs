@@ -323,6 +323,7 @@ pub struct Model {
     queue: BTreeSet<QueueKey>,
     history: Vec<Transition>,
     transcript: [u8; 32],
+    snapshot_bytes: u64,
     /// [`digest::state_digest`]'s framed transition encodings for a prefix
     /// of the append-only history, so a digest re-encodes only transitions
     /// past that prefix.
@@ -454,7 +455,7 @@ fn validate_readiness(limits: &Limits, readiness: &Readiness) -> Result<()> {
 impl Model {
     pub fn new(config: Config) -> Result<Self> {
         validate_config(&config)?;
-        Ok(Self {
+        let mut model = Self {
             config,
             now: INITIAL_TIME,
             next_request_id: 1,
@@ -466,8 +467,13 @@ impl Model {
             queue: BTreeSet::new(),
             history: Vec::new(),
             transcript: digest::empty_digest(),
+            snapshot_bytes: 0,
             transition_frames: std::cell::RefCell::default(),
-        })
+        };
+        let mut size = WireSize::default();
+        wire_generated::write_snapshot(&model, &mut size).expect("World wire size");
+        model.snapshot_bytes = size.0;
+        Ok(model)
     }
 
     pub fn config(&self) -> &Config {
@@ -525,6 +531,16 @@ impl Model {
     /// Go `stateDigest` of the current snapshot (replay progress is not bound).
     pub fn state_digest(&self) -> [u8; 32] {
         self.state_digest_within(MAXIMUM_TRANSITION_FRAME_BYTES)
+    }
+
+    /// A fixed-size commitment to the initial configuration and ordered
+    /// transition chain. Every successful mutation extends that chain.
+    pub fn inspection_commitment(&self) -> [u8; 32] {
+        digest::inspection_commitment(self)
+    }
+
+    pub fn snapshot_bytes(&self) -> u64 {
+        self.snapshot_bytes
     }
 
     /// [`Self::state_digest`] reusing at most `maximum` retained bytes of
@@ -615,6 +631,42 @@ impl Model {
     }
 
     fn commit(&mut self, transition: Transition) {
+        let mut size = WireSize::default();
+        wire_generated::write_transitions(std::slice::from_ref(&transition), &mut size)
+            .expect("World transition wire size");
+        self.snapshot_bytes += size.0;
+        match &transition.body {
+            TransitionBody::Register { request, .. } => {
+                self.snapshot_bytes += 8
+                    + 4 * 4
+                    + 2
+                    + 8
+                    + 4
+                    + 7
+                    + 8
+                    + (request.kind.len()
+                        + request.resource.adapter.len()
+                        + request.resource.kind.len()
+                        + request.resource.key.len()
+                        + request.payload.len()) as u64;
+            }
+            TransitionBody::Ready { readiness, .. } => {
+                // Pending -> queued shortens the request state by one byte.
+                self.snapshot_bytes += 8 + 8 + 8 + 4 + 8 + 4 + 4 + 6 - 1
+                    + (readiness.kind.len()
+                        + readiness.payload.len()
+                        + readiness.equivalence_class.len()) as u64;
+            }
+            TransitionBody::Cancel { cancellation, .. }
+                if cancellation.status == CancelStatus::Won =>
+            {
+                self.snapshot_bytes += if cancellation.event_id == 0 { 1 } else { 4 };
+            }
+            TransitionBody::Quiesce { result } => {
+                self.snapshot_bytes += result.deliveries.len() as u64 * 6;
+            }
+            TransitionBody::Cancel { .. } => {}
+        }
         self.transcript = transition.digest;
         self.history.push(transition);
         self.next_transition = self.next_transition.saturating_add(1);
@@ -848,6 +900,20 @@ impl Model {
         }
         self.commit(transition);
         Ok(result)
+    }
+}
+
+#[derive(Default)]
+struct WireSize(u64);
+
+impl std::io::Write for WireSize {
+    fn write(&mut self, bytes: &[u8]) -> std::io::Result<usize> {
+        self.0 += bytes.len() as u64;
+        Ok(bytes.len())
+    }
+
+    fn flush(&mut self) -> std::io::Result<()> {
+        Ok(())
     }
 }
 

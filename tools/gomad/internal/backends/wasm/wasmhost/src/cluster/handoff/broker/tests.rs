@@ -36,10 +36,10 @@ fn broker_config() -> Config {
 #[test]
 fn changed_inspection_boundaries_never_materialize_world_history() {
     let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
-    let mut previous = broker.inspection_world_commitment(None).unwrap().unwrap();
+    let mut previous = broker.inspection_world_commitment(None).unwrap();
     for ordinal in 0..1000u64 {
         broker.register(0, "idle", &ordinal.to_le_bytes()).unwrap();
-        let current = broker.inspection_world_commitment(None).unwrap().unwrap();
+        let current = broker.inspection_world_commitment(None).unwrap();
         assert_ne!(current, previous);
         previous = current;
         broker.ready(0, "idle").unwrap();
@@ -48,7 +48,9 @@ fn changed_inspection_boundaries_never_materialize_world_history() {
         broker.inspection_world_commitment(None).unwrap();
     }
     assert_eq!(
-        broker.world_materializations.load(std::sync::atomic::Ordering::Relaxed),
+        broker
+            .world_materializations
+            .load(std::sync::atomic::Ordering::Relaxed),
         0,
         "inspection must bind the transition chain without scanning history"
     );
@@ -124,47 +126,17 @@ fn diagnostic_world_calls_charge_nested_exclusive_owner_wall() {
 }
 
 fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
-    use crate::model::inspection::commitment;
-    let mut wire = broker.world_wire().unwrap();
-    if let Some(bytes) = network {
-        wire.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
-        wire.extend_from_slice(bytes);
-    }
-    let key = network.map(|bytes| {
-        (
-            commitment("network", bytes).try_into().unwrap(),
-            Some(bytes),
-        )
-    });
-    let digest = broker.inspection_world_commitment(key).unwrap().unwrap();
-    assert_eq!(digest.as_slice(), commitment("world", &wire));
-    // A known commitment needs no evidence bytes.
-    let known = key.map(|(identity, _)| (identity, None));
+    use crate::model::inspection::{commitment, world_chain_commitment};
+    let key = network.map(|bytes| commitment("network", bytes).try_into().unwrap());
+    let digest = broker.inspection_world_commitment(key).unwrap();
     assert_eq!(
-        broker.inspection_world_commitment(known).unwrap(),
-        Some(digest)
+        digest.as_slice(),
+        world_chain_commitment(&lock(&broker.inner).world.inspection_commitment(), key,)
     );
-    {
-        let inner = lock(&broker.inner);
-        let (revision, cached) = inner.inspection_world_wire.as_ref().unwrap();
-        assert_eq!(*revision, inner.world.next_ids().2);
-        let mut uncached = Bounded {
-            bytes: Vec::new(),
-            limit: MAXIMUM_EXPANDED_WORLD_BYTES,
-        };
-        world::wire_generated::write_snapshot(&inner.world, &mut uncached).unwrap();
-        let retained = &inner.inspection_transitions;
-        assert_eq!(retained.count, inner.world.transitions().len());
-        assert_eq!(cached.transitions, retained.bytes.len());
-        assert_eq!([&cached.head[..], &retained.bytes].concat(), uncached.bytes);
-    }
     let count = broker
         .world_materializations
         .load(std::sync::atomic::Ordering::Relaxed);
-    assert_eq!(
-        broker.inspection_world_commitment(key).unwrap(),
-        Some(digest)
-    );
+    assert_eq!(broker.inspection_world_commitment(key).unwrap(), digest);
     assert_eq!(
         broker
             .world_materializations
@@ -174,10 +146,10 @@ fn assert_world_commitment(broker: &Broker, network: Option<&[u8]>) {
 }
 
 #[test]
-fn network_only_inspection_changes_reuse_the_exact_world_wire() {
-    use crate::model::inspection::commitment;
+fn network_only_inspection_changes_bind_the_network_digest_without_world_wire() {
+    use crate::model::inspection::{commitment, world_chain_commitment};
     let broker = Broker::new(&broker_config(), &["a".into()], None, None).unwrap();
-    let world = broker.world_wire().unwrap();
+    let world = lock(&broker.inner).world.inspection_commitment();
     let before = broker
         .world_materializations
         .load(std::sync::atomic::Ordering::Relaxed);
@@ -188,37 +160,27 @@ fn network_only_inspection_changes_reuse_the_exact_world_wire() {
         Some(b"different length".as_slice()),
         None,
     ] {
-        let mut literal = world.clone();
-        if let Some(bytes) = network {
-            literal.extend_from_slice(&(bytes.len() as u64).to_le_bytes());
-            literal.extend_from_slice(bytes);
-        }
         let identity: Option<[u8; 32]> =
             network.map(|bytes| commitment("network", bytes).try_into().unwrap());
         if let Some(identity) = identity {
-            // Unknown commitments ask for their evidence bytes.
             assert_eq!(
-                broker
-                    .inspection_world_commitment(Some((identity, None)))
-                    .unwrap(),
-                None
+                broker.inspection_world_commitment(Some(identity)).unwrap(),
+                <[u8; 32]>::try_from(world_chain_commitment(&world, Some(identity))).unwrap()
             );
         }
-        let key = identity.map(|identity| (identity, network));
         assert_eq!(
             broker
-                .inspection_world_commitment(key)
-                .unwrap()
+                .inspection_world_commitment(identity)
                 .unwrap()
                 .as_slice(),
-            commitment("world", &literal)
+            world_chain_commitment(&world, identity)
         );
     }
     assert_eq!(
         broker
             .world_materializations
             .load(std::sync::atomic::Ordering::Relaxed),
-        before + 1
+        before
     );
 }
 
@@ -297,7 +259,6 @@ fn oversized_world_discards_stale_wire_and_never_publishes_partial_serialization
     config.limits.max_payload_bytes = 1 << 30;
     let broker = Broker::new(&config, &["a".into()], None, None).unwrap();
     broker.inspection_world_commitment(None).unwrap();
-    assert!(lock(&broker.inner).inspection_world_wire.is_some());
     lock(&broker.inner)
         .world
         .register(world::Request {
@@ -317,7 +278,6 @@ fn oversized_world_discards_stale_wire_and_never_publishes_partial_serialization
         Err(Failure::Capacity("compressed-snapshot-expanded-bytes"))
     ));
     let inner = lock(&broker.inner);
-    assert!(inner.inspection_world_wire.is_none());
     assert!(inner.inspection_world.is_none());
     assert_eq!(inner.world.state_digest(), before);
 }
