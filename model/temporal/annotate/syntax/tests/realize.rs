@@ -70,6 +70,82 @@ fn generated_enum_wildcards_are_refused_without_rejecting_byte_policy_fallbacks(
 #[test]
 fn enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums()
 -> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(ALIAS_CASES)
+}
+
+#[test]
+fn wrapper_alias_payloads_do_not_erase_enum_identity() -> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(&[
+        (
+            "type Wrapped=Option<generated::Status>; impl Binding { fn f(value:Wrapped) { match value { Some(_)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "type Wrapped<T,E>=Result<E,T>; impl Binding { fn f(value:Wrapped<i32,generated::Status>) { match value { Ok(_)=>(), Err(_)=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "type Wrapped=Option<generated::Status>; impl Binding { fn f(value:Wrapped) { match value { Some(generated::Status::Ready)=>(), None=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "impl Binding { fn f(value:Result<generated::Status,i32>) { match value { Ok(generated::Status::Ready)=>(), Err(_)=>() } } }",
+            0,
+            false,
+        ),
+    ])
+}
+
+#[test]
+fn dereferenced_enum_subjects_preserve_coverage() -> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(&[
+        ("impl Binding { fn f(value:&generated::Status) { match *value { _=>() } } }", 0, true),
+        (
+            "enum Local { Ready, Other } impl Binding { fn f(value:&Local) { match *value { _=>() } } }",
+            0,
+            false,
+        ),
+        (
+            "impl Binding { fn f(value:&generated::Status) { match *value { generated::Status::Ready=>() } } }",
+            0,
+            false,
+        ),
+    ])
+}
+
+#[test]
+fn deferred_and_reassigned_bindings_require_proven_coverage()
+-> Result<(), Box<dyn std::error::Error>> {
+    check_alias_cases(&[
+        (
+            "impl Binding { fn f() { let value:Option<_>=Some(generated::Status::Ready); match value { Some(_)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f() { let value; value=generated::Status::Ready; match value { _=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f() { let mut value:Option<_>=None; value=Some(generated::Status::Ready); match value { Some(_)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        (
+            "impl Binding { fn f(flag:bool) { let mut value:Option<_>=None; if flag { value=Some(generated::Status::Ready); } match value { Some(_)=>(), None=>() } } }",
+            0,
+            true,
+        ),
+        ("impl Binding { fn f() { let value; value=0; match value { _=>() } } }", 0, false),
+        ("impl Binding { fn f() { let mut value=0; value=1; match value { _=>() } } }", 0, false),
+    ])
+}
+
+fn check_alias_cases(cases: &[(&str, usize, bool)]) -> Result<(), Box<dyn std::error::Error>> {
     fn implementations(items: &[syn::Item], result: &mut Vec<syn::ItemImpl>) {
         for item in items {
             match item {
@@ -91,7 +167,7 @@ fn enum_aliases_follow_module_and_block_scopes_without_classifying_model_enums()
             variants: vec!["generated::Status::Ready".into()],
         },
     );
-    for &(source, index, refused) in ALIAS_CASES {
+    for &(source, index, refused) in cases {
         let file = syn::parse_file(source)?;
         let mut items = vec![];
         implementations(&file.items, &mut items);

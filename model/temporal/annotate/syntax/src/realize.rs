@@ -617,7 +617,7 @@ fn type_positions(ty: &Type, schema: &Schema, scope: &Scope) -> Positions {
                 })
             })
             .collect(),
-        _ => Positions::new(),
+        _ => position(EnumKind::Unknown),
     }
 }
 struct EnumMatches<'a> {
@@ -625,11 +625,13 @@ struct EnumMatches<'a> {
     scope: Scope,
     error: Option<syn::Error>,
     bindings: BTreeMap<String, Positions>,
+    assigned: BTreeSet<String>,
 }
 impl EnumMatches<'_> {
     fn function(&mut self, signature: &syn::Signature, block: &syn::Block) {
         let scope = self.scope.clone();
         let bindings = self.bindings.clone();
+        let assigned = std::mem::take(&mut self.assigned);
         self.scope.generics(&signature.generics);
         self.bindings.clear();
         for input in &signature.inputs {
@@ -645,10 +647,16 @@ impl EnumMatches<'_> {
         self.visit_block(block);
         self.scope = scope;
         self.bindings = bindings;
+        self.assigned = assigned;
     }
 
     fn expression_positions(&self, expression: &syn::Expr) -> Positions {
         match expression {
+            syn::Expr::Path(path)
+                if self.assigned.contains(&path.path.to_token_stream().to_string()) =>
+            {
+                position(EnumKind::Unknown)
+            }
             syn::Expr::Path(path) => self
                 .bindings
                 .get(&path.path.to_token_stream().to_string())
@@ -692,6 +700,9 @@ impl EnumMatches<'_> {
             syn::Expr::Try(value) => self.expression_positions(&value.expr),
             syn::Expr::Paren(value) => self.expression_positions(&value.expr),
             syn::Expr::Reference(value) => self.expression_positions(&value.expr),
+            syn::Expr::Unary(value) if matches!(value.op, syn::UnOp::Deref(_)) => {
+                self.expression_positions(&value.expr)
+            }
             syn::Expr::MethodCall(call)
                 if matches!(
                     call.method.to_string().as_str(),
@@ -700,11 +711,7 @@ impl EnumMatches<'_> {
             {
                 self.expression_positions(&call.receiver)
             }
-            syn::Expr::Lit(_)
-            | syn::Expr::Binary(_)
-            | syn::Expr::Unary(_)
-            | syn::Expr::Cast(_)
-            | syn::Expr::Array(_) => Positions::new(),
+            syn::Expr::Lit(_) | syn::Expr::Cast(_) => Positions::new(),
             _ => position(EnumKind::Unknown),
         }
     }
@@ -780,11 +787,10 @@ impl<'ast> Visit<'ast> for EnumMatches<'_> {
         let binding = match &local.pat {
             syn::Pat::Ident(binding) => Some((
                 binding,
-                local
-                    .init
-                    .as_ref()
-                    .map(|init| self.expression_positions(&init.expr))
-                    .unwrap_or_default(),
+                local.init.as_ref().map_or_else(
+                    || position(EnumKind::Unknown),
+                    |init| self.expression_positions(&init.expr),
+                ),
             )),
             syn::Pat::Type(typed) => match typed.pat.as_ref() {
                 syn::Pat::Ident(binding) => {
@@ -803,6 +809,18 @@ impl<'ast> Visit<'ast> for EnumMatches<'_> {
         self.visit_pat(&local.pat);
         if let Some((binding, paths)) = binding {
             self.bindings.insert(binding.ident.to_string(), paths);
+        }
+    }
+
+    fn visit_expr_assign(&mut self, expression: &'ast syn::ExprAssign) {
+        syn::visit::visit_expr_assign(self, expression);
+        if let syn::Expr::Path(path) = expression.left.as_ref() {
+            let name = path.path.to_token_stream().to_string();
+            let positions = self.expression_positions(&expression.right);
+            if !positions.is_empty() {
+                self.assigned.insert(name.clone());
+            }
+            self.bindings.insert(name, positions);
         }
     }
 
@@ -844,7 +862,13 @@ fn check_enums(
     model: &Path,
 ) -> syn::Result<()> {
     scope.model(model);
-    let mut visitor = EnumMatches { schema, scope, error: None, bindings: BTreeMap::new() };
+    let mut visitor = EnumMatches {
+        schema,
+        scope,
+        error: None,
+        bindings: BTreeMap::new(),
+        assigned: BTreeSet::new(),
+    };
     visitor.visit_item_impl(item);
     visitor.error.map_or(Ok(()), Err)
 }

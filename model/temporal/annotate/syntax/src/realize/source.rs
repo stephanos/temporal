@@ -89,7 +89,14 @@ fn names<'a>(items: impl IntoIterator<Item = &'a Item>) -> Names {
             }
             Item::Type(item) => {
                 let target = match item.ty.as_ref() {
-                    Type::Path(ty) if ty.qself.is_none() => Some(path(&ty.path)),
+                    Type::Path(ty)
+                        if ty.qself.is_none()
+                            && ty.path.segments.iter().all(|segment| {
+                                matches!(segment.arguments, syn::PathArguments::None)
+                            }) =>
+                    {
+                        Some(path(&ty.path))
+                    }
                     _ => None,
                 };
                 if target.is_none() {
