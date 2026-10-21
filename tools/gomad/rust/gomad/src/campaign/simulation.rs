@@ -276,7 +276,7 @@ fn run(
             if matches!(
                 execution.record.outcome.class.as_str(),
                 "target_failure" | "watchdog"
-            ) && execution.divergence.is_none()
+            ) && execution.divergence.is_none() && !result.diverged
             {
                 result.failed = true;
                 result.failure_sha256 = format!("sha256:{}", execution.record.failure_signature()?);

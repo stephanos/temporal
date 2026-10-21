@@ -1040,7 +1040,7 @@ pub(super) fn publication(
     if execution.incarnations.len() != configuration.incarnations.len()
         && !matches!(
             execution.outcome.termination,
-            "cancelled" | "watchdog_timeout"
+            "cancelled" | "watchdog_timeout" | "instrumentation_divergence"
         )
     {
         return Err("runner_failure: incomplete scenario execution cannot retain full cluster replay inputs".into());

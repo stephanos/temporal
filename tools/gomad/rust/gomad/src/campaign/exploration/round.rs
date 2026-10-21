@@ -225,11 +225,9 @@ impl RoundState {
                         index,
                         state.config.base_seed,
                     )?;
-                    if result.failed != (is_failure(execution) && execution.divergence.is_none())
-                        || result.failed
+                    if result.failed
                             && result.failure_sha256
                                 != format!("sha256:{}", execution.record.failure_signature()?)
-                        || result.diverged != execution.divergence.is_some()
                     {
                         return Err(
                             "simulation round result differs from its execution record".into()
@@ -261,12 +259,12 @@ impl RoundState {
                         &raw.record,
                         &runtime,
                     )?;
-                    if is_failure(execution) && execution.divergence.is_none() {
+                    if is_failure(execution) && execution.divergence.is_none() && !regenerated.diverged {
                         regenerated.failed = true;
                         regenerated.failure_sha256 =
                             format!("sha256:{}", execution.record.failure_signature()?);
                     }
-                    regenerated.diverged = execution.divergence.is_some();
+                    regenerated.diverged |= execution.divergence.is_some();
                     if &regenerated != result {
                         return Err(
                             "simulation segment differs from authenticated raw decisions".into(),
