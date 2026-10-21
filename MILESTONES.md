@@ -303,8 +303,8 @@ Owner decision 2026-10-21: an exhausted limit must not be silent. Found in fn-22
 
 | Name / ID | Status | Description |
 | --- | --- | --- |
-| [fn-235-gomad-fail-cluster-runs-fast-and.1](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.1.md) | ⬜ Todo | Classify broker capacity exhaustion and end manual cluster runs promptly with retained partial evidence |
-| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | ⬜ Todo | Measure and remove superlinear World inspection commitment cost in long cluster runs |
+| [fn-235-gomad-fail-cluster-runs-fast-and.1](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.1.md) | 🚧 In progress | Classify broker capacity exhaustion and end manual cluster runs promptly with retained partial evidence |
+| [fn-235-gomad-fail-cluster-runs-fast-and.2](.flow/tasks/fn-235-gomad-fail-cluster-runs-fast-and.2.md) | 🚧 In progress | Measure and remove superlinear World inspection commitment cost in long cluster runs |
 
 ### WASM host-side execution cost profile — [fn-185](.flow/specs/fn-185-gomad-wasm-host-side-execution-cost.md)
 
@@ -325,7 +325,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.3](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.3.md) | 🚧 In progress | Rust artifact store: new lineage, staged publication, budget, target pool |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.4](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.4.md) | 🚧 In progress | Behavioral differential harness and corpus |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.6](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.6.md) | 🚧 In progress | replay in Rust on the helper library tape path |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⬜ Todo | seed explore, resume and merge in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | 🚧 In progress | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⬜ Todo | choice exploration and simulation exploration in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⬜ Todo | minimize in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify in Rust |
