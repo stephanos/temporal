@@ -1,14 +1,121 @@
 {
   "branch_name": "fn-231-gomad-site-aware-minimizer-ordering-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T20:28:45.760046Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-229-gomad-symbolize-choice-sites-in-inspect",
     "fn-230-gomad-explore-site-scope-for-choice"
   ],
   "id": "fn-231-gomad-site-aware-minimizer-ordering-and",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T18:05:04.466803Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "5d2822342b324e7ed82d42d1cf0d359e1519acb5d3f15223035533c15b20aee5",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d06b37595de6a1cc28f5db10be4802c4",
+            "classification": "introduced",
+            "findingId": "finding-d06b37595de6a1cc28f5db10be4802c4",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 367115,
+      "output_sha256": "d3324a2a0578861437c06cf77a9be0da482410c26010cd9d07b2edaa062d8156",
+      "reservation_id": "ebf3739dc7ca4cb088b3caa3e275d150",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:01:16.499851Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "c84c79fc07822615393ed65033a6548ac0952546352f879e91a4307a8237f571",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-d06b37595de6a1cc28f5db10be4802c4",
+            "classification": "introduced",
+            "findingId": "finding-d06b37595de6a1cc28f5db10be4802c4",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 963,
+      "output_sha256": "4583e74960aa3bbe6fa80af170d2bb90ed03d61e369d428786f502903eb62922",
+      "reservation_id": "f9331de3ed1a4a95b1bbca53a757e70f",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:05:04.453714Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md",
   "status": "open",
   "title": "Gomad: site-aware minimizer ordering and reporting",
@@ -23,5 +130,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T21:10:10.211598Z"
+  "updated_at": "2026-10-21T18:05:04.469040Z"
 }

@@ -1,13 +1,168 @@
 {
   "branch_name": "fn-233-gomad-intercept-the-go-command-so-make",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-20T23:13:02.051436Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [
     "fn-232-gomad-rewrite-the-host-side-in-rust"
   ],
   "id": "fn-233-gomad-intercept-the-go-command-so-make",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T18:04:51.424588Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "960bb194cfd624cbf98717441ceea153117400eb0834c80ffe8727befbb40fd0",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-83054f24eeef6807959cead9c2ee6a0e",
+            "classification": "introduced",
+            "findingId": "finding-83054f24eeef6807959cead9c2ee6a0e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-30bbe0a8500d7ca0b94ce0275c9c42b3",
+            "classification": "introduced",
+            "findingId": "finding-30bbe0a8500d7ca0b94ce0275c9c42b3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-7cf04035d14686584ae7dc82242f34c7",
+            "classification": "introduced",
+            "findingId": "finding-7cf04035d14686584ae7dc82242f34c7",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-200fd443479f3ef5d89dba8b31353117",
+            "classification": "introduced",
+            "findingId": "finding-200fd443479f3ef5d89dba8b31353117",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 308951,
+      "output_sha256": "52fccf58b52259958f541252f2292cb39fc4d422784818eb200fe3c4db0ebe90",
+      "reservation_id": "c4fb073192824681883d68119eadefbe",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:01:47.435834Z",
+      "tool_calls": 28,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "131747c079872eeae9933dbe33e946bc479c8d66c98e3f4c4eb6a53dab4c0fe5",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-83054f24eeef6807959cead9c2ee6a0e",
+            "classification": "introduced",
+            "findingId": "finding-83054f24eeef6807959cead9c2ee6a0e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-30bbe0a8500d7ca0b94ce0275c9c42b3",
+            "classification": "introduced",
+            "findingId": "finding-30bbe0a8500d7ca0b94ce0275c9c42b3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-7cf04035d14686584ae7dc82242f34c7",
+            "classification": "introduced",
+            "findingId": "finding-7cf04035d14686584ae7dc82242f34c7",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-200fd443479f3ef5d89dba8b31353117",
+            "classification": "introduced",
+            "findingId": "finding-200fd443479f3ef5d89dba8b31353117",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 764,
+      "output_sha256": "a0900c0207187d0cd5bf4af933e926a7655f8591050c6e8c0aa57d124605039b",
+      "reservation_id": "4ef98bb7a57b4851b319bab899389d5e",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:04:51.407672Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md",
   "status": "open",
   "title": "Gomad: intercept the go command so make targets and scripts run under WASM",
@@ -22,5 +177,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T23:13:44.297629Z"
+  "updated_at": "2026-10-21T18:04:51.426540Z"
 }

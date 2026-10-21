@@ -1,11 +1,150 @@
 {
   "branch_name": "fn-235-gomad-fail-cluster-runs-fast-and",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-21T04:13:09.050792Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-235-gomad-fail-cluster-runs-fast-and",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T18:04:47.999739Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "08de42aa45e79ecd53a70531b8f371e73a000bbd9dcaca0b57c9e023fdbfbbd2",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-926ab25f044447ead35e088f7875d00f",
+            "classification": "introduced",
+            "findingId": "finding-926ab25f044447ead35e088f7875d00f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-59a34ace0a66ab54ca05c92a4aa28ca6",
+            "classification": "pre_existing",
+            "findingId": "finding-59a34ace0a66ab54ca05c92a4aa28ca6",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-d1795bd474203b73cd70d4ecfa0abfa1",
+            "classification": "pre_existing",
+            "findingId": "finding-d1795bd474203b73cd70d4ecfa0abfa1",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1265840,
+      "output_sha256": "fd64fa3245d5a394b06df71cf50c92561882ee3e55441865cd67c4da41cdd91e",
+      "reservation_id": "b9a0167310cd42f993feccaf9dd4f685",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:00:56.907410Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "b2bc4c8bf19a416f8733779e3074c09222db3156e357da4eab646b7e053d3e77",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-926ab25f044447ead35e088f7875d00f",
+            "classification": "introduced",
+            "findingId": "finding-926ab25f044447ead35e088f7875d00f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-59a34ace0a66ab54ca05c92a4aa28ca6",
+            "classification": "pre_existing",
+            "findingId": "finding-59a34ace0a66ab54ca05c92a4aa28ca6",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-d1795bd474203b73cd70d4ecfa0abfa1",
+            "classification": "pre_existing",
+            "findingId": "finding-d1795bd474203b73cd70d4ecfa0abfa1",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 547,
+      "output_sha256": "a5c0debd1c489e3c7656ee2cc7a9d75c24b8a47a1cee24f9909497fd9ac035f5",
+      "reservation_id": "f7f024ccb003413f91f85b6211f426df",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T18:04:47.987043Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-235-gomad-fail-cluster-runs-fast-and.md",
   "status": "open",
   "title": "Gomad: fail cluster runs fast and classified when a limit is exhausted",
@@ -20,5 +159,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-21T04:13:09.064193Z"
+  "updated_at": "2026-10-21T18:04:48.002423Z"
 }

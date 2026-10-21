@@ -3,7 +3,7 @@ satisfies: [R11, R12]
 ---
 # fn-230-gomad-explore-site-scope-for-choice.3 Goroutine creation sites in the choice wire schema and runnable-decision scoping
 
-**Touches:** tools/gomad/internal/model/choice/schema/**, tools/gomad/internal/model/runtimesource/**, tools/gomad/internal/backends/wasm/toolchain/**, tools/gomad/internal/backends/wasm/wasmhost/src/model/**, tools/gomad/rust/gomad/src/campaign/exploration/**, shared Go/Rust choice corpora
+**Touches:** tools/gomad/internal/model/choice/internal/wire/**, tools/gomad/internal/model/volume/internal/hashwire/wire_generated.go, tools/gomad/internal/model/choice/schema/**, tools/gomad/internal/model/runtimesource/**, tools/gomad/internal/backends/wasm/toolchain/**, tools/gomad/internal/backends/wasm/wasmhost/src/model/**, tools/gomad/rust/gomad/src/campaign/exploration/**, shared Go/Rust choice corpora
 **Semantic references only:** tools/gomad/internal/model/choice/schema/choicewire.json, model/runtimesource/gomad_semantics.go.txt, backends/wasm/toolchain/overlay.go, wasmhost/src/model/imports.rs, model/choice corpora, runner/internal/exploration/choice.go
 
 ## Description

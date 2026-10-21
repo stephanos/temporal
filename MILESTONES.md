@@ -122,7 +122,7 @@ The owner then decided, "let's pull fn-232 forward to avoid any double work," an
 2. fn-232.5 inspect in Rust, then [fn-229](.flow/specs/fn-229-gomad-symbolize-choice-sites-in-inspect.md) symbolization. Its artifact projection lands first; campaign divergence R2 is received by fn-232.7/.8 and keeps fn-229.2 open until the real campaign consumer is wired and tested. This follows the provisional-development batch policy, not an R2 waiver.
 3. fn-232.6 to .8 replay and exploration in Rust; fn-227 R1/R2 (shutdown and crash-validation ordering) are implemented once in fn-232.8; then [fn-230](.flow/specs/fn-230-gomad-explore-site-scope-for-choice.md).
 4. fn-232.9 minimize in Rust, then [fn-231](.flow/specs/fn-231-gomad-site-aware-minimizer-ordering-and.md).
-5. fn-232.10 qualify in Rust, then fn-222.1 one-box qualification on the Rust binary.
+5. fn-232.10 qualify and installation-free report in Rust, then fn-222.1 one-box qualification on the Rust binary.
 6. fn-232.11 to .13 install and Go host retirement; fn-188.6 gate wiring lands in .13; then fn-185.2/.3 against the Rust host.
    [fn-233](.flow/specs/fn-233-gomad-intercept-the-go-command-so-make.md) go-command interception (`gomad -- make …`, `gomad -- go test …`) follows fn-232.7 and .11 as Rust verbs; it adds no Go host work and no new verb grammar beyond `run-guest` and the `--` wrapper.
 7. [fn-224](.flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md) ringpop and refusal-closing specs filed from the sweep run whenever the sweep wants them and land in the Rust verb that owns the behavior; a sweep-blocking host fix before that verb ships is the smallest Go change that unblocks the sweep, with its R-ID noted for the Rust verb.
@@ -330,7 +330,7 @@ First in the delivery order (owner decision 2026-10-20). New evidence lineage; b
 | [fn-232-gomad-rewrite-the-host-side-in-rust.7](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.7.md) | ⏸ Parked | seed explore, resume and merge in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.8](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.8.md) | ⏸ Parked | choice exploration and simulation exploration in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.9](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.9.md) | ⏸ Parked | minimize in Rust |
-| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify in Rust |
+| [fn-232-gomad-rewrite-the-host-side-in-rust.10](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.10.md) | ⬜ Todo | qualify and report in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.11](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.11.md) | ⬜ Todo | install, doctor, discover, plan and recover in Rust |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.12](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.12.md) | ⬜ Todo | Keep Go overlay, models, generator and corpora green under the Rust binary |
 | [fn-232-gomad-rewrite-the-host-side-in-rust.13](.flow/tasks/fn-232-gomad-rewrite-the-host-side-in-rust.13.md) | ⬜ Todo | Qualification cycle on the Rust binary and Go host retirement |

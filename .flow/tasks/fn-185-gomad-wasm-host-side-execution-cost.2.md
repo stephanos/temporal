@@ -11,6 +11,8 @@ Also run the R6 measurements transferred from fn-182 R4 and fn-184 R5 (owner dec
 **Size:** M
 **Files:** .flow/artifacts/fn185-host-cost-profile-<date>.md and directory, measurement scripts kept with the artifact
 
+**Touches:** .flow/artifacts/fn185-host-cost-profile-<date>.md and directory, measurement scripts kept with the artifact
+
 
 **Re-scope (owner decision 2026-10-19):** this task waits for the fn-221 triage sweep and profiles sweep workloads, not only the fixtures above. Add the functional tests the sweep retains as passing, slowest-passing and timeout/capacity representatives (at least one of each, named by the sweep's support matrix) to the measured workload set with the same warmup, repetition, identity and retention contract. The fixture and cluster sets above remain for comparison with fn-178. Task .1's attribution tooling is not gated and may land before the sweep so the sweep harness can label timeouts by cost center.
 
@@ -18,6 +20,8 @@ Also run the R6 measurements transferred from fn-182 R4 and fn-184 R5 (owner dec
 Closed-owner cleanup (2026-10-20): the active full/slim driver and tests now belong to `.flow/artifacts/fn185-performance-inputs/`; isolation inputs belong to `/home/agent/wt/evidence/fn185/r6/isolation/`. Closed-spec evidence is deleted, not archived. `fn185-input-release-baseline` preserves source commit `51604889c9a9062f981cd02aa3daf04ca55fd940` for the transferred matched-release comparison; rebuild and authentically admit its helper under fn-185 paths before measurement. Old absolute-path admissions are not relocated or relabeled. All original R6 repetitions, comparisons, identity and spread requirements remain unchanged.
 
 ## Acceptance
+Use the parent Rust measurement producer, not the Go-only collector. Accept explicit sweep selections and finalize bounded profiles on timeout/capacity. Full completed witnesses match release; wall-time interrupted pairs authenticate/compare their common prefix and replay retained prefixes without claiming full-run equality or widening limits. Preserve unavailable/truncated measurements as pending. Adapt R6 drivers to the current Rust owner and any-host policy, with exact comparable inputs retained.
+
 - [ ] All six workload/seed sets measured with warmup plus three warm repetitions; medians and ranges retained
 - [ ] perf-derived owner ranking agrees with wall attribution on the top three owners, or the disagreement is reported
 - [ ] Choice witnesses match release runs for every profiled run

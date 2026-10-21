@@ -1,11 +1,206 @@
 {
   "branch_name": "fn-224-gomad-ringpop-membership-on-wasm-within",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-19T16:37:34.073952Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-224-gomad-ringpop-membership-on-wasm-within",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:59:12.428246Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "d5070ae5aa39ef6e7ab5a2366abb7b01b47619b16f0d15b433daf64ae0cebaae",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8ecf23a3e4761c776541ab88f06f114d",
+            "classification": "introduced",
+            "findingId": "finding-8ecf23a3e4761c776541ab88f06f114d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-ddd22ae72bfdf1cb3858fa1b92ac4af8",
+            "classification": "introduced",
+            "findingId": "finding-ddd22ae72bfdf1cb3858fa1b92ac4af8",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-407518d529c8eb7e5da817bd0578645d",
+            "classification": "introduced",
+            "findingId": "finding-407518d529c8eb7e5da817bd0578645d",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6068a60a94848bab58d71cd29c7df9e3",
+            "classification": "introduced",
+            "findingId": "finding-6068a60a94848bab58d71cd29c7df9e3",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-6679892e21273757d38c463343d2fd9e",
+            "classification": "introduced",
+            "findingId": "finding-6679892e21273757d38c463343d2fd9e",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-b0e2e02a9cf7222b9b879cfbdbc838a2",
+            "classification": "introduced",
+            "findingId": "finding-b0e2e02a9cf7222b9b879cfbdbc838a2",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 339976,
+      "output_sha256": "e50f231c4bd4adc62f6368e8bb6cdbaa6cf9a3296eadc04881339e8b89afda6e",
+      "reservation_id": "5a5037a09885401b8a7d0822717c273c",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:53:06.569257Z",
+      "tool_calls": 31,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "0cf2a77fa1e043716312319abc86c4396a7fef9c68fcc31bc91ee54249dd0b7c",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-8ecf23a3e4761c776541ab88f06f114d",
+            "classification": "introduced",
+            "findingId": "finding-8ecf23a3e4761c776541ab88f06f114d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-ddd22ae72bfdf1cb3858fa1b92ac4af8",
+            "classification": "introduced",
+            "findingId": "finding-ddd22ae72bfdf1cb3858fa1b92ac4af8",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-407518d529c8eb7e5da817bd0578645d",
+            "classification": "introduced",
+            "findingId": "finding-407518d529c8eb7e5da817bd0578645d",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6068a60a94848bab58d71cd29c7df9e3",
+            "classification": "introduced",
+            "findingId": "finding-6068a60a94848bab58d71cd29c7df9e3",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-6679892e21273757d38c463343d2fd9e",
+            "classification": "introduced",
+            "findingId": "finding-6679892e21273757d38c463343d2fd9e",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-b0e2e02a9cf7222b9b879cfbdbc838a2",
+            "classification": "introduced",
+            "findingId": "finding-b0e2e02a9cf7222b9b879cfbdbc838a2",
+            "firstSeenThisRound": false,
+            "severity": "P2",
+            "status": "not_fixed"
+          },
+          {
+            "chainRoot": "finding-f4df6c828b69e00d6fc4776d7a16a507",
+            "classification": "introduced",
+            "findingId": "finding-f4df6c828b69e00d6fc4776d7a16a507",
+            "firstSeenThisRound": true,
+            "severity": "P2",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 1342,
+      "output_sha256": "3f6cdb1706012a0fd9cac3289641f50a516ec404f839bfdb2fab2a714808a234",
+      "reservation_id": "f7333f8d60454f26b02891f642aeea10",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:59:12.398508Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-224-gomad-ringpop-membership-on-wasm-within.md",
   "status": "open",
   "title": "Gomad: ringpop membership on WASM within reason",
@@ -20,5 +215,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T18:35:30.860429Z"
+  "updated_at": "2026-10-21T17:59:12.431056Z"
 }

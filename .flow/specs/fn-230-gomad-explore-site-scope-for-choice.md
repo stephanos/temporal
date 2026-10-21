@@ -52,6 +52,8 @@ Record hash, failure signature and artifact format are unchanged; scope lives in
 
 ## Decision Context
 
+Maintainability (plan review): duplication - none identified; structure - scope resolution, filtering and counting extend ChoiceState::commit, the largest function in campaign/exploration/choice.rs; keep future changes cohesive and review that owner before adding branches.
+
 An include list keeps the envelope statement simple: the record says exactly which packages could be forced. Out-of-scope decisions stay on the tape so replay is unaffected and the filter is purely a search heuristic. Runnable decisions default to out of scope in the first delivery because the Runner cannot attribute them until the overlay records creation sites, and spending budget on unattributable decisions defeats the purpose. Rejected filtering by site fingerprint directly as unusable: fingerprints change with every module build.
 
 ## Quick commands

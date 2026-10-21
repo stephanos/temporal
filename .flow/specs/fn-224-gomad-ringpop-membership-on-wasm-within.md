@@ -21,9 +21,13 @@ The owner wants ringpop supported within reason: enough to run a multi-node memb
 
 Three gates, no new models:
 
-1. **Unstub.** Remove ringpop from the `gomad_wasm_slim` exclusion: `temporal/membership_gomad.go` and its test keep the `gomad` tag only, so the native build is untouched. Cloud archivers (`common/archiver/provider/provider_cloud_gomad.go`) and the SQL driver trim (`tests/testcore/flag_sql_wasm_slim.go`) stay excluded. `backend.TemporalGuestBuildTags()` is unchanged. Record the slim module byte delta before and after from the prepared module file lengths, with compiler, source and module SHA-256 identities bound to each preparation. Module bytes alone establish no performance gain.
-2. **Single guest.** Prepare `common/membership/ringpop` as a `go-test` target under the cooperative profile with the Temporal guest build tags and run its eleven existing tests (`factory_test.go`, `monitor_test.go`) over a bounded seed set. Those tests start several ringpop instances in one process over loopback, so this exercises tchannel on the modeled network without scenario machinery. Every outcome is classified with the fn-221 vocabulary: pass, refused import, capacity, timeout, guest failure. A stall is the expected failure mode: time advances only when every goroutine is idle, so a harness that waits on wall time spins instead. A stall is fixed in the test harness or with a declared `ClockPolicy.ReadStepNanos`, never in gomad's clock.
+1. **Unstub.** Remove ringpop from the `gomad_wasm_slim` exclusion: `temporal/membership_gomad.go` and its test keep the `gomad` tag only, and `temporal/membership.go` drops its `!gomad_wasm_slim` exclusion so exactly one implementation is selected. Preserve the legacy gomad-tag stub as a source compatibility check; native execution/qualification is retired. Cloud archivers (`common/archiver/provider/provider_cloud_gomad.go`) and the SQL driver trim (`tests/testcore/flag_sql_wasm_slim.go`) stay excluded. `backend.TemporalGuestBuildTags()` is unchanged. Record the slim module byte delta before and after from the prepared module file lengths, with compiler, source and module SHA-256 identities bound to each preparation. Module bytes alone establish no performance gain.
+2. **Single guest.** Prepare `common/membership/ringpop` as a `go-test` target under the cooperative profile with the Temporal guest build tags and run every discovered leaf test in `factory_test.go` and `monitor_test.go` (currently nine suite methods beneath `TestRpoSuite` and `TestRingpopSuite`; the two suite wrappers are not additional leaf tests) over a bounded seed set. Those tests start several ringpop instances in one process over loopback, so this exercises tchannel on the modeled network without scenario machinery. Every outcome is classified with the fn-221 vocabulary: pass, refused import, capacity, timeout, guest failure. A stall is the expected failure mode: time advances only when every goroutine is idle, so a harness that waits on wall time spins instead. A stall is fixed at the diagnosed test-harness site. NetworkV2 and cluster admission require frozen-clock ReadStepNanos=0; a nonzero read-step is not an available workaround, and neither admission nor the clock model is changed.
 3. **Multi-node scenario.** One typed `gomad-wasm.scenario/v1` fixture under `internal/backends/wasm/command/testdata/scenario/` with three or four nodes, each booting a small guest program that joins a ringpop ring over the modeled network, a partition between two nodes, a timed heal, and an output marker when every node's membership view has converged. The guest program lives under `tools/gomad/internal/backends/wasm/testdata/` beside the existing fixtures and is the only new Go code outside gomad's tests. Explore it with the existing `explore --scenario` grammar over a bounded seed set; retained failures replay and inspect through the existing verbs.
+
+### Retention and fault-phase proof
+
+Retain bounded successes and failures for every claimed replay; standalone test recordings include bounded complete choice evidence. Missing or overflowed evidence cannot establish exact replay. Task .3 must replay successful convergence as well as retained failures. The scenario must prove its partition and heal actions executed in retained lifecycle/network evidence before accepting any node's final convergence marker. Guests stay alive across both actions, and each makes a fresh membership observation after the heal (using the declared scenario virtual-time horizon and a guest-side phase check). Initial convergence markers are distinct and cannot satisfy completion. Keep all nodes running until the required post-heal observations are present; use existing lifecycle/output boundaries and reject a run that terminates before any required action or observation. No schema extension is implied.
 
 ## API Contracts
 
@@ -43,8 +47,8 @@ Three gates, no new models:
 
 ## Acceptance Criteria
 
-- **R1:** Ringpop membership builds into the `gomad_wasm_slim` guest; the native `gomad` build still stubs it; cloud archivers and SQL driver trim remain excluded; the slim module byte delta is recorded. Errors: a native build that links ringpop, or an unrecorded size delta, is a finding.
-- **R2:** All eleven `common/membership/ringpop` tests run under the cooperative profile over at least three seeds with every outcome classified; passes replay exactly; any stall is diagnosed to a named site and resolved in the harness or by a declared read-step, with the choice recorded. Errors: an unclassified outcome or a clock change inside gomad is a finding.
+- **R1:** Ringpop membership builds into the `gomad_wasm_slim` guest; the legacy `gomad` source-tag selection still stubs it without native execution; cloud archivers and SQL driver trim remain excluded; the slim module byte delta is recorded. Errors: a legacy gomad-tag source selection that includes ringpop, or an unrecorded size delta, is a finding.
+- **R2:** Every reconciled `common/membership/ringpop` leaf test runs under the cooperative profile over at least three seeds with every outcome classified; passes replay exactly; any stall is diagnosed to a named site and resolved at the diagnosed harness site while retaining frozen-clock admission (ReadStepNanos=0), with the fix recorded. Require selected-method run/pass/fail/skip evidence using fn-221 inventory semantics; a wrapper PASS with a missing or skipped selected method is not a pass. Errors: a missing leaf, unclassified outcome or clock change inside gomad is a finding.
 - **R3:** A retained multi-node scenario with partition and heal converges on every explored seed or retains a replayable failure with its first-divergence report; the fixture, guest program and exact commands are checked in and documented in the WASM operator guide. Errors: a convergence claim without retained replay is a finding.
 - **R4:** testcore, `wasi.Config`, the helper protocol and the network and clock models are byte-for-byte unchanged by this spec. Errors: any diff under those owners is a finding.
 
@@ -69,11 +73,11 @@ Gate 2's first run: prepare `common/membership/ringpop` under the cooperative pr
 ## Quick commands
 
 ```sh
-cd tools/gomad && GOOS=wasip1 GOARCH=wasm go build ../../common/membership/ringpop/   # expect exit 0
-gomad explore --json --seeds=1,2,3 --parallel=1 --on-failure=all --artifacts /absolute/ringpop-artifacts \
-  go-test ./common/membership/ringpop -- -test.run=^TestRingpopMonitor
-gomad explore --json --scenario tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop.json --seeds=7,19 \
-  --artifacts /absolute/ringpop-scenario go-run ./tools/gomad/internal/backends/wasm/testdata/ringpop
+(cd tools/gomad && GOOS=wasip1 GOARCH=wasm go build ../../common/membership/ringpop/)   # expect exit 0
+gomad --installation /absolute/operator/temporal.json explore --working-dir "$PWD" --build-tag=test_dep --json --choices --choice-bytes=64MiB --keep-successes=all --success-limit=100 --success-bytes=4GiB --seeds=1,2,3 --parallel=1 --on-failure=all --artifacts /absolute/ringpop-artifacts \
+  go-test ./common/membership/ringpop -- '-test.run=^(TestRpoSuite|TestRingpopSuite)$'
+gomad --installation /absolute/operator/ringpop.json explore --working-dir "$PWD/tools/gomad" --json --keep-successes=all --success-limit=100 --success-bytes=4GiB --scenario "$PWD/tools/gomad/internal/backends/wasm/command/testdata/scenario/ringpop.json" --seeds=7,19 \
+  --artifacts /absolute/ringpop-scenario go-run ./internal/backends/wasm/testdata/ringpop
 ```
 
 ## Requirement coverage

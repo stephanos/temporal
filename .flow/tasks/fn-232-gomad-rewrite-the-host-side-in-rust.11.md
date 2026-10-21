@@ -3,7 +3,7 @@ satisfies: [R10, R13, R14]
 ---
 # fn-232-gomad-rewrite-the-host-side-in-rust.11 install, doctor, discover, plan and recover in Rust; overlay invoked via the pinned Go toolchain
 
-Touches: gomad/src/cli/{install.rs,doctor.rs,discover.rs,recover.rs}, gomad/src/install/{manifest.rs,toolchain.rs}
+**Touches:** tools/gomad/rust/gomad/src/cli/{install.rs,doctor.rs,discover.rs,recover.rs}, tools/gomad/rust/gomad/src/install/{manifest.rs,toolchain.rs}
 
 ## Description
 This task follows fn-232.10; the redundant transitive .6 edge does not permit starting before .10. Plan validation internals from .8 are reused when exposing the public plan verb here.

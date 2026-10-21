@@ -1,11 +1,166 @@
 {
   "branch_name": "fn-191-gomad-sometimes-assertions-and-a-site",
+  "completion_review_status": "unknown",
+  "completion_reviewed_at": null,
   "created_at": "2026-10-16T15:45:43.564637Z",
+  "default_impl": null,
+  "default_review": null,
+  "default_sync": null,
   "depends_on_epics": [],
   "id": "fn-191-gomad-sometimes-assertions-and-a-site",
+  "impl_review_rounds": {},
   "next_task": 1,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_rounds": 0,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:48:14.983187Z",
+  "review_attempts": [
+    {
+      "artifact_sha256": "5fc35d21cb5f2fbd574a3bcc35409aaaec0ca766de80c49f4ad6f09971bd0ec9",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b15543f35cf6ab736d567e99294d8140",
+            "classification": "introduced",
+            "findingId": "finding-b15543f35cf6ab736d567e99294d8140",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9cb4ba471d88a62e14566863286f7a05",
+            "classification": "introduced",
+            "findingId": "finding-9cb4ba471d88a62e14566863286f7a05",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-9edb6f61d015fe73d715712a993cf5dd",
+            "classification": "introduced",
+            "findingId": "finding-9edb6f61d015fe73d715712a993cf5dd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          },
+          {
+            "chainRoot": "finding-abf1b625ec138a49c74268fc496f37fd",
+            "classification": "introduced",
+            "findingId": "finding-abf1b625ec138a49c74268fc496f37fd",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 193419,
+      "output_sha256": "7fdd1b855b918b54cdd970c23bdb056ae98ab4c202b25e29dd7d3dd1564ceb33",
+      "reservation_id": "2400c8d3ab444e1093c4e154633f8070",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:44:46.947052Z",
+      "tool_calls": 23,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "ac64d09997ac5d4a7025518876530684bddcb932e7fb313894aa7207e9a3a212",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-b15543f35cf6ab736d567e99294d8140",
+            "classification": "introduced",
+            "findingId": "finding-b15543f35cf6ab736d567e99294d8140",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9cb4ba471d88a62e14566863286f7a05",
+            "classification": "introduced",
+            "findingId": "finding-9cb4ba471d88a62e14566863286f7a05",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-9edb6f61d015fe73d715712a993cf5dd",
+            "classification": "introduced",
+            "findingId": "finding-9edb6f61d015fe73d715712a993cf5dd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          },
+          {
+            "chainRoot": "finding-abf1b625ec138a49c74268fc496f37fd",
+            "classification": "introduced",
+            "findingId": "finding-abf1b625ec138a49c74268fc496f37fd",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 904,
+      "output_sha256": "74af2d98caa8b0eca6f43a5fae867b30b30641c2ea8e326007617b18bcc1ceb5",
+      "reservation_id": "65dbf9e689d64a649f437cbc3414229a",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:48:14.962376Z",
+      "verdict": "SHIP"
+    }
+  ],
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
+  "review_pending_rounds": {},
+  "review_reservations": {},
+  "review_transport_failures": {
+    "plan": 0
+  },
   "spec_path": ".flow/specs/fn-191-gomad-sometimes-assertions-and-a-site.md",
   "status": "open",
   "title": "Gomad: Sometimes assertions and a site catalog on WASM",
@@ -20,5 +175,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-16T15:45:43.579378Z"
+  "updated_at": "2026-10-21T17:50:18.889913Z"
 }

@@ -13,8 +13,8 @@
   },
   "next_task": 1,
   "plan_review_rounds": 0,
-  "plan_review_status": "unknown",
-  "plan_reviewed_at": null,
+  "plan_review_status": "ship",
+  "plan_reviewed_at": "2026-10-21T17:58:51.084411Z",
   "review_attempts": [
     {
       "artifact_sha256": "bbe7996dee90680307ec1becc1a5e17941df2ac05b9dd6e5b5e20afa6cdc7100",
@@ -67,13 +67,106 @@
       "task": "fn-227-gomad-close-wasm-map-order-determinism.1",
       "timestamp": "2026-10-20T19:22:44.200729Z",
       "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "55818bed14d1acf4f73f733b3ffc4906cd061539085e518cfe3284f2d3ed06b1",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4b3e3d5e64f6045d873c2fab380e8b8f",
+            "classification": "introduced",
+            "findingId": "finding-4b3e3d5e64f6045d873c2fab380e8b8f",
+            "firstSeenThisRound": true,
+            "severity": "P1",
+            "status": "open"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 468223,
+      "output_sha256": "68164152a5c6490b02b71db5bd48f082e571647e96429980532ac8588e04435c",
+      "reservation_id": "fc4a608223ae4306a4c2173939439d8b",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:57:12.618730Z",
+      "tool_calls": 21,
+      "verdict": "NEEDS_WORK"
+    },
+    {
+      "artifact_sha256": "2c0576fb47a71b2591f419813d200051a13eeeee89322b710338bae11004c7fd",
+      "backend": "codex",
+      "base_sha": "951c5516e9e7b3066e7e069adda9565cfd68844c",
+      "counter_kind": "plan",
+      "effort": "high",
+      "failure_class": null,
+      "finalized": {
+        "digest": "complete",
+        "receipt": "complete",
+        "status": "complete"
+      },
+      "findings_digest": {
+        "backend": "codex",
+        "digest_truncated": false,
+        "items": [
+          {
+            "chainRoot": "finding-4b3e3d5e64f6045d873c2fab380e8b8f",
+            "classification": "introduced",
+            "findingId": "finding-4b3e3d5e64f6045d873c2fab380e8b8f",
+            "firstSeenThisRound": false,
+            "severity": "P1",
+            "status": "fixed"
+          }
+        ],
+        "reviewKind": "plan"
+      },
+      "forced": false,
+      "hash_epoch": 0,
+      "head_sha": "3ad88e1cdeec9431146220838bfd01c932ccef1a",
+      "head_sha_observed": true,
+      "kind": "plan",
+      "model": "gpt-6.1-sol",
+      "outcome": "verdict",
+      "output_bytes": 413,
+      "output_sha256": "4dd502b657da8fc673a5e2db5af36bb9a457bafb60572d426d52ddc2c81449d8",
+      "reservation_id": "d1cd86299b5441b1b7c6d8de4a4bd9c7",
+      "round_consumed": true,
+      "scope": "plan",
+      "superseded_by": null,
+      "task": null,
+      "timestamp": "2026-10-21T17:58:51.068724Z",
+      "verdict": "SHIP"
     }
   ],
-  "review_hash_epoch": {},
+  "review_hash_epoch": {
+    "plan": 1,
+    "plan#completion": 0
+  },
   "review_pending_rounds": {},
   "review_reservations": {},
   "review_transport_failures": {
-    "impl:fn-227-gomad-close-wasm-map-order-determinism.1": 0
+    "impl:fn-227-gomad-close-wasm-map-order-determinism.1": 0,
+    "plan": 0
   },
   "spec_path": ".flow/specs/fn-227-gomad-close-wasm-map-order-determinism.md",
   "status": "open",
@@ -89,5 +182,5 @@
     "mergeBaseTracker": null,
     "url": null
   },
-  "updated_at": "2026-10-20T19:22:44.218822Z"
+  "updated_at": "2026-10-21T17:58:51.087725Z"
 }

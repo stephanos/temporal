@@ -12,5 +12,5 @@
   "spec_path": ".flow/tasks/fn-233-gomad-intercept-the-go-command-so-make.2.md",
   "status": "todo",
   "title": "go shim: argv[0] dispatch, invocation classification, guest build environment, refusals and byte-exact host passthrough",
-  "updated_at": "2026-10-20T23:14:37.047303Z"
+  "updated_at": "2026-10-21T18:04:27.946360Z"
 }
