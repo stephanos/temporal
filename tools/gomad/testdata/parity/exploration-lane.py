@@ -114,7 +114,8 @@ def main():
             *common, '--work', work, '--preparation-root', args.preparation_root / 'simulation'])
         observed = json.loads((work / 'observations.json').read_bytes())
         assert set(observed['forced_dimensions']) >= {'runtime', 'scenario', 'network', 'storage', 'fault', 'crash'}
-        records = sorted(digest(path.read_bytes()) for path in work.rglob('simulation/record.json'))
+        records = sorted(digest(path.read_bytes()) for path in
+                         (work / 'artifacts/campaigns').rglob('simulation/record.json'))
         replays = json.loads((work / 'replays.json').read_bytes())
         assert len(records) == len(replays) == 8, (index, len(records), len(replays))
         assert all(row['status'] == 0 for row in replays), replays
