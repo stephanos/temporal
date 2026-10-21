@@ -923,3 +923,16 @@ execution/store/fault/comparator/release gates and two identical regenerations
 are in scope. No new tasks were admitted. Private fn235 target remains minimizer
 owner's lease. Main is frozen for these gates except Flow/docs/Python fixture
 changes. Qualification worker and source worktree remain stopped/retained todo.
+
+Other active closure candidates were checked without changing their scope.
+fn185.1 expressly keeps R4 open until fn232.13; fn227.1 likewise explicitly
+requires frozen-candidate qualification. Neither can close on source checks.
+The unmerged fn221-sweep report at3c79c3f176/fff7a9575e classifies1488 rows,
+including337 helper-link-count infrastructure observations and35 explicit skips
+inside its pass class. Its own host record says the full run was not quiet,
+so it does not yet prove fn221.2's quiet-host acceptance. fn224-ringpop has
+clean staged work at3c50e1945c, including unstub3925d83499 and the measured
+3197185-byte slim module increase; main still retains the stub. Its explicit
+integration order waits for the sweep unless that sweep requests the unstub
+early. No fn221/fn224 worktree or source was mutated, and no premature closure
+or new long-running sweep was started during this closure batch.
