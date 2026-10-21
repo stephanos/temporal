@@ -1,0 +1,17 @@
+{
+  "assignee": null,
+  "claim_note": "",
+  "claimed_at": null,
+  "created_at": "2026-10-21T16:15:49.968120Z",
+  "depends_on": [
+    "fn-227-parameterized-models-declared-worlds.2",
+    "fn-227-parameterized-models-declared-worlds.7"
+  ],
+  "id": "fn-227-parameterized-models-declared-worlds.10",
+  "priority": null,
+  "spec": "fn-227-parameterized-models-declared-worlds",
+  "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.10.md",
+  "status": "todo",
+  "title": "Bounded nominal optional values through source binding, emission and decode",
+  "updated_at": "2026-10-21T16:19:31.665017Z"
+}

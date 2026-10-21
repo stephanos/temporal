@@ -113,18 +113,23 @@ in place of impossible old-byte equality; cooperative cancellation with explicit
 evidence; and optional actual-request Observation evidence at tag 4. Heartbeat signals a
 pending request without closing, and completion/failure races remain. Preserve old lifecycle
 evidence and prove the stated projection, including the final one-tick compatibility World.
-Fact emission, bounded optional ticks, transport/capture and transactional Start admission
-still need task sizing and plan review before activity/live execution. No task or review
-was completed by the approvals.
+The twelve-task decomposition separates native/source inputs, facts, optional ticks,
+phase/rejection lifting and request capture from their activity/live consumers.
+It still needs the next parent plan verdict before those consumers are admitted.
 [Spec](.flow/specs/fn-227-parameterized-models-declared-worlds.md).
 
 | Name | Status | What |
 | --- | --- | --- |
 | fn-227.7 | ⬜ todo | After .1: independent typed World/source binding, whole-state Init, all CFGs and `parameterized_world` TLC proof (R1, R3) |
-| fn-227.2 | ⬜ todo | After .1 and .7: `Finite` and action inputs; `action_inputs` fixture with TLC (R2, R3) |
-| fn-227.3 | ⬜ todo | After .2: lifter admits `Phased`/`reject!`; activity `maximum_attempts` and retryable failure (R3, R4) |
-| fn-227.4 | ⬜ todo | After .3: timeouts, Heartbeat, Tick, cooperative cancel; final refinement, progress and bound claims (R3, R4, R5) |
-| fn-227.5 | ⬜ todo | After .4: world from observed start options; Answer retryable; live retry proof (R6) |
+| fn-227.2 | ⬜ todo | After .1 and .7: native `Finite`, typed World-dependent domains and checked catalog admission (R2) |
+| fn-227.8 | ⬜ todo | After .2 and .7: independent source inputs, exact-payload fairness and `action_inputs` TLC proof (R2, R3) |
+| fn-227.11 | ⬜ todo | After .8: source `Phased`/`reject!` and closure laws, with unchanged activity behavior (R3) |
+| fn-227.3 | ⬜ todo | After .2 and .11: activity attempts/retryable failure and retained-lifecycle refinement (R3, R4) |
+| fn-227.9 | ⬜ todo | After .7: optional handler facts through native adapters, independent source and TLC replay (R3, R5) |
+| fn-227.10 | ⬜ todo | After .2 and .7: bounded nominal optional values through source binding and typed decode (R3, R5) |
+| fn-227.4 | ⬜ todo | After .3, .9 and .10: deadlines, Heartbeat, Tick, cooperative cancel, final refinement and claims (R3, R4, R5) |
+| fn-227.12 | ⬜ todo | Actual-request Observation transport and owned same-invocation SDK capture (R6) |
+| fn-227.5 | ⬜ todo | After .4 and .12: transactional live World admission, cooperative evidence and SDK retry proof (R6) |
 | fn-227.6 | ⬜ todo | After .5: DESIGN.md write-up and readiness table closure (R7) |
 
 ### fn-211: Apalache backend for Umpire in Rust (model)

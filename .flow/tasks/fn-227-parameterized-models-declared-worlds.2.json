@@ -12,6 +12,6 @@
   "spec": "fn-227-parameterized-models-declared-worlds",
   "spec_path": ".flow/tasks/fn-227-parameterized-models-declared-worlds.2.md",
   "status": "todo",
-  "title": "After native and source World: Finite and action inputs in derive(Action); action_inputs fixture with TLC",
-  "updated_at": "2026-10-21T13:38:20.962077Z"
+  "title": "After native World: Finite, typed World-dependent action domains and checked native catalog admission",
+  "updated_at": "2026-10-21T16:19:28.823656Z"
 }
