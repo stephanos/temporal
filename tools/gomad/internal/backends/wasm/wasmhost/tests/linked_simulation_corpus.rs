@@ -99,6 +99,18 @@ fn scenario_forcing_runs_fresh_stores_and_retains_repeatable_actual_world() {
         serde_json::to_vec(&repeated.decisions).unwrap()
     );
     assert!(selected.divergence.is_none());
+
+    let mut changed_site = observed.clone();
+    changed_site.site_sha256 = format!("sha256:{}", "c".repeat(64));
+    let stale = Override::from_decision(&changed_site, 1).unwrap();
+    let divergent = simulation::execute(prepared_cluster(), plan(vec![stale]), 16).unwrap();
+    assert_eq!(
+        divergent.cluster.outcome.termination,
+        "instrumentation_divergence"
+    );
+    assert!(divergent.cluster.incarnations.is_empty());
+    assert!(divergent.decisions.is_empty());
+    assert!(divergent.divergence.unwrap().actual_exploration.is_some());
 }
 
 #[test]
