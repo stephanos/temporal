@@ -75,14 +75,6 @@ fn prepared_cluster_with(
 
 #[test]
 fn linked_cluster_network_query_uses_the_broker_instead_of_standalone_fallback() {
-    let module = br#"(module
-        (import "gomad_wasm_v2" "net_stream" (func $network (param i32 i32) (result i32)))
-        (memory (export "memory") 1)
-        (data (i32.const 0) "\00\00\00\02")
-        (func (export "_start")
-            (if (call $network (i32.const 0) (i32.const 64)) (then unreachable))
-            (if (i32.load (i32.const 40)) (then unreachable))))"#
-        .to_vec();
     let network = serde_json::from_value(json!({
         "model":{"profile":"gomad.simulation-network-stream/v3","limits":{
             "listeners":8,"connections":8,"bytes":1_048_576,"connection_bytes":1_048_576,
@@ -90,15 +82,23 @@ fn linked_cluster_network_query_uses_the_broker_instead_of_standalone_fallback()
         "addresses":{},"links":[],"strict_topology":false,"faults":[]
     }))
     .unwrap();
-    let observed =
-        cluster::execute_prepared(prepared_cluster_with(&module, Some(network))).unwrap();
-    assert_eq!(observed.outcome.termination, "exit");
-    assert!(
-        observed
-            .incarnations
-            .iter()
-            .all(|item| item.execution.outcome.exit_code == Some(0))
-    );
+    for (network, expected) in [(Some(network), 0), (None, 2)] {
+        let module = format!(r#"(module
+            (import "gomad_wasm_v2" "net_stream" (func $network (param i32 i32) (result i32)))
+            (memory (export "memory") 1)
+            (data (i32.const 0) "\00\00\00\02")
+            (func (export "_start")
+                (if (call $network (i32.const 0) (i32.const 64)) (then unreachable))
+                (if (i32.ne (i32.load8_u (i32.const 43)) (i32.const {expected})) (then unreachable))))"#).into_bytes();
+        let observed = cluster::execute_prepared(prepared_cluster_with(&module, network)).unwrap();
+        assert_eq!(observed.outcome.termination, "exit");
+        assert!(
+            observed
+                .incarnations
+                .iter()
+                .all(|item| item.execution.outcome.exit_code == Some(0))
+        );
+    }
 }
 
 #[test]
