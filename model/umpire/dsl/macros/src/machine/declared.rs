@@ -646,6 +646,19 @@ struct GenericHelpers<'a> {
     generics: &'a syn::Generics,
     action_generics: &'a syn::Generics,
 }
+
+fn without_defaults(generics: &syn::Generics) -> syn::Generics {
+    let mut generics = generics.clone();
+    for parameter in &mut generics.params {
+        match parameter {
+            syn::GenericParam::Type(parameter) => parameter.default = None,
+            syn::GenericParam::Const(parameter) => parameter.default = None,
+            syn::GenericParam::Lifetime(_) => {}
+        }
+    }
+    generics
+}
+
 impl syn::visit_mut::VisitMut for GenericHelpers<'_> {
     fn visit_type_mut(&mut self, ty: &mut syn::Type) {
         if let syn::Type::Path(path) = ty
@@ -679,7 +692,7 @@ impl syn::visit_mut::VisitMut for GenericHelpers<'_> {
         syn::visit_mut::visit_item_trait_mut(self, item);
     }
     fn visit_item_impl_mut(&mut self, item: &mut syn::ItemImpl) {
-        item.generics = self.generics.clone();
+        item.generics = without_defaults(self.generics);
         if let Some((path, _)) = &mut item.trait_
             && path.is_ident("ClaimedPath")
         {
@@ -689,7 +702,7 @@ impl syn::visit_mut::VisitMut for GenericHelpers<'_> {
         syn::visit_mut::visit_item_impl_mut(self, item);
     }
     fn visit_item_fn_mut(&mut self, item: &mut syn::ItemFn) {
-        item.sig.generics = self.generics.clone();
+        item.sig.generics = without_defaults(self.generics);
         syn::visit_mut::visit_item_fn_mut(self, item);
     }
 }

@@ -107,14 +107,14 @@ fn a_generic_model_world_and_actor_compile_and_evaluate_together() {
 
 #[umpire_dsl::machine]
 mod fixed_actor {
-    use umpire_dsl::{Action, State, World};
+    use umpire_dsl::{Action, State, World, path};
 
     #[derive(World)]
-    pub(super) struct World<const N: usize> {
+    pub(super) struct World<const N: usize = 3> {
         limit: u8,
     }
     #[derive(State)]
-    pub(super) struct Model<const N: usize> {
+    pub(super) struct Model<const N: usize = 3> {
         pub(super) count: u8,
         bytes: [u8; N],
     }
@@ -135,6 +135,11 @@ mod fixed_actor {
                 self.count += 1;
             }
         }
+
+        #[progress]
+        fn advances(&self, w: &World<N>) -> LeadsTo<N> {
+            path![self.count == 0, ..=1, self.count == w.limit]
+        }
     }
 }
 
@@ -143,6 +148,11 @@ fn const_generic_states_keep_nongeneric_action_carriers() {
     let world = fixed_actor::World::<3>::new(1);
     let state = world.starts().remove(0);
     assert_eq!(world.step(&state, fixed_actor::User::Advance.into())[0].2.count, 1);
+    let claim = world.progress().remove(0);
+    assert_eq!(
+        claim.evaluator.unwrap_or_else(|| panic!("missing evaluator"))(&world, &state).trigger,
+        Verdict::Holds
+    );
 }
 
 #[umpire_dsl::machine]
@@ -193,11 +203,11 @@ mod bounded_actor {
     use umpire_dsl::{Action, State, World, path};
 
     #[derive(World)]
-    pub(super) struct World<T> {
+    pub(super) struct World<T = super::Owned> {
         marker: PhantomData<T>,
     }
     #[derive(State)]
-    pub(super) struct Model<T> {
+    pub(super) struct Model<T = super::Owned> {
         marker: PhantomData<T>,
         pub(super) changed: bool,
     }

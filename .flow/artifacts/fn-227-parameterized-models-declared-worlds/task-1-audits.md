@@ -30,3 +30,33 @@ All three findings were addressed before formal implementation review. Legacy sp
 Progress helpers now receive the complete machine constraints. The generic control first failed for the missing actor bound (`.flow/tmp/fn2271-audit-progress-red.log`), then passed. Additional real Machine controls cover bounds authored only on implementations and alpha-renamed World/impl/actor binders; their red/green logs use `fn2271-{impl-bounds,world-binders,impl-binders,actor-binders}-*.log`.
 
 Registration admission was extracted without changing legacy expansion bytes; `machine.rs` is 897 lines. The final combined Quick command passed (`.flow/tmp/fn2271-audit-quick.log`), and all 571 original artifact hashes plus 101 original UI stderr hashes passed (`fn2271-audit-{artifacts,ui}.log`). Original reports above are preserved verbatim; these resolutions do not replace the mandatory formal review.
+
+## Frozen fix recheck
+
+Range: a76c3581620c39d8ccb760bc4af34d4c24b1d618..b5b91b4f82d46ea3e4c40b11e0a7b77bc5d1e865. Reports below are verbatim.
+
+### Correctness axis
+
+Both original findings are addressed (evidence: walked): legacy Space construction, configuration, Clone, Send/Sync and query generic argument counts are preserved; progress helpers now receive merged bounds.
+
+- **model/umpire/dsl/macros/src/machine/declared.rs:692** (Should Fix, Conf 100): Copying Model generics into generated `fn whenever` preserves parameter defaults. A valid `Model<const N: usize = 1>` with progress generates `fn whenever<const N: usize = 1>(...)`, which Rust rejects because function parameters cannot have defaults. Clear type/const defaults in function-only generics. Evidence: walked, including Syn’s signature printer.
+
+Remaining within-axis findings: 1. Worst tier: Should Fix. No builds or tests executed.
+
+### Standards axis
+
+No remaining standards findings in the rechecked changes: Should Fix 0 · Consider 0.
+
+Executed: `machine.rs` is now 897 lines; `declared.rs` 740; `registration.rs` 131. The previous threshold finding is resolved.
+
+Walked: registration extraction preserves the existing logic; generic normalization serves authored parameter names and bounds; sealed `SpaceBinding` supports both legacy and explicit World spaces without an external extension point.
+
+No builds, gates, or repository writes performed.
+
+The remaining defaults finding was reproduced with both type and const defaults in real progress-bearing generic machines (`fn2271-default-generics-red.log`, rc 101). Generated helper function and impl generics now remove defaults while legal type/trait declarations retain them. `fn2271-default-generics-green3.log` is the successful rc-0 focused run; the earlier green-named attempts 1/2 and first clippy attempt failed and are not green evidence. The b5 full `make model-check` run (`fn2271-final-model-check.log`, rc 0) predates this fix and is not its final gate.
+
+Final correctness recheck, verbatim:
+
+Remaining finding addressed (evidence: walked). `without_defaults` removes type/const defaults from generated impls and free functions while preserving bounds and declaration defaults. Both defaulted fixtures now exercise progress.
+
+Remaining within-axis findings: 0. No builds or tests executed during this recheck.
