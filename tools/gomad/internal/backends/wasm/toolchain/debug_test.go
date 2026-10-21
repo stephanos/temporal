@@ -13,22 +13,24 @@ import (
 )
 
 func TestDebugDecisionStopsBeforeApplyingEveryDecisionKind(t *testing.T) {
-	file, err := parser.ParseFile(token.NewFileSet(), "runtime_wasm.go.txt", runtimeGlue, 0)
-	if err != nil {
-		t.Fatal(err)
-	}
 	wanted := map[string]bool{"gomadChoiceDecision": true, "gomadChoiceAppendRecord": true, "gomadDebugDecision": true, "gomadDebugWitnessOnly": true, "gomadDebugCaptureHeap": true, "gomadDebugHeader": true, "gomadDebugPut32": true, "gomadDebugRead32": true}
 	var functions bytes.Buffer
-	for _, declaration := range file.Decls {
-		function, ok := declaration.(*ast.FuncDecl)
-		if !ok || !wanted[function.Name.Name] {
-			continue
-		}
-		delete(wanted, function.Name.Name)
-		if err := format.Node(&functions, token.NewFileSet(), function); err != nil {
+	for _, source := range [][]byte{runtimeGlue, runtimeInspectGlue} {
+		file, err := parser.ParseFile(token.NewFileSet(), "runtime_wasm.go.txt", source, 0)
+		if err != nil {
 			t.Fatal(err)
 		}
-		functions.WriteByte('\n')
+		for _, declaration := range file.Decls {
+			function, ok := declaration.(*ast.FuncDecl)
+			if !ok || !wanted[function.Name.Name] {
+				continue
+			}
+			delete(wanted, function.Name.Name)
+			if err := format.Node(&functions, token.NewFileSet(), function); err != nil {
+				t.Fatal(err)
+			}
+			functions.WriteByte('\n')
+		}
 	}
 	if len(wanted) != 0 {
 		t.Fatalf("missing runtime predecision control: %v", wanted)
