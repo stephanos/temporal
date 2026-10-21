@@ -76,8 +76,7 @@ pub struct State {
     pub request_scratch: Vec<u8>,
     pub write_scratch: protocol::WriteBuffers,
     /// A cluster instance's seat in the in-process broker (fn-178.7), with its
-    /// endpoint on the shared Rust network owner (fn-178.12); single executions
-    /// forward `runtime_idle`'s broker role and `net_stream` to Go instead.
+    /// endpoint on the shared Rust network owner (fn-178.12).
     pub broker: Option<crate::cluster::handoff::Member>,
     pub(crate) network: Option<crate::cluster::network::Endpoint>,
 }
