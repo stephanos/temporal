@@ -117,6 +117,15 @@ unchanged. Boundaries hash this fixed-size material instead of the entire
 history. Canonical World snapshot and transition bytes remain unchanged, and
 the expanded snapshot capacity is still enforced. The v2 encoding and helper
 identity rotate together; v1 inspection commitments are refused, not converted.
+Inspection state encoding is `gomad.inspection-state-sha256/v2`. Live network
+cuts bind the profile, framed native snapshot with ordered per-lane transition
+chains, operations-log size/count/hash and local World chain. Canonical native
+history ignores inter-lane order; lane chains preserve that equivalence and
+bind order within each lane. The original 128 MiB native-wire and 1 MiB string
+guards remain enforced incrementally. Terminal cuts still bind the retained
+full `GMNETEV1` document, distinguished by their nonzero `network_bytes`.
+Full network and World evidence bytes are unchanged. Network hash domains and
+state-encoding admission rotate to v2; storage/recovery hash domains do not.
 The cooperative installation supports bounded `explore --scenario FILE` seed
 campaigns with typed nodes, modeled network/storage and declared lifecycle
 boundaries. The shared campaign store retains prepared inputs for detached

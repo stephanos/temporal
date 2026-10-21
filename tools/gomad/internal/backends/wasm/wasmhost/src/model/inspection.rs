@@ -8,7 +8,7 @@ use wasmtime::{Error, Result};
 pub const MAX_METADATA: usize = 64 << 20;
 pub const MAX_OUTPUT: usize = 8 << 20;
 pub const MAX_FRAME: usize = 32 + 64 * 1024;
-pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v1";
+pub const STATE_ENCODING: &str = "gomad.inspection-state-sha256/v2";
 pub const WORLD_ENCODING: &str = "gomad.inspection-world-sha256/v2";
 const WORLD_HEADER: &[u8] = b"gomad.inspection-world-commitments/v2\0";
 pub const BOUNDARY_ENCODING: &str = "gomad.inspection-boundaries-binary/v1";
@@ -1067,6 +1067,8 @@ pub(crate) fn commitment_parts(kind: &str, parts: &[&[u8]]) -> Vec<u8> {
     let mut hash = Sha256::new();
     if kind == "world" {
         hash.update(b"gomad.inspection-world-sha256/v2\0");
+    } else if kind == "network" {
+        hash.update(b"gomad.inspection-state-sha256/v2/network\0");
     } else {
         hash.update(b"gomad.inspection-state-sha256/v1/");
         hash.update(kind.as_bytes());

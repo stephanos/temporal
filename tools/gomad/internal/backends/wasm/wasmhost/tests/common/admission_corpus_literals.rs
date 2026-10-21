@@ -654,6 +654,8 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             let mut hash = Sha256::new();
             if domain == "world" {
                 hash.update(b"gomad.inspection-world-sha256/v2\0");
+            } else if domain == "network" {
+                hash.update(b"gomad.inspection-state-sha256/v2/network\0");
             } else {
                 hash.update(b"gomad.inspection-state-sha256/v1/");
                 hash.update(domain.as_bytes());
@@ -676,7 +678,8 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
         }
         let mut combined = Sha256::digest(chain).to_vec();
         combined.push(1);
-        combined.extend_from_slice(&commitment("network", &network));
+        let network_material = super::network_inspection::material(&network)?;
+        combined.extend_from_slice(&commitment("network", &network_material));
         let recorded = STANDARD
             .decode(
                 evidence["world"]
@@ -694,7 +697,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             || length != recorded.len()
             || recorded[length - 40..length - 32] != 32u64.to_le_bytes()
             || recorded[length - 32..] != commitment("world", &combined)
-            || cut["network_state"] != STANDARD.encode(commitment("network", &network))
+            || cut["network_state"] != STANDARD.encode(commitment("network", &network_material))
             || cut["network_bytes"] != 0
         {
             return Err(format!(
@@ -702,7 +705,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
                 recorded.len(),
                 network.len(),
                 cut["network_bytes"],
-                cut["network_state"] == STANDARD.encode(commitment("network", &network)),
+                cut["network_state"] == STANDARD.encode(commitment("network", &network_material)),
                 length >= 32
                     && recorded.get(length - 32..length)
                         == Some(commitment("world", &combined).as_slice())
@@ -765,7 +768,7 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
                 .ok_or_else(|| format!("{name}: missing {owner} cut for a-terminal"))
         };
         let mut hash = Sha256::new();
-        hash.update(b"gomad.inspection-state-sha256/v1/network\0");
+        hash.update(b"gomad.inspection-state-sha256/v2/network\0");
         hash.update((terminal.len() as u64).to_le_bytes());
         hash.update(&terminal);
         let digest = STANDARD.encode(hash.finalize());
@@ -784,7 +787,13 @@ pub(super) fn check_admission_literals(name: &str, actual: &Value) -> Result<(),
             || retained["streams"]["network"] != STANDARD.encode(&terminal)
         {
             return Err(format!(
-                "{name}: terminal network document or commitment was not retained"
+                "{name}: terminal network document or commitment was not retained: bytes={} expected_bytes={} state={} expected_state={} old_state={} retained_matches={}",
+                cut("b-boundary")?["network_bytes"],
+                terminal.len(),
+                cut("b-boundary")?["network_state"],
+                digest,
+                cut("a-terminal")?["network_state"],
+                retained["streams"]["network"] == STANDARD.encode(&terminal)
             ));
         }
     } else if name == "admission_namespace_shared_literal_hi" {
