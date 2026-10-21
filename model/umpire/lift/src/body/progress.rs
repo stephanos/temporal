@@ -12,10 +12,13 @@ use syn::{Expr as RustExpr, RangeLimits, Token, parse::Parser as _, punctuated::
 impl Environment<'_> {
     pub(crate) fn assumption_body(
         &self,
-        block: &syn::Block,
+        method: &syn::ImplItemFn,
         actions: &[ActionDef],
     ) -> Result<AssumptionDef> {
-        self.assumption(tail(self.file, block)?, actions, 0)
+        if !self.parameters(method)?.positional.is_empty() {
+            return self.err(method, "assumptions take only an optional trailing World");
+        }
+        self.assumption(tail(self.file, &method.block)?, actions, &self.method_env(method)?, 0)
     }
     pub(crate) fn action_name(&self, node: &RustExpr, actions: &[ActionDef]) -> Result<String> {
         let name = path_name(&node.to_token_stream().to_string());
@@ -28,6 +31,7 @@ impl Environment<'_> {
         &self,
         node: &RustExpr,
         actions: &[ActionDef],
+        locals: &Env,
         depth: usize,
     ) -> Result<AssumptionDef> {
         if depth > 32 {
@@ -39,10 +43,15 @@ impl Environment<'_> {
                 if let Some(method) =
                     name.strip_prefix("Self::").and_then(|name| self.methods.get(name))
                 {
-                    if !has(&method.attrs, "assumption") || !call.args.is_empty() {
+                    if !has(&method.attrs, "assumption") && !has(&method.attrs, "scope") {
                         return self.err(node, "unsupported assumption call");
                     }
-                    return self.assumption(tail(self.file, &method.block)?, actions, depth + 1);
+                    return self.assumption(
+                        tail(self.file, &method.block)?,
+                        actions,
+                        &self.helper_env(method, &call.args, locals)?,
+                        depth + 1,
+                    );
                 }
                 let mut value = AssumptionDef::default();
                 let kind = name.rsplit("::").next().unwrap_or(&name);
@@ -59,7 +68,7 @@ impl Environment<'_> {
                 Ok(value)
             }
             RustExpr::MethodCall(call) => {
-                let mut value = self.assumption(&call.receiver, actions, depth + 1)?;
+                let mut value = self.assumption(&call.receiver, actions, locals, depth + 1)?;
                 if call.args.len() != 1 {
                     return self.err(node, "assumption method requires an action list");
                 }
@@ -95,6 +104,11 @@ impl Environment<'_> {
         method: &syn::ImplItemFn,
         actions: &[ActionDef],
     ) -> Result<ProgressDef> {
+        if !self.parameters(method)?.positional.is_empty() {
+            return self
+                .err(method, "progress methods take only &self and an optional trailing World");
+        }
+        let locals = self.method_env(method)?;
         let mut node = tail(self.file, &method.block)?;
         let mut target = None;
         let mut assumption = AssumptionDef::default();
@@ -118,12 +132,12 @@ impl Environment<'_> {
                     target = Some(self.expr(
                         &call.args[0],
                         &self.field_env(false),
-                        &Env::new(),
+                        &locals,
                         Some(&Type::Bool),
                         0,
                     )?);
                 }
-                "assuming" => assumption = self.assumption(&call.args[0], actions, 0)?,
+                "assuming" => assumption = self.assumption(&call.args[0], actions, &locals, 0)?,
                 "within" => bound = Some(self.progress_bound(node, &call.args[0])?),
                 _ => return self.err(node, "unsupported progress builder"),
             }
@@ -135,7 +149,7 @@ impl Environment<'_> {
             if target.is_some() || bound.is_some() {
                 return self.err(node, "a path! claim takes only .assuming(..)");
             }
-            return self.path_claim(method, call, assumption);
+            return self.path_claim(method, call, assumption, &locals);
         }
         let RustExpr::Call(call) = node else {
             return self.err(node, "progress requires whenever");
@@ -149,7 +163,7 @@ impl Environment<'_> {
             trigger: self.expr(
                 &call.args[0],
                 &self.field_env(false),
-                &Env::new(),
+                &locals,
                 Some(&Type::Bool),
                 0,
             )?,
@@ -179,6 +193,7 @@ impl Environment<'_> {
         method: &syn::ImplItemFn,
         call: &syn::ExprMacro,
         assumption: AssumptionDef,
+        locals: &Env,
     ) -> Result<ProgressDef> {
         let parts = Punctuated::<RustExpr, Token![,]>::parse_terminated
             .parse2(call.mac.tokens.clone())
@@ -195,7 +210,7 @@ impl Environment<'_> {
             _ => return self.err(gap, "a path gap is .. or ..=n"),
         };
         let predicate =
-            |node| self.expr(node, &self.field_env(false), &Env::new(), Some(&Type::Bool), 0);
+            |node| self.expr(node, &self.field_env(false), locals, Some(&Type::Bool), 0);
         Ok(ProgressDef {
             name: method.sig.ident.to_string(),
             trigger: predicate(trigger)?,

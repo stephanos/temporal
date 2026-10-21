@@ -2,10 +2,10 @@ use crate::{
     Diagnostic, Type,
     body::{Env, Environment},
     syntax::{attr, has, path_name},
-    tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Start},
+    tree::{ActionDef, ClaimDef, FieldDef, Lifted, PostDef, Start, WorldField},
 };
 use quote::ToTokens;
-use std::collections::BTreeMap;
+use std::collections::{BTreeMap, BTreeSet};
 use syn::{ImplItem, Item};
 
 type Result<T> = std::result::Result<T, Diagnostic>;
@@ -77,6 +77,8 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     let mut parser = Environment {
         file,
         fields: Vec::new(),
+        declared_world: false,
+        world_fields: Vec::new(),
         constants: Env::new(),
         enums: BTreeMap::new(),
         defaults: BTreeMap::new(),
@@ -99,7 +101,12 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 ));
             }
         };
-        attrs(file, attributes, &["doc", "derive", "internal"])?;
+        let allowed: &[&str] = if matches!(item, Item::Impl(_)) {
+            &["doc", "derive", "internal", "starts"]
+        } else {
+            &["doc", "derive", "internal"]
+        };
+        attrs(file, attributes, allowed)?;
         if let Item::Enum(value) = item {
             if !value.generics.params.is_empty()
                 || value
@@ -124,13 +131,122 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             parser.enums.insert(name.clone(), Type::Enum { name, variants });
         }
     }
+    let worlds: Vec<_> = items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Struct(value) if derives(&value.attrs, "World") => Some(value),
+            _ => None,
+        })
+        .collect();
+    if worlds.len() > 1 {
+        return Err(Diagnostic::at(file, worlds[1], "declare one World"));
+    }
+    let mut generated = BTreeSet::new();
+    if let Some(world) = worlds.first() {
+        parser.declared_world = true;
+        if world.ident != "World" || !world.generics.params.is_empty() {
+            return Err(Diagnostic::at(
+                file,
+                world,
+                "source World must be a nongeneric named World",
+            ));
+        }
+        if !admitted_imports.iter().any(|name| name == "World") {
+            return Err(Diagnostic::at(
+                file,
+                world,
+                "derive requires explicit canonical umpire_dsl::World import",
+            ));
+        }
+        let syn::Fields::Named(fields) = &world.fields else {
+            return Err(Diagnostic::at(file, world, "World must have named fields"));
+        };
+        for field in &fields.named {
+            attrs(file, &field.attrs, &["doc"])?;
+            let name = field
+                .ident
+                .as_ref()
+                .ok_or_else(|| Diagnostic::at(file, field, "unnamed World field"))?
+                .to_string();
+            let ty = parser.ty(&field.ty)?;
+            if !matches!(ty, Type::Bool | Type::Int { .. } | Type::Enum { .. }) {
+                return Err(Diagnostic::at(
+                    file,
+                    field,
+                    "World fields require admitted scalar types",
+                ));
+            }
+            let symbol =
+                crate::names::allocate(ast, &format!("__umpire_world_{name}"), &mut generated);
+            parser.world_fields.push(WorldField {
+                name,
+                ty,
+                symbol,
+                location: Diagnostic::at(file, field, ""),
+            });
+        }
+    }
+    let computed: Vec<_> = items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Impl(value) if has(&value.attrs, "starts") => Some(value),
+            _ => None,
+        })
+        .collect();
+    if computed.len() > 1 {
+        return Err(Diagnostic::at(file, computed[1], "declare starts once"));
+    }
+    if let Some(implementation) = computed.first() {
+        if !parser.declared_world {
+            return Err(Diagnostic::at(
+                file,
+                implementation,
+                "computed starts require a declared World",
+            ));
+        }
+        if implementation.trait_.is_some()
+            || !implementation.generics.params.is_empty()
+            || path_name(&implementation.self_ty.to_token_stream().to_string()) != "Model"
+        {
+            return Err(Diagnostic::at(
+                file,
+                implementation,
+                "computed starts require a nongeneric impl Model",
+            ));
+        }
+        let [ImplItem::Fn(method)] = implementation.items.as_slice() else {
+            return Err(Diagnostic::at(
+                file,
+                implementation,
+                "#[starts] requires one fn starts(world: &World)",
+            ));
+        };
+        let parameters = parser.parameters(method)?;
+        if method.sig.ident != "starts"
+            || method.sig.receiver().is_some()
+            || !parameters.positional.is_empty()
+            || parameters.world.is_none()
+            || method.sig.asyncness.is_some()
+            || matches!(method.sig.safety, syn::Safety::Unsafe(_))
+            || !method.sig.generics.params.is_empty()
+        {
+            return Err(Diagnostic::at(
+                file,
+                method,
+                "#[starts] requires fn starts(world: &World)",
+            ));
+        }
+    }
     for item in items {
         if let Item::Const(value) = item {
             let ty = parser.ty(&value.ty)?;
-            let expr = parser.expr(&value.expr, &Env::new(), &BTreeMap::new(), Some(&ty), 0)?;
+            let expr = parser.expr(&value.expr, &Env::new(), &Env::new(), Some(&ty), 0)?;
             parser.constants.insert(value.ident.to_string(), expr);
         }
         if let Item::Impl(value) = item {
+            if has(&value.attrs, "starts") {
+                continue;
+            }
             if value.trait_.is_some() || !value.generics.params.is_empty() {
                 return Err(Diagnostic::at(
                     file,
@@ -153,6 +269,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                         "invariant",
                         "postcondition",
                         "assumption",
+                        "scope",
                         "progress",
                     ],
                 )?;
@@ -202,7 +319,16 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
             return Err(Diagnostic::at(file, field, format!("reserved observer name `{name}`")));
         }
         let ty = parser.ty(&field.ty)?;
-        let start = if let Some(attr) = attr(&field.attrs, "starts") {
+        let start = if !computed.is_empty() {
+            if let Some(attribute) = attr(&field.attrs, "starts") {
+                return Err(Diagnostic::at(
+                    file,
+                    attribute,
+                    "computed starts cannot be combined with field starts",
+                ));
+            }
+            Start::Computed
+        } else if let Some(attr) = attr(&field.attrs, "starts") {
             let range: syn::ExprRange =
                 attr.parse_args().map_err(|e| Diagnostic::span(file, e.span(), e.to_string()))?;
             let (Some(lo), Some(hi)) = (range.start, range.end) else {
@@ -218,7 +344,7 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         } else {
             Start::Value(parser.default_value(&ty)?)
         };
-        parser.fields.push(FieldDef { name, ty, start });
+        parser.fields.push(FieldDef { name, ty, start, location: Diagnostic::at(file, field, "") });
     }
     let initial = parser.field_env(false);
     let mut actions = Vec::new();
@@ -245,6 +371,9 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
     let mut assumptions = Vec::new();
     for item in items {
         let Item::Impl(implementation) = item else { continue };
+        if has(&implementation.attrs, "starts") {
+            continue;
+        }
         if path_name(&implementation.self_ty.to_token_stream().to_string()) != "Model" {
             continue;
         }
@@ -261,12 +390,16 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                 for action in
                     actions.iter_mut().filter(|a| a.name.starts_with(&format!("{actor}::")))
                 {
-                    action.branches.extend(parser.branches(matched, &action.name)?);
+                    action.branches.extend(parser.branches(
+                        matched,
+                        &action.name,
+                        &parser.method_env(method)?,
+                    )?);
                 }
             } else if has(&method.attrs, "invariant") {
                 invariants.push(ClaimDef {
                     name: method.sig.ident.to_string(),
-                    expr: parser.claim(&method.block, &initial, &Env::new(), 0)?,
+                    expr: parser.invariant(method, &initial)?,
                 });
             } else if has(&method.attrs, "postcondition") {
                 let after = if let Some(attr) = attr(&method.attrs, "postcondition") {
@@ -293,8 +426,8 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
                     after,
                     expr: parser.postcondition(method)?,
                 });
-            } else if has(&method.attrs, "assumption") {
-                let mut assumption = parser.assumption_body(&method.block, &actions)?;
+            } else if has(&method.attrs, "assumption") || has(&method.attrs, "scope") {
+                let mut assumption = parser.assumption_body(method, &actions)?;
                 assumption.name = method.sig.ident.to_string();
                 assumptions.push(assumption);
             } else if has(&method.attrs, "progress") {
@@ -331,14 +464,39 @@ pub(crate) fn parse(file: &str, ast: &syn::File, hooks: &[crate::Hook<'_>]) -> R
         negative.extend(parser.supplemental(&hook.mac.mac, &initial)?);
     }
     let name = pascal(&module.ident.to_string());
+    let constant_symbols = if parser.declared_world {
+        parser
+            .constants
+            .keys()
+            .map(|name| {
+                (
+                    name.clone(),
+                    crate::names::allocate(ast, &format!("__umpire_source_{name}"), &mut generated),
+                )
+            })
+            .collect()
+    } else {
+        BTreeMap::new()
+    };
     Ok(Lifted {
         file: file.into(),
         name,
+        machine_module: module.ident.to_string(),
         state_name: state.ident.to_string(),
         outcome_type: Type::Unit,
-        world_path: format!("{}::world()", module.ident),
+        world_path: if parser.declared_world {
+            format!("{}::World", module.ident)
+        } else {
+            format!("{}::world()", module.ident)
+        },
+        declared_world: parser.declared_world,
+        world_fields: parser.world_fields,
+        world_values: None,
+        complete_starts: None,
+        location: Diagnostic::at(file, module, ""),
         fields: parser.fields,
-        constants: parser.constants,
+        constants: parser.constants.values,
+        constant_symbols,
         actions,
         invariants,
         postconditions,

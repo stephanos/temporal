@@ -99,6 +99,26 @@ pub struct Field {
     /// Declared type.
     pub ty: Type,
 }
+/// A literal projected from compiler-checked authored fields.
+#[derive(Clone, Debug, PartialEq, Eq)]
+pub enum Literal {
+    /// Boolean value.
+    Bool(bool),
+    /// Integer checked against the independently admitted field type.
+    Int(i128),
+    /// Qualified variant of an independently admitted fieldless enum.
+    Enum(String),
+    /// Ordered elements of an admitted state sequence.
+    Sequence(Vec<Literal>),
+}
+/// One selected World and its complete authored start states.
+#[derive(Clone, Debug)]
+pub struct Binding {
+    /// Named World fields, validated against the original source declaration.
+    pub world: Vec<(String, Literal)>,
+    /// Complete named state fields for each authored start, in enumeration order.
+    pub starts: Vec<Vec<(String, Literal)>>,
+}
 /// An authored action.
 #[derive(Clone, Debug)]
 pub struct Action {
@@ -140,7 +160,7 @@ pub struct Progress {
 pub struct Metadata {
     /// Authored state struct name.
     pub state_name: String,
-    /// Authored world constructor.
+    /// Unit World constructor or declared World type path.
     pub world_path: String,
     /// State fields in declaration order.
     pub fields: Vec<Field>,

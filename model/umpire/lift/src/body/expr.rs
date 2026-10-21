@@ -89,6 +89,12 @@ impl Environment<'_> {
             RustExpr::Group(v) => return self.expr(&v.expr, state, locals, expected, depth),
             RustExpr::Path(path) => {
                 let name = path_name(&path.path.to_token_stream().to_string());
+                if locals.world.as_ref() == Some(&name)
+                    || locals.state.as_ref() == Some(&name)
+                    || locals.outcome.as_ref() == Some(&name)
+                {
+                    return self.err(node, "complete World, state and borrowed outcome parameters are not scalar expressions");
+                }
                 if let Some(value) = locals.get(&name).or_else(|| self.constants.get(&name)) {
                     value.clone()
                 } else if let Some((owner, variant)) = name.split_once("::") {
@@ -129,6 +135,19 @@ impl Environment<'_> {
                 }
             }
             RustExpr::Unary(unary) => {
+                if matches!(unary.op, syn::UnOp::Deref(_))
+                    && matches!(unary.expr.as_ref(), RustExpr::Path(path) if locals.outcome.as_ref().is_some_and(|name| path.path.is_ident(name)))
+                {
+                    let value = locals
+                        .outcome
+                        .as_ref()
+                        .and_then(|name| locals.get(name))
+                        .cloned()
+                        .ok_or_else(|| {
+                            Diagnostic::at(self.file, node, "missing borrowed outcome binding")
+                        })?;
+                    return self.require(node, value, expected);
+                }
                 let op = super::typer::unary_op(&unary.op)
                     .ok_or_else(|| Diagnostic::at(self.file, node, "unsupported unary operator"))?;
                 let value = self.expr(
@@ -222,19 +241,13 @@ impl Environment<'_> {
                 if matches!(call.receiver.as_ref(),RustExpr::Path(path)if path.path.is_ident("self"))
                     && let Some(method) = self.methods.get(&call.method.to_string())
                 {
-                    if !call.args.is_empty()
-                        || method.sig.inputs.len() != 1
-                        || method.sig.receiver().is_none_or(|r| r.mutability.is_some())
-                    {
-                        return self.err(
-                            node,
-                            "only parameterless pure helpers are admitted in expressions",
-                        );
+                    if method.sig.receiver().is_none_or(|r| r.mutability.is_some()) {
+                        return self.err(node, "only pure helpers are admitted in expressions");
                     }
                     return self.expr(
                         tail(self.file, &method.block)?,
                         state,
-                        locals,
+                        &self.helper_env(method, &call.args, locals)?,
                         expected,
                         depth + 1,
                     );

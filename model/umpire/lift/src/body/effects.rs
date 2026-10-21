@@ -10,23 +10,19 @@ use syn::{BinOp, Expr as RustExpr, Pat, Stmt};
 
 impl Environment<'_> {
     pub(crate) fn handler<'a>(&self, method: &'a syn::ImplItemFn) -> Result<&'a syn::ExprMatch> {
+        let parameters = self.parameters(method)?;
+        if parameters.positional.len() != 1 {
+            return self.err(method, "a handler requires its actor and an optional trailing World");
+        }
         let [Stmt::Expr(RustExpr::Match(matched), _)] = method.block.stmts.as_slice() else {
             return self.err(method, "action handler must match its action parameter");
         };
-        let parameter = method
-            .sig
-            .inputs
-            .iter()
-            .find_map(|v| {
-                if let syn::FnArg::Typed(v) = v {
-                    if let Pat::Ident(id) = v.pat.as_ref() {
-                        Some(id.ident.to_string())
-                    } else {
-                        None
-                    }
-                } else {
-                    None
-                }
+        let parameter = parameters
+            .positional
+            .first()
+            .and_then(|input| match input.pat.as_ref() {
+                Pat::Ident(id) => Some(id.ident.to_string()),
+                _ => None,
             })
             .ok_or_else(|| Diagnostic::at(self.file, method, "missing action parameter"))?;
         if !matches!(matched.expr.as_ref(),RustExpr::Path(p)if p.path.is_ident(&parameter)) {
@@ -34,7 +30,12 @@ impl Environment<'_> {
         }
         Ok(matched)
     }
-    pub(crate) fn branches(&self, matched: &syn::ExprMatch, action: &str) -> Result<Vec<Branch>> {
+    pub(crate) fn branches(
+        &self,
+        matched: &syn::ExprMatch,
+        action: &str,
+        env: &Env,
+    ) -> Result<Vec<Branch>> {
         let mut branches = Vec::new();
         let mut previous = Expr::bool(false);
         for arm in &matched.arms {
@@ -47,21 +48,21 @@ impl Environment<'_> {
                 continue;
             }
             let guard = if let Some(guard) = guard {
-                self.expr(guard, &self.field_env(false), &Env::new(), Some(&Type::Bool), 0)?
+                self.expr(guard, &self.field_env(false), env, Some(&Type::Bool), 0)?
             } else {
                 Expr::bool(true)
             };
             let effective = previous.clone().not().and(guard.clone());
             previous = previous.or(guard);
             let mut state = self.field_env(false);
-            let mut locals = Env::new();
+            let mut locals = env.clone();
             let mut checks = Vec::new();
             let (body, stays) = without_stay(&arm.body);
             self.effects(&body, &mut state, &mut locals, &mut checks, 0)?;
             self.bounded_vector_growth(&body, &state, &effective)?;
             branches.push(Branch {
                 guard: effective,
-                updates: state,
+                updates: state.values,
                 checks,
                 outcome: Expr::unit(),
                 preserve_self_loop: stays,
@@ -191,18 +192,24 @@ impl Environment<'_> {
                     .methods
                     .get(&call.method.to_string())
                     .ok_or_else(|| Diagnostic::at(self.file, node, "unknown effect helper"))?;
-                if !has(&method.attrs, "effect")
-                    || !call.args.is_empty()
-                    || method.sig.inputs.len() != 1
-                {
-                    return self.err(node, "only parameterless #[effect] calls are admitted");
+                if !has(&method.attrs, "effect") || method.sig.receiver().is_none() {
+                    return self.err(
+                        node,
+                        "only #[effect] calls with an optional trailing World are admitted",
+                    );
                 }
                 let body = RustExpr::Block(syn::ExprBlock {
                     attrs: Vec::new(),
                     label: None,
                     block: method.block.clone(),
                 });
-                self.effects(&body, state, &mut Env::new(), checks, depth + 1)?;
+                self.effects(
+                    &body,
+                    state,
+                    &mut self.helper_env(method, &call.args, locals)?,
+                    checks,
+                    depth + 1,
+                )?;
             }
             _ => return self.err(node, format!("unsupported effect `{}`", node.to_token_stream())),
         }

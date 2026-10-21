@@ -1,6 +1,7 @@
 //! Build-time fixture discovery.
 
 use std::{
+    collections::BTreeMap,
     fmt::Write,
     fs, io,
     path::{Path, PathBuf},
@@ -65,12 +66,42 @@ pub fn discover(root: &Path, inputs: &[&str]) -> io::Result<Vec<Fixture>> {
 ///
 /// `model.rs` compiles as `<module>`, `tests.rs` as `<module>_tests`; the last input holds `run`.
 pub fn generate(root: &Path, inputs: &[&str], output: &Path) -> io::Result<()> {
+    generate_with_overrides(root, inputs, output, &BTreeMap::new())
+}
+
+/// Generate fixture modules with selected compile-only copies of authored inputs.
+/// Override keys name a fixture folder and one of its required input filenames.
+pub fn generate_with_overrides(
+    root: &Path,
+    inputs: &[&str],
+    output: &Path,
+    overrides: &BTreeMap<(String, String), PathBuf>,
+) -> io::Result<()> {
     let fixtures = discover(root, inputs)?;
+    for ((name, input), path) in overrides {
+        if !fixtures.iter().any(|fixture| fixture.name == *name)
+            || !inputs.contains(&input.as_str())
+        {
+            return Err(io::Error::other(format!(
+                "unknown fixture input override: {name}/{input}"
+            )));
+        }
+        if !path.is_file() {
+            return Err(io::Error::other(format!(
+                "fixture input override is not a file: {}",
+                path.display()
+            )));
+        }
+    }
     let mut source = String::new();
     for fixture in &fixtures {
         for input in inputs {
             let module = input_module(&fixture.module, input);
-            let file = fs::canonicalize(fixture.path.join(input))?;
+            let file = overrides
+                .get(&(fixture.name.clone(), (*input).to_owned()))
+                .cloned()
+                .unwrap_or_else(|| fixture.path.join(input));
+            let file = fs::canonicalize(file)?;
             let file = file.to_str().ok_or_else(|| io::Error::other("invalid fixture path"))?;
             writeln!(source, "#[allow(unused_imports, missing_docs, unreachable_pub, clippy::module_inception)]\n#[path = {file:?}] mod {module};").map_err(io::Error::other)?;
         }

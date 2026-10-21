@@ -209,8 +209,11 @@ sampled Runs retain the World after their Space leaves scope. Existing state-onl
 manual `Registered` implementations remain compatible through the additive `Associated` trait.
 Declared states implement only the association, so their constants must be supplied explicitly.
 
-This is the native authoring and suite surface. Source-bound configuration and independent TLC
-agreement for declared Worlds and complete computed starts remain a dependent checkpoint.
+Declared Worlds with admitted scalar/enum constants also support independent source lifting.
+Shared fixtures compile a disposable copy with a typed projection inside the original machine
+module, so private fields stay private. Admission still reads the untouched authored `model.rs`.
+The authored `tests.rs` hook selects its World in its own lexical scope; one selection and one
+complete-start enumeration feed binding, native checking and TLC counterexample replay.
 
 Methods of each kind are contiguous, in `#[on]`, optional `#[effect]`, `#[invariant]`,
 `#[postcondition]`, `#[assumption]`, `#[progress]` order. A postcondition may filter its action
@@ -620,6 +623,15 @@ For a larger Model, the typed backend entry point needs no native exploration:
 let module = umpire_lift::Tla::emit(&umpire_lift::Lift::source(source_path)?)?;
 let result = umpire_tlc::Tlc::discover(repository_root)?.check_module(&module)?;
 ```
+
+For a declared World, admit the source first, then call `lifted.bind(&binding)` before emission.
+`Binding` contains ordered named World literals and ordered complete start rows; missing,
+duplicate, extra, wrong-type and out-of-range values refuse at the source declaration.
+Whole-state Init preserves correlations, deduplicates identical rows and admits empty starts.
+The selected World constants have the same assignments in the main, invariant,
+postcondition, negative and progress configurations. `parameterized_world` exercises two
+selections, private-field projection and same-World replay of a deliberately false claim.
+Generic native World declarations are not automatically admitted by the source backend.
 
 This checks the source-lifted scope independently. Complete native set/verdict agreement is
 a separate fixture obligation; a cut native exploration cannot establish it. The lifter admits

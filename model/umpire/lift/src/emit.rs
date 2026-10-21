@@ -18,6 +18,13 @@ const OBSERVERS: [&str; 7] = [
 
 #[expect(clippy::too_many_lines, reason = "Definitions are emitted in module dependency order")]
 pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
+    if model.requires_binding() && (model.world_values.is_none() || model.complete_starts.is_none())
+    {
+        return Err(Diagnostic {
+            message: "declared World requires a selected World and complete-start binding".into(),
+            ..model.location.clone()
+        });
+    }
     for field in &model.fields {
         if OBSERVERS.contains(&field.name.as_str()) {
             return Err(Diagnostic::span(
@@ -30,6 +37,26 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     let mut out = String::new();
     line(&mut out, format!("---- MODULE {} ----", model.name));
     line(&mut out, "EXTENDS Integers, TLC, Sequences");
+    if !model.world_fields.is_empty() {
+        line(
+            &mut out,
+            format!(
+                "CONSTANTS {}",
+                model
+                    .world_fields
+                    .iter()
+                    .map(|field| field.symbol.as_str())
+                    .collect::<Vec<_>>()
+                    .join(", ")
+            ),
+        );
+    }
+    let mut constants_cfg = String::new();
+    if let Some(values) = &model.world_values {
+        for (field, value) in model.world_fields.iter().zip(values) {
+            line(&mut constants_cfg, format!("CONSTANT {} = {}", field.symbol, expr(value)));
+        }
+    }
     line(
         &mut out,
         r#"__umpire_Div(__umpire_a, __umpire_b) ==
@@ -48,6 +75,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     );
     line(&mut out, "");
     for (name, value) in &model.constants {
+        let name = model.constant_symbols.get(name).unwrap_or(name);
         line(&mut out, format!("{name} == {}", expr(value)));
     }
     let fields: Vec<_> = model.fields.iter().map(|f| f.name.as_str()).collect();
@@ -58,19 +86,42 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, format!("ModelVars == <<{}>>", fields.join(", ")));
     line(&mut out, "");
     let mut initial = Vec::new();
-    for field in &model.fields {
-        initial.push(match &field.start {
-            Start::Value(value) => format!("{} = {}", field.name, expr(value)),
-            Start::Range(lo, hi) => format!("{} \\in ({}..{})", field.name, expr(lo), expr(hi)),
-            Start::ExclusiveRange(lo, hi) => format!(
-                "(IF {} < {} THEN {} \\in ({}..({} - 1)) ELSE FALSE)",
-                expr(lo),
-                expr(hi),
-                field.name,
-                expr(lo),
-                expr(hi)
-            ),
-        });
+    if let Some(starts) = &model.complete_starts {
+        initial.push(disjoin(
+            starts
+                .iter()
+                .map(|state| {
+                    conjoin(
+                        model
+                            .fields
+                            .iter()
+                            .zip(state)
+                            .map(|(field, value)| format!("{} = {}", field.name, expr(value))),
+                    )
+                })
+                .collect(),
+        ));
+    } else {
+        for field in &model.fields {
+            initial.push(match &field.start {
+                Start::Computed => {
+                    return Err(Diagnostic {
+                        message: "computed starts require a complete-start binding".into(),
+                        ..field.location.clone()
+                    });
+                }
+                Start::Value(value) => format!("{} = {}", field.name, expr(value)),
+                Start::Range(lo, hi) => format!("{} \\in ({}..{})", field.name, expr(lo), expr(hi)),
+                Start::ExclusiveRange(lo, hi) => format!(
+                    "(IF {} < {} THEN {} \\in ({}..({} - 1)) ELSE FALSE)",
+                    expr(lo),
+                    expr(hi),
+                    field.name,
+                    expr(lo),
+                    expr(hi)
+                ),
+            });
+        }
     }
     let outcome_type = model.outcome_type.clone();
     initial.extend([
@@ -147,7 +198,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
     line(&mut out, "Next == Edge \\/ Complete");
     line(&mut out, "Spec == Init /\\ [][Next]_vars");
     line(&mut out, "");
-    let mut cfg = "SPECIFICATION Spec\n".to_owned();
+    let mut cfg = format!("SPECIFICATION Spec\n{constants_cfg}");
     let invariants = model
         .invariants
         .iter()
@@ -157,7 +208,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             line(&mut cfg, format!("INVARIANT {operator}"));
             Property {
                 name: claim.name.clone(),
-                cfg: format!("SPECIFICATION Spec\nINVARIANT {operator}\n"),
+                cfg: format!("SPECIFICATION Spec\n{constants_cfg}INVARIANT {operator}\n"),
                 operator,
             }
         })
@@ -178,7 +229,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             line(&mut cfg, format!("PROPERTY {operator}"));
             Property {
                 name: claim.name.clone(),
-                cfg: format!("SPECIFICATION Spec\nPROPERTY {operator}\n"),
+                cfg: format!("SPECIFICATION Spec\n{constants_cfg}PROPERTY {operator}\n"),
                 operator,
             }
         })
@@ -191,7 +242,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
             line(&mut out, format!("{operator} == {}", expr(&claim.expr)));
             Property {
                 name: claim.name.clone(),
-                cfg: format!("SPECIFICATION Spec\nINVARIANT {operator}\n"),
+                cfg: format!("SPECIFICATION Spec\n{constants_cfg}INVARIANT {operator}\n"),
                 operator,
             }
         })
@@ -307,7 +358,7 @@ pub(crate) fn emit(model: &Lifted) -> Result<Module, Diagnostic> {
         line(&mut out, format!("{operator} == {property}"));
         progress.push(Progress {
             name: name.clone(),
-            cfg: format!("SPECIFICATION ProgressSpec_{name}\nPROPERTY {operator}\n"),
+            cfg: format!("SPECIFICATION ProgressSpec_{name}\n{constants_cfg}PROPERTY {operator}\n"),
             operator,
             allowed: allowed.iter().map(|a| a.name.clone()).collect(),
             fair: claim.assumption.fair.clone(),
@@ -461,6 +512,7 @@ fn expr(value: &Expr) -> String {
         ExprKind::Text(v) | ExprKind::Enum(v) => text(v),
         ExprKind::Unit => "<<>>".into(),
         ExprKind::Var(name, primed) => format!("{name}{}", if *primed { "'" } else { "" }),
+        ExprKind::World(name) => name.clone(),
         ExprKind::Tuple(values) | ExprKind::Sequence(values) => {
             format!("<<{}>>", values.iter().map(expr).collect::<Vec<_>>().join(", "))
         }

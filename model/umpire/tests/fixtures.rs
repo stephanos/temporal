@@ -32,6 +32,9 @@ fn render_tlc(
 ) -> umpire_testing::RunResult {
     let name = fixture_name(folder)?;
     eprintln!("TLC fixture {name}: checking independently lifted source");
+    if let Some(result) = bound_backend(name, folder) {
+        return result;
+    }
     let module = lifted(name)?;
     let files = check_backend(name, &module, folder, &run()?)?;
     eprintln!(

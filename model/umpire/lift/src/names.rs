@@ -65,6 +65,52 @@ const RESERVED_NAMES: &[&str] = &[
     "LOCAL",
     "EXTENDS",
 ];
+pub(crate) fn allocate(ast: &syn::File, base: &str, generated: &mut BTreeSet<String>) -> String {
+    struct Occupied<'a>(&'a mut BTreeSet<String>);
+    impl<'ast> syn::visit::Visit<'ast> for Occupied<'_> {
+        fn visit_ident(&mut self, ident: &'ast syn::Ident) {
+            self.0.insert(ident.to_string());
+        }
+        fn visit_item_enum(&mut self, value: &'ast syn::ItemEnum) {
+            for variant in &value.variants {
+                self.0.insert(format!("{}_{}", value.ident, variant.ident));
+            }
+            syn::visit::visit_item_enum(self, value);
+        }
+        fn visit_impl_item_fn(&mut self, value: &'ast syn::ImplItemFn) {
+            for prefix in [
+                "Invariant",
+                "Post",
+                "Negative",
+                "Assumption",
+                "Scoped",
+                "Activate",
+                "Monitor",
+                "ActiveEdge",
+                "PrefixEdge",
+                "Complete",
+                "ProgressNext",
+                "ProgressSpec",
+                "Maximal",
+                "Progress",
+            ] {
+                self.0.insert(format!("{prefix}_{}", value.sig.ident));
+            }
+            syn::visit::visit_impl_item_fn(self, value);
+        }
+    }
+    let mut occupied: BTreeSet<_> = RESERVED_NAMES.iter().map(|name| (*name).to_owned()).collect();
+    syn::visit::Visit::visit_file(&mut Occupied(&mut occupied), ast);
+    occupied.extend(generated.iter().cloned());
+    let mut name = base.to_owned();
+    let mut suffix = 0;
+    while occupied.contains(&name) {
+        suffix += 1;
+        name = format!("{base}_{suffix}");
+    }
+    generated.insert(name.clone());
+    name
+}
 pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<(), Diagnostic> {
     validate_text(file, ast.to_token_stream())?;
     let mut names: BTreeSet<String> = RESERVED_NAMES.iter().map(|name| (*name).into()).collect();
@@ -128,7 +174,10 @@ pub(crate) fn validate(file: &str, ast: &syn::File, model: &Lifted) -> Result<()
         register(file, ast, &mut names, &field.name, &field.name)?;
     }
     for name in model.constants.keys() {
-        register(file, ast, &mut names, name, name)?;
+        register(file, ast, &mut names, model.constant_symbols.get(name).unwrap_or(name), name)?;
+    }
+    for field in &model.world_fields {
+        register(file, ast, &mut names, &field.symbol, &field.name)?;
     }
     Ok(())
 }

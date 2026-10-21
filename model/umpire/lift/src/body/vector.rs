@@ -215,7 +215,7 @@ impl Environment<'_> {
         state: &Env,
         guard: &Expr,
     ) -> Result<()> {
-        for (field, value) in state {
+        for (field, value) in state.iter() {
             if !bounded(value, guard, field) {
                 return self.err(
                     node,

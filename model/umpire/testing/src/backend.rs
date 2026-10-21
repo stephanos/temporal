@@ -56,9 +56,23 @@ fn state_text(module: &Module, state: &State) -> Result<String, Box<dyn std::err
 }
 
 /// Execute the independently emitted module and replay every returned counterexample.
-#[allow(clippy::print_stderr)]
 pub fn check_machine<M: Machine>(
     world: &M,
+    module: &Module,
+    folder: &std::path::Path,
+    native: &crate::Files,
+) -> crate::RunResult {
+    let starts = world.starts();
+    let native_graph = umpire_checker::Checker::explore_from(world, starts.clone(), 1 << 20)?;
+    check_exploration(world, &starts, &native_graph, module, folder, native)
+}
+
+/// Execute an independently emitted module against a retained native exploration and starts.
+#[allow(clippy::print_stderr)]
+pub fn check_exploration<M: Machine>(
+    world: &M,
+    starts: &[M::State],
+    native_graph: &umpire_checker::Result<M>,
     module: &Module,
     folder: &std::path::Path,
     native: &crate::Files,
@@ -67,7 +81,6 @@ pub fn check_machine<M: Machine>(
         .ancestors()
         .find(|path| path.join("mise.toml").is_file())
         .ok_or("backend repository root not found")?;
-    let native_graph = umpire_checker::Checker::explore(world, 1 << 20)?;
     if native_graph.counts.cut {
         return Err("native exploration is cut; no complete agreement".into());
     }
@@ -107,7 +120,7 @@ pub fn check_machine<M: Machine>(
             .ok_or_else(|| format!("TLC returned undeclared property {operator}"))?;
         verdicts.insert(name.to_owned(), format!("{:?}", property.verdict));
         if let Some(trace) = property.trace {
-            replay(world, module, &native_states, &trace)?;
+            replay(world, starts, module, &native_states, &trace)?;
             replayed += 1;
         }
     }
@@ -119,6 +132,7 @@ pub fn check_machine<M: Machine>(
 
 fn replay<M: Machine>(
     world: &M,
+    starts: &[M::State],
     module: &Module,
     native: &BTreeMap<String, &M::State>,
     trace: &umpire_tlc::Trace,
@@ -127,7 +141,7 @@ fn replay<M: Machine>(
         return Err("empty TLC counterexample".into());
     }
     let first = state_text(module, &trace.states[0].state)?;
-    if !world.starts().iter().any(|state| state.to_string() == first) {
+    if !starts.iter().any(|state| state.to_string() == first) {
         return Err("TLC counterexample does not begin at a Model start".into());
     }
     let mut pairs = trace.states.windows(2).map(|pair| (&pair[0], &pair[1])).collect::<Vec<_>>();
@@ -339,6 +353,66 @@ mod tests {
                 error: umpire_dsl::StepError::RejectedAfterMutation,
             })
         );
+        Ok(())
+    }
+
+    struct RetainedStarts;
+
+    impl Machine for RetainedStarts {
+        type State = String;
+        type Action = u8;
+        type Outcome = ();
+        type Fact = ();
+
+        fn starts(&self) -> Vec<String> {
+            panic!("authored starts must not be enumerated during replay")
+        }
+        fn actions(&self) -> Vec<u8> {
+            Vec::new()
+        }
+        fn internal(&self, _: &u8) -> bool {
+            false
+        }
+        fn step(&self, _: &String, _: u8) -> umpire_dsl::Steps<String, (), ()> {
+            umpire_dsl::Steps::new()
+        }
+    }
+
+    #[test]
+    fn replay_uses_retained_starts_without_enumerating_again() -> crate::TestResult {
+        let module = Module {
+            name: "RetainedStarts".into(),
+            tla: String::new(),
+            cfg: String::new(),
+            metadata: umpire_lift::Metadata {
+                state_name: "Model".into(),
+                world_path: String::new(),
+                fields: vec![umpire_lift::Field { name: "value".into(), ty: Type::Bool }],
+                actions: Vec::new(),
+                invariants: Vec::new(),
+                postconditions: Vec::new(),
+                progress: Vec::new(),
+                negative: Vec::new(),
+                observer_fields: Vec::new(),
+                observer_types: BTreeMap::new(),
+                outcome_type: Type::Unit,
+            },
+        };
+        let starts = ["Model { value: false }".to_owned()];
+        let native = starts.iter().map(|state| (state.clone(), state)).collect();
+        let trace = umpire_tlc::Trace {
+            states: vec![umpire_tlc::TraceState {
+                state: State::from([("value".into(), Value::Bool(false))]),
+                observers: State::new(),
+            }],
+            back_to: None,
+        };
+        std::panic::catch_unwind(|| replay(&RetainedStarts, &starts, &module, &native, &trace))
+            .map_err(|_| "backend replay re-enumerated authored starts")??;
+        let error = replay(&RetainedStarts, &[], &module, &native, &trace)
+            .err()
+            .ok_or("replay accepted a counterexample outside the retained starts")?;
+        assert!(error.to_string().contains("does not begin at a Model start"), "{error}");
         Ok(())
     }
 

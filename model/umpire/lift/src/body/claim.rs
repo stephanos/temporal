@@ -7,18 +7,52 @@ use crate::{
 use syn::{Expr as RustExpr, Pat, Stmt};
 
 impl Environment<'_> {
+    pub(crate) fn invariant(&self, method: &syn::ImplItemFn, state: &Env) -> Result<Expr> {
+        if !self.parameters(method)?.positional.is_empty() {
+            return self
+                .err(method, "an invariant takes only &self and an optional trailing World");
+        }
+        self.claim(&method.block, state, &self.method_env(method)?, 0)
+    }
     pub(crate) fn postcondition(&self, method: &syn::ImplItemFn) -> Result<Expr> {
-        let mut env = Env::new();
-        for input in &method.sig.inputs {
-            if let syn::FnArg::Typed(input) = input
-                && let Pat::Ident(id) = input.pat.as_ref()
+        let parameters = self.parameters(method)?;
+        if parameters.positional.len() > 2 || method.sig.receiver().is_none() {
+            return self.err(
+                method,
+                "postconditions require &self, optional before: &Self, then optional outcome: &()",
+            );
+        }
+        let mut env = self.method_env(method)?;
+        if let Some(input) = parameters.positional.first() {
+            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && matches!(reference.elem.as_ref(), syn::Type::Path(path) if path.path.is_ident("Self") || path.path.is_ident("Model")))
             {
+                return self.err(
+                    &input.ty,
+                    "the before-state parameter must be an immutable &Self or &Model",
+                );
+            }
+            if let Pat::Ident(id) = input.pat.as_ref() {
+                env.state = Some(id.ident.to_string());
                 for field in &self.fields {
                     env.insert(
                         format!("{}.{}", id.ident, field.name),
                         Expr::var(&field.name, field.ty.clone(), false),
                     );
                 }
+            }
+        }
+        if let Some(input) = parameters.positional.get(1) {
+            if !matches!(input.ty.as_ref(), syn::Type::Reference(reference) if reference.mutability.is_none() && matches!(reference.elem.as_ref(), syn::Type::Tuple(tuple) if tuple.elems.is_empty()))
+            {
+                return self.err(
+                    &input.ty,
+                    "source postconditions currently admit only the immutable unit outcome &()",
+                );
+            }
+            if let Pat::Ident(id) = input.pat.as_ref() {
+                let name = id.ident.to_string();
+                env.insert(name.clone(), Expr::var("__umpire_outcome", Type::Unit, true));
+                env.outcome = Some(name);
             }
         }
         self.claim(&method.block, &self.field_env(true), &env, 0)
@@ -40,9 +74,15 @@ impl Environment<'_> {
                     continue;
                 };
                 let mut env = Env::new();
+                if self.declared_world
+                    && let Some(pattern) = closure.inputs.first()
+                {
+                    self.bind_world(pattern, &mut env)?;
+                }
                 if let Some(pat) = closure.inputs.iter().nth(1) {
                     let pat = if let Pat::Type(p) = pat { p.pat.as_ref() } else { pat };
                     if let Pat::Ident(id) = pat {
+                        env.state = Some(id.ident.to_string());
                         for f in &self.fields {
                             env.insert(
                                 format!("{}.{}", id.ident, f.name),

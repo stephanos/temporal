@@ -12,6 +12,7 @@ pub(crate) enum ExprKind {
     Text(String),
     Unit,
     Var(String, bool),
+    World(String),
     Enum(String),
     Unary(Unary, Box<Expr>),
     Binary(Op, Box<Expr>, Box<Expr>),
