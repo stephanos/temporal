@@ -145,12 +145,24 @@ def main():
             assert decision is not None, override
             assert decision['selected'] == override['selected'], (decision, override)
             forced.add(override['dimension'])
+        replay = json.loads((artifact / 'evidence/cluster-replay.json').read_bytes())
         observations.append(dict(identity=record['identity'], outcome=record['outcome'],
-            decisions=record['exploration_decisions'], observations=record['observations']))
+            decisions=record['exploration_decisions'], observations=record['observations'],
+            forced_dimensions=[value['dimension'] for value in overrides],
+            network_stream_sha256=digest((artifact / 'evidence/cluster/a/1/network').read_bytes()),
+            recovered_stdout_sha256=digest(recovered), steps=replay['configuration']['steps']))
     assert observations, 'no retained actual simulation observations'
     required = {'scenario', 'network', 'storage', 'fault', 'crash'}
     assert observed >= required, ('missing actual model decisions', sorted(required - observed))
     assert forced >= required | {'runtime'}, ('missing real forced executions', sorted((required | {'runtime'}) - forced))
+    baseline = next(value for value in observations if not value['forced_dimensions'])
+    for value in observations:
+        if value['forced_dimensions'] == ['network']:
+            assert value['network_stream_sha256'] != baseline['network_stream_sha256']
+        if value['forced_dimensions'] == ['fault']:
+            assert value['observations']['network_sha256'] != baseline['observations']['network_sha256']
+        if value['forced_dimensions'] == ['scenario']:
+            assert value['steps'] != baseline['steps']
     verify_replays(args.binary, campaign, args.work)
     (args.work / 'observations.json').write_bytes(encode(dict(schema='gomad.rust-simulation-live-check/v1',
         binary_sha256=digest(args.binary.read_bytes()), dimensions=sorted(observed), forced_dimensions=sorted(forced),
