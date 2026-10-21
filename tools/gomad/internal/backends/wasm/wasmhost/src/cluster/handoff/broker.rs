@@ -439,6 +439,9 @@ impl Broker {
         if let Some(kind) = session.revoked {
             return Err(Failure::Boundary(kind, "broker incarnation revoked"));
         }
+        if matches!(&inner.aborted, Some(("trap" | "capacity", _))) {
+            return Err(Failure::Boundary("stop", "cluster failed"));
+        }
         Ok(())
     }
 
@@ -781,6 +784,10 @@ impl Broker {
         lock(&self.inner).raised.clone()
     }
 
+    pub fn terminal_failed(&self) -> bool {
+        matches!(&lock(&self.inner).aborted, Some(("trap" | "capacity", _)))
+    }
+
     pub fn inspection_stopped(&self) -> bool {
         self.failure().is_some_and(|(kind, _)| {
             matches!(
@@ -1116,7 +1123,10 @@ impl Broker {
         }
         #[cfg(feature = "diagnostic-profile")]
         drop(waiting);
-        if let Some((_, message)) = inner.aborted.clone() {
+        if let Some((termination, message)) = inner.aborted.clone() {
+            if matches!(termination, "trap" | "capacity") {
+                return Err(Failure::Boundary("stop", "cluster failed"));
+            }
             // The coordinator reports the run's own classification.
             return Err(Failure::Infrastructure(message));
         }
@@ -1164,11 +1174,8 @@ impl Broker {
             #[cfg(feature = "diagnostic-profile")]
             let _world = crate::diagnostic::OwnerSpan::new(crate::diagnostic::Owner::World);
             if let Err(error) = inner.world.cancel(pending) {
-                self.raise(
-                    &mut inner,
-                    "infrastructure",
-                    format!("broker World: {error}"),
-                );
+                let failure = world_failure(error);
+                self.raise(&mut inner, failure.termination(), failure.message());
                 return;
             }
         }

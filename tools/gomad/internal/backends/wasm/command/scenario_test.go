@@ -296,8 +296,8 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 				t.Fatalf("missing durable incarnations: %+v", retained)
 			}
 			for _, incarnation := range retained.WASM.Incarnations {
-				crashed := incarnation.Handle == (gomadsim.NodeHandle{Node: "a", Incarnation: 1})
-				if incarnation.Interrupted != crashed || len(incarnation.ChoiceTape) == 0 || incarnation.StorageSHA256 == "" {
+				interrupted := incarnation.Handle == (gomadsim.NodeHandle{Node: "a", Incarnation: 1}) || index == 1 && incarnation.Handle.Node == "b"
+				if incarnation.Interrupted != interrupted || len(incarnation.ChoiceTape) == 0 || incarnation.StorageSHA256 == "" {
 					t.Fatalf("per-incarnation replay completeness changed: %+v", incarnation)
 				}
 			}
@@ -307,6 +307,12 @@ func TestInstalledOperatorTypedScenarioDetachedReplay(t *testing.T) {
 			output = append(output, observation.Bytes...)
 		}
 		markers := []string{"committed durable-a", "recovered durable-a", "independent peer"}
+		if index == 1 {
+			markers = []string{"committed durable-a", "recovered durable-a", "intentional replayable scenario failure"}
+			if bytes.Contains(output, []byte("independent peer")) {
+				t.Fatalf("failed canary let its pending peer continue: %s", output)
+			}
+		}
 		if index == 2 {
 			markers = []string{"partition blocked dial", "partition blocked accept", "healed server ping", "healed client ping"}
 		}
@@ -380,7 +386,8 @@ func TestInstalledOperatorAsymmetricGuestFailureEndsPromptly(t *testing.T) {
 	scenario.Actions[3].Handle.Node = "a"
 	path := filepath.Join(f.root, "asymmetric-failure.json")
 	writeTypedJSON(t, path, scenario)
-	arguments := f.explore(path, filepath.Join(f.root, "artifacts"), "7")
+	artifacts := filepath.Join(f.root, "artifacts")
+	arguments := f.explore(path, artifacts, "7")
 	for index, argument := range arguments {
 		if argument == "--execution-timeout=30s" {
 			arguments[index] = "--execution-timeout=3m"
@@ -391,8 +398,36 @@ func TestInstalledOperatorAsymmetricGuestFailureEndsPromptly(t *testing.T) {
 	if wall := time.Since(began); wall > 10*time.Second {
 		t.Fatalf("asymmetric guest failure waited %s: %s", wall, explored)
 	}
-	if !bytes.Contains(explored, []byte(`"classification":"target_failure"`)) || !bytes.Contains(explored, []byte("intentional asymmetric peer failure")) {
+	if !bytes.Contains(explored, []byte(`"classification":"target_failure"`)) {
 		t.Fatalf("asymmetric guest failure classification = %s", explored)
+	}
+	retained := typedArtifactPaths(t, artifacts)
+	if len(retained) != 1 {
+		t.Fatalf("asymmetric guest failure artifacts = %v", retained)
+	}
+	var inspected inspect.Inspection
+	if err := json.Unmarshal(invokeOperator(t, f.binary, 0, "inspect", "--json", retained[0]), &inspected); err != nil || inspected.Artifact == nil {
+		t.Fatalf("asymmetric guest failure inspection: %+v %v", inspected, err)
+	}
+	opened, err := artifact.OpenArtifact(retained[0])
+	if err != nil {
+		t.Fatal(err)
+	}
+	stderr, err := opened.ReadPayload(opened.Manifest().Streams.Stderr.File, 64<<10)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if err := opened.Close(); err != nil {
+		t.Fatal(err)
+	}
+	for _, marker := range []string{"failing peer started", "waiting peer started", "intentional asymmetric peer failure"} {
+		if !bytes.Contains(stderr, []byte(marker)) {
+			t.Fatalf("asymmetric guest failure lost %q: %s", marker, stderr)
+		}
+	}
+	replayed := invokeOperator(t, f.binary, 1, "--installation", f.manifest, "replay", retained[0])
+	if !bytes.Contains(replayed, []byte("reproduced=true")) {
+		t.Fatalf("asymmetric guest failure replay = %s", replayed)
 	}
 }
 

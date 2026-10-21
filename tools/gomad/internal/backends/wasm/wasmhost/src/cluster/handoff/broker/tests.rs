@@ -62,11 +62,20 @@ fn finish_preserves_world_transition_capacity() {
     config.limits.max_transitions = 1;
     let broker = Broker::new(&config, &["a".into()], None, None).unwrap();
     broker.register(0, "idle", &[]).unwrap();
-    assert!(matches!(broker.ready(0, "idle"), Err(Failure::Exhausted { dimension: "transitions", .. })));
+    assert!(matches!(
+        broker.ready(0, "idle"),
+        Err(Failure::Exhausted {
+            dimension: "transitions",
+            ..
+        })
+    ));
     broker.finish(0);
     let (termination, message) = broker.failure().unwrap();
     assert_eq!(termination, "capacity");
-    assert!(message.contains("transitions limit=1 used=1 delta=1"), "{message}");
+    assert!(
+        message.contains("transitions limit=1 used=1 delta=1"),
+        "{message}"
+    );
 }
 
 #[cfg(feature = "stress-jitter")]
