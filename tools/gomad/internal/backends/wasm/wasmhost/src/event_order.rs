@@ -226,7 +226,7 @@ pub(crate) fn start_linked(session: &LinkedSession) -> Result<(), &'static str> 
             .ok_or("linked event-order attachment overflow")?;
         *linked = Some(LinkedRecorder {
             session: session.clone(),
-            previous: CURRENT.with(|current| current.take()),
+            previous: CURRENT.with(RefCell::take),
         });
         Ok(())
     })
@@ -236,10 +236,10 @@ pub(crate) fn finish_linked(complete: bool) -> Option<Vec<u8>> {
     let linked = LINKED.with(|linked| linked.borrow_mut().take())?;
     let mut recorder = linked.session.lock();
     if complete {
-        if recorder.linked_attachments != 1 {
-            recorder.incomplete("linked execution finalized with attached participants");
-        } else {
+        if recorder.linked_attachments == 1 {
             recorder.finish();
+        } else {
+            recorder.incomplete("linked execution finalized with attached participants");
         }
     } else {
         recorder.incomplete("linked execution abandoned");
