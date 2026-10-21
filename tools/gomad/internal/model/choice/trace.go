@@ -498,3 +498,20 @@ func validateCreationMetadata(records []Record) error {
 	}
 	return nil
 }
+
+// PredecisionOrdinals returns, for each record, the trace length when the
+// runtime presented the decision that produced it. A v4 runnable decision
+// first appends one creation record per alternative, so it and its creation
+// records share the ordinal of the first creation record; every other record
+// keeps its own ordinal. Inspection boundaries carry this coordinate.
+func PredecisionOrdinals(records []Record) []uint64 {
+	ordinals := make([]uint64, len(records))
+	start := 0
+	for index := range records {
+		if index == 0 || records[index-1].Kind != KindGoroutineCreation {
+			start = index
+		}
+		ordinals[index] = records[start].Ordinal
+	}
+	return ordinals
+}

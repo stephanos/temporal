@@ -209,3 +209,43 @@ func TestInspectionInterruptedSelectPrefixKeepsDecisionMapping(t *testing.T) {
 	execution.Inspection.World = execution.Inspection.World[:execution.Inspection.Boundaries[0].WorldBytes]
 	require.NoError(t, ValidateInspectionChoices(execution))
 }
+
+// A v4 runnable decision appends its creation records before the decision
+// record, while the helper's boundary keeps the trace length at which the
+// decision was presented. The mapping uses that predecision coordinate and
+// still refuses a boundary that points at the decision record itself.
+func TestInspectionChoiceMappingUsesPredecisionCoordinateForCreationSites(t *testing.T) {
+	execution := inspectionSearchFixture(t)
+	a, b := sha256.Sum256([]byte("a")), sha256.Sum256([]byte("b"))
+	ordered := [][32]byte{a, b}
+	if string(b[:]) < string(a[:]) {
+		ordered = [][32]byte{b, a}
+	}
+	var records []choice.Record
+	for range 5 {
+		for index, identity := range ordered {
+			records = append(records, choice.Record{Ordinal: uint64(len(records)), Kind: choice.KindGoroutineCreation, Alternatives: 2, Selected: uint32(index), SiteOffset: 7, SelectedIdentity: identity})
+		}
+		d, err := choice.CanonicalDecision(uint64(len(records)), choice.KindRunnable, 10, false, [][32]byte{a, b}, a, 0)
+		require.NoError(t, err)
+		records = append(records, d.Record())
+	}
+	trace, err := choice.BuildTrace(records, choice.TerminalComplete)
+	require.NoError(t, err)
+	execution.Incarnations[0].ChoiceTrace = trace.Bytes
+	execution.Inspection.Incarnations[0].Streams.Choice = trace.Bytes
+	retrace := func(i int, coordinate uint64) {
+		b := &execution.Inspection.Boundaries[i]
+		b.Trace = coordinate
+		b.Cuts[0].ChoiceRecords = coordinate
+		bytes, err := choice.TracePayloadBytes(coordinate)
+		require.NoError(t, err)
+		b.Cuts[0].ChoiceBytes = bytes
+	}
+	for i := range execution.Inspection.Boundaries {
+		retrace(i, uint64(3*i))
+	}
+	require.NoError(t, ValidateInspectionChoices(execution))
+	retrace(1, 5)
+	require.Error(t, ValidateInspectionChoices(execution))
+}

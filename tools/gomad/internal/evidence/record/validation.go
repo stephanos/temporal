@@ -76,7 +76,12 @@ func validateManifest(manifest ExecutionRecord, requireIdentities bool) error {
 	} else if manifest.Limits.ChoiceTraceBytes != 0 {
 		// The killed target ran with the profile its environment names even
 		// though it left no trace to record.
-		choiceProfile = "gomad-choice-trace/v3"
+		choiceProfile = CurrentChoiceProfile
+		for _, entry := range manifest.Environment {
+			if _, ok := choiceTraceSchemas[entry.Value]; ok && entry.Name == "GOMAD_CHOICE_PROFILE" {
+				choiceProfile = entry.Value
+			}
+		}
 	}
 	if err := validateEnvironment(manifest.Environment, uint64(manifest.Seed), manifest.IOProfile.Name, choiceProfile); err != nil {
 		return err
@@ -418,6 +423,18 @@ func validateMinimizationReductions(minimization Minimization) error {
 	return nil
 }
 
+// choiceTraceSchemas pairs each admitted choice profile with its trace file
+// schema: v4 is current, v3 is retained evidence without creation sites.
+var choiceTraceSchemas = map[string]string{
+	"gomad-choice-trace/v3": "gomad.choice-trace/v3",
+	CurrentChoiceProfile:    CurrentChoiceTraceSchema,
+}
+
+const (
+	CurrentChoiceProfile     = "gomad-choice-trace/v4"
+	CurrentChoiceTraceSchema = "gomad.choice-trace/v4"
+)
+
 func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactKind, outcomeReason string) error {
 	const choiceTraceHeaderBytes = 64
 	if profile == nil {
@@ -430,7 +447,7 @@ func validateChoiceProfile(profile *ChoiceProfile, limit Uint64String, artifactK
 	}
 	trace := profile.Trace
 	const recordBytes = Uint64String(96)
-	if profile.Name != "gomad-choice-trace/v3" || trace.Schema != "gomad.choice-trace/v3" {
+	if schema, ok := choiceTraceSchemas[profile.Name]; !ok || trace.Schema != schema {
 		return errors.New("invalid choice trace identity")
 	}
 	if trace.File != "choices.bin" {

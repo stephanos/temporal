@@ -94,11 +94,12 @@ func fromEvidence(run determinism.Run, evidence *cluster.WASMInspectionEvidence)
 			}
 			return terminal
 		}
-		for _, record := range trace.Records {
+		predecision := choice.PredecisionOrdinals(trace.Records)
+		for index, record := range trace.Records {
 			at := position(func(cut cluster.WASMInspectionCut) bool { return cut.ChoiceRecords > record.Ordinal })
-			if record.Flags&choice.FlagDecision != 0 {
+			if record.Flags&choice.FlagDecision != 0 || record.Kind == choice.KindGoroutineCreation {
 				var found bool
-				at, found = decisions[record.Ordinal]
+				at, found = decisions[predecision[index]]
 				if !found {
 					return determinism.Run{}, fmt.Errorf("missing predecision boundary for %s/%d trace %d", retained.Handle.Node, retained.Handle.Incarnation, record.Ordinal)
 				}
