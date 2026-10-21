@@ -137,9 +137,9 @@ real guest through the Go host, validates its export signatures, and rejects
 missing, unexpected and mis-typed exports through compiled negative controls.
 Direct locked Cargo builds need no custom linker or post-link processing.
 
-## Reproducible guest builds (fn-230.1)
+## Reproducible guest builds (fn-230)
 
-Linux unwind proof, 2026-10-21 UTC, source `ab9c8edb38318d497e4ce06cd6548fd96b8772c5`.
+Linux unwind proof, 2026-10-21 UTC, source `594c13b237b3e3e5defcd67e7457257fa1db21ae`.
 Linux 7.0.14/aarch64; Rust 1.99.1 (`58cf8f9c35b355199727627d07ae34a4e2846d67`,
 LLVM 23.1.1), Cargo 1.99.1, Go 1.27.0, protoc 29.5. Two clean clones at different
 absolute paths used initially absent independent targets and retained clean status.
@@ -147,7 +147,7 @@ absolute paths used initially absent independent targets and retained clean stat
 | Guest | Bytes in each clone | SHA-256 in each clone |
 | --- | ---: | --- |
 | Stock | 192255 | `5ec57e2e5371723adf318665c1048b5a4021e9f4203ed56884c5f849e7a2dfc1` |
-| Temporal | 3330375 | `0d4e1b112097ba62f62f53c6a95ecc7776bfbf907df8594592586d3fe767ece0` |
+| Temporal | 3326027 | `1d52b188f7f582a3d1b78d5ed19f4ba8af4753bf43343aff0524854f1d713800` |
 
 Both byte comparisons passed. Actual Tiny effect-panic and overflow fixtures match
 their native full responses and existing report goldens across repeated calls and Reset.

@@ -115,7 +115,7 @@ artifacts and earlier smaller Temporal closures do not certify the current unwin
 build. The original engine feasibility proof is retained under
 `.flow/tmp/fn230-eh-proof-20261021T032505Z/` with its sources and negative controls.
 
-The executed integrated unwind proof used source
+The earlier task-1 integrated unwind proof used source
 `ab9c8edb38318d497e4ce06cd6548fd96b8772c5` from
 `/Users/stephan/Workspace/skunkworks/umpire/temporal`.
 Its exact runner is `.flow/tmp/fn2301-integrated-artifacts/run-proof.sh`, with output in
@@ -130,9 +130,36 @@ The runner checked both source statuses before and after building, compared both
 and recorded SHA-256 and byte counts. Each build used `CARGO_BUILD_JOBS=4`.
 The observed platform was Linux 7.0.14/aarch64 with Rust 1.99.1
 (`58cf8f9c35b355199727627d07ae34a4e2846d67`, LLVM 23.1.1), Cargo 1.99.1,
-Go 1.27.0 and protoc 29.5. DESIGN records the resulting bytes and hashes.
+Go 1.27.0 and protoc 29.5. Its Temporal output was 3330375 bytes, SHA-256
+`0d4e1b112097ba62f62f53c6a95ecc7776bfbf907df8594592586d3fe767ece0`.
 
-## Verification and measured gate cost
+The current proof follows the request-independent probe metadata reuse change at
+source `594c13b237b3e3e5defcd67e7457257fa1db21ae`. Its runner is
+`.flow/tmp/fn2302/run-reproduction-proof.sh`, executed as
+`timeout 600s env -u RUSTFLAGS -u CARGO_ENCODED_RUSTFLAGS bash /Users/stephan/Workspace/skunkworks/umpire/temporal/.flow/tmp/fn2302/run-reproduction-proof.sh 594c13b237b3e3e5defcd67e7457257fa1db21ae`.
+It exited 0, from 08:36:24 to 08:38:13 UTC on 2026-10-21 (109 s), on the same
+Linux platform and pinned toolchain above. Unique directory
+`.flow/tmp/fn2302-reproduction-proof.JrgaIS/` contains clean clones `source-a` and
+`different-source-b` and initially absent targets `independent-target-a`
+(`58:453392182`) and `independent-target-b` (`58:453408168`). Each Temporal output
+matches its own clone's committed embedded asset and the working checkout's asset.
+Both stock and Temporal output pairs compare byte-identically; DESIGN records the
+current sizes and hashes. The full transcript and exit status are
+`.flow/tmp/fn2302/reproduction-proof.log` and `reproduction-proof.rc`.
+
+The metadata cells publish only successful immutable inventories and lazy canonical
+expectations. Every PREPARE still materializes and validates the current request;
+request bytes, recipes, live slots and observations are never cached. The matched
+no-server control retained all twelve response hashes and sizes across the change.
+Warm valid-start preparation changed from roughly 1.05 s to 50 ms, and selected
+generic preparation to 1.28–5.14 ms, without a timing assertion. Both independent
+hosts retained 52 memory pages across repeated contexts and Reset, below the
+unchanged 64 MiB limit. The full Temporal Go module passed with Rust unavailable
+on PATH. Native controls cover failed/partial/panicked initialization retry,
+concurrent publication, lazy canonical reuse and all 2238 generic cases across
+two contexts. Evidence is in `.flow/tmp/fn2302/` and its `metadata-lane-evidence/`.
+
+## Earlier task-1 verification and measured gate cost
 
 The default and `UMPIRE_BACKENDS=require make model-check` gates passed on the
 integrated source. Required mode exercised the existing TLC agreement and negative
