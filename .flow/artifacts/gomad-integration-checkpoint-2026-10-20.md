@@ -1246,3 +1246,47 @@ e6b57b653c). The uncommitted private measurement instrumentation is retained as
 `/home/agent/wt/evidence/fn221/`. fn-232.13's fn-235 R5 receiver needs a fresh frozen
 Rust run, not the deleted raw cohort; results remain in
 `.flow/artifacts/fn235-commitment-cost-2026-10-21.md`. Free space rose from 53 to 78 GiB.
+
+### Runner characterization goldens after the v4 repair, 2026-10-21
+
+Owner: fn-230 R12 post-closure repair, the same owner as the Go host v4 repair above. Worker D
+refreshed the two runner goldens that the v4 repair left on the v3 profile name:
+
+- `testdata/campaign-options-before.json` (`TestCampaignOptionsCharacterization`). Only the two
+  `GOMAD_CHOICE_PROFILE` values change, v3 to v4. Two captures with
+  `GOMAD_CAPTURE_OPTIONS_BASELINE=1` agree byte for byte. They differ from the pinned file only in the
+  `mount-limits` row's host-dependent error, which the test already substitutes when `/tmp` exists,
+  so the pinned row is kept. `campaign-options-request-after.json` is regenerated twice with
+  `GOMAD_CAPTURE_OPTIONS_AFTER=1`, and both captures are byte-identical to the committed file.
+- `testdata/campaign_options_characterization.json` (`TestCampaignOptionsLegacyCharacterization`)
+  previously had no capture path. It gains `GOMAD_CAPTURE_OPTIONS_LEGACY=1`, modeled on the
+  other test. Portable builds cannot observe isolated errors, so the capture keeps the pinned ones.
+  Two captures are byte-identical. After mapping v3 to v4 in the old file, the 16-line diff is three
+  `environment` profile names and three derived `plan_sha256` values (seed observation, choice and
+  simulation exploration), plus the two pinned plan bodies that differ only in the profile name.
+  Every pinned plan hash authenticates its bytes. Request and legacy-request hashes, selections,
+  errors and every other field are unchanged. There are no other findings.
+- `go test ./internal/runner` passes (exit 0).
+- Not refreshed: `diagnostic-identity-choices{,-native,-portable}.json` still name v3. Their only
+  consumers are `TestExternalBackendTransportPreservesPortableNativeRecordSemantics`, which passes,
+  and `TestDiagnosticsOffPreservesExistingIdentities`, which skips off darwin/arm64. That darwin
+  baseline is probably stale too. It can only be regenerated on darwin/arm64, so it stays open
+  under the same owner.
+
+`backend` `TestInspectionRetainedCluster{NetworkStoppedPrefix,TargetsRestartedIncarnation}` were
+rerun on tip `1ce16a6bd9` with `GOMAD_STOCK_GO` and a private tip helper build
+(`/home/agent/wt/fn232-qualify-target-tip/release/gomad-wasmhost`).
+
+- NetworkStoppedPrefix: the retained inspection metadata has no boundary for handle `b/1`
+  (line 261).
+- TargetsRestartedIncarnation: the campaign fails in `finish simulation` with `unsupported or
+  incomplete WASM inspection evidence: executed incarnation inventory`. The Go validator
+  `validateInspectionExecution` finds that the executed incarnations do not match the inspection
+  metadata after a restart.
+
+Both are real behavioral failures, not just the missing-compiler failure that fn-223 recorded
+(`fullmodule-failure-classification.tsv` rows 1620/1623). They predate the v4 repair. Their owner
+is fn-232.13's fn-223 full-module live-behavior receiver, which lists both tests and maps them
+to the final Rust lanes. Fixing them would be Go host work outside the delivery order, so they are
+left unchanged and are not small fixes. The Rust cluster inspection lanes must cover both
+behaviors. Evidence: `/home/agent/wt/evidence/fn230-r12-characterization-repair/`.
