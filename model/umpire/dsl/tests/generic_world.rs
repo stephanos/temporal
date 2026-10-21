@@ -39,8 +39,8 @@ mod generic {
     }
 
     #[derive(Action)]
-    pub(super) enum User<T: Token> {
-        Replace(#[inputs([T::seed()])] T),
+    pub(super) enum User<U: Token> {
+        Replace(#[inputs([U::seed()])] U),
     }
 
     #[starts]
@@ -184,4 +184,92 @@ fn generated_carriers_bound_field_types_without_requiring_traits_on_parameters()
     let copy = world.clone();
     let state = copy.starts().remove(0);
     assert!(world.step(&state, world.actions().remove(0))[0].2.changed);
+}
+
+#[umpire_dsl::machine]
+mod bounded_actor {
+    use super::Token;
+    use std::marker::PhantomData;
+    use umpire_dsl::{Action, State, World, path};
+
+    #[derive(World)]
+    pub(super) struct World<T> {
+        marker: PhantomData<T>,
+    }
+    #[derive(State)]
+    pub(super) struct Model<T> {
+        marker: PhantomData<T>,
+        pub(super) changed: bool,
+    }
+    #[derive(Action)]
+    pub(super) enum User<T: Token> {
+        Change(#[inputs([PhantomData::<T>])] PhantomData<T>),
+    }
+    #[starts]
+    impl<T: Token> Model<T> {
+        fn starts(_: &World<T>) -> [Self; 1] {
+            [Self { marker: PhantomData, changed: false }]
+        }
+    }
+    impl<T: Token> Model<T> {
+        #[on(User)]
+        fn user(&mut self, _: User<T>, _: &World<T>) {
+            self.changed = true;
+        }
+
+        #[progress]
+        fn changes(&self, _: &World<T>) -> LeadsTo<T> {
+            path![!self.changed, ..=1, self.changed].assuming(fair([User::Change(PhantomData)]))
+        }
+    }
+}
+
+#[test]
+fn progress_helpers_include_actor_bounds_absent_from_state_declarations() {
+    let world = bounded_actor::World::<Owned>::new(std::marker::PhantomData);
+    let state = world.starts().remove(0);
+    let next = world.step(&state, world.actions().remove(0)).remove(0).2;
+    let claim = world.progress().remove(0);
+    let evaluate = claim.evaluator.unwrap_or_else(|| panic!("missing evaluator"));
+    assert_eq!(evaluate(&world, &state).trigger, Verdict::Holds);
+    assert_eq!(evaluate(&world, &next).target, Verdict::Holds);
+}
+
+#[umpire_dsl::machine]
+mod implementation_bounds {
+    use super::Token;
+    use umpire_dsl::{Action, State, World};
+
+    #[derive(World)]
+    pub(super) struct World<U> {
+        initial: U,
+    }
+    #[derive(State)]
+    pub(super) struct Model<T> {
+        pub(super) value: T,
+    }
+    #[derive(Action)]
+    pub(super) enum User {
+        Replace,
+    }
+    #[starts]
+    impl<V: Token> Model<V> {
+        fn starts(w: &World<V>) -> [Self; 1] {
+            [Self { value: w.initial.clone() }]
+        }
+    }
+    impl<V: Token> Model<V> {
+        #[on(User)]
+        fn user(&mut self, _: User, _: &World<V>) {
+            self.value = V::seed();
+        }
+    }
+}
+
+#[test]
+fn authored_implementation_bounds_govern_the_generated_machine() {
+    let world = implementation_bounds::World::new(Owned("chosen".into()));
+    let state = world.starts().remove(0);
+    assert_eq!(state.value.0, "chosen");
+    assert_eq!(world.step(&state, world.actions().remove(0))[0].2.value.0, "seed");
 }

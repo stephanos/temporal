@@ -12,40 +12,20 @@ use crate::{
 };
 
 /// Start states and a state budget; scopes stay the Model's own.
-pub struct Space<S: Associated> {
-    world: WorldSource<S::World>,
+#[derive(Clone)]
+pub struct Space<S, W = ()> {
+    world: W,
     pub(crate) starts: Vec<S>,
     pub(crate) budget: usize,
     pub(crate) alternatives: usize,
     pub(crate) walk_bound: usize,
 }
 
-enum WorldSource<W> {
-    Selected(Rc<W>),
-    Implicit(fn() -> W),
-}
-
-impl<S: Associated> Clone for Space<S> {
-    fn clone(&self) -> Self {
-        let world = match &self.world {
-            WorldSource::Selected(world) => WorldSource::Selected(world.clone()),
-            WorldSource::Implicit(make) => WorldSource::Implicit(*make),
-        };
-        Self {
-            world,
-            starts: self.starts.clone(),
-            budget: self.budget,
-            alternatives: self.alternatives,
-            walk_bound: self.walk_bound,
-        }
-    }
-}
-
 #[allow(
     clippy::missing_fields_in_debug,
     reason = "preserve Space's existing Debug output without requiring World: Debug"
 )]
-impl<S: Associated + fmt::Debug> fmt::Debug for Space<S> {
+impl<S: fmt::Debug, W> fmt::Debug for Space<S, W> {
     fn fmt(&self, out: &mut fmt::Formatter<'_>) -> fmt::Result {
         out.debug_struct("Space")
             .field("starts", &self.starts)
@@ -56,16 +36,16 @@ impl<S: Associated + fmt::Debug> fmt::Debug for Space<S> {
     }
 }
 
-impl<S: Registered, const N: usize> From<[S; N]> for Space<S> {
+impl<S, const N: usize> From<[S; N]> for Space<S> {
     fn from(starts: [S; N]) -> Self {
         Vec::from(starts).into()
     }
 }
 
-impl<S: Registered> From<Vec<S>> for Space<S> {
+impl<S> From<Vec<S>> for Space<S> {
     fn from(starts: Vec<S>) -> Self {
         Self {
-            world: WorldSource::Implicit(S::world),
+            world: (),
             starts,
             budget: Checker::BUDGET,
             alternatives: Checker::BUDGET,
@@ -76,7 +56,7 @@ impl<S: Registered> From<Vec<S>> for Space<S> {
 
 impl<S: Associated> Space<S> {
     /// Selects one owned world and its declared start states.
-    pub fn new(world: S::World) -> Self {
+    pub fn new(world: S::World) -> Space<S, Rc<S::World>> {
         let starts = world.starts();
         Self::with_world(world, starts)
     }
@@ -106,23 +86,18 @@ impl<S: Associated> Space<S> {
     /// model!(second);
     /// let _ = Space::with_world(first::world(), [second::Model {}]);
     /// ```
-    pub fn with_world(world: S::World, starts: impl Into<Vec<S>>) -> Self {
-        Self {
-            world: WorldSource::Selected(Rc::new(world)),
+    pub fn with_world(world: S::World, starts: impl Into<Vec<S>>) -> Space<S, Rc<S::World>> {
+        Space {
+            world: Rc::new(world),
             starts: starts.into(),
             budget: Checker::BUDGET,
             alternatives: Checker::BUDGET,
             walk_bound: 256,
         }
     }
+}
 
-    pub(crate) fn world(&self) -> Rc<S::World> {
-        match &self.world {
-            WorldSource::Selected(world) => world.clone(),
-            WorldSource::Implicit(make) => Rc::new(make()),
-        }
-    }
-
+impl<S, W> Space<S, W> {
     /// Admits at most `n` distinct Model states; pattern progress does not spend this budget.
     /// The default is the checker's.
     #[must_use]
@@ -148,23 +123,85 @@ impl<S: Associated> Space<S> {
     }
 }
 
+mod sealed {
+    pub trait Sealed {}
+
+    impl<S, W> Sealed for super::Space<S, W> {}
+}
+
+#[doc(hidden)]
+pub trait SpaceBinding<S: Associated>: sealed::Sealed {
+    fn starts(&self) -> &[S];
+    fn state_budget(&self) -> usize;
+    fn alternative_budget(&self) -> usize;
+    fn walk_bound(&self) -> usize;
+    fn world(&self) -> Rc<S::World>;
+}
+
+impl<S: Registered> SpaceBinding<S> for Space<S> {
+    fn starts(&self) -> &[S] {
+        &self.starts
+    }
+
+    fn state_budget(&self) -> usize {
+        self.budget
+    }
+
+    fn alternative_budget(&self) -> usize {
+        self.alternatives
+    }
+
+    fn walk_bound(&self) -> usize {
+        self.walk_bound
+    }
+
+    fn world(&self) -> Rc<<S as Associated>::World> {
+        Rc::new(S::world())
+    }
+}
+
+impl<S: Associated> SpaceBinding<S> for Space<S, Rc<S::World>> {
+    fn starts(&self) -> &[S] {
+        &self.starts
+    }
+
+    fn state_budget(&self) -> usize {
+        self.budget
+    }
+
+    fn alternative_budget(&self) -> usize {
+        self.alternatives
+    }
+
+    fn walk_bound(&self) -> usize {
+        self.walk_bound
+    }
+
+    fn world(&self) -> Rc<S::World> {
+        self.world.clone()
+    }
+}
+
 /// The Model's own claims over the space. A cut exploration answers unknown, never verified.
-pub fn verify_all<S: Associated>(space: &Space<S>) -> Result<Report<S::World>, Refusal> {
+pub fn verify_all<S: Associated>(
+    space: &impl SpaceBinding<S>,
+) -> Result<Report<S::World>, Refusal> {
     let world = space.world();
-    let explored = Checker::explore_from(world.as_ref(), space.starts.clone(), space.budget)?;
+    let explored =
+        Checker::explore_from(world.as_ref(), space.starts().to_vec(), space.state_budget())?;
     Ok(explored.verify_all()?)
 }
 
 /// The shortest path to a reached state where `predicate` fails. A counterexample found before
 /// a cut stands; without one, a cut answers unknown.
 pub fn refuted<S: Associated>(
-    space: &Space<S>,
+    space: &impl SpaceBinding<S>,
     predicate: fn(&S) -> bool,
 ) -> Result<Trace<S::World>, Refusal> {
     let world = space.world();
     let rooted =
-        Rooted { world: world.as_ref(), starts: space.starts.clone(), query: Some(predicate) };
-    let explored = Checker::explore(&rooted, space.budget)?;
+        Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: Some(predicate) };
+    let explored = Checker::explore(&rooted, space.state_budget())?;
     let mut report = explored.verify_all()?;
     let length =
         report.claims.first().and_then(|claim| claim.path.as_ref()).map(|path| path.steps.len());
@@ -173,7 +210,7 @@ pub fn refuted<S: Associated>(
     match (query.outcome, query.path) {
         (CheckOutcome::Refuted, Some(path)) => Ok(path),
         (CheckOutcome::Verified, _) => Err(Refusal::Holds { reached: report.counts.reached }),
-        _ => Err(Refusal::Unknown { budget: space.budget }),
+        _ => Err(Refusal::Unknown { budget: space.state_budget() }),
     }
 }
 
@@ -182,7 +219,7 @@ pub fn refuted<S: Associated>(
 // By value, so `find(&space, path![..])` reads as the question it is.
 #[allow(clippy::needless_pass_by_value)]
 pub fn find<S: Associated, A, O, K>(
-    space: &Space<S>,
+    space: &impl SpaceBinding<S>,
     path: Path<S, A, O>,
 ) -> Result<Trace<S::World>, Refusal>
 where
@@ -191,8 +228,13 @@ where
 {
     let path = path.into_world_path();
     if path.is_state_only() {
-        drop(path.alternatives(space.alternatives)?);
-        return search::through(space.world().as_ref(), space.starts.clone(), &path, space.budget);
+        drop(path.alternatives(space.alternative_budget())?);
+        return search::through(
+            space.world().as_ref(),
+            space.starts().to_vec(),
+            &path,
+            space.state_budget(),
+        );
     }
     crate::covered::find_pattern(space, &path)
 }

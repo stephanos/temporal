@@ -82,9 +82,142 @@ fn parameter_name(parameter: &syn::GenericParam) -> String {
     }
 }
 
+struct ParameterNames(Vec<(syn::GenericParam, syn::GenericParam)>);
+
+impl syn::visit_mut::VisitMut for ParameterNames {
+    fn visit_type_path_mut(&mut self, ty: &mut syn::TypePath) {
+        syn::visit_mut::visit_type_path_mut(self, ty);
+        if ty.qself.is_none()
+            && let Some(first) = ty.path.segments.first_mut()
+        {
+            for (from, to) in &self.0 {
+                let names = match (from, to) {
+                    (syn::GenericParam::Type(from), syn::GenericParam::Type(to)) => {
+                        Some((&from.ident, &to.ident))
+                    }
+                    (syn::GenericParam::Const(from), syn::GenericParam::Const(to)) => {
+                        Some((&from.ident, &to.ident))
+                    }
+                    _ => None,
+                };
+                if let Some((from, to)) = names
+                    && first.ident == *from
+                {
+                    first.ident = to.clone();
+                    break;
+                }
+            }
+        }
+    }
+
+    fn visit_expr_path_mut(&mut self, path: &mut syn::ExprPath) {
+        syn::visit_mut::visit_expr_path_mut(self, path);
+        if path.qself.is_none() && path.path.segments.len() == 1 {
+            for (from, to) in &self.0 {
+                if let (syn::GenericParam::Const(from), syn::GenericParam::Const(to)) = (from, to)
+                    && path.path.segments[0].ident == from.ident
+                {
+                    path.path.segments[0].ident = to.ident.clone();
+                    break;
+                }
+            }
+        }
+    }
+
+    fn visit_lifetime_mut(&mut self, lifetime: &mut syn::Lifetime) {
+        for (from, to) in &self.0 {
+            if let (syn::GenericParam::Lifetime(from), syn::GenericParam::Lifetime(to)) = (from, to)
+                && *lifetime == from.lifetime
+            {
+                *lifetime = to.lifetime.clone();
+                break;
+            }
+        }
+    }
+
+    fn visit_generic_param_mut(&mut self, parameter: &mut syn::GenericParam) {
+        let name = parameter_name(parameter);
+        syn::visit_mut::visit_generic_param_mut(self, parameter);
+        if let Some((_, target)) = self.0.iter().find(|(source, _)| parameter_name(source) == name)
+        {
+            match (parameter, target) {
+                (syn::GenericParam::Type(parameter), syn::GenericParam::Type(target)) => {
+                    parameter.ident = target.ident.clone();
+                }
+                (syn::GenericParam::Const(parameter), syn::GenericParam::Const(target)) => {
+                    parameter.ident = target.ident.clone();
+                }
+                _ => {}
+            }
+        }
+    }
+}
+
 fn typed(name: &syn::Ident, generics: &syn::Generics) -> syn::Type {
     let (_, arguments, _) = generics.split_for_impl();
     syn::parse_quote!(#name #arguments)
+}
+
+fn application_parameters<'a>(
+    ty: &syn::Type,
+    generics: &'a syn::Generics,
+) -> manyhow::Result<Vec<&'a syn::GenericParam>> {
+    let syn::Type::Path(path) = ty else {
+        manyhow::bail!(ty, "machine type arguments must be generic parameters");
+    };
+    let Some(segment) = path.path.segments.last() else { unreachable!() };
+    let arguments = match &segment.arguments {
+        syn::PathArguments::None => return Ok(Vec::new()),
+        syn::PathArguments::AngleBracketed(arguments) => &arguments.args,
+        syn::PathArguments::Parenthesized(_) => {
+            manyhow::bail!(ty, "machine type arguments must be generic parameters");
+        }
+    };
+    arguments
+        .iter()
+        .map(|argument| {
+            let name = match argument {
+                syn::GenericArgument::Lifetime(lifetime) => Some(lifetime.to_string()),
+                syn::GenericArgument::Type(syn::Type::Path(path))
+                    if path.qself.is_none() && path.path.get_ident().is_some() =>
+                {
+                    path.path.get_ident().map(ToString::to_string)
+                }
+                syn::GenericArgument::Const(syn::Expr::Path(path))
+                    if path.qself.is_none() && path.path.get_ident().is_some() =>
+                {
+                    path.path.get_ident().map(ToString::to_string)
+                }
+                _ => manyhow::bail!(argument, "machine type arguments must be generic parameters"),
+            }
+            .ok_or_else(|| {
+                syn::Error::new_spanned(
+                    argument,
+                    "machine type arguments must be generic parameters",
+                )
+            })?;
+            generics.params.iter().find(|parameter| parameter_name(parameter) == name).ok_or_else(
+                || {
+                    syn::Error::new_spanned(
+                        argument,
+                        "machine type arguments must be generic parameters",
+                    )
+                    .into()
+                },
+            )
+        })
+        .collect()
+}
+
+fn implementation_names(
+    input: &syn::ItemImpl,
+    state: &syn::Generics,
+) -> manyhow::Result<ParameterNames> {
+    let parameters = application_parameters(&input.self_ty, &input.generics)?;
+    if parameters.len() != state.params.len() {
+        manyhow::bail!(&input.self_ty, "Model arguments must correspond to its generic parameters");
+    }
+    Ok(ParameterNames(parameters.into_iter().cloned().zip(state.params.iter().cloned()).collect()))
 }
 
 fn starts(items: &mut [Item], state: &syn::Ident) -> manyhow::Result<bool> {
@@ -167,20 +300,35 @@ fn declarations(
             _ => None,
         })
         .unwrap_or_else(|| unreachable!("catalog found state"));
-    if state_item.generics.params.iter().map(parameter_name).collect::<Vec<_>>()
-        != world.generics.params.iter().map(parameter_name).collect::<Vec<_>>()
+    let mut world = world.clone();
+    if state_item.generics.params.len() != world.generics.params.len()
+        || state_item.generics.params.iter().zip(&world.generics.params).any(|(state, world)| {
+            ::core::mem::discriminant(state) != ::core::mem::discriminant(world)
+        })
     {
-        manyhow::bail!(&world.generics, "Model and World must declare the same generic parameters");
+        manyhow::bail!(
+            &world.generics,
+            "World parameters must correspond to the Model's generic arguments"
+        );
     }
-    Ok((state_item, world.clone()))
+    let names = world
+        .generics
+        .params
+        .iter()
+        .cloned()
+        .zip(state_item.generics.params.iter().cloned())
+        .collect();
+    syn::visit_mut::VisitMut::visit_generics_mut(&mut ParameterNames(names), &mut world.generics);
+    Ok((state_item, world))
 }
 
 fn machine_generics(
     state: &syn::ItemStruct,
     world: &syn::Generics,
-    actor_items: &[&syn::ItemEnum],
+    actor_items: &[syn::ItemEnum],
     actor_types: &[syn::Type],
     computed: bool,
+    implementations: &[syn::Generics],
 ) -> (syn::Generics, syn::Generics) {
     let mut action_generics = syn::Generics::default();
     for actor in actor_items {
@@ -190,6 +338,9 @@ fn machine_generics(
     merge_bounds(&mut generics, &state.generics);
     merge_bounds(&mut generics, world);
     merge_bounds(&mut generics, &action_generics);
+    for implementation in implementations {
+        merge_bounds(&mut generics, implementation);
+    }
     for field in &state.fields {
         let ty = &field.ty;
         generics.make_where_clause().predicates.push(syn::parse_quote!(#ty: ::core::clone::Clone + ::core::cmp::Eq + ::core::hash::Hash + ::core::fmt::Debug));
@@ -213,6 +364,116 @@ fn machine_generics(
     (generics, action_generics)
 }
 
+fn implementation_bounds(
+    items: &[Item],
+    state: &syn::ItemStruct,
+) -> manyhow::Result<Vec<syn::Generics>> {
+    struct ResolveSelf(syn::Type);
+    impl syn::visit_mut::VisitMut for ResolveSelf {
+        fn visit_type_mut(&mut self, ty: &mut syn::Type) {
+            if matches!(ty, syn::Type::Path(path) if path.qself.is_none() && path.path.is_ident("Self"))
+            {
+                *ty = self.0.clone();
+            } else {
+                syn::visit_mut::visit_type_mut(self, ty);
+            }
+        }
+    }
+    let mut bounds = Vec::new();
+    for item in items {
+        let Item::Impl(input) = item else { continue };
+        if input.trait_.is_some()
+            || !matches!(input.self_ty.as_ref(), syn::Type::Path(path)
+            if path.qself.is_none() && path.path.segments.len() == 1 && path.path.segments[0].ident == state.ident)
+        {
+            continue;
+        }
+        let mut registered = input.attrs.iter().any(|attr| helper(attr, "starts"));
+        for item in &input.items {
+            if let syn::ImplItem::Fn(method) = item {
+                registered |= super::kind(method)?.is_some();
+            }
+        }
+        if registered {
+            let mut generics = input.generics.clone();
+            syn::visit_mut::VisitMut::visit_generics_mut(
+                &mut implementation_names(input, &state.generics)?,
+                &mut generics,
+            );
+            syn::visit_mut::VisitMut::visit_generics_mut(
+                &mut ResolveSelf(typed(&state.ident, &state.generics)),
+                &mut generics,
+            );
+            bounds.push(generics);
+        }
+    }
+    Ok(bounds)
+}
+
+fn actor_declarations(
+    items: &[Item],
+    state: &syn::ItemStruct,
+    registration: &Registrations,
+) -> manyhow::Result<Vec<syn::ItemEnum>> {
+    items
+        .iter()
+        .filter_map(|item| match item {
+            Item::Enum(item) => registration
+                .handlers
+                .iter()
+                .find(|(actor, _)| item.ident == *actor)
+                .map(|(_, handler)| (item, handler)),
+            _ => None,
+        })
+        .map(|(item, handler)| {
+            let mut declaration = item.clone();
+            for item in items {
+                let Item::Impl(input) = item else { continue };
+                if input.trait_.is_some()
+                    || !matches!(input.self_ty.as_ref(), syn::Type::Path(path)
+                        if path.qself.is_none() && path.path.segments.len() == 1 && path.path.segments[0].ident == state.ident)
+                {
+                    continue;
+                }
+                for item in &input.items {
+                    let syn::ImplItem::Fn(method) = item else { continue };
+                    if method.sig.ident != *handler {
+                        continue;
+                    }
+                    let Some(syn::FnArg::Typed(argument)) = method.sig.inputs.iter().nth(1) else {
+                        unreachable!("registered handler has an actor parameter");
+                    };
+                    let mut ty = (*argument.ty).clone();
+                    syn::visit_mut::VisitMut::visit_type_mut(
+                        &mut implementation_names(input, &state.generics)?,
+                        &mut ty,
+                    );
+                    let parameters = application_parameters(&ty, &state.generics)?;
+                    if parameters.len() != declaration.generics.params.len() {
+                        manyhow::bail!(
+                            &argument.ty,
+                            "actor arguments must correspond to its generic parameters"
+                        );
+                    }
+                    let names = declaration
+                        .generics
+                        .params
+                        .iter()
+                        .cloned()
+                        .zip(parameters.into_iter().cloned())
+                        .collect();
+                    syn::visit_mut::VisitMut::visit_generics_mut(
+                        &mut ParameterNames(names),
+                        &mut declaration.generics,
+                    );
+                    return Ok(declaration);
+                }
+            }
+            unreachable!("registered handler exists")
+        })
+        .collect()
+}
+
 pub(super) fn expand(
     mut input: ItemMod,
     rejecting: bool,
@@ -222,6 +483,7 @@ pub(super) fn expand(
         input.content.as_mut().unwrap_or_else(|| unreachable!("inline module checked"));
     let (state, _, actors, actions) = super::catalog(items, &input.ident)?;
     let (state_item, world) = declarations(items, &input.ident, &state)?;
+    let implementations = implementation_bounds(items, &state_item)?;
     let computed = starts(items, &state)?;
     super::admit_handler_stays(items)?;
     super::check_receivers_with_generics(items, &state, Some(&state_item.generics))?;
@@ -234,17 +496,17 @@ pub(super) fn expand(
     let outcome_catalog = super::outcome_catalog(rejecting);
     let state_type = typed(&state, &state_item.generics);
     let world_type = typed(&world.ident, &world.generics);
-    let actor_items: Vec<_> = items
-        .iter()
-        .filter_map(|item| match item {
-            Item::Enum(item) if actors.contains(&item.ident) => Some(item),
-            _ => None,
-        })
-        .collect();
+    let actor_items = actor_declarations(items, &state_item, &registration)?;
     let actor_types: Vec<_> =
         actor_items.iter().map(|item| typed(&item.ident, &item.generics)).collect();
-    let (generics, action_generics) =
-        machine_generics(&state_item, &world.generics, &actor_items, &actor_types, computed);
+    let (generics, action_generics) = machine_generics(
+        &state_item,
+        &world.generics,
+        &actor_items,
+        &actor_types,
+        computed,
+        &implementations,
+    );
     let (implementation, _, constraints) = generics.split_for_impl();
     let (_, action_arguments, _) = action_generics.split_for_impl();
     let action_type = quote!(Action #action_arguments);
@@ -268,7 +530,7 @@ pub(super) fn expand(
     });
     let helpers = helpers(
         &state_type,
-        &state_item.generics,
+        &generics,
         &action_generics,
         &action_type,
         !registration.assumptions.is_empty() || !progresses.is_empty(),

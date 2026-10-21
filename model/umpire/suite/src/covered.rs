@@ -2,7 +2,7 @@ use umpire_checker::Checker;
 use umpire_dsl::{Alternative, Associated, IntoWorldPath, Machine, Path};
 
 use crate::{
-    Coverage, Refusal, Run, Space,
+    Coverage, Refusal, Run, SpaceBinding,
     coverage::{ObservedStep, WitnessObservation, coverage},
     pattern_search::{Graph, Rng, Witness},
     search::{self, Rooted, Trace},
@@ -111,7 +111,7 @@ fn alternative<S: Associated>(index: usize, choice: &Choice<S>, failure: Refusal
 /// Finds one shortest witness per authored alternative over one retained Model graph.
 /// A case-count mismatch precedes Model stepping; a cut graph always refuses coverage.
 pub fn cover<S: Associated, A, O, K>(
-    space: &Space<S>,
+    space: &impl SpaceBinding<S>,
     cases: Cases,
     path: Path<S, A, O>,
 ) -> Result<Covered<S>, Refusal>
@@ -120,12 +120,12 @@ where
     <S::World as Machine>::Action: 'static,
 {
     let path = path.into_world_path();
-    let alternatives = admit::<S>(&path, space.alternatives, Some(cases))?;
+    let alternatives = admit::<S>(&path, space.alternative_budget(), Some(cases))?;
     let world = space.world();
-    let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
-    let explored = Checker::explore(&rooted, space.budget)?;
+    let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
+    let explored = Checker::explore(&rooted, space.state_budget())?;
     if explored.counts.cut {
-        return Err(Refusal::Cut { budget: space.budget });
+        return Err(Refusal::Cut { budget: space.state_budget() });
     }
     search::failed(&explored.verify_all()?, 0, None)?;
     let graph = Graph::new(&explored)?;
@@ -145,7 +145,7 @@ where
 /// Each selected alternative must finish within `Space::walk_bound`; cuts refuse the experiment.
 /// Sampling establishes only this experiment, never exhaustive alternative coverage.
 pub fn sample<S: Associated, A, O, K>(
-    space: &Space<S>,
+    space: &impl SpaceBinding<S>,
     path: Path<S, A, O>,
     n: usize,
     seed: u64,
@@ -155,15 +155,15 @@ where
     <S::World as Machine>::Action: 'static,
 {
     let path = path.into_world_path();
-    let alternatives = admit::<S>(&path, space.alternatives, None)?;
+    let alternatives = admit::<S>(&path, space.alternative_budget(), None)?;
     if n > MAX_RECORDS {
         return Err(Refusal::SearchLimit { limit: MAX_RECORDS });
     }
     let world = space.world();
-    let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
-    let explored = Checker::explore(&rooted, space.budget)?;
+    let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
+    let explored = Checker::explore(&rooted, space.state_budget())?;
     if explored.counts.cut {
-        return Err(Refusal::Cut { budget: space.budget });
+        return Err(Refusal::Cut { budget: space.state_budget() });
     }
     search::failed(&explored.verify_all()?, 0, None)?;
     let graph = Graph::new(&explored)?;
@@ -174,14 +174,14 @@ where
         let index = rng.index(alternatives.len());
         let choice = &alternatives[index];
         let found = graph
-            .walk(choice, true, space.walk_bound, &mut rng)
+            .walk(choice, true, space.walk_bound(), &mut rng)
             .map_err(|error| alternative::<S>(index, choice, error))?;
         charge(&mut records, found.rows.len() + 1)?;
         witnesses.push((index, found));
     }
     let header = format!(
         "sample: seed {seed}, {n} requested walks, walk bound {} steps, {} alternatives; finite experiment only\n",
-        space.walk_bound,
+        space.walk_bound(),
         alternatives.len(),
     );
     assemble::<S>(&world, &explored, &alternatives, witnesses, header)
@@ -258,16 +258,16 @@ fn append(output: &mut String, arguments: fmt::Arguments<'_>) {
 }
 
 pub(crate) fn find_pattern<S: Associated>(
-    space: &Space<S>,
+    space: &impl SpaceBinding<S>,
     path: &WorldPath<S>,
 ) -> Result<Trace<S::World>, Refusal>
 where
     <S::World as Machine>::Action: 'static,
 {
-    let alternatives = admit::<S>(path, space.alternatives, None)?;
+    let alternatives = admit::<S>(path, space.alternative_budget(), None)?;
     let world = space.world();
-    let rooted = Rooted { world: world.as_ref(), starts: space.starts.clone(), query: None };
-    let explored = Checker::explore(&rooted, space.budget)?;
+    let rooted = Rooted { world: world.as_ref(), starts: space.starts().to_vec(), query: None };
+    let explored = Checker::explore(&rooted, space.state_budget())?;
     let graph = Graph::new(&explored)?;
     let mut best = None;
     let mut refusal = None;

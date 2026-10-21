@@ -17,6 +17,8 @@ pub use coverage::{CatalogEntry, ClaimCoverage, ClaimKind, Coverage};
 pub use covered::{Cases, Covered, cover, sample};
 pub use refusal::Refusal;
 pub use run::Run;
+#[doc(hidden)]
+pub use space::SpaceBinding;
 pub use space::{Space, find, refuted, verify_all};
 pub use umpire_dsl::path;
 

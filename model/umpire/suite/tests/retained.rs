@@ -3,7 +3,7 @@
 use std::{cell::Cell, fmt, rc::Rc};
 
 use umpire_dsl::{ActionDomain, Machine, Path, Pattern, PatternError, Registered, Steps, Waypoint};
-use umpire_suite::{Cases, Refusal, Run, Space, cover};
+use umpire_suite::{Cases, Refusal, Run, Space, cover, find, refuted, sample, verify_all};
 
 thread_local! {
     static WORLDS: Cell<usize> = const { Cell::new(0) };
@@ -22,13 +22,15 @@ impl fmt::Display for Model {
 #[derive(Debug)]
 struct Outcome(usize);
 
-struct World;
+struct World {
+    _not_send: Rc<()>,
+}
 
 impl Registered for Model {
     type World = World;
     fn world() -> World {
         WORLDS.set(WORLDS.get() + 1);
-        World
+        World { _not_send: Rc::new(()) }
     }
 }
 
@@ -113,4 +115,44 @@ fn refused_stories_do_not_construct_the_registered_world() {
         assert!(Run::along_with_budget(path, 1).is_err());
         assert_eq!(WORLDS.get(), 0);
     }
+}
+
+fn capped<S>(space: Space<S>) -> Space<S> {
+    space.budget(10).alternative_budget(20).walk_bound(30)
+}
+
+fn copied<S: Clone>(space: &Space<S>) -> Space<S> {
+    space.clone()
+}
+
+#[test]
+fn legacy_spaces_preserve_unconstrained_configuration_and_auto_traits() {
+    #[derive(Debug)]
+    struct Unregistered;
+
+    fn assert_send_sync<T: Send + Sync>() {}
+
+    assert_send_sync::<Space<Model>>();
+    WORLDS.set(0);
+    let _ = copied(&Space::from([Model]));
+    assert_eq!(WORLDS.get(), 0);
+    let space = capped(Space::from(vec![Unregistered]));
+    assert_eq!(
+        format!("{space:?}"),
+        "Space { starts: [Unregistered], budget: 10, alternatives: 20, walk_bound: 30 }"
+    );
+    let _ = capped(Space::from([Unregistered]));
+}
+
+#[test]
+fn legacy_queries_preserve_explicit_generic_argument_counts() -> Result<(), Refusal> {
+    let space = Space::from([Model]);
+    assert_eq!(verify_all::<Model>(&space)?.counts.reached, 1);
+    assert_eq!(refuted::<Model>(&space, |_| false)?.steps.len(), 0);
+    let pattern =
+        || Path::<Model, u8, Outcome>::pattern(Pattern::State(Rc::new(Waypoint::Is(Model))));
+    assert_eq!(find::<Model, _, _, _>(&space, pattern())?.steps.len(), 0);
+    assert_eq!(cover::<Model, _, _, _>(&space, Cases(1), pattern())?.len(), 1);
+    assert_eq!(sample::<Model, _, _, _>(&space, pattern(), 1, 7)?.len(), 1);
+    Ok(())
 }
