@@ -163,7 +163,8 @@ Rust. Adds Apalache as a second TLA+ backend over the same lifted tree and emitt
 annotations in the emitter, a pinned Apalache release run on the mise JDK with one bounded check
 per invariant at the native depth plus one, ITF counterexamples decoded through typed source values and
 replayed through the Model, and an Apalache consumer selected by `expected/apalache.txt`. No
-liveness through Apalache; TLC owns progress claims.
+liveness through Apalache; TLC owns progress claims. Since 2026-10-21 it also checks symbolic Worlds: every World in a
+declared finite domain in one run per property (owner request, toward full Quint parity).
 [Spec](.flow/specs/fn-211-apalache-backend-for-umpire-in-rust.md).
 
 | Name | Status | What |
@@ -172,6 +173,7 @@ liveness through Apalache; TLC owns progress claims.
 | fn-211.2 | ⬜ todo | After .1: `umpire-apalache` in `umpire/backends/apalache/`, pinned release, bounded check per invariant, deterministic lifecycle (R2) |
 | fn-211.3 | ⬜ todo | After .2: ITF counterexamples decoded through typed source values and replayed through the Model (R3) |
 | fn-211.4 | ⬜ todo | After .3: Apalache consumer; Kettle's `apalache.txt` agreement golden (R4, R5) |
+| fn-211.5 | ⬜ todo | After .3: symbolic World constants via `ConstInit`, one run per property across the declared World domain, replayed under the decoded World (R6) |
 
 ### fn-228: Runner and Run: the one Go host loop over the Model, Propose on the protocol, and the Testpilot shrink (model, temporal)
 

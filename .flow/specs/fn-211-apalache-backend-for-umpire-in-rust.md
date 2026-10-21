@@ -5,6 +5,8 @@
 > user (2026-10-18): "should we also include the backends/apalache/ prototype already in fn-210?"
 > assistant: keep it out of fn-210 (no verdict evidence, the TLC slice already proves lifting and emission, Apalache needs type annotations and bounded agreement rules); file it as its own spec on top of the shared emitter once the verdict is in and the TLC slice is green.
 > user (2026-10-18): "let's file it now as a follow-up already"
+> assistant (2026-10-21): each run binds one concrete World, which TLC requires; Apalache can do more: with ConstInit it checks all values of a constant in a range in one symbolic run, rather than once per World. fn-211 as written binds the selected World concretely too.
+> user (2026-10-21): "well want that"
 
 ## Goal & Context
 
@@ -16,6 +18,7 @@ fn-210 builds Umpire in Rust (`temporal/model`) with one TLA+ backend, TLC, whic
 - Runner: a crate `umpire-apalache`, placed next to `umpire-tlc` (same folder convention as fn-210.8 chooses), runs a pinned Apalache release on the mise-pinned JDK (Java 21 or newer) from `model/build/`, never from the user's home directory. One `apalache-mc check --inv=<invariant> --length=<N>` per invariant, where N is the native checker's BFS depth plus one; a server process, if used, is started and stopped by the runner with no process left behind.
 - Counterexamples: Apalache's ITF JSON trace is decoded through the existing typed source Schema/Value contract into a path of states and actions, and replayed step by step through the Model's `checked_step` by the native checker; a path that is not a path of the Model is a witness-rejected result.
 - Agreement: for every fixture selected for Apalache, each invariant's bounded verdict must agree with the native checker within the bound: no violation where the checker verifies, and a replayable violation where the checker refutes within that depth. The result is a golden `expected/apalache.txt` (invariant, bound, verdict, agreement), produced by an Apalache consumer in the fixture runner and selected by the presence of that file.
+- Symbolic Worlds: for a fixture that opts in, declared World fields are emitted as TLA+ `CONSTANT`s constrained by a `ConstInit` predicate over each field's declared finite domain, so one Apalache run per invariant covers every World in that domain instead of one selected World. Counterexamples carry the chosen constant values; they are decoded into a concrete World and replayed natively under it.
 - Postconditions and progress: postconditions are emitted as action properties checked as invariants over a one-step history; `boils`-style progress claims are out of scope for Apalache (TLC covers liveness).
 
 ## API Contracts
@@ -39,13 +42,14 @@ fn-210 builds Umpire in Rust (`temporal/model`) with one TLA+ backend, TLC, whic
 - **R2:** `umpire-apalache` runs a pinned Apalache release on the mise JDK, one bounded check per invariant at the native depth plus one, with deterministic lifecycle and no files outside the workspace build directory. Errors: a missing or mis-versioned release fails before any test; a tool failure is `NotRun` with its message.
 - **R3:** An Apalache violation is decoded from ITF through typed Schema/Value decoding into a path and replayed through the Model's `checked_step`; a non-replayable trace is witness-rejected and fails the fixture. No error surface beyond that.
 - **R4:** Kettle's invariants and postconditions have an `apalache.txt` golden showing agreement within the bound, and Kettle's negative control (`!beeping`) shows a replayed violation within the bound. Errors: a disagreement is listed in the golden and fails.
+- **R6:** Symbolic World constants. A fixture opting into symbolic mode emits its declared World fields as constants with a `ConstInit` over their declared finite domains and checks each invariant and postcondition in one bounded Apalache run per property across all Worlds in that domain. A violation decodes the constant values into a concrete World, constructs it natively, and replays the trace through `checked_step` under that World; `apalache.txt` records the World domain and, for violations, the decoded World. NoViolation is confirmed natively for the fixture's selected Worlds, and for every World when the domain product is within the catalog limit; beyond that it is reported as bounded and symbolic, never as native agreement. Errors: a World field without a declared finite domain refuses symbolic mode naming the field; a counterexample World outside the domain, or one the Model cannot construct, is witness-rejected and fails the fixture.
 - **R5:** The Apalache consumer runs only for fixtures with `expected/apalache.txt` and only when backends are requested; the default gate is unchanged. No error surface.
 
 ## Boundaries
 
 - No liveness through Apalache; TLC owns progress claims.
 - No Quint; Apalache reads the emitted TLA+ directly.
-- No new authoring surface or Model annotations.
+- No new authoring surface or Model annotations, except that symbolic mode (R6) needs each World field's finite domain, declared with the existing one-range spelling from fn-227 (`Finite` types or `#[inputs(lo..=hi)]`), never a second bound table.
 - Does not start before fn-210 is done and its verdict is to continue in Rust.
 
 ## Backend implementation contracts
@@ -71,5 +75,7 @@ The supported-feature boundary was checked against the official Apalache feature
 Apalache was kept out of fn-210 because R24 decides fn-210 on the wasm slice alone, the TLC slice already proves lifting and emission, and Apalache adds type annotations and bounded agreement rules that TLC does not need. Filed on 2026-10-18 at the owner's request so the emitter is shaped with annotations in mind. It reuses fn-210's lifted tree, emitter, typed decoding and fixture runner, and selects fixtures by the presence of `apalache.txt`, so no Model is defined twice. The Scala-side Apalache spec (fn-206, deferred) explored an in-process route through Apalache's Scala libraries; from Rust the CLI or JSON-RPC server is the route, and a pinned release in the build directory replaces the earlier `~/.quint` download and port-kill lifecycle.
 
 2026-10-18, placement (owner): `umpire-apalache` lives at `model/umpire/backends/apalache/`, beside `umpire/backends/tlc/`.
+
+2026-10-21, owner: add symbolic World constants (R6) so Apalache checks every World in a declared domain in one run, as part of the goal to eventually meet Quint's capabilities fully. Open design point for planning: computed starts depend on the World, so Init over symbolic constants needs either source-lifted `#[starts]` bodies or a per-World start table built natively from values; choose in the task plan, keeping source meaning independent. Native replay needs a World built from decoded values, the inverse of fn-227.14's derived value export.
 
 2026-10-18: fn-210 R30's feedback-loop budget applies; R5 keeps Apalache out of the default gate for that reason.
