@@ -111,6 +111,17 @@ for name, module, termination, exit_code in [('trap', 'execution-trap.wat', 'tra
         first = successful_prefix['configuration']['incarnations'][0]
         first['limits']['output_bytes'] = 1024
         first['namespace']['limits']['output_bytes'] = 1024
+        complete_path = args.work / 'successful-complete-input.json'
+        complete_path.write_text(json.dumps(successful_prefix))
+        complete_root = args.work / 'successful-complete'
+        complete = json.loads(run('successful-complete-control', ['fixture-replay-cluster-input',
+            '--root', complete_root, '--input', complete_path]))
+        parity.authenticate(complete_root, complete)
+        complete_artifact = complete_root / complete['records'][0]['artifact']
+        complete_record = json.loads((complete_artifact / 'record.json').read_bytes())
+        assert complete_record['outcome'] == {'class': 'success', 'termination': 'exit', 'exit_code': 0, 'reason': ''}, complete_record['outcome']
+        complete_summary = json.loads((complete_artifact / 'evidence/cluster_summary').read_bytes())
+        assert all(item['termination'] == 'exit' and item['exit_code'] == 0 for item in complete_summary['incarnations']), complete_summary
         successful_prefix['configuration']['steps'] = configuration['steps'][:3]
         success_path = args.work / 'successful-open-prefix-input.json'
         success_path.write_text(json.dumps(successful_prefix))
